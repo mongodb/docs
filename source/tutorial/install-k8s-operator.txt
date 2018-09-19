@@ -19,18 +19,48 @@ cluster deployments that |onprem| manages.
 
 .. note::
 
-   This tutorial presumes some knowledge of |k8s|, but does link to relevant |k8s| documentation where possible. If you are unfamiliar with |k8s|, please review that documentation first.
+   This tutorial presumes some knowledge of |k8s|, but does link to
+   relevant |k8s| documentation where possible. If you are unfamiliar
+   with |k8s|, please review that documentation first.
 
 Prerequisites
 -------------
 
+|onprem| Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~
+
 To install the |k8s-op-full|, you must:
+
+1. Have or create an |onprem|
+   :doc:`Organization </tutorial/manage-organizations>`.
+
+   .. note:: 
+
+      Unlike earlier |k8s-op-short| versions, use the Operator to
+      create your |mms| project. The Operator adds additional metadata
+      to Projects that it creates to help manage the deployments.
+
+#. Have or generate a :ref:`Public API Key <generate-public-api-key>`.
+
+#. Add the |ipaddr| or |cidr| block of any hosts that serve the
+   |k8s-op-short| to the
+   :ref:`API Whitelist <configure-access-to-whitelisted-ops>`.
+
+.. _k8s-prerequisites:
+
+|k8s| Prerequisites
+~~~~~~~~~~~~~~~~~~~
 
 1. Have a |k8s| solution available to use.
 
-   If you need a |k8s| solution, see the |k8s| `documentation on picking the right solution <https://kubernetes.io/docs/setup/pick-right-solution/>`__.
+   If you need a |k8s| solution, see the |k8s|
+   `documentation on picking the right solution <https://kubernetes.io/docs/setup/pick-right-solution/>`__.
 
-2. Clone the `MongoDB Enterprise Kubernetes Operator repository <https://github.com/mongodb/mongodb-enterprise-kubernetes.git>`__.
+#. Clone the `MongoDB Enterprise Kubernetes Operator repository <https://github.com/mongodb/mongodb-enterprise-kubernetes>`__.
+
+   .. code-block:: sh
+
+      git clone https://github.com/mongodb/mongodb-enterprise-kubernetes.git
 
    .. note::
 
@@ -38,14 +68,21 @@ To install the |k8s-op-full|, you must:
       |k8s-op-short|. To learn how to install Helm, see its
       `documentation on GitHub <https://github.com/kubernetes/helm>`__
 
-3. Have or create an |onprem|
-   :doc:`Project </tutorial/manage-projects>`.
+#. Create a |k8s-ns| for your |k8s| deployment. By default, The
+   |k8s-op-short| uses the ``mongodb`` namespace. To simplify your
+   installation, consider creating a namespace labeled ``mongodb``
+   using the following kubectl_ command:
 
-4. Have or generate a :ref:`Public API Key <generate-public-api-key>`.
+   .. code-block:: sh
 
-5. Add the |ipaddr| or |cidr| block of any hosts that serve the
-   |k8s-op-short| to the
-   :ref:`API Whitelist <configure-access-to-whitelisted-ops>`.
+      kubectl create namespace mongodb
+
+   If you do not want to use the ``mongodb`` namespace, you can label
+   your namespace anything you like:
+
+   .. code-block:: sh
+
+      kubectl create namespace <namespaceName>
 
 Considerations
 --------------
@@ -54,6 +91,10 @@ Considerations
 ~~~~~~~~~~~~~~~~~~~
 
 |k8s-op-full| is compatible with |k8s| v1.9 or later.
+
+.. _kubectl: https://kubernetes.io/docs/reference/kubectl/kubectl/
+
+.. _default namespace: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/#viewing-namespaces
 
 .. _install-k8s-operator:
 
@@ -69,22 +110,59 @@ Install the |k8s-op-full|
 
          .. _install-k8s-operator-kubectl:
 
+         .. admonition:: Use the same namespace throughout
+            :class: note
+
+            The following examples assume that you created a |k8s-ns|
+            using the default |k8s-op-short| namespace of ``mongodb``.
+            If you specified a different label for your namespace when 
+            you :ref:`created it <k8s-prerequisites>`, change all
+            values for ``metadata.namespace`` to that namespace.
+            
+            To change the label for the namespace for the following
+            deployment to ``production``, edit all values for
+            ``metadata.namespace`` in ``mongodb-enterprise.yaml``:
+
+            .. code-block:: yaml
+               :emphasize-lines: 8, 16
+
+               ##---
+               # Source: mongodb-enterprise-operator/templates/serviceaccount.yaml
+               ---
+               apiVersion: v1
+               kind: ServiceAccount
+               metadata:
+                 name: mongodb-enterprise-operator
+                 namespace: production
+               ##---
+               # Source: mongodb-enterprise-operator/templates/operator.yaml
+               ---
+               apiVersion: apps/v1
+               kind: Deployment
+               metadata:
+                 name: mongodb-enterprise-operator
+                 namespace: production
+
+               ---
+               # Example truncated
+               ---
+               ...
+
          1. Change to the directory in which you cloned the repository.
 
-         2. Invoke the following `kubectl <https://kubernetes.io/docs/reference/kubectl/kubectl/>`__ command:
+         #. Install the |k8s-crds| for MongoDB deployments using the
+            following kubectl_ command:
 
             .. code-block:: sh
 
-               kubectl apply -f mongodb-enterprise.yaml -n <metadata.namespace>
+               kubectl apply -f crds.yaml
 
-            .. important::
-               *Always specify a namespace.* Add the ``-n`` option to
-               the ``kubectl apply`` command to specify a |k8s-ns|. If
-               you do not install the |k8s-op-short| with a |k8s-ns|,
-               the |k8s-op-short| runs in the ``default`` namespace.
-               The |k8s-op-short|, |k8s-configmap|, |k8s-secret|, and
-               MongoDB |k8s| resources should run in the same unique
-               namespace.
+         #. Install the |k8s-op-short| using the following
+            kubectl_ command:
+
+            .. code-block:: sh
+
+               kubectl apply -f mongodb-enterprise.yaml
 
      - id: helmonline
        name: Online using Helm
@@ -97,11 +175,23 @@ Install the |k8s-op-full|
 
          #. Change to the directory in which you cloned the repository.
 
-         #. Invoke the following Helm command:
+         #. Install the |k8s-op-short| using the following
+            ``helm`` command:
 
             .. code-block:: sh
 
-               helm install helm_chart/ --name mongodb-enterprise
+               helm install helm_chart/ \
+                 --name mongodb-enterprise
+
+            ``helm`` uses the ``mongodb`` namespace by default. Add
+            the ``--set namespace=<namespace>`` option to change
+            the namespace for the |k8s-op-short|:
+
+            .. code-block:: sh
+
+               helm install helm_chart/ \
+                 --name mongodb-enterprise \
+                 --set namespace=<namespaceName>
 
      - id: helmoffline
        name: Offline using Helm and Docker
@@ -137,9 +227,23 @@ Install the |k8s-op-full|
 
                      .. code-block:: sh
 
-                        helm install helm_chart/ --name mongodb-enterprise \
+                        helm install helm_chart/ \
+                          --name mongodb-enterprise \
                           --set database.pullPolicy=IfNotPresent \
                           --set operator.pullPolicy=IfNotPresent
+
+                     ``helm`` uses the ``mongodb`` namespace by
+                     default. Add the ``--set namespace=<namespace>``
+                     option to change the namespace for the
+                     |k8s-op-short|:
+
+                     .. code-block:: sh
+
+                        helm install helm_chart/ \
+                          --name mongodb-enterprise \
+                          --set database.pullPolicy=IfNotPresent \
+                          --set operator.pullPolicy=IfNotPresent \
+                          --set namespace=<namespaceName>
 
               - id: host
                 name: Another Host
@@ -175,14 +279,28 @@ Install the |k8s-op-full|
 
                      .. code-block:: sh
 
-                        helm install helm_chart/ --name mongodb-enterprise \
+                        helm install helm_chart/ \
+                          --name mongodb-enterprise \
                           --set database.pullPolicy=IfNotPresent \
                           --set operator.pullPolicy=IfNotPresent
 
+                     ``helm`` uses the ``mongodb`` namespace by
+                     default. Add the ``--set namespace=<namespace>``
+                     option to change the namespace for the
+                     |k8s-op-short|:
+
+                     .. code-block:: sh
+
+                        helm install helm_chart/ \
+                          --name mongodb-enterprise \
+                          --set database.pullPolicy=IfNotPresent \
+                          --set operator.pullPolicy=IfNotPresent \
+                          --set namespace=<namespaceName>
+
 .. _create-k8s-project:
 
-Link your |onprem| Project to a |k8s| |k8s-configmap|
------------------------------------------------------
+Create your |onprem| Project and |k8s| |k8s-configmap|
+------------------------------------------------------
 
 The |k8s-op-full| uses a |k8s| |k8s-configmap| to link to your
 |onprem| :doc:`Project </tutorial/manage-projects>`. To create a
@@ -229,9 +347,8 @@ the ConfigMap:
           a subset of all |k8s-objs|. The default value is ``mongodb``.
 
           .. important::
-             The |k8s-op-short|, |k8s-configmap|, |k8s-secret|, and
-             MongoDB |k8s| resources *must* be created in the same
-             |k8s-ns|.
+             The |k8s-op-short|, |k8s-secret|, and |k8s-mdbrsc|\s
+             *must* be created in the same |k8s-ns|.
 
           .. seealso::
 
@@ -280,8 +397,8 @@ the ConfigMap:
              that contains a Project also called ``projectName``.
 
              You must have the :authrole:`Organization Project Creator`
-             role to create a new project *within an existing
-             organization*.
+             role to create a new project 
+             *within an existing organization*.
 
         - | ``https://ops.example.com:8080/``
           | ``v2#/org/<orgId>/projects``
@@ -299,7 +416,7 @@ the ConfigMap:
 
    .. code-block:: sh
 
-      kubectl apply -f <myConfigMap.yaml> -n <metadata.namespace>
+      kubectl apply -f <myConfigMap.yaml>
 
    .. important::
 
@@ -312,6 +429,15 @@ the ConfigMap:
    .. code-block:: sh
 
       kubectl describe configmaps <myConfigMap> -n <metadata.namespace>
+
+   .. admonition:: *Always include the namespace option with* ``kubectl``
+         :class: important
+
+         kubectl_ defaults to an empty namespace if you do not specify
+         the ``-n`` option, resulting in deployment failures. You must
+         specify the value of the ``<metadata.namespace>`` field.
+         The |k8s-op-short|, |k8s-secret|, and |k8s-mdbrsc|\s should
+         run in the same unique namespace.
 
    This command returns a ConfigMap description in the shell:
 
@@ -348,8 +474,9 @@ To create your |k8s| secret:
 
    .. code-block:: sh
 
-      kubectl -n <metadata.namespace> create secret generic \
-        <myCredentials> --from-literal="user=<first.last@example.com>" \
+      kubectl -n <metadata.namespace> \
+        create secret generic <myCredentials> \
+        --from-literal="user=<first.last@example.com>" \
         --from-literal="publicApiKey=<my-public-api-key>"
 
    .. note::
