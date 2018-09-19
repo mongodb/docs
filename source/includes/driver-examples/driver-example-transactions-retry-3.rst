@@ -67,7 +67,7 @@
             }
 
             // Start a session.
-            session = db.getMongo().startSession( { mode: "primary" } );
+            session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
 
             try{
                runTransactionWithRetry(updateEmployeeInfo, session);
