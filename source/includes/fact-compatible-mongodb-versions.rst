@@ -1,5 +1,5 @@
-For the following |onprem| release series, you may run its 
-:term:`backing databases` on any of the following MongoDB versions.
+For the following |onprem| release series, you may run its
+:term:`backing databases` on any of the following MongoDB versions:
 
 .. list-table::
    :header-rows: 1
@@ -17,26 +17,26 @@ For the following |onprem| release series, you may run its
      - 2.6.6
      - 3.0.6
      - 3.2.0
-     - 
      -
-     - 
+     -
+     -
 
    * - 3.4
-     - 
+     -
      - 3.0.8
      - 3.2.0
      - 3.4.0
      -
-     - 
+     -
 
    * - 3.6
-     - 
-     - 
+     -
+     -
      - 3.2.0
      - 3.4.0
      - 3.6.0
-     - 
-       
+     -
+
    * - 4.0
      -
      -
@@ -45,8 +45,20 @@ For the following |onprem| release series, you may run its
      - 3.6.0
      - 4.0
 
-For more information on MongoDB versioning, see 
-:ref:`release-version-numbers` in the MongoDB Manual.
+   * - 4.2
+     -
+     -
+     -
+     - 3.4.0
+     - 3.6.0
+     - 4.0
+
+
+Each version listed spans the full release series starting from the
+listed version (i.e., a minimum MongoDB 2.6 version of 2.6.6 implies
+compatibility with MongoDB versions 2.6.6 to 2.6.12). For more
+information on MongoDB versioning, see :ref:`release-version-numbers`
+in the MongoDB Manual.
 
 .. important::
 
