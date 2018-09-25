@@ -1,7 +1,6 @@
 .. important::
 
-   MMAPv1 is unsupported on big-endian and certain bi-endian
-   architectures. This includes the IBM z/Architecture (``s390x``) and
-   PowerPC (``ppc64le``) platforms. MongoDB returns an error if you
-   set MMAPv1 as the storage engine on ``s390x`` and ``ppc64le``
-   platforms.
+   :doc:`MMAPv1 </core/mmapv1>` is unsupported on all big-endian
+   architectures like the IBM z/Architecture (``s390x``) and the
+   PowerPC (``ppc64le``) architecture. MongoDB returns an error when starting a :binary:`~bin.mongod` using MMAPv1 on an unsupported architecture.
+
