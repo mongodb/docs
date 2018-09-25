@@ -8,7 +8,7 @@ pre: |
 
    .. code-block:: sh
 
-      http://<OpsManagerHost>/monitor/health
+      http://<OpsManagerHost>:<OpsManagerPort>/monitor/health
 
    |onprem| responds with one of two |http| codes:
 
@@ -39,100 +39,104 @@ stepnum: 2
 level: 4
 ref: update-load-balanced-url
 content: |
-  a. In |mms|, click :guilabel:`Admin`, then the :guilabel:`General` tab, and
-     then :guilabel:`Ops Manager Config`.
+  a. In |mms|, click :guilabel:`Admin`, then the :guilabel:`General`
+     tab, and then :guilabel:`Ops Manager Config`.
 
-  b. Configure the :setting:`URL to Access Ops Manager` property to point to
-     the load balancer URL.
+  b. Set the :setting:`URL to Access Ops Manager` property to
+     point to the load balancer URL.
 
-  c. Set the :setting:`Load Balancer Remote IP Header` property to the name of
-     the HTTP header field the load balancer uses to identify the client's IP
-     address.
+  c. Set the :setting:`Load Balancer Remote IP Header` property to the
+     name of the |http| header field the load balancer uses to
+     identify the client's IP address.
 ---
-title: "Update each |application| server with the replication hosts information."
+title: "Update each |application| host with the replication hosts information."
 stepnum: 3
 level: 4
 ref: update-replication-hosts
-pre: |
-  On each server, edit the ``conf-mms.properties`` file to
-  set the :setting:`mongo.mongoUri` property to the :manual:`connection string
-  </reference/connection-string/>` of the :ref:`mms-application-database`. You
-  *must* specify at least **3** hosts in the :setting:`mongo.mongoUri`
-  connection string. For example:
-action:
-  language: ini
-  code: |
-    mongo.mongoUri=mongodb://<mms0.example.net>:<27017>,<mms1.example.net>:<27017>,<mms2.example.net>:<27017>/?maxPoolSize=100
+content: |
+  On each host, edit the ``conf-mms.properties`` file to
+  set the :setting:`mongo.mongoUri` property to the
+  :manual:`connection string </reference/connection-string/>` of the
+  :ref:`mms-application-database`. You *must* specify at least **3**
+  hosts in the :setting:`mongo.mongoUri` connection string.
+
+  .. code-block:: ini
+
+     mongo.mongoUri=mongodb://<mms0.example.net>:<27017>,<mms1.example.net>:<27017>,<mms2.example.net>:<27017>/?maxPoolSize=100
 ---
-title: "On each server, manually update the :ref:`mmsBaseUrl <mmsBaseUrl>`
-       property in the Automation Agent configuration file to point to the
-       load balancer."
+title: "Change the |onprem| |url| to the Load Balancer |url| in all Agent configuration files."
 stepnum: 4
 level: 4
 ref: update-centralUrl-automation
-action:
-  language: json
-  code: |
-     mmsBaseUrl=<LOAD-BALANCER-URL>:<PORT>
 content: |
 
-   See :doc:`Automation Agent Configuration </reference/automation-agent>`
-   for the name and location of the configuration file for your platform.
----
-title: "On each server, manually update the :ref:`mmsBaseUrl <mmsBaseUrl>`
-       property in the configuration file for the Monitoring Agent to point
-       to the load balancer."
-stepnum: 5
-level: 4
-ref: update-centralUrl-monitoring
-action:
-  language: json
-  code: |
-     mmsBaseUrl=<LOAD-BALANCER-URL>:<PORT>
-content: |
+  Complete all of the following steps on each |onprem| host:
 
-   .. note::
+  a. Edit the Automation Agent configuration file.
 
-      Perform this step only for Monitoring Agents that are not managed
-      by the Automation Agent.
+     The location of the Automation Agent configuration file depends on
+     your platform:
 
-   See :doc:`Monitoring Agent Configuration </reference/monitoring-agent>`
-   for the name and location of the configuration file for your platform.
----
-title: "On each server, manually update the ``mothership`` property
-       in the configuration file for the Backup Agent to point
-       to the load balancer."
-level: 4
-ref: update-centralUrl-backup
-stepnum: 6
-action:
-  language: json
-  code: |
-     mothership=<LOAD-BALANCER-URL>:<PORT>
-content: |
+     .. include:: /includes/list-table-automation-agent-conf-file-locations.rst
 
-   .. note::
+  #. Change the :asetting:`mmsBaseUrl <mmsBaseUrl>` property to point
+     to the load balancer.
 
-      Perform this step only for Backup Agents that are not managed by the
-      Automation Agent. 
+     .. code-block:: ini
 
-   See :doc:`Backup Agent Configuration </reference/backup-agent>`
-   for the name and location of the configuration file for your platform.
+        mmsBaseUrl=<LOAD-BALANCER-URL>:<PORT>
+
+  .. admonition:: Optional Steps when Automation does not manage Agents
+     :class: important
+
+     Perform the following steps only when Automation does not manage
+     the Monitoring and Backup Agents.
+
+     c. Edit the Monitoring Agent configuration file.
+
+        The location of the Monitoring Agent configuration file
+        depends on your platform:
+
+        .. include:: /includes/list-table-monitoring-agent-conf-file-locations.rst
+
+     #. Change the :msetting:`mmsBaseUrl <mmsBaseUrl>` property to
+        point to the load balancer.
+
+        .. code-block:: ini
+
+           mmsBaseUrl=<LOAD-BALANCER-URL>:<PORT>
+
+     #. Edit the Backup Agent configuration file.
+
+        The location of the Backup Agent configuration file
+        depends on your platform:
+
+        .. include:: /includes/list-table-backup-agent-conf-file-locations.rst
+
+     #. Change the :bsetting:`mothership` property to
+        point to the load balancer.
+
+        .. code-block:: ini
+
+           mothership=<LOAD-BALANCER-URL>:<PORT>
+
 ---
 title: "Start one of the |application-s|."
-stepnum: 7
+stepnum: 5
 level: 4
 ref: start-app
-pre: |
-  For example, if you installed the |application| with an
-  ``rpm`` or ``deb`` package, issue the following:
-action:
-  language: sh
-  code: |
-    service mongodb-mms start
+content: |
+  .. example::
+
+     If you installed the |application| with an ``rpm`` or ``deb``
+     package, issue the following:
+
+     .. code-block:: sh
+
+        service mongodb-mms start
 ---
-title: "Copy the ``gen.key`` file."
-stepnum: 8
+title: "Copy the ``gen.key`` file to each |onprem| host."
+stepnum: 6
 ref: copy-gen-key
 level: 4
 content: |
@@ -140,8 +144,8 @@ content: |
   installations from a package manager and in ``${HOME}/.mongodb-mms/``
   for installations from an archive.
 
-  Copy the ``gen.key`` file from the running |application|'s server to the
-  appropriate directory on the other |application| servers.
+  Copy the ``gen.key`` file from the running |application|'s host to
+  the appropriate directory on the other |application| hosts.
 ---
 title: "Start the remaining |application-s|."
 stepnum: 9

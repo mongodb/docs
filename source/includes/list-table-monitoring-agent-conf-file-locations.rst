@@ -1,7 +1,3 @@
-
-The location of the Automation Agent configuration file depends on
-your platform:
-
 .. list-table::
    :widths: 30 20 50
    :header-rows: 1
@@ -10,22 +6,22 @@ your platform:
      
      - Installation Method
        
-     - Default Config File Path
+     - Config File Path
 
    * - RHEL, CentOS, Amazon Linux and Ubuntu
 
      - package manager
 
-     - ``/etc/mongodb-mms/automation-agent.config``
+     - ``/etc/mongodb-mms/monitoring-agent.config``
 
    * - macOS or other Linux distributions
 
      - ``tar``
      
-     - ``/path/to/install/local.config``
+     - ``<install-directory>/monitoring-agent.config``
 
    * - Windows
 
      - ``msi``
      
-     - ``C:\MMSData\Automation\automation-agent.config``
+     - ``C:\MMSData\Monitoring\monitoring-agent.config``
