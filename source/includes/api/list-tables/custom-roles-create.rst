@@ -82,17 +82,4 @@
      - string
      - Name of the custom role.
 
-       .. important::
-
-          You cannot specify a role name which meets any of the
-          following criteria:
-
-          - Is a name already used by an existing custom role in the
-            project
-
-          - Is a name of any of the :manual:`built-in roles
-            </reference/built-in-roles/>`
-
-          - Is ``atlasAdmin``
-
-          - Starts with ``xen-``
+       .. include:: /includes/fact-custom-role-name-restrictions.rst
