@@ -18,12 +18,41 @@ Replica sets can have members with different storage engines. As such,
 you can update members to use the WiredTiger storage engine in a
 rolling fashion.
 
+.. _rs-mmapv1-wt-3.6-psa:
+
+MongoDB 3.6 and PSA 3-member Architecture
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 3.6, :readconcern:`"majority"` read concern,
+available for WiredTiger, is enabled by default. However, for **MongoDB
+3.6.1-3.6.x**, if you have a three-member replica set with a
+primary-secondary-arbiter (PSA) architecture, you can disable
+:readconcern:`"majority"` read concern. Disabling
+:readconcern:`"majority"` for a three member PSA architecture avoids
+possible cache-pressure build up.
+
+The procedure below disables :readconcern:`"majority"` read concern for
+MongoDB 3.6.1-3.6.x PSA architecture by including
+:option:`--enableMajorityReadConcern false <mongod
+--enableMajorityReadConcern>`. If you are running a MongoDB 3.6.0 PSA
+architecture, first upgrade to the latest 3.6 version in order to
+disable this read concern.
+
+.. note::
+
+   Disabling :readconcern:`"majority"` read concern disables support
+   for :doc:`/changeStreams`.
+
+For more information on PSA architecture and read concern
+:readconcern:`"majority"`, see :ref:`3.6-disable-read-concern-majority`.
+
 MongoDB 3.0 or Greater
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. container:: admonition
 
    .. include:: /includes/fact-wiredtiger-minimum-version.rst
+
 
 Default Bind to Localhost
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,8 +68,8 @@ With the WiredTiger storage engine, using XFS for data bearing nodes is
 recommended on Linux. For more information, see
 :ref:`prod-notes-linux-file-system`.
 
-Procedures
-----------
+Procedure
+---------
 
 To update a member to WiredTiger, the procedure removes a member's
 data, starts :binary:`~bin.mongod` with WiredTiger, and performs an
@@ -48,23 +77,28 @@ data, starts :binary:`~bin.mongod` with WiredTiger, and performs an
 
 .. tip::
 
-   To update all members of the replica set to use WiredTiger, update
-   the members in a rolling manner. That is, update, one by one, all
-   :term:`secondary` members first. Then, once all the secondary
-   members have been updated, :method:`step down <rs.stepDown()>` the
-   :term:`primary`, and update that stepped-down member.
+   - To update all members of the replica set to use WiredTiger, update
+     the members in a rolling manner. That is, update, one by one, all
+     :term:`secondary` members first. Then, once all the secondary
+     members have been updated, :method:`step down <rs.stepDown()>` the
+     :term:`primary`, and update that stepped-down member.
 
-Update a secondary member.
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+   - If you are running a MongoDB 3.6.0 three-member PSA architecture
+     and wish to disable :readconcern:`"majority"` read concern,
+     upgrade first to the latest 3.6 version.
+   
+A. Update secondary members.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container:: admonition
+.. container::
 
    .. include:: /includes/steps/change-replica-set-wiredtiger.rst
 
 To update another secondary, repeat the previous steps.
 
-Update the primary.
-~~~~~~~~~~~~~~~~~~~
+B. Step down the primary.
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. important::
 
@@ -81,6 +115,9 @@ To update the primary, :method:`step down <rs.stepDown()>` the
 
       rs.stepDown()
 
+C. Update the stepped down primary.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 When the primary has stepped down and become a secondary, update the
 secondary to use WiredTiger as before:
 
@@ -88,3 +125,5 @@ secondary to use WiredTiger as before:
 
    .. include:: /includes/steps/change-replica-set-wiredtiger.rst
 
+
+.. |seemore| replace:: See :ref:`rs-mmapv1-wt-3.6-psa`.
