@@ -68,6 +68,8 @@
        - ``REPLICASET`` - :term:`replica set`
        - ``SHARDED`` - :term:`sharded cluster`
        - ``GEOSHARDED`` - Global Cluster
+         
+       .. include:: /includes/fact-conversion-sharded-clusters.rst
 
    * - ``encryptionAtRestProvider``
      - string
