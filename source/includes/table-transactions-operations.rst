@@ -20,8 +20,15 @@
    * - :method:`db.collection.countDocuments()` 
      -
 
-     - Uses the :pipeline:`$group` aggregation stage with a
-       :group:`$sum` expression to perform a count.
+     - Excluding the following query operator expressions:
+     
+       - :query:`$where`
+       - :query:`$near`
+       - :query:`$nearSphere`
+
+       The method uses the :pipeline:`$match` aggregation stage for the
+       query and :pipeline:`$group` aggregation stage with a
+       :group:`$sum` expression to perform the count.
 
    * - :method:`db.collection.distinct()`
      - :dbcommand:`distinct`
