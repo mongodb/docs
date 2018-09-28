@@ -1,6 +1,6 @@
 For a given region in an |service| project with multi-region clusters
-or clusters in multiple regions, the total number of MongoDB nodes on
-all *other* regions in that project cannot exceed 40. This limit applies
+or clusters in multiple regions, you cannot have more than 40 MongoDB
+nodes on all other regions in that project. This limit applies
 across all cloud service providers.
 
 For example, if an |service| project has 20 nodes in ``Region A`` and 20 nodes
