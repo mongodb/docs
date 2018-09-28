@@ -61,7 +61,11 @@ extlinks = {
     'v3.0': ('https://docs.mongodb.com/v3.0%s', ''),
     'v3.2': ('https://docs.mongodb.com/v3.2%s', ''),
     'v3.4': ('https://docs.mongodb.com/v3.4%s', ''),
-    'bic': ('https://docs.mongodb.com/bi-connector/current%s','')
+    'v3.6': ('https://docs.mongodb.com/v3.6%s', ''),
+    'v4.0': ('https://docs.mongodb.com/v4.0%s', ''),
+    'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
+    'product': ('http://www.mongodb.com/products/%s?jmp=docs','')
+    'dl': ('http://www.mongodb.com/download-center#%s?jmp=docs','')
 }
 
 languages = [
