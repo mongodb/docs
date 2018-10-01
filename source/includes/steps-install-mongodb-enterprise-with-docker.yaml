@@ -1,0 +1,72 @@
+title: Download the Docker build files for MongoDB Enterprise.
+stepnum: 1
+level: 5
+ref: download
+pre: |
+  After you have installed
+  `Docker <https://docs.docker.com/install/>`__ and set up a
+  `Docker Hub <https://hub.docker.com/>`__ account, download
+  the build files from the
+  `Docker Hub mongo project <https://github.com/docker-library/mongo>`__
+  with the following commands. Set ``MONGODB_VERSION`` to your major
+  version of choice.
+
+  .. admonition:: Docker Hub Mongo Project
+     :class: note
+
+     The Docker Hub mongo project is *not* maintained by MongoDB. Any support
+     requests should go to `Docker <https://github.com/docker-library/mongo>`__.
+
+  .. code-block:: sh
+
+     export MONGODB_VERSION=4.0
+     curl -O --remote-name-all https://raw.githubusercontent.com/docker-library/mongo/master/$MONGODB_VERSION/{Dockerfile,docker-entrypoint.sh}
+
+---
+title: Build the Docker container.
+stepnum: 2
+level: 5
+ref: docker-container
+pre: |
+  Use the downloaded build files to create a Docker container image wrapped around
+  MongoDB Enterprise. Set ``DOCKER_USERNAME`` to your Docker Hub username.
+
+  .. code-block:: sh
+
+     export DOCKER_USERNAME=username
+     chmod 755 ./docker-entrypoint.sh
+     docker build --build-arg MONGO_PACKAGE=mongodb-enterprise --build-arg MONGO_REPO=repo.mongodb.com -t $DOCKER_USERNAME/mongo-enterprise:$MONGODB_VERSION .
+
+---
+title: Verify the build results.
+stepnum: 3
+level: 5
+ref: verify-build
+pre: |
+  Verify that the build was created.
+
+  .. code-block:: sh
+
+     docker images $DOCKER_USERNAME/mongo-enterprise:$MONGODB_VERSION
+
+  The output should resemble this:
+
+  .. code-block:: sh
+
+     REPOSITORY                   TAG           IMAGE ID            CREATED             SIZE
+     username/mongo-enterprise    4.0           397f0a16010a        31 seconds ago      465MB
+title: Test your image.
+stepnum: 3
+level: 5
+ref: test-build
+pre: |
+  The following commands run mongod locally in a Docker container and check
+  the version.
+
+  .. code-block:: sh
+
+     docker run --name mymongo -itd $DOCKER_USERNAME/mongo-enterprise:$MONGODB_VERSION
+     docker exec -it mymongo /usr/bin/mongo --eval "db.version()"
+
+  This should output the shell and server version for MongoDB.
+...
