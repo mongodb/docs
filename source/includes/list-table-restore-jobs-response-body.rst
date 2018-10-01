@@ -35,9 +35,9 @@
          files, see :ref:`restore-cloud-provider-snapshot-download`.
 
    * - ``deliveryUrl``
-     - string
-     - URL to the ``.tar.gz`` of the snapshot for manual download. 
-       Only visible if ``deliveryType`` is ``download``.
+     - array
+     - One or more URLs for the compressed snapshot files for manual
+       download. Only visible if ``deliveryType`` is ``download``.
 
    * - ``expired``
      - boolean
