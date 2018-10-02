@@ -294,3 +294,7 @@
           :doc:`Alerts resource </reference/api/alerts>`. This option
           is available only if you have configured Webhook settings on
           the :ref:`Project Settings <group-settings-page>` page.
+
+          To ensure your Webhooks work,
+          :ref:`configure your firewall <alerts-webhook-ips>` to
+          permit the Webhooks to access |mms|.
