@@ -25,8 +25,8 @@ exports.nightmare_props = {
     show: true,
     typeInterval: 20,
     height: 1200,
-    width: 1200,
+    width: 1000,
     webPreferences: {
-      zoomFactor: 0.7
+      zoomFactor: 0.8
     }
 }
