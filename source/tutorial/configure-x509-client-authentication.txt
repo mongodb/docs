@@ -10,22 +10,24 @@ Use x.509 Certificates to Authenticate Clients
    :depth: 1
    :class: singlecol
 
-MongoDB supports x.509 certificate authentication for use with a secure
-:doc:`TLS/SSL connection </tutorial/configure-ssl>`. The x.509 client
-authentication allows :ref:`clients to authenticate to servers with
-certificates <x509-client-authentication>` rather than with a username and
-password.
+.. |binary| replace:: MongoDB
 
 .. note::
 
    .. include:: /includes/fact-tls-1.0.rst
 
-.. |binary| replace:: MongoDB
+MongoDB supports x.509 certificate authentication for use with a secure
+:doc:`TLS/SSL connection </tutorial/configure-ssl>`. The x.509 client
+authentication allows :ref:`clients to authenticate to servers with
+certificates <x509-client-authentication>` rather than with a username
+and password. The following tutorial outlines the steps to use x.509
+for client authentication.
 
+.. seealso::
 
-To use x.509 authentication for the internal authentication of replica
-set/sharded cluster members, see
-:doc:`configure-x509-member-authentication`.
+   To use x.509 authentication for the internal authentication of
+   replica set/sharded cluster members, see
+   :doc:`configure-x509-member-authentication`.
 
 Prerequisites
 -------------
@@ -40,6 +42,8 @@ Certificate Authority
 
 .. include:: /includes/fact-ssl-certificate-authorities.rst
 
+.. include:: /includes/warning-x509-requires-sslCAfile.rst
+
 .. _x509-client-authentication:
 
 Client x.509 Certificate
@@ -53,67 +57,106 @@ Client x.509 Certificate
 
 .. include:: /includes/extracts/x509-certificate-client.rst
 
+MongoDB Deployment Configured for x.509
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   tabs:
+
+     - id: cmdline
+       name: Command-Options
+       content: |
+
+          You can configure :binary:`~bin.mongod`/:binary:`~bin.mongos`
+          for x.509 authentication from the command-line. For example,
+          if running a replica set, each member would include the
+          following options:
+
+          .. code-block:: sh
+
+             mongod --clusterAuthMode x509 --sslMode requireSSL --sslPEMKeyFile <path to TLS/SSL certificate and key PEM file> --sslCAFile <path to root CA PEM file> --replSet <name> --bind_ip <hostnames>
+
+          .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+          The x.509 configuration requires:
+
+          .. list-table::
+             :header-rows: 1
+             :widths: 25 75
+
+             * - Option
+               - Notes
+
+             * - :option:`--clusterAuthMode <mongod --clusterAuthMode>`.
+
+               - If the deployment is a replica set or a sharded cluster, specify ``x509`` for all members of the replica set/sharded cluter.
+
+                 Omit for standalone.
+
+             * - :option:`--sslMode <mongod --sslMode>`
+
+               - Specify ``requireSSL``.
+
+             * - :option:`--sslPEMKeyFile <mongo --sslPEMKeyFile>`
+               - The instance's x.509 certificate.
+
+             * - :option:`--sslCAFile <mongo --sslCAFile>`
+
+               - Certificate Authority file to verify the certificate
+                 presented to the instance.
+
+     - id: cfg
+       name: Configuration File
+       content: |
+
+          You can configure :binary:`~bin.mongod`/:binary:`~bin.mongos`
+          for x.509 authentication in the :doc:`configuration file
+          </reference/configuration-options>`. For example, if running
+          a replica set, each member would include the following
+          options:
+
+          .. code-block:: yaml
+
+             security:
+                clusterAuthMode: x509
+             net:
+                ssl:
+                   mode: requireSSL
+                   PEMKeyFile: <path to TLS/SSL certificate and key PEM file>
+                   CAFile: <path to root CA PEM file>
+
+          .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
+          The x.509 configuration requires:
+
+          .. list-table::
+             :header-rows: 1
+             :widths: 25 75
+
+             * - Option
+               - Notes
+
+             * - :setting:`security.clusterAuthMode`
+
+               - If the deployment is a replica set or a sharded cluster, specify ``x509`` for all members of the replica set/sharded cluter.
+
+                 Omit for standalone.
+
+             * - :setting:`net.ssl.mode`
+
+               - Specify ``requireSSL``.
+
+             * - :setting:`net.ssl.PEMKeyFile`
+               - The instance's x.509 certificate.
+
+             * - :setting:`net.ssl.CAFile`
+
+               - Certificate Authority file to verify the certificate
+                 presented to the instance.
+
 Procedures
 ----------
-
-Configure Replica Set/Sharded Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Outside of rolling upgrade procedures, every component of a :term:`replica
-set` or :term:`sharded cluster` should use the same
-``--clusterAuthMode`` setting to ensure it can securely connect to all
-other components in the deployment:
-
-- For :term:`replica set` deployments, this includes all
-  :binary:`~bin.mongod` members of the replica set.
-
-- For :term:`sharded cluster` deployments, this includes all
-  :binary:`~bin.mongod` and :binary:`~bin.mongos` instances.
-
-.. note::
-
-   If you are configuring a standalone :binary:`~bin.mongod`, omit the
-   ``--clusterAuthMode`` option.
-
-.. note::
-
-   .. include:: /includes/extracts/default-bind-ip-security-command-line.rst
-
-Use Command-line Options
-````````````````````````
-
-You can configure the MongoDB server from the command line, e.g.:
-
-.. code-block:: sh
-
-   mongod --clusterAuthMode x509 --sslMode requireSSL --sslPEMKeyFile <path to TLS/SSL certificate and key PEM file> --sslCAFile <path to root CA PEM file>
-
-.. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
-
-.. include:: /includes/warning-x509-requires-sslCAfile.rst
-
-
-Use Configuration File
-``````````````````````
-
-You may also specify these options in the :doc:`configuration file
-</reference/configuration-options>`:
-
-.. code-block:: yaml
-
-   security:
-      clusterAuthMode: x509
-   net:
-      ssl:
-         mode: requireSSL
-         PEMKeyFile: <path to TLS/SSL certificate and key PEM file>
-         CAFile: <path to root CA PEM file>
-
-.. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
-
-For v2.4 older configuration file format, see the :v2.4:`2.4 Manual
-</reference/configuration-options>`.
 
 .. _addX509SubjectUser:
 
@@ -154,10 +197,9 @@ client certificate to authenticate more than one MongoDB user.
 #. Add the ``RFC2253`` compliant value of the ``subject`` as a user.
    Omit spaces as needed.
 
-   For example, in the :binary:`~bin.mongo` shell, to add the user with
-   both the ``readWrite`` role in the ``test`` database and the
-   ``userAdminAnyDatabase`` role which is defined only in the ``admin``
-   database:
+   For example, the following adds a user and grants the user
+   :authrole:`readWrite` role in the ``test`` database and the
+   :authrole:`userAdminAnyDatabase` role:
 
    .. code-block:: javascript
 
@@ -165,24 +207,12 @@ client certificate to authenticate more than one MongoDB user.
         {
           createUser: "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry",
           roles: [
-                   { role: 'readWrite', db: 'test' },
-                   { role: 'userAdminAnyDatabase', db: 'admin' }
-                 ],
+               { role: "readWrite", db: "test" },
+               { role: "userAdminAnyDatabase", db: "admin" }
+          ],
           writeConcern: { w: "majority" , wtimeout: 5000 }
         }
       )
-
-   In the above example, to add the user with the ``readWrite`` role in
-   the ``test`` database, the role specification document specified
-   ``'test'`` in the ``db`` field. To add ``userAdminAnyDatabase``
-   role for the user, the above example specified ``'admin'`` in the
-   ``db`` field.
-
-   .. note::
-      Some roles are defined only in the ``admin`` database, including:
-      ``clusterAdmin``, ``readAnyDatabase``, ``readWriteAnyDatabase``,
-      ``dbAdminAnyDatabase``, and ``userAdminAnyDatabase``. To add a
-      user with these roles, specify ``'admin'`` in the ``db``.
 
 See :doc:`/tutorial/manage-users-and-roles` for details on adding a user
 with roles.
@@ -192,34 +222,101 @@ with roles.
 Authenticate with a x.509 Certificate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To authenticate with a client certificate, you must first add a MongoDB
-user that corresponds to the client certificate. See
-:ref:`addX509SubjectUser`.
+.. container::
 
-To authenticate, use the :method:`db.auth()` method in the
-``$external`` database, specifying ``"MONGODB-X509"`` for the
-``mechanism`` field, and the :ref:`user that corresponds to the client
-certificate <addX509SubjectUser>` for the ``user`` field.
+   After you have :ref:`added the x.509 client certificate subject as a
+   corresponding MongoDB user <addX509SubjectUser>`, you can
+   authenticate with the client certificate.
 
-For example, if using the :binary:`~bin.mongo` shell,
+   .. tabs::
 
-1. Connect :binary:`~bin.mongo` shell to the :binary:`~bin.mongod` set up for
-   TLS/SSL:
+      tabs:
 
-   .. code-block:: sh
+         - id: connect
+           name: Connect with Authentication
+           content: |
 
-      mongo --ssl --sslPEMKeyFile <path to CA signed client PEM file> --sslCAFile <path to root CA PEM file>
+              To authenticate during connection:
 
-#. To perform the authentication, use the :method:`db.auth()` method in
-   the ``$external`` database. For the ``mechanism`` field, specify
-   ``"MONGODB-X509"``, and for the ``user`` field, specify the user, or
-   the ``subject``, that corresponds to the client certificate.
+              .. code-block:: sh
 
-   .. code-block:: javascript
+                 mongo --ssl --sslPEMKeyFile <path to CA signed client PEM file> --sslCAFile <path to root CA PEM file>  –-authenticationDatabase '$external' -–authenticationMechanism MONGODB-X509
 
-      db.getSiblingDB("$external").auth(
-        {
-          mechanism: "MONGODB-X509",
-          user: "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry"
-        }
-      )
+              .. list-table::
+                 :header-rows: 1
+                 :widths: 30 70
+
+                 * - Option
+                   - Notes
+
+                 * - :option:`--ssl <mongo --ssl>`
+                   -
+
+                 * - :option:`--sslPEMKeyFile <mongo --sslPEMKeyFile>`
+                   - Client's x.509 file.
+
+                 * - :option:`--sslCAFile <mongo --sslCAFile>`
+
+                   - Certificate Authority file to verify the
+                     certificate presented by
+                     :binary:`~bin.mongod`/:binary:`~bin.mongos`
+                     instance.
+
+                 * - :option:`--authenticationDatabase <mongo --authenticationDatabase>`
+                   - Specify ``'$external'``.
+
+                 * - :option:`--authenticationMechanism <mongo --authenticationMechanism>`
+                   - Specify ``MONGODB-X509``.
+
+         - id: authafter
+           name: Authenticate after Connection
+           content: |
+
+               You can connect without authentication and use the
+               :method:`db.auth()` method to authenticate after
+               connection.
+
+               For example, if using the :binary:`~bin.mongo` shell,
+
+               1. Connect :binary:`~bin.mongo` shell to the :binary:`~bin.mongod` set up for
+                  TLS/SSL:
+
+                  .. code-block:: sh
+
+                     mongo --ssl --sslPEMKeyFile <path to CA signed client PEM file> --sslCAFile <path to root CA PEM file>
+
+                  .. list-table::
+                     :header-rows: 1
+                     :widths: 25 75
+
+                     * - Option
+                       - Notes
+
+                     * - :option:`--ssl <mongo --ssl>`
+                       -
+
+                     * - :option:`--sslPEMKeyFile <mongo --sslPEMKeyFile>`
+                       - Client's x.509 file.
+
+                     * - :option:`--sslCAFile <mongo --sslCAFile>`
+
+                       - Certificate Authority file to verify the
+                         certificate presented by
+                         :binary:`~bin.mongod`/:binary:`~bin.mongos`
+                         instance.
+
+               #. To perform the authentication, use the :method:`db.auth()` method in
+                  the ``$external`` database. For the ``mechanism``
+                  field, specify ``"MONGODB-X509"``, and for the
+                  ``user`` field, specify the :ref:`user that
+                  corresponds to the client certificate
+                  <addX509SubjectUser>` .
+
+                  .. code-block:: javascript
+
+                     db.getSiblingDB("$external").auth(
+                       {
+                         mechanism: "MONGODB-X509",
+                         user: "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry"
+                       }
+                     )
