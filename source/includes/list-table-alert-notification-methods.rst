@@ -176,8 +176,9 @@
        :doc:`Project Settings </tutorial/manage-project-settings>`
        page.
 
-       To access the endpoint resource, add the following IP addresses
-       to the :ref:`whitelist <whitelist>`:
+       To successfully deliver a webhook to the specified endpoint, the
+       endpoint must accept incoming HTTP POST requests from the
+       following |ipaddr| addresses and |cidr| blocks:
 
        - 18.214.178.145
        - 18.235.48.235
@@ -189,6 +190,8 @@
        - 35.175.94.38
        - 52.87.98.128
        - 107.20.0.247
+       - 4.35.16.128/25
+       - 4.71.186.128/25
 
        .. important::
        
