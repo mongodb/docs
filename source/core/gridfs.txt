@@ -304,20 +304,28 @@ Sharding GridFS
 There are two collections to consider with :term:`gridfs` - ``files`` and
 ``chunks``.
 
-If you need to shard a GridFS data store, use the ``chunks`` collection
-setting ``{ files_id : 1, n : 1 }`` or ``{ files_id : 1 }`` as the shard key
-index.
+``chunks`` Collection
+~~~~~~~~~~~~~~~~~~~~~
 
-``files_id`` is an :term:`objectid` and changes
-:ref:`monotonically<shard-key-monotonic>`.
+To shard the ``chunks`` collection, use either ``{ files_id : 1, n : 1
+}`` or ``{ files_id : 1 }`` as the shard key index. ``files_id`` is an
+:term:`objectid` and changes :ref:`monotonically<shard-key-monotonic>`.
 
-When sharding the ``chunks`` collection, you cannot use
-:doc:`/core/hashed-sharding` . For details, see :issue:`SERVER-9888`.
+For MongoDB drivers that do not run :dbcommand:`filemd5` to verify
+successful upload (for example, MongoDB drivers that support MongoDB
+4.0 or greater), you can use :doc:`/core/hashed-sharding` for the
+``chunks`` collection.
 
-The ``files`` collection is small and only contains metadata. None of the
-required keys for GridFS lend themselves to an even distribution in a
-sharded environment. If you *must* shard the ``files`` collection, use the
-``_id`` field, possibly in combination with an application field.
+If the MongoDB driver runs :dbcommand:`filemd5`, you cannot use
+:doc:`/core/hashed-sharding`. For details, see :issue:`SERVER-9888`.
 
-Leaving ``files`` unsharded allows all the file metadata documents to live
-on the :term:`primary shard`.
+``files`` Collection
+~~~~~~~~~~~~~~~~~~~~
+
+The ``files`` collection is small and only contains metadata. None of
+the required keys for GridFS lend themselves to an even distribution in
+a sharded environment. Leaving ``files`` unsharded allows all the file
+metadata documents to live on the :term:`primary shard`.
+
+If you *must* shard the ``files`` collection, use the ``_id`` field,
+possibly in combination with an application field.
