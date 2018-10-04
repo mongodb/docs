@@ -30,6 +30,10 @@ stream response document can have.
          "db" : "<database>",
          "coll" : "<collection"
       },
+      "to" : {
+         "db" : "<database>",
+         "coll" : "<collection"
+      },
       "documentKey" : { "_id" : <ObjectId> },
       "updateDescription" : {
          "updatedFields" : { <document> },
@@ -73,11 +77,15 @@ following table describes each field in the change stream response document:
        - ``delete``
        - ``replace``
        - ``update``
+       - ``drop``
+       - ``rename``
+       - ``dropDatabase``
        - ``invalidate``
 
    * - ``fullDocument``
      - document
-     - The document created or modified by the operation.
+     - The document created or modified by the ``insert``, ``replace``,
+       ``delete``, ``update`` operations (i.e. CRUD operations).
 
        For ``insert`` and ``replace`` operations, this represents the new
        document created by the operation.
@@ -95,8 +103,7 @@ following table describes each field in the change stream response document:
 
    * - ``ns``
      - document
-     - The namespace of the database and collection the change stream is open
-       against.
+     - The namespace (database and or collection) affected by the event.
 
    * - ``ns.db``
      - string
@@ -106,9 +113,26 @@ following table describes each field in the change stream response document:
      - string
      - The name of the collection.
 
+       For ``dropDatabase`` operations, this field is omitted.
+
+   * - ``to``
+     - document
+     - When ``operationType : rename``, this document displays the new name for
+       the ``ns`` collection. This document is omitted for all other
+       values of ``operationType``.
+
+   * - ``to.db``
+     - string
+     - The new name of the database.
+
+   * - ``to.coll``
+     - string
+     - The new name of the collection.
+
    * - ``documentKey``
      - document
-     - The ObjectID of the document created or modified by the operation.
+     - The ObjectID of the document created or modified by the ``insert``,
+       ``replace``, ``delete``, ``update`` operations  (i.e. CRUD operations).
        For sharded collections, also displays the full shard key for the
        document. The ``_id`` field is not repeated if it is already a
        part of the shard key.
@@ -320,6 +344,89 @@ The following example illustrates a ``delete`` event:
 The ``fullDocument`` document is omitted as the document no longer exists at the
 time the change stream cursor sends the ``delete`` event to the client.
 
+.. _change-streams-drop-event:
+
+``drop`` Event
+----------------
+
+.. versionadded:: 4.0.1
+
+A ``drop`` event occurs when a collection is dropped from a database. The
+following example illustrates a ``drop`` event:
+
+.. code-block:: none
+
+   {
+      _id: { < Resume Token > },
+      operationType: 'drop',
+      clusterTime: <Timestamp>,
+      ns: {
+         db: 'engineering',
+         coll: 'users'
+      }
+   }
+
+A ``drop`` event leads to an :ref:`invalidate event <change-event-invalidate>`
+for change streams opened against its ``ns`` collection.
+
+.. _change-streams-rename-event:
+
+``rename`` Event
+----------------
+
+.. versionadded:: 4.0.1
+
+A ``rename`` event occurs when a collection is renamed. The following example
+illustrates a ``rename`` event:
+
+.. code-block:: none
+
+   {
+      _id: { < Resume Token > },
+      operationType: 'rename',
+      clusterTime: <Timestamp>,
+      ns: {
+         db: 'engineering',
+         coll: 'users'
+      },
+      to: {
+         db: 'engineering',
+         coll: 'people'
+      }
+   }
+
+A ``rename`` event leads to an
+:ref:`invalidate event <change-event-invalidate>` for change streams opened
+against its ``ns`` collection or ``to`` collection.
+
+.. _change-streams-dropDatabase-event:
+
+``dropDatabase`` Event
+----------------------
+
+.. versionadded:: 4.0.1
+
+A ``dropDatabase`` event occurs when a database is dropped. The following
+example illustrates a ``dropDatabase`` event:
+
+.. code-block:: none
+
+   {
+      _id: { < Resume Token > },
+      operationType: 'dropDatabase',
+      clusterTime: <Timestamp>,
+      ns: {
+         db: 'engineering'
+      }
+   }
+
+A :dbcommand:`dropDatabase` command generates a
+:ref:`drop event <change-streams-drop-event>` for each collection in
+the database before generating a ``dropDatabase`` event for the database.
+
+A ``dropDatabase`` event leads to an
+:ref:`invalidate event <change-event-invalidate>` for change streams opened
+against its ``ns.db`` database.
 
 .. _change-event-invalidate:
 
@@ -336,19 +443,17 @@ The following example illustrates an ``invalidate`` event:
       clusterTime: <Timestamp>
    }
 
-For change stream opened against a collection, 
-``invalidate`` events occur after a :dbcommand:`dropDatabase`,
-:dbcommand:`drop`, or :dbcommand:`renameCollection` command that
-affects the watched collection.
+For change streams opened up against a collection, a
+:ref:`drop event <change-streams-drop-event>`,
+:ref:`rename event <change-streams-rename-event>`, or
+:ref:`dropDatabase event <change-streams-dropDatabase-event>` that affects the
+watched collection leads to an
+:ref:`invalidate event <change-event-invalidate>`.
 
-For change stream opened against a database, ``invalidate`` events
-occur after a :dbcommand:`dropDatabase`, :dbcommand:`drop`, or
-:dbcommand:`renameCollection` command that affects the watched database.
-
-For change stream opened against the deployment, ``invalidate`` events
-occur after a :dbcommand:`dropDatabase`, :dbcommand:`drop`, or
-:dbcommand:`renameCollection` command occurs in the deployment.
-
+For change streams opened up against a database, a
+:ref:`dropDatabase event <change-streams-dropDatabase-event>` that affects the
+watched database leads to an
+:ref:`invalidate event <change-event-invalidate>`.
 
 ``invalidate`` events close the change stream cursor.
 
