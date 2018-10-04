@@ -851,9 +851,33 @@ Logging Parameters
 Diagnostic Parameters
 ~~~~~~~~~~~~~~~~~~~~~
 
+.. versionchanged:: 3.4.14
+
+   MongoDB adds FTDC support for :binary:`~bin.mongos`. Previously,
+   only :binary:`~bin.mongod` supported FTDC.
+
 To support the :ref:`diagnostic data capture
 <3.2-diagnostic-data-capture>`, MongoDB introduces the following
 parameters:
+
+For :binary:`~bin.mongod`, the diagnostic data files are stored in the
+``diagnostic.data`` directory under the :binary:`~bin.mongod` instance's
+``--dbpath`` or :setting:`storage.dbPath`.
+
+For :binary:`~bin.mongos`, the diagnostic data files, by default, are
+stored in a directory under the :binary:`~bin.mongos` instance's
+``--logpath`` or :setting:`systemLog.path` directory. The diagnostic
+data directory is computed by truncating the logpath's file
+extension(s) and concatenating ``diagnostic.data`` to the remaining
+name.
+
+For example, if :binary:`~bin.mongos` has ``--logpath
+/var/log/mongos.log.201708015``, then the diagnostic data directory is
+``/var/log/mongos.diagnostic.data/`` directory. To specify a different
+diagnostic data directory for :binary:`~bin.mongos`, set the
+:parameter:`diagnosticDataCollectionDirectoryPath` parameter.
+
+The following parameters support diagnostic data capture (FTDC):
 
 .. note::
 
@@ -863,13 +887,13 @@ parameters:
    values will only need modifications as requested by MongoDB engineers
    for specific diagnostic purposes.
 
-   Diagnostic data files are stored in the ``diagnostic.data`` directory
-   under the :binary:`~bin.mongod` instance's ``--dbpath`` or
-   :setting:`storage.dbPath`.
-
 .. parameter:: diagnosticDataCollectionEnabled
 
    .. versionadded:: 3.2
+
+   .. versionchanged:: 3.4.14
+
+      |both|
 
    *Type*: boolean
 
@@ -886,12 +910,44 @@ parameters:
 
       mongod --setParameter diagnosticDataCollectionEnabled=false
 
+.. parameter:: diagnosticDataCollectionDirectoryPath
+
+   .. versionadded:: 3.4.14
+
+   *Type*: String
+
+   |mongos-only|
+
+   Specify the directory for the diagnostic directory for
+   :binary:`~bin.mongos`. If the directory does not exist,
+   :binary:`~bin.mongos` creates the directory.
+
+   If unspecified, the diagnostic data directory is computed by
+   truncating the :binary:`~bin.mongos` instance's ``--logpath`` or
+   :setting:`systemLog.path` file extension(s) and concatenating
+   ``diagnostic.data``.
+
+   For example, if :binary:`~bin.mongos` has ``--logpath
+   /var/log/mongos.log.201708015``, then the diagnostic data directory is
+   ``/var/log/mongos.diagnostic.data/``.
+
+   .. important::
+
+      If :binary:`~bin.mongos` cannot create the specified directory, e.g.
+      a file exists with the same name in the path or the process does
+      not have permissions to create the directory, the diagnostic data
+      capture will be disabled for that instance.
+
 .. parameter:: diagnosticDataCollectionDirectorySizeMB
 
    .. versionadded:: 3.2
 
    .. versionchanged:: 3.4
       Increased default size to 200 megabytes.
+
+   .. versionchanged:: 3.4.14
+
+      |both|
 
    *Type*: integer
 
@@ -922,6 +978,10 @@ parameters:
 
    .. versionadded:: 3.2
 
+   .. versionchanged:: 3.4.14
+
+      |both|
+
    *Type*: integer
 
    *Default*: 10
@@ -945,6 +1005,10 @@ parameters:
 .. parameter:: diagnosticDataCollectionPeriodMillis
 
    .. versionadded:: 3.2
+
+   .. versionchanged:: 3.4.14
+
+      |both|
 
    *Type*: integer
 
