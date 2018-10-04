@@ -5,7 +5,7 @@
 
 - Removed support for automation for MongoDB 2.6 and 3.0 clusters.
 
-- Agent Upgrades: :ref:`automation-5.8.0.5543`,
+- Agent Upgrades: :ref:`automation-5.8.0.5546`,
   :ref:`backup-7.1.0.1011`, :ref:`monitoring-6.7.0.466`
 
 .. _cloudmanager-v20180911:
