@@ -1,3 +1,14 @@
+.. _automation-5.8.0.5543:
+
+Automation Agent 5.8.0.5543
+---------------------------
+
+*Released 2018-10-04*
+
+- Improved performance for state changes in large clusters with high
+  latency between cluster members
+- Removed support for MongoDB 2.6 and 3.0.
+
 .. _automation-5.7.0.5532:
 
 Automation Agent 5.7.0.5532

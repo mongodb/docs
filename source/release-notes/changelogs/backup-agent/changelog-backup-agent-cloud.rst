@@ -1,3 +1,13 @@
+
+.. _backup-7.1.0.1011:
+
+Backup Agent 7.1.0.1011
+-----------------------
+
+*Released 2018-10-04*
+
+Improved handling of expiration of the queryable backup tunnel utility
+
 .. _backup-7.0.0.1008-1:
 
 Backup Agent 7.0.0.1008-1

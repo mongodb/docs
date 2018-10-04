@@ -1,9 +1,20 @@
+.. _automation-5.4.11.5498-1:
+
+Automation Agent 5.4.11.5498-1
+------------------------------
+
+:ref:`Released with Ops Manager 4.0.3 on 2018-10-04 <opsmgr-server-4.0.3>`
+
+- **Fix:** Automation Agent can add new MongoDB users even if
+  SCRAM-SHA-1 authentication was enabled for the deployment after
+  enabling SCRAM-SHA-256.
+
 .. _automation-5.4.10.5496-1:
 
 Automation Agent 5.4.10.5496-1
 ------------------------------
 
-:ref:`Released with Ops Manager 4.0.2 on 2018-09-06 <opsmgr-server-4.0.0>`
+:ref:`Released with Ops Manager 4.0.2 on 2018-09-06 <opsmgr-server-4.0.2>`
 
 - Storage affecting field changes in a replica set could result in
   data loss if processes were restarted unexpectedly.

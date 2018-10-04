@@ -1,3 +1,19 @@
+.. _opsmgr-server-4.0.3:
+
+|onprem| Server 4.0.3
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2018-10-04*
+
+- **Critical Fix:** Backup initial syncs may fail with an error during
+  the oplog application phase, if retryable writes are executed on the
+  source cluster during the backup initial sync.
+- **Fix:** Log collection fails for log files greater than
+  approximately 2.2 GB.
+- |ldap| connections will now use a connection pool. This reduces load
+  on |ldap| servers. 
+- Update bundled version of the |bic-full| to version 2.6.1.
+
 .. _opsmgr-server-4.0.2:
 
 |onprem| Server 4.0.2
@@ -59,7 +75,7 @@
 
 - Update Ops Manager JDK (x86_64) to 8u181^M
 
-- When configuring MongoDB LDAP authentication, allow setting the User
+- When configuring MongoDB |ldap| authentication, allow setting the User
   to Distinguished Name Mapping without setting the Authorization Query
   Template.
 

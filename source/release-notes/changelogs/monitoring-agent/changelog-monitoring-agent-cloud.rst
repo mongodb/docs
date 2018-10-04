@@ -1,3 +1,13 @@
+
+.. _monitoring-6.7.0.466:
+
+Monitoring Agent 6.7.0.466
+--------------------------
+
+*Released 2018-10-04*
+
+Monitoring agent now collections information about balancer state
+
 .. _monitoring-6.6.1.462:
 
 Monitoring Agent 6.6.1.462
