@@ -97,6 +97,46 @@ content: |
     #. Shut down all members of the config server replica set,
        the :binary:`~bin.mongos` instances, and the shards.
 
+    #. If you are rolling back to :doc:`MMAPv1 </core/mmapv1>`:
+
+       a. Start a :doc:`CSRS </core/sharded-cluster-config-servers>` member as
+          a standalone; i.e. without the :option:`--replSet <mongod --replSet>`
+          or, if using a configuration file, :setting:`replication.replSetName`.
+
+       #. Run :binary:`~bin.mongodump` to dump the ``config`` database, then
+          shutdown the :doc:`CSRS </core/sharded-cluster-config-servers>`
+          member.
+
+          .. code-block:: sh
+
+             mongodump --db "config"
+
+          Include all other options as required by your deployment.
+
+       #. Create a data directory for the new :binary:`~bin.mongod` instance
+          that will run with the MMAPv1 storage engine. ``mongod`` must have
+          read and write permissions for the data directory.
+
+          ``mongod`` with MMAPv1 will not start with data files created with
+          a different storage engine.       
+
+       #. Restart the mongod as a MMAPv1 standalone i.e. with
+          :option:`--storageEngine mmapv1 <mongod --storageEngine>` and without
+          the :option:`--replSet <mongod --replSet>` or, if using a
+          configuration file, :setting:`replication.replSetName`.
+
+       #. Use :option:`mongorestore --drop` to restore the ``config`` dump to
+          the new MMAPv1 ``mongod``.
+
+          .. code-block:: sh
+
+             mongorestore --db "config" --drop /path/to/dump
+
+       #. Repeat for each member of the CSRS.
+
+       Optionally, once the sharded cluster is online and working as expected,
+       delete the WiredTiger data directories.
+
     #. Restart each config server as standalone 3.2 :binary:`~bin.mongod`;
        i.e. without the :option:`--replSet <mongod --replSet>` or, if using a configuration
        file, :setting:`replication.replSetName`.
@@ -171,6 +211,33 @@ content: |
         { writeConcern: { w: "majority", wtimeout: 30000 } }
      )
 
+  .. note::
+     
+     If the cluster is running with authentication enabled, you must have a
+     user with the proper privileges to remove the ``minOpTimeRecovery``
+     document from the ``admin.system.version`` collection. The following
+     operation creates a ``downgrade`` user on the ``admin`` database with the
+     proper privileges:
+
+     .. code-block:: javascript
+     
+        use admin;
+
+        db.createRole({
+          role: "downgrade_csrs",
+          privileges: [
+             { resource: { db: "admin", collection: "system.version"}, actions: [ "remove" ] },
+          ],
+          roles: [  ]
+        });
+     
+        db.createUser({
+          user: "downgrade",
+          roles: [
+            { role: "downgrade_csrs", db: "admin" }
+          ]
+        });
+
   For each replica set shard, downgrade the :binary:`~bin.mongod` binaries
   and restart. If your :binary:`~bin.mongod` instance is using the
   :doc:`WiredTiger </core/wiredtiger>` storage engine, you must include
@@ -183,6 +250,8 @@ content: |
   #. To downgrade the primary, run :dbcommand:`replSetStepDown` and then downgrade.
 
   For details on downgrading a replica set, see :ref:`3.2-downgrade-replica-set`.
+
+  Optionally, drop the ``local`` database from the SCCC members if it exists.
 
 ---
 title: "Re-enable the balancer."
