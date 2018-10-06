@@ -57,7 +57,7 @@ directive: setting
 optional: true
 default: <resource_name>+"-svc" and <resource_name>+"-svc-external"
 description: |
-  *Optional.* Name of |k8s| service to be created or used for a
+  Name of |k8s| service to be created or used for a
   |k8s-statefulset|. If the service with this name already exists, the
   |k8s-op-full| does not delete or recreate it. This setting lets
   users to create their custom services and lets the Operator reuse
@@ -71,7 +71,7 @@ directive: setting
 optional: true
 default: cluster.local
 description: |
-  *Optional.* When |k8s| creates a |k8s-statefulset|, the
+  When |k8s| creates a |k8s-statefulset|, the
   |k8s| assigns each |k8s-pod| a |fqdn|. To update |onprem|, the
   |k8s-op-short| calculates the |fqdn| for each |k8s-pod|
   using a provided clusterName. |k8s| does not provide an |api| to
@@ -108,6 +108,7 @@ optional: true
 default: true
 description: |
   .. include:: /includes/k8s/k8s-persistent-volumes.rst
+
 ---
 program: _shared
 name: spec.podSpec.cpu
@@ -115,7 +116,7 @@ type: string
 directive: setting
 optional: true
 description: |
-  *Optional.* Minimum CPU capacity that must be available on a |k8s|
+  Minimum CPU capacity that must be available on a |k8s|
   |k8s-node| to host this {{component}} |k8s-mdbrsc|.
 replacement:
   component: :term:`standalone deployment`
@@ -127,10 +128,10 @@ type: string
 directive: setting
 optional: true
 description: |
-  *Optional.* Minimum memory capacity that must be available on a
+  Minimum memory capacity that must be available on a
   |k8s| |k8s-node| to host this |k8s-mdbrsc| on |k8s|. This value is
   expressed as an integer followed by a unit of memory in
-  :abbr:`JEDEC (Joint Electron Device Engineering Council)` notation.
+  |jedec| notation.
 
   .. example::
 
@@ -145,15 +146,17 @@ directive: setting
 optional: true
 default: 16G
 description: |
-  *Optional.* Minimum storage capacity that must be available on a
-  |k8s| |k8s-node| to host this |k8s-mdbrsc| on |k8s|. This value is
-  expressed as an integer followed by a unit of storage in
-  :abbr:`JEDEC (Joint Electron Device Engineering Council)` notation.
+  Minimum storage capacity that must be available on a |k8s|
+  |k8s-node| to host this {{component}} on |k8s|. This value is
+  expressed as an integer followed by a unit of storage in |jedec|
+  notation.
 
   .. example::
 
      If this |k8s-mdbrsc| requires 60 gigabytes of storage space, set
      this value to ``60G``.
+replacement:
+  component: :term:`standalone deployment`
 
 ---
 program: _shared
@@ -162,18 +165,20 @@ type: string
 directive: setting
 optional: true
 description: |
-  *Optional.* Type of storage needed for this {{component}}. The user
+  *Deprecated.* Type of storage needed for this {{component}}. The user
   may create this storage type as a |k8s-sc| object before using it in
   this |k8s-obj| specification.
+replacement:
+  component: :term:`standalone deployment`
 
 ---
 program: _shared
 name: spec.podSpec.podAffinity
-type: Struct
+type: sequence
 directive: setting
 optional: true
 description: |
-  *Optional.* |k8s| |k8s-rule| to determine if multiple
+  |k8s| |k8s-rule| to determine if multiple
   |k8s-mdbrsc| |k8s-pods| must be co-located with other |k8s-pods|.
 
   .. seealso::
@@ -190,7 +195,7 @@ default: kubernetes.io/hostname
 optional: true
 description: |
 
-  *Optional.* This sets a |k8s-rule| to spread |k8s-mdbrsc| |k8s-pods|
+  This sets a |k8s-rule| to spread |k8s-mdbrsc| |k8s-pods|
   to different locations. A location can be a single node, rack, or
   region. This key defines which node
   `label <https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/>`__
@@ -201,16 +206,128 @@ description: |
 ---
 program: _shared
 name: spec.podSpec.nodeAffinity
-type: Struct
+type: collection
 directive: setting
 optional: true
 description: |
-  *Optional.* |k8s| |k8s-rule| to place {{component}} |k8s-pods| on a
+  |k8s| |k8s-rule| to place {{component}} |k8s-pods| on a
   specific range of |k8s-nodes|.
 
   .. example::
 
      A user can isolate "dev" and "testing" environments to ensure 
      |k8s-pods| go to |k8s-nodes| with appropriate labels.
+
+---
+program: _shared
+name: spec.podSpec.persistence.single
+type: collection
+directive: setting
+optional: true
+description: |
+
+  Has |k8s-op-short| create one |k8s-pvc| and mount all
+  three directories for data, journal, and logs to the same |k8s-pv|.
+
+  .. note::
+
+     - You must set the values in this collection if
+       :setting:`spec.persistent` ``: true``.
+     - You may set this collection or the ``persistence.multiple``
+       collections but not both.
+
+  .. list-table::
+     :widths: 20 20 60
+     :header-rows: 1
+
+     * - Scalar
+       - Data Type
+       - Description
+
+     * - ``labelSelector``
+       - string
+       - `Tag
+         <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector>`__
+         used to bind mounted volumes to directories.
+
+     * - ``storage``
+       - string
+       - Minimum size of |k8s-pv| that should be mounted. This value is
+         expressed as an integer followed by a unit of storage in
+         |jedec| notation.
+
+         Default value is {{defaultStorage}}.
+
+         .. example::
+
+            If this |k8s-mdbrsc| requires 60 gigabytes of storage
+            space, set this value to ``60G``.
+
+     * - ``storageClass``
+       - string
+       - Type of storage specified in a |k8s-pvc|. You may create
+         this storage type as a |k8s-sc| object before using it in this
+         |k8s-obj| specification.
+
+replacement:
+  component: :term:`standalone deployment`
+  defaultStorage: 16G
+
+---
+program: _shared
+name: spec.podSpec.persistence.multiple.item
+type: collection
+directive: setting
+optional: true
+description: |
+  Has |k8s-op-short| create a |k8s-pvc| and mount a
+  directory for {{storedItem}} to its own |k8s-pv|.
+
+  .. note::
+
+     - You must set the values in this collection if
+       :setting:`spec.persistent` ``: true``.
+     - You may set this collection or the ``persistence.single``
+       collection but not both.
+
+  .. list-table::
+     :widths: 20 20 60
+     :header-rows: 1
+
+     * - Scalar
+       - Data Type
+       - Description
+
+     * - ``labelSelector``
+       - string
+       - `Tag
+         <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector>`__
+         used to bind mounted volumes to directories.
+
+     * - ``storage``
+       - string
+       - Minimum storage capacity that must be available on a |k8s|
+         |k8s-node| to host this {{component}} on |k8s|. This value is
+         expressed as an integer followed by a unit of storage in
+         |jedec| notation.
+
+         Default value is {{defaultStorage}}.
+
+         .. example::
+
+            If this |k8s-mdbrsc| requires 60 gigabytes of storage
+            space, set this value to ``60G``.
+
+     * - ``storageClass``
+       - string
+       - Type of storage needed for this {{component}}. You may create
+         this storage type as a |k8s-sc| object before using it in this
+         |k8s-obj| specification.
+
+replacement:
+  component: :term:`standalone deployment`
+  storedItem: data
+  defaultStorage: 16G
+
 
 ...

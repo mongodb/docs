@@ -9,9 +9,14 @@ spec:
   mongodsPerShardCount: 3
   mongosCount: 2
   configServerCount: 3
-  version: 3.6.3
+  version: 4.0.0
   service: my-service
-  clusterName: example.com
+
+  ## Please Note: The default Kubernetes cluster name is
+  ## `cluster.local`.
+  ## If your cluster has been configured with another name, you can
+  ## specify it with the `clusterName` attribute.
+
   project: my-project
   credentials: my-credentials
 
@@ -19,8 +24,10 @@ spec:
   configSrvPodSpec:
     cpu: '0.5'
     memory: 512M
-    storage: 5G
-    storageClass: fast
+
+    # if "persistence" element is omitted then Operator uses the
+    # default size (5G) for mounting single Persistent Volume
+
     podAntiAffinityTopologyKey: kubernetes.io/hostname
     podAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -34,7 +41,7 @@ spec:
   mongosPodSpec:
     cpu: '0.8'
     memory: 1G
-    podAntiAffinityTopologyKey: failure-domain.beta.kubernetes.io/region
+    podAntiAffinityTopologyKey: rackId
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 1
@@ -47,6 +54,13 @@ spec:
   shardPodSpec:
     cpu: '0.6'
     memory: 3G
-    storage: 25G
-    storageClass: standard
-    podAntiAffinityTopologyKey: rackId
+    persistence:
+      multiple:
+        # if the child of "multiple" is omitted then the default size will be used.
+        # 16G for "data", 1G for "journal", 3Gb for "logs"
+        data:
+          storage: 20G
+        logs:
+          storage: 4G
+          storageClass: standard
+    podAntiAffinityTopologyKey: kubernetes.io/hostname
