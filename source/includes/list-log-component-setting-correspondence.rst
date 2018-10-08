@@ -24,4 +24,6 @@
   
 - :setting:`storage.journal <systemLog.component.storage.journal.verbosity>`
 
+- :setting:`transaction <systemLog.component.transaction.verbosity>`
+
 - :setting:`write <systemLog.component.write.verbosity>`
