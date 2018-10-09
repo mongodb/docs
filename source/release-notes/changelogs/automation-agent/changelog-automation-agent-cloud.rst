@@ -1,3 +1,13 @@
+.. _automation-5.8.1.5548:
+
+Automation Agent 5.8.1.5548
+---------------------------
+
+*Released 2018-10-09*
+
+**Fix:** Restores for MongoDB 4.0 fail if snapshot download for all
+nodes does not finish at approximately same time
+
 .. _automation-5.8.0.5546:
 
 Automation Agent 5.8.0.5546
