@@ -1,0 +1,351 @@
+:noprevnext:
+
+=================================
+Configure Kerberos for |bi-short|
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _Create a keytab file: https://web.mit.edu/kerberos/krb5-latest/doc/admin/admin_commands/kadmin_local.html#ktadd
+.. _Kerberos Principals: https://web.mit.edu/kerberos/krb5-1.5/krb5-1.5.4/doc/krb5-user/What-is-a-Kerberos-Principal_003f.html
+.. _Heimdal: https://www.h5l.org
+.. _Heimdal configuration file: https://www.h5l.org/manual/HEAD/info/heimdal/Configuration-file.html#Configuration-file
+
+.. versionadded:: 2.5
+
+The |bi| supports Kerberos authentication for connecting BI tools and
+for the |bi-short|'s admin user authenticating with MongoDB. The
+following section guides you through configuring the |bi-short| to use
+Kerberos authentication on either Windows or macOS.
+
+.. tabs-platforms::
+
+   tabs:
+     - id: windows
+       content: |
+
+         .. important::
+
+            The domain part of any username must be written 
+            in all caps. This part of the username 
+            corresponds to a Kerberos realm or Active 
+            Directory domain. It is case sensitive.
+            
+         Active Directory Configuration
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+         - Make sure you have a domain configured.
+         - `Create a user <https://technet.microsoft.com/en-us/library/dd632748.aspx>`__ for MongoDB on the domain you created.
+         - `Create a user <https://technet.microsoft.com/en-us/library/dd632748.aspx>`__  for MongoSQL on the domain you created.
+         - Register an SPN for the MongoDB Service.
+         - Register an SPN for the MongoSQL Service.
+         - Enable delegation for your MongoSQL Service user.
+
+         .. example::
+
+            - Your name is ``Grace Smith``.
+            - Your Windows domain is named ``EXAMPLE.COM``. 
+            - You are running your BI tool on a Windows host 
+              named ``BI.EXAMPLE.COM``.
+
+            In Active Directory, you create three users:
+
+            - For MongoDB: ``mongodb@EXAMPLE.COM``
+            - For |bi-short|: ``mongosql@EXAMPLE.COM``
+            - For you: ``grace.smith@EXAMPLE.COM``
+
+            Create an |spn| for each service:
+
+            .. code-block:: powershell
+
+               setspn.exe -A mongodb/BI.EXAMPLE.COM mongodb
+               setspn.exe -A mongosql/BI.EXAMPLE.COM mongosql
+
+            Open the `Active Directory Administrative Center <https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-administrative-center>`__
+            and double-click on your MongoDB service user 
+            (``mongodb``).
+
+            Set the ``mongosql`` user to delegate for the 
+            ``mongodb`` user from the ``BI.EXAMPLE.COM`` host.
+
+         MongoDB Configuration
+         ~~~~~~~~~~~~~~~~~~~~~
+
+         - :manual:`Install MongoDB Enterprise </tutorial/install-mongodb-enterprise-on-windows>`
+           and :ref:`start it as a service <manually-create-windows-service-enterprise>`.
+         - Set the following options in the :manual:`configuration file </reference/configuration-options>`:
+
+           .. code-block:: yaml
+
+              net:
+                bindIp: <fullHostnameOfBIConnector>
+              setParameter:
+                authenticationMechanisms: "GSSAPI"
+
+           For more information, see
+           :xml:`<mono><link target="https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp">net.bindIp</link></mono>`,
+           :xml:`<mono><link target="https://docs.mongodb.com/manual/reference/configuration-options/#setparameter-option">setParameter</link></mono>`,
+           and :xml:`<mono><link target="https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms">authenticationMechanisms</link></mono>`.
+
+         - Run ``mongod`` as the MongoDB Windows user you 
+           created in Active Directory.
+         - :manual:`Create a user </reference/method/db.createUser>` on your MongoDB database with the 
+           :ref:`appropriate roles <cached-sampling-user-permissions>` 
+           to sample data.
+
+         BI Connector Configuration
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+         - Install the :ref:`BI Connector as a service <msqld-as-a-system-service>`.
+         - Launch ``mongosqld`` as the MongoSQL Windows user you
+           created in Active Directory.
+
+         - Add the following |bi-short| authentication settings to your
+           ``mongosqld`` configuration file:
+
+           .. code-block:: yaml
+
+              security
+                enabled : true
+                defaultMechanism : "GSSAPI"
+                defaultSource : "$external"
+                gssapi
+                  hostname : <host running mongosqld>
+                  serviceName : <name of mongosqld service>
+
+           .. note::
+
+              :setting:`security.gssapi.hostname` should match the value in :setting:`serviceName`.
+
+           For more information, see:
+
+           - :setting:`security.enabled`
+           - :setting:`security.defaultMechanism`
+           - :setting:`security.defaultSource`
+           - :setting:`security.gssapi.hostname`
+           - :setting:`security.gssapi.serviceName`
+
+         - Add the following settings that the |bi-short| will use to
+           authenticate with MongoDB:
+
+           .. code-block:: yaml
+
+              mongodb:
+               net:
+                 uri: "mongodb://<hostname and port of mongodb database>/"
+                 auth:
+                   username: <database username>
+                   password: <database password>
+                   source: "$external"
+                   mechanism: "GSSAPI"
+           
+           For more information, see:
+
+           - :setting:`mongodb.net.uri`
+           - :setting:`mongodb.net.auth.username`
+           - :setting:`mongodb.net.auth.password`
+           - :setting:`mongodb.net.auth.source`
+           - :setting:`mongodb.net.auth.mechanism`
+
+         .. example::
+
+            - Your name is ``Grace Smith``.
+            - Your Windows domain is named ``EXAMPLE.COM``.
+            - You are running your BI tool on a Windows host
+              named ``BI.EXAMPLE.COM``.
+
+            On ``BI.EXAMPLE.COM``:
+
+            - Install MongoDB and |bi| as services.
+            - Edit your ``mongod.cfg`` file to resemble:
+
+              .. code-block:: yaml
+
+                 systemLog:
+                   destination: "file"
+                   path: "c:\\data\\log\\mongod.log"
+                   verbosity: 2
+                 storage:
+                   dbPath: "c:\\data\\db"
+                 net:
+                   bindIp: BI.EXAMPLE.COM
+                 setParameter:
+                   authenticationMechanisms: "GSSAPI"
+
+            - Log on to the ``mongo`` shell and create your
+              |bi-short| user.
+
+              .. code-block:: javascript
+
+                 db.getSiblingDB("$external").createUser(
+                   {
+                     user: "grace.smith@EXAMPLE.COM",
+                     roles: [ { role: "readAnyDatabase", db: "admin" } ]
+                   }
+                 )
+
+            - Edit your ``mongosqld.cfg`` file to resemble:
+
+              .. code-block:: yaml
+
+                 systemLog:
+                   path: "c:\\data\\log\\mongosqld.log"
+                   logAppend: true
+                   logRotate: "reopen"
+                   verbosity: 3
+                 runtime:
+                   memory:
+                     maxPerStage: 102400
+                 net:
+                   bindIp: BI.EXAMPLE.COM
+                   port: 3306
+                 security:
+                   enabled: true
+                   defaultSource: "$external"
+                   defaultMechanism: "GSSAPI"
+                   gssapi:
+                     hostname: "BI.EXAMPLE.COM"
+                     serviceName: "mongosql"
+                 mongodb:
+                   net:
+                     uri: "mongodb://BI.EXAMPLE.COM/"
+                     auth:
+                       username: "grace.smith@EXAMPLE.COM"
+                       password: "abc123!"
+                       source: "$external"
+                       mechanism: "GSSAPI"
+                 processManagement:
+                   service:
+                     displayName: "MongoDB BI Connector"
+
+            - Open :guilabel:`Services`.
+            - Set MongoDB to 
+              :guilabel:`Log on as: This account:` 
+              ``mongodb@EXAMPLE.COM`` 
+            - Set |bi| to 
+              :guilabel:`Log on as: This account:` 
+              ``mongosql@EXAMPLE.COM``
+            - Start the MongoDB and |bi| services.
+
+         .. seealso::
+
+            To learn how to configure Active Directory to 
+            manage your MongoDB instance, see
+            :manual:`Configure MongoDB with Kerberos Authentication and Active Directory Authorization 
+            </tutorial/kerberos-auth-activedirectory-authz/>`.
+
+     - id: macos
+       content: |
+
+         MongoDB Configuration
+         ~~~~~~~~~~~~~~~~~~~~~
+
+         - Make sure your :binary:`~bin.mongod` and
+           :binary:`~bin.mongos` instances are running
+           `MongoDB Enterprise <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`__.
+         - Configure your :binary:`~bin.mongod` and
+           :binary:`~bin.mongos` instances to use
+           :manual:`Kerberos (GSSAPI) authentication </core/kerberos>`.
+         - Verify you set the following options the MongoDB
+           :manual:`configuration file </reference/configuration-options>`:
+
+           .. code-block:: yaml
+
+              net:
+                bindIp: <fullHostnameOfBIConnector>
+              setParameter:
+                authenticationMechanisms: "GSSAPI"
+
+         - `Create a keytab file`_ on the |kdc| that has the 
+           needed Kerberos :ref:`service principals <kerberos-service-principal>`
+           for ``mongosql`` and ``mongosql2``.
+
+           .. example::
+
+              .. code-block:: sh
+
+                 mongosql/<fullHostnameOfBIConnector>@<KERBEROS_REALM>
+
+         BI Connector Configuration
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+         - Copy the ``keytab`` file you created for your MongoDB
+           deployment to the same host that serves the |bi-short|.
+         - If your keytab does not use the default name 
+           (``krb5.keytab``), you must set the
+           `KRB5_KTNAME <https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html>`_ system variable.
+
+           .. note::
+
+              The Kerberos implementation on macOS, 
+              `Heimdal`_, does not support the 
+              ``default_keytab_name`` configuration
+              setting, like MIT Kerberos does. You must set 
+              the ``KRB5_KTNAME`` system variable.
+
+         - If your Kerberos configuration file does not use 
+           the default name (``krb5.conf``), you must set the
+           `KRB5_CONFIG <https://web.mit.edu/kerberos/krb5-devel/doc/admin/conf_files/krb5_conf.html>`_
+           system variable. (Heimdal also supports
+           `this system variable <https://www.h5l.org/manual/HEAD/info/heimdal/Configuration-file.html#Configuration-file>`_.)
+
+         - Add the following |bi-short| authentication settings to your
+           ``mongosqld`` configuration file:
+
+           .. code-block:: yaml
+
+              security
+                enabled : true
+                defaultMechanism : "GSSAPI"
+                defaultSource : "$external"
+                gssapi
+                  hostname : <host running mongosqld>
+                  serviceName : <name of mongosqld service>
+
+           .. note::
+
+              :setting:`security.gssapi.hostname` should match the value in :setting:`serviceName`.
+
+           For more information, see:
+
+           - :setting:`security.enabled`
+           - :setting:`security.defaultMechanism`
+           - :setting:`security.defaultSource`
+           - :setting:`security.gssapi.hostname`
+           - :setting:`security.gssapi.serviceName`
+
+         - Add the following settings that the |bi-short| will use to
+           authenticate with MongoDB:
+
+           .. code-block:: yaml
+
+              mongodb:
+               net:
+                 uri: "mongodb://<hostname and port of mongodb database>/"
+                 auth:
+                   username: <database username>
+                   password: <database password>
+                   source: "$external"
+                   mechanism: "GSSAPI"
+           
+           For more information, see:
+
+           - :setting:`mongodb.net.uri`
+           - :setting:`mongodb.net.auth.username`
+           - :setting:`mongodb.net.auth.password`
+           - :setting:`mongodb.net.auth.source`
+           - :setting:`mongodb.net.auth.mechanism`
+
+         .. topic:: Testing |bi-short| with Kerberos on ``localhost``
+
+            If you are testing Kerberos with a ``mongosqld`` running
+            on a ``localhost``, you must set
+            :setting:`net.unixDomainSocket.enabled` to
+            ``true`` in the :doc:`mongosqld </reference/mongosqld>`
+            configuration file.

@@ -12,6 +12,7 @@ using one of the following authentication mechanisms:
 
 * ``SCRAM-SHA-1``
 * ``SCRAM-SHA-256``
-* ``PLAIN``
+* ``PLAIN`` (LDAP)
+* ``GSSAPI`` (Kerberos)
 
 .. include:: /includes/fact-auth-mechanisms.rst

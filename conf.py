@@ -64,7 +64,31 @@ rst_epilog = '\n'.join([
     '.. |bi-atlas| replace:: MongoDB Connector for Business Intelligence for MongoDB Atlas',
     '.. |bi-atlas-short| replace:: BI Connector for Atlas',
     '.. |bi-atlas-short-link| replace:: :doc:`BI Connector for Atlas </atlas-bi-connector>`',
-    '.. |odbc-driver-name| replace:: MongoDB ODBC driver'
+    '.. |odbc-driver-name| replace:: MongoDB ODBC driver',
+    '.. |tls-ssl| replace:: :abbr:`TLS (Transport Layer Security)`/:abbr:`SSL (Secure Sockets Layer)`',
+    '.. |ssl| replace:: :abbr:`SSL (Secure Sockets Layer)`',
+    '.. |tls| replace:: :abbr:`TLS (Transport Layer Security)`',
+    '.. |http| replace:: :abbr:`HTTP (HyperText Transport Protocol)`',
+    '.. |https| replace:: :abbr:`HTTPS (Secure HyperText Transport Protocol)`',
+    '.. |cidr| replace:: :abbr:`CIDR (Classless Inter-Domain Routing)`',
+    '.. |ipaddr| replace:: :abbr:`IP (Internet Protocol)`',
+    '.. |jira| replace:: `Jira <https://jira.mongodb.org>`__',
+    '.. |epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |iso8601-time| replace:: Timestamp in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`__ date and time format in |UTC|',
+    '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`',
+    '.. |ldap| replace:: :abbr:`LDAP (Lightweight Directory Access Protocol)`',
+    '.. |ldaps| replace:: :abbr:`LDAPS (Secure Lightweight Directory Access Protocol)`',
+    '.. |kmip| replace:: :abbr:`KMIP (Key Management Interoperability Protocol)`',
+    '.. |url| replace:: :abbr:`URL (Uniform Resource Locator)`',
+    '.. |dsn| replace:: :abbr:`DSN (Data Source Name)`',
+    '.. |odbc| replace:: :abbr:`ODBC (Open Database Connectivity)`',
+    '.. |jdbc| replace:: :abbr:`JDBC (Java Database Connectivity)`',
+    '.. |sql| replace:: :abbr:`SQL (Structured Query Language)`',
+    '.. |kdc| replace:: :abbr:`KDC (Key Distribution Center)`',
+    '.. |adc| replace:: :abbr:`ADC (Active Directory Controller)`',
+    '.. |spn| replace:: :abbr:`SPN (Service Principal Name)`',
+    '.. |sasl| replace:: :abbr:`SASL (Simple Authentication and Security Layer)`',
+    '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`'
 ])
 
 source_constants = {

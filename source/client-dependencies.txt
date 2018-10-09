@@ -1,14 +1,258 @@
 .. _client-authentication:
 
-======================
-Authentication Plugins
-======================
+==============
+Authentication
+==============
 
 .. default-domain:: mongodb
 
-The |bi| offers authentication plugins allowing you to authenticate
-using either the ``SCRAM-SHA-1``, ``SCRAM-SHA-256``, or ``PLAIN``
-authentication mechanisms. If you are using the
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The |bi| supports the following authentication mechanisms for
+authenticating with MongoDB and for authenticating connecting users:
+
+- ``SCRAM-SHA-1``
+- ``SCRAM-SHA-256``
+- ``PLAIN`` (LDAP)
+- ``GSSAPI`` (Kerberos)
+
+The |bi-short| uses admin credentials to authenticate with MongoDB.
+Once authenticated, the |bi-short| passes connecting client credentials
+to MongoDB for authentication and will display and restrict data
+according to the user's permissions.
+
+The following sections will guide you through configuring the |bi-short|
+to authenticate with your MongoDB deployment, configuring authentication
+of users connecting to the |bi-short|, and how usernames should be
+formatted using authentcation options.
+
+MongoDB Authentication
+----------------------
+
+If authentication is enabled on your MongoDB deployment, you must
+configure the |bi-short| to use the required authentication mechanism
+and provide admin user credentials.
+
+.. tabs-auth::
+
+   tabs:
+     - id: uidpwd
+       content: |
+
+         To enable Challenge and Response (``SCRAM-SHA-1``) as your 
+         |bi-short| authentication mechanism for MongoDB, you must add 
+         the following settings to your 
+         :doc:`mongosqld </reference/mongosqld>` configuration file:
+
+         .. code-block:: yaml
+
+            mongodb:
+              net:
+                auth:
+                  username: <admin-username>
+                  password: <admin-password>
+                  source: <auth-db-name>
+                  mechanism: "SCRAM-SHA-1"
+
+         For more information on MongoDB host configuration file
+         settings, see:
+
+         - :setting:`mongodb.net.uri`
+         - :setting:`mongodb.net.auth.username`
+         - :setting:`mongodb.net.auth.password`
+         - :setting:`mongodb.net.auth.source`
+         - :setting:`mongodb.net.auth.mechanism`
+
+     - id: ldap
+       content: |
+
+         To enable |ldap| (``PLAIN``) as your 
+         |bi-short| authentication mechanism for MongoDB, you must add 
+         the following settings to your 
+         :doc:`mongosqld </reference/mongosqld>` configuration file:
+
+         .. code-block:: yaml
+
+            mongodb:
+              net:
+                auth:
+                  username: <admin-username>
+                  password: <admin-password>
+                  mechanism: "PLAIN"
+
+         For more information on MongoDB host configuration file
+         settings, see:
+
+         - :setting:`mongodb.net.uri`
+         - :setting:`mongodb.net.auth.username`
+         - :setting:`mongodb.net.auth.password`
+         - :setting:`mongodb.net.auth.mechanism`
+
+     - id: kerberos
+       content: |
+
+         To enable Kerberos (``GSSAPI``) as your 
+         |bi-short| authentication mechanism for MongoDB, you must add 
+         the following settings to your 
+         :doc:`mongosqld </reference/mongosqld>` configuration file:
+
+         .. code-block:: yaml
+
+            mongodb:
+              net:
+                auth:
+                  username: <admin-username>
+                  password: <admin-password>
+                  mechanism: "GSSAPI"
+
+         For more information on MongoDB host configuration file
+         settings, see:
+
+         - :setting:`mongodb.net.uri`
+         - :setting:`mongodb.net.auth.username`
+         - :setting:`mongodb.net.auth.password`
+         - :setting:`mongodb.net.auth.mechanism`
+
+         For more information, see :doc:`/tutorial/kerberos`.
+
+|bi-short| Authentication
+-------------------------
+
+.. tabs-auth::
+
+   tabs:
+     - id: uidpwd
+       content: |
+
+         To enable Challenge and Response (``SCRAM-SHA-1``) as your 
+         |bi-short| authentication mechanism, you must add 
+         :setting:`security.enabled` ``: true`` to your 
+         :doc:`mongosqld </reference/mongosqld>` configuration file:
+
+         .. code-block:: yaml
+
+            security:
+              enabled: true
+
+         .. note::
+
+            ``SCRAM-SHA-1`` is the default authentication mechanism
+            when ``mechanism`` is not specified in the username and
+            security is enabled. If you want to omit ``source`` from
+            the username, add and set
+            :setting:`security.defaultSource` ``: <authenticationDatabase>``
+            in the configuration file:
+
+            .. code-block:: yaml
+
+               security:
+                 enabled: true
+                 defaultSource: "admin"
+
+         For more information on the |bi-short|'s configuration file settings,
+         see:
+
+         - :setting:`security.enabled`
+         - :setting:`security.defaultMechanism`
+         - :setting:`security.defaultSource`
+
+     - id: ldap
+       content: |
+
+         To enable |ldap| (``PLAIN``) as your 
+         |bi-short| authentication mechanism, you must add 
+         :setting:`security.enabled` ``: true`` to your 
+         :doc:`mongosqld </reference/mongosqld>` configuration file:
+
+         .. code-block:: yaml
+
+            security:
+              enabled: true
+
+         .. note::
+
+            If you want to omit adding ``mechanism`` and ``source`` 
+            to the username, add and set these option/value pairs 
+            to your :doc:`mongosqld </reference/mongosqld>` 
+            configuration file:
+   
+            - :setting:`security.defaultMechanism` ``: PLAIN``
+            - :setting:`security.defaultSource` ``: $external``
+   
+            The resulting :ref:`security <msqld-conf-security-options>`
+            block in your :doc:`mongosqld </reference/mongosqld>` 
+            configuration file should look like this:
+   
+            .. code-block:: yaml
+   
+               security:
+                 enabled: true
+                 defaultMechanism: "PLAIN"
+                 defaultSource: "$external"
+
+            For more information on the |bi-short|'s configuration file settings,
+            see:
+
+            - :setting:`security.enabled`
+            - :setting:`security.defaultMechanism`
+            - :setting:`security.defaultSource`
+
+     - id: kerberos
+       content: |
+
+         To enable Kerberos (``GSSAPI``) as your 
+         |bi-short| authentication mechanism, you must add 
+         :setting:`security.enabled` ``: true`` to your 
+         :doc:`mongosqld </reference/mongosqld>` configuration file:
+
+         .. code-block:: yaml
+
+            security:
+              enabled: true
+
+         .. note::
+
+            If you want to omit adding ``mechanism`` and ``source`` 
+            to the username, add and set these option/value pairs 
+            to your :doc:`mongosqld </reference/mongosqld>` 
+            configuration file:
+   
+            - :setting:`security.defaultMechanism` ``: GSSAPI``
+            - :setting:`security.defaultSource` ``: $external``
+   
+            The resulting :ref:`security <msqld-conf-security-options>`
+            block in your :doc:`mongosqld </reference/mongosqld>` 
+            configuration file should look like this:
+   
+            .. code-block:: yaml
+
+               security:
+                 enabled: true
+                 defaultMechanism: "GSSAPI"
+                 defaultSource: "$external"
+                 gssapi:
+                   hostname: "<yourHostname>"
+                   serviceName: "mongosql"
+
+         For more information on the |bi-short|'s configuration file settings,
+         see:
+
+         - :setting:`security.enabled`
+         - :setting:`security.defaultMechanism`
+         - :setting:`security.defaultSource`
+         - :setting:`security.gssapi.hostname`
+         - :setting:`security.gssapi.serviceName`
+
+         For more information, see :doc:`/tutorial/kerberos`.
+
+Client Authentication
+---------------------
+
+If your :doc:`BI tool <client-applications>` is using the
 :doc:`MongoDB ODBC Driver </reference/odbc-driver>`, the driver will
 handle authentication and you do not need to install an authentication
 plugin. If you are not using the MongoDB ODBC Driver and need to
@@ -42,23 +286,72 @@ MongoDB instance.
 .. _authentication-options:
 
 Authentication Options
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/auth-options.rst
 
-.. example::
+Example
+~~~~~~~
 
-   To authenticate as user ``grace`` with the LDAP authentication
-   mechanism, use the following username:
+A |bi-short| user, ``grace``, authenticates with her username and
+password. For Challenge and Response, |ldap|, and Kerberos, the
+following examples show:
 
-   .. code::
+- How to format the username to authenticate
+- Which configuration file settings :binary:`~bin.mongosqld`
+  requires to enable authentication
 
-      grace?mechanism=PLAIN&source=$external
+.. tabs-auth::
+
+   tabs:
+     - id: uidpwd
+       content: |
+
+         .. example::
+
+            To authenticate as user ``grace`` using the ``admin``
+            database and the Challenge and
+            Response (``SCRAM-SHA-1``) authentication mechanism, write 
+            the username in this format:
+
+            .. code-block:: shell
+
+               grace?source=admin
+
+     - id: ldap
+       content: |
+
+         .. example::
+
+            To authenticate as user ``grace`` with the |ldap| 
+            (``PLAIN``) authentication mechanism, write the 
+            username in this format:
+
+            .. code-block:: shell
+
+               grace?mechanism=PLAIN&source=$external
+
+     - id: kerberos
+       content: |
+
+         .. example::
+
+            To authenticate as user ``grace`` on the ``EXAMPLE.COM``
+            `Kerberos realm <https://web.mit.edu/kerberos/krb5-latest/doc/admin/realm_config.html>`__
+            with the Kerberos authentication mechanism, write the 
+            username in this format:
+
+            .. code-block:: shell
+
+               grace@EXAMPLE.COM?mechanism=GSSAPI&source=$external
+
+         For more information, see :doc:`/tutorial/kerberos`.
 
 .. class:: hidden
 
    .. toctree::
       :titlesonly:
 
-      /tutorial/install-auth-plugin-c
-      /tutorial/install-auth-plugin-jdbc
+      /reference/auth-plugin-c
+      /reference/auth-plugin-jdbc
+      /tutorial/kerberos

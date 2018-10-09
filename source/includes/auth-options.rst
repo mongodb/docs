@@ -27,10 +27,11 @@ username as URI-style query parameters:
        - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>` (default)
        - :ref:`SCRAM-SHA-256 <authentication-scram-sha-256>`
        - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
+       - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
 
-       LDAP requires `MongoDB Enterprise
+       LDAP and Kerberos require `MongoDB Enterprise
        <https://www.mongodb.com/download-center/enterprise?ct=atlasheader2>`__.
-       Set the source to ``$external`` when using LDAP.
+       Set the source to ``$external`` when using LDAP or Kerberos.
 
        .. note:: 
-          Neither Kerberos nor x.509 are supported.
+          X.509 is not supported.

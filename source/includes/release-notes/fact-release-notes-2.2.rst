@@ -12,7 +12,7 @@ These plugins perform user authentication via the SASL framework
 and support the SCRAM-SHA-1 and PLAIN authentication mechanisms.
 We currently provide authentication plugins in the following languages:
 
-- :doc:`Java </tutorial/install-auth-plugin-jdbc>` - for use with
+- :doc:`Java </reference/auth-plugin-jdbc>` - for use with
   MySQL’s Connector/J driver
 - :doc:`C </reference/auth-plugin-c>` - for use with the MySQL ODBC
   driver and the MySQL Shell

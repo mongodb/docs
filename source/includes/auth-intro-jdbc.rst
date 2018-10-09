@@ -8,6 +8,8 @@ The ``mongosql_auth`` plugin allows a client to authenticate with a
 using one of the following authentication mechanisms:
 
 - ``SCRAM-SHA-1``
-- ``PLAIN``
+- ``SCRAM-SHA-256``
+- ``PLAIN`` (LDAP)
+- ``GSSAPI`` (Kerberos)
 
 .. include:: /includes/fact-auth-mechanisms.rst
