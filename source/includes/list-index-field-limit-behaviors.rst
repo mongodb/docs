@@ -1,5 +1,4 @@
-MongoDB versions 2.6 and greater implement a stronger enforcement of the limit on
-:limit:`index key <Index Key Limit>`:
+When the :limit:`Index Key Limit` applies:
 
 - .. include:: /includes/fact-index-key-length-operation-behaviors.rst
      :start-after: index-field-limit-ensureIndex
