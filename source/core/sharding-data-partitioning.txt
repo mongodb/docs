@@ -34,6 +34,59 @@ The smallest range a chunk can represent is a single unique shard key
 value. A chunk that only contains documents with a single shard key value
 cannot be :ref:`split<sharding-chunk-split>`.
 
+Initial Chunks
+--------------
+
+Populated Collection
+~~~~~~~~~~~~~~~~~~~~
+
+If you shard a populated collection:
+
+- The sharding operation creates the initial chunk(s) to cover the
+  entire range of the shard key values. The number of chunks created
+  depends on the :ref:`configured chunk size <sharding-chunk-size>)`.
+
+- After the initial chunk creation, the balancer migrates these initial
+  chunks across the shards as appropriate as well as manages the chunk
+  distribution going forward.
+
+Empty Collection
+~~~~~~~~~~~~~~~~
+
+- If you shard an empty or non-existing collection with zones and the
+  zone ranges already defined for the collection:
+  - The sharding operation creates empty chunks for the defined zone
+    ranges as well as any additional chunks to cover the entire range
+    of the shard key values and performs an initial chunk distribution
+    based on the zone ranges. This initial creation and distribution of
+    chunks allows for faster setup of zoned sharding.
+
+  - After the initial distribution, the balancer manages the chunk
+    distribution going forward.
+
+If you shard an empty collection  with no zones and zone ranges specified:
+
+- If you shard the collection using a hashed shard key
+
+  - The sharding operation, by default, creates two empty chunks per
+    shard and migrates across the cluster. You can use
+    ``numInitialChunks`` option to specify a different number of
+    chunks. The created chunks covers the entire range of the hashed
+    shard key value. This initial creation and distribution of chunks
+    allows for faster setup of zoned sharding.
+
+  - After the initial distribution, the balancer manages the chunk
+    distribution going forward.
+
+- If you shard the collection using a ranged shard key:
+
+  - The sharding operation creates a single empty chunk to cover the
+    entire range of the shard key values.
+
+  - After the initial chunk creation, the balancer migrates the initial
+    chunk across the shards as appropriate as well as manages the chunk
+    distribution going forward.
+
 .. index:: sharding; chunk size
 .. _sharding-chunk-size:
 
