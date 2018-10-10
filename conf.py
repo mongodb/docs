@@ -88,7 +88,8 @@ rst_epilog = '\n'.join([
     '.. |adc| replace:: :abbr:`ADC (Active Directory Controller)`',
     '.. |spn| replace:: :abbr:`SPN (Service Principal Name)`',
     '.. |sasl| replace:: :abbr:`SASL (Simple Authentication and Security Layer)`',
-    '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`'
+    '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`',
+    '.. |scram| replace:: :abbr:`SCRAM (Salted Challenge Response Authentication Mechanism)`'
 ])
 
 source_constants = {
