@@ -2,8 +2,7 @@
 
 MongoDB will **not** create an index 
 on a collection if the index entry for
-an existing document exceeds the |limit|. Previous versions of MongoDB
-would create the index but not index such documents.
+an existing document exceeds the |limit|.
 
 .. index-field-limit-reIndex
 
