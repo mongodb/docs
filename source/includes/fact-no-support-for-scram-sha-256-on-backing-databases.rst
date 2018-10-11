@@ -1,8 +1,8 @@
-.. admonition:: No Support for SCRAM-SHA-256 Auth for Backing Databases
+.. admonition:: No Support for SCRAM-SHA-256 Auth for |onprem| Backing Databases
    :class: important
 
-   MongoDB 4.0 supports the
+   Although MongoDB 4.0 supports the
    :manual:`SCRAM-SHA-256 </core/security-scram>` authentication
-   mechanism. |mms| does not support this authentication mechanism
+   mechanism, |mms| does not support this authentication mechanism
    for its :term:`backing databases`.
 

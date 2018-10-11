@@ -64,7 +64,7 @@ extlinks = {
     'v3.6': ('https://docs.mongodb.com/v3.6%s', ''),
     'v4.0': ('https://docs.mongodb.com/v4.0%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
-    'product': ('http://www.mongodb.com/products/%s?jmp=docs','')
+    'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
     'dl': ('http://www.mongodb.com/download-center#%s?jmp=docs','')
 }
 
