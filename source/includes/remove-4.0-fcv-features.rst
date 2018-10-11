@@ -1,5 +1,5 @@
 Remove all persisted features that are :ref:`incompatible
-<4.0-compatibility-enabled>` with 4.0. For example, if you have defined
+<4.0-compatibility-enabled>` with 3.6. For example, if you have defined
 any view definitions, document validators, and partial index filters
 that use 4.0 query features such as the :ref:`aggregation convert
 operators <4.0-agg-type-conversion>`, you must remove them.
