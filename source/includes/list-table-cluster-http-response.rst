@@ -28,7 +28,8 @@
 
    * - ``biConnector``
      - document
-     - Information on whether |bic| is enabled or disabled for the cluster.
+     - Information on whether |bic| is enabled or disabled for the
+       cluster.
 
        .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
 
@@ -63,10 +64,13 @@
        volume. You can add capacity by increasing this number, up to a 
        maximum possible value of ``4096`` (i.e., 4 TB).
 
-       Each instance size has its own default value. To view default values:
-       open the |service| web interface; click the button to add a new
-       cluster; view the available default sizes; close the window without
-       saving changes.
+       Each instance size has its own default value. To view default
+       values:
+       
+       1. Open the |service| web interface.
+       #. Click the button to add a new cluster.
+       #. View the available default sizes.
+       #. Close the window without saving changes.
 
    * - ``encryptionAtRestProvider``
      - string
@@ -75,8 +79,10 @@
        |service| project AWS Key Management System settings. The
        cluster must meet the following restrictions:
 
-       - ``providerSettings.providerName`` must be ``AWS`` or ``AZURE``.
-       - ``providerSettings.instanceSizeName`` must be ``M10`` or greater.
+       - ``providerSettings.providerName`` must be ``AWS`` or 
+         ``AZURE``.
+       - ``providerSettings.instanceSizeName`` must be ``M10`` or
+         greater.
        - ``clusterType`` must be ``REPLICASET``.
        - ``backupEnabled`` must be ``false`` or omitted. 
 
@@ -123,9 +129,9 @@
        Include a username and password for a MongoDB user associated to
        the |service| project directly after the ``mongodb://`` protocol
        portion of the ``mongoURI``. To review the connection string 
-       format, see the  :manual:`connection string format documentation
-       </reference/connection-string>`. To add MongoDB users to a 
-       |service| project, see :ref:`mongodb-users`.
+       format, see the connection string format 
+       :manual:`documentation </reference/connection-string>`. To add
+       MongoDB users to a |service| project, see :ref:`mongodb-users`.
 
        You cannot connect to a |service| cluster using ``mongoURI``
        without all the specified query parameters and the user
@@ -136,9 +142,9 @@
 
    * - ``mongoURIUpdated``
      - string
-     - Lists when the connection string was last updated. The connection
-       string changes, for example, if you change a replica set to a sharded
-       cluster.
+     - Lists when the connection string was last updated. The
+       connection string changes, for example, if you change a replica
+       set to a sharded cluster.
 
        |service| only displays this field after the cluster is
        operational, not while it builds the cluster.
@@ -149,7 +155,8 @@
      - The :manual:`connection string </reference/connection-string>` 
        for connecting to the |service| cluster. Includes
        the ``replicaSet``, ``ssl``, and ``authSource`` query parameters
-       in the connection string with values appropriate for the cluster.
+       in the connection string with values appropriate for the
+       cluster.
 
        Include a username and password for a MongoDB user associated to
        the |service| project directly after the ``mongodb://`` protocol
@@ -173,16 +180,17 @@
      - integer
 
      - Selects whether the cluster is a :term:`sharded cluster` or a
-       :term:`replica set` and specifies the number of shards for a sharded
-       cluster.
+       :term:`replica set` and specifies the number of shards for a 
+       sharded cluster.
 
        If this is set to ``1``, the cluster is a replica set. For more
        information on MongoDB replica sets, see :manual:`Replication
        </replication>` in the MongoDB manual.
 
-       If this is set to ``2`` or higher, the cluster is a sharded cluster
-       with the number of shards specified. For more information on sharded
-       clusters, see :manual:`Sharding </sharding>` in the MongoDB manual.
+       If this is set to ``2`` or higher, the cluster is a sharded 
+       cluster with the number of shards specified. For more 
+       information on sharded clusters, see
+       :manual:`Sharding </sharding>` in the MongoDB manual.
 
        For details on how this setting affects costs, see
        :ref:`server-number-costs`.
@@ -191,7 +199,8 @@
 
        .. note::
 
-          Not present in the response body for :doc:`Global Clusters </global-clusters>`.
+          Not present in the response body for
+          :doc:`Global Clusters </global-clusters>`.
 
    * - ``paused``
      - boolean
@@ -200,16 +209,17 @@
    * - ``providerBackupEnabled``
      - Boolean
      - If ``true``, the cluster uses :ref:`backup-cloud-provider` for 
-       backups. If ``providerBackupEnabled`` *and* ``backupEnabled`` are
-       ``false``, the cluster does not use |service| backups.
+       backups. If ``providerBackupEnabled`` *and* ``backupEnabled`` 
+       are ``false``, the cluster does not use |service| backups.
 
        If ``numShards`` is greater than ``1``, you cannot enable
        this option.
 
    * - ``providerSettings``
      - document
-     - The configuration for the provisioned servers on which MongoDB runs.
-       The available options are specific to the cloud service provider.
+     - The configuration for the provisioned servers on which MongoDB 
+       runs. The available options are specific to the cloud service 
+       provider.
 
    * - ``providerSettings.providerName``
      - string
@@ -217,26 +227,26 @@
 
        .. include:: /includes/fact-cloud-service-providers.rst
        
-       - ``TENANT`` - Indicates an ``M2`` or ``M5`` multi-tenant cluster. 
-         See ``providerSettings.backingProviderName`` for the cloud service
-         provider on which the server hosting the cluster is provisioned.
-         
+       - ``TENANT`` - Indicates an ``M2`` or ``M5`` multi-tenant
+         cluster. See ``providerSettings.backingProviderName`` for the 
+         cloud service provider on which the server hosting the 
+         cluster is provisioned.
+
    * - ``providerSettings.backingProviderName``
      - string
      - The cloud service provider on which the multi-tenant server is
-       provisioned. Only visible if ``providerSettings.providerName`` is 
-       ``TENANT``.
+       provisioned. Only visible if ``providerSettings.providerName``
+       is ``TENANT``.
        
        .. include:: /includes/fact-cloud-service-providers.rst
 
    * - ``providerSettings.regionName``
      - string
-     - The physical location of your MongoDB cluster. The region you choose
-       can affect network latency for clients accessing your databases.
+     - The physical location of your MongoDB cluster. The region you
+       choose can affect network latency for clients accessing your
+       databases.
 
-       For multi-region clusters, see
-       ``replicationSpec.<region>``.
-
+       For multi-region clusters, see ``replicationSpec.<region>``.
 
    * - ``providerSettings.instanceSizeName``
      - string
@@ -245,14 +255,14 @@
        .. include:: /includes/extracts/fact-cluster-instance-sizes-basic.rst
 
        See :doc:`/reference/microsoft-azure`, 
-       :doc:`/reference/google-gcp`, or :doc:`/reference/amazon-aws` for
-       complete documentation of each instance size and its default
+       :doc:`/reference/google-gcp`, or :doc:`/reference/amazon-aws`
+       for complete documentation of each instance size and its default
        resources for a given cloud service provider.
 
    * - ``providerSettings.diskIOPS``
      - integer
-     - The maximum input/output operations per second (IOPS) the system 
-       can perform.
+     - The maximum input/output operations per second (IOPS) the
+       system can perform.
    
    * - ``providerSettings.diskTypeName``
      - string
@@ -295,33 +305,36 @@
 
    * - ``providerSettings.encryptEBSVolume``
      - Boolean
-     - *AWS only*. If enabled, the Amazon EBS encryption feature encrypts the
-       server's root volume for both data at rest within the volume and for
-       data moving between the volume and the instance.
+     - *AWS only*. If enabled, the Amazon EBS encryption feature
+       encrypts the server's root volume for both data at rest within
+       the volume and for data moving between the volume and the
+       instance.
 
    * - ``replicationFactor``
      - number
-     - The number of :term:`replica set` members. Each member keeps a copy of
-       your databases, providing high availability and data redundancy.
+     - The number of :term:`replica set` members. Each member keeps a
+       copy of your databases, providing high availability and data
+       redundancy.
 
        For multi-region clusters, add the total number of 
        ``replicationSpec.<region>.electableNodes`` to calculate the
        replication factor of the cluster.
 
-       If your cluster is a sharded cluster, each shard is a replica set with
-       the specified replication factor.
+       If your cluster is a sharded cluster, each shard is a replica
+       set with the specified replication factor.
 
        For information on how the replication factor affects costs, see
-       :ref:`server-number-costs`. For more information on MongoDB replica
-       sets, see :manual:`Replication </replication>` in the MongoDB manual.
+       :ref:`server-number-costs`. For more information on MongoDB
+       replica sets, see :manual:`Replication </replication>` in the
+       MongoDB manual.
 
        The possible values are ``3``, ``5``, or ``7``.
 
    * - ``replicationSpec``
      - document
      - The configuration of each region in the cluster. Each element
-       in this document represents a region where |service| deploys your 
-       cluster.
+       in this document represents a region where |service| deploys
+       your cluster.
 
    * - ``replicationSpec.<region>``
      - document
@@ -329,20 +342,21 @@
        corresponds to a region where |service| deploys your cluster. 
        
        Each ``<region>`` document describes the region's priority in
-       elections and the number and type of MongoDB nodes |service| deploys
-       to the region.
+       elections and the number and type of MongoDB nodes |service|
+       deploys to the region.
 
    * - ``replicationSpec.<region>.electableNodes``
      - integer
-     - The number of electable nodes in the region. Electable nodes can become
-       the :term:`primary` and can facilitate local reads.
+     - The number of electable nodes in the region. Electable nodes
+       can become the :term:`primary` and can facilitate local reads.
 
    * - ``replicationSpec.<region>.priority``
      - integer
-     - The election priority of the region. The highest possible priority is
-       ``7``, which identifies the **Preferred Region** of the cluster.
-       |service| places the :term:`primary` node in the **Preferred Region**.
-       The lowest possible priority is ``0``, which identifies a read only region.
+     - The election priority of the region. The highest possible
+       priority is ``7``, which identifies the **Preferred Region** of
+       the cluster. |service| places the :term:`primary` node in the
+       **Preferred Region**. The lowest possible priority is ``0``,
+       which identifies a read only region.
 
        You can have any number of priority ``0`` read only regions. 
        Priorities ``1`` through ``7`` are exclusive - no more than one
@@ -350,14 +364,16 @@
 
    * - ``replicationSpec.<region>.readOnlyNodes``
      - integer
-     - The number of read-only nodes in the region. Read-only nodes can never
-       become the :term:`primary`, but can facilitate local-reads.
+     - The number of read-only nodes in the region. Read-only nodes
+       can never become the :term:`primary`, but can facilitate
+       local-reads.
 
    * - ``replicationSpecs``
      - array of documents
-     - The configuration for each zone in a :doc:`Global Cluster </global-clusters>`.
-       Each document in this array represents a zone where |service| deploys
-       nodes for your Global Cluster.
+     - The configuration for each zone in a
+       :doc:`Global Cluster </global-clusters>`. Each document in this
+       array represents a zone where |service| deploys nodes for your
+       Global Cluster.
 
    * - ``replicationSpecs[n].id``
      - string
@@ -376,6 +392,13 @@
      - The physical location of the region. Each ``regionsConfig`` 
        document describes the region's priority in elections and the
        number and type of MongoDB nodes |service| deploys to the region.
+
+   * - ``srvAddress``
+     - string
+     - :manual:`Connection string </reference/connection-string>` 
+       for connecting to the |service| cluster. The ``+srv`` modifier 
+       forces the connection to use |tls-ssl|. See the ``mongoURI`` 
+       for additional options.
 
    * - ``stateName``
      - string
