@@ -1,3 +1,17 @@
+.. _automation-5.4.12.5501:
+
+Automation Agent 5.4.12.5501
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.4 on 2018-10-12 <opsmgr-server-4.0.4>`
+
+- **Critical Fix:** MongoDB 4.0 restores may fail if snapshot
+  downloads for nodes in the replica set finish at significantly
+  different times.
+
+- **Fix:** Restore the ability to upgrade from ``authSchemaVersion`` 3
+  to 5 in a sharded cluster.
+
 .. _automation-5.4.11.5498-1:
 
 Automation Agent 5.4.11.5498-1

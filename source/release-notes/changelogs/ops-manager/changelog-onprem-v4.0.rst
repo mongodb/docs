@@ -1,3 +1,17 @@
+.. _opsmgr-server-4.0.4:
+
+|onprem| Server 4.0.4
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2018-10-12*
+
+- **Critical Fix:** When running in local mode for MongoDB binary
+  management, the Backup Daemon may try to use MongoDB binaries for
+  the wrong operating system.
+
+- **Agent Upgrades:** :ref:`automation-5.4.12.5501`
+
+
 .. _opsmgr-server-4.0.3:
 
 |onprem| Server 4.0.3
