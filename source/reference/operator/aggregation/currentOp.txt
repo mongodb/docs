@@ -41,11 +41,11 @@ Definition
 
    :pipeline:`$currentOp` takes an options document as its operand:
 
-   .. versionchanged:: 4.0
+   .. versionchanged:: 4.2
 
    .. code-block:: javascript
 
-      { $currentOp: { allUsers: <boolean>, idleConnections: <boolean>, idleSessions: <boolean>, localOps: <boolean> } }
+      { $currentOp: { allUsers: <boolean>, idleConnections: <boolean>, idleCursors: <boolean>, idleSessions: <boolean>, localOps: <boolean> } }
 
    .. list-table::
       :header-rows: 1
@@ -56,16 +56,20 @@ Definition
 
       * - ``allUsers``
 
-        - Boolean. If set to ``false``, :pipeline:`$currentOp` will only
-          report operations belonging to the user who ran the command. If
-          set to ``true``, :pipeline:`$currentOp` will report operations
+        - Boolean. If set to ``false``, :pipeline:`$currentOp` will
+          only report on operations/idle connections/idle cursors/idle
+          sessions belonging to the user who ran the command. If set to
+          ``true``, :pipeline:`$currentOp` will report operations
           belonging to all users.
 
           .. note::
 
-             The ``inprog`` privilege is necessary to run 
-             :pipeline:`$currentOp` with ``{ allUsers : true }``.
-
+             For standalone and replica sets that enforce access control,
+             ``inprog`` privilege is required if ``allUsers: true``.
+   
+             For sharded clusters that enforce access control, the ``inprog``
+             privilege is required to run :pipeline:`$currentOp`.
+             
           Defaults to ``false``.
 
       * - ``idleConnections``
@@ -74,6 +78,26 @@ Definition
           operations including idle connections will be returned.
 
           Defaults to ``false``.
+
+      * - ``idleCursors``
+
+        - Boolean. 
+
+          If set to ``true``, :pipeline:`$currentOp` will report on
+          cursors that are "idle"; i.e. open but not currently active
+          in a :dbcommand:`getMore` operation.
+
+          Information on idle cursors have the :data:`~$currentOp.type`
+          set to ``"idleCursor"``.
+
+          Information on cursors currently active in a
+          :dbcommand:`getMore` operation information have the
+          :data:`~$currentOp.type` set to ``"op"`` and
+          :data:`~$currentOp.op` set to ``getmore``.
+
+          Defaults to ``false``.
+
+          .. versionadded:: 4.2
 
       * - ``idleSessions``
 
@@ -85,6 +109,9 @@ Definition
 
           The document for a session includes information on the session
           id ``lsid`` and the transaction number ``txnNumber``.
+
+          Starting in MongoDB 4.2, information on idle sessions have
+          the :data:`~$currentOp.type` set to ``"idleSession"``.
 
           If set to ``false``, :pipeline:`$currentOp` will not report on
           inactive sessions.
@@ -148,6 +175,14 @@ of a transaction. The second stage filters for just those documents
 related to inactive sessions that are holding locks as part of a
 transaction.
 
+.. tip::
+
+   For standalone and replica sets that enforce access control,
+   ``inprog`` privilege is required if ``allUsers: true``.
+   
+   For sharded clusters that enforce access control, the ``inprog``
+   privilege is required to run :pipeline:`$currentOp`.
+
 .. code-block:: javascript
 
    use admin
@@ -156,13 +191,31 @@ transaction.
       { $match : { active: false, txnNumber : { $exists: true } } }
    ] )
 
-The operation returns documents of the form:
+Starting in version 4.2, you can use :data:`$currentOp.type` to specify
+an equivalent filter:
+
+.. code-block:: javascript
+
+   use admin
+   db.aggregate( [ 
+      { $currentOp : { allUsers: true, idleSessions: true } },
+      { $match : { type: "idleSession" } }
+   ] )
+
+Both operations return documents of the form:
 
 .. code-block:: javascript
 
    {
+      "type" : "idleSession",
       "host" : "example.mongodb.com:27017",
       "desc" : "inactive transaction",
+      "client" : "198.51.100.20:55223",
+      "connectionId" : NumberLong(13),
+      "appName" : "MongoDB Shell",
+      "clientMetadata" : {
+         ...
+      },
       "lsid" : {
          "id" : UUID("02039c77-3f05-4dd6-a42d-d2168a73fc95"),
          "uid" : BinData(0,"47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=")
@@ -193,7 +246,12 @@ The operation returns documents of the form:
                "r" : NumberLong(1),
                "w" : NumberLong(1)
             }
-         }
+         },
+         "oplog" : {
+               "acquireCount" : {
+                  "r" : NumberLong(2)
+               }
+            }
       }
    }
 
@@ -204,6 +262,19 @@ Output Fields
 
 Each output document may contain a subset of the following fields as
 relevant for the operation:
+
+.. data:: $currentOp.type
+
+   .. versionadded:: 4.2
+
+   The type of operation. Values are either:
+
+   - ``op``
+   - ``idleSession``
+   - ``idleCursor``
+
+   If the :data:`$currentOp.type` is ``op``, :data:`$currentOp.op`
+   provides details on the specific operation.
 
 .. data:: $currentOp.host
 
@@ -305,8 +376,10 @@ relevant for the operation:
 
 .. data:: $currentOp.op
 
-   A string that identifies the type of operation. The possible values
-   are:
+   A string that identifies the specific operation type. Only present if
+   :data:`$currentOp.type` is ``op``.
+
+   The possible values are:
 
    - ``"none"``
    - ``"update"``
@@ -334,13 +407,144 @@ relevant for the operation:
 
    .. include:: /includes/extracts/command-field-currentOp.rst
 
-.. data:: $currentOp.originatingCommand
+.. data:: $currentOp.cursor
 
-   .. include:: /includes/fact-originating-command-ref.rst
+   .. versionadded:: 4.2
+
+   A document that contains the cursor information for ``idleCursor``
+   and ``getmore`` operations; i.e. where :data:`~currentOp.type` is
+   ``idleCursor`` or :data:`~currentOp.op` is ``getmore``.
+
+   If reporting on a ``getmore`` operation before the ``getmore`` has
+   accessed its cursor information, the :data:`~currentOp.cursor` field
+   is not available.
+
+   .. data:: $currentOp.cursor.cursorId
+
+      .. versionadded:: 4.2
+
+      The id of the cursor.
+
+   .. data:: $currentOp.cursor.createdDate
+
+      .. versionadded:: 4.2
+
+      The date and time when the cursor was created.
+
+   .. data:: $currentOp.cursor.lastAccessDate
+
+      .. versionadded:: 4.2
+
+      The date and time when the cursor was last used.
+      
+      If the cursor is actively in use (i.e. :data:`~currentOp.op` is
+      ``getmore`` and the :data:`~currentOp.type` is not
+      ``idleCursor``), then :data:`~$currentOp.cursor.lastAccessDate`
+      reports either the time the previous ``getmore`` ended
+      or the time the cursor was created if this is the first
+      ``getmore``.
+
+   .. data:: $currentOp.cursor.nDocsReturned
+
+      .. versionadded:: 4.2
+
+      The cumulative number of documents returned by the cursor.
+
+   .. data:: $currentOp.cursor.nBatchesReturned
+
+      .. versionadded:: 4.2
+
+      The curmulative number of batches returned by the cursor.
+
+   .. data:: $currentOp.cursor.noCursorTimeout
+
+      .. versionadded:: 4.2
+
+      The flag that indicates that the cursor will not timeout when idle;
+      i.e. if the cursor has the ``noTimeout`` option set.
+
+      - If true, the cursor does not time out when idle.
+
+      - If false, the cursor will time out when idle.
+
+      .. seealso:: :method:`cursor.addOption()`
+
+   .. data:: $currentOp.cursor.tailable
+
+      .. versionadded:: 4.2
+
+      The flag that indicates if the cursor is a :doc:`tailable cursor
+      </core/tailable-cursors>` for a capped collection. Tailable cursors
+      remain open after the client exhausts the results in the initial
+      cursor.
+
+      .. seealso::
+
+         - :dbcommand:`find`
+         - :method:`cursor.tailable()`
+         - :method:`cursor.addOption()`
+
+   .. data:: $currentOp.cursor.awaitData
+
+      .. versionadded:: 4.2
+
+      The flag that indicates whether the :doc:`tailable cursor
+      </core/tailable-cursors>` should temporarily block a
+      :dbcommand:`getMore` command on the cursor while waiting for new
+      data rather than returning no data.
+
+      For non-tailable cursors, the value is always false.
+
+      .. seealso::
+
+         - :dbcommand:`find`
+         - :method:`cursor.tailable()`
+         - :method:`cursor.addOption()`
+
+   .. data:: $currentOp.cursor.originatingCommand
+
+      .. versionadded:: 4.2
+
+      The ``originatingCommand`` field contains the full command object
+      (e.g. ``find`` or ``aggregate``) which originally created the
+      cursor.
+
+      .. note::
+
+         Starting in version 4.2, MongoDB now returns
+         ``originatingCommand`` field as a nested field in the new
+         ``cursor`` field. In previous versions, the
+         ``originatingCommand`` was a top-level field for the associated
+         ``"getmore"`` document.
+
+   .. data:: $currentOp.cursor.planSummary
+
+      .. versionadded:: 4.2
+
+      A string that specifies whether the cursor uses a collection scan
+      (``COLLSCAN``) or an index scan (``IXSCAN { ... }``).
+
+      The ``IXSCAN`` also includes the specification document of the index
+      used.
+
+      Not available when running with ``localOps: true`` on
+      :binary:`~bin.mongos` or when reporting on ``idleCursors``.
+
+   .. data:: $currentOp.cursor.operationUsingCursorId
+
+      .. versionadded:: 4.2
+
+      The ``opid`` of the operation using the cursor.
+
+      Only present if the cursor is not idle.
 
 .. data:: $currentOp.planSummary
 
-   A string that contains the query plan to help debug slow queries.
+   A string that specifies whether the cursor uses a collection scan
+   (``COLLSCAN``) or an index scan (``IXSCAN { ... }``).
+
+   Not available when running with ``localOps: true`` on
+   :binary:`~bin.mongos`.
 
 .. data:: $currentOp.numYields
 

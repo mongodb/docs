@@ -205,6 +205,19 @@ The following is a prototype of :dbcommand:`currentOp` output.
 Output Fields
 -------------
 
+.. data:: currentOp.type
+
+   .. versionadded:: 4.2
+
+   The type of operation. Values are either:
+
+   - ``op``
+   - ``idleSession``
+   - ``idleCursor``
+
+   If the :data:`currentOp.type` is ``op``, :data:`currentOp.op`
+   provides details on the specific operation.
+
 .. data:: currentOp.host
 
    The name of the host against which the operation is run.
@@ -296,8 +309,10 @@ Output Fields
 
 .. data:: currentOp.op
 
-   A string that identifies the type of operation. The possible values
-   are:
+   A string that identifies the specific operation type. Only present
+   if :data:`currentOp.type` is ``op``.
+
+   The possible values are:
 
    - ``"none"``
    - ``"update"``
@@ -340,13 +355,133 @@ Output Fields
 
    .. include:: /includes/extracts/command-field-currentOp.rst
 
-.. data:: currentOp.originatingCommand
-
-   .. include:: /includes/fact-originating-command-ref.rst
-
 .. data:: currentOp.planSummary
 
-   A string that contains the query plan to help debug slow queries.
+   Specifies whether the cursor uses a collection scan
+   (``COLLSCAN``) or an index scan (``IXSCAN { ... }``).
+
+   The ``IXSCAN`` also includes the specification document of the index
+   used.
+
+.. data:: currentOp.cursor
+
+   .. versionadded:: 4.2
+
+   A document that contains the cursor information for ``getmore``
+   operations; i.e. where :data:`~currentOp.op` is ``getmore``.
+
+   If reporting on a ``getmore`` operation before the ``getmore`` has
+   accessed its cursor information, the :data:`~currentOp.cursor` field
+   is not available.
+
+   .. data:: currentOp.cursor.cursorId
+
+      .. versionadded:: 4.2
+
+      The id of the cursor.
+
+   .. data:: currentOp.cursor.createdDate
+
+      .. versionadded:: 4.2
+
+      The date and time when the cursor was created.
+
+   .. data:: currentOp.cursor.lastAccessDate
+
+      .. versionadded:: 4.2
+
+      The date and time when the cursor was last used.
+
+   .. data:: currentOp.cursor.nDocsReturned
+
+      .. versionadded:: 4.2
+
+      The cumulative number of documents returned by the cursor.
+
+   .. data:: currentOp.cursor.nBatchesReturned
+
+      .. versionadded:: 4.2
+
+      The curmulative number of batches returned by the cursor.
+
+   .. data:: currentOp.cursor.noCursorTimeout
+
+      .. versionadded:: 4.2
+
+      The flag that indicates that the cursor will not timeout when idle;
+      i.e. if the cursor has the ``noTimeout`` option set.
+
+      - If true, the cursor does not time out when idle.
+
+      - If false, the cursor will time out when idle.
+
+      .. seealso:: :method:`cursor.addOption()`
+
+   .. data:: currentOp.cursor.tailable
+
+      .. versionadded:: 4.2
+
+      The flag that indicates if the cursor is a :doc:`tailable cursor
+      </core/tailable-cursors>` for a capped collection. Tailable cursors
+      remain open after the client exhausts the results in the initial
+      cursor.
+
+      .. seealso::
+
+         - :dbcommand:`find`
+         - :method:`cursor.tailable()`
+         - :method:`cursor.addOption()`
+
+   .. data:: currentOp.cursor.awaitData
+
+      .. versionadded:: 4.2
+
+      The flag that indicates whether the :doc:`tailable cursor
+      </core/tailable-cursors>` should temporarily block a
+      :dbcommand:`getMore` command on the cursor while waiting for new
+      data rather than returning no data.
+
+      For non-tailable cursors, the value is always false.
+
+      .. seealso::
+
+         - :dbcommand:`find`
+         - :method:`cursor.tailable()`
+         - :method:`cursor.addOption()`
+
+   .. data:: currentOp.cursor.originatingCommand
+
+      .. versionadded:: 4.2
+
+      The ``originatingCommand`` field contains the full command object
+      (e.g. ``find`` or ``aggregate``) which originally created the
+      cursor.
+
+      .. note::
+
+         Starting in version 4.2, MongoDB now returns
+         ``originatingCommand`` field as a nested field in the new
+         ``cursor`` field. In previous versions, the
+         ``originatingCommand`` was a top-level field for the associated
+         ``"getmore"`` document.
+
+   .. data:: currentOp.cursor.planSummary
+
+      .. versionadded:: 4.2
+
+      Specifies whether the cursor uses a collection scan
+      (``COLLSCAN``) or an index scan (``IXSCAN { ... }``).
+
+      The ``IXSCAN`` also includes the specification document of the index
+      used.
+
+   .. data:: currentOp.cursor.operationUsingCursorId
+
+      .. versionadded:: 4.2
+
+      The ``opid`` of the operation using the cursor.
+
+      Only present if the cursor is not idle.
 
 .. data:: currentOp.client
 

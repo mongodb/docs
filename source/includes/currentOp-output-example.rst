@@ -1,8 +1,11 @@
+.. versionchanged:: 4.2
+
 .. code-block:: javascript
 
    {
      "inprog": [
           {
+            "type" : <string>,
             "host" : <string>,
             "desc" : <string>,
             "connectionId" : <number>,
@@ -17,8 +20,20 @@
             "op" : <string>,
             "ns" : <string>,
             "command" : <document>,
-            "originatingCommand" : <document>,
             "planSummary": <string>,
+            "cursor" : {                              // only for getMore operations
+               "cursorId" : <NumberLong()>,
+               "createdDate" : <ISODate()>,
+               "lastAccessDate" : <ISODate()>,
+               "nDocsReturned" : <NumberLong()>,
+               "nBatchesReturned" : <NumberLong()>,
+               "noCursorTimeout" : <boolean>,
+               "tailable" : <boolean>,
+               "awaitData" : <boolean>,
+               "originatingCommand" : <document>,
+               "planSummary" : <string>,
+               "operationUsingCursorId" : <NumberLong()>
+            },
             "msg": <string>,
             "progress" : {
                 "done" : <number>,
