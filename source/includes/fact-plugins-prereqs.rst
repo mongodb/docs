@@ -9,7 +9,7 @@ The following procedure outlines how to install these dependencies:
 
 1. Install the latest version of |compass| for your operating system
    from the
-   `MongoDB Download Center <https://www.mongodb.com/download-center#compass>`__.
+   `MongoDB Download Center <https://www.mongodb.com/download-center/compass>`__.
 
 2. Install the `Node Version Manager (NVM) <https://github.com/creationix/nvm>`__:
 
