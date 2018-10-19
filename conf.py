@@ -30,8 +30,13 @@ extensions = [
     'mongodb',
     'directives',
     'intermanual',
-    'tabs'
+    'tabs',
+    'source_constants'
 ]
+
+source_constants = {
+  'download-page': '`downloads page <https://www.mongodb.com/download-center/compass?jmp=docs>`__'
+}
 
 templates_path = ['.templates']
 exclude_patterns = []

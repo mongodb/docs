@@ -8,8 +8,7 @@ The following are required to begin building |compass| plugins:
 The following procedure outlines how to install these dependencies:
 
 1. Install the latest version of |compass| for your operating system
-   from the
-   `MongoDB Download Center <https://www.mongodb.com/download-center/compass>`__.
+   from the {+download-page+}.
 
 2. Install the `Node Version Manager (NVM) <https://github.com/creationix/nvm>`__:
 
