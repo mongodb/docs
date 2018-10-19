@@ -6,7 +6,8 @@ Prerequisites
    tabs:
      - id: windows
        content: |
-         Connecting Tableau to the |bi| requires the following:
+         Connecting Tableau to the {+download-center-tableau+} requires
+         the following:
 
          - Tableau version 10.3 or later
 
@@ -17,7 +18,8 @@ Prerequisites
 
      - id: macos
        content: |
-         Connecting Tableau to the |bi| requires the following:
+         Connecting Tableau to the {+download-center-tableau+} requires
+         the following:
 
          - Tableau version 10.4 or later
 

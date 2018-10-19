@@ -68,9 +68,13 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'odbc-driver': '`MongoDB ODBC Driver for BI Connector <https://github.com/mongodb/mongo-odbc-driver/releases/>`_',
+    'odbc-driver': '`MongoDB ODBC Driver for BI Connector <https://github.com/mongodb/mongo-odbc-driver/releases/>`__',
     'bi-atlas-short': 'BI Connector for Atlas',
-    'bi-short': 'BI Connector'
+    'bi-short': 'BI Connector',
+    'download-center': '`MongoDB Download Center <https://www.mongodb.com/download-center/bi-connector>`__',
+    'download-center-bi': '`MongoDB Connector for BI <https://www.mongodb.com/download-center/bi-connector>`__',
+    'download-center-tableau': '`MongoDB Connector for BI <https://www.mongodb.com/download-center/bi-connector?jmp=tbl>`__',
+    'download-center-url': 'https://www.mongodb.com/download-center/bi-connector'
 }
 
 extlinks = {

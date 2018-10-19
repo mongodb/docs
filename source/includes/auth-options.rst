@@ -29,7 +29,7 @@ username as URI-style query parameters:
        - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
 
        LDAP requires `MongoDB Enterprise
-       <https://www.mongodb.com/download-center?ct=atlasheader2#enterprise>`_.
+       <https://www.mongodb.com/download-center/enterprise?ct=atlasheader2>`__.
        Set the source to ``$external`` when using LDAP.
 
        .. note:: 
