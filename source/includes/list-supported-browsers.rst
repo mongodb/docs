@@ -11,9 +11,6 @@
    * - `Mozilla Foundation Firefox <https://www.mozilla.org/en-US/firefox/new/>`_
      - latest stable
 
-   * - `Microsoft Internet Explorer <https://support.microsoft.com/en-us/help/17621/internet-explorer-downloads>`_
-     - 10 and later
-
    * - `Microsoft Edge <https://www.microsoft.com/en-us/windows/microsoft-edge>`_
      - latest stable
 
