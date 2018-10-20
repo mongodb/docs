@@ -15,6 +15,11 @@ MongoDB Version
   .. include:: /includes/considerations-change-mongodb-version.rst
 
 Storage Engine
+
+  .. important::
+
+     .. include:: /includes/fact-mmapv1-deprecated.rst
+
   If you run or upgrade to MongoDB 3.0 or later and modify the MongoDB
   storage engine, |mms| shuts down and restarts the MongoDB process. For 
   a multi-member replica set, |mms| performs a rolling 

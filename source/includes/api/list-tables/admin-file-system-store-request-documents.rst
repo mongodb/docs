@@ -45,6 +45,10 @@
        - ``NONE``
        - ``GZIP``
 
+       .. important::
+
+          .. include:: /includes/fact-mmapv1-deprecated.rst
+
    * - storePath
      - string
      - The location where file system-based backups are stored on 

@@ -1,4 +1,4 @@
-.. admonition:: Collection Limit for Backups using WiredTiger.
+.. admonition:: Collection Limit for Backups using WiredTiger
    :class: important
 
    |mms| cannot backup deployments where the total number of
