@@ -5,8 +5,8 @@
    * - Site
      - Purpose
    * - downloads.mongodb.com 
-     - To download `MongoDB Enterprise Builds <https://www.mongodb.com/download-center?jmp=nav#enterprise>`_.
+     - To download :dl:`MongoDB Enterprise Builds <enterprise>`.
    * - opsmanager.mongodb.com 
      - To download the MongoDB :term:`version manifest`.
    * - fastdl.mongodb.org 
-     - To download `MongoDB Community Builds <https://www.mongodb.com/download-center?jmp=nav#community>`_.
+     - To download :dl:`MongoDB Community Builds <community>`.
