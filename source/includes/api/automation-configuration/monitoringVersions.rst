@@ -1,4 +1,5 @@
-The ``monitoringVersions`` array is optional and specifies the version of the Monitoring Agent.
+The ``monitoringVersions`` array is optional and specifies the version
+of the :doc:`Monitoring Agent </tutorial/nav/monitoring-agent/>`.
 
 .. code-block:: cfg
 
@@ -36,14 +37,23 @@ The ``monitoringVersions`` array is optional and specifies the version of the Mo
 
    * - monitoringVersions
      - object array
-     - *Optional*. Objects that define version information for each Monitoring Agent.
+     - *Optional*. Objects that define version information for each
+       :doc:`Monitoring Agent </tutorial/nav/monitoring-agent/>`.
 
    * - monitoringVersions.name
      - string
-     - The desired version of the Monitoring Agent (e.g. "2.9.1.176-1").
+     - Version of the Monitoring Agent (e.g. "2.9.1.176-1").
 
        For MongoDB compatibility with Automation, see
        :doc:`/reference/mongodb-compatibility`.
+
+       .. important::
+
+          This property is read-only. Any modifications made to this
+          property are not reflected when updating the
+          Monitoring Agent through the |api|. To update the Monitoring
+          Agent version, see :ref:`this endpoint
+          <update-monitoring-backup-versions>`.
 
    * - monitoringVersions.hostname
      - string

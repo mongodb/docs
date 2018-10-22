@@ -1,4 +1,5 @@
-The ``backupVersions`` array is optional and specifies the version of the Backup Agent.
+The ``backupVersions`` array is optional and specifies the version of
+the :doc:`Backup Agent </tutorial/nav/backup-agent/>`.
 
 .. code-block:: cfg
 
@@ -37,11 +38,22 @@ The ``backupVersions`` array is optional and specifies the version of the Backup
    * - backupVersions
      - object array
      - *Optional*. Objects that define version information for each
-       Backup Agent.
+       :doc:`Backup Agent </tutorial/nav/backup-agent/>`.
 
    * - backupVersions.name
      - string
-     - The desired version of the Backup Agent (e.g. "3.1.1.263-1").
+     - Version of the Backup Agent (e.g. "3.1.1.263-1").
+
+       For MongoDB compatibility with Automation, see
+       :doc:`/reference/mongodb-compatibility`.
+
+       .. important::
+
+          This property is read-only. Any modifications made to this
+          property are not reflected when updating the
+          Backup Agent through the |api|. To update the Backup
+          Agent version, see :ref:`this endpoint
+          <update-monitoring-backup-versions>`.
 
    * - backupVersions.hostname
      - string

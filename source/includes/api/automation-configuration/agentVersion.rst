@@ -1,4 +1,12 @@
-The ``agentVersion`` object is optional and specifies the version of Automation Agent.
+The ``agentVersion`` object is optional and specifies the version of
+Automation Agent.
+
+.. note::
+
+   While you can update the Automation Agent version through this
+   configuration property, it is recommended to use the
+   :ref:`Update Agent Versions <update-monitoring-backup-versions>`
+   endpoint to ensure your versions are up to date.
 
 .. code-block:: cfg
 
