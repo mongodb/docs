@@ -200,8 +200,8 @@ Monitoring Agent 4.3.0.265
 - Retrieve information on mongos in a cluster by querying the config
   servers.
 
-Monitoring Agnet ``4.2.0.263``
-------------------------------
+Monitoring Agent 4.2.0.263
+--------------------------
 
 *Released 2016-04-20*
 
