@@ -16,11 +16,12 @@ From the various Collections tabs, you can use the query bar to specify
 MongoDB queries.  For details, see :ref:`querying`.
 
 .. figure:: /images/compass/query-bar-documents-view.png
-   :figwidth: 805px
+   :figwidth: 720px
 
 You can specify a query filter in the query bar. If you click
 :guilabel:`Options` to expand the query bar, you also have access to
-the ``project``, ``sort``, ``skip``, and ``limit`` options of the query.
+the ``project``, ``sort``, ``collation``, ``skip``, and ``limit``
+options of the query.
 
 .. list-table::
    :widths: 15 85
@@ -31,14 +32,20 @@ the ``project``, ``sort``, ``skip``, and ``limit`` options of the query.
 
    * - :ref:`query-bar-project`
 
-     - The projection to determine the fields to return.  Specify the field and
-       ``1`` to include a field or ``0`` to exclude a field.
+     - The projection to determine the fields to return.  Specify the
+       field and ``1`` to include a field or ``0`` to exclude a field.
 
    * - :ref:`query-bar-sort`
 
      - The sort order of the returned documents. To specify
        ascending order for a field, specify the field and ``1``.
        To specify descending order for a field, specify the field and ``-1``.
+
+   * - :ref:`query-bar-collation`
+
+     - The :manual:`collation </reference/collation/>` to use for the
+       query. Use this option to specify language-specific rules for
+       string comparison.
 
    * - :ref:`query-bar-skip`
 
@@ -75,30 +82,43 @@ The Compass :guilabel:`Filter` supports using the :binary:`~bin.mongo`
 shell mode representation of the MongoDB Extended JSON `BSON data types
 <https://docs.mongodb.com/manual/reference/mongodb-extended-json/#bson-data-types-and-associated-representations>`_.
 
-For example, the following filter returns documents where
-``start_date`` is greater than than the BSON ``Date``
-``2017-05-01``:
+.. example::
 
-.. code-block:: javascript
+   The following filter returns documents where
+   ``start_date`` is greater than than the BSON ``Date``
+   ``2017-05-01``:
 
-   { "start_date": {$gt: new Date ('2017-05-01')} }
+   .. code-block:: javascript
 
-By specifying the ``Date`` type in both ``start_date`` and the ``$gt``
-comparison operator, Compass performs the ``greater than`` comparison
-chronologically, returning documents with ``start_date`` later than
-``2017-05-01``.
+      { "start_date": {$gt: new Date('2017-05-01')} }
 
-Without the ``Date`` type specification, Compass compares the
-``start_dates`` as strings
-`lexicographically <https://en.wikipedia.org/wiki/Lexicographical_order>`_,
-instead of comparing the values chronologically.
+   By specifying the ``Date`` type in both ``start_date`` and the
+   ``$gt`` comparison operator, Compass performs the ``greater
+   than`` comparison chronologically, returning documents with
+   ``start_date`` later than ``2017-05-01``.
 
-To specify an `ObjectID <https://docs.mongodb.com/manual/reference/method/ObjectId/>`_,
+   Without the ``Date`` type specification, Compass compares the
+   ``start_dates`` as strings
+   `lexicographically
+   <https://en.wikipedia.org/wiki/Lexicographical_order>`_,
+   instead of comparing the values chronologically.
+
+Filter by ObjectID
+``````````````````
+
+To specify an `ObjectID <https://docs.mongodb.com/manual/reference/method/ObjectId/>`_ in your filter,
 use the format ``ObjectId('<id>')``, as in the following filter example:
 
 .. code-block:: javascript
 
    { "_id": ObjectId('59a87101f17fcbfbc9cd4374') }
+
+Query Bar Autocompletion
+````````````````````````
+
+The query bar autocompletes the current query based on the keys in
+your collection’s documents, including keys in embedded
+subdocuments.
 
 .. _query-bar-project:
 
@@ -140,8 +160,8 @@ projection document:
    document that specifies field inclusions. For example,
    ``{ year: 1, _id: 0 }``.
 
-For more information on projection, refer to the MongoDB Manual
-:ref:`find-projection`.
+For more information on projection, refer to the
+:ref:`MongoDB Manual <find-projection>`.
 
 .. _query-bar-sort:
 
@@ -164,8 +184,36 @@ sort by ``name`` in ascending order.
 
    { year: -1, name: 1 }
 
-For more information on sort, refer to the MongoDB Manual :manual:`sort
-</reference/method/cursor.sort>`.
+For more information on sort, refer to the
+:manual:`MongoDB Manual </reference/method/cursor.sort>`.
+
+.. _query-bar-collation:
+
+Collation
+~~~~~~~~~
+
+Use the :manual:`Collation </reference/collation/>` query bar option
+to specify language-specific rules for string comparison, such as
+rules for lettercase and accent marks.
+
+Use the ``locale`` field in the collation document to specify the
+`ICU Locale code <http://userguide.icu-project.org/locale>`_ for the
+desired language. For a complete list of supported languages and
+locales, refer to the :manual:`MongoDB Manual
+</reference/collation-locales-defaults/#collation-languages-locales>`.
+
+.. example::
+
+   To use the ``pinyin`` variant of the Chinese collation, use the
+   following collation document:
+
+   .. code-block:: javascript
+
+      { "locale" : "zh@collation=pinyin" }
+
+For a detailed list of all possible fields in a collation document,
+refer to :manual:`the MongoDB Manual
+</reference/collation/#collation-document-fields>`.
 
 .. _query-bar-skip:
 
@@ -177,7 +225,7 @@ first n-number of document to skip before returning the result set. To
 specify the number of documents to skip, click :guilabel:`Options` and
 enter the number to skip.
 
-For more information on skip, refer to the MongoDB Manual :manual:`skip
+For more information on skip, refer to the :manual:`MongoDB Manual
 </reference/method/cursor.skip>`.
 
 .. _query-bar-limit:
@@ -189,21 +237,8 @@ If the query bar has the :guilabel:`Limit` option, you can specify the
 maximum number of documents to return. To specify the limit, click
 :guilabel:`Options` and enter the limit.
 
-For more information on limit, refer to the MongoDB Manual
-:manual:`limit </reference/method/cursor.limit>`.
-
-Query Autocompletetion
-----------------------
-
-The Compass query bar autocompletes the current query based on the keys
-in your collection's documents, including keys in embedded
-sub-documents.
-
-See the following example which autocompletes the
-``departureDate`` object field and its corresponding sub-document keys
-from the ``test.flightStats`` collection:
-
-.. figure:: /images/compass/autocomplete-flightstats.png
+For more information on limit, refer to the
+:manual:`MongoDB Manual </reference/method/cursor.limit>`.
 
 Run the Query
 -------------
@@ -233,13 +268,16 @@ Past Queries View
 -----------------
 
 Compass automatically stores up to 20 most recent queries for each
-collection. To view these queries, click on the history icon in the
-query bar.
+collection. To view these queries, click on the ellipsis
+:guilabel:`(...)` button in the query bar, then click
+:guilabel:`Toggle Query History`.
 
 .. figure:: /images/compass/query-history-view.png
 
-From the past queries view, you can view the recent queries as well as
-the queries saved as favorites for that collection.
+From the :guilabel:`Past Queries` view, you can view
+:ref:`recent queries <recent-queries>` as well as
+the queries saved as :ref:`favorites <favorite-queries>` for
+the current collection.
 
 .. _recent-queries:
 
@@ -251,6 +289,18 @@ a listed query to populate the query bar with that query.
 
 .. figure:: /images/compass/query-history-select.png
 
+You can also hover over a query and perform the following actions:
+
+- Click the :guilabel:`Star` icon to save the query as a
+  :ref:`favorite <favorite-queries>`. Specify a name for the query and
+  click :guilabel:`Save`.
+
+- Click the :guilabel:`Copy` icon to copy the query to the
+  clipboard.
+
+- Click the :guilabel:`Trash` icon to remove the query from the
+  :guilabel:`Recent` list.
+
 .. _favorite-queries:
 
 Favorite Queries
@@ -259,9 +309,6 @@ Favorite Queries
 From the list of recent queries for a collection, you can save queries
 as favorites. To view the list of queries saved as favorites, click on
 :guilabel:`Favorites` in the past queries view.
-
-To save a query as a favorite, click on the star icon for the query.
-Specify a name for the query and save.
 
 .. figure:: /images/compass/query-history-favorite.png
    :figwidth: 316px

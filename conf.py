@@ -31,7 +31,8 @@ extensions = [
     'directives',
     'intermanual',
     'tabs',
-    'source_constants'
+    'source_constants',
+    'icon'
 ]
 
 source_constants = {
