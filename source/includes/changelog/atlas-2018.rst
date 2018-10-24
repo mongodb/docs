@@ -1,3 +1,16 @@
+.. _atlas-v20181023:
+
+24 October 2018 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improved experience for connecting to cluster.
+- Can now set advanced configuration options when deploying the
+  Business Intelligence Connector.
+- Can restrict MongoDB employee access to their Atlas servers.
+- Can use Snapshot Backups for sharded clusters AWS and Azure as
+  private beta.
+- Can now create rolling indexes via Data Explorer.
+
 .. _atlas-v20181002:
 
 04 October 2018 Release

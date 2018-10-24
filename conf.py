@@ -177,9 +177,6 @@ html_theme_path = [os.path.join(conf.paths.buildsystem, 'themes')]
 html_title = conf.project.title
 htmlhelp_basename = 'MongoDB'
 
-html_logo = sconf.logo
-html_static_path = sconf.paths.static
-
 html_copy_source = False
 html_domain_indices = True
 html_use_index = True

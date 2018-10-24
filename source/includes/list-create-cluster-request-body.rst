@@ -592,16 +592,18 @@
 
        **AWS / GCP ONLY**
 
-       The size in gigabytes of the server's root volume. You can add capacity
-       by increasing this number, up to a maximum possible value of ``4096``
-       (i.e., 4 TB). This value must be a positive integer.
+       The size in gigabytes of the server's root volume. You can add
+       capacity by increasing this number, up to a maximum possible 
+       value of ``4096`` (i.e., 4 TB). This value must be a positive 
+       integer.
 
-       The minimum disk size for dedicated clusters is 10GB for AWS and
-       GCP, and 32GB for Azure. If you specify ``diskSizeGB`` with a
-	   lower disk size, Atlas defaults to the minimum disk size value.
+       The minimum disk size for dedicated clusters is 10GB for AWS 
+       and GCP, and 32GB for Azure. If you specify ``diskSizeGB`` with 
+       a lower disk size, Atlas defaults to the minimum disk size 
+       value.
 
        .. important:: |service| calculates storage charges differently
-          depending on whether you choose the default value or a custom value.
-          For details, see :ref:`storage-capacity`.
+          depending on whether you choose the default value or a
+          custom value. For details, see :ref:`storage-capacity`.
 
        .. include:: /includes/fact-storage-limitation.rst
