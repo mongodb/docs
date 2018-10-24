@@ -1,3 +1,14 @@
+.. _automation-5.9.0.5561-1:
+
+Automation Agent 5.9.0.5561-1
+-----------------------------
+
+*Released 2018-10-24*
+
+- Optimized ordering for sharded zone management.
+- Optimized state gathering in clusters with high latency between
+  members.
+
 .. _automation-5.8.1.5548:
 
 Automation Agent 5.8.1.5548

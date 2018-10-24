@@ -1,3 +1,12 @@
+.. _cloudmanager-v20181024:
+
+24 October 2018 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Can now manage deployments with FIPS mode enabled.
+- Can now create rolling indexes via Data Explorer.
+- Agent Upgrades: :ref:`automation-5.9.0.5561-1`
+
 .. _cloudmanager-v20181004:
 
 04 October 2018 Release
