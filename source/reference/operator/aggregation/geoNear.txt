@@ -18,6 +18,10 @@ Definition
    Outputs documents in order of nearest to farthest from a specified
    point.
 
+   .. note::
+
+      .. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
+
    The :pipeline:`$geoNear` stage has the following prototype form:
 
    .. code-block:: javascript
@@ -55,13 +59,20 @@ When using :pipeline:`$geoNear`, consider that:
 
 - .. include:: /includes/extracts/views-unsupported-geoNear.rst
 
+- Starting in version 4.2, :pipeline:`$geoNear` no longer has a default
+  limit of 100 documents.
+
 Example
 -------
 
-Consider a collection ``places`` that has a ``2dsphere`` index. The following
-aggregation finds at most ``5`` unique documents with a location at
-most 2 meters from the center ``[ -73.99279 , 40.719296 ]`` and have ``type`` equal
-to ``public``:
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
+
+Consider a collection ``places`` that has a ``2dsphere`` index. The
+following aggregation uses :pipeline:`$geoNear` to find documents with
+a location at most 2 meters from the center ``[ -73.99279 , 40.719296
+]`` and ``category`` equal to ``Parks``.
 
 .. code-block:: javascript
 
@@ -71,9 +82,8 @@ to ``public``:
            near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
            distanceField: "dist.calculated",
            maxDistance: 2,
-           query: { type: "public" },
+           query: { category: "Parks" },
            includeLocs: "dist.location",
-           num: 5,
            spherical: true
         }
       }
@@ -86,7 +96,7 @@ The aggregation returns the following:
    {
       "_id" : 8,
       "name" : "Sara D. Roosevelt Park",
-      "type" : "public",
+      "category" : "Parks",
       "location" : {
          "type" : "Point",
          "coordinates" : [ -73.9928, 40.7193 ]
@@ -110,12 +120,13 @@ The matching document contains two new fields:
 Minimum Distance
 ~~~~~~~~~~~~~~~~
 
-.. versionadded:: 3.2
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
 
 The following example uses the option ``minDistance`` to specify
 the minimum distance from the center point that the documents can be.
-MongoDB limits the results to those documents that fall outside the
-specified distance from the center point.
+The following aggregation finds all documents that 
 
 .. code-block:: javascript
 
@@ -125,9 +136,8 @@ specified distance from the center point.
            near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
            distanceField: "dist.calculated",
            minDistance: 2,
-           query: { type: "public" },
+           query: { category: "Parks" },
            includeLocs: "dist.location",
-           num: 5,
            spherical: true
         }
       }
@@ -159,9 +169,14 @@ A document in the ``places`` collection resembles the following:
       "category" : "Stadiums"
    }
 
-The following example uses the ``keys`` option to specify that the
+The following example uses the ``key`` option to specify that the
 aggregation should use the ``location`` field values for the
 :pipeline:`$geoNear` operation rather than the ``legacy`` field values.
+The pipeline also uses :pipeline:`$limit` to return at most 5 documents.
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
 
 .. code-block:: javascript
 
@@ -173,7 +188,8 @@ aggregation should use the ``location`` field values for the
            distanceField: "dist.calculated",
            query: { "category": "Parks" }
         }
-      }
+      },
+      { $limit: 5 }
    ])
 
 The aggregation returns the following:
@@ -181,7 +197,7 @@ The aggregation returns the following:
 .. code-block:: javascript
 
    {
-      "_id" : 2,
+      "_id" : 8,
       "name" : "Sara D. Roosevelt Park",
       "location" : {
          "type" : "Point",
