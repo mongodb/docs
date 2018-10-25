@@ -16,8 +16,8 @@ Definition
 .. dbcommand:: repairDatabase
 
    Rebuilds the database and indexes by discarding invalid or corrupt
-   data, which may be present due to an unexpected system restart or
-   crash. :dbcommand:`repairDatabase` is analogous to a ``fsck``
+   data that may be present due to an unexpected system restart or
+   shutdown. :dbcommand:`repairDatabase` is analogous to a ``fsck``
    command for file systems.
 
    .. warning::
@@ -25,7 +25,13 @@ Definition
       - Before using :dbcommand:`repairDatabase`, make a backup copy of
         the files in the dbpath directory.
 
-      - .. include:: /includes/note-repair.rst
+      - If you are running with :term:`journaling <journal>` enabled,
+        there is almost never any need to run
+        :dbcommand:`repairDatabase` after an unclean shutdown since the
+        server can use the journal files to restore the data files to a
+        clean state automatically. However, you may need to run
+        :dbcommand:`repairDatabase` in cases where you need to recover
+        from a disk-level data corruption.
 
       - Avoid running :dbcommand:`repairDatabase` against a replica set.
         If you are trying to repair a :term:`replica set` member, and you
@@ -35,10 +41,11 @@ Definition
         :doc:`/tutorial/resync-replica-set-member`), and **not** use
         :dbcommand:`repairDatabase`.
 
-      - You should only use the :dbcommand:`repairDatabase` command and
-        :ref:`associated wrappers <repairdb-helpers>` if you have no
-        other options. These operations remove and do not save any
-        corrupt data during the repair process.
+      - You should only use the :dbcommand:`repairDatabase` command
+        (and related :method:`db.repairDatabase()` method and the
+        :option:`--repair <mongod --repair>` command-line option) if
+        you have no other options. These operations remove and do not
+        save any corrupt data during the repair process.
 
    :dbcommand:`repairDatabase` takes the following form:
 
@@ -50,7 +57,7 @@ Definition
 
    .. include:: /includes/apiargs/dbcommand-repairDatabase-field.rst
 
-   You can explicitly set the options as follows:
+   You can explicitly set the MMAPv1 options as follows:
 
    .. code-block:: javascript
 
@@ -58,38 +65,22 @@ Definition
         preserveClonedFilesOnFailure: <boolean>,
         backupOriginalFiles: <boolean> }
 
-   See :option:`mongod --repair` and :option:`mongodump --repair` for
-   information on these related options.
-
-
 .. _repairdb-helpers:
 
-``repairDatabase`` Wrappers
----------------------------
+``repairDatabase`` Operations
+------------------------------
 
-You may invoke :dbcommand:`repairDatabase` from multiple contexts:
+In addition to the :dbcommand:`repairDatabase` command, the
+:binary:`~bin.mongo` shell provides :method:`db.repairDatabase()` as a
+wrapper around the :dbcommand:`repairDatabase` command. For more
+information on the method, see :method:`db.repairDatabase()`.
 
-- Use the :binary:`~bin.mongo` shell to run the command, as above.
-
-- Use the :method:`db.repairDatabase()` in the :binary:`~bin.mongo`
-  shell.
-
-- Run :binary:`~bin.mongod` directly from your system's shell. Make sure
-  that :binary:`~bin.mongod` isn't already running, and that you invoke
-  :binary:`~bin.mongod` as a user that has access to MongoDB's data files:
-
-  .. code-block:: sh
-
-     mongod --repair
-
-  For MMAPv1, you can specify a temporary working directory that the
-  command will use during the repair operation:
-
-  .. code-block:: sh
-
-     mongod --repair --repairpath /opt/vol2/data
-
-  See :setting:`~storage.repairPath` for more information.
+MongoDB also provides the option to run :option:`mongod --repair`
+directly from the command line to repair all databases for the
+:binary:`~bin.mongod`. Starting in MongoDB 4.0.3, :option:`mongod
+--repair` performs a more extensive repair operation than the
+:dbcommand:`repairDatabase` command. For more information on running
+:option:`mongod --repair`, see :option:`--repair <mongod --repair>`.
 
 Behavior
 --------
@@ -112,7 +103,13 @@ and use that for the repair. When mounting a separate volume for
 from the command line and use the
 :option:`--repairpath <mongod --repairpath>`
 switch to specify the folder in which to store
-temporary repair files.
+temporary repair files. For example:
+
+.. code-block:: sh
+
+   mongod --repair --repairpath /opt/vol2/data
+
+See :option:`--repairpath <mongod --repairpath>` for more information.
 
 WiredTiger
 ~~~~~~~~~~
@@ -153,6 +150,3 @@ Example
 .. code-block:: javascript
 
    db.runCommand( { repairDatabase: 1 } )
-
-
-
