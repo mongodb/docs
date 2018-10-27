@@ -36,9 +36,9 @@ content: |
 
         * - :guilabel:`Point In Time`
 
-          - Creates a custom snapshot that includes all operations up 
-            to but not including the selected time. By default, the
-            :term:`oplog` stores 24 hours of data.
+          - Allows you to choose a date and time as your restore time
+            objective for your snapshot. By default, the
+            Oplog Store stores 24 hours of data.
 
             .. example::
 
@@ -47,22 +47,33 @@ content: |
 
             .. important::
 
-               You cannot perform a :abbr:`PIT (Point in Time)` restore
-               that covers any time prior to the latest backup resync.
-               For the conditions that cause a resync, see
-               :doc:`/tutorial/resync-backup`.
+               - You must :ref:`enable cluster checkpoints <enable-cluster-checkpoints>`
+                 to perform a PIT restore on a sharded cluster. 
+
+                 If no checkpoints that include your date and time are
+                 available, |mms| asks you to
+                 :guilabel:`choose another point in time`.
+
+               - You cannot perform a :abbr:`PIT (Point in Time)`
+                 restore that covers any time prior to the latest
+                 backup resync. For the conditions that cause a
+                 resync, see :doc:`/tutorial/resync-backup`.
 
           - Select a :guilabel:`Date` and :guilabel:`Time`.
 
   b. Click :guilabel:`Next`.
 
-  c. If you chose :guilabel:`Point In Time` and
-     :term:`checkpoints <checkpoint>` are enabled, a list of
-     :guilabel:`Checkpoints` appears. You may choose a checkpoint to
-     be your point in time, or click :guilabel:`Choose another point
-     in time` to remove the list of checkpoints and select the date
+  c. If you chose :guilabel:`Point In Time`, a list of
+     :guilabel:`Checkpoints` closest to the time you selected appears. 
+     You may choose one of the listed checkpoints to start your point 
+     in time restore, or click :guilabel:`Choose another point in
+     time` to remove the list of checkpoints and select another date
      and time from the menus.
 
+  d. Once you have selected a checkpoint, apply the :term:`oplog` to
+     this snapshot to bring your snapshot to the date and time you
+     selected. The oplog is applied for all operations up to but not
+     including the selected time.
 ---
 title: "Click :guilabel:`Download` to restore the files manually."
 stepnum: 4
@@ -96,7 +107,8 @@ content: |
 
   c. Click:
 
-     - The copy button to the right of the link to copy the link to use it later, or
+     - The copy button to the right of the link to copy the link to
+       use it later, or
      - :guilabel:`Download` to download the snapshot immediately.
 
   .. admonition:: Extra step for point-in-time restores
@@ -104,13 +116,11 @@ content: |
 
      For point-in-time and oplog timestamp restores, additional
      instructions are shown. The final step shows the full command
-     you must run using the :abbr:`MBRU (MongoDB Backup Restore
-     Utility)`. It includes all of the necessary options to ensure a
-     full restore.
+     you must run using the ``mongodb-backup-restore-util``. It
+     includes all of the necessary options to ensure a full restore.
 
      Select and copy the ``mongodb-backup-restore-util`` command
      provided under :guilabel:`Run Binary with PIT Options`.
-
 
 ---
 stepnum: 7
@@ -125,8 +135,8 @@ content: |
 
      .. code-block:: sh
 
-        tar -xvf {backupRestoreName}.tar.gz
-        mv {backupRestoreName} {temp-database-path}
+        tar -xvf <backupSnapshot>.tar.gz
+        mv <backupSnapshot> <temp-database-path>
 ---
 stepnum: 8
 title: "Run the MongoDB Backup Restore Utility (Point-in-Time Restore Only)."
@@ -142,61 +152,21 @@ content: |
         :guilabel:`More` and then :guilabel:`Download MongoDB Backup
         Restore Utility`.
 
-  b. Run the MongoDB Backup Restore Utility on your destination host.
+  #. Start a :binary:`~bin.mongod` instance using the extracted
+     snapshot directory as the data directory.
+
+     .. example::
+
+        .. code-block:: sh
+
+           mongod --port <port number> \
+             --dbpath <temp-database-path> \
+             --setParameter ttlMonitorEnabled=false
+
+  #. Run the MongoDB Backup Restore Utility on your destination host.
      Run it once for the config server and each shard.
 
-     .. admonition:: Pre-configured MBRU command
-        :class: important
-
-        |mms| provides the ``mongodb-backup-restore-util`` with the
-        appropriate options for your restore on the restore panel under
-        :guilabel:`Run Binary with PIT Options`.
-
-        You should copy the ``mongodb-backup-restore-util`` command
-        provided in the |application|.
-
-     .. cond:: cloud
-
-        .. code-block:: sh
- 
-           ./mongodb-backup-restore-util --https --host <targetHost> \
-             --port <targetPort> \
-             --opStart <opLogStartTimeStamp> \
-             --opEnd <opLogEndTimeStamp> \
-             --logFile <logPath> \
-             --apiKey <apiKey> \
-             --groupId <groupId> \
-             --rsId <rsId> \
-             --whitelist <database1.collection1, database2, etc.> \
-             --blacklist <database1.collection1, database2, etc.> \
-             --seedReplSetMember \
-             --oplogSizeMB <size> \
-             --seedTargetPort <port> \
-             --ssl \
-             --sslCAFile <path> \
-             --sslPEMKeyFile <path>
-
-     .. cond:: onprem
-
-        .. code-block:: sh
- 
-           ./mongodb-backup-restore-util --https --host <targetHost> \
-             --port <targetPort> \
-             --opStart <opLogStartTimeStamp> \
-             --opEnd <opLogEndTimeStamp> \
-             --logFile <logPath> \
-             --oplogSourceAddr <oplogSourceAddr> \
-             --apiKey <apiKey> \
-             --groupId <groupId> \
-             --rsId <rsId> \
-             --whitelist <database1.collection1, database2, etc.> \
-             --blacklist <database1.collection1, database2, etc.> \
-             --seedReplSetMember \
-             --oplogSizeMB <size> \
-             --seedTargetPort <port> \
-             --ssl \
-             --sslCAFile <path> \
-             --sslPEMKeyFile <path>
+     .. include:: /includes/fact-pre-configured-mbru-command.rst
 
      The ``mongodb-backup-restore-util`` command uses the following
      options:
@@ -253,6 +223,25 @@ content: |
   To manage the sharded cluster with automation again,
   :doc:`import the sharded cluster </tutorial/add-existing-mongodb-processes>`
   back into |mms|.
+
+---
+stepnum: 13
+title: "Start the Sharded Cluster Balancer."
+level: 4
+ref: start-balancer
+content: |
+
+  Once a restore completes, the :manual:`sharded cluster balancer </core/sharding-balancer-administration>` is turned off. To start the balancer:
+
+  a. Click :guilabel:`Deployment`.
+  #. Click :icon:`ellipsis-h` on the card for your desired sharded
+     cluster.
+  #. Click :guilabel:`Manager Balancer`.
+  #. Toggle to :guilabel:`Yes`.
+  #. Click :icon:`pencil-alt` to the right of :guilabel:`Set the Balancer State`.
+  #. Toggle to :guilabel:`Yes`.
+  #. Click :guilabel:`Save`.
+  #. Click :guilabel:`Review & Deploy` to save the changes.
 
 ...
 

@@ -39,7 +39,7 @@ content: |
 
           - Creates a custom snapshot that includes all operations up 
             to but not including the selected time. By default, the
-            :term:`oplog` stores 24 hours of data.
+            Oplog Store stores 24 hours of data.
 
             .. example::
 
@@ -109,8 +109,7 @@ content: |
      :guilabel:`Restore History`.
 
   b. When the restore job completes, click :guilabel:`(get link)`
-     for each :term:`shard` and for one of the :term:`config servers
-     <config server>` appears.
+     for each :term:`replica set` appears.
 
   c. Click:
 
@@ -136,15 +135,13 @@ title: "Restore the snapshot data files to the destination host."
 level: 4
 ref: copy
 content: |
-  Extract the snapshot archive for the :term:`config server` and for
-  each :term:`shard` to a temporary location.
 
   .. example::
 
      .. code-block:: sh
 
-        tar -xvf {backupRestoreName}.tar.gz
-        mv {backupRestoreName} {temp-database-path}
+        tar -xvf <backupSnapshot>.tar.gz
+        mv <backupSnapshot> <temp-database-path>
 ---
 stepnum: 8
 title: "Run the MongoDB Backup Restore Utility (Point-in-Time Restore Only)."
@@ -160,37 +157,21 @@ content: |
         :guilabel:`More` and then :guilabel:`Download MongoDB Backup
         Restore Utility`.
 
-  b. Run the MongoDB Backup Restore Utility on your destination host.
-     Run it once for the config server and each shard.
+  #. Start a :binary:`~bin.mongod` instance using the extracted
+     snapshot directory as the data directory.
 
-     .. important::
+     .. example::
 
-        |mms| provides the ``mongodb-backup-restore-util`` with the
-        appropriate options for your restore on the restore panel under
-        :guilabel:`Run Binary with PIT Options`.
+        .. code-block:: sh
 
-        You should copy the ``mongodb-backup-restore-util`` command
-        provided in the |application|.
- 
-       .. code-block:: sh
-          
-          ./mongodb-backup-restore-util --https --host <targetHost> \
-            --port <targetPort> \
-            --opStart <opLogStartTimeStamp> \
-            --opEnd <opLogEndTimeStamp> \
-            --logFile <logPath> \
-            --oplogSourceAddr <oplogSourceAddr> \
-            --apiKey <apiKey> \
-            --groupId <groupId> \
-            --rsId <rsId> \
-            --whitelist <database1.collection1, database2, etc.> \
-            --blacklist <database1.collection1, database2, etc.> \
-            --seedReplSetMember \
-            --oplogSizeMB <size> \
-            --seedTargetPort <port> \
-            --ssl \
-            --sslCAFile <path> \
-            --sslPEMKeyFile <path>
+           mongod --port <port number> \
+             --dbpath <temp-database-path> \
+             --setParameter ttlMonitorEnabled=false
+
+  #. Run the MongoDB Backup Restore Utility on your destination host.
+     Run it once for the replica set.
+
+     .. include:: /includes/fact-pre-configured-mbru-command.rst
 
      The ``mongodb-backup-restore-util`` command uses the following
      options:
@@ -205,7 +186,7 @@ content: |
 
 ---
 stepnum: 9
-title: "Copy the snapshot to each replica set member to restore."
+title: "Copy the data files to each replica set member to restore."
 level: 4
 ref: distribute
 content: |
