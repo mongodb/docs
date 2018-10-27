@@ -51,7 +51,7 @@
 
        - ``AUTOMATED_RESTORE``
        - ``HTTP``
-       - ``QUERY``
+        
 
        .. note::
 
