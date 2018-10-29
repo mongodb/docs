@@ -67,3 +67,22 @@
        This option corresponds to the 
        :setting:`replication.oplogSizeMB <replication.oplogSizeMB>`
        :binary:`~bin.mongod` configuration file option.
+
+   * - ``sampleSizeBIConnector``
+     - integer
+     - Number of documents per database to sample when gathering
+       schema information.
+
+       This element corresponds to the :bic:`sampleSize
+       </reference/mongosqld/#cmdoption-mongosqld-sampleSize>`
+       :bic:`mongosqld </reference/mongosqld>` option.
+
+   * - ``sampleRefreshIntervalBIConnector``
+     - integer
+     - Interval in seconds at which the :bic:`mongosqld process
+       </reference/mongosqld/>` re-samples data to create its relational
+       schema.
+
+       This element corresponds to the :bic:`sampleRefreshIntervalSecs
+       </reference/mongosqld/#cmdoption-mongosqld-sampleRefreshIntervalSecs>`
+       ``mongosqld`` option.
