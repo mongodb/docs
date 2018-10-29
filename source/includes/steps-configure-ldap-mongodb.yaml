@@ -77,39 +77,57 @@ action:
 title: Authenticate the user in the ``mongo`` shell.
 stepnum: 3
 ref: ldap-sasl-authenticate
-pre: |
-  To authenticate when connecting with the ``mongo`` shell, run
-  :binary:`~bin.mongo` with the following options, substituting ``<host>``
-  and ``<user>``, and enter your password when prompted:
+content: |
 
-  .. class:: copyable-code
-  .. code-block:: shell
+   You can authenticate from the command line during connection, or
+   connect first and then authenticate using :method:`db.auth()` method.
 
-     mongo --host <host> --authenticationMechanism PLAIN --authenticationDatabase '$external' -u <user> -p
+   .. tabs::
 
-  Alternatively, connect without supplying credentials and call the
-  :method:`db.auth()` method on the ``$external`` database.
+      tabs:
+         - id: cmdline
+           name: Authenticate during Connection
+           content: |
 
-action:
-  pre: |
-    Specify the value ``"PLAIN"`` in the ``mechanism`` field, the user and
-    password in the ``user`` and ``pwd`` fields respectively, and the
-    value ``false`` in the ``digestPassword`` field. You **must** specify
-    ``false`` for ``digestPassword`` since the server must receive an
-    undigested password to forward on to ``saslauthd``, as in the
-    following example:
-  language: javascript
-  code: |
-    db.getSiblingDB("$external").auth(
-       {
-         mechanism: "PLAIN",
-         user: <username>,
-         pwd:  <cleartext password>,
-         digestPassword: false
-       }
-    )
-post: |
-  The server forwards the password in plain text. In general, use only on
-  a trusted channel (VPN, TLS/SSL, trusted wired network). See
-  Considerations.
+              To authenticate when connecting with the ``mongo`` shell,
+              run :binary:`~bin.mongo` with the following command-line
+              options, substituting ``<host>`` and ``<user>``, and
+              enter your password when prompted:
+
+              .. code-block:: shell
+
+                 mongo --host <host> --authenticationMechanism PLAIN --authenticationDatabase '$external' -u <user> -p
+
+         - id: authafter
+           name: Authenticate after Connection
+           content: |
+         
+              Alternatively, connect without supplying credentials and then call
+              the :method:`db.auth()` method on the ``$external`` database. Specify
+              the value ``"PLAIN"`` in the ``mechanism`` field, the user and
+              password in the ``user`` and ``pwd`` fields respectively. Use the default
+              ``digestPassword`` value (``false``) since the server must receive an
+              undigested password to forward on to ``saslauthd``, as in the
+              following example:
+
+              .. tip::
+
+                 .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+              .. code-block:: javascript
+
+                 db.getSiblingDB("$external").auth(
+                    {
+                      mechanism: "PLAIN",
+                      user: <username>,
+                      pwd:  passwordPrompt() // or cleartext password
+                    }
+                 )
+
+              Enter the password when prompted.
+
+   The server forwards the password in plain text. In general, use only
+   on a trusted channel (VPN, TLS/SSL, trusted wired network). See
+   Considerations.
+
 ...
