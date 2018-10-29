@@ -9,7 +9,7 @@
    * - ``autoScaling``
      - document
      - Contains the ``diskGBEnabled`` field which specifies whether to
-       enable or disable disk auto-scaling. 
+       enable or disable disk auto-scaling.
 
    * - ``autoScaling.diskGBEnabled``
      - boolean
@@ -23,7 +23,7 @@
 
    * - ``backupEnabled``
      - Boolean
-     - Set to ``true`` to enable |service| 
+     - Set to ``true`` to enable |service|
        :doc:`continuous backups </backup/continuous-backups>` for the
        cluster.
 
@@ -31,12 +31,12 @@
        |service| deletes any stored snapshots. See the continuous
        backup :ref:`retention-policy` for more information.
 
-       You cannot enable continuous backups if you have an 
-       existing cluster in the project with 
+       You cannot enable continuous backups if you have an
+       existing cluster in the project with
        :doc:`/backup/cloud-provider-snapshots` enabled.
 
-       If ``backupEnabled`` and 
-       ``providerBackupEnabled`` are ``false``, the cluster does not 
+       If ``backupEnabled`` and
+       ``providerBackupEnabled`` are ``false``, the cluster does not
        use |service| backups.
 
    * - ``biConnector``
@@ -53,7 +53,7 @@
           * - ``enabled``
             - | Set to ``true`` to enable |bic|.
               | Set to ``false`` to disable |bic|.
-      
+
           * - ``readPreference``
             - | Set to ``"primary"`` to have |bic| read from the primary.
               | Set to ``"secondary"`` to have |bic| read from a secondary member. *Default*
@@ -62,16 +62,16 @@
      - string
      - Specifies the type of the cluster. Required for :doc:`Global Clusters </global-clusters>`.
        Optional for replica sets and sharded clusters.
-       
+
        - ``REPLICASET`` - :term:`replica set`
        - ``SHARDED`` - :term:`sharded cluster`
        - ``GEOSHARDED`` - Global Cluster
-         
+
        .. include:: /includes/fact-conversion-sharded-clusters.rst
 
    * - ``encryptionAtRestProvider``
      - string
-     - Specify ``AWS`` to enable 
+     - Specify ``AWS`` to enable
        :doc:`Encryption at Rest </security-aws-kms>` using the
        |service| project AWS Key Management System settings. The
        cluster must meet the following restrictions:
@@ -84,7 +84,7 @@
        For complete documentation on Encryption at Rest restrictions,
        see :ref:`security-aws-kms-restrictions`.
 
-       You must configure encryption at rest for the |service| project 
+       You must configure encryption at rest for the |service| project
        before enabling it on any cluster in the project. For
        complete documentation on configuring Encryption at Rest,
        see :ref:`security-aws-kms`.
@@ -98,7 +98,7 @@
 
    * - ``mongoDBMajorVersion``
      - string
-     - The version of the cluster to deploy. |service| supports the 
+     - The version of the cluster to deploy. |service| supports the
        following MongoDB versions for ``M10+`` clusters: [1]_
 
        - 3.4
@@ -128,9 +128,8 @@
        For details on how this setting affects costs, see
        :ref:`server-number-costs`.
 
-       The possible values are ``1`` through ``12``.
-
-       The default value is ``1``.
+       The possible values are ``1`` through ``24``. The default value
+       is ``1``.
 
        .. note::
 
@@ -147,15 +146,15 @@
 
    * - ``providerBackupEnabled``
      - Boolean
-     - Set ``true`` or ``false`` to enable or disable 
-       :ref:`backup-cloud-provider` for cluster backups. 
+     - Set ``true`` or ``false`` to enable or disable
+       :ref:`backup-cloud-provider` for cluster backups.
 
        If you disable continuous backups for the cluster,
        |service| deletes all stored snapshots. See the continuous
        backup :ref:`retention-policy` for more information.
 
-       You cannot enable cloud provider snapshots if you have an 
-       existing cluster in the project with 
+       You cannot enable cloud provider snapshots if you have an
+       existing cluster in the project with
        :ref:`backup-continuous` enabled.
 
        If ``providerBackupEnabled`` *and* ``backupEnabled`` are
@@ -177,16 +176,16 @@
        - ``TENANT`` - A multi-tenant deployment on one of the supported
          cloud service providers. Only valid when
          ``providerSettings.instanceSizeName`` is either ``M2`` or ``M5``.
-       
+
        .. include:: /includes/fact-m2-m5-multi-tenant.rst
 
    * - ``providerSettings.backingProviderName``
      - string
-     - The cloud service provider on which the server for a multi-tenant 
+     - The cloud service provider on which the server for a multi-tenant
        cluster is provisioned. This setting is only valid when
-       ``providerSetting.providerName`` is ``TENANT`` and 
+       ``providerSetting.providerName`` is ``TENANT`` and
        ``providerSetting.instanceSizeName`` is ``M2`` or ``M5``.
-       
+
        .. include:: /includes/fact-cloud-service-providers.rst
 
    * - ``providerSettings.regionName``
@@ -266,17 +265,17 @@
        .. |dag| unicode:: U+2020
        .. |ddag| unicode:: U+2021
 
-       |ast| :abbr:`AWS (Amazon Web Services)`, 
-       :abbr:`GCP (Google Cloud Platform)`, 
-       and :abbr:`Azure (Microsoft Azure)` only support 
-       ``M2`` and ``M5`` in certain regions. 
+       |ast| :abbr:`AWS (Amazon Web Services)`,
+       :abbr:`GCP (Google Cloud Platform)`,
+       and :abbr:`Azure (Microsoft Azure)` only support
+       ``M2`` and ``M5`` in certain regions.
        For a complete list of the regions that support ``M2`` and ``M5``
        instances, see ``providerSettings.regionName``.
 
        |dag| ``R`` instances are :abbr:`AWS (Amazon Web Services)` only.
-       Ensure that ``providerSetting.providerName`` is ``AWS``. 
+       Ensure that ``providerSetting.providerName`` is ``AWS``.
        In the |service| UI, ``R`` instance correspond with
-       :guilabel:`Low CPU` variants of their associated ``M`` instance. 
+       :guilabel:`Low CPU` variants of their associated ``M`` instance.
 
        |ddag| These instances are only supported in the
        :abbr:`AWS (Amazon Web Services)` ``EU-WEST-3`` (Paris) region.
@@ -295,24 +294,24 @@
        perform. The possible values depend on the selected
        ``providerSettings.instanceSizeName`` and
        ``diskSizeGB``.
-       
-       To view the possible 
+
+       To view the possible
        :abbr:`IOPS (input/output operations per second)` values
        for the selected instance size and storage capacity:
-       
+
        #. Open the |service| web interface.
        #. Select :guilabel:`Build a New Cluster`.
        #. Under :guilabel:`Cloud Provider & Region`, select ``AWS``.
-       #. Under :guilabel:`Cloud Provider & Region`, select the region corresponding to your configured ``providerSettings.regionName``. 
+       #. Under :guilabel:`Cloud Provider & Region`, select the region corresponding to your configured ``providerSettings.regionName``.
        #. Under :guilabel:`Cluster Tier`, select the instance size corresponding to your configured ``providerSettings.instanceSizeName``.
        #. Under :guilabel:`Cluster Tier`, set the :guilabel:`Storage Capacity` slider to your configured ``diskSizeGB``.
           Alternatively, input the exact value of ``diskSizeGB`` in the input box to the right of the slider.
-       
-       |service| lists the possible 
+
+       |service| lists the possible
        :abbr:`IOPS (input/output operations per second)` values for the
-       selected instance and storage size as 
-       :guilabel:`Standard`, :guilabel:`Fast`, and :guilabel:`Fastest`. 
-       Set the value of ``providerSettings.diskIOPS`` to your preferred 
+       selected instance and storage size as
+       :guilabel:`Standard`, :guilabel:`Fast`, and :guilabel:`Fastest`.
+       Set the value of ``providerSettings.diskIOPS`` to your preferred
        :abbr:`IOPS (input/output operations per second)` setting.
 
        The default value for ``providerSettings.diskIOPS`` is the same as the
@@ -326,7 +325,7 @@
      - string
      - **Azure ONLY**
 
-       The Azure disk type of the server's root volume. 
+       The Azure disk type of the server's root volume.
 
        The following table lists the possible values for this field,
        and their corresponding storage size.
@@ -339,8 +338,8 @@
             - Storage Size
 
           * - ``P4`` :sup:`1`
-            - 32GB 
-          
+            - 32GB
+
           * - ``P6``
             - 64GB
 
@@ -401,7 +400,7 @@
        ``providerSettings.regionName`` and ``replicationFactor``, *or* you can
        use the ``replicationSpec`` document to define a single region.
 
-       For multi-region clusters, omit the 
+       For multi-region clusters, omit the
        ``providerSettings.regionName`` field.
 
        .. important::
@@ -415,7 +414,7 @@
        .. note::
 
           You cannot specify both the ``replicationSpec`` and ``replicationSpecs``
-          parameters in the same request body.      
+          parameters in the same request body.
 
    * - ``replicationSpec.<region>``
      - document
@@ -424,7 +423,7 @@
        The physical location of the region. Replace ``<region>`` with the name
        of the region. Each ``<region>`` document describes the region's priority in
        elections and the number and type of MongoDB nodes |service| deploys
-       to the region. You must order each ``<region>`` by 
+       to the region. You must order each ``<region>`` by
        ``replicationSpec.priority`` descending.
 
        You must specify at least one ``replicationSpec.<region>`` document.
@@ -468,25 +467,25 @@
    * - ``replicationSpec.<region>.priority``
      - integer
      - The election priority of the region. For regions with only
-       ``replicationSpec.<region>.readOnlyNodes``, set this value to 
+       ``replicationSpec.<region>.readOnlyNodes``, set this value to
        ``0``.
 
-       For regions where ``replicationSpec.<region>.electableNodes`` 
-       is at least ``1``, each ``replicationSpec.<region>`` must have 
-       a priority of exactly one **(1)** less than the previous region. 
-       The first region **must** have a priority of ``7``. The lowest 
+       For regions where ``replicationSpec.<region>.electableNodes``
+       is at least ``1``, each ``replicationSpec.<region>`` must have
+       a priority of exactly one **(1)** less than the previous region.
+       The first region **must** have a priority of ``7``. The lowest
        possible priority is ``1``.
 
-       The priority ``7`` region identifies the **Preferred Region** of 
-       the cluster. |service| places the :term:`primary` node in the 
-       **Preferred Region**.  Priorities ``1`` through ``7`` are 
-       exclusive - no more than one region per cluster can be assigned 
-       a given priority. 
+       The priority ``7`` region identifies the **Preferred Region** of
+       the cluster. |service| places the :term:`primary` node in the
+       **Preferred Region**.  Priorities ``1`` through ``7`` are
+       exclusive - no more than one region per cluster can be assigned
+       a given priority.
 
-       For example, if you have three regions, their 
+       For example, if you have three regions, their
        priorities would be ``7``, ``6``, and ``5`` respectively.
        If you added two more regions for supporting electable nodes,
-       the priorities of those regions would be ``4`` and ``3`` 
+       the priorities of those regions would be ``4`` and ``3``
        respectively.
 
    * - ``replicationSpec.<region>.readOnlyNodes``
@@ -500,7 +499,7 @@
    * - ``replicationSpecs``
      - array of documents
      - *Optional*
-       
+
        The configuration for each zone in a :doc:`Global Cluster </global-clusters>`.
        Each document in this array represents a zone where |service| deploys
        nodes for your Global Cluster. You must specify all fields of
@@ -516,8 +515,8 @@
 
    * - ``replicationSpecs[n].id``
      - string
-     - *Required only when modifying the ``replicationSpecs`` parameter* 
-       
+     - *Required only when modifying the ``replicationSpecs`` parameter*
+
        Unique identifer of the replication document for a zone in a
        |global-write-cluster|. Required for all existing zones included
        in a cluster modification request body. Not required for a replication
@@ -531,21 +530,21 @@
 
    * - ``replicationSpecs[n].zoneName``
      - string
-     - *Required* 
-       
+     - *Required*
+
        The name for the zone in a |global-write-cluster|.
-       
+
    * - ``replicationSpecs[n].numShards``
      - int
-     - *Required* 
-       
+     - *Required*
+
        The number of shards to deploy in the specified zone.
-       
+
    * - ``replicationSpecs[n].regionsConfig``
      - document
      - *Required*
-     
-       The physical location of the region. Each ``regionsConfig`` 
+
+       The physical location of the region. Each ``regionsConfig``
        document describes the region's priority in elections and the
        number and type of MongoDB nodes |service| deploys to the region.
        You must order each ``regionsConfigs`` document by ``regionsConfig.priority``,
@@ -573,7 +572,7 @@
        regionsConfig.electableNodes``
      - ingteger
      - *Required*
-     
+
        The number of electable nodes for |service| to deploy to the region.
        Electable nodes can become the :term:`primary` and can facilitate
        local reads.
