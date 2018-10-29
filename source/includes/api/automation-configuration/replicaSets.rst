@@ -6,7 +6,7 @@ field is required for deployments with replica sets.
    "replicaSets" : [
        {
            "_id" : <string>,
-           "version" : <integer>
+           "protocolVersion" : <integer>
            "members" : [
                {
                    "_id" : <integer>,
