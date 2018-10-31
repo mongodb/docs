@@ -1,3 +1,14 @@
+.. _automation-5.4.13.5505-1:
+
+Automation Agent 5.4.13.5505-1
+------------------------------
+
+:ref:`Released with Ops Manager 4.0.5 on 2018-11-01 <opsmgr-server-4.0.5>`
+
+- Add support for the ``ssl.FIPSMode`` parameter.
+
+- **Fix:** Memory leak when using Server Pools feature.
+
 .. _automation-5.4.12.5501:
 
 Automation Agent 5.4.12.5501

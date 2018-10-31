@@ -1,3 +1,29 @@
+.. _opsmgr-server-4.0.5:
+
+|onprem| Server 4.0.5
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2018-11-01*
+
+- **Fix:** Removed memory leak in proxy server used for queryable
+  restores.
+
+- **Fix:** Removed race condition that could cause a backup initial sync
+  to be required when the ``featureCompatibilityVersion`` is updated on
+  the source replica set.
+
+- **Fix:** Automatic download of MongoDB binaries fails when hybrid mode
+  is enabled for MongoDB binary management.
+
+- **Fix:** When importing a cluster into Ops Manager, ignore the value
+  of ``pidFilePath`` if it set to the CentOS default in ``/var/run``.
+
+- Updated JDK to 8u192
+
+- Updated bundled version of the :bic:`BI Connector </>` to 2.7.0.
+
+- **Agent Upgrades:** :ref:`automation-5.4.13.5505-1`
+
 .. _opsmgr-server-4.0.4:
 
 |onprem| Server 4.0.4
@@ -10,7 +36,6 @@
   the wrong operating system.
 
 - **Agent Upgrades:** :ref:`automation-5.4.12.5501`
-
 
 .. _opsmgr-server-4.0.3:
 
