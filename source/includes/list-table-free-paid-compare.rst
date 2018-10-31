@@ -16,9 +16,9 @@
      - | 10 - 4000 GB
 
    * - MongoDB Version Support
-     - 3.6
-     - 3.6
-     - 3.2, 3.4, 3.6, 4.0
+     - 4.0
+     - 4.0
+     - 3.4, 3.6, 4.0
 
    * - Metrics and Alerts
    
