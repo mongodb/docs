@@ -1,3 +1,15 @@
+.. _automation-4.5.16.5284-1:
+
+Automation Agent 4.5.16.5284-1
+------------------------------
+
+:ref:`Released with Ops Manager 3.6.9 on 2018-11-01 <opsmgr-server-3.6.9>`
+
+- **Critical Fix:** Storage affecting field changes in a replica set
+  could result in data loss if processes were restarted unexpectedly.
+
+- **Fix:** Memory leak when using Server Pools feature.
+
 .. _automation-4.5.15.5281:
 
 Automation Agent 4.5.15.5281

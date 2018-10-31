@@ -1,3 +1,24 @@
+.. _opsmgr-server-3.6.9:
+
+|onprem| Server 3.6.9
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2018-11-01*
+
+- **Critical Fix:** Backup initial syncs may fail with an error during
+  the oplog application phase, if retryable writes are executed on the
+  source cluster during the backup initial sync.
+
+- **Fix:** Log Collection was unable to complete if one of the
+  requested files was an empty file.
+
+- |ldap| connections will now use a connection pool. This should reduce
+  load on |ldap| servers.
+
+- Update |jdk| to 8u192.
+
+- Agent Upgrades: :ref:`automation-4.5.16.5284-1`.
+
 .. _opsmgr-server-3.6.8:
 
 |onprem| Server 3.6.8
@@ -10,11 +31,11 @@
 
 - Improve support for global diagnostic download for large deployments.
 
-- Update Ops Manager JDK (x86_64) to 8u181.
+- Update Ops Manager |jdk| (x86_64) to 8u181.
 
-- When configuring MongoDB LDAP authentication, allow setting the User
-  to Distinguished Name Mapping without setting the Authorization Query
-  Template.
+- When configuring MongoDB |ldap| authentication, allow setting the
+  User to Distinguished Name Mapping without setting the Authorization
+  Query Template.
 
 - Agent Upgrades: :ref:`automation-5.4.9.5483`, :ref:`backup-6.0.10.976`
 
