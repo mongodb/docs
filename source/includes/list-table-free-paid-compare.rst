@@ -35,7 +35,7 @@
      
    * - Global Region Selection
      - |service| supports deploying ``M0`` instances in a subset of regions
-       in AWS only.
+       in AWS, GCP, and Azure.
      - |service| supports deploying ``M2`` and ``M5`` clusters in a
        subset of regions in AWS, GCP, and Azure.
      - |service| supports deploying clusters globally on 
