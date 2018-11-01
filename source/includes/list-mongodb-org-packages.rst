@@ -18,13 +18,11 @@ repository contains the following packages:
    * - ``{+package-name-org+}-server``
 
      - Contains the :binary:`~bin.mongod` daemon, associated init
-       script, and a :doc:`configuration file
-       </reference/configuration-options>` (``/etc/mongod.conf``). You
+       script, and a :ref:`configuration file
+       <conf-file>` (``/etc/mongod.conf``). You
        can use the initialization script to start :binary:`~bin.mongod`
        with the configuration file. For details, see `Run MongoDB
        Community Edition`_.
-
-       .. include:: /includes/fact-installation-bind-ip-default-in-config.rst
 
    * - ``{+package-name-org+}-mongos``
      - Contains the :binary:`~bin.mongos` daemon.
