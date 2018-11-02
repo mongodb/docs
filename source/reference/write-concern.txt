@@ -15,7 +15,7 @@ Write Concern
    :depth: 1
    :class: singlecol
 
-Write concern describes the level of acknowledgement requested from
+Write concern describes the level of acknowledgment requested from
 MongoDB for write operations to a standalone :binary:`~bin.mongod` or
 to :doc:`replica sets </replication>` or to :doc:`sharded clusters
 </sharding>`. In sharded clusters, :binary:`~bin.mongos` instances will
@@ -37,11 +37,11 @@ Write concern can include the following fields:
 
    { w: <value>, j: <boolean>, wtimeout: <number> }
 
-- the :ref:`w <wc-w>` option to request acknowledgement that the write
+- the :ref:`w <wc-w>` option to request acknowledgment that the write
   operation has propagated to a specified number of :binary:`~bin.mongod`
   instances or to :binary:`~bin.mongod` instances with specified tags.
 
-- the :ref:`j <wc-j>` option to request acknowledgement that the write
+- the :ref:`j <wc-j>` option to request acknowledgment that the write
   operation has been written to the journal, and
 
 - the :ref:`wtimeout <wc-wtimeout>` option to specify a time limit to
@@ -52,7 +52,7 @@ Write concern can include the following fields:
 ``w`` Option
 ~~~~~~~~~~~~
 
-The ``w`` option requests acknowledgement that the write operation has
+The ``w`` option requests acknowledgment that the write operation has
 propagated to a specified number of :binary:`~bin.mongod` instances or to
 :binary:`~bin.mongod` instances with specified tags.
 
@@ -68,41 +68,57 @@ available:
 
    * - .. writeconcern:: <number>
 
-     - Requests acknowledgement that the write operation has propagated
+     - Requests acknowledgment that the write operation has propagated
        to the specified number of :binary:`~bin.mongod` instances. For
        example:
 
        ``w: 1``
-         Requests acknowledgement that the write operation has
+         Requests acknowledgment that the write operation has
          propagated to the standalone :binary:`~bin.mongod` or the primary
          in a replica set. ``w: 1`` is the default write concern for
          MongoDB.
 
        ``w: 0``
-         Requests no acknowledgement of the write operation. However, ``w:
+         Requests no acknowledgment of the write operation. However, ``w:
          0`` may return information about socket exceptions and
          networking errors to the application.
 
          If you specify ``w: 0`` but include :ref:`j: true <wc-j>`, the
-         :ref:`j: true <wc-j>` prevails to request acknowledgement from
+         :ref:`j: true <wc-j>` prevails to request acknowledgment from
          the standalone :binary:`~bin.mongod` or the primary of a replica
          set.
 
-       Numbers greater than 1 are valid only for replica sets to
-       request acknowledgement from specified number of members,
-       including the primary.
+       Numbers greater than 1 request acknowledgment from the specified 
+       number of data-bearing members, including the primary and any 
+       hidden or delayed secondary members. For example, in a 
+       3-member replica set with 1 delayed secondary and 1 hidden
+       member, ``w : 3`` requires acknowledgment from the primary and
+       either secondary.
+
+       .. note:: 
+
+          Delayed secondaries can return write acknowledgment no earlier
+          than the configured :rsconf:`~members[n].slaveDelay`. 
 
        See :ref:`wc-ack-behavior` for when :binary:`~bin.mongod` instances
        acknowledge the write.
 
    * - .. writeconcern:: "majority"
 
-     - Requests acknowledgement that write operations have propagated to
-       the majority of voting nodes, including
-       the primary.
+     - Requests acknowledgment that write operations have propagated to
+       the majority of data-bearing voting members, including
+       the primary and any hidden or delayed secondary members.
+       For example, in a 5 member replica set with 2 non-voting members,
+       :writeconcern:`majority` requires acknowledgment from the primary 
+       and either one of the two voting secondaries.
+
+       .. note:: 
+
+          Delayed secondaries can return write acknowledgment no earlier
+          than the configured :rsconf:`~members[n].slaveDelay`. 
 
        After the write operation returns with a :writeconcern:`w:
-       "majority" <"majority">` acknowledgement to the client, the
+       "majority" <"majority">` acknowledgment to the client, the
        client can read the result of that write with a
        :readconcern:`"majority"` readConcern.
 
@@ -111,7 +127,7 @@ available:
 
    * - .. writeconcern:: <tag set>
 
-     - Requests acknowledgement that the write operations have
+     - Requests acknowledgment that the write operations have
        propagated to a replica set member with the specified :ref:`tag
        <replica-set-configuration-tag-sets>`. See
        :ref:`wc-ack-behavior` for when :binary:`~bin.mongod` instances
@@ -124,7 +140,7 @@ available:
 ``j`` Option
 ~~~~~~~~~~~~
 
-The ``j`` option requests acknowledgement from MongoDB that
+The ``j`` option requests acknowledgment from MongoDB that
 the write operation has been written to the :doc:`journal
 </core/journaling>`.
 
@@ -133,7 +149,7 @@ the write operation has been written to the :doc:`journal
 
    * - .. writeconcern:: j
 
-     - If ``j: true``, requests acknowledgement that the
+     - If ``j: true``, requests acknowledgment that the
        :binary:`~bin.mongod` instances, as specified in the :ref:`w:
        \<value\> <wc-w>`, have written to the on-disk journal. ``j:
        true`` does not by itself guarantee that the write will not be
@@ -177,8 +193,8 @@ concern without the ``wtimeout`` option.
 
 .. _wc-ack-behavior:
 
-Acknowledgement Behavior
-------------------------
+Acknowledgment Behavior
+-----------------------
 
 The :ref:`w <wc-w>` option and the :ref:`j <wc-j>` option determine
 when :binary:`~bin.mongod` instances acknowledge write operations. 
@@ -188,7 +204,7 @@ Standalone
 
 A standalone :binary:`~bin.mongod` acknowledges a write operation either
 after applying the write in memory or after writing to the on-disk
-journal. The following table lists the acknowledgement behavior for a
+journal. The following table lists the acknowledgment behavior for a
 standalone and the relevant write concerns:
 
 .. list-table::
@@ -214,55 +230,65 @@ standalone and the relevant write concerns:
 
    .. include:: /includes/extracts/no-journaling-rollback.rst
 
+.. _wc-replica-ack-behavior:
+
 Replica Sets
 ~~~~~~~~~~~~
 
-.. versionchanged:: 3.4
+The value specified to :ref:`w <wc-w>` determines the criteria
+for whether a replica set member can contribute to write acknowledgment.
+For each eligible replica set member, the :ref:`j <wc-j>` option
+determines whether the member acknowledges writes after applying
+the write operation in memory or after writing to the on-disk journal.
 
-A replica set acknowledges a write operation either after the specified
-number of members apply the write in memory or after they write to the
-on-disk journal. The number of members is specified by the :ref:`w:
-\<value\> <wc-w>` setting. The following table lists the
-acknowledgement behavior for these members and the relevant write
-concerns [#3.2-behavior]_:
+``w: "majority"``
+  Any data-bearing voting member of the replica set can contribute
+  to write acknowledgment of :writeconcern:`majority` write operations, 
+  such as the primary and all secondaries. This includes any hidden or 
+  delayed secondaries. 
 
-.. list-table::
-   :header-rows: 1
-   :widths: 22 50 22 20
+  The following table lists when the member can acknowledge
+  the write based on the :ref:`j <wc-j>` value:
 
-   * -
-     - ``j`` is unspecified
-     - ``j:true``
-     - ``j:false``
+  .. list-table::
+     :stub-columns: 1
+     :widths: 30 70
 
-   * - ``w: "majority"``
+     * - ``j`` is unspecified
+       - Acknowledgment depends on the value of
+         :rsconf:`writeConcernMajorityJournalDefault`:
 
-     - Depends on the value of
-       :rsconf:`writeConcernMajorityJournalDefault`.
+         - If ``true``, acknowledgment requires writing operation to on-disk journal
+         - If ``false``, acknowledgment requires writing operation in memory
 
-       - If true, On-disk journal.
+     * - ``j: true``
+       - Acknowledgment requires writing operation to on-disk journal
 
-       - If false, In memory.
+     * - ``j: false``
+       - Acknowledgment requires writing operation in memory.
 
-       .. versionchanged:: 3.4
-          
-     - On-disk journal
+  .. note::
 
-     - In memory
+     .. include:: /includes/extracts/no-journaling-rollback.rst
 
-   * - ``w: <number>``
+``w: <number>``
+  Any data-bearing member of the replica set can contribute
+  to write acknowledgment of :ref:`w: \<number\> <wc-w>` write
+  operations, such as the primary and all secondaries. This includes 
+  any hidden or delayed secondaries.
+       
+  The following table lists when the member can acknowledge
+  the write based on the :ref:`j <wc-j>` value:
 
-     - In memory
+  .. list-table::
+     :stub-columns: 1
+     :widths: 30 70
 
-     - On-disk journal
+     * - ``j`` is unspecified
+       - Acknowledgment requires writing operation in memory
 
-     - In memory
+     * - ``j: true``
+       - Acknowledgment requires writing operation to on-disk journal
 
-.. note::
-
-   .. include:: /includes/extracts/no-journaling-rollback.rst
-
-.. [#3.2-behavior]
-
-   For the behavior in version 3.2, refer to the :v3.2:`3.2 manual
-   </reference/write-concern>`.
+     * - ``j: false``
+       - Acknowledgment requires writing operation in memory.

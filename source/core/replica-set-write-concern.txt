@@ -10,39 +10,83 @@ Write Concern for Replica Sets
    :depth: 1
    :class: singlecol
 
-Write concern describes the level of acknowledgement requested from
-MongoDB for write operations.
+You can use :ref:`write concern <write-concern>` to set the minimum 
+number of data-bearing replica set members that must acknowledge 
+receiving and applying a write operation before returning success. 
+
+For replica sets, the default write concern of ``w: 1`` requires
+that only the primary receive and acknowledge the write. Write 
+operations with write concern ``w`` greater than ``1`` require 
+acknowledgment from the primary and as many data-bearing 
+:doc:`secondaries </core/replica-set-secondary>` as required to meet 
+the requested write concern. Write operations with write concern
+``w : majority`` apply an additional criteria where only voting
+secondaries can acknowledge the write. For complete documentation on 
+member acknowledgment behavior, see 
+:ref:`Replica Set Acknowledgment Behavior <wc-replica-ack-behavior>`.
+
+The following diagram illustrates a write operation issued with a
+write concern of ``w: 2``. The operation blocks until the primary
+and at least one secondary acknowledge the write operation. Secondaries 
+can return write acknowledgment no earlier than after the primary 
+receives, applies, and replicates that write.
+
+.. include:: /images/crud-write-concern-w2.rst
+
+The more data-bearing members that acknowledge a write as successful, 
+the less likely that data will be rolled back if the
+:ref:`primary fails <replication-auto-failover>`. However, the write 
+operation must wait until it receives the requested level of 
+acknowledgment. With higher values of write concern, users trade
+a more reliable promise of data durability for write speed. With
+lower values of write concern, users trade fast writes for the promise
+of data durability.
+
+Selecting the ideal write concern for any given write operation depends
+on your application's performance goals and data durability 
+requirements.
 
 Verify Write Operations to Replica Sets
 ---------------------------------------
 
-For a replica set, the default :doc:`write concern
-</reference/write-concern>` requests acknowledgement only from the primary.
-You can, however, override this default write concern, such as to
-confirm write operations on a specified number of the replica set
-members.
+For write operations that support user-specified write concern, set
+the :ref:`write concern <wc-w>` based on the number of data-bearing
+replica set members you want to acknowledge the write before
+returning success. The exact syntax for specifying write concern
+depends on the write operation. Refer to the documentation for that
+write operation for instructions on syntax and use.
 
-.. include:: /images/crud-write-concern-w2.rst
-
-To override the default write concern, specify a write concern with
-each write operation. For example, the following method includes a
-write concern that specifies that the method return only after the
-write propagates to the primary and at least one secondary or the
-method times out after 5 seconds.
+For example, the :method:`db.collection.insert()` method
+supports a ``writeConcern`` document as an option. In the following
+operation, the ``writeConcern`` document specifies ``w : 2``, which 
+corresponds to requiring acknowledgment from the primary and at least 
+one data-bearing secondary. This can include hidden or delayed 
+secondaries:
 
 .. code-block:: javascript
 
    db.products.insert(
       { item: "envelopes", qty : 100, type: "Clasp" },
-      { writeConcern: { w: 2, wtimeout: 5000 } }
+      { writeConcern: { w: 2 } }
    )
 
-You can include a timeout threshold for a write concern. This prevents
-write operations from blocking indefinitely if the write concern is
-unachievable. For example, if the write concern requires
-acknowledgement from 4 members of the replica set and the replica set
-has only available 3 members, the operation blocks until those members
-become available. See :ref:`wc-wtimeout`.
+With the specified write concern, the write operation blocks until the 
+primary and at least one secondary acknowledge the write. You can set
+an additional timeout parameter using :ref:`wc-wtimeout`. The following
+operation times out after 5 seconds, returning a write concern error
+on timeout:
+
+.. code-block:: javascript
+
+   db.products.insert(
+      { item: "envelopes", qty : 100, type: "Clasp" },
+      { writeConcern: { w: 2 , , wtimeout: 5000 } }
+   )
+
+A write operation that times out waiting for the specified write concern 
+does not indicate write failure. It only indicates that the ``w`` 
+number of replica set members did not acknowledge the write 
+operation in the ``wtimeout`` time period.
 
 .. seealso::
    :ref:`write-methods-incompatibility`
