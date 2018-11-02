@@ -98,9 +98,28 @@ Sharding
    - Use :ref:`targeted operations <sharding-mongos-targeted>`
      for workloads that need to scale with the number of shards.
 
-   - Always read from primary nodes for non-targeted queries that may
-     be sensitive to `stale or orphaned data <http://blog.mongodb.org/post/74730554385/background-indexing-on-secondaries-and-orphaned>`_.
+   - For MongoDB 3.4 and earlier, read from the primary nodes for
+     :ref:`non-targeted or broadcast <sharding-mongos-broadcast>`
+     queries as these queries may be sensitive to `stale or orphaned
+     data
+     <http://blog.mongodb.org/post/74730554385/background-indexing-on-se
+     condaries-and-orphaned>`_.
 
+     For MongoDB 3.6+, secondaries no longer return orphaned data
+     unless using read concern :readconcern:`"available"`. All members
+     of the shard replica set maintain chunk metadata, allowing them to
+     filter out orphans when not using :readconcern:`"available"`. As
+     such, :ref:`non-targeted or broadcast <sharding-mongos-broadcast>`
+     queries that are not using :readconcern:`"available"` can be
+     safely run on any member and will not return orphaned data.
+     
+     The :readconcern:`"available"` read concern can return
+     :term:`orphaned documents <orphaned document>` from secondary
+     members since it does not check for updated chunk metadata.
+     However, if the return of orphaned documents is immaterial to an
+     application, the :readconcern:`"available"` read concern provides
+     the lowest latency reads possible among the various read concerns.
+ 
    - :doc:`Pre-split and manually balance chunks
      </tutorial/create-chunks-in-sharded-cluster>` when inserting large
      data sets into a new non-hashed sharded collection. Pre-splitting
