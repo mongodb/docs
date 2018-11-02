@@ -33,8 +33,8 @@
        status code. To remediate this, set ``envelope=true`` in the 
        query.
 
-       For endpoints that return a list of results, the ``results`` 
-       object is an envelope. |mms| adds the ``status`` field to the 
-       response body.
+       For endpoints that return a list of results, the ``results``
+       object is an envelope. |service| adds the ``status`` field to
+       the response body.
 
      - ``false``

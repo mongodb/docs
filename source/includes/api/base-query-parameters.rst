@@ -7,23 +7,23 @@
      - Description
      - Default
 
-   * - pageNum
+   * - ``pageNum``
      - integer
      - Page number (1-based).
      - ``1``
 
-   * - itemsPerPage
+   * - ``itemsPerPage``
      - integer
      - Maximum number of items to return, up to a maximum of 100.
      - ``100``
 
-   * - pretty
+   * - ``pretty``
      - boolean
      - Indicates whether the response body should be in a 
        `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
      - ``false``
 
-   * - envelope
+   * - ``envelope``
      - boolean
      - Indicates whether or not to wrap the response in an 
        envelope.
@@ -40,12 +40,12 @@
           :header-rows: 1
           :stub-columns: 1
 
-          * - status
+          * - ``status``
             - HTTP response code
-          * - envelope
+          * - ``envelope``
             - The expected response body 
 
-       For endpoints that return a list of results, the ``results`` 
-       object is an envelope. |mms| adds the ``status`` field to the 
-       response body.
+       For endpoints that return a list of results, the ``results``
+       object is an envelope. |service| adds the ``status`` field to
+       the response body.
      - 
