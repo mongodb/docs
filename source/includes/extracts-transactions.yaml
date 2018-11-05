@@ -155,5 +155,50 @@ content: |
    :readconcern:`"majority"` read concern are needed, explicitly
    specify the appropriate read concern instead of relying on MongoDB
    to promote the read concern level.
+---
+ref: transactions-write-conflict
+content: |
+
+   If a multi-document transaction is in progress and a write
+   outside the transaction modifies a document that an operation in the
+   transaction later tries to modify, the transaction aborts because of
+   a write conflict.
+   
+   If a multi-document transaction is in progress and has taken a lock
+   to modify a document, when a write outside the transaction tries to
+   modify the same document, the write waits until the transaction ends.
+
+---
+ref: transactions-stale-reads
+content: |
+
+   Read operations take an intent lock. As such, read operations inside
+   a transaction can return stale data. For example, consider the
+   following sequence: 1) a transaction is in-progress 2) a write
+   outside the transaction deletes a document 3) a read operation
+   inside the transaction is able to read the now-deleted document
+   since the operation is using a snapshot from before the write.
+
+   To avoid stale reads inside transactions for a single document, you
+   can use the :method:`db.collection.findOneAndUpdate()` method. For
+   example:
+
+   .. code-block:: javascript
+
+      session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
+
+      employeesCollection = session.getDatabase("hr").employees;
+
+      employeeDoc = employeesCollection.findOneAndUpdate( 
+         { _id: 1, employee: 1, status: "Active" },
+         { $set: { employee: 1 } },
+         { returnNewDocument: true }
+      );
+
+   - If the employee document has changed outside the transaction, then
+     the transaction aborts.
+
+   - If the employee document has not changed, the transaction returns
+     the document and locks the document.
 
 ...

@@ -8,6 +8,7 @@ Production Considerations
    :local:
    :backlinks: none
    :depth: 1
+   :class: twocols
 
 Feature Compatibility
 ---------------------
@@ -51,14 +52,32 @@ The :parameter:`transactionLifetimeLimitSeconds` also ensures that
 expired transactions are aborted periodically to relieve storage cache
 pressure.
 
-Lock Request Timeout
---------------------
+
 
 By default, transactions waits up to ``5`` milliseconds to acquire locks
 required by the operations in the transaction. If the transaction
 cannot acquire its required locks within the ``5`` milliseconds, the
 transaction aborts.
 
+.. _txns-locks:
+
+Transactions and Locks
+----------------------
+
+By default, transactions waits up to ``5`` milliseconds to acquire locks
+required by the operations in the transaction. If the transaction
+cannot acquire its required locks within the ``5`` milliseconds, the
+transaction aborts.
+
+Transactions release all locks upon abort or commit.
+
+.. include:: /includes/extracts/transactions-operations-catalog-tip.rst
+
+Lock Request Timeout
+~~~~~~~~~~~~~~~~~~~~
+
+You can use the :parameter:`maxTransactionLockRequestTimeoutMillis`
+parameter to adjust how long transactions wait to acquire locks.
 Increasing :parameter:`maxTransactionLockRequestTimeoutMillis` allows
 operations in the transactions to wait the specified time to acquire
 the required locks. This can help obviate transaction aborts on
@@ -66,7 +85,8 @@ momentary concurrent lock acquisitions, like fast-running metadata
 operations. However, this could possibly delay the abort of deadlocked
 transaction operations.
 
-.. include:: /includes/extracts/transactions-operations-catalog-tip.rst
+You can also use operation-specific timeout by setting
+:parameter:`maxTransactionLockRequestTimeoutMillis` to ``-1``.
 
 .. _txn-prod-considerations-ddl:
 
@@ -101,3 +121,28 @@ access the ``foobar`` collection in the ``hr`` database. If the DDL
 operation remains pending for
 :parameter:`maxTransactionLockRequestTimeoutMillis`, the new
 transaction aborts.
+
+.. seealso:: 
+
+   - :ref:`transactions-write-conflicts`
+   
+   - :ref:`transactions-stale-reads`
+
+.. _transactions-write-conflicts:
+
+In-progress Transactions and Write Conflicts
+--------------------------------------------
+
+.. include:: /includes/extracts/transactions-write-conflict.rst
+
+.. seealso::
+
+   - :ref:`txns-locks`
+   - :ref:`txn-prod-considerations-ddl`
+
+.. _transactions-stale-reads:
+
+In-progress Transactions and Stale Reads
+----------------------------------------
+
+.. include:: /includes/extracts/transactions-stale-reads.rst
