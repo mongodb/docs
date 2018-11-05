@@ -1,25 +1,16 @@
-The ``replicaSets`` array defines each replica set's configuration. This
-field is required for deployments with replica sets. 
+The ``replicaSets`` array defines each replica set's configuration.
+This field is required for deployments with replica sets.
 
-.. code-block:: cfg
+.. code-block:: json
 
-   "replicaSets" : [
-       {
-           "_id" : <string>,
-           "protocolVersion" : <integer>
-           "members" : [
-               {
-                   "_id" : <integer>,
-                   "host" : <string>
-               },
-               ...
-           ],
-           "force" : {
-               "currentVersion" : <integer>
-           }
-       },
-       ...
-   ]
+   "replicaSets": [{
+     "_id": "<string>",
+     "protocolVersion": "<integer>",
+     "members": [{
+       "_id": "<integer>",
+       "host": "<string>"
+     }]
+   }]
 
 .. list-table::
    :widths: 30 10 80
@@ -60,12 +51,3 @@ field is required for deployments with replica sets.
        to create a valid replica set configuration. For more information
        on ``members`` objects, see :manual:`replSetGetConfig
        </reference/command/replSetGetConfig>` in the MongoDB manual.
-
-   * - replicaSets.force
-     - object
-     - *Optional*. An object that contains the ``currentVersion`` field
-       set to a version number. Automation will force a reconfiguration of
-       the replica set if and only if the value of ``currentVersion``
-       equals the current version of the replica set. You can use
-       ``force`` to reconfigure a replica set that has lost members and
-       can't reach a majority of votes.
