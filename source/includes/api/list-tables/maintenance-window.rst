@@ -41,6 +41,6 @@
 
    * - hourOfDay
      - integer
-     - Hour of the day in 24-hour format when you would like the
-       maintenance window should start as a 0-based integer. (Midnight
-       is ``0``, noon is ``12``.)
+     - Hour of the day when you would like the maintenance window to
+       start. This parameter uses the 24-hour clock, where midnight is
+       ``0``, noon is ``12``.
