@@ -20,7 +20,7 @@
 
   * - ``pretty``
     - boolean
-    - Display response in a `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
+    - Displays response in a `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
     - ``false``
 
   * - ``envelope``
