@@ -192,6 +192,8 @@ The options for :pipeline:`$geoNear` are similar to the removed
         { $group: { _id: null, objectsLoaded: { $sum: 1 }, maxDistance:
               { $max: "$dis" }, avgDistance: { $avg: "$dis" } } }
      ])
+     
+  .. seealso:: :ref:`4.2-compat-geoNear`
 
 .. _4.2-compat-remove-repairDatabase:
 
@@ -216,19 +218,12 @@ As alternatives:
   :doc:`/tutorial/recover-data-following-unexpected-shutdown` for
   details.
 
-.. _4.2-mongos-reindex-compat:
 
-.. _4.2-current-op-compat:
+Aggregation
+-----------
 
-General Changes
----------------
-
-
-- MongoDB implements a stronger restriction on running
-  :dbcommand:`reIndex` command and :method:`db.collection.reIndex()`
-  shell helper against a collection in a sharded cluster by disallowing
-  :dbcommand:`reIndex` and :method:`db.collection.reIndex()` on a
-  :binary:`~bin.mongos`.
+``$out`` Stage Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - The :doc:`view </core/views>` definition ``pipeline`` cannot include
   the :pipeline:`$out` stage. If you already have an existing view that
@@ -242,39 +237,57 @@ General Changes
   <collMod>` with a new pipeline that does not contain the
   :pipeline:`$out` stage.
 
-- .. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
+.. _4.2-compat-geoNear:
 
-  For example, the following aggregation where the :pipeline:`$geoNear`
-  stage contains the ``num`` option is no longer valid in 4.2.
+Remove ``limit`` and ``num`` Options from ``$geoNear``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  .. code-block:: javascript
-     :copyable: false
-  
-     db.places.aggregate([
-        {
-          $geoNear: {
-             near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
-             distanceField: "distance",
-             num: 5,                 // Not supported in 4.2
-             spherical: true
-          }
+.. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
+
+For example, the following aggregation where the :pipeline:`$geoNear`
+stage contains the ``num`` option is no longer valid in 4.2.
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.places.aggregate([
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "distance",
+           num: 5,                 // Not supported in 4.2
+           spherical: true
         }
-     ])
+      }
+   ])
 
-  Instead, you can rewrite the aggregation to the following pipeline:
+Instead, you can rewrite the aggregation to the following pipeline:
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     db.places.aggregate([
-        {
-          $geoNear: {
-             near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
-             distanceField: "distance",
-             spherical: true
-          }
-        },
-        { $limit: 5 }
-     ])
+   db.places.aggregate([
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "distance",
+           spherical: true
+        }
+      },
+      { $limit: 5 }
+   ])
+
+.. _4.2-mongos-reindex-compat:
+
+.. _4.2-current-op-compat:
+
+General Changes
+---------------
+
+- MongoDB implements a stronger restriction on running
+  :dbcommand:`reIndex` command and :method:`db.collection.reIndex()`
+  shell helper against a collection in a sharded cluster by disallowing
+  :dbcommand:`reIndex` and :method:`db.collection.reIndex()` on a
+  :binary:`~bin.mongos`.
 
 - When reporting on ``"getmore"`` operations, the
   :pipeline:`$currentOp` aggregation stage, along with
