@@ -16,6 +16,12 @@
 
 - :setting:`replication <systemLog.component.replication.verbosity>`
 
+- :setting:`replication.heartbeats <systemLog.component.replication.heartbeats.verbosity>`
+
+- :setting:`replication.initialSync <systemLog.component.replication.initialSync.verbosity>`
+
+- :setting:`replication.rollback <systemLog.component.replication.rollback.verbosity>`
+
 - :setting:`recovery <systemLog.component.storage.recovery.verbosity>`
 
 - :setting:`sharding <systemLog.component.sharding.verbosity>`
