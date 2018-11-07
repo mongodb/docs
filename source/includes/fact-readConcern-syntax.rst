@@ -1,7 +1,2 @@
-The readConcern option has the following syntax:
-
-.. versionchanged:: 3.6
-
-.. code-block:: javascript
-
-   readConcern: { level: <value> }
+Starting in MongoDB 3.6, the readConcern option has the following
+syntax: ``readConcern: { level: <value> }``
