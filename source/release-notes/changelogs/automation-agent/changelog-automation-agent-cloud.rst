@@ -1,3 +1,13 @@
+.. _automation-5.9.1.5566-1:
+
+Automation Agent 5.9.1.5566-1
+-----------------------------
+
+*Released 2018-11-13*
+
+- Improved handling of state gathering in the first moments of MongoDB
+  start-up.
+
 .. _automation-5.9.0.5561-1:
 
 Automation Agent 5.9.0.5561-1
