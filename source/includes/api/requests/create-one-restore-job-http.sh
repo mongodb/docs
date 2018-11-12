@@ -8,9 +8,7 @@ curl --user "{USERNAME}:{APIKEY}" --digest \
      "delivery" : {
        "expirationHours" : "1",
        "maxDownloads" : "1",
-       "methodName" : "HTTP",
-       "targetGroupId" : "{TARGET-GROUP-ID}",
-       "targetClusterName" : "{TARGET-CLUSTER-NAME}"
+       "methodName" : "HTTP"
      },
      "snapshotId" : "{SNAPSHOT-ID}"
    }'

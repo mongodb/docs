@@ -82,7 +82,23 @@
 
    * - ``delivery.targetClusterName``
      - string
-     - Name of the target cluster.
+     - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+       Name of the target cluster. Use the ``clusterName``
+       returned in the response body of the
+       :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
+       and :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+       endpoints. For use only with automated restore jobs.
+
+       .. note::
+
+          If backup is not enabled on the target cluster, the 
+          :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
+          endpoint returns an empty ``results`` array without
+          ``clusterName`` elements, and the
+          :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+          endpoint also does not return a ``clusterName`` element. Use
+          the ``delivery.targetClusterName`` parameter instead or
+          enable backup on the target cluster.     
        
    * - ``delivery.targetGroupId``
      - string
@@ -150,5 +166,4 @@
 
    * - ``snapshotId``
      - string
-     - *Conditional:* ``"delivery.methodName" : "HTTP"`` 
-       Unique identifier of the snapshot to restore.
+     - Unique identifier of the snapshot to restore.
