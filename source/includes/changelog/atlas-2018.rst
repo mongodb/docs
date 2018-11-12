@@ -1,3 +1,17 @@
+.. _atlas-v20181113:
+
+13 November 2018 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improved the Cluster Connect experience.
+- Support for sharded clusters for Snapshot Backup in both |aws| and
+  Azure.
+- Support for new GCP regions:
+
+  - Finland
+  - Los Angeles
+  - Hong Kong
+
 .. _atlas-v20181023:
 
 24 October 2018 Release
