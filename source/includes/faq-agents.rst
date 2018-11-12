@@ -34,7 +34,8 @@ The Monitoring Agent load scales with the number of monitored
 :binary:`~bin.mongod` plus :binary:`~bin.mongos` processes and the
 number of databases in your MongoDB environment.
 
-For production environments, do not install the Monitoring Agent on
+For production environments, it is recommended to install the
+Monitoring Agent on a dedicated server, and not on the
 the same host as a data bearing :binary:`~bin.mongod` instance. This
 allows you to perform maintenance on the :binary:`~bin.mongod` and its
 host without affecting the monitoring for your deployment.
@@ -62,7 +63,7 @@ The second most common problem is that there are firewall rules in
 place that prohibit access to the host from the agent.
 
 To test the connection, login to the host running the agent and try
-to connect using the ``mongo`` shell: 
+to connect using the ``mongo`` shell:
 
 .. code-block:: sh
 
