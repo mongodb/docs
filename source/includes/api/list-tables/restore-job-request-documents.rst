@@ -51,15 +51,14 @@
 
        - ``AUTOMATED_RESTORE``
        - ``HTTP``
-        
 
        .. note::
 
           If you set ``"delivery.methodName" : "AUTOMATED_RESTORE"``,
           you must also set:
 
-          - ``delivery.targetGroupId`` or 
-            ``delivery.targetClusterId``
+          - ``delivery.targetGroupId`` and
+          - ``delivery.targetClusterId``
 
           In addition, the response shows the ``delivery.methodName``
           as ``HTTP``. An automated restore uses the ``HTTP`` method
@@ -151,6 +150,5 @@
 
    * - snapshotId
      - string
-     - *Conditional:* ``"delivery.methodName" : "HTTP"``. 
-       Unique identifier of the snapshot to restore.
+     - Unique identifier of the :term:`snapshot` to restore.
 
