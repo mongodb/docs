@@ -7,7 +7,6 @@
 
    * - AWS
      - - ``N. Virginia (us-east-1)``
-       - ``Ohio (us-east-2)``
        - ``Frankfurt (eu-central-1)``
        - ``Singapore (ap-southeast-1)``
        - ``Mumbai (ap-south-1)``
