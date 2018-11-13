@@ -16,6 +16,8 @@
 
 - :setting:`replication <systemLog.component.replication.verbosity>`
 
+- :setting:`replication.election <systemLog.component.replication.election.verbosity>`
+
 - :setting:`replication.heartbeats <systemLog.component.replication.heartbeats.verbosity>`
 
 - :setting:`replication.initialSync <systemLog.component.replication.initialSync.verbosity>`
