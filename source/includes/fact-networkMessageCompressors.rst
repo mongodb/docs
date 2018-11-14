@@ -4,12 +4,6 @@
    compression. Otherwise, messages between the parties are
    uncompressed.
 
-You can specify the following compressors:
-
-- :term:`snappy` (Default)
-
-- :term:`zlib`
-
 If you specify multiple compressors, then the order in which you list
 the compressors matter as well as the communication initiator. For
 example, if a :binary:`~bin.mongo` shell specifies the following network
