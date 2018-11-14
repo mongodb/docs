@@ -1,5 +1,5 @@
 The following prerequisites are required to enable Encryption at Rest
-for a MongoDB project:
+via AWS KMS for a MongoDB project:
 
 * An AWS customer master key (CMK). See `Creating Keys <https://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html>`_
   in the AWS documentation for instructions.
