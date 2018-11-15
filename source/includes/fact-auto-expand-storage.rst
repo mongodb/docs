@@ -7,3 +7,9 @@
   reaching database storage limits, refer to the :ref:`FAQ page
   <faq-storage limit>`.
 
+  .. note::
+
+     AWS clusters with local :abbr:`NVMe (Non-Volatile Memory
+     Express)` SSDs cannot expand incrementally. When disk usage
+     reaches 90%, NVMe clusters scale to the next available instance
+     size, if any.
