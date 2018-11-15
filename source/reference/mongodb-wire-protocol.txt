@@ -128,15 +128,8 @@ Request Opcodes
    acknowledged writes. Most drivers continue to use opcodes for
    unacknowledged writes.
 
-.. warning::
-
-   ``OP_COMMAND`` and ``OP_COMMANDREPLY`` are cluster internal and should not
-   be implemented by clients or drivers.
-
-   .. versionchanged:: 3.6
-
-      The ``OP_COMMAND`` and ``OP_COMMANDREPLY`` format and protocol are
-      deprecated and may be removed in a future release of MongoDB.
+   In version 4.2, MongoDB removes the deprecated internal ``OP_COMMAND`` and
+   ``OP_COMMANDREPLY`` protocol.
 
 The following are the supported ``opCode``:
 
@@ -171,12 +164,6 @@ The following are the supported ``opCode``:
    * - ``OP_KILL_CURSORS``
      - 2007
      - Notify database that the client has finished with the cursor.
-   * - ``OP_COMMAND``
-     - 2010
-     - Cluster internal protocol representing a command request.
-   * - ``OP_COMMANDREPLY``
-     - 2011
-     - Cluster internal protocol representing a reply to an ``OP_COMMAND``.
    * - ``OP_MSG``
      - 2013
      - Send a message using the format introduced in MongoDB 3.6.
@@ -623,76 +610,6 @@ or :ref:`OP_GET_MORE <wire-op-get-more>` returns zero
 for the cursor id), there is no need to kill the cursor.
 
 
-.. _wire-op-command:
-
-OP_COMMAND
-~~~~~~~~~~
-
-.. versionchanged:: 3.6
-
-   The ``OP_COMMAND`` format and protocol is deprecated and may be removed
-   in a future release of MongoDB.
-
-.. warning::
-
-   ``OP_COMMAND`` is cluster internal and should not be implemented
-   by clients or drivers.
-
-``OP_COMMAND`` is a wire protocol message used internally for intra-cluster
-database command requests issued by one MongoDB server to another. The
-receiving database sends back an :ref:`OP_COMMANDREPLY <wire-op-commandreply>`
-as a response to a ``OP_COMMAND``.
-
-.. code-block:: sh
-
-   struct {
-      MsgHeader header;     // standard message header
-      cstring database;     // the name of the database to run the command on
-      cstring commandName;  // the name of the command
-      document metadata;    // a BSON document containing any metadata
-      document commandArgs; // a BSON document containing the command arguments
-      inputDocs;            // a set of zero or more documents
-   }
-
-.. list-table::
-   :widths: 20 80
-   :header-rows: 1
-
-   * - Field
-     - Description
-
-   * - ``header``
-
-     - Standard message header, as described in :ref:`wp-message-header`.
-
-   * - ``database``
-
-     - The name of the database to run the command on.
-
-   * - ``commandName``
-
-     - The name of the command. See :ref:`database-commands` for a list of
-       database commands.
-
-   * - ``metadata``
-
-     - Available for the system to attach any metadata to internal commands
-       that is not part of the command parameters proper, as supplied by the
-       client driver
-
-   * - ``commandArgs``
-
-     - A BSON document containing the command arguments.
-
-       See the documentation for the specified ``commandName`` for information
-       its arguments
-
-   * - ``inputDocs``
-
-     - Zero or more documents acting as input to the command. Useful for
-       commands that can require a large amount of data sent from the client,
-       such as a batch insert.
-
 .. _wire-op-msg:
 
 OP_MSG
@@ -944,63 +861,6 @@ The ``OP_REPLY`` message is sent by the database in response to an
 
      - Returned documents.
 
-.. _wire-op-commandreply:
-
-OP_COMMANDREPLY
-~~~~~~~~~~~~~~~
-
-.. versionchanged:: 3.6
-
-   The ``OP_COMMANDREPLY``  format and protocol is deprecated and may be
-   removed in a future release of MongoDB.
-
-.. warning::
-
-   ``OP_COMMANDREPLY`` is cluster internal and should not be implemented
-   by clients or drivers.
-
-The ``OP_COMMANDREPLY`` is a wire protocol message used internally for
-replying to intra-cluster :ref:`OP_COMMAND <wire-op-command>` requests issued
-by one MongoDB server to another.
-
-The format of an ``OP_COMMANDREPLY`` is:
-
-.. code-block:: sh
-
-   struct {
-      MsgHeader header;       // A standard wire protocol header
-      document metadata;      // A BSON document containing any required metadata
-      document commandReply;  // A BSON document containing the command reply
-      document outputDocs;    // A variable number of BSON documents
-   }
-
-.. list-table::
-   :widths: 20 80
-   :header-rows: 1
-
-   * - Field
-     - Description
-
-   * - ``header``
-
-     - Standard message header, as described in :ref:`wp-message-header`.
-
-   * - ``metadata``
-
-     - Available for the system to attach any metadata to internal commands
-       that is not part of the command parameters proper, as supplied by the
-       client driver.
-
-   * - ``commandReply``
-
-     - A BSON document containing the command reply.
-
-   * - ``outputDocs``
-
-     - Useful for commands that can return a large amount of data, such as
-       find or aggregate.
-
-       This field is not currently in use.
 
 .. rubric:: Footnotes
 
