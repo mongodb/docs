@@ -64,7 +64,7 @@
 
    * - ``itemsPerPage``
      - Optional.
-     - Maximum number of items to return per page.
+     - Number of items to return per page, up to a maximum of 500.
      
        Defaults to ``100``.
 

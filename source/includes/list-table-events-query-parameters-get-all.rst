@@ -15,7 +15,7 @@
  
    * - ``itemsPerPage``
      - integer
-     - Maximum number of items to return, up to a maximum of 100.
+     - Number of items to return per page, up to a maximum of 500.
      - ``100``
  
    * - ``pretty``
