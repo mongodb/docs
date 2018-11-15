@@ -15,9 +15,12 @@ username as URI-style query parameters:
        default to the current database associated with the MySQL
        connection.
 
-       For authentication mechanisms such as ``PLAIN`` (LDAP) that
-       delegate credential storage to other services, set the
-       :urioption:`source` value to ``$external``.
+       For authentication mechanisms such as ``PLAIN`` (LDAP) or
+       ``GSSAPI`` (Kerberos) that delegate credential storage to other
+       services, set the :urioption:`source` value to ``$external``.
+
+       Not required if :setting:`~security.defaultSource` is set in your
+       |bi| :ref:`configuration file <config-format>`.
 
    * - ``mechanism``
 
@@ -32,6 +35,9 @@ username as URI-style query parameters:
        LDAP and Kerberos require `MongoDB Enterprise
        <https://www.mongodb.com/download-center/enterprise?ct=atlasheader2>`__.
        Set the source to ``$external`` when using LDAP or Kerberos.
+
+       Not required if :setting:`~security.defaultMechanism` is set in your
+       |bi| :ref:`configuration file <config-format>`.
 
        .. note:: 
           X.509 is not supported.
