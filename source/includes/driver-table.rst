@@ -29,6 +29,13 @@
      - `JIRA <https://jira.mongodb.org/browse/CSHARP>`__
      - `Course <https://university.mongodb.com/courses/M101N/about>`__
 
+   * - :doc:`Go (beta)</drivers/go>`
+     - `Releases <https://github.com/mongodb/mongo-go-driver/releases>`__
+     - `Source <https://github.com/mongodb/mongo-go-driver>`__
+     - `API <https://godoc.org/github.com/mongodb/mongo-go-driver/mongo>`__
+     - `JIRA <https://jira.mongodb.org/browse/GODRIVER>`__
+     -
+
    * - `Java <http://mongodb.github.io/mongo-java-driver/?jmp=docs>`_
      - `Releases <https://github.com/mongodb/mongo-java-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-java-driver>`__
@@ -91,7 +98,6 @@
      - `API <https://mongodb.github.io/mongo-scala-driver/>`__
      - `JIRA <https://jira.mongodb.org/browse/SCALA>`__
      -
-
 ..
    * - :doc:`Haskell </drivers/haskell>`
      - `Releases <https://github.com/mongodb/mongodb-haskell/releases>`__
