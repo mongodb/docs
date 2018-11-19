@@ -20,7 +20,7 @@
      - array
      - Contains information on where the action is granted. Each
        object in the array either indicates a database and collection
-       on which the the action is granted, or indicates that the
+       on which the action is granted, or indicates that the
        action is granted on the :manual:`cluster resource
        </reference/resource-document/#cluster-resource>`.
 
