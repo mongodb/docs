@@ -122,7 +122,8 @@ rst_epilog = [
     '.. |uri| replace:: :abbr:`URI (Uniform Resource Identifier)`',
     '.. |url| replace:: :abbr:`URL (Uniform Resource Locator)`',
     '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`',
-    '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`'
+    '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`',
+    '.. |nvme-clusters| replace:: clusters with local :abbr:`NVMe (Non-Volatile Memory Express)` SSDs'
 ]
 
 rst_epilog.extend(get_replacements(conf))

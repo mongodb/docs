@@ -240,10 +240,7 @@
        For definitions of data-bearing servers, see
        :ref:`server-number-costs`.
 
-       |service| supports the following instance sizes.
-       |service| supports deploying ``M2`` and ``M5`` instances
-       into a subset of available regions. The documentation for
-       ``providersettings.regionName`` includes a list of these regions.
+       .. include:: /includes/fact-instance-size-names.rst
 
        .. list-table::
           :header-rows: 1
@@ -273,6 +270,8 @@
 
           Requires that ``providerSettings.instanceSizeName`` be
           ``M30`` or greater.
+
+       .. include:: /includes/fact-not-available-with-nvme.rst
 
        The maximum input/output operations per second (IOPS) the system can
        perform. The possible values depend on the selected
@@ -357,6 +356,10 @@
        *AWS only*. If enabled, the Amazon EBS encryption feature encrypts the
        server's root volume for both data at rest within the volume and for
        data moving between the volume and the instance.
+
+       .. note::
+
+          This setting is always enabled for |nvme-clusters|.
 
        The default value is ``false``.
 
@@ -590,6 +593,8 @@
      - *Optional*
 
        **AWS / GCP ONLY**
+
+       .. include:: /includes/fact-not-available-with-nvme.rst
 
        The size in gigabytes of the server's root volume. You can add
        capacity by increasing this number, up to a maximum possible
