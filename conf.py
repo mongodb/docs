@@ -16,6 +16,7 @@ from giza.config.helper import fetch_config
 
 logging.basicConfig(level=logging.INFO)
 conf = fetch_config(RuntimeStateConfig())
+intersphinx_libs = conf.system.files.data.intersphinx
 sconf = conf.system.files.data.sphinx_local
 
 project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
@@ -92,6 +93,7 @@ rst_epilog = [
     '.. |json| replace:: :abbr:`JSON (Javascript Object Notation)`',
     '.. |kdc| replace:: :abbr:`KDC (Key Distribution Center)`',
     '.. |kmip| replace:: :abbr:`KMIP (Key Management Interoperability)`',
+    '.. |kms| replace:: :abbr:`KMS (Key Management Service)`',
     '.. |ldaps| replace:: :abbr:`LDAPS (Secure Lightweight Directory Access Protocol)`',
     '.. |ldap| replace:: :abbr:`LDAP (Lightweight Directory Access Protocol)`',
     '.. |mms-full| replace:: MongoDB Cloud Manager',
