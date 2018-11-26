@@ -56,30 +56,61 @@ Definition
 Behavior
 --------
 
-For more information on expressions, see :ref:`aggregation-expressions`.
+If the name of a field repeats in the array,
+
+- Starting in 3.4.19, :expression:`$arrayToObject` uses the last value
+  for that field. For 3.4.4-3.4.19, the value uses depends on the
+  driver.
 
 .. list-table::
    :header-rows: 1
-   :widths: 90 10
+   :widths: 80 20
+   :class: border-table
 
    * - Example
      - Results
 
    * - .. code-block:: json
+          :copyable: false
 
-          { $arrayToObject: { $literal: [{ "k": "item", "v": "abc123"}, { "k": "qty", "v": 25 } ] } }
+          { $arrayToObject:  { $literal: [ 
+                { "k": "item", "v": "abc123"},
+                { "k": "qty", "v": 25 } 
+          ] } }
 
      - .. code-block:: json
+          :copyable: false
 
           { "item" : "abc123", "qty" : 25 }
 
    * - .. code-block:: json
+          :copyable: false
 
-          { $arrayToObject: { $literal:  [ [ "item", "abc123"], [ "qty", 25 ] ] } }
+          { $arrayToObject: { $literal:  [ 
+             [ "item", "abc123"], [ "qty", 25 ] 
+          ] } }
 
      - .. code-block:: json
+          :copyable: false
 
           { "item" : "abc123", "qty" : 25 }
+
+   * - .. code-block:: json
+          :copyable: false
+
+          { $arrayToObject: { $literal: [ 
+             { "k": "item", "v": "123abc"}, 
+             { "k": "item", "v": "abc123" } 
+          ] } }
+
+     - .. code-block:: json
+          :copyable: false
+
+          { "item" : "123abc" }
+
+       For MongoDB 3.4, starting in 3.4.19+, if the name
+       of a field repeats in the array, :expression:`$arrayToObject`
+       uses the last value for that field.
 
 Examples
 --------
@@ -88,12 +119,13 @@ Examples
 ``$arrayToObject``  Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider an ``inventory`` collection with the following documents:
+Consider a ``inventory`` collection with the following documents:
 
 .. code-block:: javascript
 
    { "_id" : 1, "item" : "ABC1",  dimensions: [ { "k": "l", "v": 25} , { "k": "w", "v": 10 }, { "k": "uom", "v": "cm" } ] }
-   { "_id" : 2, "item" : "ABC2",  dimensions: [ [ "l", 50], [ "w",  25 ], [ "uom", "cm" ] ] }
+   { "_id" : 2, "item" : "ABC2",  dimensions: [ [ "l", 50 ], [ "w",  25 ], [ "uom", "cm" ] ] }
+   { "_id" : 3, "item" : "ABC3",  dimensions: [ [ "l", 25 ], [ "l",  "cm" ], [ "l", 50 ] ] }
 
 The following aggregation pipeline operation use the
 :expression:`$arrayToObject` to return the ``dimensions`` field as a
@@ -119,6 +151,11 @@ The operation returns the following:
 
    { "_id" : 1, "item" : "ABC1", "dimensions" : { "l" : 25, "w" : 10, "uom" : "cm" } }
    { "_id" : 2, "item" : "ABC2", "dimensions" : { "l" : 50, "w" : 25, "uom" : "cm" } }
+   { "_id" : 3, "item" : "ABC3", "dimensions" : { "l" : 50 } }
+
+For MongoDB 3.4, starting in 3.4.19+, if the name of a field repeats in
+the array, :expression:`$arrayToObject` uses the last value for that
+field.
 
 ``$objectToArray`` + ``$arrayToObject`` Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
