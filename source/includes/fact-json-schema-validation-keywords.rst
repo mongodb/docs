@@ -1,5 +1,6 @@
 .. list-table::
    :header-rows: 1
+   :widths: 15 15 20 50
 
    * - Keyword
      - Type
@@ -22,6 +23,10 @@
      - string or array of unique strings
      - Enumerates the possible JSON types of the field. Available types are 
        "object", "array", "number", "boolean", "string", and "null".
+       
+       MongoBD's implementation of the JSON Schema does not support the
+       "integer" type. Use the ``bsonType`` keyword and the
+       "int" or "long" types instead.
 
    * - allOf
      - all types
