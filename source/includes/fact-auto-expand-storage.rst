@@ -9,7 +9,6 @@
 
   .. note::
 
-     AWS clusters with local :abbr:`NVMe (Non-Volatile Memory
-     Express)` SSDs cannot expand incrementally. When disk usage
-     reaches 90%, NVMe clusters scale to the next available instance
-     size, if any.
+     AWS clusters with local :ref:`NVMe SSDs <nvme-storage>` cannot
+     expand incrementally. When disk usage reaches 90%, NVMe clusters
+     scale to the next available instance size, if any.
