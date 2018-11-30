@@ -15,13 +15,13 @@ mongomirror
 .. binary:: mongomirror
 
    A utility for migrating data from an existing MongoDB replica set
-   to a MongoDB |service| replica set. :binary:`~bin.mongomirror` does
+   to a MongoDB |service| replica set. ``mongomirror`` does
    not require you to shut down your existing replica set or
    applications.
 
 .. important:: 
    
-     :binary:`~bin.mongomirror` does not import user/role data or
+     ``mongomirror`` does not import user/role data or
      the ``config`` database.
 
 Download ``mongomirror``
@@ -40,7 +40,7 @@ Download ``mongomirror``
 Syntax
 ------
 
-To run :binary:`~bin.mongomirror`, you must specify the source replica
+To run ``mongomirror``, you must specify the source replica
 set and the target |service| replica set. For |service|, you must
 specify a user in the |service| cluster with
 :ref:`appropriate privileges <destination-authorization>` and the
@@ -61,79 +61,116 @@ For details on the options, see :ref:`mongomirror-options`.
 Migration Process
 -----------------
 
-When you start :binary:`~bin.mongomirror`:
+When you start ``mongomirror``:
 
-#. First, :binary:`~bin.mongomirror` performs an initial sync, copying
+#. First, ``mongomirror`` performs an initial sync, copying
    collections from the existing MongoDB replica set to the target
    cluster in |service|.
 
-#. After the initial sync, :binary:`~bin.mongomirror` continuously
+#. After the initial sync, ``mongomirror`` continuously
    tails the replica set's oplog for incoming changes and replays them
    on the target cluster in MongoDB |service|.
 
-Once started, :binary:`~bin.mongomirror` runs continuously until you
+Once started, ``mongomirror`` runs continuously until you
 shut down the process.
 
-- If you shut down :binary:`~bin.mongomirror` during the initial sync
+- If you shut down ``mongomirror`` during the initial sync
   stage, either ensure that the target cluster is empty before you
-  restart :binary:`~bin.mongomirror` or run :binary:`~bin.mongomirror`
+  restart ``mongomirror`` or run ``mongomirror``
   with the :option:`--drop` option.
 
-- If you shut down :binary:`~bin.mongomirror` during the oplog tailing
-  stage, you can restart :binary:`~bin.mongomirror` to continue from
+- If you shut down ``mongomirror`` during the oplog tailing
+  stage, you can restart ``mongomirror`` to continue from
   the last oplog record processed. See the
   :mongomirror:option:`--bookmarkFile` option.
 
 Progress Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
-:binary:`~bin.mongomirror` logs its progress to the standard output in
+``mongomirror`` logs its progress to the standard output in
 the terminal:
 
-During the initial sync, :binary:`~bin.mongomirror` logs a progress
+During the initial sync, ``mongomirror`` logs a progress
 bar for each collection it copies. For example:
 
 .. code-block:: sh
+   :copyable: false
 
    2016-12-16T17:54:53.638-0800  [#....................]  park.events  2179/34184    (6.4%)
    2016-12-16T17:54:53.638-0800  [#############........]  zoo.animals  29000/49778  (58.3%)
 
-When tailing the oplog, :binary:`~bin.mongomirror` logs the lag time,
+When tailing the oplog, ``mongomirror`` logs the lag time,
 in seconds, between the most recent oplog entry on the source and the
 last processed oplog entry on the target. For example:
 
 .. code-block:: sh
+   :copyable: false
 
    2016-12-12T16:22:17.027-0800 Current lag from source: 6s
 
 A lag time of 6 seconds means that the last oplog entry
-:binary:`~bin.mongomirror` processed was 6 seconds behind the most
+``mongomirror`` processed was 6 seconds behind the most
 recent one available on the source.
 
 .. note::
 
-   The amount of time it takes :binary:`~bin.mongomirror` to catch up
+   The amount of time it takes ``mongomirror`` to catch up
    completely may be greater or lesser than 6 seconds, depending on
    how many entries arrive per second.
 
-A lag time of 0 seconds indicates that :binary:`~bin.mongomirror` is
+A lag time of 0 seconds indicates that ``mongomirror`` is
 processing entries that arrived less than one second before the latest
 oplog entry.
+
+If there are indexes on the source cluster, ``mongomirror`` builds the
+same indexes on the target cluster. The progress log shows the start
+time and end time of the index building process, but does not display
+the iterative progress of the process. To check on the progress
+of the index builds, you can either:
+
+- Use the
+  :manual:`currentOp </reference/method/db.currentOp/#db.currentOp>`
+  command on the primary node of the target cluster. The ``command``
+  field shows information about the currently running operation.
+  Index building entries look similar to the following:
+
+  .. code-block:: json
+     :copyable: false
+
+	 "command" : {
+		"createIndexes" : "perfs",
+		"indexes" : [
+			{
+				"key" : {
+					"workTitle" : "text"
+				},
+				"name" : "workTitle_text"
+			}
+		]...
+
+- Download the :ref:`mongodb logs <mongodb-logs>` for your target
+  cluster and check recent entries for index-related lines. Log
+  messages related to index building look similar to the following:
+
+  .. code-block:: sh
+     :copyable: false
+
+     2018-11-29T16:58:25.018-0800 I INDEX    [conn1] build index on: example.airlines properties: { v: 2, key: { airline: 1.0 }, name: "airline_1", ns: "example.airlines" }
 
 Performance
 ~~~~~~~~~~~
 
 To avoid contention for network and CPU resources, do not run
-:binary:`~bin.mongomirror` on the same hosts that provide your replica
+``mongomirror`` on the same hosts that provide your replica
 set’s mongod instances.
 
-- :binary:`~bin.mongomirror` must have network access to the source
+- ``mongomirror`` must have network access to the source
   replica set.
 
-- :binary:`~bin.mongomirror` must have network access to the target
+- ``mongomirror`` must have network access to the target
   cluster.
 
-- :binary:`~bin.mongomirror` has approximately the same performance
+- ``mongomirror`` has approximately the same performance
   impact on your source replica set as a secondary:
 
   - For the initial sync stage, the load scales with the size of your
@@ -150,7 +187,7 @@ Source MongoDB Deployment
 
 - The source MongoDB deployment must be a replica set. If the source is
   a standalone MongoDB deployment, convert to a replica set first to
-  use :binary:`~bin.mongomirror`.
+  use ``mongomirror``.
   See :manual:`Convert a Standalone to a Replica Set </tutorial/convert-standalone-to-replica-set/>`.
 
 - The source replica set must run MongoDB version 2.6 through 4.0.
@@ -159,7 +196,7 @@ Source MongoDB Deployment
   ``M0`` (Free Tier) or ``M2/M5`` shared cluster.
 
 - You should not change the ``featureCompatibilityVersion`` flag while
-  :binary:`~bin.mongomirror` is running.
+  ``mongomirror`` is running.
 
 - You should not make any namespace changes during the migration
   process, such as using the 
@@ -181,23 +218,23 @@ Target |service| Cluster
 - The target |service| cluster MongoDB version must be the same as
   or later than the source cluster MongoDB version.
 
-- For the initial sync stage of :binary:`~bin.mongomirror`, the target
+- For the initial sync stage of ``mongomirror``, the target
   |service| cluster should be empty or you should run
-  :binary:`~bin.mongomirror` with the :option:`--drop` option.
+  ``mongomirror`` with the :option:`--drop` option.
 
 - The target |service| cluster must include in its whitelist either
 
   - The public IP address of the server on which
-    :binary:`~bin.mongomirror` is running, or
+    ``mongomirror`` is running, or
 
   - If set up for VPC peering, either the peer’s VPC CIDR block (or a
     subset) or the peer VPC’s Security Group.
 
-- :binary:`~bin.mongomirror` automatically connects to MongoDB
+- ``mongomirror`` automatically connects to MongoDB
   |service| over |tls-ssl|.
 
 - You should not change the ``featureCompatibilityVersion`` flag while
-  :binary:`~bin.mongomirror` is running.
+  ``mongomirror`` is running.
 
 .. _source-rs-authorization:
 
@@ -205,7 +242,7 @@ Required Access on Source Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If the source replica set requires authentication, you must include
-user credentials when running :binary:`~bin.mongomirror`. You must 
+user credentials when running ``mongomirror``. You must 
 specify a MongoDB user that has the :authrole:`backup` role. If no 
 such user exists, create the user in your source MongoDB replica set. 
 For example, if the source replica set uses SCRAM-SHA1 
@@ -233,7 +270,7 @@ Required Access on Destination Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You must specify an |service| MongoDB user with the
-:authrole:`Atlas admin` role to run :binary:`~bin.mongomirror`.
+:authrole:`Atlas admin` role to run ``mongomirror``.
 See :ref:`add-mongodb-users` for documentation on creating an 
 |service| MongoDB user.
 
@@ -287,7 +324,7 @@ require authentication:
             --destinationPassword myAtlasPwd
 
 To migrate from a source replica set that does not require
-authentication, run :binary:`~bin.mongomirror` with the following
+authentication, run ``mongomirror`` with the following
 options:
 
 - :mongomirror:option:`--host` <sourceReplSet/seed list of members>
@@ -322,7 +359,7 @@ SCRAM-SHA1 authentication:
       --destinationPassword atlasPassw0Rd
 
 To migrate from a source replica set that does uses SCRAM-SHA1
-authentication, run :binary:`~bin.mongomirror` with the following
+authentication, run ``mongomirror`` with the following
 options:
 
 - :mongomirror:option:`--host` <sourceReplSet/seed list of members>
@@ -366,7 +403,7 @@ X.509 authentication:
       --destinationPassword atlasPassw0Rd
 
 To migrate from a source replica set that uses X.509 authentication,
-run :binary:`~bin.mongomirror` with the following options:
+run ``mongomirror`` with the following options:
 
 - :mongomirror:option:`--host` <sourceReplSet/seed list of members>
 - :mongomirror:option:`--username` <subject from the client certificate> 
@@ -409,7 +446,7 @@ Kerberos authentication:
       --destinationPassword atlasPass
 
 To migrate from a source replica set that uses X.509 authentication,
-run :binary:`~bin.mongomirror` with the following options:
+run ``mongomirror`` with the following options:
 
 - :mongomirror:option:`--host` <sourceReplSet/seed list of members>
 - :mongomirror:option:`--username` <Kerberos user principal>
