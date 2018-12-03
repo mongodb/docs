@@ -230,3 +230,46 @@ of documents that do not meet the unique constraint if the documents do
 not meet the filter criteria. For an example, see
 :ref:`partial-index-with-unique-constraints`.
 
+
+Sharded Clusters and Unique Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot specify a unique constraint on a :ref:`hashed index
+<index-type-hashed>`.
+
+For a ranged sharded collection, only the following indexes can be
+:doc:`unique </core/index-unique>`:
+
+- the index on the shard key
+
+- a :term:`compound index` where the shard key is a :ref:`prefix
+  <compound-index-prefix>`
+
+- the default ``_id`` index; **however**, the ``_id`` index only
+  enforces the uniqueness constraint per shard **if** the ``_id`` field
+  is not the shard key or the prefix of the shard key.
+
+  .. admonition:: Uniqueness and the ``_id`` Index
+     :class: important
+
+     If the ``_id`` field is not the shard key or the prefix of the
+     shard key, ``_id`` index only enforces the uniqueness constraint
+     per shard and **not** across shards.
+
+     For example, consider a sharded collection (with shard key ``{x:
+     1}``) that spans two shards A and B. Because the ``_id`` key is
+     not part of the shard key, the collection could have a document
+     with ``_id`` value ``1`` in shard A and another document with
+     ``_id`` value ``1`` in shard B.
+
+     If the ``_id`` field is not the shard key nor the prefix of the
+     shard key, MongoDB expects applications to enforce the uniqueness
+     of the ``_id`` values across the shards.
+
+The unique index constraints mean that:
+
+- For a to-be-sharded collection, you cannot shard the collection if
+  the collection has other unique indexes.
+
+- For an already-sharded collection, you cannot create unique indexes
+  on other fields.
