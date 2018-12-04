@@ -24,11 +24,23 @@ Definition
 
       db.adminCommand( { replSetGetStatus: 1 } )
 
-   The value specified does not affect the output of the command. Data
-   provided by this command derives from data included in heartbeats
-   sent to the server by other members of the replica set.
+   Starting in MongoDB 3.4, when running on a :doc:`secondary
+   </core/replica-set-secondary>` member, you can optionally include
+   ``initialSync: 1`` to return :ref:`initial sync
+   <replica-set-initial-sync>` status information:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { replSetGetStatus: 1, initialSync: 1 } )
+
+   Data provided by this command derives from data included in
+   heartbeats sent to the server by other members of the replica set.
    Because of the frequency of heartbeats, these data can be several
    seconds out of date.
+
+   The :binary:`~bin.mongo` shell provides the :method:`rs.status()`
+   helper; however, you cannot specify the ``initialSync: 1`` option
+   using the helper.
 
    The :binary:`~bin.mongod` instance must have replication enabled and be a
    member of a replica set for :dbcommand:`replSetGetStatus` to return
@@ -182,10 +194,13 @@ Example
 
           The following example runs the :dbcommand:`replSetGetStatus`
           command on the :term:`admin database` of the replica set
-          primary.
+          primary. In this example, the optional ``initialSync: 1`` is
+          included in the command (you can omit if you do not want to
+          return the initial sync status):
+
           .. code-block:: javascript
 
-             db.adminCommand( { replSetGetStatus : 1 } )
+             db.adminCommand( { replSetGetStatus : 1, initialSync: 1 } )
 
           The command returns the following output for an example replica set secondary:
 
@@ -220,6 +235,59 @@ Example
                 },
                 "lastStableRecoveryTimestamp" : Timestamp(1543869214, 1),
                 "lastStableCheckpointTimestamp" : Timestamp(1543869214, 1),
+                "initialSyncStatus" : {
+                   "failedInitialSyncAttempts" : 0,
+                   "maxFailedInitialSyncAttempts" : 10,
+                   "initialSyncStart" : ISODate("2018-12-03T20:29:22.929Z"),
+                   "initialSyncEnd" : ISODate("2018-12-03T20:29:23.546Z"),
+                   "initialSyncElapsedMillis" : 617,
+                   "initialSyncAttempts" : [
+                      {
+                         "durationMillis" : 204,
+                         "status" : "OK",
+                         "syncSource" : "m1.example.net:27017"
+                      }
+                   ],
+                   "fetchedMissingDocs" : 0,
+                   "appliedOps" : 0,
+                   "initialSyncOplogStart" : Timestamp(1543868962, 1),
+                   "initialSyncOplogEnd" : Timestamp(1543868962, 1),
+                   "databases" : {
+                      "databasesCloned" : 1,
+                      "admin" : {
+                         "collections" : 1,
+                         "clonedCollections" : 1,
+                         "start" : ISODate("2018-12-03T20:29:23.342Z"),
+                         "end" : ISODate("2018-12-03T20:29:23.528Z"),
+                         "elapsedMillis" : 186,
+                         "admin.system.version" : {
+                            "documentsToCopy" : 1,
+                            "documentsCopied" : 1,
+                            "indexes" : 1,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2018-12-03T20:29:23.344Z"),
+                            "end" : ISODate("2018-12-03T20:29:23.528Z"),
+                            "elapsedMillis" : 184,
+                            "receivedBatches" : 1 // Added in 4.2
+                         }
+                      },
+                      ...
+                      "foo" : {
+                         "collections" : 1,
+                         "clonedCollections" : 0,
+                         "start" : ISODate("2018-12-04T18:56:36.054Z"),
+                         "foo.hugeindex" : {
+                            "documentsToCopy" : 25000,
+                            "documentsCopied" : 25000,
+                            "indexes" : 2,
+                            "fetchedBatches" : 21,
+                            "start" : ISODate("2018-12-04T18:56:36.056Z"),
+                            "receivedBatches" : 21 // Added in 4.2
+                         }
+                      },
+                      
+                   }
+                },
                 "members" : [
                    {
                       "_id" : 0,
@@ -438,6 +506,209 @@ following fields:
    guaranteed to be persisted in a stable checkpoint to disk.
 
    A ``null`` value indicates that no stable checkpoint exists.
+
+.. data:: replSetGetStatus.initialSyncStatus
+
+   .. versionadded:: 3.4
+
+      *Available only if the command is run with the initialSync: 1
+      option on a secondary*
+
+   A document provides information on the progress and status of
+   :ref:`initial sync <replica-set-initial-sync>` on this secondary.
+
+   .. note::
+
+      Some fields that relate to the progress of an on-going initial
+      sync only appear while the initial sync is in progress and do not
+      appear once the initial sync completes.
+
+   .. data:: replSetGetStatus.initialSyncStatus.failedInitialSyncAttempts
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      The number of times the :ref:`initial sync
+      <replica-set-initial-sync>` failed and had to restart on this
+      secondary.
+
+   .. data:: replSetGetStatus.initialSyncStatus.maxFailedInitialSyncAttempts
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+         The maximum number of times the :ref:`initial sync
+         <replica-set-initial-sync>` can restart on this secondary
+         before the member shuts down.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncStart
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      The start timestamp of the :ref:`initial sync
+      <replica-set-initial-sync>` for this secondary.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncEnd
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      The end timestamp of the :ref:`initial sync
+      <replica-set-initial-sync>` for this secondary.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncElapsedMillis
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+         The number of milliseconds between
+         :data:`~replSetGetStatus.initialSyncStatus.initialSyncStart`
+         and :data:`~replSetGetStatus.initialSyncStatus.initialSyncEnd`.
+
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncAttempts
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      Array of documents where each document corresponds to a single
+      :ref:`initial sync <replica-set-initial-sync>` attempt. See also
+      :data:`~replSetGetStatus.initialSyncStatus.failedInitialSyncAttempts`.
+
+      Each document contains the following information for the initial sync attempt:
+
+      .. code-block:: javascript
+
+         {
+            "durationMillis" : <duration in milliseconds>,
+            "status" : <exit status>,
+            "syncSource" : <source node from which this secondary performs initial sync>
+         }
+
+   .. data:: replSetGetStatus.initialSyncStatus.fetchedMissingDocs
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      The number of missing (i.e. uncloned) documents that were fetched
+      from the sync source in order to apply to those documents the
+      updates that occurred after the :ref:`initial sync
+      <replica-set-initial-sync>` started.
+
+      As part of the initial sync process, the secondary uses the oplog
+      to update its data set to reflect the current state of the
+      replica set.
+
+   .. data:: replSetGetStatus.initialSyncStatus.appliedOps
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      The number of ops that occurred after the :ref:`initial sync
+      <replica-set-initial-sync>` started and were applied after cloning
+      the databases.
+
+      As part of the initial sync process, the secondary uses the oplog
+      to update its data set to reflect the current state of the
+      replica set.
+   
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncOplogStart
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      The start timestamp of the oplog application stage of the
+      :ref:`initial sync <replica-set-initial-sync>` where the
+      secondary applies changes that occurred after the initial sync
+      start.
+
+      As part of the initial sync process, the secondary uses the oplog
+      to update its data set to reflect the current state of the
+      replica set.
+   
+   .. data:: replSetGetStatus.initialSyncStatus.initialSyncOplogEnd 
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      The end timestamp of the oplog application stage of the
+      :ref:`initial sync <replica-set-initial-sync>` where the
+      secondary applies changes that occurred after the initial sync
+      start.
+
+      As part of the initial sync process, the secondary uses the oplog
+      to update its data set to reflect the current state of the
+      replica set.
+
+   .. data:: replSetGetStatus.initialSyncStatus.databases
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      Detail on the databases cloned during :ref:`initial sync
+      <replica-set-initial-sync>`.
+
+   .. data:: replSetGetStatus.initialSyncStatus.databases.databasesCloned
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      Number of databases cloned during :ref:`initial sync
+      <replica-set-initial-sync>`.
+
+   .. data:: replSetGetStatus.initialSyncStatus.databases.<dbname>
+
+      .. versionadded:: 3.4
+
+         *Available only if the command is run with the initialSync: 1
+         option on a secondary*
+
+      For each database, a document that returns information regarding
+      the progress of the cloning of that database.
+
+      .. code-block:: javascript
+   
+         {
+            "collections" : <number of collections to clone in the database>,
+            "clonedCollections" : <number of collections cloned to date>,
+            "start" : <start date and time for the database clone>,
+            "end" : <end date and time for the database clone>,
+            "elapsedMillis" : <duration of the database clone>,
+            "<db>.<collection>" : {
+               "documentsToCopy" : <number of documents to copy>,
+               "documentsCopied" : <number of documents copied to date>,
+               "indexes" :  <number of indexes>,
+               "fetchedBatches" :  <number of batches of documents fetched to date>,
+               "start" :  <start date and time for the collection clone>,
+               "end" : <end date and time for the collection clone>,
+               "elapsedMillis" : <duration of the collection clone>,
+               "receivedBatches" : <number of batches of documents received to date>  // Added in 4.2
+            }
+         }
 
 .. data:: replSetGetStatus.members
 
