@@ -15,8 +15,7 @@ See :doc:`/security-vpc-peering` for for complete documentation on
 
 .. important::
 
-   MongoDB does *not* support cross-region
-   :abbr:`VPC (Virtual Private Cloud)` peering. Multi-region clusters require
-   one :abbr:`VPC (Virtual Private Cloud)` peering connection per region. Only
-   those MongoDB nodes in that region can use the peering connection to
-   communicate with the peered :abbr:`VPC (Virtual Private Cloud)`.
+   Multi-region clusters require one :abbr:`VPC (Virtual Private Cloud)`
+   peering connection for each region. MongoDB nodes can use only the
+   peering connection that resides in the same region as the nodes
+   to communicate with the peered :abbr:`VPC (Virtual Private Cloud)`.
