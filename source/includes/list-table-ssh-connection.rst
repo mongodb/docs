@@ -6,44 +6,12 @@
      - The hostname of the machine where the ``mongod`` instance is
        running.
 
-       .. tip::
-
-          Starting with version 1.8.0, MongoDB Compass can detect
-          whether you have a MongoDB
-          :manual:`URI connection string </reference/connection-string>`
-          in your system clipboard and auto-populate the connection
-          dialog from the URI. Open MongoDB Compass with a URI
-          connection string in your clipboard and click :guilabel:`Yes`
-          when prompted to auto-populate the dialog.
-
    * - :guilabel:`Port`
      - The port on which ``mongod`` is running.
 
    * - :guilabel:`Authentication`
 
-     - The authentication to use if the ``mongod`` instance
-       requires authentication. Select:
-
-       - :guilabel:`Username / Password` if the ``mongod`` instance
-         uses either MongoDB-CR or SCRAM-SHA-1 as its
-         authentication mechanism.
-
-       - :guilabel:`X.509` if the ``mongod`` instance uses
-         X.509 as its authentication mechanism.
-
-         *Not Available in Compass Community Edition*
-
-       - :guilabel:`Kerberos` if the ``mongod`` instance uses
-         Kerberos as its authentication mechanism.
-
-         *Not Available in Compass Community Edition*
-
-       - :guilabel:`LDAP` if the ``mongod`` instance uses LDAP as
-         its authentication mechanism.
-
-         *Not Available in Compass Community Edition*
-
-       For MongoDB access required, see :ref:`required-access`.
+     - .. include:: /includes/fact-connect-auth-info.rst
 
    * - :guilabel:`Replica Set Name`
 
