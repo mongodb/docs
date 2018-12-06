@@ -16,8 +16,7 @@
      - `1.0.0 <https://github.com/mongodb/mongo-cxx-driver/releases>`__
 
      - :ecosystem:`PHP </drivers/php>`
-     - `ext-mongo 1.6 <https://pecl.php.net/package/mongo>`_,
-       `ext-mongodb 1.0 <https://pecl.php.net/package/mongodb>`_
+     - `1.0 <https://pecl.php.net/package/mongodb>`_
 
    * - :ecosystem:`C# </drivers/csharp>`
      - `1.10 <https://github.com/mongodb/mongo-csharp-driver/releases>`_
