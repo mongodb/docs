@@ -1,4 +1,4 @@
-¬Adding a MongoDB deployment to automation may affect the security
+Adding a MongoDB deployment to automation may affect the security
 settings of the |mms| project or the MongoDB deployment or both.
 
 Enables |mms| Project Security Setting
