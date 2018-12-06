@@ -1,3 +1,16 @@
+.. _atlas-v20181204:
+
+04 December 2018 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Allow users to set when they would prefer to start |service|
+  :ref:`maintenance <atlas-modify-project-settings>`.
+- Support :ref:`NVMe storage <scale-cluster-instance>`.
+- Create and manage :doc:`custom roles <security-add-mongodb-roles>`
+  for MongoDB database users.
+- Can peer across regions.
+- Improved speed of backup restores for Continuous Backup.
+
 .. _atlas-v20181113:
 
 13 November 2018 Release
