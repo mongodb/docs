@@ -45,4 +45,10 @@
        start. This parameter uses the 24-hour clock, where midnight is
        ``0``, noon is ``12``.
 
-
+   * - startASAP
+     - boolean
+     - Flag indicating whether project maintenance has been directed to
+       start immediately. If you request that maintenance begin
+       immediately, this field returns ``true`` from the time
+       the request was made until the time the maintenance event
+       completes.
