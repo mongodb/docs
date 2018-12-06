@@ -1,3 +1,11 @@
+.. _backup-7.2.0.1018:
+
+Backup Agent 7.2.0.1018
+-----------------------
+
+*Released 2018-12-05*
+
+- Now built on Go 1.9
 
 .. _backup-7.1.0.1011:
 
@@ -6,7 +14,8 @@ Backup Agent 7.1.0.1011
 
 *Released 2018-10-04*
 
-Improved handling of expiration of the queryable backup tunnel utility
+- Improved handling of expiration of the queryable backup tunnel
+  utility.
 
 .. _backup-7.0.0.1008-1:
 

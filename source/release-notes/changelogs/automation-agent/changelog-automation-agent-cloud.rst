@@ -1,3 +1,12 @@
+.. _automation-6.0.0.5591:
+
+Automation Agent 6.0.0.5591
+---------------------------
+
+*Released 2018-12-05*
+
+- Increase timeout for log collection jobs
+
 .. _automation-5.9.1.5566-1:
 
 Automation Agent 5.9.1.5566-1

@@ -1,3 +1,10 @@
+.. _cloudmanager-v20181204:
+
+04 December 2018 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Agent Upgrades: :ref:`automation-6.0.0.5591`, :ref:`backup-7.2.0.1018`
+
 .. _cloudmanager-v20181113:
 
 13 November 2018 Release
