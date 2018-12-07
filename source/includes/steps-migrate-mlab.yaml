@@ -1,0 +1,196 @@
+title: Create an Atlas deployment
+ref: atlas-deployment
+level: 4
+stepnum: 1
+content: |
+  If you don't already have an Atlas deployment, `create one
+  <https://docs.atlas.mongodb.com/create-new-cluster/>`_ now. You'll need
+  a `cluster tier
+  <https://docs.atlas.mongodb.com/create-new-cluster/#c-select-the-cluster-tier>`_
+  of ``M10`` or larger to perform Live Migration.
+---
+title: Check your mLab Network Access Mode
+ref: mlab-networking
+level: 4
+stepnum: 2
+content: |
+  Log in to your `mLab account <https://mlab.com/login/>`_
+  and navigate to your cluster console.
+  Select the :guilabel:`Networking` tab.
+  Your mLab deployment may be in one of three Network Access Modes:
+  :guilabel:`Public`, :guilabel:`Private (Dual Access)` or
+  :guilabel:`Private`. If your deployment is :guilabel:`Private`,
+  no external access is allowed, so you will need to switch to one of
+  the other two modes before proceeding with migration. 
+
+  .. figure:: /images/mlab-network-access-mode.png
+     :figwidth: 700px  
+
+  .. note::
+
+     It will be helpful during the migration process to keep one
+     browser window open on your mLab cluster console and one
+     window open on your `Atlas console <https://cloud.mongodb.com>`_.
+---
+title: Create an oplog user on your admin database
+ref: create-oplog-reader
+level: 4
+stepnum: 3
+content: |
+  To perform the migration process, you need a database user with
+  permission to read the oplog on your ``admin`` database.
+
+  To create an oplog user:
+
+  a. Select :guilabel:`Databases`
+  #. Under :guilabel:`System Databases`, select the :guilabel:`admin` database
+  #. Select the :guilabel:`Users` tab
+  #. Click the :guilabel:`Add oplog user` button and name the user
+     :guilabel:`oplog-reader`
+
+  .. figure:: /images/add-oplog-user.png
+     :figwidth: 700px  
+---
+title: Begin the Atlas Live Migration process
+ref: begin-live-migration
+level: 4
+stepnum: 4
+content: |
+  Navigate to your Atlas cluster. Click the ellipsis (:guilabel:`...`)
+  button and select :guilabel:`Migrate Data to this Cluster`.
+
+  .. figure:: /images/atlas-deployment.png
+     :figwidth: 700px
+---
+title: Review migration steps
+ref: review-steps
+level: 4
+stepnum: 5
+content: |
+  Read through the overview of migration steps in the Live Migration
+  dialog window, then click the green :guilabel:`I'm ready to migrate`
+  button.
+---
+title: Add allowable IP address ranges to your mLab deployment
+ref: add-ip-ranges
+level: 4
+stepnum: 6
+content: |
+  For this step you'll need to have browser tabs open
+  with both the Atlas Live Migration dialog (from step 4)
+  and your mLab cluster console.
+
+  From your mLab cluster console:
+
+  a. Select the :guilabel:`Networking` tab
+  #. Click the :guilabel:`Add IP address range rule(s)` button
+  #. Add all four of the IP address granges listed in the Atlas
+     Migration Service dialog from step 5
+  #. Optional: Add a :guilabel:`Description` for your IP range
+  #. Click the blue :guilabel:`Add` button when you're finished	  
+
+  .. figure:: /images/add-ip-ranges.png
+     :figwidth: 521px
+
+  You should now see all the Atlas IP ranges listed in the
+  :guilabel:`Inbound allow rules` section. Click the
+  :guilabel:`Apply security changes` button to finish the operation.
+
+  .. note::
+
+     Your IP address ranges may be different from those shown here.
+---
+title: Add the hostname and port of your mLab cluster primary to the
+       Atlas Live Migration dialog
+ref: add-hostname-port
+level: 4
+stepnum: 7
+content: |
+  Find the hostname and port number of your mLab cluster primary
+  node in your mLab cluster console and add it to the Atlas Live
+  Migration dialog.
+
+  .. important::
+
+     If your mLab cluster is running in the
+     :guilabel:`Private (Dual Access)` networking mode, you will need to
+     use the public hostname of the primary. If you provide the
+     public hostname of a secondary, Live Migration will not be able to
+     automatically detect the primary and the migration will fail.
+
+     To get the primary's public hostname, append ``-external`` to the
+     string to the left of the first period in the primary's hostname.
+
+     For example, the public hostname for ``ds012345-a0.mlab.com:12345``
+     is ``ds012345-a0-external.mlab.com:12345``.
+
+---
+title: Enter the oplog user's credentials in the Live Migration dialog
+ref: 
+level: 4
+stepnum: 8
+content: |
+  Enter the username and password for :guilabel:`oplog-reader` in the
+  Atlas Live Migration dialog window.
+---
+title: Specify if Live Migration should use SSL to connect to your mLab
+  cluster
+ref: enter-cafile
+level: 4
+stepnum: 9
+content: |
+  Dedicated mLab clusters deploy with the :setting:`net.ssl.mode` set
+  to ``preferSSL`` by default. This allows the cluster to accept both
+  TLS/SSL and non-TLS/non-SSL connections.
+
+  If you wish to connect to your mLab cluster using TLS/SSL, toggle
+  :guilabel:`Is SSL enabled?` to :guilabel:`Yes`. 
+
+  .. note::
+
+     You do not need to fill in the :guilabel:`Upload CA File` section
+     that appears on the form after SSL is enabled when migrating from
+     an mLab cluster.
+
+---
+title: Validate your Live Migration form
+ref: validate-form
+level: 4
+stepnum: 10
+content: |
+  Your Atlas Live Migration form should now look like this:
+
+  .. figure:: /images/live-migration-full.png
+     :figwidth: 655px
+
+  Click the :guilabel:`Validate` button to check that all your form
+  fields are valid and everything is ready to go. When your form
+  is validated, click the :guilabel:`Start Migration` button.
+---
+title: Start migration
+ref: start-migration
+level: 4
+stepnum: 11
+content: |
+  When the migration process begins, the Live Migration dialog window
+  closes and you are returned to the Atlas cluster overview page. A
+  progress bar shows the progess of your migration.
+
+  Once the migration is complete, you can begin to update your
+  client applications to use the new Atlas connection string.
+
+  .. figure:: /images/migration-complete.png
+     :figwidth: 700px
+---
+title: Start your cutover
+ref: start-cutover
+level: 4
+stepnum: 12
+content: |
+  Your mLab cluster and your Atlas cluster are now in sync. Atlas will
+  maintain this synchronized state for 72 hours. If you need more time,
+  syncing can be extended for another 24 hours.
+
+  Click the green :guilabel:`Start cutover` button and follow the
+  instructions listed in the dialog window.
+...
