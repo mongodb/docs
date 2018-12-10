@@ -79,6 +79,7 @@ rst_epilog = [
     '.. |Epoch-time-ms| replace:: Timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |epoch-time-ms| replace:: timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
+    '.. |gpc| replace:: :abbr:`GCP (Google Cloud Platform)`'
     '.. |global-write-clusters| replace:: Global Clusters',
     '.. |global-write-cluster| replace:: Global Cluster',
     '.. |global-write| replace:: Global Writes',
@@ -122,6 +123,7 @@ rst_epilog = [
     '.. |uri| replace:: :abbr:`URI (Uniform Resource Identifier)`',
     '.. |url| replace:: :abbr:`URL (Uniform Resource Locator)`',
     '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`',
+    '.. |vpc| replace:: :abbr:`VPC (Virtual Private Cloud)`',
     '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`',
     '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`'
 ]
