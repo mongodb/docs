@@ -1,3 +1,27 @@
+.. _opsmgr-server-4.0.6:
+
+|onprem| Server 4.0.6
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2018-12-10*
+
+- **Bug fix:** When a project is deleted, remove any open Global Alerts.
+
+- **Bug fix:** Authentication & |tls-ssl| Settings allows removal of
+  |pem| key file and password no matter the ``sslMode``.
+
+- **Bug fix:** Restore ability to rotate the |kmip| master key.
+
+- Increase timeout for starting queryable restore jobs. This increases
+  robustness for data sets with large numbers of namespaces.
+
+- Various optimizations to allow faster backup restores.
+
+- Visual Query Profiler can handle value of Infinity.
+
+- **Agent Upgrades:** :ref:`automation-5.4.14.5509`
+
+
 .. _opsmgr-server-4.0.5:
 
 |onprem| Server 4.0.5
@@ -8,21 +32,22 @@
 - **Fix:** Removed memory leak in proxy server used for queryable
   restores.
 
-- **Fix:** Removed race condition that could cause a backup initial sync
-  to be required when the ``featureCompatibilityVersion`` is updated on
-  the source replica set.
+- **Fix:** Removed race condition that could cause a backup initial
+  sync to be required when the ``featureCompatibilityVersion`` is
+  updated on the source replica set.
 
-- **Fix:** Automatic download of MongoDB binaries fails when hybrid mode
-  is enabled for MongoDB binary management.
+- **Fix:** Automatic download of MongoDB binaries fails when hybrid
+  mode is enabled for MongoDB binary management.
 
 - **Fix:** When importing a cluster into Ops Manager, ignore the value
   of ``pidFilePath`` if it set to the CentOS default in ``/var/run``.
 
-- Updated JDK to 8u192
+- Updated |jdk| to
+  `8u192 <https://www.oracle.com/technetwork/java/javase/8u192-relnotes-4479409.html>`__.
 
 - Updated bundled version of the :bic:`BI Connector </>` to 2.7.0.
 
-- **Agent Upgrades:** :ref:`automation-5.4.13.5505-1`
+- **Agent Upgrades:** :ref:`automation-5.4.13.5505`
 
 .. _opsmgr-server-4.0.4:
 
@@ -84,7 +109,7 @@
   orchestration platforms (such as the
   :doc:`MongoDB Enterprise Operator for Kubernetes </tutorial/install-k8s-operator>`).
 
-- **Agent Upgrades:** :ref:`automation-5.4.10.5496-1`
+- **Agent Upgrades:** :ref:`automation-5.4.10.5496`
 
 .. _opsmgr-server-4.0.1:
 
@@ -197,4 +222,7 @@
   - Ubuntu 16.04
   - :abbr:`RHEL (Red Hat Enterprise Linux)` 7.x
 
-- **Agent Upgrades:** :ref:`automation-5.4.6.5465-1`,  :ref:`backup-6.8.3.1002-1`, :ref:`monitoring-6.6.2.464-1`
+- **Agent Upgrades:**
+  :ref:`automation-5.4.6.5465`,
+  :ref:`backup-6.8.3.1002`,
+  :ref:`monitoring-6.6.2.464`

@@ -1,7 +1,7 @@
-.. _monitoring-6.6.2.464-1:
+.. _monitoring-6.6.2.464:
 
-Monitoring Agent 6.6.2.464-1
-----------------------------
+Monitoring Agent 6.6.2.464
+--------------------------
 
 :ref:`Released with Ops Manager 4.0.0 on 2018-06-27 <opsmgr-server-4.0.0>`
 

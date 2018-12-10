@@ -1,7 +1,14 @@
-.. _automation-5.4.13.5505-1:
+.. _automation-5.4.14.5509:
 
-Automation Agent 5.4.13.5505-1
-------------------------------
+Automation Agent 5.4.14.5509
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.6 on 2018-12-10 <opsmgr-server-4.0.6>`
+
+.. _automation-5.4.13.5505:
+
+Automation Agent 5.4.13.5505
+----------------------------
 
 :ref:`Released with Ops Manager 4.0.5 on 2018-11-01 <opsmgr-server-4.0.5>`
 
@@ -23,10 +30,10 @@ Automation Agent 5.4.12.5501
 - **Fix:** Restore the ability to upgrade from ``authSchemaVersion`` 3
   to 5 in a sharded cluster.
 
-.. _automation-5.4.11.5498-1:
+.. _automation-5.4.11.5498:
 
-Automation Agent 5.4.11.5498-1
-------------------------------
+Automation Agent 5.4.11.5498
+----------------------------
 
 :ref:`Released with Ops Manager 4.0.3 on 2018-10-04 <opsmgr-server-4.0.3>`
 
@@ -34,10 +41,10 @@ Automation Agent 5.4.11.5498-1
   SCRAM-SHA-1 authentication was enabled for the deployment after
   enabling SCRAM-SHA-256.
 
-.. _automation-5.4.10.5496-1:
+.. _automation-5.4.10.5496:
 
-Automation Agent 5.4.10.5496-1
-------------------------------
+Automation Agent 5.4.10.5496
+----------------------------
 
 :ref:`Released with Ops Manager 4.0.2 on 2018-09-06 <opsmgr-server-4.0.2>`
 
@@ -65,10 +72,10 @@ Automation Agent 5.4.9.5483
 - **Fix:** Automation Agent handling of enterprise builds for 
   Amazon Linux 2.
 
-.. _automation-5.4.6.5465-1:
+.. _automation-5.4.6.5465:
 
-Automation Agent 5.4.6.5465-1
------------------------------
+Automation Agent 5.4.6.5465
+---------------------------
 
 :ref:`Released with Ops Manager 4.0.0 on 2018-06-27 <opsmgr-server-4.0.0>`
 
