@@ -27,7 +27,7 @@ The :guilabel:`Data Sources` view displays existing data sources that
 the currently logged-in user has permission to view. The data sources
 are displayed in a tabular format with the following columns:
 
-.. figure:: /images/charts/data-sources-saas.png
+.. figure:: /images/charts/data-sources-view.png
    :alt: Diagram of the "Data Sources" view
    :figwidth: 750px
 
@@ -40,8 +40,11 @@ are displayed in a tabular format with the following columns:
 
    * - :guilabel:`Deployment`
      - The MongoDB deployment containing the source database and
-       collection. Identified by the |service| cluster associated
-       with the |charts-short| instance.
+       collection. Identified by the hostname and port of the first host
+       in the :manual:`Connection String URI </reference/connection-string>`.
+
+       To modify a deployment's connection URI, see the
+       :ref:`Modify a Data Source <mod-data-source-uri>` section.
 
    * - :guilabel:`Database`
      - The database containing the source collection or view.
@@ -101,11 +104,43 @@ Add a Data Source
 1. From the :guilabel:`Data Sources` view, click the
    :guilabel:`New Data Source` button.
 
-#. Select one of the |service| clusters.
+#. Enter the :manual:`Connection String URI
+   </reference/connection-string>` of the MongoDB deployment to which
+   you want to connect.
 
-   |service| displays all clusters in the current project for which
-   the current user has the :authrole:`Project Data Access Read Only`
-   role or higher.
+   .. important::
+
+      |charts| requires that MongoDB deployments run version 3.4 or
+      later.
+
+      If your MongoDB deployment is running with
+      :manual:`authentication </core/authentication/>`
+      enabled, include a database user's credentials in the connection
+      string URI. Anonymous, SCRAM, and LDAP authentication mechanisms
+      are supported. The database user must have
+      :manual:`read permissions </reference/built-in-roles/#read>` on
+      the collections selected in the following step.
+
+      If the authenticated user does not have the
+      :manual:`listDatabases
+      </reference/privilege-actions/#listDatabases>` privilege on the
+      deployment specified in the URI, they can still add the data
+      source by specifying the desired database as part of the URI. In
+      this case, the URI takes the following form:
+
+      .. code-block:: none
+
+         mongodb://[username:password@]<server>:<port>/<database>
+
+      If your deployment is running with |tls-ssl| enabled, add the
+      ``ssl=true`` option to the URI:
+
+      .. code-block:: none
+
+         mongodb://[username:password@]<server>:<port>/<database>?ssl=true
+
+      For more information, see
+      :doc:`/administration/configure-ssl-data-sources`.
 
 #. Click :guilabel:`Connect`.
 
@@ -116,10 +151,8 @@ Add a Data Source
 #. Click :guilabel:`Set Permissions`.
 
 #. Set the :ref:`permissions <permission-model>` for the data source.
-
-   By default, |service| assigns the :ref:`Reader <data-source-roles>`
-   permission to every user in the project. To change a user's permission,
-   search for the user by name or email address using the search bar.
+   You can search for specific users by name or email address using
+   the search bar.
 
 #. Click :guilabel:`Publish Data Source`.
 
@@ -142,9 +175,14 @@ Modify a Data Source
 
 |charts| users can modify certain properties of a data source provided
 they have appropriate :ref:`permissions <permission-model>` on the
-target data source. You can modify a data source's :ref:`alias
-<mod-data-source-alias>` and :ref:`permissions
-<mod-data-source-permissions>` after you create it.
+target data source. The following data source properties may be
+modified after a data source has been created:
+
+- :ref:`Alias <mod-data-source-alias>`
+
+- :ref:`Deployment Connection URI <mod-data-source-uri>`
+
+- :ref:`Permissions <mod-data-source-permissions>`
 
 .. _mod-data-source-alias:
 
@@ -155,6 +193,40 @@ A data source ``Manager`` or ``Owner`` can modify the :guilabel:`Alias`
 of a data source by hovering over the row's :guilabel:`Alias` field,
 then clicking either :guilabel:`Add Alias` or the edit button
 (pencil icon). Click the green check mark to save the alias.
+
+.. _mod-data-source-uri:
+
+Modify Deployment Connection URI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A datasource ``Manager`` or ``Owner`` can modify the Deployment
+:manual:`Connection String URI </reference/connection-string>` of a
+data source. This lets you seamlessly change the MongoDB cluster
+from which the data source pulls its data, or change connection
+details such as authentication passwords and :doc:`SSL options
+</administration/configure-ssl-data-sources>`.
+
+1. From the :guilabel:`Data Sources` view, click the ellipsis
+   (:guilabel:`...`) button on the right-hand side of the data source
+   you want to modify.
+
+#. Click :guilabel:`Edit Deployment Connection`.
+
+#. In the :guilabel:`Edit Deployment Connection` dialog, enter the new
+   connection URI in the input.
+
+#. Click :guilabel:`Test Connection` to ensure you have supplied a
+   valid connection URI.
+
+   .. important::
+
+      Below the connection URI input, |charts| lists all of the
+      data sources currently sharing the same deployment connection. If
+      the MongoDB deployment corresponding to the updated connection
+      string URI does not contain all collections currently in use,
+      charts using those data sources must be reconfigured using a
+      different data source or deleted before you can update the
+      connection URI.
 
 .. _mod-data-source-permissions:
 

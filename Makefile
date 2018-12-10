@@ -48,4 +48,4 @@ screenshots:
 	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/user-management.js
 	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/movie-tutorial.js
 	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/data-sources.js `pwd`/screenshot-scripts/.properties.ini
-	node build/screencapture-tool/screenshots.js `pwd`/screenshot-scripts/data-table-dynamic.js `pwd`/screenshot-scripts/.properties.ini
+	node build/screencapture-tool/screenshots.js `pwd`/screenshot-scripts/edit-chart-add-filter.js `pwd`/screenshot-scripts/.properties.ini
