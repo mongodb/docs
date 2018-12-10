@@ -79,7 +79,7 @@ rst_epilog = [
     '.. |Epoch-time-ms| replace:: Timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |epoch-time-ms| replace:: timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
-    '.. |gpc| replace:: :abbr:`GCP (Google Cloud Platform)`'
+    '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
     '.. |global-write-clusters| replace:: Global Clusters',
     '.. |global-write-cluster| replace:: Global Cluster',
     '.. |global-write| replace:: Global Writes',
