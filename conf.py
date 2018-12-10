@@ -119,7 +119,7 @@ html_theme_options = {
     'version_selector':  get_versions(conf),
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
-    'is_upcoming' : True
+    'is_saas' : conf.git.branches.current == 'master'
 }
 
 html_sidebars = sconf.sidebars
