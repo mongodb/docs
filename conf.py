@@ -140,7 +140,7 @@ extlinks = {
     'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
     'compass': ('https://docs.mongodb.com/compass%s', ''),
     'stitch': ('https://docs.mongodb.com/stitch%s', ''),
-    'charts': ('https://docs.mongodb.com/charts/current%s', ''),
+    'charts': ('https://docs.mongodb.com/charts/saas%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s','')
 }
 
