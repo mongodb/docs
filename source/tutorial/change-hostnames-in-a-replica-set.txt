@@ -207,6 +207,55 @@ Change All Hostnames at the Same Time
 
 This procedure uses the above :ref:`assumptions  <procedure-assumption-change-hostnames-replica-set>`.
 
+.. _repl-set-change-hostname-prereq:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+The following procedure reads and updates the ``system.replset``
+collection in the ``local`` database.
+
+If your deployment enforces :doc:`access control
+</core/authorization>`, the user performing the procedure must have
+:authaction:`find` and :authaction:`update` privilege actions on the
+``system.replset`` collection.
+
+To create a role that provides the necessary privileges:
+
+#. Log in as a user with privileges to manage users and roles, such as
+   a user with :authrole:`userAdminAnyDatabase` role. The following
+   procedure uses the ``myUserAdmin`` created in
+   :doc:`/tutorial/enable-authentication`.
+
+   .. code-block:: javascript
+
+       mongo --port 27017 -u myUserAdmin --authenticationDatabase 'admin' -p 
+
+#. Create a user role that provides the necessary privileges on the
+   ``system.replset`` collection in the ``local`` database:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { 
+         createRole: "systemreplsetRole",
+         privileges: [
+            { resource: { db: "local", collection: "system.replset" }, actions: ["find","update"] } 
+         ],
+         roles: []
+      } );
+
+#. Grant the role to the user who will be performing the rename
+   procedure. For example, the following assumes an existing user
+   ``"userPerformingRename"`` in the ``admin`` database.
+
+   .. code-block:: javascript
+
+      use admin
+      db.grantRolesToUser( "userPerformingRename", [ { role: "systemreplsetRole", db: "admin" } ] ); 
+
+Procedure
+~~~~~~~~~
+
 #. Stop all members in the :term:`replica set`.
 
 #. Restart each member *on a different port* and *without* using the
@@ -235,6 +284,14 @@ This procedure uses the above :ref:`assumptions  <procedure-assumption-change-ho
       .. code-block:: sh
 
          mongo --port 37017
+
+      If running with access control, connect as a user with
+      appropriate privileges. See
+      :ref:`repl-set-change-hostname-prereq`.
+
+      .. code-block:: sh
+
+         mongo --port 37017 -u userPerformingRename --authenticationDatabase=admin  -p
 
    #. Edit the replica set configuration manually. The replica set
       configuration is the only document in the ``system.replset``
