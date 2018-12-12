@@ -1,8 +1,16 @@
+:noprevnext:
+
 ==============================
 Live Migration Troubleshooting
 ==============================
 
 .. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
 Before the :ref:`Live Migration <live-import-replica>` process begins,
 Atlas performs a validation check to ensure that all the necessary
@@ -98,3 +106,58 @@ Common Live Migration Validation Errors
    * - **Unable to process the provided CA file**
      - Confirm that your CA file is complete and correctly pasted into
        the Live Migration modal window.
+
+Common Post-Validation Errors
+-----------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Error
+     - Remediation
+
+   * - **Could not retrieve the latest oplog entry from the source:
+       not found**
+     - - If the source is a replica set, make sure you have read
+         access on the :manual:`local database
+         </reference/local-database>`.
+       - If the source is a standalone instance, :manual:`convert it
+         to a replica set
+         </tutorial/convert-standalone-to-replica-set/>` before
+         proceeding with the migration.
+       - Confirm that the source cluster has a readable oplog. On
+         some hosted services, such as Compose.io, the oplog is a
+         feature which must be `enabled
+         <https://www.compose.com/articles/connecting-to-the-oplog-on-the-new-mongodb/>`_.
+       - If you still cannot access the oplog, use :doc:`mongorestore
+         </import/mongorestore>` instead to import your data into
+         |service|.
+
+   * - **Could not determine if --host is a replica set: error
+       connecting to db server: no reachable servers**
+     - - Ensure that every IP address the Live Migration service
+         requires is :doc:`whitelisted </security-whitelist>` for your
+         source cluster.
+       - Confirm that the IP address or DNS hostname you provided
+         resolves to an IP address that is publicly accessible.
+
+   * - **Error applying oplog entries during initial sync:
+       renameCollection command encountered during initial sync.
+       Please restart mongomirror.**
+     - Renaming a collection on the source cluster during Live
+       migration may trigger this error.
+
+       - Ensure that no users or applications rename any collections
+         while the Live Migration is taking place.
+       - Aggregation operations which use :manual:`$out
+         </reference/operator/aggregation/out>` may trigger this error.
+         Ensure that no ``$out`` operations occur during the Live
+         Migration procedure.
+
+   * - **Unsupported index error**
+     - Certain types and configurations of indexes which were
+       allowable in earlier versions of MongoDB are no longer
+       supported in more recent versions. Check the release notes
+       for the MongoDB version on your destination cluster for
+       possible conflicts. If necessary, drop any indexes which
+       cause errors and rebuild them after migration is complete.
