@@ -271,20 +271,20 @@ Fixes
   Manager deployments. Groups are now known as Projects. You can put
   multiple Projects under an Organization.
 
-- Added support for nested LDAP groups via the 'member' field when
+- Added support for nested LDAP groups via the ``member`` field when
   configuring |onprem| to use LDAP for |onprem| authentication.
 
   Although |onprem| 3.6 supports the use of either ``member`` or
   ``memberOf`` for configuration, support for LDAP via the ``memberOf``
-  field will be removed in |onprem| 4.0. When possible, use
-  ``member`` instead.
+  field will be removed in a future version of |onprem|. When
+  possible, use ``member`` instead.
   
 - Added support for a new :doc:`Agent API Key model
   </tutorial/manage-agent-api-key>`. Multiple Agent API Keys can now be
   associated with a project. This gives users the ability to perform
   Agent key rotation.
 
-- The bundled JDK is version 8u152.
+- The bundled |jdk| is version 8u152.
 
 Automation
 ``````````
