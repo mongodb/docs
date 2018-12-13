@@ -113,6 +113,7 @@ rst_epilog = [
     '.. |smtp| replace:: :abbr:`SMTP (Simple Mail Transport Protocol)`',
     '.. |snmp| replace:: :abbr:`SNMP (Simple Network Management Protocol)`',
     '.. |spn| replace:: :abbr:`SPN (Service Principal Name)`',
+    '.. |ssd| replace:: :abbr:`SSD (Solid State Disk)`',
     '.. |ssl| replace:: :abbr:`SSL (Secure Sockets Layer)`',
     '.. |stitch-docs| replace:: MongoDB Stitch',
     '.. |tcp| replace:: :abbr:`TCP (Transmission Control Protocol)`',
