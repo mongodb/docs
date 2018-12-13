@@ -52,3 +52,8 @@
        immediately, this field returns ``true`` from the time
        the request was made until the time the maintenance event
        completes.
+
+   * - numberOfDeferrals
+     - integer
+     - Number of times the current maintenance event for this project
+       has been deferred.
