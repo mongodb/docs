@@ -31,7 +31,8 @@ extensions = [
     'mongodb',
     'directives',
     'intermanual',
-    'fasthtml'
+    'fasthtml',
+    'source_constants'
 ]
 
 templates_path = ['.templates']
@@ -58,6 +59,12 @@ rst_epilog = '\n'.join([
 extlinks = {
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'mongo-spark': ('https://github.com/mongodb/mongo-spark%s', ''),
+}
+
+source_constants = {
+    'current-version': '2.4.0',
+    'spark-core-version': '2.4.0',
+    'spark-sql-version': '2.4.0'
 }
 
 intersphinx_mapping = {}
