@@ -1,51 +1,62 @@
-pre:
-  - command: git.get_project
-    params:
-      directory: "docs-mongodb"
-  - command: git.apply_patch
-    params:
-      directory: "docs-mongodb"
-  - command: shell.exec
-    params:
-      working_dir: "docs-mongodb"
-      script: |
-        rm -rf ~/venv
-
-        virtualenv ~/venv
-        ${venv}/pip install -r requirements.txt
-
-        # make the current branch always be master.
-        git branch -D master || true
-        git checkout -b master origin/master
-
-tasks:
-  - name: "build_manual"
-    commands:
-    - command: shell.exec
-      params:
-        working_dir: "docs-mongodb"
-        script: |
-          . ${venv}/activate
-
-          giza generate source
-          giza sphinx --builder publish --serial_sphinx
-    - command: shell.exec
-      params:
-        working_dir: "docs-mongodb"
-        script: |
-          . ${venv}/activate
-
-          giza env package --builder publish
-          giza packaging create --target push
-
-  # TODO: deploy build/archive/* to s3
-
-buildvariants:
-  - name: ubuntu1404-release
-    display_name: "Ubuntu 14.04"
-    run_on:
-      - ubuntu1404-test
-    expansions:
-      venv: "~/venv/bin"
-    tasks:
-      - name: "build_manual"
+--- 
+buildvariants: 
+  - 
+    display_name: "Ubuntu 16.04"
+    expansions: 
+      venv: ~/venv/bin
+    name: ubuntu1604
+    run_on: 
+      - ubuntu1604-test
+    tasks: 
+      - 
+        name: build-docs
+tasks: 
+  - 
+    commands: 
+      - 
+        command: git.get_project
+        params: 
+          directory: docs-mongodb
+        type: setup
+      - 
+        command: shell.exec
+        params: 
+          script: |
+              rm -rf ~/venv
+              
+              virtualenv ~/venv
+              ${venv}/pip install -r requirements.txt
+          working_dir: docs-mongodb
+      - 
+        command: shell.exec
+        params: 
+          script: |
+              # remember that this script should be silent if it 
+              # manipulates keys
+              mkdir ~/.config
+              touch ~/.config/giza-aws-authentication.conf
+              echo "${aws_key}" > ~/.config/giza-aws-authentication.conf
+              echo "${aws_secret}" >> ~/.config/giza-aws-authentication.conf
+              chmod 600 ~/.config/giza-aws-authentication.conf
+              
+              # as an alternative, you could pass the aws keys to the
+              # makefile directly if it supports that
+          shell: bash
+          silent: true
+      - 
+        command: shell.exec
+        params: 
+          script: |
+              export USER=${github_author}
+                . ${venv}/activate
+              
+              if [ "${is_patch}" != "true" ]; then
+                make publish
+                make deploy
+              else
+                make html
+                make stage
+              fi
+          shell: bash
+          working_dir: docs-mongodb
+    name: build-docs
