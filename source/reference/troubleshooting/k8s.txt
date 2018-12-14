@@ -171,7 +171,7 @@ To remove any instance that |k8s| deployed, you must use |k8s|.
 
    .. code-block:: shell
 
-      kubectl delete mst -n <metadata.namespace>
+      kubectl delete mongodbstandalone -n <metadata.namespace>
 
    To remove all MongoDB instances you created using |k8s|:
 
@@ -179,17 +179,95 @@ To remove any instance that |k8s| deployed, you must use |k8s|.
 
       kubectl delete [mrs|msc|mst] -n <metadata.namespace>
 
-Remove the |k8s-op-short|, |k8s-nss|, or |k8s-crds|
----------------------------------------------------
+You can refer to the |k8s-mdbrscs| by either their long or short names:
 
-To remove the |k8s-op-short|, you must first
-:ref:`remove all Kubernetes resources <remove-k8s-resource>`.
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 30
 
-If you get an error when attempting to remove the |k8s-op-short|, 
-|k8s-nss|, or |k8s-crds|, you need to remove the ``finalizer`` header 
-from errant resources:
+   * - MongoDB Deployment Item
+     - Resource Long Name 
+     - Resource Short Name
 
-.. code-block:: sh
+   * - MongoDB Replica Set
+     - ``mongodbreplicaset``
+     - ``mrs``
+   * - MongoDB Sharded Cluster
+     - ``mongodbshardedclusters``
+     - ``msc``
+   * - MongoDB Standalone Deployment
+     - ``mongodbstandalone``
+     - ``mst``
 
-   kubectl patch [mrs|msc|mst] <name> -n <metadata.namespace> \
-     --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]'
+.. _remove-k8s-operator:
+
+Remove the |k8s-op-short|
+--------------------------------------------------
+
+To remove the |k8s-op-short|:
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
+
+   .. code-block:: shell
+
+      kubectl delete [mrs|msc|mst] --all -n <metadata.namespace>
+
+2. Remove the |k8s-op-short|:
+
+   .. code-block:: shell
+
+      kubectl delete deployment mongodb-enterprise-operator -n <metadata.namespace>
+
+
+.. admonition:: Removing Databases after Operator was deleted
+   :class: important
+
+   If you have already removed the |k8s-op-short| but still have
+   running databases, you need to remove the ``finalizer`` header from
+   errant resources:
+
+   .. code-block:: sh
+
+      kubectl patch [mrs|msc|mst] <name> -n <metadata.namespace> \
+        --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]'
+
+This deletes all of the resources immediately.
+
+.. _remove-k8s-namespace:
+
+Remove the |k8s-ns|
+--------------------------------------------------
+
+To remove the |k8s-ns|:
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
+
+   .. code-block:: shell
+
+      kubectl delete [mrs|msc|mst] --all -n <metadata.namespace>
+
+2. Remove the |k8s-ns|:
+
+   .. code-block:: shell
+
+      kubectl delete namespace <metadata.namespace>
+
+.. _remove-k8s-crds:
+
+Remove the |k8s-crds|
+---------------------
+
+To remove the |k8s-crds|:
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
+
+   .. code-block:: shell
+
+      kubectl delete [mrs|msc|mst] --all -n <metadata.namespace>
+
+2. Remove the |k8s-crds|:
+
+   .. code-block:: shell
+
+      kubectl delete crd --all
+
