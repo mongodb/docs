@@ -14,10 +14,9 @@
        .. example::
 
           .. code-block:: sh
-             :emphasize-lines: 2-3
+             :emphasize-lines: 2
 
              helm template \
-               --set registry.pullPolicy=IfNotPresent \
                --set namespace=<testNamespace> \
                public/helm_chart > operator.yaml
              kubectl apply -f operator.yaml 
@@ -48,10 +47,9 @@
        .. example::
 
           .. code-block:: sh
-             :emphasize-lines: 2-3
+             :emphasize-lines: 2
 
              helm template \
-               --set registry.pullPolicy=IfNotPresent \
                --set operator.env=dev \
                public/helm_chart > operator.yaml
              kubectl apply -f operator.yaml
@@ -73,10 +71,9 @@
        .. example::
 
           .. code-block:: sh
-             :emphasize-lines: 2-3
+             :emphasize-lines: 2
 
              helm template \
-               --set registry.pullPolicy=IfNotPresent \
                --set operator.watchNamespace=<testNamespace> \
                public/helm_chart > operator.yaml
              kubectl apply -f operator.yaml
@@ -93,10 +90,9 @@
        .. example::
 
           .. code-block:: sh
-             :emphasize-lines: 2-3
+             :emphasize-lines: 2
 
              helm template \
-               --set registry.pullPolicy=IfNotPresent \
                --set managedSecurityContext=false \
                public/helm_chart > operator.yaml
              kubectl apply -f operator.yaml
@@ -122,10 +118,9 @@
        .. example::
 
           .. code-block:: sh
-             :emphasize-lines: 2-4
+             :emphasize-lines: 2-3
 
              helm template \
-               --set registry.pullPolicy=IfNotPresent \
                --set operator.env=dev \
                --set operator.podWaitSeconds=10 \
                public/helm_chart > operator.yaml
@@ -152,10 +147,9 @@
        .. example::
 
           .. code-block:: sh
-             :emphasize-lines: 2-5
+             :emphasize-lines: 2-4
 
-             helm template \
-               --set registry.pullPolicy=IfNotPresent \
+             helm template 
                --set operator.env=dev \
                --set operator.podWaitSeconds=10 \
                --set operator.podSetWaitRetries=20 \

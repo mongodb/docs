@@ -13,9 +13,9 @@ Install |k8s-op-full|
 .. include:: /includes/note-k8s-supported-in-om4.rst
 
 |k8s-op-full| allows you to deploy MongoDB deployment items with |k8s|
-and |onprem| from a macOS or Linux host. This Operator uses |k8s| and
-|onprem| |api| methods to deploy standalone, replica set, and sharded
-cluster deployments that |onprem| manages.
+and |onprem|. This Operator uses |k8s| and |onprem| |api| methods to
+deploy standalone, replica set, and sharded cluster deployments that
+|onprem| manages.
 
 .. note::
 
@@ -90,7 +90,7 @@ Considerations
 |k8s| Compatibility
 ~~~~~~~~~~~~~~~~~~~
 
-|k8s-op-full| is compatible with |k8s| v1.9 or later.
+|k8s-op-full| is compatible with |k8s| v1.11 or later.
 
 .. _kubectl: https://kubernetes.io/docs/reference/kubectl/kubectl/
 
@@ -161,15 +161,19 @@ Install the |k8s-op-full|
             your |k8s| orchestrator, you need to allow OpenShift to
             manage the Security Context for the |k8s-op-short|.
 
+            Change the ``MANAGED_SECURITY_CONTEXT`` value as described
+            in the next step.
+
+         #. You can edit the Operator |yaml| file to further customize
+            your Operator before installing it.
+
             a. Open your ``mongodb-enterprise.yaml`` in your preferred
                text editor.
 
-            b. Set two variables in the ``kind: Deployment`` block:
+            #. You may need to add one or more of the following
+               options:
 
-               .. code-block:: yaml
-
-                  spec.template.spec.containers.env.name : MANAGED_SECURITY_CONTEXT
-                  spec.template.spec.containers.env.name : 'true'
+               .. include:: /includes/list-table-k8s-kubectl-install-options.rst
 
          #. Install the |k8s-op-short| using the following
             kubectl_ command:
@@ -199,42 +203,14 @@ Install the |k8s-op-full|
 
             .. code-block:: sh
 
-               helm install helm_chart/ \
-                 --name mongodb-enterprise
+               helm template public/helm_chart > operator.yaml
+               kubectl apply -f operator.yaml 
 
             You can customize your Chart before installing it by using
             the ``--set`` option. For this Chart, you may need to add
             one or more of the following options:
 
-            .. list-table:: 
-               :widths: 20 40 40
-               :header-rows: 1
-
-               * - ``--set`` option
-                 - When to Use
-                 - Example
-               * - ``namespace``
-                 - ``helm`` uses the ``mongodb`` namespace by default.
-                   To use a different namespace, you need to specify
-                   that ``namespace``.
-                 - 
-                   .. code-block:: sh
-
-                      helm install helm_chart/ \
-                        --name mongodb-enterprise \
-                        --set namespace=<namespaceName>
-
-               * - ``managedSecurityContext``
-                 - If you use
-                   `OpenShift <https://www.openshift.com/>`__ as your
-                   |k8s| orchestrator, you need to allow OpenShift to
-                   manage the Security Context for the |k8s-op-short|.
-                 - 
-                   .. code-block:: sh
-
-                      helm install helm_chart/ \
-                        --name mongodb-enterprise \
-                        --set managedSecurityContext=false
+            .. include:: /includes/list-table-k8s-helm-install-options-online.rst
 
          To troubleshoot your |k8s-op-short|, see
          :ref:`review-k8s-op-logs`.
@@ -276,10 +252,9 @@ Install the |k8s-op-full|
 
                      .. code-block:: sh
 
-                        helm install helm_chart/ \
-                          --name mongodb-enterprise \
-                          --set database.pullPolicy=IfNotPresent \
-                          --set operator.pullPolicy=IfNotPresent
+                        helm template --set registry.pullPolicy=IfNotPresent \
+                          public/helm_chart > operator.yaml
+                        kubectl apply -f operator.yaml 
 
                      You can further customize your Chart before
                      installing it by using the ``--set`` option. For
@@ -328,10 +303,9 @@ Install the |k8s-op-full|
 
                      .. code-block:: sh
 
-                        helm install helm_chart/ \
-                          --name mongodb-enterprise \
-                          --set database.pullPolicy=IfNotPresent \
-                          --set operator.pullPolicy=IfNotPresent
+                        helm template --set registry.pullPolicy=IfNotPresent \
+                          public/helm_chart > operator.yaml
+                        kubectl apply -f operator.yaml 
 
                      You can further customize your Chart before
                      installing it by using the ``--set`` option. For
@@ -563,3 +537,152 @@ To create your |k8s| secret:
       ====
       publicApiKey:  31 bytes
       user:          22 bytes
+
+.. upgrade-k8s-operator:
+
+Upgrade the |k8s-op-full|
+-------------------------
+
+To upgrade to the latest version of the |k8s-op-full|:
+
+.. tabs::
+
+   tabs:
+     - id: kubectl
+       name: Online using kubectl
+       content: |
+
+         .. _upgrade-k8s-operator-kubectl:
+
+         1. Change to the directory in which you cloned the  
+            |k8s-op-short| repository.
+
+         #. Upgrade the |k8s-crds| for MongoDB deployments using the
+            following kubectl_ command:
+
+            .. code-block:: sh
+
+               kubectl apply -f crds.yaml
+
+         #. If you use `OpenShift <https://www.openshift.com/>`__ as
+            your |k8s| orchestrator, you need to allow OpenShift to
+            manage the Security Context for the |k8s-op-short|.
+
+            Change the ``MANAGED_SECURITY_CONTEXT`` value as described
+            in the next step.
+
+         #. You can edit the Operator |yaml| file to further customize
+            your Operator before upgrading it.
+
+            a. Open your ``mongodb-enterprise.yaml`` in your preferred
+               text editor.
+
+            #. You may need to add one or more of the following
+               options:
+
+               .. include:: /includes/list-table-k8s-kubectl-install-options.rst
+
+         #. Upgrade the |k8s-op-short| using the following
+            kubectl_ command:
+
+            .. code-block:: sh
+
+               kubectl apply -f mongodb-enterprise.yaml
+
+         To troubleshoot your |k8s-op-short|, see
+         :ref:`review-k8s-op-logs`.
+
+         .. include:: /includes/fact-remove-k8s-resources-first.rst
+
+     - id: helmonline
+       name: Online using Helm
+       content: |
+
+         .. _upgrade-k8s-operator-helm:
+
+         1. Change to the directory in which you cloned the  
+            |k8s-op-short| repository.
+
+         #. Upgrade the latest version of the |k8s-op-short| using the
+            following ``helm`` command:
+
+            .. code-block:: sh
+
+               helm template public/helm_chart > operator.yaml
+               kubectl apply -f operator.yaml 
+
+            You can customize your Chart before installing it by using
+            the ``--set`` option. For this Chart, you may need to add
+            one or more of the following options:
+
+            .. include:: /includes/list-table-k8s-helm-install-options-online.rst
+
+         To troubleshoot your |k8s-op-short|, see
+         :ref:`review-k8s-op-logs`.
+
+         .. include:: /includes/fact-remove-k8s-resources-first.rst
+
+     - id: helmoffline
+       name: Offline using Helm and Docker
+       content: |
+
+         To upgrade the |k8s-op-short| on a host not connected to the
+         Internet, you have two options, you can download the
+         |k8s-op-short| files from either:
+
+         .. tabs::
+
+            tabs:
+              - id: internet
+                name: The Internet
+                content: |
+
+                  1. Change to the directory in which you cloned the  
+                     |k8s-op-short| repository.
+
+                  #. Upgrade the latest version of the |k8s-op-short|
+                     with modified pull policy values using the
+                     following ``helm`` command:
+
+                     .. code-block:: sh
+
+                        helm template --set registry.pullPolicy=IfNotPresent \
+                          public/helm_chart > operator.yaml
+                        kubectl apply -f operator.yaml 
+
+                     You can further customize your Chart before
+                     installing it by using the ``--set`` option. For
+                     this Chart, you may need to add one or more of the
+                     following options:
+
+                     .. include:: /includes/list-table-k8s-helm-install-options-offline.rst
+
+                  To troubleshoot your |k8s-op-short|, see
+                  :ref:`review-k8s-op-logs`.
+
+                  .. include:: /includes/fact-remove-k8s-resources-first.rst
+
+              - id: host
+                name: Another Host
+                content: |
+
+                  1. Change to the directory in which you installed 
+                     the |k8s-op-short|.
+
+                  #. Upgrade the latest version of the |k8s-op-short|
+                     with modified pull policy values using the
+                     following ``helm`` command:
+
+                     .. code-block:: sh
+
+                        helm template --set registry.pullPolicy=IfNotPresent \
+                          public/helm_chart > operator.yaml
+                        kubectl apply -f operator.yaml 
+
+                     You can further customize your Chart before
+                     installing it by using the ``--set`` option. For
+                     this Chart, you may need to add one or more of the
+                     following options:
+
+                     .. include:: /includes/list-table-k8s-helm-install-options-offline.rst
+
