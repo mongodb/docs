@@ -13,7 +13,7 @@ Specify via an array (*Preferred*):
 
      <field>: [<longitude>, <latitude> ]
 
-  .. include::  /includes/extracts/geospatial-long-lat-values.rst
+  .. include:: /includes/extracts/geospatial-valid-long-lat-values.rst
 
 Specify via an embedded document:
   .. code-block:: javascript
