@@ -156,6 +156,27 @@ Transactions
 Examples
 --------
 
+The examples in this section use documents from the :doc:`bios
+collection </reference/bios-example-collection>` where the documents
+generally have the form:
+
+.. code-block:: javascript
+
+   {
+       "_id" : <value>,
+       "name" : { "first" : <string>, "last" : <string> },       // embedded document
+       "birth" : <ISODate>,
+       "death" : <ISODate>,
+       "contribs" : [ <string>, ... ],                           // Array of Strings
+       "awards" : [
+           { "award" : <string>, year: <number>, by: <string> }  // Array of embedded documents
+           ...
+       ]
+   }
+
+To create and populate the ``bios`` collection, see
+:doc:`/reference/bios-example-collection`.
+
 Find All Documents in a Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -171,131 +192,113 @@ the :doc:`bios collection </reference/bios-example-collection>`:
 Find Documents that Match Query Criteria
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To find documents that match a set of selection criteria, call
-:method:`~ db.collection.find()` with the ``<criteria>``
-parameter. The following operation returns all the documents from the
-collection ``products`` where ``qty`` is greater than ``25``:
-
-.. code-block:: javascript
-
-   db.products.find( { qty: { $gt: 25 } } )
-
 Query for Equality
 ``````````````````
 
-The following operation returns documents in the :doc:`bios collection
-</reference/bios-example-collection>` where ``_id`` equals ``5``:
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where ``_id`` equals
+  ``5``:
 
-.. code-block:: javascript
+  .. code-block:: javascript
 
-   db.bios.find( { _id: 5 } )
+     db.bios.find( { _id: 5 } )
+
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the field
+  ``last`` in the ``name`` embedded document equals ``"Hopper"``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { "name.last": "Hopper" } )
+
+  .. note::
+
+     To access fields in an embedded document, use :ref:`dot notation
+     <document-dot-notation-embedded-fields>` (``"<embedded
+     document>.<field>"``).
 
 Query Using Operators
 `````````````````````
 
-The following operation returns documents in the :doc:`bios collection
-</reference/bios-example-collection>` where ``_id`` equals either ``5``
-or ``ObjectId("507c35dd8fada716c89d0013")``:
+To find documents that match a set of selection criteria, call
+:method:`~db.collection.find()` with the ``<criteria>`` parameter.
 
-.. code-block:: javascript
+MongoDB provides various :ref:`query operators <query-selectors>` to
+specify the criteria.
 
-   db.bios.find(
-      {
-         _id: { $in: [ 5,  ObjectId("507c35dd8fada716c89d0013") ] }
-      }
-   )
+- The following operation uses the :query:`$in` operator to return
+  documents in the :doc:`bios collection
+  </reference/bios-example-collection>` where ``_id`` equals either
+  ``5`` or ``ObjectId("507c35dd8fada716c89d0013")``:
+
+  .. code-block:: javascript
+
+     db.bios.find(
+        { _id: { $in: [ 5, ObjectId("507c35dd8fada716c89d0013") ] } }
+     )
+
+- The following operation uses the :query:`$gt` operator returns all
+  the documents from the ``bios`` collection where ``birth`` is
+  greater than ``new Date('1950-01-01')``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { birth: { $gt: new Date('1950-01-01') } } )
+
+- The following operation uses the :query:`$regex` operator to return
+  documents in the :doc:`bios collection
+  </reference/bios-example-collection>` where ``name.last`` field
+  starts with the letter ``N`` (or is ``"LIKE N%"``)
+
+  .. code-block:: javascript
+
+     db.bios.find(
+        { "name.last": { $regex: /^N/ } }
+     )
+
+For a list of the query operators, see :ref:`query-selectors`.
 
 Query for Ranges
 ````````````````
 
-Combine comparison operators to specify ranges. The following operation
-returns documents with ``field`` between ``value1`` and ``value2``:
+Combine comparison operators to specify ranges for a field. The
+following operation returns from the :doc:`bios collection
+</reference/bios-example-collection>` documents where ``birth`` is
+between ``new Date('1940-01-01')`` and ``new Date('1960-01-01')``
+(exclusive):
 
 .. code-block:: javascript
 
-   db.collection.find( { field: { $gt: value1, $lt: value2 } } );
+   db.bios.find( { birth: { $gt: new Date('1940-01-01'), $lt: new Date('1960-01-01') } } )
 
-Query a Field that Contains an Array
-````````````````````````````````````
+For a list of the query operators, see :ref:`query-selectors`.
 
-If a field contains an array and your query has multiple conditional
-operators, the field as a whole will match if either a single array
-element meets the conditions or a combination of array elements meet the
-conditions.
 
-Given a collection ``students`` that contains the following documents:
+Query for Multiple Conditions
+`````````````````````````````
 
-.. code-block:: javascript
-
-   { "_id" : 1, "score" : [ -1, 3 ] }
-   { "_id" : 2, "score" : [ 1, 5 ] }
-   { "_id" : 3, "score" : [ 5, 5 ] }
-
-The following query:
+The following operation returns all the documents from the :doc:`bios
+collection </reference/bios-example-collection>` where ``birth`` field
+is :query:`greater than <$gt>` ``new Date('1950-01-01')`` and ``death``
+field does not exists:
 
 .. code-block:: javascript
 
-   db.students.find( { score: { $gt: 0, $lt: 2 } } )
+   db.bios.find( {
+      birth: { $gt: new Date('1920-01-01') }, 
+      death: { $exists: false } 
+   } )
 
-Matches the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "score" : [ -1, 3 ] }
-   { "_id" : 2, "score" : [ 1, 5 ] }
-
-In the document with ``_id`` equal to ``1``, the ``score: [ -1, 3 ]``
-meets the conditions because the element ``-1`` meets the ``$lt: 2``
-condition and the element ``3`` meets the ``$gt: 0`` condition.
-
-In the document with ``_id`` equal to ``2``, the ``score: [ 1, 5 ]``
-meets the conditions because the element ``1`` meets both the ``$lt: 2``
-condition and the ``$gt: 0`` condition.
-
-.. seealso:: :ref:`specify-multiple-criteria-for-array-elements`
-
-.. COMMENT  The next subsections on Query Arrays and Query Embedded Documents need to be reworked.  We already started to show people how to query array with the above example.
-
-Query Arrays
-~~~~~~~~~~~~
-
-Query for an Array Element
-``````````````````````````
-
-The following operation returns documents in the :doc:`bios collection
-</reference/bios-example-collection>` where the array field ``contribs``
-contains the element ``"UNIX"``:
-
-.. code-block:: javascript
-
-   db.bios.find( { contribs: "UNIX" } )
-
-Query an Array of Documents
-```````````````````````````
-
-The following operation returns documents in the :doc:`bios collection
-</reference/bios-example-collection>` where ``awards`` array contains an
-embedded document element that contains the ``award`` field equal to ``"Turing
-Award"`` and the ``year`` field greater than 1980:
-
-.. code-block:: javascript
-
-   db.bios.find(
-      {
-         awards: {
-                   $elemMatch: {
-                        award: "Turing Award",
-                        year: { $gt: 1980 }
-                   }
-         }
-      }
-   )
+For a list of the query operators, see :ref:`query-selectors`.
 
 .. _query-subdocuments:
 .. _query-embedded-documents:
 
 Query Embedded Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples query the ``name`` embedded field in the
+:doc:`bios collection </reference/bios-example-collection>`.
 
 Query Exact Matches on Embedded Documents
 `````````````````````````````````````````
@@ -308,12 +311,7 @@ order:
 .. code-block:: javascript
 
    db.bios.find(
-       {
-         name: {
-                 first: "Yukihiro",
-                 last: "Matsumoto"
-               }
-       }
+       { name: { first: "Yukihiro", last: "Matsumoto" } }
    )
 
 The ``name`` field must match the embedded document exactly. The query does
@@ -369,6 +367,99 @@ following values:
      first: "Yukihiro"
    }
 
+For more information and examples, see also :doc:`/tutorial/query-embedded-documents`.
+
+Query Arrays
+~~~~~~~~~~~~
+
+Query for an Array Element
+``````````````````````````
+
+The following examples query the ``contribs`` array in the :doc:`bios
+collection </reference/bios-example-collection>`.
+
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the array
+  field ``contribs`` contains the element ``"UNIX"``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { contribs: "UNIX" } )
+
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the array
+  field ``contribs`` contains the element ``"ALGOL"`` or ``"Lisp"``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { contribs: { $in: [ "ALGOL", "Lisp" ]} } )
+
+- The following operation use the :query:`$all` query operator to
+  return documents in the :doc:`bios collection
+  </reference/bios-example-collection>` where the array field
+  ``contribs`` contains both the elements ``"ALGOL"`` and ``"Lisp"``:
+
+  .. code-block:: javascript
+
+     db.bios.find( { contribs: { $all: [ "ALGOL", "Lisp" ] } } )
+
+  For more examples, see :query:`$all`.  See also :query:`$elemMatch`.
+
+- The following operation uses the :query:`$size` operator to return
+  documents in the :doc:`bios collection
+  </reference/bios-example-collection>` where the array size
+  of ``contribs`` is 4:
+
+  .. code-block:: javascript
+
+     db.bios.find( { contribs: { $size: 4 } } )
+
+For more information and examples of querying an array, see:
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-array-of-documents`
+
+For a list of array specific query operators, see :ref:`operator-query`.
+
+Query an Array of Documents
+```````````````````````````
+
+The following examples query the ``awards`` array in the :doc:`bios
+collection </reference/bios-example-collection>`.
+
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the ``awards``
+  array contains an element with ``award`` field equals ``"Turing:
+
+  .. code-block:: javascript
+
+     db.bios.find(
+        { "awards.award": "Turing Award" }
+     )
+     
+- The following operation returns documents in the :doc:`bios
+  collection </reference/bios-example-collection>` where the ``awards``
+  array contains at least one element with both the ``award`` field
+  equals ``"Turing Award"`` and the ``year`` field greater than 1980:
+
+  .. code-block:: javascript
+
+     db.bios.find(
+        { awards: { $elemMatch: { award: "Turing Award", year: { $gt: 1980 } } } }
+     )
+
+  Use the :query:`$elemMatch` operator to specify multiple criteria on
+  an array element.
+
+For more information and examples of querying an array, see:
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-array-of-documents`
+
+For a list of array specific query operators, see :ref:`operator-query`.
+
 Projections
 ~~~~~~~~~~~
 
@@ -376,24 +467,13 @@ The ``projection`` parameter specifies which fields to return. The
 parameter contains either include or exclude specifications, not both,
 unless the exclude is for the ``_id`` field.
 
+.. note::
+
+   Unless the ``_id`` field is explicitly excluded in the projection
+   document ``_id: 0``, the ``_id`` field is returned.
+
 Specify the Fields to Return
 ````````````````````````````
-
-The following operation returns all the documents from the ``products``
-collection where ``qty`` is greater than ``25`` and returns only the
-``_id``, ``item`` and ``qty`` fields:
-
-.. code-block:: javascript
-
-   db.products.find( { qty: { $gt: 25 } }, { item: 1, qty: 1 } )
-
-The operation returns the following:
-
-.. code-block:: javascript
-
-   { "_id" : 11, "item" : "pencil", "qty" : 50 }
-   { "_id" : ObjectId("50634d86be4617f17bb159cd"), "item" : "bottle", "qty" : 30 }
-   { "_id" : ObjectId("50634dbcbe4617f17bb159d0"), "item" : "paper", "qty" : 100 }
 
 The following operation finds all documents in the :doc:`bios collection
 </reference/bios-example-collection>` and returns only the ``name``
@@ -402,6 +482,11 @@ field, ``contribs`` field and ``_id`` field:
 .. code-block:: javascript
 
    db.bios.find( { }, { name: 1, contribs: 1 } )
+
+.. note::
+
+   Unless the ``_id`` field is explicitly excluded in the projection
+   document ``_id: 0``, the ``_id`` field is returned.
 
 Explicitly Excluded Fields
 ``````````````````````````
@@ -421,21 +506,10 @@ field:
 Explicitly Exclude the ``_id`` Field
 ````````````````````````````````````
 
-The following operation excludes the ``_id`` and ``qty`` fields from the
-result set:
+.. note::
 
-.. code-block:: javascript
-
-   db.products.find( { qty: { $gt: 25 } }, { _id: 0, qty: 0 } )
-
-The documents in the result set contain all fields *except* the ``_id``
-and ``qty`` fields:
-
-.. code-block:: javascript
-
-   { "item" : "pencil", "type" : "no.2" }
-   { "item" : "bottle", "type" : "blue" }
-   { "item" : "paper" }
+   Unless the ``_id`` field is explicitly excluded in the projection
+   document ``_id: 0``, the ``_id`` field is returned.
 
 The following operation finds documents in the :doc:`bios collection
 </reference/bios-example-collection>` and returns only the ``name``
@@ -466,6 +540,8 @@ array:
         contribs: { $slice: 2 }
       }
    )
+
+.. seealso:: :doc:`/tutorial/project-fields-from-query-results`
 
 .. _crud-read-cursor:
 
