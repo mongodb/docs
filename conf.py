@@ -61,7 +61,8 @@ rst_epilog = [
     '.. |charts-short| replace:: Charts',
     '.. |checkmark| unicode:: U+2713',
     '.. |tls-ssl| replace:: :abbr:`TLS (Transport Layer Security)`/:abbr:`SSL (Secure Sockets Layer)`',
-    '.. |service| replace:: Atlas'
+    '.. |service| replace:: Atlas',
+    '.. |enc-channel| replace:: :ref:`encoding channel <encoding-channels>`'
 ]
 
 rst_epilog.extend(get_replacements(conf))
