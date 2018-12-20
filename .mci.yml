@@ -31,6 +31,73 @@ tasks:
         command: shell.exec
         params: 
           script: |
+
+            . ${venv}/activate
+
+            python3 -m pip install -qqq --upgrade pip || true
+
+            (   cd "~"
+                rm -rf dev
+                mkdir dev
+                cd dev
+
+                git clone --depth=1 https://github.com/mongodb/mut.git
+
+                ( cd mut && python3 -m pip install -r requirements.txt . )
+            )
+
+            install_helper mut
+            install_helper mut-build
+            install_helper mut-convert-redirects
+            install_helper mut-images
+            install_helper mut-index
+            install_helper mut-intersphinx
+            install_helper mut-lint
+            install_helper mut-publish
+            install_helper mut-redirects
+
+            if ! echo "${PATH}" | grep -q "~/bin"; then
+                local rc_files=()
+                if [ -r ~/.bash_profile ]; then
+                    rc_files+=(~/.bash_profile)
+                elif [ -r ~/.bashrc ]; then
+                    rc_files+=(~/.bashrc)
+                fi
+
+                if [ -r ~/.zshenv ]; then
+                    rc_files+=(~/.zshenv)
+                elif [ -r ~/.zshrc ]; then
+                    rc_files+=(~/.zshrc)
+                fi
+
+                if [ ! -z "${rc_files[0]}" ] && ask 'Add PATH environment variable?'; then
+                    for rc in "${rc_files[@]}"; do
+                        printf "\nPATH=\$PATH:%s/bin\n" "~" >> "${rc}"
+                    done
+
+                    echo 'Open a new terminal to use the changes'
+                else
+                    echo ''
+                    echo "Add \"export PATH=\$PATH:~/bin\" to your PATH environment variable"
+                fi
+            fi
+
+            echo "Installed:"
+            echo "  mut"
+            echo "  mut-build"
+            echo "  mut-convert-redirects"
+            echo "  mut-images"
+            echo "  mut-index"
+            echo "  mut-intersphinx"
+            echo "  mut-lint"
+            echo "  mut-publish"
+            echo "  mut-redirects"
+
+          working_dir: docs-mongodb
+      - 
+        command: shell.exec
+        params: 
+          script: |
               # remember that this script should be silent if it 
               # manipulates keys
               mkdir ~/.config
@@ -48,7 +115,6 @@ tasks:
         params: 
           script: |
               export USER=${github_author}
-                . ${venv}/activate
               
               if [ "${is_patch}" != "true" ]; then
                 make publish
