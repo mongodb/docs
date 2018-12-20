@@ -22,76 +22,47 @@ tasks:
         command: shell.exec
         params: 
           script: |
-              rm -rf ~/venv
-              
-              virtualenv ~/venv
-              ${venv}/pip install -r requirements.txt
-          working_dir: docs-mongodb
-      - 
-        command: shell.exec
-        params: 
-          script: |
 
-            . ${venv}/activate
+            # install_helper(name)
+            install_helper() {
+                if [ -z "$1" ]; then
+                    echo "No helper given to install_helper"
+                    exit 1
+                fi
+
+                printf '#!/bin/sh\n' > "~/venv/bin/$1"
+                printf '. ~/venv/bin/activate\n' >> "~/venv/bin/$1"
+                printf '~/venv/bin/%s $@\n' "$1" >> "~/venv/bin/$1"
+                chmod 755 "~/venv/bin/$1"
+            }
+
+            rm -rf ~/venv
+            
+            virtualenv ~/venv
+            ${venv}/pip install -r requirements.txt
+
+            # Modified build for mut
+            ${venv}/bin/activate
 
             python3 -m pip install -qqq --upgrade pip || true
 
-            (   cd "~"
-                rm -rf dev
-                mkdir dev
-                cd dev
+            cd ~/venv
+            mkdir dev
+            cd dev
+            git clone --depth=1 https://github.com/mongodb/mut.git
+            cd mut && python3 -m pip install -r requirements.txt .
 
-                git clone --depth=1 https://github.com/mongodb/mut.git
+            # install_helper mut
+            # install_helper mut-build
+            # install_helper mut-convert-redirects
+            # install_helper mut-images
+            # install_helper mut-index
+            # install_helper mut-intersphinx
+            # install_helper mut-lint
+            # install_helper mut-publish
+            # install_helper mut-redirects
 
-                ( cd mut && python3 -m pip install -r requirements.txt . )
-            )
-
-            install_helper mut
-            install_helper mut-build
-            install_helper mut-convert-redirects
-            install_helper mut-images
-            install_helper mut-index
-            install_helper mut-intersphinx
-            install_helper mut-lint
-            install_helper mut-publish
-            install_helper mut-redirects
-
-            if ! echo "${PATH}" | grep -q "~/bin"; then
-                local rc_files=()
-                if [ -r ~/.bash_profile ]; then
-                    rc_files+=(~/.bash_profile)
-                elif [ -r ~/.bashrc ]; then
-                    rc_files+=(~/.bashrc)
-                fi
-
-                if [ -r ~/.zshenv ]; then
-                    rc_files+=(~/.zshenv)
-                elif [ -r ~/.zshrc ]; then
-                    rc_files+=(~/.zshrc)
-                fi
-
-                if [ ! -z "${rc_files[0]}" ] && ask 'Add PATH environment variable?'; then
-                    for rc in "${rc_files[@]}"; do
-                        printf "\nPATH=\$PATH:%s/bin\n" "~" >> "${rc}"
-                    done
-
-                    echo 'Open a new terminal to use the changes'
-                else
-                    echo ''
-                    echo "Add \"export PATH=\$PATH:~/bin\" to your PATH environment variable"
-                fi
-            fi
-
-            echo "Installed:"
-            echo "  mut"
-            echo "  mut-build"
-            echo "  mut-convert-redirects"
-            echo "  mut-images"
-            echo "  mut-index"
-            echo "  mut-intersphinx"
-            echo "  mut-lint"
-            echo "  mut-publish"
-            echo "  mut-redirects"
+            PATH=$PATH:~/venv/bin
 
           working_dir: docs-mongodb
       - 
