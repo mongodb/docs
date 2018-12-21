@@ -1,42 +1,118 @@
 .. important::
 
-   If you are using SELinux, you must configure SELinux to allow
-   MongoDB to start on Red Hat Linux-based systems (Red Hat Enterprise
-   Linux or CentOS Linux).
+   If SELinux is in ``enforcing`` mode, you must configure SELinux for
+   MongoDB if:
 
-To configure SELinux, administrators have three options:
+   - You are **not** using the default MongoDB paths (for RHEL 7.0), and/or
 
-- If SELinux is in ``enforcing`` mode,
-  enable access to the relevant ports that the MongoDB deployment will use
-  (e.g. ``27017``). See :doc:`/reference/default-mongodb-port` for
-  more information on MongoDB's default ports. For default settings,
-  this can be accomplished by running
+   - You are **not** using :doc:`default MongoDB ports
+     </reference/default-mongodb-port>`.
+
+Non-Default MongoDB Directory Path(s)
++++++++++++++++++++++++++++++++++++++
+
+.. container::
+
+   #. Update the SELinux policy to allow the ``mongod`` service
+      to use the new path:
+
+      .. code-block:: sh
+
+         semanage fcontext -a -t mongod_var_lib_t </some/MongoDB/path.*>
+
+      .. note::
+
+         Be sure to include the ``.*`` at the end of the path.
+
+   #. Update the SELinux user policy for the new directory:
+
+      .. code-block:: sh
+
+         chcon -Rv -u system_u -t mongod_var_lib_t </some/MongoDB/path>
+
+   #. Apply the updated SELinux policies to the directory:
+
+      .. code-block:: sh
+
+         restorecon -R -v </some/MongoDB/path>
+
+   For examples:
+
+   .. tip::
+
+      - Depending on your user permission, you may need to use ``sudo``
+        to perform these operations.
+
+      - Be sure to include the ``.*`` at the end of the path for the
+        ``semanage fcontext`` operations.
+
+   - If using a non-default MongoDB data path of ``/mongodb/data``
+
+     .. code-block:: sh
+
+        semanage fcontext -a -t mongod_var_lib_t '/mongodb/data.*'
+        chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
+        restorecon -R -v '/mongodb/data'
+
+   - If using a non-default MongoDB log path of ``/mongodb/log/``
+
+     .. code-block:: sh
+
+        semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
+        chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/log'
+        restorecon -R -v '/mongodb/log'
+
+
+Non-Default MongoDB Ports
++++++++++++++++++++++++++
+
+.. container::
+
+  .. tip::
+
+     Depending on your user permission, you may need to use ``sudo`` to
+     perform the operation.
 
   .. code-block:: sh
 
-     semanage port -a -t mongod_port_t -p tcp 27017
+     semanage port -a -t mongod_port_t -p tcp <portnumber>
 
-- Disable SELinux by setting the ``SELINUX`` setting to
-  ``disabled`` in ``/etc/selinux/config``.
+*Optional.* Suppress ``FTDC`` Warnings
+++++++++++++++++++++++++++++++++++++++
 
-  .. code-block:: sh
+.. container::
 
-     SELINUX=disabled
-  
-  You must reboot the system for the changes to take effect.
+   The current SELINUX Policy does not allow the MongoDB process to open
+   and read ``/proc/net/netstat`` for :ref:`param-ftdc` (FTDC). As such,
+   the audit log may include numerous messages regarding lack of access
+   to this path.
 
-- Set SELinux to ``permissive`` mode in ``/etc/selinux/config`` by
-  setting the ``SELINUX`` setting to ``permissive``.
+   To track the proposed fix, see `<https://github.com/fedora-selinux/selinux-policy-contrib/pull/79>`__.
 
-  .. code-block:: sh
+   Optionally, as a temporary fix, you can manually adjust the SELinux
+   Policy:
 
-     SELINUX=permissive
+   #. Create a policy file :file:`mongodb_proc_net.te`:
 
-  You must reboot the system for the changes to take effect.
+      .. code-block:: none
 
-  You can instead use ``setenforce`` to change to ``permissive`` mode.
-  ``setenforce`` does not require a reboot but is **not** persistent.
+         cat > mongodb_proc_net.te <<EOF
+         module mongodb_proc_net 1.0;
 
-Alternatively, you can choose not to install the SELinux packages when you are
-installing your Linux operating system, or choose to remove the relevant
-packages. This option is the most invasive and is not recommended.
+         require {
+             type proc_net_t;
+             type mongod_t;
+             class file { open read };
+         }
+
+         #============= mongod_t ==============
+         allow mongod_t proc_net_t:file { open read };
+         EOF
+
+   #. Once created, compile and load the custom policy module
+
+      .. code-block:: none
+
+         checkmodule -M -m -o mongodb_proc_net.mod mongodb_proc_net.te
+         semodule_package -o mongodb_proc_net.pp -m mongodb_proc_net.mod
+         semodule -i mongodb_proc_net.pp
