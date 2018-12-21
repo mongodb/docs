@@ -1,42 +1,96 @@
 .. important::
 
-   If you are using SELinux, you must configure SELinux to allow
-   MongoDB to start on Red Hat Linux-based systems (Red Hat Enterprise
-   Linux or CentOS Linux).
+   If SELinux is in ``enforcing`` mode, you must configure SELinux for
+   MongoDB if:
 
-To configure SELinux, administrators have three options:
+   - You are **not** using the default MongoDB directories (for RHEL 7.0), and/or
 
-- If SELinux is in ``enforcing`` mode,
-  enable access to the relevant ports that the MongoDB deployment will use
-  (e.g. ``27017``). See :doc:`/reference/default-mongodb-port` for
-  more information on MongoDB's default ports. For default settings,
-  this can be accomplished by running
+   - You are **not** using :doc:`default MongoDB ports
+     </reference/default-mongodb-port>`.
+
+Non-Default MongoDB Directory Path(s)
++++++++++++++++++++++++++++++++++++++
+
+.. container::
+
+   #. Update the SELinux policy to allow the ``mongod`` service
+      to use the new directory:
+
+      .. code-block:: sh
+
+         semanage fcontext -a -t <type> </some/MongoDB/directory.*>
+
+      where specify one of the following types as appropriate:
+
+      - ``mongod_var_lib_t`` for data directory
+
+      - ``mongod_log_t`` for log file directory
+
+      - ``mongod_var_run_t`` for pid file directory
+
+      .. note::
+
+         Be sure to include the ``.*`` at the end of the directory.
+
+   #. Update the SELinux user policy for the new directory:
+
+      .. code-block:: sh
+
+         chcon -Rv -u system_u -t <type> </some/MongoDB/directory>
+
+      where specify one of the following types as appropriate:
+
+      - ``mongod_var_lib_t`` for data directory
+
+      - ``mongod_log_t`` for log directory
+
+      - ``mongod_var_run_t`` for pid file directory
+
+   #. Apply the updated SELinux policies to the directory:
+
+      .. code-block:: sh
+
+         restorecon -R -v </some/MongoDB/directory>
+
+   For examples:
+
+   .. tip::
+
+      - Depending on your user permission, you may need to use ``sudo``
+        to perform these operations.
+
+      - Be sure to include the ``.*`` at the end of the directory for the
+        ``semanage fcontext`` operations.
+
+   - If using a non-default MongoDB data path of ``/mongodb/data``:
+
+     .. code-block:: sh
+
+        semanage fcontext -a -t mongod_var_lib_t '/mongodb/data.*'
+        chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
+        restorecon -R -v '/mongodb/data'
+
+   - If using a non-default MongoDB log directory of ``/mongodb/log``
+     (e.g. if the log file path is ``/mongodb/log/mongod.log``):
+
+     .. code-block:: sh
+
+        semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
+        chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
+        restorecon -R -v '/mongodb/log' 
+
+
+Non-Default MongoDB Ports
++++++++++++++++++++++++++
+
+.. container::
+
+  .. tip::
+
+     Depending on your user permission, you may need to use ``sudo`` to
+     perform the operation.
 
   .. code-block:: sh
 
-     semanage port -a -t mongod_port_t -p tcp 27017
+     semanage port -a -t mongod_port_t -p tcp <portnumber>
 
-- Disable SELinux by setting the ``SELINUX`` setting to
-  ``disabled`` in ``/etc/selinux/config``.
-
-  .. code-block:: sh
-
-     SELINUX=disabled
-  
-  You must reboot the system for the changes to take effect.
-
-- Set SELinux to ``permissive`` mode in ``/etc/selinux/config`` by
-  setting the ``SELINUX`` setting to ``permissive``.
-
-  .. code-block:: sh
-
-     SELINUX=permissive
-
-  You must reboot the system for the changes to take effect.
-
-  You can instead use ``setenforce`` to change to ``permissive`` mode.
-  ``setenforce`` does not require a reboot but is **not** persistent.
-
-Alternatively, you can choose not to install the SELinux packages when you are
-installing your Linux operating system, or choose to remove the relevant
-packages. This option is the most invasive and is not recommended.
