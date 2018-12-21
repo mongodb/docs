@@ -59,7 +59,7 @@ Non-Default MongoDB Directory Path(s)
      .. code-block:: sh
 
         semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
-        chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/log'
+        chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
         restorecon -R -v '/mongodb/log'
 
 
