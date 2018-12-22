@@ -18,7 +18,15 @@ Non-Default MongoDB Directory Path(s)
 
       .. code-block:: sh
 
-         semanage fcontext -a -t mongod_var_lib_t </some/MongoDB/path.*>
+         semanage fcontext -a -t <type> </some/MongoDB/path.*>
+
+      where specify one of the following types as appropriate:
+
+      - ``mongod_var_lib_t`` for data path
+
+      - ``mongod_log_t`` for log path
+
+      - ``mongod_var_run_t`` for pid file path
 
       .. note::
 
@@ -28,7 +36,15 @@ Non-Default MongoDB Directory Path(s)
 
       .. code-block:: sh
 
-         chcon -Rv -u system_u -t mongod_var_lib_t </some/MongoDB/path>
+         chcon -Rv -u system_u -t <type> </some/MongoDB/path>
+
+      where specify one of the following types as appropriate:
+
+      - ``mongod_var_lib_t`` for data path
+
+      - ``mongod_log_t`` for log path
+
+      - ``mongod_var_run_t`` for pid file path
 
    #. Apply the updated SELinux policies to the directory:
 
@@ -60,7 +76,7 @@ Non-Default MongoDB Directory Path(s)
 
         semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
         chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
-        restorecon -R -v '/mongodb/log'
+        restorecon -R -v '/mongodb/log' 
 
 
 Non-Default MongoDB Ports
