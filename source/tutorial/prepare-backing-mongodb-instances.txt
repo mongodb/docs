@@ -13,28 +13,29 @@ Install the |application| Database and Backup Database
 Overview
 --------
 
-Before you install |onprem| you must deploy the supporting databases first.
-These are called :term:`backing databases`. |mms| cannot deploy or manage
-these databases. These databases include the :ref:`mms-application-database`
-and the :term:`backup database <Backup Database>`. You must deploy an
-application database. It holds |onprem| operational data. You may deploy a
-:term:`backup database <Backup Database>` if you want to use the |onprem|
-:doc:`backup feature </core/backup-overview>`. This database stores
-:term:`oplog` data, temporary sync data, and, depending on your configuration,
-your :term:`snapshots <snapshot>`.
+Before you install |onprem| you must deploy the supporting databases
+first. These are called :term:`backing databases`. |mms| cannot deploy
+or manage these databases. These databases include the
+:ref:`mms-application-database` and the
+:term:`backup database <Backup Database>`. You must deploy an
+application database. It holds |onprem| operational data. You may
+deploy a :term:`backup database <Backup Database>` if you want to use
+the |onprem| :doc:`backup feature </core/backup-overview>`. This
+database stores :term:`oplog` data, temporary sync data, and,
+depending on your configuration, your :term:`snapshots <snapshot>`.
 
-These databases run on dedicated MongoDB :term:`replica sets <replica set>`.
-If you use  
-:doc:`multiple backup databases </tutorial/configure-backup-high-availability>`, 
-you must configure one replica set for each backup database.
-The replica set for each database must be dedicated to that database only and
-*must store no other data*.
+These databases run on dedicated MongoDB
+:term:`replica sets <replica set>`. If you use
+:doc:`multiple backup databases </tutorial/configure-backup-high-availability>`,
+you must configure one replica set for each backup database. The
+replica set for each database must be dedicated to that database only
+and *must store no other data*.
 
-The :term:`backing databases` must run on independent :term:`replica sets
-<replica set>` on independent storage volumes. Running regular backups, a
-backup database could fill a volume. If the application database cannot write
-to a volume, |onprem| stops. Proper storage setup reduces the risk of |onprem|
-failures.
+The :term:`backing databases` must run on independent
+:term:`replica sets <replica set>` on independent storage volumes.
+Running regular backups, a backup database could fill a volume. If the
+application database cannot write to a volume, |onprem| stops. Proper
+storage setup reduces the risk of |onprem| failures.
 
 Considerations
 --------------
@@ -42,23 +43,24 @@ Considerations
 Replica Set Topology
 ++++++++++++++++++++
 
-Each :term:`backing database <backing databases>` :term:`replica set` should
-include three data-bearing members for high availability. If you lack storage
-capacity for three data-bearing members, the third member of a backing
-database may be an :term:`arbiter`.
+Each :term:`backing database <backing databases>` :term:`replica set`
+should include three data-bearing members for high availability. If you
+lack storage capacity for three data-bearing members, the third member
+of a backing database may be an :term:`arbiter`.
 
-For the |onprem| :term:`application database`, you may run one member of the
-replica set on the same host as |onprem|.
+For the |onprem| :term:`application database`, you may run one member
+of the replica set on the same host as |onprem|.
 
 .. admonition:: Backing Databases with fewer than three data-bearing members
    :class: important
 
    When writing to its :term:`backing databases`, |onprem| uses the
-   :guilabel:`Replica Acknowledged` (``w:2``) :manual:`write concern
-   </reference/write-concern>`. This write concern reports a write as
-   successful *only* after the primary *and* one secondary acknowledge that
-   write. This means that if a backing database loses one of the two data-
-   bearing members, MongoDB stops write operations.
+   :guilabel:`Replica Acknowledged` (``w:2``)
+   :manual:`write concern </reference/write-concern>`. This write
+   concern reports a write as successful *only* after the primary *and*
+   one secondary acknowledge that write. This means that if a backing
+   database loses one of the two data-bearing members, MongoDB stops
+   write operations.
 
 .. _requirements-backing-db-replica-sets:
 
@@ -71,8 +73,8 @@ Replica Set Configuration
 The :term:`replica sets <replica set>` that host the |onprem| :term:`backing databases` must:
 
 Use Dedicated Databases
-  The :term:`replica sets <replica set>` must store data to support |onprem|
-  metadata *only*. They must store *no other data*.
+  The :term:`replica sets <replica set>` must store data to support 
+  |onprem| metadata *only*. They must store *no other data*.
 
 Use a Compatible MongoDB Version
   .. include:: /includes/fact-compatible-mongodb-versions.rst
@@ -82,20 +84,21 @@ Use the WiredTiger Storage Engine for the Application Database
   application database.
 
 Use the Appropriate Storage Engine for the Backup Database
-  For backup database configuration options, see :ref:`selecting a Storage
+  For backup database configuration options, see
+  :ref:`selecting a Storage
   Engine for Backup <considerations-backup-storage-engine>`.
 
 Enable JavaScript for the Databases through the Configuration File
-  Set the MongoDB :setting:`security.javascriptEnabled` option to ``true``,
-  which is the default. The |application| uses the 
+  Set the MongoDB :setting:`security.javascriptEnabled` option to
+  ``true``, which is the default. The |application| uses the
   :manual:`$where </reference/operator/query/where>` query and
   requires this setting be enabled on the |onprem| 
   :term:`application database`.
 
 Use Queries that Do Not Require Indexes
   Do *not* run the :term:`backing databases` with the MongoDB
-  :parameter:`--notablescan` :manual:`parameter </reference/parameters>` set.
-  When set, this parameter specifies that all queries must use indexes.
+  :parameter:`--notablescan` parameter set. When set, this parameter
+  specifies that all queries must use indexes.
 
 .. _backing-instances-security:
 
@@ -103,8 +106,9 @@ Replica Set Security
 ++++++++++++++++++++
 
 Secure the Connection to the :term:`Backing Databases <backing databases>`
-  Ensure that connections from |onprem| to your :term:`backing databases` are
-  secure. Configure these databases to accept connections from |onprem| that
+  Ensure that connections from |onprem| to your
+  :term:`backing databases` are secure. Configure these databases to
+  accept connections from |onprem| that
   :ref:`only use SSL <configure-ssl-backing>`.
 
 Configure an :term:`Authentication Mechanism <authentication mechanism>` for the :term:`Backing Databases <backing databases>`
@@ -114,8 +118,8 @@ Configure an :term:`Authentication Mechanism <authentication mechanism>` for the
 
 Configure the |mms| User that Accesses the :term:`Backing Databases <backing databases>` with Only Needed Roles
   Set these users to have the :authrole:`readWriteAnyDatabase` and
-  :authrole:`dbAdminAnyDatabase` roles. If a backing database is a sharded
-  cluster, add :authrole:`clusterAdmin`, otherwise add
+  :authrole:`dbAdminAnyDatabase` roles. If a backing database is a
+  sharded cluster, add :authrole:`clusterAdmin`, otherwise add
   :authrole:`clusterMonitor`.
 
 .. _backing-instances-prerequisites:
@@ -134,27 +138,45 @@ Hardware
   each component to determine the requirements for the host.
 
 System Configuration
-  The hosts must be configured according to the requirements given in the
-  :manual:`MongoDB Production Notes </administration/production-notes>` except
-  where explicitly contradicted in this tutorial. The Production Notes include
-  information on ulimits, NUMA, and other configuration options.
+  The hosts must be configured according to the requirements given in the :manual:`MongoDB Production Notes </administration/production-notes>`
+  except where explicitly contradicted in this tutorial. The
+  Production Notes include information on ulimits, NUMA, and other
+  configuration options.
 
 Networking
-  Network security must allow the needed ports described in :doc:`/reference/firewall-configuration`.
-  The appropriate inbound and outbound firewall rules for each host must allow
+  Host network security must allow the needed ports described in
+  :doc:`/reference/firewall-configuration`. The appropriate inbound
+  and outbound firewall rules for each host must allow
   access to the required ports.
 
 :abbr:`RHEL (Red Hat Enterprise Linux)` and CentOS 6 hosts only
   .. include:: /includes/rhel-ulimit-conf-file.rst
 
-.. _storage-engine-considerations-for-backing-dbs:
+:abbr:`RHEL (Red Hat Enterprise Linux)` and CentOS hosts running SELinux in ``enforcing`` mode
+  If the hosts are not configured to use the default MongoDB
+  :option:`data <mongod --dbpath>` or :option:`log <mongod --logpath>`
+  paths or :manual:`ports </reference/default-mongodb-port>` and are
+  enforcing SELinux policies, update the SELinux policies before
+  starting the :term:`backing databases`.
 
+  To learn how to update the SELinux policy:
+
+  - For MongoDB Community edition, see
+    :ref:`Configure SELinux <install-rhel-configure-selinux>`
+
+  - For MongoDB Enterprise edition, see
+    :ref:`Configure SELinux <install-enterprise-rhel-configure-selinux>`
+
+
+
+
+.. _storage-engine-considerations-for-backing-dbs:
 
 Deploy Backing Databases
 ------------------------
 
-To deploy MongoDB :term:`replica sets <replica set>` to host the |onprem|
-:term:`backing databases`:
+To deploy MongoDB :term:`replica sets <replica set>` to host the
+|onprem| :term:`backing databases`:
 
 .. include:: /includes/steps/deploy-backing-dbs.rst
 
@@ -165,11 +187,12 @@ Next Steps
   setting to connect to the :term:`replica set` you created for the
   application database in this tutorial.
 
-- If you enable backup for your |onprem| deployment, you must :doc:`configure
-  the oplog store </tutorial/manage-oplog-storage>` to use the replica set
-  that you created for the backup database in this tutorial. If you *also*
-  choose to use a :term:`blockstore` or :term:`S3 snapshot store <S3 Snapshot
-  Store>` to store your :term:`snapshots <snapshot>`, you must :manual:`deploy
-  one Replica Set </tutorial/deploy-replica-set>` for each :doc:`blockstore
+- If you enable backup for your |onprem| deployment, you must
+  :doc:`configure the oplog store </tutorial/manage-oplog-storage>` to
+  use the replica set that you created for the backup database in this
+  tutorial. If you *also* choose to use a :term:`blockstore` or
+  :term:`S3 snapshot store <S3 Snapshot Store>` to store your
+  :term:`snapshots <snapshot>`, you must :manual:`deploy one Replica
+  Set </tutorial/deploy-replica-set>` for each :doc:`blockstore
   </tutorial/manage-blockstore-storage>` or :doc:`S3 blockstore
   </tutorial/manage-s3-blockstore-storage>` metadata database.
