@@ -76,12 +76,12 @@ rst_epilog = '\n'.join([
 
 source_constants = {
     'package-branch': '4.1',
-    'package-name-org': 'mongodb-org',
-    'package-name-enterprise': 'mongodb-enterprise',
+    'package-name-org': 'mongodb-org-unstable',
+    'package-name-enterprise': 'mongodb-enterprise-unstable',
     'version': version,
     'release': release,
     'pgp-version': '4.1',
-    'pgp-fingerprint': '9DA31620334BD75D9DCB49F368818C72E52529D4'
+    'pgp-fingerprint': 'E162F504A20CDF15827F718D4B7C549A058F8B6B'
 }
 
 
