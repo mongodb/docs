@@ -80,7 +80,11 @@ source_constants = {
     'package-name-enterprise': 'mongodb-enterprise',
     'version': version,
     'pgp-version': '3.6',
-    'pgp-fingerprint': '2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5'
+    'pgp-fingerprint': '2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5',
+    'release': release,
+    'rsa-key': '58712A2291FA4AD5',
+    'pgp-fingerprint-fmt': '2930 ADAE 8CAF 5059 EE73 BB4B 5871 2A22 91FA 4AD5',
+    'pgp-short-fingerprint' : '0x58712A2291FA4AD5'
 }
 
 pygments_style = 'sphinx'
