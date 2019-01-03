@@ -13,6 +13,10 @@
        `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ formatted
        point in time when |service| took the snapshot.
 
+   * - ``description``
+     - string
+     - Description of the snapshot. Only present for on-demand snapshots.
+
    * - ``expiresAt``
      - string
      - :abbr:`UTC (Coordinated Universal Time)` 
@@ -21,7 +25,7 @@
 
    * - ``id``
      - string
-     - The unique identifier of the snapshot.
+     - Unique identifier of the snapshot.
 
    * - ``links``
      - array
@@ -31,19 +35,33 @@
 
    * - ``masterKeyUUID``
      - string
-     - The unique ID of the :abbr:`AWS (Amazon Web Services)` 
+     - Unique ID of the :abbr:`AWS (Amazon Web Services)` 
        :abbr:`KMS (Key Management Service)` Customer Master Key used to 
        encrypt the snapshot. Only visible for clusters using
        :ref:`Encryption at Rest via Customer KMS <security-aws-kms>`.
 
    * - ``mongodVersion``
      - string
-     - The MongoDB server version of the snapshot.
+     - Version of the MongoDB server.
+       
+   * - ``snapshotType``
+     - string
+     - Specified the type of snapshot. Valid values are ``onDemand`` and
+       ``scheduled``.
+       
+   * - ``status``
+     - string
+     - Current status of the snapshot. One of the following values:
+
+       - ``queued``
+       - ``inProgress``
+       - ``completed``
+       - ``failed`` 
 
    * - ``storageSizeBytes``
      - int
-     - Snapshot size in bytes.
+     - Specifies the size of the snapshot in bytes.
        
    * - ``type``
      - string
-     - Specifies the type of cluster: ``relicaSet`` or ``shardedCluster``.
+     - Specifies the type of cluster: ``replicaSet`` or ``shardedCluster``.
