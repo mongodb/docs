@@ -81,7 +81,10 @@ source_constants = {
     'version': version,
     'release': release,
     'pgp-version': '4.0',
-    'pgp-fingerprint': '9DA31620334BD75D9DCB49F368818C72E52529D4'
+    'pgp-fingerprint': '9DA31620334BD75D9DCB49F368818C72E52529D4',
+    'rsa-key': '68818C72E52529D4',
+    'pgp-fingerprint-fmt': '9DA3 1620 334B D75D 9DCB 49F3 6881 8C72 E525 29D4',
+    'pgp-short-fingerprint' : '0x68818C72E52529D4'
 }
 
 
