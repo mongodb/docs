@@ -20,13 +20,23 @@
      - id: local
        content: |
 
+         The URI string used in the guides assumes you have set up
+         authentication for your MongoDB instance, and have created a
+         username and password for read and write access to a MongoDB
+         database.
+       
+         If you have already set up a user with the
+         ``readWriteAnyDatabase`` role through  the :doc:`/server/auth`
+         guide, you may use that username and password here, along
+         with the `admin` database in your connection string.
+
          .. note::
 
-            The URI form below allows you to create a URI string for your
-            session in MongoDB Guides by filling out a form. Once you fill out the
-            form, any relevant code examples within the MongoDB Guides will be
-            populated with a URI string. You can change these at any time by
-            repopulating the form.
+            The URI form below allows you to create a URI string for
+            your session in MongoDB Guides by filling out a form. Once
+            you fill out the form, any relevant code examples within the
+            MongoDB Guides will be populated with a URI string. You can
+            change these at any time by repopulating the form.
 
        
 
