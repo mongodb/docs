@@ -44,8 +44,3 @@ The following table lists upgrade paths for all versions:
 
 There are no supported downgrade paths for |onprem|.
 
-.. important::
-
-   It is crucial that you back up the existing ``conf-mms.properties``
-   and ``gen.key`` files because the upgrade process will delete
-   existing data.
