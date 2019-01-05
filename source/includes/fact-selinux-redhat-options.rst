@@ -3,7 +3,7 @@
    If SELinux is in ``enforcing`` mode, you must configure SELinux for
    MongoDB if:
 
-   - You are **not** using the default MongoDB paths (for RHEL 7.0), and/or
+   - You are **not** using the default MongoDB directories (for RHEL 7.0), and/or
 
    - You are **not** using :doc:`default MongoDB ports
      </reference/default-mongodb-port>`.
@@ -14,43 +14,43 @@ Non-Default MongoDB Directory Path(s)
 .. container::
 
    #. Update the SELinux policy to allow the ``mongod`` service
-      to use the new path:
+      to use the new directory:
 
       .. code-block:: sh
 
-         semanage fcontext -a -t <type> </some/MongoDB/path.*>
+         semanage fcontext -a -t <type> </some/MongoDB/directory.*>
 
       where specify one of the following types as appropriate:
 
-      - ``mongod_var_lib_t`` for data path
+      - ``mongod_var_lib_t`` for data directory
 
-      - ``mongod_log_t`` for log path
+      - ``mongod_log_t`` for log file directory
 
-      - ``mongod_var_run_t`` for pid file path
+      - ``mongod_var_run_t`` for pid file directory
 
       .. note::
 
-         Be sure to include the ``.*`` at the end of the path.
+         Be sure to include the ``.*`` at the end of the directory.
 
    #. Update the SELinux user policy for the new directory:
 
       .. code-block:: sh
 
-         chcon -Rv -u system_u -t <type> </some/MongoDB/path>
+         chcon -Rv -u system_u -t <type> </some/MongoDB/directory>
 
       where specify one of the following types as appropriate:
 
-      - ``mongod_var_lib_t`` for data path
+      - ``mongod_var_lib_t`` for data directory
 
-      - ``mongod_log_t`` for log path
+      - ``mongod_log_t`` for log directory
 
-      - ``mongod_var_run_t`` for pid file path
+      - ``mongod_var_run_t`` for pid file directory
 
    #. Apply the updated SELinux policies to the directory:
 
       .. code-block:: sh
 
-         restorecon -R -v </some/MongoDB/path>
+         restorecon -R -v </some/MongoDB/directory>
 
    For examples:
 
@@ -59,10 +59,10 @@ Non-Default MongoDB Directory Path(s)
       - Depending on your user permission, you may need to use ``sudo``
         to perform these operations.
 
-      - Be sure to include the ``.*`` at the end of the path for the
+      - Be sure to include the ``.*`` at the end of the directory for the
         ``semanage fcontext`` operations.
 
-   - If using a non-default MongoDB data path of ``/mongodb/data``
+   - If using a non-default MongoDB data path of ``/mongodb/data``:
 
      .. code-block:: sh
 
@@ -70,7 +70,8 @@ Non-Default MongoDB Directory Path(s)
         chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
         restorecon -R -v '/mongodb/data'
 
-   - If using a non-default MongoDB log path of ``/mongodb/log/``
+   - If using a non-default MongoDB log directory of ``/mongodb/log``
+     (e.g. if the log file path is ``/mongodb/log/mongod.log``):
 
      .. code-block:: sh
 
