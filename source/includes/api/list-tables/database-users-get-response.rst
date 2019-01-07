@@ -52,8 +52,8 @@
          This role is specific to MongoDB databases managed by |service|. The role
          allows the user to enable sharding on a database and to shard a collection.
 
-       - :authrole:`read`
-       - :authrole:`readWrite`
+       - ``read``
+       - ``readWrite``
        - A name of a :ref:`custom MongoDB role <mongodb-roles>`
 
    * - ``username``
