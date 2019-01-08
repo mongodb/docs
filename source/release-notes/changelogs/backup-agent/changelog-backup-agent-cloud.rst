@@ -1,3 +1,12 @@
+.. _backup-7.3.0.1023:
+
+Backup Agent 7.2.0.1023
+-----------------------
+
+*Released* :ref:`2019-01-03 <cloudmanager-v20190101>`
+
+- Built on Go 1.10.
+
 .. _backup-7.2.0.1018:
 
 Backup Agent 7.2.0.1018
@@ -5,7 +14,7 @@ Backup Agent 7.2.0.1018
 
 *Released 2018-12-05*
 
-- Now built on Go 1.9
+- Built on Go 1.9.
 
 .. _backup-7.1.0.1011:
 

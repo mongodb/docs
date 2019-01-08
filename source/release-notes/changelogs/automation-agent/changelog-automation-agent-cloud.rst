@@ -1,3 +1,16 @@
+.. _automation-6.1.0.5603:
+
+Automation Agent 6.1.0.5603
+---------------------------
+
+*Released* :ref:`2019-01-03 <cloudmanager-v20190101>`
+
+- Built with Go 1.10.
+- Significant reduction in memory footprint when managing 
+  sharded clusters.
+- **Fix:** Allow successful conversion of MongoDB storageEngine for 
+  a standalone with |tls-ssl| enabled.
+
 .. _automation-6.0.0.5591:
 
 Automation Agent 6.0.0.5591

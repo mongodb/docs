@@ -1,3 +1,12 @@
+.. _monitoring-6.8.0.472:
+
+Monitoring Agent 6.8.0.472
+--------------------------
+
+*Released* :ref:`2019-01-03 <cloudmanager-v20190101>`
+
+Support for monitoring MongoDB instances deployed in :rfc:`IPv6 <8200>`
+environments.
 
 .. _monitoring-6.7.0.466:
 
