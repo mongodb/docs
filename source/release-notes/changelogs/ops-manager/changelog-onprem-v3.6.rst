@@ -1,3 +1,14 @@
+.. _opsmgr-server-3.6.10:
+
+|onprem| Server 3.6.10
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2019-01-10*
+
+- Updated |jdk| to `AdoptOpenJDK 8u192 <https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/tag/jdk8u192-b12>`__
+
+- Agent Upgrades: :ref:`automation-4.5.17.5289-1`.
+
 .. _opsmgr-server-3.6.9:
 
 |onprem| Server 3.6.9

@@ -1,3 +1,12 @@
+.. _automation-4.5.17.5289-1:
+
+Automation Agent 4.5.17.5289-1
+------------------------------
+
+:ref:`Released with Ops Manager 3.6.10 on 2019-01-10 <opsmgr-server-3.6.10>`
+
+- **Fix:** Allow CSRS replica set members to be shut down.
+
 .. _automation-4.5.16.5284-1:
 
 Automation Agent 4.5.16.5284-1
@@ -13,7 +22,7 @@ Automation Agent 4.5.16.5284-1
 .. _automation-4.5.15.5281:
 
 Automation Agent 4.5.15.5281
-------------------------------
+----------------------------
 
 :ref:`Released with Ops Manager 3.6.8 on 2018-08-02 <opsmgr-server-3.6.8>`
 
