@@ -71,7 +71,7 @@
        .. code-block:: yaml
 
           spec.template.spec.containers.name.env.name: WATCH_NAMESPACE
-          spec.template.spec.containers.name.env.value: <testNamespace>
+          spec.template.spec.containers.name.env.value: "<testNamespace>"
 
        .. example::
 
@@ -88,23 +88,23 @@
                      imagePullPolicy: <policyChoice>
                      env:
                      - name: WATCH_NAMESPACE
-                       value: <testNamespace>
+                       value: "<testNamespace>"
 
    * - ``MANAGED_SECURITY_CONTEXT``
      - If you use `OpenShift <https://www.openshift.com/>`__ as your
-       |k8s| orchestrator, set this to ``true`` to allow OpenShift to
+       |k8s| orchestrator, set this to ``'true'`` to allow OpenShift to
        manage the Security Context for the |k8s-op-short|.
 
-       Accepted values are: ``true``, ``false``.
+       Accepted values are: ``'true'``, ``'false'``.
 
-       Default value is: ``false``.
+       Default value is: ``'false'``.
 
        You can set the following pair of values:
 
        .. code-block:: yaml
 
           spec.template.spec.containers.name.env.name: MANAGED_SECURITY_CONTEXT
-          spec.template.spec.containers.name.env.value: true
+          spec.template.spec.containers.name.env.value: 'true'
 
        .. example::
 
@@ -121,7 +121,7 @@
                      imagePullPolicy: <policyChoice>
                      env:
                      - name: MANAGED_SECURITY_CONTEXT
-                       value: true
+                       value: 'true'
 
    * - ``POD_WAIT_SEC``
      - Time in seconds that the Operator waits for |k8s-statefulsets|
