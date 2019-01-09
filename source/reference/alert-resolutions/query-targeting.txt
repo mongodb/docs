@@ -13,28 +13,68 @@ Query Targeting
 Description
 -----------
 
-``Query Targeting`` alerts indicate inefficient query or queries. 
+``Query Targeting`` alerts indicate inefficient query or queries:
 
-:alert:`Query Targeting: Scanned / Returned` occurs if the number of
-index keys examined to fulfill a query relative to the actual number of
-returned documents meets or is above a certain threshold.
+* :alert:`Query Targeting: Scanned Objects / Returned` occurs if the
+  number of documents examined to fulfill a query relative to the actual
+  number of returned documents meets or is above a user-defined threshold.
+  The default is 1000.
 
-:alert:`Query Targeting: Scanned Objects / Returned` occurs if the
-number of documents examined to fulfill a query relative to the actual
-number of returned documents meets or is above a certain threshold.
+* :alert:`Query Targeting: Scanned / Returned` occurs if the number of
+  index keys examined to fulfill a query relative to the actual number of
+  returned documents meets or is above a user-defined threshold. This alert
+  is not enabled by default.
 
-Common Triggers
----------------
+Ideally, the ratio of scanned documents to returned documents should
+be close to 1. A high ratio negatively impacts query performance. The
+following is an example of an inefficient query from a :ref:`mongod log
+<mongodb-logs>`:
 
-- No index that supports a given query or queries.
+.. code-block:: json
+   :copyable: false
 
-- Existing index can only partially support a query or queries.
+   <Timestamp> COMMAND  <query>
+   planSummary: COLLSCAN keysExamined:0 
+   docsExamined: 10000 cursorExhausted:1 numYields:234 
+   nreturned:4  protocol:op_query 358ms
 
-Possible Solution
------------------
+This query scanned 10,000 documents and returned only 4 for a ratio of
+2500, which is highly inefficient.
 
-Consider adding one more more indexes to better serve these queries.
-Refer to:
+Solution
+--------
+The query targeting alert typically occurs when there is no index to
+support a query or queries or when an existing index only partially
+supports a query or queries. Add one more more indexes to better serve
+the inefficient queries.
+
+The :doc:`Performance Advisor </performance-advisor>` provides the easiest
+and quickest way to create an index. The Performance Advisor monitors queries
+that MongoDB considers slow and recommends indexes to improve performance.
+Click :guilabel:`Create Index` on a slow query to create the recommended
+index.
+
+In addition, you can use the following resources to determine which query
+generated the alert:
+
+* The :manual:`Database Profiler </tutorial/manage-the-database-profiler/>`
+  collects detailed information about database commands executed against
+  the MongoDB instances hosted in your |service| clusters.
+
+* The :doc:`Real-Time Performance Panel </real-time-performance-panel/>`
+  monitors and displays current network traffic and database operations
+  on machines hosting MongoDB in your |service| clusters.
+
+* The :ref:`MongoDB logs <mongodb-logs>` maintain an account of activity,
+  including queries, for each ``mongod`` instance in your |service|
+  clusters.
+
+* The :manual:`cursor.explain() </reference/method/cursor.explain/>`
+  command for the ``mongo`` shell exposes queries that do not appear
+  in the ``mongod`` logs because they were not slower than 100 ms.
+
+
+Refer to the following for more information on query performance:
 
 - :manual:`MongoDB Indexing Strategies </applications/indexes>`
 - :manual:`Analyze Query Plan </tutorial/analyze-query-plan/>`
