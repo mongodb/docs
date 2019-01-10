@@ -1,3 +1,22 @@
+.. _opsmgr-server-4.0.7:
+
+|onprem| Server 4.0.7
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-01-10*
+
+- Address the `CVE-2018-19361 <https://nvd.nist.gov/vuln/detail/CVE-2018-19361>`__ 
+  affecting the `jackson-databind <https://github.com/FasterXML/jackson-databind>`__
+  library up to and including version 2.9.7.
+
+- **Fix:** Resolve transient inability to restore a snapshot, if a
+  backup data pruning job (garbage collection) is running during the
+  restore.
+
+- Updated |jdk| to `AdoptOpenJDK 8u192 <https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/tag/jdk8u192-b12>`__
+
+- **Agent Upgrades:** :ref:`automation-5.4.15.5513`, :ref:`backup-6.8.6.1013`
+
 .. _opsmgr-server-4.0.6:
 
 |onprem| Server 4.0.6

@@ -1,3 +1,18 @@
+.. _automation-5.4.15.5513:
+
+Automation Agent 5.4.15.5513
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.7 on 2019-01-10 <opsmgr-server-4.0.7>`
+
+- Add support for the net.ssl.certificateSelector configuration option.
+
+- **Fix:** Allow the successful change in the storageEngine for
+  standalone binary: :binary:`~bin.mongod` with |tls-ssl| enabled.
+
+- **Fix:** Automation Agent no longer attempts to authenticate to
+  arbiters that are configured to use X.509 for ``clusterAuthMode``.
+
 .. _automation-5.4.14.5509:
 
 Automation Agent 5.4.14.5509

@@ -1,3 +1,15 @@
+.. _backup-6.8.6.1013:
+
+Backup Agent 6.8.6.1013
+-----------------------
+
+:ref:`Released with Ops Manager 4.0.7 on 2019-01-10 <opsmgr-server-4.0.7>`
+
+- **Fix:** Improve Backup Agent handling when stopping the balancer in
+  preparation for marking a point in time to take a snapshot for a
+  sharded cluster. Prior handling could result in the balancer being
+  left in a stopped state for MongoDB 3.4+. This has been resolved.
+
 .. _backup-6.8.4.1009:
 
 Backup Agent 6.8.4.1009
