@@ -35,10 +35,6 @@
        existing cluster in the project with
        :doc:`/backup/cloud-provider-snapshots` enabled.
 
-       If ``backupEnabled`` and
-       ``providerBackupEnabled`` are ``false``, the cluster does not
-       use |service| backups.
-
    * - ``biConnector``
      - document
      - Specify whether to enable/disable |bic|.
