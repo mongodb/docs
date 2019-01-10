@@ -69,7 +69,9 @@ rst_epilog = '\n'.join([
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
     '.. |bi| replace:: MongoDB Connector for BI',
     '.. |version| replace:: {0}'.format(version),
-    '.. |compass| replace:: MongoDB Compass'
+    '.. |compass| replace:: MongoDB Compass',
+    '.. |atlas-full| replace:: MongoDB Atlas',
+    '.. |atlas| replace:: Atlas'
 ])
 
 source_constants = {
@@ -90,6 +92,7 @@ extlinks = {
     'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'ecosystem': ('https://docs.mongodb.com/ecosystem%s', ''),
+    'atlas' : ('https://docs.atlas.mongodb.com%s','')
     'mms-docs': ('https://docs.cloudmanager.mongodb.com%s', ''),
     'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
