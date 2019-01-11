@@ -1,0 +1,70 @@
+=====================
+Known Issues for |bi|
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|sql| Compatibility Issues
+--------------------------
+
+|bi-short| Returns Empty Set Where MySQL Returns ``NULL`` Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some `SQL aggregate functions <https://dev.mysql.com/doc/refman/5.7/en/group-by-functions.html>`__
+(like ``SUM``, ``MIN``, or ``COUNT``) return ``NULL`` if there are no
+matching values for that aggregate function. This response is
+effectively an empty row.
+
+Given the exact same |sql| query, the |bi-short| does not return
+``NULL`` for any aggregate functions; it returns an empty set instead.
+
+.. example::
+
+   You are analyzing the test performance of students for each of the
+   classes offered in the last year by a university. Using Tableau, you
+   run a |sql| query to find statistics for each class, including the
+   highest and lowest test scores as well as the sum and count of all
+   the scores in the class.
+
+   .. code-block:: sql
+
+      SELECT SUM(scores), COUNT(*), COUNT(scores), MAX(scores), MIN(scores)
+      FROM students_2019
+      GROUP BY class;
+
+   Unfortunately, you accidentally run the query on the data for next
+   year's classes, so there are no test scores for the query to find.
+
+   If the student data was stored in MySQL, this query would return a
+   single row with ``NULL`` values for fields that are calculated with
+   the ``SUM``, ``MAX``, and ``MIN`` functions and ``0`` for fields
+   that are calculated with the ``COUNT`` function.
+
+   .. code-block:: sql
+
+      SELECT SUM(scores), COUNT(*), COUNT(scores), MAX(scores), MIN(scores)
+      FROM students_2019
+      GROUP BY class;
+
+      +-------------+----------+---------------+-------------+-------------+
+      | sum(scores) | count(*) | count(scores) | max(scores) | min(scores) |
+      +-------------+----------+---------------+-------------+-------------+
+      |   NULL      |        0 |             0 |   NULL      |   NULL      |
+      +-------------+----------+---------------+-------------+-------------+
+
+   If the student data was stored in MongoDB and accessed via the
+   |bi-short|, this query would return an empty set.
+
+   .. code-block:: sql
+      
+      SELECT SUM(scores), COUNT(*), COUNT(scores), MAX(scores), MIN(scores)
+      FROM students_2019
+      GROUP BY class;
+      
+      Empty set (0.00 sec)
