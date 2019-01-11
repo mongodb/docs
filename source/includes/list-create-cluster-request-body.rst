@@ -265,44 +265,7 @@
      - integer
      - *Optional*
 
-       .. admonition:: AWS only
-          :class: note
-
-          Requires that ``providerSettings.instanceSizeName`` be
-          ``M30`` or greater.
-
-       .. include:: /includes/fact-not-available-with-nvme.rst
-
-       The maximum input/output operations per second (IOPS) the system can
-       perform. The possible values depend on the selected
-       ``providerSettings.instanceSizeName`` and
-       ``diskSizeGB``.
-
-       To view the possible
-       :abbr:`IOPS (input/output operations per second)` values
-       for the selected instance size and storage capacity:
-
-       #. Open the |service| web interface.
-       #. Select :guilabel:`Build a New Cluster`.
-       #. Under :guilabel:`Cloud Provider & Region`, select ``AWS``.
-       #. Under :guilabel:`Cloud Provider & Region`, select the region corresponding to your configured ``providerSettings.regionName``.
-       #. Under :guilabel:`Cluster Tier`, select the instance size corresponding to your configured ``providerSettings.instanceSizeName``.
-       #. Under :guilabel:`Cluster Tier`, set the :guilabel:`Storage Capacity` slider to your configured ``diskSizeGB``.
-          Alternatively, input the exact value of ``diskSizeGB`` in the input box to the right of the slider.
-
-       |service| lists the possible
-       :abbr:`IOPS (input/output operations per second)` values for the
-       selected instance and storage size as
-       :guilabel:`Standard`, :guilabel:`Fast`, and :guilabel:`Fastest`.
-       Set the value of ``providerSettings.diskIOPS`` to your preferred
-       :abbr:`IOPS (input/output operations per second)` setting.
-
-       The default value for ``providerSettings.diskIOPS`` is the same as the
-       instance size's :guilabel:`Standard IOPS` value, as viewable in the
-       |service| interface.
-
-       Changing this value affects the cost of running the cluster
-       as described in the :ref:`billing <storage-speed>` documentation.
+       .. include:: /includes/providerSettings-diskIOPS.rst
 
    * - ``providerSettings.diskTypeName``
      - string
@@ -348,6 +311,12 @@
        :sup:`1` Default for ``M20`` and ``M30`` Azure instances
 
        :sup:`2` Default for ``M40+`` Azure instances
+
+   * - ``providerSettings.volumeType``
+     - String
+     - *Optional*
+
+       .. include:: /includes/providerSettings-volumeType.rst
 
    * - ``providerSettings.encryptEBSVolume``
      - Boolean
