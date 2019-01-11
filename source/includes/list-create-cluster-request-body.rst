@@ -13,7 +13,8 @@
      - Contains the ``diskGBEnabled`` field which specifies whether to
        enable or disable disk auto-scaling.
 
-   * - ``autoScaling.diskGBEnabled``
+   * - | ``autoScaling``
+       | ``.diskGBEnabled``
      - boolean
      - Optional
      - Specifies whether disk auto-scaling is enabled. The default
@@ -25,7 +26,7 @@
        .. include:: /includes/fact-ram-to-storage-ratio.rst
 
    * - ``backupEnabled``
-     - Boolean
+     - boolean
      - Optional
      - Default is false.
 
@@ -93,9 +94,11 @@
 
        .. admonition:: When is this setting needed?
           :class: note
+       
+       - Required for :doc:`Global Clusters </global-clusters>`.
+       - Optional for replica sets and sharded clusters.
 
-          - Required for :doc:`Global Clusters </global-clusters>`.
-          - Optional for replica sets and sharded clusters.
+       Accepted values include:
 
        - ``REPLICASET``: :term:`replica set`
        - ``SHARDED``: :term:`sharded cluster`
@@ -111,8 +114,10 @@
        |service| project AWS Key Management System settings. The
        cluster must meet the following restrictions:
 
-       - ``providerSettings.providerName`` must be ``AWS`` or ``AZURE``.
-       - ``providerSettings.instanceSizeName`` must be ``M10`` or greater.
+       - ``providerSettings.providerName`` must be ``AWS`` or
+         ``AZURE``.
+       - ``providerSettings.instanceSizeName`` must be ``M10`` or
+         greater.
        - ``clusterType`` must be ``REPLICASET``.
        - ``backupEnabled`` must be ``false`` or omitted.
 
@@ -179,14 +184,14 @@
      - boolean
      - Optional
      - Flag that indicates whether the cluster is paused
-       or not. The default value is false.
+       or not. The default value is ``false``.
 
        You cannot create a paused cluster. Either omit the field or
-       explicitly set to false.
+       explicitly set to ``false``.
 
    * - ``providerBackupEnabled``
      - boolean
-     - Optional
+     - Required
      - If ``true``, the cluster uses :ref:`backup-cloud-provider` for
        backups. If ``providerBackupEnabled`` *and* ``backupEnabled``
        are ``false``, the cluster does not use |service| backups.
@@ -206,7 +211,8 @@
        The available options are specific to the cloud service
        provider.
 
-   * - ``providerSettings.providerName``
+   * - | ``providerSettings``
+       | ``.providerName``
      - string
      - Required
      - Cloud service provider on which the servers are provisioned.
@@ -219,7 +225,8 @@
 
        .. include:: /includes/fact-m2-m5-multi-tenant.rst
 
-   * - ``providerSettings.backingProviderName``
+   * - | ``providerSettings``
+       | ``.backingProviderName``
      - string
      - Required
      - Cloud service provider on which the server for a
@@ -229,7 +236,8 @@
 
        .. include:: /includes/fact-cloud-service-providers.rst
 
-   * - ``providerSettings.regionName``
+   * - | ``providerSettings``
+       | ``.regionName``
      - string
      - Required
      - Physical location of your MongoDB cluster. The region you choose
@@ -278,9 +286,10 @@
 
             - .. include:: /includes/fact-azure-m2-m5-region-names.rst
 
-   * - ``providerSettings.instanceSizeName``
+   * - | ``providerSettings``
+       | ``.instanceSizeName``
      - string
-     - Required
+     - Optional
      - |service| provides different instance sizes, each with a default
        storage capacity and RAM size. The instance size you select is
        used for all the data-bearing servers in your cluster. For
@@ -308,17 +317,18 @@
 
        .. include:: /includes/fact-m2-m5-multi-tenant.rst
 
-   * - ``providerSettings.diskIOPS``
+   * - | ``providerSettings``
+       | ``.diskIOPS``
      - integer
-     - Optional
-     - .. include:: /includes/providerSettings-diskIOPS.rst
+     - AWS Required
+     -
+       .. include:: /includes/providerSettings-diskIOPS.rst
 
-   * - ``providerSettings.diskTypeName``
+   * - | ``providerSettings``
+       | ``.diskTypeName``
      - string
-     - Optional
-     - **Azure ONLY**
-
-       The Azure disk type of the server's root volume. If ommitted,
+     - Azure Required
+     - Azure disk type of the server's root volume. If ommitted,
        |service| uses the default disk type for the selected
        ``providerSettings.instanceSizeName``.
 
@@ -357,18 +367,20 @@
 
        :sup:`2` Default for ``M40+`` Azure instances
 
-   * - ``providerSettings.volumeType``
-     - String
+   * - | ``providerSettings``
+       | ``.volumeType``
+     - string
      - Optional
-     - .. include:: /includes/providerSettings-volumeType.rst
+     -
+       .. include:: /includes/providerSettings-volumeType.rst 
 
-   * - ``providerSettings.encryptEBSVolume``
-     - Boolean
-     - Optional
-     - *AWS only*. If enabled, the Amazon EBS encryption feature
-       encrypts the server's root volume for both data at rest within
-       the volume and for data moving between the volume and the
-       instance.
+   * - | ``providerSettings``
+       | ``.encryptEBSVolume``
+     - boolean
+     - AWS Optional
+     - If enabled, the Amazon EBS encryption feature encrypts the
+       server's root volume for both data at rest within the volume
+       and for data moving between the volume and the instance.
 
        .. note::
 
@@ -429,12 +441,11 @@
           You cannot specify both the ``replicationSpec`` and
           ``replicationSpecs`` parameters in the same request body.
 
-   * - ``replicationSpec.<region>``
+   * - | ``replicationSpec``
+       | ``.<region>``
      - document
-     - Conditional
-     - *Required if specifying* ``replicationSpec``
-
-       The physical location of the region. Replace ``<region>`` with
+     - Required with ``replicationSpec``
+     - Physical location of the region. Replace ``<region>`` with
        the name of the region. Each ``<region>`` document describes the
        region's priority in elections and the number and type of
        MongoDB nodes |service| deploys to the region. You must order
@@ -464,7 +475,9 @@
        For each ``<region>`` document, you must specify the
        ``electableNodes``, ``priority``, and ``readOnlyNodes`` fields.
 
-   * - ``replicationSpec.<region>.electableNodes``
+   * - | ``replicationSpec``
+       | ``.<region>``
+       | ``.electableNodes``
      - integer
      - Required
      - Number of electable nodes for |service| to deploy to the
@@ -481,7 +494,9 @@
        You cannot create electable nodes if the
        ``replicationSpec.<region>.priority`` is 0.
 
-   * - ``replicationSpec.<region>.priority``
+   * - | ``replicationSpec``
+       | ``.<region>``
+       | ``.priority``
      - integer
      - Required
      - Election priority of the region. For regions with only
@@ -506,7 +521,9 @@
        the priorities of those regions would be ``4`` and ``3``
        respectively.
 
-   * - ``replicationSpec.<region>.readOnlyNodes``
+   * - | ``replicationSpec``
+       | ``.<region>``
+       | ``.readOnlyNodes``
      - integer
      - Required
      - Number of read-only nodes for |service| to deploy to the
@@ -539,22 +556,26 @@
           You cannot specify both the ``replicationSpec`` and
           ``replicationSpecs`` parameters in the same request body.
 
-   * - ``replicationSpecs[n].id``
+   * - | ``replicationSpecs[n]``
+       | ``.id``
      - string
      - Optional
      - Unique identifier of the replication document.
 
-   * - ``replicationSpecs[n].zoneName``
+   * - | ``replicationSpecs[n]``
+       | ``.zoneName``
      - string
      - Required
      - Name for the zone.
 
-   * - ``replicationSpecs[n].numShards``
+   * - | ``replicationSpecs[n]``
+       | ``.numShards``
      - integer
      - Required
      - Number of shards to deploy in the specified zone.
 
-   * - ``replicationSpecs[n].regionsConfig``
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
      - document
      - Required
      - Physical location of the region. Each ``regionsConfig`` document
@@ -613,10 +634,8 @@
 
    * - ``diskSizeGB``
      - double
-     - Optional
-     - **AWS / GCP ONLY**
-
-       .. include:: /includes/fact-not-available-with-nvme.rst
+     - AWS / GCP Optional
+     - .. include:: /includes/fact-not-available-with-nvme.rst
 
        The size in gigabytes of the server's root volume. You can add
        capacity by increasing this number, up to a maximum possible

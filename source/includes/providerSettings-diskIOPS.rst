@@ -1,7 +1,6 @@
 .. _provider-settings-disk-iops:
 
-.. admonition:: AWS only
-   :class: note
+.. note::
 
    Requires that ``providerSettings.instanceSizeName`` be
    ``M30`` or greater.
@@ -19,10 +18,15 @@ size and storage capacity:
 #. Open the |service| web interface.
 #. Select :guilabel:`Build a New Cluster`.
 #. Under :guilabel:`Cloud Provider & Region`, select ``AWS``.
-#. Under :guilabel:`Cloud Provider & Region`, select the region corresponding to your configured ``providerSettings.regionName``.
-#. Under :guilabel:`Cluster Tier`, select the instance size corresponding to your configured ``providerSettings.instanceSizeName``.
-#. Under :guilabel:`Cluster Tier`, set the :guilabel:`Storage Capacity` slider to your configured ``diskSizeGB``.
-   Alternatively, input the exact value of ``diskSizeGB`` in the input box to the right of the slider.
+#. Under :guilabel:`Cloud Provider & Region`, select the region
+   corresponding to your configured ``providerSettings.regionName``.
+#. Under :guilabel:`Cluster Tier`, select the instance size
+   corresponding to your configured
+   ``providerSettings.instanceSizeName``.
+#. Under :guilabel:`Cluster Tier`, set the :guilabel:`Storage Capacity`
+   slider to your configured ``diskSizeGB``. Alternatively, input the
+   exact value of ``diskSizeGB`` in the input box to the right of the
+   slider.
 
 You can see the available |iops| range by checking the
 :guilabel:`Provision IOPS` box.
