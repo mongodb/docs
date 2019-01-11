@@ -179,8 +179,23 @@ source:
   file: steps-restore-sharded-config-primary-from-backup.yaml
   ref: drop-local
 ---
-title: "For any CSRS hostname or replica set name changes, update shard metadata in each shard's identity document."
+title: "Remove the ``minOpTimeRecovery`` document from the ``admin.system.versions`` collection."
 stepnum: 3
+ref: delete-minOpTimeRecovery
+content: |
+
+  Issue the following :method:`~db.collection.deleteOne()` method on the 
+  :data:`system.version <admin.system.version>` collection in the 
+  ``admin`` database:
+
+  .. code-block:: javascript
+
+     use admin
+     db.system.version.deleteOne( { _id: "minOpTimeRecovery" } )
+  
+---
+title: "For any CSRS hostname or replica set name changes, update shard metadata in each shard's identity document."
+stepnum: 4
 ref: metadata-update
 optional: true
 content: |
@@ -190,13 +205,15 @@ content: |
   * The hostnames for any CSRS host did not change during this procedure.
   * The CSRS replica set name did not change during this procedure.
 
-  Each shard has  :data:`admin.system.versions` collection that 
-  contains metadata related to the shard, including the CSRS 
-  connection string. If either the CSRS name or any member hostnames
-  changed while restoring the CSRS, you must update this metadata.
+  The :data:`system.version <admin.system.version>`
+  collection on the ``admin`` database contains metadata related
+  to the shard, including the CSRS connection string. If either the
+  CSRS name or any member hostnames changed while restoring the CSRS,
+  you must update this metadata.
 
   Issue the following :method:`~db.collection.find()` method on the 
-  :data:`~admin.system.versions` collection in the ``admin`` database:
+  :data:`system.version <admin.system.version>` collection in the 
+  ``admin`` database:
 
   .. code-block:: javascript
 
@@ -238,7 +255,7 @@ content: |
      CSRS metadata.
 
 ---
-stepnum: 4
+stepnum: 5
 ref: restart-as-repl
 source:
   file: steps-restore-sharded-config-primary-from-backup.yaml
@@ -254,13 +271,13 @@ replacement:
          clusterRole: shardsvr
 
 ---
-stepnum: 5
+stepnum: 6
 ref: initiate
 source:
   file: steps-restore-sharded-config-primary-from-backup.yaml
   ref: initiate
 ---
-stepnum: 6
+stepnum: 7
 ref: add-members
 source:
   file: steps-restore-sharded-config-primary-from-backup.yaml
@@ -287,7 +304,7 @@ replacement:
        )
   component: "shard replica set"
 ---
-stepnum: 7
+stepnum: 8
 ref: configure-replication
 source:
   file: steps-restore-sharded-config-primary-from-backup.yaml
