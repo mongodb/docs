@@ -31,5 +31,5 @@
        should never have more than one invoice in this state.
 
    * - ``PREPAID``
-     - The customer is on a prepaid plan, so the customer is not
-       charged.
+     - The customer has purchased credit from MongoDB sales, so the
+       customer is not charged.
