@@ -24,7 +24,7 @@
      - Enumerates the possible JSON types of the field. Available types are 
        "object", "array", "number", "boolean", "string", and "null".
        
-       MongoBD's implementation of the JSON Schema does not support the
+       MongoDB's implementation of the JSON Schema does not support the
        "integer" type. Use the ``bsonType`` keyword and the
        "int" or "long" types instead.
 
