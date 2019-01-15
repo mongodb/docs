@@ -25,7 +25,7 @@ the data stored in your databases.
 MongoDB applies database operations
 on the :term:`primary` and then records the operations on the
 primary's oplog. The :term:`secondary` members then copy and apply
-these operations in an asynchronous process. [#slow-oplogs]_ All
+these operations in an asynchronous process. All
 replica set members contain a copy of the oplog, in the
 :data:`local.oplog.rs` collection, which allows them to maintain the
 current state of the database.
@@ -37,10 +37,6 @@ oplog entries from any other member.
 Each operation in the oplog is :term:`idempotent`. That is, oplog
 operations produce the same results whether applied once or multiple
 times to the target dataset.
-
-.. [#slow-oplogs]
-
-   .. include:: /includes/extracts/4.2-changes-slow-oplog-log-message-footnote.rst
 
 .. _replica-set-oplog-sizing:
 
@@ -163,4 +159,41 @@ there is any unintended replication delay.
 See :ref:`Replication Lag <replica-set-replication-lag>` for more
 information.
 
+Slow Oplog Application
+----------------------
+
+Starting in version 4.2 (also available starting in version 4.0.6),
+secondary members of a replica set now log oplog entries that take
+longer than the slow operation threshold to apply. These messages are
+:option:`logged <mongod --logpath>` for the secondaries under the
+:data:`REPL` component with the text ``applied op: <oplog entry> took
+<num>ms``.
+
+.. code-block:: none
+
+   2018-11-16T12:31:35.886-0500 I REPL   [repl writer worker 13] applied op: command { ... }, took 112ms
+
+The slow oplog application logging on secondaries are:
+
+- Not affected by the :setting:`~operationProfiling.slowOpSampleRate`;
+  i.e. all slow oplog entries are logged by the secondary.
+
+- Not affected by the
+  :parameter:`logLevel`/:setting:`systemLog.verbosity` level (or the
+  :setting:`systemLog.component.replication.verbosity` level); i.e. for
+  oplog entries, the secondary logs only the slow oplog entries.
+  Increasing the verbosity level does not log all oplog entries.
+
+- Not captured by the :doc:`profiler
+  </tutorial/manage-the-database-profiler>` and not affected by the
+  profiling level.
+
+For more information on setting the slow operation threshold, see 
+
+- :option:`mongod --slowms`
+
+- :setting:`~operationProfiling.slowOpThresholdMs`
+
+- The :dbcommand:`profile` command or :method:`db.setProfilingLevel()`
+  shell helper method.
 
