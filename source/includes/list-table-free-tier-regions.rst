@@ -12,8 +12,8 @@
        - ``Mumbai (ap-south-1)``
 
    * - GCP
-     - - ``Iowa (us-central-1)``
-       - ``Belgium (europe-west-1)``
+     - - ``Iowa (us-central1)``
+       - ``Belgium (europe-west1)``
        - ``Singapore (asia-southeast1)``
 
    * - Azure
