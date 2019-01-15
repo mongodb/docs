@@ -6,4 +6,5 @@ under the :data:`REPL` component with the text ``applied op: <oplog
 entry> took <num>ms``. These slow oplog entries depend only on the slow
 operation threshold. They do not depend on the log levels (either at
 the system or component level), or the profiling level, or the slow
-operation sample rate. The profiler does not capture slow oplog entries.
+operation sample rate. The profiler does not capture slow oplog
+entries. For more information, see :ref:`slow-oplog`.
