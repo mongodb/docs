@@ -365,6 +365,13 @@
        can never become the :term:`primary`, but can facilitate
        local-reads.
 
+   * - ``replicationSpec.<region>.analyticsNodes``
+     - integer
+     - The number of :ref:`analytics nodes <analytics-nodes-overview>`
+       in the region. Analytics nodes are useful for handling analytic
+       data such as reporting queries. Analytics nodes are read-only,
+       and can never become the :term:`primary`.
+
    * - ``replicationSpecs``
      - array of documents
      - The configuration for each zone in a

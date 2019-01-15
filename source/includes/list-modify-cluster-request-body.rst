@@ -502,6 +502,14 @@
 
        Specify ``0`` if you do not want any read-only nodes in the region.
 
+   * - | ``replicationSpec``
+       | ``.<region>``
+       | ``.analyticsNodes``
+     - integer
+     - *Optional*
+
+       .. include:: /includes/fact-api-analytics-nodes-description.rst
+
    * - ``replicationSpecs``
      - array of documents
      - *Optional*
@@ -593,6 +601,14 @@
        facilitate local-reads.
 
        Specify ``0`` if you do not want any read-only nodes in the region.
+
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
+       | ``.analyticsNodes``
+     - integer
+     - *Optional*
+
+       .. include:: /includes/fact-api-analytics-nodes-description.rst
 
    * - ``replicationSpecs[n]
        .regionsConfig.priority``
