@@ -147,6 +147,20 @@
        You cannot create a paused cluster. Either omit the field or explicitly set
        to false.
 
+   * - ``providerBackupEnabled``
+     - Boolean
+     - If ``true``, the cluster uses :ref:`backup-cloud-provider` for
+       backups. If ``providerBackupEnabled`` *and* ``backupEnabled`` are
+       ``false``, the cluster does not use |service| backups.
+
+       You cannot enable cloud provider snapshots if you have an
+       existing cluster in the project with
+       :ref:`backup-continuous` enabled.
+
+       .. note::
+
+          You cannot enable cloud provider snapshots for :doc:`Global Clusters </global-clusters>`.
+
    * - ``providerSettings``
      - document
      - The configuration for the provisioned servers on which MongoDB runs.

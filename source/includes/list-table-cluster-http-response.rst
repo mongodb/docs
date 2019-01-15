@@ -203,6 +203,12 @@
    * - ``paused``
      - boolean
      - A flag that indicates whether the cluster is paused or not.
+       
+   * - ``providerBackupEnabled``
+     - Boolean
+     - If ``true``, the cluster uses :ref:`backup-cloud-provider` for
+       backups. If ``providerBackupEnabled`` *and* ``backupEnabled``
+       are ``false``, the cluster does not use |service| backups.
 
    * - ``providerSettings``
      - document
