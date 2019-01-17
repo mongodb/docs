@@ -21,7 +21,7 @@ Monitoring or Backup Agent:
        
        - 
 
-     * - Mac OS X
+     * - macOS
        
        - ``/etc/krb5.conf`` (10.7+)
         
