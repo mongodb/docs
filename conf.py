@@ -62,7 +62,8 @@ rst_epilog = [
     '.. |checkmark| unicode:: U+2713',
     '.. |tls-ssl| replace:: :abbr:`TLS (Transport Layer Security)`/:abbr:`SSL (Secure Sockets Layer)`',
     '.. |service| replace:: Atlas',
-    '.. |enc-channel| replace:: :ref:`encoding channel <encoding-channels>`'
+    '.. |enc-channel| replace:: :ref:`encoding channel <encoding-channels>`',
+    '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`'
 ]
 
 rst_epilog.extend(get_replacements(conf))
