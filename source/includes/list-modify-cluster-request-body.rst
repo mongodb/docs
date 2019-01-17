@@ -124,7 +124,7 @@
        For details on how this setting affects costs, see
        :ref:`server-number-costs`.
 
-       The possible values are ``1`` through ``24``. The default value
+       The possible values are ``1`` through ``50``. The default value
        is ``1``.
 
        .. note::
