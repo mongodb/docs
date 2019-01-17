@@ -66,5 +66,4 @@
        The accepted values for this option are:
 
        - ``NONE``
-       - ``SNAPPY``
-       - ``ZLIB``
+       - ``GZIP``
