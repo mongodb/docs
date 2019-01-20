@@ -1,17 +1,21 @@
 .. _provider-settings-volume-type:
 
-*AWS only*. Possible values are:
+Possible values are:
 
-- ``STANDARD``
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
 
-  In this case, , the setting
-  :ref:`providerSettings.diskIOPS <provider-settings-disk-iops>`
-  must not exceed the default |iops| rate for the selected volume
-  size.
+   * - Volume Type
+     - :ref:`providerSettings.diskIOPS
+       <provider-settings-disk-iops>` Value
 
-- ``PROVISIONED``
+   * - ``STANDARD``
 
-  In this case, the setting
-  :ref:`providerSettings.diskIOPS <provider-settings-disk-iops>`
-  must fall within the allowable |iops| range for the selected
-  volume size.
+     - Must not exceed the default |iops| rate for the selected volume
+       size.
+
+   * - ``PROVISIONED``
+
+     - Must fall within the allowable |iops| range for the selected
+       volume size.

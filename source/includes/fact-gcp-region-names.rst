@@ -1,20 +1,39 @@
-.. note::
 
-   ``EASTERN_US`` corresponds to the |gcp| ``US_EAST_1`` region.
+.. tabs::
 
-- ``ASIA_SOUTH_1``
-- ``AUSTRALIA_SOUTHEAST_1``
-- ``CENTRAL_US``
-- ``EASTERN_ASIA_PACIFIC``
-- ``EASTERN_US``
-- ``EUROPE_WEST_2``
-- ``EUROPE_WEST_3``
-- ``EUROPE_WEST_4``
-- ``NORTH_AMERICA_NORTHEAST_1``
-- ``NORTHEASTERN_ASIA_PACIFIC``
-- ``SOUTH_AMERICA_EAST_1``
-- ``SOUTHEASTERN_ASIA_PACIFIC``
-- ``US_EAST_4``
-- ``US_WEST_2``
-- ``WESTERN_EUROPE``
-- ``WESTERN_US``
+   tabs:
+     - id: americas
+       name: Americas
+       content: |
+
+         - ``CENTRAL_US``
+         - ``EASTERN_US``
+
+           .. note::
+
+              ``EASTERN_US`` corresponds to the |gcp| ``us_east_1``
+              region.
+
+         - ``NORTH_AMERICA_NORTHEAST_1``
+         - ``SOUTH_AMERICA_EAST_1``
+         - ``US_EAST_4``
+         - ``WESTERN_US``
+
+     - id: asia
+       name: Asia Pacific
+       content: |
+
+         - ``ASIA_SOUTH_1``
+         - ``AUSTRALIA_SOUTHEAST_1``
+         - ``EASTERN_ASIA_PACIFIC``
+         - ``NORTHEASTERN_ASIA_PACIFIC``
+         - ``SOUTHEASTERN_ASIA_PACIFIC``
+         - ``EUROPE_WEST_2``
+ 
+     - id: europe
+       name: GCP
+       content: |
+
+         - ``EUROPE_WEST_3``
+         - ``EUROPE_WEST_4``
+         - ``WESTERN_EUROPE``

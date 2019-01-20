@@ -2,7 +2,7 @@
    :header-rows: 1
    :widths: 15 10 10 65
 
-   * - Path Parameter
+   * - Body Parameter
      - Type
      - Necessity
      - Description
@@ -105,7 +105,7 @@
 
    * - ``encryptionAtRestProvider``
      - string
-     - Required
+     - AWS Optional
      - Specify ``AWS`` to enable
        :doc:`Encryption at Rest </security-aws-kms>` using the
        |service| project |aws| Key Management System settings. The
@@ -250,40 +250,51 @@
 
        .. include:: /includes/fact-group-region-association.rst
 
-       The following regions are valid for ``M10+`` clusters (``M20+``
-       for Azure):
+       .. tabs::
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 20 50
+          tabs:
+            - id: aws
+              name: AWS
+              content: |
 
-          * - Provider
-            - Region Names
+                .. include:: /includes/fact-aws-region-names.rst
 
-          * - AWS
-            - .. include:: /includes/fact-aws-region-names.rst
-          * - GCP
-            - .. include:: /includes/fact-gcp-region-names.rst
-          * - AZURE
-            - .. include:: /includes/fact-azure-region-names.rst
+            - id: gcp
+              name: GCP
+              content: |
+
+                .. include:: /includes/fact-gcp-region-names.rst
+
+            - id: azure
+              name: Azure
+              content: |
+
+                .. include:: /includes/fact-azure-region-names.rst
 
        The following regions are valid for ``M2`` and ``M5`` clusters:
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 20 50
+       .. tabs::
 
-          * - Provider
-            - Region Names
+          hidden: true
 
-          * - AWS
-            - .. include:: /includes/fact-aws-m2-m5-region-names.rst
+          tabs:
+            - id: aws
+              name: AWS
+              content: |
 
-          * - GCP
-            - .. include:: /includes/fact-gcp-m2-m5-region-names.rst
+                .. include:: /includes/fact-aws-m2-m5-region-names.rst
 
-          * - AZURE
-            - .. include:: /includes/fact-azure-m2-m5-region-names.rst
+            - id: gcp
+              name: GCP
+              content: |
+
+                .. include:: /includes/fact-gcp-m2-m5-region-names.rst
+
+            - id: azure
+              name: Azure
+              content: |
+
+                .. include:: /includes/fact-azure-m2-m5-region-names.rst
 
    * - | ``providerSettings``
        | ``.instanceSizeName``
@@ -297,39 +308,44 @@
 
        |service| supports the following instance sizes:
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 20 50
-
-          * - Provider
-            - Instance Sizes
-
-          * - AWS
-            - .. include:: /includes/extracts/fact-cluster-instance-sizes-AWS.rst
-
-          * - GCP
-            - .. include:: /includes/extracts/fact-cluster-instance-sizes-GCP.rst
-
-          * - AZURE
-
-            - .. include:: /includes/extracts/fact-cluster-instance-sizes-AZURE.rst
-
        .. |ast| unicode:: U+002A
        .. |dag| unicode:: U+2020
        .. |ddag| unicode:: U+2021
 
-       |ast| |aws|, |gcp|, and :abbr:`Azure (Microsoft Azure)` only
-       support ``M2`` and ``M5`` in certain regions. For a complete
-       list of the regions that support ``M2`` and ``M5`` instances,
-       see ``providerSettings.regionName``.
+       .. tabs::
 
-       |dag| ``R`` instances are |aws| only. Ensure that
-       ``providerSetting.providerName`` is ``AWS``. In the |service|
-       UI, ``R`` instance correspond with :guilabel:`Low CPU` variants
-       of their associated ``M`` instance.
+          tabs:
+            - id: aws
+              name: AWS
+              content: |
 
-       |ddag| These instances are only supported in the
-       |aws| ``EU-WEST-3`` (Paris) region.
+                .. include:: /includes/extracts/fact-cluster-instance-sizes-AWS.rst
+
+                |dag| ``R`` instances are |aws| only. Ensure that
+                ``providerSetting.providerName`` is ``AWS``. In the
+                |service| UI, ``R`` instance correspond with
+                :guilabel:`Low CPU` variants of their associated ``M``
+                instance.
+
+                |ddag| These instances are only supported in the
+                |aws| ``EU-WEST-3`` (Paris) region.
+
+            - id: gcp
+              name: GCP
+              content: |
+
+                .. include:: /includes/extracts/fact-cluster-instance-sizes-GCP.rst
+
+            - id: azure
+              name: Azure
+              content: |
+
+                .. include:: /includes/extracts/fact-cluster-instance-sizes-AZURE.rst
+
+       |ast| |aws|, |gcp|, and :abbr:`Azure (Microsoft Azure)`
+       only support ``M2`` and ``M5`` in certain regions. For
+       a complete list of the regions that support ``M2`` and
+       ``M5`` instances, see ``providerSettings.regionName``.
 
        .. include:: /includes/fact-m2-m5-multi-tenant.rst
 
@@ -384,7 +400,7 @@
    * - | ``providerSettings``
        | ``.volumeType``
      - string
-     - Optional
+     - AWS Optional
      -
        .. include:: /includes/providerSettings-volumeType.rst  
 
@@ -467,21 +483,26 @@
 
        .. include:: /includes/fact-group-region-association.rst
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 20 50
+       .. tabs::
 
-          * - Provider
-            - Region Names
+          tabs:
+            - id: aws
+              name: AWS
+              content: |
 
-          * - AWS
-            - .. include:: /includes/fact-aws-region-names.rst
+                .. include:: /includes/fact-aws-region-names.rst
 
-          * - GCP
-            - .. include:: /includes/fact-gcp-region-names.rst
+            - id: gcp
+              name: GCP
+              content: |
 
-          * - AZURE
-            - .. include:: /includes/fact-azure-region-names.rst
+                .. include:: /includes/fact-gcp-region-names.rst
+
+            - id: azure
+              name: Azure
+              content: |
+
+                .. include:: /includes/fact-azure-region-names.rst
 
        For each ``<region>`` document, you must specify the
        ``electableNodes``, ``priority``, and ``readOnlyNodes`` fields.
@@ -609,21 +630,26 @@
 
        .. include:: /includes/fact-group-region-association.rst
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 20 50
+       .. tabs::
 
-          * - Provider
-            - Region Names
+          tabs:
+            - id: aws
+              name: AWS
+              content: |
 
-          * - AWS
-            - .. include:: /includes/fact-aws-region-names.rst
+                .. include:: /includes/fact-aws-region-names.rst
 
-          * - GCP
-            - .. include:: /includes/fact-gcp-region-names.rst
+            - id: gcp
+              name: GCP
+              content: |
 
-          * - AZURE
-            - .. include:: /includes/fact-azure-region-names.rst
+                .. include:: /includes/fact-gcp-region-names.rst
+
+            - id: azure
+              name: Azure
+              content: |
+
+                .. include:: /includes/fact-azure-region-names.rst
 
    * - | ``replicationSpecs[n]``
        | ``.regionsConfig``
