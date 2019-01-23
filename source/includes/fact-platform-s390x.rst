@@ -1,4 +1,11 @@
-Starting in MongoDB 4.0.6, support for s390x RHEL/CentOS 7 has been added.
+.. admonition:: New Platform Support
+
+   Starting in MongoDB 4.0.6, support for the following platforms have
+   been added:
+
+   - s390x RHEL/CentOS 7
+   - s390x SLES12
+   - s390x Ubuntu 18.04
 
 .. list-table::
    :header-rows: 1
@@ -16,6 +23,16 @@ Starting in MongoDB 4.0.6, support for s390x RHEL/CentOS 7 has been added.
      - 
 
    * - RHEL/CentOS 6
+     - |checkmark|
+     - 
+     - 
+
+   * - SLES12
+     - |checkmark|
+     - 
+     - 
+
+   * - Ubuntu 18.04
      - |checkmark|
      - 
      - 
