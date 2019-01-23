@@ -63,7 +63,8 @@
 
    * - hostname
      - string
-     - Hostname of the host on which this event occurred.
+     - Hostname, |fqdn|, |ipv4| address, or |ipv6| address of the host
+       on which this event occurred.
 
    * - id
      - string
