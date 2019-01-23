@@ -58,16 +58,18 @@
      - When the alert was last updated.
    * - ``resolved``
      - date
-     - When the alert was closed. Only present if the status is ``CLOSED``.
+     - When the alert was closed. Only present if the status is
+       ``CLOSED``.
    * - ``lastNotified``
      - date
      - When the last notification was sent for this alert. Only present if
        notifications have been sent.
    * - ``hostnameAndPort``
      - string
-     - The hostname and port of each host to which the alert applies. Only
-       present for alerts of type ``HOST``, ``HOST_METRIC``, and
-       ``REPLICA_SET``.
+     - Hostname and port of each host to which the alert applies. This
+       can be a hostname, an |fqdn|, an |ipv4| address, or an |ipv6|
+       address. Only present for alerts of type ``HOST``,
+       ``HOST_METRIC``, and ``REPLICA_SET``.
 
    * - ``hostId``
      - string
