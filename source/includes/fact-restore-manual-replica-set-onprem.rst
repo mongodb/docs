@@ -3,7 +3,7 @@
    :header-rows: 1
  
    * - Option
-     - Required
+     - Necessity
      - Description
  
    * - ``--https``
@@ -14,7 +14,7 @@
  
    * - ``--host``
      - Required
-     - Provide the hostname or :abbr:`IP (Internet Protocol)`
+     - Provide the hostname, |fqdn|, |ipv4| address, or |ipv6|
        address for the host that serves the :program:`mongod` to
        which the :term:`oplog <Oplog Store Database>` should be
        applied. If you copied the
