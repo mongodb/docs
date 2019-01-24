@@ -1,3 +1,15 @@
+.. _backup-7.4.0.1036-1:
+
+Backup Agent 7.4.0.1036-1
+-------------------------
+
+*Released* :ref:`2019-01-23 <cloudmanager-v20190122>`
+
+- Add support for :bsetting:`sslTrustedServerCertificates`,
+  :bsetting:`sslClientCertificate`, and
+  :bsetting:`sslRequireValidServerCertificates` to the Point in Time
+  Restore Utility.
+
 .. _backup-7.3.0.1023:
 
 Backup Agent 7.2.0.1023
