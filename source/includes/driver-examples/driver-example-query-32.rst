@@ -108,3 +108,11 @@
             :dedent: 12
             :start-after: Start Example 32
             :end-before: End Example 32
+
+     - id: go
+       content: |
+         .. literalinclude:: /driver-examples/crud_examples.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Example 32
+            :end-before: End Example 32

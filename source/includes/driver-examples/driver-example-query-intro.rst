@@ -113,3 +113,13 @@
          `MongoDB C# Driver <https://mongodb.github.io/mongo-csharp-driver/>`_.
          The examples on this page use the ``inventory`` collection. To
          populate the ``inventory`` collection, run the following:
+
+     - id: go
+       content: |
+       
+          This page provides examples of |query_operations| using the
+          :go-api:`Collection.Find <mongo#Collection.Find>`
+          function in the
+          `MongoDB Go Driver <https://github.com/mongodb/mongo-go-driver/>`_.
+          The examples on this page use the ``inventory`` collection. To
+          populate the ``inventory`` collection, run the following:
