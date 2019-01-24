@@ -15,14 +15,13 @@ MongoDB Version
   .. include:: /includes/considerations-change-mongodb-version.rst
 
 Storage Engine
-
   .. important::
 
      .. include:: /includes/fact-mmapv1-deprecated.rst
 
   If you run or upgrade to MongoDB 3.0 or later and modify the MongoDB
-  storage engine, |mms| shuts down and restarts the MongoDB process. For 
-  a multi-member replica set, |mms| performs a rolling 
+  storage engine, |mms| shuts down and restarts the MongoDB process. For
+  a multi-member replica set, |mms| performs a rolling
   :term:`initial sync` of each member.
 
   |mms| creates backup directories during the migration from one storage
@@ -49,12 +48,12 @@ Storage Engine
   :manual:`Storage </core/storage>` in the MongoDB manual.
 
 Fixed Properties
-  You cannot modify the following settings after a deployment has been 
+  You cannot modify the following settings after a deployment has been
   created:
 
   - :option:`database path <mongod.--dbpath>`
-  - The hostname, :option:`bind_ip <mongod.--bind_ip>` or 
-    :option:`port <mongod.--port>` to which a MongoDB process is 
+  - The hostname, :option:`bind_ip <mongod.--bind_ip>` or
+    :option:`port <mongod.--port>` to which a MongoDB process is
     assigned
 
   You *can* modify the following deployment settings:
@@ -64,7 +63,7 @@ Fixed Properties
 
 Deployment Topology
   You can make modifications at all levels of a deployment's topology,
-  including child processes. 
+  including child processes.
 
   To modify the topology or processes, use this tutorial or one of the
   more specific tutorials:
@@ -87,18 +86,18 @@ Project-Level Modifications
     :doc:`/tutorial/manage-mongodb-users`.
 
 Multiple Modifications
-  You can combine multiple modifications into one deployment. 
+  You can combine multiple modifications into one deployment.
 
   .. example::
      You could make all the following modifications before clicking the
      :guilabel:`Review Changes` button:
 
-     - Add the latest stable version of MongoDB to the 
+     - Add the latest stable version of MongoDB to the
        :ref:`version-manager`.
 
      - Enable SSL for the deployment's MongoDB processes.
 
-     - Add a new sharded cluster running the latest stable version of 
+     - Add a new sharded cluster running the latest stable version of
        MongoDB from above.
 
   When you click :guilabel:`Review Changes`, the review displays all the
