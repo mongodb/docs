@@ -88,3 +88,12 @@
          :csharp-api:`DeleteResult <T_MongoDB_Driver_DeleteResult>` whose
          ``DeletedCount`` property contains the number of documents
          that matched the filter.
+
+     - id: go
+       content: |
+         Upon successful execution, the
+         :go-api:`Collection.DeleteMany <mongo#Collection.DeleteMany>`
+         function returns an instance of
+         :go-api:`DeleteResult <mongo#DeleteResult>` whose
+         ``DeletedCount`` property contains the number of documents
+         that matched the filter.

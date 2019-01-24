@@ -122,3 +122,13 @@
             :end-before: End Example 53
 
          .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: go
+       content: |
+         .. literalinclude:: /driver-examples/crud_examples.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
