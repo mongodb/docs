@@ -26,8 +26,15 @@
         --oplogSizeMB <size> \
         --seedTargetPort <port> \
         --ssl \
-        --sslCAFile <path> \
-        --sslPEMKeyFile <path>
+        --sslCAFile </path/to/ca.pem> \
+        --sslPEMKeyFile </path/to/pemkey.pem>
+        --sslClientCertificateSubject <distinguishedName> \
+        --sslRequireValidServerCertificates <true|false> \
+        --sslServerClientCertificate </path/to/client.pem> \
+        --sslServerClientCertificatePassword <password> \
+        --sslRequireValidMMSBackupServerCertificate <true|false> \
+        --sslTrustedMMSBackupServerCertificate </path/to/mms-certs.pem> \
+        --httpProxy <proxyURL>
 
 .. cond:: onprem
 
@@ -48,5 +55,12 @@
         --oplogSizeMB <size> \
         --seedTargetPort <port> \
         --ssl \
-        --sslCAFile <path> \
-        --sslPEMKeyFile <path> 
+        --sslCAFile </path/to/ca.pem> \
+        --sslPEMKeyFile </path/to/pemkey.pem>
+        --sslClientCertificateSubject <distinguishedName> \
+        --sslRequireValidServerCertificates <true|false> \
+        --sslServerClientCertificate </path/to/client.pem> \
+        --sslServerClientCertificatePassword <password> \
+        --sslRequireValidMMSBackupServerCertificate <true|false> \
+        --sslTrustedMMSBackupServerCertificate </path/to/mms-certs.pem> \
+        --httpProxy <proxyURL>

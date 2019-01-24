@@ -4,4 +4,7 @@
      table.docutils {
        width: 100%
      }
+     code.descname, code.docutils.literal > .pre, code.xref.mongodb.mongodb-alert.docutils.literal {
+       font-size: 80%
+     }
    </style>
