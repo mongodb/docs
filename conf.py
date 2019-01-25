@@ -87,6 +87,8 @@ rst_epilog = [
     '.. |http| replace:: :abbr:`HTTP (HyperText Transport Protocol)`',
     '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`',
     '.. |ipaddr| replace:: :abbr:`IP (Internet Protocol)`',
+    '.. |ipv4| replace:: :abbr:`IPv4 (Internet Protocol version 4)`',
+    '.. |ipv6| replace:: :abbr:`IPv6 (Internet Protocol version 6)`',
     '.. |iops| replace:: :abbr:`IOPS (Input/Output Operations per Second)`',
     '.. |iso8601-duration| replace:: Duration in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=851138376#Durations>`__ notation',
     '.. |iso8601-time| replace:: Timestamp in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`__ date and time format in |utc|',
