@@ -15,6 +15,12 @@
      - Unique identifier for the alert configuration associated to the
        ``alertId``.
 
+   * - ``apiKeyId``
+     - string
+     - Unique identifier for the |api| Key that triggered the event. If
+       this field is present in the response, |service| does not
+       return the ``userId`` field.
+
    * - ``created``
      - date
      - `ISO 8601-formatted <https://en.wikipedia.org/wiki/ISO_8601>`_
@@ -31,7 +37,7 @@
 
    * - ``currentValue.units``
      - string
-     - The unit of measurement of the ``currentValue.number``. 
+     - The unit of measurement of the ``currentValue.number``.
 
        Possible values are:
 
@@ -57,7 +63,7 @@
 
    * - ``id``
      - string
-     - The unique identifier for the event. 
+     - The unique identifier for the event.
 
    * - ``invoiceId``
      - string
@@ -83,13 +89,19 @@
 
    * - ``paymentId``
      - string
-     - The unique identifier of the invoice payment associated to the 
+     - The unique identifier of the invoice payment associated to the
        event.
 
    * - ``port``
      - int
-     - The port on which the :binary:`~bin.mongod` or 
+     - The port on which the :binary:`~bin.mongod` or
        :binary:`~bin.mongos` listens.
+
+   * - ``publicKey``
+     - string
+     - Public key associated with |api| Key which triggered the event.
+       If this field is present in the response,
+       |service| does not return the ``username`` field.
 
    * - ``remoteAddress``
      - string
@@ -107,7 +119,7 @@
    * - ``targetUsername``
      - string
      - The username for the |service| user targeted by the
-       event. 
+       event.
 
    * - ``teamId``
      - string
@@ -116,10 +128,13 @@
 
    * - ``userId``
      - string
-     - The unique identifier for the |service| user who triggered the 
-       event.
+     - The unique identifier for the |service| user who triggered the
+       event. If this field is present in the response,
+       |service| does not return the ``apiKeyId`` field.
 
    * - ``username``
      - string
      - The username for the |service| user who triggered the event.
+       If this field is present in the response,
+       |service| does not return the `publicKey`` field.
 
