@@ -42,17 +42,9 @@ The following diagram illustrates the query planner logic:
 See :ref:`query-plans-plan-cache-flushes` for additional scenarios that trigger
 changes to the plan cache.
 
-You can use the :method:`db.collection.explain()` or the
-:method:`cursor.explain()` method to view statistics about the query
-plan for a given query. This information can help as you develop
-:doc:`indexing strategies </applications/indexes>`.
-
-.. include:: /includes/fact-explain-collection-method.rst
-
-.. versionchanged:: 2.6
-
-   :method:`~db.collection.explain()` operations no longer read from or write
-   to the query planner cache.
+See :method:`db.collection.explain()` or the :method:`cursor.explain()`
+method for information about viewing query plan information for a given
+query.
 
 .. _query-plans-query-revision:
 
@@ -61,16 +53,85 @@ plan for a given query. This information can help as you develop
 Plan Cache Flushes
 ------------------
 
-Catalog operations like index or collection drops flush the plan cache.
+The query plan cache does not persist if a :binary:`~bin.mongod`
+restarts or shuts down. In addition, catalog operations like index or
+collection drops clear the plan cache.
 
-The plan cache does not persist if a :binary:`~bin.mongod` restarts or shuts down.
+Users can also:
 
-.. versionadded:: 2.6
+- Manually clear the entire plan cache using the
+  :method:`PlanCache.clear()` method.
 
-   MongoDB provides :doc:`/reference/method/js-plan-cache` to view and modify
-   the cached query plans. The :method:`PlanCache.clear()` method flushes the
-   entire plan cache. Users can also clear particular plan cache entries using
-   :method:`PlanCache.clearPlansByQuery()`.
+- Manually clear specific plan cache entries using the
+  :method:`PlanCache.clearPlansByQuery()` method.
+
+.. seealso:: :ref:`query-hash-plan-cache-key`
+
+.. _query-hash-plan-cache-key:
+
+``queryHash`` and ``planCacheKey``
+----------------------------------
+
+.. _query-hash:
+
+
+``queryHash``
+~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-query-shapes.rst
+
+.. _plan-cache-key:
+
+``planCacheKey``
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-plan-cache-key.rst
+
+For example, consider a collection ``foo`` with the following indexes:
+ 
+.. code-block:: javascript
+
+   db.foo.createIndex( { x: 1 } )
+   db.foo.createIndex( { x: 1, y: 1 } )
+   db.foo.createIndex( { x: 1, z: 1 }, { partialFilterExpression: { x: { $gt: 10 } } } )
+
+The following queries on the collection have the same shape:
+
+.. code-block:: javascript
+
+   db.foo.explain().find( { x: { $gt: 5 } } )  // Query Operation 1
+   db.foo.explain().find( { x: { $gt: 20 } } ) // Query Operation 2
+
+Given these queries, the index with the :ref:`partial filter expression
+<partial-index-query-coverage>` can support query operation 2 but *not*
+support query operation 1. Since the indexes available to support query operation 1
+differs from query operation 2, the two queries have different
+``planCacheKey``.
+
+If one of the indexes were dropped, or if a new index ``{ x: 1, a: 1
+}`` were added, the ``planCacheKey`` for both query operations will
+change.
+
+Availability
+~~~~~~~~~~~~
+
+The ``queryHash`` and ``planCacheKey`` are available in:
+
+- :doc:`explain() output </reference/explain-results>` fields:
+  :data:`queryPlanner.queryHash <explain.queryPlanner.queryHash>` and
+  :data:`queryPlanner.planCacheKey <explain.queryPlanner.planCacheKey>`
+
+- :doc:`profiler log messages </tutorial/manage-the-database-profiler>`
+  and :doc:`diagnostic log messages (i.e. mongod/mongos log
+  messages)</reference/log-messages>` when logging slow queries.
+
+- :pipeline:`$planCacheStatus` aggregation stage (*New in MongoDB 4.2*)
+
+- :method:`PlanCache.listQueryShapes()`
+  method/:dbcommand:`planCacheListQueryShapes` command
+
+- :method:`PlanCache.getPlansByQuery()`
+  method/:dbcommand:`planCacheListPlans` command
 
 .. _index-filters:
 
@@ -105,3 +166,7 @@ sparingly.
 
 See :dbcommand:`planCacheListFilters`,
 :dbcommand:`planCacheClearFilters`, and :dbcommand:`planCacheSetFilter`.
+
+.. seealso::
+
+   :doc:`/applications/indexes`
