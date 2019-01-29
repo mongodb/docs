@@ -95,6 +95,8 @@ examples:
 # java crud
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver/master/driver-sync/src/examples/documentation/DocumentationSamples.java -o ${DRIVERS_PATH}/DocumentationSamples.java
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver-reactivestreams/master/examples/documentation/src/DocumentationSamples.java -o ${DRIVERS_PATH}/AsyncDocumentationSamples.java
+# java causal
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver/master/driver-sync/src/examples/documentation/CausalConsistencyExamples.java -o ${DRIVERS_PATH}/CausalConsistencyExamples.java
 
 # node
 	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/change_streams.js                        -o ${DRIVERS_PATH}/node_changestreams.js
