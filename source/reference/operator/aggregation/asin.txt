@@ -1,0 +1,193 @@
+===================
+$asin (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. expression:: $asin 
+
+   .. versionadded:: 4.2
+
+   Returns the inverse sine (arc sine) of a value.
+
+   :expression:`$asin` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $asin: <expression> }
+
+   :expression:`$asin` takes any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a number between ``-1``
+   and ``1``, e.g. ``-1 <= value <= 1``.
+
+   :expression:`$asin` returns values in radians. Use
+   :expression:`$radiansToDegrees` operator to convert the output value
+   from radians to degrees.
+
+   By default :expression:`$asin` returns values as a ``double``. 
+   :expression:`$asin` can also return values as a
+   :ref:`128-bit decimal <shell-type-decimal>`
+   as long as the ``<expression>`` resolves to a 128-bit decimal value. 
+
+   For more information on expressions, see 
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+If the argument resolves to a value of ``null`` or refers to a field
+that is missing, :expression:`$asin` returns ``null``. If the
+argument resolves to ``NaN``, :expression:`$asin` returns ``NaN``.
+If the argument resolves to a value outside the bounds of 
+``[-1, 1]`` inclusive, :expression:`$asin` throws an error.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+
+   * - Example
+     - Results
+
+   * - ``{ $asin: NaN }``
+     - ``NaN``
+
+   * - ``{ $asin: null }``
+     - ``null``
+
+   * - ``{ $asin : Infinity}`` 
+
+       *or* 
+
+       ``{ $asin : -Infinity }``
+     - Throws an error message resembling the following formatted 
+       output:
+
+       .. code-block:: shell
+          :copyable: false
+
+          "errmsg" : 
+            "Failed to optimize pipeline :: caused by :: cannot 
+            apply $asin to -inf, value must in [-1,1]"
+
+Example
+-------
+
+.. tabs::
+
+   tabs:
+
+     - id: degrees
+       name: Inverse Sine of Value in Degrees
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores three sides of a right-angle triangle:
+
+         .. code-block:: shell
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$asin` expression to calculate the angle opposite
+         to ``side_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: shell
+
+            db.trigonometry.aggregate([
+              { 
+                $addFields : {
+                  "angle_a" : {
+                    $radiansToDegrees : {
+                      $asin : {
+                        $divide : [ "$side_a", "$hypotenuse" ]
+                      }
+                    }
+                  }
+                }
+              }
+            ])
+
+         The :expression:`$radiansToDegrees` expression converts the
+         radian value returned by :expression:`$asin` to the equivalent
+         value in degrees.
+
+         The command returns the following output:
+
+         .. code-block:: shell
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5"),
+              "angle_a" : NumberDecimal("36.86989764584402129685561255909341")
+            }
+
+         Since ``side_a`` and ``hypotenuse`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$asin` is a 128-bit decimal. 
+
+     - id: radians
+       name: Inverse Sine of Value in Radians
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores three sides of a right-angle triangle:
+
+         .. code-block:: shell
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$asin` expression to calculate the angle adjacent
+         to ``side_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: shell
+
+            db.trigonometry.aggregate([
+              { 
+                $addFields : {
+                  "angle_a" : {
+                    $asin : {
+                      $divide : [ "$side_a", "$hypotenuse" ]
+                    }
+                  }
+                }
+              }
+            ])
+
+         The command returns the following output:
+
+         .. code-block:: shell
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5"),
+              "angle_a" : NumberDecimal("0.6435011087932843868028092287173226")
+            }
+
+         Since ``side_a`` and ``hypotenuse`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$asin` is a 128-bit decimal. 
