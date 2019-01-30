@@ -17,9 +17,10 @@
 
    * - ``apiKeyId``
      - string
-     - Unique identifier for the |api| Key that triggered the event. If
-       this field is present in the response, |service| does not
-       return the ``userId`` field.
+     - Unique identifier for the :ref:`API Key
+       <about-org-api-keys>` that triggered the event. If this field is
+       present in the response, |service| does not return the
+       ``userId`` field.
 
    * - ``created``
      - date
@@ -99,9 +100,10 @@
 
    * - ``publicKey``
      - string
-     - Public key associated with |api| Key which triggered the event.
-       If this field is present in the response,
-       |service| does not return the ``username`` field.
+     - Public key associated with the :ref:`API Key
+       <about-org-api-keys>` that triggered the event. If this field
+       is present in the response, |service| does not return the
+       ``username`` field.
 
    * - ``remoteAddress``
      - string
