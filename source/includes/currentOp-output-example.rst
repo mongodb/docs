@@ -108,6 +108,25 @@
                         "client" : <string>,
                         "appName" : <string>,
                         "clientMetadata" : <document>,
+                        "lsid" : {
+                           "id" : <UUID>,
+                           "uid" : <BinData>
+                        },
+                        "transaction" : {
+                           "parameters" : {
+                              "txnNumber" : <NumberLong()>,
+                              "autocommit" : <boolean>,
+                              "readConcern" : {
+                                 "level" : <string>
+                              }
+                           },
+                           "readTimestamp" : <Timestamp>,
+                           "startWallClockTime" : <string>,
+                           "timeOpenMicros" : <NumberLong()>,
+                           "timeActiveMicros" : <NumberLong()>,
+                           "timeInactiveMicros" : <NumberLong()>,
+                           "expiryTime" : <string>,
+                        },
                         "active" : <boolean>,
                         "currentOpTime" : <string>,
                         "opid" : <number>,
