@@ -22,7 +22,7 @@ Definition
    holding locks as part of a transaction. The stage returns a document
    for each operation or session. To run :pipeline:`$currentOp`, use
    the :method:`db.aggregate()` helper on the ``admin`` database.
-  
+
    The :pipeline:`$currentOp` aggregation stage is preferred over the
    :dbcommand:`currentOp` command and its :binary:`~bin.mongo` shell
    helper :method:`db.currentOp()`. Because :dbcommand:`currentOp`
@@ -36,7 +36,7 @@ Definition
    size of the result set.
 
    :pipeline:`$currentOp` also enables you to perform arbitrary
-   transformations of the results as the documents pass through the 
+   transformations of the results as the documents pass through the
    pipeline.
 
    :pipeline:`$currentOp` takes an options document as its operand:
@@ -50,7 +50,7 @@ Definition
    .. list-table::
       :header-rows: 1
       :widths: 30 70
- 
+
       * - Option
         - Description
 
@@ -73,8 +73,8 @@ Definition
           Defaults to ``false``.
 
       * - ``idleConnections``
-        - Boolean. If set to ``false``, :pipeline:`$currentOp` will 
-          only report active operations. If set to ``true``, all 
+        - Boolean. If set to ``false``, :pipeline:`$currentOp` will
+          only report active operations. If set to ``true``, all
           operations including idle connections will be returned.
 
           Defaults to ``false``.
@@ -107,8 +107,9 @@ Definition
           of a transaction. Each inactive session will appear as a
           separate document in the ``$currentOp`` stream.
 
-          The document for a session includes information on the session
-          id ``lsid`` and the transaction number ``txnNumber``.
+          The document for a session includes information on the
+          session id in the :data:`~$currentOp.lsid` field and the
+          transaction in the :data:`~$currentOp.transaction` field.
 
           Starting in MongoDB 4.2, information on idle sessions have
           the :data:`~$currentOp.type` set to ``"idleSession"``.
@@ -127,7 +128,7 @@ Definition
           those operations running locally on that
           :binary:`~bin.mongos`. If ``false``, then the
           :pipeline:`$currentOp` will instead report operations running
-          on the shards. 
+          on the shards.
 
           The ``localOps`` parameter has no effect for
           :pipeline:`$currentOp` aggregations running on
@@ -150,14 +151,14 @@ Constraints
 
 - :pipeline:`$currentOp` must be the first stage in the pipeline.
 
-- Pipelines that start with :pipeline:`$currentOp` can only be run on 
+- Pipelines that start with :pipeline:`$currentOp` can only be run on
   the ``admin`` database.
 
-- On a standalone or replica set with authentication enabled, the 
-  ``inprog`` privilege is required to run :pipeline:`$currentOp` if 
-  the ``allUsers`` parameter is set to `true`. 
+- On a standalone or replica set with authentication enabled, the
+  ``inprog`` privilege is required to run :pipeline:`$currentOp` if
+  the ``allUsers`` parameter is set to `true`.
 
-- On a sharded cluster, the ``inprog`` privilege is required to run 
+- On a sharded cluster, the ``inprog`` privilege is required to run
   all :pipeline:`$currentOp` pipelines.
 
 - :pipeline:`$currentOp` is not allowed in :doc:`transactions
@@ -185,10 +186,9 @@ transaction.
 
 .. code-block:: javascript
 
-   use admin
-   db.aggregate( [ 
+   db.getSiblingDB("admin").aggregate( [
       { $currentOp : { allUsers: true, idleSessions: true } },
-      { $match : { active: false, txnNumber : { $exists: true } } }
+      { $match : { active: false, transaction : { $exists: true } } }
    ] )
 
 Starting in version 4.2, you can use :data:`$currentOp.type` to specify
@@ -210,17 +210,41 @@ Both operations return documents of the form:
       "type" : "idleSession",
       "host" : "example.mongodb.com:27017",
       "desc" : "inactive transaction",
-      "client" : "198.51.100.20:55223",
-      "connectionId" : NumberLong(13),
-      "appName" : "MongoDB Shell",
+      "client" : "198.51.100.1:53809",
+      "connectionId" : NumberLong(40),
+      "appName" : "",
       "clientMetadata" : {
-         ...
+         "driver" : {
+            "name" : "PyMongo",
+            "version" : "3.7.2"
+         },
+         "os" : {
+            "type" : "Darwin",
+            "name" : "Darwin",
+            "architecture" : "x86_64",
+            "version" : "10.14.2"
+         },
+         "platform" : "CPython 3.7.1.final.0"
       },
       "lsid" : {
          "id" : UUID("02039c77-3f05-4dd6-a42d-d2168a73fc95"),
          "uid" : BinData(0,"47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=")
       },
-      "txnNumber" : NumberLong(4),
+      "transaction" : {
+         "parameters" : {
+            "txnNumber" : NumberLong(1),
+            "autocommit" : false,
+            "readConcern" : {
+               "level" : "snapshot"
+            }
+         },
+         "readTimestamp" : Timestamp(1548869277, 3),
+         "startWallClockTime" : "2019-01-30T12:28:06.979-0500",
+         "timeOpenMicros" : NumberLong(34930476),
+         "timeActiveMicros" : NumberLong(210),
+         "timeInactiveMicros" : NumberLong(34930266),
+         "expiryTime" : "2019-01-30T12:29:06.979-0500"
+      }
       "waitingForLock" : false,
       "active" : false,
       "locks" : {
@@ -300,6 +324,10 @@ relevant for the operation:
    The IP address (or hostname) and the ephemeral port of the client
    connection where the operation originates.
 
+   For multi-document transactions, :data:`$currentOp.client` stores
+   information about the most recent client to run an operation inside
+   the transaction.
+
    *For standalones and replica sets only*
 
 .. data:: $currentOp.client_s
@@ -312,6 +340,10 @@ relevant for the operation:
 .. data:: $currentOp.clientMetadata
 
    Additional information on the client.
+
+   For multi-document transactions, :data:`$currentOp.client` stores
+   information about the most recent client to run an operation inside
+   the transaction.
 
 .. data:: $currentOp.appName
 
@@ -366,14 +398,135 @@ relevant for the operation:
 
    .. versionadded:: 3.6
 
-.. data:: $currentOp.txnNumber
+.. data:: $currentOp.transaction
 
-   The transaction number.
+   A document that contains multi-document transaction information.
 
    Only present if the operation is part of a transaction.
 
    .. versionadded:: 4.0
 
+   .. data:: $currentOp.transaction.parameters
+
+      A document that contains information on multi-document
+      transaction.
+
+      Only present if the operation is part of a transaction.
+
+      .. versionadded:: 4.0
+
+      .. data:: $currentOp.transaction.parameters.txnNumber
+
+         The transaction number.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0
+
+      .. data:: $currentOp.transaction.parameters.autocommit
+
+         A boolean flag that indicates if autocommit is on for the
+         transaction.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: $currentOp.transaction.parameters.readConcern
+
+         The :ref:`read concern <txn-read-concern>` for the
+         transaction.
+
+         Multi-document transactions support read concern
+         :readconcern:`"snapshot"`, :readconcern:`"local"`, and
+         :readconcern:`"majority"`. However, for :readconcern:`"local"`
+         and :readconcern:`"majority"` read concern, MongoDB may
+         sometimes substitute a stronger read concern.
+
+         If MongoDB substituted a stronger read concern, the
+         :data:`$currentOp.transaction.parameters.readConcern` value
+         returns the substituted read concern.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: $currentOp.transaction.readTimestamp
+
+         The timestamp of the snapshot being read by the operations in
+         the transaction.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: $currentOp.transaction.startWallClockTime
+
+         The date and time (with time zone) of the transaction start.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: $currentOp.transaction.timeOpenMicros
+
+         The duration, in microseconds, for the transaction.
+
+         The
+         :data:`timeActiveMicros <$currentOp.transaction.parameters.timeActiveMicros>`
+         value added to the
+         :data:`timeInactiveMicros <$currentOp.transaction.parameters.timeInactiveMicros>`
+         should equal the :data:`timeOpenMicros <$currentOp.transaction.timeOpenMicros>`.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: $currentOp.transaction.timeActiveMicros
+
+         The total amount of time that the transaction has been active;
+         i.e. when the transaction had operations running.
+
+         The
+         :data:`timeActiveMicros <$currentOp.transaction.parameters.timeActiveMicros>`
+         value added to the
+         :data:`timeInactiveMicros <$currentOp.transaction.parameters.timeInactiveMicros>`
+         should equal the
+         :data:`timeOpenMicros <$currentOp.transaction.parameters.timeOpenMicros>`.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: $currentOp.transaction.timeInactiveMicros
+
+         The total amount of time that the transaction has been
+         inactive; i.e. when the transaction had no operations running.
+
+         The
+         :data:`timeInactiveMicros <$currentOp.transaction.parameters.timeInactiveMicros>`
+         value added to the
+         :data:`timeActiveMicros <$currentOp.transaction.parameters.timeActiveMicros>`
+         should equal the
+         :data:`timeOpenMicros <$currentOp.transaction.parameters.timeOpenMicros>`.
+
+         Only present if the operation is part of a transaction.
+
+      .. data:: $currentOp.transaction.expiryTime
+
+         The date and time (with time zone) when the transaction will
+         time out and abort.
+
+         The :data:`$currentOp.transaction.expiryTime` equals the
+         :data:`$currentOp.transaction.startWallClockTime` + the
+         :parameter:`transactionLifetimeLimitSeconds`.
+
+         For more information, seee :ref:`transaction-limit` for
+         transactions.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
 .. data:: $currentOp.op
 
    A string that identifies the specific operation type. Only present if
@@ -390,7 +543,7 @@ relevant for the operation:
    - ``"remove"``
    - ``"killcursors"``
 
-   ``"command"`` operations include most 
+   ``"command"`` operations include most
    :doc:`commands </reference/command>` such as the
    :dbcommand:`createIndexes`, :dbcommand:`aggregate`, and :dbcommand:`findandmodify`.
 

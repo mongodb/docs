@@ -112,85 +112,95 @@
 
                {
                  "inprog": [
-                     {
-                       "type" : <string>,
-                       "host" : <string>,
-                       "desc" : <string>,
-                       "connectionId" : <number>,
-                       "client" : <string>,
-                       "appName" : <string>,
-                       "clientMetadata" : <document>,
-                       "active" : <boolean>,
-                       "currentOpTime" : <string>,
-                       "opid" : <number>,
-                       "secs_running" : <NumberLong()>,
-                       "microsecs_running" : <number>,
-                       "op" : <string>,
-                       "ns" : <string>,
-                       "command" : <document>,
-                       "planSummary": <string>,
-                       "cursor" : {                              // only for getMore operations
-                          "cursorId" : <NumberLong()>,
-                          "createdDate" : <ISODate()>,
-                          "lastAccessDate" : <ISODate()>,
-                          "nDocsReturned" : <NumberLong()>,
-                          "nBatchesReturned" : <NumberLong()>,
-                          "noCursorTimeout" : <boolean>,
-                          "tailable" : <boolean>,
-                          "awaitData" : <boolean>,
-                          "originatingCommand" : <document>,
-                          "planSummary" : <string>,
-                          "operationUsingCursorId" : <NumberLong()>
-                       },
-                       "msg": <string>,
-                       "progress" : {
-                           "done" : <number>,
-                           "total" : <number>
-                       },
-                       "killPending" : <boolean>,
-                       "numYields" : <number>,
-                       "locks" : {
-                           "Global" : <string>,
-                           "Database" : <string>,
-                           "Collection" : <string>,
-                           "Metadata" : <string>,
-                           "oplog" : <string>
-                       },
-                       "waitingForLock" : <boolean>,
-                       "lockStats" : {
-                           "Global": {
-                              "acquireCount": {
-                                 "r": <NumberLong>,
-                                 "w": <NumberLong>,
-                                 "R": <NumberLong>,
-                                 "W": <NumberLong>
-                              },
-                              "acquireWaitCount": {
-                                 "r": <NumberLong>,
-                                 "w": <NumberLong>,
-                                 "R": <NumberLong>,
-                                 "W": <NumberLong>
-                              },
-                              "timeAcquiringMicros" : {
-                                 "r" : NumberLong(0),
-                                 "w" : NumberLong(0),
-                                 "R" : NumberLong(0),
-                                 "W" : NumberLong(0)
-                              },
-                              "deadlockCount" : {
-                                 "r" : NumberLong(0),
-                                 "w" : NumberLong(0),
-                                 "R" : NumberLong(0),
-                                 "W" : NumberLong(0)
+                      {
+                        "host" : <string>,
+                        "desc" : <string>,
+                        "connectionId" : <number>,
+                        "client" : <string>,
+                        "appName" : <string>,
+                        "clientMetadata" : <document>,
+                        "lsid" : {
+                           "id" : <UUID>,
+                           "uid" : <BinData>
+                        },
+                        "transaction" : {
+                           "parameters" : {
+                              "txnNumber" : <NumberLong()>,
+                              "autocommit" : <boolean>,
+                              "readConcern" : {
+                                 "level" : <string>
                               }
                            },
-                           "Database" : {
-                              ...
-                           },
-                           ...
-                       }
-                     },
-                     ...
+                           "readTimestamp" : <Timestamp>,
+                           "startWallClockTime" : <string>,
+                           "timeOpenMicros" : <NumberLong()>,
+                           "timeActiveMicros" : <NumberLong()>,
+                           "timeInactiveMicros" : <NumberLong()>,
+                           "expiryTime" : <string>,
+                        },
+                        "active" : <boolean>,
+                        "currentOpTime" : <string>,
+                        "opid" : <number>,
+                        "secs_running" : <NumberLong()>,
+                        "microsecs_running" : <number>,
+                        "op" : <string>,
+                        "ns" : <string>,
+                        "command" : <document>,
+                        "originatingCommand" : <document>,
+                        "planSummary": <string>,
+                        "msg": <string>,
+                        "progress" : {
+                            "done" : <number>,
+                            "total" : <number>
+                        },
+                        "killPending" : <boolean>,
+                        "numYields" : <number>,
+                        "locks" : {
+                            "Global" : <string>,
+                            "MMAPV1Journal" : <string>,
+                            "Database" : <string>,
+                            "Collection" : <string>,
+                            "Metadata" : <string>,
+                            "oplog" : <string>
+                        },
+                        "waitingForLock" : <boolean>,
+                        "lockStats" : {
+                            "Global": {
+                               "acquireCount": {
+                                  "r": <NumberLong>,
+                                  "w": <NumberLong>,
+                                  "R": <NumberLong>,
+                                  "W": <NumberLong>
+                               },
+                               "acquireWaitCount": {
+                                  "r": <NumberLong>,
+                                  "w": <NumberLong>,
+                                  "R": <NumberLong>,
+                                  "W": <NumberLong>
+                               },
+                               "timeAcquiringMicros" : {
+                                  "r" : NumberLong(0),
+                                  "w" : NumberLong(0),
+                                  "R" : NumberLong(0),
+                                  "W" : NumberLong(0)
+                               },
+                               "deadlockCount" : {
+                                  "r" : NumberLong(0),
+                                  "w" : NumberLong(0),
+                                  "R" : NumberLong(0),
+                                  "W" : NumberLong(0)
+                               }
+                            },
+                            "MMAPV1Journal": {
+                               ...
+                            },
+                            "Database" : {
+                               ...
+                            },
+                            ...
+                        }
+                      },
+                      ...
                   ],
                   "fsyncLock": <boolean>,
                   "info": <string>,
