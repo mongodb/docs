@@ -334,7 +334,7 @@ Examples
 Bulk Write Operations
 ~~~~~~~~~~~~~~~~~~~~~
 
-The ``characters`` collection contains the following documents:
+The ``characters`` collection in the ``guidebook`` database contains the following documents:
 
 .. code-block:: javascript
 
@@ -348,43 +348,20 @@ operations on the collection:
 .. code-block:: javascript
 
    try {
-      db.characters.bulkWrite(
-         [
-            { insertOne : 
-               { 
-                  "document" : 
-                  {
-                     "_id" : 4, "char" : "Dithras", "class" : "barbarian", "lvl" : 4
-                  }
-               } 
-            },
-            { insertOne : 
-               { 
-                  "document" : 
-                  {
-                     "_id" : 5, "char" : "Taeln", "class" : "fighter", "lvl" : 3
-                  }
-               } 
-            },
-            { updateOne : 
-               { 
-                  "filter" : { "char" : "Eldon" }, 
-                  "update" : { $set : { "status" : "Critical Injury" } }
-               }
-            },
-            { deleteOne : 
-               { "filter" : { "char" : "Brisbane"} }
-            },
-            { replaceOne :
-               {
-                  "filter" : { "char" : "Meldane" },
-                  "replacement" : { "char" : "Tanys", "class" : "oracle", "lvl" : 4 }
-               }
-            }
-         ]
-      );
-   }
-   catch (e) {
+      db.characters.bulkWrite([
+         { insertOne: { "document": { "_id": 4, "char": "Dithras", "class": "barbarian", "lvl": 4 } } },
+         { insertOne: { "document": { "_id": 5, "char": "Taeln", "class": "fighter", "lvl": 3 } } },
+         { updateOne : { 
+            "filter" : { "char" : "Eldon" }, 
+            "update" : { $set : { "status" : "Critical Injury" } } 
+         } },
+         { deleteOne : { "filter" : { "char" : "Brisbane"} } },
+         { replaceOne : { 
+            "filter" : { "char" : "Meldane" },
+            "replacement" : { "char" : "Tanys", "class" : "oracle", "lvl": 4 } 
+         } }
+      ]);
+   } catch (e) {
       print(e);
    }
 
@@ -407,20 +384,23 @@ The operation returns the following:
       }
    }
 
-If the ``_id`` value for the second of the ``insertOne`` operations were a 
-duplicate of an existing ``_id``, the following exception would be thrown:
+If the collection had contained a document with ``"_id" : 5"``
+before executing the bulk write, then when the bulk write is executed,
+the following duplicate key exception would be thrown for the second insertOne:
 
 .. code-block:: javascript
 
    BulkWriteError({
       "writeErrors" : [
          {
-            "index" : 0,
+            "index" : 1,
             "code" : 11000,
-            "errmsg" : "E11000 duplicate key error collection: guidebook.characters index: _id_ dup key: { : 4 }",
+            "errmsg" : "E11000 duplicate key error collection: guidebook.characters index: _id_ dup key: { _id: 5.0 }",
             "op" : {
                "_id" : 5,
-               "char" : "Taeln"
+               "char" : "Taeln",
+               "class" : "fighter",
+               "lvl" : 3
             }
          }
       ],
@@ -431,9 +411,10 @@ duplicate of an existing ``_id``, the following exception would be thrown:
       "nModified" : 0,
       "nRemoved" : 0,
       "upserted" : [ ]
-   }) 
+   })
 
-Since ``ordered`` was true by default, only the first operation completes 
+
+Since ``ordered`` is true by default, only the first operation completes 
 successfully. The rest are not executed. Running the
 :method:`~db.collection.bulkWrite()` with ``ordered : false`` would allow the 
 remaining operations to complete despite the error.
@@ -443,7 +424,7 @@ remaining operations to complete despite the error.
 Unordered Bulk Write
 ~~~~~~~~~~~~~~~~~~~~
 
-The ``characters`` collection contains the following documents:
+The ``characters`` collection in the ``guidebook`` database contains the following documents:
 
 .. code-block:: javascript
 
@@ -458,44 +439,20 @@ the ``insertOne`` stages has a duplicate ``_id`` value:
 .. code-block:: javascript
 
    try {
-      db.characters.bulkWrite(
-            [
-               { insertOne : 
-                  { 
-                     "document" : 
-                     {
-                        "_id" : 4, "char" : "Dithras", "class" : "barbarian", "lvl" : 4
-                     }
-                  } 
-               },
-               { insertOne : 
-                  { 
-                     "document" : 
-                        {
-                           "_id" : 4, "char" : "Taeln", "class" : "fighter", "lvl" : 3
-                        }
-                  } 
-               },
-               { updateOne : 
-                  { 
-                     "filter" : { "char" : "Eldon" }, 
-                     "update" : { $set : { "status" : "Critical Injury" } }
-                  }
-               },
-               { deleteOne : 
-                  { "filter" : { "char" : "Brisbane"} }
-               },
-               { replaceOne :
-                  {
-                     "filter" : { "char" : "Meldane" },
-                     "replacement" : { "char" : "Tanys", "class" : "oracle", "lvl" : 4 }
-                  }
-               }
-            ], 
-               { ordered : false }
-         );
-      }
-      catch (e) {
+      db.characters.bulkWrite([
+         { insertOne: { "document": { "_id": 4, "char": "Dithras", "class": "barbarian", "lvl": 4 } } },
+         { insertOne: { "document": { "_id": 4, "char": "Taeln", "class": "fighter", "lvl": 3 } } },
+         { updateOne : { 
+            "filter" : { "char" : "Eldon" }, 
+            "update" : { $set : { "status" : "Critical Injury" } } 
+         } },
+         { deleteOne : { "filter" : { "char" : "Brisbane"} } },
+         { replaceOne : { 
+            "filter" : { "char" : "Meldane" },
+            "replacement" : { "char" : "Tanys", "class" : "oracle", "lvl": 4 } 
+         } }
+      ], { ordered : false } );
+   } catch (e) {
       print(e);
    }
 
@@ -506,12 +463,14 @@ The operation returns the following:
    BulkWriteError({
       "writeErrors" : [
          {
-            "index" : 0,
+            "index" : 1,
             "code" : 11000,
-            "errmsg" : "E11000 duplicate key error collection: guidebook.characters index: _id_ dup key: { : 4 }",
+            "errmsg" : "E11000 duplicate key error collection: guidebook.characters index: _id_ dup key: { _id: 4.0 }",
             "op" : {
                "_id" : 4,
-               "char" : "Taeln"
+               "char" : "Taeln",
+               "class" : "fighter",
+               "lvl" : 3
             }
          }
       ],
@@ -563,7 +522,7 @@ operations on the collection using a :ref:`write concern <wc-w>` value of
                   "update" : { $inc : { "encounter" : -0.25 } } 
                },
             },
-            { deleteMany : { "filter" : { "encounter" { $lt : 0 } } } },
+            { deleteMany : { "filter" : { "encounter": { $lt : 0 } } } },
             { insertOne : 
                { 
                   "document" : 
@@ -575,8 +534,7 @@ operations on the collection using a :ref:`write concern <wc-w>` value of
          ],
          { writeConcern : { w : "majority", wtimeout : 100 } }
       );
-   }
-   catch (e) {
+   } catch (e) {
       print(e);
    }
    
@@ -592,10 +550,27 @@ has passed.
       "writeConcernErrors" : [
          {
             "code" : 64,
+            "codeName" : "WriteConcernFailed",
+            "errmsg" : "waiting for replication timed out",
             "errInfo" : {
                "wtimeout" : true
-            },
-            "errmsg" : "waiting for replication timed out"
+            }
+         },
+         {
+            "code" : 64,
+            "codeName" : "WriteConcernFailed",
+            "errmsg" : "waiting for replication timed out",
+            "errInfo" : {
+               "wtimeout" : true
+            }
+         },
+         {
+            "code" : 64,
+            "codeName" : "WriteConcernFailed",
+            "errmsg" : "waiting for replication timed out",
+            "errInfo" : {
+               "wtimeout" : true
+            }
          }
       ],
       "nInserted" : 1,
@@ -604,7 +579,7 @@ has passed.
       "nModified" : 4,
       "nRemoved" : 1,
       "upserted" : [ ]
-      })
+   })
 
 The result set shows the operations executed since 
 ``writeConcernErrors`` errors are *not* an indicator that any write 
