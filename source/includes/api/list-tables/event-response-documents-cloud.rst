@@ -15,6 +15,14 @@
      - Unique identifier for the alert configuration associated with
        the ``alertId``.
 
+   * - apiKeyId
+     - string
+     - Unique identifier for the :ref:`API Key <about-org-api-keys>`
+       that triggered this event.
+
+       If this field is present in the response, |mms| does not return
+       the ``userId`` field.
+
    * - clusterId
      - string
      - ID of the cluster to which this event applies.
@@ -98,6 +106,14 @@
      - integer
      - Port of the host associated with this event.
 
+   * - publicKey
+     - string
+     - Public key associated with the
+       :ref:`API Key <about-org-api-keys>` that triggered this event.
+
+       If this field is present in the response, |mms| does not return
+       the ``username`` field.
+
    * - remoteAddress
      - string
      - IP address associated with the |mms| user (userId) who
@@ -121,9 +137,15 @@
 
    * - userId
      - string
-     - Unique identifier for the |mms| user who triggered this event.
+     - Unique identifier for the |mms| user who triggered this
+       event.
+
+       If this field is present in the response, |mms| does not
+       return the ``apiKeyId`` field.
 
    * - username
      - string
      - Username for the |mms| user who triggered this event.
 
+       If this field is present in the response, |mms| does not return
+       ``publicKey`` field.
