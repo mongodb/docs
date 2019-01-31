@@ -1,3 +1,19 @@
+.. _opsmgr-server-4.1.1:
+
+|onprem| Rapid Release 4.1.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-01-31*
+
+- Deprecated Monitoring "Display Name" has been removed from the user
+  interface and |api|.
+- Updates JDK to
+  `AdoptOpenJDK 11.0.1+13 <https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/tag/jdk-11.0.1%2B13>`__.
+- Agent Upgrades:
+  :ref:`automation-6.1.0.5603`,
+  :ref:`backup-7.3.0.1023`,
+  :ref:`monitoring-6.8.0.472`
+
 .. _opsmgr-server-4.1.0:
 
 |onprem| Rapid Release 4.1.0

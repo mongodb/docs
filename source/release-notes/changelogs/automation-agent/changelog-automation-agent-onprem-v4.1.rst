@@ -1,3 +1,16 @@
+.. _automation-6.1.0.5603:
+
+Automation Agent 6.1.0.5603
+---------------------------
+
+:ref:`Released with Ops Manager 4.1.1 on 2019-01-31 <opsmgr-server-4.1.1>`
+
+- Built with Go 1.10.
+- Significant reduction in memory footprint when managing 
+  sharded clusters.
+- **Fix:** Allow successful conversion of MongoDB storageEngine for 
+  a standalone with |tls-ssl| enabled.
+
 .. _automation-5.9.1.5566:
 
 Automation Agent Version 5.9.1.5566
