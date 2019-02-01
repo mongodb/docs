@@ -47,6 +47,8 @@
           * - ``readPreference``
             - | ``"primary"`` if |bic| reads from the primary.
               | ``"secondary"`` if |bic| reads from a secondary.
+              | ``"analytics"`` if |bic| reads from an
+                :ref:`analytics node <analytics-node-overview>`.
 
    * - ``clusterType``
      - string

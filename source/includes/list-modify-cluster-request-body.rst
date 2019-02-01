@@ -37,22 +37,59 @@
 
    * - ``biConnector``
      - document
-     - Specify whether to enable/disable |bic|.
+     - *Optional*
+
+       Specifies |bic| configuration on this cluster.
 
        .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
 
-       The ``biConnector`` document includes the following fields:
+   * - ``biConnector.enabled``
+     - boolean
+     - *Optional*
 
-       .. list-table::
-          :widths: 20 80
+       Specifies whether or not |bic| is enabled on the cluster.
 
-          * - ``enabled``
-            - | Set to ``true`` to enable |bic|.
-              | Set to ``false`` to disable |bic|.
+       - Set to ``true`` to enable |bic|.
+       - Set to ``false`` to disable |bic|.
 
-          * - ``readPreference``
-            - | Set to ``"primary"`` to have |bic| read from the primary.
-              | Set to ``"secondary"`` to have |bic| read from a secondary member. *Default*
+   * - ``biConnector.readPreference``
+     - string
+     - *Optional*
+
+       Specifies the read preference to be used by |bic| on the
+       cluster. Each |bic| read preference contains a distinct
+       combination of :manual:`readPreference </core/read-preference/>`
+       and :manual:`readPreferenceTags
+       </core/read-preference/#tag-sets>` options. For details on |bic|
+       read preferences, refer to the
+       :ref:`Analytics Nodes Page <analytic-nodes-overview>`.
+
+       - Set to ``"primary"`` to have |bic| read from the primary.
+
+       - Set to ``"secondary"`` to have |bic| read from a
+         secondary member. *Default if there are no
+         analytics nodes in the cluster*.
+
+       - Set to ``"analytics"`` to have |bic| read from an
+         :ref:`analytics node <analytics-node-overview>`.
+         *Default if the cluster contains analytics nodes*.
+
+         To set the ``readPreference`` value to ``"analytics"``,
+         the cluster must have at least one analytics node.
+
+         If the ``readPreference`` value is ``"analytics"``, you
+         cannot remove all analytics nodes from the cluster.
+
+         .. note::
+
+            When using a ``readPreference`` of ``"analytics"``,
+            |service| colocates |bic| on the same hardware
+            as the analytics nodes from which |bic| reads.
+
+            By isolating electable data-bearing nodes from the
+            |bic|, electable nodes do not compete for resources
+            with |bic|, thus improving cluster reliability
+            and performance.
 
    * - ``clusterType``
      - string
@@ -329,7 +366,7 @@
      - String
      - *Optional*
 
-       .. include:: /includes/providerSettings-volumeType.rst  
+       .. include:: /includes/providerSettings-volumeType.rst
 
    * - ``providerSettings.encryptEBSVolume``
      - Boolean
