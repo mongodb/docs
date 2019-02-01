@@ -9,6 +9,3 @@ Ubuntu releases:
 
 See :ref:`mongodb-supported-platforms` for more information.
 
-These packages may work with other Ubuntu releases; however, they are
-not supported.
-

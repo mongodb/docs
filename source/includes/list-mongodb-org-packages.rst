@@ -1,8 +1,7 @@
 .. Only include this file on a page containing the section title
 .. "Run MongoDB Community Edition"
 
-MongoDB provides officially supported packages in their own repository. This
-repository contains the following packages:
+MongoDB provides officially supported packages in their own repository:
 
 .. list-table::
    :header-rows: 1
