@@ -13,7 +13,7 @@
    Key in the :guilabel:`Description` box.
 
 #. Select the :ref:`new role or roles <project-roles>` for the
-   |api| Key from the :guilabel:`Group Permissions` menu.
+   |api| Key from the :guilabel:`Project Permissions` menu.
 
 #. Click :guilabel:`Next`.
 
