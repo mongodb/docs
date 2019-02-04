@@ -1,0 +1,487 @@
+===============
+$planCacheStats
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $planCacheStats
+
+   .. versionadded:: 4.2
+
+   Returns :doc:`plan cache </core/query-plans>` information for a
+   collection. The stage returns a document for each plan cache entry.
+
+   The :pipeline:`$planCacheStats` stage must be the first stage in the
+   pipeline. The stage takes an empty document as a parameter and has
+   the following syntax:
+
+   .. code-block:: javascript
+
+      { $planCacheStats: { } }
+
+   .. note::
+
+      .. include:: /includes/extracts/4.2-changes-planCacheStats-pref.rst
+
+.. seealso:: :doc:`/core/query-plans` 
+
+Considerations
+--------------
+
+Pipeline
+~~~~~~~~
+
+:pipeline:`$planCacheStats` must be the first stage in an aggregation
+pipeline.
+
+Restrictions
+~~~~~~~~~~~~
+
+- :pipeline:`$planCacheStats` is not allowed in:
+
+  - :doc:`transactions </core/transactions>`
+
+  - :pipeline:`$facet` aggregation stage
+
+- :pipeline:`$planCacheStats` requires read concern level
+  :readconcern:`local`.
+
+- :pipeline:`$planCacheStats` cannot be run on :binary:`~bin.mongos`
+  instances.
+
+Access Control
+~~~~~~~~~~~~~~
+
+On systems running with :setting:`~security.authorization`, the user
+must have the :authaction:`planCacheRead` privilege for the collection.
+
+Output
+------
+
+For each plan cache entry, the :pipeline:`$planCacheStats` stage returns a
+document similar to the following:
+
+.. code-block:: javascript
+
+   {
+      "createdFromQuery" : <document>,
+      "queryHash" : <hexadecimal string>,
+      "planCacheKey" : <hexadecimal string>,
+      "isActive" :  <boolean>,
+      "works" : <NumberLong>,
+      "cachedPlan" : {
+         "stage" : <STAGE1>,
+         "filter" : <document>,
+         "inputStage" : {
+            "stage" : <STAGE2>,
+            ...
+         }
+      },
+      "timeOfCreation" : <date>,
+      "creationExecStats" : [   // Exec Stats Document for each candidate plan
+         {
+            "nReturned" : <num>,
+            "executionTimeMillisEstimate" : <num>
+            "totalKeysExamined" : <num>
+            "totalDocsExamined" :<num>
+            "executionStages" : {
+               "stage" : <STAGE A>,
+               ...
+               "inputStage" : {
+                  "stage" : <STAGE B>,
+                  ...
+               }
+            }
+         },
+         ...
+      ],
+      "candidatePlanScores" : [
+         <number>,
+         ...
+      ],
+      "indexFilterSet" : <boolean>
+   }
+
+Each document includes various query plan and execution stats,
+including:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - ``createdFromQuery``
+
+     - A document that contains the specific query that resulted in
+       this cache entry; i.e.
+
+       .. code-block:: javascript
+          :copyable: false
+
+          {
+            "query" : <document>,
+            "sort" : <document>,
+            "projection" : <document>
+          }
+
+   * - ``isActive``
+
+     - A boolean that indicates whether the entry is active or inactive.
+    
+       - If active, the query planner is currently using the entry to
+         generate query plans.
+
+       - If inactive, the query planner is not currently using the
+         entry to generate query plans.
+
+   * - ``queryHash``
+
+     - A hexadecimal string that represents the hash of the :term:`query 
+       shape`. For more information, see
+       :data:`explain.queryPlanner.queryHash`
+
+   * - ``planCacheKey``
+
+     - A hexadecimal string that represents the hash of the key used to
+       find the plan cache entry associated with this query. The plan
+       cache key is a function of both the query shape and the
+       currently available indexes for that shape. For more information, see
+       :data:`explain.queryPlanner.planCacheKey`
+
+   * - ``cachedPlan``
+
+     - The details of the cached plan. See :data:`explain.queryPlanner`.
+
+   * - ``works``
+
+     - The number of "work units" performed by the query execution plan
+       during the trial period when the query planner evaluates
+       candidate plans. For more information, see
+       :data:`explain.executionStats.executionStages.works`
+
+   * - ``timeOfCreation``
+     - Time of creation for the entry.
+
+   * - ``creationExecStats``
+
+     - An array of execution stats documents. The array contains a
+       document for each candidate plan.
+
+       For details on the execution stats, see
+       :data:`explain.executionStats`.
+
+   * - ``candidatePlanScores``
+
+     - An array of scores for the candidate plans listed in the
+       ``creationExecStats`` array.
+
+   * - ``indexFilterSet``
+
+     - A boolean that indicates whether the an :ref:`index filter
+       <index-filters>` exists for the query shape.
+
+Examples
+--------
+
+The examples in this section use the following ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.insert([
+      { "_id" : 1, "item" : "abc", "price" : NumberDecimal("12"), "quantity" : 2, "type": "apparel" },
+      { "_id" : 2, "item" : "jkl", "price" : NumberDecimal("20"), "quantity" : 1, "type": "electronics" },
+      { "_id" : 3, "item" : "abc", "price" : NumberDecimal("10"), "quantity" : 5, "type": "apparel" },
+      { "_id" : 4, "item" : "abc", "price" : NumberDecimal("8"), "quantity" : 10, "type": "apparel" },
+      { "_id" : 5, "item" : "jkl", "price" : NumberDecimal("15"), "quantity" : 15, "type": "electronics" }
+   ])
+
+Create the following indexes on the collection:
+
+.. code-block:: javascript
+
+   db.orders.createIndex( { item: 1 } );
+   db.orders.createIndex( { item: 1, quantity: 1 } );
+   db.orders.createIndex( { item: 1, price: 1 }, { partialFilterExpression: { price: { $gte: NumberDecimal("10")} } } );
+   db.orders.createIndex( { quantity: 1 } );
+   db.orders.createIndex( { quantity: 1, type: 1 } );
+
+.. note::
+
+   Index ``{ item: 1, price: 1 }`` is a :doc:`partial index
+   </core/index-partial>` and only indexes documents with ``price``
+   field greater than or equal to ``NumberDecimal("10")``.
+
+Run some queries against the collection:
+
+.. code-block:: javascript
+
+   db.orders.find( { item: "abc", price: { $gte: NumberDecimal("10") } } )
+   db.orders.find( { item: "abc", price: { $gte: NumberDecimal("5") } } )
+   db.orders.find( { quantity: { $gte: 20 } } )
+   db.orders.find( { quantity: { $gte: 5 }, type: "apparel" } )
+
+Return Information for All Entries in the Query Cache
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation pipeline uses :pipeline:`$planCacheStats` to
+return information on the plan cache entries for the collection:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [ 
+      { $planCacheStats: { } }
+   ] )
+
+The operation returns all entries in the cache:
+
+.. code-block:: javascript
+
+   {                                               // Plan Cache Entry 1
+      "createdFromQuery" : {
+         "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" },
+         "sort" : { },
+         "projection" : { }
+      },
+      "queryHash" : "4D151C4C",
+      "planCacheKey" : "DD67E353",
+      "isActive" : true,
+      "works" : NumberLong(4),
+      "cachedPlan" : {
+         ...
+      },
+      "timeOfCreation" : ISODate("2019-02-04T20:30:10.414Z"),
+      "creationExecStats" : [
+         {
+            ... // Exec Stats for Candidate 1
+         },
+         {
+            ... // Exec Stats for Candidate 2
+         }
+      ],
+      "candidatePlanScores" : [
+         1.5003000000000002,
+         1.5003000000000002
+      ],
+      "indexFilterSet" : false
+   }
+   {                                               // Plan Cache Entry 2
+      "createdFromQuery" : {
+         "query" : { "quantity" : { "$gte" : 20 } },
+         "sort" : { },
+         "projection" : { }
+      },
+      "queryHash" : "23B19B75",
+      "planCacheKey" : "6F23F858",
+      "isActive" : true,
+      "works" : NumberLong(1),
+      "cachedPlan" : {
+         ...
+      },
+      "timeOfCreation" : ISODate("2019-02-04T20:30:10.412Z"),
+      "creationExecStats" : [
+         {
+            ... // Exec Stats for Candidate 1
+         },
+         {
+            ... // Exec Stats for Candidate 2
+         }
+      ],
+      "candidatePlanScores" : [
+         1.0003000000000002,
+         1.0003000000000002
+      ],
+      "indexFilterSet" : false
+   }
+   {                                               // Plan Cache Entry 3
+      "createdFromQuery" : {
+         "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("5") } },
+         "sort" : { },
+         "projection" : { }
+      },
+      "queryHash" : "117A6B10",
+      "planCacheKey" : "A1824628",
+      "isActive" : true,
+      "works" : NumberLong(4),
+      "cachedPlan" : {
+         ...
+      },
+      "timeOfCreation" : ISODate("2019-02-04T20:30:10.410Z"),
+      "creationExecStats" : [
+         {
+            ... // Exec Stats for Candidate 1
+         },
+         {
+            ... // Exec Stats for Candidate 2
+         }
+      ],
+      "candidatePlanScores" : [
+         1.7503000000000002,
+         1.7503000000000002
+      ],
+      "indexFilterSet" : false
+   }
+   {                                               // Plan Cache Entry 4
+      "createdFromQuery" : {
+         "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("10") } },
+         "sort" : { },
+         "projection" : { }
+      },
+      "queryHash" : "117A6B10",
+      "planCacheKey" : "2E6E536B",
+      "isActive" : true,
+      "works" : NumberLong(3),
+      "cachedPlan" : {
+         ...
+      },
+      "timeOfCreation" : ISODate("2019-02-04T20:30:10.408Z"),
+      "creationExecStats" : [
+         {
+            ... // Exec Stats for Candidate 1
+         },
+         {
+            ... // Exec Stats for Candidate 2
+         },
+         {
+            ... // Exec Stats for Candidate 3
+         }
+      ],
+      "candidatePlanScores" : [
+         1.6669666666666663,
+         1.6669666666666665,
+         1.6669666666666665
+      ],
+      "indexFilterSet" : false
+   }
+
+See also :ref:`plan-cache-key`. 
+
+Return Plan Cache Information for Specific Query Shape
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation pipeline uses :pipeline:`$planCacheStats`
+followed by a :pipeline:`$match` and :pipeline:`$project` to return
+specific information for a particular query shape:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [ 
+      { $planCacheStats: { } },
+      { $match: { queryHash: "117A6B10"} },
+      { $project: { createdFromQuery: 1, queryHash: 1, planCacheKey: 1, isActive: 1, works: 1, cachedPlan: 1} }
+   ] )
+
+The operation returns the following two documents:
+
+.. code-block:: javascript
+
+   {
+      "createdFromQuery" : {
+         "query" : {
+            "item" : "abc",
+            "price" : {
+               "$gte" : NumberDecimal("5")
+            }
+         },
+         "sort" : {
+         
+         },
+         "projection" : {
+         
+         }
+      },
+      "queryHash" : "117A6B10",
+      "planCacheKey" : "A1824628",
+      "isActive" : false,
+      "works" : NumberLong(4),
+      "cachedPlan" : {
+         "stage" : "FETCH",
+         "filter" : {
+            "price" : {
+               "$gte" : NumberDecimal("5")
+            }
+         },
+         "inputStage" : {
+            "stage" : "IXSCAN",
+            "keyPattern" : {
+               "item" : 1
+            },
+            "indexName" : "item_1",
+            "isMultiKey" : false,
+            "multiKeyPaths" : {
+               "item" : [ ]
+            },
+            "isUnique" : false,
+            "isSparse" : false,
+            "isPartial" : false,
+            "indexVersion" : 2,
+            "direction" : "forward",
+            "indexBounds" : {
+               "item" : [
+                  "[\"abc\", \"abc\"]"
+               ]
+            }
+         }
+      }
+   }
+   {
+      "createdFromQuery" : {
+         "query" : {
+            "item" : "abc",
+            "price" : {
+               "$gte" : NumberDecimal("10")
+            }
+         },
+         "sort" : {
+         
+         },
+         "projection" : {
+         
+         }
+      },
+      "queryHash" : "117A6B10",
+      "planCacheKey" : "2E6E536B",
+      "isActive" : false,
+      "works" : NumberLong(3),
+      "cachedPlan" : {
+         "stage" : "FETCH",
+         "inputStage" : {
+            "stage" : "IXSCAN",
+            "keyPattern" : {
+               "item" : 1,
+               "price" : 1
+            },
+            "indexName" : "item_1_price_1",
+            "isMultiKey" : false,
+            "multiKeyPaths" : {
+               "item" : [ ],
+               "price" : [ ]
+            },
+            "isUnique" : false,
+            "isSparse" : false,
+            "isPartial" : true,
+            "indexVersion" : 2,
+            "direction" : "forward",
+            "indexBounds" : {
+               "item" : [
+                  "[\"abc\", \"abc\"]"
+               ],
+               "price" : [
+                  "[10, inf.0]"
+               ]
+            }
+         }
+      }
+   }
+
+See also :ref:`plan-cache-key`. 

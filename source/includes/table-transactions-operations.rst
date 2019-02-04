@@ -16,6 +16,7 @@
        - :pipeline:`$listLocalSessions`
        - :pipeline:`$listSessions`
        - :pipeline:`$out`
+       - :pipeline:`$planCacheStats`
 
    * - :method:`db.collection.countDocuments()` 
      -
