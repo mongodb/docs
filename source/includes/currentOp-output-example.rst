@@ -113,6 +113,7 @@
                {
                  "inprog": [
                       {
+                        "type" : <string>,
                         "host" : <string>,
                         "desc" : <string>,
                         "connectionId" : <number>,
@@ -148,6 +149,19 @@
                         "command" : <document>,
                         "originatingCommand" : <document>,
                         "planSummary": <string>,
+                        "cursor" : {                              // only for getMore operations
+                           "cursorId" : <NumberLong()>,
+                           "createdDate" : <ISODate()>,
+                           "lastAccessDate" : <ISODate()>,
+                           "nDocsReturned" : <NumberLong()>,
+                           "nBatchesReturned" : <NumberLong()>,
+                           "noCursorTimeout" : <boolean>,
+                           "tailable" : <boolean>,
+                           "awaitData" : <boolean>,
+                           "originatingCommand" : <document>,
+                           "planSummary" : <string>,
+                           "operationUsingCursorId" : <NumberLong()>
+                        },
                         "msg": <string>,
                         "progress" : {
                             "done" : <number>,
@@ -157,7 +171,6 @@
                         "numYields" : <number>,
                         "locks" : {
                             "Global" : <string>,
-                            "MMAPV1Journal" : <string>,
                             "Database" : <string>,
                             "Collection" : <string>,
                             "Metadata" : <string>,
@@ -190,9 +203,6 @@
                                   "R" : NumberLong(0),
                                   "W" : NumberLong(0)
                                }
-                            },
-                            "MMAPV1Journal": {
-                               ...
                             },
                             "Database" : {
                                ...
