@@ -70,14 +70,43 @@ description: |
      The ``deb`` and ``rpm`` packages include a default configuration
      file (``/etc/mongod.conf``) that sets {{role}} to ``127.0.0.1``.
 
-  {{intro}} IP address that {{program}} binds to in order to listen
-  for connections from applications. You may attach {{program}} to any
-  interface. When attaching {{program}} to a publicly accessible
-  interface, ensure that you have implemented proper authentication and
-  firewall restrictions to protect the integrity of your database.
-optional: true
+  The IP addresses and/or full Unix domain socket paths on which
+  {{program}} should listen for client connections. You may attach
+  {{program}} to any interface. To bind to multiple addresses, enter a
+  list of comma-separated values.
+
+  .. example:: ``localhost,/tmp/mongod.sock``
+
+  You can specify both IPv4 and IPv6 addresses, or hostnames that
+  resolve to an IPv4 or IPv6 address.
+
+  .. example:: ``localhost, 2001:0DB8:e132:ba26:0d5c:2774:e7f9:d513``
+
+  .. note::
+
+     If specifying an IPv6 address *or* a hostname that resolves to an
+     IPv6 address to {{role}}, you must start {{program}} with 
+     {{ipv6}} to enable IPv6 support. Specifying an IPv6 address
+     to {{role}} does not enable IPv6 support.
+
+  If specifying a 
+  `link-local IPv6 address <https://en.wikipedia.org/w/index.php?title=Link-local_address&oldid=880793020#IPv6>`_ 
+  (``fe80::/10``), you must append the 
+  `zone index <https://en.wikipedia.org/w/index.php?title=IPv6_address&oldid=877601778#Scoped_literal_IPv6_addresses>`_
+  to that address (i.e. ``fe80::<address>%<adapter-name>``). 
+
+  .. example:: ``localhost,fe80::a00:27ff:fee0:1fcf%enp0s3``
+
+  .. include:: /includes/tip-hostnames.rst
+
+  .. include:: /includes/warning-bind-ip-security-considerations.rst
 replacement:
-  intro: "Specifies the"
+  ipv6: ":option:`--ipv6`"
+optional: true
+post: |
+  To bind to all IPv4 addresses, enter ``0.0.0.0``.
+
+  To bind to all IPv4 and IPv6 addresses, enter ``0.0.0.0,::``.
 ---
 program: mongod
 name: maxConns
@@ -473,7 +502,7 @@ description: |
   the {{program}} process allows between
   journal operations. Values can range from 1 to 500 milliseconds. Lower
   values increase the durability of the journal, at the expense of disk
-  performance.  The default journal commit interval is 100 milliseconds.
+  performance. The default journal commit interval is 100 milliseconds.
 
   On MMAPv1, if the journal is on a different block device (e.g. physical
   volume, RAID device, or LVM volume) than the data files, the default journal
@@ -497,8 +526,16 @@ args: null
 directive: option
 description: |
 
-   Enables IPv6 support. {{program}} disables IPv6 support by default.
+   {{intro}} IPv6 support. {{program}} disables IPv6 support by default.
 
+   Setting {{role}} does *not* direct the {{program}} to listen on any
+   local IPv6 addresses or interfaces. To configure the {{program}} to
+   listen on an IPv6 interface, you must configure {{bindIp}} with one
+   or more IPv6 addresses or hostnames that resolve to IPv6 addresses.
+
+replacement:
+  intro: "Enables"
+  bindIp: ":option:`--bind_ip`"
 optional: true
 ---
 program: mongod
