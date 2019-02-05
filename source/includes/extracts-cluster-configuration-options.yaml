@@ -3,7 +3,10 @@ content: |
 
   To configure additional cluster options, toggle
   :guilabel:`Select Multi-Region, Workload Isolation, and Replication Options (M10+ clusters)`
-  to :guilabel:`Yes`.
+  to :guilabel:`Yes`. Use these options to add cluster nodes in
+  different geographic regions with different workload priorities,
+  and direct application queries to the appropriate cluster nodes.
+
 
   .. admonition:: AWS Only
      :class: note
@@ -113,10 +116,13 @@ content: |
   .. _deploy-analytics-nodes:
 
   :guilabel:`Analytics nodes for workload isolation`
-     Use analytics nodes to isolate queries which you do not wish to
-     contend with your operational workload. Analytics nodes are useful
-     for handling reporting queries executed by
-     :abbr:`BI (Business Intelligence)` tools and other analytic data.
+     Use :ref:`analytics nodes <analytics-nodes-overview>` to isolate
+     queries which you do not wish to contend with your operational
+     workload. Analytics nodes are useful for handling reporting
+     queries executed by :abbr:`BI (Business Intelligence)` tools and
+     other analytic data. Analytics nodes have
+     distinct :manual:`read preference </core/read-preference>` tags
+     that allow you to direct queries to desired regions.
 
      Click :guilabel:`Add a region` to select a region in which to
      deploy analytics nodes. Specify the desired number of
@@ -130,11 +136,9 @@ content: |
         </reference/limits/#Number-of-Members-of-a-Replica-Set>`
         there is no maximum number of analytics nodes.
 
-     Analytics nodes cannot provide high availability because they
-     cannot participate in :term:`elections <election>`, or become the
-     :term:`primary` for their cluster. Analytics nodes have
-     distinct :manual:`read preference </core/read-preference>` tags
-     that allow you to direct queries to desired regions.
+     Analytics nodes cannot participate in
+     :term:`elections <election>`, or become the :term:`primary` for
+     their cluster.
 
      To remove an analytics node, click the :icon:`trash-alt` icon
      next to that region.
@@ -444,7 +448,7 @@ content: |
 ref: cluster-option-bi
 content: |
 
-   To enable the `BI Connector for Atlas
+   To enable `BI Connector for Atlas
    <https://docs.mongodb.com/bi-connector/master/>`__ for this cluster,
    toggle :guilabel:`Enable Business Intelligence Connector (M10 and
    up)` to :guilabel:`Yes`.
@@ -456,22 +460,72 @@ content: |
    If enabled, select the node type from which |bic|
    should read.
 
-   For high traffic production environments, the
-   :guilabel:`Secondary Node` may be preferable to the
-   :guilabel:`Primary Node`.
+   .. _bic-read-preferences:
 
-   Select :guilabel:`Analytics Node` to isolate |bic| queries from
+   The following table describes the available read preferences for
+   |bic| and their corresponding
+   :manual:`readPreference </reference/read-preference>` and
+   :manual:`readPreferenceTag </core/read-preference/#tag-sets>`
+   connection string options.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 30 20 30
+
+      * - |bic-short| Read Preference
+        - Description
+        - readPreference
+        - readPreferenceTags
+
+      * - Primary
+        - Read from the :term:`primary` node.
+        - ``primary``
+        - None
+
+      * - Secondary
+        - Read from :term:`secondary` nodes.
+        - ``secondary``
+        - ``nodeType:ELECTABLE,nodeType:READ_ONLY``
+
+      * - Analytics
+        - |bic| reads from analytics nodes.
+        - ``secondary``
+        - ``nodeType:ANALYTICS``
+
+   The ``nodeType`` read preference tag dictates the type of node |bic|
+   connects to. The possible values for this option are as follows:
+
+   - ``ELECTABLE`` restricts |bic-short| to the :term:`primary` and
+     electable :term:`secondary` nodes.
+
+   - ``READ-ONLY`` restricts |bic-short| to connecting to
+     non-electable :term:`secondary` nodes.
+
+   - ``ANALYTICS`` restricts |bic-short| to connecting to
+     :ref:`analytics nodes <analytics-nodes-overview>`.
+
+     .. tip::
+
+        When using a ``readPreference`` of ``"analytics"``,
+        |service| places |bic| on the same hardware
+        as the analytics nodes from which |bic| reads.
+
+        By isolating electable data-bearing nodes from the
+        |bic|, electable nodes do not compete for resources
+        with |bic|, thus improving cluster reliability
+        and performance.
+
+   For high traffic production environments, connecting to the
+   :guilabel:`Secondary Node(s)` or :guilabel:`Analytics Node(s)` may
+   be preferable to connecting to the :guilabel:`Primary Node`.
+
+   For clusters with one or more
+   :ref:`analytics nodes <analytics-nodes-overview>`, select
+   :guilabel:`Analytics Node` to isolate |bic| queries from
    your operational workload and read from dedicated, read-only
-   analytics nodes. In this case, electable nodes do not compete for
-   resources with |bic|, thus improving cluster reliability and
+   analytics nodes. With this option, electable nodes do not compete
+   for resources with |bic|, thus improving cluster reliability and
    performance.
-
-   .. note::
-
-      You can only select :guilabel:`Analytics Node` if you have
-      configured at least one analytics node in your cluster. For
-      more information on analytics nodes, see :ref:`Analytics Nodes
-      <analytics-node-overview>`.
 
    The BI Connector generates a relational schema by
    :bic:`sampling data </schema/cached-sampling/>` from MongoDB. The

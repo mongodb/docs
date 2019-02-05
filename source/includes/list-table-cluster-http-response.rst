@@ -48,7 +48,7 @@
             - | ``"primary"`` if |bic| reads from the primary.
               | ``"secondary"`` if |bic| reads from a secondary.
               | ``"analytics"`` if |bic| reads from an
-                :ref:`analytics node <analytics-node-overview>`.
+                :ref:`analytics node <analytics-nodes-overview>`.
 
    * - ``clusterType``
      - string
@@ -369,8 +369,8 @@
      - integer
      - The number of :ref:`analytics nodes <analytics-nodes-overview>`
        in the region. Analytics nodes are useful for handling analytic
-       data such as reporting queries. Analytics nodes are read-only,
-       and can never become the :term:`primary`.
+       data such as reporting queries from |bic|. Analytics nodes are
+       read-only, and can never become the :term:`primary`.
 
    * - ``replicationSpecs``
      - array of documents

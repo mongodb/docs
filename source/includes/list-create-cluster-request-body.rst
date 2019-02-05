@@ -68,7 +68,8 @@
        and :manual:`readPreferenceTags
        </core/read-preference/#tag-sets>` options. For details on |bic|
        read preferences, refer to the
-       :ref:`Analytics Nodes Page <analytic-nodes-overview>`.
+       :ref:`BI Connector Read Preferences Table
+       <bic-read-preferences>`.
 
        - Set to ``"primary"`` to have |bic| read from the primary.
 
@@ -77,25 +78,16 @@
          analytics nodes in the cluster*.
 
        - Set to ``"analytics"`` to have |bic| read from an
-         :ref:`analytics node <analytics-node-overview>`.
+         :ref:`analytics node <analytics-nodes-overview>`.
          *Default if the cluster contains analytics nodes*.
-
-         To set the ``readPreference`` value to ``"analytics"``,
-         the cluster must have at least one analytics node.
-
-         If the ``readPreference`` value is ``"analytics"``, you
-         cannot remove all analytics nodes from the cluster.
 
          .. note::
 
-            When using a ``readPreference`` of ``"analytics"``,
-            |service| places |bic| on the same hardware
-            as the analytics nodes from which |bic| reads.
+            To set the ``readPreference`` value to ``"analytics"``,
+            the cluster must have at least one analytics node.
 
-            By isolating electable data-bearing nodes from the
-            |bic|, electable nodes do not compete for resources
-            with |bic|, thus improving cluster reliability
-            and performance.
+            If the readPreference value is ``analytics``, you
+            cannot remove all analytics nodes from the cluster.
 
    * - ``clusterType``
      - string

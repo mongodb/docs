@@ -1,0 +1,171 @@
+.. _replica-set-tags:
+
+==========================
+|service| Replica Set Tags
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| clusters are configured with pre-defined
+:manual:`replica set tags </tutorial/configure-replica-set-tag-sets/>`
+for different member types in the cluster. You can utilize these
+pre-defined replica set tags to direct queries from specific
+applications to desired node types and regions. These tags sets allow
+you to customize :manual:`read preferences </core/read-preference/>`
+for a replica set, thus improving cluster performance and reliability.
+
+Replica Set Tag Descriptions
+----------------------------
+
+The following table describes the pre-defined replica set tags
+|service| implements:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Tag Name
+     - Description
+     - Example
+
+   * - Provider
+     - Cloud provider on which the node is provisioned.
+
+       Possible values are:
+
+       - ``AWS``
+       - ``GCP``
+       - ``AZURE``
+
+     - ``{"provider" : "AWS"}``
+
+   * - Region
+     - Cloud region in which the node resides.
+
+       The following table shows the possible ``region`` values for
+       each cloud provider:
+
+       .. list-table::
+          :header-rows: 1
+       
+          * - Provider
+            - Region Names
+       
+          * - AWS
+            - .. include:: /includes/fact-aws-region-names.rst
+       
+          * - GCP
+            - .. include:: /includes/fact-gcp-region-names.rst
+       
+          * - AZURE
+            - .. include:: /includes/fact-azure-region-names.rst
+
+     - ``{"region" : "US_EAST_2"}``
+
+   * - Node Type
+     - Node type.
+
+       Possible values are:
+
+       - ``PRIMARY``
+       - ``SECONDARY``
+       - ``ANALYTICS``
+
+     - ``{"nodeType" : "ANALYTICS"}``
+
+.. seealso::
+
+   For details on how these replica set tags correspond to
+   |bic| read preferences, refer to the |bic-short| cluster options
+   section of the :ref:`Create a Cluster Page <bic-read-preferences>`.
+
+Use Cases and Examples
+----------------------
+
+The following section walks through distinct scenarios utilizing
+various pre-defined replica set tags, and sample connection strings
+for each.
+
+Utilize Analytics Nodes to Isolate Workloads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an application performs complex or long-running operations, such as
+:abbr:`ETL (Extract Transform Load)` or reporting, you may want to
+isolate the application's queries from the rest of your operational
+workload by connecting exclusively to analytics nodes.
+
+In this case, the following
+:manual:`connection string </reference/connection-string/>` forces
+your application to only connect to analytic nodes:
+
+.. code-block:: none
+
+   mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=nodeType:ANALYTICS
+
+The :manual:`readPreference </reference/read-preference>` option of
+``secondary`` and :manual:`readPreferenceTag
+</core/read-preference/#tag-sets>` option of ``{nodeType:ANALYTICS}``
+limit the application connections to analytic nodes.
+
+Isolate Normal Application Secondary Reads from Analytics Nodes
+```````````````````````````````````````````````````````````````
+
+In conjunction with the previous example, you may want to ensure that
+normal application reads from secondary nodes are isolated from the
+workload on analytics nodes.
+
+In this case, the following connection string disallows the application
+from reading from analytics nodes and forces it to read from secondary
+nodes:
+
+.. code-block:: none
+
+   mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=nodeType:ELECTABLE&readPreferenceTags=nodeType:READ_ONLY
+
+The :manual:`readPreference </reference/read-preference>` option of
+``secondary`` limits the application connections to
+:term:`secondary` nodes. This option together with the
+:manual:`read preference tags </core/read-preference/#tag-sets>` of
+``nodeType:ELECTABLE`` and ``nodeType:READ_ONLY`` results in the
+application reading from electable secondary nodes, as indicated in the
+:ref:`Read Preferences Table <bic-read-preferences>`.
+
+Target Local Reads for Geographically-Distributed Applications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can utilize |service| replica set tags to target local reads to
+specific regions for globally distributed applications. Prior to the
+introduction of these tags, local reads for globally distributed
+applications relied on correctly calculating the
+:manual:`nearest </reference/read-preference/#nearest>` read
+preference. With |service| replica set tags, specifying appropriate
+geographic :manual:`tags </core/read-preference/#tag-sets>` in
+combination with a read preference mode of ``nearest`` provides more
+consistent behavior.
+
+The following connection string limits the application to connecting to
+|aws| regions ``US_EAST_1`` and ``US_EAST_2``:
+
+.. code-block:: none
+
+   mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=nearest&readPreferenceTags=provider:AWS,region:US_EAST_1&readPreferenceTags=provider:AWS,region:US_EAST_2
+
+The :manual:`read preference tags </core/read-preference/#tag-sets>` of
+``provider:AWS`` and corresponding ``region`` tags dictate the specific
+regions within :ref:`AWS <amazon-aws>` to which the application can
+connect. These options help ensure that the application connects to the
+closest geographic region for reduced latency and improved performance.
+
+.. seealso::
+
+   For additional information and use cases for various read
+   preferences, refer to the
+   :manual:`Read Preference page in the MongoDB Manual
+   </reference/read-preference/#use-cases>`.
