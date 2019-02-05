@@ -78,12 +78,13 @@ description: |
          parsing the configuration file.
 
   You can specify multiple expansion directives as a comma-separated
-  list, e.g. ``rest,exec``. If the configuration file contains
+  list, e.g. ``rest, exec``. If the configuration file contains
   expansion directives not specified to {{role}}, the {{program}}
   returns an error and terminates.
 
-  See :ref:`externally-sourced-values` for 
-  for complete documentation on expansion directives.
+  See :ref:`externally-sourced-values` for configuration files
+  for more information on expansion directives.
+
 optional: true
 ---
 program: mongod
@@ -127,10 +128,31 @@ description: |
 
   .. example:: ``localhost,/tmp/mongod.sock``
 
+  You can specify both IPv4 and IPv6 addresses, or hostnames that
+  resolve to an IPv4 or IPv6 address.
+
+  .. example:: ``localhost, 2001:0DB8:e132:ba26:0d5c:2774:e7f9:d513``
+
+  .. note::
+
+     If specifying an IPv6 address *or* a hostname that resolves to an
+     IPv6 address to {{role}}, you must start {{program}} with 
+     {{ipv6}} to enable IPv6 support. Specifying an IPv6 address
+     to {{role}} does not enable IPv6 support.
+
+  If specifying a 
+  `link-local IPv6 address <https://en.wikipedia.org/w/index.php?title=Link-local_address&oldid=880793020#IPv6>`_ 
+  (``fe80::/10``), you must append the 
+  `zone index <https://en.wikipedia.org/w/index.php?title=IPv6_address&oldid=877601778#Scoped_literal_IPv6_addresses>`_
+  to that address (i.e. ``fe80::<address>%<adapter-name>``). 
+
+  .. example:: ``localhost,fe80::a00:27ff:fee0:1fcf%enp0s3``
+
   .. include:: /includes/tip-hostnames.rst
 
   .. include:: /includes/warning-bind-ip-security-considerations.rst
-
+replacement:
+  ipv6: ":option:`--ipv6`"
 optional: true
 post: |
   To bind to all IPv4 addresses, enter ``0.0.0.0``.
@@ -140,8 +162,9 @@ post: |
 
   .. note::
 
-     ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive. That
-     is, you can specify one or the other, but not both.
+     ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive.
+     Specifying both options causes {{program}} to throw an error and
+     terminate.
 
 ---
 program: mongod
@@ -150,14 +173,17 @@ args: null
 directive: option
 description: |
 
-   .. versionadded:: 3.6
+  .. versionadded:: 3.6
 
-   If {{condition}}, the {{program}} instance binds to all ip addresses. When
-   attaching {{program}} to a publicly accessible interface, ensure
-   that you have implemented proper authentication and firewall
-   restrictions to protect the integrity of your database.
+  If {{condition}}, the {{program}} instance binds to all IPv4
+  addresses (i.e. ``0.0.0.0``). If {{program}} starts with
+  {{ipv6}}, {{role}} also binds to all IPv6 addresses
+  (i.e. ``::``). 
 
-   .. include:: /includes/warning-bind-ip-security-considerations.rst
+  {{program}} only supports IPv6 if started with {{ipv6}}. Specifying
+  {{role}} alone does not enable IPv6 support.
+
+  .. include:: /includes/warning-bind-ip-security-considerations.rst
 
 post: |
 
@@ -171,6 +197,7 @@ post: |
 
 replacement:
   condition: "specified"
+  ipv6: ":option:`--ipv6`"
 ---
 program: mongod
 name: listenBacklog
@@ -623,7 +650,7 @@ description: |
   the {{program}} process allows between
   journal operations. Values can range from 1 to 500 milliseconds. Lower
   values increase the durability of the journal, at the expense of disk
-  performance.  The default journal commit interval is 100 milliseconds.
+  performance. The default journal commit interval is 100 milliseconds.
 
   On WiredTiger, the default journal commit interval is 100 milliseconds. Additionally,
   a write with ``j:true`` will cause an immediate sync of the journal.
@@ -641,8 +668,20 @@ args: null
 directive: option
 description: |
 
-   Enables IPv6 support. {{program}} disables IPv6 support by default.
+   {{intro}} IPv6 support. {{program}} disables IPv6 support by default.
 
+   Setting {{role}} does *not* direct the {{program}} to listen on any
+   local IPv6 addresses or interfaces. To configure the {{program}} to
+   listen on an IPv6 interface, you must either:
+
+   - Configure {{bindIp}} with one or more IPv6 addresses or
+     hostnames that resolve to IPv6 addresses, **or**
+   - Set {{bindIpAll}} to ``true``.
+
+replacement:
+  intro: "Enables"
+  bindIp: ":option:`--bind_ip`"
+  bindIpAll: ":option:`--bind_ip_all`"
 optional: true
 ---
 program: mongod
@@ -3385,11 +3424,12 @@ description: |
 
    .. versionadded:: 4.2
 
-   Outputs the resolved YAML configuration document for the {{program}} to ``stdout``
-   and halts the server instance. For configuration options using 
-   :ref:`externally-sourced-values`, {{role}} returns the resolved value for those
-   options. This may include any configured passwords or secrets previously 
-   obfuscated through the external source.
+   Outputs the resolved YAML configuration document for the {{program}}
+   to ``stdout`` and halts the {{program}} instance. For configuration
+   options using :ref:`externally-sourced-values`, {{role}} returns the
+   resolved value for those options. This may include any configured
+   passwords or secrets previously obfuscated through the external
+   source.
 
 optional: true
 ---
