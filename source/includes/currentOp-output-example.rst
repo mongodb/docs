@@ -25,6 +25,12 @@
                          "clientMetadata" : <document>,
                          "active" : <boolean>,
                          "currentOpTime" : <string>,
+                         "effectiveUsers" : [
+                            {
+                               "user" : <string>,
+                               "db" : <string>
+                            }
+                         ],
                          "opid" : <number>,
                          "secs_running" : <NumberLong()>,
                          "microsecs_running" : <number>,
@@ -141,6 +147,12 @@
                         },
                         "active" : <boolean>,
                         "currentOpTime" : <string>,
+                        "effectiveUsers" : [
+                           {
+                              "user" : <string>,
+                              "db" : <string>
+                           }
+                        ],
                         "opid" : <number>,
                         "secs_running" : <NumberLong()>,
                         "microsecs_running" : <number>,
@@ -244,7 +256,19 @@
                          "clientMetadata" : <document>,
                          "active" : <boolean>,
                          "currentOpTime" : <string>,
-                         "opid" : <number>,
+                         "effectiveUsers" : [
+                            {
+                               "user" : <string>,
+                               "db" : <string>
+                            }
+                         ],
+                         "userImpersonators" : [
+                            {
+                               "user" : <string>,
+                               "db" : <string>
+                            }
+                         ],
+                         "opid" : <string>,
                          "secs_running" : <NumberLong()>,
                          "microsecs_running" : <number>,
                          "op" : <string>,
