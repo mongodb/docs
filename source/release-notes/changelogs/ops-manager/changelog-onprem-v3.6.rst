@@ -1,3 +1,24 @@
+.. _opsmgr-server-3.6.11:
+
+|onprem| Server 3.6.11
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2019-02-07*
+
+- Updated |jdk| to `AdoptOpenJDK 8u202 <https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/tag/jdk8u202-b08>`__.
+
+- **Fix:** For queryable restores, the configurable expiration value
+  (:setting:`brs.queryable.expiration <Expiration>`) now also applies to
+  MongoDB authentication requests.
+
+- **Fix:** Resolve transient inability to restore a snapshot if a
+  backup data pruning job (garbage collection) is running during the
+  restore.
+
+- **Fix:** Improve password verification for sensitive actions within
+  |onprem|, for |onprem| installations using |ldap| for user
+  authentication, and ActiveDirectory as the |ldap| server.
+
 .. _opsmgr-server-3.6.10:
 
 |onprem| Server 3.6.10
@@ -5,7 +26,7 @@
 
 *Released on 2019-01-10*
 
-- Updated |jdk| to `AdoptOpenJDK 8u192 <https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/tag/jdk8u192-b12>`__
+- Updated |jdk| to `AdoptOpenJDK 8u192 <https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/tag/jdk8u192-b12>`__.
 
 - Agent Upgrades: :ref:`automation-4.5.17.5289-1`.
 
