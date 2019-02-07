@@ -4,7 +4,7 @@
    * - Field
      - Description
 
-   * - ``acceptorRegionName``
+   * - ``accepterRegionName``
 
      - Specifies the AWS region where the peer VPC resides. The return
        value is ``null`` if the region is the same region in which the

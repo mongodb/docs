@@ -5,7 +5,7 @@
      - Required/Optional
      - Description
 
-   * - ``acceptorRegionName``
+   * - ``accepterRegionName``
      - Required
      - Specifies the AWS region where the peer VPC resides. See
        `Amazon Web Services <https://docs.atlas.mongodb.com/reference/amazon-aws/>`_
