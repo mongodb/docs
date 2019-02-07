@@ -105,6 +105,7 @@ rst_epilog = [
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
     '.. |piv| replace:: :abbr:`PIV (Personal Identity Verification)`',
     '.. |rdp| replace:: :abbr:`RDP (Remote Desktop Protocol)`',
+    '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
     '.. |restapi| replace:: :abbr:`REST (Representational State Transfer)` :abbr:`API (Application Programming Interface)`',
     '.. |rest| replace:: :abbr:`REST (Representational State Transfer)`',
     '.. |s3| replace:: :abbr:`S3 (Simple Storage Service)`',
