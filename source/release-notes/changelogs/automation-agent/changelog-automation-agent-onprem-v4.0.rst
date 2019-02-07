@@ -1,7 +1,7 @@
 .. _automation-5.4.16.5515-1:
 
 Automation Agent 5.4.16.5515-1
-----------------------------
+------------------------------
 
 :ref:`Released with Ops Manager 4.0.8 on 2019-02-07 <opsmgr-server-4.0.8>`
 
