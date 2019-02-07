@@ -1,3 +1,17 @@
+.. _automation-5.4.16.5515-1:
+
+Automation Agent 5.4.16.5515-1
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.8 on 2019-02-07 <opsmgr-server-4.0.8>`
+
+- **Fix:** Reduce the amount of memory used to generate plans for large
+  sharded clusters.
+
+- **Fix:** Rotation of log files when MongoDB log rotation is
+  enabled and the maximum number of uncompressed log files is set to
+  two.
+
 .. _automation-5.4.15.5513:
 
 Automation Agent 5.4.15.5513
