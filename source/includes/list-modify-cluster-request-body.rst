@@ -136,7 +136,7 @@
 
    * - ``mongoDBMajorVersion``
      - string
-     - Required
+     - Optional
      - Version of the cluster to deploy. |service| supports the
        following MongoDB versions for ``M10+`` clusters: [1]_
 
@@ -229,21 +229,23 @@
    * - | ``providerSettings``
        | ``.backingProviderName``
      - string
-     - Required
+     - Conditional
      - Cloud service provider on which the server for a
-       multi-tenant cluster is provisioned. This setting is only valid
-       when ``providerSetting.providerName`` is ``TENANT`` and
-       ``providerSetting.instanceSizeName`` is ``M2`` or ``M5``.
+       multi-tenant cluster is provisioned. 
+
+       This setting is only valid when ``providerSetting.providerName``
+       is ``TENANT`` and ``providerSetting.instanceSizeName`` is ``M2``
+       or ``M5``.
 
        .. include:: /includes/fact-cloud-service-providers.rst
 
    * - | ``providerSettings``
        | ``.regionName``
      - string
-     - Optional
-     - Physical location of your MongoDB cluster. The region you
-       choose can affect network latency for clients accessing your
-       databases.
+     - Conditional
+     - *Required if Free Tier.* Physical location of your MongoDB
+       cluster. The region you choose can affect network latency for
+       clients accessing your databases.
 
        Do *not* specify this field when creating a multi-region cluster
        using the ``replicationSpec`` document.

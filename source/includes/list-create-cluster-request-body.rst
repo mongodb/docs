@@ -137,7 +137,7 @@
 
    * - ``mongoDBMajorVersion``
      - string
-     - Required
+     - Optional
      - Version of the cluster to deploy. |service| supports the
        following MongoDB versions for ``M10+`` clusters: [1]_
 
@@ -191,7 +191,7 @@
 
    * - ``providerBackupEnabled``
      - boolean
-     - Required
+     - Optional
      - If ``true``, the cluster uses :ref:`backup-cloud-provider` for
        backups. If ``providerBackupEnabled`` *and* ``backupEnabled``
        are ``false``, the cluster does not use |service| backups.
@@ -228,20 +228,23 @@
    * - | ``providerSettings``
        | ``.backingProviderName``
      - string
-     - Required
-     - Cloud service provider on which the server for a
-       multi-tenant cluster is provisioned. This setting is only valid
-       when ``providerSetting.providerName`` is ``TENANT`` and
-       ``providerSetting.instanceSizeName`` is ``M2`` or ``M5``.
+     - Conditional
+     - Cloud service provider on which the
+       server for a multi-tenant cluster is provisioned. 
+
+       This setting is only valid when ``providerSetting.providerName``
+       is ``TENANT`` and ``providerSetting.instanceSizeName`` is ``M2``
+       or ``M5``.
 
        .. include:: /includes/fact-cloud-service-providers.rst
 
    * - | ``providerSettings``
        | ``.regionName``
      - string
-     - Required
-     - Physical location of your MongoDB cluster. The region you choose
-       can affect network latency for clients accessing your databases.
+     - Conditional
+     - *Required if Free Tier.* Physical location of your MongoDB
+       cluster. The region you choose can affect network latency for
+       clients accessing your databases.
 
        Do *not* specify this field when creating a multi-region cluster
        using the ``replicationSpec`` document or a
@@ -302,7 +305,7 @@
    * - | ``providerSettings``
        | ``.instanceSizeName``
      - string
-     - Optional
+     - Required
      - |service| provides different instance sizes, each with a default
        storage capacity and RAM size. The instance size you select is
        used for all the data-bearing servers in your cluster. For
@@ -537,11 +540,12 @@
        exclusive - no more than one region per cluster can be assigned
        a given priority.
 
-       For example, if you have three regions, their
-       priorities would be ``7``, ``6``, and ``5`` respectively.
-       If you added two more regions for supporting electable nodes,
-       the priorities of those regions would be ``4`` and ``3``
-       respectively.
+       .. example::
+
+          If you have three regions, their priorities would be ``7``,
+          ``6``, and ``5`` respectively. If you added two more regions
+          for supporting electable nodes, the priorities of those
+          regions would be ``4`` and ``3`` respectively.
 
    * - | ``replicationSpec``
        | ``.<region>``
