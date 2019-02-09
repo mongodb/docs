@@ -145,7 +145,7 @@
 
          .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c 
             :language: c
-            :lines: 3057-3087
+            :lines: 3232-3262
 
      - id: cpp
        content: |
