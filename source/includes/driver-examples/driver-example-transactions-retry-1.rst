@@ -145,7 +145,8 @@
 
          .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c 
             :language: c
-            :lines: 3232-3262
+            :start-after: runs transactions with retry logic
+            :end-before: commit transactions with retry logic
 
      - id: cpp
        content: |
