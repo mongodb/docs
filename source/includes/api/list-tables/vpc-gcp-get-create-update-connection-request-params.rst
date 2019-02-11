@@ -10,8 +10,7 @@
    * - ``containerId``
      - string
      - Required
-     - Unique identifier of the |service| |vpc| container for the |gcp|
-       region.
+     - Unique identifier of the |service| |vpc| container for |gcp|.
        
        You can create a |service| |vpc| container using the
        :doc:`Create Container </reference/api/vpc-create-container>`
@@ -36,7 +35,7 @@
    * - ``networkName``
      - string
      - Required
-     - Unique identifier of the peer |vpc|.
+     - Name of the peer |vpc|.
 
    * - ``providerName``
      - string
@@ -44,6 +43,3 @@
      - Cloud provider for this |vpc| peering connection.
        Accepted values are ``AWS`` and ``GCP``. If omitted,
        |service| set this parameter to ``AWS``.
-
-
-

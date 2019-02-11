@@ -8,8 +8,7 @@
 
    * - ``containerId``
      - string
-     - Unique identifier of the |service| |vpc| container for the |gcp|
-       region.
+     - Unique identifier of the |service| |vpc| container for |gcp|.
 
    * - ``gcpProjectId``
      - string
@@ -22,10 +21,9 @@
 
    * - ``networkName``
      - string
-     - Unique identifier of the peer |vpc|.
+     - Name of the peer |vpc|.
 
    * - ``status``
      - string
      - 
        .. include:: /includes/vpc-peering-status-gcp.rst
-
