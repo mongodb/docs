@@ -3,6 +3,7 @@
 - ``US_WEST_1``
 - ``US_WEST_2``
 - ``CA_CENTRAL_1``
+- ``EU_NORTH_1``
 - ``EU_WEST_1``
 - ``EU_WEST_2``
 - ``EU_WEST_3``
