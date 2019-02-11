@@ -1,43 +1,56 @@
 .. list-table::
    :header-rows: 1
+   :widths: 15 10 75
 
-   * - Field
+   * - Element
+     - Type
      - Description
 
    * - ``accepterRegionName``
+     - string
+     - Specifies the region where the peer |vpc| resides. 
+       For complete lists of supported regions, see:
 
-     - Specifies the AWS region where the peer VPC resides. The return
-       value is ``null`` if the region is the same region in which the
-       |service| VPC resides.
+       - :doc:`Amazon Web Services </reference/amazon-aws/>`
+       - :doc:`Google Cloud Platform </reference/google-gcp/>`
 
    * - ``awsAccountId``
-     - The AWS account ID of the owner of the peer VPC.
+     - string
+     - Account ID of the owner of the peer |vpc|.
 
    * - ``connectionId``
      - The peering connection ID.
 
    * - ``containerId``
-
-     - The ``id`` of the |service| VPC container for the AWS region.
+     - string
+     - Unique identifier of the |service| |vpc| container for the
+       region.
 
    * - ``errorStateName``
-
-     - The error state, if any. 
+     - string
+     - Error state, if any. 
 
        .. include:: /includes/vpc-peering-error.rst 
 
    * - ``id``
+     - string
+     - Unique identifier for the peer rconnection. This is specific to
+       and used by |service|.
 
-     - |service| assigned unique ID for the connection. Only specific to and used by |service|.
+   * - ``providerName``
+     - string
+     - Cloud provider for this |vpc| peering connection. Accepted
+       values include |aws| and |gcp|.
 
    * - ``routeTableCidrBlock``
-
+     - string
      - The peer VPC CIDR block or subnet.
 
    * - ``statusName``
-     - The status.
-
+     - string
+     - 
        .. include:: /includes/vpc-peering-status.rst
 
    * - ``vpcId``
-     - The ID of the peer VPC.
+     - string
+     - Unique identifier of the peer |vpc|.
