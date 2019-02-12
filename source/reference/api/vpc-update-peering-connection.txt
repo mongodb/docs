@@ -12,44 +12,49 @@ Update an Existing VPC Peering Connection
 
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
-.. include:: /includes/api-base-url.rst
+.. include:: /includes/api/base-api-uri.rst
 
 Syntax
 ------
 
 .. code-block:: sh
 
-   PATCH /api/atlas/v1.0/groups/{GROUP-ID}/peers/{PEER-ID}
+   PATCH /groups/{GROUP-ID}/peers/{PEER-ID}
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
    :header-rows: 1
-   :widths: 15 35 50
+   :widths: 15 10 10 65
 
    * - Parameter
-     - Required/Optional
+     - Type
+     - Necessity
      - Description
 
    * - ``GROUP-ID``
-     - Required.
-     - The unique identifier for the project.
+     - string
+     - Required
+     - Unique identifier for the project whose connection you want to
+       update.
 
    * - ``PEER-ID``
-     - Required.
-
-     - |service| assigned :data:`unique ID <id>` for the peering
+     - string
+     - Required
+     - |service|\-assigned :data:`unique ID <id>` for the peering
        connection.
 
        .. note::
 
-          This is separate from the vpc ID.
+          This is separate from the |vpc| ID. You can use the |api| to
+          get the
+          :doc:`list of VPC connections and Peer IDs </reference/api/vpc-get-connections-list>`.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/no-query-parameters.rst
+.. include:: /includes/api/no-query-single-parameters.rst
 
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,64 +62,163 @@ Request Body Parameters
 You may specify any of the following parameters in the body of the
 request.
 
-.. list-table::
-   :header-rows: 1
+.. tabs::
 
-   * - Parameter
-     - Required/Optional
-     - Description
+   tabs:
+     - id: aws
+       name: AWS
+       content: |
 
-   * - ``routeTableCidrBlock``
-     - Optional
-     - The peer VPC CIDR block or subnet.
+         .. list-table::
+            :header-rows: 1
+            :widths: 15 10 10 65
 
-   * - ``awsAccountId``
+            * - Parameter
+              - Type
+              - Necessity
+              - Description
 
-     - Optional
+            * - ``routeTableCidrBlock``
+              - string
+              - Optional
+              - Peer |vpc| |cidr| block or subnet.
 
-     - AWS account ID of the peer. If both ``awsAccountId`` and
-       ``vpcId`` are specified, |service| attempts to reinitialize the
-       peering connection.
+            * - ``awsAccountId``
+              - string
+              - Optional
+              - |aws| account ID of the peer. If both ``awsAccountId``
+                and ``vpcId`` are specified, |service| attempts to
+                reinitialize the peering connection.
 
-   * - ``vpcId``
+            * - ``vpcId``
+              - string
+              - Optional
+              - Unique identifier of the project's |vpc|. If both
+                ``vpcId`` and ``awsAccountId`` are specified, |service|
+                attempts to reinitialize the peering connection.
 
-     - Optional
+     - id: gcp
+       name: GCP
+       content: |
 
-     - VPC ID of the peer. If both ``vpcId`` and ``awsAccountId`` are
-       specified, |service| attempts to reinitialize the peering
-       connection.
+         .. list-table::
+            :header-rows: 1
+            :widths: 15 10 10 65
+
+            * - Parameter
+              - Type
+              - Necessity
+              - Description
+
+            * - ``gcpProjectId``
+              - string
+              - Required
+              - |gcp| project ID of the owner of the peer |vpc|.
+
+            * - ``networkName``
+              - string
+              - Required
+              - Unique identifier of the peer |vpc|.
 
 Response Elements
 -----------------
 
-.. include:: /includes/list-table-vpc-get-create-update-connection-response.rst
+.. tabs::
+
+   hidden: true
+
+   tabs:
+     - id: aws
+       name: AWS
+       content: |
+         .. include:: /includes/api/list-tables/vpc-aws-get-create-update-connection-response.rst
+
+     - id: gcp
+       name: GCP
+       content: |
+         .. include:: /includes/api/list-tables/vpc-gcp-get-create-update-connection-response.rst
 
 Example Request
 ---------------
 
-.. class:: copyable-code
+.. tabs::
 
-.. code-block:: sh
+   hidden: true
 
-   curl -X PATCH -u 'username:apiKey' --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/peers/1112222b3bf99403840e8934" \
-      -H "Content-Type: application/json" --data '
-      {
-          "routeTableCidrBlock" : "10.15.0.0/24"
-      }'
+   tabs:
+     - id: aws
+       name: AWS
+       content: |
+
+         .. code-block:: sh
+            :emphasize-lines: 5-8
+            :linenos:
+
+            curl --user "{USERNAME}:{APIKEY}" --digest \
+              --header "Accept: application/json" \
+              --header "Content-Type: application/json" \
+              --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/peers/1112222b3bf99403840e8934" \
+              --data '
+                {
+                  "routeTableCidrBlock" : "10.15.0.0/24"
+                }'
+
+     - id: gcp
+       name: GCP
+       content: |
+
+         .. code-block:: sh
+            :emphasize-lines: 5-8
+            :linenos:
+
+            curl --user '{USERNAME}:{APIKEY}' --digest \
+             --header "Accept: application/json" \
+             --header "Content-Type: application/json" \
+             --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/peers/1112222b3bf99403840e8934" \
+             --data '
+               {
+                 "networkName" : "test2"
+               }'
+
 
 Example Response
 ----------------
 
-.. code-block:: json
+.. tabs::
 
-   {
-      "accepterRegionName" : "us-east-1",
-      "awsAccountId" : "999900000000",
-      "connectionId" : null,
-      "errorStateName" : null,
-      "id" : "1112222b3bf99403840e8934",
-      "routeTableCidrBlock" : "10.15.0.0/24",
-      "statusName" : "INITIATING",
-      "vpcId" : "vpc-abc123abc123",
-      "containerId" : "1112222b3bf99403840e8934"
-   }
+   hidden: true
+   
+   tabs:
+     - id: aws
+       name: AWS
+       content: |
+         
+         .. code-block:: json
+            :emphasize-lines: 9
+
+            { 
+              "accepterRegionName" : "us-west-1",
+              "awsAccountId" : "999900000000",
+              "connectionId" : null,
+              "containerId" : "1112222b3bf99403840e8934",
+              "errorStateName" : null,
+              "id" : "1112222b3bf99403840e8934",
+              "routeTableCidrBlock" : "10.15.0.0/24",
+              "statusName" : "INITIATING",
+              "vpcId" : "vpc-abc123abc123"
+            }
+
+     - id: gcp
+       name: GCP
+       content: |
+         
+         .. code-block:: json
+            :emphasize-lines: 5
+
+            { 
+              "containerId" : "1112222b3bf99403840e8934",
+              "gcpProjectId" : "my-sample-project-191923",
+              "id" : "1112222b3bf99403840e8934",
+              "networkName" : "test2",
+              "status" : "ADDING_PEER"
+            }
