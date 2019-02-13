@@ -12,7 +12,7 @@ Global Clusters
    :depth: 1
    :class: singlecol
 
-|service| |global-write-clusters| uses a highly curated implementation 
+|service| |global-write-clusters| use a highly curated implementation 
 of sharded cluster :manual:`zones </core/zone-sharding>` to support 
 location-aware read and write operations for globally distributed 
 application instances and clients. |global-write-clusters| support 
@@ -25,12 +25,17 @@ deployment patterns such as:
 
 - Location-aware data storage in specific geographic regions.
 
+- Workload isolation based on cluster member types.
+
 |service| supports enabling |global-write| when deploying an ``M30`` or 
 greater sharded cluster. For replica sets, 
 :doc:`scale </scale-cluster>` the cluster to at least an ``M30``
 instance and enable |global-write|. All shard nodes deploy with the 
-selected instance size. You cannot enable |global-write| on an existing
-standard |service| sharded cluster.
+selected instance size.
+
+.. important::
+
+   You cannot disable |global-write| for a cluster once deployed.
 
 .. include:: /images/global-writes-map.rst
 
@@ -49,19 +54,16 @@ supports creating sharded collections with specific validations for
 |global-write|. For complete documentation, see 
 :ref:`de-shard-collection-for-global-writes`.
 
-.. important::
-
-   You cannot disable |global-write| for a cluster once deployed.
-
 .. _global-writes-zones:
 
 Global Write Zones and Zone Mapping
 -----------------------------------
 
-Each |service| |global-write-clusters| supports up to 9 distinct 
-zones. Each zone consists of one :guilabel:`Preferred` region and one or 
-more :guilabel:`Electable` or :guilabel:`Read-only` regions. The 
-available regions depend on the selected cloud service provider. 
+Each |service| Global Cluster supports up to 9 distinct zones. Each
+zone consists of one :guilabel:`Highest Priority` region
+and one or more :guilabel:`Electable`, :guilabel:`Read-only`, or
+:guilabel:`Analytics` regions. The available regions depend on
+the selected cloud service provider. 
 
 .. list-table::
    :header-rows: 1
@@ -70,31 +72,46 @@ available regions depend on the selected cloud service provider.
    * - Region Type
      - Description
 
-   * - :guilabel:`Preferred`
-     - Dictates where |service| deploys the :term:`primary` replica set 
-       member for the shard or shards associated with that zone. Clients 
-       can only issue write operations to the :term:`primary`.
+   * - :guilabel:`Highest Priority`
+     - Region where |service| deploys the :term:`primary` replica
+       set member for the shard or shards associated with that zone.
+       Clients can only issue write operations to the :term:`primary`.
 
        |service| uses the geographic location of the 
-       :guilabel:`Preferred` region for constructing a map of
+       :guilabel:`Highest Priority` regions to construct a map of
        geographically-near countries and subdivisions. The 
        |global-write| cluster uses this map for directing write
        operations to the correct zone.
 
+       .. tip::
+
+          To facilitate low-latency local secondary reads of globally
+          distributed data, for each zone in the cluster, add a
+          :guilabel:`Read-only` node in the
+          :guilabel:`Highest Priority` region of every other cluster
+          zone.
+       
+
    * - :guilabel:`Electable` 
-     - Dictates where |service| deploys electable :term:`secondary` 
+     - Region where |service| deploys electable :term:`secondary` 
        replica set members for the shard or shards associated to that 
        zone. :guilabel:`Electable` regions add additional fault 
        tolerance in the event of a partial or total regional outage in 
-       the :guilabel:`Preferred` region.
+       the :guilabel:`Highest Priority` region.
 
    * - :guilabel:`Read-only` 
-     - Dictates where |service| deploys non-electable :term:`secondary`
+     - Region where |service| deploys non-electable :term:`secondary`
        replica set members for supporting secondary read operations. 
-       For each zone in the cluster, add a :guilabel:`Read-only` node 
-       in the :guilabel:`Preferred Region` of every other zone
-       to facilitate low-latency local secondary reads of globally 
-       distributed data.
+
+   * - :guilabel:`Analytics` 
+     - Region where |service| deploys
+       :ref:`analytics nodes <analytics-nodes-overview>`. Analytics
+       nodes are read-only nodes configured with distinct
+       :ref:`replica set tags <replica-set-tags>`. You can use these
+       tags to direct queries to specific regions. As a result,
+       analytics nodes can help isolate reporting queries from your
+       normal operational workload as well as reduce latency for local
+       reads.
 
 For each shard associated to a zone, |service| distributes the
 shard nodes across the configured regions. While |service| allows
@@ -234,11 +251,13 @@ of :readmode:`nearest`.
 
    Secondary reads may return stale data depending on the level
    of replication lag between the secondary node and the primary.
-   For complete documentation on MongODB read preference,
+   For complete documentation on MongoDB read preference,
    see :manual:`Read Preference </core/read-preference/>`.
 
-For more information on MongoDB query routing, see 
-:manual:`mongos </core/sharded-cluster-query-router/>`.  
+.. seealso::
+
+   For more information on MongoDB query routing, see 
+   :manual:`mongos </core/sharded-cluster-query-router/>`.  
 
 Sharding Collections without Global Writes
 ------------------------------------------
