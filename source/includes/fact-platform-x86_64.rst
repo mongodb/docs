@@ -115,9 +115,9 @@
 
    * - Windows 8/2012 R2 and later
      - |checkmark|
-     -
-     -
-     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
    * - macOS 10.11 and later
      - |checkmark|
