@@ -1,3 +1,12 @@
+.. _monitoring-7.0.0.481:
+
+Monitoring Agent 7.0.0.481
+--------------------------
+
+*Released* :ref:`2019-02-13 <cloudmanager-v20190212>`
+
+- Built using Go 1.10.
+
 .. _monitoring-6.9.0.477-1:
 
 Monitoring Agent 6.9.0.477-1
@@ -15,8 +24,8 @@ Monitoring Agent 6.8.0.472
 
 *Released* :ref:`2019-01-03 <cloudmanager-v20190101>`
 
-- Support for monitoring MongoDB instances deployed in :rfc:`IPv6 <8200>`
-  environments.
+- Support for monitoring MongoDB instances deployed in
+  :rfc:`IPv6 <8200>` environments.
 
 .. _monitoring-6.7.0.466:
 
@@ -25,7 +34,11 @@ Monitoring Agent 6.7.0.466
 
 *Released 2018-10-04*
 
+<<<<<<< HEAD
 - Monitoring agent now collections information about balancer state
+=======
+- Monitoring agent now collections information about balancer state.
+>>>>>>> 3ffc71ee... (DOCSP-4510): v20190212 release notes (#2148)
 
 .. _monitoring-6.6.1.462:
 

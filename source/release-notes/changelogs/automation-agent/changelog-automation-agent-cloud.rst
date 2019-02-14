@@ -1,3 +1,14 @@
+.. _automation-6.3.0.5643:
+
+Automation Agent 6.3.0.5643
+---------------------------
+
+*Released* :ref:`2019-02-13 <cloudmanager-v20190212>`
+
+- No longer runs the metrics collection during restores, resulting
+  in cleaner log files.
+- Improved error handling during restores for better resumability.
+
 .. _automation-6.2.0.5620-1:
 
 Automation Agent 6.2.0.5620-1

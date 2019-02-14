@@ -1,3 +1,16 @@
+.. _backup-7.5.0.1051:
+
+Backup Agent 7.5.0.1051
+-----------------------
+
+*Released* :ref:`2019-02-13 <cloudmanager-v20190212>`
+
+- Increased timeouts when applying oplogs during a point in time
+  restore.
+
+- Prevent failures during long-running index builds during a point in
+  time restore.
+
 .. _backup-7.4.0.1036-1:
 
 Backup Agent 7.4.0.1036-1
