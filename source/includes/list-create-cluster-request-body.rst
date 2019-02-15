@@ -43,26 +43,23 @@
 
    * - ``biConnector``
      - document
-     - *Optional*
-
-       Specifies |bic| configuration on this cluster.
+     - Optional
+     - Specifies |bic| configuration on this cluster.
 
        .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
 
    * - ``biConnector.enabled``
      - boolean
-     - *Optional*
-
-       Specifies whether or not |bic| is enabled on the cluster.
+     - Optional
+     - Specifies whether or not |bic| is enabled on the cluster.
 
        - Set to ``true`` to enable |bic|.
        - Set to ``false`` to disable |bic|.
 
    * - ``biConnector.readPreference``
      - string
-     - *Optional*
-
-       Specifies the read preference to be used by |bic| on the
+     - Optional
+     - Specifies the read preference to be used by |bic| on the
        cluster. Each |bic| read preference contains a distinct
        combination of :manual:`readPreference </core/read-preference/>`
        and :manual:`readPreferenceTags
@@ -523,9 +520,8 @@
        | ``.<region>``
        | ``.analyticsNodes``
      - integer
-     - *Optional*
-
-       .. include:: /includes/fact-api-analytics-nodes-description.rst
+     - Optional
+     - .. include:: /includes/fact-api-analytics-nodes-description.rst
 
    * - ``replicationSpecs``
      - array of documents
@@ -606,9 +602,8 @@
        | ``.regionsConfig``
        | ``.analyticsNodes``
      - integer
-     - *Optional*
-
-       .. include:: /includes/fact-api-analytics-nodes-description.rst
+     - Optional
+     - .. include:: /includes/fact-api-analytics-nodes-description.rst
 
    * - ``replicationSpecs[n] .regionsConfig.priority``
      - integer
