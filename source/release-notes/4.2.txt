@@ -354,6 +354,8 @@ this option, you can start a change stream from an
 missed notifications after the previous stream was invalidated.
 
 .. _wildcard-releasenotes:
+.. move wildcard-index-core to concept page as part of DOCS-12275
+.. _wildcard-index-core:
 
 Wildcard Indexes
 ----------------
@@ -364,282 +366,60 @@ Administrators can create a wildcard index on a subset of fields or
 all fields in a document, instead of creating multiple indexes to
 support each user's unique data access patterns.
 
-MongoDB indexes any scalar values associated to the specified field path
-or paths, where the index key includes the full path to the field. For
-fields that are documents, MongoDB descends into the document and
-creates index keys for any field-value pairs in the document. For fields
-that are arrays, MongoDB creates an index key for each value in the 
-array similar to :ref:`multikey <index-type-multikey>` indexing 
-behavior.
-
-.. important::
-
-   Wildcard indexes are not designed to replace workload-based index
-   planning. For more information on creating indexes to support
-   queries, see :ref:`create-indexes-to-support-queries`.
-
-.. container:: admonition
-
-   Consider a collection ``products_catalog`` where documents may
-   contain a ``product_attributes`` field. The 
-   ``product_attributes`` field can contain a variety of 
-   arbitrary subfields, including embedded documents and arrays. 
-
-   .. code-block:: json
-
-      {
-         "_id" : ObjectId("5c1d358bf383fbee028aea0b"),
-         "product_name" : "Super Suit",
-         "product_price" : 299.99,
-         "product_attributes" : {
-           "superStrength" : true,
-           "superSpeed" : true,
-           "elements" : [ "ice", "water" ],
-           "resistance" : "Fire"
-         }
-       }
-
-   * The following operation creates a wildcard index on the 
-     ``product_attributes`` field path.
-
-     .. code-block:: shell
-
-        use inventory
-        db.products_catalog.createIndex ( { "product_attributes.$**" : 1 } )
-
-     The created index can support queries on 
-     ``product_attributes`` and its subpaths:
-
-     .. code-block:: shell
-
-        db.products_catalog.find( { "product_attributes.superFlight" : true } )
-        db.products_catalog.find( { "product_attributes.maxSpeed" : { $gt : 20 } } )
-        db.products_catalog.find( { "product_attributes.elements" : { $eq: "water" } } )
-
-   * For workloads where users may arbitrarily query against any field 
-     in the document, you can create a wildcard index that covers all
-     fields in the document:
-
-     .. code-block:: shell
-
-        use inventory
-        db.products_catalog.createIndex( { "$**" : 1 } ) 
-
-     The created index can support queries on any arbitrary field 
-     within documents in the collection:
-
-     .. code-block:: shell
-
-        db.products_catalog.find( { "product_price" : { $lt : 25 } } )
-        db.products_catalog.find( { "product_attributes.elements" : { $eq: "water" } } )
-
-   * For workloads where users may arbitrarily query against any field
-     in specific subpaths of the document, you can use the optional
-     ``wildcardProjection`` document to specify inclusion or exclusion 
-     patterns and limit the coverage of the wildcard index. The 
-     following operation creates a wildcard index on specific subpaths 
-     of ``product_attributes``:
-
-     .. code-block:: shell
-
-        use inventory
-        db.products_catalog.createIndex(
-          { "$**" : 1 },
-          {
-            "wildcardProjection" : {
-              "product_attributes.elements" : 1
-              "product_attributes.resistance" : 1
-            }
-          }
-        )
-
-     While the key pattern ``"$**" : 1`` covers all fields in the
-     document, the ``wildcardProjection`` field limits the wildcard
-     index coverage to only the specified fields. 
-
-     The created index can support queries on
-     ``product_attributes.elements``, 
-     ``product_attributes.resistance``. and their subpaths:
-
-     .. code-block:: shell
-
-        db.products_catalog.find( { "product_attributes.elements" : { $eq: "water" } } )
-        db.products_catalog.find( { "product_attributes.resistance" : "Fire" } )
+.. include:: /includes/extracts/wildcard-index-summary.rst
 
 Wildcard indexes are a type of :doc:`sparse </core/index-sparse>` index,
 where the index only contains entries for fields with non-empty
 values, e.g. a scalar value or ``null``.
 
-You must set the :binary:`mongod <bin.mongod>`
-:ref:`featureCompatibilityVersion <view-fcv>` (fCV) to 4.2 before you
-can create wildcard indexes. For instructions on setting the fCV, see 
-:ref:`4.2-compatibility-enabled`.
-
-Syntax Notes
-~~~~~~~~~~~~
-
-MongoDB 4.2 adds the following syntax to the :dbcommand:`createIndexes` 
-database command and its shell helpers 
+You can create a wildcard index using the :dbcommand:`createIndexes` 
+database command or its shell helpers 
 :method:`db.collection.createIndex()` and
-:method:`db.collection.createIndexes()` for creating wildcard indexes:
+:method:`db.collection.createIndexes()`. For examples of creating
+a wildcard index, see :ref:`createIndex-method-wildcard-examples`.
 
-.. tabs::
+.. include:: /includes/extracts/wildcard-index-fcv.rst
 
-   tabs:
-     - id: db.collection.createIndex()
-       name: db.collection.createIndex()
-       content: |
+.. _wildcard-index-limitations:
 
-         .. code-block:: javascript
+Wildcard Index Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-            db.collectionName.createIndex(
-              { "$**" : 1 },
-              {
-                wildcardProjection: {
-                   projectionFieldA: 1,
-                   projectionFieldB: 1
-                }
-              }
-            )
+- Wildcard indexes do not support the following index types or properties:
 
-     - id: db.collection.createIndexes()
-       name: db.collection.createIndexes()
-       content: |
+  - :doc:`Compound </core/index-compound>`
+  - :doc:`TTL </core/index-ttl>`
+  - :doc:`Text </core/index-text>`
+  - :doc:`2d (Geospatial) </core/geospatial-indexes>`
+  - :doc:`2dsphere (Geospatial) </core/2dsphere>`
+  - :doc:`Hashed </core/index-hashed>`
+  - :doc:`Unique </core/index-unique>`
 
-         .. code-block:: javascript
+- Wildcard indexes do not support the following query operator patterns:
 
-            db.collectionName.createIndexes(
-              [ { "$**" : 1 } ],
-              {
-                wildcardProjection: {
-                   projectionFieldA: 1,
-                   projectionFieldB: 1
-                }
-              }
-            )  
+  - :query:`{ $exists : false } <$exists>`
+  - :query:`{ $eq: null } <$eq>`
+  - :query:`{ $eq: [ { a : 1} ] } <$eq>`
+  - :query:`{ $eq: { \<object\> } } <$eq>`
+  - :query:`{ $ne: { \<object\> } } <$ne>`
+  - :query:`{ $ne: null } <$ne>` (for queries on field paths that include arrays)
 
+- You cannot shard a collection using a wildcard index.
 
-     - id: createIndexes
-       name: createIndexes
-       content: |
+- For queries that specify multiple fields covered by a wildcard index,
+  the wildcard index can support at most *one* of the fields in the
+  query. For queries using the query :operator:`$or` or the aggregation
+  :expression:`$or` operators, the query planner can use a single
+  wildcard index to satisfy the independent ``$or`` arguments. The
+  :ref:`query planner <query-plans-query-optimization>` selects which
+  wildcard index field to support for any given query.
 
-         .. code-block:: javascript
+  The query planner can also use the wildcard index to support
+  :method:`~cursor.sort()` operations **only if**:
 
-            db.runCommand(
-              {
-                 createIndex: "collectionName",
-                 indexes: [
-                   {
-                      key: { "$**" : 1 },
-                      wildcardProjection: {
-                        projectionFieldA: 1,
-                        projectionFieldB: 1
-                      }
-                   }
-                 ]
-              }
-            )
-
-* To create a wildcard index on all fields, specify ``{ "$**" : 1 }`` 
-  as the index key.
-
-* To create a wildcard index on a specific field and its subpaths,
-  specify the full path to that field as the index key and
-  append ``"$**"`` to the path, i.e. ``{ "path.to.field.$**" : 1 }``.
-
-  Wildcard indexes cannot support multiple key fields; i.e they cannot 
-  be :doc:`compound </core/index-compound>`.
-
-* To include or exclude specific fields and subfields from indexing,
-  specify the optional ``wildcardProjection`` document.
-
-  Each field in the ``wildcardProjection`` document represents a 
-  field path and each value that defines whether to include or exclude 
-  that field path from indexing.
-  
-  For example:
-
-  - Index only the specified field paths and their subpaths:
-
-    .. code-block:: javascript
-
-       db.runCommand(
-         {
-             createIndex: "collectionName",
-             indexes: [
-               {
-                 key: { "$**" : 1 },
-                 wildcardProjection: {
-                   field.path.a: 1,
-                   field.path.b: 1
-                 }
-               }
-             ]
-         }
-       )
-
-  - Index all fields *excluding* the specified field paths and their 
-    subpaths:
-
-    .. code-block:: javascript
-
-       db.runCommand(
-         {
-             createIndex: "collectionName",
-             indexes: [
-               {
-                 key: { "$**" : 1 },
-                 wildcardProjection: {
-                   field.path.a: 0,
-                   field.path.b: 0
-                 }
-               }
-             ]
-         }
-       )
-
-  The ``wildcardprojection`` cannot contain *both* include and exclude
-  specifications. If the ``key`` specifies a single field path, you
-  cannot exclude any field paths in the ``wildcardProjection`` document.
-
-  By default, wildcard indexes ignore the ``_id`` field unless 
-  specifically included in the ``wildcardProjection`` document. 
-
-Limitations
-~~~~~~~~~~~
-
-Wildcard indexes do not support the following index types or properties:
-
-* :doc:`TTL </core/index-ttl>`
-* :doc:`Text </core/index-text>`
-* :doc:`2d (Geospatial) </core/geospatial-indexes>`
-* :doc:`2dsphere (Geospatial) </core/2dsphere>`
-* :doc:`Hashed </core/index-hashed>`
-* :doc:`Unique </core/index-unique>`
-
-Wildcard indexes do not support the following query operator patterns:
-
-* :query:`{ $exists : false } <$exists>`
-* :query:`{ $eq: null } <$eq>`
-* :query:`{ $eq: { } } <$eq>`
-* :query:`{ $eq: [ { a : 1} ] } <$eq>`
-* :query:`{ $eq: { \<object\> } } <$eq>`
-* :query:`{ $ne: { \<object\> } } <$ne>`
-* :query:`{ $ne: null } <$ne>` (for queries on field paths that include arrays)
-
-You cannot shard a collection using a wildcard index.
-
-For queries that specify multiple fields covered by a wildcard index,
-the wildcard index can support at most *one* of the fields in the
-query. The :ref:`query planner <query-plans-query-optimization>` selects
-which wildcard index field to support for any given query. 
-
-The query planner can also use the wildcard index to support
-:method:`~cursor.sort()` operations **only if**:
-
-- The sort field is covered by the wildcard index, *and*
-- The sort field was also included in the query predicate, *and*
-- The query planner selected the sort field for satisfying the query.
+  - The sort field is included in the wildcard index, *and*
+  - The sort field was also included in the query predicate, *and*
+  - The query planner selected the sort field for satisfying the query.
 
 General Improvements
 --------------------

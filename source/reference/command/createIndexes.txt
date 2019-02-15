@@ -144,6 +144,23 @@ Collation Option
 
 .. include:: /includes/extracts/collation-index-use.rst
 
+.. _createIndexes-command-wildcard-behavior:
+
+Wildcard Indexes
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2
+
+- .. include:: /includes/extracts/wildcard-index-id.rst
+
+- .. include:: /includes/extracts/wildcard-index-fcv.rst
+
+- .. include:: /includes/extracts/wildcard-index-limitations.rst
+
+For examples of wildcard index creation, see
+:ref:`createIndexes-command-wildcard-examples`.  For complete 
+documentation on Wildcard Indexes, see :ref:`wildcard-index-core`.
+
 Example
 -------
 
@@ -181,6 +198,182 @@ the ``products`` database:
 
 When the indexes successfully finish building, MongoDB returns a results
 document that includes a status of ``"ok" : 1``.
+
+.. _createIndexes-command-wildcard-examples:
+
+Create a Wildcard Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2
+
+   .. include:: /includes/extracts/wildcard-index-fcv.rst
+
+   For complete documentation on Wildcard Indexes, see
+   :ref:`wildcard-index-core`.
+
+The following lists examples of wildcard index creation:
+
+- :ref:`createIndexes-command-wildcard-onepath`
+- :ref:`createIndexes-command-wildcard-allpaths`
+- :ref:`createIndexes-command-wildcard-inclusion`
+- :ref:`createIndexes-command-wildcard-exclusion`
+
+.. _createIndexes-command-wildcard-onepath:
+
+Create a Wildcard Index on a Single Field Path
+``````````````````````````````````````````````
+
+.. include:: /includes/extracts/wildcard-index-example-pre.rst
+
+The following operation creates a wildcard index on the 
+``product_attributes`` field and its subfields:
+
+.. code-block:: shell
+
+   use inventory
+   db.runCommand(
+     {
+       createIndexes: "products_catalog",
+       indexes: [
+         {
+           key: { "product_attributes.$**" : 1 },
+           name: "wildcardIndex"
+         }
+       ]
+     }
+   )
+
+The wildcard index can support arbitrary single-field queries on 
+``product_attributes`` and any of its subpaths:
+
+.. code-block:: shell
+
+   db.products_catalog.find( { "product_attributes.superFlight" : true } )
+   db.products_catalog.find( { "product_attributes.maxSpeed" : { $gt : 20 } } )
+   db.products_catalog.find( { "product_attributes.elements" : { $eq: "water" } } )
+
+.. _createIndexes-command-wildcard-allpaths:
+
+Create a Wildcard Index on All Field Paths
+``````````````````````````````````````````
+
+.. include:: /includes/extracts/wildcard-index-example-pre.rst
+
+The following operation creates a wildcard index on all fields and
+subfields:
+
+.. code-block:: shell
+
+   use inventory
+   db.runCommand(
+     {
+       createIndexes: "products_catalog",
+       indexes: [
+         {
+           key: { "$**" : 1 },
+           name: "wildcardIndex"
+         }
+       ]
+     }
+   )
+
+The created index can support queries on any arbitrary field 
+within documents in the collection:
+
+.. code-block:: shell
+
+   db.products_catalog.find( { "product_price" : { $lt : 25 } } )
+   db.products_catalog.find( { "product_attributes.elements" : { $eq: "water" } } )
+
+.. _createIndexes-command-wildcard-inclusion:
+
+Include Specific Fields in Wildcard Index Coverage
+``````````````````````````````````````````````````
+
+.. include:: /includes/extracts/wildcard-index-example-pre.rst
+
+The following operation creates a wildcard index and uses
+the ``wildcardProjection`` option to include only the
+``product_attributes.elements`` and ``product_attributes.resistance``
+fields and their subfields as part of index coverage.
+
+.. code-block:: shell
+
+   use inventory
+   db.runCommand(
+     {
+       createIndexes: "products_catalog",
+       indexes: [
+         {
+           key: { "$**" : 1 },
+           "wildcardProjection" : {
+             "product_attributes.elements" : 1,
+             "product_attributes.resistance" : 1
+           },
+           name: "wildcardIndex"
+         }
+       ]
+     }
+   )
+
+While the key pattern ``"$**"`` covers all fields in the document, the
+``wildcardProjection`` field limits the index to only the included
+fields and their subfields.
+
+The created index can support queries on any arbitrary field or subfield
+**only if** that field is included by ``wildcardProjection``:
+
+.. code-block:: shell
+
+   db.products_catalog.find( { "product_attributes.elements" : { $eq: "Water" } } )
+   db.products_catalog.find( { "product_attributes.resistance" : "Bludgeoning" } )
+
+.. include:: /includes/extracts/wildcard-index-id.rst
+
+.. _createIndexes-command-wildcard-exclusion:
+
+Omit Specific Fields from Wildcard Index Coverage
+`````````````````````````````````````````````````
+
+.. include:: /includes/extracts/wildcard-index-example-pre.rst
+
+The following operation creates a wildcard index and uses
+the ``wildcardProjection`` document to exclude the 
+``product_attributes.elements`` and ``product_attributes.resistance``
+fields and their subfields from the wildcard index:
+
+.. code-block:: shell
+
+   use inventory
+   db.runCommand(
+     {
+       createIndexes: "products_catalog",
+       indexes: [
+         {
+           key: { "$**" : 1 },
+           "wildcardProjection" : {
+              "product_attributes.elements" : 0,
+              "product_attributes.resistance" : 0
+           },
+           name: "wildcardIndex"
+         }
+       ]
+     }
+   )
+
+While the key pattern ``"$**"`` covers all fields in the document, the
+``wildcardProjection`` field excludes the specified fields from the
+index.
+
+The created index can support queries on any arbitrary field or
+subfield **except** those excluded by ``wildcardProjection``:
+
+.. code-block:: shell
+
+   db.products_catalog.find( { "product_attributes.maxSpeed" : { $gt: 25 } } )
+   db.products_catalog.find( { "product_attributes.superStrength" : true } )
+
+.. include:: /includes/extracts/wildcard-index-id-exclusion.rst
 
 Output
 ------
