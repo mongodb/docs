@@ -36,39 +36,68 @@ outside the transaction.
 
 .. include:: /includes/extracts/transactions-usage.rst
 
+Transactions and Atomicity
+--------------------------
+
+Multi-document transactions are atomic:
+
+- When a transaction commits, all data changes made in the transaction
+  are saved and visible outside the transaction. Until a transaction
+  commits, the data changes made in the transaction are not visible
+  outside the transaction.
+
+- When a transaction aborts, all data changes made in the transaction
+  are discarded without ever becoming visible. For example, if any
+  operation in the transaction fails, the transaction aborts and all
+  data changes made in the transaction are discarded without ever
+  becoming visible.
+
+The following :binary:`~bin.mongo` shell example highlights the key
+components of using transactions:
+
+.. note:: 
+
+   The example omits retry logic and robust error handling for
+   simplicity's sake. For a more practical example of incorporating
+   transactions in applications, see :ref:`transactions-retry` instead.
+
+.. code-block:: javascript
+   :copyable: false
+
+   // Start a session.
+   session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
+
+   employeesCollection = session.getDatabase("hr").employees;
+   eventsCollection = session.getDatabase("reporting").events;
+
+   // Start a transaction
+   session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
+
+   // Operations inside the transaction
+   try {
+      employeesCollection.updateOne( { employee: 3 }, { $set: { status: "Inactive" } } ); 
+      eventsCollection.insertOne( { employee: 3, status: { new: "Inactive", old: "Active" } } );
+   } catch (error) {
+      // Abort transaction on error
+      session.abortTransaction();
+      throw error;
+   }
+
+   // Commit the transaction using write concern set at transaction start
+   session.commitTransaction();
+
+   session.endSession();
+
 Transactions and Replica Sets
 -----------------------------
 
-Multi-document transactions are available for replica sets only.
-Transactions for sharded clusters are scheduled for MongoDB 4.2
-[#upcoming]_.
+Starting in MongoDB 4.0, multi-document transactions are available for
+replica sets. Transactions for sharded clusters are scheduled for
+MongoDB 4.2 [#upcoming]_.
 
 .. [#upcoming]
 
    .. include:: /includes/fact-upcoming.rst
-
-Feature Compatibility Version (FCV)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``featureCompatibilityVersion`` (fCV) of all members of the replica
-set must be ``4.0`` or greater. To check the fCV for a member, connect
-to the member and run the following command:
-
-.. code-block:: javascript
-
-   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
-
-For more information on fCV, see
-:dbcommand:`setFeatureCompatibilityVersion`.
-
-Storage Engines
-~~~~~~~~~~~~~~~
-
-Multi-document transactions are only available for deployments that use
-WiredTiger storage engine.
-
-Multi-document transactions are not available for deployments that use
-in-memory storage engine.
 
 .. _transactions-operations:
 
@@ -87,7 +116,7 @@ collection. See :ref:`transactions-ops-restricted`.
 
 .. include:: /includes/extracts/transactions-operations-catalog-tip.rst
 
-For multi-document transactions:
+The following read/write operations are allowed in transactions:
 
 .. include:: /includes/table-transactions-operations.rst
 
@@ -125,21 +154,6 @@ Restricted Operations
 
 .. seealso:: :ref:`txn-prod-considerations-ddl`
 
-Transactions and Security
--------------------------
-
-- If running with :doc:`access control </core/authorization>`, you must
-  have privileges for the :ref:`operations in the transaction
-  <transactions-operations>`. [#username-external]_
-
-- If running with :doc:`auditing </core/auditing>`, operations in an
-  aborted transaction are still audited. However, there is no audit
-  event that indicates that the transaction aborted.
-
-.. [#username-external]
-
-   If using ``$external`` authentication users (i.e. Kerberos, LDAP,
-   x.509 users), the usernames cannot be greater than 10k bytes.
 
 Transactions and Sessions
 -------------------------
@@ -156,38 +170,10 @@ open transaction for a session.
 If a session ends and it has an open transaction, the transaction
 aborts.
 
-
-.. _transactions-drivers:
-
-Transactions and MongoDB Drivers
---------------------------------
-
-Clients require MongoDB drivers updated for MongoDB 4.0.
-
-.. include:: /includes/list-4.0-drivers.rst
-
-.. important::
-
-   To associate read and write operations with a transaction, you
-   **must** pass the session to each operation in the transaction. For
-   examples, see :ref:`transactions-retry`.
-
-Transactions and the ``mongo`` Shell
-------------------------------------
-
-The following :binary:`~bin.mongo` shell methods are available for
-transactions:
-
-- :method:`Session.startTransaction()`
-
-- :method:`Session.commitTransaction()`
-
-- :method:`Session.abortTransaction()`
-
 .. _transactions-retry:
 
-Transactions and Retryable Writes
----------------------------------
+Transactions in Applications
+----------------------------
 
 .. admonition:: Highly Available Applications
    :class: important
@@ -244,21 +230,48 @@ and retrying the commit, the full code example is:
 
 .. include:: /includes/driver-examples/driver-example-transactions-retry-3.rst
 
-Atomicity
----------
+.. _transactions-drivers:
 
-Multi-document transactions are atomic:
+Transactions and MongoDB Drivers
+--------------------------------
 
-- When a transaction commits, all data changes made in the transaction
-  are saved and visible outside the transaction. Until a transaction
-  commits, the data changes made in the transaction are not visible
-  outside the transaction.
+Clients require MongoDB drivers updated for MongoDB 4.0.
 
-- When a transaction aborts, all data changes made in the transaction
-  are discarded without ever becoming visible. For example, if any
-  operation in the transaction fails, the transaction aborts and all
-  data changes made in the transaction are discarded without ever
-  becoming visible.
+.. include:: /includes/list-4.0-drivers.rst
+
+.. important::
+
+   To associate read and write operations with a transaction, you
+   **must** pass the session to each operation in the transaction. For
+   examples, see :ref:`transactions-retry`.
+
+Transactions and the ``mongo`` Shell
+------------------------------------
+
+The following :binary:`~bin.mongo` shell methods are available for
+transactions:
+
+- :method:`Session.startTransaction()`
+
+- :method:`Session.commitTransaction()`
+
+- :method:`Session.abortTransaction()`
+
+Transactions and Security
+-------------------------
+
+- If running with :doc:`access control </core/authorization>`, you must
+  have privileges for the :ref:`operations in the transaction
+  <transactions-operations>`. [#username-external]_
+
+- If running with :doc:`auditing </core/auditing>`, operations in an
+  aborted transaction are still audited. However, there is no audit
+  event that indicates that the transaction aborted.
+
+.. [#username-external]
+
+   If using ``$external`` authentication users (i.e. Kerberos, LDAP,
+   x.509 users), the usernames cannot be greater than 10k bytes.
 
 
 .. _transaction-options:
@@ -366,6 +379,32 @@ Read Preference
 
 .. include:: /includes/extracts/transactions-read-pref.rst
 
+Feature Compatibility and Storage Engines
+-----------------------------------------
+
+Feature Compatibility Version (FCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``featureCompatibilityVersion`` (fCV) of all members of the replica
+set must be ``4.0`` or greater. To check the fCV for a member, connect
+to the member and run the following command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+For more information on fCV, see
+:dbcommand:`setFeatureCompatibilityVersion`.
+
+Storage Engines
+~~~~~~~~~~~~~~~
+
+Multi-document transactions are only available for deployments that use
+WiredTiger storage engine.
+
+Multi-document transactions are not available for deployments that use
+in-memory storage engine.
+   
 .. toctree::
    :hidden:
    :titlesonly:
