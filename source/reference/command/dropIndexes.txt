@@ -12,66 +12,117 @@ dropIndexes
 
 .. dbcommand:: dropIndexes
 
-   The :dbcommand:`dropIndexes` command drops one or all non-``_id`` indexes
-   from the specified collection.
-   
+   The :dbcommand:`dropIndexes` command drops one or more indexes
+   (except the index on the ``_id`` field) from the specified
+   collection.
+
    The command has the following form:
    
    .. code-block:: javascript
 
-      { dropIndexes: <string>, index: <string|document>, writeConcern: <document>}
+      { dropIndexes: <string>, index: <string|document|arrayofstrings>, writeConcern: <document>}
 
    The command takes the following fields:
 
    .. list-table::
       :header-rows: 1
-      :widths: 20 80
+      :widths: 10 20 70
 
       * - Field
+        - Type
         - Description
 
       * - dropIndexes
+        - String
         - The name of the collection whose indexes to drop.
 
       * - index
 
-        - The name or the specification document of the index to drop. 
+        - string or document or array of strings
 
-          To drop all non-``_id`` indexes from the collection, specify
-          ``"*"``.
+        - The index or indexes to drop.
 
-          To drop a :doc:`text </core/index-text>` index, specify the
-          index name.
+          **To drop all but the _id index from the collection**,
+          specify ``"*"``.
+
+          **To drop a single index**, specify either the index name,
+          the index specification document (unless the index is a
+          :doc:`text </core/index-text>` index), or an array of the
+          index name. To drop a :doc:`text </core/index-text>` index,
+          specify the index names instead of the index specification
+          document.
+   
+          **To drop multiple indexes** (Available starting in MongoDB
+          4.2), specify an array of the index names.
 
       * - writeConcern
+        - document
 
         - Optional. A document expressing the :doc:`write concern
           </reference/write-concern>` of the :dbcommand:`drop` command.
           Omit to use the default write concern.
-   
 
-   To drop all non-``_id`` indexes , specify ``"*"`` for the ``index`` (See
-   :ref:`3.6-index-asterisk`).
+Behavior
+--------
 
-   .. code-block:: javascript
+Locks
+~~~~~
 
-      { dropIndexes: "collection", index: "*" }
+.. warning::
 
-   To drop a single index, issue the command by specifying the name
-   of the index you want to drop. For example, to drop the index
-   named ``age_1``, use the following command:
+   The operation obtains a write lock on the affected database and will
+   block other operations until it has completed.
 
-   .. code-block:: javascript
+Index Names
+~~~~~~~~~~~
 
-      { dropIndexes: "collection", index: "age_1" }
+If the method is passed an array of index names that includes a
+non-existent index, the method errors without dropping any of the
+specified indexes.
 
-   The shell provides a useful command helper. Here's the equivalent command:
+``_id`` Index
+~~~~~~~~~~~~~
 
-   .. code-block:: javascript
+You cannot drop the default index on the ``_id`` field.
 
-      db.collection.dropIndex("age_1");
+text Indexes
+~~~~~~~~~~~~
 
-   .. warning::
+To drop a :doc:`text </core/index-text>` index, specify the index name
+instead of the index specification document.
 
-      This command obtains a write lock on the affected database and
-      will block other operations until it has completed.
+      
+Examples
+--------
+
+- To drop all non-``_id`` indexes , specify ``"*"`` for the ``index``
+  (See :ref:`3.6-index-asterisk`).
+
+  .. code-block:: javascript
+
+     db.runCommand( { dropIndexes: "collection", index: "*" } )
+
+- To drop a single index, issue the command by specifying the name of
+  the index you want to drop. For example, to drop the index named
+  ``age_1``, use the following command:
+
+  .. code-block:: javascript
+
+     db.runCommand( { dropIndexes: "collection", index: "age_1" })
+
+  The :binary:`~bin.mongo` shell provides the helper methods
+  :method:`db.collection.dropIndex()` and
+  :method:`db.collection.dropIndexes()`:
+
+  .. code-block:: javascript
+
+     db.collection.dropIndex("age_1");
+
+- To drop multiple indexes, issue the command by specifying an array of
+  the index names: 
+
+  .. code-block:: javascript
+
+     db.runCommand( { dropIndexes: "collection", index: [ "age_1", "age_1_status_1" ] } )
+
+.. seealso:: :method:`db.collection.dropIndexes()` and :method:`db.collection.dropIndex()`
