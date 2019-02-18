@@ -1,20 +1,20 @@
 .. note::
 
-   ``EASTERN_US`` corresponds to the :abbr:`GCP (Google Cloud Platform)`
-   ``us_east_1`` region.
+   ``EASTERN_US`` corresponds to the |gcp| ``US_EAST_1`` region.
 
-- ``EASTERN_US``
-- ``US_EAST_4``
+- ``ASIA_SOUTH_1``
+- ``AUSTRALIA_SOUTHEAST_1``
 - ``CENTRAL_US``
-- ``WESTERN_US``
-- ``NORTH_AMERICA_NORTHEAST_1``
-- ``SOUTH_AMERICA_EAST_1``
-- ``WESTERN_EUROPE``
+- ``EASTERN_ASIA_PACIFIC``
+- ``EASTERN_US``
 - ``EUROPE_WEST_2``
 - ``EUROPE_WEST_3``
 - ``EUROPE_WEST_4``
-- ``EASTERN_ASIA_PACIFIC``
+- ``NORTH_AMERICA_NORTHEAST_1``
 - ``NORTHEASTERN_ASIA_PACIFIC``
+- ``SOUTH_AMERICA_EAST_1``
 - ``SOUTHEASTERN_ASIA_PACIFIC``
-- ``ASIA_SOUTH_1``
-- ``AUSTRALIA_SOUTHEAST_1``
+- ``US_EAST_4``
+- ``US_WEST_2``
+- ``WESTERN_EUROPE``
+- ``WESTERN_US``
