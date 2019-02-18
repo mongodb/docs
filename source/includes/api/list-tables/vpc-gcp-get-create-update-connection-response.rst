@@ -25,5 +25,5 @@
 
    * - ``status``
      - string
-     - 
+     -
        .. include:: /includes/vpc-peering-status-gcp.rst

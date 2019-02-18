@@ -1,8 +1,10 @@
-=========================================
-Update an Existing VPC Peering Connection
-=========================================
+==========================================
+Update One Existing VPC Peering Connection
+==========================================
 
 .. default-domain:: mongodb
+
+.. include:: /includes/styles/corrections.rst
 
 .. contents:: On this page
    :local:
@@ -10,12 +12,15 @@ Update an Existing VPC Peering Connection
    :depth: 2
    :class: singlecol
 
+Modify the routing table, account ID or |vpc|/network ID of a peer
+connection.
+
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
 .. include:: /includes/api/base-api-uri.rst
 
-Syntax
-------
+Resource
+--------
 
 .. code-block:: sh
 
@@ -45,11 +50,7 @@ Request Path Parameters
      - |service|\-assigned :data:`unique ID <id>` for the peering
        connection.
 
-       .. note::
-
-          This is separate from the |vpc| ID. You can use the |api| to
-          get the
-          :doc:`list of VPC connections and Peer IDs </reference/api/vpc-get-connections-list>`.
+       .. include:: /includes/api/fact-api-peer-id-not-vpc-id.rst
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,17 +79,23 @@ request.
               - Necessity
               - Description
 
-            * - ``routeTableCidrBlock``
-              - string
-              - Optional
-              - Peer |vpc| |cidr| block or subnet.
-
             * - ``awsAccountId``
               - string
               - Optional
               - |aws| account ID of the peer. If both ``awsAccountId``
                 and ``vpcId`` are specified, |service| attempts to
                 reinitialize the peering connection.
+
+            * - ``providerName``
+              - string
+              - Optional
+              - Cloud provider for this |vpc| peering connection.
+                If omitted, |service| sets this parameter to ``AWS``.
+
+            * - ``routeTableCidrBlock``
+              - string
+              - Optional
+              - Peer |vpc| |cidr| block or subnet.
 
             * - ``vpcId``
               - string
@@ -118,7 +125,13 @@ request.
             * - ``networkName``
               - string
               - Required
-              - Unique identifier of the peer |vpc|.
+              - Name of the peer |vpc|.
+
+            * - ``providerName``
+              - string
+              - Required
+              - Cloud provider for this |vpc| peering connection.
+                Set this value to ``GCP``.
 
 Response Elements
 -----------------
@@ -151,16 +164,17 @@ Example Request
        content: |
 
          .. code-block:: sh
-            :emphasize-lines: 5-8
+            :emphasize-lines: 5-9
             :linenos:
 
             curl --user "{USERNAME}:{APIKEY}" --digest \
               --header "Accept: application/json" \
               --header "Content-Type: application/json" \
-              --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/peers/1112222b3bf99403840e8934" \
+              --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/peers/1112222b3bf99403840e8934?pretty=true" \
               --data '
                 {
-                  "routeTableCidrBlock" : "10.15.0.0/24"
+                  "routeTableCidrBlock" : "10.15.0.0/24",
+                  "providerName" : "AWS"
                 }'
 
      - id: gcp
@@ -168,16 +182,18 @@ Example Request
        content: |
 
          .. code-block:: sh
-            :emphasize-lines: 5-8
+            :emphasize-lines: 5-10
             :linenos:
 
             curl --user '{USERNAME}:{APIKEY}' --digest \
              --header "Accept: application/json" \
              --header "Content-Type: application/json" \
-             --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/peers/1112222b3bf99403840e8934" \
+             --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/peers/1112222b3bf99403840e8934?pretty=true" \
              --data '
                {
-                 "networkName" : "test2"
+                 "gcpProjectId" : "my-sample-project-191923",
+                 "networkName" : "test2",
+                 "providerName" : "GCP"
                }'
 
 
@@ -194,13 +210,14 @@ Example Response
        content: |
          
          .. code-block:: json
-            :emphasize-lines: 9
+            :emphasize-lines: 8
+            :linenos:
 
             { 
               "accepterRegionName" : "us-west-1",
               "awsAccountId" : "999900000000",
               "connectionId" : null,
-              "containerId" : "1112222b3bf99403840e8934",
+              "containerId" : "507f1f77bcf86cd799439011",
               "errorStateName" : null,
               "id" : "1112222b3bf99403840e8934",
               "routeTableCidrBlock" : "10.15.0.0/24",
@@ -214,9 +231,10 @@ Example Response
          
          .. code-block:: json
             :emphasize-lines: 5
+            :linenos:
 
             { 
-              "containerId" : "1112222b3bf99403840e8934",
+              "containerId" : "507f1f77bcf86cd799439011",
               "gcpProjectId" : "my-sample-project-191923",
               "id" : "1112222b3bf99403840e8934",
               "networkName" : "test2",

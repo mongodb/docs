@@ -1,33 +1,83 @@
-|service| uses the specified :abbr:`CIDR (Classless Inter-Domain Routing)`
-block for all other VPC peering connections created in the project.
+|service| uses the specified |cidr| block for all other |vpc| peering
+connections created in the project.
 
-The |service| :abbr:`CIDR (Classless Inter-Domain Routing)` block must
-be at least a ``/24`` and at most a ``/21`` in one of the following
-`private networks <https://tools.ietf.org/html/rfc1918#section-3>`_.
+.. tabs::
 
-- ``10.0.0.0`` - ``10.255.255.255``  (10/8 prefix)
+   hidden: true
 
-- ``172.16.0.0`` - ``172.31.255.255``  (172.16/12 prefix)
+   tabs:
+     - id: aws
+       name: AWS
+       content: |
 
-- ``192.168.0.0`` - ``192.168.255.255`` (192.168/16 prefix)
+         The |service| |cidr| block must be at least a ``/24`` and at
+         most a ``/21`` in one of the following :rfc:`private networks
+         <1918#section-3>`.
 
-|service| locks this value if an ``M10+`` cluster or a VPC peering connection
-already exists. To modify the :abbr:`CIDR (Classless Inter-Domain Routing)`
-block, ensure there are no ``M10+`` clusters in the project *and* no other VPC
-peering connections in the project. Alternatively, :ref:`create a new project
-<atlas-create-atlas-project>` and create a VPC Peering Connection to set the
-desired |service| VPC :abbr:`CIDR (Classless Inter-Domain Routing)` block for
-that project.
+
+     - id: gcp
+       name: GCP
+       content: |
+
+         The |service| |cidr| block must be at least a ``/18`` in one
+         of the following :rfc:`private networks <1918#section-3>`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Lower Bound
+     - Upper Bound
+     - Prefix
+
+   * - ``10.0.0.0``
+     - ``10.255.255.255``
+     - 10/8
+
+   * - ``172.16.0.0``
+     - ``172.31.255.255``
+     - 172.16/12
+
+   * - ``192.168.0.0``
+     - ``192.168.255.255``
+     - 192.168/16
+
+|service| locks this value if an ``M10+`` cluster or a |vpc| peering
+connection already exists. To modify the |cidr| block, ensure there are
+no ``M10+`` clusters in the project *and* no other |vpc| peering
+connections in the project. 
+
+Alternatively, :ref:`create a new project <atlas-create-atlas-project>`
+and create a |vpc| Peering Connection to set the desired |service| 
+|vpc| |cidr| block for that project.
 
 .. important::
 
-   |service| limits the number of MongoDB nodes per VPC based on the
-   :abbr:`CIDR (Classless Inter-Domain Routing)` block and the region selected
-   for the project. For example, a project in an AWS region supporting 3
-   availability zones and a |service| 
-   :abbr:`CIDR (Classless Inter-Domain Routing)` VPC block of ``/24`` is 
-   limited to the equivalent of 27 3-node replica sets.
+   |service| limits the number of MongoDB nodes per |vpc| based on the
+   |cidr| block and the region selected for the project. 
+
+   .. example::
+
+      .. tabs::
+
+         hidden: true
+
+         tabs:
+           - id: aws
+             name: AWS
+             content: |
+
+               A project in an |aws| region supporting 3 availability
+               zones and a |service| |cidr| |vpc| block of ``/24`` is
+               limited to the equivalent of 27 three-node replica sets.
+
+           - id: gcp
+             name: GCP
+             content: |
    
-   Contact `MongoDB Support 
-   <https://www.mongodb.com/contact?jmp=atlas%20docs>`_ 
-   for any questions on |service| limits of MongoDB nodes per VPC.
+               A project with an |service| |vpc| |cidr| block of
+               ``/18`` is limited to approximately 80 three-node
+               replica sets per |gcp| region.
+
+   Contact :website:`MongoDB Support </contact>` for any questions on
+   |service| limits of MongoDB nodes per |vpc|.

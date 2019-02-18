@@ -19,16 +19,19 @@
      - Indicates whether or not to wrap the response in an 
        envelope.
 
-       Some API clients cannot access the HTTP response headers or 
+       Some API clients cannot access the |http| response headers or 
        status code. To remediate this, set ``envelope=true`` in the 
        query. 
 
        For endpoints that return one result, the response body 
        includes:
 
-       status
-         HTTP response code
-       envelope
-         The expected response body 
+       .. list-table::
+          :widths: 30 70
+
+          * - status
+            - |http| response code
+          * - envelope
+            - The expected response body 
 
      - ``false``

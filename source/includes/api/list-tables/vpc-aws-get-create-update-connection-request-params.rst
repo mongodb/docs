@@ -17,17 +17,17 @@
      - string
      - Required
      - Account ID of the owner of the peer |vpc|.
-       
+
    * - ``containerId``
      - string
      - Required
      - Unique identifier of the |service| |vpc| container for the
        region.
-       
+
        You can create an |service| |vpc| container using the
        :doc:`Create Container </reference/api/vpc-create-container>`
        endpoint. You cannot create more than one container per region.
-       
+
        To retrieve a list of container IDs, use the 
        :doc:`Get list of VPC containers </reference/api/vpc-get-containers-list>` 
        endpoint.
@@ -36,8 +36,7 @@
      - string
      - Optional
      - Cloud provider for this |vpc| peering connection.
-       Accepted values are ``AWS`` and ``GCP``. If omitted,
-       |service| set this parameter to ``AWS``.
+       If omitted, |service| sets this parameter to ``AWS``.
 
    * - ``routeTableCidrBlock``
      - string
@@ -48,4 +47,4 @@
      - string
      - Required
      - Unique identifier of the peer |vpc|.
-     
+
