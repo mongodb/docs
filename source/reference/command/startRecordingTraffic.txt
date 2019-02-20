@@ -10,67 +10,144 @@ startRecordingTraffic
    :depth: 1
    :class: singlecol
 
-.. versionadded:: 4.2.0
-
 Definition
 ----------
 
 .. dbcommand:: startRecordingTraffic
 
-  Start the MongoDB traffic recorder. The recorder sits inside of the server and outputs all of the 
-  incoming and outcoming wire protocol traffic to the specified file. 
+   .. versionadded:: 4.2
+
+   Starts the MongoDB traffic recorder on the :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` instance. The recorder captures all incoming
+   wire protocol traffic to the instance (and the corresponding
+   responses) and outputs to a specified file.
+
+   .. important::
+
+      To enable ``startRecordingTraffic``, the
+      :parameter:`trafficRecordingDirectory` parameter must be set on
+      start-up.
+
+   .. warning::
+
+      The recording file contains **unencrypted** user traffic
+      information. If possible, limit the retention of this file.
 
    The command has the following form:
 
    .. code-block:: javascript
 
-      { startRecordingTraffic: 1, filename: <string>, bufferSize: <int64>, maxFileSize: <int64>}
+      db.runCommand( { startRecordingTraffic: 1, filename: <string>, bufferSize: <int64>, maxFileSize: <int64>} )
 
    The :dbcommand:`startRecordingTraffic` command can take the following
    optional fields:
 
-   .. include:: /includes/apiargs/dbcommand-startRecordingTraffic-field.rst
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Field
+
+        - Type
+
+        - Description
+
+      * - ``filename``
+
+        - string
+
+        - The name of the output file for the recorder. The file is
+          located in the :parameter:`trafficRecordingDirectory`.
+
+          .. warning::
+
+             The recording file contains **unencrypted** user traffic
+             information. If possible, limit the retention of this file.
+
+          If a file with the same name exists in the
+          :parameter:`trafficRecordingDirectory`, the recorder
+          overwrites the file.
+
+      * - ``bufferSize``
+
+        - long
+
+        - Optional. The maximum size of the in-memory buffer for
+          traffic records in bytes.
+
+          The default size is 128MiB.
+
+      * - ``maxFileSize``
+
+        - long
+
+        - Optional. The maximum size of the output file in bytes.
+
+          The default size is 4GiB.
+
+   To stop the traffic recorder, use the
+   :dbcommand:`stopRecordingTraffic` command.
 
 .. _startRecordingTraffic-behavior:
 
 Behavior
 --------
 
-Filter
-~~~~~~
 
-Use a filter to limit the results of :dbcommand:`startRecordingTraffic`. You
-can specify a ``filter`` on any of the :ref:`fields returned
-<list-collection-output>` in the :dbcommand:`startRecordingTraffic` result
-set.
+The recorder may encounter errors when running. For example:
 
+- If the recorder exceeded the maximum size for the output file.
+
+- If the recorder exceeded the maximum size of the in-memory buffer for
+  traffic records.
+
+- If the recorder encountered an I/O error.
+
+However, these errors will not be reported until
+:dbcommand:`stopRecordingTraffic` stops the recorder. The
+:dbcommand:`stopRecordingTraffic` stops the recorder and reports on
+errors that may have occurred during the recording.
+
+To view statistics on the traffic recorder, run
+:method:`db.serverStatus()` while the recorder is running to see
+:serverstatus:`trafficRecording` metrics.
 
 Required Access
 ---------------
 
-.. include:: /includes/access-start-traffic-recording.rst
+When running with access control, the user must have the
+:authaction:`trafficRecord` privilege action on the cluster resource.
+That is, the user must have a :ref:`role <roles>` that grants the
+following :ref:`privilege <privileges>`:
 
-.. _list-collection-output:
+.. code-block:: javascript
 
-Output
-------
+   { resource: { cluster: true }, actions: [ "trafficRecord" ] }
 
-.. data:: startRecordingTraffic.ok
+The built-in :authrole:`hostManager` role provides the required
+privileges.
 
-   The return value for the command. A value of ``1`` indicates
-   success.
-
-
+.. _startrecording-example:
 
 Example
 -------
 
-Start Recording Traffic
-~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example begins recording all incoming and outgoing traffic on the MongoDB server:
+The following example begins recording all traffic to the
+:binary:`~bin.mongod`/:binary:`~bin.mongos` instance as well as the
+instance's responses to that traffic.
 
 .. code-block:: javascript
 
-   use admin
-   db.runCommand({startRecordingTraffic: 1, filename: "output.txt"})
+   db.runCommand( { startRecordingTraffic: 1, filename: "output.txt" } )
+
+.. warning::
+
+   The recording file contains **unencrypted** user traffic
+   information. If possible, limit the retention of this file.
+
+To stop recording, run the :dbcommand:`stopRecordingTraffic` command:
+
+.. code-block:: javascript
+
+   db.runCommand( { stopRecordingTraffic: 1 } )

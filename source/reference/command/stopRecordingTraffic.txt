@@ -10,49 +10,80 @@ stopRecordingTraffic
    :depth: 1
    :class: singlecol
 
-.. versionadded:: 4.2.0
-
 Definition
 ----------
 
 .. dbcommand:: stopRecordingTraffic
 
-  Stop the MongoDB traffic recorder. The recorder sits inside of the server and outputs all of the 
-  incoming and outcoming wire protocol traffic to the specified file. 
+   .. versionadded:: 4.2
+
+   Stops the MongoDB traffic recorder and reports on errors that may
+   have occurred during the recording. The recorder captures all
+   incoming wire protocol traffic to a :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` instance (and the corresponding responses) and
+   outputs to a specified file.
+
+   .. warning::
+
+      The recording file contains **unencrypted** user traffic
+      information. If possible, limit the retention of this file and
+      store it on an encrypted filesystem volume.
 
    The command has the following form:
 
    .. code-block:: javascript
 
-      { stopRecordingTraffic: 1}
+      db.runCommand( { stopRecordingTraffic: 1 } )
 
+Behavior
+--------
+
+When :dbcommand:`stopRecordingTraffic` stops the recorder, it also
+reports on errors that may have occurred during the recording. For
+example:
+
+- If the recorder exceeded the maximum size for the output file.
+
+- If the recorder exceeded the maximum size of the in-memory buffer for
+  traffic records.
+
+- If the recorder encountered an I/O error.
+
+To specify the maximum output file size or the maximum in-memory
+buffer size, see :dbcommand:`startRecordingTraffic`.
+
+To view statistics on the traffic recorder, run
+:method:`db.serverStatus()` while the recorder is running to see
+:serverstatus:`trafficRecording` metrics.
 
 Required Access
 ---------------
 
-.. include:: /includes/access-stop-traffic-recording.rst
+When running with access control, the user must have the
+:authaction:`trafficRecord` privilege action on the cluster resource.
+That is, the user must have a :ref:`role <roles>` that grants the
+following :ref:`privilege <privileges>`:
 
-Output
-------
+.. code-block:: javascript
 
-.. data:: stopRecordingTraffic.ok
+   { resource: { cluster: true }, actions: [ "trafficRecord" ] }
 
-   The return value for the command. A value of ``1`` indicates
-   success.
-
-   SOMETHING ABOUT HOW IT RETURNS THE ERRORS
-
+The built-in :authrole:`hostManager` role provides the required
+privileges.
 
 
 Example
 -------
 
-Stop Recording Traffic
-~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example stops recording all incoming and outgoing traffic on the MongoDB server:
+The following example stops recording all incoming and outgoing traffic
+for the :binary:`~bin.mongod`/:binary:`~bin.mongos` where the command
+is run:
 
 .. code-block:: javascript
 
-   use admin
-   db.runCommand({stopRecordingTraffic: 1})
+   db.runCommand( { stopRecordingTraffic: 1 } )
+
+.. warning::
+
+   The recording file contains **unencrypted** user traffic
+   information. If possible, limit the retention of this file.
