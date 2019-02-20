@@ -35,10 +35,36 @@ Behavior
 :update:`$addToSet` does not guarantee a particular ordering of
 elements in the modified set.
 
-If the field is absent in the document to update, :update:`$addToSet`
-creates the array field with the specified value as its element.
+Missing Field
+~~~~~~~~~~~~~
 
-If the field is **not** an array, the operation will fail.
+If you use :update:`$addToSet` on a field is absent in the document to
+update, :update:`$addToSet` creates the array field with the specified
+value as its element.
+
+Field is Not an Array
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you use :update:`$addToSet` on a field that is **not** an array, the
+operation will fail. For example, consider a document in a collection
+``foo`` that contains a non-array field ``colors``.
+
+.. code-block:: javascript
+
+   { _id: 1, colors: "blue,green,red" }
+
+The following :update:`$addToSet` operation on the non-array field
+``colors`` fails:
+
+.. code-block:: javascript
+
+   db.foo.update(
+      { _id: 1 },
+      { $addToSet: { colors: [ "c", "d" ] } }
+   )
+
+Value to Add is An Array
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 If the value is an array, :update:`$addToSet` appends the whole array
 as a *single* element.
@@ -67,9 +93,14 @@ as an element:
 
    { _id: 1, letters: [ "a", "b", [ "c", "d" ] ] }
 
-To add each element of the value **separately**, use the :update:`$each`
-modifier with :update:`$addToSet`. See :ref:`addToSet-modifiers` for
-details.
+.. tip::
+
+   To add each element of the value **separately**, use the
+   :update:`$each` modifier with :update:`$addToSet`. See
+   :ref:`addToSet-modifiers` for details.
+
+Value to Add is a Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If the value is a document, MongoDB determines that the document is a
 duplicate if an existing document in the array matches the to-be-added
