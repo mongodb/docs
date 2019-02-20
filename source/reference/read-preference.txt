@@ -155,6 +155,20 @@ Read Preference Modes
       :ref:`replica-set-read-preference-behavior-nearest` for more
       information.
 
+Configure Read Preference
+-------------------------
+
+
+When using a MongoDB driver, you can specify the read preference when
+:ref:`connecting to the replica set or sharded cluster
+<connections-read-preference>`. For example, see :ref:`connection
+string <connections-read-preference>`. You can also specify the read
+preference at a more granular level. For details, see your driver's
+:api:`api documentation<>`.
+
+When using the :binary:`mongo` shell, see :method:`cursor.readPref()`
+and :method:`Mongo.setReadPref()`.
+
 Use Cases
 ---------
 
@@ -233,6 +247,10 @@ member to your application server is a secondary with some replication
 lag, queries could return stale data. :readmode:`nearest` only
 reflects network distance and does not reflect I/O or CPU load.
 
+.. [#secondary-acceptable-latency] This threshold is configurable. See
+   :setting:`~replication.localPingThresholdMs` for :binary:`~bin.mongos` or your driver
+   documentation for the appropriate setting.
+
 Query From Geographically Distributed Members
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -273,42 +291,17 @@ distribute these specific dedicated queries instead of
 .. [#arbiter-limit]
    In general, avoid deploying more than one arbiter per replica set.
 
-Read Preferences for Database Commands
---------------------------------------
+Additional Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Because some :term:`database commands <database command>` read and
-return data from the database, all of the official drivers support
-full :ref:`read preference mode semantics <replica-set-read-preference-modes>`
-for the following commands:
+For :doc:`aggregation pipeline </core/aggregation-pipeline>`
+operations, including the :pipeline:`$out` stage forces the aggregation
+pipeline to run on the primary.
 
-- :dbcommand:`mapReduce` [#inline-map-reduce]_
-- :dbcommand:`aggregate` [#aggregation-out]_
-- :dbcommand:`collStats`
-- :dbcommand:`dbStats`
-- :dbcommand:`count`
-- :dbcommand:`distinct`
-- :dbcommand:`geoSearch`
-
-.. [#capacity-planning] If your set has more than one secondary, and
-   you use the :readmode:`secondary` read preference mode, consider
-   the following effect. If you have a :ref:`three member replica set
-   <replica-set-three-members>` with a primary and two secondaries,
-   and one secondary becomes unavailable, all :readmode:`secondary`
-   queries must target the remaining secondary. This will double the
-   load on this secondary. Plan and provide capacity to support this
-   as needed.
-
-.. [#secondary-acceptable-latency] This threshold is configurable. See
-   :setting:`~replication.localPingThresholdMs` for :binary:`~bin.mongos` or your driver
-   documentation for the appropriate setting.
-
-.. [#inline-map-reduce] Only "inline" :dbcommand:`mapReduce`
-   operations that do not write data support read preference,
-   otherwise these operations must run on the :term:`primary`
-   members.
-
-.. [#aggregation-out] Using the ``$out`` pipeline operator forces the
-   aggregation pipeline to run on the primary.
+For :dbcommand:`mapReduce` operations, only "inline"
+:dbcommand:`mapReduce` operations that do not write data support read
+preference. Otherwise, :dbcommand:`mapReduce` operations must run on
+the :term:`primary` members.
 
 .. [#edge-cases-2-primaries]
 
