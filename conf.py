@@ -36,7 +36,8 @@ extensions = [
 ]
 
 source_constants = {
-  'download-page': '`downloads page <https://www.mongodb.com/download-center/compass?jmp=docs>`__'
+  'download-page': '`downloads page <https://www.mongodb.com/download-center/compass?jmp=docs>`__',
+  'current-version': '1.16.4'
 }
 
 templates_path = ['.templates']
@@ -60,7 +61,73 @@ rst_epilog = '\n'.join([
     '.. |hardlink| replace:: http://docs.mongodb.com/compass/',
     '.. |compass| replace:: MongoDB Compass',
     '.. |compass-short| replace:: Compass',
-    '.. |checkmark| replace:: :icon:`check-circle`'
+    '.. |checkmark| replace:: :icon:`check-circle`',
+    '.. |2fa| replace:: :abbr:`2FA (Two Factor Authentication)`',
+    '.. |api| replace:: :abbr:`API (Application Programming Interface)`',
+    '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`',
+    '.. |bic-full| replace:: :bic:`MongoDB Connector for BI </>`',
+    '.. |bic-official| replace:: MongoDB Connector for Business Intelligence for Atlas',
+    '.. |bic-short| replace:: :bic:`BI Connector </>`',
+    '.. |bic| replace:: BI Connector for Atlas',
+    '.. |bson| replace:: :abbr:`BSON (Binary Javascript Object Notation)`',
+    '.. |certauth| replace:: Certificate Authority',
+    '.. |cidr| replace:: :abbr:`CIDR (Classless Inter-Domain Routing)`',
+    '.. |cifs| replace:: :abbr:`CIFS (Common Internet File System)`',
+    '.. |Epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |Epoch-time-ms| replace:: Timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |epoch-time-ms| replace:: timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
+    '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
+    '.. |global-write-clusters| replace:: Global Clusters',
+    '.. |global-write-cluster| replace:: Global Cluster',
+    '.. |global-write| replace:: Global Writes',
+    '.. |https| replace:: :abbr:`HTTPS (Secure HyperText Transport Protocol)`',
+    '.. |http| replace:: :abbr:`HTTP (HyperText Transport Protocol)`',
+    '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`',
+    '.. |ipaddr| replace:: :abbr:`IP (Internet Protocol)`',
+    '.. |ipv4| replace:: :abbr:`IPv4 (Internet Protocol version 4)`',
+    '.. |ipv6| replace:: :abbr:`IPv6 (Internet Protocol version 6)`',
+    '.. |iops| replace:: :abbr:`IOPS (Input/Output Operations per Second)`',
+    '.. |iso8601-duration| replace:: Duration in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=851138376#Durations>`__ notation',
+    '.. |iso8601-time| replace:: Timestamp in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`__ date and time format in |utc|',
+    '.. |iso8601| replace:: `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`__',
+    '.. |jira| replace:: `Jira <https://jira.mongodb.org>`__"',
+    '.. |json| replace:: :abbr:`JSON (Javascript Object Notation)`',
+    '.. |kdc| replace:: :abbr:`KDC (Key Distribution Center)`',
+    '.. |kmip| replace:: :abbr:`KMIP (Key Management Interoperability)`',
+    '.. |kms| replace:: :abbr:`KMS (Key Management Service)`',
+    '.. |ldaps| replace:: :abbr:`LDAPS (Secure Lightweight Directory Access Protocol)`',
+    '.. |ldap| replace:: :abbr:`LDAP (Lightweight Directory Access Protocol)`',
+    '.. |mms-full| replace:: MongoDB Cloud Manager',
+    '.. |mms| replace:: Cloud Manager',
+    '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
+    '.. |piv| replace:: :abbr:`PIV (Personal Identity Verification)`',
+    '.. |rdp| replace:: :abbr:`RDP (Remote Desktop Protocol)`',
+    '.. |restapi| replace:: :abbr:`REST (Representational State Transfer)` :abbr:`API (Application Programming Interface)`',
+    '.. |rest| replace:: :abbr:`REST (Representational State Transfer)`',
+    '.. |s3| replace:: :abbr:`S3 (Simple Storage Service)`',
+    '.. |service-fullname| replace:: MongoDB Atlas',
+    '.. |service-pricing| replace:: Atlas pricing page',
+    '.. |service| replace:: Atlas',
+    '.. |sms| replace:: :abbr:`SMS (short message service)`',
+    '.. |smtp| replace:: :abbr:`SMTP (Simple Mail Transport Protocol)`',
+    '.. |snmp| replace:: :abbr:`SNMP (Simple Network Management Protocol)`',
+    '.. |spn| replace:: :abbr:`SPN (Service Principal Name)`',
+    '.. |ssd| replace:: :abbr:`SSD (Solid State Disk)`',
+    '.. |ssl| replace:: :abbr:`SSL (Secure Sockets Layer)`',
+    '.. |stitch-docs| replace:: MongoDB Stitch',
+    '.. |tcp| replace:: :abbr:`TCP (Transmission Control Protocol)`',
+    '.. |tls-ssl| replace:: :abbr:`TLS (Transport Layer Security)`/:abbr:`SSL (Secure Sockets Layer)`',
+    '.. |tls| replace:: :abbr:`TLS (Transport Layer Security)`',
+    '.. |totp| replace:: :abbr:`TOTP (Time-based One-time Password Algorithm)`',
+    '.. |udp| replace:: :abbr:`UDP (User Datagram Protocol)`',
+    '.. |upn| replace:: :abbr:`UPN (User Principal Name)`',
+    '.. |uri| replace:: :abbr:`URI (Uniform Resource Identifier)`',
+    '.. |url| replace:: :abbr:`URL (Uniform Resource Locator)`',
+    '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`',
+    '.. |vpc| replace:: :abbr:`VPC (Virtual Private Cloud)`',
+    '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`'
 ])
 
 extlinks = {
@@ -68,6 +135,9 @@ extlinks = {
     'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
     'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
+    'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
+    'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
+    'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs','')
 }
 
 intersphinx_mapping = {}

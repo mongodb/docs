@@ -17,3 +17,8 @@
      - 7 and above (64-bit)
      - | Ubuntu 14.04+
        | RHEL 7+ (64-bit)
+   * - MongoDB Version
+     - 3.0+
+     - 3.0+
+     - 3.0+
+     - 3.0+
