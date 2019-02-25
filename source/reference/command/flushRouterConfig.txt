@@ -12,35 +12,58 @@ flushRouterConfig
 
 .. dbcommand:: flushRouterConfig
 
-   :dbcommand:`flushRouterConfig` clears the cached routing table in a
-   :binary:`~bin.mongos` instance. Subsequent commands against that 
-   :binary:`~bin.mongos` will repopulate the routing table cache from 
-   the :term:`config server` as they execute.
+   :dbcommand:`flushRouterConfig` clears the cached routing table. Use
+   this command to force a refresh of the routing table cache. In most
+   cases, this happens automatically. You should only need to run
+   :dbcommand:`flushRouterConfig` after :dbcommand:`movePrimary` has
+   been run or after manually clearing the ``jumbo`` chunk flag.
 
-   Use this command to force the routing table cache to be refreshed 
-   from the :term:`config server` if it contains more recent data. In 
-   most cases, this happens automatically. You should need to run 
-   :dbcommand:`flushRouterConfig` only after :dbcommand:`movePrimary` 
-   has been run.
+   - **Starting in MongoDB 4.0.6 (and 3.6.11),**
+     :dbcommand:`flushRouterConfig` is available on both
+     :binary:`~bin.mongos` instances and :binary:`~bin.mongod`
+     instances and can:
 
-   .. seealso::
+     - Flush the cache for a specified collection when passed in a
+       collection namespace parameter:
 
-      For when and why :dbcommand:`flushRouterConfig` is run, see 
-      **Considerations** on the :dbcommand:`movePrimary` page.
+       .. code-block:: javascript
 
-   .. warning::
+          db.adminCommand({ flushRouterConfig: "<db.collection>" } )
 
-      Do not modify the routing table data except when it is 
-      explicitly documented.
+     - Flush the cache for a specified database and its collections
+       when passed in a database namespace parameter:
 
-   :dbcommand:`flushRouterConfig` is an administrative command that is
-   only available for :binary:`~bin.mongos` instances.
+       .. code-block:: javascript
 
-   To run the command, you must issue the command against the ``admin``
-   database:
+          db.adminCommand({ flushRouterConfig: "<db>" } ) 
 
-   .. example::
+     - Flush the cache for all databases and their collections when run
+       without a parameter or passed in a non-string scalar value (e.g. ``1``):
 
-      .. code-block:: javascript
+       .. code-block:: javascript
 
-         db.adminCommand("flushRouterConfig")
+          db.adminCommand("flushRouterConfig")
+          db.adminCommand( { flushRouterConfig: 1 } )
+
+   - **In MongoDB 4.0.5 and earlier (and 3.6.10 and earlier)**,
+     :dbcommand:`flushRouterConfig` is only available for
+     :binary:`~bin.mongos` instances and can flush the cache for all
+     databases and their collections:
+
+     .. code-block:: javascript
+
+        db.adminCommand("flushRouterConfig")
+        db.adminCommand( { flushRouterConfig: 1 } )
+
+Considerations
+--------------
+
+You should only need to run :dbcommand:`flushRouterConfig` after
+:dbcommand:`movePrimary` has been run or after manually clearing the
+``jumbo`` chunk flag.
+
+.. seealso::
+
+   - :ref:`movePrimary Considerations <movePrimary-consideration>`
+
+   - :doc:`/tutorial/clear-jumbo-flag`
