@@ -1,0 +1,88 @@
+=================
+Connection Alerts
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+:ref:`Connection alerts <alert-conditions-connections>` typically
+occur when the maximum number of allowable connections to a MongoDB
+process has been exceeded. Once the limit is exceeded, no new
+connections can be opened until the number of open connections drops
+down below the limit.
+
+Exceeding the connection limit for an |service| cluster may occur for
+a number of reasons. Different |service| tiers have different
+:doc:`connection limits </connection-limits>`; clusters of size
+``M0/M2/M5``, for example, are limited to 100 connections, and clusters
+of size ``M10`` are limited to 350 connections. Larger instance sizes
+have higher connection limits. Different database
+access applications have different ways of implementing
+:manual:`connection pooling
+</reference/connection-string/index.html#connection-pool-options>`,
+which affects how many open connections your application maintains at
+any given time.
+
+Fixing the Immediate Problem
+----------------------------
+
+.. _connection-alert-m0:
+
+M0/M2/M5 Instances
+~~~~~~~~~~~~~~~~~~
+
+To resolve a :ref:`connection alert <alert-conditions-connections>`
+condition, restart the application which is currently making
+connections to your |service| cluster. Restarting the application
+terminates all existing connections opened by the application
+and allows the |service| cluster to resume normal operations.
+
+M10+ Instances
+~~~~~~~~~~~~~~
+
+|service| clusters of size ``M10`` and greater can utilize the
+:doc:`Test Failover </tutorial/test-failover>` option. The Test
+Failover procedure steps down the current :manual:`primary node
+</core/replica-set-primary>` and triggers an :manual:`election
+</core/replica-set-elections>`, which drops all connections to the
+primary node.
+
+.. note::
+
+   If your application connects exclusively to a secondary node,
+   you may need to perform the Test Failover procedure several times
+   to make sure the applicable secondary node rotates its position
+   within the replica set and drops its connections.
+
+Test Failover is usually the preferable solution, but another
+possible solution is to restart the application currently making
+connections to your |service| cluster. Restarting the application
+terminates all existing connections and allows the |service| cluster
+to resume normal operations. 
+
+The Long-Term Solution
+----------------------
+
+Connection alerts are generally a symptom of a larger problem.
+Employing one of the strategies outlined above will fix the immediate
+problem, but a permanent solution usually requires either:
+
+- Examining your database applications for flawed connection code.
+  Situations in which connections are opened but never closed can allow
+  old connections to pile up and eventually exceed the connection
+  limit. Additionally, you may need to implement some form of
+  :manual:`connection pooling
+  </reference/connection-string/index.html#connection-pool-options>`.
+
+- Upgrading to a larger |service| :ref:`instance size
+  <instance-size-costs>` which allows a greater number of connections,
+  if your user base is too large for your current instance size.
+
