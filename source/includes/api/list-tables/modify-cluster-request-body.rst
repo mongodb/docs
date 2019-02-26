@@ -51,25 +51,22 @@
 
    * - ``biConnector.enabled``
      - boolean
-     - *Optional*
-
-       Specifies whether or not |bic| is enabled on the cluster.
+     - Optional
+     - Specifies whether or not |bic| is enabled on the cluster.
 
        - Set to ``true`` to enable |bic|.
        - Set to ``false`` to disable |bic|.
 
    * - ``biConnector.readPreference``
      - string
-     - *Optional*
-
-       Specifies the read preference to be used by |bic| on the
+     - Optional
+     - Specifies the read preference to be used by |bic| on the
        cluster. Each |bic| read preference contains a distinct
        combination of :manual:`readPreference </core/read-preference/>`
        and :manual:`readPreferenceTags
        </core/read-preference/#tag-sets>` options. For details on |bic|
        read preferences, refer to the
-       :ref:`BI Connector Read Preferences Table
-       <bic-read-preferences>`.
+       :ref:`BI Connector Read Preferences Table <bic-read-preferences>`.
 
        - Set to ``"primary"`` to have |bic| read from the primary.
 
@@ -92,21 +89,63 @@
    * - ``clusterType``
      - string
      - Conditional
-     - Specifies the type of the cluster.
+     - Specifies the type of the cluster that you want to modify.
 
-       .. admonition:: When is this setting needed?
-          :class: note
-       
-          - Optional for :doc:`Global Clusters </global-clusters>`.
-          - Optional for replica sets and sharded clusters.
+       .. include:: /includes/fact-conversion-sharded-clusters.rst
+
+       .. list-table:: When is this value needed?
+          :header-rows: 1
+          :widths: 80 20
+
+          * - Condition
+            - Necessity
+
+          * - ``replicationSpecs`` are set.
+            - Required
+
+          * - :doc:`Global Clusters </global-clusters>`
+            - Required
+
+          * - Non-Global replica sets and sharded clusters
+            - Optional
 
        Accepted values include:
 
-       - ``REPLICASET`` - :term:`replica set`
-       - ``SHARDED`` - :term:`sharded cluster`
-       - ``GEOSHARDED`` - Global Cluster
+       .. list-table::
+          :header-rows: 1
+          :widths: 60 40
 
-       .. include:: /includes/fact-conversion-sharded-clusters.rst
+          * - Value
+            - Cluster Type
+
+          * - ``REPLICASET``
+            - :term:`replica set`
+          * - ``SHARDED``
+            - :term:`sharded cluster`
+          * - ``GEOSHARDED``
+            - Global Cluster
+
+   * - ``diskSizeGB``
+     - double
+     - AWS / GCP Optional
+     - The size in gigabytes of the server's root volume. You can add
+       capacity by increasing this number, up to a maximum possible
+       value of ``4096`` (i.e., 4 TB).
+
+       Each instance size has its own default value. If you set a value
+       below the instance default, |service| replaces it with the
+       default value. To view default values: open the |service| web
+       interface; click the button to add a new cluster; view the
+       available default sizes; close the window without saving
+       changes.
+
+       .. important::
+
+          |service| calculates storage charges differently depending on
+          whether you choose the default value or a custom value. For
+          details, see :ref:`storage-capacity`.
+
+       .. include:: /includes/fact-storage-limitation.rst
 
    * - ``encryptionAtRestProvider``
      - string
@@ -131,9 +170,11 @@
 
                    * - Parameter
                      - Requirement
-                   * - ``providerSettings.providerName``
+                   * - | ``providerSettings``
+                       | ``.providerName``
                      - ``AWS``
-                   * - ``providerSettings.instanceSizeName``
+                   * - | ``providerSettings``
+                       | ``.instanceSizeName``
                      - ``M10`` or greater
                    * - ``clusterType``
                      - ``REPLICASET``
@@ -164,9 +205,11 @@
 
                    * - Parameter
                      - Requirement
-                   * - ``providerSettings.providerName``
+                   * - | ``providerSettings``
+                       | ``.providerName``
                      - ``AZURE``
-                   * - ``providerSettings.instanceSizeName``
+                   * - | ``providerSettings``
+                       | ``.instanceSizeName``
                      - ``M10`` or greater
                    * - ``clusterType``
                      - ``REPLICASET``
@@ -204,7 +247,7 @@
        - ``3.6``
        - ``4.0``
 
-       You must set this value to ``3.6`` if
+       You must set this value to ``4.0`` if
        ``providerSettings.instanceSizeName``
        is either ``M2`` or ``M5``.
 
@@ -231,8 +274,8 @@
        For details on how this setting affects costs, see
        :ref:`server-number-costs`.
 
-       The possible values are ``1`` through ``50``. The default value
-       is ``1``.
+       The possible values are ``1`` through ``50``, inclusive. The
+       default value is ``1``.
 
        .. note::
 
@@ -250,7 +293,7 @@
 
    * - ``providerBackupEnabled``
      - boolean
-     - Optional
+     - Conditional
      - Set ``true`` or ``false`` to enable or disable
        :ref:`backup-cloud-provider` for cluster backups.
        If ``providerBackupEnabled`` *and* ``backupEnabled`` are
@@ -264,6 +307,10 @@
        existing cluster in the project with
        :ref:`backup-continuous` enabled.
 
+       .. important::
+
+          You must set this value to ``true`` for NVMe clusters.
+
        .. note::
 
           You cannot enable cloud provider snapshots for
@@ -275,6 +322,116 @@
      - Configuration for the provisioned servers on which MongoDB
        runs. The available options are specific to the cloud service
        provider.
+
+   * - | ``providerSettings``
+       | ``.backingProviderName``
+     - string
+     - Conditional
+     - Cloud service provider on which the server for a
+       multi-tenant cluster is provisioned. 
+
+       This setting is only valid when ``providerSetting.providerName``
+       is ``TENANT`` and ``providerSetting.instanceSizeName`` is ``M2``
+       or ``M5``.
+
+       .. include:: /includes/fact-cloud-service-providers.rst
+
+   * - | ``providerSettings``
+       | ``.diskIOPS``
+     - integer
+     - AWS Optional
+     -
+       .. include:: /includes/providerSettings-diskIOPS.rst
+
+   * - | ``providerSettings``
+       | ``.diskTypeName``
+     - string
+     - Azure Optional
+     - Azure disk type of the server's root volume.
+
+       The following table lists the possible values for this field,
+       and their corresponding storage size.
+
+       .. list-table::
+          :header-rows: 1
+          :widths: 40 60
+
+          * - ``diskTypeName``
+            - Storage Size
+
+          * - ``P4`` :sup:`1`
+            - 32GB
+
+          * - ``P6``
+            - 64GB
+
+          * - ``P10`` :sup:`2`
+            - 128GB
+
+          * - ``P20``
+            - 512GB
+
+          * - ``P30``
+            - 1024GB
+
+          * - ``P40``
+            - 2048GB
+
+          * - ``P50``
+            - 4095GB
+
+       :sup:`1` Default for ``M20`` and ``M30`` Azure instances
+
+       :sup:`2` Default for ``M40+`` Azure instances
+
+   * - | ``providerSettings``
+       | ``.encryptEBSVolume``
+     - boolean
+     - AWS Optional
+     - If enabled, the Amazon EBS encryption feature encrypts the
+       server's root volume for both data at rest within the volume
+       and for data moving between the volume and the instance.
+
+       .. note::
+
+          This setting is always enabled for |nvme-clusters|.
+
+       The default value is ``true``.
+
+   * - | ``providerSettings``
+       | ``.instanceSizeName``
+     - string
+     - Required
+     - |service| provides different instance sizes, each with a default
+       storage capacity and RAM size. The instance size you select is
+       used for all the data-bearing servers in your cluster. For
+       definitions of data-bearing servers, see
+       :ref:`server-number-costs`.
+
+       .. include:: /includes/fact-instance-size-names.rst
+
+       .. tabs::
+
+          tabs:
+            - id: aws
+              name: AWS
+              content: |
+
+                .. include:: /includes/extracts/fact-cluster-instance-sizes-AWS.rst
+
+            - id: gcp
+              name: GCP
+              content: |
+
+                .. include:: /includes/extracts/fact-cluster-instance-sizes-GCP.rst
+
+            - id: azure
+              name: Azure
+              content: |
+
+                .. include:: /includes/extracts/fact-cluster-instance-sizes-AZURE.rst
+
+       .. include:: /includes/fact-m2-m5-multi-tenant.rst
 
    * - | ``providerSettings``
        | ``.providerName``
@@ -291,19 +448,6 @@
        .. include:: /includes/fact-m2-m5-multi-tenant.rst
 
    * - | ``providerSettings``
-       | ``.backingProviderName``
-     - string
-     - Conditional
-     - Cloud service provider on which the server for a
-       multi-tenant cluster is provisioned. 
-
-       This setting is only valid when ``providerSetting.providerName``
-       is ``TENANT`` and ``providerSetting.instanceSizeName`` is ``M2``
-       or ``M5``.
-
-       .. include:: /includes/fact-cloud-service-providers.rst
-
-   * - | ``providerSettings``
        | ``.regionName``
      - string
      - Optional
@@ -313,7 +457,7 @@
 
           This field is *required* if you have not set any values in 
           the  ``replicationSpecs`` array.
-       
+
        Physical location of your MongoDB cluster. The region you choose
        can affect network latency for clients accessing your databases.
 
@@ -372,113 +516,16 @@
                 .. include:: /includes/fact-azure-m2-m5-region-names.rst
 
    * - | ``providerSettings``
-       | ``.instanceSizeName``
-     - string
-     - Optional
-     - |service| provides different instance sizes, each with a default
-       storage capacity and RAM size. The instance size you select is
-       used for all the data-bearing servers in your cluster. For
-       definitions of data-bearing servers, see
-       :ref:`server-number-costs`.
-
-       .. include:: /includes/fact-instance-size-names.rst
-
-       .. tabs::
-
-          tabs:
-            - id: aws
-              name: AWS
-              content: |
-
-                .. include:: /includes/extracts/fact-cluster-instance-sizes-AWS.rst
-
-            - id: gcp
-              name: GCP
-              content: |
-
-                .. include:: /includes/extracts/fact-cluster-instance-sizes-GCP.rst
-
-            - id: azure
-              name: Azure
-              content: |
-
-                .. include:: /includes/extracts/fact-cluster-instance-sizes-AZURE.rst
-
-       .. include:: /includes/fact-m2-m5-multi-tenant.rst
-
-   * - | ``providerSettings``
-       | ``.diskIOPS``
-     - integer
-     - AWS Optional
-     -
-       .. include:: /includes/providerSettings-diskIOPS.rst
-
-   * - | ``providerSettings``
-       | ``.diskTypeName``
-     - string
-     - Azure Optional
-     - Azure disk type of the server's root volume.
-
-       The following table lists the possible values for this field,
-       and their corresponding storage size.
-
-       .. list-table::
-          :header-rows: 1
-          :widths: 40 60
-
-          * - ``diskTypeName``
-            - Storage Size
-
-          * - ``P4`` :sup:`1`
-            - 32GB
-
-          * - ``P6``
-            - 64GB
-
-          * - ``P10`` :sup:`2`
-            - 128GB
-
-          * - ``P20``
-            - 512GB
-
-          * - ``P30``
-            - 1024GB
-
-          * - ``P40``
-            - 2048GB
-
-          * - ``P50``
-            - 4095GB
-
-       :sup:`1` Default for ``M20`` and ``M30`` Azure instances
-
-       :sup:`2` Default for ``M40+`` Azure instances
-
-   * - | ``providerSettings``
        | ``.volumeType``
      - string
      - AWS Optional
      -
-       .. include:: /includes/providerSettings-volumeType.rst  
-
-   * - | ``providerSettings``
-       | ``.encryptEBSVolume``
-     - boolean
-     - AWS Optional
-     - If enabled, the Amazon EBS encryption feature encrypts the
-       server's root volume for both data at rest within the volume
-       and for data moving between the volume and the instance.
-
-       .. note::
-
-          This setting is always enabled for |nvme-clusters|.
-
-       The default value is ``true``.
+       .. include:: /includes/providerSettings-volumeType.rst
 
    * - ``replicationFactor``
      - number
      - Optional
-     - 
+     -
 
        .. admonition:: Use ``replicationSpecs``
           :class: note
@@ -507,7 +554,7 @@
    * - ``replicationSpec``
      - document
      - Optional
-     - 
+     -
 
        .. admonition:: Use ``replicationSpecs``
           :class: note
@@ -545,7 +592,7 @@
    * - | ``replicationSpec``
        | ``.<region>``
      - document
-     - Optional with ``replicationSpec``
+     - Optional
      - Physical location of the region. Replace ``<region>`` with
        the name of the region. Each ``<region>`` document describes the
        region's priority in elections and the number and type of
@@ -580,6 +627,14 @@
 
        For each ``<region>`` document, you must specify the
        ``electableNodes``, ``priority``, and ``readOnlyNodes`` fields.
+
+   * - | ``replicationSpec``
+       | ``.<region>``
+       | ``.analyticsNodes``
+     - integer
+     - Optional
+     -
+       .. include:: /includes/fact-api-analytics-nodes-description.rst
 
    * - | ``replicationSpec``
        | ``.<region>``
@@ -639,19 +694,12 @@
        Specify ``0`` if you do not want any read-only nodes in the
        region.
 
-   * - | ``replicationSpec``
-       | ``.<region>``
-       | ``.analyticsNodes``
-     - integer
-     - *Optional*
-
-       .. include:: /includes/fact-api-analytics-nodes-description.rst
-
    * - ``replicationSpecs``
      - array of documents
-     - Optional
-     - Configuration for each zone in a :doc:`Global Cluster
-       </global-clusters>`. Each document in this array represents a
+     - Conditional
+     - Configuration for each zone in a
+       :doc:`Global Cluster </global-clusters>`. Each document in this
+       array represents a
        zone where |service| deploys nodes for your Global Cluster. You
        must specify all fields of ``replicationSpecs`` to modify any
        single field.
@@ -667,12 +715,23 @@
    * - | ``replicationSpecs[n]``
        | ``.id``
      - string
-     - If modifying ``replicationSpecs``
+     - Conditional
      - Unique identifer of the replication document for a zone in a
-       |global-write-cluster|. Required for all existing zones included
-       in a cluster modification request body. Not required for a
-       replication spec that defines a new zone that you want to add to
-       an existing |global-write-cluster|.
+       |global-write-cluster|.
+
+       .. list-table:: When is this value needed?
+          :header-rows: 1
+          :widths: 80 20
+
+          * - Condition
+            - Necessity
+
+          * - Existing zones included in a cluster modification request
+              body.
+            - Required
+
+          * - Adding a new zone to an existing |global-write-cluster|.
+            - Optional
 
        .. warning::
 
@@ -681,16 +740,11 @@
           modification request.
 
    * - | ``replicationSpecs[n]``
-       | ``.zoneName``
-     - string
-     - Optional
-     - Name for the zone in a |global-write-cluster|.
-
-   * - | ``replicationSpecs[n]``
        | ``.numShards``
      - integer
      - Optional
-     - Number of shards to deploy in the specified zone.
+     - Number of shards to deploy in the specified zone. The default
+       value is ``1``.
 
    * - | ``replicationSpecs[n]``
        | ``.regionsConfig``
@@ -750,8 +804,8 @@
        | ``.regionsConfig``
        | ``.analyticsNodes``
      - integer
-     - *Optional*
-
+     - Optional
+     -
        .. include:: /includes/fact-api-analytics-nodes-description.rst
 
    * - | ``replicationSpecs[n]``
@@ -762,23 +816,9 @@
      - Election priority of the region. For regions with only
        read-only nodes, set this value to ``0``.
 
-   * - ``diskSizeGB``
-     - double
-     - AWS / GCP Optional
-     - The size in gigabytes of the server's root volume. You can add
-       capacity by increasing this number, up to a maximum possible
-       value of ``4096`` (i.e., 4 TB).
+   * - | ``replicationSpecs[n]``
+       | ``.zoneName``
+     - string
+     - Optional
+     - Name for the zone in a |global-write-cluster|.
 
-       Each instance size has its own default value. If you set a value
-       below the instance default, |service| replaces it with the
-       default value. To view default values: open the |service| web
-       interface; click the button to add a new cluster; view the
-       available default sizes; close the window without saving
-       changes.
-
-       .. important:: 
-          |service| calculates storage charges differently depending on
-          whether you choose the default value or a custom value. For
-          details, see :ref:`storage-capacity`.
-
-       .. include:: /includes/fact-storage-limitation.rst
