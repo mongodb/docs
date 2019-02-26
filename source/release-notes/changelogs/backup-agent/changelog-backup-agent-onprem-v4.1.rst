@@ -1,3 +1,15 @@
+.. _backup-7.4.0.1036-1:
+
+Backup Agent 7.4.0.1036-1
+-------------------------
+
+:ref:`Released with Ops Manager 4.1.2 on 2019-02-21 <opsmgr-server-4.1.2>`
+
+- Add support for :bsetting:`sslTrustedServerCertificates`,
+  :bsetting:`sslClientCertificate`,
+  :bsetting:`sslRequireValidServerCertificates`, and
+  :bsetting:`httpProxy` to the Point in Time Restore Utility.
+
 .. _backup-7.3.0.1023:
 
 Backup Agent 7.2.0.1023

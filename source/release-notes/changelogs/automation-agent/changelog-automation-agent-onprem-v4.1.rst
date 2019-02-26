@@ -1,3 +1,13 @@
+.. _automation-6.2.0.5620-1:
+
+Automation Agent 6.2.0.5620-1
+-----------------------------
+
+:ref:`Released with Ops Manager 4.1.2 on 2019-02-21 <opsmgr-server-4.1.2>`
+
+- Fix rotation of log files when MongoDB log rotation is enabled and
+  the maximum number of uncompressed log files is set to two.
+
 .. _automation-6.1.0.5603:
 
 Automation Agent 6.1.0.5603

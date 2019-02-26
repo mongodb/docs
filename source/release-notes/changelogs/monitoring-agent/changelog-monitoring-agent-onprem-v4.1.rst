@@ -1,3 +1,10 @@
+.. _monitoring-6.9.0.477-1:
+
+Monitoring Agent 6.9.0.477-1
+----------------------------
+
+:ref:`Released with Ops Manager 4.1.2 on 2019-02-21 <opsmgr-server-4.1.2>`
+
 .. _monitoring-6.8.0.472:
 
 Monitoring Agent 6.8.0.472

@@ -1,3 +1,20 @@
+.. _opsmgr-server-4.1.2:
+
+|onprem| Rapid Release 4.1.2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improved Deployment: List view. Now shows automation status, easy
+  individual process log collection, topological deployment grouping,
+  and BI Connectors.
+- Adds support for IPv6 deployments.
+- Allows creation of :ref:`API Keys <mms-app-api-key>` that are scoped to
+  an organization and are not tied to a human.
+- Users can now remove themselves from a project.
+- Agent Upgrades: 
+  :ref:`automation-6.2.0.5620-1`, 
+  :ref:`backup-7.4.0.1036-1`,
+  :ref:`monitoring-6.9.0.477-1`
+
 .. _opsmgr-server-4.1.1:
 
 |onprem| Rapid Release 4.1.1
