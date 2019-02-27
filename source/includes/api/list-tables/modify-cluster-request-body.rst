@@ -93,21 +93,26 @@
 
        .. include:: /includes/fact-conversion-sharded-clusters.rst
 
-       .. list-table:: When is this value needed?
-          :header-rows: 1
-          :widths: 80 20
+       .. admonition:: When should you use ``clusterType``?
+          :class: note
 
-          * - Condition
-            - Necessity
+          .. list-table::
+             :header-rows: 1
+             :widths: 80 20
 
-          * - ``replicationSpecs`` are set.
-            - Required
+             * - Condition
+               - Necessity
 
-          * - :doc:`Global Clusters </global-clusters>`
-            - Required
+             * - You set ``replicationSpecs``.
+               - Required
 
-          * - Non-Global replica sets and sharded clusters
-            - Optional
+             * - You are deploying
+                 :doc:`Global Clusters </global-clusters>`.
+               - Required
+
+             * - You are deploying non-Global replica sets and sharded
+                 clusters.
+               - Optional
 
        Accepted values include:
 
@@ -127,8 +132,18 @@
 
    * - ``diskSizeGB``
      - double
-     - AWS / GCP Optional
-     - The size in gigabytes of the server's root volume. You can add
+     - Conditional
+     -
+       .. admonition:: When should you use ``diskSizeGB``?
+          :class: note
+
+          This setting:
+
+          - Cannot be used with |nvme-clusters|
+          - Cannot be used with Azure clusters
+          - Must be used when ``replicationSpecs`` is set
+
+       The size in gigabytes of the server's root volume. You can add
        capacity by increasing this number, up to a maximum possible
        value of ``4096`` (i.e., 4 TB).
 
@@ -530,7 +545,8 @@
        .. admonition:: Use ``replicationSpecs``
           :class: note
 
-          ``replicationSpec`` is deprecated. Use ``replicationSpecs``.
+          ``replicationFactor`` is deprecated. Use
+          ``replicationSpecs``.
 
        Number of :term:`replica set` members. Each member keeps a
        copy of your databases, providing high availability and data
@@ -697,20 +713,42 @@
    * - ``replicationSpecs``
      - array of documents
      - Conditional
-     - Configuration for each zone in a
-       :doc:`Global Cluster </global-clusters>`. Each document in this
-       array represents a
-       zone where |service| deploys nodes for your Global Cluster. You
-       must specify all fields of ``replicationSpecs`` to modify any
-       single field.
+     - Configuration for cluster regions.
 
-       Use the ``replicationSpec`` parameter to modify a multi-region
-       cluster.
+       .. admonition:: When should you use ``replicationSpecs``?
+          :class: note
 
-       .. note::
+          .. list-table::
+             :header-rows: 1
+             :widths: 40 20 40
 
-          You cannot specify both the ``replicationSpec`` and
-          ``replicationSpecs`` parameters in the same request body.
+             * - Condition
+               - Necessity
+               - Values
+
+             * - You are deploying
+                 :doc:`Global Clusters </global-clusters>`.
+               - Required
+               - Each document in the array represents a zone where
+                 |service| deploys your cluster's nodes.
+
+             * - You are deploying non-Global replica sets and sharded
+                 clusters.
+               - Optional
+               - This array has one document representing where
+                 |service| deploys your cluster's nodes.
+
+       You must specify all parameters in ``replicationSpecs`` document array.
+
+       .. admonition:: What parameters depend on ``replicationSpecs``?
+
+          If you set ``replicationSpecs``, you must:
+
+          - Set ``clusterType``
+          - Set ``diskTypeGB``
+          - Not set ``replicationSpec``
+          - Not use |nvme-clusters|
+          - Not use Azure clusters
 
    * - | ``replicationSpecs[n]``
        | ``.id``
