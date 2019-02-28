@@ -33,7 +33,7 @@
          - ``KOREA_SOUTH``
 
      - id: europe
-       name: GCP
+       name: Europe
        content: |
 
          - ``EUROPE_NORTH``

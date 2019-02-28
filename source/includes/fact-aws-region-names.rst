@@ -24,7 +24,7 @@
          - ``AP_SOUTHEAST_2``
 
      - id: europe
-       name: GCP
+       name: Europe
        content: |
 
          - ``EU_CENTRAL_1``

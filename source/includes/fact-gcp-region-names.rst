@@ -31,7 +31,7 @@
          - ``EUROPE_WEST_2``
  
      - id: europe
-       name: GCP
+       name: Europe
        content: |
 
          - ``EUROPE_WEST_3``
