@@ -69,6 +69,11 @@ rst_epilog = '\n'.join([
     '.. |bi| replace:: MongoDB Connector for BI',
 ])
 
+source_constants = {
+    'version': version,
+    'release': release,
+}
+
 pygments_style = 'sphinx'
 
 extlinks = {
