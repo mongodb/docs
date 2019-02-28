@@ -70,6 +70,10 @@ rst_epilog = '\n'.join([
     '.. |version| replace:: {0}'.format(version)
 ])
 
+source_constants = {
+    'version': version,
+    'release': release,
+}
 pygments_style = 'sphinx'
 
 extlinks = {
