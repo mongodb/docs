@@ -78,6 +78,42 @@ Member Priority and Votes
    
 - .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
 
+Drop Outgoing Connections After Removing a Member
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+..
+  This behavior will change once SERVER-36417 closes. 
+
+Using :method:`rs.reconfig()` to remove a replica set member does not
+automatically drop open outgoing connections from other replica set
+members to the removed member.
+
+By default, replica set members wait for 5 minutes before dropping
+connections to the removed member. In sharded replica sets, you can
+modify this timeout using the
+:parameter:`ShardingTaskExecutorPoolHostTimeoutMS` server parameter.
+
+.. versionadded:: 4.2
+
+   To immediately drop all outgoing connections from the replica set to
+   the removed member, run the :dbcommand:`dropConnections`
+   administrative command on each remaining member on the replica set:
+
+.. code-block:: javascript
+
+   db.adminCommand( 
+     {
+       "dropConnections" : 1,
+       "hostAndPort" : [
+         "<hostname>:<port>"
+       ] 
+     } 
+   )
+
+Replace ``<hostname>`` and ``<port>`` with those of the removed 
+member.
+
+
 .. _replica-set-reconfiguration-usage:
 
 Examples
