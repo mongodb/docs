@@ -75,6 +75,7 @@ rst_epilog = [
     '.. |cifs| replace:: :abbr:`CIFS (Common Internet File System)`',
     '.. |compass| replace:: MongoDB Compass',
     '.. |copy| unicode:: U+000A9',
+    '.. |datadog| replace:: `Datadog <https://www.datadoghq.com/>`__',
     '.. |Epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |Epoch-time-ms| replace:: Timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
