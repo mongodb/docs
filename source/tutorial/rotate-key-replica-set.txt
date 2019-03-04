@@ -1,0 +1,193 @@
+============================
+Rotate Keys for Replica Sets
+============================
+
+.. default-domain:: mongodb
+
+Replica set members can use :ref:`keyfiles <internal-auth-keyfile>` to
+authenticate each other as memers of the same deployment.
+
+Starting in version 4.2, a :ref:`keyfile <internal-auth-keyfile>` can
+contain multiple keys and membership authentication is established if
+at least one key is common across members. This allows for rolling
+upgrade of the keys without downtime.
+
+The following tutorial steps through the process to update the key for
+a replica set without downtime.
+
+Consider a replica set where each member's keyfile contains the
+following key:
+
+.. code-block:: none
+
+   Wre8zPa8KiC6HaQhxpHMktwMhpfeGDtjZKpUQHFQVF+qrKrX6a80Dc1nseigLEVQ
+   CSNYEG76zHxMsr9tCiRWcRme5vRSVivUSVXJsKB0pqGZXveh2dZWcitzODGe6yOF
+   xTUmKbg64unKT4LHY4MoEH8vHXJ7tokaLLDlohnJEEiz9zO0DHEdt0JpxDpyVHnp
+   70kJic1a7FFY0RsVoYMuqAcS+ggumr9rpYhixwVYLH47VzmSD+xTTB4q+QTtXkue
+   uOazSrg/QaY=
+
+The following procedure updates the replica set members to use a new
+key:
+
+.. code-block:: none
+
+   afT65R2J01Qyxawxmjv+pTYtPGGJRbQ/WebXsSc9Z7MNEEbU8LaHn0skORKAKfIA
+   fgNAb4Ujpiyb9PwSOWW6OcSN0jUzqYL5FkzXORhTvoWdj9y4q2dMhgPva3oBW82G
+   6Fw5fp0orKNhYMFubYOGnHHduuNWAC/Wl3o79agNHf1dbf3KD4qf033pt45oPjXO
+   WGQLi9GLIoURFe3bXOo4wttk1Qxz4P6JIudN3m7dbOcA0kEzMBr4/G0Lv6k8o2gn
+   VTvy0pRdSHI=
+
+Procedure
+---------
+
+1. Modify the Keyfile to Include Old and New Keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Modify each member's keyfile to include both the old and new keys. You
+can specify multiple keys either as strings enclosed in quotes or as a
+sequence of keys.
+
+.. container::
+
+   .. tabs::
+
+      tabs:
+
+         - id: multiple-key-strings
+           name: Multiple Key Strings
+           content: |
+
+              You can specify multiple key strings where each key
+              string is **enclosed in quotes**:
+
+              .. code-block:: yaml
+
+                 'Wre8zPa8KiC6HaQhxpHMktwMhpfeGDtjZKpUQHFQVF+qrKrX6a80Dc1nseigLEVQ
+                 CSNYEG76zHxMsr9tCiRWcRme5vRSVivUSVXJsKB0pqGZXveh2dZWcitzODGe6yOF
+                 xTUmKbg64unKT4LHY4MoEH8vHXJ7tokaLLDlohnJEEiz9zO0DHEdt0JpxDpyVHnp
+                 70kJic1a7FFY0RsVoYMuqAcS+ggumr9rpYhixwVYLH47VzmSD+xTTB4q+QTtXkue
+                 uOazSrg/QaY='
+
+                 'afT65R2J01Qyxawxmjv+pTYtPGGJRbQ/WebXsSc9Z7MNEEbU8LaHn0skORKAKfIA
+                 fgNAb4Ujpiyb9PwSOWW6OcSN0jUzqYL5FkzXORhTvoWdj9y4q2dMhgPva3oBW82G
+                 6Fw5fp0orKNhYMFubYOGnHHduuNWAC/Wl3o79agNHf1dbf3KD4qf033pt45oPjXO
+                 WGQLi9GLIoURFe3bXOo4wttk1Qxz4P6JIudN3m7dbOcA0kEzMBr4/G0Lv6k8o2gn
+                 VTvy0pRdSHI='
+
+         - id: multiple-key-sequence
+           name: Multiple Key Sequence
+           content: |
+
+              You can specify multiple key strings as a sequence of key
+              strings (optionally enclosed in quotes):
+
+              .. code-block:: yaml
+
+                 - 'Wre8zPa8KiC6HaQhxpHMktwMhpfeGDtjZKpUQHFQVF+qrKrX6a80Dc1nseigLEVQ
+                   CSNYEG76zHxMsr9tCiRWcRme5vRSVivUSVXJsKB0pqGZXveh2dZWcitzODGe6yOF
+                   xTUmKbg64unKT4LHY4MoEH8vHXJ7tokaLLDlohnJEEiz9zO0DHEdt0JpxDpyVHnp
+                   70kJic1a7FFY0RsVoYMuqAcS+ggumr9rpYhixwVYLH47VzmSD+xTTB4q+QTtXkue
+                   uOazSrg/QaY='
+
+                 - 'afT65R2J01Qyxawxmjv+pTYtPGGJRbQ/WebXsSc9Z7MNEEbU8LaHn0skORKAKfIA
+                   fgNAb4Ujpiyb9PwSOWW6OcSN0jUzqYL5FkzXORhTvoWdj9y4q2dMhgPva3oBW82G
+                   6Fw5fp0orKNhYMFubYOGnHHduuNWAC/Wl3o79agNHf1dbf3KD4qf033pt45oPjXO
+                   WGQLi9GLIoURFe3bXOo4wttk1Qxz4P6JIudN3m7dbOcA0kEzMBr4/G0Lv6k8o2gn
+                   VTvy0pRdSHI='
+
+
+2. Restart Each Member
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   Once all the keyfiles contain both the old and new keys, restart each
+   member one at a time.
+
+   **For each secondary member**, connect a :binary:`~bin.mongo` shell to the
+   member and:
+
+   a. Use the :method:`db.shutdownServer()` method to shut down the member:
+
+      .. code-block:: javascript
+
+            use admin
+            db.shutdownServer()
+
+   b.   Restart the member.
+
+   **For the primary**, connect a :binary:`~bin.mongo` shell to the member and
+
+   a. Use :method:`rs.stepDown()` to step down the member:
+
+      .. code-block:: javascript
+
+         rs.stepDown()
+
+
+   #. Use the :method:`db.shutdownServer()` method to shut down the member:
+
+      .. code-block:: javascript
+
+         use admin
+         db.shutdownServer()
+
+   #. Restart the member.
+
+   Since the keyfiles contains both the old and new keys, all members can
+   now accept either keys for membership authentication.
+
+3. Update Keyfile Content to the New Key Only
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   Modify each member's keyfile to include only the new password.
+
+   .. code-block:: none
+
+      'afT65R2J01Qyxawxmjv+pTYtPGGJRbQ/WebXsSc9Z7MNEEbU8LaHn0skORKAKfIA
+       fgNAb4Ujpiyb9PwSOWW6OcSN0jUzqYL5FkzXORhTvoWdj9y4q2dMhgPva3oBW82G
+       6Fw5fp0orKNhYMFubYOGnHHduuNWAC/Wl3o79agNHf1dbf3KD4qf033pt45oPjXO
+       WGQLi9GLIoURFe3bXOo4wttk1Qxz4P6JIudN3m7dbOcA0kEzMBr4/G0Lv6k8o2gn
+       VTvy0pRdSHI='
+
+4. Restart Each Member
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   Once all the keyfiles contain the new key only, restart each member one
+   at a time.
+
+   **For each secondary member**, connect a :binary:`~bin.mongo` shell to the
+   member and:
+
+   a. Use the :method:`db.shutdownServer()` method to shut down the member:
+
+      .. code-block:: javascript
+
+            use admin
+            db.shutdownServer()
+
+   b.   Restart the member.
+
+   **For the primary**, connect a :binary:`~bin.mongo` shell to the member and
+
+   a. Use :method:`rs.stepDown()` to step down the member:
+
+      .. code-block:: javascript
+
+         rs.stepDown()
+
+
+   #. Use the :method:`db.shutdownServer()` method to shut down the member:
+
+      .. code-block:: javascript
+
+         use admin
+         db.shutdownServer()
+
+   #. Restart the member.
+
+   All members now accept only the new key for membership authentication.
