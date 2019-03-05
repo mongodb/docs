@@ -310,11 +310,6 @@
 
           You must set this value to ``true`` for NVMe clusters.
 
-       .. note::
-
-          You cannot enable cloud provider snapshots for
-          :doc:`Global Clusters </global-clusters>`.
-
    * - ``providerSettings``
      - document
      - Required
