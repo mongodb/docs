@@ -26,7 +26,7 @@
      - boolean
      - *Optional.* Flag indicating whether the username and password for 
        this S3 oplog store were encrypted using the
-       :ref:`credentialstool <encrypt-mongodb-user-credentials>`.
+       :doc:`credentialstool </tutorial/encrypt-user-credentials>`.
  
    * - id
      - string
