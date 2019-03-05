@@ -288,21 +288,35 @@ Global Cluster Backups
 ----------------------
 
 |service| provides backups for :doc:`Global Clusters </global-clusters>`
-using Cloud Provider Snapshots as their backup method. |service|
-optimizes the migration of data from the source cluster to the target
-cluster when the following conditions are true:
+using Cloud Provider Snapshots as their backup method. In most scenarios,
+|service| restores the shards in the source cluster to the corresponding
+shards in the target cluster using the same order as specified in the
+cluster configuration. For example, ``shard0`` in the source cluster is
+restored to ``shard0`` in the target cluster. However, this can cause lengthy
+migrations of data for |global-write-clusters| if two corresponding
+shards reside in different AWS regions.
 
-* MongoDB zone configurations in the Global Clusters do not
-  match.
+To resolve this problem, |service| routes a shard's data from the source
+cluster to a shard in the target cluster that resides in the same AWS
+region when the following conditions are met:
 
-* Each shard in the source cluster corresponds to a shard in the target
-  cluster with the same configuration.
+* Both clusters have enabled a |global-write-cluster| on the same collection
+  using the same :term:`shard key`
 
-The image below depicts two Global Clusters after |service| reverses the
-zone order in the target cluster to optimize data migration for the
-restore job. These zones correspond to MongoDB zones defined in the
-:guilabel:`Zone configuration summary` section of the :guilabel:`Global Cluster Configuration`
-pane in your MongoDB cluster configuration. 
+* Every shard that exists in the source cluster also exists
+  in the target cluster, even though they do not appear in
+  the same order as specified in the cluster configurations
+  
+For example, the image below depicts |service| restoring the data in
+``shard1`` in the source cluster to ``shard0`` in the target cluster
+since both shards reside in the same AWS region, EU_Central_1. |service|
+also retores data from ``shard0`` in the source cluster to ``shard1``
+in the target cluster since those shards reside in the same AWS regions,
+US_East_1 and US_West_1. The zones in the image correspond to MongoDB zones
+defined in the :guilabel:`Zone configuration summary` section of the
+:guilabel:`Global Cluster Configuration` pane in your MongoDB cluster
+configuration. The colored boxes within each MongoDB zone configuration
+correspond to AWS regions.
 
 .. note::
 
@@ -311,18 +325,17 @@ pane in your MongoDB cluster configuration.
    </reference/api/clusters-create-one>` and :doc:`Modify a Cluster
    </reference/api/clusters-modify-one>` APIs.
 
-The colored boxes within each MongoDB zone configuration correspond to
-AWS regions.
-
 .. figure:: /images/cps-global-cluster-restore-optimization.png
 
-Without optimization, |service| would have restored the data in the
-first configured MongoDB zone in the source cluster to the first
-configured MongoDB zone in the target cluster. However, that would
-require moving data from the ``US_East_1`` and ``US_West_1`` AWS regions
-to the ``EU_Central_1`` AWS region. |service| optimizes data migration
-by reversing the zone order for the target cluster and keeping all data
-in the same AWS zone where the data resides in the source cluster.
+If you have not enabled |global-write| in the target cluster
+on the same collection using the same shard key as defined in the source
+cluster, |service| does not move shard data in the source cluster
+to a shard in the target cluster that resides in the same AWS region.
+This may result in lengthy data migrations. However, if you later enable
+|global-write| in the target cluster on the same collection using the
+same shard key as defined in the target cluster, |service| will route
+shard data from the source cluster to a shard in the target cluster
+that resides in the same AWS region.
 
 The first time that you restore a Global Cluster, you must enable global
 writes on the target cluster.
