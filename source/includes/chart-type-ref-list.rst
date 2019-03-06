@@ -18,3 +18,7 @@ for each chart type in MongoDB Charts:
   - :ref:`Data Table <data-table-ref>`
 
   - :ref:`Number Chart <number-chart-ref>`
+
+- :ref:`Geospatial Charts <geo-spatial-charts>`
+
+  - :ref:`Heatmap <geospatial-heatmap-type>`
