@@ -15,11 +15,80 @@ Definition
 
 .. expression:: $trunc
 
-   .. versionadded:: 3.2
+   .. versionchanged:: 4.2.
 
-   Truncates a number to its integer.
+   :expression:`$trunc` truncates a number to a whole integer *or* to a
+   specified decimal place.
 
-   :expression:`$trunc` has the following syntax:
+   MongoDB 4.2 adds the following syntax for :expression:`$trunc`:
+
+   .. code-block:: javascript
+
+      { $trunc : [ <number>, <place> ] }
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Field
+
+        - Type
+
+        - Description
+
+      * - ``<number>``
+
+        - number
+
+        - Can be any valid :ref:`expression <aggregation-expressions>`
+          that resolves to a number. Specifically, the expression must
+          resolve to an integer, double, 
+          :bsontype:`decimal <data_numberdecimal>`, or
+          :bsontype:`long <data_numberlong>`.
+
+          :expression:`$trunc` returns an error if the expression
+          resolves to a non-numeric data type.
+   
+      * - ``<place>``
+
+        - integer
+
+        - *Optional* Can be any valid 
+          :ref:`expression <aggregation-expressions>` that resolves to 
+          an integer between -20 and 100, exclusive. e.g. 
+          ``-20 < place < 100``. Defaults to 0 if unspecified.
+
+          - If ``<place>`` resolves to a positive integer,
+            :expression:`$trunc` truncates to ``<place>`` decimal 
+            places.
+
+            For example, ``$trunc : [1234.5678, 2]`` truncates to two
+            decimal  places and returns ``1234.56``.
+
+          - If ``<place>`` resolves to a negative integer,
+            :expression:`$trunc` replaces ``<place>`` digits left of 
+            the decimal with ``0``.
+
+            For example, ``$trunc : [1234.5678, -2]`` replaces to two
+            digits left of the decimal with ``0`` and returns ``1200``.
+
+            If the absolute value of ``<place>`` exceeds the number of
+            digits to the left of the decimal, :expression:`$trunc`
+            returns ``0``.
+            
+            For example, ``$trunc : [ 1234.5678, -5]`` specifies the
+            fifth digit left of the decimal. This exceeds the
+            number of digits left of the decimal and returns ``0``.
+
+          - If ``<place>`` resolves to ``0``, :expression:`trunc`
+            truncates all digits to the right of the decimal and returns
+            the whole integer value.  
+
+            For example, ``$trunc : [1234.5678, 0]`` returns ``1234``
+
+   Prior to MongoDB 4.2, :expression:`$trunc` truncated the input value 
+   to the whole integer. MongoDB 4.2 continues supporting the pre-4.2 
+   syntax and behavior:
 
    .. code-block:: javascript
 
@@ -32,7 +101,32 @@ Definition
 Behavior
 --------
 
-.. include:: /includes/extracts/agg-expression-null-operand-trunc.rst
+:expression:`$trunc` does not round the truncated data. To round
+input values to a specified place, use the
+:expression:`$round` expression.
+
+Returned Data Type
+~~~~~~~~~~~~~~~~~~
+
+If truncating to a specific decimal place, the data type returned by
+:expression:`$trunc` matches the data type of the input expression or
+value.
+
+If truncating to a whole integer value, :expression:`$trunc` returns
+an integer.
+
+``null``, ``NaN``, and ``+/- Infinity``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- If the argument resolves to a value of ``null`` or refers to a field 
+  that is  missing, :expression:`$trunc` returns ``null``. 
+
+- If the argument resolves to ``NaN``, :expression:`$trunc` returns 
+  ``NaN``.
+
+- If the argument resolves to negative or positive infinity, 
+  :expression:`$trunc` returns negative or positive infinity 
+  respectively.
 
 .. list-table::
    :header-rows: 1
@@ -41,14 +135,17 @@ Behavior
    * - Example
      - Results
 
-   * - ``{ $trunc: 0 }``
-     - ``0``
+   * - ``{ $trunc: [ NaN, 1] }``
+     - ``NaN``
 
-   * - ``{ $trunc: 7.80 }``
-     - ``7``
+   * - ``{ $trunc: [ null, 1] }``
+     - ``null``
 
-   * - ``{ $trunc: -2.3 }``
-     - ``-2``
+   * - ``{ $trunc : [ Infinity, 1 ] }``
+     - ``Infinity`` 
+   
+   * - ``{ $trunc : [ -Infinity, 1 ] }``
+     - ``-Infinity``
 
 Example
 -------
@@ -57,25 +154,61 @@ A collection named ``samples`` contains the following documents:
 
 .. code-block:: javascript
 
-   { _id: 1, value: 9.25 }
-   { _id: 2, value: 8.73 }
-   { _id: 3, value: 4.32 }
-   { _id: 4, value: -5.34 }
+   { _id: 1, value: 19.25 }
+   { _id: 2, value: 28.73 }
+   { _id: 3, value: 34.32 }
+   { _id: 4, value: -45.34 }
 
-The following example returns both the original value and the truncated
-value:
+- The following aggregation returns ``value`` truncated to the first 
+  decimal place:
 
-.. code-block:: javascript
+  .. code-block:: javascript
 
-   db.samples.aggregate([
-      { $project: { value: 1, truncatedValue: { $trunc: "$value" } } }
-   ])
+     db.samples.aggregate([
+        { $project: { truncatedValue: { $trunc: [ "$value", 1 ] } } }
+     ])
 
-The operation returns the following results:
+  The operation returns the following results:
 
-.. code-block:: javascript
+  .. code-block:: javascript
 
-   { "_id" : 1, "value" : 9.25, "truncatedValue" : 9 }
-   { "_id" : 2, "value" : 8.73, "truncatedValue" : 8 }
-   { "_id" : 3, "value" : 4.32, "truncatedValue" : 4 }
-   { "_id" : 4, "value" : -5.34, "truncatedValue" : -5 }
+     { "_id" : 1, "truncatedValue" : 19.2 }
+     { "_id" : 2, "truncatedValue" : 28.7 }
+     { "_id" : 3, "truncatedValue" : 34.3 }
+     { "_id" : 4, "truncatedValue" : -45.3 }
+
+- The following aggregation returns ``value`` truncated to the first 
+  place:
+
+  .. code-block:: javascript
+
+     db.samples.aggregate([
+        { $project: { truncatedValue: { $trunc: [ "$value", -1 ] } } }
+     ])
+
+  The operation returns the following results:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "truncatedValue" : 10 }
+     { "_id" : 2, "truncatedValue" : 20 }
+     { "_id" : 3, "truncatedValue" : 30 }
+     { "_id" : 4, "truncatedValue" : -40 }
+
+- The following aggregation returns``value`` truncated to the whole 
+  integer:
+
+  .. code-block:: javascript
+
+     db.samples.aggregate([
+        { $project: { truncatedValue: { $trunc: [ "$value", 0 ] } } }
+     ])
+
+  The operation returns the following results:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "truncatedValue" : 19 }
+     { "_id" : 2, "truncatedValue" : 28 }
+     { "_id" : 3, "truncatedValue" : 34 }
+     { "_id" : 4, "truncatedValue" : -45 }
