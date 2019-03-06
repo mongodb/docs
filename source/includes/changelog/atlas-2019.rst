@@ -1,3 +1,26 @@
+.. _atlas-v20190305:
+
+05 March 2019 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- UX improvements to the cluster :guilabel:`Connect` modal.
+- Most server replacements get initial data from a disk snapshot of the
+  primary instead of an initial sync.
+- Support for new shared tier regions:
+
+  - AWS
+
+    - ``eu-central-1`` (``M2/M5``)
+    - ``eu-west-1`` (``M0``)
+    - ``us-west-2`` (``M0``)
+
+  - Azure 
+
+    - ``northeurope`` (``M0``) 
+    - ``westus`` (``M0/M2/M5``)
+
+- Cloud Provider Snapshots for Geo-sharded clusters.
+
 .. _atlas-v20190212:
 
 13 February 2019 Release
