@@ -1,3 +1,12 @@
+.. _backup-7.6.0.1059:
+
+Backup Agent 7.6.0.1059
+-----------------------
+
+*Released* :ref:`2019-03-05 <cloudmanager-v20190305>`
+
+- Work to support the upcoming MongoDB 4.2 release.
+
 .. _backup-7.5.0.1051:
 
 Backup Agent 7.5.0.1051
