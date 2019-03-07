@@ -1,10 +1,9 @@
-=========================================================
-MongoDB Connector for Business Intelligence Documentation
-=========================================================
+====================================================
+MongoDB Enterprise Kubernetes Operator Documentation
+====================================================
 
 This repository contains documentation regarding components of the
-the MongoDB Connector for BI (Business Intelligence). This documentation
-builds on the work of the `MongoDB Manual <http://docs.mongodb.org/manual/>`_.
+the MongoDB Enterprise Kubernetes Operator.
 
 Building
 --------
@@ -14,8 +13,8 @@ First install `mut <https://github.com/mongodb/mut>`_.
 Then you can download and build this documentation locally with
 the following command:
 
-    git clone https://github.com/mongodb/docs-bi-connector.git
-    cd docs-bi-connector/
+    git clone https://github.com/mongodb/docs-k8s-operator.git
+    cd docs-k8s-operator/
     make build
 
 View ``build/master/html/index.html`` to view your current build of the
