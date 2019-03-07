@@ -1,0 +1,220 @@
+.. _transactions-retry:
+
+============================
+Transactions in Applications
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+Highly Available Applications
+-----------------------------
+
+Regardless of the database system, whether MongoDB or relational
+databases, applications should take measures to handle errors during
+transaction commits and incorporate retry logic for transactions.
+
+.. _transient-transaction-error:
+
+``"TransientTransactionError"``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The individual write operations inside the transaction are not
+retryable, regardless of whether :urioption:`retryWrites` is set to
+``true``. If an operation encounters an error labelled
+``"TransientTransactionError"``, the transaction as a whole can be
+retried.
+
+- The callback API incorporates retry logic for
+  ``"TransientTransactionError"``.
+
+- The initial transaction API does not incorporate retry logic
+  for ``"TransientTransactionError"``. To handle
+  ``"TransientTransactionError"``, applications should explicitly
+  incorporate retry logic for the error.
+
+.. _unknonw-transaction-commit-result:
+
+``"UnknownTransactionCommitResult"``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The commit operations are :doc:`retryable write operations
+</core/retryable-writes>`. If the commit operation encounters an error,
+MongoDB drivers retry the commit regardless of whether
+:urioption:`retryWrites` is set to ``true``.
+
+If the commit operation encounters an error labelled
+``"UnknownTransactionCommitResult"``, the commit can be retried.
+
+- The callback API incorporates retry logic for
+  ``"UnknownTransactionCommitResult"``.
+
+- The initial transaction API does not incorporate retry logic for
+  ``"UnknownTransactionCommitResult"``. To handle
+  ``"UnknownTransactionCommitResult"``, applications should explicitly
+  incorporate retry logic for the error.
+
+Callback API
+-------------
+
+The new callback API incorporates logic:
+
+- To retry the transaction as a whole if the transaction encounters a
+  ``"TransientTransactionError"``.
+
+- To retry the commit operation if the commit encounters an
+  ``"UnknownTransactionCommitResult"``.
+
+.. tabs::
+
+   tabs:
+
+     - id: python
+       name: Python
+
+       content: |
+
+          .. note::
+
+             The example uses the new callback API for working with
+             transactions. The new callback API incorporates retry
+             logic for ``TransientTransactionError`` or
+             ``UnknownTransactionCommitResult`` commit errors.
+
+          .. code-block:: python
+
+             # For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
+             # uriString = 'mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl'
+             # For a sharded cluster, connect to the mongos instances; e.g.
+             # uriString = 'mongodb://mongos0.example.com:27017,mongos1.example.com:27017/admin'
+
+             client = MongoClient(uriString)
+             
+             # Prereq: Create collections. CRUD operations in transactions must be on existing collections.
+             client.get_database(
+                 'mydb1',
+                 write_concern=WriteConcern('majority', wtimeout=1000)).foo.insert_one({'abc': 0})
+             client.get_database(
+                 'mydb2',
+                 write_concern=WriteConcern('majority', wtimeout=1000)).bar.insert_one({'xyz': 0})
+
+             def callback(my_session):
+                 collection_one = my_session.client.mydb1.foo
+                 collection_two = my_session.client.mydb2.bar
+                 collection_one.insert_one({'abc': 1}, session=my_session)
+                 collection_two.insert_one({'xyz': 999}, session=my_session)
+
+             with client.start_session() as session:
+                 session.with_transaction(callback,
+                                          read_concern=ReadConcern('local'),
+                                          write_concern=WriteConcern('majority', wtimeout=1000),
+                                          read_preference=ReadPreference.PRIMARY)
+
+     - id: java-sync
+       name: Java (Sync)
+
+       content: |
+
+          .. note::
+
+             The example uses the new callback API for working with
+             transactions. The new callback API incorporates retry
+             logic for ``TransientTransactionError`` or
+             ``UnknownTransactionCommitResult`` commit errors.
+
+          .. code-block:: java
+
+             /*
+               For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
+               String uri = "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl";
+               For a sharded cluster, connect to the mongos instances; e.g.
+               String uri = "mongodb://mongos0.example.com:27017,mongos1.example.com:27017:27017/admin";
+              */
+
+             final MongoClient client = MongoClients.create(uri);
+
+             /*
+                 Prereq: Create collections. CRUD operations in transactions must be on existing collections.
+              */
+
+             client.getDatabase("mydb1").getCollection("foo")
+                     .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("abc", 0));
+             client.getDatabase("mydb2").getCollection("bar")
+                     .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("xyz", 0));
+
+             final ClientSession clientSession = client.startSession();
+
+             TransactionOptions txnOptions = TransactionOptions.builder()
+                     .readPreference(ReadPreference.primary())
+                     .readConcern(ReadConcern.LOCAL)
+                     .writeConcern(WriteConcern.MAJORITY)
+                     .build();
+
+             TransactionBody txnBody = new TransactionBody<String>() {
+                 public String execute() {
+                     MongoCollection<Document> coll1 = client.getDatabase("mydb1").getCollection("foo");
+                     MongoCollection<Document> coll2 = client.getDatabase("mydb2").getCollection("bar");
+
+                     coll1.insertOne(new Document("abc", 1));
+                     coll2.insertOne(new Document("xyz", 999));
+
+                     return "Inserted into collections in different databases";
+                 }
+             };
+             try {
+                 clientSession.withTransaction(txnOptions, txnBody);
+             } catch (RuntimeException e) {
+                 // some error handling
+             } finally {
+                 clientSession.close();
+             }
+Initial API
+-----------
+
+The initial API does not incorporate retry logic for errors labelled:
+
+- ``"TransientTransactionError"``. To handle
+  ``"TransientTransactionError"``, applications should explicitly
+  incorporate retry logic for the error.
+
+- ``"UnknownTransactionCommitResult"``. To handle
+  ``"UnknownTransactionCommitResult"``, applications should explicitly
+  incorporate retry logic for the error.
+
+Explicitly Handle ``TransientTransactionError``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an operation in a transaction returns an error labelled
+``"TransientTransactionError"``, the transaction as a whole can be
+retried.
+
+For example, the following code sample runs a function and retries the
+function if a ``"TransientTransactionError"`` is encountered:
+
+.. include:: /includes/driver-examples/driver-example-transactions-retry-1.rst
+
+Explicitly Handle ``UnknownTransactionCommitResult``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the commit returns an error labelled
+``"UnknownTransactionCommitResult"``, the commit can be retried.
+
+For example, the following code sample commits a transaction and
+retries the commit if a ``"UnknownTransactionCommitResult"`` error is
+encountered:
+
+.. include:: /includes/driver-examples/driver-example-transactions-retry-2.rst
+
+Retry Transaction and Commit Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Incorporating logic to retrying the transaction for transient errors
+and retrying the commit, the full code example is:
+
+.. include:: /includes/driver-examples/driver-example-transactions-retry-3.rst
