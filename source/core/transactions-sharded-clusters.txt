@@ -1,0 +1,144 @@
+============================================
+Production Considerations (Sharded Clusters)
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+Starting in version 4.2, MongoDB provides the ability to perform
+multi-document transactions for sharded clusters.
+
+.. include:: /includes/extracts/transactions-beta.rst
+
+The following page lists concerns specific to running transactions on a
+sharded cluster. These concerns are in addition to those listed in
+:doc:`/core/transactions-production-consideration`.
+
+Sharded Transctions and MongoDB Drivers
+---------------------------------------
+
+For transactions on sharded clusters, clients require MongoDB drivers
+updated for MongoDB 4.2.
+
+.. admonition:: Sharded Transactions and MongoDB 4.0 drivers
+   :class: note
+
+   On sharded clusters with multiple :binary:`~bin.mongos` instances,
+   performing transactions with drivers updated for MongoDB 4.0
+   (instead of MongoDB 4.2) results in errors:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+   
+      * - Error Code
+        - Error Message
+   
+      * - 251
+        - ``cannot continue txnId -1 for session ... with txnId 1``
+
+      * - 50940
+        - ``cannot commit with no participants``
+
+Performance
+-----------
+
+Single Shard
+~~~~~~~~~~~~
+
+Transactions that target a single shard are performant.
+
+Multiple Shards
+~~~~~~~~~~~~~~~
+
+Transactions that affects multiple shards incur a greater performance
+cost.
+
+On a sharded cluster, transactions that span multiple shards will error
+and abort if any involved shard contains an arbiter.
+
+Time Limit
+~~~~~~~~~~
+
+To specify a time limit, specify a ``maxTimeMS`` limit on
+``commitTransaction``. If ``maxTimeMS`` is unspecified, MongoDB will use the
+:parameter:`transactionLifetimeLimitSeconds`.
+
+If ``maxTimeMS`` is specified but would result in transaction that
+exceeds :parameter:`transactionLifetimeLimitSeconds`, MongoDB will use
+the :parameter:`transactionLifetimeLimitSeconds`.
+
+Read Concerns
+-------------
+
+Multi-document transactions support :readconcern:`"local"`,
+:readconcern:`"majority"`, and :readconcern:`"snapshot"` read concern
+levels.
+
+For transactions on a sharded cluster, only the
+:readconcern:`"snapshot"` read concern provides a consistent snapshot
+across multiple shards.
+
+For more information on read concern and transactions, see
+:ref:`transactions-read-concern`.
+
+
+Arbiters
+--------
+
+On a sharded cluster, transactions that span multiple shards will error
+and abort if any involved shard contains an arbiter.
+
+.. _transactions-sharded-clusters-psa:
+
+Three Member Primary-Secondary-Arbiter Shards
+---------------------------------------------
+
+For a sharded cluster with a three-member PSA shards, you may have
+:ref:`disabled read concern "majority" <disable-read-concern-majority>`
+to avoid cache pressure.
+
+For a sharded cluster that has disabled read concern ``"majority"``:
+
+- A transaction with read concern ``snapshot`` errors if the
+  transaction involves a shard with read concern ``"majority"``
+  disabled.
+
+- A transaction that spans multiple shards errors if the transaction
+  involves a shard with read concern ``"majority"`` disabled.
+
+To check if read concern "majority" is disabled
+(:option:`--enableMajorityReadConcern false <mongod
+--enableMajorityReadConcern>` or
+:setting:`replication.enableMajorityReadConcern: false
+<replication.enableMajorityReadConcern>`), you can run
+:method:`db.serverStatus()` and check the
+:serverstatus:`storageEngine.supportsCommittedReads` field. If
+``false``, read concern "majority" is disabled.
+
+Backups and Restores
+--------------------
+
+.. include:: /includes/extracts/sharded-clusters-backup-restore-limitations-atomicity-general.rst
+
+Chunk Migrations
+----------------
+
+The :ref:`chunk migration process<chunk-migration-procedure>` require
+exclusive locks on the collection during certain stages. If an ongoing
+transaction has locks on the collection, these stages must wait for the
+transaction to release locks on the affected collection, thereby
+impacting the performance of chunk migrations.
+
+If a chunk migration moves data being modified by an operation in a
+transaction, the transaction errors during the commit and aborts.
+
+Additional Information
+----------------------
+
+See also :doc:`/core/transactions-production-consideration`.
