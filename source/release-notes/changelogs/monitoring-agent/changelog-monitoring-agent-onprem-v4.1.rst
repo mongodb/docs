@@ -1,3 +1,12 @@
+.. _monitoring-7.0.0.481:
+
+Monitoring Agent 7.0.0.481
+--------------------------
+
+:ref:`Released with Ops Manager 4.1.3 on 2019-03-07 <opsmgr-server-4.1.3>`
+
+- Built using Go 1.10.
+
 .. _monitoring-6.9.0.477-1:
 
 Monitoring Agent 6.9.0.477-1

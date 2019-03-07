@@ -1,7 +1,21 @@
+.. _opsmgr-server-4.1.3:
+
+|onprem| Rapid Release 4.1.3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-03-07*
+
+- Agent Upgrades:
+  :ref:`automation-6.3.0.5643`,
+  :ref:`backup-7.5.0.1051`,
+  :ref:`monitoring-7.0.0.481`
+
 .. _opsmgr-server-4.1.2:
 
 |onprem| Rapid Release 4.1.2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-02-21*
 
 - Improved Deployment: List view. Now shows automation status, easy
   individual process log collection, topological deployment grouping,

@@ -1,3 +1,14 @@
+.. _automation-6.3.0.5643:
+
+Automation Agent 6.3.0.5643
+---------------------------
+
+:ref:`Released with Ops Manager 4.1.3 on 2019-03-07 <opsmgr-server-4.1.3>`
+
+- No longer runs the metrics collection during restores, resulting
+  in cleaner log files.
+- Improved error handling during restores for better resumability.
+
 .. _automation-6.2.0.5620-1:
 
 Automation Agent 6.2.0.5620-1
