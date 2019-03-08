@@ -1,0 +1,103 @@
+---
+# Source: mongodb-enterprise-operator/templates/namespace.yaml
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mongodb
+
+---
+# Source: mongodb-enterprise-operator/templates/roles.yaml
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-enterprise-operator
+  namespace: mongodb
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  - services
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs: ["*"]
+- apiGroups:
+  - mongodb.com
+  resources:
+  - "*"
+  verbs:
+  - "*"
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-enterprise-operator
+  namespace: mongodb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mongodb-enterprise-operator
+subjects:
+- kind: ServiceAccount
+  name: mongodb-enterprise-operator
+  namespace: mongodb
+---
+# Source: mongodb-enterprise-operator/templates/serviceaccount.yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mongodb-enterprise-operator
+  namespace: mongodb
+---
+# Source: mongodb-enterprise-operator/templates/operator.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-enterprise-operator
+  namespace: mongodb
+spec:
+  replicas: 1
+  selector:
+      matchLabels:
+        app: mongodb-enterprise-operator
+  template:
+    metadata:
+      labels:
+        app: mongodb-enterprise-operator
+    spec:
+      serviceAccountName: mongodb-enterprise-operator
+      containers:
+      - name: mongodb-enterprise-operator
+        image: quay.io/mongodb/mongodb-enterprise-operator:0.3
+        imagePullPolicy: Always
+        env:
+        - name: OPERATOR_ENV
+          value: prod
+        - name: WATCH_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+
+        - name: MONGODB_ENTERPRISE_DATABASE_IMAGE
+          value: quay.io/mongodb/mongodb-enterprise-database:0.3
+        - name: IMAGE_PULL_POLICY
+          value: Always
+        - name: IMAGE_PULL_SECRETS
+          value: 
+      imagePullSecrets: 
+      - name: 

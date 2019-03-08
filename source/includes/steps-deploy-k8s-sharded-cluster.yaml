@@ -1,0 +1,277 @@
+---
+title: "Copy the following example :term:`sharded cluster` |k8s| |k8s-obj| specification."
+stepnum: 1
+level: 4
+ref: copy-k8s-example
+content: |
+
+   This is a |yaml| file that you can modify to meet your desired
+   configuration. The highlighted lines should be changed for your
+   sharded cluster configuration.
+
+   .. literalinclude:: /reference/k8s/example-sharded-cluster-minimal.yaml
+      :language: yaml
+      :emphasize-lines: 5-7,9-17
+
+   You will need to change the highlighted settings to match your 
+   desired :term:`sharded cluster` deployment.
+---
+title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
+stepnum: 2
+level: 4
+ref: paste-k8s-example
+---
+title: "Configure the settings highlighted in the preceeding step as follows."
+stepnum: 3
+level: 4
+ref: change-k8s-values
+content: |
+
+   .. list-table::
+      :widths: 20 20 40 20
+      :header-rows: 1
+
+      * - Key
+        - Type
+        - Description
+        - Example
+
+      * - :setting:`metadata.name`
+        - string
+        - Label for this |k8s| :term:`sharded cluster` |k8s-obj|.
+
+          .. seealso::
+
+             - :setting:`metadata.name`
+             - |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
+
+        - ``myproject``
+
+      * - :setting:`metadata.namespace`
+        - string
+        - Scope of object names. |k8s| |k8s-ns| where this
+          |k8s-mdbrsc| and other |k8s-objs| are created.
+
+          Using two different namespaces allows you to delete your
+          :term:`sharded cluster` or all of the resources in the
+          namespace without affecting your |k8s-op-short|.
+
+          .. seealso::
+
+             - :setting:`metadata.namespace`
+             - |k8s| documentation on |k8s-nss|
+
+        - ``mongodb``
+
+      * - :setting:`spec.shardCount`
+        - integer
+        - Number of shards to deploy.
+        - ``2``
+
+      * - :setting:`spec.mongodsPerShardCount`
+        - integer
+        - Number of shard members per shard.
+        - ``3``
+
+      * - :setting:`spec.mongosCount`
+        - integer
+        - Number of shard routers to deploy.
+        - ``2``
+
+      * - :setting:`spec.configServerCount`
+        - integer
+        - Number of members of the config server replica set.
+        - ``3``
+
+      * - :setting:`spec.version`
+        - string
+        - Version of MongoDB that this :term:`sharded cluster` should run.
+
+          The format should be ``X.Y.Z`` for the Community edition and 
+          ``X.Y.Z-ent`` for the Enterprise edition.
+
+          To learn more about MongoDB versioning, see 
+          :ref:`release-version-numbers` in the MongoDB Manual.
+        - ``3.6.7``
+
+      * - :setting:`spec.project`
+        - string
+        - Name of the |k8s-configmap| with the |onprem| connection configuration.
+
+          .. admonition:: Value must match namespace and name of ConfigMap
+             :class: note
+
+             This value *must* match the value you provided for 
+             :setting:`metadata.name` in your |onprem| 
+             :ref:`project ConfigMap <create-k8s-project>`.
+
+             If this |k8s-mdbrsc| is in a different |k8s-ns| than the
+             :ref:`project ConfigMap <create-k8s-project>`, you should
+             set this value to the namespace *and* name of the
+             ConfigMap in this format:
+             ``<namespace>/<myconfigmap>``
+
+          .. include:: /includes/k8s/fact-k8s-operator-manages-configmap.rst
+
+        - ``<myproject>`` or
+          ``<namespace>/<myconfigmap>``
+
+      * - :setting:`spec.credentials`
+        - string
+        - Name of the |k8s| |k8s-secret| you
+          :ref:`created <create-k8s-secret>` as |mms| |api|
+          authentication credentials for the |k8s-op-short| to
+          communicate with |onprem|.
+
+          .. admonition:: Value must use namespace and name of Secret
+             :class: note
+
+             This value *must* match the value you provided for 
+             :setting:`namespace` and `name` for your |mms| |k8s|
+             :ref:`Secret <create-k8s-credentials>`.
+
+             If this |k8s-obj| is in a different |k8s-ns| than the
+             Secret, you should set this value to the namespace *and*
+             name of the Secret in this format:
+             ``<namespace>/<name>``
+
+          .. include:: /includes/k8s/fact-k8s-operator-manages-secret.rst
+
+        - ``<mycredentials>`` or
+          ``<namespace>/<mycredentials>``
+
+      * - :setting:`spec.persistent`
+        - string
+        - *Optional.*
+
+          Flag indicating if this |k8s-mdbrsc| should use |k8s-pvs| for
+          storage. Persistent volumes are not deleted when the
+          |k8s-mdbrsc| is stopped or restarted.
+
+          If this value is ``true``, then the following values are set 
+          to their default value of ``16G``:
+
+          - :setting:`spec.shardPodSpec.persistence.single`
+          - :setting:`spec.configSrvPodSpec.persistence.single`
+
+          To change your |k8s-pvcs| configuration, configure the
+          following collections to meet your deployment requirements:
+
+          - If you want one |k8s-pv| for each |k8s-pod|, configure the
+            :setting:`spec.shardPodSpec.persistence.single` and
+            :setting:`spec.configSrvPodSpec.persistence.single`
+            collections.
+
+          - If you want separate |k8s-pvs| for data, journals, and
+            logs for each |k8s-pod|, configure the following
+            collections:
+            
+            - In the ``spec.configSrvPodSpec.persistence.multiple``
+              collection:
+              - :setting:`data <spec.configSrvPodSpec.persistence.multiple.data>`
+              - :setting:`journal <spec.configSrvPodSpec.persistence.multiple.journal>`
+              - :setting:`logs <spec.configSrvPodSpec.persistence.multiple.logs>`
+
+            - In the ``spec.configSrvPodSpec.persistence.multiple`` collection:
+              - :setting:`data <spec.shardPodSpec.persistence.multiple.data>`
+              - :setting:`journal <spec.shardPodSpec.persistence.multiple.journal>`
+              - :setting:`logs <spec.shardPodSpec.persistence.multiple.logs>`
+
+          .. include:: /includes/k8s/k8s-persistent-volumes.rst
+
+        - ``true``
+
+---
+title: "Add any additional accepted settings for a :term:`sharded cluster` deployment."
+stepnum: 4
+level: 4
+ref: add-k8s-values
+content: |
+
+  You can also add any of the following optional settings to the 
+  |k8s-obj| specification file for a :term:`sharded cluster` 
+  deployment:
+
+  - :setting:`spec.logLevel`
+
+  **For config server**
+
+  - :setting:`spec.configSrvPodSpec.cpu`
+  - :setting:`spec.configSrvPodSpec.memory`
+  - :setting:`spec.configSrvPodSpec.persistence.single`
+  - :setting:`spec.configSrvPodSpec.persistence.multiple.data`
+  - :setting:`spec.configSrvPodSpec.persistence.multiple.journal`
+  - :setting:`spec.configSrvPodSpec.persistence.multiple.logs`
+  - :setting:`spec.configSrvPodSpec.nodeAffinity`
+  - :setting:`spec.configSrvPodSpec.podAffinity`
+  - :setting:`spec.configSrvPodSpec.podAntiAffinityTopologyKey`
+
+  **For shard routers**
+
+  - :setting:`spec.mongosPodSpec.cpu`
+  - :setting:`spec.mongosPodSpec.memory`
+  - :setting:`spec.mongosPodSpec.nodeAffinity`
+  - :setting:`spec.mongosPodSpec.podAffinity`
+  - :setting:`spec.mongosPodSpec.podAntiAffinityTopologyKey`
+
+  **For shard members**
+
+  - :setting:`spec.shardPodSpec.cpu`
+  - :setting:`spec.shardPodSpec.memory`
+  - :setting:`spec.shardPodSpec.nodeAffinity`
+  - :setting:`spec.shardPodSpec.persistence.single`
+  - :setting:`spec.shardPodSpec.persistence.multiple.data`
+  - :setting:`spec.shardPodSpec.persistence.multiple.journal`
+  - :setting:`spec.shardPodSpec.persistence.multiple.logs`
+  - :setting:`spec.shardPodSpec.podAffinity`
+  - :setting:`spec.shardPodSpec.podAntiAffinityTopologyKey`
+
+---
+title: "Save this file with a ``.yaml`` file extension."
+stepnum: 5
+level: 4
+ref: save-object-spec
+
+---
+title: "Start your :term:`sharded cluster` deployment."
+stepnum: 6
+level: 4
+ref: start-k8s-sharded-cluster
+content: |
+
+   Invoke the following |k8s| command to create your
+   :term:`sharded cluster`:
+
+   .. code-block:: sh
+
+      kubectl apply -f <sharded-cluster-conf>.yaml
+
+   :ref:`Check the log <k8s-troubleshooting>` after running this
+   command. If the creation was successful, you should see a message
+   similar to the following:
+
+   .. code-block:: sh
+
+      2018-06-26T10:30:30.346Z INFO operator/shardedclusterkube.go:52 Created! {"sharded cluster": "my-sharded-cluster"}
+
+---
+title: "Track the status of your :term:`sharded cluster` deployment."
+stepnum: 7
+level: 4
+ref: track-k8s-deployment
+content: |
+
+  To check the status of your |k8s-mdbrsc|, invoke the following
+  command:
+
+  .. code-block:: sh
+     
+     kubectl get msc <sc-name> -n <namespace> -o yaml -w
+
+  The ``-w`` flag means "watch". The output refreshes immediately if
+  something changes until the status phase achieves the ``Running``
+  state.
+
+  If the deployment fails, see :doc:`/reference/troubleshooting`.
+
+...
