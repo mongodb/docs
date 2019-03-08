@@ -1,0 +1,47 @@
+---
+apiVersion: mongodb.com/v1
+kind: MongoDbReplicaSet
+metadata:
+  name: my-replica-set
+  namespace: mongodb
+spec:
+  members: 3
+  version: 4.0.0
+  service: my-service
+  project: my-project
+  credentials: my-credentials
+  persistent: true
+  podSpec:
+    cpu: '0.25'
+    memory: 512M
+    persistence:
+      multiple:
+        data:
+          storage: 10Gi
+        journal:
+          storage: 1Gi
+          labelSelector:
+            matchLabels:
+              app: "my-app"
+        logs:
+          storage: 500M
+          storageClass: standard
+    podAntiAffinityTopologyKey: nodeId
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: security
+            operator: In
+            values:
+            - S1
+        topologyKey: failure-domain.beta.kubernetes.io/zone
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/e2e-az-name
+            operator: In
+            values:
+            - e2e-az1
+            - e2e-az2

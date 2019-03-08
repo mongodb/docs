@@ -1,0 +1,66 @@
+---
+apiVersion: mongodb.com/v1
+kind: MongoDbShardedCluster
+metadata:
+  name: my-sharded-cluster
+  namespace: mongodb
+spec:
+  shardCount: 2
+  mongodsPerShardCount: 3
+  mongosCount: 2
+  configServerCount: 3
+  version: 4.0.0
+  service: my-service
+
+  ## Please Note: The default Kubernetes cluster name is
+  ## `cluster.local`.
+  ## If your cluster has been configured with another name, you can
+  ## specify it with the `clusterName` attribute.
+
+  project: my-project
+  credentials: my-credentials
+
+  persistent: true
+  configSrvPodSpec:
+    cpu: '0.5'
+    memory: 512M
+
+    # if "persistence" element is omitted then Operator uses the
+    # default size (5G) for mounting single Persistent Volume
+
+    podAntiAffinityTopologyKey: kubernetes.io/hostname
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: security
+            operator: In
+            values:
+            - S1
+        topologyKey: failure-domain.beta.kubernetes.io/zone
+  mongosPodSpec:
+    cpu: '0.8'
+    memory: 1G
+    podAntiAffinityTopologyKey: rackId
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        preference:
+          matchExpressions:
+          - key: another-node-label-key
+            operator: In
+            values:
+            - another-node-label-value
+  shardPodSpec:
+    cpu: '0.6'
+    memory: 3G
+    persistence:
+      multiple:
+        # if the child of "multiple" is omitted then the default size will be used.
+        # 16G for "data", 1G for "journal", 3Gb for "logs"
+        data:
+          storage: 20G
+        logs:
+          storage: 4G
+          storageClass: standard
+    podAntiAffinityTopologyKey: kubernetes.io/hostname

@@ -1,0 +1,321 @@
+.. _k8s-troubleshooting:
+
+=============================
+|k8s-op-full| Troubleshooting
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Get Status of MongoDB Resource
+------------------------------
+
+To find the status of a MongoDB Resource (replica set, sharded cluster, or standalone), invoke this command:
+
+.. code-block:: sh
+
+   kubectl get <resourcetype> <resourcename>  -n <namespace> -o yaml -w
+
+The command's response describes the status of the resource using the 
+following key-value pairs:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Key
+     - Value
+
+   * - message
+     - Error message explaining why the resource is in a failed state.
+   * - phase
+     -
+       .. list-table::
+          :header-rows: 1
+          :widths: 20 80
+
+          * - Status
+            - Meaning
+
+          * - Pending
+            - Resource is transitioning between two states.
+          * - Running
+            - Resource has completed reconciliation successfully.
+          * - Failed
+            - Resource had failures.
+
+   * - lastTransition
+     - |iso8601-time| when the last reconciliation happened.
+   * - link
+     - Deployment |url| in |mms|.
+   * - Resource specific fields
+     - For descriptions of these fields, see
+       :doc:`/reference/k8s-operator-specification`.
+
+.. example::
+
+   If you want to see what the status of a replica set named
+   ``my-replica-set`` in the ``developer`` namespace, run:
+
+   .. code-block:: sh
+
+      kubectl get mrs my-replica-set -n developer -o yaml -w
+
+   If ``my-replica-set`` is running, you should see:
+
+   .. code-block:: yaml
+
+      status:
+          lastTransition: "2019-01-30T10:51:40Z"
+          link: http://ec2-3-84-128-187.compute-1.amazonaws.com:9080/v2/5c503a8a1b90141cbdc60a77
+          members: 1
+          phase: Running
+          version: 4.0.0
+
+   If ``my-replica-set`` is not running, you should see:
+
+   .. code-block:: yaml
+
+      status:
+        lastTransition: 2019-02-01T13:00:24Z
+        link: http://ec2-34-204-36-217.compute-1.amazonaws.com:9080/v2/5c51c040d6853d1f50a51678
+        members: 1
+        message: 'Failed to create/update replica set in Ops Manager: Status: 400 (Bad Request),
+          Detail: Something went wrong validating your Automation Config. Sorry!'
+        phase: Failed
+        version: 4.0.0
+
+Review the Logs
+---------------
+
+.. _review-k8s-op-logs:
+
+Review Logs from the |k8s-op-short|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To review the |k8s-op-short| logs, invoke this command:
+
+.. code-block:: sh
+
+   kubectl logs -f deployment/mongodb-enterprise-operator -n <metadata.namespace>
+
+You could check the :doc:`Ops Manager Logs </tutorial/view-logs>` as
+well to see if any issues were reported to |onprem|.
+
+.. _find-one-k8s-pod:
+
+Find a Specific Pod
+~~~~~~~~~~~~~~~~~~~
+
+To find which pods are available, invoke this command first:
+
+.. code-block:: sh
+
+   kubectl get pods -n <metadata.namespace>
+
+.. seealso::
+   |k8s| documentation on `kubectl get <https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#get>`__.
+
+.. _review-all-k8s-logs:
+.. _review-one-k8s-pod:
+
+Review Logs from Specific Pod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to narrow your review to a specific |k8s-pod|, you can
+invoke this command:
+
+.. code-block:: sh
+
+   kubectl logs <podName> -n <metadata.namespace>
+
+.. example::
+
+   If your :term:`replica set` is labeled ``myrs``, the |k8s-pod| log
+   command is invoked as:
+
+   .. code-block:: sh
+
+      kubectl logs myrs-0 -n <metadata.namespace>
+
+   This returns the :ref:`Automation Agent Log <agent-logs>` for this 
+   replica set.
+
+View |k8s-mdbrsc| Specifications
+--------------------------------
+
+View All Replica Set |k8s-mdbrsc| Specifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view all replica set |k8s-mdbrsc| specifications in the provided
+|k8s-ns|:
+
+.. code-block:: shell
+
+   kubectl get mrs -n <namespace>
+
+View All Sharded Cluster |k8s-mdbrsc| Specifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view all sharded cluster |k8s-mdbrsc| specifications in the
+provided |k8s-ns|:
+
+.. code-block:: shell
+
+   kubectl get msc -n <namespace>
+
+View All Standalone |k8s-mdbrsc| Specifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view all standalone |k8s-mdbrsc| specifications in the provided
+|k8s-ns|:
+
+.. code-block:: shell
+
+   kubectl get mst -n <namespace>
+
+.. example::
+
+   To read details about the ``dublin`` standalone resource, invoke
+   this command:
+
+   .. code-block:: shell
+
+      kubectl get mst dublin -n <namespace> -o yaml
+
+   This returns the following response:
+   
+   .. code-block:: yaml
+      :copyable: false
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDbStandalone
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/last-applied-configuration: |
+            {"apiVersion":"mongodb.com/v1","kind":"MongoDbStandalone","metadata":{"annotations":{},"name":"dublin","namespace":"mongodb"},"spec":{"credentials":"alis-credentials","persistent":false,"podSpec":{"memory":"1G"},"project":"my-om-config","version":"4.0.0-ent"}}
+        clusterName: ""
+        creationTimestamp: 2018-09-12T17:15:32Z
+        generation: 1
+        name: dublin
+        namespace: mongodb
+        resourceVersion: "337269"
+        selfLink: /apis/mongodb.com/v1/namespaces/mongodb/mongodbstandalones/dublin
+        uid: 7442095b-b6af-11e8-87df-0800271b001d
+      spec:
+        credentials: my-credentials
+        persistent: false
+        podSpec:
+          memory: 1G
+        project: my-om-config
+        version: 4.0.0-ent
+
+.. _remove-k8s-resource:
+
+Remove a |k8s-mdbrsc|
+---------------------
+
+To remove any instance that |k8s| deployed, you must use |k8s|.
+
+.. important::
+
+   You can only use the |k8s-op-short| to remove |k8s|\-deployed
+   instances. If you use |mms| to remove the instance, |mms| throws an
+   error.
+
+.. example::
+
+   To remove a standalone MongoDB instance you created using |k8s|:
+
+   .. code-block:: shell
+
+      kubectl delete mongodbstandalone <name> -n <metadata.namespace>
+
+   To remove all MongoDB instances you created using |k8s|:
+
+   .. code-block:: shell
+
+      kubectl delete [mrs|msc|mst] --all -n <metadata.namespace>
+
+You can refer to the |k8s-mdbrscs| by either their long or short names:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 30
+
+   * - MongoDB Deployment Item
+     - Resource Long Name 
+     - Resource Short Name
+
+   * - MongoDB Replica Set
+     - ``mongodbreplicaset``
+     - ``mrs``
+   * - MongoDB Sharded Cluster
+     - ``mongodbshardedcluster``
+     - ``msc``
+   * - MongoDB Standalone Deployment
+     - ``mongodbstandalone``
+     - ``mst``
+
+.. _remove-k8s-operator:  
+
+Remove the |k8s-op-short|
+-------------------------
+
+To remove the |k8s-op-short|:  
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`: 
+
+   .. code-block:: shell 
+
+      kubectl delete [mrs|msc|mst] --all -n <metadata.namespace> 
+
+2. Remove the |k8s-op-short|:  
+
+   .. code-block:: shell 
+
+      kubectl delete deployment mongodb-enterprise-operator -n <metadata.namespace>
+
+.. _remove-k8s-namespace:
+
+Remove the |k8s-ns|
+-------------------
+
+To remove the |k8s-ns|:
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
+
+   .. code-block:: shell
+
+      kubectl delete [mrs|msc|mst] --all -n <metadata.namespace>
+
+2. Remove the |k8s-ns|:
+
+   .. code-block:: shell
+
+      kubectl delete namespace <metadata.namespace>
+
+.. _remove-k8s-crds:
+
+Remove the |k8s-crds|
+---------------------
+
+To remove the |k8s-crds|:
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
+
+   .. code-block:: shell
+
+      kubectl delete [mrs|msc|mst] --all -n <metadata.namespace>
+
+2. Remove the |k8s-crds|:
+
+   .. code-block:: shell
+
+      kubectl delete crd --all
+
