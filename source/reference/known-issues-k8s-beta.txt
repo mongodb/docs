@@ -1,0 +1,91 @@
+======================================
+Known Issues in the |k8s-op-full| Beta
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Disable Backups before Deleting a Resource
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When deleting a resource that has backup configured, you must disable backup first.
+
+Configure Persistent Storage Correctly
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If there are no
+`persistent volumes <https://kubernetes.io/docs/concepts/storage/persistent-volumes/>`__
+available when you create a resource, the resulting |k8s-pod| stays in
+transient state and the Operator fails  (after 20 retries) with the
+following error:
+
+.. code-block:: sh
+
+   Failed to update Ops Manager automation config: Some agents failed to register
+
+To prevent this error, either:
+
+- Provide `persistent volumes <https://kubernetes.io/docs/concepts/storage/persistent-volumes/>`__ or
+- Set ``persistent : false`` for the resource
+
+For testing only, you may also set ``persistent : false``. This
+*must not be used in production*, as data is not preserved between
+restarts.
+
+Remove Resources before Removing |k8s|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sometimes |onprem| can diverge from |k8s|. This mostly occurs when
+|k8s| resources are removed manually. |onprem| can keep displaying an
+Automation Agent which has been shut down.
+
+If you want to remove deployments of MongoDB on |k8s|, use the
+resource specification to delete resources first so no dead Automation
+Agents remain.
+
+Create Separate Namespaces for |k8s-op-short| and MongoDB Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The best strategy is to create |k8s-op-short| and its resources in
+different namespaces so that the following operations would work
+correctly:
+
+.. code-block:: sh
+
+   kubectl delete pods --all
+
+or
+
+.. code-block:: sh
+
+   kubectl delete namespace mongodb
+
+If the |k8s-op-short| and resources sit in the same ``mongodb``
+|k8s-ns|, then operator would also be removed in the same operation.
+This would mean that it could not clean the configurations, which
+would have to be done in the |application|.
+
+Difficulties with Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In some cases, the |k8s-op-short| can stop receiving change events. As
+this problem is hard to reproduce, the recommended workaround is to
+delete the operator pod. |k8s| starts the new |k8s-op-short|
+automatically and starts working correctly:
+
+.. code-block:: sh
+
+   kubectl get pods;
+   kubectl delete pod mongodb-enterprise-operator-<podId>`
+
+.. cond:: onprem
+
+   .. seealso::
+
+      :doc:`Kubernetes Operator installation </tutorial/install-k8s-operator>`
+
