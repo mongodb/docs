@@ -1,0 +1,102 @@
+=================================
+Edit a Deployment's Configuration
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can modify a deployment's configuration and topology, including its
+MongoDB versions, storage engines, and numbers of hosts or shards. You 
+can make modifications at all levels of a deployment's topology from a
+top-level :term:`sharded cluster <sharded cluster>` or
+:term:`replica set` to lower levels, such as a replica set within a
+sharded cluster, or an individual process within a replica set. You can
+also modify :term:`standalone <standalone>` processes.
+ 
+Considerations
+--------------
+
+All Changes are Clusterwide
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Changes cannot be made to individual members of a replica
+set or sharded cluster, only to the whole set or cluster.
+
+Kubernetes Operator Overrides Some Ops Manager Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some settings that you configure using |k8s-op-short| cannot be
+overridden in the |application|. If you change one of these settings,
+the |k8s-op-short| reverts the settings each time you apply the
+resource specification. Settings that the |k8s-op-short| does not
+manage are accepted.
+
+The following list of settings are exclusive to |k8s|. This list may
+change at a later date.
+
+These settings can be found on the :opsmgr:`Automation Configuration </reference/api/automation-config>` page.
+ 
+- ``processes.args2_6.net.port``
+- ``processes.args2_6.replication.replSetName``
+- ``processes.args2_6.storage.dbPath``
+- ``processes.args2_6.systemLog.path``
+- ``processes.authSchemaVersion``
+- ``processes.cluster`` (mongos processes)
+- ``processes.featureCompatibilityVersion``
+- ``processes.hostname``
+- ``processes.name``
+- ``processes.version``
+- ``replicaSets._id``
+- ``replicaSets.members._id``
+- ``replicaSets.members.host``
+- ``replicaSets.members``
+- ``replicaSets.version``
+- ``sharding.clusterRole`` (config server)
+- ``sharding.configServerReplica``
+- ``sharding.name``
+- ``sharding.shards._id``
+- ``sharding.shards.rs``
+
+.. example::
+
+   - |k8s-op-short| creates a replica set of 3 members.
+   - You changed :setting:`storage.wiredTiger.engineConfig.cacheSizeGB`
+     to ``40``.
+   - You then scale the replica set to 5 members.
+   - The :setting:`storage.wiredTiger.engineConfig.cacheSizeGB` on the
+     new members should be ``40``.
+ 
+Changes not available in Kubernetes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a setting is not available for a MongoDB Kubernetes resource, then
+the change must be made in the |application|.
+
+Prerequisites
+-------------
+
+To update a MongoDB Kubernetes object, you need to meet the
+prerequisites for, and complete the procedures on, the
+:doc:`Install Kubernetes Operator </tutorial/install-k8s-operator>`
+page.
+
+Procedure
+---------
+
+1. Edit the |k8s| resource specification file.
+
+2. Modify or add any settings you need added or changed.
+
+3. Save your specification file.
+
+4. Invoke the following |k8s| command to update your resource.
+
+   .. code-block:: sh
+
+      kubectl apply -f <standalone-conf>.yaml
+ 
