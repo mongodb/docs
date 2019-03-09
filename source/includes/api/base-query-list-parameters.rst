@@ -1,31 +1,36 @@
 .. list-table::
-   :widths: 10 10 70 10
+   :widths: 15 10 10 55 10
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
      - Default
 
-   * - pageNum
+   * - ``pageNum``
      - integer
+     - Optional
      - Page number (1-based).
      - ``1``
 
-   * - itemsPerPage
+   * - ``itemsPerPage``
      - integer
+     - Optional
      - Maximum number of items to return, up to a maximum of 100.
      - ``100``
 
-   * - pretty
+   * - ``pretty``
      - boolean
+     - Optional
      - Indicates whether the response body should be in a 
        `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
      - ``false``
 
-   * - envelope
+   * - ``envelope``
      - boolean
+     - Optional
      - Indicates whether or not to wrap the response in an 
        envelope.
 

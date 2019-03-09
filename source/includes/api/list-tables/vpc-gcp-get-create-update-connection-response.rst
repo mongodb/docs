@@ -14,6 +14,11 @@
      - string
      - |gcp| project ID of the owner of the peer |vpc|.
 
+   * - ``errorMessage``
+     - string
+     - When ``"status" : "FAILED"``, |service| provides a description
+       of the error.
+
    * - ``id``
      - string
      - |service| assigned unique ID for the connection. Only specific
