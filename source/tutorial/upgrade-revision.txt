@@ -21,8 +21,14 @@ the revision.
 Before Upgrading
 ----------------
 
-- Ensure you have an up-to-date backup of your data set. See
-  :doc:`/core/backups`.
+Backup
+~~~~~~
+
+Ensure you have an up-to-date backup of your data set. See
+:doc:`/core/backups`.
+
+Compatibility Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Consult the following documents for any special considerations or
   compatibility issues specific to your MongoDB release:
@@ -33,17 +39,33 @@ Before Upgrading
     </drivers>` and :ecosystem:`Driver Compatibility
     </drivers/driver-compatibility-reference>` pages for more information.
 
-- If your installation includes :term:`replica sets <replica set>`, plan
-  the upgrade during a predefined maintenance window.
+Maintenance Window
+~~~~~~~~~~~~~~~~~~
 
-  .. TODO check: Upgrading a replica set typically involves 10-20 seconds of downtime.
+If your installation includes :term:`replica sets <replica set>`, plan
+the upgrade during a predefined maintenance window.
 
-- Before you upgrade a production environment, use the procedures in
-  this document to upgrade a *staging* environment that reproduces your
-  production environment, to ensure that your production configuration
-  is compatible with all changes.
+Change Streams
+~~~~~~~~~~~~~~
 
-.. note::
+Starting in MongoDB 4.0.7, change streams use a version 1 ``v1`` resume
+tokens. MongoDB versions earlier than 4.0.7 use ``v0`` resume tokens.
+
+When upgrading from MongoDB 4.0.6 or earlier to MongoDB 4.0.7 or later,
+a client may try to resume change streams using the new ``v1`` resume
+token when connected to a member that has not been updated (i.e. only
+accepts ``v0`` or BinData token) and fail. In such cases, the client
+must wait for the upgrade to complete before resuming change streams.
+   
+Staging Environment Check
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before you upgrade a production environment, use the procedures in this
+document to upgrade a *staging* environment that reproduces your
+production environment, to ensure that your production configuration is
+compatible with all changes.
+
+.. topic:: 3-Member PSA ARchitecture
 
    Starting in MongoDB 3.6, MongoDB enables support for
    :readconcern:`"majority"` read concern by default.
@@ -128,42 +150,6 @@ replacing the existing binaries:
 
 .. _`MongoDB Download Page`: https://www.mongodb.com/download-center?jmp=docs#production
 
-.. _upgrade-sharded-cluster:
-
-Upgrade Sharded Clusters
-------------------------
-
-.. versionchanged:: 3.4
-
-   The procedure applies to |version|. To make revision upgrades for
-   other versions of MongoDB sharded clusters, refer to the appropriate
-   version of the manual.
-
-To upgrade a |version| sharded cluster:
-
-1. Disable the cluster's balancer as described in
-   :ref:`sharding-balancing-disable-temporarily`.
-
-#. Upgrade the :ref:`config servers <sharding-config-server>`.
-
-   To upgrade the config server replica set, use the procedures in
-   :ref:`upgrade-replica-set`.
-
-#. Upgrade each shard.
-
-   - If a shard is a replica set, upgrade the shard using the
-     procedure titled :ref:`upgrade-replica-set`.
-
-   - If a shard is a standalone instance, upgrade the shard using the
-     procedure titled
-     :ref:`upgrade-mongodb-instance`.
-
-#. Upgrade each :binary:`~bin.mongos` instance by following the instructions
-   in :ref:`upgrade-mongodb-instance`. You can upgrade the
-   :binary:`~bin.mongos` instances in any order.
-
-
-#. Re-enable the balancer, as described in :ref:`sharding-balancing-re-enable`.
 
 .. _upgrade-replica-set:
 
@@ -174,7 +160,18 @@ To upgrade a replica set, upgrade each member individually, starting with
 the :term:`secondaries <secondary>` and finishing with the
 :term:`primary`. Plan the upgrade during a predefined maintenance window.
 
-.. TODO check: Upgrading a replica set typically involves 10-20 seconds of downtime.
+.. note::
+
+   Starting in MongoDB 4.0.7, change streams use a version 1 ``v1``
+   :ref:`resume tokens <change-stream-resume-token>`. MongoDB versions
+   earlier than 4.0.7 use ``v0`` resume tokens or BinData resume tokens.
+
+   When upgrading from MongoDB 4.0.0-4.0.6 to MongoDB 4.0.7 or later,
+   a client may try to resume change streams using the new ``v1``
+   resume token when connected to a member that has not been updated
+   (i.e. only accepts ``v0`` token or BinData) and fail. In such cases, the
+   client must wait for the upgrade to complete before resuming change
+   streams.
 
 Upgrade Secondaries
 ~~~~~~~~~~~~~~~~~~~
@@ -217,3 +214,55 @@ Upgrade the Primary
 
 #. Shut down the original primary and upgrade its instance by
    following the instructions in :ref:`upgrade-mongodb-instance`.
+
+.. _upgrade-sharded-cluster:
+
+Upgrade Sharded Clusters
+------------------------
+
+.. versionchanged:: 3.4
+
+   The procedure applies to |version|. To make revision upgrades for
+   other versions of MongoDB sharded clusters, refer to the appropriate
+   version of the manual.
+
+.. note::
+
+   Starting in MongoDB 4.0.7, change streams use a version 1 ``v1``
+   :ref:`resume tokens <change-stream-resume-token>`. MongoDB versions
+   earlier than 4.0.7 use ``v0`` resume tokens or BinData resume tokens.
+
+   When upgrading from MongoDB 4.0.6 or earlier to 4.0.7 or later, the
+   members of the sharded clusters will continue to produce ``v0`` or
+   BinData resume tokens until the :binary:`~bin.mongos` instance(s)
+   are updated. Upgraded :binary:`~bin.mongos` instances will begin
+   producing ``v1`` change stream resume tokens. These tokens cannot be
+   used to resume a stream on a :binary:`~bin.mongos` that has not yet
+   been upgraded to 4.0.7 or later.
+
+To upgrade a |version| sharded cluster:
+
+1. Disable the cluster's balancer as described in
+   :ref:`sharding-balancing-disable-temporarily`.
+
+#. Upgrade the :ref:`config servers <sharding-config-server>`.
+
+   To upgrade the config server replica set, use the procedures in
+   :ref:`upgrade-replica-set`.
+
+#. Upgrade each shard.
+
+   - If a shard is a replica set, upgrade the shard using the
+     procedure titled :ref:`upgrade-replica-set`.
+
+   - If a shard is a standalone instance, upgrade the shard using the
+     procedure titled
+     :ref:`upgrade-mongodb-instance`.
+
+#. Once the config servers and the shards have been upgraded, upgrade
+   each :binary:`~bin.mongos` instance by following the instructions in
+   :ref:`upgrade-mongodb-instance`. You can upgrade the
+   :binary:`~bin.mongos` instances in any order.
+
+
+#. Re-enable the balancer, as described in :ref:`sharding-balancing-re-enable`.
