@@ -113,17 +113,18 @@ available:
    * - .. writeconcern:: "majority"
 
      - Requests acknowledgment that write operations have propagated to
-       the majority of data-bearing voting members
-       (i.e. :rsconf:`members[n].votes` is greater than ``0`` and
-       :rsconf:`members[n].arbiterOnly` is ``false``). 
+       the majority (``M``) of data-bearing voting members. The
+       majority (``M``) is calculated as the majority of *all* voting
+       members, but the write operation
+       returns acknowledgement after propagating to M-number of
+       data-bearing voting members (primary and secondaries with
+       :rsconf:`members[n].votes` greater than ``0``).
 
-       For example, consider a replica set with 3 data-bearing voting
-       members. ``"majority"`` write concern requires acknowledgment 
-       from two out of three members, specifically the primary and one
-       secondary. If you later scaled the replica set to 5
-       data-bearing voting members, ``"majority"`` would require
-       acknowledgment from three out of five members. Specifically,
-       the primary and two secondaries.
+       For example, consider a replica set with 3 voting members,
+       Primary-Secondary-Secondary (P-S-S). For this replica set, ``M``
+       is two, and the write must propagate specifically to the primary
+       and one secondary to acknowledge the write concern to the
+       client. [#arbiters-majority-count]_
 
        .. note:: 
 
@@ -153,6 +154,14 @@ available:
        acknowledge the write.
 
 .. seealso:: :doc:`/reference/replica-set-protocol-versions`
+
+.. [#arbiters-majority-count]
+
+   Even if the replica set with 3 voting members is a
+   Primary-Secondary-Arbiter (P-S-A), ``M`` value is two. However,
+   since the write can only be applied to data-bearing members, the
+   write must propagate specifically to the primary and the secondary
+   to acknowledge the write concern to the client.
 
 .. _wc-j:
 
