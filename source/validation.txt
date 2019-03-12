@@ -12,154 +12,194 @@ Validation Tab
    :depth: 1
    :class: singlecol
 
-.. note::
-
-   Schema validation is not available in
-   :guilabel:`Compass Community Edition`.
-
-   Creating, editing and dropping schema validation rules is not
-   permitted in :guilabel:`MongoDB Compass Readonly Edition`.
-   In Readonly Edition, validation rules may only be read.
-
 .. _validation-tab:
 
 Validation Tab
 --------------
 
-The :guilabel:`Validation` tab displays the :manual:`schema
-validation specification </core/document-validation>` (the validation
-rules, the validation level, and the validation action) that exists for
-a collection.
+.. note::
+
+   In :guilabel:`Compass Community Edition`, the validation tab is not
+   available.
+
+   In :guilabel:`MongoDB Compass Readonly Edition`, you can
+   only view validation rules. Creating and editing validation rules
+   is not permitted.
+
+The :guilabel:`Validation` tab allows you to manage
+:manual:`schema validation rules </core/document-validation>`
+for a collection.
 
 Schema validation ensures that all documents in a
 collection follow a defined set of rules, such as conforming to a
-specific shape or only allowing a specified range of values in
-document fields.
-
-From this tab, you can update the schema validation specification via
-the :ref:`Rule Builder <rule-builder>` or the
-:ref:`JSON editor <json-editor>`.
-
-To view and modify the :guilabel:`Validation` for a collection, click
-on the collection on the left hand pane, then click the
-:guilabel:`Validation` tab.
+specific shape or only allowing a specified range of values in fields.
 
 .. figure:: /images/compass/validation-view.png
   :figwidth: 720px
 
-Considerations
---------------
+.. _update-validation:
+.. _create-validation-rules:
 
-- If the current validation rules cannot be expressed through the
-  :ref:`Rule Builder <rule-builder>`, Compass deactivates the Rule
-  Builder, and you can only modify the validation specification
-  through the :ref:`JSON editor <json-editor>` view.
+Validation Rules
+----------------
 
-- Each rule applies to a single field in the collection.
+*Updated in version 1.18.*
 
-- No two rules in the Rule Builder can have the same field.
+The validation editor supports :manual:`JSON Schema validation
+</core/schema-validation/#json-schema>`, and validation with query
+expressions using :manual:`query operators
+</reference/operator/query>`. As you edit your validation,
+|compass-short| updates in real-time to display a document from your
+collection that passes the validation and a document that fails.
 
-- The Rule Builder combines validation rules for the different
-  fields as a logical ``AND``.
+JSON Schema Validation
+~~~~~~~~~~~~~~~~~~~~~~
 
-- To specify conditions not supported by the Rule Builder or to join
-  validation rules with a logical ``OR``, use the
-  :ref:`JSON Editor <json-editor>` instead of the
-  :ref:`Rule Builder <rule-builder>`.
+.. container::
+
+   To specify JSON Schema validation, use the
+   :manual:`$jsonSchema </reference/operator/query/jsonSchema>`
+   operator.
+   
+   .. code-block:: json
+   
+      {
+        $jsonSchema: {
+          required: ['customer'], // the customer field is required
+          properties: {
+            purchaseMethod: {
+              enum: ['In Store','Online'],
+              description: "can only be either 'In Store' or 'Online'" 
+            }
+          }
+        }
+      }
+   
+   The :manual:`$jsonSchema </reference/operator/query/jsonSchema>`
+   operator supports various keywords to specify validation rules. For
+   example:
+   
+   - The ``required`` array defines required fields in your document.
+   
+   - The ``properties`` object defines rules for specific document
+     fields.
+
+   Consider the following example validation:
+   
+   .. code-block:: json
+   
+      {
+         $jsonSchema: {
+            bsonType: "object",
+            required: [ "name", "year", "major", "gpa", "address.city", "address.street" ],
+            properties: {
+               name: {
+                  bsonType: "string",
+                  description: "must be a string"
+               },
+               year: {
+                  bsonType: "int",
+                  minimum: 2017,
+                  maximum: 3017,
+                  exclusiveMaximum: false,
+                  description: "must be an integer in [ 2017, 3017 ]"
+               },
+               major: {
+                  bsonType: "string",
+                  enum: [ "Math", "English", "Computer Science", "History", null ],
+                  description: "can only be one of the enum values"
+               },
+               gpa: {
+                  bsonType: [ "double" ],
+                  minimum: 0,
+                  description: "must be a double"
+               }
+            }
+         }
+      }
+
+   This validation specifies:
+   
+   - The list of :manual:`required
+     </reference/operator/query/jsonSchema/#available-keywords>`
+     fields.
+   
+   - The :manual:`bsonType
+     </reference/operator/query/jsonSchema/#available-keywords>` for
+     all fields.
+   
+   - The :manual:`minimum
+     </reference/operator/query/jsonSchema/#available-keywords>`
+     and :manual:`maximum </reference/operator/query/jsonSchema/#available-keywords>` values for the ``year`` field.
+   
+   - The acceptable values for the  ``major`` field, using
+     :manual:`enum
+     </reference/operator/query/jsonSchema/#available-keywords>` .
+
+   - The :manual:`minimum
+     </reference/operator/query/jsonSchema/#available-keywords>`
+     value for the ``gpa`` field.
+   
+   For all available ``$jsonSchema`` keywords, refer to the
+   :manual:`$jsonSchema </reference/operator/query/jsonSchema>` page in
+   the MongoDB manual.
+
+Validation using Query Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   You can also specify validation using
+   :manual:`query operators </reference/operator/query>`, with the
+   exception of the following query operators: :query:`$near`,
+   :query:`$nearSphere`, :query:`$text`, and :query:`$where`.
+   
+   .. code-block:: json
+   
+      { 
+        $or: [
+          { phone: { $type: "string" } },
+          { email: { $regex: /@mongodb\.com$/ } },
+          { status: { $in: [ "Unknown", "Incomplete" ] } }
+        ]
+      }
+   
+   Using this validation, *one* of the following must be true:
+   
+   - The ``phone`` field must be BSON type string,
+   
+   - The ``email`` field must match the
+     :manual:`regex </reference/operator/query/regex/>`
+     ``/@mongodb\.com$/``, or
+   
+   - The ``status`` field must be either ``Unknown`` or ``Incomplete``.
 
 .. _validation-actions-levels:
 
 Validation Actions and Levels
 -----------------------------
 
-You can specify :guilabel:`Validation Actions` and
-:guilabel:`Validation Levels` in the :guilabel:`Validation` tab. These
-settings dictate how rule violations are handled and the types of
-documents affected by validation.
+At the top, specify a :guilabel:`Validation Action` and
+:guilabel:`Validation Level`:
 
-Validation Actions
-~~~~~~~~~~~~~~~~~~
+- The validation action determines whether to ``warn`` but accept
+  invalid documents, or ``error`` and reject invalid documents.
 
-Validation actions determine how MongoDB handles documents that
-violate validation rules. The following table describes the
-different validation actions available:
+- The validation level determines how strictly MongoDB applies
+  validation rules to existing documents.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 35 65
+  - ``Strict`` validation applies your rules to all document inserts
+    and updates.
 
-   * - ``Validation Action``
-     - Description
+  - ``Moderate`` validation only applies your rules to new documents
+    and existing valid documents. Existing invalid documents are not
+    affected.
 
-   * - ``Warning``
-     - Allows invalid documents but warns about violations.
+For details on validation actions and levels, see
+:manual:`Specify Validation Rules
+</core/schema-validation/#specify-validation-rules>` in the MongoDB
+manual.
 
-   * - ``Error``
-     - Does not allow invalid documents. With this setting,
-       MongoDB errors and rejects documents that violate
-       validation rules.
+.. seealso::
 
-Validation Levels
-~~~~~~~~~~~~~~~~~
-
-Validation levels determine how strictly MongoDB applies validation
-rules to existing documents during an update. The following table
-describes the different validation levels available:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 35 65
-
-   * - ``Validation Level``
-     - Description
-
-   * - ``Off``
-     - Disables validation entirely.
-
-   * - ``Moderate``
-     - Applies validation rules to inserts and to updates to
-       existing documents that already fulfill the validation
-       criteria. With the :guilabel:`Moderate` level, updates to
-       existing documents that do not fulfill the validation
-       criteria are not checked for validity.
-
-   * - ``Strict``
-     - Applies validation rules to all inserts and updates.
-
-.. _update-validation:
-.. _create-validation-rules:
-
-Create Validation Rules
------------------------
-
-|compass| supports two methods to create validation rules,
-the :ref:`rule-builder` and the :ref:`json-editor`.
-
-.. _rule-builder:
-
-Rule Builder
-~~~~~~~~~~~~
-
-The Rule Builder facilitates the building and modification of schema
-validation rules; however, the Rule Builder only supports a subset of
-validation conditions.
-
-.. include:: /includes/steps/create-validation-rule-via-builder.rst
-
-.. _json-editor:
-
-JSON Editor
-~~~~~~~~~~~
-
-You can also use the JSON editor to create validation rules. You can
-use the JSON editor to create more advanced validation rules which
-the :ref:`Rule Builder <rule-builder>` may not support.
-
-The JSON editor supports validation with query filter expressions using
-the :manual:`query operators
-</reference/operator/query/#query-selectors>`, with the exception of
-:query:`$near`, :query:`$nearSphere`, :query:`$text`, and
-:query:`$where`.
-
-.. include:: /includes/steps/create-validation-rule-via-json.rst
-
+   - :manual:`Schema Validation </manual/core/schema-validation/>`
