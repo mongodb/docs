@@ -182,7 +182,7 @@ class Navbar extends preact.Component {
             <nav className="navbar">
                 <div className="navbar__left">
                     <a href="https://www.mongodb.com/">
-                        <img src="https://docs.mongodb.com/images/mongodb-logo.svg" className="navbar-brand" alt="MongoDB Logo" />
+                        <img src="https://docs.mongodb.com/images/mongodb-logo.png" className="navbar-brand" alt="MongoDB Logo" />
                     </a>
 
                     <span className="navbar-seperator"></span>
