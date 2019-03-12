@@ -25,14 +25,15 @@ sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sp
 
 # -- General configuration ----------------------------------------------------
 
-needs_sphinx = '1.0'
+# needs_sphinx = '1.0'
 
 extensions = [
-    'sphinx.ext.extlinks',
     'sphinx.ext.todo',
-    'mongodb',
-    'directives',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.extlinks',
     'intermanual',
+    'directives',
+    'mongodb',
     'fasthtml',
     'fixed_only',
     'tabs',
@@ -52,6 +53,7 @@ copyright = u'2008-{0}'.format(datetime.date.today().year)
 
 version = conf.version.branch
 release = conf.version.release
+pygments_style = 'sphinx'
 
 rst_epilog = '\n'.join([
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
@@ -138,7 +140,8 @@ rst_epilog = '\n'.join([
     '.. |mongod| replace:: :binary:`~bin.mongod`',
     '.. |mongos| replace:: :binary:`~bin.mongos`',
     '.. |mongo| replace:: :binary:`~bin.mongo`',
-    '.. |onprem| replace:: :opsmgr:`Ops Manager </>`',
+    '.. |onprem| replace:: Ops Manager',
+    '.. |onprem-link| replace:: :opsmgr:`Ops Manager </>`',
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
     '.. |nvme-clusters| replace:: clusters with local NVMe SSDs',
     '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
