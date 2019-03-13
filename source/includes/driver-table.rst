@@ -29,7 +29,7 @@
      - `JIRA <https://jira.mongodb.org/browse/CSHARP>`__
      - `Course <https://university.mongodb.com/courses/M101N/about>`__
 
-   * - :doc:`Go (beta)</drivers/go>`
+   * - :doc:`Go </drivers/go>`
      - `Releases <https://github.com/mongodb/mongo-go-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-go-driver>`__
      - `API <https://godoc.org/github.com/mongodb/mongo-go-driver/mongo>`__
