@@ -10,50 +10,11 @@ Production Considerations
    :depth: 1
    :class: twocols
 
-The following page lists some production considerations for running
-transactions. These apply whether you run transactions on replica sets
-or sharded clusters. For running transactions on sharded clusters, see
-also the :doc:`/core/transactions-sharded-clusters` for additional
-considerations that are specific to sharded clusters.
-
-Availability
-------------
-
-- **Starting in version 4.0**, MongoDB provides the ability to perform
-  multi-document transactions for replica sets. 
-
-- **Starting in version 4.2**, MongoDB provides the ability to perform
-  multi-document transactions for sharded clusters.
-
-  .. include:: /includes/extracts/transactions-beta.rst
-
 Feature Compatibility
 ---------------------
 
-Transactions impose a minimum :ref:`featureCompatibilityVersion
-<view-fcv>` for all members of the deployment.
-
-.. list-table::
-   :header-rows: 1
-
-   * - Deployment
-     - Minimum ``featureCompatibilityVersion``
-     
-   * - Replica Set
-     - ``4.0`` 
-     
-   * - Sharded Cluster
-     - ``4.2``
-
-To check the fCV for a member, connect to the member and run the
-following command:
-
-.. code-block:: javascript
-
-   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
-
-For more information, see the
-:dbcommand:`setFeatureCompatibilityVersion` reference page.
+The ``featureCompatibilityVersion`` of all members of the replica set
+must be ``4.0`` or greater.
 
 .. _transaction-limit:
 
@@ -91,76 +52,17 @@ The :parameter:`transactionLifetimeLimitSeconds` also ensures that
 expired transactions are aborted periodically to relieve storage cache
 pressure.
 
+
+
 By default, transactions waits up to ``5`` milliseconds to acquire locks
 required by the operations in the transaction. If the transaction
 cannot acquire its required locks within the ``5`` milliseconds, the
 transaction aborts.
 
-Transactions and Security
--------------------------
-
-- If running with :doc:`access control </core/authorization>`, you must
-  have privileges for the :ref:`operations in the transaction
-  <transactions-operations>`. [#username-external]_
-
-- If running with :doc:`auditing </core/auditing>`, operations in an
-  aborted transaction are still audited. However, there is no audit
-  event that indicates that the transaction aborted.
-
-.. [#username-external]
-
-   If using ``$external`` authentication users (i.e. Kerberos, LDAP,
-   x.509 users), the usernames cannot be greater than 10k bytes.
-
-Sharded Clusters and Arbiters
------------------------------
-
-On a sharded cluster, transactions that span multiple shards will error
-and abort if any involved shard contains an arbiter.
-
-.. _transactions-psa:
-
-3-Member Primary-Secondary-Arbiter Architecture
------------------------------------------------
-  
-For a three-member replica set with a primary-secondary-arbiter (PSA)
-architecture or a sharded cluster with a three-member PSA shards, you
-may have :ref:`disabled read concern "majority"
-<disable-read-concern-majority>` to avoid cache pressure.
-
-- **For a sharded clusters**, disabling read concern
-  :readconcern:`"majority"` affects support for transactions.
-
-  - Specifically, a transaction with read concern ``snapshot`` errors
-    if the transaction involves a shard with read concern
-    ``"majority"`` disabled.
-
-  - Specifically, a transaction that spans multiple shards errors if
-    the transaction involves a shard with read concern ``"majority"``
-    disabled. 
-
-- **For a replica set**, disabling read concern :readconcern:`"majority"`
-  does not affect transactions; i.e. you can specify read concern
-  :readconcern:`"majority"` for transactions even if read concern
-  :readconcern:`"majority"` is disabled.
-
-To check if read concern "majority" is disabled, you can run
-:method:`db.serverStatus()` and check the
-:serverstatus:`storageEngine.supportsCommittedReads` field. If
-``false``, read concern "majority" is disabled.
- 
-.. seealso::
-
-   - :option:`--enableMajorityReadConcern false <mongod
-     --enableMajorityReadConcern>`
-
-   - :setting:`replication.enableMajorityReadConcern: false
-     <replication.enableMajorityReadConcern>`.
-  
 .. _txns-locks:
 
-Acquiring Locks
----------------
+Transactions and Locks
+----------------------
 
 By default, transactions waits up to ``5`` milliseconds to acquire locks
 required by the operations in the transaction. If the transaction
@@ -244,44 +146,3 @@ In-progress Transactions and Stale Reads
 ----------------------------------------
 
 .. include:: /includes/extracts/transactions-stale-reads.rst
-
-In-progress Transactions and Chunk Migration
---------------------------------------------
-
-The :ref:`chunk migration process<chunk-migration-procedure>` require
-exclusive locks on the collection during certain stages. If an ongoing
-transaction has locks on the collection, these stages must wait for the
-transaction to release locks on the affected collection, thereby
-impacting the performance of chunk migrations.
-
-If a chunk migration moves data being modified by an operation in a
-transaction, the transaction errors during the commit and aborts.
-
-Errors
-------
-
-Sharded Transactions and MongoDB 4.0 drivers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-On sharded clusters with multiple :binary:`~bin.mongos` instances,
-performing transactions with drivers updated for MongoDB 4.0
-(instead of MongoDB 4.2) results in errors:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Error Code
-     - Error Message
-
-   * - 251
-     - ``cannot continue txnId -1 for session ... with txnId 1``
-
-   * - 50940
-     - ``cannot commit with no participants``
-
-Additional Information
-----------------------
-
-.. seealso:: :doc:`/core/transactions-sharded-clusters`
-
