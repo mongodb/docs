@@ -185,6 +185,8 @@ html_theme_options = {
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
     'upcoming': conf.version.upcoming,
+    'banner': True,
+    'banner_msg': 'This is an upcoming (i.e. in progress) version of the manual.',
 }
 
 html_sidebars = sconf.sidebars
