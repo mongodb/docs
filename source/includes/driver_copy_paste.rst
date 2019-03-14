@@ -4,81 +4,56 @@
      - id: shell
        content: |
 
-         In step 2 in the modal, select the version of the
-         shell you are using. You will see a connection string appear in
-         the gray block. Click the copy button to the right of the
-         string. The connection string is now in your copy buffer.
+         In the :guilabel:`Choose a connection method` step in the
+         modal window, select the button marked :guilabel:`Connect
+         with the Mongo Shell`.
 
-         .. figure:: /images/connectionstring.png
-            :figwidth: 700px
+         The following Atlas screenshot shows the connection option
+         buttons:
+
+         .. figure:: /images/connection-method.png
+            :figwidth: 600px
+
+         Follow the instructions for your platform.
 
 
      - id: compass
-       content: |  
+       content: |
 
-         In step 2 in the window, select the version of
-         compass you are using. You will see a connection string appear in
-         the gray block. Click the copy button to the right of the
-         string. The connection string is now in your copy buffer.
+         In the :guilabel:`Choose a connection method` step in the
+         modal window select the button marked :guilabel:`Connect with
+         MongoDB Compass`.
 
-         .. figure:: /images/connectionstringcompass.png
-            :figwidth: 700px
+         The following Atlas screenshot shows the connection option
+         buttons:
 
-         
+         .. figure:: /images/connection-method.png
+            :figwidth: 600px
+
+         Follow the instructions for your version of Compass.
+
      - id: python
        content: |
-         
-         In step 1 in the window, select the version of
-         the driver you are using. You will see a connection string appear in
-         the gray block. Click the copy button to the right of the
-         string. The connection string is now in your copy buffer.
 
-         .. figure:: /images/connectionstringdriver.png
-            :figwidth: 700px
-         
+         .. include:: /includes/atlas-connect-with-driver.rst
+
      - id: motor
        content: |
          
-         In step 1 in the window, select the version of
-         the driver you are using. You will see a connection string appear in
-         the gray block. Click the copy button to the right of the
-         string. The connection string is now in your copy buffer.
-
-         .. figure:: /images/connectionstringdriver.png
-            :figwidth: 700px
+         .. include:: /includes/atlas-connect-with-driver.rst
 
 
      - id: java-sync
        content: |
 
-         In step 1 in the window, select the version of
-         the driver you are using. You will see a connection string appear in
-         the gray block. Click the copy button to the right of the
-         string. The connection string is now in your copy buffer.
-
-         .. figure:: /images/connectionstringdriver.png
-            :figwidth: 700px
-
+         .. include:: /includes/atlas-connect-with-driver.rst
 
      - id: nodejs
        content: |
         
-         In step 1 in the window, select the version of
-         the driver you are using. You will see a connection string appear in
-         the gray block. Click the copy button to the right of the
-         string. The connection string is now in your copy buffer.
-
-         .. figure:: /images/connectionstringdriver.png
-            :figwidth: 700px
-
+         .. include:: /includes/atlas-connect-with-driver.rst
      
      - id: csharp
        content: |
 
-         In step 1 in the window, select the version of
-         the driver you are using. You will see a connection string appear in
-         the gray block. Click the copy button to the right of the
-         string. The connection string is now in your copy buffer.
-
-         .. figure:: /images/connectionstringdriver.png
-            :figwidth: 700px
+         .. include:: /includes/atlas-connect-with-driver.rst
