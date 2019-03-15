@@ -142,4 +142,39 @@ content: |
          });
       });
    
+---
+ref: 4.2-downgrade-fcv-wildcard-index
+content: |
+   
+   For ``featureCompatibilityVersion`` (fCV) set to ``"4.2"``, MongoDB
+   supports creating :doc:`/core/index-wildcard`. You must drop all
+   wildcard indexes before downgrading to fCV ``"4.0"``. Use the
+   following script to drop and recreate all wildcard indexes:
+
+   .. code-block:: javascript
+
+      // A script to drop wildcard indexes before downgrading fcv 4.2 to 4.0.
+      // Run this script to drop wildcard indexes 
+      // for backwards compatibility with 4.0.
+      
+      db.adminCommand("listDatabases").databases.forEach(function(d){
+         let mdb = db.getSiblingDB(d.name);
+         mdb.getCollectionInfos().forEach(function(c){
+            let currentCollection = mdb.getCollection(c.name);
+            currentCollection.getIndexes().forEach(function(idx){
+               
+               var key = Object.keys(idx.key);
+               if (key[0].includes("$**")) {
+
+                 print("Dropping index: " + idx.name + " from " + idx.ns);
+
+                 let res = mdb.runCommand({dropIndexes: currentCollection, index: idx.name});
+                 assert.commandWorked(res);
+
+               }
+
+            });
+         });
+      });
+
 ...

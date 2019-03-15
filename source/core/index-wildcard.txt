@@ -1,0 +1,313 @@
+.. _wildcard-index-core:
+
+================
+Wildcard Indexes
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB supports creating indexes on a field or set of fields to 
+support queries. Since MongoDB supports dynamic schemas, applications
+can query against fields whose names cannot be known in advance or are
+arbitrary. 
+
+.. versionadded:: MongoDB 4.2 
+   
+   MongoDB 4.2 introduces wildcard indexes for supporting queries
+   against unknown or arbitrary fields.
+
+.. include:: /includes/extracts/wildcard-index-summary.rst
+
+.. include:: /includes/extracts/wildcard-index-planning.rst
+
+Create Wildcard Index
+---------------------
+
+.. important::
+
+   .. include:: /includes/extracts/wildcard-index-fcv.rst
+
+You can create wildcard indexes using the 
+:dbcommand:`createIndexes` database command or its shell helpers,
+:method:`~db.collection.createIndex()` or 
+:method:`~db.collection.createIndexes()`.
+
+Create a Wildcard Index on a Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To index the value of a specific field:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "fieldA.$**" : 1 } )
+
+With this wildcard index, MongoDB indexes all values of
+``fieldA``. If the field is a nested document or array, the wildcard
+index recurses into the document/array and stores the value for all 
+fields in the document/array.
+
+For example, documents in the ``product_catalog`` collection may contain
+a  ``product_attributes`` field. The ``product_attributes`` field can
+contain arbitrary nested fields, including embedded documents and
+arrays:
+
+.. code-block:: json
+
+   {
+     "product_name" : "Spy Coat",
+     "product_attributes" : {
+       "material" : [ "Tweed", "Wool", "Leather" ]
+       "size" : {
+         "length" : 72,
+         "units" : "inches"
+       }
+     } 
+   }
+
+   {
+     "product_name" : "Spy Pen",
+     "product_attributes" : {
+        "colors" : [ "Blue", "Black" ],
+        "secret_feature" : {
+          "name" : "laser",
+          "power" : "1000",
+          "units" : "watts", 
+        }
+     }
+   }
+
+The following operation creates a wildcard index on the
+``product_attributes`` field:
+
+.. code-block:: javascript
+
+   db.products_catalog.createIndex( { "product_attributes.$**" : 1 } )
+
+The wildcard index can support arbitrary single-field queries on
+``product_attributes`` or its embedded fields:
+
+.. code-block:: shell
+   :copyable: false
+ 
+   db.products_catalog.find( { "product_attributes.size.length" : { $gt : 60 } } )
+   db.products_catalog.find( { "product_attributes.material" : "Leather" } )
+   db.products_catalog.find( { "product_attributes.secret_feature.name" : "laser" } )
+
+Create a Wildcard Index on All Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To index the value of all fields in a document
+(excluding ``_id``), specify ``"$**"`` as the index key:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "$**" : 1 } )
+
+With this wildcard index, MongoDB indexes all fields for each document
+in the collection. If a given field is a nested document or array, the
+wildcard index recurses into the document/array and stores the value for
+all fields in the document/array.
+
+.. important::
+
+   .. include:: /includes/extracts/wildcard-index-id.rst
+
+For an example, see :ref:`createIndex-method-wildcard-allpaths`.
+
+Create a Wildcard Index on Multiple Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To index the values of multiple specific fields in a document:
+
+.. code-block:: javascript
+
+   db.collection.createIndex(
+     { "$**" : 1 },
+     { "wildcardProjection" : 
+       { "fieldA" : 1, "fieldB.fieldC" : 1 }
+     }
+   )
+
+With this wildcard index, MongoDB indexes all values for the specified
+fields for each document in the collection. If a given field is a nested
+document or array, the wildcard index recurses into the document/array
+and stores the value for all fields in the document/array.
+
+.. important::
+
+   .. include:: /includes/extracts/wildcard-index-id.rst
+
+For an example, see :ref:`createIndex-method-wildcard-inclusion`.
+
+Create a Wildcard Index that Excludes Multiple Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To index the fields of all fields in a document
+*excluding* specific field paths:
+
+.. code-block:: javascript
+
+   db.collection.createIndex(
+     { "$**" : 1 },
+     { "wildcardProjection" : 
+       { "fieldA" : 0, "fieldB.fieldC" : 0 }
+     }
+   )
+
+With this wildcard index, MongoDB indexes all fields for each 
+document in the collection *excluding* the specified field paths. If a
+given field is a nested document or array, the wildcard index recurses
+into the document/array and stores the values for all fields in the
+document/array.
+
+.. important::
+
+   .. include:: /includes/extracts/wildcard-index-id.rst
+
+For an example, see :ref:`createIndex-method-wildcard-exclusion`.
+
+Considerations
+--------------
+
+- Wildcard indexes can support at most *one* field in any given query 
+  predicate. For more information on wildcard index query
+  support, see :ref:`wildcard-index-query-sort-support`.
+
+- .. include:: /includes/extracts/wildcard-index-fcv.rst
+
+- Wildcard indexes omit the _id field by default. To include the ``_id``
+  field in the wildcard index, you must explicitly include it in the
+  wildcardProjection document (i.e. ``{ "_id" : 1 }``).
+
+- You can create multiple wildcard indexes in a collection.
+
+- A wildcard index may cover the same fields as other indexes in the 
+  collection.
+
+- Wildcard indexes are :doc:`/core/index-sparse` and only contain 
+  entries for documents that have the indexed field, even if the index 
+  field contains a null value.
+
+Restrictions
+------------
+
+- You cannot shard a collection using a wildcard index. Create a
+  non-wildcard index on the field or fields you want to shard on.
+  For more information on shard key selection, see
+  :ref:`sharding-shard-key`.
+
+- You cannot create a :doc:`compound </core/index-compound>` index.
+
+- You cannot specify the following properties for a wildcard index:
+
+  - :doc:`TTL </core/index-ttl>`
+  - :doc:`Unique </core/index-unique>`
+
+- You cannot create the following index types using wildcard syntax:
+
+  - :doc:`2d (Geospatial) </core/geospatial-indexes>`
+  - :doc:`2dsphere (Geospatial) </core/2dsphere>`
+  - :doc:`Hashed </core/index-hashed>`
+
+.. important::
+
+   Wildcard Indexes are distinct from and incompatible with
+   :ref:`text-index-wildcard`. Wildcard indexes cannot support
+   queries using the :query:`$text` operator. 
+
+For complete documentation on wildcard index creation restrictions, see 
+:ref:`wildcard-index-restrictions-create`.
+
+.. _wildcard-index-query-sort-support:
+
+Wildcard Index Query/Sort Support
+---------------------------------
+
+Multi-Field Query Predicates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wildcard indexes can support at most *one* query predicate field. That 
+is:
+
+- MongoDB cannot use a non-wildcard index to satisfy one part of a 
+  query predicate and a wildcard index to satisfy another.
+
+- MongoDB cannot use one wildcard index to satisfy one part of a query 
+  predicate and another wildcard index to satisfy another.
+
+- Even if a single wildcard index could support multiple query fields, 
+  MongoDB can use the wildcard index to support only one of the query 
+  fields. All remaining fields are resolved without an index.
+
+However, MongoDB may use the same wildcard index for satisfying each 
+independent argument of the query :query:`$or` or aggregation 
+:expression:`$or` operators.
+
+Queries with Sort
+~~~~~~~~~~~~~~~~~
+
+MongoDB can use a wildcard index for satisfying the 
+:method:`~cursor.sort()` **only if** all of the following are true:
+
+- The query planner selected the wildcard index for satisfying the
+  query predicate.
+
+- The :method:`~cusor.sort()` specifies **only** the query predicate
+  field.
+
+- The specified field is never an array.
+
+If the above conditions are not met, MongoDB cannot use the wildcard 
+index for the sort. MongoDB does not support :method:`~cursor.sort`
+operations that require a different index from that of the query
+predicate. For more information, see :ref:`index-intersection-sort`.
+
+Consider the following wildcard index on the ``products`` collection:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { "product_attributes.$**" : 1 } )
+
+The following operation queries for a single field 
+``product_attributes.price`` and sorts on that same field:
+
+.. code-block:: javascript
+
+   db.products.find(
+     { "product_attributes.price" : { $gt : 10.00 } },
+   ).sort(
+     { "product_attributes.price" : 1 }
+   )
+
+Assuming that the specified ``price`` is never an array, MongoDB
+can use the ``product_attributes.$**`` wildcard index for satisfying 
+both the :method:`~db.collection.find()` and :method:`~cursor.sort()`.
+
+Unsupported Query Patterns
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Wildcard indexes cannot support query condition that checks if a field 
+  does not exist.
+
+- Wildcard indexes cannot support query condition that checks if a field
+  is or is not equal to a document or an array
+
+- Wildcard indexes cannot support query condition that checks if a field 
+  is not equal to null.
+
+- Wildcard indexes cannot support the 
+  :group:`$min` or :group:`$max` aggregation operators.
+
+
+For details, see :ref:`wildcard-index-restrictions-query-aggregation`.
+
+.. toctree::
+   :titlesonly:
+
+   /reference/index-wildcard-restrictions

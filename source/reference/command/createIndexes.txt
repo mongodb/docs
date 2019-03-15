@@ -186,7 +186,10 @@ Wildcard Indexes
 
 - .. include:: /includes/extracts/wildcard-index-fcv.rst
 
-- .. include:: /includes/extracts/wildcard-index-limitations.rst
+- .. include:: /includes/extracts/wildcard-index-restrictions.rst
+
+  For complete documentation on wildcard index restrictions, see 
+  :ref:`wildcard-index-restrictions`.
 
 For examples of wildcard index creation, see
 :ref:`createIndexes-command-wildcard-examples`.  For complete 
@@ -257,7 +260,7 @@ Create a Wildcard Index on a Single Field Path
 .. include:: /includes/extracts/wildcard-index-example-pre.rst
 
 The following operation creates a wildcard index on the 
-``product_attributes`` field and its subfields:
+``product_attributes`` field:
 
 .. code-block:: shell
 
@@ -274,8 +277,13 @@ The following operation creates a wildcard index on the
      }
    )
 
+With this wildcard index, MongoDB indexes all scalar values of
+``product_attributes``. If the field is a nested document or array, the
+wildcard index recurses into the document/array and indexes all scalar
+fields in the document/array.
+
 The wildcard index can support arbitrary single-field queries on 
-``product_attributes`` and any of its subpaths:
+``product_attributes`` or one of its nested fields:
 
 .. code-block:: shell
 
@@ -290,8 +298,8 @@ Create a Wildcard Index on All Field Paths
 
 .. include:: /includes/extracts/wildcard-index-example-pre.rst
 
-The following operation creates a wildcard index on all fields and
-subfields:
+The following operation creates a wildcard index on all scalar fields
+(excluding the ``_id`` field):
 
 .. code-block:: shell
 
@@ -308,6 +316,11 @@ subfields:
      }
    )
 
+With this wildcard index, MongoDB indexes all scalar fields for each
+document in the collection. If a given field is a nested document or
+array, the wildcard index recurses into the document/array and indexes
+all scalar fields in the document/array.
+
 The created index can support queries on any arbitrary field 
 within documents in the collection:
 
@@ -316,17 +329,19 @@ within documents in the collection:
    db.products_catalog.find( { "product_price" : { $lt : 25 } } )
    db.products_catalog.find( { "product_attributes.elements" : { $eq: "water" } } )
 
+.. include:: /includes/extracts/wildcard-index-id.rst
+
 .. _createIndexes-command-wildcard-inclusion:
 
-Include Specific Fields in Wildcard Index Coverage
-``````````````````````````````````````````````````
+Create a Wildcard Index on Multiple Specific Field Paths
+````````````````````````````````````````````````````````
 
 .. include:: /includes/extracts/wildcard-index-example-pre.rst
 
 The following operation creates a wildcard index and uses
-the ``wildcardProjection`` option to include only the
+the ``wildcardProjection`` option to include only scalar values of the
 ``product_attributes.elements`` and ``product_attributes.resistance``
-fields and their subfields as part of index coverage.
+fields in the index. 
 
 .. code-block:: shell
 
@@ -349,10 +364,14 @@ fields and their subfields as part of index coverage.
 
 While the key pattern ``"$**"`` covers all fields in the document, the
 ``wildcardProjection`` field limits the index to only the included
-fields and their subfields.
+fields and their nested fields.
 
-The created index can support queries on any arbitrary field or subfield
-**only if** that field is included by ``wildcardProjection``:
+If a field is a nested document or array, the wildcard
+index recurses into the document/array and indexes all scalar fields in 
+the document/array.
+
+The created index can support queries on any scalar field
+included in the ``wildcardProjection``:
 
 .. code-block:: shell
 
@@ -363,15 +382,16 @@ The created index can support queries on any arbitrary field or subfield
 
 .. _createIndexes-command-wildcard-exclusion:
 
-Omit Specific Fields from Wildcard Index Coverage
-`````````````````````````````````````````````````
+Create a Wildcard Index that Excludes Multiple Specific Field Paths
+```````````````````````````````````````````````````````````````````
 
 .. include:: /includes/extracts/wildcard-index-example-pre.rst
 
 The following operation creates a wildcard index and uses
-the ``wildcardProjection`` document to exclude the 
+the ``wildcardProjection`` document to index all scalar fields
+for each document in the collection, *excluding* the 
 ``product_attributes.elements`` and ``product_attributes.resistance``
-fields and their subfields from the wildcard index:
+fields:
 
 .. code-block:: shell
 
@@ -396,8 +416,12 @@ While the key pattern ``"$**"`` covers all fields in the document, the
 ``wildcardProjection`` field excludes the specified fields from the
 index.
 
-The created index can support queries on any arbitrary field or
-subfield **except** those excluded by ``wildcardProjection``:
+If a field is a nested document or array, the wildcard
+index recurses into the document/array and indexes all scalar fields in 
+the document/array.
+
+The created index can support queries on any scalar field **except**
+those excluded by ``wildcardProjection``:
 
 .. code-block:: shell
 
