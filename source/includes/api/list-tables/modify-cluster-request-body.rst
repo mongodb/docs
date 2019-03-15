@@ -476,8 +476,8 @@
 
        .. include:: /includes/fact-group-region-association.rst
 
-       The following regions are valid for ``M10+`` clusters (``M20+``
-       for Azure):
+       Select your cloud provider's tab for example cluster region
+       names:
 
        .. tabs::
 
@@ -486,44 +486,34 @@
               name: AWS
               content: |
 
-                .. include:: /includes/fact-aws-region-names.rst
+                - ``US_EAST_1``
+                - ``US_WEST_2``
+                - ``EU_WEST_1``
+
+                For a complete list of supported |aws| regions, see
+                :ref:`amazon-aws`.
 
             - id: gcp
               name: GCP
               content: |
 
-                .. include:: /includes/fact-gcp-region-names.rst
+                - ``CENTRAL_US``
+                - ``EUROPE_WEST_1``
+                - ``EASTERN_ASIA_PACIFIC``
+
+                For a complete list of supported |gcp| regions, see
+                :ref:`google-gcp`.
 
             - id: azure
               name: Azure
               content: |
 
-                .. include:: /includes/fact-azure-region-names.rst
+                - ``US_EAST_2``
+                - ``US_WEST``
+                - ``EUROPE_NORTH``
 
-       The following regions are valid for ``M2`` and ``M5`` clusters:
-
-       .. tabs::
-
-          hidden: true
-
-          tabs:
-            - id: aws
-              name: AWS
-              content: |
-
-                .. include:: /includes/fact-aws-m2-m5-region-names.rst
-
-            - id: gcp
-              name: GCP
-              content: |
-
-                .. include:: /includes/fact-gcp-m2-m5-region-names.rst
-
-            - id: azure
-              name: Azure
-              content: |
-
-                .. include:: /includes/fact-azure-m2-m5-region-names.rst
+                For a complete list of supported Azure regions, see
+                :ref:`microsoft-azure`.
 
    * - | ``providerSettings``
        | ``.volumeType``

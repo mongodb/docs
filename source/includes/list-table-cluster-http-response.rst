@@ -213,6 +213,15 @@
        choose can affect network latency for clients accessing your
        databases.
 
+       For a complete list of region name values, refer to the
+       the cloud provider reference pages:
+
+       - :ref:`AWS <amazon-aws>`
+
+       - :ref:`GCP <google-gcp>`
+
+       - :ref:`Azure <microsoft-azure>`
+
        For multi-region clusters, see ``replicationSpec.<region>``.
 
    * - | ``providerSettings``
