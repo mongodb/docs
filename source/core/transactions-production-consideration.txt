@@ -248,20 +248,34 @@ In-progress Transactions and Stale Reads
 In-progress Transactions and Chunk Migration
 --------------------------------------------
 
-The :ref:`chunk migration process<chunk-migration-procedure>` require
-exclusive locks on the collection during certain stages. If an ongoing
-transaction has locks on the collection, these stages must wait for the
-transaction to release locks on the affected collection, thereby
-impacting the performance of chunk migrations.
+The :ref:`chunk migration process<chunk-migration-procedure>` requires
+exclusive locks on the collection during certain stages.
 
-If a chunk migration moves data being modified by an operation in a
-transaction, the transaction errors during the commit and aborts.
+If an ongoing transaction has a lock on a collection and a chunk
+migration that involves that collection starts, these migration stages
+must wait for the transaction to release the locks on the collection,
+thereby impacting the performance of chunk migrations.
+
+If a chunk migration interleaves with a transaction (for instance, if a
+transaction starts while a chunk migration is already in progress and
+the migration completes before the transaction takes a lock on the
+collection), the transaction errors during the commit and aborts.
+
+Depending on how the two operations interleave, some sample errors
+include (the error messages have been abbreviated):
+
+- ``an error from cluster data placement change ... migration commit in progress for <namespace>``
+
+- ``Cannot find shardId the chunk belonged to at cluster time ...``
 
 Errors
 ------
 
 Sharded Transactions and MongoDB 4.0 drivers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For transactions on MongoDB 4.2 deployments, clients require MongoDB
+drivers updated for MongoDB 4.2.
 
 On sharded clusters with multiple :binary:`~bin.mongos` instances,
 performing transactions with drivers updated for MongoDB 4.0

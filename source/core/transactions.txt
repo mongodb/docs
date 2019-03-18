@@ -28,8 +28,8 @@ documents or consistency between reads to multiple documents:
 
 - **Starting in version 4.2**, MongoDB provides the ability to perform
   multi-document transactions for sharded clusters. For transactions on
-  sharded clusters, clients require MongoDB drivers updated for MongoDB
-  4.2.
+  MongoDB 4.2 deployments(replica sets and sharded clusters), clients require MongoDB
+  drivers updated for MongoDB 4.2.
 
   .. include:: /includes/extracts/transactions-beta.rst
 
@@ -72,13 +72,16 @@ of the transactions API:
 
              client = MongoClient(uriString)
              
+             my_write_concern_majority = WriteConcern('majority', wtimeout=1000)
+
              # Prereq: Create collections. CRUD operations in transactions must be on existing collections.
+
              client.get_database(
                  'mydb1',
-                 write_concern=WriteConcern('majority', wtimeout=1000)).foo.insert_one({'abc': 0})
+                 write_concern=my_write_concern_majority).foo.insert_one({'abc': 0})
              client.get_database(
                  'mydb2',
-                 write_concern=WriteConcern('majority', wtimeout=1000)).bar.insert_one({'xyz': 0})
+                 write_concern=my_write_concern_majority).bar.insert_one({'xyz': 0})
 
              def callback(my_session):
                  collection_one = my_session.client.mydb1.foo
@@ -89,8 +92,9 @@ of the transactions API:
              with client.start_session() as session:
                  session.with_transaction(callback,
                                           read_concern=ReadConcern('local'),
-                                          write_concern=WriteConcern('majority', wtimeout=1000),
+                                          write_concern=my_write_concern_majority,
                                           read_preference=ReadPreference.PRIMARY)
+
 
      - id: javatxn
        name: Java
@@ -166,6 +170,10 @@ of the transactions API:
            .. code-block:: javascript
               :copyable: false
 
+              // Prereq: Create collections. CRUD operations in transactions must be on existing collections.
+              db.getSiblingDB("mydb1").foo.insert( {abc: 0}, { writeConcern: { w: "majority", wtimeout: 2000 } } );
+              db.getSiblingDB("mydb2").bar.insert( {xyz: 0}, { writeConcern: { w: "majority", wtimeout: 2000 } } );
+              
               // Start a session.
               session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
 
@@ -220,7 +228,7 @@ Transactions and Sessions
 Transactions and MongoDB Drivers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|arrow| *For transactions on sharded clusters*, clients require MongoDB
+|arrow| *For transactions on MongoDB 4.2 deployments*, clients require MongoDB
 drivers updated for MongoDB 4.2.
 
 .. admonition:: Sharded Transactions and MongoDB 4.0 drivers
@@ -244,8 +252,8 @@ drivers updated for MongoDB 4.2.
         - ``cannot commit with no participants``
 
 
-|arrow| *For transactions on replica sets*, clients require MongoDB
-drivers updated for MongoDB 4.0 or later.
+|arrow| *For transactions on MongoDB 4.0 replica sets*, clients require
+MongoDB drivers updated for MongoDB 4.0 or later.
 
 .. include:: /includes/list-4.0-drivers.rst
 
@@ -550,7 +558,7 @@ Transactions on deployments with arbiters have the following limitation:
 
 - On a sharded cluster, transactions that span multiple shards will
   error and abort if any involved shard contains an arbiter. Single
-  shard transactions that involves the shard containing the arbiter are
+  shard transactions that involve the shard containing the arbiter are
   not affected unless :ref:`read concern majority is disabled
   <transactions-disabled-rc-majority>`.
 
@@ -572,7 +580,7 @@ On sharded clusters with a shard that has :ref:`disabled read concern
 
 - You cannot run transactions with read concern ``snapshot`` if the
   transaction involves that shard. The transaction with read concern
-  ``snapshot`` errors during the commit and aborts.
+  ``snapshot`` errors and aborts.
 
   .. code-block:: none
 

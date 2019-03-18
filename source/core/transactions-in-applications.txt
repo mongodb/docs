@@ -34,7 +34,7 @@ retried.
 - The callback API incorporates retry logic for
   ``"TransientTransactionError"``.
 
-- The initial transaction API does not incorporate retry logic
+- The core transaction API does not incorporate retry logic
   for ``"TransientTransactionError"``. To handle
   ``"TransientTransactionError"``, applications should explicitly
   incorporate retry logic for the error.
@@ -55,7 +55,7 @@ If the commit operation encounters an error labelled
 - The callback API incorporates retry logic for
   ``"UnknownTransactionCommitResult"``.
 
-- The initial transaction API does not incorporate retry logic for
+- The core transaction API does not incorporate retry logic for
   ``"UnknownTransactionCommitResult"``. To handle
   ``"UnknownTransactionCommitResult"``, applications should explicitly
   incorporate retry logic for the error.
@@ -95,14 +95,17 @@ The new callback API incorporates logic:
              # uriString = 'mongodb://mongos0.example.com:27017,mongos1.example.com:27017/admin'
 
              client = MongoClient(uriString)
-             
+
+             my_write_concern_majority = WriteConcern('majority', wtimeout=1000)
+
              # Prereq: Create collections. CRUD operations in transactions must be on existing collections.
+             
              client.get_database(
                  'mydb1',
-                 write_concern=WriteConcern('majority', wtimeout=1000)).foo.insert_one({'abc': 0})
+                 write_concern=my_write_concern_majority).foo.insert_one({'abc': 0})
              client.get_database(
                  'mydb2',
-                 write_concern=WriteConcern('majority', wtimeout=1000)).bar.insert_one({'xyz': 0})
+                 write_concern=my_write_concern_majority).bar.insert_one({'xyz': 0})
 
              def callback(my_session):
                  collection_one = my_session.client.mydb1.foo
@@ -113,7 +116,7 @@ The new callback API incorporates logic:
              with client.start_session() as session:
                  session.with_transaction(callback,
                                           read_concern=ReadConcern('local'),
-                                          write_concern=WriteConcern('majority', wtimeout=1000),
+                                          write_concern=my_write_concern_majority,
                                           read_preference=ReadPreference.PRIMARY)
 
      - id: java-sync
@@ -174,10 +177,11 @@ The new callback API incorporates logic:
              } finally {
                  clientSession.close();
              }
-Initial API
------------
+Core API
+--------
 
-The initial API does not incorporate retry logic for errors labelled:
+The core transaction API does not incorporate retry logic for errors
+labelled:
 
 - ``"TransientTransactionError"``. To handle
   ``"TransientTransactionError"``, applications should explicitly
