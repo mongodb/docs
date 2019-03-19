@@ -20,6 +20,104 @@ Release Notes for |bi|
 .. expect and we don't break the links on the downloads page.
 .. (DOCS-9670 for context)
 
+.. _bi-2-10-0:
+
+|bi| 2.10.0
+-----------
+
+*Released Mar 15, 2019*
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where aggregate functions returned ``NULL`` in dual
+  queries with the ``DUAL`` keyword omitted.
+
+- Fixes a bug where some invalid ``DUAL`` queries did not return an
+  error.
+
+- Fixes a bug that prevented pushdown of some joins to derived tables
+  selecting from ``DUAL``.
+
+- Fixes some correctness bugs in the in-memory evaluation for 
+  :doc:`mysql-mode conversions </reference/type-conversion/>`.
+
+- Fixes a bug where some trig functions (``ascii``, ``acos``, and
+  ``asin``) could return incorrect results due to missing
+  :ref:`type conversions <type-conversion-modes>`.
+
+- Fixes a bug where some subquery comparisons could return incorrect
+  results due to missing
+  :ref:`type conversions <type-conversion-modes>`.
+
+- Fixes a bug where we lost precision while converting a ``Uint64`` to a
+  ``Decimal``.
+
+- Fixes a correctness bug with the ``INSERT`` scalar function's pushdown
+  translation.
+
+- Fixes a bug where unstable sorting caused non-deterministic renaming
+  of colliding collection/field names during schema mapping.
+
+- Fixes a bug where some valid subquery comparisons returned errors.
+
+- Fixes a bug where some valid subquery and tuple comparisons returned
+  errors.
+
+- Fixes a bug where queries using ``xor`` returned errors on MongoDB 3.2
+  because the generated pipelines required features added in MongoDB
+  3.4.
+
+- Fixes a bug that caused kerberos
+  :ref:`authentication <client-authentication>` to fail with MongoDB
+  4.0.
+
+Date and Time Changes
+~~~~~~~~~~~~~~~~~~~~~
+
+This release resolves a number of inconsistencies in the |bi-short|'s
+date and timestamp semantics. Resolving these inconsistencies resulted
+in some changes to user-facing behavior:
+
+- Removes inconsistent support for partial dates.
+
+  - MySQL can represent partial dates that are
+    `missing month or day components <https://dev.mysql.com/doc/refman/8.0/en/date-and-time-functions.html>`__.
+    It is impossible to represent these incomplete dates with
+    MongoDB dates. Attempting to correctly manipulate and render
+    incomplete dates was causing a number of bugs and inconsistencies
+    with complete dates.
+
+  - Starting with version 2.10, the |bi-short| does not support
+    operations on or expressions that return incomplete dates.
+    Going forward, we cannot provide guarantees about the behavior of
+    operations that attempt to construct incomplete dates.
+
+- Updates the ``DATE(a)`` and ``TIMESTAMP(a)`` scalar functions to be
+  equivalent to ``CAST(a AS DATE)``, and ``CAST(a AS DATETIME)``,
+  respectively.
+
+  - The behavior of the ``DATE`` and ``TIMESTAMP`` scalar functions will
+    depend on the value of the ``type_conversion_mode`` variable. This
+    will change the default behavior for those scalar functions.
+
+  - Queries affected by this change can be rewritten to use a more
+    explicit conversion function (such as ``str_to_date``) that does not
+    depend on ``type_conversion_mode``. If an affected query cannot be
+    rewritten, a user may set ``type_conversion_mode`` variable to
+    ``mysql``, which instructs the BI Connector to perform all type
+    conversions with MySQL semantics instead of MongoDB semantics.
+
+    .. important::
+
+       This is discouraged unless absolutely necessary, as it
+       significantly curtails the ability to push down type conversions
+       across the board.
+
+  - For more information on type conversions and the
+    ``type_conversion_mode`` system variable, see
+    :ref:`Type Conversion Modes <type-conversion-modes>`.
+
 .. _bi-2-9-0:
 
 |bi| 2.9.0
