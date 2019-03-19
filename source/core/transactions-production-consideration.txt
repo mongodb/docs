@@ -30,8 +30,8 @@ Availability
 Feature Compatibility
 ---------------------
 
-Transactions impose a minimum :ref:`featureCompatibilityVersion
-<view-fcv>` for all members of the deployment.
+To use transactions, the :ref:`featureCompatibilityVersion <view-fcv>`
+for all members of the deployment must be at least:
 
 .. list-table::
    :header-rows: 1
@@ -80,18 +80,19 @@ size limit of 16MB.
 WiredTiger Cache
 ----------------
 
-To prevent storage cache pressure from immobilizing the system:
+To prevent storage cache pressure from negatively impacting the
+performance:
 
 - When you abandon a transaction, abort the transaction.
 
 - When you encounter an error during individual operation in the
-  transaction, abort the transaction and retry the transaction.
+  transaction, abort and retry the transaction.
 
 The :parameter:`transactionLifetimeLimitSeconds` also ensures that
 expired transactions are aborted periodically to relieve storage cache
 pressure.
 
-By default, transactions waits up to ``5`` milliseconds to acquire locks
+By default, transactions wait up to ``5`` milliseconds to acquire locks
 required by the operations in the transaction. If the transaction
 cannot acquire its required locks within the ``5`` milliseconds, the
 transaction aborts.
@@ -100,17 +101,12 @@ Transactions and Security
 -------------------------
 
 - If running with :doc:`access control </core/authorization>`, you must
-  have privileges for the :ref:`operations in the transaction
-  <transactions-operations>`. [#username-external]_
+  have :doc:`privileges </reference/built-in-roles>` for the
+  :ref:`operations in the transaction <transactions-operations>`.
 
 - If running with :doc:`auditing </core/auditing>`, operations in an
   aborted transaction are still audited. However, there is no audit
   event that indicates that the transaction aborted.
-
-.. [#username-external]
-
-   If using ``$external`` authentication users (i.e. Kerberos, LDAP,
-   x.509 users), the usernames cannot be greater than 10k bytes.
 
 Sharded Clusters and Arbiters
 -----------------------------
@@ -162,7 +158,7 @@ To check if read concern "majority" is disabled, you can run
 Acquiring Locks
 ---------------
 
-By default, transactions waits up to ``5`` milliseconds to acquire locks
+By default, transactions wait up to ``5`` milliseconds to acquire locks
 required by the operations in the transaction. If the transaction
 cannot acquire its required locks within the ``5`` milliseconds, the
 transaction aborts.
@@ -248,25 +244,7 @@ In-progress Transactions and Stale Reads
 In-progress Transactions and Chunk Migration
 --------------------------------------------
 
-The :ref:`chunk migration process<chunk-migration-procedure>` requires
-exclusive locks on the collection during certain stages.
-
-If an ongoing transaction has a lock on a collection and a chunk
-migration that involves that collection starts, these migration stages
-must wait for the transaction to release the locks on the collection,
-thereby impacting the performance of chunk migrations.
-
-If a chunk migration interleaves with a transaction (for instance, if a
-transaction starts while a chunk migration is already in progress and
-the migration completes before the transaction takes a lock on the
-collection), the transaction errors during the commit and aborts.
-
-Depending on how the two operations interleave, some sample errors
-include (the error messages have been abbreviated):
-
-- ``an error from cluster data placement change ... migration commit in progress for <namespace>``
-
-- ``Cannot find shardId the chunk belonged to at cluster time ...``
+.. include:: /includes/extracts/transactions-chunk-migration.rst
 
 Errors
 ------
@@ -278,8 +256,14 @@ For transactions on MongoDB 4.2 deployments, clients require MongoDB
 drivers updated for MongoDB 4.2.
 
 On sharded clusters with multiple :binary:`~bin.mongos` instances,
-performing transactions with drivers updated for MongoDB 4.0
-(instead of MongoDB 4.2) results in errors:
+performing transactions with drivers updated for MongoDB 4.0 (instead
+of MongoDB 4.2) will fail and can result in errors, including:
+
+.. note::
+
+   Your driver may return a different error. Refer to your driver's
+   documentation for details.
+
 
 .. list-table::
    :header-rows: 1

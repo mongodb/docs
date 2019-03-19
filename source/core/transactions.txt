@@ -20,8 +20,8 @@ in a single document structure instead of normalizing across multiple
 documents and collections, this single-document atomicity obviates the
 need for multi-document transactions for many practical use cases.
 
-However, for situations that require atomicity for writes to multiple
-documents or consistency between reads to multiple documents:
+For situations that require atomicity of reads and writes to multiple
+documents (in a single or multiple collections):
 
 - **Starting in version 4.0**, MongoDB provides the ability to perform
   multi-document transactions for replica sets.
@@ -228,15 +228,21 @@ Transactions and Sessions
 Transactions and MongoDB Drivers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|arrow| *For transactions on MongoDB 4.2 deployments*, clients require MongoDB
-drivers updated for MongoDB 4.2.
+|arrow| *For transactions on MongoDB 4.2 deployments*, clients require
+MongoDB drivers updated for MongoDB 4.2. 
 
 .. admonition:: Sharded Transactions and MongoDB 4.0 drivers
    :class: note
 
    On sharded clusters with multiple :binary:`~bin.mongos` instances,
    performing transactions with drivers updated for MongoDB 4.0
-   (instead of MongoDB 4.2) results in errors:
+   (instead of MongoDB 4.2) will fail and can result in errors,
+   including:
+
+   .. note::
+
+      Your driver may return a different error. Refer to your driver's
+      documentation for details.
 
    .. list-table::
       :header-rows: 1
@@ -405,14 +411,10 @@ Multi-document transactions support the following read concern levels:
    - Read concern :readconcern:`"local"` returns the most recent data
      available from the node but can be rolled back.
 
-   - .. admonition:: Not Synchronized Across Shards
-        :class: warning
-
-        For transactions on sharded clusters, read concern
-        :readconcern:`"local"` reads from views of the data are not
-        synchronized across shards. For a synchronized snapshot view of
-        data, explicitly use :ref:`transactions-read-concern-snapshot`
-        read concern.
+   - For transactions on sharded cluster, :readconcern:`"local"` read
+     concern cannot guarantee that the data is from the same snapshot
+     view across the shards. If snapshot isolation is required, use
+     :ref:`transactions-read-concern-snapshot` read concern.
 
 ``"majority"``
 ``````````````
@@ -429,14 +431,10 @@ Multi-document transactions support the following read concern levels:
      :readconcern:`"majority"` read concern provides **no** guarantees that
      read operations read majority-committed data.
 
-   - .. admonition:: Not Synchronized Across Shards
-        :class: warning
-
-        For transactions on sharded clusters, read concern
-        :readconcern:`"majority"` reads from views of the data are not
-        synchronized across shards. For a synchronized snapshot view of
-        data, explicitly use :ref:`transactions-read-concern-snapshot`
-        read concern.
+   - For transactions on sharded cluster, :readconcern:`"majority"` read
+     concern cannot guarantee that the data is from the same snapshot
+     view across the shards. If snapshot isolation is required, use
+     :ref:`transactions-read-concern-snapshot` read concern.
 
 .. _transactions-read-concern-snapshot:
 
@@ -454,13 +452,9 @@ Multi-document transactions support the following read concern levels:
      :readconcern:`"snapshot"` read concern provides **no** guarantee that
      read operations used a snapshot of majority-committed data.
 
-   .. admonition:: Synchronized Across Shards
-      :class: note
-
-      For transactions on sharded clusters, the
-      :readconcern:`"snapshot"` view of the data **is** synchronized
-      across shards.
-
+   - For transactions on sharded clusters, the
+     :readconcern:`"snapshot"` view of the data **is** synchronized
+     across shards.
 
 .. _transactions-write-concern:
 
@@ -615,8 +609,8 @@ MongoDB provides various transactions metrics:
 Feature Compatibility Version (FCV)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Transactions impose a minimum :ref:`featureCompatibilityVersion <view-fcv>` for all
-members of the deployment.
+To use transactions, the :ref:`featureCompatibilityVersion <view-fcv>`
+for all members of the deployment must be at least:
 
 .. list-table::
    :header-rows: 1

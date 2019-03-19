@@ -29,8 +29,13 @@ updated for MongoDB 4.2.
    :class: note
 
    On sharded clusters with multiple :binary:`~bin.mongos` instances,
-   performing transactions with drivers updated for MongoDB 4.0
-   (instead of MongoDB 4.2) results in errors:
+   performing transactions with drivers updated for MongoDB 4.0 (instead
+   of MongoDB 4.2) will fail and can result in errors, including:
+
+   .. note::
+
+      Your driver may return a different error. Refer to your driver's
+      documentation for details.
 
    .. list-table::
       :header-rows: 1
@@ -51,16 +56,19 @@ Performance
 Single Shard
 ~~~~~~~~~~~~
 
-Transactions that target a single shard are performant.
+Transactions that target a single shard should have the same
+performance as replica-set transactions.
 
 Multiple Shards
 ~~~~~~~~~~~~~~~
 
-Transactions that affects multiple shards incur a greater performance
+Transactions that affect multiple shards incur a greater performance
 cost.
 
-On a sharded cluster, transactions that span multiple shards will error
-and abort if any involved shard contains an arbiter.
+.. note::
+
+   On a sharded cluster, transactions that span multiple shards will
+   error and abort if any involved shard contains an arbiter.
 
 Time Limit
 ~~~~~~~~~~
@@ -124,31 +132,14 @@ To check if read concern "majority" is disabled
 Backups and Restores
 --------------------
 
-.. include:: /includes/extracts/sharded-clusters-backup-restore-limitations-atomicity-general.rst
+.. warning::
+
+   .. include:: /includes/extracts/sharded-clusters-backup-restore-limitations-atomicity-general.rst
 
 Chunk Migrations
 ----------------
 
-The :ref:`chunk migration process<chunk-migration-procedure>` requires
-exclusive locks on the collection during certain stages. 
-
-If an ongoing transaction has a lock on a collection and a chunk
-migration that involves that collection starts, these migration stages
-must wait for the transaction to release the locks on the collection,
-thereby impacting the performance of chunk migrations.
-
-If a chunk migration interleaves with a transaction (for instance, if a
-transaction starts while a chunk migration is already in progress and
-the migration completes before the transaction takes a lock on the
-collection), the transaction errors during the commit and aborts.
-
-Depending on how the two operations interleave, some sample errors
-include (the error messages have been abbreviated):
-
-- ``an error from cluster data placement change ... migration commit in progress for <namespace>``
-
-- ``Cannot find shardId the chunk belonged to at cluster time ...``
-
+.. include:: /includes/extracts/transactions-chunk-migration.rst
 
 Additional Information
 ----------------------
