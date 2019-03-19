@@ -61,7 +61,7 @@ The following example returns information on index creation operations:
        {
          $or: [
            { op: "command", "query.createIndexes": { $exists: true } },
-           { op: "none", ns: /\.system\.indexes\b/ }
+           { op: "insert", ns: /\.system\.indexes\b/ }
          ]
        }
    )
