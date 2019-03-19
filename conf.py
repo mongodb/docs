@@ -84,7 +84,8 @@ source_constants = {
     'release': release,
     'rsa-key': '58712A2291FA4AD5',
     'pgp-fingerprint-fmt': '2930 ADAE 8CAF 5059 EE73 BB4B 5871 2A22 91FA 4AD5',
-    'pgp-short-fingerprint' : '0x58712A2291FA4AD5'
+    'pgp-short-fingerprint' : '0x58712A2291FA4AD5',
+    'source-available' : '`source available and free to use <https://github.com/mongodb/mongo/>`_'
 }
 
 pygments_style = 'sphinx'
