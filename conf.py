@@ -73,6 +73,7 @@ rst_epilog = '\n'.join([
 source_constants = {
     'version': version,
     'release': release,
+    'source-available' : '`source available and free to use <https://github.com/mongodb/mongo/>`_'
 }
 pygments_style = 'sphinx'
 
