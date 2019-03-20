@@ -162,7 +162,7 @@
 
 - Perform additional validations for deployments managed by external
   orchestration platforms (such as the
-  :doc:`MongoDB Enterprise Operator for Kubernetes </tutorial/install-k8s-operator>`).
+  :k8s:`MongoDB Enterprise Operator for Kubernetes </tutorial/install-k8s-operator>`).
 
 - **Agent Upgrades:** :ref:`automation-5.4.10.5496`
 
@@ -220,7 +220,7 @@
    - Added integrations for:
 
      - `Pivotal Cloud Foundry <https://pivotal.io/platform/services-marketplace/data-management/mongodb>`__
-     - :doc:`Kubernetes </tutorial/install-k8s-operator>` (beta)
+     - :k8s:`Kubernetes </tutorial/install-k8s-operator>` (beta)
 
 - Improved Monitoring
 
