@@ -22,6 +22,12 @@
        present in the response, |service| does not return the
        ``userId`` field.
 
+   * - ``collection``
+     - string
+     - Name of the collection on which the event occurred. This field
+       can be present when the ``eventTypeName`` is either
+       ``DATA_EXPLORER`` or ``DATA_EXPLORER_CRUD``.
+
    * - ``created``
      - date
      - `ISO 8601-formatted <https://en.wikipedia.org/wiki/ISO_8601>`_
@@ -43,6 +49,12 @@
        Possible values are:
 
        .. include:: /includes/possibleValues-api-units.rst
+
+   * - ``database``
+     - string
+     - Name of the database on which the event occurred. This field
+       can be present when the ``eventTypeName`` is either
+       ``DATA_EXPLORER`` or ``DATA_EXPLORER_CRUD``.
 
    * - ``eventTypeName``
      - string
@@ -82,6 +94,12 @@
    * - ``metricName``
      - string
      - The name of the metric associated to the ``alertId``.
+
+   * - ``opType``
+     - string
+     - Type of operation that occurred. This field is present when the
+       ``eventTypeName`` is either ``DATA_EXPLORER`` or
+       ``DATA_EXPLORER_CRUD``.
 
    * - ``orgId``
      - string
@@ -138,5 +156,5 @@
      - string
      - The username for the |service| user who triggered the event.
        If this field is present in the response,
-       |service| does not return the `publicKey`` field.
+       |service| does not return the ``publicKey`` field.
 
