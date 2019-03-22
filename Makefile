@@ -37,6 +37,7 @@ build:
 	mkdir -p $@
 	mkdir -p $@/cloud
 	mkdir -p $@/tools
+	mkdir -p $@/images
 	mkdir -p $@/announcements/login-and-access-changes
 	@# Copy CSS and JS files to output directories
 	cp static/favicon.png $@/favicon.ico
@@ -44,5 +45,6 @@ build:
 	cp -r static/images static/css static/js $@/tools
 	cp -r static/images static/css static/js $@/cloud
 	cp -r static/images static/css static/js $@/announcements/login-and-access-changes
+	cp -r src/images/announcements/* $@/announcements/login-and-access-changes/images
 	@# Run the script to generate each landing page
 	python3 ./gen_landings.py $@
