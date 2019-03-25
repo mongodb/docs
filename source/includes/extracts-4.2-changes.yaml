@@ -217,13 +217,14 @@ content: |
 ref: 4.2-changes-options-tls-ssl-downgrade
 content: |
 
-   Starting in MongoDB 4.2, MongoDB adds ``TLS`` options to replace the
-   deprecated SSL options.
+   Starting in MongoDB 4.2, MongoDB adds ``"tls"``-prefixed options as
+   aliases for the ``"ssl"-prefixed`` options.
 
-   If your deployments or clients use the 4.2+ ``TLS`` options, replace
-   with the corresponding  SSL options for the :ref:`mongod <ssl-mongod-options>`,
-   the :ref:`mongos <mongos-ssl-options>`, and the :ref:`mongo
-   shell<mongo-shell-ssl>`.
+   If your deployments or clients use the ``"tls"``-prefixed options,
+   replace with the corresponding ``"ssl"-prefixed`` options for the
+   :ref:`mongod <ssl-mongod-options>`, the :ref:`mongos
+   <mongos-ssl-options>`, and the :ref:`mongo shell<mongo-shell-ssl>`
+   and drivers.
 ---
 ref: 4.2-changes-agg-out-explain
 content: |
@@ -247,6 +248,128 @@ content: |
    (1-5) in the :ref:`log messages <log-severity-levels>`. For example,
    if the verbosity level is 2, MongoDB logs ``D2``. In previous
    versions, MongoDB log messages only specified ``D`` for Debug level.
+---
+ref: 4.2-changes-downgrade-command-line-options
+content: |
 
+   If you use command-line options instead of a configuration file,
+   update the command-line options as appropriate during the restart.
+
+   - If your command-line options include :ref:`"tls"-prefixed
+     options <tls-mongod-options>`, update to :ref:`"ssl"-prefixed
+     <ssl-mongod-options>` options.
+
+   - If the :binary:`~bin.mongod` instance used ``zstd`` data compression, 
+   
+     - Update :option:`--dbpath <mongod --dbpath>` to the new directory
+       (created during the prerequisites).
+       
+     - Remove :option:`--wiredTigerCollectionBlockCompressor <mongod
+       --wiredTigerCollectionBlockCompressor>` to use the default
+       ``snappy`` compressor (or, alternatively, explicitly set to a
+       4.0 supported compressor).
+
+   - If the :binary:`~bin.mongod` instance used ``zstd`` journal
+     compression,
+
+     - Remove :option:`--wiredTigerJournalCompressor <mongod
+       --wiredTigerJournalCompressor>` to use the default ``snappy``
+       compressor (or, alternatively, explicitly set to a 4.0 supported
+       compressor).
+
+   - If the :binary:`~bin.mongod` instance included ``zstd`` network
+     message compression,
+     
+     - Remove :option:`--networkMessageCompressors <mongod
+       --networkMessageCompressors>` to enable message compression
+       using the default ``snappy,zlib`` compressors. Alternatively,
+       explicitly specify the compressor(s).
+
+---
+ref: 4.2-changes-downgrade-command-line-options-mongos
+content: |
+   If you use command-line options instead of a configuration file,
+   update the command-line options as appropriate during the restart.
+
+   - If your :binary:`~bin.mongos` command-line options include
+     :ref:`"tls"-prefixed options <mongos-tls-options>`, update to
+     :ref:`"ssl"-prefixed <mongos-ssl-options>` options.
+
+   - If the :binary:`~bin.mongos` instance included ``zstd`` network
+     message compression, remove :option:`--networkMessageCompressors
+     <mongos --networkMessageCompressors>` to use the default
+     ``snappy,zlib`` compressors. Alternatively, specify the list of
+     compressors to use.
+---
+ref: 4.2-changes-zstd-downgrade-prereq
+content: |
+
+   #. Create a new empty :option:`data directory <mongod --dbpath>` for
+      the :binary:`~bin.mongod` instance. This directory will be used
+      in the downgrade procedure below.
+
+      .. important::
+
+         Ensure that the user account running :binary:`~bin.mongod` has
+         read and write permissions for the new directory.
+
+   #. If you use a :doc:`configuration file
+      </reference/configuration-options>`, update the file to prepare for
+      the downgrade procedure:
+
+      a. Delete
+         :setting:`storage.wiredTiger.collectionConfig.blockCompressor`
+         to use the default compressor (``snappy``) or
+         set to another 4.0 supported compressor.
+
+      #. Update :setting:`storage.dbPath` to the new
+         data directory.
+
+      | If you use command-line options instead, you will have to update
+        the options in the procedure below.
+
+---
+ref: 4.2-changes-zstd-journal-compression-config-only
+content: |
+
+   - If using a :doc:`configuration file
+     </reference/configuration-options>`, delete
+     :setting:`storage.wiredTiger.engineConfig.journalCompressor` to
+     use the default compressor (``snappy``) or set to another 4.0
+     supported compressor.
+
+   - If using command-line options instead, you will have to update the
+     options in the procedure below.
+---
+ref: 4.2-changes-zstd-network-compression
+content: |
+
+   The :term:`zstd` compression library is available for network
+   message compression starting in version 4.2.
+
+   To prepare for the downgrade:
+
+   #. For |binary| that uses :term:`zstd` for network message
+      compression and uses a :doc:`configuration file
+      </reference/configuration-options>`, update the
+      :setting:`net.compression.compressors` setting to prepare for the
+      restart during the downgrade procedure.
+
+      | If you use command-line options instead, you will have to update
+        the options in the procedure below.
+
+   #. For any client that specifies ``zstd`` in its :urioption:`URI
+      connection string <compressors>`, update to remove ``zstd`` from the
+      list.
+
+   #. For any :binary:`~bin.mongo` shell that specifies ``zstd`` in its
+      :option:`--networkMessageCompressors <mongo
+      --networkMessageCompressors>`, update to remove ``zstd`` from the
+      list.
+
+   .. important::
+
+      Messages are compressed when both parties enable network
+      compression. Otherwise, messages between the parties are
+      uncompressed.
 ...
-

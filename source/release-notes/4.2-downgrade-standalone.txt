@@ -29,14 +29,19 @@ Create Backup
 
 *Optional but Recommended.*  Create a backup of your database.
 
+Access Control
+--------------
+
+If your deployment has access control enabled, your downgrade user
+privileges must include privileges to list and manage indexes across
+databases. A user with :authrole:`root` role has the required privileges.
+      
 Prerequisites
 -------------
 
-Before downgrading the binaries, you must downgrade the
-``featureCompatibilityVersion`` (fCV) and remove any |newversion|
-features :ref:`incompatible <4.2-compatibility-enabled>` with
-|oldversion| versions as outlined below. These steps are necessary only
-if fCV has ever been set to ``"4.2"``.
+To downgrade from 4.2 to 4.0, you must remove incompatible features
+that are persisted and/or update incompatible configuration settings.
+These include:
 
 .. |target| replace:: :binary:`~bin.mongod` instance
 
@@ -52,16 +57,19 @@ cluster:
 
 #. .. include:: /includes/4.2-downgrade-fcv.rst
 
-2. Remove Backwards Incompatible Persisted Features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2. Remove FCV 4.2 Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps are necessary only if fCV has ever been set to
+``"4.2"``.
 
 Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
-<4.2-compatibility-enabled>`.
+<4.2-compatibility-enabled>`. These include:
 
 .. _4.2-downgrade-index-key-standalone:
 
-Index Key Size
-``````````````
+2a. Index Key Size
+``````````````````
 
 .. container::
 
@@ -69,44 +77,138 @@ Index Key Size
 
 .. _4.2-downgrade-index-name-standalone:
 
-Index Name Length
-`````````````````
+2b. Index Name Length
+`````````````````````
 
 .. container::
 
    .. include:: /includes/extracts/4.2-downgrade-fcv-index-name.rst
 
-Unique Index Version
-````````````````````
+2c. Unique Index Version
+````````````````````````
 
 .. container::
 
    .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index.rst
 
    .. tip::
-   
+
       Perform this operation after you have resolved any :ref:`index
       key size <4.2-downgrade-index-key-standalone>` and :ref:`index
       name length <4.2-downgrade-index-name-standalone>` issues first.
 
-   Privileges to Run the Scripts
-      If your deployment has access control enabled, your downgrade
-      user privileges must include privileges to list and manage indexes across
-      database. A user with :authrole:`root` role has the required
-      privileges.
-
    Script
       .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script.rst
 
-TLS Options
-```````````
+
+3. Update ``tls``-Prefixed Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container::
 
    .. include:: /includes/extracts/4.2-changes-options-tls-ssl-downgrade.rst
 
-   
+4. Prepare Downgrade from ``zstd`` Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _downgrade-standalone-prereq-zstd:
+
+``zstd`` Data Compression
+`````````````````````````
+
+.. container::
+
+   The :term:`zstd` compression library is available starting in
+   version 4.2.
+
+   If your standalone has any data using :term:`zstd` compression:
+
+   .. tip::
+
+      Perform this step after all the other prerequisite steps have
+      been performed.
+
+   #. Stop all writes to your instance.
+
+   #. Create a :binary:`~bin.mongodump` of your database before
+      starting the downgrade; :binary:`~bin.mongodump` outputs
+      uncompressed data.
+
+      .. code-block:: sh
+
+         mongodump --host <myhost> --port <port> --out mystandalone.uncompressed.fcv4.0
+
+      Include any other options, such as :option:`--username <mongodump
+      --username>`, :option:`--password <mongodump --password>`, and
+      :option:`--authenticationDatabase <mongodump
+      --authenticationDatabase>` if your standalone enforces access
+      control.
+
+   #. Create a new empty :option:`data directory <mongod --dbpath>` for
+      the :binary:`~bin.mongod` instance. This directory will be used
+      in the downgrade procedure below.
+
+      .. important::
+
+         Ensure that the user account running :binary:`~bin.mongod` has
+         read and write permissions for the new directory.
+
+   #. If you use a :doc:`configuration file
+      </reference/configuration-options>`, update the file to prepare for
+      the downgrade procedure:
+
+      a. Delete
+         :setting:`storage.wiredTiger.collectionConfig.blockCompressor`
+         to use the default compressor (``snappy``) or
+         set to another 4.0 supported compressor.
+
+      #. Update :setting:`storage.dbPath` to the new
+         data directory.
+
+      | If you use command-line options instead, you will have to update
+        the options in the procedure below.
+
+.. _downgrade-standalone-prereq-zstd-journal:
+
+``zstd`` Journal Compression
+````````````````````````````
+
+.. container::
+
+   The :term:`zstd` compression library is available for journal data
+   compression starting in version 4.2.
+
+   If the :binary:`~bin.mongod` instance uses :term:`zstd` library for
+   its journal compressor:
+
+   .. include:: /includes/extracts/4.2-changes-zstd-journal-compression-config-only.rst
+
+   .. note::
+
+      If you encounter an unclean shutdown for a :binary:`~bin.mongod`
+      during the downgrade procedure such that you need to use the
+      journal files to recover, recover the
+      instance using the 4.2 :binary:`~bin.mongod` and then retry the
+      downgrade of the instance.
+
+.. _downgrade-standalone-prereq-zstd-network:
+
+``zstd`` Network Compression
+````````````````````````````
+
+.. container::
+
+   .. include:: /includes/extracts/4.2-changes-zstd-network-compression.rst
+
+.. |binary| replace:: the :binary:`~bin.mongod` instance
+
+
 Procedure
 ---------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that the
+   prerequisites have been completed.
 
 .. include:: /includes/steps/4.2-downgrade-mongod.rst
