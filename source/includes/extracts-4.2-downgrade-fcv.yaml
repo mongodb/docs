@@ -44,6 +44,10 @@ content: |
    with 4.0. The new format applies to both existing unique indexes as
    well as newly created/rebuilt unique indexes. Use the following
    script to drop and recreate all unique indexes.
+   
+---
+ref: 4.2-downgrade-fcv-unique-index-script
+content: |
 
    .. code-block:: javascript
 
@@ -51,55 +55,83 @@ content: |
       // Run this script to drop and recreate unique indexes 
       // for backwards compatibility with 4.0.
       
-      // Obtain a list of unique indexes for both v:1 and v:2
-      var unique_idx_v1 = [];
-      var unique_idx_v2 = [];
       db.adminCommand("listDatabases").databases.forEach(function(d){
          let mdb = db.getSiblingDB(d.name);
+         
          mdb.getCollectionInfos().forEach(function(c){
             let currentCollection = mdb.getCollection(c.name);
-            currentCollection.getIndexes().forEach(function(i){
-               if (i.unique){
-                  if (i.v === 1) {
-                     unique_idx_v1.push(i);
-                  }
-                  else {
-                     unique_idx_v2.push(i);
-                  }
-                  return;
+      
+            currentCollection.getIndexes().forEach(function(idx){
+               if (idx.unique){
+                  print("Dropping and recreating the following index:" + tojson(idx))
+                  
+                  assert.commandWorked(mdb.runCommand({dropIndexes: c.name, index: idx.name}));
+
+                  let res = mdb.runCommand({ createIndexes: c.name, indexes: [idx] });
+                  if (res.ok !== 1)
+                     assert.commandWorked(res);
                }
             });
          });
       });
+---
+ref: 4.2-downgrade-fcv-unique-index-access-control-sharded-cluster
+content: |
+   Additional Privileges to Run the Script
+      If your sharded cluster has access control enabled, your
+      downgrade user privileges must include additional privileges to
+      manage indexes on the ``config`` database.
+
+      .. code-block:: javascript
       
-      printjson(unique_idx_v1);
-      printjson(unique_idx_v2);
-      
-      // Drop and recreate all v:1 indexes
-      for (let idx of unique_idx_v1) {
-         let splitpoint = idx.ns.indexOf(".");
-         let dbName = idx.ns.substring(0,splitpoint);
-         let collName = idx.ns.substring(splitpoint+1);
-         let res = db.getSiblingDB(dbName).runCommand({dropIndexes: collName, index: idx.name});
-         assert.commandWorked(res);
-         res = db.getSiblingDB(dbName).runCommand({
-            createIndexes: collName,
-            indexes: [{"key": idx.key, "name": idx.name, "unique": true, "v": 1}]
+         db.getSiblingDB("admin").createRole({
+              role: "configIndexRole",
+              privileges: [
+                 {
+                   resource: { db: "config", collection: "" },
+                   actions: [ "find", "dropIndex", "createIndex", "listIndexes" ]
+                 }
+              ],
+              roles: [  ]
          });
-         assert.commandWorked(res);
-      }
+
+      Add the newly created role to your downgrade user. For example,
+      if you have a user ``myDowngradeUser`` in the ``admin`` database
+      that already has the :authrole:`root` role, use
+      :method:`db.grantRolesToUser()` to grant the additional role:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("admin").grantRolesToUser( "myDowngradeUser", 
+            [ { role: "configIndexRole", db: "admin" } ], 
+            {  w: "majority", wtimeout: 4000 }
+         );
+---
+ref: 4.2-downgrade-fcv-unique-index-script-local-users
+content: |
+
+   .. code-block:: javascript
+
+      // A script to rebuild unique indexes after downgrading fcv 4.2 to 4.0.
+      // Run this script on shards to drop and recreate unique indexes 
+      // for backwards compatibility with 4.0.
       
-      // Drop and recreate all v:2 indexes
-      for (let idx of unique_idx_v2) {
-         let splitpoint = idx.ns.indexOf(".");
-         let dbName = idx.ns.substring(0,splitpoint);
-         let collName = idx.ns.substring(splitpoint+1);
-         let res = db.getSiblingDB(dbName).runCommand({dropIndexes: collName, index: idx.name});
-         assert.commandWorked(res);
-         res = db.getSiblingDB(dbName).runCommand({
-            createIndexes: collName,
-            indexes: [{"key": idx.key, "name": idx.name, "unique": true, "v": 2}]
+      let mdb = db.getSiblingDB('admin');
+      
+      mdb.getCollectionInfos().forEach(function(c){
+         let currentCollection = mdb.getCollection(c.name);
+   
+         currentCollection.getIndexes().forEach(function(idx){
+            if (idx.unique){
+               print("Dropping and recreating the following index:" + tojson(idx))
+
+               assert.commandWorked(mdb.runCommand({dropIndexes: c.name, index: idx.name}));
+
+               let res = mdb.runCommand({ createIndexes: c.name, indexes: [idx] });
+               if (res.ok !== 1)
+                  assert.commandWorked(res);
+            }
          });
-         assert.commandWorked(res);
-      }
+      });
+   
 ...
