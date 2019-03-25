@@ -133,7 +133,8 @@ rst_epilog = [
     '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`',
     '.. |vpc| replace:: :abbr:`VPC (Virtual Private Cloud)`',
     '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`',
-    '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`'
+    '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`',
+    '.. |fts| replace:: Full Text Search'
 ]
 
 rst_epilog.extend(get_replacements(conf))
