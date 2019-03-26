@@ -1,3 +1,20 @@
+.. _opsmgr-server-4.1.4:
+
+|onprem| Rapid Release 4.1.4
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-03-28*
+
+- Adds support for managing MongoDB deployments on IBM zSeries for the
+  Ubuntu 18.04, SUSE12, and RHEL7 operating systems.
+- Numerous improvements to Automation Agent logging and UI feedback to
+  users.
+
+- Agent Upgrades:
+  :ref:`automation-6.4.0.5657`,
+  :ref:`backup-7.6.0.1059`,
+  :ref:`monitoring-7.1.0.487`
+
 .. _opsmgr-server-4.1.3:
 
 |onprem| Rapid Release 4.1.3

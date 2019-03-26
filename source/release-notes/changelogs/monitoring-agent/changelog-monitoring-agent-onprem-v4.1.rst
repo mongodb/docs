@@ -1,3 +1,13 @@
+.. _monitoring-7.1.0.487:
+
+Monitoring Agent 7.1.0.487
+--------------------------
+
+:ref:`Released with Ops Manager 4.1.4 on 2019-03-28 <opsmgr-server-4.1.4>`
+
+- Support for IBM zSeries for the Ubuntu 18.04, SUSE12, and RHEL7
+  operating systems.
+
 .. _monitoring-7.0.0.481:
 
 Monitoring Agent 7.0.0.481

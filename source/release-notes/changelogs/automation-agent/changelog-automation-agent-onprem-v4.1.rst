@@ -1,3 +1,12 @@
+.. _automation-6.4.0.5657:
+
+Automation Agent 6.4.0.5657
+---------------------------
+
+:ref:`Released with Ops Manager 4.1.4 on 2019-03-28 <opsmgr-server-4.1.4>`
+
+- Various improvements to logging.
+
 .. _automation-6.3.0.5643:
 
 Automation Agent 6.3.0.5643

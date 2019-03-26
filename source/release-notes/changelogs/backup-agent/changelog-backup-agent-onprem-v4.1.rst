@@ -1,3 +1,12 @@
+.. _backup-7.6.0.1059:
+
+Backup Agent 7.6.0.1059
+-----------------------
+
+:ref:`Released with Ops Manager 4.1.4 on 2019-03-28 <opsmgr-server-4.1.4>`
+
+- Work to support the upcoming MongoDB 4.2 release.
+
 .. _backup-7.5.0.1051:
 
 Backup Agent 7.5.0.1051
