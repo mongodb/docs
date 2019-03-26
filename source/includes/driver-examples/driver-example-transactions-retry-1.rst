@@ -156,3 +156,11 @@
             :dedent: 8
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
+
+     - id: go
+       content: |
+
+         .. literalinclude:: /driver-examples/go_examples.go
+            :language: go
+            :start-after: Start Transactions Retry Example 1
+            :end-before: End Transactions Retry Example 1
