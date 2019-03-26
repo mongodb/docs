@@ -31,6 +31,12 @@
      - string
      - Name of the cluster to which this event applies.
 
+   * - collection
+     - string
+     - Name of the collection on which the event occurred. This field
+       can be present when the ``eventTypeName`` is either
+       ``DATA_EXPLORER`` or ``DATA_EXPLORER_CRUD``.
+
    * - created
      - string
      - |iso8601-time| when this event was triggered.
@@ -54,10 +60,15 @@
 
        .. include:: /includes/possibleValues-api-units.rst
 
+   * - database
+     - string
+     - Name of the database on which the event occurred. This field
+       can be present when the ``eventTypeName`` is either
+       ``DATA_EXPLORER`` or ``DATA_EXPLORER_CRUD``.
+
    * - eventTypeName
      - string
      - Name of the circumstance that triggered this event.
-       Accepted values are:
 
        .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
 
@@ -92,6 +103,12 @@
      - Name of the measurement whose value went outside the threshold.
 
        For possible values, see below.
+
+   * - opType
+     - string
+     - Type of operation that generated the event. This field is
+       present when the ``eventTypeName`` is either ``DATA_EXPLORER``
+       or ``DATA_EXPLORER_CRUD``.
 
    * - port
      - integer
