@@ -139,11 +139,18 @@
             }
             
             void updateEmployeeInfo() {
+
                 MongoCollection<Document> employeesCollection = client.getDatabase("hr").getCollection("employees");
-                MongoCollection<Document> eventsCollection = client.getDatabase("hr").getCollection("events");
+                MongoCollection<Document> eventsCollection = client.getDatabase("reporting").getCollection("events");
+
+                TransactionOptions txnOptions = TransactionOptions.builder()
+                        .readPreference(ReadPreference.primary())
+                        .readConcern(ReadConcern.MAJORITY)
+                        .writeConcern(WriteConcern.MAJORITY)
+                        .build();
 
                 try (ClientSession clientSession = client.startSession()) {
-                    clientSession.startTransaction();
+                    clientSession.startTransaction(txnOptions);
 
                     employeesCollection.updateOne(clientSession,
                             Filters.eq("employee", 3),
