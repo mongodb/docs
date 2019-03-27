@@ -59,6 +59,24 @@
          ``_id`` field with an ObjectId value to the new document. See
          :ref:`write-op-insert-behavior`.
 
+     - id: go
+       content: |
+         The following example shows the api call required to insert a
+         new document into the ``inventory`` collection. If the document
+         does not specify an ``_id`` field, the Go driver adds the
+         ``_id`` field with an ObjectId value to the new document. See
+         :ref:`write-op-insert-behavior`.
+
+         Before inserting the data, you'll need to assign the
+         ``inventory`` collection in the ``test`` database to a 
+         variable
+
+         .. literalinclude:: /driver-examples/assign.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Collection
+            :end-before: End Collection
+
      - id: java-sync
        content: |
          The following example inserts a new document into the

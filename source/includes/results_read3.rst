@@ -27,6 +27,13 @@
              u'size': {u'h': 14, u'uom': u'cm', u'w': 21},
              u'status': u'A'}
 
+     - id: go
+       content: |
+
+         .. code-block:: sh
+
+            &[{_id ObjectID("5c3cf740723ebcfd6eefa7ef")} {item journal} {qty 25} {size [{h 14} {w 21} {uom cm}]} {status A}]
+
      - id: motor
        content: |
          

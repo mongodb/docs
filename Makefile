@@ -63,15 +63,22 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/change_streams.js -o ${DRIVERS_PATH}/ChangeStreamNodeExamples.js
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/ChangeStreamExamples.cs -o ${DRIVERS_PATH}/ChangeStreamExamples.cs
 	#curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/examples.go	
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver-reactivestreams/master/examples/documentation/src/DocumentationSamples.java -o ${DRIVERS_PATH}/AsyncDocumentationSamples.java
+	curl -Sfl https://raw.githubusercontent.com/skerschb/testauth/react_stitch_google/src/index.js -o ${DRIVERS_PATH}/react_stitch_google.js
+	curl -Sfl https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/examples.go	
 	curl -SfL https://raw.githubusercontent.com/skerschb/testauth/master/src/index.js -o ${DRIVERS_PATH}/react_stitch_google.js
 	cp examples/java/ConnectExample.java  ${DRIVERS_PATH}/JavaConnectExample.java
 	cp examples/csharp/Connect.cs  ${DRIVERS_PATH}/csharpconnect.cs
+	cp examples/go/assign/assign.go ${DRIVERS_PATH}/assign.go	
+	cp examples/go/connect/connect.go ${DRIVERS_PATH}/connect.go	
 	cp examples/python/connect/connect.py  ${DRIVERS_PATH}/connect.py
+	cp examples/go/connect/connect.go ${DRIVERS_PATH}/connect.go
 	cp examples/motor/connect/connect.py  ${DRIVERS_PATH}/motorconnect.py
 	cp examples/python/connect/connecttest.py  ${DRIVERS_PATH}/connecttest.py
 	cp examples/node/connect/connect.js  ${DRIVERS_PATH}/connect.js
-
+	cp examples/java/ConnectExample.java ${DRIVERS_PATH}/JavaConnectExample.java
+	cp examples/java/ConnectExampleLegacy.java ${DRIVERS_PATH}/JavaConnectExampleLegacy.java
 
 install-resources: ## Retrieves the generated installation resources from the mongodb/docs repo
 	curl -SfL https://raw.githubusercontent.com/mongodb/docs/master/source/includes/release-base.yaml -o source/includes/release-base.yaml

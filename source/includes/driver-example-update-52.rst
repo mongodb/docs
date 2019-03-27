@@ -57,6 +57,33 @@ to ``paper``. The operation uses:
             .. figure:: /images/compass-example-update-52-finalize.png
                :alt: Screenshot of the MongoDB Compass interface where the "Update" button is selected to finalize the changes made to a document.
                :width: 100%
+   - id: go
+     content: |
+        
+      - ``$set`` to update the ``status`` field and the ``uom``
+         field embedded in the ``size`` document. To access the fields within
+         embedded documents, the operation uses :ref:`dot notation
+         <document-dot-notation>`.
+
+      - :``$currentDate`` to set the ``lastModified`` field to the
+         current date.
+
+      Before updating the data, you'll need to assign the ``inventory`` collection in the ``test`` database to a variable:
+
+      .. literalinclude:: /driver-examples/assign.go
+         :language: go
+         :dedent: 1
+         :start-after: Start Collection
+         :end-before: End Collection
+      
+      Followed by the call to update:
+
+      .. literalinclude:: /driver-examples/examples.go
+         :language: go
+         :dedent: 1
+         :start-after: Start Example 52
+         :end-before: End Example 52
+
 
 
    - id: python

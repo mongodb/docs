@@ -30,6 +30,13 @@
              u'size': {u'h': 10, u'uom': u'cm', u'w': 15.25},
              u'status': u'A'}
 
+     - id: go
+       content: |
+         .. code-block:: sh
+
+            &[{_id ObjectID("5c3d03fdd183362f86fdd0d6")} {item journal} {qty 25} {size [{h 14} {w 21} {uom cm}]} {status A}]
+            &[{_id ObjectID("5c3d03fdd183362f86fdd0da")} {item postcard} {qty 45} {size [{h 10} {w 15.25} {uom cm}]} {status A}]
+
      - id: motor
        content: |
          

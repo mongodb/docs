@@ -16,6 +16,15 @@
 
             { status: "D" }
 
+     - id: go
+       content: |
+         .. literalinclude:: /driver-examples/examples.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Example 9
+            :end-before: End Example 9
+
+
      - id: python
        content: |
          .. literalinclude:: /driver-examples/test_examples.py

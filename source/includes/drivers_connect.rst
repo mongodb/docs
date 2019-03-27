@@ -6,7 +6,6 @@
 
          .. include:: /includes/mongo-shell-platform-connect.rst
 
-
      - id: compass
        content: |
 
@@ -73,25 +72,101 @@
             :dedent: 0
             :start-after: Start Caller Connect
             :end-before: End Caller Connect
-     - id: motor
+     
+
+     - id: go
        content: |
 
-         The ``asyncio`` and ``pprint`` imports will be used as you add functionality to your example code.
+         Replace your password and any parameters surrounded by ``$[]``
+         in the connection string in the code below.
+
+         For now, you will use the `context.TODO() <https://golang.org/pkg/context/#TODO>`_. 
+
+         Later you'll configure the context specific to your requirements.
          
-         .. literalinclude:: /driver-examples/motorconnect.py
-            :language: python
+         .. literalinclude:: /driver-examples/connect.go
+            :language: go
+            :dedent: 1 
+            :start-after: Open Connection
+            :end-before: End Open Connection Code   
+
+         You won't know if the connection has been successful until you
+         use the connection. A `ping <https://godoc.org/github.com/mongodb/mongo-go-driver/mongo#Client.Ping>`_ is one way you can test the
+         connection. This is a full example of a Go connection to
+         mongoDB, including a test ``ping``.
+
+         .. literalinclude:: /driver-examples/connect.go
+            :language: go
             :dedent: 0
-            :start-after: Start Connect
-            :end-before: End Connect
+            :start-after: Start code
+            :end-before: End code   
+
+         In your Go workspace and project folder, run build.
+
+         .. code-block:: sh
+
+            go build
+
+         Now run the binary. For binaries that are not installed, you'll
+         have to specify the path.
+
+         .. code-block:: sh
+
+            go <path-to-yourproject> 
+
+         If you'd like to run the resulting binary without specifying
+         a path, install the binary you just built into your Go workspace.
+
+         .. code-block:: sh
+    
+            go install
+
+         Now run the code. "yourprojectname" is the name of the project
+         directory that contains the file with your ``main()`` function.
+
+         For installed binaries use:
+         
+         .. code-block:: sh 
+
+            go yourprojectname   
+
+         For binaries that are not installed, you'll have to specify
+         the path. 
+
+         .. code-block:: sh
+
+            go ./yourprojectname 
+
+
+         The default timeout for the Go driver to connect to the database
+         is 30 seconds. In the event that you are unable to connect, 
+         you will see an error that resembles this:
+
+         .. code-block:: none
+
+            2019/01/09 10:01:50 server selection timeout
+
 
      - id: java-sync
        content: |
+
+         For the MongoDB java driver 3.7 and beyond, use the ``MongoClients.create()`` method.
 
          .. literalinclude:: /driver-examples/JavaConnectExample.java
             :language: java
             :dedent: 4
             :start-after: Start Connection
             :end-before: End Connection
+
+
+         For legacy drivers (prior to 3.7), use:
+
+         .. literalinclude:: /driver-examples/JavaConnectExampleLegacy.java
+            :language: java
+            :dedent: 4
+            :start-after: Start Connection
+            :end-before: End Connection
+
 
      - id: nodejs
        content: |
@@ -105,7 +180,9 @@
      - id: csharp
        content: |
          
-         The ``MongoDB.Bson`` package is used in CRUD operations, so you'll import it here.
+         The ``MongoDB.Bson`` package is used in CRUD operations, so
+         you'll import it here.
+
          
          .. literalinclude:: /driver-examples/csharpconnect.cs
             :language: javascript
@@ -113,63 +190,4 @@
             :start-after: Start Connect
             :end-before: End Connect
 
-    # - id: php
-    #   content: |
-    #
-    #     The connection code has been separated into a class.
-    #
-    #     .. literalinclude:: /driver-examples/connect.php
-    #        :language: php
-    #        :dedent: 0
-    #        :start-after: Start Connect
-    #        :end-before: End Connect
-    #
-    #     And the caller script:
-    #
-    #     .. literalinclude:: /driver-examples/phpconnecttest.phpt
-    #        :language: php
-    #        :dedent: 0
-    #        :start-after: Start Connect Call
-    #        :end-before: End Connect Call
-    #
-    # - id: perl
-    #   content: |
-    #
-    #     .. code-block:: sh
-    #
-    #        use MongoDB;
-    #
-    #        my $client = MongoDB->connect('<URISTRING>');
-    #
-    # - id: ruby
-    #   content: |
-    #
-    #     The MongoDB ruby driver will initiate a connection with the server when you run this command:
-    #
-    #     .. code-block:: sh
-    #
-    #        require 'mongo'
-    #
-    #        client = Mongo::Client.new('<URISTRING>')
-    #
-    #
-    # - id: scala
-    #   content: |
-    #
-    #     The MongoClient instance below is a connection *pool* -- which
-    #     means per application you typically only need one instance. The
-    #     instance is then shared across operations whenever possible.
-    #
-    #     .. code-block:: sh
-    #
-    #        import org.mongodb.scala._
-    #
-    #          object Main extends App {
-    #
-    #            val ages = Seq(42, 75, 29, 64)
-    #            println(s"The oldest person is ${ages.max}")
-    #
-    #            // Use a Connection String
-    #            val mongoClient: MongoClient = MongoClient("<URISTRING>")
-    #
-    #          }
+

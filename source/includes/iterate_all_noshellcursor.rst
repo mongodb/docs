@@ -21,7 +21,23 @@
             from pprint import pprint
                 
             for inventory in cursor:
-                 pprint(inventory)   
+                 pprint(inventory)
+
+     - id: go
+       content: |
+         
+         .. code-block:: go
+          
+            for cursor.Next(context.TODO()) {
+                elem := &bson.D{}
+                if err := cursor.Decode(elem); err != nil {
+                        log.Fatal(err)
+                }
+                // ideally, you would do something with elem....
+                // but for now just print it to the console
+                fmt.Println(elem)
+            }
+
 
      - id: motor
        content: |

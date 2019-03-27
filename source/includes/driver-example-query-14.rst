@@ -38,6 +38,15 @@
             :start-after: Start Example 14
             :end-before: End Example 14
 
+     - id: go
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/examples.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Example 14
+            :end-before: End Example 14
+
      - id: motor
        content: |
          .. class:: copyable-code

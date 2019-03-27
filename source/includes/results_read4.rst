@@ -32,6 +32,14 @@
              u'size': {u'h': 8.5, u'uom': u'in', u'w': 11},
              u'status': u'D'}
 
+     - id: go
+       content: |
+         
+         .. code-block:: sh
+
+            &[{_id ObjectID("5c3cfb2b62883946fc77553b")} {item notebook} {qty 50} {size [{h 8.5} {w 11} {uom in}]} {status A}]
+            &[{_id ObjectID("5c3cfb2b62883946fc77553c")} {item paper} {qty 100} {size [{h 8.5} {w 11} {uom in}]} {status D}]
+
      - id: motor
        content: |
          

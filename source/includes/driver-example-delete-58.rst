@@ -57,6 +57,27 @@
               document = await db.inventory.delete_one({"status": "D"})
               pprint.pprint(document.raw_result)
 
+   - id: go
+     content: |
+
+       
+      Before deleting the data, you'll need to assign the ``inventory`` collection in the ``test`` database to a variable:
+
+      .. literalinclude:: /driver-examples/assign.go
+         :language: go
+         :dedent: 1
+         :start-after: Start Collection
+         :end-before: End Collection
+
+      Followed by:
+
+      .. literalinclude:: /driver-examples/examples.go
+          :language: go
+          :dedent: 1
+          :start-after: Start Example 58
+          :end-before: End Example 58
+           
+
    - id: java-sync
      content: |
        .. literalinclude:: /driver-examples/DocumentationSamples.java

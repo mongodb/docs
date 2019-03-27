@@ -79,6 +79,14 @@
           :start-after: Start Example 57
           :end-before: End Example 57
 
+   - id: go
+     content: |
+       .. literalinclude:: /driver-examples/examples.go
+          :language: go
+          :dedent: 1
+          :start-after: Start Example 57
+          :end-before: End Example 57       
+
 
    - id: nodejs
      content: |

@@ -49,22 +49,30 @@
             u'qty': 75,
             u'size': {u'h': 22.85, u'uom': u'cm', u'w': 30},
             u'status': u'D'}
+     - id: go
+       content: |
+
+         .. code-block:: sh
+           
+            &[{_id ObjectID("5c3cf48cb05a4e6e614ce60c")} {item paper} {qty 100} {size [{h 8.5} {w 11} {uom in}]} {status D}]
+           
+            &[{_id ObjectID("5c3cf48cb05a4e6e614ce60d")} {item planner} {qty 75} {size [{h 22.85} {w 30} {uom cm}]} {status D}]
 
      - id: motor
        content: |
          
          .. code-block:: sh
 
-           {'_id': ObjectId('5adb5140aea650d18e402f19'),
-            'item': 'paper',
-            'qty': 100,
-            'size': {'h': 8.5, 'uom': 'in', 'w': 11},
-            'status': 'D'}
-           {'_id': ObjectId('5adb5140aea650d18e402f1a'),
-            'item': 'planner',
-            'qty': 75,
-            'size': {'h': 22.85, 'uom': 'cm', 'w': 30},
-            'status': 'D'}
+            {'_id': ObjectId('5adb5140aea650d18e402f19'),
+             'item': 'paper',
+             'qty': 100,
+             'size': {'h': 8.5, 'uom': 'in', 'w': 11},
+             'status': 'D'}
+            {'_id': ObjectId('5adb5140aea650d18e402f1a'),
+             'item': 'planner',
+             'qty': 75,
+             'size': {'h': 22.85, 'uom': 'cm', 'w': 30},
+             'status': 'D'}
 
      - id: java-sync
        content: |

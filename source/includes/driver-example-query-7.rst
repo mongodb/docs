@@ -14,6 +14,14 @@
 
          Then select the :guilabel:`inventory` collection to view all documents in the collection.
 
+     - id: go
+       content: |
+         .. literalinclude:: /driver-examples/examples.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Example 7
+            :end-before: End Example 7
+
      - id: python
        content: |
          .. literalinclude:: /driver-examples/test_examples.py

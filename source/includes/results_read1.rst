@@ -39,6 +39,13 @@
             u'size': {u'h': 28, u'uom': u'cm', u'w': 35.5},
             u'tags': [u'cotton']}
 
+     - id: go
+       content: |
+         
+         .. code-block:: go
+    
+            &[{_id ObjectID("5c3cedaaca9a5662c1238181")} {item canvas} {qty 100} {tags [cotton]} {size [{h 28} {w 35.5} {uom cm}]}]
+
      - id: motor
        content: |
          

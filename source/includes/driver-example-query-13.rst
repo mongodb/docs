@@ -28,6 +28,14 @@
             :start-after: Start Example 13
             :end-before: End Example 13
 
+     - id: go
+       content: |
+         .. literalinclude:: /driver-examples/examples.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Example 13
+            :end-before: End Example 13
+
      - id: motor
        content: |
          .. literalinclude:: /driver-examples/test_examples_motor.py

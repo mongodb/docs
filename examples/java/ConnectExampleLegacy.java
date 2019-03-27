@@ -19,7 +19,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Arrays.asList;
 
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClients;
+import com.mongodb.MongoClientURI;
 
 public class ConnectExample {
 
@@ -33,7 +33,8 @@ public class ConnectExample {
 
         // Start Connection
         final String uriString = "<URISTRING>";
-        MongoClient mongoClient = MongoClients.create(uriString);
+        MongoClientURI uri = new MongoClientURI(uriString);
+        MongoClient mongoClient = new MongoClient(uri);
         // End Connection
 
         // Start Collection
@@ -139,5 +140,4 @@ public class ConnectExample {
     }
 
 }
-
 

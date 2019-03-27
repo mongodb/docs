@@ -46,6 +46,15 @@
 
             db = client.test
 
+     - id: go
+       content: |
+
+         To access the ``test`` database:
+
+         .. code-block:: go
+
+            db := client.Database("test")
+
 
      - id: java-sync
        content: |

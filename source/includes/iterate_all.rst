@@ -47,6 +47,23 @@
             async for doc in cursor:
                 print(doc)
 
+     - id: go
+       content: |
+
+         Iterate the results and print them to the command line:
+         
+         .. code-block:: go
+          
+            for cursor.Next(context.TODO()) {
+                elem := &bson.D{}
+                if err := cursor.Decode(elem); err != nil {
+                        log.Fatal(err)
+                }
+                // ideally, you would do something with elem....
+                // but for now just print it to the console
+                fmt.Println(elem)
+            }
+            
      - id: java-sync
        content: |
 

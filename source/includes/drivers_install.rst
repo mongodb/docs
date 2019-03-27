@@ -23,6 +23,34 @@
 	
          To install Compass, see the `Compass installation instructions
          <https://docs.mongodb.com/compass/current/install/>`__
+     
+     - id: go
+       content: |
+         
+         The MongoDB Go driver can be installed using ``go get``:
+
+         .. code-block:: sh
+
+            go get github.com/mongodb/mongo-go-driver
+
+         The output of this may look like a warning stating something like:
+
+         .. code-block:: none 
+
+            package github.com/mongodb/mongo-go-driver: no Go files in (...).
+         
+         This is expected output.
+
+         Alternatively if you are using the ``dep`` package manager to 
+         install the driver,
+         you can install the main mongo package as well as the bson and 
+         mongo/options package using this command:
+
+         .. code-block:: sh
+
+            dep ensure --add github.com/mongodb/mongo-go-driver/mongo \
+            github.com/mongodb/mongo-go-driver/bson \
+            github.com/mongodb/mongo-go-driver/mongo/options
 
      - id: python
        content: |
