@@ -5,4 +5,4 @@
    access. For a complete list of security recommendations, see 
    :doc:`/administration/security-checklist`. At minimum, consider 
    :ref:`enabling authentication <checklist-auth>` and 
-   :doc:`hardening network infrastructure </core/security-network>`.
+   :doc:`hardening network infrastructure </core/security-hardening>`.
