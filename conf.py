@@ -55,6 +55,10 @@ version = conf.version.branch
 release = conf.version.release
 pygments_style = 'sphinx'
 
+source_constants = {
+    'version': version
+}
+
 rst_epilog = '\n'.join([
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
     '.. |copy| unicode:: U+000A9',
