@@ -27,15 +27,15 @@ publish: migrate-assets ## Builds this branch's publishable HTML and other artif
 
 stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
+	@echo "\n\nHosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy: build/public/${GIT_BRANCH} ## Do a fake deploy on the staging bucket
 	mut-publish build/public/${GIT_BRANCH} ${STAGING_BUCKET} --prefix=${PROJECT} --deploy ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${PROJECT}/index.html"
+	@echo "\n\nHosted at ${STAGING_URL}/${PROJECT}/index.html"
 
 deploy: ## Deploy to the production bucket
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirects build/public/.htaccess ${ARGS}
-	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}/index.html"
+	@echo "\n\nHosted at ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}/index.html"
 
 	$(MAKE) deploy-search-index
 
