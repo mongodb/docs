@@ -1,3 +1,14 @@
+.. _atlas-v20190326:
+
+26 March 2019 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- |service| instances can re-use public IP addresses when replaced in
+  the same region.
+- Can configure backup schedule and retention for Snapshots Backup.
+- |aws| EC2 Capacity for all instance sizes in all regions and
+  availability zones is visible via the |service| Admin UI.
+
 .. _atlas-v20190305:
 
 05 March 2019 Release
