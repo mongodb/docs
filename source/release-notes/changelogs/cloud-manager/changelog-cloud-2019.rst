@@ -1,3 +1,11 @@
+.. _cloudmanager-v20190326:
+
+26 March 2019 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Agent Upgrades:
+  :ref:`monitoring-7.2.0.488-1`
+
 .. _cloudmanager-v20190305:
 
 05 March 2019 Release

@@ -1,3 +1,12 @@
+.. _monitoring-7.2.0.488-1:
+
+Monitoring Agent 7.2.0.488-1
+----------------------------
+
+*Released* :ref:`2019-03-26 <cloudmanager-v20190326>`
+
+- Made minor stabilization improvements.
+
 .. _monitoring-7.1.0.487:
 
 Monitoring Agent 7.1.0.487
