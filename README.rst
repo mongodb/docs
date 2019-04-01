@@ -2,6 +2,7 @@
 MongoDB Kafka Connector Documentation
 =====================================
 
+<<<<<<< HEAD
 This repository contains documentation for the MongoDB Kafka Connector.
 
 
@@ -23,6 +24,40 @@ File issue reports or requests to the `Documentation Jira Project
 
 Licenses
 --------
+=======
+This repository contains documentation regarding components of the 
+MongoDB Kafka Connector. This documentation builds on the work of the
+`MongoDB Manual <http://docs.mongodb.org/manual/>`_.
+
+Building
+--------
+
+First install `mut <https://github.com/mongodb/mut>`_.
+
+Then you can download and build this documentation locally with
+the following command:
+
+    git clone https://github.com/10gen/docs-kafka-connector.git
+    cd docs-kafka-connector/
+    make html
+
+View ``build/master/html/index.html`` to view your current build of the
+documentation.
+
+Contributing
+------------
+
+See the following documents within this repository that provide a more
+thorough overview of the documentation style, and process. These links
+point back to the meta documentation site materials:
+
+- `Style Guide <http://docs.mongodb.org/meta/style-guide>`_
+- `Documentation Practices <http://docs.mongodb.org/meta/practices>`_
+- `Documentation Organization <http://docs.mongodb.org/meta/organization>`_
+
+File issue reports or requests at the `Private Documentation Jira Project
+<https://jira.mongodb.org/browse/DOCSP>`_.
+>>>>>>> DOCSP-4925: repo setup
 
 All documentation is available under the terms of a `Creative Commons
 License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
