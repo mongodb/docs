@@ -37,7 +37,7 @@ extensions = [
 
 source_constants = {
   'download-page': '`downloads page <https://www.mongodb.com/download-center/compass?jmp=docs>`__',
-  'current-version': '1.16.4'
+  'current-version': '1.17.0'
 }
 
 templates_path = ['.templates']
