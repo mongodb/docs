@@ -45,8 +45,9 @@ Disable Journaling
 
   - .. include:: /includes/wiredtiger-node-nojournal.rst
 
-To disable journaling, start :binary:`~bin.mongod` with the
-:option:`--nojournal <mongod --nojournal>` command line option.
+To disable journaling for a standalone deployment, start
+:binary:`~bin.mongod` with the :option:`--nojournal <mongod
+--nojournal>` command line option.
 
 Get Commit Acknowledgement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,12 +59,9 @@ the :writeconcern:`j` option. For details, see
 Monitor Journal Status
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Use the following command to monitor journal status:
-
-- :dbcommand:`serverStatus`
-
- The :dbcommand:`serverStatus` command returns database status
- information that is useful for assessing performance.
+The :dbcommand:`serverStatus` command/:method:`db.serverStatus()`
+method returns :serverstatus:`wiredTiger.log`, which contains
+statistics on the journal.
 
 Recover Data After Unexpected Shutdown
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,3 +72,54 @@ replay journal files, :binary:`~bin.mongod` notes these events in the log
 output.
 
 There is no reason to run ``--repair``.
+
+.. _manage-journaling-change-wt-journal-compressor:
+
+Change WT Journal Compressor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the WiredTiger storage engine, MongoDB, by default,s uses the
+``snappy`` compressor for the journal. To specify a different
+compressions algorithm or no compression for a :binary:`~bin.mongod`
+instance:
+
+.. tip::
+
+   If you encounter an unclean shutdown for a :binary:`~bin.mongod`
+   during this procedure, you must use the old compressor settings to
+   recover using the journal files. Once recovered, you can retry the
+   procedure.
+
+#. Update the
+   :setting:`storage.wiredTiger.engineConfig.journalCompressor` setting
+   to the new value.
+
+   If you use command-line options instead of a configuration file, you
+   will have to update the :option:`--wiredTigerJournalCompressor
+   <mongod --wiredTigerJournalCompressor>` command-line option during
+   the restart below.
+
+#. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB('admin').shutdownServer()
+
+    
+#. Once you have confirmed that the process is no longer running,
+   restart the :binary:`~bin.mongod` instance:
+
+   - If you are using a configuration file:
+
+     .. code-block:: sh
+
+        mongod -f <path/to/myconfig.conf>
+
+   - If you are using command-line options instead of a configuration
+     file, update the :option:`--wiredTigerJournalCompressor <mongod
+     --wiredTigerJournalCompressor>` option.
+
+     .. code-block:: sh
+
+        mongod --wiredTigerJournalCompressor <differentCompressor|none>  ...
+
