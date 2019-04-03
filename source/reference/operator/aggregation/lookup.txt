@@ -60,7 +60,8 @@ The :pipeline:`$lookup` takes a document with the following fields:
    * - ``from``
 
      - Specifies the collection in the *same* database to perform
-       the join with. The ``from`` collection cannot be sharded.
+       the join with. The ``from`` collection cannot be sharded. For
+       details, see :ref:`lookup-sharded-collections`.
 
    * - ``localField``
 
@@ -149,8 +150,9 @@ The :pipeline:`$lookup` takes a document with the following fields:
 
    * - ``from``
 
-     - Specifies the collection in the *same* database to perform
-       the join with. The ``from`` collection cannot be sharded.
+     - Specifies the collection in the *same* database to perform the
+       join with. The ``from`` collection cannot be sharded. For
+       details, see :ref:`lookup-sharded-collections`.
 
    * - ``let``
 
@@ -249,7 +251,45 @@ Restrictions
             as: <output array field>
          }
      }
-   
+
+.. _lookup-sharded-collections:
+
+Sharded Collection Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the :pipeline:`$lookup` stage, the ``from`` collection cannot be
+:doc:`sharded</sharding>`. However, the collection on which you run the
+:method:`~db.collection.aggregate()` method can be sharded. That is, in
+the following:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([ 
+      { $lookup: { from: "fromCollection", ... } } 
+   ])
+
+- The ``collection`` can be sharded.
+
+- The ``fromCollection`` cannot be sharded.
+
+As such, to join a sharded collection with an unsharded collection, you
+can run the aggregation on the sharded collection and lookup the
+unsharded collection; e.g.:
+
+.. code-block:: javascript
+
+   db.shardedCollection.aggregate([
+      { $lookup: { from: "unshardedCollection", ... } }
+   ])
+
+Alternatively, or to join multiple sharded collections, consider:
+
+- Modifying client applications to perform manual lookups instead of
+  using the :pipeline:`$lookup` aggregation stage.
+
+- If possible, using an :ref:`embedded data model
+  <data-modeling-embedding>` that removes the need to join collections.
+
 Examples
 --------
 
