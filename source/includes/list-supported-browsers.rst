@@ -8,7 +8,7 @@
    * - `Google Chrome <https://www.google.com/chrome/>`_
      - latest stable
 
-   * - `Mozilla Foundation Firefox <https://www.mozilla.org/en-US/firefox/new/>`_
+   * - `Mozilla Firefox <https://www.mozilla.org/en-US/firefox/new/>`_
      - latest stable
 
    * - `Microsoft Edge <https://www.microsoft.com/en-us/windows/microsoft-edge>`_
