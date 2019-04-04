@@ -4,20 +4,20 @@
 
 *Released on 2019-04-03*
 
-- **Fix** Creating new projects now succeeds in Firefox.
-- **Fix** When managing authentication for a deployment, the MongoDB
-  ``-- keyfile`` parameter is not required if all processes set the
+- **Fix:** Creating new projects now succeeds in Firefox.
+- **Fix:** When managing authentication for a deployment, the MongoDB
+  ``keyfile`` parameter is not required if all processes set the
   ``clusterAuthMode`` parameter to ``x509``.
-- **Fix** A backup initial sync of MongoDB 3.4 can misapply oplogs in
+- **Fix:** A backup initial sync of MongoDB 3.4 can misapply oplogs in
   rare circumstances in which ``mongod`` returns a partial ``applyOps``
   result array.
-- **Fix** Hidden secondaries display the correct icon in the user interface.
+- **Fix:** Hidden secondaries display the correct icon in the user interface.
 - Improved the durability of backup data in the event that a head
   database experiences an unclean shutdown.
 - Improved performance on the Clusters page for projects with many clusters.
 - Easier to disable TLS/SSL when managing TLS/SSL configuration for a deployment.
-- Update BI Connector to 2.10
-- **Agent Upgrades:** ``automation-5.4.18.5528-1``
+- Update BI Connector to 2.10.
+- **Agent Upgrades:** ``Automation Agent 5.4.18.5528-1``
 
 .. _opsmgr-server-4.0.9:
 
