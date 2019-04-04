@@ -16,7 +16,8 @@
   database experiences an unclean shutdown.
 - Improved performance on the Clusters page for projects with many clusters.
 - Easier to disable TLS/SSL when managing TLS/SSL configuration for a deployment.
-- Update BI Connector to 2.10 
+- Update BI Connector to 2.10
+- **Agent Upgrades:** ``automation-5.4.18.5528-1``
 
 .. _opsmgr-server-4.0.9:
 
