@@ -13,7 +13,7 @@ Live Migrate Your Sharded Cluster to Atlas
    :class: singlecol
 
 |service| can perform a live migration of a source sharded cluster to an
-|service| sharded cluster, keeping the cluster in sync with the remote 
+|service| sharded cluster, keeping the cluster in sync with the remote
 source until you cut your applications over to the |service| cluster.
 Once you reach the cutover step in the following procedure, you should
 stop writes to the source cluster by stopping your application instances,
@@ -25,17 +25,17 @@ pointing them to the |service| cluster, and restarting them.
      You cannot target a :doc:`Global Cluster </global-clusters>` as the
      destination for Live Migration.
 
-For a procedure on live migrating a replica set, see 
+For a procedure on live migrating a replica set, see
 :doc:`/import/live-import`.
 
-To begin, click on the ellipsis :guilabel:`...` button and choose 
+To begin, click on the ellipsis :guilabel:`...` button and choose
 :guilabel:`Migrate Data to this Cluster` from the dropdown menu.
 
 .. note::
 
    On the Cluster list, the ellipsis :guilabel:`...` button appears beneath the
    cluster name, as shown below. When you view a cluster's details, the ellipsis
-   :guilabel:`...` appears on the right-hand side of the screen, next to the 
+   :guilabel:`...` appears on the right-hand side of the screen, next to the
    :guilabel:`Connect` and :guilabel:`Configuration` buttons.
 
 .. include:: /images/live-import-sharded.rst
@@ -57,7 +57,7 @@ Migration Path
      - Destination Sharded Cluster MongoDB Version
 
    * - 3.2
-     - 3.2
+     - 3.4
 
    * - 3.4
      - 3.4
@@ -73,10 +73,10 @@ Network Access
 Source Cluster Firewall Must Allow Access from Live Migration Server
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-|service| Live Migration process streams data through a 
+|service| Live Migration process streams data through a
 MongoDB-controlled application server. |service| provides the IP ranges
 of the MongoDB Live Migration servers during the Live Migration
-process. Grant these IP ranges access to your source cluster to allow 
+process. Grant these IP ranges access to your source cluster to allow
 connectivity to the MongoDB Live Migration server.
 
 |Service| Cluster IP Whitelist Must Allow Access From Your Application Servers
@@ -103,39 +103,38 @@ Pre-Migration Validation
 |service| performs a number of validation checks on the source
 and destination cluster before starting the Live Migration procedure.
 
-- The source cluster must be a sharded cluster. 
+- The source cluster must be a sharded cluster.
 
-  If the source is replica set cluster, use 
+  If the source is replica set cluster, use
   :doc:`Live Migration </import/live-import>` to
-  migrate the cluster to a |service| replica set first, then 
+  migrate the cluster to a |service| replica set first, then
   :doc:`scale your cluster </scale-cluster>` to a sharded cluster.
 
   If the source is a standalone,
   :manual:`convert the standalone to a replica set first </tutorial/convert-standalone-to-replica-set>`
-  before using :doc:`Live Migration </import/live-import>`. Then 
+  before using :doc:`Live Migration </import/live-import>`. Then
   :doc:`scale your cluster </scale-cluster>` to a sharded cluster.
 
 - The source cluster must use CSRS (Config Server Replica Sets).
   See :ref:`replset-config-servers`
 
 - |service| must have connectivity to the hostname and port of:
-  
+
   - the :term:`primary` of each :term:`shard` replica set, *and*
   - the :term:`primary` of the config server replica set.
 
-- |service| must be able to stop and start the 
+- |service| must be able to stop and start the
   :ref:`sharding-balancing` on the source cluster.
 
-- The source cluster has the same feature compatibility version 
+- The source cluster has the same feature compatibility version
   *and* major MongoDB version as the destination cluster. The major
-  MongoDB verison is the first two digits of the full version, 
+  MongoDB verison is the first two digits of the full version,
   e.g. **3.2**.x, **3.4**.x, or **3.6**.x.
 
-  To check the feature compatibility version of a host in the 
-  source cluster, run the following command from 
+  To check the feature compatibility version of a host in the
+  source cluster, run the following command from
   the :binary:`Mongo shell <bin.mongo>`:
 
-  .. cssclass:: copyable
   .. code-block:: shell
 
      db.runCommand( { getParameter : 1, "featureCompatibilityVersion" : 1 } )
@@ -144,7 +143,7 @@ and destination cluster before starting the Live Migration procedure.
   database command to set the ``featureCompatibilityVersion`` flag
   as needed.
 
-- The destination |service| cluster must be a sharded cluster with the 
+- The destination |service| cluster must be a sharded cluster with the
   same number of :term:`shards <shard>` as the source sharded cluster.
 
   .. _live-import-sharded-security:
@@ -152,10 +151,10 @@ and destination cluster before starting the Live Migration procedure.
 Source Cluster Security
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-If the source cluster enforces authentication, create a 
+If the source cluster enforces authentication, create a
 :ref:`SCRAM <authentication-scram>` user with the
 same name and password that exists on every shard *and* the config
-server replica set. 
+server replica set.
 
 The user must have permission to:
 
@@ -172,12 +171,12 @@ Various built-in roles provide sufficient privileges.  For example:
   .. code-block:: javascript
 
       use admin
-      db.createUser( 
-        { 
-          user: "mySourceUser", 
-          pwd: "mySourceP@$$word", 
-          roles: [ "clusterMonitor", "backup" ] 
-        } 
+      db.createUser(
+        {
+          user: "mySourceUser",
+          pwd: "mySourceP@$$word",
+          roles: [ "clusterMonitor", "backup" ]
+        }
       )
 
 - For 3.2 source cluster, a user with :authrole:`clusterMonitor`,
@@ -187,12 +186,12 @@ Various built-in roles provide sufficient privileges.  For example:
   .. code-block:: javascript
 
       use admin
-      db.createUser( 
-        { 
-          user: "mySourceUser", 
-          pwd: "mySourceP@$$word", 
-          roles: [ "clusterManager", "clusterMonitor", "backup" ] 
-        } 
+      db.createUser(
+        {
+          user: "mySourceUser",
+          pwd: "mySourceP@$$word",
+          roles: [ "clusterManager", "clusterMonitor", "backup" ]
+        }
       )
 
 To create the shard local user, create a user with these roles on the
@@ -214,10 +213,10 @@ Considerations
 Source Cluster Balancer
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| Live Migration stops the 
-:manual:`sharded cluster balancer 
-</core/sharding-balancer-administration/>` on the source cluster at the 
-start of the procedure, and starts the balancer at the end of the 
+|service| Live Migration stops the
+:manual:`sharded cluster balancer
+</core/sharding-balancer-administration/>` on the source cluster at the
+start of the procedure, and starts the balancer at the end of the
 procedure.
 
 If you cancel live migration, |service| restarts the balancer on the
@@ -226,19 +225,19 @@ source cluster.
 Destination Cluster Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When configuring the destination |service| cluster, consider the 
+When configuring the destination |service| cluster, consider the
 following:
 
 .. include:: /includes/fact-live-migration-destination-cluster.rst
 
-- You cannot target a :doc:`Global Cluster </global-clusters>` as the 
+- You cannot target a :doc:`Global Cluster </global-clusters>` as the
   destination for Live Migration.
 
   .. important::
 
      You cannot modify the destination |service| cluster once you
      start the live migration procedure. If you need to scale up
-     the destination cluster, first 
+     the destination cluster, first
      :ref:`cancel <live-import-sharded-cancel>` the live
      migration procedure, then scale up the cluster and restart
      the live migration procedure.
@@ -246,14 +245,14 @@ following:
 MongoDB Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| does not migrate any user or role data to the destination 
+|service| does not migrate any user or role data to the destination
 cluster.
 
 If the source cluster enforced authentication, you must re-create the
 credentials used by your applications on the destination |service|
-cluster. |service| uses 
-:ref:`SCRAM <authentication-scram>` for user 
-authentication. See :doc:`/security-add-mongodb-users` for a tutorial 
+cluster. |service| uses
+:ref:`SCRAM <authentication-scram>` for user
+authentication. See :doc:`/security-add-mongodb-users` for a tutorial
 on creating MongoDB users in |service|.
 
 .. _live-import-sharded-cancel:
@@ -262,13 +261,13 @@ Canceling Live Migration
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can cancel the process at any time by clicking :guilabel:`Cancel`.
-|service| displays the 
-:guilabel:`Sharded Cluster Live Import in Progress` 
-message for the destination cluster until the cluster is ready for 
+|service| displays the
+:guilabel:`Sharded Cluster Live Import in Progress`
+message for the destination cluster until the cluster is ready for
 normal access.
 
-If you cancel the live migration procedure before completion, 
-|service| does not remove any data migrated up to that point. 
+If you cancel the live migration procedure before completion,
+|service| does not remove any data migrated up to that point.
 If you restart the live migration procedure using the same
 |service| cluster as the destination, |service| wipes all data
 from the cluster.
@@ -285,8 +284,8 @@ Procedure
    a callout for the appropriate time to cancel the procedure and create
    a staging environment.
 
-   Use the staging environment to test 
-   application behavior and performance using the latest 
+   Use the staging environment to test
+   application behavior and performance using the latest
    :driver:`driver version </driver-compatibility-reference>` that
    supports the MongoDB version of the destination |service| cluster.
    Then, repeat the live migration proceedure in full to transition
@@ -298,7 +297,7 @@ Procedure
    Avoid making changes to the source cluster configuration while the
    Live Migration procedure runs, such as removing replica set members
    or modifying :binary:`mongod <bin.mongod>` runtime settings
-   like ``featureCompatibilityVersion``. 
+   like ``featureCompatibilityVersion``.
 
 .. include:: /includes/steps/atlas-live-import-sharded.rst
 

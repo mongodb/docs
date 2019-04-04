@@ -251,7 +251,7 @@
      - string
      - Optional
      - Version of the cluster to deploy. |service| supports the
-       following MongoDB versions for ``M10+`` clusters: [1]_
+       following MongoDB versions for ``M10+`` clusters:
 
        - ``3.4``
        - ``3.6``
