@@ -80,6 +80,7 @@ rst_epilog = '\n'.join([
     '.. |certauth| replace:: Certificate Authority',
     '.. |cidr| replace:: :abbr:`CIDR (Classless Inter-Domain Routing)`',
     '.. |cifs| replace:: :abbr:`CIFS (Common Internet File System)`',
+    '.. |com| replace:: Cloud Manager or Ops Manager',
     '.. |dns| replace:: :abbr:`DNS (Domain Name System)`',
     '.. |dns-srv| replace:: :abbr:`DNS (Domain Name System)` :abbr:`SRV (Service)`',
     '.. |ent-build| replace:: MongoDB Enterprise',
@@ -181,6 +182,8 @@ extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'manual': ('http://docs.mongodb.com/manual%s', ''),
     'opsmgr': ('http://docs.opsmanager.mongodb.com/current%s', ''),
+    'cloudmgr': ('http://docs.cloudmanager.mongodb.com/%s', ''),
+    'atlas': ('http://docs.atlas.mongodb.com/%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
     'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs','')
