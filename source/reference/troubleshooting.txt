@@ -23,7 +23,7 @@ To find the status of a MongoDB Resource (replica set, sharded cluster, or stand
 
    kubectl get mdb <resourcename> -n <namespace> -o yaml -w
 
-The command's response describes the status of the resource using the 
+The command's response describes the status of the resource using the
 following key-value pairs:
 
 .. list-table::
@@ -145,7 +145,7 @@ invoke this command:
 
       kubectl logs myrs-0 -n <metadata.namespace>
 
-   This returns the :ref:`Automation Agent Log <agent-logs>` for this 
+   This returns the :ref:`Automation Agent Log <agent-logs>` for this
    replica set.
 
 View All |k8s-mdbrsc| Specifications
@@ -195,6 +195,73 @@ To view all |k8s-mdbrsc| specifications in the provided
         project: my-om-config
         version: 4.0.0-ent
 
+.. _k8s-rollback-failure:
+
+Restore StatefulSet that Failed to Deploy
+-----------------------------------------
+
+A StatefulSet |k8s-pod| may hang with a status of ``Pending`` if it
+encounters an error during deployment.
+
+``Pending`` |k8s-pods| do not automatically terminate, even if you
+make *and apply* configuration changes to resolve the error.
+
+To return the StatefulSet to a healthy state, apply the configuration
+changes to the MongoDB resource in the ``Pending`` state, then delete
+those pods.
+
+.. example::
+
+   A host system has a number of running |k8s-pods|:
+
+   .. code-block:: sh
+      :copyable: false
+      :emphasize-lines: 5
+
+      kubectl get pods
+
+      my-replica-set-0     1/1 Running 2 2h
+      my-replica-set-1     1/1 Running 2 2h
+      my-replica-set-2     0/1 Pending 0 2h
+
+   ``my-replica-set-2`` is stuck in the ``Pending`` stage. To gather
+   more data on the error, run the following:
+
+   .. code-block:: sh
+      :copyable: false
+      :emphasize-lines: 1,5
+
+      kubectl describe pod my-replica-set-2
+
+      <describe output omitted>
+
+      Warning FailedScheduling 15s (x3691 over 3h) default-scheduler 0/3 nodes are available: 1 node(s) had taints that the pod didn't tolerate, 2 Insufficient memory.
+
+   The output indicates an error in memory allocation.
+
+   Updating the memory allocations in the MongoDB resource is
+   insufficient, as the pod does not terminate automatically after
+   applying configuration updates.
+
+   To remedy this issue, update the configuration, apply the
+   configuration, then delete the hung pod:
+
+   .. code-block:: sh
+
+      vi <my-replica-set>.yaml
+
+      kubectl apply -f <my-replica-set>.yaml
+
+      kubectl delete pod my-replica-set-2
+
+   Once this hung pod is deleted, the other pods restart with your new
+   configuration as part of rolling upgrade of the Statefulset.
+
+.. note::
+
+   To learn more about this issue, see
+   `Kubernetes Issue 67250 <https://github.com/kubernetes/kubernetes/issues/67250>`__.
+
 .. _remove-k8s-resource:
 
 Remove a |k8s-mdbrsc|
@@ -222,22 +289,22 @@ To remove any instance that |k8s| deployed, you must use |k8s|.
 
       kubectl delete mdb --all -n <metadata.namespace>
 
-.. _remove-k8s-operator:  
+.. _remove-k8s-operator:
 
 Remove the |k8s-op-short|
 -------------------------
 
-To remove the |k8s-op-short|:  
+To remove the |k8s-op-short|:
 
-1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`: 
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
 
-   .. code-block:: shell 
+   .. code-block:: shell
 
-      kubectl delete mdb --all -n <metadata.namespace> 
+      kubectl delete mdb --all -n <metadata.namespace>
 
-2. Remove the |k8s-op-short|:  
+2. Remove the |k8s-op-short|:
 
-   .. code-block:: shell 
+   .. code-block:: shell
 
       kubectl delete deployment mongodb-enterprise-operator -n <metadata.namespace>
 
