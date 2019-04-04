@@ -2,7 +2,7 @@
 
 |onprem| Server 4.0.10
 
-*Released on 2019-04-03*
+*Released on 2019-04-04*
 
 - **Fix:** Creating new projects now succeeds in Firefox.
 - **Fix:** When managing authentication for a deployment, the MongoDB
@@ -14,10 +14,9 @@
 - **Fix:** Hidden secondaries display the correct icon in the user interface.
 - Improved the durability of backup data in the event that a head
   database experiences an unclean shutdown.
-- Improved performance on the Clusters page for projects with many clusters.
+- Improved performance for the Deployment page for deployments with many items.
 - Easier to disable TLS/SSL when managing TLS/SSL configuration for a deployment.
 - Update BI Connector to 2.10.
-- **Agent Upgrades:** ``Automation Agent 5.4.18.5528-1``
 
 .. _opsmgr-server-4.0.9:
 
