@@ -1,6 +1,7 @@
 .. _opsmgr-server-4.0.10:
 
 |onprem| Server 4.0.10
+~~~~~~~~~~~~~~~~~~~~~~
 
 *Released on 2019-04-04*
 
