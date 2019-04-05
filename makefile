@@ -19,83 +19,178 @@ PREFIX=
 # the current "stable" branch. This is weird and dumb, yes.
 STABLE_BRANCH=`grep 'manual' build/docs-tools/data/mms-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
-##  I doubt that we'll ever have files named stage-cloud, fake-deploy-cloud, ... but eh
+## I doubt that we'll ever have files named stage-cloud,
+## fake-deploy-cloud, ... but eh
 .PHONY: help html publish publish-cloud publish-onprem stage-cloud fake-deploy-cloud deploy-cloud stage-onprem fake-deploy-onprem deploy-onprem deploy-opsmgr-current deploy-opsmgr-upcoming deploy-cloud-search-index deploy-opsmgr-search-index
 
-help: ## Show this help message
+## Show this help message
+help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
-html: ##build both cloud/ops manager html files
-	giza make html
 
-publish: publish-cloud publish-onprem ## Build all publishable artifacts
+##########################################################
+####                                                  ####
+####          BUILD DOCUMENTATION ARTIFACTS           ####
+####                                                  ####
+##########################################################
 
-publish-cloud: ## Build cloud publishable artifacts
+
+##########################################################
+####              BUILD STAGING ARTIFACTS             ####
+##########################################################
+
+## Build both Cloud/Ops Manager HTML files
+html:
+	time giza make html
+
+## Build Ops Manager HTML files
+html-opsmgr:
+	time giza make html-onprem
+
+## Build Cloud Manager HTML files
+html-cloud:
+	time giza make html-cloud
+
+
+##########################################################
+####   BUILD STAGING ARTIFACTS TO CLEAN DIRECTORY     ####
+##########################################################
+
+## Build both Cloud/Ops Manager HTML files to a fresh build directory
+clean-html:
+	rm -rf build/${GIT_BRANCH}
+	time giza make html
+
+## Build Ops Manager HTML files to a fresh build directory
+clean-html-opsmgr:
+	rm -rf build/${GIT_BRANCH}
+	time giza make html-onprem
+
+## Build Cloud Manager HTML files to a fresh build directory
+clean-html-cloud:
+	rm -rf build/${GIT_BRANCH}
+	time giza make html-cloud
+
+
+##########################################################
+####             BUILD PRODUCTION ARTIFACTS           ####
+##########################################################
+
+## Build both Cloud/Ops Manager publishable production artifacts
+publish: publish-cloud publish-onprem
+
+## Build Cloud Manager publishable production artifacts
+publish-cloud:
 	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public/cloud; fi
 	giza make publish-cloud
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects-cloud -o build/public/cloud/.htaccess; fi
 
-publish-onprem: ## Build ops magnager publishable artifacts
+## Build Ops Manager publishable production artifacts
+publish-onprem:
 	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public/onprem; fi
 	giza make publish-onprem
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects-onprem -o build/public/onprem/.htaccess; fi
 
-stage-cloud: ## Host online for review
-	mut-publish build/${GIT_BRANCH}/html-cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL_CLOUDMGR}/${USER}/${GIT_BRANCH}/index.html"
 
-fake-deploy-cloud: build/public/cloud ## Create a fake deployment in the staging bucket
+##########################################################
+####                                                  ####
+####        DEPLOY CLOUD MANAGER DOCUMENTATION        ####
+####                                                  ####
+##########################################################
+
+
+##########################################################
+####  DEPLOY CLOUD MANAGER DOCUMENTATION TO STAGING   ####
+##########################################################
+
+## Deploy artifacts from the working branch of Cloud Manager
+## to the staging S3 bucket / EC2 for review
+stage-cloud:
+	mut-publish build/${GIT_BRANCH}/html-cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX} --stage ${ARGS}
+	@echo "\n\nHosted at ${STAGING_URL_CLOUDMGR}/${USER}/${GIT_BRANCH}/index.html"
+
+## Create a fake deployment in the staging bucket
+fake-deploy-cloud: build/public/cloud
 	@echo "Copying over landing page"
 	cp -p build/landing/landing.html build/public/cloud/
 	cp -p build/landing/style.min.css build/public/cloud/_static/
 	cp -p build/landing/*webfont* build/public/cloud/_static/fonts
 
 	mut-publish build/public/cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX}  --all-subdirectories --deploy ${ARGS}
-	@echo "Hosted at ${STAGING_URL_CLOUDMGR}/index.html"
+	@echo "\n\nHosted at ${STAGING_URL_CLOUDMGR}/index.html"
 
-deploy-cloud: build/public/cloud  ## Deploy to the production bucket
+
+##########################################################
+#### DEPLOY CLOUD MANAGER DOCUMENTATION TO PRODUCTION ####
+##########################################################
+
+## Deploy Cloud Manager to the production S3 bucket
+deploy-cloud: build/public/cloud
 ifneq ($(GIT_BRANCH), master)
 	$(error "Aborting attempt to deploy cloud on master")
 endif
 
 	mut-publish build/public/cloud ${PRODUCTION_BUCKET_CLOUDMGR} --prefix=${PREFIX} --deploy --all-subdirectories ${ARGS}
 
-	@echo "Hosted at ${PRODUCTION_URL_CLOUDMGR}/index.html"
+	@echo "\n\nHosted at ${PRODUCTION_URL_CLOUDMGR}/index.html"
 
 	$(MAKE) deploy-cloud-search-index
 
-deploy-cloud-search-index: ## Update the Cloud Manager search index
+## Update the Cloud Manager search index
+deploy-cloud-search-index:
 ifneq ($(GIT_BRANCH), master)
 	$(error "Aborting attempt to deploy cloud on master")
 endif
 
 	mut-index upload build/public/cloud -o mms-cloud-${GIT_BRANCH}.json -u ${PRODUCTION_URL_CLOUDMGR} -g -s --exclude build/public/cloud/landing.html
 
-stage-opsmgr: ## Host online for review
-	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${PREFIX} --stage --all-subdirectories ${ARGS}
-	@echo "Hosted at ${STAGING_URL_OPSMGR}/${USER}/${GIT_BRANCH}/index.html"
 
-fake-deploy-opsmgr: build/public/onprem ## Create a fake deployment in the staging bucket
+##########################################################
+####                                                  ####
+####         DEPLOY OPS MANAGER DOCUMENTATION         ####
+####                                                  ####
+##########################################################
+
+
+##########################################################
+####   DEPLOY OPS MANAGER DOCUMENTATION TO STAGING    ####
+##########################################################
+
+## Deploy artifacts from the working branch of Ops Manager
+## to the staging S3 bucket / EC2 for review
+stage-opsmgr:
+	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${PREFIX} --stage --all-subdirectories ${ARGS}
+	@echo "\n\nHosted at ${STAGING_URL_OPSMGR}/${USER}/${GIT_BRANCH}/index.html"
+
+## Create a fake deployment in the staging bucket
+fake-deploy-opsmgr: build/public/onprem
 	@echo "Copying over fullsize images "
 	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
 
 	mut-publish build/public/onprem/${GIT_BRANCH} ${STAGING_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --deploy --all-subdirectories ${ARGS}
-	@echo "Hosted at ${STAGING_URL_OPSMGR}/${GIT_BRANCH}/index.html"
+	@echo "\n\nHosted at ${STAGING_URL_OPSMGR}/${GIT_BRANCH}/index.html"
 
-deploy-opsmgr: build/public/onprem ## Deploy to the production bucket
+
+##########################################################
+#### DEPLOY CLOUD MANAGER DOCUMENTATION TO PRODUCTION ####
+##########################################################
+
+## Deploy Ops Manager to the production S3 bucket
+deploy-opsmgr: build/public/onprem
 	@echo "Copying over fullsize images "
 	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
 
 	mut-publish build/public/onprem/ ${PRODUCTION_BUCKET_OPSMGR} --prefix= --deploy  --redirects build/public/onprem/.htaccess ${ARGS}
 
-	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH}/index.html"
+	@echo "\n\nHosted at ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH}/index.html"
 
 	$(MAKE) deploy-opsmgr-search-index
 
-deploy-opsmgr-search-index: ## Update the Ops Manager search index
+## Update the Ops Manager search index
+deploy-opsmgr-search-index:
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
 		mut-index upload build/public/onprem/${GIT_BRANCH} -o mms-onprem-current.json --aliases mms-onprem-${GIT_BRANCH} -u ${PRODUCTION_URL_OPSMGR}/current -g -s; \
 	else \
