@@ -1,3 +1,23 @@
+.. _automation-6.5.1.5691-1:
+
+Automation Agent 6.5.1.5691-1
+-----------------------------
+
+*Released* 2019-04-09
+
+- **Fix:** Use the estimated count instead of the full document count
+  when counting documents in the oplog. This fixes a severe performance
+  regression.
+
+.. _automation-6.5.0.5689-1:
+
+Automation Agent 6.5.0.5689-1
+-----------------------------
+
+*Released* 2019-04-08
+
+- Converted to use the new MongoDB Go driver.
+
 .. _automation-6.4.0.5657:
 
 Automation Agent 6.4.0.5657
