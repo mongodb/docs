@@ -2,6 +2,7 @@
    :header-rows: 1
    :stub-columns: 1
    :class: compatibility
+   :widths: 60 40 30 30
 
    * - Platform
      - 4.0 Enterprise
