@@ -28,6 +28,7 @@
 
       * - Ubuntu 14.04
         - MongoDB will end support in future releases.
+
    |
 
 .. list-table::
