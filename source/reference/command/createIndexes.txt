@@ -75,6 +75,35 @@ Index Names
 
    .. include:: /includes/extracts/4.2-changes-index-names.rst
 
+Starting in version 4.2, the :dbcommand:`createIndexes` command and
+the :binary:`~bin.mongo` shell helpers
+:method:`db.collection.createIndex()` and
+:method:`db.collection.createIndexes()` report an error if you
+create an index with one name, and then try to create the same index
+again but with another name.
+
+.. code-block:: javascript
+
+  {
+     "ok" : 0,
+     "errmsg" : "Index with name: x_1 already exists with a different name",
+     "code" : 85,
+     "codeName" : "IndexOptionsConflict"
+  }
+
+In previous versions, MongoDB did not create the index again, but
+would return a response object with ``ok`` value of ``1`` and a note
+that implied that the index was not recreated. For example:
+
+.. code-block:: javascript
+
+  {
+     "numIndexesBefore" : 2,
+     "numIndexesAfter" : 2,
+     "note" : "all indexes already exist",
+     "ok" : 1
+  }
+
 Replica Sets and Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -123,10 +152,12 @@ Index Options
 
 With the exception of the :ref:`collation option
 <createIndexes-collation-option>`, if you create an index with one set
-of options and then issue :dbcommand:`createIndexes` with the same
-index fields but different options, MongoDB will not change the options
-nor rebuild the index. To change these index options, drop the existing
-index with :method:`db.collection.dropIndex()` before running the new
+of index options and then try to recreate the same index but with
+different index options, MongoDB will not change the options nor
+recreate the index.
+
+To change these index options, drop the existing index with
+:method:`db.collection.dropIndex()` before running 
 :dbcommand:`createIndexes` with the new options.
 
 .. _createIndexes-collation-option:
