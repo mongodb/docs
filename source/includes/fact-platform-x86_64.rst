@@ -4,12 +4,18 @@
       :widths: 20 80
       :class: border-table
 
-      * - SLES 11
-        - Support removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
-      * - Ubuntu 12.04 
-        - Support removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
+      * - Ubuntu 14.04
+        - Support removed in MongoDB 4.2, 4.0.10+, 3.6.13+, 3.4.21+,and 3.2.23+.
+
       * - Debian 7
-        - Support removed in MongoDB 3.2.21+, 3.4.16+, 3.6.6+, and 4.0+.
+        - Support removed in MongoDB 4.0+, 3.6.6+, 3.4.16+, and 3.2.21+.
+
+      * - SLES 11
+        - Support removed in MongoDB 3.6.4+, 3.4.15+, and 3.2.20+.
+
+      * - Ubuntu 12.04 
+        - Support removed in MongoDB 3.6.4+, 3.4.15+, and 3.2.20+.
+
 
    *Upcoming EOL Notice*:
 
@@ -25,11 +31,6 @@
 
       * - Windows 8.1/2012R2
         - MongoDB will end support in future releases.
-
-      * - Ubuntu 14.04
-        - MongoDB will end support in future releases.
-
-   |
 
 .. list-table::
    :header-rows: 1
@@ -85,16 +86,12 @@
      - Community only
      - Community only
 
-   * - Ubuntu 14.04
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
    * - Ubuntu 16.04
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
+
    * - Ubuntu 18.04
      - |checkmark|
      -
