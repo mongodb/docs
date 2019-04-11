@@ -21,17 +21,62 @@ help:
 	@echo 'Variables'
 	@echo '  ARGS         - Arguments to pass to mut-publish'
 
+
+##########################################################
+####                                                  ####
+####          BUILD DOCUMENTATION ARTIFACTS           ####
+####                                                  ####
+##########################################################
+
+
+##########################################################
+####            BUILD STAGING ARTIFACTS               ####
+##########################################################
+
 html: remote-includes
 	giza make html
 
-stage:
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
+
+##########################################################
+####   BUILD STAGING ARTIFACTS TO CLEAN DIRECTORY     ####
+##########################################################
+
+## Build both Cloud/Ops Manager HTML files to a fresh build directory
+clean-html: remote-includes
+	rm -rf build/${GIT_BRANCH}
+	time giza make html
+
+
+
+##########################################################
+####             BUILD PRODUCTION ARTIFACTS           ####
+##########################################################
 
 publish: remote-includes
 	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
+
+
+##########################################################
+####                                                  ####
+####            DEPLOY ATLAS DOCUMENTATION            ####
+####                                                  ####
+##########################################################
+
+
+##########################################################
+####       DEPLOY ATLAS DOCUMENTATION TO STAGING      ####
+##########################################################
+
+stage:
+	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
+	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
+
+
+##########################################################
+####     DEPLOY ATLAS DOCUMENTATION TO PRODUCTION     ####
+##########################################################
 
 fake-deploy: build/public
 	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy --verbose  --all-subdirectories  ${ARGS}
@@ -48,9 +93,19 @@ deploy-search-index:
 	@echo "Building search index"
 	mut-index upload build/public -o atlas-${GIT_BRANCH}.json -u ${PRODUCTION_URL} -g -s
 
+
+##########################################################
+####                    PULL ASSETS                   ####
+##########################################################
+
 remote-includes:
 	mkdir -p source/includes/remote
 	curl -SfL https://raw.githubusercontent.com/mongodb/docs-assets/atlas/fact-configure-api-access.rst -o source/includes/remote/fact-configure-api-access.rst
+
+
+##########################################################
+####                GENERATE SCREENSHOTS              ####
+##########################################################
 
 screenshots:
 	giza generate assets
