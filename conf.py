@@ -38,7 +38,8 @@ extensions = [
     'fixed_only',
     'tabs',
     'icon',
-    'source_constants'
+    'source_constants',
+    'xmlrole'
 ]
 
 templates_path = ['.templates']
@@ -138,6 +139,7 @@ rst_epilog = '\n'.join([
     '.. |kdc| replace:: :abbr:`KDC (Key Distribution Center)`',
     '.. |kmip| replace:: :abbr:`KMIP (Key Management Interoperability)`',
     '.. |kms| replace:: :abbr:`KMS (Key Management Service)`',
+    '.. |kubectl| replace:: :xml:`<mono><link target="https://kubernetes.io/docs/reference/kubectl/kubectl/">kubectl</link></mono>`',
     '.. |ldaps| replace:: :abbr:`LDAPS (Secure Lightweight Directory Access Protocol)`',
     '.. |ldap| replace:: :abbr:`LDAP (Lightweight Directory Access Protocol)`',
     '.. |mms-full| replace:: :opsmgr:`MongoDB Ops Manager </>`',
