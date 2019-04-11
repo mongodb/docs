@@ -74,9 +74,19 @@ source_constants = {
     'version': version,
     'release': release,
     'opsmgr-url': '<OpsManagerHost>:<Port>',
-    'autoagent-version': '6.1.0.5603-1',
-    'bagent-version': '6.8.4.1009',
-    'magent-version': '6.6.2.464',
+    'cloudmgr-url': 'cloud.mongodb.com',
+    'autoagent-version': '6.5.1.5691-1',
+    'bagent-version': '7.6.0.1059',
+    'magent-version': '7.2.0.488-1',
+    'autoagent-version-cloud': '6.5.1.5691-1',
+    'bagent-version-cloud': '7.6.0.1059',
+    'magent-version-cloud': '7.2.0.488-1',
+    'autoagent-version-opsmgr': '5.4.16.5515-1',
+    'bagent-version-opsmgr': '6.8.6.1013',
+    'magent-version-opsmgr': '6.6.2.464',
+    'aagent': 'Automation Agent',
+    'bagent': 'Backup Agent',
+    'magent': 'Monitoring Agent'
 }
 
 languages = [
