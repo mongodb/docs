@@ -179,30 +179,7 @@
                 |service| project |aws| Key Management System settings.
                 The cluster must meet the following requirements:
 
-                .. list-table::
-                   :header-rows: 1
-                   :widths: 75 25
-
-                   * - Parameter
-                     - Requirement
-                   * - | ``providerSettings``
-                       | ``.providerName``
-                     - ``AWS``
-                   * - | ``providerSettings``
-                       | ``.instanceSizeName``
-                     - ``M10`` or greater
-                   * - ``clusterType``
-                     - ``REPLICASET``
-                   * - ``backupEnabled``
-                     - ``false`` or omitted
-
-                For complete documentation on Encryption at Rest
-                restrictions, see :ref:`security-aws-kms-restrictions`.
-
-                You must configure encryption at rest for the |service|
-                project before enabling it on any cluster in the
-                project. For complete documentation on configuring
-                Encryption at Rest, see :ref:`security-aws-kms`.
+                .. include:: /includes/fact-encryption-at-rest-restrictions.rst
 
             - id: azure
               name: AZURE
@@ -214,31 +191,18 @@
                 settings. The cluster must meet the following
                 requirements:
 
-                .. list-table::
-                   :header-rows: 1
-                   :widths: 75 25
+                .. include:: /includes/fact-encryption-at-rest-restrictions.rst
 
-                   * - Parameter
-                     - Requirement
-                   * - | ``providerSettings``
-                       | ``.providerName``
-                     - ``AZURE``
-                   * - | ``providerSettings``
-                       | ``.instanceSizeName``
-                     - ``M10`` or greater
-                   * - ``clusterType``
-                     - ``REPLICASET``
-                   * - ``backupEnabled``
-                     - ``false`` or omitted
+            - id: gcp
+              name: GCP
+              content: |
 
-                For complete documentation on Encryption at Rest
-                restrictions, see
-                :ref:`security-azure-kms-restrictions`.
+                Specify ``GCP`` to enable
+                :doc:`Encryption at Rest </security-kms-encryption/>` using the
+                |service| project |gcp| Key Management System settings.
+                The cluster must meet the following requirements:
 
-                You must configure encryption at rest for the |service|
-                project before enabling it on any cluster in the
-                project. For complete documentation on configuring
-                Encryption at Rest, see :ref:`security-azure-kms`.
+                .. include:: /includes/fact-encryption-at-rest-restrictions.rst
 
             - id: none
               name: NONE
