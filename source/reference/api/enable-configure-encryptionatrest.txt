@@ -14,14 +14,6 @@ Enable and Configure Encryption at Rest for a Project
 
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
-.. admonition:: AWS and Azure Clusters Only
-   :class: note
-
-   This feature is only available for |service| ``M10`` or greater
-   replica set clusters deployed on AWS or Azure. Support for 
-   sharded clusters and clusters deployed on Google Cloud Project (GCP) 
-   are in development.
-
 Overview
 --------
 
@@ -30,6 +22,7 @@ project with one of the following providers:
 
 * :ref:`Amazon Web Services Key Management Service <security-aws-kms>`
 * :ref:`Azure Key Vault <security-azure-kms>`
+* :ref:`Google Cloud KMS <security-gcp-kms>`
 
 After configuring at least one Encryption at Rest provider for the 
 |service| project, :authrole:`Project Owners <Project Owner>` can enable
@@ -89,14 +82,20 @@ The required request body parameters depend on whether Encryption at
 Rest is currently enabled: 
 
 - If Encryption at Rest is not enabled, all of the parameters for the
-  desired encryption provider are required. For example, if you want
-  to use AWS KMS, all the fields in the ``awsKms`` document are required.
-  If you want to use Azure Key Vault, all the fields in the ``azureKeyVault``
-  document are required.
+  desired encryption provider are required.
+
+  - If you want to use AWS KMS, all the fields in the ``awsKms``
+    document are required.
+
+  - If you want to use Azure Key Vault, all the fields in the ``azureKeyVault``
+    document are required.
+
+  - If you want to use Google Cloud KMS, all the fields in the ``googleCloudKms``
+    document are required.
 
 - If Encryption at Rest is enabled, administrators can update the
-  configuration by passing only the changed fields for either the ``awsKms``
-  or ``azureKeyVault`` document to this endpoint.
+  configuration by passing only the changed fields for the ``awsKms``,
+  ``azureKeyVault``, or ``googleCloudKms`` document to this endpoint.
 
 .. include:: /includes/encryption-at-rest-request-document.rst
 
@@ -105,8 +104,14 @@ Response
 
 .. include:: /includes/encryption-at-rest-response-document.rst
 
-Example Request
----------------
+Examples
+--------
+
+AWS KMS Examples
+~~~~~~~~~~~~~~~~
+
+Example Request: Enable Encryption at Rest with AWS KMS
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 The following example enables and configures Encryption at Rest for an
 |service| project using AWS KMS:
@@ -129,10 +134,11 @@ The following example enables and configures Encryption at Rest for an
       }
     }'
 
-Example Response
-----------------
+Example Response: Enable Encryption at Rest with AWS KMS
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. code-block:: json
+   :copyable: false
 
    {
      "awsKms" : {
@@ -152,8 +158,11 @@ Example Response
      }
    }
 
-Example Request
----------------
+Azure Key Vault Examples
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Example Request: Enable Encryption at Rest with Azure Key Vault
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 The following example enables and configures Encryption at Rest for an
 |service| project using Azure Key Vault:
@@ -178,10 +187,11 @@ The following example enables and configures Encryption at Rest for an
       }
     }'
 
-Example Response
-----------------
+Example Response: Enable Encryption at Rest with Azure Key Vault
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. code-block:: json
+   :copyable: false
 
    {
      "awsKms" : {
@@ -202,8 +212,64 @@ Example Response
      }
    }
 
-Example Request
----------------
+Google Cloud KMS Examples
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Example Request: Enable Encryption at Rest with GCP KMS
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The following example enables and configures Encryption at Rest for an
+|service| project using Google Cloud Platform KMS.
+
+.. note::
+
+   The ``serviceAccountKey`` JSON object must be formatted as a string
+   for API call purposes.
+
+.. code-block:: sh
+
+   curl -X PATCH --digest -i -u "{username}:{apiKey}" --header "Content-Type: application/json" \
+    "https://cloud.mongodb.com/api/atlas/v1.0/groups/6cbbae2187d675e009g35f/encryptionAtRest?pretty=true" \
+    --data '
+    {
+      "googleCloudKms" : {
+        "enabled" : true,
+        "serviceAccountKey":
+           "{\"type\": \"service_account\",\"project_id\": \"my-project-common-0\",\"private_key_id\": \"e120598ea4f88249469fcdd75a9a785c1bb3\",\"private_key\": \"-----BEGIN PRIVATE KEY-----\\nMIIEuwIBA(truncated)SfecnS0mT94D9\\n-----END PRIVATE KEY-----\\n\",\"client_email\": \"my-email-kms-0@my-project-common-0.iam.gserviceaccount.com\",\"client_id\": \"10180967717292066\",\"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\"token_uri\": \"https://accounts.google.com/o/oauth2/token\",\"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/my-email-kms-0%40my-project-common-0.iam.gserviceaccount.com\"}",   
+        "keyVersionResourceID": "projects/my-project-common-0/locations/us-east4/keyRings/my-key-ring-0/cryptoKeys/my-key-0/cryptoKeyVersions/1"
+       }
+     }'
+
+Example Response: Enable Encryption at Rest with GCP KMS
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "awsKms" : {
+       "accessKeyID" : null,
+       "customerMasterKeyID" : null,
+       "enabled" : false,
+       "region" : null
+     },
+     "azureKeyVault" : {
+       "clientID" : null,
+       "enabled" : false,
+       "keyIdentifier" : null,
+       "keyVaultName" : null,
+       "resourceGroupName" : null,
+       "subscriptionID" : null,
+       "tenantID" : null
+     },
+     "googleCloudKms" : { 
+       "enabled": true,
+       "keyVersionResourceID" : "projects/my-project-common-0/locations/us-east4/keyRings/my-key-ring-0/cryptoKeys/my-key-0/cryptoKeyVersions/1"
+     }
+   }
+
+Example Request: Disable Encryption at Rest
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example disables Encryption at Rest for an |service|
 project:
@@ -220,10 +286,11 @@ project:
       }
     }'
 
-Example Response
-----------------
+Example Response: Disable Encryption at Rest
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: json
+   :copyable: false
 
    {
      "awsKms" : {
@@ -231,5 +298,18 @@ Example Response
        "customerMasterKeyID" : null,
        "enabled" : false,
        "region" : null
+     },
+     "azureKeyVault" : {
+       "clientID" : null,
+       "enabled" : false,
+       "keyIdentifier" : null,
+       "keyVaultName" : null,
+       "resourceGroupName" : null,
+       "subscriptionID" : null,
+       "tenantID" : null
+     },
+     "googleCloudKms" : {
+       "enabled": false,
+       "keyVersionResourceID" : null
      }
    }

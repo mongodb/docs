@@ -72,4 +72,13 @@
      - string
      - Unique identifier for an :abbr:`Azure AD (Azure Active Directory)`
        tenant within an Azure subscription.
-       
+
+   * - ``googleCloudKms.enabled``
+     - boolean
+     - Specifies whether Encryption at Rest is enabled for an |service|
+       project using Google Cloud KMS.
+
+   * - ``googleCloudKms.keyVersionResourceID``
+     - string
+     - Key Version Resource ID for your Google Cloud KMS.
+   
