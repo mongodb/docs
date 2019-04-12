@@ -30,6 +30,7 @@ schema:
 
    {
      _id: <system defined id>,
+     userId : <system assigned UUID>,  // Starting in MongoDB 4.0.9
      user: "<name>",
      db: "<database>",
      credentials: { <authentication credentials> },
@@ -37,36 +38,48 @@ schema:
               { role: "<role name>", db: "<database>" },
               ...
             ],
-     customData: <custom information>
+     customData: <custom information>,
+     authenticationRestrictions : [ <documents> ] // Starting in MongoDB 4.0
     }
 
 Each ``system.users`` document has the following fields:
 
+.. data:: admin.system.users.userId
+
+   A unique identifier for the user assigned to the user upon creation.
+   
+   :data:`~admin.system.users.userId` is available for users (not
+   managed via LDAP ) created in MongoDB 4.0.9 and later. 
+   
+   For :ref:`LDAP managed users <security-ldap>`, users may not have an
+   associated :data:`~admin.system.users.userId`.
+
+   .. versionadded:: 4.0.9
+
 .. data:: admin.system.users.user
 
-   The :data:`~admin.system.users.user` field is a string that
-   identifies the user. A user exists in the context of a single logical
-   database but can have access to other databases through roles
-   specified in the :data:`~admin.system.users.roles` array.
+   The user name. A user exists in the context of a single logical
+   database (see :data:`admin.system.users.db`) but can have access on
+   other databases through roles specified in the
+   :data:`~admin.system.users.roles` array.
 
 .. data:: admin.system.users.db
 
-   The :data:`~admin.system.users.db` field specifies the database
+   The :ref:`authentication database <authentication-database>`
    associated with the user. The user's privileges are not necessarily
    limited to this database. The user can have privileges in additional
    databases through the :data:`~admin.system.users.roles` array.
 
 .. data:: admin.system.users.credentials
 
-   The :data:`~admin.system.users.credentials` field contains the
-   user's authentication information. For users with externally stored
+   User's authentication information. For users with externally stored
    authentication credentials, such as users that use :doc:`Kerberos
    </tutorial/control-access-to-mongodb-with-kerberos-authentication>`
    or x.509 certificates for authentication, the ``system.users``
    document for that user does not contain the
    :data:`~admin.system.users.credentials` field. For
    :ref:`authentication-scram` user credentials, the information
-   includes the mechanism,  iteration count, and aauthentication parameters.
+   includes the mechanism,  iteration count, and authentication parameters.
 
    .. seealso:: 
 
@@ -76,10 +89,9 @@ Each ``system.users`` document has the following fields:
 
 .. data:: admin.system.users.roles
 
-   The :data:`~admin.system.users.roles` array contains role documents
-   that specify the roles granted to the user. The array contains both
-   :ref:`built-in roles <built-in-roles>` and :ref:`user-defined
-   role <user-defined-roles>`.
+   An array of roles granted to the user. The array contains both
+   :ref:`built-in roles <built-in-roles>` and :ref:`user-defined role
+   <user-defined-roles>`.
 
    A role document has the following syntax:
 
@@ -107,8 +119,16 @@ Each ``system.users`` document has the following fields:
 
 .. data:: admin.system.users.customData
 
-   The :data:`~admin.system.users.customData` field contains optional
-   custom information about the user.
+   Optional custom information about the user.
+
+.. data:: admin.system.users.authenticationRestrictions
+
+   An array of authentication restrictions the server enforces for the
+   user. The array containsa list of IP addresses and CIDR ranges from
+   which the user is allowed to connect to the server or from which the
+   server can accept users.
+
+   .. versionadded:: 4.0
 
 Example
 -------
@@ -120,6 +140,7 @@ Consider the following document in the ``system.users`` collection:
 
    {
       "_id" : "home.Kari",
+      "userId" : UUID("ec1eced7-055a-4ca8-8737-60dd02c52793"),  // Available starting in MongoDB 4.0.9
       "user" : "Kari",
       "db" : "home",
       "credentials" : {
@@ -136,6 +157,9 @@ Consider the following document in the ``system.users`` collection:
             "serverKey" : "JKfnkVv9iXwxyc8JaapKVwLPy6SfnmB8gMb1Pr15T+s="
          }
       },
+      "authenticationRestrictions" : [                           // Available starting in MongoDB 4.0
+         { "clientSource" : [ "69.89.31.226" ], "serverAddress" : [ "172.16.254.1" ] }
+      ], 
       "customData" : {
          "zipCode" : "64157"
       },
