@@ -124,15 +124,16 @@ html_show_sourcelink = False
 htmlhelp_basename = 'MongoDB doc'
 
 html_theme_options = {
-    'version': version,
     'branch': conf.git.branches.current,
     'google_analytics': 'UA-7301842-7',
-    'stable': conf.version.stable,
+    'has_mdb_agent' : True,
     'manual_branch': conf.git.branches.manual,
-    'project': conf.project.name,
-    'translations': languages,
     'nav_excluded': sconf.theme.nav_excluded,
+    'project': conf.project.name,
+    'stable': conf.version.stable,
+    'translations': languages,
     'upcoming': '',
+    'version': version,
 }
 
 onprem_latex_documents = []
