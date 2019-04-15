@@ -1,0 +1,101 @@
+.. _security-gcp-kms:
+
+=======================================
+Encryption at Rest via Google Cloud KMS
+=======================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: encryption
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| supports using a Service Account Key
+provided by Google Cloud Platform to configure the
+:manual:`encrypted storage engine </core/security-encryption-at-rest>`
+on ``M10`` or greater replica set clusters.
+
+This procedure covers configuring Encryption at Rest via 
+Google Cloud Platform for an |service| project. You must configure
+Encryption at Rest using your Key Management for the |service| project 
+before enabling it on clusters in that project. For instructions on
+enabling Encryption at Rest using your Key Management when deploying an 
+|service| cluster, see :ref:`create-cluster-enable-encryption`. 
+For instructions on enabling Encryption at Rest using your Key 
+Management for an existing |service| cluster, see 
+:ref:`scale-cluster-enable-encryption`.
+
+To learn more about Encryption at Rest using your Key Management in 
+|service|, see :ref:`security-kms-encryption`.
+
+.. _gcp-kms-prereqs:
+
+Prerequisites
+-------------
+
+You must have access to the following resources before starting this 
+procedure:
+
+- Your GCP Service Account Key. For more information on creating a
+  service account key, see the `GCP documentation
+  <https://cloud.google.com/docs/authentication/getting-started>`__.
+
+- The Key Version Resource ID associated with your service account
+  key. For more information on obtaining a key version resource ID,
+  see the `GCP documentation
+  <https://cloud.google.com/kms/docs/object-hierarchy#key_version>`__.
+
+The GCP service account with credentials specified in your Service
+Account Key must have sufficient permissions for the following actions:
+
+- Get the Service Account Key version
+- Encrypt data with the Service Account Key version
+- Decrypt data with the Service Account Key
+
+  .. note::
+
+     Decryption is done with the key itself, not the key version.
+
+For more details on GCP service account permissions, see the
+`GCP documentation
+<https://cloud.google.com/docs/authentication/getting-started>`__.
+
+.. _security-gcp-kms-restrictions:
+
+.. include:: /includes/fact-kms-restrictions.rst
+
+Configure Encryption at Rest for an |service| project
+-----------------------------------------------------
+
+.. include:: /includes/steps/configure-gcp-encryption-for-project.rst
+   
+|service| automatically creates an :alert:`encryption key rotation alert <GCP encryption key elapsed time since last rotation is above (n) days>`
+once you configure Encryption at Rest using your Key
+Management for a project. You can reset this alert at any time by
+:ref:`rotating your GCP Key Version Resource ID <gcp-kms-rotate-key>`.
+
+.. _gcp-kms-rotate-key:
+
+Rotate your GCP Key Version Resource ID
+---------------------------------------
+
+For clusters using |service| :ref:`security-gcp-kms`, |service|
+automatically rotates the MongoDB master keys every 90 days. However,
+|service| does **not** automatically rotate the Key Version Resource ID
+used for Encryption at Rest using your Key Management. This procedure 
+documents manually rotating your |service| project Key Identifier by 
+specifying a new Key Version Resource ID in |service|. This procedure
+assumes you have already created a new Service Account Key in the GCP
+account associated with your |service| project.
+
+.. include:: /includes/steps/rotate-gcp-encryption-key.rst
+
+|service| resets the :alert:`encryption key rotation alert <GCP encryption key elapsed time since last rotation is above (n) days>`
+timer at the completion of this procedure. 
