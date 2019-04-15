@@ -41,7 +41,7 @@ Disable Journaling
 
 .. warning::
 
-  Do not disable journaling on production systems. 
+  Do not disable journaling on production systems.
 
   - .. include:: /includes/wiredtiger-node-nojournal.rst
 
@@ -75,10 +75,10 @@ There is no reason to run ``--repair``.
 
 .. _manage-journaling-change-wt-journal-compressor:
 
-Change WT Journal Compressor
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Change WiredTiger Journal Compressor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With the WiredTiger storage engine, MongoDB, by default,s uses the
+With the WiredTiger storage engine, MongoDB, by default, uses the
 ``snappy`` compressor for the journal. To specify a different
 compressions algorithm or no compression for a :binary:`~bin.mongod`
 instance:
@@ -90,36 +90,322 @@ instance:
    recover using the journal files. Once recovered, you can retry the
    procedure.
 
-#. Update the
-   :setting:`storage.wiredTiger.engineConfig.journalCompressor` setting
-   to the new value.
+.. tabs::
 
-   If you use command-line options instead of a configuration file, you
-   will have to update the :option:`--wiredTigerJournalCompressor
-   <mongod --wiredTigerJournalCompressor>` command-line option during
-   the restart below.
+   tabs:
 
-#. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+      - id: standalone
+        name: Standalone
+        content: |
 
-   .. code-block:: javascript
+           Use the following procedure to change the journal compressor
+           for a standalone :binary:`~bin.mongod` instance:
 
-      db.getSiblingDB('admin').shutdownServer()
+           #. Update the
+              :setting:`storage.wiredTiger.engineConfig.journalCompressor` setting
+              to the new value.
 
-    
-#. Once you have confirmed that the process is no longer running,
-   restart the :binary:`~bin.mongod` instance:
+              If you use command-line options instead of a configuration file, you
+              will have to update the :option:`--wiredTigerJournalCompressor
+              <mongod --wiredTigerJournalCompressor>` command-line option during
+              the restart below.
 
-   - If you are using a configuration file:
+           #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
 
-     .. code-block:: sh
+              .. code-block:: javascript
 
-        mongod -f <path/to/myconfig.conf>
+                 db.getSiblingDB('admin').shutdownServer()
 
-   - If you are using command-line options instead of a configuration
-     file, update the :option:`--wiredTigerJournalCompressor <mongod
-     --wiredTigerJournalCompressor>` option.
 
-     .. code-block:: sh
+           #. Once you have confirmed that the process is no longer running,
+              restart the :binary:`~bin.mongod` instance:
 
-        mongod --wiredTigerJournalCompressor <differentCompressor|none>  ...
+              - If you are using a configuration file:
 
+                .. code-block:: sh
+
+                   mongod -f <path/to/myconfig.conf>
+
+              - If you are using command-line options instead of a configuration
+                file, update the :option:`--wiredTigerJournalCompressor <mongod
+                --wiredTigerJournalCompressor>` option.
+
+                .. code-block:: sh
+
+                   mongod --wiredTigerJournalCompressor <differentCompressor|none>  ...
+
+      - id: replset
+        name: "Replica Set Member"
+        content: |
+
+           Use the following procedure to change the journal compressor
+           for a member of a replica set:
+
+           .. note::
+
+              The following procedure involves restarting the replica member as a
+              standalone without the journal.
+
+           #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+              .. code-block:: javascript
+
+                 db.getSiblingDB('admin').shutdownServer()
+
+           #. Update the :doc:`configuration file
+              </reference/configuration-options>` to prepare to restart as a
+              standalone:
+
+              - Set :setting:`storage.journal.enabled` to ``false``.
+
+              - Comment out the :ref:`replication <replication-options>` settings
+                for your deployment.
+
+              For example:
+
+              .. code-block:: none
+
+                 storage:
+                    journal:
+                       enabled: false
+                 #replication:
+                 #   replSetName: replA
+
+              If you use command-line options instead of a configuration file, you
+              will have to update the command-line option during the restart.
+
+           #. Restart the :binary:`~bin.mongod` instance:
+
+              - If you are using a configuration file:
+
+                .. code-block:: sh
+
+                   mongod -f <path/to/myconfig.conf>
+
+              - If you are using command-line options instead of a
+                configuration file, include the :option:`--nojournal <mongod
+                --nojournal>` option and remove any :ref:`replication
+                command-line options <cli-mongod-replica-set>` (such as
+                :option:`--replSet <mongod --replSet>`):
+
+                .. code-block:: sh
+
+                   mongod --nojournal  ...
+
+           #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+              .. code-block:: javascript
+
+                 db.getSiblingDB('admin').shutdownServer()
+
+              Confirm that the process is no longer running.
+
+           #. Update the configuration file to prepare to restart as a replica set
+              member with the new journal compressor:
+
+              - Remove the :setting:`storage.journal.enabled` setting.
+
+              - Uncomment the :ref:`replication <replication-options>`
+                settings for your deployment.
+
+              - Remove
+                :setting:`storage.wiredTiger.engineConfig.journalCompressor` setting
+                to use the default journal compressor or specify a  new value.
+
+              For example:
+
+              .. code-block:: none
+
+                 storage:
+                    wiredTiger:
+                       engineConfig:
+                          journalCompressor: <newValue>
+                 replication:
+                    replSetName: replA
+
+              If you use command-line options instead of a configuration file, you
+              will have to update the command-line options during the restart
+              below.
+
+
+           #. Restart the :binary:`~bin.mongod` instance as a replica set member:
+
+              - If you are using a configuration file:
+
+                .. code-block:: sh
+
+                   mongod -f <path/to/myconfig.conf>
+
+              - If you are using command-line options instead of a configuration
+                file:
+
+                - Remove the :option:`--nojournal <mongod --nojournal>` option.
+
+                - Remove the :option:`--wiredTigerJournalCompressor <mongod
+                  --wiredTigerJournalCompressor>` command-line option to use
+                  the default journal compressor or update to a new value.
+
+                - Include your :ref:`replication command-line options
+                  <cli-mongod-replica-set>` as well as any additional
+                  options for your replica set member.
+
+                .. code-block:: sh
+
+                   mongod --wiredTigerJournalCompressor <differentCompressor|none> --replSet ...
+
+
+      - id: shardedcluster
+        name: "Sharded Cluster Member"
+        content: |
+
+           Use the following procedure to change the journal compressor
+           for a member of a shard replica set or config server replica set:
+
+           .. note::
+
+              The following procedure involves restarting the replica member as a
+              standalone without the journal.
+
+           #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+              .. code-block:: javascript
+
+                 db.getSiblingDB('admin').shutdownServer()
+
+           #. Update the :doc:`configuration file
+              </reference/configuration-options>` to prepare to restart as a
+              standalone:
+
+              - Set :setting:`storage.journal.enabled` to ``false``.
+
+              - Set parameter :parameter:`skipShardingConfigurationChecks` to true.
+
+              - Comment out the :ref:`replication <replication-options>`
+                settings for your deployment.
+
+              - Comment out the :setting:`sharding.clusterRole` setting.
+
+              - Set the :setting:`net.port` to the member's
+                current port, if it is not explicitly set.
+
+              For example:
+
+              .. code-block:: none
+
+                 storage:
+                    journal:
+                       enabled: false
+                 setParameter:
+                    skipShardingConfigurationChecks: true
+                 #replication:
+                 #   replSetName: shardA
+                 #sharding:
+                 #   clusterRole: shardsvr
+                 net:
+                   port: 27218
+
+              If you use command-line options instead of a configuration file, you
+              will have to update the command-line option during the restart.
+
+           #. Restart the :binary:`~bin.mongod` instance:
+
+              - If you are using a configuration file:
+
+                .. code-block:: sh
+
+                   mongod -f <path/to/myconfig.conf>
+
+              - If you are using command-line options instead of a
+                configuration file:
+
+                - Include the :option:`--nojournal <mongod --nojournal>`
+                  option.
+
+                - Set parameter :parameter:`skipShardingConfigurationChecks` to true.
+
+                - Remove any :ref:`replication command-line options
+                  <cli-mongod-replica-set>` (such as :option:`--replSet
+                  <mongod --replSet>`).
+
+                - Remove :option:`--shardsvr <mongod
+                  --shardsvr>`/:option:`--configsvr <mongod --configsvr>` option.
+
+                - Explicitly include :option:`--port <mongod --port>` set to
+                  the instance's current port.
+
+                .. code-block:: sh
+
+                   mongod --nojournal --setParameter skipShardingConfigurationChecks=true --port <samePort> ...
+
+           #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+              .. code-block:: javascript
+
+                 db.getSiblingDB('admin').shutdownServer()
+
+              Confirm that the process is no longer running.
+
+           #. Update the configuration file to prepare to restart with the new journal compressor:
+
+              - Remove the :setting:`storage.journal.enabled` setting.
+
+              - Remove the :parameter:`skipShardingConfigurationChecks` parameter setting.
+
+              - Uncomment the :ref:`replication <replication-options>`
+                settings for your deployment.
+
+              - Uncomment the :setting:`sharding.clusterRole` setting.
+
+              - Remove
+                :setting:`storage.wiredTiger.engineConfig.journalCompressor` setting
+                to use the default journal compressor or specify a  new value.
+
+              For example:
+
+              .. code-block:: none
+
+                 storage:
+                    wiredTiger:
+                       engineConfig:
+                          journalCompressor: <newValue>
+                 replication:
+                    replSetName: shardA
+                 sharding:
+                    clusterRole: shardsvr
+                 net:
+                   port: 27218
+
+              If you use command-line options instead of a configuration file, you
+              will have to update the command-line options during the restart
+              below.
+
+
+           #. Restart the :binary:`~bin.mongod` instance as a replica set member:
+
+              - If you are using a configuration file:
+
+                .. code-block:: sh
+
+                   mongod -f <path/to/myconfig.conf>
+
+              - If you are using command-line options instead of a configuration
+                file:
+
+                - Remove the :option:`--nojournal <mongod --nojournal>` option.
+
+                - Remove the :parameter:`skipShardingConfigurationChecks` parameter setting.
+
+                - Remove the :option:`--wiredTigerJournalCompressor <mongod
+                  --wiredTigerJournalCompressor>` command-line option to use
+                  the default journal compressor or update to a new value.
+
+                - Include :option:`--shardsvr <mongod
+                  --shardsvr>`/:option:`--configsvr <mongod --configsvr>` option.
+
+                - Include your :ref:`replication command-line options
+                  <cli-mongod-replica-set>` as well as any additional
+                  options for your replica set member.
+
+                .. code-block:: sh
+
+                   mongod --shardsvr --wiredTigerJournalCompressor <differentCompressor|none> --replSet ...
