@@ -1,5 +1,5 @@
-Procedure
-=========
+Configure VPC Peering for a Azure-backed Cluster
+````````````````````````````````````````````````
 
 To configure VPC Peering for a Azure-backed cluster:
 

@@ -1,6 +1,3 @@
-Prerequisites
-=============
-
 You must enable Connect via Peering Only mode for a project before you
 create a GCP peering connection in that project. Only peered VPCs can
 access clusters in a project with Connect via Peering Only mode enabled.

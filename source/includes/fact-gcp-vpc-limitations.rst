@@ -1,6 +1,3 @@
-Limitations
-===========
-
 GCP-backed clusters configured for VPC Peering cannot:
   
 * Be accessed from any network other than the peered VPCs.

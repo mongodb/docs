@@ -1,5 +1,5 @@
-Procedure
-=========
+Configure VPC Peering for a GCP-backed Cluster
+``````````````````````````````````````````````
 
 To configure VPC Peering for a GCP-backed cluster:
 
