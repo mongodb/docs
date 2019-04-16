@@ -18,7 +18,7 @@
    * - ``apiKeyId``
      - string
      - Unique identifier for the :ref:`API Key
-       <atlas-app-api-key>` that triggered the event. If this field is
+       <atlas-prog-api-key>` that triggered the event. If this field is
        present in the response, |service| does not return the
        ``userId`` field.
 
@@ -119,7 +119,7 @@
    * - ``publicKey``
      - string
      - Public key associated with the :ref:`API Key
-       <atlas-app-api-key>` that triggered the event. If this field
+       <atlas-prog-api-key>` that triggered the event. If this field
        is present in the response, |service| does not return the
        ``username`` field.
 
