@@ -4,7 +4,7 @@
    snapshot's :guilabel:`Encryption Key ID` to successfully 
    :ref:`restore that snapshot <restore-encrypted-snapshot>`.
 
-   Before deleting am Encryption Key ID used with |service| Encryption 
+   Before deleting an Encryption Key ID used with |service| Encryption 
    at Rest using your Key Management, check **every** backup-enabled 
    cluster in the project for any snapshots still using that Encryption
    Key ID. Once you delete an encryption key, all snapshots encrypted 
