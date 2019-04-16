@@ -17,7 +17,7 @@ To enable Connect via Peering Only mode:
 
 1. Click :guilabel:`Settings` in the navigation menu.
 
-#. Toggle :guilabel:`Connect via Peering Only (GCP)` to :guilabel:`On`.
+#. Toggle :guilabel:`Connect via Peering Only (GCP and Azure)` to :guilabel:`On`.
 
    .. important::
 
