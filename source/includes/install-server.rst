@@ -1,8 +1,7 @@
-.. tabs::
+.. tabs-platforms::
 
    tabs:
      - id: windows
-       name: Windows
        content: |
 
 
@@ -11,8 +10,7 @@
 
          .. include:: /includes/fact-install-windows.rst
 
-     - id: macOS
-       name: macOS
+     - id: macos
        content: |
 
          .. admonition:: Platform Support
@@ -22,7 +20,6 @@
          .. include:: /includes/steps/install-mongodb-on-macOS.rst
 
      - id: linux
-       name: Linux
        content: |
          .. note::
             These instructions are for installing MongoDB directly from

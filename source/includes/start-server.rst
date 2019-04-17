@@ -1,8 +1,7 @@
-.. tabs::
+.. tabs-platforms::
 
    tabs:
      - id: windows
-       name: Windows
        content: |
          .. warning::
             Do not make :binary:`~bin.mongod.exe` visible on public
@@ -13,12 +12,10 @@
 
          .. include:: /includes/steps/run-mongodb-on-windows.rst
 
-     - id: macOS
-       name: macOS
+     - id: macos
        content: |
          .. include:: /includes/steps/run-mongodb-on-linux.rst
      - id: linux
-       name: Linux
        content: |
          .. important::
             If you are using SELinux on a Red Hat Linux-based system,
