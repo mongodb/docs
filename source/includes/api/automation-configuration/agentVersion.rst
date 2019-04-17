@@ -1,9 +1,9 @@
 The ``agentVersion`` object is optional and specifies the version of
-Automation Agent.
+{+aagent+}.
 
 .. note::
 
-   While you can update the Automation Agent version through this
+   While you can update the {+aagent+} version through this
    configuration property, it is recommended to use the
    :ref:`Update Agent Versions <update-monitoring-backup-versions>`
    endpoint to ensure your versions are up to date.
@@ -25,15 +25,15 @@ Automation Agent.
 
    * - agentVersion
      - object
-     - *Optional* The version of the Automation Agent to run. If the
-       running version does not match this setting, the Automation Agent
+     - *Optional* The version of the {+aagent+} to run. If the
+       running version does not match this setting, the {+aagent+}
        downloads the specified version, shuts itself down, and starts the
        new version.
 
    * - agentVersion.name
      - string
-     - The desired version of the Automation Agent (e.g. "1.8.1.1042-1").
+     - The desired version of the {+aagent+} (e.g. "1.8.1.1042-1").
 
    * - agentVersion.directoryUrl
      - string
-     - The URL from which to download Automation Agent.
+     - The URL from which to download {+aagent+}.

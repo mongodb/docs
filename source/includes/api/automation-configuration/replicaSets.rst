@@ -23,7 +23,7 @@ This field is required for deployments with replica sets.
    * - replicaSets
      - object array
      - *Optional*. Objects that define the configuration of each
-       :term:`replica set`. The Automation Agent uses the values in this
+       :term:`replica set`. The {+aagent+} uses the values in this
        array to create valid :manual:`replica set configuration documents
        </reference/replica-configuration>`. The agent regularly checks
        that replica sets are configured correctly. If a problem occurs,
@@ -47,7 +47,7 @@ This field is required for deployments with replica sets.
      - object array
      - Objects that define each member of the replica set. The
        ``members.host`` field must specify the host's name as listed in
-       ``processes.name``. The Automation Agent expands the ``host`` field
+       ``processes.name``. The {+aagent+} expands the ``host`` field
        to create a valid replica set configuration. For more information
        on ``members`` objects, see :manual:`replSetGetConfig
        </reference/command/replSetGetConfig>` in the MongoDB manual.

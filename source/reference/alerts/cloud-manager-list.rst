@@ -11,11 +11,11 @@ Agent
      - Scopes
 
    * - .. alert:: AUTOMATION_AGENT_DOWN
-     - Automation Agent is down
+     - {+aagent+} is down
      - Project, Global
 
    * - .. alert:: AUTOMATION_AGENT_UP
-     - Automation Agent is up
+     - {+aagent+} is up
      - Project, Global
 
    * - .. alert:: BACKUP_AGENT_CONF_CALL_FAILURE

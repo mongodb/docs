@@ -68,7 +68,7 @@ This field is required for deployments with sharded clusters.
      - object array
      - *Optional*. Objects that define the configuration of each
        :term:`sharded cluster`. Each object in the array contains the
-       specifications for one cluster. The Automation Agent regularly
+       specifications for one cluster. The {+aagent+} regularly
        checks each cluster's state against the specifications. If the
        specification and cluster don't match, the agent will change the
        configuration of the cluster, which might cause the balancer to

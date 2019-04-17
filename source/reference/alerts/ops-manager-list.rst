@@ -11,11 +11,11 @@ Agent
      - Scopes
 
    * - :alert-type:`AUTOMATION_AGENT_DOWN`
-     - Automation Agent is down
+     - {+aagent+} is down
      - Project, Global
 
    * - :alert-type:`AUTOMATION_AGENT_UP`
-     - Automation Agent is up
+     - {+aagent+} is up
      - Project, Global
 
    * - :alert-type:`BACKUP_AGENT_CONF_CALL_FAILURE`

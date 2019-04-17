@@ -30,11 +30,11 @@ and ``api-backup.mongodb.com`` servers:
 Domain for Download of MongoDB Binaries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Automation Agents require outbound access on port ``443`` to the
+The {+aagent+}s require outbound access on port ``443`` to the
 following domains, depending on your MongoDB edition, for downloading
 MongoDB binaries:
 
-- For the MongoDB community edition, the Automation Agents require
+- For the MongoDB community edition, the {+aagent+}s require
   outbound access on port ``443`` to download binaries from the
   ``fastdl.mongodb.org`` domain, provided by Amazon CloudFront. The
   IP ranges for CloudFront change frequently. See `the current list
@@ -43,13 +43,12 @@ MongoDB binaries:
 
 - If you use Automation with `MongoDB Enterprise
   <http://www.mongodb.com/products/mongodb-enterprise>`_, the
-  Automation Agents require outbound access on port ``443`` to the
+  {+aagent+}s require outbound access on port ``443`` to the
   ``downloads.mongodb.com`` domain to download the Enterprise
   binaries.
 
 - If you use automation with a custom build of MongoDB, the custom
-  build must be available at a URL accessible to the Automation
-  Agent. It could, for example, be served by a web server running
+  build must be available at a URL accessible to the {+aagent+}. It could, for example, be served by a web server running
   inside an isolated network environment. The custom build's ``Git
   Version`` field must be set to the output of the following command,
   issued on the target binary.

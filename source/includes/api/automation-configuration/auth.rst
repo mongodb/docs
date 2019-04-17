@@ -52,12 +52,12 @@ The ``auth`` object is optional and defines :manual:`authentication-related
 
    * - auth.autoUser
      - string
-     - The username that the Automation agent uses when connecting to
+     - The username that the {+aagent+} uses when connecting to
        an instance.
 
    * - auth.autoPwd
      - string
-     - The password that the Automation agent uses when connecting to
+     - The password that the {+aagent+} uses when connecting to
        an instance.
 
    * - auth.disabled

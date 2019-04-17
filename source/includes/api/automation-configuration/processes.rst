@@ -70,7 +70,7 @@ You can also use the array to restore an instance.
    * - processes.manualMode
      - Boolean
      - *Optional*. Set to ``true`` to operate this process in manual mode.
-       The Automation Agent will take no actions on the process.
+       The {+aagent+} will take no actions on the process.
 
    * - processes.hostname
      - string
@@ -106,7 +106,7 @@ You can also use the array to restore an instance.
    * - processes.numCores
      - integer
      - *Optional*. The number of cores the process should be bound to. The
-       Automation Agent will spread processes out across the cores as
+       {+aagent+} will spread processes out across the cores as
        evenly as possible.
 
    * - processes.logRotate
@@ -147,8 +147,7 @@ You can also use the array to restore an instance.
    * - processes.alias
      - string
      - *Optional*. A hostname alias (often a DNS CNAME) for the server on
-       which the process runs. If an alias is specified, the Automation
-       Agent prefers the alias over the host specified in
+       which the process runs. If an alias is specified, the {+aagent+} prefers the alias over the host specified in
        ``processes.hostname`` when connecting to the server. You can
        also specify this alias in ``replicaSets.host`` and
        ``sharding.configServer``.

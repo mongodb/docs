@@ -2,14 +2,14 @@
   the MongoDB process requires authentication, add an automation user
   for the |mms| project with the appropriate roles. The import process
   displays the required roles for the user. The added user becomes the
-  project's Automation Agent user.
+  project's {+aagent+} user.
 
 - If the |mms| project has authentication settings enabled, add the |mms|
-  project's Automation Agent user to the MongoDB process. To find the
-  Automation Agent user, click :guilabel:`Deployments`, then
+  project's {+aagent+} user to the MongoDB process. To find the
+  {+aagent+} user, click :guilabel:`Deployments`, then
   :guilabel:`Security`, then :guilabel:`Users`.
 
-- To find the password for the |mms| project's Automation Agent user, you
+- To find the password for the |mms| project's {+aagent+} user, you
   can use the UI, the API or the configuration backup file:
 
   Using the UI
@@ -21,10 +21,9 @@
     #. Click :guilabel:`Next` until you see the **Configure** 
        |mms| **Agents** page.
 
-    #. Click :guilabel:`Show` to the right of the :guilabel:`Automation
-       Agent Password` field.
+    #. Click :guilabel:`Show` to the right of the :guilabel:`{+aagent+} Password` field.
 
-       The Automation Agent's password displays.
+       The {+aagent+}'s password displays.
 
   Using the API
     Use the :doc:`/reference/api/automation-config` endpoint:
@@ -42,7 +41,7 @@
    If the |mms| project has :doc:`Username/Password 
    </tutorial/enable-mongodbcr-authentication-for-group>` mechanism 
    selected for its authentication settings, add the project's |mms|
-   Automation Agents User ``mms-automation`` to the ``admin`` database
+   {+aagent+}s User ``mms-automation`` to the ``admin`` database
    in the MongoDB deployment to import.
 
    .. code-block:: javascript
