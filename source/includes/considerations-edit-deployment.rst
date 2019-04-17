@@ -38,7 +38,7 @@ Storage Engine
      string that |mms| generates.
 
   Before you can change the :term:`storage engine` for a standalone
-  instance or replica set, you must give the :term:`Automation Agent`
+  instance or replica set, you must give the Automation Agent
   write access to the MongoDB :term:`data directory`'s *parent* directory.
   The agent creates a temporary backup of the data in parent directory
   when  updating the storage engine.

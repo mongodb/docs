@@ -26,6 +26,6 @@ The hosts that serve the MongoDB deployments must:
 - Set the Common Name or :rfc:`Subject Alternative Name <3280>` value
   of any |ssl| certificates to the MongoDB host's |fqdn|.
 
-The network configuration must allow each :term:`Automation Agent` to
+The network configuration must allow each Automation Agent to
 make a direct connection to every MongoDB deployment listed on the
 :guilabel:`Deployment` page. |mms| does not support port forwarding.
