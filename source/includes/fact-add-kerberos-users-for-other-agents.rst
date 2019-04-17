@@ -2,7 +2,7 @@
    :class: important
 
    For deployments on Windows, MongoDB recommends using the same
-   :manual:`MongoDB user </core/security-users/>` for the {+aagent+}, Backup Agent, and Monitoring Agent. Grant this user the
+   :manual:`MongoDB user </core/security-users/>` for the {+aagent+}, {+bagent+}, and Monitoring Agent. Grant this user the
    following roles on the ``admin`` database:
 
    - :authrole:`clusterAdmin`

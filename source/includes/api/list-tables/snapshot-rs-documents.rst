@@ -64,7 +64,7 @@
           This appears for :term:`sharded cluster` snapshots only.
 
        To take a snapshot of a :term:`sharded cluster` in a consistent
-       state, the Backup Agent temporarily turns off the
+       state, the {+bagent+} temporarily turns off the
        balancer before creating the :term:`snapshot`. In some cases, it
        cannot turn off the balancer in a timely manner. The snapshot is
        then created with the balancer still running.
@@ -129,7 +129,7 @@
        .. note::
           This appears for :term:`sharded cluster` snapshots only.
 
-       In steady state, this array is empty. If the Backup Agent
+       In steady state, this array is empty. If the {+bagent+}
        cannot connect to a shard when a :term:`snapshot` is created, the
        shard is omitted from the snapshot. Each :term:`document` in the
        array is a **cluster** document containing a ``self`` link.

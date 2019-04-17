@@ -19,23 +19,23 @@ Agent
      - Project, Global
 
    * - :alert-type:`BACKUP_AGENT_CONF_CALL_FAILURE`
-     - Backup Agent has too many conf call failures
+     - {+bagent+} has too many conf call failures
      - Project, Global
 
    * - :alert-type:`BACKUP_AGENT_DOWN`
-     - Backup Agent is down
+     - {+bagent+} is down
      - Project, Global
 
    * - :alert-type:`BACKUP_AGENT_UP`
-     - Backup Agent is up
+     - {+bagent+} is up
      - Project, Global
 
    * - :alert-type:`BACKUP_AGENT_VERSION_BEHIND`
-     - Backup Agent does not have the latest version
+     - {+bagent+} does not have the latest version
      - Project, Global
 
    * - :alert-type:`BACKUP_AGENT_VERSION_CURRENT`
-     - Backup Agent has the latest version
+     - {+bagent+} has the latest version
      - Project, Global
 
    * - :alert-type:`MONITORING_AGENT_DOWN`

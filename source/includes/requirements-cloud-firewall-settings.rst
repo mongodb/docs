@@ -66,7 +66,7 @@ Required Ports on Your Network
 All MongoDB processes in a deployment must be accessible to all |mms|
 agents managing processes in that deployment. Therefore, all MongoDB
 ports must be open to every server that hosts an Automation,
-Monitoring or Backup Agent. 
+Monitoring or {+bagent+}. 
 
 .. example::
    If you are running MongoDB processes on ``27000``, ``27017`` and

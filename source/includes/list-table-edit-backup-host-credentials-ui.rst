@@ -15,7 +15,7 @@
    * - :guilabel:`DB Username`
 
      - For ``Username/Password`` or ``LDAP`` authentication, the username
-       used to authenticate the Backup Agent to the MongoDB deployment.
+       used to authenticate the {+bagent+} to the MongoDB deployment.
        
        See 
        :doc:`/tutorial/configure-backup-agent-for-cr` or
@@ -24,10 +24,10 @@
    * - :guilabel:`DB Password`
 
      - For ``Username/Password`` or ``LDAP`` authentication, the password
-       used to authenticate the Backup Agent to the MongoDB deployment.
+       used to authenticate the {+bagent+} to the MongoDB deployment.
 
    * - :guilabel:`Allows SSL for connections`
 
-     - If checked, the Backup Agent uses SSL to connect to MongoDB. 
+     - If checked, the {+bagent+} uses SSL to connect to MongoDB. 
 
        See :doc:`/tutorial/configure-backup-agent-for-ssl`.

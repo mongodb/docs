@@ -1,5 +1,5 @@
 The ``backupVersions`` array is optional and specifies the version of
-the :doc:`Backup Agent </tutorial/nav/backup-agent/>`.
+the :doc:`{+bagent+} </tutorial/nav/backup-agent/>`.
 
 .. code-block:: cfg
 
@@ -38,11 +38,11 @@ the :doc:`Backup Agent </tutorial/nav/backup-agent/>`.
    * - backupVersions
      - object array
      - *Optional*. Objects that define version information for each
-       :doc:`Backup Agent </tutorial/nav/backup-agent/>`.
+       :doc:`{+bagent+} </tutorial/nav/backup-agent/>`.
 
    * - backupVersions.name
      - string
-     - Version of the Backup Agent (e.g. "3.1.1.263-1").
+     - Version of the {+bagent+} (e.g. "3.1.1.263-1").
 
        For MongoDB compatibility with Automation, see
        :doc:`/reference/mongodb-compatibility`.
@@ -51,27 +51,26 @@ the :doc:`Backup Agent </tutorial/nav/backup-agent/>`.
 
           This property is read-only. Any modifications made to this
           property are not reflected when updating the
-          Backup Agent through the |api|. To update the Backup
-          Agent version, see :ref:`this endpoint
+          {+bagent+} through the |api|. To update the {+bagent+} version, see :ref:`this endpoint
           <update-monitoring-backup-versions>`.
 
    * - backupVersions.hostname
      - string
-     - The hostname of the machine that runs the Backup Agent. If the
-       Backup Agent is not running on the machine, |mms| installs the
+     - The hostname of the machine that runs the {+bagent+}. If the
+       {+bagent+} is not running on the machine, |mms| installs the
        agent from the location specified in ``backupVersions.urls``.
 
    * - backupVersions.urls
      - object
      - The platform- and build-specific URLs from which to download the
-       Backup Agent.
+       {+bagent+}.
 
    * - ``backupVersions.urls.<platform>``
      - object
      - This field has a name that identifies an operating system and
        optionally a version. The field contains an object with key-value
        pairs, where each key is either the name of a build or ``default``
-       and each value is a URL for downloading the Backup Agent. The
+       and each value is a URL for downloading the {+bagent+}. The
        object must include the ``default`` key set to the default
        download URL for the platform.
 

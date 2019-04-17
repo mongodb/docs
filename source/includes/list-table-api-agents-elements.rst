@@ -41,7 +41,7 @@
    * - ``isManaged``
      - Boolean
 
-     - **Only applicable to Monitoring and Backup agents**. Specifies
+     - **Only applicable to Monitoring and {+bagent+}s**. Specifies
        whether or not |mms| manages the agent.
 
    * - ``lastPing``
@@ -51,4 +51,4 @@
 
    * - ``tag``
      - string
-     - **Only applicable to Backup agents**. The agent's tag, if there is one.
+     - **Only applicable to {+bagent+}s**. The agent's tag, if there is one.
