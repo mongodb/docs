@@ -1,4 +1,4 @@
-.. list-table:: 
+.. list-table::
    :widths: 20 80
    :header-rows: 1
 
@@ -19,15 +19,15 @@
              helm template \
                --set registry.pullPolicy=IfNotPresent \
                --set namespace=<testNamespace> \
-               public/helm_chart > operator.yaml
-             kubectl apply -f operator.yaml 
+               helm_chart > operator.yaml
+             kubectl apply -f operator.yaml
 
    * - ``operator.env``
      - Label for the Operator's deployment environment. The ``env``
        value affects default timeouts and the format and level of
        logging.
 
-       .. list-table:: 
+       .. list-table::
           :widths: 40 30 30
           :header-rows: 1
 
@@ -53,7 +53,7 @@
              helm template \
                --set registry.pullPolicy=IfNotPresent \
                --set operator.env=dev \
-               public/helm_chart > operator.yaml
+               helm_chart > operator.yaml
              kubectl apply -f operator.yaml
 
    * - ``operator.watchNamespace``
@@ -78,7 +78,7 @@
              helm template \
                --set registry.pullPolicy=IfNotPresent \
                --set operator.watchNamespace=<testNamespace> \
-               public/helm_chart > operator.yaml
+               helm_chart > operator.yaml
              kubectl apply -f operator.yaml
 
    * - ``managedSecurityContext``
@@ -98,7 +98,7 @@
              helm template \
                --set registry.pullPolicy=IfNotPresent \
                --set managedSecurityContext=false \
-               public/helm_chart > operator.yaml
+               helm_chart > operator.yaml
              kubectl apply -f operator.yaml
 
    * - ``operator.podWaitSeconds``
@@ -108,7 +108,7 @@
 
        Default values depend upon ``operator.env``:
 
-       .. list-table:: 
+       .. list-table::
           :widths: 50 50
           :header-rows: 1
 
@@ -128,7 +128,7 @@
                --set registry.pullPolicy=IfNotPresent \
                --set operator.env=dev \
                --set operator.podWaitSeconds=10 \
-               public/helm_chart > operator.yaml
+               helm_chart > operator.yaml
              kubectl apply -f operator.yaml
 
    * - ``operator.podSetWaitRetries``
@@ -138,7 +138,7 @@
 
        Default values depend upon ``operator.env``:
 
-       .. list-table:: 
+       .. list-table::
           :widths: 50 50
           :header-rows: 1
 
@@ -159,5 +159,5 @@
                --set operator.env=dev \
                --set operator.podWaitSeconds=10 \
                --set operator.podSetWaitRetries=20 \
-               public/helm_chart > operator.yaml
+               helm_chart > operator.yaml
              kubectl apply -f operator.yaml
