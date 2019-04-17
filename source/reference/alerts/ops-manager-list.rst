@@ -39,19 +39,19 @@ Agent
      - Project, Global
 
    * - :alert-type:`MONITORING_AGENT_DOWN`
-     - Monitoring Agent is down
+     - {+magent+} is down
      - Project, Global
 
    * - :alert-type:`MONITORING_AGENT_UP`
-     - Monitoring Agent is up
+     - {+magent+} is up
      - Project, Global
 
    * - :alert-type:`MONITORING_AGENT_VERSION_BEHIND`
-     - Monitoring Agent does not have the latest version
+     - {+magent+} does not have the latest version
      - Project, Global
 
    * - :alert-type:`MONITORING_AGENT_VERSION_CURRENT`
-     - Monitoring Agent has the latest version
+     - {+magent+} has the latest version
      - Project, Global
 
    * - :alert-type:`NEW_AGENT`

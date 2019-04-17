@@ -12,7 +12,7 @@
    * - :guilabel:`Current DB Username`
 
      - If the authentication mechanism is MONGODB-CR or LDAP, the
-       username used to authenticate the Monitoring Agent to the
+       username used to authenticate the {+magent+} to the
        MongoDB deployment.
 
        See :doc:`/tutorial/configure-monitoring-agent-for-cr`,
@@ -23,7 +23,7 @@
    * - :guilabel:`Current DB Password`
 
      - If the authentication mechanism is MONGODB-CR or LDAP, the
-       password used to authenticate the Monitoring Agent to the
+       password used to authenticate the {+magent+} to the
        MongoDB deployment. 
 
        See :doc:`/tutorial/configure-monitoring-agent-for-cr`,

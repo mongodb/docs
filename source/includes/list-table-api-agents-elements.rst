@@ -35,8 +35,8 @@
 
    * - ``pingCount``
      - number
-     - **Only applicable to Monitoring agents**. The number of pings that
-       the Monitoring agent has sent to the ``hostname`` URL.
+     - **Only applicable to {+magent+}s**. The number of pings that
+       the {+magent+} has sent to the ``hostname`` URL.
 
    * - ``isManaged``
      - Boolean
@@ -46,7 +46,7 @@
 
    * - ``lastPing``
      - timestamp
-     - **Only applicable to Monitoring agents**. Time of most recent
+     - **Only applicable to {+magent+}s**. Time of most recent
        ping.
 
    * - ``tag``

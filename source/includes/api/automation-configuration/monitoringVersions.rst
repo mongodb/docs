@@ -1,5 +1,5 @@
 The ``monitoringVersions`` array is optional and specifies the version
-of the :doc:`Monitoring Agent </tutorial/nav/monitoring-agent/>`.
+of the :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
 
 .. code-block:: cfg
 
@@ -38,11 +38,11 @@ of the :doc:`Monitoring Agent </tutorial/nav/monitoring-agent/>`.
    * - monitoringVersions
      - object array
      - *Optional*. Objects that define version information for each
-       :doc:`Monitoring Agent </tutorial/nav/monitoring-agent/>`.
+       :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
 
    * - monitoringVersions.name
      - string
-     - Version of the Monitoring Agent (e.g. "2.9.1.176-1").
+     - Version of the {+magent+} (e.g. "2.9.1.176-1").
 
        For MongoDB compatibility with Automation, see
        :doc:`/reference/mongodb-compatibility`.
@@ -51,27 +51,26 @@ of the :doc:`Monitoring Agent </tutorial/nav/monitoring-agent/>`.
 
           This property is read-only. Any modifications made to this
           property are not reflected when updating the
-          Monitoring Agent through the |api|. To update the Monitoring
-          Agent version, see :ref:`this endpoint
+          {+magent+} through the |api|. To update the {+magent+} version, see :ref:`this endpoint
           <update-monitoring-backup-versions>`.
 
    * - monitoringVersions.hostname
      - string
-     - The hostname of the machine that runs the Monitoring Agent. If the
-       Monitoring Agent is not running on the machine, |mms| installs the
+     - The hostname of the machine that runs the {+magent+}. If the
+       {+magent+} is not running on the machine, |mms| installs the
        agent from the location specified in ``monitoringVersions.urls``.
 
    * - monitoringVersions.urls
      - object
      - The platform- and build-specific URLs from which to download the
-       Monitoring Agent.
+       {+magent+}.
 
    * - ``monitoringVersions.urls.<platform>``
      - object
      - This field has a name that identifies an operating system and
        optionally a version. The field contains an object with key-value
        pairs, where each key is either the name of a build or ``default``
-       and each value is a URL for downloading the Monitoring Agent. The
+       and each value is a URL for downloading the {+magent+}. The
        object must include the ``default`` key set to the default
        download URL for the platform.
 
