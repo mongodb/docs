@@ -4,7 +4,7 @@ Connectivity
 You must :doc:`configure the network infrastructure 
 </reference/firewall-configuration>` of your deployment so that:
 
-- the :term:`Monitoring Agent` can connect to all :program:`mongod` and
+- the Monitoring Agent can connect to all :program:`mongod` and
   :program:`mongos` instances that you want to monitor.
 
 .. only:: cloud

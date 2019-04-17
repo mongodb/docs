@@ -1,7 +1,7 @@
 Monitoring Agent
 ++++++++++++++++
 
-Your deployment must have a running :term:`Monitoring Agent`. To install the
+Your deployment must have a running Monitoring Agent. To install the
 Monitoring Agent, see :doc:`/tutorial/nav/monitoring-agent`.
 
 Backup Agent Host
