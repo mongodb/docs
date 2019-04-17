@@ -17,7 +17,7 @@
 
    * - apiKeyId
      - string
-     - Unique identifier for the :ref:`API Key <mms-app-api-key>`
+     - Unique identifier for the :ref:`API Key <mms-prog-api-key>`
        that triggered this event.
 
        If this field is present in the response, |mms| does not return
@@ -117,7 +117,7 @@
    * - publicKey
      - string
      - Public key associated with the :ref:`API Key
-       <mms-app-api-key>` that triggered this event.
+       <mms-prog-api-key>` that triggered this event.
 
        If this field is present in the response, |mms| does not return
        the ``username`` field.

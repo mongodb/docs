@@ -48,7 +48,7 @@
   individual process log collection, topological deployment grouping,
   and BI Connectors.
 - Adds support for IPv6 deployments.
-- Allows creation of :ref:`API Keys <mms-app-api-key>` that are scoped to
+- Allows creation of :ref:`API Keys <mms-prog-api-key>` that are scoped to
   an organization and are not tied to a human.
 - Users can now remove themselves from a project.
 - Agent Upgrades: 
