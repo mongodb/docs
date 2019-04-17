@@ -65,7 +65,7 @@
 
             .. code-block:: sh
 
-               helm template public/helm_chart > operator.yaml
+               helm template helm_chart > operator.yaml
                kubectl apply -f operator.yaml 
 
             You can customize your Chart before installing it by using
@@ -101,7 +101,7 @@
                      .. code-block:: sh
 
                         helm template --set registry.pullPolicy=IfNotPresent \
-                          public/helm_chart > operator.yaml
+                          helm_chart > operator.yaml
                         kubectl apply -f operator.yaml 
 
                      You can further customize your Chart before
@@ -127,7 +127,7 @@
                      .. code-block:: sh
 
                         helm template --set registry.pullPolicy=IfNotPresent \
-                          public/helm_chart > operator.yaml
+                          helm_chart > operator.yaml
                         kubectl apply -f operator.yaml 
 
                      You can further customize your Chart before
