@@ -1,3 +1,12 @@
+.. _monitoring-7.2.0.488:
+
+Monitoring Agent 7.2.0.488
+--------------------------
+
+:ref:`Released with Ops Manager 4.1.5 on 2019-04-18 <opsmgr-server-4.1.5>`
+
+- Minor stabilization improvements.
+
 .. _monitoring-7.1.0.487:
 
 Monitoring Agent 7.1.0.487

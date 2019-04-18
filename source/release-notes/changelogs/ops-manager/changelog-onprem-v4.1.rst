@@ -1,3 +1,13 @@
+.. _opsmgr-server-4.1.5:
+
+|onprem| Rapid Release 4.1.5
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-04-18*
+
+- Agent Upgrades:
+  :ref:`monitoring-7.2.0.488`
+
 .. _opsmgr-server-4.1.4:
 
 |onprem| Rapid Release 4.1.4
