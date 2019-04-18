@@ -1,3 +1,3 @@
-.. figure:: /images/opsmanager-medium.bakedsvg.svg
-   :alt: A typical deployment uses replica sets for the application database and backup blockstore database.
-   :figwidth: 700px
+.. figure:: /images/ops-manager-ha-single-database.png
+   :alt: A typical deployment uses replica sets for the application database and snapshot store.
+   :figwidth: 400px

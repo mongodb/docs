@@ -1,8 +1,8 @@
 .. _deployment-diagrams:
 
-=============================
-Example Deployment Topologies
-=============================
+================================
+Example Deployment Architectures
+================================
 
 .. default-domain:: mongodb
 
@@ -12,30 +12,33 @@ Example Deployment Topologies
    :depth: 1
    :class: singlecol
 
-The following examples illustrate some possible MongoDB and |onprem| deployments.
+The following examples illustrate some possible MongoDB and |onprem|
+deployments.
 
 Considerations
 --------------
 
-For best performance on any of these installs, configure each Backup
-server with two disk partitions: one for the Backup Database or File
+For best performance on any of these installs, configure each backup
+host with two disk partitions: one for the snapshot store or File
 System Store and one for the head databases.
 
 .. _on-prem-minimal-deployment-diagram:
 
-Test Install on a Single Server
--------------------------------
+Test Install on a Single Host
+-----------------------------
 
 For a test deployment, you can deploy all of the |onprem| components to
-a single server, as described in
-:doc:`/tutorial/install-simple-test-deployment`. 
+a single host, as described in
+:doc:`/tutorial/install-simple-test-deployment`.
 
 .. include:: /images/opsmanager-test.rst
 
 .. note::
-   If you would like to test backup services, you can configure them
-   using the |application|. During configuration, you can specify the
-   :term:`head directory <head directory>`. The Backup Daemon service
+
+   If you would like to test backup services, use the |application| to
+   configure them. When
+   :doc:`configuring </reference/config/ui-settings>` |onprem|,
+   you can specify the backup settings. The Backup Daemon service
    creates the :term:`head databases <head database>` dynamically in
    that directory. The Backup Daemon service then manages these head
    databases.
@@ -47,67 +50,66 @@ Redundant Metadata and Snapshots
 ++++++++++++++++++++++++++++++++
 
 This deployment provides redundancy for the
-:ref:`mms-application-database` and :ref:`backup-database`, in the
-event of server failure. The deployment keeps a redundant copy of each
-database by running each as a MongoDB :term:`replica set` with two
-data-bearing members and an arbiter.
+:ref:`mms-application-database` and :ref:`backup-database` in the
+event of host failure. The deployment runs the database in a MongoDB
+:term:`replica set` with three data-bearing members with copies of the
+data.
 
 .. important::
 
-   This deployment does not provide high availability for the
-   |application|. |onprem| uses ``w:2`` :manual:`write concern </reference/write-concern>`, 
-   which requests acknowledgement of a write operation from both
-   data-bearing members. The loss of one data-bearing node from the
-   :ref:`mms-application-database` must be remedied before |onprem| can
-   resume healthy operation. To make the deployment durable, run each with three data-bearing members and
-   enable journaling.
+   This deployment provides high availability for the |application|.
+   |onprem| uses a ``w:2``
+   :manual:`write concern </reference/write-concern>`, and can
+   tolerate the loss of one data-bearing node from the
+   :ref:`mms-application-database`. To make the deployment more
+   durable, :manual:`enable journaling </reference/configuration-options#storage.journal.enabled>`.
 
 .. include:: /images/opsmanager-medium.rst
 
 .. note::
 
-   All servers must satisfy the combined 
+   All hosts must satisfy the combined
    :doc:`hardware and software requirements </core/requirements>` for
-   both the systems specified in the **Meets System Requirements
-   for** column.
+   both the systems specified in the **System Requirements** column.
 
 .. list-table::
    :widths: 5 45 50
    :header-rows: 1
+   :stub-columns: 1
 
-   * - Server
-     - Meets System Requirements for
+   * - Host
+     - System Requirements
      - Purpose
 
-   * - **1** 
+   * - 1
 
-     - 
+     -
        - |application|
 
        - |application| database
-          
-     - Hosts the primary |application| database and the arbiter for the
-       backup database.
 
-   * - **2** 
+     - Serves the |application| database primary and the snapshot
+       store secondary.
 
-     - 
+   * - 2
+
+     -
        - |application|
 
-       - Backup database
+       - snapshot store
 
-     - Hosts the primary backup database and the arbiter for the
-       |application| database.
+     - Serves the snapshot store primary and the |application|
+       database secondary.
 
-   * - **3** 
+   * - 3
 
-     - 
-       - |application| database 
+     -
+       - |application| database
 
-       - Backup database
+       - snapshot store
 
-     - Hosts replica set members for the |application| Database and
-       Backup Database. 
+     - Hosts the |application| Database and snapshot store secondary
+       replica set members.
 
        Replica sets provide data redundancy and are
        strongly recommended, but are not required for |onprem|.
@@ -117,38 +119,39 @@ installation, see :doc:`/tutorial/install-basic-deployment`.
 
 .. _highly-available-deployment:
 
-Highly Available |application| and Multiple Backup Databases
+Highly Available |application| and Multiple snapshot stores
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This |onprem| deployment provides high availability for the
-|application| by running multiple instances behind a load balancer.
-This deployment scales out to add an additional Backup Database.
+This |onprem| deployment runs multiple instances behind a load
+balancer to provide high availability for |onprem|.
+This deployment scales out to add an additional snapshot store.
 
 .. include:: /images/opsmanager-large.rst
 
 The deployment includes:
 
-- two servers that host the |application| and the |application|
+- two hosts that serve the |application| and the |application|
   Database
 
-- four servers that host |application| with Backup enabled and Backup
+- four hosts that serve |application| with Backup enabled and Backup
   Databases
 
-- additional servers to host the remaining members of each replica set
+- additional hosts to serve the remaining members of each replica set
 
-Deploy an HTTP Load Balancer to balance the HTTP traffic for the
-|application|. |onprem| does not supply an HTTP Load Balancer: you
-must deploy and configure it yourself. A load balancer placed in front
-of the |application| servers must not return cached content.
+Deploy an |http| Load Balancer to balance the |http| traffic for the
+|application|. |onprem| does not supply an |http| Load Balancer. You
+must provision, deploy, and configure it yourself. A load balancer
+placed before of the |application| hosts must not return cached
+content.
 
 All of the software services need to be able to communicate with
-the |application| Databases and the Backup Databases.
-Configure your firewalls to allow traffic between these servers
+the |application| Databases and the snapshot stores.
+Configure your firewalls to allow traffic between these hosts
 on the :doc:`appropriate ports </reference/firewall-configuration>`.
 
 .. note::
 
-   All servers must satisfy the combined 
+   All hosts must satisfy the combined
    :doc:`hardware and software requirements </core/requirements>` for
    both the systems specified in the **System Requirements** column.
 
@@ -156,46 +159,45 @@ on the :doc:`appropriate ports </reference/firewall-configuration>`.
    :widths: 5 45 50
    :header-rows: 1
 
-   * - Server
-     - Meets System Requirements for
+   * - Host
+     - System Requirements
      - Purpose
 
-   * - **1 & 2** 
-   
-     - 
+   * - **1 & 2**
+
+     -
        - |application|
 
        - |application| Database
 
-     - Hosts the primary and secondary for the |application| database.
+     - Serves the primary and secondary for the |application| database.
 
-   * - **3**, **4**, **5** & **6** 
+   * - **3**, **4**, **5** & **6**
 
-     - 
+     -
        - |application|
 
-       - Backup Database
+       - snapshot store
 
-     - Hosts the primary and secondary for the two backup databases.  
+     - Serves the primary and secondary for the two snapshot stores.
 
-       Only the
-       Backup Daemon needs to communicate with the head databases. As
-       such, their :setting:`net.bindIp` value is ``127.0.0.1`` to
-       prevent external communication. :setting:`net.bindIp` specifies
-       the IP address that :program:`mongod` and :program:`mongos`
-       listens to for connections coming from applications.
-
+       Only the Backup Daemon needs to communicate with the head
+       databases. As such, their :setting:`net.bindIp` value is
+       ``127.0.0.1`` to prevent external communication.
+       :setting:`net.bindIp` specifies the IP address that
+       :program:`mongod` and :program:`mongos` listens to for
+       connections coming from applications.
 
    * - **7** & **8**
 
-     -  
+     -
 
        - |application| database
 
-       - Backup database
+       - snapshot store
 
-     - Host the remaining replica set members for the |application|
-       Database and for the two Backup Databases.
+     - Serve the remaining replica set members for the |application|
+       Database and the two snapshot stores.
 
-For the procedure to install |onprem| with high availability, see
+To learn how to install |onprem| with high availability, see
 :doc:`/tutorial/configure-application-high-availability`.
