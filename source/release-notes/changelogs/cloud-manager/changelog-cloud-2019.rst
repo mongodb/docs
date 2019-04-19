@@ -1,4 +1,13 @@
-.. _cloudmanager-v20190326:
+.. _cloudmanager-v20190416:
+
+16 April 2019 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports |bic-short| 2.10.
+- Agent Upgrades:
+  :ref:`backup-7.8.0.1107`
+
+  .. _cloudmanager-v20190326:
 
 26 March 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~

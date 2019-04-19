@@ -1,3 +1,10 @@
+.. _backup-7.8.0.1107:
+
+Backup Agent 7.8.0.1107
+-----------------------
+
+Convert to new MongoDB Go Driver
+
 .. _backup-7.6.0.1059:
 
 Backup Agent 7.6.0.1059
