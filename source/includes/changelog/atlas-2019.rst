@@ -1,3 +1,20 @@
+.. _atlas-v20190416:
+
+16 April 2019 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports Microsoft Azure VNet :doc:`peering </security-vpc-peering>`.
+- Can load :doc:`sample data </sample-data/load-sample-data>` into an
+  |service| cluster.
+- Sets the ``T3/M5/R5`` :ref:`instance <amazon-aws-configuration-options>`
+  families as the default for all new, upgraded, or downgraded
+  |aws| clusters.
+- Supports the :ref:`Microsoft Azure <microsoft-azure>` South Africa
+  North region.
+- Supports the :ref:`Google Cloud Platform <google-gcp>` Zurich region.
+- Offers self-serve customers option to sign up for a :doc:`support package
+  </support>`.
+
 .. _atlas-v20190326:
 
 26 March 2019 Release
