@@ -1,3 +1,12 @@
+.. _automation-6.5.3.5696:
+
+Automation Agent 6.5.3.5696
+---------------------------
+
+*Released* 2019-04-21
+
+- Additional work for MongoDB connection management.
+
 .. _automation-6.5.2.5660:
 
 Automation Agent 6.5.2.5660
