@@ -114,6 +114,7 @@ rst_epilog = '\n'.join([
     '.. |smtp| replace:: :abbr:`SMTP (Simple Mail Transport Protocol)`',
     '.. |snmp| replace:: :abbr:`SNMP (Simple Network Management Protocol)`',
     '.. |spn| replace:: :abbr:`SPN (Service Principal Name)`',
+    '.. |sql| replace:: :abbr:`SQL (Structured Query Language)`',
     '.. |ssd| replace:: :abbr:`SSD (Solid State Disk)`',
     '.. |ssl| replace:: :abbr:`SSL (Secure Sockets Layer)`',
     '.. |stitch-docs| replace:: MongoDB Stitch',
