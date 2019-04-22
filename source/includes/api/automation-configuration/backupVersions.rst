@@ -50,9 +50,9 @@ the :doc:`{+bagent+} </tutorial/nav/backup-agent/>`.
        .. important::
 
           This property is read-only. Any modifications made to this
-          property are not reflected when updating the
-          {+bagent+} through the |api|. To update the {+bagent+} version, see :ref:`this endpoint
-          <update-monitoring-backup-versions>`.
+          property are not reflected when updating the {+bagent+}
+          through the |api|. To update the Backup Agent version, see
+          :ref:`this endpoint <update-monitoring-backup-versions>`.
 
    * - backupVersions.hostname
      - string

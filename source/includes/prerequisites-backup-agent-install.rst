@@ -1,7 +1,7 @@
-{+magent+}
+Monitoring Agent
 ++++++++++++++++
 
-Install and configure the {+magent+}, as described in the
+Install and configure the Monitoring Agent, as described in the
 :doc:`/tutorial/nav/monitoring-agent` documentation.
 
 Firewall

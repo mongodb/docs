@@ -1,11 +1,10 @@
-The Backup Agent polls the primary MongoDB instance of
-every backup-enabled replica set and transmits the operations to
-the |mms| service.
+The Backup Agent polls the primary MongoDB instance of every
+backup-enabled replica set and transmits the operations to the |mms|
+service.
 
-The Backup Agent relies on the |mms| {+magent+} to populate the
+The Backup Agent relies on the |mms| Monitoring Agent to populate the
 list of sharded clusters and replica sets eligible for backup. If
-the appropriate hosts are not added, or the {+magent+} is not
+the appropriate hosts are not added, or the Monitoring Agent is not
 being correctly run, the lists may be incomplete or out-of-date.
-If you have not already installed and configured the {+magent+},
+If you have not already installed and configured the Monitoring Agent,
 please refer to the :doc:`/tutorial/nav/install-monitoring-agent`
-documentation.

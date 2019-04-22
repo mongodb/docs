@@ -14,4 +14,4 @@ a MongoDB process, the agent must have:
   log directory.
 
 - Permission to stop, start, and update any existing Monitoring and
-  {+bagent+}s.
+  Backup Agents.

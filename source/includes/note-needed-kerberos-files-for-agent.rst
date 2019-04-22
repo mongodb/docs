@@ -1,5 +1,5 @@
 Two Kerberos-related files must be installed on any host running the
-Monitoring or {+bagent+}: 
+Monitoring or Backup Agent: 
 
 - Create or configure the 
   `krb5.conf <https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html>`_ 

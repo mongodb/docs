@@ -51,7 +51,7 @@ of the :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
 
           This property is read-only. Any modifications made to this
           property are not reflected when updating the
-          {+magent+} through the |api|. To update the {+magent+} version, see :ref:`this endpoint
+          {+magent+} through the |api|. To update the Monitoring Agent version, see :ref:`this endpoint
           <update-monitoring-backup-versions>`.
 
    * - monitoringVersions.hostname

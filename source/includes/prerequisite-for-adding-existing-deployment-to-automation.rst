@@ -21,7 +21,7 @@
     #. Click :guilabel:`Next` until you see the **Configure** 
        |mms| **Agents** page.
 
-    #. Click :guilabel:`Show` to the right of the :guilabel:`{+aagent+} Password` field.
+    #. Click :guilabel:`Show` to the right of the :guilabel:`Automation Agent Password` field.
 
        The {+aagent+}'s password displays.
 

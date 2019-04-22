@@ -35,20 +35,20 @@
 
    * - ``pingCount``
      - number
-     - **Only applicable to {+magent+}s**. The number of pings that
-       the {+magent+} has sent to the ``hostname`` URL.
+     - **Only applicable to Monitoring Agents**. The number of pings that
+       the Monitoring Agent has sent to the ``hostname`` URL.
 
    * - ``isManaged``
      - Boolean
 
-     - **Only applicable to Monitoring and {+bagent+}s**. Specifies
+     - **Only applicable to Monitoring and Backup Agents**. Specifies
        whether or not |mms| manages the agent.
 
    * - ``lastPing``
      - timestamp
-     - **Only applicable to {+magent+}s**. Time of most recent
+     - **Only applicable to Monitoring Agents**. Time of most recent
        ping.
 
    * - ``tag``
      - string
-     - **Only applicable to {+bagent+}s**. The agent's tag, if there is one.
+     - **Only applicable to Backup Agents**. The agent's tag, if there is one.
