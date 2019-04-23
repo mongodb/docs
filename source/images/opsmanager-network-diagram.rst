@@ -1,3 +1,3 @@
-.. figure:: /images/opsmanager-network-diagram.bakedsvg.svg
+.. figure:: /images/ops-manager-overview.png
    :alt: Network diagram showing flows of data between Ops Manager's components.
-   :figwidth: 700px
+   :figwidth: 600px
