@@ -1,3 +1,12 @@
+.. _automation-6.5.4.5699-1:
+
+Automation Agent 6.5.4.5699-1
+-----------------------------
+
+*Released* 2019-04-24
+
+- Update to Go driver 1.0.1.
+
 .. _automation-6.5.3.5696:
 
 Automation Agent 6.5.3.5696
