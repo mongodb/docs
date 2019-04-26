@@ -2,14 +2,18 @@ title: Disable the balancer.
 stepnum: 1
 ref: disable-balancer
 pre: |
-  To disable the :ref:`balancer <sharding-internals-balancing>`,
-  connect the :binary:`~bin.mongo` shell to a :binary:`~bin.mongos` instance and run
-  :method:`sh.stopBalancer()` in the ``config`` database.
-action:
-  language: javascript
-  code: |
-    use config
-    sh.stopBalancer()
+  
+  Connect a :binary:`~bin.mongo` shell to a cluster
+  :binary:`~bin.mongos`  instance. Use the :method:`sh.stopBalancer()`
+  method to stop the balancer. If a balancing round is in progress, the
+  operation waits for balancing to complete before stopping the
+  balancer.
+
+  .. code-block:: javascript
+
+     use config
+     sh.stopBalancer()
+
 post: |
   For more information, see the
   :ref:`sharding-balancing-disable-temporarily` procedure.
@@ -39,12 +43,54 @@ pre: |
 action:
   - heading: Lock shard replica set secondary.
     pre: |
-      For each shard replica set in the sharded cluster, connect a
-      :binary:`~bin.mongo` shell to the secondary member's
-      :binary:`~bin.mongod` instance and run :method:`db.fsyncLock()`. 
+      For each shard replica set in the sharded cluster, confirm that
+      the member has replicated data up to some control point. To
+      verify, first connect a :binary:`~bin.mongo` shell to the shard
+      primary and perform a write operation with
+      :writeconcern:`"majority"` write concern on a control
+      collection:
     language: javascript
     code: |
-      db.fsyncLock()
+      use config
+      db.BackupControl.findAndModify(
+         {
+           query: { _id: 'BackupControlDocument' },
+           update: { $inc: { counter : 1 } },
+           new: true,
+           upsert: true,
+           writeConcern: { w: 'majority', wtimeout: 15000 }
+         }
+      );
+  - pre: |
+      The operation should return the modified (or inserted) control
+      document:
+    language: javascript
+    code: |
+       { "_id" : "BackupControlDocument", "counter" : 1 }
+  - pre: |
+      Query the shard secondary member for the returned control
+      document. Connect a :binary:`~bin.mongo` shell to the shard 
+      secondary to lock and use :method:`db.collection.find()` to query 
+      for the control document:
+    language: javascript
+    code: |
+      rs.slaveOk();
+      use config;
+
+      db.BackupControl.find(
+         { "_id" : "BackupControlDocument", "counter" : 1 }
+      ).readConcern('majority');
+  - post: |
+         If the secondary member contains the latest control document, 
+         it is safe to lock the member. Otherwise, wait until the member
+         contains the document or select a different secondary member
+         that contains the latest control document.
+  - pre: |
+       To lock the secondary member, run :method:`db.fsyncLock()` on
+       the member:
+    language: javascript
+    code: |
+       db.fsyncLock()
 
   - heading: Lock config server replica set secondary.
     pre: |
@@ -62,7 +108,7 @@ action:
            update: { $inc: { counter : 1 } },
            new: true,
            upsert: true,
-           writeConcern: { w: 'majority', wtimeout: 15000 } }
+           writeConcern: { w: 'majority', wtimeout: 15000 }
          }
       );
   - pre: |
