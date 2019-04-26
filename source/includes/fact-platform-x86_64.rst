@@ -68,13 +68,13 @@
      - 3.6.5+
      -
 
-   * - RHEL/CentOS 6.2 and later
+   * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 6.2 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
-   * - RHEL/CentOS 7.0 and later
+   * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 7.0 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
