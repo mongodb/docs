@@ -16,43 +16,134 @@
 
 .. include:: /includes/admonition-mac-osx-sierra-restriction.rst
 
-Synopsis
---------
+Description
+-----------
 
 :binary:`~bin.mongotop` provides a method to track the amount of time a
-MongoDB instance spends reading and writing data. :binary:`~bin.mongotop`
-provides statistics on a per-collection level. By default,
-:binary:`~bin.mongotop` returns values every second.
+MongoDB instance :binary:`~bin.mongod` spends reading and writing data.
+:binary:`~bin.mongotop` provides statistics on a per-collection level.
+By default, :binary:`~bin.mongotop` returns values every second.
 
 .. include:: /includes/extracts/require-cmd-line-mongotop.rst
 
-.. seealso::
+Syntax
+-------
 
-   For more information about monitoring MongoDB, see
-   :doc:`/administration/monitoring`.
+Default
+~~~~~~~
 
-   For additional background on various other MongoDB status outputs
-   see:
+.. code-block:: sh
 
-   - :doc:`/reference/command/serverStatus`
-   - :doc:`/reference/command/replSetGetStatus`
-   - :doc:`/reference/command/dbStats`
-   - :doc:`/reference/command/collStats`
+   mongotop [frequency]
 
-   For an additional utility that provides MongoDB metrics
-   see :doc:`mongostat </reference/program/mongostat>`.
+You can run :binary:`~bin.mongotop` without any command-line options to
+connect to the :binary:`~bin.mongod` instance running on the localhost
+port ``27017``. By default, :binary:`~bin.mongotop` returns values
+every second.
+
+.. code-block:: sh
+
+   mongotop
+
+To have :binary:`~bin.mongotop` report every 30 seconds, specify the
+time:
+
+.. code-block:: sh
+
+   mongotop 30
+
+When connected to a :binary:`~bin.mongod` instance, the program reports
+first on the connection and then reports on the statistics at the
+configured frequency.
+
+.. code-block:: sh
+
+   2019-04-29T15:35:27.785-0400	connected to: 127.0.0.1
+
+                ns    total      read      write    <timestamp>
+   <db.collection>    81802ms     0ms    81802ms   
+   ...
+
+Command Line Options
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: sh
+
+   mongotop [options] [frequency]
+
+You can run :binary:`~bin.mongotop` with various :ref:`command-line
+options <mongotop-options>`.
+  
+For example, to connect :binary:`~bin.mongotop` to a
+:binary:`~bin.mongod` instance running on a remote host
+``mongodb0.example.com`` and report every 30 seconds:
+
+- You can include the desired frequency of reporting (in this
+  example, 30 seconds) and the :option:`--uri <mongotop --uri>`
+  option to specify the host and port:
+
+  .. code-block:: sh
+
+     mongotop 30 --uri mongodb://mongodb0.example.com:27017 [additional options]
+
+  If the :binary:`~bin.mongod` instance requires authentication, you
+  can specify the user, password, and authentication database as part
+  of the URI connection string:
+
+  .. code-block:: sh
+
+     mongotop 30 --uri mongodb://user:password@mongodb0.example.com:27017/?authSource=admin [additional options]
+
+  The user running :binary:`~bin.mongotop` must have the
+  :authaction:`serverStatus` and :authaction:`top` privileges.
+
+  For more information on the URI connection string, see
+  :option:`--uri <mongotop --uri>`.
+
+- Alternatively, you can use the :option:`--host <mongotop --host>`
+  and :option:`--port <mongotop --port>` options to specify the host
+  and port:
+
+  .. code-block:: sh
+
+     mongotop 30 --host mongodb0.example.com --port 27017 [additional options]
+
+  If the :binary:`~bin.mongod` instance requires authentication, you
+  can specify the user :option:`-u <mongotop -u>`, password
+  :option:`-p <mongotop -p>`, and the authentication database
+  :option:`--authenticationDatabase <mongotop
+  --authenticationDatabase>`.
+
+  .. code-block:: sh
+
+     mongotop 30 --host mongodb0.example.com --port 27017 -u user -p password --authenticationDatabase admin [additional options]
+
+  The user running :binary:`~bin.mongotop` must have the
+  :authaction:`serverStatus` and :authaction:`top` privileges.
+
+For more information on the options available, see
+:ref:`mongotop-options`.
+
+When connected to a :binary:`~bin.mongod` instance, the program reports
+first on the connection and then reports on the statistics at the
+configured frequency.
+
+.. code-block:: sh
+
+   2019-04-29T15:35:27.785-0400	connected to: 127.0.0.1
+
+                ns    total      read      write    <timestamp>
+   <db.collection>    81802ms     0ms    81802ms   
+   ...
 
 Required Access
 ---------------
 
-In order to connect to a :binary:`~bin.mongod` that enforces authorization
-with the :option:`--auth <mongod --auth>` option, you must use the
-:option:`--username <mongotop --username>` and :option:`--password
-<mongotop --password>` options, and the connecting user must
-have the :authaction:`serverStatus` and :authaction:`top` privileges.
+In order to connect to a :binary:`~bin.mongod` that enforces
+authorization, the connecting user must have the
+:authaction:`serverStatus` and :authaction:`top` privileges.
 
-The most appropriate built-in role that has these privileges is
-:authrole:`clusterMonitor`.
+The built-in role :authrole:`clusterMonitor` provides these privileges.
 
 .. _mongotop-options:
 
@@ -120,8 +211,22 @@ Options
 Fields
 ------
 
-:binary:`~bin.mongotop` returns time values specified in milliseconds
-(ms.)
+When connected to a :binary:`~bin.mongod` instance, the program reports
+first on the connection and then reports on the statistics at the
+configured frequency. :binary:`~bin.mongotop` returns time values
+specified in milliseconds (ms.)
+
+.. code-block:: sh
+
+   2019-04-29T15:35:27.785-0400	connected to: 127.0.0.1
+
+                ns    total      read      write    <timestamp>
+   <db.collection>    81802ms     0ms    81802ms   
+   ...
+
+                ns    total      read      write    <timestamp>
+   <db.collection>    0ms         0ms        0ms
+   ...
 
 :binary:`~bin.mongotop` only reports active namespaces or databases,
 depending on the :option:`--locks <mongotop --locks>` option. If you don't see a database
@@ -187,19 +292,16 @@ This command produces the following output:
 
 .. code-block:: sh
 
-                       ns    total    read    write    2018-08-06T23:25:55-04:00
-       admin.system.roles      0ms     0ms      0ms                             
-     admin.system.version      0ms     0ms      0ms                             
-   config.system.sessions      0ms     0ms      0ms                             
-        local.startup_log      0ms     0ms      0ms                             
-     local.system.replset      0ms     0ms      0ms                             
+   2019-04-29T15:35:27.785-0400	connected to: 127.0.0.1
 
-                       ns    total    read    write    2018-08-06T23:26:10-04:00
+
+                       ns    total    read    write    2019-04-29T15:35:57-04:00
        admin.system.roles      0ms     0ms      0ms                             
+       admin.system.users      0ms     0ms      0ms                             
      admin.system.version      0ms     0ms      0ms                             
    config.system.sessions      0ms     0ms      0ms                             
         local.startup_log      0ms     0ms      0ms                             
-     local.system.replset      0ms     0ms      0ms                             
+     local.system.replset      0ms     0ms      0ms
 
 To return a :binary:`~bin.mongotop` report every 5 minutes, use the
 following command:
@@ -207,3 +309,20 @@ following command:
 .. code-block:: sh
 
    mongotop 300
+
+Additional Information
+----------------------
+
+For more information about monitoring MongoDB, see
+:doc:`/administration/monitoring`.
+
+For additional background on various other MongoDB status outputs see:
+
+- :doc:`/reference/command/serverStatus`
+- :doc:`/reference/command/replSetGetStatus`
+- :doc:`/reference/command/dbStats`
+- :doc:`/reference/command/collStats`
+
+For an additional utility that provides MongoDB metrics
+see :doc:`mongostat </reference/program/mongostat>`.
+
