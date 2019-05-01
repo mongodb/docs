@@ -1,3 +1,3 @@
-.. figure:: /images/network-ports.bakedsvg.svg
+.. figure:: /images/network-ports.png
    :alt: Diagram showing the connections between Ops Manager's components.
-   :figwidth: 684px
+   :figwidth: 605px
