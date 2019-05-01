@@ -68,7 +68,8 @@ extlinks = {
     'k8s': ('https://docs.mongodb.com/kubernetes-operator/stable%s',''),
     'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
     'website': ('https://www.mongodb.com%s?jmp=docs',''),
-    'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs','')
+    'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
+    'aws': ('http://docs.aws.amazon.com%s','')
 }
 
 source_constants = {
