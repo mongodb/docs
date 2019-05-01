@@ -56,7 +56,7 @@
      - id: java-sync
        content: |
          
-         .. class: copyable-code
+         .. class:: copyable-code
          .. code-block:: sh
          
             { "_id" : { "$oid" : "5ada85ae9b267e9ac4d84105" }, "item" : "canvas", "qty" : 100, "tags" : ["cotton"], "size" : { "h" : 28, "w" : 35.5, "uom" : "cm" } }
