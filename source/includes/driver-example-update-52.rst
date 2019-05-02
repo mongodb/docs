@@ -61,12 +61,12 @@ to ``paper``. The operation uses:
      content: |
         
       - ``$set`` to update the ``status`` field and the ``uom``
-         field embedded in the ``size`` document. To access the fields within
-         embedded documents, the operation uses :ref:`dot notation
-         <document-dot-notation>`.
+        field embedded in the ``size`` document. To access the fields within
+        embedded documents, the operation uses :ref:`dot notation
+        <document-dot-notation>`.
 
       - :``$currentDate`` to set the ``lastModified`` field to the
-         current date.
+        current date.
 
       Before updating the data, you'll need to assign the ``inventory`` collection in the ``test`` database to a variable:
 
