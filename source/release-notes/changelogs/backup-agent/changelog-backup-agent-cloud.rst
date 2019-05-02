@@ -1,9 +1,21 @@
+.. _backup-7.8.1.1109:
+
+Backup Agent 7.8.1.1109
+-----------------------
+
+*Released* 2019-05-02
+
+- **Fix:** Log optimizations when applying oplogs during a point in time
+  restore.
+
 .. _backup-7.8.0.1107:
 
 Backup Agent 7.8.0.1107
 -----------------------
 
-Convert to new MongoDB Go Driver
+*Released* :ref:`2019-04-16 <cloudmanager-v20190416>`
+
+- Convert to new MongoDB Go Driver
 
 .. _backup-7.6.0.1059:
 

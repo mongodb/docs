@@ -1,3 +1,13 @@
+.. _automation-6.5.5.5702-1:
+
+Automation Agent 6.5.5.5702-1
+-----------------------------
+
+*Released* 2019-05-02
+
+- **Fix:** Properly handle nested directories when downloading tar
+  files.
+
 .. _automation-6.5.4.5699-1:
 
 Automation Agent 6.5.4.5699-1
