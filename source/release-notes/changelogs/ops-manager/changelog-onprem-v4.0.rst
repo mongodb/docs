@@ -1,3 +1,36 @@
+.. _opsmgr-server-4.0.11:
+
+|onprem| Server 4.0.11
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2019-05-02*
+
+.. important::
+
+   Ops Manager 4.0.11 includes important security fixes. The highest
+   severity issue fixed in this release is a
+   `CVSSv3 score <https://www.first.org/cvss/specification-document>`__
+   score of 6.1 (Medium Severity).
+
+- A new option to bypass invitations allows users to be added to
+  organizations and projects immediately, without requiring them to
+  accept an invitation. Organization and project owners can enable
+  this setting in the User Authentication section of the :ref:`Ops
+  Manager Config wizard <opsmgr-config-user-authentication-tab>`.
+
+  This setting is only available when managing user accounts in the
+  :ref:`Application Database <mms-application-database>`. The
+  invitation bypass option is available for users added via the UI
+  and the |api|.
+
+- **Fix:** When enabling MongoDB profiling from the Profile tab,
+  ensure that the pending changes banner is shown without requiring
+  a browser refresh.
+
+- Updated JDK to version 8u212. On Windows, Ops Manager now requires
+  the `Visual C++ Redistributable Packages for Visual Studio 2013
+  <https://www.microsoft.com/en-us/download/details.aspx?id=40784>`__.
+
 .. _opsmgr-server-4.0.10:
 
 |onprem| Server 4.0.10
