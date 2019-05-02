@@ -92,6 +92,7 @@ source_constants = {
     'bagent': 'Backup',
     'magent': 'Monitoring',
     'mdbagent': 'MongoDB Agent',
+    'mdbagent-wa': 'MongoDB Agent with Automation',
     'agent-dl-deb-ubuntu-16-ppc': 'Ubuntu 16.X Power (ppc64le) - DEB',
     'agent-dl-deb-ubuntu-16-x64': 'Debian 8/9, Ubuntu 16.X/18.X - DEB',
     'agent-dl-deb-ubuntu-18-x64': 'Debian 8/9, Ubuntu 16.X/18.X - DEB',
