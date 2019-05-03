@@ -1,3 +1,16 @@
+.. _opsmgr-server-3.6.12:
+
+|onprem| Server 3.6.12
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2019-05-02*
+
+- Logging improvements.
+
+- Updated JDK to version 8u212. On Windows, Ops Manager now requires
+  the `Visual C++ Redistributable Packages for Visual Studio 2013
+  <https://www.microsoft.com/en-us/download/details.aspx?id=40784>`__.
+
 .. _opsmgr-server-3.6.11:
 
 |onprem| Server 3.6.11
