@@ -23,6 +23,8 @@ Synopsis
 contents of a database. :binary:`~bin.mongodump` can export data from
 either :binary:`~bin.mongod` or :binary:`~bin.mongos` instances.
 
+.. include:: /includes/extracts/require-cmd-line-mongodump.rst
+
 :binary:`~bin.mongodump` can be a part of a :ref:`backup strategy
 <backup-with-mongodump>` with :binary:`~bin.mongorestore` for partial
 backups based on a query, syncing from production to staging or
@@ -31,86 +33,173 @@ standalone. However, the use of :binary:`~bin.mongodump` and
 :binary:`~bin.mongorestore` as a backup strategy can be problematic for
 sharded clusters and replica sets.
 
-.. include:: /includes/extracts/require-cmd-line-mongodump.rst
-
 For an overview of :binary:`~bin.mongodump` in conjunction with
-:binary:`~bin.mongorestore` part of a backup and recovery strategy, see
-:doc:`/tutorial/backup-and-restore-tools`.
+:binary:`~bin.mongorestore` part of a backup and recovery strategy, see:
 
-.. seealso:: :binary:`~bin.mongorestore`,
-   :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
-   and :doc:`/core/backups`.
+- :doc:`/tutorial/backup-and-restore-tools`
+- :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
+- :doc:`/core/backups`
+
+Syntax
+------
+
+.. code-block:: sh
+
+   mongodump [options]
+
+Connect to a MongoDB Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a local MongoDB instance running on port 27017 and use
+the default settings to export the content, run
+:binary:`~bin.mongodump` without any command-line options:
+
+.. code-block:: sh
+
+   mongodump
+
+To specify a host and/or port of the MongoDB instance, you can either:
+
+- Specify the hostname and port in the :option:`--uri connection string
+  <mongodump --uri>`:
+
+  .. code-block:: sh
+  
+     mongodump --uri "mongodb://mongodb0.example.com:27017" [additional options]
+
+- Specify the hostname and port in the :option:`--host <mongodump
+  --host>`:
+
+  .. code-block:: sh
+
+     mongodump --host "mongodb0.example.com:27017"  [additional options]
+  
+- Specify the hostname and port in the :option:`--host <mongodump
+  --host>` and :option:`--port <mongodump --port>`:
+
+  .. code-block:: sh
+
+     mongodump --host "mongodb0.example.com" --port 27017 [additional options]
+
+For more information on the options available, see :ref:`mongodump-options`.
+
+Connect to a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a replica set to export its data, you can either:
+
+- Specify the replica set name and members in the :option:`--uri connection string <mongodump --uri>`:
+
+  .. code-block:: sh
+  
+     mongodump --uri "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myReplicaSetName" [additional options]
+
+- Specify the replica set name and members in the :option:`--host <mongodump --host>`:
+
+  .. code-block:: sh
+
+     mongodump --host "myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com" [additional options]
+
+By default, :binary:`~bin.mongodump` reads from the primary of the
+replica set. To override the default, you can specify the :ref:`read
+preference <replica-set-read-preference>`:
+
+- You can specify the read preference in the
+  :option:`--uri connection string <mongodump --uri>`
+
+  .. code-block:: sh
+  
+     mongodump --uri "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myReplicaSetName&readPreference=secondary" [additional options]
+
+- You can specify the read preference in using the
+  :option:`--readPreference <mongodump --readPreference>` command line
+  option:
+
+  .. code-block:: sh
+  
+     mongodump --host "myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference primary [additional options]
+
+For more information on the options available, see :ref:`mongodump-options`.
+
+Connect to a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a sharded cluster to export its data, you can either:
+
+- Specify the hostname of the :binary:`~bin.mongos` instance in the
+  :option:`--uri connection string <mongodump --uri>`
+
+  .. code-block:: sh
+  
+     mongodump --uri "mongodb://mongos0.example.com:27017" [additional options]
+
+- Specify the hostname and port of the :binary:`~bin.mongos` instance in the :option:`--host <mongodump --host>` 
+
+  .. code-block:: sh
+
+     mongodump --host "mongos0.example.com:27017" [additional options]
+
+By default, :binary:`~bin.mongodump` reads from the primary of the
+shard replica set. To override the default, you can specify the :ref:`read
+preference <replica-set-read-preference>`:
+
+- You can specify the read preference in the
+  :option:`--uri connection string <mongodump --uri>`
+
+  .. code-block:: sh
+  
+     mongodump --uri "mongodb://mongos0.example.com:27017/?readPreference=secondary" [additional options]
+
+- You can specify the read preference in using the
+  :option:`--readPreference <mongodump --readPreference>` command line
+  option:
+
+  .. code-block:: sh
+  
+     mongodump --host "mongos0.example.com:27017" --readPreference primary [additional options]
+
+For more information on the options available, see :ref:`mongodump-options`.
+
+.. seealso::
+
+   :ref:`mongodump-examples`
 
 .. _mongodump-behavior:
 
 Behavior
 --------
 
+Read Preference
+~~~~~~~~~~~~~~~
+
+By default, :binary:`~bin.mongodump` uses read preference
+:readmode:`primary`. To override the default, you can specify the
+:ref:`read preference <replica-set-read-preference>` in the
+:option:`--readPreference <mongodump --readPreference>` command line
+option or in the :option:`--uri connection string <mongodump --uri>`.
+
+Starting in version 4.2, if you specify read preference in the URI
+string and the :option:`--readPreference <mongodump --readPreference>`
+option, the :option:`--readPreference <mongodump --readPreference>`
+value overrides the read preference specified in the URI string.
+
+In earlier versions, the two options are incompatible.
+
 Data Exclusion
 ~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-mongodump-local-database.rst
 
-:binary:`~bin.mongodump` only captures the documents in the database in its
-backup data and does not include index data. :binary:`~bin.mongorestore` or
-:binary:`~bin.mongod` must then rebuild the indexes after restoring data.
+:binary:`~bin.mongodump` output only captures the documents in the
+database and does not include index data. :binary:`~bin.mongorestore`
+or :binary:`~bin.mongod` must then rebuild the indexes after restoring
+data.
 
 .. versionchanged:: 3.4 MongoDB 3.4 added support for
    :doc:`read-only views </core/views>`. By default,
    :binary:`~bin.mongodump` only captures a view's metadata: it does not
    create a binary export of the documents included in the view. To
    capture the documents in a view use :option:`--viewsAsCollections <mongodump --viewsAsCollections>`.
-
-.. _mongodump-read-preference:
-
-Read Preference
-~~~~~~~~~~~~~~~
-
-Replica Sets
-````````````
-
-.. versionchanged:: 3.2.0
-
-   The choice of target or targets for the :option:`--host <mongodump --host>`
-   parameter affects the read preference of :binary:`~bin.mongodump`
-   when connecting to a replica set.
-
-   - If the string passed to ``--host`` is prefixed by the replica set name,
-     :binary:`~bin.mongodump` reads from the :readmode:`primary` replica set
-     member by default. For example:
-
-     .. code-block:: javascript
-
-       --host "replSet/rep1.example.net:27017,rep2.example.net:27017,rep3.example.net:27017"
-
-   - If the string passed to ``--host`` contains a list of
-     :binary:`~bin.mongod` instances, but does not include the replica set
-     name as a prefix to the host string, :binary:`~bin.mongodump`
-     reads from the :readmode:`nearest` node by default. For example:
-
-     .. code-block:: javascript
-
-       --host "rep1.example.net:27017,rep2.example.net:27017,rep3.example.net:27017"
-
-Sharded Clusters
-````````````````
-
-.. versionchanged:: 3.0.5
-
-   For a sharded cluster where the shards are replica sets,
-   :binary:`~bin.mongodump` no longer prefers reads from secondary
-   members when run against the :binary:`~bin.mongos` instance.
-
-For sharded clusters, specify the hostname of a :binary:`~bin.mongos`
-for the ``--host`` option.
-:binary:`~bin.mongodump` reads from the :readmode:`primary` replica set
-member on each shard replica set in the cluster.
-
-Unsharded collections in a sharded cluster are stored on a
-:ref:`primary shard <primary-shard>`.
-:binary:`~bin.mongodump` reads from the primary replica set member on
-the primary shard for any unsharded collections. Note: each
-database has its own primary shard.
 
 Overwrite Files
 ~~~~~~~~~~~~~~~
@@ -141,6 +230,8 @@ Required Access
 ---------------
 
 .. include:: /includes/access-mongodump-collections.rst
+
+.. _mongodump-options:
 
 Options
 -------
@@ -222,6 +313,8 @@ Options
 .. include:: /includes/option/option-mongodump-numParallelCollections.rst
 
 .. include:: /includes/option/option-mongodump-viewsAsCollections.rst
+
+.. _mongodump-examples:
 
 Examples
 --------
@@ -319,3 +412,4 @@ option, specifying the name of the compressed file.
 .. code-block:: sh
 
    mongodump --archive=test.20150715.gz --gzip --db test
+
