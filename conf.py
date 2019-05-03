@@ -106,7 +106,8 @@ source_constants = {
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'manual': ('http://docs.mongodb.com/manual%s', ''),
-    'v3.6': ('https://docs.mongodb.com/v3.6%s', '')
+    'v3.6': ('https://docs.mongodb.com/v3.6%s', ''),
+    'website': ('https://www.mongodb.com%s?jmp=docs', ''),
 }
 
 intersphinx_mapping = {}

@@ -20,9 +20,14 @@ Configure Kerberos for |bi-short|
 .. versionadded:: 2.5
 
 The |bi| supports Kerberos authentication for connecting BI tools and
-for the |bi-short|'s admin user authenticating with MongoDB. The
-following section guides you through configuring the |bi-short| to use
-Kerberos authentication on either Windows or macOS.
+for the |bi-short|'s admin user authenticating with MongoDB.
+
+The following section guides you through configuring the |bi-short| to use Kerberos authentication with two of the most common use cases:
+
+- Windows/Linux client machines authenticating to Active Directory
+- macOS client machine authenticating to Linux |kdc|
+
+If you have another use case, please contact :website:`MongoDB Support </support/get-started>` for assistance.
 
 .. tabs-platforms::
 
@@ -66,8 +71,13 @@ Kerberos authentication on either Windows or macOS.
 
             .. code-block:: powershell
 
-               setspn.exe -A mongodb/BI.EXAMPLE.COM mongodb
-               setspn.exe -A mongosql/BI.EXAMPLE.COM mongosql
+               setspn.exe -S mongodb/BI.EXAMPLE.COM mongodb
+               setspn.exe -S mongosql/BI.EXAMPLE.COM mongosql
+
+            .. note::
+
+               The names can be anything you choose as long as you use
+               them consistently throughout this setup.
 
             Open the `Active Directory Administrative Center <https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-administrative-center>`__
             and double-click on your MongoDB service user
@@ -80,9 +90,10 @@ Kerberos authentication on either Windows or macOS.
             .. admonition:: Linux Schema User Authenticating to ADC
                :class: note
 
-               If you are authenticating a user from a Linux host, the
-               user must authenticate using Kerberos. On the Linux
-               client, this requires:
+               If you are authenticating a user from a Linux host and
+               the schema user is using a keytab file instead of a
+               password, the following is required in addition to
+               creating the user in MongoDB:
 
                - Creating a |upn| for the schema user.
                - Setting the `KRB5_CLIENT_KTNAME <https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html#default-client-keytab>`__
@@ -109,21 +120,12 @@ Kerberos authentication on either Windows or macOS.
 
          - Run ``mongod`` as the MongoDB Windows user you
            created in Active Directory.
-         - :manual:`Create a user </reference/method/db.createUser>` on your MongoDB database with the
+         - :manual:`Create a user </reference/method/db.createUser>`
+           on your MongoDB database with the
            :ref:`appropriate roles <cached-sampling-user-permissions>`
            to sample data.
 
-           .. admonition:: Linux Schema User Authenticating to ADC
-              :class: note
 
-              If you are authenticating a user from a Linux host, the 
-              user must authenticate using Kerberos. On the
-              ``mongod``, this requires:
-
-              - Setting :setting:`mongodb.net.auth.username` to the
-                schema user's |upn|.
-              - Setting :setting:`mongodb.net.auth.password` to no
-                value.
 
          BI Connector Configuration
          ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -258,6 +260,18 @@ Kerberos authentication on either Windows or macOS.
               :guilabel:`Log on as: This account:`
               ``mongosql@EXAMPLE.COM``
             - Start the MongoDB and |bi| services.
+
+         .. admonition:: Linux Schema User Authenticating to ADC
+            :class: note
+
+            If you are authenticating a user from a Linux host and
+            your schema user is going to use a username and password,
+            the following is required:
+
+            - Setting :setting:`mongodb.net.auth.username` to the
+              schema user's |upn|.
+            - Setting :setting:`mongodb.net.auth.password` to no
+              value.
 
          .. seealso::
 
