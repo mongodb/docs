@@ -1,0 +1,118 @@
+title: "Extract the MongoDB Agent."
+stepnum: 0
+ref: extract-mongodb-agent-installer
+content: |
+
+  You can install the MongoDB Agent in any directory. If you want
+  to move the archive to another directory before extracting, you may
+  do so.
+
+  To install the MongoDB Agent, extract the archive:
+
+  .. code-block:: sh
+
+     tar -xvzf mongodb-mms-automation-agent-{+mdbagent-version-cloud+}.{{fileBuild}}.tar.gz
+
+---
+title: "Change to the extracted binary directory."
+stepnum: 0
+ref: change-to-mongodb-agent-directory
+content: |
+
+  Change into the directory that was created after extracting the
+  MongoDB Agent binary:
+
+
+  .. code-block:: sh
+
+     cd mongodb-mms-automation-agent-{+mdbagent-version-opsmgr+}.{{fileBuild}}
+
+---
+title: "Create the binary, log, and data directories."
+stepnum: 0
+ref: create-data-directories
+content: |
+
+  Create the following directories to store files that the
+  MongoDB Agent needs:
+
+  .. list-table::
+     :widths: 20 40 40
+     :header-rows: 1
+
+     * - Component
+       - Default Directory
+       - Description
+
+     * - Binaries
+       - ``/var/lib/mongodb-mms-automation``
+       - These are the binaries that the MongoDB Agent manages.
+         They include the {+bagent+}, {+magent+},
+         BI Connector, and MongoDB binaries.
+
+     * - MongoDB Agent logs
+       - ``/var/log/mongodb-mms-automation``
+       - These are the log files that the MongoDB Agent creates.
+
+     * - MongoDB databases
+       - ``/data``
+       - These are the databases that the MongoDB Agent creates and
+         manages.
+
+  Run these commands to create the directories:
+
+  .. code-block:: sh
+
+     sudo mkdir -m 755 -p /var/lib/mongodb-mms-automation
+     sudo mkdir -m 755 -p /var/log/mongodb-mms-automation
+     sudo mkdir -m 755 -p /data
+
+  .. include:: /includes/sidebar-using-different-agent-binary-path.rst
+
+---
+title: "Start the MongoDB Agent."
+stepnum: 0
+ref: start-mongodb-agent
+content: |
+
+  From the directory in which you installed the MongoDB Agent and
+  as the system user you created in the last step, issue the following
+  command:
+
+  .. code-block:: sh
+
+     nohup ./mongodb-mms-automation-agent \
+       --config=local.config \
+       >> /var/log/mongodb-mms-automation/automation-agent-fatal.log 2>&1 &
+
+---
+title: "Assign permissions to the system user that runs the MongoDB Agent."
+stepnum: 0
+ref: assign-mongodb-agent-permissions
+content: |
+  Run the following commands:
+
+  .. code-block:: sh
+
+     # Create {{user}} user and group if they do not exist
+
+     if ! sudo /usr/bin/id -g {{user}} &>/dev/null; then
+       sudo /usr/sbin/groupadd -r {{user}}
+     fi
+
+     # Create {{user}} user if they do not exist and assign
+     # them to the {{user}} group
+
+     if ! sudo /usr/bin/id {{user}} &>/dev/null; then
+       sudo /usr/sbin/useradd -M -r -g {{user}} \
+         -d /var/lib/mongo -s /bin/false \
+         -c {{user}} {{user}} > /dev/null 2>&1
+     fi
+
+     # Grant the {{user}}:{{user}} user and group permissions
+     # to manage deployments.
+
+     sudo chown {{user}}:{{user}} /var/lib/{{user}}-mms-automation
+     sudo chown {{user}}:{{user}} /var/log/{{user}}-mms-automation
+     sudo chown {{user}}:{{user}} /data
+...

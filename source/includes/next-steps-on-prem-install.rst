@@ -9,7 +9,7 @@ must next do the following:
 
    To install agents, see :doc:`/tutorial/nav/add-servers`.
 
-   .. seealso:: :doc:`/tutorial/install-mongodb-agent`
+   .. seealso:: :doc:`/tutorial/nav/install-mongodb-agent`
 
 2. After you install agents, deploy MongoDB to your servers to test connections.
    If you use |mms| Automation, you can deploy MongoDB through the |onprem|

@@ -1,3 +1,3 @@
-You can also access install instructions in |mms|, including commands you can
-copy and paste: click :guilabel:`Deployment`, then :guilabel:`Agents`, then
-:guilabel:`Downloads & Settings`.
+|mms| displays the {+mdbagent+} install instructions after you choose
+your Agent download. You can be copy all the necessary commands from
+the |application|.
