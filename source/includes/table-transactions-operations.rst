@@ -15,6 +15,7 @@
        - :pipeline:`$indexStats`
        - :pipeline:`$listLocalSessions`
        - :pipeline:`$listSessions`
+       - :pipeline:`$merge`
        - :pipeline:`$out`
        - :pipeline:`$planCacheStats`
 
