@@ -1,6 +1,9 @@
 GCP-backed clusters configured for VPC Peering cannot:
   
-* Be accessed from any network other than the peered VPCs.
+* Be accessed by using the |service| hostname from outside the peered
+  VPC. If the database host's public IP is used and the connecting
+  client's IP address is on the :ref:`IP whitelist <whitelist>`, the
+  cluster can be accessed from outside the VPC.
 
 * Use |stitch-docs| apps.
 
