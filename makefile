@@ -1,5 +1,9 @@
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-USER=$(shell whoami)
+ifeq ($(STAGING_USERNAME),)
+	USER=$(shell whoami)
+else
+	USER=$(STAGING_USERNAME)
+endif
 
 STAGING_URL_CLOUDMGR="https://docs-staging.cloudmanager.mongodb.com"
 STAGING_BUCKET_CLOUDMGR=docs-cloudmanager-staging
