@@ -221,8 +221,8 @@ aliases: -q
 directive: option
 args: <JSON>
 description: |
-  Provides a :term:`JSON document` as a query that optionally limits
-  the documents returned in the export. Specify JSON in :doc:`strict
+  Provides a query as a :term:`JSON document` (enclosed in quotes) to 
+  return matching documents in the export. Specify JSON in :doc:`strict
   format </reference/mongodb-extended-json>`.
 
   .. include:: /includes/fact-quote-command-line-query.rst
@@ -232,26 +232,29 @@ description: |
 
   .. code:: json
 
-     { "_id" : ObjectId("51f0188846a64a1ed98fde7c"), "a" : 1 }
-     { "_id" : ObjectId("520e61b0c6646578e3661b59"), "a" : 1, "b" : 2 }
-     { "_id" : ObjectId("520e642bb7fa4ea22d6b1871"), "a" : 2, "b" : 3, "c" : 5 }
-     { "_id" : ObjectId("520e6431b7fa4ea22d6b1872"), "a" : 3, "b" : 3, "c" : 6 }
-     { "_id" : ObjectId("520e6445b7fa4ea22d6b1873"), "a" : 5, "b" : 6, "c" : 8 }
+     { "_id" : ObjectId("51f0188846a64a1ed98fde7c"), "a" : 1, "date" : ISODate("1960-05-01T00:00:00Z") }
+     { "_id" : ObjectId("520e61b0c6646578e3661b59"), "a" : 1, "b" : 2, "date" : ISODate("1970-05-01T00:00:00Z") }
+     { "_id" : ObjectId("520e642bb7fa4ea22d6b1871"), "a" : 2, "b" : 3, "c" : 5, "date" : ISODate("2010-05-01T00:00:00Z") }
+     { "_id" : ObjectId("520e6431b7fa4ea22d6b1872"), "a" : 3, "b" : 3, "c" : 6, "date" : ISODate("2015-05-02T00:00:00Z") }
+     { "_id" : ObjectId("520e6445b7fa4ea22d6b1873"), "a" : 5, "b" : 6, "c" : 8, "date" : ISODate("2018-03-01T00:00:00Z") }
+     { "_id" : ObjectId("5cd0de910dbce4346295ae28"), "a" : 15, "b" : 5, "date" : ISODate("2015-03-01T00:00:00Z") }
 
   The following :binary:`~bin.mongoexport` uses the :option:`-q` option to
   export only the documents with the field ``a`` greater than or equal to
-  (:query:`$gte`) to ``3``:
+  (:query:`$gte`) to ``3`` and the field ``date`` less than  
+  ``ISODate("2016-01-01T00:00:00Z")`` (using the :ref:`strict format
+  for dates { "$date": "YYYY-MM-DDTHH:mm:ss.mmm\<offset\>"} <extended-json-date>`):
 
   .. code:: bash
 
-     mongoexport -d test -c records -q '{ a: { $gte: 3 } }' --out exportdir/myRecords.json
+     mongoexport -d test -c records -q '{ a: { $gte: 3 }, date: { $lt: { "$date": "2016-01-01T00:00:00.000Z" } } }' --out exportdir/myRecords.json
 
   The resulting file contains the following documents:
 
   .. code:: json
 
-     { "_id" : { "$oid" : "520e6431b7fa4ea22d6b1872" }, "a" : 3, "b" : 3, "c" : 6 }
-     { "_id" : { "$oid" : "520e6445b7fa4ea22d6b1873" }, "a" : 5, "b" : 6, "c" : 8 }
+     {"_id":{"$oid":"520e6431b7fa4ea22d6b1872"},"a":3.0,"b":3.0,"c":6.0,"date":{"$date":"2015-05-02T00:00:00Z"}}
+     {"_id":{"$oid":"5cd0de910dbce4346295ae28"},"a":15.0,"b":5.0,"date":{"$date":"2015-03-01T00:00:00Z"}}
 
   You can sort the results with the :option:`--sort` option to
   :binary:`~bin.mongoexport`.

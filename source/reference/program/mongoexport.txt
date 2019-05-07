@@ -258,16 +258,45 @@ writes the export to the ``contacts.json`` file in :term:`JSON` format.
 Export from Remote Host Running with Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example exports the ``contacts`` collection from the
-``marketing`` database, which requires authentication.
+The following example exports the ``contacts`` collection in the
+``marketing`` database from a remote MongoDB instance that requires
+authentication.
 
-This data resides on the MongoDB instance located on the host
-``mongodb1.example.net`` running on port ``37017``, which requires the username
-``user`` and the password ``pass``.
+Specify the:
+
+- :option:`--host <mongoexport --host>`
+
+- :option:`--port <mongoexport --port>`
+
+- :option:`--username <mongoexport --username>`
+
+- :option:`--authenticationDatabase <mongoexport --authenticationDatabase>`
+
+- :option:`--collection <mongoexport --collection>`
+
+- :option:`--db <mongoexport --db>`
+
+- :option:`--out <mongoexport --out>`
+
+.. tip::
+
+   Omit the :option:`--password <mongoexport --password>` option to
+   have ``mongoexport`` prompt for the password:
 
 .. code-block:: sh
 
-   mongoexport --host mongodb1.example.net --port 37017 --username user --password "pass" --collection contacts --db marketing --out mdb1-examplenet.json
+   mongoexport --host mongodb1.example.net --port 27017 --username someUser --authenticationDatabase admin 
+
+Alternatively, you use the :option:`--uri <mongoexport --uri>` option to specify the host, port, username, authentication database, and db.
+
+.. tip::
+
+   Omit the password in the URI string to have ``mongoexport`` prompt
+   for the password:
+
+.. code-block:: sh
+
+   mongoexport --uri 'mongodb://someUser@mongodb0.example.com:27017/marketing?authsource=admin' --collection contacts --out mdb1-examplenet.json
 
 Export Query Results
 ~~~~~~~~~~~~~~~~~~~~
@@ -275,12 +304,14 @@ You can export only the results of a query by supplying a query filter with
 the :option:`--query <mongoexport --query>` option, and limit the results to a single
 database using the ":option:`--db <mongoexport --db>`" option.
 
-For instance, this command returns all documents in the ``sales`` database's
-``contacts`` collection that contain a field named ``field`` with a value
-of ``1``.
+For instance, this command returns all documents in the ``sales``
+database's ``contacts`` collection that contain a field named ``dept``
+equal to ``"ABC"`` and the field ``date`` greater than or equal to
+ISODate("2018-01-01") (using the :ref:`strict format for dates
+{ "$date": "YYYY-MM-DDTHH:mm:ss.mmm\<offset\>"} <extended-json-date>` )
 
 .. code-block:: sh
 
-   mongoexport --db sales --collection contacts --query '{"field": 1}'
+   mongoexport --db sales --collection contacts --query '{"dept": "ABC", date: { $gte: { "$date": "2018-01-01T00:00:00.000Z" } }}'
 
 .. include:: /includes/fact-quote-command-line-query.rst
