@@ -57,7 +57,8 @@ release = conf.version.release
 pygments_style = 'sphinx'
 
 source_constants = {
-    'version': version
+    'version': version,
+    'k8s-op-short': 'Kubernetes Operator'
 }
 
 rst_epilog = '\n'.join([
