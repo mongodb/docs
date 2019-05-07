@@ -1,0 +1,88 @@
+---
+buildvariants:
+  -
+    display_name: "Ubuntu 18.04"
+    expansions:
+      venv: venv/bin
+    name: ubuntu1804
+    run_on:
+      - ubuntu1804-test
+    tasks:
+      -
+        name: build-atlas-docs
+tasks:
+  -
+    commands:
+      -
+        command: git.get_project
+        params:
+          directory: docs-atlas
+        type: setup
+      -
+        command: shell.exec
+        params:
+          script: |
+
+            rm -rf venv
+
+            virtualenv venv
+            ${venv}/pip install -r requirements.txt
+
+            # Modified build for mut
+            ${venv}/activate
+
+            cd venv
+            mkdir dev
+            cd dev
+            git clone --depth=1 https://github.com/mongodb/mut.git
+            cd mut && python3 -m pip install mut
+
+            PATH=$PATH:venv/bin
+
+          shell: bash
+          working_dir: docs-atlas
+      -
+        command: shell.exec
+        params:
+          script: |
+              # remember that this script should be silent if it
+              # manipulates keys
+              mkdir ~/.config
+              touch ~/.config/giza-aws-authentication.conf
+              echo "[personal]"
+              echo "username=${github_author}"
+              echo "[authentication]" > ~/.config/giza-aws-authentication.conf
+              echo "accesskey=${aws_key}" >> ~/.config/giza-aws-authentication.conf
+              echo "secretkey=${aws_secret}" >> ~/.config/giza-aws-authentication.conf
+              chmod 600 ~/.config/giza-aws-authentication.conf
+
+              # as an alternative, you could pass the aws keys to the
+              # makefile directly if it supports that
+          shell: bash
+          silent: true
+      -
+        command: shell.exec
+        loggers:
+          task:
+            - type: evergreen
+            - type: file
+        params:
+          script: |
+              export USER="${github_author}"
+              export GIT_BRANCH="${github_pr_number}"
+                . ${venv}/activate
+
+              ### Disable Production Publish for now ###
+              # if [ "${is_patch}" != "true" ]; then
+              #   make publish
+              #   make deploy
+
+              if [ "${is_patch}" != "true" ]; then
+                make html
+              else
+                make html
+                make stage
+              fi
+          shell: bash
+          working_dir: docs-atlas
+    name: build-atlas-docs
