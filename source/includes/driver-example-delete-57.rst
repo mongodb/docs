@@ -11,6 +11,12 @@
 
    - id: compass
      content: |
+
+       .. note:: 
+          Deleting multiple documents in Compass is a manual
+          process. If you need to delete many documents, consider using
+          the :binary:`~bin.mongo` shell or a driver.
+
        1. Copy the following filter into the Compass query bar and click
           :guilabel:`Find`:
           
