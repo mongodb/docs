@@ -86,9 +86,10 @@ source_constants = {
     'autoagent-version-opsmgr': '5.4.16.5515-1',
     'bagent-version-opsmgr': '6.8.6.1013',
     'magent-version-opsmgr': '6.6.2.464',
-    'aagent': 'Automation Agent',
-    'bagent': 'Backup Agent',
-    'magent': 'Monitoring Agent'
+    'aagent': 'Automation',
+    'bagent': 'Backup',
+    'magent': 'Monitoring',
+    'mdbagent': 'MongoDB Agent'
 }
 
 languages = [
