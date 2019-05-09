@@ -9,28 +9,154 @@ Filter Documents in the Visualization
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-To display a subset of results in your data that match a given
-criteria, use the :guilabel:`Filters` input bar above the chart
-display. Input a filter document employing the same syntax used in the
-query portion of the :manual:`db.collection.find()
-</tutorial/query-documents/>` method. After entering a filter document,
-click :guilabel:`Apply` to see the filter reflected in your visualization.
+Filters display a subset of results that match a given criteria.
+|charts| provides two ways to filter your data. You can either use:
+
+- The :ref:`Filter Tab <filter-tab>` in the Chart Builter, or
+
+- The :ref:`Query Bar <query-bar>` above the chart display.
+
+.. _filter-tab:
+
+Filter Tab
+----------
+
+The chart builder contains a filter tab where you can drag and drop
+fields to specify filters based on those fields. To filter data using
+the filter tab:
+
+1. Click the center tab in the chart builder:
+
+   .. figure:: /images/charts/filter-tab.png
+      :scale: 60%
+      :alt: Image showing how to access filter tab
+
+   |
+
+#. Drag a field from the :guilabel:`Fields` on the left to the
+   :guilabel:`Chart Filters` section of the tab.
+   
+The data type of the selected field dictates the available filtering
+options. You can filter fields with the following data types:
+
+- :ref:`Numeric <filter-numeric>`
+
+- :ref:`String <filter-string>`
+
+.. note::
+
+   You cannot use the same field for multiple filters.
+
+.. _filter-numeric:
+
+Filter Numeric Fields
+~~~~~~~~~~~~~~~~~~~~~
+
+When you drag a numeric field to the filter panel, you
+can filter based on minimum and/or maximum values for that field.
+
+.. list-table::
+   :header-rows: 1
+
+   * - To specify a minimum value:
+     - To specify a maximum value:
+
+   * - 1. Toggle :guilabel:`Min` to :guilabel:`On`.
+
+       #. Specify the desired minimum value.
+       
+       #. Select whether this is an inclusive minimum value.
+
+     - 1. Toggle :guilabel:`Max` to :guilabel:`On`.
+
+       #. Specify the desired maximum value.
+       
+       #. Select whether this is an inclusive maximum value.
+
+.. example::
+
+   If you have a minimum value of ``5`` with the :guilabel:`Inclusive`
+   setting on, |charts| shows documents where the field is greater than
+   or equal to ``5``.
+
+   Alternatively, if :guilabel:`Inclusive` is off, |charts| shows
+   documents where the field is greater than ``5``.
+
+.. _filter-string:
+
+Filter String Fields
+~~~~~~~~~~~~~~~~~~~~
+
+When you drag a string field to the filter panel, |charts| displays a
+list of up to 20 distinct field values. If more than 20 distinct values
+exist, |charts| displays 20 randomly selected values.
+
+The list also includes:
+
+- :guilabel:`NULL / MISSING` for documents with ``null`` values for
+  the field or are missing the field.
+
+- :guilabel:`Empty String` for documents with ``""`` values for the
+  field.
+
+To include a value not displayed in the list, add a specific value by
+clicking :guilabel:`Add Value`.
+
+Select the string values to display in the chart. By default, all
+values are selected.
+
+.. tip::
+
+   If all strings are selected, you can click :guilabel:`Deselect All` 
+   at the top of the list to hide all strings.
+   
+   If not all strings are selected, you can click :guilabel:`Select All`
+   to return to the default state of having all strings displayed.
+
+Display Strings Not in the List
+```````````````````````````````
+
+You can check :guilabel:`All other values` to
+display all string values not included in the list.
+
+- If :guilabel:`All other values` is checked, |charts| filters out
+  any unchecked list items by using a :query:`$nin` query.
+  
+- If :guilabel:`All other values` is unchecked, |charts| only
+  includes the checked list items by using an :query:`$in` query.
+
+.. _query-bar:
+
+Query Bar
+---------
+  
+To filter data using the :guilabel:`Query` bar:
+
+1. In the :guilabel:`Query` bar, input a filter document. Use the
+   same syntax used in the query portion of the
+   :manual:`db.collection.find()
+   </reference/method/db.collection.find/>` method.
+   
+#. Click :guilabel:`Apply`. 
 
 .. note::
 
    Filters on large collections may have performance issues if there
    are not appropriate :manual:`indexes <indexes>` on the collection.
 
-Basic Filter Example
---------------------
+Examples
+~~~~~~~~
 
-The following chart shows the average runtime of movies by genre.
-The filter of ``{runtime: {$gte: 120 }}`` means that we are only
-taking into account movies which have a runtime greater than or
-equal to 120 minutes.
+Comparison Query Filter
+```````````````````````
+
+The following chart shows the average runtime of movies by
+genre. The filter of ``{runtime: {$gte: 120 }}`` means that we only
+include movies which have a runtime greater than or equal to 120
+minutes.
 
 .. figure:: /images/charts/charts-dashboard-filter-2.png
    :figwidth: 720px
@@ -38,152 +164,86 @@ equal to 120 minutes.
 
 .. _regex-filter:
 
-Regular Expression (RegEx) Filter
----------------------------------
+Regular Expression (RegEx) Query
+````````````````````````````````
 
-.. _`regular expression`: https://en.wikipedia.org/wiki/Regular_expression?oldid=858335070
+.. _`regular expression`: :manual:`
 
 
-RegEx filters allow you to apply a `regular expression`_ as the match
-criteria to restrict the data |charts| displays. The expression
-uses the following syntax:
+Use the :query:`$regex` query operator to filter using a
+regular expression:
 
-.. code-block:: sh
+.. code-block:: javascript
 
    { <field>: { $regex: "pattern", $options: "<options>" } }
 
-The ``$options`` are optional and are the same as the
-:query:`$regex options <$options>` in the MongoDB shell.
-
-.. example::
-
-   **Filter data to document fields that start with a specific letter**
-
-   To find all documents where the ``jobs`` field begins with the
-   letter ``A``, you would write the following in the
-   :guilabel:`Filter` bar:
-
-   .. code-block:: javascript
-
-      { "job" : { $regex : "^A" } }
-
-   **Filter data to document fields that start with a specific letter
-   ignoring case**
-
-   To find all documents where the ``jobs`` field begins with the
-   letter ``A`` or ``a``, you would write the following in the
-   :guilabel:`Filter` bar:
-
-   .. code-block:: javascript
-
-      { "job" : { $regex : "^A", $options : "i" } }
-
 .. note::
 
-   The quotation marks around the regular expression are required. You
-   may not use forward slashes to delineate the regex value as you may
-   in the MongoDB shell.
+   You must enclose the pattern in quotes.  You cannot use the ``/pattern/`` syntax.
 
-.. _date-filter:
+For example, to find all documents where the ``jobs`` field begins with
+the letter ``A``, you would write the following in the
+:guilabel:`Query` bar:
 
-Relative Date Filter
---------------------
+.. code-block:: javascript
 
-Relative Date Filters allow you to specify a date from which |charts|
-restricts the data displayed. For example, you can set a Relative Date
-Filter to display data from only the last month or last year. To
-create a filter spanning from the specified date to the current date,
-specify the number of milliseconds since the Unix epoch of January 1,
-1970. Use this date in conjunction with a
-:manual:`comparison query operator </reference/operator/query-comparison/>`
-to set the inclusive or exclusive time range of the data displayed.
+   { "job" : { $regex : "^A" } }
 
-.. example::
+To find all documents where the ``jobs`` field begins with the
+letter ``A`` or ``a``, you would write the following in the
+:guilabel:`Query` bar:
 
-   The following Relative Date Filter returns documents that have a
-   ``timestamp`` field which resolves to a date less than 30 days from
-   the current date:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   { "job" : { $regex : "^A", $options : "i" } }
 
-      { timestamp: {  $gt: new Date(new Date() - 30 * 24 * 60 * 60 * 1000 ) } }
+Date Range Query
+````````````````
 
-   First, the inner ``new Date()`` constructor generates the current
-   date in milliseconds since the Unix epoch of January 1, 1970. The
-   mathematical series ``30 * 24 * 60 * 60 * 1000`` results in the
-   number of milliseconds elapsed in 30 days. The filter takes the
-   current date in milliseconds since the Unix epoch and subtracts the
-   number of milliseconds in 30 days. This results in a new millisecond
-   value which the filter passes to an outer ``new Date()`` constructor
-   and resolves to the date 30 days prior to the time the user executes
-   the filter.
+The following query returns documents that have a
+``timestamp`` field between January 1, 2017 and December 31, 2017
+inclusively:
 
-   Using a mathematical series as shown here allows the filter to
-   always span a relative timeframe of 30 days prior to the time
-   the user executes the filter.
+.. code-block:: javascript
 
-For a more complete example of a relative date filter, see the
-:ref:`Relative Date Filter Example <relative-date-example>`.
+   {timestamp: {$gte: new Date("2017-01-01"), $lte: new Date("2017-12-31")}}
 
 .. admonition:: ISO-8601 Dates
    :class: note
 
-   The date functions utilized in |charts| filters are consistent and
+   The date functions utilized in |charts| queries are consistent and
    compatible with the date functions used in the
-   :manual:`mongo shell </mongo>`. As a result, you can also use the
-   ``ISODate()`` constructor in your |charts-short| query filters.
-   Specifying an ``ISODate()`` constructor with no parameters exhibits
-   the same behavior as specifying a ``new Date()`` constructor with no
-   paramters, both returning the current date in their respective
-   formats.
-
-   .. example::
-
-      The following filter returns documents that have a
-      ``timestamp`` field between January 1, 2017 and December 31, 2017
-      inclusively:
-
-      .. code-block:: javascript
-
-         {$and: [{timestamp: {$gte: ISODate("2017-01-01")}},
-         {timestamp: {$lte: ISODate("2017-12-31")}}]}
-
-.. _relative-date-example:
-
-Relative Date Filter Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following chart visualizes workout data. Each document in the
-collection represents an individual workout activity, which contains
-information such as the type of workout and various exercise
-statistics. This line chart shows the distance per month covered
-across all workouts over the past year (365 days):
-
-.. figure:: /images/charts/relative-date-example.png
-   :figwidth: 720px
-   :alt: Charts dashboard filter
-
-The chart utilizes the following filter:
-
-.. code-block:: javascript
-
-   { "Workout Date (As Date)": {$gte: new Date(new Date() - 365 * 24 * 60 * 60 * 1000 ) }}
-
-This filter returns documents where the ``Workout Date (As Date)``
-field is within one year prior to the time |charts-short| executes the
-query. The ``(new Date() - 365 * 24 * 60 * 60 * 1000 )`` parameter
-results in the date one year prior to the current date as expressed in
-milliseconds since the Unix epoch. |charts-short| returns documents
-with a value greater than or equal to this date, as signified by the
-:manual:`$gte </reference/operator/query/gte/>` operator.
-
-.. admonition:: Date() is not supported
-   :class: note
-
-   The ``Date()`` function (as opposed to the ``new Date()``
-   constructor) returns the current date as a string, so it cannot be
-   used for filtering dates in |charts-short|. Use:
+   :manual:`mongo shell </mongo>`. As a result, you can use:
 
    - ``new Date()``,
    - ``ISODate()``, or
-   - ``new ISODate()``
+   - ``new ISODate()``.
+
+   The ``Date()`` function (as opposed to the ``new Date()``
+   constructor) returns the current date as a string, so it cannot be
+   used for querying dates in |charts-short|. 
+
+.. _date-filter:
+
+Relative Date Query
+```````````````````
+
+You can include a mathematical expression in the ``new Date()``
+constructor to get a relative date, such as 1 month ago or 1 year
+ago.
+
+For example, the following query returns documents that
+have a ``timestamp`` field greater than 30 days
+(30 * 24 * 60 * 60 * 1000 milliseconds) from the current date and time:
+
+.. code-block:: javascript
+
+   { timestamp: {  $gt: new Date(new Date() - 30 * 24 * 60 * 60 * 1000 ) } }
+
+Alternatively, you can specify the date components. For example, the
+following query returns documents that have a ``timestamp`` field
+greater than 1 month ago:
+
+.. code-block:: javascript
+
+    { timestamp: { $gt: new Date(new Date().getFullYear(), new Date().getMonth() -1 , new Date().getDate() ) } }
