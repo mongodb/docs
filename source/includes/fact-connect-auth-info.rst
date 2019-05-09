@@ -37,20 +37,14 @@ method from the tabs below for specific instructions:
          authentication mechanism, see :manual:`SCRAM
          </manual/core/security-scram/>`.
 
-     - id: x509
-       name: X.509
-       content: |
-         *Not Available in Compass Community Edition*
-
-         Select :guilabel:`X.509` if the ``mongod`` instance uses
-         :manual:`X.509 </core/security-x.509/>` as its authentication
-         mechanism. If selected, you must provide the
-         :guilabel:`Username` to authenticate the user.
-
      - id: kerberos
        name: Kerberos
        content: |
-         *Not Available in Compass Community Edition*
+
+         .. important::
+
+            :guilabel:`Kerberos` Authentication is not available in
+            Compass Community Edition.
 
          Select :guilabel:`Kerberos` if the ``mongod`` instance uses
          :manual:`Kerberos </core/kerberos/>` as its authentication
@@ -73,13 +67,29 @@ method from the tabs below for specific instructions:
      - id: ldap
        name: LDAP
        content: |
-         *Not Available in Compass Community Edition*
+         .. important::
+
+            :guilabel:`LDAP` Authentication is not available in
+            Compass Community Edition.
 
          Select :guilabel:`LDAP` if the ``mongod`` instance uses
          :manual:`LDAP </core/security-ldap-external/>` as its
          authentication mechanism. If selected, you must provide the
          :guilabel:`Username` and :guilabel:`Password` to authenticate
          the user.
+
+     - id: x509
+       name: X.509
+       content: |
+         .. important::
+
+            :guilabel:`x.509` Authentication is not available in
+            Compass Community Edition.
+
+         Select :guilabel:`X.509` if the ``mongod`` instance uses
+         :manual:`X.509 </core/security-x.509/>` as its authentication
+         mechanism. If selected, you must provide the
+         :guilabel:`Username` to authenticate the user.
 
 For MongoDB permissions required to access |compass-short|,
 see :ref:`required-access`.

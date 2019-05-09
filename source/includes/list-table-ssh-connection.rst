@@ -2,12 +2,13 @@
    :widths: 30 70
 
    * - :guilabel:`Hostname`
-
-     - The hostname of the machine where the ``mongod`` instance is
-       running.
+     - .. include:: /includes/fact-connect-host-description.rst
 
    * - :guilabel:`Port`
-     - The port on which ``mongod`` is running.
+     - .. include:: /includes/fact-connect-port-description.rst
+
+   * - :guilabel:`SRV Record`
+     - .. include:: /includes/fact-connect-srv-description.rst
 
    * - :guilabel:`Authentication`
 
@@ -119,28 +120,10 @@
 
           You cannot connect to a :term:`replica set` via an SSH
           tunnel. |compass-short| cannot establish a connection
-          to multiple servers across the same SSH tunnel. When you
-          select an :guilabel:`SSH Tunnel` option in the connection
-          form, |compass-short| hides the :guilabel:`Replica Set Name`
-          and :guilabel:`Read Preference` fields in the form.
+          to multiple servers across the same SSH tunnel.
 
 
    * - :guilabel:`Favorite Name`
 
-     - *Optional*. A name for the connection. To save the current
-       connection entered as a favorite connection, enter a name
-       in the input and click :guilabel:`Create Favorite`. For more
-       information on favorite connections, see the
-       :ref:`Favorite Connections <favorite-connections>`
-       documentation.
-
-       .. note::
-
-          The :guilabel:`Create Favorite` button only appears once
-          you have entered text into the :guilabel:`Favorite Name`
-          input.
-
-          Although you can save multiple connections with the same
-          :guilabel:`Favorite Name`, it is recommended to use
-          unique names for each connection to easily find your
-          desired connections.
+     - .. include:: /includes/fact-favorite-name.rst
+       

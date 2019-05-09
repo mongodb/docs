@@ -2,12 +2,13 @@
    :widths: 30 70
 
    * - :guilabel:`Hostname`
-
-     - The hostname of the machine where the ``mongod`` instance is
-       running.
+     - .. include:: /includes/fact-connect-host-description.rst
 
    * - :guilabel:`Port`
-     - The port on which ``mongod`` is running.
+     - .. include:: /includes/fact-connect-port-description.rst
+
+   * - :guilabel:`SRV Record`
+     - .. include:: /includes/fact-connect-srv-description.rst
 
    * - :guilabel:`Authentication`
 
@@ -15,7 +16,7 @@
 
    * - :guilabel:`Replica Set Name`
 
-     - The name of the MongoDB replica set to which you want to connect.
+     - Name of the MongoDB replica set to which you want to connect.
 
    * - :guilabel:`Read Preference`
 
@@ -83,6 +84,7 @@
        - :guilabel:`Unvalidated` to use TLS/SSL without any identity validation.
 
        .. tip::
+
           For production use, your MongoDB deployment should use valid
           certificates generated and signed by a single certificate
           authority. You or your organization can generate and
@@ -91,20 +93,4 @@
 
    * - :guilabel:`Favorite Name`
 
-     - *Optional*. A name for the connection. To save the current
-       connection entered as a favorite connection, enter a name
-       in the input and click :guilabel:`Create Favorite`. For more
-       information on favorite connections, see the
-       :ref:`Favorite Connections <favorite-connections>`
-       documentation.
-
-       .. note::
-
-          The :guilabel:`Create Favorite` button only appears once
-          you have entered text into the :guilabel:`Favorite Name`
-          input.
-
-          Although you can save multiple connections with the same
-          :guilabel:`Favorite Name`, it is recommended to use
-          unique names for each connection to easily find your
-          desired connections.
+     - .. include:: /includes/fact-favorite-name.rst
