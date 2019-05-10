@@ -693,7 +693,7 @@ New Features
   many basic administrative tasks for MongoDB deployments, including
   version upgrades, adding replica set members, adding shards, and
   changing oplog size. You can both
-  :doc:`import existing deployments </tutorial/add-monitored-deployment-to-automation>` into Automation
+  :doc:`import existing deployments </tutorial/add-existing-mongodb-processes>` into Automation
   and :doc:`create new deployments </tutorial/add-servers-automation>` 
   on your provisioned hardware.
 

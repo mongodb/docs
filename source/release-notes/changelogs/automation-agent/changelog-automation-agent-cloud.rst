@@ -1427,7 +1427,7 @@ Automation Agent 1.6.2.960
 
 - Ability to import an existing deployment into Automation, which allows
   you to use Automation to manage the deployment. 
-  See :doc:`/tutorial/add-monitored-deployment-to-automation`.
+  See :doc:`/tutorial/nav/mongodb-agent`.
 
 - The :guilabel:`Deployment` tab now displays all deployment
   information, for both servers and processes, on one page, with icons
