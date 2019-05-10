@@ -1,3 +1,12 @@
+.. _backup-7.8.0.1107:
+
+Backup Agent 7.8.0.1107
+-----------------------
+
+:ref:`Released with Ops Manager 4.1.6 on 2019-05-09 <opsmgr-server-4.1.6>`
+
+- Convert to new MongoDB Go driver.
+
 .. _backup-7.6.0.1059:
 
 Backup Agent 7.6.0.1059

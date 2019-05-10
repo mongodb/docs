@@ -1,3 +1,16 @@
+.. _opsmgr-server-4.1.6:
+
+|onprem| Rapid Release 4.1.6
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-05-09*
+
+- Ubuntu 14.04 (EOL) has been deprecated and it is not supported in this
+  release.
+- |bic-short| updated to version 2.10.
+- Agent Upgrades:
+  :ref:`backup-7.8.0.1107`
+
 .. _opsmgr-server-4.1.5:
 
 |onprem| Rapid Release 4.1.5
