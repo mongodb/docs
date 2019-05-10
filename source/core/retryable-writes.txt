@@ -18,7 +18,7 @@ Retryable writes allow MongoDB drivers to automatically retry certain
 write operations a single time if they encounter network errors, or if
 they cannot find a healthy :term:`primary` in the
 :ref:`replica sets <replication>` or :ref:`sharded cluster
-<sharding-introduction>`.
+<sharding-introduction>`. [#duplicate-key-update]_
 
 Prerequisites
 -------------
@@ -123,7 +123,7 @@ cannot be :writeconcern:`{w: 0} </<number/>>`.
        | :method:`db.collection.save()`
        | :method:`db.collection.update()` where ``multi`` is ``false``
 
-     - Single-document update operations.
+     - Single-document update operations. [#duplicate-key-update]_
 
    * - | :method:`db.collection.deleteOne()`
        | :method:`db.collection.remove()` where ``justOne`` is ``true``
@@ -167,6 +167,16 @@ cannot be :writeconcern:`{w: 0} </<number/>>`.
        any multi-document write operations, such as ``update`` which
        specifies ``true`` for the ``multi`` option.
 
+.. [#duplicate-key-update]
+   
+   MongoDB 4.2 will retry certain single-document upserts
+   (update with ``upsert: true`` and ``multi: false``) that encounter a 
+   duplicate key exception. See :ref:`retryable-update-upsert` for 
+   conditions.
+
+   Prior to MongoDB 4.2, MongoDB would not retry upsert operations
+   that encountered a duplicate key error.
+
 Behavior
 --------
 
@@ -194,6 +204,163 @@ the failover period exceeds :urioption:`serverSelectionTimeoutMS`.
    issuing a write operation, there is a chance that when the client
    applications starts responding (without a restart), the write
    operation may be retried and applied again.
+
+.. _retryable-update-upsert:
+
+Duplicate Key Errors on Upsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 will retry single-document upsert operations 
+(i.e ``upsert : true`` and ``multi : false``) that
+fail due to a duplicate key error *only if* the operation meets
+*all* of the following conditions:
+
+- The target collection has a unique index that caused the duplicate key 
+  error.
+
+- The update match condition is either:
+
+  - A single equality predicate 
+
+    ``{ "fieldA" : "valueA" }``, 
+
+    *or*
+
+  - a logical AND of equality predicates 
+
+    ``{ "fieldA" : "valueA", "fieldB" : "valueB" }``
+
+- The set of fields in the unique index key pattern matches the set
+  of fields in the update query predicate.
+
+- The update operation does not modify any of the fields in the
+  query predicate.
+
+The following table contains examples of upsert operations that
+the server can or cannot retry on a duplicate key error:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 40 30
+
+   * - Unique Index Key Pattern
+     - Update Operation
+     - Retryable
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { _id : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { _id : ObjectId("1aa1c1efb123f14aaa167aaa") },
+            { $set : { fieldA : 25 } },
+            { upsert : true }
+          )
+     - Yes
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { fieldA : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : { $in : [ 25 ] } },
+            { $set : { fieldB : "someValue" } },
+            { upsert : true }
+          )
+     - Yes
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { 
+            fieldA : 1, 
+            fieldB : 1 
+          }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : 25, fieldB : "someValue" },
+            { $set : { fieldC : false } },
+            { upsert : true }
+          )
+     - Yes
+
+   * - .. code-block:: javascript
+          :copyable: false
+          
+          { fieldA : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : { $lte : 25 } },
+            { $set : { fieldC : true } },
+            { upsert : true }
+          )
+     - No
+
+       The query predicate on ``fieldA`` is not an equality
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { fieldA : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : { $in : [ 25 ] } },
+            { $set : { fieldA : 20 } },
+            { upsert : true }
+          )
+     - No
+
+       The update operation modifies fields specified in the
+       query predicate.
+
+   * - .. code-block:: javascript
+          :copyable: false
+          
+          { _id : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : { $in : [ 25 ] } },
+            { $set : { fieldA : 20 } },
+            { upsert : true }
+          )
+     - No
+
+       The set of query predicate fields (``fieldA``) does not
+       match the set of index key fields (``_id``).
+
+   * - .. code-block:: javascript
+          :copyable: false
+          
+          { fieldA : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : 25, fieldC : true },
+            { $set : { fieldD : false } },
+            { upsert : true }
+          )
+     - No
+
+       The set of query predicate fields (``fieldA``, ``fieldC``)
+       does not match the set of index key fields (``fieldA``).
+
+Prior to MongoDB 4.2, MongoDB retryable writes did not support
+retrying upserts which failed due to duplicate key errors.
 
 Diagnostics
 ~~~~~~~~~~~
