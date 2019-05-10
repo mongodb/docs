@@ -22,7 +22,7 @@
 
       - :authrole:`Project Data Access Read Only` access
 
-      See :doc:`Install or Update the {+aagent+}</tutorial/nav/install-automation-agent>` for upgrade
+      See :doc:`Install or Update the {+aagent+}</tutorial/install-mongodb-agent>` for upgrade
       instructions for the {+aagent+}.
 
       Users without the aforementioned access cannot see the field
@@ -39,7 +39,7 @@
 
       * Use {+aagent+} version 4.5.7+ to manage your cluster
 
-      See :doc:`Install or Update the {+aagent+}</tutorial/nav/install-automation-agent>` for upgrade
+      See :doc:`Install or Update the {+aagent+}</tutorial/install-mongodb-agent>` for upgrade
       instructions for the {+aagent+}.
 
       In addition, to view the field values in the example queries, you
