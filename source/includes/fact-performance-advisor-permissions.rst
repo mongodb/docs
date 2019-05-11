@@ -1,57 +1,27 @@
-.. only:: cloud
+.. note::
 
-   .. note::
-      
-      You must meet the following requirements to view the Performance
-      Advisor:
+   To view the Performance Advisor, you must:
 
-      * Be a Cloud Premium user
+   .. cond:: cloud
 
-      * Run MongoDB version 3.2+ on your cluster
+      - Be a Cloud Premium user.
 
-      * Use {+aagent+} version 4.5.7+ to manage your cluster
+   - Run MongoDB version 3.2 or later on your cluster.
 
-      In addition, to view the field values in the example queries, you
-      must be a user with at least one of the following access:
+   - Manage your cluster with MongoDB Agent Automation.
 
-      - :authrole:`Project Owner` access
+     To learn more about the MongoDB Agent, see
+     :doc:`/tutorial/nav/mongodb-agent`.
 
-      - :authrole:`Project Data Access Admin` access
+   To view the field values in the example queries, you must be |a-mms|
+   user with one or more of the following roles:
 
-      - :authrole:`Project Data Access Read/Write` access
+   - :authrole:`Project Owner`
 
-      - :authrole:`Project Data Access Read Only` access
+   - :authrole:`Project Data Access Admin`
 
-      See :doc:`Install or Update the {+aagent+}</tutorial/install-mongodb-agent>` for upgrade
-      instructions for the {+aagent+}.
+   - :authrole:`Project Data Access Read/Write`
 
-      Users without the aforementioned access cannot see the field
-      values.
+   - :authrole:`Project Data Access Read Only`
 
-.. only:: onprem
-
-   .. note::
-
-      You must meet the following requirements to view the Performance
-      Advisor:
-
-      * Run MongoDB version 3.2+ on your cluster
-
-      * Use {+aagent+} version 4.5.7+ to manage your cluster
-
-      See :doc:`Install or Update the {+aagent+}</tutorial/install-mongodb-agent>` for upgrade
-      instructions for the {+aagent+}.
-
-      In addition, to view the field values in the example queries, you
-      must be a user with at least one of the following access:
-
-      - :authrole:`Project Owner` access
-
-      - :authrole:`Project Data Access Admin` access
-
-      - :authrole:`Project Data Access Read/Write` access
-
-      - :authrole:`Project Data Access Read Only` access
-
-      Users without the aforementioned access cannot see the field
-      values.
+   Users without the aforementioned roles cannot see the field values.
