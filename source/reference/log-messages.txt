@@ -10,15 +10,15 @@ Log Messages
    :depth: 1
    :class: singlecol
 
-Log Message Format
-------------------
-
-.. versionchanged:: 3.0
+Log Message Format (Console/Log File)
+-------------------------------------
 
 Starting in MongoDB 3.0, MongoDB includes the :ref:`severity level
 <log-severity-levels>` and the :ref:`component
-<log-message-components>` associated with each log message. The
-log messages have the form:
+<log-message-components>` for each log message when output to the
+console or a logfile (i.e. not to ``syslog`` [#syslog]_). 
+
+The log messages have the form:
 
 .. code-block:: none
 
@@ -30,26 +30,47 @@ For example:
 
    2014-11-03T18:28:32.450-0500 I NETWORK [initandlisten] waiting for connections on port 27017
 
+.. [#syslog]
+
+   Syslog messages follow the standard syslog message format. Starting
+   in version 4.2, MongoDB includes the :ref:`component
+   <log-message-components>` in its log messages to ``syslog``.
+
+.. _log-message-slow-ops:
+
+Logging Slow Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
 Client operations appear in the log if their duration exceeds the
 :ref:`slow operation threshold <slowms-threshold-option>` or when the
 :ref:`log verbosity level <log-message-verbosity-levels>` is 1 or
-higher. These log entries include the full command
+higher. [#slow-oplogs]_ These log entries include the full command
 object associated with the operation.
+
+.. include:: /includes/extracts/4.2-changes-log-query-shapes-plan-cache-key.rst
 
 The following example output includes information about
 a slow :doc:`aggregation </aggregation>` operation:
 
 .. code-block:: none
 
-   2019-04-09T14:03:15.546-0400 I COMMAND  [conn1] command test.items appName: "MongoDB Shell" command: aggregate { aggregate: "items", pipeline: [ { $match: { a: { $gte: 4.0 } } } ], cursor: {}, lsid: { id: UUID("042b423f-91bb-43bd-a378-4657ad4e0b35") }, $db: "test" } planSummary: COLLSCAN cursorid:7185821004643502676 keysExamined:0 docsExamined:25000 hasSortStage:1 numYields:289 nreturned:101 reslen:1305014 locks:{ Global: { acquireCount: { r: 387 } }, Database: { acquireCount: { r: 387 } }, Collection: { acquireCount: { r: 387 } } } storage:{ data: { bytesRead: 6808584, timeReadingMicros: 4336 } } protocol:op_msg 34439ms
+   2019-01-14T12:00:59.166-0500 I COMMAND  [conn4] command test.items appName: "MongoDB Shell" command: aggregate { aggregate: "items", pipeline: [ { $match: { a: { $lte: 500.0 } } }, { $sort: { a: -1.0 } } ], allowDiskUse: true, cursor: {}, lsid: { id: UUID("a73100a6-2f4d-48b7-a119-4632491c20eb") }, $db: "test" } planSummary: IXSCAN { a: 1, _id: -1 } cursorid:4808731480531288834 keysExamined:12524506 docsExamined:25003 hasSortStage:1 usedDisk:1 fromMultiPlanner:1 numYields:98113 nreturned:101 queryHash:811451DD planCacheKey:759981BA reslen:1305014 locks:{ Global: { acquireCount: { r: 98211, w: 98211 } }, Database: { acquireCount: { r: 98211 } }, Collection: { acquireCount: { r: 98211 } } } storage:{ data: { bytesRead: 112803842, timeReadingMicros: 62720 } } protocol:op_msg 39658ms
 
-Timestamp
----------
+Timestamp (Console/Log File)
+----------------------------
 
-The default format for the ``<timestamp>`` is ``iso8601-local``. To
-modify the timestamp format, use the :option:`--timeStampFormat <mongod
+When logging to the console or a logfile [#syslog-ts]_, the default
+format for the ``<timestamp>`` is ``iso8601-local``. To modify the
+timestamp format, use the :option:`--timeStampFormat <mongod
 --timeStampFormat>` runtime option or the
 :setting:`systemLog.timeStampFormat` setting.
+
+.. [#syslog-ts]
+
+   If logging to ``syslog``, the ``syslog`` daemon generates timestamps
+   when it logs a message, not when MongoDB issues the message. This
+   can lead to misleading timestamps for log entries, especially when
+   the system is under heavy load.
 
 .. _log-severity-levels:
 
@@ -78,8 +99,15 @@ message:
    * - ``I``
      - Informational, for Verbosity Level of ``0``
 
-   * - ``D``
+   * - ``D``\ [1-5]
      - Debug, for All Verbosity Levels > ``0``
+
+       Starting in version 4.2, MongoDB logs the :ref:`debug verbosity
+       level <log-messages-configure-verbosity>`. For example, if
+       verbosity level is 2, MongoDB logs ``D2``.
+
+       In previous versions, MongoDB log messages only specified ``D``
+       for Debug level.
 
 You can specify the verbosity level of various components to determine
 the amount of Informational and Debug messages MongoDB outputs. [#slow-oplogs]_
@@ -173,6 +201,18 @@ categorization of the messages:
    specify the log level for :data:`CONTROL` components, use the
    :setting:`systemLog.component.control.verbosity` setting.
 
+.. data:: ELECTION
+
+   Messages related specifically to replica set elections. To specify
+   the log level for :data:`ELECTION` components, set the
+   :setting:`systemLog.component.replication.election.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`ELECTION`. If
+   :setting:`systemLog.component.replication.election.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`ELECTION` components.
+
 .. data:: FTDC
 
    .. versionadded:: 3.2
@@ -195,6 +235,18 @@ categorization of the messages:
    creating indexes. To specify the log level for
    :data:`INDEX` components, set the
    :setting:`systemLog.component.index.verbosity` parameter.
+
+.. data:: INITSYNC
+
+   Messages related to initial sync operation. To specify the log level
+   for :data:`INITSYNC` components, set the
+   :setting:`systemLog.component.replication.initialSync.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`INITSYNC`. If
+   :setting:`systemLog.component.replication.initialSync.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`INITSYNC` components.
 
 .. data:: NETWORK
 
@@ -390,4 +442,4 @@ parent. For example, the following sets the
 
 .. [#slow-oplogs]
 
-   .. include:: /includes/fact-slow-oplog-log-message-footnote.rst
+   .. include:: /includes/extracts/4.2-changes-slow-oplog-log-message-footnote.rst

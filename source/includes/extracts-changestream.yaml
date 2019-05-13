@@ -11,8 +11,9 @@ content: |
    |watchmethod| uses information stored in the oplog to produce the
    change event description and generate a resume token associated to
    that operation. If the operation identified by the resume token
-   passed to the ``resumeAfter`` option has already dropped off the
-   :term:`oplog`, |watchmethod| cannot resume the change stream.
+   passed to the ``resumeAfter`` or ``startAfter`` option has already
+   dropped off the :term:`oplog`, |watchmethod| cannot resume the
+   change stream.
 
    See :ref:`change-stream-resume` for more information on
    resuming a change stream.
@@ -59,9 +60,11 @@ content: |
 ref: changestream-invalid-events
 content: |
 
-  You cannot resume a change stream after an :ref:`invalidate event
-  <change-event-invalidate>` (for example, a collection drop or rename)
-  closes the stream.
+  You cannot use ``resumeAfter`` to resume a change stream after an
+  :ref:`invalidate event <change-event-invalidate>` (for example, a collection
+  drop or rename) closes the stream. Starting in MongoDB 4.2, you can use
+  :ref:`startAfter <change-stream-start-after>` to start a new change
+  stream after an :ref:`invalidate event <change-event-invalidate>`.
 
 ---
 ref: changestream-cursor-open
@@ -85,9 +88,9 @@ content: |
    With hex-encoded string resume tokens, you can compare and sort the
    resume tokens.
 
-   Regardless of the fcv value, a 4.0 deployment can use
+   Regardless of the fcv value, a 4.0 or later deployment can use
    either BinData resume tokens or hex string resume tokens to resume a
-   change stream. As such, a 4.0 deployment can use a resume
+   change stream. As such, a 4.0 or later deployment can use a resume
    token from a change stream opened on a collection from a 3.6
    deployment.
 
@@ -102,6 +105,44 @@ content: |
    from a change stream opened against a collection from a deployment
    with fcv ``3.6``. However, a 3.6 deployment cannot use the
    hex-encoded string resume tokens.
+   
+---
+ref: changestream-resume-token-versions-4.2-greater
+content: |
+
+   The resume token ``_data`` type depends on the MongoDB versions and,
+   in some cases, the feature compatibility version (fcv) at the time
+   of the change stream's opening/resumption (i.e. a change in fcv
+   value does not affect the resume tokens for already opened change
+   streams):
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 45 55 50 
+      
+      * - MongoDB Version
+        - Feature Compatibility Version
+        - Resume Token ``_data`` Type
+
+      * - MongoDB 4.2 and later
+        - "4.2" or "4.0"
+        - Hex-encoded string (``v1``)
+
+      * - MongoDB 4.0.7 and later
+        - "4.0" or "3.6"
+        - Hex-encoded string (``v1``)
+
+      * - MongoDB 4.0.6 and earlier
+        - "4.0"
+        - Hex-encoded string (``v0``)
+
+      * - MongoDB 4.0.6 and earlier
+        - "3.6"
+        - BinData
+
+      * - MongoDB 3.6
+        - "3.6"
+        - BinData
 
 ---
 ref: changestream-resume-token-versions-4.0

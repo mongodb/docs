@@ -41,18 +41,15 @@ Query and Write Actions
    - :dbcommand:`distinct`
    - :dbcommand:`filemd5`
    - :dbcommand:`find`
-   - :dbcommand:`geoNear`
    - :dbcommand:`geoSearch`
    - :dbcommand:`getLastError`
    - :dbcommand:`getMore`
    - :dbcommand:`getPrevError`
-   - :dbcommand:`group`
    - :dbcommand:`killCursors`, provided that the cursor is associated
      with a currently authenticated user.
    - :dbcommand:`listCollections`
    - :dbcommand:`listIndexes`
    - :dbcommand:`mapReduce` with the ``{out: inline}`` option.
-   - :dbcommand:`parallelCollectionScan`
    - :dbcommand:`repairCursor`
    - :dbcommand:`resetError`
 
@@ -97,10 +94,8 @@ Query and Write Actions
    Required on the *destination* collection for the following
    commands and their helper methods:
 
-   - :dbcommand:`clone`
    - :dbcommand:`cloneCollection`
    - :dbcommand:`cloneCollectionAsCapped`
-   - :dbcommand:`copydb`
    - :dbcommand:`renameCollection`
 
    Apply this action to database or collection resources.
@@ -151,8 +146,6 @@ Query and Write Actions
    - :dbcommand:`aggregate`
    - :dbcommand:`applyOps`
    - :dbcommand:`cloneCollection` on the *destination* collection
-   - :dbcommand:`clone` on the *destination*
-   - :dbcommand:`copydb` on the *destination*
    - :dbcommand:`findAndModify`
    - :dbcommand:`insert`
    - :dbcommand:`mapReduce`
@@ -170,7 +163,6 @@ Query and Write Actions
 
    - :dbcommand:`find`
    - :dbcommand:`listIndexes`
-   - :dbcommand:`parallelCollectionScan`
 
    For example, this privilege authorizes a user to run the
    following command which executes a :dbcommand:`find` command on a
@@ -261,16 +253,23 @@ Database Management Actions
 
 .. authaction:: killCursors
 
-   User can kill cursors with which they are associated. Cursors are
-   associated with the users that were authenticated when the cursor was
-   created. Apply this action to collection resources.
+   Starting in MongoDB 4.2, users can always kill their own cursors,
+   regardless of whether the users have the privilege to
+   :authaction:`killCursors`. As such, the :authaction:`killCursors`
+   privilege has no effect in MongoDB 4.2+.
+
+   In MongoDB 3.6.3 through MongoDB 4.0.x, users require
+   :authaction:`killCursors` privilege to kill their own curors when
+   access control is enabled. Cursors are associated with the users at
+   the time of cursor creation. Apply this action to collection
+   resources.
 
 .. authaction:: killAnyCursor
 
    .. versionadded:: 3.6.3
 
-   User can kill **any** cursor regardless of their association
-   with the cursor. Apply this action to collection resources.
+   User can kill **any** cursor, even cursors created by other users.
+   Apply this action to collection resources.
 
 .. authaction:: revokeRole
 
@@ -370,11 +369,17 @@ Deployment Management Actions
 
 .. authaction:: planCacheRead
 
-   User can perform the :dbcommand:`planCacheListPlans` and
-   :dbcommand:`planCacheListQueryShapes` commands and the
-   :method:`PlanCache.getPlansByQuery()` and
-   :method:`PlanCache.listQueryShapes()` methods. Apply this action to
-   database or collection resources.
+   User can run the following operations:
+
+   - :pipeline:`$planCacheStats` aggregation stage.
+
+   - :dbcommand:`planCacheListPlans` command and
+     :method:`PlanCache.getPlansByQuery()` method.
+
+   - :dbcommand:`planCacheListQueryShapes` command and the
+     :method:`PlanCache.listQueryShapes()` method.
+
+   Apply this action to database or collection resources.
 
 .. authaction:: planCacheWrite
 
@@ -602,11 +607,6 @@ Server Administration Actions
 
    .. CITE: https://github.com/mongodb/mongo/blob/master/src/mongo/db/commands/rename_collection_common.cpp#L53-56
 
-.. authaction:: repairDatabase
-
-   User can perform the :dbcommand:`repairDatabase` command. Apply this
-   action to database resources.
-
 .. authaction:: setParameter
 
    User can perform the :dbcommand:`setParameter` command. Apply this
@@ -620,7 +620,14 @@ Server Administration Actions
 .. authaction:: touch
 
    User can perform the :dbcommand:`touch` command. Apply this action to
-   the ``cluster`` resource.
+   the ``cluster`` resources.
+
+.. authaction:: trafficRecord
+
+   .. versionadded:: 4.2
+
+   User can perform the :dbcommand:`startRecordingTraffic` and :dbcommand:`stopRecordingTraffic` commands. 
+   Apply this action to the ``cluster`` resource.
 
 Session Actions
 ---------------

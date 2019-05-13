@@ -161,6 +161,16 @@ Authentication Parameters
    cannot change this setting using the :dbcommand:`setParameter`
    database command.
 
+   For version 4.2 and greater, the use of ``TLS`` options is preferred
+   over ``SSL`` options. The TLS options have the same functionality as
+   the ``SSL`` options.
+
+   .. code-block:: sh
+
+      mongod --setParameter opensslCipherConfig=HIGH:!EXPORT:!aNULL@STRENGTH --tlsMode requireTLS --tlsCertificateKeyFile Certs/server.pem
+
+   For versions 4.0 and earlier:
+
    .. code-block:: sh
 
       mongod --setParameter opensslCipherConfig=HIGH:!EXPORT:!aNULL@STRENGTH --sslMode requireSSL --sslPEMKeyFile Certs/server.pem
@@ -317,26 +327,76 @@ Authentication Parameters
 
       db.adminCommand( { setParameter: 1, sslMode: "preferSSL" } )
 
+   .. seealso:: :parameter:`tlsMode`
+
+.. parameter:: tlsMode
+
+   .. versionadded:: 4.2
+
+   |both|
+
+   Set to either:
+   
+   - ``preferTLS``
+   
+   - ``requireTLS``
+   
+   The :parameter:`tlsMode` parameter is useful during :doc:`rolling
+   upgrade to TLS/SSL </tutorial/upgrade-cluster-to-ssl>` to minimize
+   downtime.
+
+   .. code-block:: sh
+
+      db.adminCommand( { setParameter: 1, tlsMode: "preferTLS" } )
+
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+   .. seealso:: :parameter:`sslMode`
+
+.. parameter:: tlsWithholdClientCertificate
+
+   *Default*: false
+ 
+   .. versionadded:: 4.2
+
+   |both|
+
+   A TLS certificate is set for a :binary:`mongod <bin.mongod>` or
+   :binary:`mongos <bin.mongos>` either by the
+   :option:`--tlsClusterFile <mongod --tlsClusterFile>` option or by the
+   :option:`--tlsCertificateKeyFile <mongod --tlsCertificateKeyFile>` option when
+   :option:`--tlsClusterFile <mongod --tlsClusterFile>` is not set. If the TLS
+   certificate is set, by default, the instance sends the certificate when
+   initiating intra-cluster communications with other
+   :binary:`mongod <bin.mongod>` or :binary:`mongos <bin.mongos>` instances in
+   the deployment. Set ``tlsWithholdClientCertificate`` to ``1`` or ``true`` to
+   direct the instance to withhold sending its TLS certificate during these
+   communications. Use this option with
+   :option:`--tlsAllowConnectionsWithoutCertificates <mongod --tlsAllowConnectionsWithoutCertificates>`
+   (to allow inbound connections without certificates) on all members of the
+   deployment. ``tlsWithholdClientCertificate`` is mutually exclusive with
+   :option:`--clusterAuthMode x509 <mongod --clusterAuthMode>`.
+
 .. parameter:: sslWithholdClientCertificate
 
    *Default*: false
  
-   .. versionadded:: 4.0.3
+   .. deprecated:: 4.2 Use :parameter:`tlsWithholdClientCertificate` instead.
 
    |both|
   
    A TLS certificate is set for a :binary:`mongod <bin.mongod>` or
    :binary:`mongos <bin.mongos>` either by the
-   :option:`--sslClusterFile <mongod --sslClusterFile>` option or by the
-   :option:`--sslPEMKeyFile <mongod --sslPEMKeyFile>` option when
-   :option:`--sslClusterFile <mongod --sslClusterFile>` is not set. If the TLS
+   :option:`--tlsClusterFile <mongod --tlsClusterFile>` option or by the
+   :option:`--tlsCertificateKeyFile <mongod --tlsCertificateKeyFile>` option when
+   :option:`--tlsClusterFile <mongod --tlsClusterFile>` is not set. If the TLS
    certificate is set, by default, the instance sends the certificate when
    initiating intra-cluster communications with other
    :binary:`mongod <bin.mongod>` or :binary:`mongos <bin.mongos>` instances in
    the deployment. Set ``sslWithholdClientCertificate`` to ``1`` or ``true`` to
    direct the instance to withhold sending its TLS certificate during these
    communications. Use this option with
-   :option:`--sslAllowConnectionsWithoutCertificates <mongod --sslAllowConnectionsWithoutCertificates>`
+   :option:`--tlsAllowConnectionsWithoutCertificates <mongod --tlsAllowConnectionsWithoutCertificates>`
    (to allow inbound connections without certificates) on all members of the
    deployment. ``sslWithholdClientCertificate`` is mutually exclusive with
    :option:`--clusterAuthMode x509 <mongod --clusterAuthMode>`.
@@ -563,17 +623,25 @@ General Parameters
 
 .. parameter:: failIndexKeyTooLong
 
-   .. versionadded:: 2.6
-
    |mongod-only|
 
-   In MongoDB 2.6, if you attempt to insert or update a document so
-   that the value of an indexed field is longer than the
-   :limit:`Index Key Length Limit <Index Key Limit>`, the operation
-   will fail and return an error to the client. In previous versions
-   of MongoDB, these operations would successfully insert or modify a
-   document but the index or indexes would not include references to
-   the document.
+   .. versionchanged:: 4.2
+
+      - MongoDB removes the :limit:`Index Key Limit` for
+        :ref:`featureCompatibilityVersion <view-fcv>` (fCV) set to
+        ``"4.2"`` or greater.
+
+      - In concert with the removal of the limit,
+        :parameter:`failIndexTooLong` only applies for MongoDB 2.6
+        through MongoDB versions with :ref:`featureCompatibilityVersion
+        <view-fcv>` (fCV) set to ``"4.0"`` or earlier.
+
+   For MongoDB 2.6 through MongoDB versions with
+   ``featureCompatibilityVersion`` (fCV) set to ``"4.0"`` or earlier,
+   :limit:`Index Key Length Limit <Index Key Limit>` applies. If you
+   attempt to insert or update a document whose index field exceeds
+   the :limit:`Index Key Length Limit <Index Key Limit>`, the operation
+   will fail and return an error to the client.
 
    To avoid this issue, consider using :doc:`hashed indexes
    </core/index-hashed>` or indexing a computed value. If you have an
@@ -591,9 +659,7 @@ General Parameters
       documents whose indexed fields exceed the
       :limit:`Index Key Length Limit <Index Key Limit>`.
 
-   :parameter:`failIndexKeyTooLong` defaults to ``true``. When
-   ``false``, a 2.6 :binary:`~bin.mongod` instance will provide the 2.4
-   behavior.
+   :parameter:`failIndexKeyTooLong` defaults to ``true``.
 
    Issue the following command to disable the index key length
    validation:
@@ -608,26 +674,6 @@ General Parameters
    .. code-block:: sh
 
       mongod --setParameter failIndexKeyTooLong=false
-
-.. parameter:: newCollectionsUsePowerOf2Sizes
-
-   .. deprecated:: 3.0.0
-
-      MongoDB deprecates the
-      :parameter:`newCollectionsUsePowerOf2Sizes` parameter such that
-      you cannot set the :parameter:`newCollectionsUsePowerOf2Sizes` to
-      ``false`` and :parameter:`newCollectionsUsePowerOf2Sizes` set to
-      ``true`` is a no-op. To disable the :ref:`power of 2 allocation
-      <power-of-2-allocation>` for a collection, use the
-      :dbcommand:`collMod` command with the :collflag:`noPadding` flag
-      or the :method:`db.createCollection()` method with the
-      ``noPadding`` option.
-
-   *Default*: ``true``.
-
-   |mongod-only|
-
-   Available for the MMAPv1 storage engine only.
 
 .. parameter:: notablescan
 
@@ -700,10 +746,11 @@ General Parameters
 
       db.adminCommand( { setParameter: 1, disableJavaScriptJIT: false } )
 
-   Be aware that :dbcommand:`group` and :query:`$where` will reuse existing
-   JavaScript interpreter contexts, so changes to
-   :parameter:`disableJavaScriptJIT` may not take effect immediately for these
-   operations.
+   .. note::
+
+      :query:`$where` will reuse existing JavaScript interpreter
+      contexts, so changes to :parameter:`disableJavaScriptJIT` may not
+      take effect immediately for these operations.
 
    Alternately, you may enable the JIT at startup time by starting the
    :binary:`~bin.mongod` instance with the following option:
@@ -718,7 +765,7 @@ General Parameters
 
    *Default*: 500
 
-   Limits the amount of memory that simultaneous foreground index
+   Limits the amount of memory that simultaneous index
    builds on one collection may consume for the duration of the
    builds.
 
@@ -816,6 +863,45 @@ General Parameters
 
    .. seealso: :ref:`storage-node-watchdog`
 
+Traffic Recorder Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. parameter:: trafficRecordingDirectory
+
+   .. versionadded:: 4.2
+
+   |both|
+
+   Specifies the directory to be used by the :ref:`traffic recorder
+   <4.2-traffic-recorder>`. The specified directory must exist and be
+   accessible by the user running
+   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance.
+
+   .. warning::
+   
+      The traffic recorder outputs the recording file to this
+      directory. The file contains **unencrypted** user traffic
+      information. If possible:
+      
+      - Use an encrypted filesystem volume, ideally on a separate
+        partition.
+
+      - Limit access to a small subset of the operating system users.
+
+      - Limit the retention of the recording file.
+
+   You must set the :parameter:`trafficRecordingDirectory` in order to
+   run the traffic recorder. That is,
+   :dbcommand:`startRecordingTraffic` will fail if the directory is not
+   set.
+
+   You can only set the parameter at start up. For example:
+
+   .. code-block:: sh
+
+      mongod --setParameter trafficRecordingDirectory="<path/to/some/encrypted/trafficDir/>"
+
+
 Logging Parameters
 ~~~~~~~~~~~~~~~~~~
 
@@ -824,20 +910,25 @@ Logging Parameters
    |both|
 
    Specify an integer between ``0`` and ``5`` signifying the verbosity
-   of the logging, where ``5`` is the most verbose.
+   of the :doc:`logging </reference/log-messages>`, where ``5`` is the
+   most verbose. [#log-message]_
 
-   Consider the following example which sets the
-   :parameter:`logLevel` to ``2``:
+   The default :parameter:`logLevel` is ``0`` (Informational).
+
+   The following example sets the :parameter:`logLevel` to ``2``:
 
    .. code-block:: javascript
 
       db.adminCommand( { setParameter: 1, logLevel: 2 } )
 
-   The default :parameter:`logLevel` is ``0``.
-
    .. seealso::
 
-      :setting:`~systemLog.verbosity`.
+      - :parameter:`logComponentVerbosity`
+      - :setting:`~systemLog.verbosity`
+
+   .. [#log-message]
+
+      .. include:: /includes/extracts/4.2-changes-debug-log-message.rst
 
 .. parameter:: logComponentVerbosity
 
@@ -849,7 +940,7 @@ Logging Parameters
    <log-message-components>` for :doc:`log messages
    </reference/log-messages>`. The verbosity level determines the
    amount of :ref:`Informational and Debug <log-severity-levels>`
-   messages MongoDB outputs.
+   messages MongoDB outputs. [#log-message2]_
 
    .. include:: /includes/log-verbosity-levels.rst
 
@@ -947,6 +1038,10 @@ Logging Parameters
    The :binary:`~bin.mongo` shell also provides the :method:`db.setLogLevel()`
    to set the log level for a single component. For various ways to set
    the log verbosity level, see :ref:`log-messages-configure-verbosity`.
+
+   .. [#log-message2]
+
+      .. include:: /includes/extracts/4.2-changes-debug-log-message.rst
 
 .. parameter:: maxLogSizeKB
 
@@ -1246,34 +1341,6 @@ Logical Session Parameters
 
       mongod --setParameter logicalSessionRefreshMillis=600000
 
-.. parameter:: logicalSessionRefreshMinutes
-
-   .. admonition:: Availability
-      :class: note
-
-      Only for MongoDB 3.6.0-3.6.8 and MongoDB 4.0.0-4.0.3.
-      Starting in 4.0.4 (and 3.6.9), see
-      :parameter:`logicalSessionRefreshMillis` instead.
-
-   |both|
-
-   *Type*: integer
-
-   *Default*: 5
-
-   The interval (in minutes) at which the cache refreshes its logical
-   session records against the main session store.
-
-   You can only set :parameter:`logicalSessionRefreshMinutes` at
-   startup and cannot change this setting with the
-   :dbcommand:`setParameter` command.
-
-   For example, to set the :parameter:`logicalSessionRefreshMinutes`
-   for a :binary:`~bin.mongod` instance to 10 minutes:
-
-   .. code-block:: sh
-
-      mongod --setParameter logicalSessionRefreshMinutes=10
 
 .. parameter:: localLogicalSessionTimeoutMinutes
 
@@ -1407,26 +1474,6 @@ Replication Parameters
    for the :dbcommand:`find` command to finish during
    :ref:`data synchronization <replica-set-sync>`.
 
-.. parameter:: replIndexPrefetch
-
-   |mongod-only|
-
-   Use :parameter:`replIndexPrefetch` in conjunction with
-   :setting:`~replication.replSetName` when configuring a replica
-   set. The default value is ``all`` and available
-   options are:
-
-   - ``none``
-   - ``all``
-   - ``_id_only``
-
-   By default :term:`secondary` members of a :term:`replica set` will
-   load all indexes related to an operation into memory before
-   applying operations from the oplog. You can modify this behavior so
-   that the secondaries will only load the ``_id`` index. Specify
-   ``_id_only`` or ``none`` to prevent the :binary:`~bin.mongod` from
-   loading *any* index into memory.
-
 .. parameter:: replWriterThreadCount
 
    .. versionadded:: 3.2
@@ -1559,20 +1606,11 @@ Replication Parameters
 Sharding Parameters
 ~~~~~~~~~~~~~~~~~~~
 
-.. parameter:: AsyncRequestsSenderUseBaton
+.. note::
 
-   Type: boolean
-
-   Default: true
-
-   A flag that enables performance optimization on Linux for
-   scatter/gather operations on :binary:`~bin.mongos` when using a
-   single :parameter:`Task Executor connection pool
-   <taskExecutorPoolSize>`.
-
-   .. seealso:: :parameter:`taskExecutorPoolSize`
-
-   .. versionadded:: 4.0
+   Starting in version 4.2, MongoDB removes the parameter
+   ``AsyncRequestsSenderUseBaton`` and always enables the performance
+   enhancement controlled by the parameter.
 
 .. parameter:: replMonitorMaxFailedChecks
 
@@ -1808,9 +1846,17 @@ Sharding Parameters
      Executor connection pools is 64.
 
    Starting in MongoDB 4.0, the default value of
-   :parameter:`taskExecutorPoolSize` is ``1``. For the previous
-   behavior, set :parameter:`taskExecutorPoolSize` to 0 and, on Linux,
-   set :parameter:`AsyncRequestsSenderUseBaton` to ``false``.
+   :parameter:`taskExecutorPoolSize` is ``1``:
+   
+   - In MongoDB 4.0 deployment, you can set
+     :parameter:`taskExecutorPoolSize` to ``0`` and, on Linux, set
+     :v4.0:`AsyncRequestsSenderUseBaton
+     </reference/parameters/#param.AsyncRequestsSenderUseBaton>` to
+     ``false`` for the previous behavior.
+
+   - In MongoDB 4.2+ deployment, MongoDB removes the
+     ``AsyncRequestsSenderUseBaton`` parameter and always enables the
+     performance enhancement controlled by the parameter.
 
    You can only set this parameter during start-up and cannot change
    this setting using the :dbcommand:`setParameter` database command.

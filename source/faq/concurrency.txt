@@ -74,28 +74,11 @@ How granular are locks in MongoDB?
 
 .. versionchanged:: 3.0
 
-For WiredTiger
-~~~~~~~~~~~~~~
 
 Beginning with version 3.0, MongoDB ships with the :ref:`WiredTiger
 <storage-wiredtiger>` storage engine.
 
 .. include:: /includes/fact-wiredtiger-locks.rst
-
-For MMAPv1
-~~~~~~~~~~
-
-The MMAPv1 storage engine uses collection-level locking as of the
-3.0 release series, an improvement on earlier versions in which the
-database lock was the finest-grain lock. Third-party storage engines
-may either use collection-level locking or implement their own
-finer-grained concurrency control.
-
-For example, if you have six collections in a database using the
-MMAPv1 storage engine and an operation takes a collection-level write lock,
-the other five collections are still available for read and write operations.
-An exclusive database lock makes all six collections unavailable
-for the duration of the operation holding the lock.
 
 How do I see the status of locks on my :binary:`~bin.mongod` instances?
 -----------------------------------------------------------------------
@@ -155,14 +138,6 @@ such as:
 
 - to allow operations that require exclusive access to a collection
   such as index/collection drops and creations.
-
-MongoDB's :ref:`MMAPv1 <storage-mmapv1>` storage engine uses
-heuristics based on its access pattern to predict whether data is
-likely in physical memory before performing a read. If MongoDB
-*predicts* that the data is not in physical memory, an operation
-will yield its lock while MongoDB loads the data into memory. Once
-data is available in memory, the operation will reacquire the lock
-to complete the operation.
 
 .. _faq-concurrency-operations-locks:
 
@@ -264,12 +239,6 @@ lock at the database level for extended periods:
    * - :dbcommand:`convertToCapped`
      -
 
-   * - :dbcommand:`copydb`. This operation may lock all databases. See
-       :ref:`faq-concurrency-lock-multiple-dbs`.
-
-     - :method:`db.copyDatabase()`. This operation may lock all
-       databases. See :ref:`faq-concurrency-lock-multiple-dbs`.
-
    * - :dbcommand:`create` when creating a very large (i.e. many
        gigabytes) capped collection
      - :method:`db.createCollection()` when creating a very large (i.e.
@@ -282,8 +251,6 @@ lock at the database level for extended periods:
        :method:`db.collection.createIndexes()` issued *without*
        ``background`` set to ``true``
 
-   * - :dbcommand:`repairDatabase`
-     - :method:`db.repairDatabase()`
 
 
 The following administrative operations lock the database but only hold
@@ -304,7 +271,8 @@ the lock for a very short time:
    
 
    * - :dbcommand:`dropIndexes`
-     - :method:`db.collection.dropIndex()`
+     - | :method:`db.collection.dropIndex()`
+       | :method:`db.collection.dropIndexes()`
 
    * - :dbcommand:`getLastError`
      - :method:`db.getLastError()`
@@ -335,9 +303,6 @@ The following MongoDB operations take a global exclusive lock:
 - :method:`db.copyDatabase()` obtains a :serverstatus:`global exclusive
   (W) lock <locks>` and will block other operations until it finishes.
 
-- :method:`db.repairDatabase()` obtains a :serverstatus:`global
-  exclusive (W) lock <locks>` and will block other operations until it
-  finishes.
 
 - Starting in MongoDB 4.0, :method:`db.collection.reIndex()` takes a
   :serverstatus:`global exclusive (W) lock <locks>` and will block
@@ -399,10 +364,6 @@ Does MongoDB support transactions?
 .. include:: /includes/extracts/transactions-faq.rst
 
 .. include:: /includes/extracts/transactions-usage.rst
-
-.. [#upcoming]
-
-   .. include:: /includes/fact-upcoming.rst
 
 What isolation guarantees does MongoDB provide?
 -----------------------------------------------

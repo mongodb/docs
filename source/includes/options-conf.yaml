@@ -20,7 +20,7 @@ description: |
   The default :doc:`log message </reference/log-messages>`
   verbosity level for :ref:`components <log-message-components>`. The
   verbosity level determines the amount of :ref:`Informational and
-  Debug <log-severity-levels>` messages MongoDB outputs.
+  Debug <log-severity-levels>` messages MongoDB outputs. [#log-message]_
 
   .. include:: /includes/log-verbosity-levels.rst
 
@@ -34,6 +34,10 @@ description: |
 
   For various ways to set the log verbosity level, see
   :ref:`log-messages-configure-verbosity`.
+
+  .. [#log-message]
+
+     .. include:: /includes/extracts/4.2-changes-debug-log-message.rst
 
 optional: true
 ---
@@ -137,6 +141,23 @@ replacement:
   version: ".. versionadded:: 3.0"
 ---
 program: conf
+name: systemLog.component.replication.election.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "election"
+  component_data: ":data:`ELECTION`"
+  version: ".. versionadded:: 4.2"
+post: |
+  If :setting:`systemLog.component.replication.election.verbosity` is unset,
+  :setting:`systemLog.component.replication.verbosity` level also applies to
+  election components.
+
+  .. include:: /includes/log-verbosity-levels.rst
+---
+program: conf
 name: systemLog.component.replication.heartbeats.verbosity
 inherit:
   name: systemLog.component.name.verbosity
@@ -146,6 +167,29 @@ replacement:
   component_type: "heartbeats"
   component_data: ":data:`REPL_HB`"
   version: ".. versionadded:: 3.6"
+post: |
+  If :setting:`systemLog.component.replication.heartbeats.verbosity` is unset,
+  :setting:`systemLog.component.replication.verbosity` level also applies to
+  heartbeats components.
+
+  .. include:: /includes/log-verbosity-levels.rst
+---
+program: conf
+name: systemLog.component.replication.initialSync.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "initialSync"
+  component_data: ":data:`INITSYNC`"
+  version: ".. versionadded:: 4.2"
+post: |
+  If :setting:`systemLog.component.replication.initialSync.verbosity` is unset,
+  :setting:`systemLog.component.replication.verbosity` level also applies to
+  initialSync components.
+
+  .. include:: /includes/log-verbosity-levels.rst
 ---
 program: conf
 name: systemLog.component.replication.rollback.verbosity
@@ -157,6 +201,12 @@ replacement:
   component_type: "rollback"
   component_data: ":data:`ROLLBACK`"
   version: ".. versionadded:: 3.6"
+post: |
+  If :setting:`systemLog.component.replication.rollback.verbosity` is unset,
+  :setting:`systemLog.component.replication.verbosity` level also applies to
+  rollback components.
+
+  .. include:: /includes/log-verbosity-levels.rst
 ---
 program: conf
 name: systemLog.component.sharding.verbosity
@@ -500,13 +550,21 @@ inherit:
 post: |
   To bind to all IPv4 addresses, enter ``0.0.0.0``.
 
-  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0``
-  or alternatively, use the :setting:`net.bindIpAll` setting.
+  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0`` or
+  starting in MongoDB 4.2, an asterisk ``"*"`` (enclose the asterisk in
+  quotes to distinguish from `YAML alias nodes
+  <https://yaml.org/spec/1.2/spec.html#alias/>`__). Alternatively, use
+  the :setting:`net.bindIpAll` setting.
 
   .. note::
 
-     :setting:`net.bindIp` and :setting:`net.bindIpAll` are mutually
-     exclusive. That is, you can specify one or the other, but not both.
+     - :setting:`net.bindIp` and :setting:`net.bindIpAll` are mutually
+       exclusive. That is, you can specify one or the other, but not
+       both.
+     
+     - The command-line option ``--bind_ip`` overrides the configuration
+       file setting :setting:`net.bindIp`.
+
 ---
 program: conf
 name: net.bindIpAll
@@ -523,8 +581,11 @@ inherit:
   file: options-mongod.yaml
 post: |
 
-   Alternatively, set :setting:`net.bindIp` to
-   ``::,0.0.0.0`` to bind to all IP addresses.
+   Alternatively, set :setting:`net.bindIp` to ``::,0.0.0.0`` or,
+   starting in MongoDB 4.2, to an asterisk ``"*"`` (enclose the
+   asterisk in quotes to distinguish from `YAML alias nodes
+   <https://yaml.org/spec/1.2/spec.html#alias/>`__) to bind to all IP
+   addresses.
 
    .. note::
 
@@ -630,13 +691,219 @@ inherit:
   file: options-mongod.yaml
 ---
 program: conf
+name: net.tls.mode
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  verb: "Enables"
+  directive: "setting"
+inherit:
+  name: tlsMode
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.certificateSelector
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  directive: "setting"
+  file: ":setting:`net.tls.certificateKeyFile`"
+inherit:
+  name: tlsCertificateSelector
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.clusterCertificateSelector
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  directive: "setting"
+  file: ":setting:`net.tls.clusterFile`"
+inherit:
+  name: tlsClusterCertificateSelector
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.certificateKeyFile
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  intro: "The"
+  selector: ":setting:`net.tls.certificateSelector`"
+  
+inherit:
+  name: tlsCertificateKeyFile
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.certificateKeyFilePassword
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  intro: "The"
+  pemKeyOption: ":setting:`~net.tls.certificateKeyFile`"
+  selector: ":setting:`net.tls.certificateSelector`"
+inherit:
+  name: tlsCertificateKeyFilePassword
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.clusterFile
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  pemKeyOption: ":setting:`~net.tls.certificateKeyFile`"
+  intro: "The"
+  directive: "setting"
+  selector: ":setting:`net.tls.clusterCertificateSelector`"
+  serverselector: ":setting:`net.tls.certificateSelector`"
+  
+inherit:
+  name: tlsClusterFile
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.clusterPassword
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  intro: "The"
+  selector: ":setting:`net.tls.clusterCertificateSelector`"
+inherit:
+  name: tlsClusterPassword
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.CAFile
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  intro: "The"
+  selector: ":setting:`net.tls.certificateSelector`"
+  
+inherit:
+  name: tlsCAFile
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.clusterCAFile
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  intro: "The"
+  selector: ":setting:`net.tls.clusterCertificateSelector`"
+  cafile: ":setting:`net.tls.CAFile`"
+inherit:
+  name: tlsClusterCAFile
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.CRLFile
+type: string
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  intro: "The"
+  selector: ":setting:`net.tls.certificateSelector`"
+inherit:
+  name: tlsCRLFile
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.allowConnectionsWithoutCertificates
+type: boolean
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  old_name: "``net.tls.weakCertificateValidation``"
+  verb: "Enable or disable"
+  tlsCA_option: ":setting:`~net.tls.CAFile`"
+inherit:
+  name: tlsAllowConnectionsWithoutCertificates
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.allowInvalidCertificates
+type: boolean
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  verb: "Enable or disable"
+  setting: "``allowInvalidCertificates: true``"
+inherit:
+  name: tlsAllowInvalidCertificates
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.disabledProtocols
+type: string
+directive: setting
+inherit:
+  name: tlsDisabledProtocols
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.FIPSMode
+type: boolean
+directive: setting
+replacement:
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
+  intro: "Enable or disable the use of"
+  setting_continuation: " for the {{program}}"
+inherit:
+  name: tlsFIPSMode
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.tls.allowInvalidHostnames
+directive: setting
+type: boolean
+default: false
+description: |
+  .. versionadded:: 3.0
+
+  When {{role}} is ``true``, MongoDB disables the validation of the
+  hostnames in TLS certificates, allowing {{program}} to connect to
+  MongoDB instances if the hostname their certificates do not match the
+  specified hostname.
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+
+replacement:
+  program: ":binary:`~bin.mongod`"
+optional: true
+---
+program: conf
 name: net.ssl.sslOnNormalPorts
 type: boolean
 directive: setting
 replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   verb: "Enable or disable"
-  alternative: ":setting:`net.ssl.mode: requireSSL <~net.ssl.mode>`"
+  alternative: ":setting:`net.tls.mode: requireTLS <net.tls.mode>`"
   option: ":setting:`net.port`"
 inherit:
   name: sslOnNormalPorts
@@ -649,8 +916,9 @@ type: string
 directive: setting
 replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
-  verb: "Enable or disable"
+  verb: "Enables"
   directive: "setting"
+  alternative: ":setting:`net.tls.mode`"
 inherit:
   name: sslMode
   program: mongod
@@ -664,6 +932,7 @@ replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   directive: "setting"
   file: ":setting:`net.ssl.PEMKeyFile`"
+  alternative: ":setting:`net.tls.certificateSelector`"
 inherit:
   name: sslCertificateSelector
   program: mongod
@@ -677,6 +946,7 @@ replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   directive: "setting"
   file: ":setting:`net.ssl.clusterFile`"
+  alternative: ":setting:`net.tls.clusterCertificateSelector`"
 inherit:
   name: sslClusterCertificateSelector
   program: mongod
@@ -690,7 +960,7 @@ replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   intro: "The"
   selector: ":setting:`net.ssl.certificateSelector`"
-  
+  alternative: ":setting:`net.tls.certificateKeyFile`"
 inherit:
   name: sslPEMKeyFile
   program: mongod
@@ -705,6 +975,7 @@ replacement:
   intro: "The"
   pemKeyOption: ":setting:`~net.ssl.PEMKeyFile`"
   selector: ":setting:`net.ssl.certificateSelector`"
+  alternative: ":setting:`net.tls.certificateKeyFilePassword`"
 inherit:
   name: sslPEMKeyPassword
   program: mongod
@@ -721,7 +992,7 @@ replacement:
   directive: "setting"
   selector: ":setting:`net.ssl.clusterCertificateSelector`"
   serverselector: ":setting:`net.ssl.certificateSelector`"
-  
+  alternative: ":setting:`net.tls.clusterFile`"
 inherit:
   name: sslClusterFile
   program: mongod
@@ -735,6 +1006,7 @@ replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   intro: "The"
   selector: ":setting:`net.ssl.clusterCertificateSelector`"
+  alternative: ":setting:`net.tls.clusterPassword`"
 inherit:
   name: sslClusterPassword
   program: mongod
@@ -748,7 +1020,7 @@ replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   intro: "The"
   selector: ":setting:`net.ssl.certificateSelector`"
-  
+  alternative: ":setting:`net.tls.CAFile`"
 inherit:
   name: sslCAFile
   program: mongod
@@ -763,6 +1035,7 @@ replacement:
   intro: "The"
   selector: ":setting:`net.ssl.clusterCertificateSelector`"
   cafile: ":setting:`net.ssl.CAFile`"
+  alternative: ":setting:`net.tls.clusterCAFile`"
 inherit:
   name: sslClusterCAFile
   program: mongod
@@ -776,6 +1049,7 @@ replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   intro: "The"
   selector: ":setting:`net.ssl.certificateSelector`"
+  alternative: ":setting:`net.tls.CRLFile`"
 inherit:
   name: sslCRLFile
   program: mongod
@@ -790,6 +1064,7 @@ replacement:
   old_name: "``net.ssl.weakCertificateValidation``"
   verb: "Enable or disable"
   sslCA_option: ":setting:`~net.ssl.CAFile`"
+  alternative: ":setting:`net.tls.allowConnectionsWithoutCertificates`"
 inherit:
   name: sslAllowConnectionsWithoutCertificates
   program: mongod
@@ -803,6 +1078,7 @@ replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   verb: "Enable or disable"
   setting: "``allowInvalidCertificates: true``"
+  alternative: ":setting:`net.tls.allowInvalidCertificates`"
 inherit:
   name: sslAllowInvalidCertificates
   program: mongod
@@ -812,6 +1088,8 @@ program: conf
 name: net.ssl.disabledProtocols
 type: string
 directive: setting
+replacement:
+  alternative: ":setting:`net.tls.disabledProtocols`"
 inherit:
   name: sslDisabledProtocols
   program: mongod
@@ -825,6 +1103,7 @@ replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   intro: "Enable or disable the use of"
   setting_continuation: " for the {{program}}"
+  alternative: ":setting:`net.tls.FIPSMode`"
 inherit:
   name: sslFIPSMode
   program: mongod
@@ -1035,9 +1314,7 @@ description: |
   </core/server-side-javascript>`. When disabled, you cannot use
   operations that perform server-side execution of JavaScript code,
   such as the :query:`$where` query operator, :dbcommand:`mapReduce`
-  command and the :method:`db.collection.mapReduce()` method,
-  :dbcommand:`group` command and the :method:`db.collection.group()`
-  method.
+  command and the :method:`db.collection.mapReduce()` method.
 ---
 program: conf
 name: operationProfiling.mode
@@ -1159,103 +1436,6 @@ post: |
 
 ---
 program: conf
-name: storage.indexBuildRetry
-type: boolean
-default: true
-directive: setting
-description: |
-  Specifies whether :binary:`~bin.mongod` rebuilds incomplete indexes on the
-  next start up. This applies in cases where :binary:`~bin.mongod` restarts
-  after it has shut down or stopped in the middle of an index build. In
-  such cases, :binary:`~bin.mongod` always removes any incomplete indexes,
-  and then, by default, attempts to rebuild them. To stop :binary:`~bin.mongod`
-  from rebuilding indexes, set this option to ``false``.
-
-  .. versionchanged:: 4.0
-
-     The setting {{role}} cannot be used in conjunction with
-     :setting:`replication.replSetName`.
-
-post: |
-  The {{role}} setting is available only for :binary:`~bin.mongod`.
-
-  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
----
-program: conf
-name: storage.mmapv1.preallocDataFiles
-type: boolean
-default: true
-directive: setting
-description: |
-
-  *Only available for the MMAPv1 storage engine.*
-
-  Enables or disables the preallocation of data files. By default, MongoDB
-  does not preallocate data files.
-post: |
-  The {{role}} setting is available only for :binary:`~bin.mongod`.
----
-program: conf
-name: storage.mmapv1.nsSize
-type: integer
-default: 16
-directive: setting
-replacement:
-  program: ":binary:`~bin.mongod`"
-  verb: "The"
-inherit:
-  name: nssize
-  program: mongod
-  file: options-mongod.yaml
-post: |
-  The {{role}} setting is available only for :binary:`~bin.mongod`.
----
-program: conf
-name: storage.mmapv1.quota.enforced
-type: Boolean
-default: "false"
-directive: setting
-inherit:
-  name: quota
-  program: mongod
-  file: options-mongod.yaml
-post: |
-  The {{role}} setting is available only for :binary:`~bin.mongod`.
-replacement:
-  quota_files: :setting:`storage.quota.maxFilesPerDB`
-  verb: "Enable or disable the enforcement of"
----
-program: conf
-name: storage.mmapv1.quota.maxFilesPerDB
-type: integer
-default: 8
-directive: setting
-inherit:
-  name: quotaFiles
-  program: mongod
-  file: options-mongod.yaml
-post: |
-  The {{role}} setting is available only for :binary:`~bin.mongod`.
-replacement:
-  quota_flag: :setting:`storage.quota.enforced`
-  verb: "The"
----
-program: conf
-name: storage.mmapv1.smallFiles
-type: boolean
-default: false
-directive: setting
-replacement:
-  program: ":binary:`~bin.mongod`"
-  intro: "When ``true``, MongoDB uses"
-inherit:
-  name: smallfiles
-  program: mongod
-  file: options-mongod.yaml
-post: |
-  The {{role}} setting is available only for :binary:`~bin.mongod`.
----
-program: conf
 name: storage.syncPeriodSecs
 type: number
 default: 60
@@ -1271,22 +1451,6 @@ post: |
   The {{role}} setting is available only for :binary:`~bin.mongod`.
 
   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
-
----
-program: conf
-name: storage.repairPath
-type: string
-directive: setting
-replacement:
-  program: ":binary:`~bin.mongod`"
-  intro: "The"
-  dbpath: ":setting:`~storage.dbPath`"
-inherit:
-  name: repairpath
-  program: mongod
-  file: options-mongod.yaml
-post: |
-  The {{role}} setting is available only for :binary:`~bin.mongod`.
 
 ---
 program: conf
@@ -1309,35 +1473,6 @@ post: |
   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
 
   .. include:: /includes/wiredtiger-node-nojournal.rst
-
----
-program: conf
-name: storage.mmapv1.journal.debugFlags
-type: integer
-directive: setting
-replacement:
-  program: ":binary:`~bin.mongod`"
-inherit:
-  name: journalOptions
-  program: mongod
-  file: options-mongod.yaml
-post: |
-  The {{role}} option is available only for :binary:`~bin.mongod`.
----
-program: conf
-name: storage.mmapv1.journal.commitIntervalMs
-type: number
-directive: setting
-description: |
-  .. deprecated:: 3.2
-
-     MongoDB 3.2 deprecates the
-     :setting:`storage.mmapv1.journal.commitIntervalMs` setting. Use
-     :setting:`storage.journal.commitIntervalMs` instead.
-
-     The deprecated setting acts as an alias to the new
-     :setting:`storage.journal.commitIntervalMS` setting and applies to
-     either the MMAPv1 or the WiredTiger storage engine.
 
 ---
 program: conf
@@ -1399,21 +1534,7 @@ post: |
     <storage.journal.enabled>` cannot be used in conjunction with
     :setting:`replication.replSetName`.
 
----
-program: conf
-name: replication.secondaryIndexPrefetch
-type: string
-directive: setting
-replacement:
-  program: ":binary:`~bin.mongod`"
-  intro: "The indexes that"
-  directive: "setting"
-inherit:
-  name: replIndexPrefetch
-  program: mongod
-  file: options-mongod.yaml
-post: |
-  The {{role}} setting is available only for :binary:`~bin.mongod`.
+
 ---
 program: conf
 name: sharding.clusterRole
@@ -1702,6 +1823,10 @@ directive: setting
 type: boolean
 default: false
 description: |
+  ..deprecated:: 4.2
+
+  Use {{alternative}} instead.
+
   .. versionadded:: 3.0
 
   When {{role}} is ``true``, MongoDB disables the validation of the
@@ -1713,6 +1838,7 @@ description: |
 
 replacement:
   program: ":binary:`~bin.mongod`"
+  alternative: ":setting:`net.tls.allowInvalidHostnames`"
 optional: true
 
 ---

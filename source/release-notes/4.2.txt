@@ -1,0 +1,906 @@
+========================================================
+Release Notes for MongoDB 4.2 (Development Series 4.1.x)
+========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+
+.. include:: /includes/in-dev.rst
+
+.. _4.2-txn-sharded-clusters:
+
+Multi-Document Transactions: Sharded Clusters
+---------------------------------------------
+
+MongoDB 4.2 adds the ability to perform :doc:`multi-document
+transactions </core/transactions>` against sharded clusters.  
+
+.. include:: /includes/extracts/transactions-beta.rst
+
+The feature requires all members of the sharded clusters to have
+:ref:`featureCompatibilityVersion <view-fcv>` of ``4.2``.
+
+
+Removed MMAPv1 Storage Engine
+-----------------------------
+
+MongoDB 4.2 removes the deprecated MMAPv1 storage engine. 
+
+If your 4.0 deployment uses MMAPv1, you must change the deployment to
+:doc:`/core/wiredtiger` before upgrading to MongoDB 4.2. For details,
+see:
+
+- :doc:`/tutorial/change-standalone-wiredtiger`
+
+- :doc:`/tutorial/change-replica-set-wiredtiger`
+
+- :doc:`/tutorial/change-sharded-cluster-wiredtiger`
+
+.. _4.2-mmapv1-conf-options:
+
+MMAPv1 Specific Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the following MMAPv1 specific configuration
+options:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70 45
+
+   * - Configuration File Setting
+     - Command-line Option
+
+   * - ``storage.mmapv1.journal.commitIntervalMs``
+     -
+
+   * - ``storage.mmapv1.journal.debugFlags``
+     - ``mongod --journalOptions``
+
+   * - ``storage.mmapv1.nsSize``
+     - ``mongod --nssize``
+
+   * - ``storage.mmapv1.preallocDataFiles``
+     - ``mongod --noprealloc``
+
+   * - ``storage.mmapv1.quota.enforced``
+     - ``mongod --quota``
+
+   * - ``storage.mmapv1.quota.maxFilesPerDB``
+     - ``mongod --quotaFiles``
+
+   * - ``storage.mmapv1.smallFiles``
+     - ``mongod --smallfiles``
+
+   * - ``storage.repairPath``
+     - ``mongod --repairpath``
+
+   * - ``replication.secondaryIndexPrefetch``
+     - ``mongod --replIndexPrefetch``
+
+MMAPv1 Specific Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the following MMAPv1 parameters:
+
+- ``newCollectionsUsePowerOf2Sizes``
+- ``replIndexPrefetch``
+
+MMAPv1 Specific Command
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the MMAPv1 specific ``touch`` command.
+
+MMAPv1 Specific Options for Binaries, Commands and Methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the MMAPv1 specific options:
+
+- ``noPadding`` and ``usePowerOf2Sizes`` for :dbcommand:`collMod`
+
+- ``verbose`` for :dbcommand:`collStats`
+
+- ``flags`` for :dbcommand:`create`
+ 
+- ``paddingFactor``, ``paddingBytes``, ``preservePadding`` for the
+  :method:`db.createCollection()` method and the :dbcommand:`compact`
+  command.
+
+- ``repair`` for :binary:`~bin.mongodump`
+
+Removed Commands and Methods
+----------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Removed Command
+     - Removed Method
+     - Notes
+
+   * - ``group``
+
+     - ``db.collection.group()``
+
+     - Use :method:`db.collection.aggregate()` with the
+       :pipeline:`$group` stage instead.
+
+   * - ``eval``
+
+     - 
+
+     - The MongoDB 4.2 :binary:`~bin.mongo` shell methods
+       :method:`db.eval()` and :method:`db.collection.copyTo()` can
+       only be run when connected to MongoDB 4.0 or earlier.
+
+
+   * - ``copydb``
+
+     - 
+
+     - The corresponding :binary:`~bin.mongo` shell helpers
+       ``db.copyDatabase()`` can only be run when connected to MongoDB
+       4.0 or earlier.
+
+       As an alternative, users can use :binary:`~bin.mongodump` and
+       :binary:`~bin.mongorestore` or write a script using the drivers.
+
+   * - ``clone``
+
+     - 
+
+     - The corresponding :binary:`~bin.mongo` shell helpers
+       ``db.cloneDatabase()`` can only be run when connected to MongoDB
+       4.0 or earlier.
+
+       As an alternative, users can use :binary:`~bin.mongodump` and
+       :binary:`~bin.mongorestore` or write a script using the drivers.
+
+   * - ``geoNear``
+
+     - 
+
+     - Use :method:`db.collection.aggregate()` with the
+       :pipeline:`$geoNear` stage instead.
+
+       For more information, see :ref:`4.2-compat-remove-geoNear`.
+
+   * - ``parallelCollectionScan``
+     - 
+     -
+
+
+   * - ``repairDatabase``
+
+     - ``db.repairDatabase()``
+
+     - For more information, see :ref:`4.2-compat-remove-repairDatabase`.
+
+Remove ``maxScan`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the deprecated option ``maxScan`` for the
+:dbcommand:`find` command and the :binary:`~bin.mongo` shell helper
+``cursor.maxScan()``. Use either the ``maxTimeMS`` option for the
+:dbcommand:`find` command or the helper :method:`cursor.maxTimeMS()` instead.
+
+Sharded Clusters
+----------------
+
+.. include:: /includes/extracts/sharded-clusters-backup-restore-limitations-atomicity-general.rst
+
+.. _4.2-security:
+
+Security Improvements
+---------------------
+
+.. _4.2-tls:
+
+Add ``TLS`` Options
+~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds ``TLS`` options for the :ref:`mongod
+<tls-mongod-options>`, the :ref:`mongos <mongos-tls-options>`, and the
+:ref:`mongo shell<mongo-shell-tls>` to replace the corresponding
+``SSL`` options (deprecated in 4.2). The new TLS options provide
+**identical** functionality as the deprecated ``SSL`` options as MongoDB
+has always supported TLS 1.0 and later.
+
+- For the command-line TLS options, refer to the :ref:`mongod
+  <tls-mongod-options>`, :ref:`mongos <mongos-tls-options>`, and
+  :ref:`mongo shell <mongo-shell-tls>` pages.
+
+- For the corresponding ``mongod`` and ``mongos`` configuration file
+  options, refer to the :ref:`configuration file
+  <net-tls-conf-options>` page.
+
+- For the connection string ``tls`` options, refer to the
+  :ref:`connection string <uri-options-tls>` page.
+
+.. tip::
+
+   Most of the new ``TLS`` option names are similar to the ``SSL``
+   option name; e.g. :option:`--tlsMode <mongod --tlsMode>` instead of
+   :option:`--sslMode <mongod --sslMode>`. The exceptions are:
+
+   - :setting:`net.tls.certificateKeyFile` vs. :setting:`net.ssl.PEMKeyFile`
+   - :setting:`net.tls.certificateKeyFilePassword` vs. :setting:`net.ssl.PEMKeyPassword`
+   - :option:`--tlsCertificateKeyFile <mongod --tlsCertificateKeyFile>` vs.  :option:`--sslPEMKeyFile <mongod --sslPEMKeyFile>`
+   - :option:`--tlsCertificateKeyFilePassword <mongod --tlsCertificateKeyFile>` vs.  :option:`--sslPEMKeyPassword <mongod --sslPEMKeyPassword>`
+
+.. seealso:: :ref:`4.2-tlsclustercafile`
+
+Deprecate ``SSL`` Options
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 deprecates the ``SSL`` options for the :ref:`mongod
+<ssl-mongod-options>`, the :ref:`mongos <mongos-ssl-options>`, and the
+:ref:`mongo shell<mongo-shell-ssl>` as well as the corresponding
+:ref:`net-ssl-conf-options` configuration file options.
+
+Use the new :ref:`TLS <4.2-tls>` options instead.
+
+Add Parameter ``tlsWithholdClientCertificate``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds :parameter:`tlsWithholdClientCertificate` to ``setParameter``
+for :binary:`~bin.mongod` and :binary:`~bin.mongos`. Set to ``true`` to stop
+the mongod acting as a client during intra-cluster communication from sending
+its configured ``TLS`` certificate to the remote mongod. Use with settings
+allowing inbound connections without certificates.
+
+.. _4.2-tlsclustercafile:
+
+Add ``tlsClusterCAFile`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds the 
+:option:`--tlsClusterCAFile <mongod --tlsClusterCAFile>` option/:setting:`net.tls.clusterCAFile` for
+:binary:`~bin.mongod` and :binary:`~bin.mongos`, which specifies a 
+:file:`.pem` file for validating the TLS certificate from a client
+establishing a connection. This lets you use separate Certificate Authorities
+to verify the client to server and server to client portions of the TLS
+handshake.
+
+.. seealso:: :ref:`4.2-tls`
+
+``passwordPrompt()``
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+For example:
+
+.. code-block:: javascript
+
+   db.createUser( { 
+      user:"user123",
+      pwd: passwordPrompt(),   // Instead of specifying the password in cleartext
+      roles:[ "readWrite" ]
+   } )
+
+Keyfile Format Change to YAML
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-keyfile-fmt.rst
+
+The new format allows for rolling upgrade of the keys without downtime.
+See :doc:`/tutorial/rotate-key-replica-set` and
+:doc:`/tutorial/rotate-key-sharded-cluster`.
+
+General Security Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Add :authaction:`serverStatus` to the :authrole:`backup` built-in
+  role.
+
+Aggregation Improvements
+------------------------
+
+.. _4.2-agg-out:
+
+``$out`` Stage Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds a new syntax for the :pipeline:`$out` aggregation stage. With
+the new syntax, you can:
+
+- merge the output with an existing collection
+
+- replace the content of an existing collection with the output
+
+- output to a collection in a different database
+
+- output to an existing sharded collection.
+
+An example of using the new syntax to merge output with an existing collection
+in a different database is:
+
+.. code-block:: javascript
+  
+   { $out: { to : "employees", mode : "insertDocuments", db : "hr" } }
+
+With the older, still-supported syntax, you can only replace the content of an
+existing collection with the output and you cannot output to a sharded
+collection.
+
+An example of the old syntax is: 
+
+.. code-block:: javascript
+   
+   { $out: "stock" }
+
+.. seealso:: :ref:`4.2-compat-out`
+
+.. _4.2-trigonometry-expressions:
+
+Aggregation Trigonometry Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds new
+trigonometry expressions for use in aggregation pipelines.
+
+.. include:: /includes/extracts/agg-operators-trigonometry.rst
+
+.. _4.2-round-trig-expressions:
+
+Aggregation Arithmetic Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds the :expression:`$round` aggregation expression. 
+Use :expression:`$round` to round numerical values to a specific
+digit or decimal place.
+
+MongoDB 4.2 adds expanded functionality and new syntax to
+:expression:`$trunc`. Use :expression:`$trunc` with the new syntax
+to truncate numerical values to a specific digit or decimal place.
+
+New Stage
+~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-planCacheStats.rst
+
+.. include:: /includes/extracts/4.2-changes-planCacheStats-pref.rst
+ 
+Change Stream
+-------------
+
+``startAfter`` Option for Change Streams
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds ``startAfter`` as an option for :ref:`changeStreams`, which
+starts a new change stream after the event indicated by a resume token. With
+this option, you can start a change stream from an
+:ref:`invalidate event <change-event-invalidate>`, thereby guaranteeing no
+missed notifications after the previous stream was invalidated.
+
+Change Streams Resume Tokens
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 uses the version 1 (i.e. ``v1``) change streams
+:ref:`resume tokens <change-stream-resume-token>`, introduced in
+version 4.0.7.
+
+.. _wildcard-releasenotes:
+.. move wildcard-index-core to concept page as part of DOCS-12275
+.. _wildcard-index-core:
+
+Wildcard Indexes
+----------------
+
+MongoDB 4.2 adds wildcard indexes to support workloads where users query
+against custom fields or a large variety of fields in a collection.
+Administrators can create a wildcard index on a subset of fields or
+all fields in a document, instead of creating multiple indexes to
+support each user's unique data access patterns.
+
+.. include:: /includes/extracts/wildcard-index-summary.rst
+
+Wildcard indexes are a type of :doc:`sparse </core/index-sparse>` index,
+where the index only contains entries for fields with non-empty
+values, e.g. a scalar value or ``null``.
+
+You can create a wildcard index using the :dbcommand:`createIndexes` 
+database command or its shell helpers 
+:method:`db.collection.createIndex()` and
+:method:`db.collection.createIndexes()`. For examples of creating
+a wildcard index, see :ref:`createIndex-method-wildcard-examples`.
+
+.. include:: /includes/extracts/wildcard-index-fcv.rst
+
+.. _wildcard-index-limitations:
+
+Wildcard Index Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Wildcard indexes do not support the following index types or properties:
+
+  - :doc:`Compound </core/index-compound>`
+  - :doc:`TTL </core/index-ttl>`
+  - :doc:`Text </core/index-text>`
+  - :doc:`2d (Geospatial) </core/geospatial-indexes>`
+  - :doc:`2dsphere (Geospatial) </core/2dsphere>`
+  - :doc:`Hashed </core/index-hashed>`
+  - :doc:`Unique </core/index-unique>`
+
+- Wildcard indexes do not support the following query operator patterns:
+
+  - :query:`{ $exists : false } <$exists>`
+  - :query:`{ $eq: null } <$eq>`
+  - :query:`{ $eq: [ { a : 1} ] } <$eq>`
+  - :query:`{ $eq: { \<object\> } } <$eq>`
+  - :query:`{ $ne: { \<object\> } } <$ne>`
+  - :query:`{ $ne: null } <$ne>` (for queries on field paths that include arrays)
+
+- You cannot shard a collection using a wildcard index.
+
+- For queries that specify multiple fields covered by a wildcard index,
+  the wildcard index can support at most *one* of the fields in the
+  query. For queries using the query :operator:`$or` or the aggregation
+  :expression:`$or` operators, the query planner can use a single
+  wildcard index to satisfy the independent ``$or`` arguments. The
+  :ref:`query planner <query-plans-query-optimization>` selects which
+  wildcard index field to support for any given query.
+
+  The query planner can also use the wildcard index to support
+  :method:`~cursor.sort()` operations **only if**:
+
+  - The sort field is included in the wildcard index, *and*
+  - The sort field was also included in the query predicate, *and*
+  - The query planner selected the sort field for satisfying the query.
+
+Platform Support
+----------------
+
+- MongoDB 4.2 (Community & Enterprise) adds support for:
+
+  - Ubuntu 18.04 on ARM64.
+
+- MongoDB 4.2 (Community & Enterprise) removes support for:
+
+  - Ubuntu 14.04.
+  
+  - macOS 10.11.
+  
+See :ref:`mongodb-supported-platforms`.
+
+MongoDB Tools
+-------------
+
+FIPS Mode
+~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-fips.rst
+
+General Improvements
+--------------------
+
+.. _4.2-traffic-recorder:
+
+Traffic Recorder
+~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds a traffic recorder to capture all incoming wire
+protocol traffic to a :binary:`~bin.mongod`/:binary:`~bin.mongos`
+instance (and the instance's responses) and output to a specified file.
+
+- To enable, the :parameter:`trafficRecordingDirectory` parameter must
+  be set on start-up.
+
+- To start, use the :dbcommand:`startRecordingTraffic` command.
+
+- To stop, use the :dbcommand:`stopRecordingTraffic` command.
+
+The :dbcommand:`serverStatus` command and the
+:method:`db.serverStatus()` method include a new
+:serverstatus:`trafficRecording` metrics in their output.
+
+.. seealso:: :ref:`4.2-serverStatus`
+
+``outputConfig`` Option
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds the :option:`--outputConfig <mongod --outputConfig>` option for 
+:binary:`~bin.mongod` and :binary:`~bin.mongos`, which outputs the resolved 
+YAML configuration document to ``stdout`` and halts the server instance.
+
+Remove Index Key Size Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, for :ref:`featureCompatibilityVersion
+<view-fcv>` set to ``"4.2"`` or greater, MongoDB removes the
+:limit:`Index Key Limit`. For fCV set to ``"4.0"``, the limit still
+applies.
+
+.. seealso:: :ref:`4.2 Indexes Compatibility Changes <4.2-index-compat-changes>`
+
+Remove Index Name Length Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-index-names.rst
+
+.. seealso:: 
+   :ref:`4.2 Indexes Compatibility Changes <4.2-index-compat-changes>`,
+   :ref:`4.2-compatibility-enabled`
+
+Improvements to ``dropIndexes``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Drop multiple indexes
+`````````````````````
+
+Starting in MongoDB 4.2, you can specify multiple indexes to the
+:dbcommand:`dropIndexes` command and its :binary:`~bin.mongo` shell
+helper :method:`db.collection.dropIndexes()`. To specify multiple
+indexes to drop, pass an array of index names to
+:dbcommand:`dropIndexes`/:method:`db.collection.dropIndexes()`.
+
+Kill related queries only
+`````````````````````````
+
+.. include:: /includes/extracts/fact-releaseNotes-dropIndexes-query-behavior.rst
+
+Externally Sourced Values for Configuration Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-expansion-directive-intro.rst
+
+The following expansion directives are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Expansion Directive
+     - Description
+
+   * - :configexpansion:`__rest`
+     - Allows users to specify a ``REST`` endpoint as the external source
+       for configuration file options *or* the full configuration file.
+
+   * - :configexpansion:`__exec`
+     - Allows users to specify a shell or terminal command as the
+       external source for configuration file options *or* the
+       full configuration file.
+
+For complete documentation, see :ref:`externally-sourced-values`.
+
+.. _4.2-currentOp:
+
+``currentOp``
+~~~~~~~~~~~~~
+
+MongoDB 4.2 adds a new option ``idleCursors`` to the
+:pipeline:`$currentOp` aggregation stage in order to return information
+on idle cursors.
+
+In addition, MongoDB 4.2 adds the following new fields to the documents
+returned from the :pipeline:`$currentOp` aggregation stage,
+:dbcommand:`currentOp` command, and :method:`db.currentOp()` helper:
+
+.. list-table::
+   :header-rows: 1
+
+   * - ``$currentOp``
+     - ``currentOp``/``db.currentOp()``
+     - Description
+
+   * - :data:`$currentOp.type`
+     - :data:`currentOp.type`
+   
+     - Specifies whether the reported operation is an ``op``,
+       ``idleSession``, or ``idleCursor``.
+
+   * - :data:`$currentOp.cursor`
+     - :data:`currentOp.cursor`
+
+     - Specifies cursor details. Available when returning ``getmore``
+       operations or ``idleCursor`` information. 
+
+   * - :data:`$currentOp.effectiveUsers`
+     - :data:`currentOp.effectiveUsers`
+   
+     - Specifies users associated with the operation.
+
+   * - :data:`$currentOp.userImpersonators`
+     - :data:`currentOp.userImpersonators`
+   
+     - Specifies users that are impersonating the effective users for
+       the operation.
+
+See also :ref:`4.2 current op compatibility changes <4.2-current-op-compat>`
+
+Logging
+~~~~~~~
+
+- Added :data:`INITSYNC` component to log messages.
+
+- Added :data:`ELECTION` component to log messages.
+
+- For debug messages, include the verbosity level (i.e. ``D``\ [1-5]).
+  For example, if verbosity level is 2, MongoDB logs ``D2``. In
+  previous versions, MongoDB log messages only specified ``D`` for
+  Debug level.
+       
+- When logging to :option:`syslog <mongod --syslog>`, the format of the
+  message text includes the :ref:`component <log-message-components>`.
+  For example:
+
+  .. code-block:: none
+
+     ...  ACCESS   [repl writer worker 5] Unsupported modification to roles collection ...
+
+  Previously, the :option:`syslog <mongod --syslog>` message text did
+  not include the component. For
+  example:
+
+  .. code-block:: none
+
+     ... [repl writer worker 1] Unsupported modification to roles collection ...
+
+- MongoDB 4.2 adds a ``usedDisk`` indicator to the :doc:`profiler log
+  messages </tutorial/manage-the-database-profiler>` and
+  :doc:`diagnostic log messages </reference/log-messages>` for the
+  :dbcommand:`aggregate` operation. The ``usedDisk`` indicates whether
+  any stages of an :dbcommand:`aggregate` operation wrote data to
+  temporary files due to memory restrictions. For more information on
+  aggregation memory restrictions, see :ref:`agg-memory-restrictions`.
+
+- .. _slow-oplog:
+
+  Starting in version 4.2 (also available starting in 4.0.6),
+  secondary members of a replica set now log oplog entries that take
+  longer than the slow operation threshold to apply. These messages are
+  :option:`logged <mongod --logpath>` for the secondaries under the
+  :data:`REPL` component with the text ``applied op: <oplog entry> took
+  <num>ms``.
+
+  .. code-block:: none
+
+     2018-11-16T12:31:35.886-0500 I REPL   [repl writer worker 13] applied op: command { ... }, took 112ms
+
+  The slow oplog application logging on secondaries are:
+
+  - Not affected by the
+    :setting:`~operationProfiling.slowOpSampleRate`; i.e. all slow
+    oplog entries are logged by the secondary.
+
+  - Not affected by the
+    :parameter:`logLevel`/:setting:`systemLog.verbosity` level (or the
+    :setting:`systemLog.component.replication.verbosity` level); i.e.
+    for oplog entries, the secondary logs only the slow oplog entries.
+    Increasing the verbosity level does not log all oplog entries.
+
+  - Not captured by the :doc:`profiler
+    </tutorial/manage-the-database-profiler>` and not affected by the
+    profiling level.
+
+  For more information on setting the slow operation threshold, see 
+
+  - :option:`mongod --slowms`
+
+  - :setting:`~operationProfiling.slowOpThresholdMs`
+
+  - The :dbcommand:`profile` command or
+    :method:`db.setProfilingLevel()` shell helper method.
+
+- Starting in MongoDB 4.2, the :dbcommand:`getLog` command truncates
+  any event that contains more than 1024 characters. In earlier
+  versions, :dbcommand:`getLog` truncates after 512 characters.
+
+- .. include:: /includes/extracts/4.2-changes-log-storage.rst
+
+- .. include:: /includes/extracts/4.2-changes-log-query-shapes-plan-cache-key.rst
+
+  See :ref:`4.2-query-plans`.
+
+.. _4.2-serverStatus:
+
+``serverStatus`` Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Added new fields to :serverstatus:`shardingStatistics`:
+
+  - :serverstatus:`shardingStatistics.countDocsClonedOnRecipient`
+
+  - :serverstatus:`shardingStatistics.countDocsClonedOnDonor`
+
+  - :serverstatus:`shardingStatistics.countDocsDeletedOnDonor`
+
+  - :serverstatus:`shardingStatistics.countRecipientMoveChunkStarted`
+
+- Added new fields to :serverstatus:`metrics.repl.network`:
+
+  - :serverstatus:`metrics.repl.network.notMasterLegacyUnacknowledgedWrites`
+
+  - :serverstatus:`metrics.repl.network.notMasterUnacknowledgedWrites`
+
+- Added new :serverstatus:`metrics.repl.stepDown` metrics to report on
+  operations that were running when the primary stepped down. The
+  :serverstatus:`metrics.repl.stepDown` metrics include:
+
+  - :serverstatus:`metrics.repl.stepDown.userOperationsKilled`
+
+  - :serverstatus:`metrics.repl.stepDown.userOperationsRunning`
+
+- Added new :serverstatus:`trafficRecording` field to report on
+  :ref:`4.2-traffic-recorder` metrics. The
+  :serverstatus:`trafficRecording` metrics include:
+  
+  - :serverstatus:`trafficRecording.running`
+  - :serverstatus:`trafficRecording.bufferSize`
+  - :serverstatus:`trafficRecording.bufferedBytes`
+  - :serverstatus:`trafficRecording.recordingFile`
+  - :serverstatus:`trafficRecording.maxFileSize`
+  - :serverstatus:`trafficRecording.currentFileSize`
+
+- Added new fields to :serverstatus:`transactions`:
+
+  - :serverstatus:`transactions.totalPrepared`
+  - :serverstatus:`transactions.totalPreparedThenCommitted`
+  - :serverstatus:`transactions.totalPreparedThenAborted`
+  - :serverstatus:`transactions.currentPrepared`
+  - :serverstatus:`transactions.oldestActiveOplogEntryTimestamp`
+  - :serverstatus:`transactions.oldestOpenUnpreparedReadTimestamp`
+
+``zstd`` Availability
+~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, MongoDB supports :term:`zstd` for:
+
+- block compression. See
+  :setting:`storage.wiredTiger.collectionConfig.blockCompressor`.
+  
+- journal compression. See
+  :setting:`storage.wiredTiger.engineConfig.journalCompressor`.
+
+- network compression. See :setting:`net.compression.compressors`.
+
+  - For clients using the MongoDB drivers, they must use drivers
+    updated for MongoDB 4.2.
+
+  - The network compressors for :binary:`~bin.mongod` and
+    :binary:`~bin.mongos` default to both ``snappy,zstd,zlib``
+    compressors, in that order. In version 4.0, :binary:`~bin.mongod`
+    and :binary:`~bin.mongos` enable network compression by default
+    with ``snappy`` as the compressor.
+
+.. _4.2-query-plans:
+
+``queryHash`` and ``planCacheKey``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- .. _4.2-query-hash:
+
+  ``queryHash``
+        .. include:: /includes/extracts/4.2-changes-query-shapes.rst
+
+- .. _4.2-plan-cache-key:
+
+  ``planCacheKey``
+        .. include:: /includes/extracts/4.2-changes-plan-cache-key.rst
+
+        .. seealso:: :ref:`plan-cache-key`
+
+- The ``queryHash`` and ``planCacheKey`` are available in:
+
+  - :doc:`profiler entry </tutorial/manage-the-database-profiler>`
+    fields :data:`~system.profile.queryHash` and
+    :data:`~system.profile.planCacheKey` the logged query operations.
+
+  - :ref:`diagnostic log messages (i.e. mongod/mongos log
+    messages)<log-message-slow-ops>` for the logged query operations.
+
+  - :doc:`explain() output </reference/explain-results>` fields:
+    :data:`~explain.queryPlanner.queryHash` and
+    :data:`~explain.queryPlanner.planCacheKey`
+
+The fields are also available in operations that return information
+about the query plan cache:
+
+- :pipeline:`$planCacheStats` aggregation stage (*New in MongoDB 4.2*)
+
+- :method:`PlanCache.listQueryShapes()`
+  method/:dbcommand:`planCacheListQueryShapes` command
+
+- :method:`PlanCache.getPlansByQuery()`
+  method/:dbcommand:`planCacheListPlans` command
+
+``$regex`` and ``$not``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2 (and 4.0.7), :query:`$not` operator can perform logical
+``NOT`` operation on :query:`$regex` operator expressions as well as
+on regular expression objects (i.e. ``/pattern/``).
+
+In 4.0 and earlier versions, you could use :query:`$not` operator with
+regular expression objects (i.e. ``/pattern/``) but not with
+:query:`$regex` operator expressions.
+
+Kill Own Cursors
+~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, users can always kill their own cursors,
+regardless of whether the users have the privilege to
+:authaction:`killCursors`. As such, the :authaction:`killCursors`
+privilege has no effect starting in MongoDB 4.2.
+
+In MongoDB 4.0, users required the :authaction:`killCursors` privilege
+in order to kill their own cursors.
+
+``collStats``
+~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :pipeline:`$collStats` aggregation, the
+:dbcommand:`collStats` command, and the :binary:`~bin.mongo` shell
+helper :method:`db.collection.stats` return information on indexes that
+are currently being built. 
+
+For details, see:
+
+- :data:`collStats.nindexes`
+- :data:`collStats.indexDetails`
+- :data:`collStats.indexBuilds`
+- :data:`collStats.totalIndexSize`
+- :data:`collStats.indexSizes`
+
+Changes Affecting Compatibility
+-------------------------------
+
+Some changes can affect compatibility and may require user actions. For
+a detailed list of compatibility changes, see
+:doc:`/release-notes/4.2-compatibility`.
+
+.. _4.2-upgrade:
+
+Upgrade Procedures
+------------------
+
+.. admonition:: Feature Compatibility Version
+
+   To upgrade, the 4.0 instances must have
+   ``featureCompatibilityVersion`` set to ``4.0``. To check the version:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+   For specific details on verifying and setting the
+   ``featureCompatibilityVersion`` as well as information on other
+   prerequisites/considerations for upgrades, refer to the individual
+   upgrade instructions:
+
+   - :doc:`/release-notes/4.2-upgrade-standalone`
+
+   - :doc:`/release-notes/4.2-upgrade-replica-set`
+
+   - :doc:`/release-notes/4.2-upgrade-sharded-cluster`
+
+If you need guidance on upgrading to 4.2, `MongoDB offers major version
+upgrade services
+<https://www.mongodb.com/products/consulting?jmp=docs>`_
+to help ensure a smooth transition without interruption to your MongoDB application.
+
+Report an Issue
+---------------
+
+To report an issue, see
+https://github.com/mongodb/mongo/wiki/Submit-Bug-Reports for
+instructions on how to file a JIRA ticket for the MongoDB server or one
+of the related projects.
+
+.. toctree::
+   :hidden:
+
+   /release-notes/4.2-compatibility
+   /release-notes/4.2-upgrade-standalone
+   /release-notes/4.2-upgrade-replica-set
+   /release-notes/4.2-upgrade-sharded-cluster
+   /release-notes/4.2-downgrade
+

@@ -2,21 +2,19 @@
 
 MongoDB will **not** create an index 
 on a collection if the index entry for
-an existing document exceeds the |limit|. Previous versions of MongoDB
-would create the index but not index such documents.
+an existing document exceeds the |limit|.
 
 .. index-field-limit-reIndex
 
 Reindexing operations will error if the index entry for an indexed
-field exceeds the |limit|. Reindexing operations occur as part of
-:dbcommand:`compact` and :dbcommand:`repairDatabase` commands as well
+field exceeds the |limit|. Reindexing operations occur as part of the
+:dbcommand:`compact` command as well
 as the :method:`db.collection.reIndex()` method.
 
 Because these operations drop *all* the indexes from a collection and
 then recreate them sequentially, the error from the |limit| prevents
 these operations from rebuilding any remaining indexes for the
-collection and, in the case of the :dbcommand:`repairDatabase` command,
-from continuing with the remainder of the process.
+collection.
 
 .. index-field-limit-insert
 

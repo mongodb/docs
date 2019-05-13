@@ -20,7 +20,12 @@ guarantees that the data read has been acknowledged by a majority of
 the replica set members (i.e. the documents read are durable and
 guaranteed not to roll back).
 
-However, for operations in :doc:`multi-document transactions
+Each node maintains in-memory a view of the data at the majority-commit
+point; the majority-commit point is calculated by the primary. To
+fulfill read concern ``"majority"``, the node returns data from this
+view and is comparable in performance cost to other read concerns.
+
+For operations in :doc:`multi-document transactions
 </core/transactions>`, read concern ``"majority"`` provides its
 guarantees only if the transaction commits with :ref:`write concern
 "majority" <transactions-write-concern>`. Otherwise, the
@@ -100,9 +105,11 @@ consistent sessions.
 Read Concern ``"majority"`` and Transactions
 --------------------------------------------
 
-You set the read concern at the transaction level, not at the
-individual operation level. To set the read concern for transactions,
-see :ref:`transaction-options`.
+.. note:: 
+
+   You set the read concern at the transaction level, not at the
+   individual operation level. To set the read concern for
+   transactions, see :ref:`transactions-read-concern`.
 
 For operations in :doc:`multi-document transactions
 </core/transactions>`, read concern ``"majority"`` provides its
@@ -119,17 +126,16 @@ Read Your Own Writes
 
 .. include:: /includes/fact-read-own-writes.rst
 
-.. _4.0-disable-read-concern-majority:
+.. _disable-read-concern-majority:
 
 Disable Read Concern Majority
 -----------------------------
 
 *For 3-Member Primary-Secondary-Arbiter Architecture*
-
-For MongoDB 4.0.3+ (and 3.6.1+ [#]_), you can disable read concern
-:readconcern:`"majority"` if you have a three-member replica set with a
-primary-secondary-arbiter (PSA) architecture or a sharded cluster with
-a three-member PSA shards.
+   
+You can disable read concern :readconcern:`"majority"` if you have a
+three-member replica set with a primary-secondary-arbiter (PSA)
+architecture or a sharded cluster with a three-member PSA shards.
 
 .. note::
  
@@ -158,17 +164,4 @@ read concern by setting either:
    Disabling :readconcern:`"majority"` read concern disables support
    for :doc:`/changeStreams`.
 
-   Disabling :readconcern:`"majority"` does not affect
-   :doc:`multi-document transactions </core/transactions>`; i.e. you
-   can specify read concern :readconcern:`"majority"` for transactions
-   even if read concern :readconcern:`"majority"` is disabled.
-
-To check if read concern ``"majority"`` is disabled, you can run
-:method:`db.serverStatus()` and check the
-:serverstatus:`storageEngine.supportsCommittedReads` field. If false,
-read concern ``"majority"`` is disabled
-
-.. [#]
-
-   For MongoDB 3.6 discussion, see :v3.6:`Disable Read Concern Majority
-   </reference/read-concern-majority/#disable-read-concern-majority>`.
+   .. include:: /includes/extracts/transactions-read-concern-majority.rst

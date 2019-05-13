@@ -75,16 +75,18 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'package-branch': '4.0',
-    'package-name-org': 'mongodb-org',
-    'package-name-enterprise': 'mongodb-enterprise',
+    'package-branch': '4.1',
+    'windows-dir-version': '4.1',  # Not sure if always equal to package-branch.
+    'package-name-org': 'mongodb-org-unstable',
+    'package-name-enterprise': 'mongodb-enterprise-unstable',
     'version': version,
     'release': release,
-    'pgp-version': '4.0',
-    'pgp-fingerprint': '9DA31620334BD75D9DCB49F368818C72E52529D4',
-    'rsa-key': '68818C72E52529D4',
-    'pgp-fingerprint-fmt': '9DA3 1620 334B D75D 9DCB 49F3 6881 8C72 E525 29D4',
-    'pgp-short-fingerprint' : '0x68818C72E52529D4',
+    'pgp-version': version,
+    'pgp-fingerprint': 'E162F504A20CDF15827F718D4B7C549A058F8B6B',
+    'rsa-key': '4B7C549A058F8B6B',
+    'pgp-fingerprint-fmt': 'E162 F504 A20C DF15 827F  718D 4B7C 549A 058F 8B6B',
+    'windows-sha256': 'C777DF7816BB8C9A760FDEA782113949408B6F39D72BE29A2551FA51E2FE0473',
+    'pgp-short-fingerprint' : '0x4B7C549A058F8B6B',
     'source-available' : '`source available and free to use <https://github.com/mongodb/mongo/>`_'
 }
 
@@ -111,7 +113,6 @@ extlinks = {
     'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
     'java-async-docs': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
     'java-async-api': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', ''),
-    'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
     'go-api': ('https://godoc.org/github.com/mongodb/mongo-go-driver/%s', '')
 }
 
@@ -185,6 +186,8 @@ html_theme_options = {
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
     'upcoming': conf.version.upcoming,
+    'banner': True,
+    'banner_msg': 'This is an upcoming (i.e. in progress) version of the manual.',
 }
 
 html_sidebars = sconf.sidebars

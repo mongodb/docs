@@ -128,14 +128,8 @@ Non-Default MongoDB Ports
 
    #. Once created, compile and load the custom policy module
 
-      .. tip::
-
-         Depending on your user permission, you may need to use ``sudo`` to
-         perform the ``semodule`` operation.
-
       .. code-block:: none
 
          checkmodule -M -m -o mongodb_proc_net.mod mongodb_proc_net.te
          semodule_package -o mongodb_proc_net.pp -m mongodb_proc_net.mod
          semodule -i mongodb_proc_net.pp
-

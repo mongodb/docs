@@ -1,0 +1,194 @@
+===================
+$acos (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. expression:: $acos 
+
+   .. versionadded:: 4.2
+
+   Returns the inverse cosine (arc cosine) of a value.
+
+   :expression:`$acos` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $acos: <expression> }
+
+   :expression:`$acos` takes any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a number between ``-1`` 
+   and ``1``, e.g. ``-1 <= value <= 1``.
+
+   :expression:`$acos` returns values in radians. Use
+   :expression:`$radiansToDegrees` operator to convert the output value
+   from radians to degrees.
+
+   By default :expression:`$acos` returns values as a ``double``. 
+   :expression:`$acos` can also return values as a
+   :ref:`128-bit decimal <shell-type-decimal>`
+   as long as the ``<expression>`` resolves to a 128-bit decimal value. 
+
+   For more information on expressions, see 
+   :ref:`aggregation-expressions`.
+
+
+Behavior
+--------
+
+If the argument resolves to a value of ``null`` or refers to a field
+that is missing, :expression:`$acos` returns ``null``. If the
+argument resolves to ``NaN``, :expression:`$acos` returns ``NaN``.
+If the argument resolves to a value outside the bounds of 
+``[-1, 1]`` inclusive, :expression:`$acos` throws an error.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+
+   * - Example
+     - Results
+
+   * - ``{ $acos: NaN }``
+     - ``NaN``
+
+   * - ``{ $acos: null }``
+     - ``null``
+
+   * - ``{ $acos : Infinity}`` 
+
+       *or* 
+
+       ``{ $acos : -Infinity }``
+     - Throws an error message resembling the following formatted 
+       output:
+
+       .. code-block:: shell
+          :copyable: false
+
+          "errmsg" : 
+            "Failed to optimize pipeline :: caused by :: cannot 
+            apply $acos to -inf, value must in [-1,1]"
+
+Example
+-------
+
+.. tabs::
+
+   tabs:
+
+     - id: degrees
+       name: Inverse Cosine of Value in Degrees
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores three sides of a right-angle triangle:
+
+         .. code-block:: shell
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$acos` expression to calculate the angle adjacent
+         to ``side_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: shell
+
+            db.trigonometry.aggregate([
+              { 
+                $addFields : {
+                  "angle_a" : {
+                    $radiansToDegrees : {
+                      $acos : {
+                        $divide : [ "$side_b", "$hypotenuse" ]
+                      }
+                    }
+                  }
+                }
+              }
+            ])
+
+         The :expression:`$radiansToDegrees` expression converts the
+         radian value returned by :expression:`$acos` to the equivalent
+         value in degrees.
+
+         The command returns the following output:
+
+         .. code-block:: shell
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5"),
+              "angle_a" : NumberDecimal("36.86989764584402129685561255909341")
+            }
+
+         Since ``side_b`` and ``hypotenuse`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$acos` is a 128-bit decimal. 
+
+     - id: radians
+       name: Inverse Cosine of Value in Radians
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores three sides of a right-angle triangle:
+
+         .. code-block:: shell
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$acos` expression to calculate the angle adjacent
+         to ``side_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: shell
+
+            db.trigonometry.aggregate([
+              { 
+                $addFields : {
+                  "angle_a" : {
+                    $acos : {
+                      $divide : [ "$side_b", "$hypotenuse" ]
+                    }
+                  }
+                }
+              }
+            ])
+
+         The command returns the following output:
+
+         .. code-block:: shell
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5"),
+              "angle_a" : NumberDecimal("0.6435011087932843868028092287173226")
+            }
+
+         Since ``side_b`` and ``hypotenuse`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$acos` is a 128-bit decimal. 

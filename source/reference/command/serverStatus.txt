@@ -189,80 +189,6 @@ asserts
    value to provide context to the other values in the
    :serverstatus:`asserts` data structure.
 
-.. _server-status-backgroundflushing:
-.. _server-status-background-flushing:
-
-backgroundFlushing
-~~~~~~~~~~~~~~~~~~
-
-.. code-block:: javascript
-
-   "backgroundFlushing" : {
-      "flushes" : <num>,
-      "total_ms" : <num>,
-      "average_ms" : <num>,
-      "last_ms" : <num>,
-      "last_finished" : ISODate("...")
-   },
-
-.. note::
-
-   ``backgroundFlushing`` information only appears for instances that
-   use the :doc:`MMAPv1 </core/mmapv1>` storage engine.
-
-.. serverstatus:: backgroundFlushing
-
-   A document that reports on the :binary:`~bin.mongod` process's periodic
-   writes to disk. Consider these values if you have concerns about
-   write performance and :ref:`journaling <journaling-status>`.
-
-
-.. serverstatus:: backgroundFlushing.flushes
-
-   The number of times the database has flushed all writes to disk.
-   This value will grow as database runs for longer periods of time.
-
-.. serverstatus:: backgroundFlushing.total_ms
-
-   The total number of milliseconds (ms) that the :binary:`~bin.mongod`
-   processes have spent writing (i.e. flushing) data to disk. Because
-   :serverstatus:`~backgroundFlushing.total_ms` is an absolute value,
-   consider the :serverstatus:`~backgroundFlushing.flushes` and
-   :serverstatus:`~backgroundFlushing.average_ms` values to provide
-   context.
-
-.. serverstatus:: backgroundFlushing.average_ms
-
-   The average time in milliseconds for each flush to disk, calculated
-   by dividing :serverstatus:`~backgroundFlushing.total_ms` by
-   :serverstatus:`~backgeroundFlushing.flushes`.
-
-   The :serverstatus:`~backgroundFlushing.average_ms` is more likely to
-   to represent a "normal" time as the value of the
-   :serverstatus:`~backgroundFlushing.flushes` increases. However,
-   abnormal data can skew this value. Use the
-   :serverstatus:`backgroundFlushing.last_ms` to check that a high
-   average is not skewed by transient historical issue or a random
-   write distribution.
-
-.. serverstatus:: backgroundFlushing.last_ms
-
-   The amount of time, in milliseconds, that the last flush operation
-   took to complete. Use this value to verify that the current
-   performance of the server is in line with the historical data
-   provided by :serverstatus:`backgroundFlushing.average_ms` and
-   :serverstatus:`backgroundFlushing.total_ms`.
-
-.. serverstatus:: backgroundFlushing.last_finished
-
-   The timestamp of the last completed flush operation in the
-   :term:`ISODate` format. If this value is more than a few minutes
-   past your server's current time and accounting for differences in
-   time zone, restarting the database may result in some data loss.
-
-   Also consider ongoing operations that might skew this value by
-   routinely blocking write operations.
-
 .. _server-status-connections:
 
 connections
@@ -314,132 +240,6 @@ connections
    operations in progress.
 
    .. versionadded:: 4.0.7
-
-.. _durability-status:
-.. _journaling-status:
-.. _server-status-journaling:
-
-dur (Journaling)
-~~~~~~~~~~~~~~~~
-
-.. code-block:: javascript
-
-   "dur" : {
-      "commits" : <num>,
-      "journaledMB" : <num>,
-      "writeToDataFilesMB" : <num>,
-      "compression" : <num>,
-      "commitsInWriteLock" : <num>,
-      "earlyCommits" : <num>,
-      "timeMs" : {
-         "dt" : <num>,
-         "prepLogBuffer" : <num>,
-         "writeToJournal" : <num>,
-         "writeToDataFiles" : <num>,
-         "remapPrivateView" : <num>,
-         "commits" : <num>,
-         "commitsInWriteLock" : <num>
-      }
-   },
-
-.. note::
-
-   :serverstatus:`dur` (journaling) information only appears for
-   :binary:`~bin.mongod` instances that use the :doc:`MMAPv1
-   </core/mmapv1>` storage engine and have journaling enabled.
-
-.. serverstatus:: dur
-
-   A document that reports the :binary:`~bin.mongod` instance's
-   :doc:`journaling-related operations </core/journaling>` and
-   performance. MongoDB reports on this data based on 3 second
-   intervals, collected between 3 and 6 seconds in the past.
-
-.. serverstatus:: dur.commits
-
-   The number of transactions written to the :term:`journal` during the
-   last :ref:`journal group commit interval
-   <journaling-journal-commit-interval>`.
-
-.. serverstatus:: dur.journaledMB
-
-   The amount of data in megabytes (MB) written to :term:`journal`
-   during the last :ref:`journal group commit interval
-   <journaling-record-write-operation>`.
-
-.. serverstatus:: dur.writeToDataFilesMB
-
-   The amount of data in megabytes (MB) written from :term:`journal` to
-   the data files during the last :ref:`journal group commit interval
-   <journaling-record-write-operation>`.
-
-.. serverstatus:: dur.compression
-
-   The compression ratio of the data written to the :term:`journal`:
-
-   .. code-block:: javascript
-
-      ( journaled_size_of_data / uncompressed_size_of_data )
-
-.. serverstatus:: dur.commitsInWriteLock
-
-   The count of the commits that occurred while a write lock was held.
-   Commits in a write lock indicate a MongoDB node under a heavy write
-   load and call for further diagnosis.
-
-.. serverstatus:: dur.earlyCommits
-
-   The number of times MongoDB requested a commit before the scheduled
-   :ref:`journal group commit interval
-   <journaling-record-write-operation>`. Use this value to ensure that
-   your :ref:`journal group commit interval
-   <journaling-journal-commit-interval>` is not too long for your
-   deployment.
-
-.. serverstatus:: dur.timeMS
-
-   A document that reports on the performance of the :binary:`~bin.mongod`
-   instance during the various phases of journaling in the last
-   :ref:`journal group commit interval
-   <journaling-journal-commit-interval>`.
-
-.. serverstatus:: dur.timeMS.dt
-
-   The amount of time, in milliseconds, over which MongoDB collected
-   the :serverstatus:`dur.timeMS` data. Use this field to provide
-   context to the other :serverstatus:`dur.timeMS` field values.
-
-.. serverstatus:: dur.timeMS.prepLogBuffer
-
-   The amount of time, in milliseconds, spent preparing to write to the
-   journal. Smaller values indicate better journal performance.
-
-.. serverstatus:: dur.timeMS.writeToJournal
-
-   The amount of time, in milliseconds, spent actually writing to the
-   journal. File system speeds and device interfaces can affect
-   performance.
-
-.. serverstatus:: dur.timeMS.writeToDataFiles
-
-   The amount of time, in milliseconds, spent writing to data files
-   after journaling. File system speeds and device interfaces can
-   affect performance.
-
-.. serverstatus:: dur.timeMS.remapPrivateView
-
-   The amount of time, in milliseconds, spent remapping copy-on-write
-   memory mapped views. Smaller values indicate better journal
-   performance.
-
-.. serverstatus:: dur.timeMS.commits
-
-   The amount of time, in milliseconds, spent for commits.
-
-.. serverstatus:: dur.timeMS.commitsInWriteLock
-
-   The amount of time, in milliseconds, spent for commits that
-   occurred while a write lock was held.
 
 .. _server-status-extra-info:
 .. _server-status-extra_info:
@@ -1165,15 +965,17 @@ opWriteConcernCounters
 opcounters
 ~~~~~~~~~~
 
+.. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
 .. code-block:: javascript
 
    "opcounters" : {
-      "insert" : <num>,
-      "query" : <num>,
-      "update" : <num>,
-      "delete" : <num>,
-      "getmore" : <num>,
-      "command" : <num>
+      "insert" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "query" : NumberLong(<num>),   // Starting in MongoDB 4.2, type is NumberLong
+      "update" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "delete" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "getmore" : NumberLong(<num>), // Starting in MongoDB 4.2, type is NumberLong
+      "command" : NumberLong(<num>), // Starting in MongoDB 4.2, type is NumberLong
    },
 
 .. serverstatus:: opcounters
@@ -1200,20 +1002,28 @@ opcounters
    The total number of insert operations received since the
    :binary:`~bin.mongod` instance last started.
 
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+   
 .. serverstatus:: opcounters.query
 
    The total number of queries received since the :binary:`~bin.mongod`
    instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
 
 .. serverstatus:: opcounters.update
 
    The total number of update operations received since the
    :binary:`~bin.mongod` instance last started.
 
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
 .. serverstatus:: opcounters.delete
 
    The total number of delete operations since the :binary:`~bin.mongod`
    instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
 
 .. serverstatus:: opcounters.getmore
 
@@ -1221,6 +1031,8 @@ opcounters
    instance last started. This counter can be high even if the query
    count is low. Secondary nodes send ``getMore`` operations as part of
    the replication process.
+
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
 
 .. serverstatus:: opcounters.command
 
@@ -1231,21 +1043,25 @@ opcounters
    </reference/command>` **except** the write commands:
    :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete`.
 
+   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
 .. _server-status-opcountersrepl:
 .. _server-status-opcounters-repl:
 
 opcountersRepl
 ~~~~~~~~~~~~~~
 
+.. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
 .. code-block:: javascript
 
    "opcountersRepl" : {
-      "insert" : <num>,
-      "query" : <num>,
-      "update" : <num>,
-      "delete" : <num>,
-      "getmore" : <num>,
-      "command" : <num>
+      "insert" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "query" : NumberLong(<num>),   // Starting in MongoDB 4.2, type is NumberLong
+      "update" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "delete" : NumberLong(<num>),  // Starting in MongoDB 4.2, type is NumberLong
+      "getmore" : NumberLong(<num>), // Starting in MongoDB 4.2, type is NumberLong
+      "command" : NumberLong(<num>), // Starting in MongoDB 4.2, type is NumberLong
    },
 
 .. serverstatus:: opcountersRepl
@@ -1264,25 +1080,35 @@ opcountersRepl
    next restart. Analyze these values over time to track database
    utilization.
 
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
 .. serverstatus:: opcountersRepl.insert
 
    The total number of replicated insert operations since the
    :binary:`~bin.mongod` instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
 
 .. serverstatus:: opcountersRepl.query
 
    The total number of replicated queries since the :binary:`~bin.mongod`
    instance last started.
 
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
 .. serverstatus:: opcountersRepl.update
 
    The total number of replicated update operations since the
    :binary:`~bin.mongod` instance last started.
 
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
 .. serverstatus:: opcountersRepl.delete
 
    The total number of replicated delete operations since the
    :binary:`~bin.mongod` instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
 
 .. serverstatus:: opcountersRepl.getmore
 
@@ -1291,10 +1117,14 @@ opcountersRepl
    count is low. Secondary nodes send ``getMore`` operations as part of
    the replication process.
 
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
+
 .. serverstatus:: opcountersRepl.command
 
    The total number of replicated commands issued to the database since
    the :binary:`~bin.mongod` instance last started.
+
+   .. include:: /includes/extracts/4.2-changes-opcountersRepl-type.rst
 
 .. _server-status-repl:
 
@@ -1436,25 +1266,37 @@ security
 
    .. versionadded:: 3.0
 
-   A document that reports on security configuration and details. Only
-   appears for :binary:`~bin.mongod` instances compiled with support for TLS/SSL.
+
+   A document that reports on security configuration and details;
+   specifically, this section reports on the
+   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+   certificate.
+   
+   The :serverstatus:`security` information only appears for
+   :binary:`~bin.mongod` instances and :binary:`~bin.mongos` instances
+   with support for TLS/SSL.
 
    .. serverstatus:: security.SSLServerSubjectName
 
-      The subject name associated with the TLS/SSL certificate specified by
-      :setting:`net.ssl.PEMKeyFile`.
+      The subject name associated with the
+      :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+      certificate.
 
    .. serverstatus:: security.SSLServerHasCertificateAuthority
 
-      A boolean that is ``true`` when the TLS/SSL certificate specified by
-      :setting:`net.ssl.PEMKeyFile` is associated with a certificate
-      authority. ``false`` when the TLS/SSL certificate is self-signed.
+      A boolean that is:
+
+      - ``true`` when the :binary:`~bin.mongod`/:binary:`~bin.mongos`
+        instance's TLS/SSL certificate is associated with a certificate
+        authority.
+
+      - ``false`` when the TLS/SSL certificate is self-signed.
 
    .. serverstatus:: security.SSLServerCertificateExpirationDate
 
-      A :ref:`date object <mongo-shell-data-type>` that represents
-      the date when the TLS/SSL certificate specified by
-      :setting:`net.ssl.PEMKeyFile` expires.
+      The expiration date and time of the
+      :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+      certificate.
 
 .. _server-status-sharding:
 
@@ -1518,26 +1360,62 @@ shardingStatistics
 
 .. versionadded:: 4.0
 
-.. code-block:: javascript
+.. tabs::
 
-   "shardingStatistics" : {
-      "countStaleConfigErrors" : NumberLong(<num>),
-      "countDonorMoveChunkStarted" : NumberLong(<num>),
-      "totalDonorChunkCloneTimeMillis" : NumberLong(<num>),
-      "totalCriticalSectionCommitTimeMillis" : NumberLong(<num>),
-      "totalCriticalSectionTimeMillis" : NumberLong(<num>),
-      "catalogCache" : {
-         "numDatabaseEntries" : NumberLong(<num>),
-         "numCollectionEntries" : NumberLong(<num>),
-         "countStaleConfigErrors" : NumberLong(<num>),
-         "totalRefreshWaitTimeMicros" : NumberLong(<num>),
-         "numActiveIncrementalRefreshes" : NumberLong(<num>),
-         "countIncrementalRefreshesStarted" : NumberLong(<num>),
-         "numActiveFullRefreshes" : NumberLong(<num>),
-         "countFullRefreshesStarted" : NumberLong(<num>),
-         "countFailedRefreshes" : NumberLong(<num>)
-      }
-   },
+   tabs:
+   
+      - id: shard
+        name: Shard
+        content: |
+
+         When run on a member of a shard:
+
+         .. code-block:: javascript
+
+            "shardingStatistics" : {
+               "countStaleConfigErrors" : NumberLong(<num>),
+               "countDonorMoveChunkStarted" : NumberLong(<num>),
+               "totalDonorChunkCloneTimeMillis" : NumberLong(<num>),
+               "totalCriticalSectionCommitTimeMillis" : NumberLong(<num>),
+               "totalCriticalSectionTimeMillis" : NumberLong(<num>),
+               "countDocsClonedOnRecipient" : NumberLong(<num>),
+               "countDocsClonedOnDonor" : NumberLong(<num>),
+               "countRecipientMoveChunkStarted" : NumberLong(<num>),
+               "countDocsDeletedOnDonor" : NumberLong(<num>),
+               "catalogCache" : {
+                  "numDatabaseEntries" : NumberLong(<num>),
+                  "numCollectionEntries" : NumberLong(<num>),
+                  "countStaleConfigErrors" : NumberLong(<num>),
+                  "totalRefreshWaitTimeMicros" : NumberLong(<num>),
+                  "numActiveIncrementalRefreshes" : NumberLong(<num>),
+                  "countIncrementalRefreshesStarted" : NumberLong(<num>),
+                  "numActiveFullRefreshes" : NumberLong(<num>),
+                  "countFullRefreshesStarted" : NumberLong(<num>),
+                  "countFailedRefreshes" : NumberLong(<num>)
+               }
+            },
+
+      - id: mongos
+        name: mongos
+        content: |
+
+         When run on a :binary:`~bin.mongos`:
+
+         .. code-block:: javascript
+
+            "shardingStatistics" : {
+               "catalogCache" : {
+                  "numDatabaseEntries" : NumberLong(<num>),
+                  "numCollectionEntries" : NumberLong(<num>),
+                  "countStaleConfigErrors" : NumberLong(<num>),
+                  "totalRefreshWaitTimeMicros" : NumberLong(<num>),
+                  "numActiveIncrementalRefreshes" : NumberLong(<num>),
+                  "countIncrementalRefreshesStarted" : NumberLong(<num>),
+                  "numActiveFullRefreshes" : NumberLong(<num>),
+                  "countFullRefreshesStarted" : NumberLong(<num>),
+                  "countFailedRefreshes" : NumberLong(<num>)
+               }
+            },
 
 .. serverstatus:: shardingStatistics
 
@@ -1600,6 +1478,46 @@ shardingStatistics
       totalCriticalSectionTimeMillis - totalCriticalSectionCommitTimeMillis
 
    Only present when run on a shard.
+
+.. serverstatus:: shardingStatistics.countDocsClonedOnRecipient
+
+   Cumulative, always-increasing count of documents that have been
+   cloned on this member where it acted as the primary of the recipient
+   shard.
+
+   Only present when run on a shard.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: shardingStatistics.countDocsClonedOnDonor
+
+   Cumulative, always-increasing count of documents that haves been
+   cloned on this member where it acted as the primary of the donor
+   shard.
+
+   Only present when run on a shard.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: shardingStatistics.countDocsDeletedOnDonor
+
+   Cumulative, always-increasing count of documents that have been
+   deleted on this member during chunk migration where the member acted
+   as the primary of the donor shard.
+
+   Only present when run on a shard.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: shardingStatistics.countRecipientMoveChunkStarted
+
+   Cumulative, always-increasing count of chunks this member, acting as
+   the primary of the recipient shard, has started to receive (whether
+   the move has succeeded or not.
+
+   Only present when run on a shard.
+
+   .. versionadded:: 4.2
 
 .. serverstatus:: shardingStatistics.catalogCache
 
@@ -1703,7 +1621,13 @@ transactions
       "currentOpen" : <NumberLong>,
       "totalAborted" : <NumberLong>,
       "totalCommitted" : <NumberLong>,
-      "totalStarted" : <NumberLong>
+      "totalStarted" : <NumberLong>,
+      "totalPrepared" : <NumberLong>,
+      "totalPreparedThenCommitted" : <NumberLong>,
+      "totalPreparedThenAborted" :  <NumberLong>,
+      "currentPrepared" :  <NumberLong>,
+      "oldestActiveOplogEntryTimestamp" : <Timestamp>,
+      "oldestOpenUnpreparedReadTimestamp" :  <Timestamp>
    },
 
 .. serverstatus:: transactions
@@ -1807,6 +1731,129 @@ transactions
 
    .. versionadded:: 4.0.2
 
+.. serverstatus:: transactions.totalPrepared
+
+   The total number of transactions in prepared state on this server
+   since the :binary:`mongod <bin.mongod>` process's last startup.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalPreparedThenCommitted
+
+   The total number of transactions that were prepared and committed on
+   this server since the :binary:`mongod <bin.mongod>` process's last
+   startup.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalPreparedThenAborted
+
+   The total number of transactions that were prepared and aborted on
+   this server since the :binary:`mongod <bin.mongod>` process's last
+   startup.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.currentPrepared
+
+   The current number of transactions in prepared state on this server.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.oldestActiveOplogEntryTimestamp
+
+   The optime of the oldest oplog entry associated with an active
+   transaction.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.oldestOpenUnpreparedReadTimestamp
+
+   The timestamp of the oldest open transaction on this server.
+
+   :serverstatus:`~transactions.oldestOpenUnpreparedReadTimestamp` is
+   available on the shard :binary:`mongod` instances only.
+
+   .. versionadded:: 4.2
+
+trafficRecording
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2
+
+.. code-block:: javascript
+
+   "trafficRecording" : {
+      "running" : <boolean>
+      "bufferSize" : NumberLong(<num>)
+      "bufferedBytes" : NumberLong(<num>)
+      "recordingFile" : <string>
+      "maxFileSize" : NumberLong(<num>)
+      "currentFileSize" : NumberLong(<num>)
+   },
+
+.. serverstatus:: trafficRecording
+
+   A document that reports on the state of the :ref:`traffic recorder
+   <4.2-traffic-recorder>`.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: trafficRecording.running
+
+   A boolean that indicates whether the :ref:`traffic recorder
+   <4.2-traffic-recorder>` is running.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: trafficRecording.bufferSize
+
+   The maximum size (in bytes) of the in-memory buffer for traffic
+   records. This effectively serves as the size of the queue used in
+   the traffic recording process.
+   
+   *Only available if traffic recorder is running*
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: trafficRecording.bufferedBytes
+
+   The current size (in bytes) of the buffered traffic records.
+
+   *Only available if traffic recorder is running*
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: trafficRecording.recordingFile
+
+   The full file path of the recording file.
+
+   .. warning::
+
+      The recording file contains **unencrypted** user traffic
+      information. If possible, limit the retention of this file
+      and store it on an encrypted filesystem volume.
+
+   *Only available if traffic recorder is running*
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: trafficRecording.maxFileSize
+
+   The maximum size (in bytes) of the recording file.
+
+   *Only available if traffic recorder is running*
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: trafficRecording.currentFileSize
+
+   The current size (in bytes) of the recording file.
+
+   *Only available if traffic recorder is running*
+
+   .. versionadded:: 4.2
+
 transportSecurity
 ~~~~~~~~~~~~~~~~~
 
@@ -1829,6 +1876,7 @@ transportSecurity
    The cumulative number of TLS <version> connections that have been
    made to this :binary:`~bin.mongod` or :binary:`~bin.mongos`
    instance. The value is reset upon restart.
+
 
 .. _server-status-wiredTiger:
 
@@ -2243,13 +2291,6 @@ mem
    :serverstatus:`mem.virtual` displays the quantity, in megabytes
    (MB), of virtual memory used by the :binary:`~bin.mongod` process.
 
-   With :term:`journaling <journal>` enabled and if using MMAPv1
-   storage engine, the value of :serverstatus:`mem.virtual` is at least
-   twice the value of :serverstatus:`mem.mapped`. If
-   :serverstatus:`mem.virtual` value is significantly larger than
-   :serverstatus:`mem.mapped` (e.g. 3 or more times), this may indicate
-   a memory leak.
-
 .. serverstatus:: mem.supported
 
    A boolean that indicates whether the underlying system supports
@@ -2258,23 +2299,6 @@ mem
    :serverstatus:`mem` values may not be accessible to the database
    server.
 
-.. serverstatus:: mem.mapped
-
-   *Only for the MMAPv1 storage engine.*
-
-   The amount of mapped memory, in megabytes (MB), by the database.
-   Because MongoDB uses memory-mapped files, this value is likely to be
-   to be roughly equivalent to the total size of your database or
-   databases.
-
-.. serverstatus:: mem.mappedWithJournal
-
-   *Only for the MMAPv1 storage engine.*
-
-   The amount of mapped memory, in megabytes (MB), including the memory
-   used for journaling. This value will always be twice the value of
-   :serverstatus:`mem.mapped`. This field is only included if
-   journaling is enabled.
 
 .. serverstatus:: mem.note
 
@@ -2369,18 +2393,14 @@ metrics
                "num" : <num>,
                "totalMillis" : <num>
             },
+            "notMasterLegacyUnacknowledgedWrites" : <NumberLong>,
+            "notMasterUnacknowledgedWrites" : <NumberLong>,
             "ops" : <NumberLong>,
             "readersCreated" : <NumberLong>
          },
-         "preload" : {
-            "docs" : {
-               "num" : <num>,
-               "totalMillis" : <num>
-            },
-            "indexes" : {
-               "num" : <num>,
-               "totalMillis" : <num>
-            }
+         "stepDown" : {
+            "userOperationsKilled" : <NumberLong>,
+            "userOperationsRunning" : <NumberLong>
          }
       },
       "storage" : {
@@ -2487,24 +2507,6 @@ metrics
    A document that holds counters for several types of update and query
    operations that MongoDB handles using special operation types.
 
-.. serverstatus:: metrics.operation.fastmod
-
-   *Removed in 3.4.*
-
-   If using MMAPv1 storage engine, the number of :doc:`update
-   </tutorial/update-documents>` operations that neither cause documents to
-   grow nor require updates to the index. For example, this counter
-   would record an update operation that use the :update:`$inc`
-   operator to increment the value of a field that is not indexed.
-
-.. serverstatus:: metrics.operation.idhack
-
-   *Removed in 3.4.*
-
-   The number of queries that contain the ``_id`` field. For these
-   queries, MongoDB will use default index on the ``_id`` field and
-   skip all query plan analysis.
-
 .. serverstatus:: metrics.operation.scanAndOrder
 
    The total number of queries that return sorted numbers that cannot
@@ -2536,14 +2538,6 @@ metrics
 
    A document that reports on data related to record allocation in the
    on-disk memory files.
-
-.. serverstatus:: metrics.record.moves
-
-   For :doc:`/core/mmapv1`, :serverstatus:`metrics.record.moves`
-   reports the total number of times documents move within the on-disk
-   representation of the MongoDB data set. Documents move as a result
-   of operations that increase the size of the document beyond their
-   allocated record size.
 
 .. _server-status-replnetworkqueue:
 .. _server-status-repl-network-queue:
@@ -2656,63 +2650,56 @@ metrics
       data even if the ``getmore`` operation does not initial return
       data.
 
+.. serverstatus:: metrics.repl.network.notMasterLegacyUnacknowledgedWrites
+
+   The number of unacknowledged (``w: 0``) legacy write operations (see
+   :ref:`wp-request-opcodes`) that failed because the current
+   :binary:`~bin.mongod` is not in :replstate:`PRIMARY` state.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: metrics.repl.network.notMasterUnacknowledgedWrites
+
+   The number of unacknowledged (``w: 0``) write operations that failed
+   because the current :binary:`~bin.mongod` is not in
+   :replstate:`PRIMARY` state.
+
+   .. versionadded:: 4.2
+
 .. serverstatus:: metrics.repl.network.ops
 
-   :serverstatus:`metrics.repl.network.ops` reports the total
+   The total
    number of operations read from the replication source.
 
 .. serverstatus:: metrics.repl.network.readersCreated
 
-   :serverstatus:`metrics.repl.network.readersCreated` reports
-   the total number of oplog query processes created. MongoDB will
+   The total number of oplog query processes created. MongoDB will
    create a new oplog query any time an error occurs in the
    connection, including a timeout, or a network
    operation. Furthermore,
    :serverstatus:`metrics.repl.network.readersCreated` will
    increment every time MongoDB selects a new source for replication.
 
-.. serverstatus:: metrics.repl.preload
+.. serverstatus:: metrics.repl.stepDown
 
-   :serverstatus:`metrics.repl.preload` reports on the
-   "pre-fetch" stage, where MongoDB loads documents and indexes into
-   RAM to improve replication throughput.
+   Information on user operations that were running when the
+   :binary:`~bin.mongod` stepped down.
 
-   See :ref:`replica-set-internals-multi-threaded-replication` for
-   more information about the *pre-fetch* stage of the replication
-   process.
+   .. versionadded:: 4.2
 
-.. serverstatus:: metrics.repl.preload.docs
+.. serverstatus:: metrics.repl.stepDown.userOperationsKilled
 
-   A document that reports on the documents loaded into memory during
-   the *pre-fetch* stage.
+   The number of user operations killed when the :binary:`~bin.mongod`
+   stepped down.
 
-.. serverstatus:: metrics.repl.preload.docs.num
+   .. versionadded:: 4.2
 
-   The total number of documents loaded during the *pre-fetch* stage of
-   replication.
+.. serverstatus:: metrics.repl.stepDown.userOperationsRunning
 
-.. serverstatus:: metrics.repl.preload.docs.totalMillis
+   The number of user operations that remained running when the
+   :binary:`~bin.mongod` stepped down.
 
-   The total amount of time spent loading documents as part of
-   the *pre-fetch* stage of replication.
-
-.. serverstatus:: metrics.repl.preload.indexes
-
-   A document that reports on the index items loaded into memory during
-   the *pre-fetch* stage of replication.
-
-   See :ref:`replica-set-internals-multi-threaded-replication` for
-   more information about the *pre-fetch* stage of replication.
-
-.. serverstatus:: metrics.repl.preload.indexes.num
-
-   The total number of index entries loaded by members before updating
-   documents as part of the *pre-fetch* stage of replication.
-
-.. serverstatus:: metrics.repl.preload.indexes.totalMillis
-
-   The total amount of time, in milliseconds, spent loading index
-   entries as part of the *pre-fetch* stage of replication.
+   .. versionadded:: 4.2
 
 .. serverstatus:: metrics.storage.freelist.search.bucketExhausted
 

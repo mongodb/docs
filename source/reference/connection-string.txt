@@ -217,11 +217,12 @@ query the DNS for the record to determine which hosts are running the
 
 .. note::
 
-   Use of the ``+srv`` connection string modifier automatically sets
-   the :urioption:`ssl` option to ``true`` for the connection. You can
-   override this behavior by explicitly setting the :urioption:`ssl`
-   option to ``false`` with ``ssl=false`` in the
-   query string.
+   Use of the ``+srv`` connection string modifier
+   automatically sets the :urioption:`tls` (or the equivalent
+   :urioption:`ssl`) option to ``true`` for the connection. You can
+   override this behavior by explicitly setting the :urioption:`tls`
+   (or the equivalent :urioption:`ssl`) option to ``false`` with
+   ``tls=false`` (or ``ssl=false``) in the query string.
 
 The following example shows a typical connection string for a DNS
 seedlist connection string:
@@ -291,10 +292,12 @@ string in the standard format would be:
 .. note::
    The ``mongodb+srv`` option will fail if there is no available DNS
    with records that correspond to the hostname identified in the
-   connection string. In addition, use of the ``+srv`` connection string
-   modifier automatically sets the ``ssl`` option to ``true`` for the
-   connection. You can override this behavior by explicitly setting the
-   ``ssl`` option to ``false`` with ``ssl=false`` in the query string.
+   connection string. In addition, use of the ``+srv`` connection string modifier
+   automatically sets the :urioption:`tls` (or the equivalent
+   :urioption:`ssl`) option to ``true`` for the connection. You can
+   override this behavior by explicitly setting the :urioption:`tls`
+   (or the equivalent :urioption:`ssl`) option to ``false`` with
+   ``tls=false`` (or ``ssl=false``) in the query string.
 
 .. see::
 
@@ -310,10 +313,22 @@ Connection String Options
 
 This section lists all connection options.
 
-Connection options are pairs in the following form: ``name=value``. The
-``value`` is always case sensitive. Separate options with the ampersand
-(i.e. ``&``) character. In the following example, a connection includes the
-:urioption:`replicaSet` and :urioption:`connectTimeoutMS` options:
+Connection options are pairs in the following form: ``name=value``.
+
+- The option ``name`` is case insensitive when using a driver.
+
+- The option ``name`` is case insensitive when using a version 4.2+
+  :binary:`~bin.mongo` shell. 
+
+- The option ``name`` is case sensitive when using a version 4.0 and
+  earlier :binary:`~bin.mongo` shell.
+
+- The ``value`` is always case sensitive.
+
+Separate options with the ampersand (i.e. ``&``) character
+``name1=value1&name2=value2``. In the following example, a
+connection includes the :urioption:`replicaSet` and
+:urioption:`connectTimeoutMS` options:
 
 .. code-block:: none
 
@@ -357,107 +372,279 @@ members running on the specified hosts:
 Connection Options
 ~~~~~~~~~~~~~~~~~~
 
-The following connection string to a replica set includes 
-:urioption:`ssl=true <ssl>` option:
+.. _uri-options-tls:
 
-.. code-block:: none
+TLS Options
+```````````
 
-   mongodb://db0.example.com,db1.example.com,db2.example.com/?replicaSet=myRepl&ssl=true
+.. container::
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
+   The following connection string to a replica set includes 
+   :urioption:`tls=true <tls>` option (available starting in MongoDB 4.2):
 
-   * - Connection Option
-     - Description
+   .. code-block:: none
 
-   * - .. urioption:: ssl
+      mongodb://db0.example.com,db1.example.com,db2.example.com/?replicaSet=myRepl&tls=true
 
-     - A boolean to enable or disables TLS/SSL for the connection:
+   Alternatively, you can also use the equivalent :urioption:`ssl=true
+   <ssl>` option:
+
+   .. code-block:: none
+
+      mongodb://db0.example.com,db1.example.com,db2.example.com/?replicaSet=myRepl&ssl=true
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - Connection Option
+        - Description
+
+      * - .. urioption:: tls
+
+        - Enables or disables TLS/SSL for the connection:
+
+          - ``true``: Initiate the connection with TLS/SSL. Default for
+            :ref:`connections-dns-seedlist`.
+
+          - ``false``: Initiate the connection without TLS/SSL. Default for
+            :ref:`connections-standard-connection-string-format`.
+
+          .. note::
+
+             The :urioption:`tls` option is equivalent to the
+             :urioption:`ssl` option.
+
+          If the :binary:`mongo` shell specifies additional
+          :ref:`tls/ssl <mongo-shell-tls>` options from the
+          command-line, use the :option:`--tls <mongo --tls>`
+          command-line option instead.
+          
+          .. versionadded:: 4.2
+
+      * - .. urioption:: ssl
+
+        - A boolean to enable or disables TLS/SSL for the connection:
      
-       - ``true``: Initiate the connection with TLS/SSL. Default for
-         :ref:`connections-dns-seedlist`.
+          - ``true``: Initiate the connection with TLS/SSL. Default for
+            :ref:`connections-dns-seedlist`.
          
-       - ``false``: Initiate the connection without TLS/SSL. Default
-         for :ref:`connections-standard-connection-string-format`.
+          - ``false``: Initiate the connection without TLS/SSL. Default
+            for :ref:`connections-standard-connection-string-format`.
 
-   * - .. urioption:: connectTimeoutMS
+          .. note::
 
-     - The time in milliseconds to attempt a connection before timing
-       out. The default is never to timeout, though different drivers
-       might vary. See the :ecosystem:`driver </drivers>`
-       documentation.
+             The :urioption:`ssl` option is equivalent to the
+             :urioption:`tls` option.
 
-   * - .. urioption:: socketTimeoutMS
+          If the :binary:`mongo` shell specifies additional
+          :ref:`tls/ssl <mongo-shell-ssl>` options from the
+          command-line, use the :option:`--ssl <mongo --ssl>`
+          command-line option instead.
 
-     - The time in milliseconds to attempt a send or receive on a
-       socket before the attempt times out. The default is never to
-       timeout, though different drivers might vary. See the
-       :ecosystem:`driver </drivers>` documentation.
+      * - .. urioption:: tlsCertificateKeyFile
 
-   * - .. urioption:: compressors
+        - Specifies the location of a local :file:`.pem` file that
+          contains either the client's TLS/SSL certificate or the
+          client's TLS/SSL certificate and key.
 
-     - Comma-delimited string of compressors to enable
-       network compression for communication between this
-       client and a :binary:`~bin.mongod`/:binary:`~bin.mongos`
-       instance.
+          The client presents this file to the
+          :binary:`~bin.mongod`/:binary:`~bin.mongos` instance.
 
-       You can specify the following compressors:	
+          This option is not supported by all drivers. Refer to the
+          :ecosystem:`drivers </drivers>` documentation.
+          
+          .. include:: /includes/fact-uri-option-availability.rst
 
-       - :term:`snappy`
+          .. versionadded:: 4.2
 
-       - :term:`zlib` (Available in MongoDB 3.6 or greater)
+      * - .. urioption:: tlsCertificateKeyFilePassword
 
-       If you specify multiple compressors, then the order in which you list
-       the compressors matter as well as the communication initiator. For
-       example, if the client specifies the following network
-       compressors ``"zlib,snappy"`` and the :binary:`~bin.mongod` specifies
-       ``"snappy,zlib"``, messages between the client and the
-       :binary:`~bin.mongod` uses ``zlib``.
+        - Specifies the password to de-crypt the
+          :urioption:`tlsCertificateKeyFile`.
 
-       .. important::
+          This option is not supported by all drivers. Refer to the
+          :ecosystem:`drivers </drivers>` documentation.
 
-          Messages are compressed when both parties enable network
-          compression. Otherwise, messages between the parties are
-          uncompressed.
+          .. include:: /includes/fact-uri-option-availability.rst
 
-          If the parties do not share at least one common compressor,
-          messages between the parties are uncompressed.
+          .. versionadded:: 4.2
 
-       Starting in MongoDB 4.0.5 (and MongoDB 3.6.10), the
-       :binary:`~bin.mongo` shell supports the uri connection string
-       option :urioption:`compressors`.
+      * - .. urioption:: tlsCAFile
 
-   * - .. urioption:: zlibCompressionLevel
+        - Specifies the location of a local :file:`.pem` file that
+          contains the root certificate chain from the Certificate
+          Authority. This file is used to validate the certificate
+          presented by the :binary:`~bin.mongod`/:binary:`~bin.mongos`
+          instance.
 
-     - An integer that specifies the compression level if using
-       :term:`zlib` for :urioption:`network compression <compressors>`.
+          This option is not supported by all drivers. Refer to the
+          :ecosystem:`drivers </drivers>` documentation.
 
-       You can specify an integer value ranging from ``-1`` to ``9``:
+          .. include:: /includes/fact-uri-option-availability.rst
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 25 75
+          .. versionadded:: 4.2
 
-          * - Value
-            - Notes
+      * - .. urioption:: tlsAllowInvalidCertificates
+      
+        - Bypasses validation of the certificates presented by the
+          :binary:`~bin.mongod`/:binary:`~bin.mongos` instance
 
-          * - ``-1``
+          Set to ``true`` to connect to MongoDB instances even if the
+          server's present invalid certificates.
 
-            - Default compression level, usually level ``6`` compression.
+          This option is not supported by all drivers. Refer to the
+          :ecosystem:`drivers </drivers>` documentation.
 
-          * - ``0``
-            - No compression
+          .. include:: /includes/fact-uri-option-availability.rst
 
-          * - ``1`` - ``9``
+          .. warning::
 
-            - Increasing level of compression but at the cost of speed, with:
+             Disabling certificate validation creates a vulnerability.
 
-              - ``1`` providing the best speed but least compression, and
+          .. versionadded:: 4.2
 
-              - ``9`` providing the best compression but at the slowest speed.
+      * - .. urioption:: tlsAllowInvalidHostnames
 
-       Not supported by the :binary:`~bin.mongo` shell.
+        - Disables hostname validation of the certificate presented by
+          the :binary:`~bin.mongod`/:binary:`~bin.mongos` instance.
+
+          Set to ``true`` to connect to MongoDB instances even if the
+          hostname in the server certificates do not match the server's
+          host.
+
+          This option is not supported by all drivers. Refer to the
+          :ecosystem:`drivers </drivers>` documentation.
+
+          .. include:: /includes/fact-uri-option-availability.rst
+
+          .. warning::
+
+             Disabling certificate validation creates a vulnerability.
+
+          .. versionadded:: 4.2
+
+
+      * - .. urioption:: tlsInsecure
+
+        - Disables various certificate validations. 
+        
+          Set to ``true`` to disable certificate validations. The exact
+          validatations disabled vary by drivers. Refer to the
+          :ecosystem:`drivers </drivers>` documentation.
+
+          .. include:: /includes/fact-uri-option-availability.rst
+
+          .. warning::
+
+             Disabling certificate validation creates a vulnerability.
+
+          .. versionadded:: 4.2
+          
+
+Timeout Options
+````````````````
+
+.. container::
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - Connection Option
+        - Description
+
+      * - .. urioption:: connectTimeoutMS
+
+        - The time in milliseconds to attempt a connection before timing
+          out. The default is never to timeout, though different drivers
+          might vary. See the :ecosystem:`driver </drivers>`
+          documentation.
+
+      * - .. urioption:: socketTimeoutMS
+
+        - The time in milliseconds to attempt a send or receive on a
+          socket before the attempt times out. The default is never to
+          timeout, though different drivers might vary. See the
+          :ecosystem:`driver </drivers>` documentation.
+
+Compression Options
+```````````````````
+
+.. container::
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - Connection Option
+        - Description
+
+      * - .. urioption:: compressors
+
+        - Comma-delimited string of compressors to enable
+          network compression for communication between this
+          client and a :binary:`~bin.mongod`/:binary:`~bin.mongos`
+          instance.
+
+          You can specify the following compressors:	
+
+          - :term:`snappy`
+
+          - :term:`zlib` (Available in MongoDB 3.6 or greater)
+
+          - :term:`zstd` (Available in MongoDB 4.2 or greater)
+
+          If you specify multiple compressors, then the order in which you list
+          the compressors matter as well as the communication initiator. For
+          example, if the client specifies the following network
+          compressors ``"zlib,snappy"`` and the :binary:`~bin.mongod` specifies
+          ``"snappy,zlib"``, messages between the client and the
+          :binary:`~bin.mongod` uses ``zlib``.
+
+          .. important::
+
+             Messages are compressed when both parties enable network
+             compression. Otherwise, messages between the parties are
+             uncompressed.
+
+             If the parties do not share at least one common compressor,
+             messages between the parties are uncompressed.
+
+          Starting in MongoDB 4.0.5 (and MongoDB 3.6.10), the
+          :binary:`~bin.mongo` shell supports the uri connection string
+          option :urioption:`compressors`.
+
+      * - .. urioption:: zlibCompressionLevel
+
+        - An integer that specifies the compression level if using
+          :term:`zlib` for :urioption:`network compression <compressors>`.
+
+          You can specify an integer value ranging from ``-1`` to ``9``:
+
+          .. list-table::
+             :header-rows: 1
+             :widths: 25 75
+
+             * - Value
+               - Notes
+
+             * - ``-1``
+
+               - Default compression level, usually level ``6`` compression.
+
+             * - ``0``
+               - No compression
+
+             * - ``1`` - ``9``
+
+               - Increasing level of compression but at the cost of speed, with:
+
+                 - ``1`` providing the best speed but least compression, and
+
+                 - ``9`` providing the best compression but at the slowest speed.
+
+          Not supported by the :binary:`~bin.mongo` shell.
 
 .. _connection-pool-options:
 
@@ -523,11 +710,23 @@ connecting to the MongoDB deployment.
 Write Concern Options
 ~~~~~~~~~~~~~~~~~~~~~
 
-:ref:`Write concern <write-concern>` describes the kind of assurances
-that the :binary:`~bin.mongod` and the driver provide to the application
-regarding the success and durability of the write operation. For a
-full explanation of write concern and write operations in general, see
-:doc:`/reference/write-concern`.
+:ref:`Write concern <write-concern>` describes the level of
+acknowledgment requested from MongoDB. The write concern option is
+supported by the:
+
+- MongoDB drivers
+
+- :binary:`~bin.mongo` shell
+
+- :binary:`~bin.mongofiles`
+
+- :binary:`~bin.mongoimport`
+
+- :binary:`~bin.mongorestore`
+
+For more information on write
+concerns, see :doc:`/reference/write-concern`.
+
 
 .. note::
 

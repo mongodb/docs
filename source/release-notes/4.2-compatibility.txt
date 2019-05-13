@@ -1,0 +1,505 @@
+===============================================================
+Compatibility Changes in MongoDB 4.2 (Development Series 4.1.x)
+===============================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/in-dev.rst
+
+Removal of MMAPv1 Storage Engine
+--------------------------------
+
+MongoDB 4.2 removes support for the deprecated MMAPv1 storage engine.
+
+If your 4.0 deployment uses MMAPv1, you must change the deployment to
+:doc:`/core/wiredtiger` before upgrading to MongoDB 4.2. For details,
+see:
+
+- :doc:`/tutorial/change-standalone-wiredtiger`
+
+- :doc:`/tutorial/change-replica-set-wiredtiger`
+
+- :doc:`/tutorial/change-sharded-cluster-wiredtiger`
+
+MMAPv1 Specific Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the following MMAPv1 specific configuration
+options:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70 45
+
+   * - Configuration File Setting
+     - Command-line Option
+
+   * - ``storage.mmapv1.journal.commitIntervalMs``
+     -
+
+   * - ``storage.mmapv1.journal.debugFlags``
+     - ``mongod --journalOptions``
+
+   * - ``storage.mmapv1.nsSize``
+     - ``mongod --nssize``
+
+   * - ``storage.mmapv1.preallocDataFiles``
+     - ``mongod --noprealloc``
+
+   * - ``storage.mmapv1.quota.enforced``
+     - ``mongod --quota``
+
+   * - ``storage.mmapv1.quota.maxFilesPerDB``
+     - ``mongod --quotaFiles``
+
+   * - ``storage.mmapv1.smallFiles``
+     - ``mongod --smallfiles``
+
+   * - ``storage.repairPath``
+     - ``mongod --repairpath``
+
+   * - ``replication.secondaryIndexPrefetch``
+     - ``mongod --replIndexPrefetch``
+
+MMAPv1 Specific Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the following MMAPv1 parameters:
+
+- ``newCollectionsUsePowerOf2Sizes``
+- ``replIndexPrefetch``
+
+MMAPv1 Specific Command
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the MMAPv1 specific ``touch`` command.
+
+MMAPv1 Specific Options for Commands and Methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the MMAPv1 specific options:
+
+- ``noPadding`` and ``usePowerOf2Sizes`` for :dbcommand:`collMod`
+
+- ``verbose`` for :dbcommand:`collStats`
+
+
+- ``flags`` for :dbcommand:`create`
+ 
+- ``paddingFactor``, ``paddingBytes``, ``preservePadding`` for
+  :method:`db.createCollection()`.
+
+Removed or Deprecated Commands and Methods
+------------------------------------------
+
+.. _4.2-compat-remove-group:
+
+Remove Support for the ``group`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, MongoDB removes the ``group`` command
+(deprecated since version 3.4) and its :binary:`~bin.mongo` shell
+helper ``db.collection.group()``.
+
+Use :method:`db.collection.aggregate()` with the :pipeline:`$group`
+stage instead.
+
+.. _4.2-compat-remove-eval:
+
+Remove Support for the ``eval`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, MongoDB removes the ``eval`` command. ``eval``
+command has been deprecated since version 3.0.
+
+The associated MongoDB 4.2 :binary:`~bin.mongo` shell methods
+:method:`db.eval()` and :method:`db.collection.copyTo()` can only be
+run when connected to MongoDB 4.0 or earlier.
+
+.. _4.2-compat-remove-copydb-clone:
+
+Remove Support for the ``copydb`` and ``clone`` Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, MongoDB removes the deprecated ``copydb``
+command and ``clone`` command.
+
+The corresponding :binary:`~bin.mongo` shell helpers
+``db.copyDatabase()`` and ``db.cloneDatabase()`` can only be run when
+connected to MongoDB 4.0 or earlier.
+
+As an alternative, users can use :binary:`~bin.mongodump` and
+:binary:`~bin.mongorestore` or write a script using the drivers.
+
+.. _4.2-compat-remove-parallel:
+
+Remove Support for the ``parallelCollectionScan`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, MongoDB removes the ``parallelCollectionScan``
+command.
+
+Remove ``maxScan``
+~~~~~~~~~~~~~~~~~~
+
+MongoDB removes the deprecated option ``maxScan`` for the
+:dbcommand:`find` command and the :binary:`~bin.mongo` shell helper
+``cursor.maxScan()``. Use either the ``maxTimeMS`` option for the
+:dbcommand:`find` command or the helper :method:`cursor.maxTimeMS()` instead.
+
+.. _4.2-compat-remove-geoNear:
+
+Remove Support for the ``geoNear`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, MongoDB removes the ``geoNear`` command. Use
+the :pipeline:`$geoNear` aggregation stage instead.
+
+The options for :pipeline:`$geoNear` are similar to the removed
+``geoNear`` command with the following exceptions:
+
+- The removed ``geoNear`` command includes in its output a field named
+  ``dis`` that included the distance information.
+
+  For the :pipeline:`$geoNear` stage, specify the distance field name
+  in ``distanceField``.
+
+- The removed ``geoNear`` command accepts a ``boolean`` value for the
+  ``includeLocs`` option to include the ``loc`` field.
+
+  For the :pipeline:`$geoNear` stage, specify the location field name
+  in ``includeLocs``.
+
+- The removed ``geoNear`` command includes the ``avgDistance`` and
+  ``maxDistance`` of the returned results.
+
+  You can use the aggregation pipeline to return the ``avgDistance``
+  and ``maxDistance`` as well. Specifically, after the
+  :pipeline:`$geoNear` stage, include a :pipeline:`$group` stage to
+  calculate the ``avgDistance`` and ``maxDistance``:
+
+  .. code-block:: javascript
+     :emphasize-lines: 3-4
+
+     db.places.aggregate([ 
+        { $geoNear: { near: <...>, distanceField: "dis", includeLocs: "loc", spherical: true, ... } },
+        { $group: { _id: null, objectsLoaded: { $sum: 1 }, maxDistance:
+              { $max: "$dis" }, avgDistance: { $avg: "$dis" } } }
+     ])
+     
+  .. seealso:: :ref:`4.2-compat-geoNear`
+
+.. _4.2-compat-remove-repairDatabase:
+
+Remove Support for the ``repairDatabase`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, MongoDB removes the ``repairDatabase`` command
+and its :binary:`~bin.mongo` shell helper ``db.repairDatabase()``.
+
+As alternatives:
+
+- To compact data for a :binary:`~bin.mongod`, use the
+  :dbcommand:`compact` command. For details about the operation, see
+  :dbcommand:`compact` command.
+
+- To rebuild indexes on a standalone, use the :dbcommand:`reIndex`
+  command or its helper :method:`db.collection.reIndex()`. For details
+  about the operation, see :dbcommand:`reIndex` command and
+  :method:`db.collection.reIndex()` reference pages.
+
+- To recover data for a standalone, use :option:`mongod --repair`. See
+  :doc:`/tutorial/recover-data-following-unexpected-shutdown` for
+  details.
+
+.. _4.2-compat-clone-collection:
+
+Deprecate Support for ``cloneCollection``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB deprecates the :dbcommand:`cloneCollection` command and its
+:binary:`~bin.mongo` shell helper :method:`db.cloneCollection()`
+
+As alternatives, 
+
+- Users can use the :pipeline:`$out` aggregation stage. 
+
+- Users can use :binary:`~bin.mongoexport` and
+  :binary:`~bin.mongoimport` or write a script using the drivers.
+
+Aggregation
+-----------
+
+.. _4.2-compat-out:
+
+``$out`` Stage Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``$out`` and Views
+``````````````````
+
+.. container::
+
+   The :doc:`view </core/views>` definition ``pipeline`` cannot include
+   the :pipeline:`$out` stage. If you already have an existing view
+   that includes the :pipeline:`$out` stage, you can no longer create
+   new views from this existing view.
+
+   For existing views that include the :pipeline:`$out` stage, you
+   should either :method:`drop <db.collection.drop()>` and
+   :method:`recreate <db.createView()>` the views without the
+   :pipeline:`$out` stage or use :dbcommand:`replace the view
+   definition <collMod>` with a new pipeline that does not contain the
+   :pipeline:`$out` stage.
+
+``$out`` and ``$lookup``
+````````````````````````
+
+.. container::
+
+   The :pipeline:`$lookup` stage cannot include the :pipeline:`$out`
+   stage in its nested :ref:`pipeline field for the joined collection
+   <lookup-syntax-let-pipeline>`.
+
+``$out`` and ``linearizable`` Read Concern Level
+````````````````````````````````````````````````
+
+.. container::
+
+   The :pipeline:`$out` stage cannot be used in conjunction with read
+   concern :readconcern:`"linearizable"`.
+
+``$out`` and Explain
+````````````````````
+
+.. container::
+
+   You cannot run the :method:`db.collection.explain()` method (or the
+   :dbcommand:`explain` command) in ``executionStats`` mode or
+   ``allPlansExecution`` mode if the aggregation pipeline contains the
+   :pipeline:`$out` stage.
+
+   If the aggregation pipeline contains the :pipeline:`$out` stage, to
+   view ``executionStats`` or ``allPlansExecution`` information, run
+   explain without the :pipeline:`$out` stage in order to return
+   explain results for the preceding stages.
+
+   Alternatively, you can run explain in ``queryPlanner`` mode for an
+   aggregation pipeline that contains the :pipeline:`$out` stage.
+
+.. seealso:: :ref:`4.2-agg-out`
+
+.. _4.2-compat-geoNear:
+
+Remove ``limit`` and ``num`` Options from ``$geoNear``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-geoNear-limit.rst
+
+For example, the following aggregation where the :pipeline:`$geoNear`
+stage contains the ``num`` option is no longer valid in 4.2.
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.places.aggregate([
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "distance",
+           num: 5,                 // Not supported in 4.2
+           spherical: true
+        }
+      }
+   ])
+
+Instead, you can rewrite the aggregation to the following pipeline:
+
+.. code-block:: javascript
+
+   db.places.aggregate([
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "distance",
+           spherical: true
+        }
+      },
+      { $limit: 5 }
+   ])
+
+
+
+General Changes
+---------------
+
+.. _4.2-index-compat-changes:
+.. _4.2-mongos-reindex-compat:
+
+Indexes
+~~~~~~~
+
+- MongoDB implements a stronger restriction on running
+  :dbcommand:`reIndex` command and :method:`db.collection.reIndex()`
+  shell helper against a collection in a sharded cluster by disallowing
+  :dbcommand:`reIndex` and :method:`db.collection.reIndex()` on a
+  :binary:`~bin.mongos`.
+
+- MongoDB removes the ``--noIndexBuildRetry`` command-line option and
+  the corresponding ``storage.indexBuildRetry`` option.
+
+- You cannot specify :method:`db.collection.dropIndex("*")
+  <db.collection.dropIndex>` to drop all non-``_id`` indexes. Use
+  :method:`db.collection.dropIndexes()` instead.
+ 
+- MongoDB changes the returned response if you create an index with one
+  name, and then try to create the index again with another name.
+
+  Starting in version 4.2, the :dbcommand:`createIndexes` command and
+  the :binary:`~bin.mongo` shell helpers
+  :method:`db.collection.createIndex()` and
+  :method:`db.collection.createIndexes()` report an error if you
+  create an index with one name, and then try to create the same index
+  again but with another name.
+
+  .. code-block:: javascript
+ 
+     {
+        "ok" : 0,
+        "errmsg" : "Index with name: x_1 already exists with a different name",
+        "code" : 85,
+        "codeName" : "IndexOptionsConflict"
+     }
+
+  In previous versions, MongoDB did not create the index again, but
+  would return a response object with ``ok`` value of ``1`` and a note
+  that implied that the index was not recreated. For example:
+
+  .. code-block:: javascript
+
+     {
+        "numIndexesBefore" : 2,
+        "numIndexesAfter" : 2,
+        "note" : "all indexes already exist",
+        "ok" : 1
+     }
+
+.. _4.2-current-op-compat:
+
+CurrentOp
+~~~~~~~~~
+
+- When reporting on ``"getmore"`` operations, the
+  :pipeline:`$currentOp` aggregation stage, along with
+  :dbcommand:`currentOp` command and the :method:`db.currentOp()`
+  helper, now returns the ``originatingCommand`` field as a nested
+  field in the new ``cursor`` field. In previous versions, the
+  ``originatingCommand`` was a top-level field for the associated
+  ``"getmore"`` document. See also :ref:`4.2 currentOp Changes
+  <4.2-currentOp>`.
+
+Server Status
+~~~~~~~~~~~~~
+
+- The :dbcommand:`serverStatus` and :method:`db.serverStatus` method
+  return :serverstatus:`opcounters` and :serverstatus:`opcountersRepl`
+  metrics as 64-bit integers (i.e. NumberLong) instead of 32-bit
+  integers (i.e. NumberInt).
+
+Logging
+~~~~~~~
+
+- When logging to :option:`syslog <mongod --syslog>`, the format of the
+  message text includes the :ref:`component <log-message-components>`.
+  For example:
+
+  .. code-block:: none
+
+     ...  ACCESS   [repl writer worker 5] Unsupported modification to roles collection ...
+
+  Previously, the :option:`syslog <mongod --syslog>` message text did
+  not include the component. For
+  example:
+
+  .. code-block:: none
+
+     ... [repl writer worker 1] Unsupported modification to roles collection ...
+
+- Starting in MongoDB 4.2, the :dbcommand:`getLog` command truncates
+  any event that contains more than 1024 characters. In earlier
+  versions, :dbcommand:`getLog` truncates after 512 characters.
+
+- Starting in version 4.2, MongoDB logs the :ref:`debug verbosity level
+  <log-messages-configure-verbosity>`. For example, if verbosity level
+  is 2, MongoDB logs ``D2``.
+
+  | In previous versions, MongoDB log messages only specified ``D`` for
+    Debug level.
+    
+Wire Protocol
+~~~~~~~~~~~~~
+
+- MongoDB no longer supports the deprecated internal ``OP_COMMAND`` and the
+  corresponding ``OP_COMMANDREPLY`` wire protocol.
+
+``killCursors`` Privilege
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, users can always kill their own cursors,
+regardless of whether the users have the privilege to
+:authaction:`killCursors`. As such, the :authaction:`killCursors`
+privilege has no effect in MongoDB 4.2+.
+
+In MongoDB 3.6.3 through MongoDB 4.0.x, users required the
+:authaction:`killCursors` privilege in order to kill their own cursors
+when access control is enabled.
+
+
+Removes ``AsyncRequestsSenderUseBaton`` Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In MongoDB 4.2+ deployment, MongoDB removes the
+``AsyncRequestsSenderUseBaton`` parameter and always enables the
+performance enhancement controlled by the parameter.
+     
+
+MongoDB Tools
+-------------
+
+FIPS Mode
+~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-fips.rst
+
+.. _4.2-compatibility-enabled:
+
+4.2 Feature Compatibility
+-------------------------
+
+Some features in 4.2 require not just the 4.2 binaries but the
+:ref:`featureCompatibilityVersion <view-fcv>` (fCV) set to 4.2. These
+features include:
+
+- :ref:`Multi-document transactions <4.2-txn-sharded-clusters>` for
+  sharded clusters.
+
+- Removal of :limit:`Index Key Limit` for MongoDB versions with fCV set
+  to 4.2+. In concert with the removal of this limit, the
+  :parameter:`failIndexKeyTooLong` parameter has no effect for MongoDB
+  versions with fCV set to 4.2+ and only applies for MongoDB 2.6
+  through MongoDB versions with fCV set to ``"4.0"`` or earlier.
+
+- Removal of :limit:`Index Name Length` for MongoDB versions with fCV
+  set to 4.2+.
+
+- New internal format for :doc:`unique indexes </core/index-unique>`.
+  The new format applies to both existing unique indexes as well as
+  newly created/rebuilt unique indexes.
+
+- .. include:: /includes/extracts/4.2-changes-type-0.rst

@@ -88,6 +88,44 @@ configuration file, :binary:`~bin.mongod` may not start.
 
 .. [#yaml-json] YAML is a superset of :term:`JSON`.
 
+Externally Sourced Values
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2
+
+   .. include:: /includes/fact-expansion-directive-intro.rst
+
+The following expansion directives are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Expansion Directive
+     - Description
+
+   * - :configexpansion:`__rest`
+     - Allows users to specify a ``REST`` endpoint as the external source
+       for configuration file options *or* the full configuration file.
+
+   * - :configexpansion:`__exec`
+     - Allows users to specify a shell or terminal command as the
+       external source for configuration file options *or* the
+       full configuration file.
+
+To enable parsing of expansion directives, start the
+:binary:`~bin.mongod`/:binary:`~bin.mongos` with the
+:option:`--configExpand <mongod --configExpand>` option and a comma
+separated list of any expansion directives included in the configuration
+file.
+
+If the configuration file includes an expansion directive and you
+start the :binary:`~bin.mongod`/:binary:`~bin.mongos` without specifying
+that directive with the :option:`--configExpand <mongod --configExpand>` 
+option, the :binary:`~bin.mongod`/:binary:`~bin.mongos` fails to start.
+
+For complete documentation, see :ref:`externally-sourced-values`.
+
 Use the Configuration File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -114,12 +152,25 @@ file, as in the following:
 
    mongos -f /etc/mongos.conf
 
+
 If you installed from a package and have started MongoDB using your
 system's :term:`init script`, you are already using a configuration
 file.
 
+If you are using :ref:`expansion directives <expansion-directives>`
+in the configuration file, you must include the
+:option:`--configExpand <mongod --configExpand>` option when starting
+the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+
+For complete documentation, see :ref:`externally-sourced-values`.
+
 Core Options
 ------------
+
+.. admonition:: Starting in version 4.2
+
+   - MongoDB removes the ``storage.indexBuildRetry`` option and the
+     corresponding ``--noIndexBuildRetry`` command-line option.
 
 ``systemLog`` Options
 ~~~~~~~~~~~~~~~~~~~~~
@@ -178,7 +229,11 @@ Core Options
 
          replication:
             verbosity: <int>
+            election:
+               verbosity: <int>
             heartbeats:
+               verbosity: <int>
+            initialSync:
                verbosity: <int>
             rollback:
                verbosity: <int>
@@ -190,6 +245,10 @@ Core Options
                verbosity: <int>
          write:
             verbosity: <int>
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-debug-log-message.rst
 
 .. include:: /includes/option/setting-conf-systemLog.component.accessControl.verbosity.rst
 
@@ -209,7 +268,11 @@ Core Options
 
 .. include:: /includes/option/setting-conf-systemLog.component.replication.verbosity.rst
 
+.. include:: /includes/option/setting-conf-systemLog.component.replication.election.verbosity.rst
+
 .. include:: /includes/option/setting-conf-systemLog.component.replication.heartbeats.verbosity.rst
+
+.. include:: /includes/option/setting-conf-systemLog.component.replication.initialSync.verbosity.rst
 
 .. include:: /includes/option/setting-conf-systemLog.component.replication.rollback.verbosity.rst
 
@@ -262,6 +325,11 @@ Core Options
 ``net`` Options
 ~~~~~~~~~~~~~~~
 
+.. versionchanged:: 4.2
+
+   MongoDB 4.2 deprecates ``ssl`` options in favor of ``tls`` options with
+   identical functionality. 
+
 .. code-block:: yaml
 
    net:
@@ -275,13 +343,12 @@ Core Options
          enabled: <boolean>
          pathPrefix: <string>
          filePermissions: <int>
-      ssl:
-         sslOnNormalPorts: <boolean>  # deprecated since 2.6
+      tls:
          certificateSelector: <string>
          clusterCertificateSelector: <string>
          mode: <string>
-         PEMKeyFile: <string>
-         PEMKeyPassword: <string>
+         certificateKeyFile: <string>
+         certificateKeyFilePassword: <string>
          clusterFile: <string>
          clusterPassword: <string>
          CAFile: <string>
@@ -332,15 +399,82 @@ Core Options
 
 .. include:: /includes/warning-http-interface.rst
 
+.. _net-tls-conf-options:
+
+``net.tls`` Options
+```````````````````
+
+.. versionadded:: 4.2
+
+   The ``tls`` options provide identical functionality as the
+   previous ``ssl`` options.
+
+.. code-block:: yaml
+
+   net:
+      tls:
+         mode: <string>
+         certificateKeyFile: <string>
+         certificateKeyFilePassword: <string>
+         certificateSelector: <string>
+         clusterCertificateSelector: <string>
+         clusterFile: <string>
+         clusterPassword: <string>
+         CAFile: <string>
+         clusterCAFile: <string>
+         CRLFile: <string>
+         allowConnectionsWithoutCertificates: <boolean>
+         allowInvalidCertificates: <boolean>
+         allowInvalidHostnames: <boolean>
+         disabledProtocols: <string>
+         FIPSMode: <boolean>
+
+.. include:: /includes/option/setting-conf-net.tls.mode.rst
+
+.. include:: /includes/option/setting-conf-net.tls.certificateKeyFile.rst
+
+.. include:: /includes/option/setting-conf-net.tls.certificateKeyFilePassword.rst
+
+.. include:: /includes/option/setting-conf-net.tls.certificateSelector.rst
+
+.. include:: /includes/option/setting-conf-net.tls.clusterCertificateSelector.rst
+
+.. include:: /includes/option/setting-conf-net.tls.clusterFile.rst
+
+.. include:: /includes/option/setting-conf-net.tls.clusterPassword.rst
+
+.. include:: /includes/option/setting-conf-net.tls.CAFile.rst
+
+.. include:: /includes/option/setting-conf-net.tls.clusterCAFile.rst
+
+.. include:: /includes/option/setting-conf-net.tls.CRLFile.rst
+
+.. include:: /includes/option/setting-conf-net.tls.allowConnectionsWithoutCertificates.rst
+
+.. include:: /includes/option/setting-conf-net.tls.allowInvalidCertificates.rst
+
+.. include:: /includes/option/setting-conf-net.tls.allowInvalidHostnames.rst
+
+.. include:: /includes/option/setting-conf-net.tls.disabledProtocols.rst
+
+.. include:: /includes/option/setting-conf-net.tls.FIPSMode.rst
+
 .. _net-ssl-conf-options:
 
 ``net.ssl`` Options
 ```````````````````
 
+.. important:: 
+
+   All SSL options are deprecated since 4.2. Use the :ref:`TLS counterparts 
+   <net-tls-conf-options>` instead, as they have identical functionality to the 
+   SSL options.  The SSL protocol is deprecated and MongoDB supports TLS 1.0 
+   and later.
+
 .. code-block:: yaml
 
    net:
-      ssl:
+      ssl:                            # deprecated since 4.2
          sslOnNormalPorts: <boolean>  # deprecated since 2.6
          mode: <string>
          PEMKeyFile: <string>
@@ -583,24 +717,12 @@ LDAP Parameters
 
    storage:
       dbPath: <string>
-      indexBuildRetry: <boolean>
-      repairPath: <string>
       journal:
          enabled: <boolean>
          commitIntervalMs: <num>
       directoryPerDB: <boolean>
       syncPeriodSecs: <int>
       engine: <string>
-      mmapv1:
-         preallocDataFiles: <boolean>
-         nsSize: <int>
-         quota:
-            enforced: <boolean>
-            maxFilesPerDB: <int>
-         smallFiles: <boolean>
-         journal:
-            debugFlags: <int>
-            commitIntervalMs: <num>
       wiredTiger:
          engineConfig:
             cacheSizeGB: <number>
@@ -616,10 +738,6 @@ LDAP Parameters
 
 .. include:: /includes/option/setting-conf-storage.dbPath.rst
 
-.. include:: /includes/option/setting-conf-storage.indexBuildRetry.rst
-
-.. include:: /includes/option/setting-conf-storage.repairPath.rst
-
 .. include:: /includes/option/setting-conf-storage.journal.enabled.rst
 
 .. include:: /includes/option/setting-conf-storage.journal.commitIntervalMs.rst
@@ -629,42 +747,6 @@ LDAP Parameters
 .. include:: /includes/option/setting-conf-storage.syncPeriodSecs.rst
 
 .. include:: /includes/option/setting-conf-storage.engine.rst
-
-``storage.mmapv1`` Options
-``````````````````````````
-
-.. admonition:: Deprecated
-   :class: warning
-
-   .. include:: /includes/fact-4.0-mmapv1-deprecated.rst
-
-.. code-block:: yaml
-
-   storage:
-      mmapv1:
-         preallocDataFiles: <boolean>
-         nsSize: <int>
-         quota:
-            enforced: <boolean>
-            maxFilesPerDB: <int>
-         smallFiles: <boolean>
-         journal:
-            debugFlags: <int>
-            commitIntervalMs: <num>
-
-.. include:: /includes/option/setting-conf-storage.mmapv1.preallocDataFiles.rst
-
-.. include:: /includes/option/setting-conf-storage.mmapv1.nsSize.rst
-
-.. include:: /includes/option/setting-conf-storage.mmapv1.quota.enforced.rst
-
-.. include:: /includes/option/setting-conf-storage.mmapv1.quota.maxFilesPerDB.rst
-
-.. include:: /includes/option/setting-conf-storage.mmapv1.smallFiles.rst
-
-.. include:: /includes/option/setting-conf-storage.mmapv1.journal.debugFlags.rst
-
-.. include:: /includes/option/setting-conf-storage.mmapv1.journal.commitIntervalMs.rst
 
 
 ``storage.wiredTiger`` Options
@@ -742,8 +824,6 @@ LDAP Parameters
 .. include:: /includes/option/setting-conf-replication.oplogSizeMB.rst
 
 .. include:: /includes/option/setting-conf-replication.replSetName.rst
-
-.. include:: /includes/option/setting-conf-replication.secondaryIndexPrefetch.rst
 
 .. include:: /includes/option/setting-conf-replication.enableMajorityReadConcern.rst
 
@@ -854,4 +934,5 @@ Windows Service Options
    :hidden:
    :titlesonly:
 
+   /reference/expansion-directives
    /reference/configuration-file-settings-command-line-options-mapping

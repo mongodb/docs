@@ -45,13 +45,19 @@ pre: |
   :authrole:`readWriteAnyDatabase` role.
 
 action:
+  pre: |
+
+    .. tip::
+
+       .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
   language: javascript
   code: |
     use admin
     db.createUser(
       {
         user: "myUserAdmin",
-        pwd: "abc123",
+        pwd: passwordPrompt(), // or cleartext password
         roles: [ { role: "userAdminAnyDatabase", db: "admin" }, "readWriteAnyDatabase" ]
       }
     )
@@ -97,54 +103,57 @@ level: 4
 stepnum: 5
 ref: auth-as-admin
 content: |
-
    Using the :binary:`~bin.mongo` shell, you can:
 
    - Connect with authentication by passing in user credentials, or
 
-   - Connect first withouth authentication, and then issue the
+   - Connect first without authentication, and then issue the
      :method:`db.auth()` method to authenticate.
-     
+
    .. tabs::
 
       tabs:
          - id: cmdline
            name: Authenticate during Connection
            content: |
-           
-  
-              Start a :binary:`~bin.mongo` shell with the `:option:`-u
+              Start a :binary:`~bin.mongo` shell with the :option:`-u
               \<username\> <mongo -u>`, :option:`-p <mongo -p>`, and the
               :option:`--authenticationDatabase \<database\> <mongo
               --authenticationDatabase>` command line options:
 
               .. code-block:: sh
 
-                 mongo --port 27017 -u "myUserAdmin" --authenticationDatabase "admin" -p
+                 mongo --port 27017  --authenticationDatabase "admin" -u "myUserAdmin" -p
 
-              Enter your password when prompted. In this example, ``abc123``.
-
+              Enter your password when prompted.
 
          - id: authafter
            name: Authenticate after Connection
            content: |
-
+ 
               Connect the :binary:`~bin.mongo` shell to the
               :binary:`~bin.mongod`:
 
               .. code-block:: sh
-         
+
                  mongo --port 27017
 
-              In the :binary:`~binary.mongo` shell, switch to the
+
+              In the :binary:`~bin.mongo` shell, switch to the
               authentication database (in this case, ``admin``), and
               use :method:`db.auth(\<username\>, \<pwd\>) <db.auth()>`
               method to authenticate:
-         
+
+              .. tip::
+
+                 .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
               .. code-block:: javascript
 
                  use admin
-                 db.auth("myUserAdmin", "abc123" )
+                 db.auth("myUserAdmin", passwordPrompt()) // or cleartext password
+
+              Enter the password when prompted.
 ---
 title: Create additional users as needed for your deployment.
 level: 4
@@ -164,17 +173,22 @@ action:
     database as well as :authrole:`read` role in the ``reporting``
     database.
 
+    .. tip::
+
+       .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
   language: javascript
   code: |
     use test
     db.createUser(
       {
         user: "myTester",
-        pwd: "xyz123",
+        pwd:  passwordPrompt(),   // or cleartext password
         roles: [ { role: "readWrite", db: "test" },
                  { role: "read", db: "reporting" } ]
       }
     )
+
 post: |
 
    .. note::
@@ -198,7 +212,7 @@ content: |
 
    - Connect with authentication by passing in user credentials, or
 
-   - Connect first without authentication, and then issue the
+   - Connect first withouth authentication, and then issue the
      :method:`db.auth()` method to authenticate.
    
    .. tabs::
@@ -207,7 +221,6 @@ content: |
          - id: cmdline2
            name: Authenticate during Connection
            content: |
-
               Start a :binary:`~bin.mongo` shell with the :option:`-u
               \<username\> <mongo --username>`, :option:`-p <mongo -p>`, and the
               :option:`--authenticationDatabase \<database\> <mongo
@@ -215,9 +228,9 @@ content: |
 
               .. code-block:: sh
 
-                 mongo --port 27017 -u "myTester" --authenticationDatabase "test" -p 
-            
-              Enter your password when prompted. In this example, ``xyz123``.
+                 mongo --port 27017 -u "myTester" --authenticationDatabase "test" -p
+
+              Enter the password for the user when prompted.
 
          - id: authafter2
            name: Authenticate after Connection
@@ -225,34 +238,39 @@ content: |
 
               Connect the :binary:`~bin.mongo` shell to the
               :binary:`~bin.mongod`:
-            
+
               .. code-block:: sh
 
                  mongo --port 27017
 
-              In the :binary:`~binary.mongo` shell, switch to the
+              In the :binary:`~bin.mongo` shell, switch to the
               authentication database (in this case, ``test``), and use
               :method:`db.auth(\<username\>, \<pwd\>) <db.auth()>`
               method to authenticate:
          
+              .. tip::
+
+                 .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
               .. code-block:: javascript
 
                  use test
-                 db.auth("myTester", "xyz123" )
+                 db.auth("myTester", passwordPrompt())  // or cleartext password
 
+              Enter the password for the user when prompted.
 ---
 title: Insert a document as ``myTester``.
 level: 4
 ref: insert-as-mytester
 content: |
-   
+
    As ``myTester``, you have privileges to perform read and write
    operations in the ``test`` database (as well as perform read
    operations in the ``reporting`` database). Once authenticated as
    ``myTester``, insert a document into a collection in ``test``
-   database. For example, you can peform the following insert operation
-   in the ``test`` database:
-
+   database. For example, you can perform the following insert
+   operation in the ``test`` database:
+          
    .. code-block:: javascript
 
       db.foo.insert( { x: 1, y: 1 } )

@@ -37,6 +37,12 @@
          :method:`db.collection.dropIndex()` method. See :ref:`drop-text-index`
          for details.
 
+         .. note::
+
+            Starting in MongoDB 4.2,
+            :method:`db.collection.dropIndexes()` can accept an array
+            of index names.
+
          Remove All Indexes
          ~~~~~~~~~~~~~~~~~~
 

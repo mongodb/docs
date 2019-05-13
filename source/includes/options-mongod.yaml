@@ -39,11 +39,64 @@ description: |
 optional: true
 ---
 program: mongod
+name: configExpand
+args: <none|rest|exec>
+default: |
+  none
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  Enables using :ref:`Expansion Directives <externally-sourced-values>`
+  in configuration files. Expansion directives allow you to set
+  externally sourced values for configuration file options. 
+
+  {{role}} supports the following expansion directives:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 40
+
+     * - Value
+
+       - Description
+
+     * - ``none``
+
+       - Default. {{program}} does not expand expansion directives. 
+         {{program}} fails to start if any configuration file settings 
+         use expansion directives.
+
+     * - ``rest``
+
+       - {{program}} expands ``__rest`` expansion directives when 
+         parsing the configuration file. 
+
+     * - ``exec``
+
+       - {{program}} expands ``__exec`` expansion directives when
+         parsing the configuration file.
+
+  You can specify multiple expansion directives as a comma-separated
+  list, e.g. ``rest, exec``. If the configuration file contains
+  expansion directives not specified to {{role}}, the {{program}}
+  returns an error and terminates.
+
+  See :ref:`externally-sourced-values` for configuration files
+  for more information on expansion directives.
+
+optional: true
+---
+program: mongod
 name: verbose
 inherit:
   name: verbose
   program: _shared
   file: options-shared.yaml
+post: |
+   .. note::
+
+      .. include:: /includes/extracts/4.2-changes-debug-log-message.rst
 ---
 program: mongod
 name: quiet
@@ -123,14 +176,19 @@ optional: true
 post: |
   To bind to all IPv4 addresses, enter ``0.0.0.0``.
 
-  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0``
-  or alternatively, use the :setting:`net.bindIpAll` setting.
+  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0`` or
+  starting in MongoDB 4.2, an asterisk ``"*"`` (enclose the asterisk in
+  quotes to avoid filename pattern expansion). Alternatively, use the
+  :setting:`net.bindIpAll` setting.
 
   .. note::
 
-     ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive.
-     Specifying both options causes {{program}} to throw an error and
-     terminate.
+     - ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive.
+       Specifying both options causes {{program}} to throw an error and
+       terminate.
+
+     - The command-line option ``--bind`` overrides the configuration
+       file setting :setting:`net.bindIp`.
 
 ---
 program: mongod
@@ -156,8 +214,9 @@ description: |
 
 post: |
 
-  Alternatively, you can set the ``--bind_ip`` option to
-  ``::,0.0.0.0`` to bind to all IP addresses.
+  Alternatively, you can set the ``--bind_ip`` option to ``::,0.0.0.0``
+  or, starting in MongoDB 4.2, to an asterisk ``"*"`` (enclose the
+  asterisk in quotes to avoid filename pattern expansion).
 
   .. note::
 
@@ -347,7 +406,7 @@ args: null
 directive: option
 description: |
   Sends all logging output to the host's :term:`syslog` system rather
-  than to standard output or to a log file. , as with :option:`--logpath`.
+  than to standard output or to a log file (:option:`--logpath`).
 
   The {{role}} option is not supported on Windows.
 
@@ -358,6 +417,14 @@ description: |
      for log entries, especially when the system is under heavy load. We
      recommend using the :option:`--logpath` option for production systems to
      ensure accurate timestamps.
+
+  Starting in version 4.2, MongoDB includes the :ref:`component
+  <log-message-components>` in its log messages to ``syslog``.
+ 
+  .. code-block:: none
+
+     ...  ACCESS   [repl writer worker 5] Unsupported modification to roles collection ...
+
 optional: true
 ---
 program: mongod
@@ -400,6 +467,9 @@ description: |
   :term:`sharded cluster` or :term:`replica set`. {{role}} implies
   {{auth_option}}. See :ref:`inter-process-auth` for more
   information.
+
+  .. include:: /includes/extracts/4.2-changes-keyfile-fmt.rst
+
 replacement:
   auth_option: ":option:`--auth`"
   intro: "Specifies the"
@@ -588,9 +658,6 @@ name: journalOptions
 args: <arguments>
 directive: option
 description: |
-
-  *Only available for the MMAPv1 storage engine.*
-
   Provides functionality for testing. Not for general use, and will affect data
   file integrity in the case of abnormal system shutdown.
 post: |
@@ -612,12 +679,6 @@ description: |
   journal operations. Values can range from 1 to 500 milliseconds. Lower
   values increase the durability of the journal, at the expense of disk
   performance. The default journal commit interval is 100 milliseconds.
-
-  On MMAPv1, if the journal is on a different block device (e.g. physical
-  volume, RAID device, or LVM volume) than the data files, the default journal
-  commit interval is 30 milliseconds. Additionally, on MMAPv1, when a write
-  operation with ``j:true`` is pending, {{program}} will reduce
-  :setting:`~storage.journal.commitIntervalMs` to a third of the set value.
 
   On WiredTiger, the default journal commit interval is 100 milliseconds. Additionally,
   a write with ``j:true`` will cause an immediate sync of the journal.
@@ -702,9 +763,9 @@ description: |
        - Recommended. Send the x.509 certificate for authentication and
          accept only x.509 certificates.
 
-  .. include:: /includes/extracts/ssl-facts-ca-file.rst
+  .. include:: /includes/extracts/tls-facts-ca-file.rst
 
-  .. include:: /includes/extracts/ssl-facts-see-more.rst
+  .. include:: /includes/extracts/tls-facts-see-more.rst
 optional: true
 ---
 program: mongod
@@ -719,21 +780,6 @@ post: |
 
   .. include:: /includes/wiredtiger-node-nojournal.rst
 optional: true
----
-program: mongod
-name: noprealloc
-args: null
-directive: option
-description: |
-
-  *Only available for the MMAPv1 storage engine.*
-
-  .. deprecated:: 2.6
-
-     By default, MongoDB does not preallocate data files. The option
-     exists for compatibility.
-
-  Disables the preallocation of data files.
 ---
 program: mongod
 name: noscripting
@@ -757,9 +803,6 @@ args: <value>
 default: 16
 directive: option
 description: |
-
-  *Only available for the MMAPv1 storage engine.*
-
   {{verb}} default size for namespace files, which are files that end
   in ``.ns``. Each collection and index counts as a namespace.
 
@@ -776,8 +819,6 @@ name: quota
 args: null
 directive: option
 description: |
-  *Only available for the MMAPv1 storage engine.*
-
   {{verb}} a maximum limit for the number data files each database can
   have. When running with the {{role}} option, MongoDB has a maximum of 8
   data files per database. Adjust the quota with
@@ -793,8 +834,6 @@ args: <number>
 default: 8
 directive: option
 description: |
-  *Only available for the MMAPv1 storage engine.*
-
   {{verb}} limit on the number of data files per database. {{role}}
   option requires that you set {{quota_flag}}.
 optional: true
@@ -821,31 +860,6 @@ description: |
 
   .. include:: /includes/warning-repair.rst
 
-  For MMAPv1 storage engine, see also :option:`--repairpath`.
----
-program: mongod
-name: repairpath
-args: <path>
-default: |
-  A ``_tmp_repairDatabase_<num>`` directory under the :setting:`~storage.dbPath`.
-directive: option
-description: |
-
-  *Only available for the MMAPv1 storage engine.*
- 
-  {{intro}} working directory that MongoDB will use during the
-  :option:`--repair <mongod --repair>` operation. When ``--repair`` completes, the
-  {{role}} directory is empty, and
-  :setting:`~storage.dbPath` contains the repaired files.
-post: |
-  The {{role}} must be within the :setting:`~storage.dbPath`. You can
-  specify a symlink to {{role}} to use a path on a different file
-  system.
-
-optional: true
-replacement:
-  intro: "Specifies a"
-  dbpath: ":option:`--dbpath`"
 ---
 program: mongod
 name: setParameter
@@ -915,9 +929,6 @@ name: smallfiles
 args: null
 directive: option
 description: |
-
-  *Only available for the MMAPv1 storage engine.*
-  
   {{intro}} a smaller default file size. The {{role}} option
   reduces the initial size for data files and limits the maximum size to
   512 megabytes. {{role}} also reduces the size of each :term:`journal`
@@ -1019,38 +1030,6 @@ description: |
 optional: true
 ---
 program: mongod
-name: noIndexBuildRetry
-# The description for this option applies specifically to the command
-# line. The equivalent option in the configuration file has a different
-# description because it uses "opposite" wording. The command-line option
-# is false by default, while the config-file option is true by default.
-args: null
-directive: option
-description: |
-
-  .. versionchanged:: 4.0
-
-     {{role}} cannot be used in
-     conjunction with :option:`--replSet <mongod --replSet>`; i.e., you cannot
-     use {{role}} for a :binary:`~bin.mongod` instance that is part of
-     a replica set.
-
-  Stops the {{program}} **standalone** instance from rebuilding incomplete indexes on the next
-  start up. This applies in cases where the {{program}} restarts after it
-  has shut down or stopped in the middle of an index build. In such cases,
-  the {{program}} always removes any incomplete indexes, and then also, by
-  default, attempts to rebuild them. To stop the {{program}} from
-  rebuilding incomplete indexes on start up, include this option on the
-  command-line.
-
-  The {{role}} only applies to standalones.
-
-post: |
-  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
-
-optional: true
----
-program: mongod
 name: replSet
 args: <setname>
 directive: option
@@ -1059,9 +1038,6 @@ description: |
   this set. All hosts in the replica set must have the same set name.
 
   Starting in MongoDB 4.0,
-
-  - {{role}} cannot be used in conjunction with
-    :option:`--noIndexBuildRetry <mongod --noIndexBuildRetry >`.
 
   - For the WiredTiger storage engine, {{role}} cannot be used in
     conjunction with :option:`--nojournal <mongod --nojournal>`.
@@ -1115,47 +1091,6 @@ description: |
      secondary or slave will be permanently out of sync with the
      primary, which may cause significant consistency problems.
 optional: true
----
-program: mongod
-name: replIndexPrefetch
-args: null
-default: all
-directive: option
-description: |
-  .. |feature| replace:: {{role}}
-  .. include:: /includes/fact-feature-is-mmapv1-only.rst
-
-  {{intro}} :term:`secondary` members of a :term:`replica
-  set` load into memory before applying operations from the oplog. By
-  default secondaries load all indexes related to an operation into memory
-  before applying operations from the oplog.
-
-  Set this {{directive}} to one of the following:
-
-  .. list-table::
-     :header-rows: 1
-     :widths: 20 40
-
-     * - Value
-
-       - Description
-
-     * - ``none``
-
-       - Secondaries do not load indexes into memory.
-
-     * - ``all``
-
-       - Secondaries load all indexes related to an operation.
-
-     * - ``_id_only``
-
-       - Secondaries load no additional indexes into memory beyond the
-         already existing ``_id`` index.
-optional: true
-replacement:
-  intro: "Determines which indexes"
-  directive: option
 ---
 program: mongod
 name: master
@@ -1294,6 +1229,8 @@ args: <parameter>=<value>
 directive: option
 description: |
 
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   .. versionadded:: 4.0
 
      Available on Windows and macOS as an alternative to {{file}}.
@@ -1309,16 +1246,19 @@ description: |
 
   .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
 
-  .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst  
+  .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst
 optional: true
 replacement:
-   file: ":option:`--sslPEMKeyFile`"
+   file: ":option:`--tlsCertificateKeyFile`"
+   alternative: ":option:`--tlsCertificateSelector <mongod --tlsCertificateSelector>`"
 ---
 program: mongod
 name: sslClusterCertificateSelector
 args: <parameter>=<value>
 directive: option
 description: |
+
+  .. deprecated:: 4.2 Use {{alternative}} instead.
 
   .. versionadded:: 4.0
   
@@ -1341,6 +1281,7 @@ description: |
 optional: true
 replacement:
    file: ":option:`--sslClusterFile`"
+   alternative: ":option:`--tlsClusterCertificateSelector <mongod --tlsClusterCertificateSelector>`"
 
 ---
 program: mongod
@@ -1361,7 +1302,7 @@ description: |
 optional: true
 replacement:
   verb: "Enables"
-  alternative: ":option:`--sslMode requireSSL <--sslMode>`"
+  alternative: ":option:`--tlsMode requireTLS <--tlsMode>`"
   option: ":option:`--port`"
 ---
 program: mongod
@@ -1369,6 +1310,8 @@ name: sslMode
 args: <mode>
 directive: option
 description: |
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   .. versionadded:: 2.6
 
   {{verb}} TLS/SSL or mixed TLS/SSL used for all network connections. The
@@ -1408,6 +1351,7 @@ optional: true
 replacement:
   verb: "Enables"
   directive: "option"
+  alternative: ":option:`--tlsMode <mongod --tlsMode>`"
 ---
 program: mongod
 name: sslPEMKeyFile
@@ -1415,10 +1359,12 @@ args: <filename>
 directive: option
 description: |
 
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   .. note::
 
    Starting in 4.0, on macOS or Windows, you can use a certificate from
-   the operating system's secure store instead of a PEM key file. See
+   the operating system's secure store instead of a PEM file. See
    {{selector}}.
 
   {{intro}} :file:`.pem` file that contains both the TLS/SSL certificate
@@ -1434,12 +1380,15 @@ optional: true
 replacement:
   intro: "Specifies the"
   selector: ":option:`--sslCertificateSelector`"
+  alternative: ":option:`--tlsCertificateKeyFile <mongod --tlsCertificateKeyFile>`"
 ---
 program: mongod
 name: sslPEMKeyPassword
 args: <value>
 directive: option
 description: |
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   {{intro}} password to de-crypt the certificate-key file (i.e.
   {{pemKeyOption}}). Use the {{role}} option only if the
   certificate-key file is encrypted. In all cases, the {{program}} will
@@ -1463,12 +1412,15 @@ replacement:
   intro: "Specifies the"
   pemKeyOption: ":option:`--sslPEMKeyFile`"
   selector: ":option:`--sslCertificateSelector`"
+  alternative: ":option:`--tlsCertificateKeyFilePassword <mongod --tlsCertificateKeyFilePassword>`"
 ---
 program: mongod
 name: sslClusterFile
 args: <filename>
 directive: option
 description: |
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   .. note::
 
      Starting in 4.0, on macOS or Windows, you can use a certificate
@@ -1496,12 +1448,15 @@ replacement:
   directive: "option"
   selector: ":option:`--sslClusterCertificateSelector`"
   serverselector: ":option:`--sslCertificateSelector`"
+  alternative: ":option:`--tlsClusterFile <mongod --tlsClusterFile>`"
 ---
 program: mongod
 name: sslClusterPassword
 args: <value>
 directive: option
 description: |
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   .. versionadded:: 2.6
 
   {{intro}} password to de-crypt the x.509 certificate-key file
@@ -1527,12 +1482,15 @@ optional: true
 replacement:
   intro: "Specifies the"
   selector: ":option:`--sslClusterCertificateSelector`"
+  alternative: ":option:`--tlsClusterPassword <mongod --tlsClusterPassword>`"
 ---
 program: mongod
 name: sslCAFile
 args: <filename>
 directive: option
 description: |
+
+  .. deprecated:: 4.2 Use {{alternative}} instead.
 
   {{intro}} :file:`.pem` file that contains the root certificate chain
   from the Certificate Authority. Specify the file name of the
@@ -1549,6 +1507,7 @@ optional: true
 replacement:
   intro: "Specifies the"
   selector: ":option:`--sslCertificateSelector`"
+  alternative: ":option:`--tlsCAFile <mongod --tlsCAFile>`"
 ---
 program: mongod
 name: sslClusterCAFile
@@ -1556,7 +1515,7 @@ args: <filename>
 directive: option
 description: |
   
-  .. versionadded:: 4.0.3
+  .. deprecated:: 4.2 Use {{alternative}} instead.
 
   {{intro}} :file:`.pem` file that contains the root certificate chain
   from the Certificate Authority used to validate the certificate
@@ -1584,12 +1543,15 @@ replacement:
   intro: "Specifies the"
   selector: ":option:`--sslClusterCertificateSelector`"
   cafile: ":option:`--sslCAFile`"
+  alternative: ":option:`--tlsClusterCAFile <mongod --tlsClusterCAFile>`"
 ---
 program: mongod
 name: sslCRLFile
 args: <filename>
 directive: option
 description: |
+
+  .. deprecated:: 4.2 Use {{alternative}} instead.
 
   {{intro}} the :file:`.pem` file that contains the Certificate Revocation
   List. Specify the file name of the :file:`.pem` file using relative or
@@ -1599,11 +1561,13 @@ description: |
      
      Starting in MongoDB 4.0, you cannot specify {{role}} on macOS.  Use {{selector}} instead.
 
+
   .. include:: /includes/extracts/ssl-facts-see-more.rst
 optional: true
 replacement:
   intro: "Specifies the"
   selector: ":option:`--sslCertificateSelector`"
+  alternative: ":option:`--tlsCRLFile <mongod --tlsCRLFile>`"
  
 ---
 program: mongod
@@ -1611,6 +1575,8 @@ name: sslAllowInvalidCertificates
 args: null
 directive: option
 description: |
+
+  .. deprecated:: 4.2 Use {{alternative}} instead.
 
   {{verb}} the validation checks for TLS/SSL certificates on other
   servers in the cluster and allows the use of invalid certificates to
@@ -1628,12 +1594,15 @@ description: |
 optional: true
 replacement:
   verb: "Bypasses"
+  alternative: ":option:`--tlsAllowInvalidCertificates <mongod --tlsAllowInvalidCertificates>`"
 ---
 program: mongod
 name: sslAllowConnectionsWithoutCertificates
 args: null
 directive: option
 description: |
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   For clients that do not present certificates, {{program}} bypasses
   TLS/SSL certificate validation when establishing the connection.
  
@@ -1649,6 +1618,7 @@ replacement:
   verb: "Disables"
   old_name: "``--sslWeakCertificateValidation``"
   sslCA_option: "``--sslCAFile``"
+  alternative: ":option:`--tlsAllowConnectionsWithoutCertificates <mongod --tlsAllowConnectionsWithoutCertificates>`"
 optional: true
 ---
 program: mongod
@@ -1656,6 +1626,8 @@ name: sslAllowInvalidHostnames
 args: null
 directive: option
 description: |
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   .. versionadded:: 3.0
 
   Disables the validation of the hostnames in TLS/SSL certificates,
@@ -1665,6 +1637,8 @@ description: |
   their configured hostname.
 
   .. include:: /includes/extracts/ssl-facts-see-more.rst
+replacement:
+  alternative: ":option:`--tlsAllowInvalidHostnames <mongod --tlsAllowInvalidHostnames>`"
 optional: true
 ---
 program: mongod
@@ -1672,6 +1646,8 @@ name: sslDisabledProtocols
 args: <protocol(s)>
 directive: option
 description: |
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   .. versionadded:: 3.0.7
 
   Prevents a MongoDB server running with TLS/SSL from accepting
@@ -1703,6 +1679,8 @@ description: |
 
   .. seealso:: :ref:`ssl-disallow-protocols`
 
+replacement:
+  alternative: ":option:`--tlsDisabledProtocols <mongod --tlsDisabledProtocols>`"
 optional: true
 ---
 program: mongod
@@ -1710,7 +1688,432 @@ name: sslFIPSMode
 args: null
 directive: option
 description: |
+  .. deprecated:: 4.2 Use {{alternative}} instead.
+
   {{intro}} the FIPS mode of the  TLS/SSL
+  library{{setting_continuation}}. Your system must have a FIPS
+  compliant library to use the {{role}} option.
+
+  .. include:: /includes/note-fips-is-enterprise-only.rst
+optional: true
+replacement:
+  intro: "Directs the {{program}} to use"
+  setting_continuation: ""
+  alternative: ":option:`--tlsFIPSMode <mongod --tlsFIPSMode>`"
+---
+program: mongod
+name: tlsCertificateSelector
+args: <parameter>=<value>
+directive: option
+description: |
+
+  .. versionadded:: 4.2
+
+     Available on Windows and macOS as an alternative to {{file}}.
+     
+     The {{file}} and {{role}} options are mutually exclusive. You can only
+     specify one.
+
+  Specifies a certificate property in order to select a matching
+  certificate from the operating system's certificate store.
+
+  {{role}} accepts an argument of the format ``<property>=<value>``
+  where the property can be one of the following:
+
+  .. include:: /includes/extracts/tls-facts-certificate-selector-properties.rst
+
+  .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst
+  
+optional: true
+replacement:
+   file: ":option:`--tlsCertificateKeyFile`"
+---
+program: mongod
+name: tlsClusterCertificateSelector
+args: <parameter>=<value>
+directive: option
+description: |
+
+  .. versionadded:: 4.2
+  
+     Available on Windows and macOS as an alternative to
+     {{file}}.      
+     
+     {{file}} and {{role}} options are mutually exclusive. You can only
+     specify one.
+
+
+  Specifies a certificate property in order to select a matching
+  certificate from the operating system's certificate store to use for
+  internal authentication.
+
+  {{role}} accepts an argument of the format ``<property>=<value>``
+  where the property can be one of the following:
+
+  .. include:: /includes/extracts/tls-facts-certificate-selector-properties.rst
+
+optional: true
+replacement:
+   file: ":option:`--tlsClusterFile`"
+
+---
+program: mongod
+name: tlsMode
+args: <mode>
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  {{verb}} TLS used for all network connections. The
+  argument to the {{role}} {{directive}} can be one of the following:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 40
+
+     * - Value
+
+       - Description
+
+     * - ``disabled``
+
+       - The server does not use TLS.
+
+     * - ``allowTLS``
+
+       - Connections between servers do not use TLS. For incoming
+         connections, the server accepts both TLS and non-TLS.
+
+     * - ``preferTLS``
+
+       - Connections between servers use TLS. For incoming
+         connections, the server accepts both TLS and non-TLS.
+
+     * - ``requireTLS``
+
+       - The server uses and accepts only TLS encrypted connections.
+
+  .. include:: /includes/extracts/tls-facts-ca-file.rst
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+
+optional: true
+replacement:
+  verb: "Enables"
+  directive: "option"
+---
+program: mongod
+name: tlsCertificateKeyFile
+args: <filename>
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  .. note::
+
+   Starting in 4.0, on macOS or Windows, you can use a certificate from
+   the operating system's secure store instead of specifying a PEM file. See
+   {{selector}}.
+
+  {{intro}} :file:`.pem` file that contains both the TLS certificate
+  and key.
+
+  - On Linux/BSD, you must specify {{role}} when TLS is enabled.
+  
+  - On Windows or macOS, you must specify either {{role}} or
+    {{selector}} when TLS is enabled.
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+optional: true
+replacement:
+  intro: "Specifies the"
+  selector: ":option:`--tlsCertificateSelector`"
+---
+program: mongod
+name: tlsCertificateKeyFilePassword
+args: <value>
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  {{intro}} password to de-crypt the certificate-key file (i.e.
+  {{pemKeyOption}}). Use the {{role}} option only if the
+  certificate-key file is encrypted. In all cases, the {{program}} will
+  redact the password from all logging and reporting output.
+
+  Starting in MongoDB 4.0:
+
+  - On Linux/BSD, if the private key in the PEM file is encrypted and
+    you do not specify the {{role}} option, MongoDB will prompt for a
+    passphrase. See :ref:`ssl-certificate-password`.
+
+  - On macOS or Windows, if the private key in the PEM file is
+    encrypted, you must explicitly specify the {{role}} option.
+    Alternatively, you can use a certificate from the secure system
+    store (see {{selector}}) instead of a PEM file or use an
+    unencrypted PEM file.
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+optional: true
+replacement:
+  intro: "Specifies the"
+  pemKeyOption: ":option:`--tlsCertificateKeyFile`"
+  selector: ":option:`--tlsCertificateSelector`"
+---
+program: mongod
+name: tlsClusterFile
+args: <filename>
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  .. note::
+
+     Starting in 4.0, on macOS or Windows, you can use a certificate
+     from the operating system's secure store instead of a PEM
+     file. See {{selector}}.
+
+  {{intro}} :file:`.pem` file that contains the x.509 certificate-key
+  file for :ref:`membership authentication <x509-internal-authentication>`
+  for the cluster or replica set.
+  
+
+  If {{role}} does not specify the ``.pem`` file for internal cluster
+  authentication or the alternative
+  {{selector}}, the cluster uses the
+  ``.pem`` file specified in the {{pemKeyOption}} {{directive}} or
+  the certificate returned by the {{serverselector}}.
+
+  .. include:: /includes/extracts/tls-facts-x509-ca-file.rst
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+optional: true
+replacement:
+  pemKeyOption: ":option:`--tlsCertificateKeyFile`"
+  intro: "Specifies the"
+  directive: "option"
+  selector: ":option:`--tlsClusterCertificateSelector`"
+  serverselector: ":option:`--tlsCertificateSelector`"
+---
+program: mongod
+name: tlsClusterPassword
+args: <value>
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  {{intro}} password to de-crypt the x.509 certificate-key file
+  specified with ``--tlsClusterFile``. Use the {{role}} option only
+  if the certificate-key file is encrypted. In all cases, the {{program}}
+  will redact the password from all logging and reporting output.
+
+  Starting in MongoDB 4.0:
+
+  - On Linux/BSD, if the private key in the x.509 file is encrypted and
+    you do not specify the {{role}} option, MongoDB will prompt for a
+    passphrase. See :ref:`ssl-certificate-password`.
+
+  - On macOS or Windows, if the private key in the x.509 file is
+    encrypted, you must explicitly specify the {{role}} option.
+    Alternatively, you can either use a certificate from the secure
+    system store (see {{selector}}) instead of a cluster PEM file or
+    use an unencrypted PEM file.
+
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+optional: true
+replacement:
+  intro: "Specifies the"
+  selector: ":option:`--tlsClusterCertificateSelector`"
+---
+program: mongod
+name: tlsCAFile
+args: <filename>
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  {{intro}} :file:`.pem` file that contains the root certificate chain
+  from the Certificate Authority. Specify the file name of the
+  :file:`.pem` file using relative or absolute paths.
+
+  Starting in 4.0, on macOS or Windows, you can use a certificate from
+  the operating system's secure store instead of a PEM key file. See
+  {{selector}}. When using the secure store, you
+  do not need to, but can, also specify the {{role}}.
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+
+optional: true
+replacement:
+  intro: "Specifies the"
+  selector: ":option:`--tlsCertificateSelector`"
+---
+program: mongod
+name: tlsClusterCAFile
+args: <filename>
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  {{intro}} :file:`.pem` file that contains the root certificate chain
+  from the Certificate Authority used to validate the certificate
+  presented by a client establishing a connection. Specify the file
+  name of the :file:`.pem` file using relative or absolute paths.
+
+  If {{role}} does not specify the :file:`.pem` file for validating the
+  certificate from a client establishing a connection, the cluster uses
+  the :file:`.pem` file specified in the {{cafile}} option.
+
+  {{role}} lets you use separate Certificate Authorities to verify the
+  client to server and server to client portions of the TLS handshake.
+
+  Starting in 4.0, on macOS or Windows, you can use a certificate from
+  the operating system's secure store instead of a PEM key file. See
+  {{selector}}. When using the secure store, you
+  do not need to, but can, also specify the {{role}}.
+
+  Requires that {{cafile}} is set.
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+
+optional: true
+replacement:
+  intro: "Specifies the"
+  selector: ":option:`--tlsClusterCertificateSelector`"
+  cafile: ":option:`--tlsCAFile`"
+---
+program: mongod
+name: tlsCRLFile
+args: <filename>
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  {{intro}} the :file:`.pem` file that contains the Certificate Revocation
+  List. Specify the file name of the :file:`.pem` file using relative or
+  absolute paths.
+  
+  .. note::
+     
+     Starting in MongoDB 4.0, you cannot specify {{role}} on macOS.  Use {{selector}} instead.
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+optional: true
+replacement:
+  intro: "Specifies the"
+  selector: ":option:`--tlsCertificateSelector`"
+ 
+---
+program: mongod
+name: tlsAllowInvalidCertificates
+args: null
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  {{verb}} the validation checks for TLS certificates on other
+  servers in the cluster and allows the use of invalid certificates to
+  connect.
+
+  .. note::
+
+     .. include:: /includes/extracts/tls-facts-x509-invalid-certificate.rst
+
+  When using
+  the {{role}} setting, MongoDB
+  logs a warning regarding the use of the invalid certificate.
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+optional: true
+replacement:
+  verb: "Bypasses"
+---
+program: mongod
+name: tlsAllowConnectionsWithoutCertificates
+args: null
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  For clients that do not present certificates, {{program}} bypasses
+  TLS/SSL certificate validation when establishing the connection.
+ 
+  For clients that present a certificate, however, {{program}} performs
+  certificate validation using the root certificate chain specified by
+  {{tlsCA_option}} and reject clients with invalid certificates.
+
+  Use the {{role}} option if you have a mixed deployment that includes
+  clients that do not or cannot present certificates to the {{program}}.
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+replacement:
+  verb: "Disables"
+  tlsCA_option: "``--tlsCAFile``"
+optional: true
+---
+program: mongod
+name: tlsAllowInvalidHostnames
+args: null
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  Disables the validation of the hostnames in TLS certificates,
+  when connecting to other members of the replica set or sharded cluster
+  for inter-process authentication. This allows {{program}} to connect
+  to other members if the hostnames in their certificates do not match
+  their configured hostname.
+
+  .. include:: /includes/extracts/tls-facts-see-more.rst
+optional: true
+---
+program: mongod
+name: tlsDisabledProtocols
+args: <protocol(s)>
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  Prevents a MongoDB server running with TLS from accepting
+  incoming connections that use a specific protocol or protocols. To
+  specify multiple protocols, use a comma separated list of protocols.
+   
+  {{role}} recognizes the following protocols: ``TLS1_0``, ``TLS1_1``,
+  ``TLS1_2``, and starting in version 4.0.4 (and 3.6.9), ``TLS1_3``.
+
+  - On macOS, you cannot disable ``TLS1_1`` and leave both ``TLS1_0`` and
+    ``TLS1_2`` enabled. You must disable at least one of the other
+    two, for example, ``TLS1_0,TLS1_1``.
+
+  - To list multiple protocols, specify as a comma separated list of
+    protocols. For example ``TLS1_0,TLS1_1``.
+
+  - Specifying an unrecognized protocol will prevent the server from
+    starting.
+
+  - The specified disabled protocols overrides any default disabled
+    protocols.
+
+  Starting in version 4.0, MongoDB disables the use of TLS 1.0 if TLS
+  1.1+ is available on the system. To enable the disabled TLS 1.0,
+  specify ``none`` to {{role}}. See :ref:`4.0-disable-tls`.
+
+  Members of replica sets and sharded clusters must speak at least one
+  protocol in common.
+
+  .. seealso:: :ref:`ssl-disallow-protocols`
+
+optional: true
+---
+program: mongod
+name: tlsFIPSMode
+args: null
+directive: option
+description: |
+  .. versionadded:: 4.2
+
+  {{intro}} the FIPS mode of the  TLS
   library{{setting_continuation}}. Your system must have a FIPS
   compliant library to use the {{role}} option.
 
@@ -1966,9 +2369,9 @@ args: string
 directive: option
 description: |
 
-  .. versionchanged:: 4.0
+  .. note:: 
 
-     MongoDB deprecates the MMAPv1 storage engine.
+     .. include:: /includes/fact-4.2-mmapv1-removed.rst
 
   {{intro}} storage engine for the {{program}} database. Available
   values include:
@@ -1989,9 +2392,6 @@ description: |
 
          .. versionadded:: 3.2
             Available in MongoDB Enterprise only.
-
-     * - ``mmapv1`` (Deprecated in MongoDB 4.0)
-       - To specify the :doc:`/core/mmapv1`.
 
 post: |
   If you attempt to start a {{program}} with a
@@ -2043,7 +2443,7 @@ description: |
 
   .. versionadded:: 3.0.0
 
-  {{intro}} type of compression to use to compress WiredTiger
+  Specifies the type of compression to use to compress WiredTiger
   journal data.
 
   Available compressors are:
@@ -2054,11 +2454,8 @@ description: |
 
   - :term:`zlib`
   
-  For details on changing the journal compressor, see
-  :ref:`manage-journaling-change-wt-journal-compressor`.
-  
-replacement:
-  intro: "Specifies the"
+  - :term:`zstd` (Available starting in MongoDB 4.2)
+
 ---
 program: mongod
 name: wiredTigerCollectionBlockCompressor
@@ -2070,9 +2467,8 @@ description: |
 
   .. versionadded:: 3.0.0
 
-  {{intro}} default type of compression to use to compress collection
-  data. You can override this on a per-collection basis when creating
-  collections.
+  Specifies the default compression for collection data. You can
+  override this on a per-collection basis when creating collections.
 
   Available compressors are:
 
@@ -2082,13 +2478,13 @@ description: |
 
   - :term:`zlib`
 
+  - :term:`zstd` (Available starting MongoDB 4.2)
+
   {{role}} affects all collections created. If you change
   the value of {{role}} on an existing MongoDB deployment, all new
   collections will use the specified compressor. Existing collections
   will continue to use the compressor specified when they were
   created, or the default compressor at that time.
-replacement:
-  intro: "Specifies the"
 ---
 program: mongod
 name: wiredTigerIndexPrefixCompression
@@ -2171,6 +2567,9 @@ description: |
    The path to the local keyfile when managing keys via process *other
    than* KMIP. Only set when managing keys via process other than KMIP.
    If data is already encrypted using KMIP, MongoDB will throw an error.
+
+   The keyfile can contain only a single key. The key is either a 16 or
+   32 character string.
 
    Requires :setting:`enableEncryption` to be ``true``.
 
@@ -2329,14 +2728,14 @@ description: |
    Starting in MongoDB 3.6, MongoDB enables support for
    :readconcern:`"majority"` read concern by default.
 
-   For MongoDB 4.0.3+ and 3.6.1+, you can disable read concern
-   :readconcern:`"majority"` to prevent the storage cache pressure from
-   immobilizing a deployment with a three-member
-   primary-secondary-arbiter (PSA) architecture. For more information
-   about disabling read concern :readconcern:`"majority"`, see
-   :ref:`4.0-disable-read-concern-majority`.
+   You can disable read concern :readconcern:`"majority"` to prevent
+   the storage cache pressure from immobilizing a deployment with a
+   three-member primary-secondary-arbiter (PSA) architecture. For more
+   information about disabling read concern :readconcern:`"majority"`,
+   see :ref:`disable-read-concern-majority`.
 
-   To disable, set {{role}} to false.
+   To disable, set {{role}} to false. {{role}} has no effect for
+   MongoDB versions: 4.0.0, 4.0.1, 4.0.2, 3.6.0.
 
    .. important::
 
@@ -2348,13 +2747,8 @@ description: |
 
       Disabling :readconcern:`"majority"` read concern disables support
       for :doc:`/changeStreams`.
-
-      Disabling :readconcern:`"majority"` does not affect
-      :doc:`multi-document transactions </core/transactions>`; i.e. you
-      can specify read concern "majority" for multi-document
-      transactions even if read concern "majority" is disabled.
-
-   {{role}} has no effect for MongoDB versions: 4.0.0, 4.0.1, 4.0.2, 3.6.0.
+      
+      .. include:: /includes/extracts/transactions-read-concern-majority.rst
 
 ---
 program: mongod
@@ -3004,7 +3398,7 @@ optional: true
 program: mongod
 name: networkMessageCompressors
 args: <string>
-default: snappy
+default: snappy,zstd,zlib
 directive: option
 description: |
 
@@ -3023,12 +3417,18 @@ description: |
 
    - :term:`snappy`
 
-   - :term:`zlib` (Available in MongoDB 3.6 or greater)
+   - :term:`zlib` (Available starting in MongoDB 3.6)
+
+   - :term:`zstd` (Available  starting in MongoDB 4.2)
 
    **In versions 3.6 and 4.0**, :binary:`~bin.mongod` and
    :binary:`~bin.mongos` enable network compression by default with
    ``snappy`` as the compressor.
    
+   **Starting in version 4.2**, :binary:`~bin.mongod` and
+   :binary:`~bin.mongos` instances default to both ``snappy,zstd,zlib``
+   compressors, in that order.
+
    To disable network compression, set the value to ``disabled``.
 
    .. include:: /includes/fact-networkMessageCompressors.rst
@@ -3043,6 +3443,23 @@ inherit:
   name: serviceExecutor
   program: _shared
   file: options-shared.yaml
+---
+program: mongod
+name: outputConfig
+args: null
+directive: option
+description: |
+
+   .. versionadded:: 4.2
+
+   Outputs the resolved YAML configuration document for the {{program}}
+   to ``stdout`` and halts the {{program}} instance. For configuration
+   options using :ref:`externally-sourced-values`, {{role}} returns the
+   resolved value for those options. This may include any configured
+   passwords or secrets previously obfuscated through the external
+   source.
+
+optional: true
 ---
 program: mongod
 name: enableFreeMonitoring

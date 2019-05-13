@@ -1,9 +1,8 @@
 Starting in MongoDB 4.0, you can specify a ``key`` option to the
-:pipeline:`$geoNear` pipeline stage and the deprecated
-:dbcommand:`geoNear` command to indicate the indexed field path to use.
-This allows the :pipeline:`$geoNear` stage and the :dbcommand:`geoNear`
-command to be used on a collection that has multiple |first-geo-index|
-and/or multiple |second-geo-index|:
+:pipeline:`$geoNear` pipeline stage to indicate the indexed field path
+to use. This allows the :pipeline:`$geoNear` stage to be used on a
+collection that has multiple |first-geo-index| and/or multiple
+|second-geo-index|:
 
 - If your collection has multiple |first-geo-index| and/or multiple
   |second-geo-index|, you must use the ``key`` option to specify the

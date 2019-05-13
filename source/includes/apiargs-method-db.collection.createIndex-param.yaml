@@ -1,9 +1,13 @@
 arg_name: param
-description: |
+pre: |
+  
   A document that contains the field and value pairs where the field is
   the index key and the value describes the type of index for that
   field. For an ascending index on a field, specify a value of ``1``; for
-  descending index, specify a value of ``-1``.
+  descending index, specify a value of ``-1``. Starting in 3.6, you 
+  cannot specify ``*`` as the index name.
+
+description: |
 
   MongoDB supports several different index types including
   :ref:`text <index-feature-text>`, :ref:`geospatial
@@ -11,7 +15,49 @@ description: |
   <index-type-hashed>` indexes. See :ref:`index types <index-types>`
   for more information.
 
-  Starting in 3.6, you cannot specify ``*`` as the index name.
+  .. versionchanged:: 4.2
+
+     MongoDB 4.2 :ref:`wildcard indexes <wildcard-index-core>`
+     support workloads where users query against custom fields or a
+     large variety of fields in a collection:
+
+     - To create a wildcard index on all fields and subfields in a 
+       document, specify ``{ "$**" : 1 }`` as the index key. You
+       cannot specify a descending index key when creating a wildcard
+       index.
+
+       You can also either include *or* exclude specific fields and
+       their subfields from the index using the optional
+       ``wildcardProjection`` parameter.
+
+       .. include:: /includes/extracts/wildcard-index-id.rst
+
+     - You can create a wildcard index on a specific field
+       and its subpaths by specifying the full path to that field as the
+       index key and append ``"$**"`` to the path:
+
+       ``{ "path.to.field.$**" : 1 }`` 
+
+       You cannot specify a descending index key when creating a
+       wildcard index.
+
+       The path-specific wildcard index syntax is incompatible with the
+       ``wildcardProjection`` option. You cannot specify additional
+       inclusions or exclusions on the specified path.
+
+     The wildcard index key **must** use one of the syntaxes listed
+     above. For example, you cannot specify a
+     :doc:`compound index key </core/index-compound>`.  For more 
+     complete documentation on wildcard indexes, including limitations 
+     on their creation, see :ref:`wildcard-index-limitations`.
+
+     .. include:: /includes/extracts/wildcard-index-fcv.rst
+
+post: |
+
+  For examples of wildcard index creation, see 
+  :ref:`createIndex-method-wildcard-examples`.
+
 interface: method
 name: keys
 operation: db.collection.createIndex
