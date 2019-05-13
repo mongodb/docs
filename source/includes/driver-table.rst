@@ -9,14 +9,14 @@
      - JIRA
      - Online Course
 
-   * - `C <http://mongoc.org/?jmp=docs>`__
+   * - :doc:`C </drivers/c>`
      - `Releases <https://github.com/mongodb/mongo-c-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-c-driver>`__
      - `API <http://mongoc.org/>`__
      - `JIRA <https://jira.mongodb.org/browse/CDRIVER>`__
      -
 
-   * - `C++11 <https://mongodb.github.io/mongo-cxx-driver/?jmp=docs>`__
+   * - :doc:`C++11 </drivers/cxx>`
      - `Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-cxx-driver>`__
      - `API <http://mongodb.github.io/mongo-cxx-driver/api/current/>`__
@@ -36,14 +36,14 @@
      - `JIRA <https://jira.mongodb.org/browse/GODRIVER>`__
      -
 
-   * - `Java <http://mongodb.github.io/mongo-java-driver/?jmp=docs>`_
+   * - :doc:`Java </drivers/java>`
      - `Releases <https://github.com/mongodb/mongo-java-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-java-driver>`__
      - `API <http://api.mongodb.com/java/current>`__
      - `JIRA <https://jira.mongodb.org/browse/JAVA>`__
      - `Course <https://university.mongodb.com/courses/M101J/about>`__
 
-   * - `Node.js <https://mongodb.github.io/node-mongodb-native/?jmp=docs>`_
+   * - :doc:`Node.js </drivers/node>`
      - `Releases <https://github.com/mongodb/node-mongodb-native/releases>`__
      - `Source <https://github.com/mongodb/node-mongodb-native>`__
      - `API <https://mongodb.github.io/node-mongodb-native/>`__
