@@ -46,6 +46,8 @@ options. You can filter fields with the following data types:
 
 - :ref:`String <filter-string>`
 
+- :ref:`Date <filter-date>`
+
 .. note::
 
    You cannot use the same field for multiple filters.
@@ -102,9 +104,6 @@ The list also includes:
 - :guilabel:`Empty String` for documents with ``""`` values for the
   field.
 
-To include a value not displayed in the list, add a specific value by
-clicking :guilabel:`Add Value`.
-
 Select the string values to display in the chart. By default, all
 values are selected.
 
@@ -119,14 +118,125 @@ values are selected.
 Display Strings Not in the List
 ```````````````````````````````
 
-You can check :guilabel:`All other values` to
-display all string values not included in the list.
+To display a specific value not included in the list, add the value by
+clicking :guilabel:`Add Value`.
+
+To display *all* other values not included in the list, check
+:guilabel:`All other values`.
 
 - If :guilabel:`All other values` is checked, |charts| filters out
   any unchecked list items by using a :query:`$nin` query.
   
 - If :guilabel:`All other values` is unchecked, |charts| only
   includes the checked list items by using an :query:`$in` query.
+
+.. _filter-date:
+
+Filter Date Fields
+~~~~~~~~~~~~~~~~~~
+
+When you drag a date field to the filter panel, you can filter based
+on a specified date range. This range can either be:
+
+- A :ref:`relative date <relative-date>` range, which specifies a range
+  relative to the time the chart is rendered (e.g., the last six
+  months).
+
+- An :ref:`absolute date <absolute-date>` range, which is a range
+  between specific beginning and end dates.
+
+.. _relative-date:
+
+Relative Date Filter
+````````````````````
+
+Relative date filters specify a range relative to the 
+time the chart is rendered. To define the date range, specify a period
+of time in the past and/or a period of time in the future relative to
+the current date. :guilabel:`Relative` is the default date filtering
+option.
+
+To set a lower bound for a relative date filter:
+
+1. Turn on the :guilabel:`From` toggle.
+
+#. Set the lower bound for your relative date. This timespan is
+   relative to the current date.
+
+To set an upper bound for a relative date filter:
+
+1. Turn on the :guilabel:`Until` toggle.
+
+#. Set the upper bound for your relative date. This timespan is
+   relative to the current date.
+
+.. example::
+
+   The following relative date filter only shows documents
+   with a ``Workout Date (As Date)`` field that is more recent than one year
+   ago from the current date:
+
+   .. figure:: /images/charts/relative-date.png
+      :scale: 60%
+      :alt: Image showing relative date filter
+
+.. _absolute-date:
+
+Absolute Date Filter
+````````````````````
+
+Absolute date filters use absolute dates to define their upper and lower
+bounds. To define an absolute date range, select :guilabel:`Absolute`
+at the top of your date filter card. The dates specified in the filter
+are assumed to be in :abbr:`UTC (Coordinated Universal Time)`, matching
+the raw data in the collection.
+
+To define a lower bound for your absolute date filter:
+
+1. Turn on the :guilabel:`From` toggle.
+
+#. Enter a date for your lower bound, or
+   select a date from the calendar below the input field.
+
+#. Enter a time for your lower bound, or select a time
+   from the list below the input field.
+
+#. Set :guilabel:`Inclusive` to dictate whether to include
+   the specified date.
+
+To define an upper bound for your absolute date filter:
+
+1. Turn on the :guilabel:`To` toggle.
+
+#. Enter a date for your upper bound, or
+   select a date from the calendar below the input field.
+
+#. Enter a time for your upper bound, or select a time
+   from the list below the input field.
+
+#. Set :guilabel:`Inclusive` to dictate whether to include
+   the specified date.
+
+.. example::
+
+   The following absolute date filter only shows documents
+   with a ``Workout Date (As Date)`` field from the year
+   ``2018``:
+
+   .. figure:: /images/charts/absolute-date.png
+      :scale: 60%
+      :alt: Image showing absolute date filter
+
+   |
+
+   The filter returns all documents with a
+   ``Workout Date (As Date)`` field from ``January 1, 2018 12:00:00
+   AM`` inclusively, to ``January 1, 2019 12:00:00 AM`` exclusively.
+
+.. note::
+
+   The date and time formats used in your bounds depend
+   on your location, as determined from your browser settings.
 
 .. _query-bar:
 
@@ -140,12 +250,27 @@ To filter data using the :guilabel:`Query` bar:
    :manual:`db.collection.find()
    </reference/method/db.collection.find/>` method.
    
-#. Click :guilabel:`Apply`. 
+#. Click :guilabel:`Apply`.
 
-.. note::
+Considerations
+~~~~~~~~~~~~~~
 
-   Filters on large collections may have performance issues if there
-   are not appropriate :manual:`indexes <indexes>` on the collection.
+- Filters on large collections may have performance issues if there
+  are not appropriate :manual:`indexes <indexes>` on the collection.
+
+- The date functions utilized in the |charts| query bar are consistent
+  and compatible with the date functions used in the
+  :manual:`mongo shell </mongo>`. As a result, you can use:
+
+  - ``new Date()``,
+  - ``ISODate()``, or
+  - ``new ISODate()``.
+
+  |
+
+  The ``Date()`` function (as opposed to the ``new Date()``
+  constructor) returns the current date as a string, so it cannot be
+  used for querying dates in |charts-short|.
 
 Examples
 ~~~~~~~~
@@ -196,54 +321,3 @@ letter ``A`` or ``a``, you would write the following in the
 .. code-block:: javascript
 
    { "job" : { $regex : "^A", $options : "i" } }
-
-Date Range Query
-````````````````
-
-The following query returns documents that have a
-``timestamp`` field between January 1, 2017 and December 31, 2017
-inclusively:
-
-.. code-block:: javascript
-
-   {timestamp: {$gte: new Date("2017-01-01"), $lte: new Date("2017-12-31")}}
-
-.. admonition:: ISO-8601 Dates
-   :class: note
-
-   The date functions utilized in |charts| queries are consistent and
-   compatible with the date functions used in the
-   :manual:`mongo shell </mongo>`. As a result, you can use:
-
-   - ``new Date()``,
-   - ``ISODate()``, or
-   - ``new ISODate()``.
-
-   The ``Date()`` function (as opposed to the ``new Date()``
-   constructor) returns the current date as a string, so it cannot be
-   used for querying dates in |charts-short|. 
-
-.. _date-filter:
-
-Relative Date Query
-```````````````````
-
-You can include a mathematical expression in the ``new Date()``
-constructor to get a relative date, such as 1 month ago or 1 year
-ago.
-
-For example, the following query returns documents that
-have a ``timestamp`` field greater than 30 days
-(30 * 24 * 60 * 60 * 1000 milliseconds) from the current date and time:
-
-.. code-block:: javascript
-
-   { timestamp: {  $gt: new Date(new Date() - 30 * 24 * 60 * 60 * 1000 ) } }
-
-Alternatively, you can specify the date components. For example, the
-following query returns documents that have a ``timestamp`` field
-greater than 1 month ago:
-
-.. code-block:: javascript
-
-    { timestamp: { $gt: new Date(new Date().getFullYear(), new Date().getMonth() -1 , new Date().getDate() ) } }
