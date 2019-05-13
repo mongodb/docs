@@ -467,41 +467,7 @@
        Select your cloud provider's tab for example cluster region
        names:
 
-       .. tabs::
-
-          tabs:
-            - id: aws
-              name: AWS
-              content: |
-
-                - ``US_EAST_1``
-                - ``US_WEST_2``
-                - ``EU_WEST_1``
-
-                For a complete list of supported |aws| regions, see
-                :ref:`amazon-aws`.
-
-            - id: gcp
-              name: GCP
-              content: |
-
-                - ``CENTRAL_US``
-                - ``EUROPE_WEST_1``
-                - ``EASTERN_ASIA_PACIFIC``
-
-                For a complete list of supported |gcp| regions, see
-                :ref:`google-gcp`.
-
-            - id: azure
-              name: Azure
-              content: |
-
-                - ``US_EAST_2``
-                - ``US_WEST``
-                - ``EUROPE_NORTH``
-
-                For a complete list of supported Azure regions, see
-                :ref:`microsoft-azure`.
+       .. include:: /includes/fact-cloud-region-name-examples.rst
 
    * - | ``providerSettings``
        | ``.volumeType``
@@ -591,31 +557,15 @@
        You must specify at least one ``replicationSpec.<region>``
        document.
 
-       .. include:: /includes/fact-group-region-association.rst
-
-       .. tabs::
-
-          tabs:
-            - id: aws
-              name: AWS
-              content: |
-
-                .. include:: /includes/fact-aws-region-names.rst
-
-            - id: gcp
-              name: GCP
-              content: |
-
-                .. include:: /includes/fact-gcp-region-names.rst
-
-            - id: azure
-              name: Azure
-              content: |
-
-                .. include:: /includes/fact-azure-region-names.rst
-
        For each ``<region>`` document, you must specify the
        ``electableNodes``, ``priority``, and ``readOnlyNodes`` fields.
+
+       .. include:: /includes/fact-group-region-association.rst
+
+       Select your cloud provider's tab for example cluster region
+       names:
+
+       .. include:: /includes/fact-cloud-region-name-examples.rst
 
    * - | ``replicationSpec``
        | ``.<region>``
@@ -768,26 +718,10 @@
 
        .. include:: /includes/fact-group-region-association.rst
 
-       .. tabs::
+       Select your cloud provider's tab for example cluster region
+       names:
 
-          tabs:
-            - id: aws
-              name: AWS
-              content: |
-
-                .. include:: /includes/fact-aws-region-names.rst
-
-            - id: gcp
-              name: GCP
-              content: |
-
-                .. include:: /includes/fact-gcp-region-names.rst
-
-            - id: azure
-              name: Azure
-              content: |
-
-                .. include:: /includes/fact-azure-region-names.rst
+       .. include:: /includes/fact-cloud-region-name-examples.rst
 
    * - | ``replicationSpecs[n]``
        | ``.regionsConfig``
