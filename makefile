@@ -75,7 +75,7 @@ publish: remote-includes
 
 stage:
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
+	@echo "\n\nHosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
 
 
 ##########################################################
@@ -84,12 +84,12 @@ stage:
 
 fake-deploy: build/public
 	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy --verbose  --all-subdirectories  ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/index.html"
+	@echo "\n\nHosted at ${STAGING_URL}/index.html"
 
 deploy: build/public
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --all-subdirectories ${ARGS}
 
-	@echo "Hosted at ${PRODUCTION_URL}/index.html"
+	@echo "\n\nHosted at ${PRODUCTION_URL}/index.html"
 
 	$(MAKE) deploy-search-index
 
