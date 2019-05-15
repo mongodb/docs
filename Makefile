@@ -36,11 +36,16 @@ test: html ## Runs test framework over the corpus
 
 html: examples ## Builds this branch's HTML under build/<branch>/html
 	giza make html
+	# TEMP copy of video file. Remove once video infrastructure in place.
+	if [ -f source/images/agg-pipeline.mp4 ]; then cp source/images/agg-pipeline.mp4 build/${GIT_BRANCH}/html/_images/; fi 
+	
 
 publish: examples ## Builds this branch's publishable HTML and other artifacts under build/public
 	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
+	# TEMP copy of video file. Remove once video infrastructure in place.
+	if [ -f source/images/agg-pipeline.mp4 ]; then cp source/images/agg-pipeline.mp4 build/public/${GIT_BRANCH}/_images/; cp source/images/agg-pipeline.mp4 build/${GIT_BRANCH}/html/_images/; cp source/images/agg-pipeline.mp4 build/${GIT_BRANCH}/dirhtml/_images/;fi
 
 # - Enter build/<branch>/html, and recurse over each regular file
 #   <basename>/<filename>.
