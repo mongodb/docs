@@ -1,3 +1,12 @@
+.. _mongodb-10.0.1.5755-1:
+
+MongoDB Agent 10.0.1.5755-1
+---------------------------
+
+*Released* 2019-05-13
+
+- Fix builds for deployments using GSSAPI authentication.
+
 .. _mongodb-10.0.0.5753:
 
 MongoDB Agent 10.0.0.5753
