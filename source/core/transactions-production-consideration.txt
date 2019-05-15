@@ -123,7 +123,6 @@ The :parameter:`transactionLifetimeLimitSeconds` also ensures that
 expired transactions are aborted periodically to relieve storage cache
 pressure.
 
-
 Transactions and Security
 -------------------------
 
@@ -212,40 +211,66 @@ You can also use operation-specific timeout by setting
 Pending DDL Operations and Transactions
 ---------------------------------------
 
-If a transaction is in progress, new DDL operations that
-affect the same database(s) wait behind the transaction. While these
+Multi-document transactions acquire exclusive locks on the collections which
+they access. New DDL operations that require locks on those collections or their
+parent databases must wait until the transaction releases its locks. While these
 pending DDL operations exist, new transactions that access the same
-database as the pending DDL operations cannot obtain the required locks
+collection(s) as the pending DDL operations cannot obtain the required locks and
 and will abort after waiting
 :parameter:`maxTransactionLockRequestTimeoutMillis`. In addition, new
-non-transaction operations that access the same database will block
-until they reach their ``maxTimeMS`` limit.
+non-transaction operations that access the same collection(s) will block until
+they reach their ``maxTimeMS`` limit.
 
-To illustrate, compare the following two situations:
+Consider the following scenarios:
 
-Consider a situation where an in-progress transaction performs various
-CRUD operations on the ``employees`` collection in the ``hr`` database.
-While that transaction is in progress, a separate transaction that
-accesses the ``foobar`` collection in the ``hr`` database can start and
-complete.
+DDL Operation That Requires a Collection Lock
+  While an in-progress transaction is performing various CRUD operations on the
+  ``employees`` collection in the ``hr`` database, an administrator issues the
+  :method:`db.collection.createIndex()` DDL  operation against the
+  ``employees`` collection. :method:`~db.collection.createIndex()` requires an
+  exclusive collection lock on the collection.
 
-However, consider a situation where an in-progress transaction performs
-various CRUD operations on the ``employees`` collection in the ``hr``
-database and a separate DDL operation is issued to create an index on
-the ``fluffy`` collection in the ``hr`` database. The DDL operation
-waits for the transaction to finish.
+  Until the in-progress transaction completes, the
+  :method:`~db.collection.createIndex()` operation must wait to obtain
+  the lock. Any new transaction that affects the ``employees``
+  collection and starts while the :method:`~db.collection.createIndex()`
+  is pending must wait until after 
+  :method:`~db.collection.createIndex()` completes. 
 
-While the DDL operation is pending, a new transaction attempts to
-access the ``foobar`` collection in the ``hr`` database. If the DDL
-operation remains pending for
-:parameter:`maxTransactionLockRequestTimeoutMillis`, the new
-transaction aborts.
+  The pending :method:`~db.collection.createIndex()` DDL operation does not
+  affect transactions on other collections in the ``hr`` database. For example,
+  a new transaction on the ``contractors`` collection in the ``hr`` database can
+  start and complete as normal.
+
+DDL Operation That Requires a Database Lock  
+  While an in-progress transaction is performing various CRUD operations on the
+  ``employees`` collection in the ``hr`` database, an administrator issues the
+  :dbcommand:`collMod` DDL  operation against the ``contractors`` collection in
+  the same database. :dbcommand:`collMod` requires a database lock on
+  the parent ``hr`` database.
+
+  Until the in-progress transaction completes, the :dbcommand:`collMod`
+  operation must wait to obtain the lock. Any new transaction that
+  affects the ``hr`` database or *any* of its collections and starts
+  while the :dbcommand:`collMod` is pending must wait until after
+  :dbcommand:`collMod` completes. 
+
+In either scenario, if the DDL operation remains pending for more than
+:parameter:`maxTransactionLockRequestTimeoutMillis`, pending
+transactions waiting behind that operation abort. That is, the value of 
+:parameter:`maxTransactionLockRequestTimeoutMillis` must at least cover
+the time required for the in-progress transaction *and* the pending DDL
+operation to complete.
 
 .. seealso:: 
 
    - :ref:`transactions-write-conflicts`
    
    - :ref:`transactions-stale-reads`
+
+   - :ref:`faq-concurrency-database-lock`
+
+   - :ref:`faq-concurrency-collection-lock`
 
 .. _transactions-write-conflicts:
 
