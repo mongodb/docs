@@ -1,3 +1,17 @@
+.. _cloudmanager-v20190507:
+
+13 May 2019 Release
+~~~~~~~~~~~~~~~~~~~
+
+- The Monitoring and Backup Agent have been merged into the Automation
+  Agent, which will now be known as the MongoDB Agent.
+  :doc:`Learn more </reference/faq/faq-mongodb-agent>` about this
+  change.
+
+- Enhanced left-hand navigations.
+
+- Agent Upgrade: :ref:`mongodb-10.0.0.5753`
+
 .. _cloudmanager-v20190416:
 
 16 April 2019 Release
