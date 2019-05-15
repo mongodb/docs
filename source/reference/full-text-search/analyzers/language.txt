@@ -1,0 +1,123 @@
+.. _ref-language-analyzers:
+
+==================
+Language Analyzers
+==================
+
+.. default-domain:: mongodb
+
+Language-specific analyzers provide a convenient way to create indexes
+tailored to a particular language. Each language analyzer has built-in
+stopwords and word divisions based on that language's usage patterns.
+
+|fts| offers analyzers for the following languages:
+
+.. list-table::
+   :widths: 20 20 20 20 20
+
+   * - Arabic
+     - Armenian
+     - Basque
+     - Bengali
+     - Brazilian
+   * - Bulgarian
+     - Catalan
+     - CJK
+     - Czech
+     - Danish
+   * - Dutch
+     - English
+     - Finnish
+     - French
+     - Galician
+   * - German
+     - Greek
+     - Hindi
+     - Hungarian
+     - Indonesian
+   * - Irish
+     - Italian
+     - Latvian
+     - Lithuanian
+     - Norwegian
+   * - Persian
+     - Portuguese
+     - Romanian
+     - Russian
+     - Sorani
+   * - Spanish
+     - Swedish
+     - Turkish
+     - Thai
+     -
+
+Example
+-------
+
+The following example ``config.json`` creates an index using the
+``french`` analyzer:
+
+.. code-block:: json
+
+   {
+     "indexes": [
+       {
+         "database": "test",
+         "collection": "voitures",
+         "mappings": {
+           "fields": {
+             "sujet": {
+               "type": "string",
+               "analyzer": "lucene.french"
+             }
+           }
+         }
+       }
+     ]
+   }
+
+Consider a collection named ``voitures`` with the following documents:
+
+.. code-block:: json
+
+   { "_id": 1, "sujet": "Mieux équiper nos voitures pour comprendre les causes d'un accident." }
+   { "_id": 2, "sujet": "Le meilleur moment pour le faire c'est immédiatement après que vous aurez fait le plein de carburant." }
+
+The following query uses the index on the ``sujet`` field:
+
+.. code-block:: json
+
+   db.cases.aggregate([
+     { 
+        $searchBeta: {
+          "term": {
+            "query": "pour",
+            "path": "sujet"
+           }
+        }
+     }
+   ])
+
+The above query returns no results when using the ``french`` analyzer,
+because ``pour`` is a built-in stop word. Using the ``standard``
+analyzer, the same query would return both documents:
+
+.. code-block:: json
+
+   db.cases.aggregate([
+     { 
+        $searchBeta: {
+          "term": {
+            "query": "carburant",
+            "path": "sujet"
+           }
+        }
+     },
+     {
+        $project: {
+          "sujet": 1
+        } 
+     }
+   ])
+
+The above query returns the document with ``"_id": 2`` from the collection.

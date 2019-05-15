@@ -1,0 +1,75 @@
+.. _ref-standard-analyzer:
+
+=================
+Standard Analyzer
+=================
+
+.. default-domain:: mongodb
+
+The ``standard`` analyzer is the default for all |fts| indexes and
+queries. It divides text into terms based on word boundaries, which
+makes it language-neutral for most use cases. It converts all terms
+to lower case, removes punctuation, and disregards common stop words
+(``"the", "a", "and",`` etc.) It provides grammar-based tokenization
+that recognizes email addresses, acronyms, Chinese-Japanese-Korean
+characters, alphanumerics, and more.
+
+Example
+-------
+
+The following example ``config.json`` creates an index using the
+``standard`` analyzer:
+
+.. code-block:: json
+
+   {
+     "indexes": [
+       {
+         "database": "test",
+         "collection": "cases",
+         "mappings": {
+           "fields": {
+             "summary": {
+               "type": "string",
+               "analyzer": "lucene.standard"
+             }
+           }
+         }
+       }
+     ]
+   }
+
+Consider a collection named ``cases`` with the following documents:
+
+.. code-block:: json
+
+   { "_id": 1, "summary": "No action required at this time." }
+   { "_id": 2, "summary": "Case set aside for future action." }
+   { "_id": 3, "summary": "Ready for planning." }
+
+The following query uses the index on the ``summary`` field:
+
+.. code-block:: json
+
+   db.cases.aggregate([
+     { 
+        $searchBeta: {
+          "term": {
+            "query": "action",
+            "path": "summary"
+           }
+        }
+     },
+     {
+        $project: {
+          "summary": 1
+        } 
+     }
+   ])
+
+The above query returns the following results:
+
+.. code-block:: json
+
+   { "_id" : 1, "summary" : "No action required at this time." }
+   { "_id" : 2, "summary" : "Case set aside for future action." }
