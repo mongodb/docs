@@ -7,3 +7,4 @@ configuring the change stream:
 - :pipeline:`$addFields`
 - :pipeline:`$replaceRoot`
 - :pipeline:`$redact`
+- :pipeline:`$set` (Available starting in MongoDB 4.2)
