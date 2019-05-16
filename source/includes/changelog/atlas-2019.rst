@@ -1,3 +1,23 @@
+.. _atlas-v0190507:
+
+07 May 2019 Release
+~~~~~~~~~~~~~~~~~~~
+
+- :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>` are now
+  available for |gcp|-backed clusters.
+- |service| clusters can now use :doc:`Google Cloud KMS for encryption at rest
+  <security-gcp-kms>`.
+- |service| clusters now have a new MongoDB configuration option that allows
+  agents to continue connecting even if you have exceeded the maximum
+  number of connections. For example, this means that |service| continues
+  to gather monitoring data after reaching the maximum number of connections.
+  This change affects all new |service| clusters.  Existing |service| clusters
+  are affected the next time you request a configuration change to a cluster.
+- |service| projects may now use either the :doc:`Continuous Backup
+  </backup/continuous-backups>` or the :doc:`Cloud Provider Snapshots
+  <backup/cloud-provider-snapshots/>` backup method. You must delete all existing snapshots before switching between backup methods for an |service| project.
+- Enhanced left-hand navigation.
+
 .. _atlas-v20190416:
 
 16 April 2019 Release
