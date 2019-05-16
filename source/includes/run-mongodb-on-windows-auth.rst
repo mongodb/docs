@@ -1,4 +1,5 @@
-To restart MongoDB, run :binary:`~bin.mongod.exe` with the ``--auth`` setting. 
+To restart MongoDB, run :binary:`~bin.mongod.exe` with the
+:option:`--auth <mongod.--auth>` option. 
 
 .. code-block:: sh
 

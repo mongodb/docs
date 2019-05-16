@@ -1,11 +1,16 @@
-  To restart MongoDB with authentication, run the :binary:`~bin.mongod`
-  process at the system prompt. If necessary, specify the path of the
-  :binary:`~bin.mongod` or the data directory. See the following
-  examples.
+To restart MongoDB with access control, run the :binary:`~bin.mongod`
+process from your terminal with the :option:`--auth <mongod.--auth>`
+option. The :binary:`~bin.mongod` process is located in a ``bin``
+folder in the MongoDB installation directory.
 
-  If you do not use the default data directory (i.e., ``/data/db``),
-  specify the path to the data directory using the --dbpath flag.
+.. code-block:: sh
 
-  .. code-block:: sh
+   mongod --dbpath <path to data directory> --auth
 
-     mongod --dbpath <path to data directory> --auth
+If you used the default data directory for your MongoDB deployment,
+(i.e., ``/data/db``), you can leave off the 
+:option:`--dbpath <mongod.--dbpath>` option.
+
+If your :binary:`~bin.mongod` instance has successfully started, you
+will see logging output in your terminal that includes
+``[initandlisten] waiting for connections``.
