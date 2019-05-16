@@ -3,7 +3,7 @@ For the following |onprem| release series, you may run its
 
 .. list-table::
    :header-rows: 1
-   :widths: 14 14 14 14 14 14 14
+   :widths: 20 10 10 10 10 10 10 10
 
    * - |onprem| Release Series
      - Minimum MongoDB 2.6 version
@@ -12,11 +12,13 @@ For the following |onprem| release series, you may run its
      - Minimum MongoDB 3.4 version
      - Minimum MongoDB 3.6 version
      - Minimum MongoDB 4.0 version
+     - Minimum MongoDB 4.2 version
 
    * - 2.0
      - 2.6.6
      - 3.0.6
      - 3.2.0
+     -
      -
      -
      -
@@ -28,6 +30,7 @@ For the following |onprem| release series, you may run its
      - 3.4.0
      -
      -
+     -
 
    * - 3.6
      -
@@ -36,6 +39,7 @@ For the following |onprem| release series, you may run its
      - 3.4.0
      - 3.6.0
      -
+     -
 
    * - 4.0
      -
@@ -43,22 +47,34 @@ For the following |onprem| release series, you may run its
      -
      - 3.4.0
      - 3.6.0
-     - 4.0
+     - 4.0.0
+     -
 
-   * - 4.2
+   * - 4.1
      -
      -
      -
      - 3.4.0
      - 3.6.0
-     - 4.0
+     - 4.0.0
+     -
+
+   * - 4.2
+     -
+     -
+     -
+     -
+     - 3.6.0
+     - 4.0.0
+     - 4.2.0
 
 
 Each version listed spans the full release series starting from the
 listed version (i.e., a minimum MongoDB 2.6 version of 2.6.6 implies
-compatibility with MongoDB versions 2.6.6 to 2.6.12). For more
-information on MongoDB versioning, see :ref:`release-version-numbers`
-in the MongoDB Manual.
+compatibility with MongoDB versions 2.6.6 to 2.6.12).
+
+To learn more about MongoDB versioning, see
+:ref:`release-version-numbers` in the MongoDB Manual.
 
 .. important::
 

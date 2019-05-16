@@ -1,34 +1,34 @@
 Use resolvable hostnames
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Each Agent and |mms| instance must be able to resolve the hostname for
-each server hosting a MongoDB instance or |mms| agent.
+Each {+mdbagent+} and |mms| instance must be able to resolve the
+hostname for each host hosting a MongoDB instance or {+mdbagent+}.
 
-On each server, set their hostnames to fully qualified domain names
-(FQDN) whenever possible. Consult the documentation for your operating
-system as to how to find and set the hostname as an FQDN.
+On each host, set their hostnames to fully qualified domain names
+(|fqdn|) whenever possible. Consult the documentation for your
+operating system as to how to find and set the hostname as an |fqdn|.
 
-Setting the FQDN on each server helps you know which server you are
-using when logged into that server. To enable other servers to know
-what the other servers' hostnames are, you need to provide a way for
-those servers to resolve hostnames.
+Setting the |fqdn| on each host helps you know which host you are
+using when logged into that host. To enable other hosts to know
+what the other hosts' hostnames are, you need to provide a way for
+those hosts to resolve hostnames.
 
-There are two ways to configure hostname resolution. 
+There are two ways to configure hostname resolution.
 
 Use a Domain Name Service
 `````````````````````````
 
-To make the servers' hostnames resolvable, run a server
-with a domain name service (DNS). DNS maps IP addresses to
-hostnames with a given domain (such as ``example.com``). This DNS
-server should have an entry for each server in the deployment: |mms|,
-|mms| agent and MongoDB. Entries for LDAP, Kerberos, SNMP and email
-servers as well as load balancers would be recommended.
+To make the hosts' hostnames resolvable, run a host with a domain name
+service (|dns|). |dns| maps IP addresses to hostnames with a given
+domain (such as ``example.com``). This |dns| host should have an entry
+for each host in the deployment: |mms|, {+mdbagent+} and MongoDB.
+Entries for |ldap|, Kerberos, |snmp| and email hosts as well as load
+balancers would be recommended.
 
 Edit Host Files
 ```````````````
 
-If a DNS setup is not possible, add entries for each server in the
+If a |dns| setup is not possible, add entries for each host in the
 ``hosts`` file of each system.
 
 .. list-table:: Locations of ``hosts`` files
