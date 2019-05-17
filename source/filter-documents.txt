@@ -287,55 +287,70 @@ chart.
 
 Query Bar
 ---------
+
+The :guilabel:`Query` bar supports more complex queries than
+the filter panel. Additionally, you can use the query bar to create
+:manual:`aggregation pipelines </core/aggregation-pipeline/>` to
+process your data before it is rendered.
+
+Filter Data using the Query Bar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
 To filter data using the :guilabel:`Query` bar:
 
 1. In the :guilabel:`Query` bar, input a filter document. Use the
    same syntax used in the query portion of the
    :manual:`db.collection.find()
-   </reference/method/db.collection.find/>` method.
+   </reference/method/db.collection.find/>` method. Your filter document
+   must be in curly brackets.
    
 #. Click :guilabel:`Apply`.
 
-Considerations
-~~~~~~~~~~~~~~
+.. admonition:: Considerations
+   :class: note
 
-- Filters on large collections may have performance issues if there
-  are not appropriate :manual:`indexes <indexes>` on the collection.
+   - Filters on large collections may encounter performance issues if
+     the collection is not appropriately :manual:`indexed <indexes>`.
 
-- The date functions utilized in the |charts| query bar are consistent
-  and compatible with the date functions used in the
-  :manual:`mongo shell </mongo>`. As a result, you can use:
+   - The date functions utilized in the |charts| query bar are
+     consistent and compatible with the date functions used in the
+     :manual:`mongo shell </mongo>`. As a result, you can use:
 
-  - ``new Date()``,
-  - ``ISODate()``, or
-  - ``new ISODate()``.
+     - ``new Date()``,
+     - ``ISODate()``, or
+     - ``new ISODate()``.
 
-  |
+     |
 
-  The ``Date()`` function (as opposed to the ``new Date()``
-  constructor) returns the current date as a string, so it cannot be
-  used for querying dates in |charts-short|.
+     The ``Date()`` function (as opposed to the ``new Date()``
+     constructor) returns the current date as a string, so it cannot be
+     used for querying dates in |charts-short|.
 
-Examples
-~~~~~~~~
+Element Query Example
+`````````````````````
 
-Comparison Query Filter
-```````````````````````
+The following chart shows the average Metacritic ratings of movies
+over time :ref:`binned <charts-bin-data>` by 5 year periods.
 
-The following chart shows the average runtime of movies by
-genre. The filter of ``{runtime: {$gte: 120 }}`` means that we only
-include movies which have a runtime greater than or equal to 120
-minutes.
-
-.. figure:: /images/charts/charts-dashboard-filter-2.png
+.. figure:: /images/charts/query-bar-comparison.png
    :figwidth: 720px
-   :alt: Charts dashboard filter
+   :alt: Example query comparison
+
+The chart utilizes the following query:
+
+.. code-block:: javascript
+
+   { 'writers.1': { $exists: true }}
+   
+``writers`` is an array where each element is a writer who
+contributed to the movie. This filter ensures that only documents with
+at least two writers are factored into the mean Metacritic rating by
+checking that the second array element exists.
 
 .. _regex-filter:
 
-Regular Expression (RegEx) Query
-````````````````````````````````
+Regular Expression (RegEx) Query Example
+````````````````````````````````````````
 
 .. _`regular expression`: :manual:`
 
@@ -357,7 +372,7 @@ the letter ``A``, you would write the following in the
 
 .. code-block:: javascript
 
-   { "job" : { $regex : "^A" } }
+   { "jobs" : { $regex : "^A" } }
 
 To find all documents where the ``jobs`` field begins with the
 letter ``A`` or ``a``, you would write the following in the
@@ -365,4 +380,95 @@ letter ``A`` or ``a``, you would write the following in the
 
 .. code-block:: javascript
 
-   { "job" : { $regex : "^A", $options : "i" } }
+   { "jobs" : { $regex : "^A", $options : "i" } }
+
+Date Query Example
+``````````````````
+
+The following chart shows total sale amounts from an office supply
+company, categorized by purchase method:
+
+.. figure:: /images/charts/query-bar-date.png
+   :figwidth: 720px
+   :alt: Example date query
+
+The chart utilizes the following query:
+
+.. code-block:: javascript
+
+   { 
+     $and: [ 
+     { 
+       saleDate: { $gte: new Date("2017-01-01") } 
+     }, 
+     { 
+       'items.4': { $exists: true } 
+     } ] 
+   }
+
+Each document in the collection represents a single sale. ``items`` is
+an array where each element is an item purchased during a sale.
+
+This query restricts the documents shown to only those with
+a ``saleDate`` equal to or more recent than ``January 1, 2017`` with at
+least 5 elements in the ``items`` array.
+
+Create Aggregation Pipelines
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:manual:`Aggregation pipelines </core/aggregation-pipeline/>` transform
+your documents into an aggregated set of results. In |charts|,
+aggregation pipelines are commonly used to visualize new fields created
+from calculated results of pre-existing fields, but also have many other
+applications.
+
+To create an aggregation pipeline in the :guilabel:`Query` bar:
+
+1. In the :guilabel:`Query` bar, input an aggregation pipeline. Your
+   pipeline must be in square brackets.
+   
+#. Click :guilabel:`Apply` to execute your pipeline.
+
+Aggregation Pipeline Example
+````````````````````````````
+
+The following chart shows total sale amounts from an office supply
+company, categorized by store location. The chart utilizes the
+following aggregation pipeline in the :guilabel:`Query` bar:
+
+.. code-block:: javascript
+
+   [
+     {
+       $unwind: "$items"
+     },
+     {
+       $addFields: {
+         saleAmount: {
+           $multiply: [ "$items.price", "$items.quantity" ]
+         }
+       }
+     }
+   ]
+
+This aggregation pipeline processes the collection data using
+the following stages:
+
+1. The :pipeline:`$unwind` stage unwinds the ``items`` array and
+   outputs a new document for each item in the array. Each element
+   in the ``items`` array contains a single item sold during a
+   transaction.
+
+#. The :pipeline:`$addFields` stage adds a new field to the
+   documents called ``saleAmount``. The :expression:`$multiply`
+   expression sets the value of ``saleAmount`` to the product of
+   ``items.price`` and ``items.quantity``. You can see this
+   new field highlighted in the following screenshot:
+
+.. figure:: /images/charts/query-bar-agg-example.png
+   :figwidth: 720px
+   :alt: Example Aggregation Pipeline
+
+Once the data has been processed using the pipeline, the
+chart displays the the :guilabel:`Sum` of all
+``saleAmounts`` categorized by store location.
