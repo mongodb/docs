@@ -27,7 +27,7 @@ Definition
         $collStats:
           {
             latencyStats: { histograms: <boolean> },
-            storageStats: {},
+            storageStats: { scale: <number> },
             count: {}
           }
       }
@@ -56,6 +56,24 @@ Definition
 
         - Adds :ref:`storage statistics<storage-stats-document>` to the
           return document.
+
+          - Specify an empty document (i.e. ``storageStats: {}``) to
+            use the default scale factor of 1 for the various size
+            data. Scale factor of 1 displays the returned sizes in
+            bytes.
+
+          - Specify the scale factor (i.e. ``storageStats: { scale:
+            <number> }``) to use the specified scale factor for the
+            various size data. For example, to display kilobytes rather
+            than bytes, specify a scale value of 1024.
+                        
+            If you specify a non-integer scale factor, MongoDB uses the integer
+            part of the specified factor. For example, if you specify a scale
+            factor of ``1023.999``, MongoDB uses ``1023`` as the scale factor.
+            
+            The scale factor does not affect those sizes that specify
+            the unit of measurement in the field name, such as ``"bytes
+            currently in the cache"``.
 
       * - ``count``
 
@@ -121,7 +139,12 @@ Definition
         engine. See :ref:`storage-stats-document` for details on this
         document.
 
-        Only present when the ``storageStats: {}`` option is specified.
+        The various size data is scaled by the specified factor (with
+        the exception of those sizes that specify the unit of
+        measurement in the field name).
+
+        Only present when the ``storageStats`` option is specified.
+
         Returns an error if applied to a :doc:`view </core/views>`.
 
     * - ``count``
@@ -256,7 +279,8 @@ This query returns a result similar to the following:
        "indexSizes" : {
          "_id_" : 9891840,
          "_id_1_abc_1" : 250445824
-       }
+       },
+       "scaleFactor" : 1    // Starting in MongoDB 4.2
      }
    }
 
