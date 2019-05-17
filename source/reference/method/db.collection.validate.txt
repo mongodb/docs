@@ -13,23 +13,67 @@ db.collection.validate()
 Description
 -----------
 
-.. method:: db.collection.validate(true)
+.. method:: db.collection.validate(<option>)
 
-   Validates a collection. The method scans a collection's data
-   structures for correctness and returns a single :term:`document` that
-   describes the relationship between the logical collection and the
-   physical representation of the data.
+   Validates a collection. The method scans a collection data and
+   indexes for correctness and returns the result. For details of the
+   output, see :ref:`validate-output`.
 
-   The :method:`~db.collection.validate()` method has the following
-   parameter:
+   The :method:`db.collection.validate()` method has the following syntax:
 
-   .. include:: /includes/apiargs/method-db.collection.validate-param.rst
+   .. code-block:: javascript
 
-   The :method:`db.collection.validate()` method output provides an
-   in-depth view of how the collection
-   uses storage. Be aware that this command is potentially resource
-   intensive and may impact the performance of your MongoDB
-   instance.
+      db.collection.validate( { 
+         full: <boolean>,         // Optional 
+         scandata: <boolean>      // Optional 
+      } )
+
+   To specify only the ``full`` option, you can also use:
+
+   .. code-block:: javascript
+
+      db.collection.validate( <boolean> ) // full option
+
+   The :method:`~db.collection.validate()` method can take the
+   following optional document parameter with the fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 10 50
+   
+      * - Field
+        - Type
+        - Description
+
+      * - ``full``
+        - boolean
+
+        - *Optional*. A flag that determines whether the command
+          performs a slower but more thorough check or a faster but less thorough check.
+
+          - If ``true``, performs a more thorough check.
+
+          - If ``false``, omits some checks for a fater but less
+            thorough check.
+
+          The default is ``false``.
+
+          .. include:: /includes/fact-validate-wiredtiger-full-option.rst
+
+      * - ``scandata``
+
+        - boolean
+
+        - *Optional*. A flag that determines whether the command checks
+          the collection data and the indexes or just the indexes.
+
+          - If ``true``, scans the collection data as well as the
+            indexes.
+
+          - If ``false``, skips the collection data and only scans the
+            indexes.
+
+          The default is ``true``.
 
    The :method:`db.collection.validate()` method is a wrapper
    around the :dbcommand:`validate` :term:`database
@@ -38,9 +82,41 @@ Description
 Behavior
 --------
 
-:method:`db.collection.validate()` obtains an exclusive lock on the
-collection. This will block all reads and writes on the collection
-until the operation finishes. When run on a secondary, the operation
-can block all other operations on that secondary until it finishes.
+The :method:`db.collection.validate()` method is potentially resource
+intensive and may impact the performance of your MongoDB instance.
 
-.. seealso:: :doc:`/reference/command/validate`
+The :method:`db.collection.validate()` method obtains an exclusive lock
+on the collection. This will block all reads and writes on the
+collection until the operation finishes. When run on a secondary, the
+operation can block all other operations on that secondary until it
+finishes.
+
+The :method:`db.collection.validate()` method can be slow, particularly
+on larger data sets.
+
+
+Examples
+--------
+
+- To validate a collection ``myCollection`` using the default settings
+  (i.e. ``full: false`` and ``scandata: true`` )
+
+  .. code-block:: javascript
+
+     db.myCollection.validate()
+
+- To perform a full validation of collection ``myCollection``
+
+  .. code-block:: javascript
+
+    db.myCollection.validate( { full: true } )
+
+    db.myCollection.validate(true)
+
+- To scan only the indexes and skip the collection data:
+
+  .. code-block:: javascript
+
+     db.myCollection.validate( { scandata: false } )
+
+For details of the output, see :ref:`validate-output`.

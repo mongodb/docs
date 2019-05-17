@@ -15,33 +15,67 @@ Definition
 
 .. dbcommand:: validate
 
-   The :dbcommand:`validate` command checks the structures within a
-   namespace for correctness by scanning the collection's data and
-   indexes. The command returns information regarding the on-disk
-   representation of the collection.
+   The :dbcommand:`validate` command checks a collection's data and
+   indexes for correctness and returns the results.
 
    .. note::
 
-      :dbcommand:`validate` command does not support :doc:`views
+      The :dbcommand:`validate` command does not support :doc:`views
       </core/views>` and raises an error when run against a view.
 
-
-   :dbcommand:`validate` has the following prototype form:
+   The command has the following syntax:
 
    .. code-block:: javascript
 
-      { validate: <collection> }
+      db.runCommand( { 
+         validate: <string>,          // Collection name
+         full: <boolean>,             // Optional
+         scandata: <boolean>          // Optional
+      } )
 
-   You may also specify one of the following options:
+   The command takes the following fields:
 
-   - ``full: true`` provides a more thorough scan of the data.
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 10 50
 
-     .. versionchanged:: 3.6
+      * - Field
+        - Type
+        - Description
 
-        .. include:: /includes/fact-validate-wiredtiger-full-option.rst
+      * - ``validate``
+        - string
+        - The name of the collection to validate.
+        
+      * - ``full``
+        - boolean
 
-   - ``scandata: false`` skips the scan of the collection data
-     without skipping scans of any indexes.
+        - *Optional*. A flag that determines whether the command
+          performs a slower but more thorough check or a faster but less thorough check.
+
+          - If ``true``, performs a more thorough check.
+
+          - If ``false``, omits some checks for a fater but less
+            thorough check.
+
+          The default is ``false``.
+
+          .. include:: /includes/fact-validate-wiredtiger-full-option.rst
+
+      * - ``scandata``
+
+        - boolean
+
+        - *Optional*. A flag that determines whether the command checks
+          the collection data and the indexes or just the indexes.
+
+          - If ``true``, scans the collection data as well as the
+            indexes.
+
+          - If ``false``, skips the collection data and only scans the
+            indexes.
+
+          The default is ``true``.
 
    The :binary:`~bin.mongo` shell also provides a wrapper
    :method:`db.collection.validate()`:
@@ -54,7 +88,7 @@ Behavior
 --------
 
 The :dbcommand:`validate` command can be slow, particularly on
-larger data sets. 
+larger data sets.
 
 The :dbcommand:`validate` command obtains an exclusive lock ``W`` on
 the collection. This will block all reads and writes on the collection
@@ -65,28 +99,44 @@ secondary until it finishes.
 Examples
 --------
 
-Use one of the following forms to validate a collection:
+- To validate a collection ``myCollection`` using the default settings
+  (i.e. ``full: false`` and ``scandata: true`` )
 
-.. code-block:: javascript
+  .. code-block:: javascript
 
-   db.collection.validate()
-   db.collection.validate(true)
-   db.runCommand( { validate: "collection", full: true } )
+     db.runCommand( { validate: "myCollection" } )
 
-Output
-------
+- To perform a full validation of collection ``myCollection``
+
+  .. code-block:: javascript
+
+    db.runCommand( { validate: "myCollection", full: true } )
+
+- To scan only the indexes and skip the collection data,
+
+  .. code-block:: javascript
+
+     db.runCommand( { validate: "myCollection", scandata: false } )
+
+.. _validate-output:
+
+Validate Output
+---------------
 
 .. include:: /includes/note-output-may-vary.rst
 
-:dbcommand:`validate` produces different output depending on which
-:doc:`storage engine</core/storage-engines>` you are using. Specify
-``{ full: true }`` for more detailed output.
+Specify ``{ full: true }`` for more detailed output.
+
 
 .. data:: validate.ns
 
    The full namespace name of the collection. Namespaces include the
    database name and the collection name in the form
    ``database.collection``.
+
+.. data:: validate.nInvalidDocuments
+
+   The number of invalid documents in the collection.
 
 .. data:: validate.nrecords
 
@@ -98,9 +148,51 @@ Output
 
 .. data:: validate.keysPerIndex
 
-   A document containing a field for each index. The value for each
-   field is the number of keys (or documents referenced) in the index.
+   A document that contains the name and index entry count for each
+   index on the collection.
 
+   .. code-block:: javascript
+      :copyable: false
+      
+      "keysPerIndex" : {
+         "_id_" : <num>,
+         "<index2_name>" : <num>,
+         ...
+      }
+
+   Starting in MongoDB 4.2 (and 4.0.10+ and 3.6.13+),
+   :data:`~validate.keysPerIndex` identifies the index by its name
+   only. Earlier versions of MongoDB displayed the full namespace of
+   the index; i.e. ``<db>.<collection>.$<index_name>``
+
+.. data:: validate.indexDetails
+   
+   A document that contains the status of the index validation for each
+   index.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "indexDetails" : {
+         "_id_" : {
+            "valid" : <boolean>
+         },
+         "<index2_name>" : {
+            "valid" : <boolean>  
+         },
+         ...
+      }
+
+   Starting in MongoDB 4.2 (and 4.0.10+ and 3.6.13+),
+
+   - :data:`~validate.indexDetails` identifies the specific index (or
+     indexes) that is invalid. Earlier versions of MongoDB would mark
+     all indexes as invalid, if any of the indexes were invalid.
+
+   - :data:`~validate.indexDetails` identifies the index by its name
+     only. Earlier versions of MongoDB displayed the full namespace of
+     the index; i.e. ``<db>.<collection>.$<index_name>``.
+   
 .. data:: validate.valid
 
    A boolean that is ``true`` if :dbcommand:`validate` determines that
@@ -112,6 +204,66 @@ Output
    If the collection is not valid (i.e
    :data:`~validate.valid` is false), this field will contain a message
    describing the validation error.
+
+.. data:: validate.extraIndexEntries
+
+   An array that contains information for each index entry that points
+   to a document that does not exist in the collection.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "extraIndexEntries" : [
+         {
+            "indexName" : <string>,
+            "recordId" : <NumberLong>,  // for the non-existent document
+            "indexKey" : {
+               "<key1>" : <value>,
+               ...
+            }
+         }
+         ...
+      ]
+
+   .. note::
+
+      For the :data:`~validate.extraIndexEntries` array, the sum of all
+      the ``indexKey`` field sizes has a limit of 1MB where the sizes
+      include both the keys and values for the ``indexKey``. If
+      the sum exceeds this size, the warning field displays a message.
+
+   *Available starting in MongoDB 4.2 (and 4.0.10+ and 3.6.13+)*
+
+.. data:: validate.missingIndexEntries
+
+   An array that contains information for each document that is missing
+   the corresponding index entry.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "missingIndexEntries" : [
+         {
+            "indexName" : <string>,
+            "recordId" : <NumberLong>,
+            "idKey" : <_id key value>,     // The _id value of the document. Only present if an ``_id`` index exists.
+            "indexKey" : {                 // The missing index entry
+               "<key1>" : <value>,
+               ...
+            }
+         }
+         ...
+       ]
+
+   .. note::
+
+      For the :data:`~validate.missingIndexEntries` array, the sum of
+      the ``idKey`` field size and all its ``indexKey`` field sizes has
+      a limit of 1MB where the field sizes include both the keys and
+      values for the ``idKey`` and ``indexKey``. If the sum
+      exceeds this size, the warning field displays a message.
+
+   *Available starting in MongoDB 4.2 (and 4.0.10+ and 3.6.13+)*
 
 .. data:: validate.ok
 
