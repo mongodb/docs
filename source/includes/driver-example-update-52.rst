@@ -29,7 +29,7 @@ to ``paper``. The operation uses:
          1. Copy the following filter into the Compass query bar and click
             :guilabel:`Find`:
             
-            .. code-block:: sh
+            .. code-block:: javascript
             
                { "item" : "paper" }
          
@@ -65,7 +65,7 @@ to ``paper``. The operation uses:
         embedded documents, the operation uses :ref:`dot notation
         <document-dot-notation>`.
 
-      - :``$currentDate`` to set the ``lastModified`` field to the
+      - ``$currentDate`` to set the ``lastModified`` field to the
         current date.
 
       Before updating the data, you'll need to assign the ``inventory`` collection in the ``test`` database to a variable:
@@ -93,7 +93,7 @@ to ``paper``. The operation uses:
          embedded documents, the operation uses :ref:`dot notation
          <document-dot-notation>`.
 
-       - :``$currentDate`` to set the ``lastModified`` field to the
+       - ``$currentDate`` to set the ``lastModified`` field to the
          current date.
        
        .. literalinclude:: /driver-examples/test_examples.py
@@ -168,7 +168,7 @@ to ``paper``. The operation uses:
          embedded documents, the operation uses :ref:`dot notation
          <document-dot-notation>`.
 
-       - :``$currentDate`` to set the ``lastModified`` field to the
+       - ``$currentDate`` to set the ``lastModified`` field to the
          current date.
 
    # - id: java-async

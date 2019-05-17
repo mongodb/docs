@@ -3,7 +3,6 @@
    tabs:
      - id: shell
        content: |
-         .. class:: copyable-code
          .. code-block:: javascript
 
             db.inventory.insertMany( [
@@ -95,7 +94,7 @@
 
          First you will need to create the MongoCollection object you would like to query against.
 
-         .. code-block:: sh
+         .. code-block:: java
 
             MongoCollection<Document> collection = db.getCollection("inventory");
 
@@ -158,7 +157,7 @@
 
          First you will need to initialize the collection.
 
-         .. code-block:: sh
+         .. code-block:: c#
 
             var collection = database.GetCollection<BsonDocument>("inventory");
 

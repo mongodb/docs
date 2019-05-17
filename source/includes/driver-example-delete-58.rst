@@ -14,7 +14,7 @@
        1. Copy the following filter into the Compass query bar and click
           :guilabel:`Find`:
           
-          .. code-block:: sh
+          .. code-block:: javascript
           
              { "status" : "D" }
        

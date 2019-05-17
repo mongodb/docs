@@ -4,7 +4,7 @@
      - id: shell
        content: |
          
-         .. code-block:: sh
+         .. code-block:: javascript
 
             { "_id" : ObjectId("5ae14d2e124da839884ff939"), "item" : "journal", "qty" : 25, "size" : { "h" : 14, "w" : 21, "uom" : "cm" }, "status" : "A" }
             { "_id" : ObjectId("5ae14d2e124da839884ff93d"), "item" : "postcard", "qty" : 45, "size" : { "h" : 10, "w" : 15.25, "uom" : "cm" }, "status" : "A" }
@@ -17,7 +17,7 @@
      - id: python
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
             
             {u'_id': ObjectId('5ada8c109b267e9d1ade9038'),
              u'item': u'journal',
@@ -32,7 +32,7 @@
 
      - id: go
        content: |
-         .. code-block:: sh
+         .. code-block:: go
 
             &[{_id ObjectID("5c3d03fdd183362f86fdd0d6")} {item journal} {qty 25} {size [{h 14} {w 21} {uom cm}]} {status A}]
             &[{_id ObjectID("5c3d03fdd183362f86fdd0da")} {item postcard} {qty 45} {size [{h 10} {w 15.25} {uom cm}]} {status A}]
@@ -40,7 +40,7 @@
      - id: motor
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
 
             {'_id': ObjectId('5ade276281031b2005294976'),
              'item': 'postcard',
@@ -55,17 +55,14 @@
 
      - id: java-sync
        content: |
-             
-         .. class: copyable-code
-         .. code-block:: sh
+         .. code-block:: java
          
             { "_id" : { "$oid" : "5ada8c109b267e9d1ade9038" }, "item" : "journal", "qty" : 25, "size" : { "h" : 14, "w" : 21, "uom" : "cm" }, "status" : "A" }
             { "_id" : { "$oid" : "5ada8c109b267e9d1ade903c" }, "item" : "postcard", "qty" : 45, "size" : { "h" : 10, "w" : 15.25, "uom" : "cm" }, "status" : "A" }
 
      - id: nodejs
        content: |
-         .. class:: copyable-code
-         .. code-block:: sh
+         .. code-block:: javascript
             
             [ { _id: 5adedb5ffa97c643763556e8,
                 item: 'journal',
@@ -81,7 +78,7 @@
 
      - id: csharp
        content: |
-         .. code-block:: sh
+         .. code-block:: c#
            
             { "_id" : ObjectId("5ade276281031b2005294972"), "item" : "journal", "qty" : 25, "size" : { "h" : 14, "w" : 21, "uom" : "cm" }, "status" : "A" }
             { "_id" : ObjectId("5ade276281031b2005294976"), "item" : "postcard", "qty" : 45, "size" : { "h" : 10, "w" : 15.25, "uom" : "cm" }, "status" : "A" }

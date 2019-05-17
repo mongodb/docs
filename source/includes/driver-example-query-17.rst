@@ -59,7 +59,7 @@
        
          First you will need to create the MongoCollection object you would like to query against.
 
-         .. code-block:: sh
+         .. code-block:: java
 
             MongoCollection<Document> collection = db.getCollection("inventory");
          

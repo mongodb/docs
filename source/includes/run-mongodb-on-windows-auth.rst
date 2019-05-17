@@ -1,7 +1,7 @@
 To restart MongoDB, run :binary:`~bin.mongod.exe` with the
 :option:`--auth <mongod.--auth>` option. 
 
-.. code-block:: sh
+.. code-block:: bat
 
    "C:\Program Files\MongoDB\Server\4.0\bin\mongod.exe" --dbpath "d:\test\mongo db data" --auth
 

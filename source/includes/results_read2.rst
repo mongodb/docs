@@ -37,7 +37,7 @@
      - id: python
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
           
            {u'_id': ObjectId('5ada8c109b267e9d1ade903a'),
             u'item': u'paper',
@@ -52,7 +52,7 @@
      - id: go
        content: |
 
-         .. code-block:: sh
+         .. code-block:: go
            
             &[{_id ObjectID("5c3cf48cb05a4e6e614ce60c")} {item paper} {qty 100} {size [{h 8.5} {w 11} {uom in}]} {status D}]
            
@@ -61,7 +61,7 @@
      - id: motor
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
 
             {'_id': ObjectId('5adb5140aea650d18e402f19'),
              'item': 'paper',
@@ -77,16 +77,15 @@
      - id: java-sync
        content: |
            
-         .. class: copyable-code
-         .. code-block:: sh
+         .. code-block:: java
          
             { "_id" : { "$oid" : "5ada88359b267e9b5bd393bb" }, "item" : "paper", "qty" : 100, "size" : { "h" : 8.5, "w" : 11, "uom" : "in" }, "status" : "D" }
             { "_id" : { "$oid" : "5ada88359b267e9b5bd393bc" }, "item" : "planner", "qty" : 75, "size" : { "h" : 22.85, "w" : 30, "uom" : "cm" }, "status" : "D" }
 
      - id: nodejs
        content: |
-         .. class:: copyable-code
-         .. code-block:: sh
+
+         .. code-block:: javascript
             
             { _id: 5ade424c84c9ca2d56d31699,
               item: 'paper',
@@ -134,7 +133,7 @@
 
      - id: csharp
        content: |
-         .. code-block:: sh
+         .. code-block:: c#
            
             { "_id" : ObjectId("5ade239b5923f61e2db8541e"), "item" : "paper", "qty" : 100, "size" : { "h" : 8.5, "w" : 11, "uom" : "in" }, "status" : "D" }
             { "_id" : ObjectId("5ade239b5923f61e2db8541f"), "item" : "planner", "qty" : 75, "size" : { "h" : 22.850000000000001, "w" : 30, "uom" : "cm" }, "status" : "D" }

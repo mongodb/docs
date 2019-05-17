@@ -90,7 +90,7 @@
 
      - id: csharp
        content: |
-         .. code-block:: csharp
+         .. code-block:: c#
            
             foreach (var doc in result) {
                Console.WriteLine(doc.ToJson());

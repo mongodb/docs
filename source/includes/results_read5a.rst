@@ -4,7 +4,7 @@
      - id: shell
        content: |
          
-         .. code-block:: sh
+         .. code-block:: javascript
 
             { "_id" : ObjectId("5ae14d2e124da839884ff939"), "item" : "journal", "qty" : 25, "size" : { "h" : 14, "w" : 21, "uom" : "cm" }, "status" : "A" }
 
@@ -17,7 +17,7 @@
      - id: python
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
 
             {u'_id': ObjectId('5ada625baea65088bf0aa131'),
              u'item': u'journal',
@@ -28,14 +28,14 @@
 
      - id: go
        content: |
-         .. code-block:: sh
+         .. code-block:: go
 
             &[{_id ObjectID("5c3d03fdd183362f86fdd0d6")} {item journal} {qty 25} {size [{h 14} {w 21} {uom cm}]} {status A}]
 
      - id: motor
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
 
             {'_id': ObjectId('5adb5140aea650d18e402f17'),
              'item': 'journal',
@@ -46,14 +46,14 @@
      - id: java-sync
        content: |
          
-         .. code-block:: sh
+         .. code-block:: java
             
             { "_id" : { "$oid" : "5ada88359b267e9b5bd393b9" }, "item" : "journal", "qty" : 25, "size" : { "h" : 14, "w" : 21, "uom" : "cm" }, "status" : "A" }
 
      - id: nodejs
        content: |
 
-         .. code-block:: sh
+         .. code-block:: javascript
             
             { _id: 5ade424c84c9ca2d56d31697,
               item: 'journal',
@@ -65,6 +65,6 @@
      - id: csharp
        content: |
          
-         .. code-block:: sh
+         .. code-block:: c#
          
             { "_id" : ObjectId("5ade26de3d3a851fcd9c95da"), "item" : "journal", "qty" : 25, "size" : { "h" : 14, "w" : 21, "uom" : "cm" }, "status" : "A" }

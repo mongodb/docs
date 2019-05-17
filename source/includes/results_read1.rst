@@ -31,7 +31,7 @@
      - id: python
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
           
             {u'_id': ObjectId('5ada5bdeaea650851c715601'),
             u'item': u'canvas',
@@ -49,22 +49,20 @@
      - id: motor
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
 
             {'_id': ObjectId('5adb4ee0aea650d05134bf62'), 'item': 'canvas', 'qty': 100, 'tags': ['cotton'], 'size': {'h': 28, 'w': 35.5, 'uom': 'cm'}}
 
      - id: java-sync
        content: |
          
-         .. class:: copyable-code
-         .. code-block:: sh
+         .. code-block:: java
          
             { "_id" : { "$oid" : "5ada85ae9b267e9ac4d84105" }, "item" : "canvas", "qty" : 100, "tags" : ["cotton"], "size" : { "h" : 28, "w" : 35.5, "uom" : "cm" } }
 
      - id: nodejs
        content: |
-         .. class:: copyable-code
-         .. code-block:: sh
+         .. code-block:: javascript
             
             { _id: 5ade4124aac4f92cf89f53aa,
               item: 'journal',
@@ -74,6 +72,6 @@
 
      - id: csharp
        content: |
-         .. code-block:: sh
+         .. code-block:: c#
            
             { "_id" : ObjectId("5ade1ebd9299811bc223e797"), "item" : "canvas", "qty" : 100, "tags" : ["cotton"], "size" : { "h" : 28, "w" : 35.5, "uom" : "cm" } #}

@@ -4,7 +4,7 @@
      - id: shell
        content: |
          
-         .. code-block:: sh
+         .. code-block:: javascript
 
             { "_id" : ObjectId("5ae14d2e124da839884ff939"), "item" : "journal", "qty" : 25, "size" : { "h" : 14, "w" : 21, "uom" : "cm" }, "status" : "A" }
             { "_id" : ObjectId("5ae14d2e124da839884ff93a"), "item" : "notebook", "qty" : 50, "size" : { "h" : 8.5, "w" : 11, "uom" : "in" }, "status" : "A" }
@@ -19,7 +19,7 @@
      - id: python
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
           
             {u'_id': ObjectId('5ada625baea65088bf0aa131'),
              u'item': u'journal',
@@ -45,7 +45,7 @@
      - id: motor
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
 
             {'_id': ObjectId('5adb5140aea650d18e402f17'),
              'item': 'journal',
@@ -72,8 +72,7 @@
        content: |
          Create a method to print the results of the iteration 
          
-         .. class: copyable-code
-         .. code-block:: sh
+         .. code-block:: java
          
             { "_id" : { "$oid" : "5ada88359b267e9b5bd393b9" }, "item" : "journal", "qty" : 25, "size" : { "h" : 14, "w" : 21, "uom" : "cm" }, "status" : "A" }
             { "_id" : { "$oid" : "5ada88359b267e9b5bd393ba" }, "item" : "notebook", "qty" : 50, "size" : { "h" : 8.5, "w" : 11, "uom" : "in" }, "status" : "A" }
@@ -82,8 +81,7 @@
 
      - id: nodejs
        content: |
-         .. class:: copyable-code
-         .. code-block:: sh
+         .. code-block:: javascript
             
             { _id: 5ade424c84c9ca2d56d31697,
               item: 'journal',
@@ -108,7 +106,7 @@
 
      - id: csharp
        content: |
-         .. code-block:: sh
+         .. code-block:: c#
            
             { "_id" : ObjectId("5ade261a9270d01f8c3d2750"), "item" : "journal", "qty" : 25, "size" : { "h" : 14, "w" : 21, "uom" : "cm" }, "status" : "A" }
             { "_id" : ObjectId("5ade261a9270d01f8c3d2751"), "item" : "notebook", "qty" : 50, "size" : { "h" : 8.5, "w" : 11, "uom" : "in" }, "status" : "A" }

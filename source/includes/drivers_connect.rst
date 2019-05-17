@@ -185,7 +185,7 @@
 
          
          .. literalinclude:: /driver-examples/csharpconnect.cs
-            :language: javascript
+            :language: c#
             :dedent: 0
             :start-after: Start Connect
             :end-before: End Connect
