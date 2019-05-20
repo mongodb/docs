@@ -15,23 +15,21 @@ Definition
 
 .. dbcommand:: validate
 
-   The :dbcommand:`validate` command checks the structures within a
-   namespace for correctness by scanning the collection's data and
-   indexes. The command returns information regarding the on-disk
-   representation of the collection.
+   The :dbcommand:`validate` command checks a collection's data and
+   indexes for correctness and returns the results.
 
    .. note::
 
       :dbcommand:`validate` command does not support :doc:`views
       </core/views>` and raises an error when run against a view.
 
-   :dbcommand:`validate` has the following prototype form:
+   The command has the following syntax:
 
    .. code-block:: javascript
 
-      db.runCommand( { 
+      db.runCommand( {
          validate: <string>,          // Collection name
-         full: <boolean>             // Optional
+         full: <boolean>              // Optional
       } )
 
    The command takes the following fields:
@@ -50,12 +48,13 @@ Definition
         
       * - ``full``
         - boolean
-        - *Optional* A flag that determines whether the command performs
+        - *Optional*. A flag that determines whether the command performs
           a slower but more thorough check or a faster but less thorough
           check.
 
-          - If ``true``, performs a more thorough check
-          - If `false``, omits some checks for a faster but less
+          - If ``true``, performs a more thorough check.
+
+          - If ``false``, omits some checks for a faster but less
             thorough check.
 
           Defaults to ``false``
@@ -75,13 +74,19 @@ Behavior
 --------
 
 The :dbcommand:`validate` command can be slow, particularly on
-larger data sets. 
+larger data sets.
 
 The :dbcommand:`validate` command obtains an exclusive lock ``W`` on
 the collection. This will block all reads and writes on the collection
 until the operation finishes. When run on a secondary, the
 :dbcommand:`validate` operation can block all other operations on that
 secondary until it finishes.
+
+.. note::
+
+   Due to the manner in which :dbcommand:`validate` scans data
+   structures, even a full collection validation cannot detect all
+   forms of corruption on MMAPv1 storage engine data files.
 
 Examples
 --------
@@ -97,13 +102,7 @@ Examples
 
   .. code-block:: javascript
 
-     db.runCommand( { validate: "myCollection", full: true } )
-
-.. note::
-
-   Due to the manner in which :dbcommand:`validate` scans data
-   structures, even a full collection validation cannot detect all
-   forms of corruption on MMAPv1 storage engine data files.
+    db.runCommand( { validate: "myCollection", full: true } )
 
 .. _validate-output:
 
@@ -112,7 +111,7 @@ Validate Output
 
 :dbcommand:`validate` produces different output depending on which
 :doc:`storage engine</core/storage-engines>` you are using. Specify
-``{validate: "<collName",  full: true }`` for more detailed output.
+``{validate: "<collName>",  full: true }`` for more detailed output.
 
 The following fields are common to the
 :doc:`MMAPv1</core/mmapv1>` and :doc:`WiredTiger</core/wiredtiger>`
@@ -134,8 +133,50 @@ storage engines:
 
 .. data:: validate.keysPerIndex
 
-   A document containing a field for each index. The value for each
-   field is the number of keys (or documents referenced) in the index.
+   A document that contains the name and index entry count for each
+   index on the collection.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "keysPerIndex" : {
+         "_id_" : <num>,
+         "<index2_name>" : <num>,
+         ...
+      }
+
+   Starting in 3.6.13+,
+   :data:`~validate.keysPerIndex` identifies the index by its name
+   only. Earlier versions of MongoDB displayed the full namespace of
+   the index; i.e. ``<db>.<collection>.$<index_name>``
+
+.. data:: validate.indexDetails
+
+   A document that contains the status of the index validation for each
+   index.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "indexDetails" : {
+         "_id_" : {
+            "valid" : <boolean>
+         },
+         "<index2_name>" : {
+            "valid" : <boolean>
+         },
+         ...
+      }
+
+   Starting in 3.6.13+,
+
+   - :data:`~validate.indexDetails` identifies the specific index (or
+     indexes) that is invalid. Earlier versions of MongoDB would mark
+     all indexes as invalid, if any of the indexes were invalid.
+
+   - :data:`~validate.indexDetails` identifies the index by its name
+     only. Earlier versions of MongoDB displayed the full namespace of
+     the index; i.e. ``<db>.<collection>.$<index_name>``.
 
 .. data:: validate.valid
 
@@ -148,6 +189,66 @@ storage engines:
    If the collection is not valid (i.e
    :data:`~validate.valid` is false), this field will contain a message
    describing the validation error.
+
+.. data:: validate.extraIndexEntries
+
+   An array that contains information for each index entry that points
+   to a document that does not exist in the collection.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "extraIndexEntries" : [
+         {
+            "indexName" : <string>,
+            "recordId" : <NumberLong>,  // for the non-existent document
+            "indexKey" : {
+               "<key1>" : <value>,
+               ...
+            }
+         }
+         ...
+      ]
+
+   .. note::
+
+      For the :data:`~validate.extraIndexEntries` array, the sum of all
+      the ``indexKey`` field sizes has a limit of 1MB where the sizes
+      include both the keys and values for the ``indexKey``. If
+      the sum exceeds this size, the warning field displays a message.
+
+   *Available starting in MongoDB 3.6.13+*
+
+.. data:: validate.missingIndexEntries
+
+   An array that contains information for each document that is missing
+   the corresponding index entry.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "missingIndexEntries" : [
+         {
+            "indexName" : <string>,
+            "recordId" : <NumberLong>,
+            "idKey" : <_id key value>,     // The _id value of the document. Only present if an ``_id`` index exists.
+            "indexKey" : {                 // The missing index entry
+               "<key1>" : <value>,
+               ...
+            }
+         }
+         ...
+       ]
+
+   .. note::
+
+      For the :data:`~validate.missingIndexEntries` array, the sum of
+      the ``idKey`` field size and all its ``indexKey`` field sizes has
+      a limit of 1MB where the field sizes include both the keys and
+      values for the ``idKey`` and ``indexKey``. If the sum
+      exceeds this size, the warning field displays a message.
+
+   *Available starting in MongoDB 3.6.13+*
 
 .. data:: validate.ok
 
