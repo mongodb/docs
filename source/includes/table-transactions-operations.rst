@@ -33,7 +33,11 @@
 
    * - :method:`db.collection.distinct()`
      - :dbcommand:`distinct`
-     - 
+     - Available on unsharded collections.
+       
+       | For sharded collections, use the aggregation pipeline with the
+         :pipeline:`$group` stage. See :ref:`transactions-operations-distinct`.
+       
 
    * - :method:`db.collection.find()`
      - :dbcommand:`find`

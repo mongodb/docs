@@ -147,6 +147,27 @@ content: |
    </core/transactions>`.
 
 ---
+ref: transactions-distinct-support
+content: |
+
+   To perform a distinct operation within a transaction:
+      
+   - For unsharded collections, you can use the
+     :method:`db.collection.distinct()` method/the
+     :dbcommand:`distinct` command as well as the aggregation pipeline
+     with the :pipeline:`$group` stage.
+  
+   - For sharded collections, you cannot use the
+     :method:`db.collection.distinct()` method or the
+     :dbcommand:`distinct` command.
+     
+     To find the distinct values for a sharded collection, use the
+     aggregation pipeline with the :pipeline:`$group` stage instead.
+     See :ref:`transactions-operations-distinct` for details.
+
+### A fleshed out version (transactions-distinct) of this extract is included in transaction pages
+
+---
 ref: transactions-operations-write-concern
 content: |
 
@@ -252,4 +273,71 @@ content: |
    - ``an error from cluster data placement change ... migration commit in progress for <namespace>``
 
    - ``Cannot find shardId the chunk belonged to at cluster time ...``
+
+---
+ref: transactions-count
+content: |
+
+   To perform a count operation within a transaction, use the
+   :pipeline:`$count` aggregation stage or the :pipeline:`$group` (with a
+   :group:`$sum` expression) aggregation stage.
+
+   MongoDB drivers compatible with the 4.0 features provide a
+   collection-level API ``countDocuments(filter, options)`` as a helper
+   method that uses the :pipeline:`$group` with a :group:`$sum` expression
+   to perform a count. The 4.0 drivers have deprecated the ``count()`` API.
+
+   Starting in MongoDB 4.0.3, the :binary:`~bin.mongo` shell provides the
+   :method:`db.collection.countDocuments()` helper method that uses the
+   :pipeline:`$group` with a :group:`$sum` expression to perform a count.
+
+---
+ref: transactions-distinct
+content: |
+
+   To perform a distinct operation within a transaction:
+      
+   - For unsharded collections, you can use the
+     :method:`db.collection.distinct()` method/the
+     :dbcommand:`distinct` command as well as the aggregation pipeline
+     with the :pipeline:`$group` stage.
+  
+   - For sharded collections, you cannot use the
+     :method:`db.collection.distinct()` method or the
+     :dbcommand:`distinct` command.
+
+     To find the distinct values for a sharded collection, use the
+     aggregation pipeline with the :pipeline:`$group` stage instead.
+     For example:
+
+     - Instead of ``db.coll.distinct("x")``, use
+     
+       .. code-block:: javascript
+     
+          db.coll.aggregate([ 
+             { $group: { _id: null, distinctValues: { $addToSet: "$x" } } }, 
+             { $project: { _id: 0 } } 
+          ])
+     
+     - Instead of ``db.coll.distinct("x", { status: "A" })``, use:
+     
+       .. code-block:: javascript
+     
+          db.coll.aggregate([ 
+             { $match: { status: "A" } },
+             { $group: { _id: null, distinctValues: { $addToSet: "$x" } } }, 
+             { $project: { _id: 0 } } 
+          ])
+
+     The pipeline returns a cursor to a document:
+
+     .. code-block:: javascript
+        :copyable: false
+
+        { "distinctValues" : [ 2, 3, 1 ] }
+
+     Iterate the cursor to access the results document.
+
+### A shorter version (transactions-distinct-support) of this extract is included in the distinct command/method pages.
+
 ...
