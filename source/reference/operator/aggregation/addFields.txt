@@ -56,10 +56,9 @@ To add field or fields to embedded documents (including documents in
 arrays) use the dot notation. See :ref:`example
 <add-field-to-embedded>`.
 
-.. note::
-
-   It is not possible to add an element to an existing array field
-   with ``$addFields``.
+To add an element to an existing array field with :pipeline:`$addFields`, use
+with :expression:`$concatArrays`. See :ref:`example
+<addFields-add-element-to-array>`.
 
 Examples
 --------
@@ -228,3 +227,38 @@ The operation returns the following:
    { "_id" : "tangerine", "item" : "fruit", "type" : "citrus" }
    { "_id" : "lemon", "item" : "fruit", "type" : "citrus" }
    { "_id" : "grapefruit", "item" : "fruit", "type" : "citrus" }
+
+.. _addFields-add-element-to-array:
+
+Add Element to an Array
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a sample ``scores`` collection with the following:
+
+.. code-block:: javascript
+
+   db.scores.insertMany([
+      { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
+      { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
+   ])
+
+You can use :pipeline:`$addFields` with a :expression:`$concatArrays`
+expression to add an element to an existing array field. For example,
+the following operation uses :pipeline:`$addFields` to replace the
+``homework`` field with a new array whose elements are the current
+``homework`` array concatenated with another array containing a new
+score ``[ 7 ]``.
+
+.. code-block:: javascript
+
+   db.scores.aggregate([
+      { $match: { _id: 1 } },
+      { $addFields: { homework: { $concatArrays: [ "$homework", [ 7 ] ] } } }
+   ])
+
+The operation returns the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "student" : "Maya", "homework" : [ 10, 5, 10, 7 ], "quiz" : [ 10, 8 ], "extraCredit" : 0 }
