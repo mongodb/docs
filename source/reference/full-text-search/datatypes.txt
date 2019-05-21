@@ -1,3 +1,188 @@
-=================
-|fts|: Data Types
-=================
+==========
+Data Types
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When you configure a |fts| index, you can specify that certain fields
+should be indexed as certain :ref:`data types <bson-data-types>`. This
+can be useful if you want to ensure that the subfields of an
+``object`` field are correctly identified and indexed. The process of
+configuring fields to be indexed as specific data types is called
+*mapping*.
+
+Static and Dynamic Mappings
+---------------------------
+
+Data type mappings that you configure when you create the index
+are called *static mappings*.
+
+Data type mappings that can change depending on the data type
+inserted into a field are called *dynamic mappings*. Dynamic mappings
+are useful if you have a dynamic schema and you don't know ahead of
+time what fields will contain what data types. You can configure
+an entire index to use dynamic mappings, or specify individual fields
+to be dynamically mapped.
+
+.. note::
+
+   Dynamically mapped indexes occupy more disk space than static
+   mappings and may be less performant.
+
+See the :ref:`index configuration example
+<index-config-example>`.
+
+.. _bson-data-types:
+
+BSON Data Types
+---------------
+
+``string``
+~~~~~~~~~~
+
+.. list-table::
+   :widths: 30 60 10
+   :header-rows: 1
+
+   * - Option
+     - Purpose
+     - Default
+
+   * - ``analyzer: <string>``
+     - Name of a built-in or overridden :ref:`analyzer <analyzers-ref>`
+       to use for indexing the field.
+     - ``standard``
+
+   * - ``fields:``
+     - Mapping from subfield name to a ``string``-type field
+       definition.
+     - Empty
+
+   * - ``ignoreAbove: <int>``
+     - Do not index if the field value is greater than the specified
+       number of characters.
+     - None
+
+   * - ``index_options: <string>``
+     - Specify index options. Accepted values include:
+
+       .. list-table::
+          :widths: 30 60
+          :header-rows: 1
+
+          * - Value
+            - Parameters Indexed
+
+          * - ``docs``
+            - Document number
+
+          * - ``freqs``
+            -
+              - Document number
+              - Term frequencies
+
+              Terms which occur with higher frequency get a higher
+              score.
+
+          * - ``positions``
+            -
+              - Document number
+              - Term frequencies
+              - Term position within the field
+
+          * - ``offsets``
+            -
+              - Document number
+              - Term frequencies
+              - Term position within the field
+              - End character offsets
+
+     - ``positions``
+
+   * - ``norms: <boolean>``
+     - Specify whether or not to store norms for the field.
+
+       ``norms`` are normalization factors which the index uses to
+       calculate scoring for a query.
+
+       .. note::
+
+          Storing norms for a field increases the size of an index on
+          on disk by a considerable margin. Specify ``false`` for
+          fields which do not require scoring to reduce index size.
+
+     - ``true``
+
+   * - ``searchAnalyzer: <string>``
+     - Analyzer to use when querying the field.
+     - ``standard``
+
+``object``
+~~~~~~~~~~
+
+.. list-table::
+   :widths: 30 60 10
+   :header-rows: 1
+
+   * - Option
+     - Purpose
+     - Default
+
+   * - ``dynamic: <bool>``
+     - Indicates whether or not the subfields of the object should be
+       dynamically discovered.
+     - ``false``
+
+   * - ``fields: <map <field-name, BSON type>>``
+     - Explicit configuration for subfileds of the object.
+     - empty
+
+   * - ``nested: <bool>``
+     -
+     - ``false``
+
+``array``
+~~~~~~~~~
+
+The ``array`` data type has no options.
+
+.. _index-config-example:
+
+Data Type Mapping Example
+-------------------------
+
+The following ``config.json`` file uses static mappings.
+
+.. code-block:: json
+
+   {
+     "analyzer": "lucene.standard",
+     "searchAnalyzer": "lucene.standard",
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "text": {
+           "type": "string",
+           "analyzer": "lucene.simple",
+           "ignoreAbove": 255
+         },
+         "name":
+           {
+             "type": "string",
+             "analyzer": "lucene.english"
+           },
+         "company": {
+           "type": "string",
+           "analyzer": "lucene.whitespace",
+           "norms": false
+         }
+       }
+     }
+   }
+
