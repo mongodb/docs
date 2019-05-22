@@ -36,10 +36,25 @@ Definition
       * - writeConcern
 
         - Optional. A document expressing the :doc:`write concern
-          </reference/write-concern>` of the :dbcommand:`drop` command.
-          Omit to use the default write concern.
+          </reference/write-concern>` to use if greater than
+          :writeconcern:`"majority"`
+
+          .. code-block:: javascript
+
+             { w: <value>, j: <boolean>, wtimeout: <number> }
+
+          Omit to use the default/minimum write concern of
+          :writeconcern:`"majority"`.
+
+          When issued on a replica set, if the specified write concern
+          results in fewer member acknowledgements than write concern
+          :writeconcern:`"majority"`, the operation uses
+          :writeconcern:`"majority"`. Otherwise, the specified write
+          concern is used.
 
           .. include:: /includes/extracts/mongos-operations-wc-drop-database.rst
+
+          See also :ref:`Behavior <dropDatabase-wc>`.
 
    The :binary:`~bin.mongo` shell also provides the helper method
    :method:`db.dropDatabase()`.
@@ -57,15 +72,29 @@ User Management
 
 .. include:: /includes/fact-drop-database-users.rst
 
+.. _dropDatabase-wc:
+
 Replica Set and Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 3.6
 
-   :dbcommand:`dropDatabase` waits until all collections drops in the
-   database have propagated to a majority of the replica set members.
+Replica Sets
+   At minimum, :dbcommand:`dropDatabase` waits until all collections
+   drops in the database have propagated to a majority of the replica
+   set members (i.e. uses the write concern :writeconcern:`"majority"`).
 
-.. include:: /includes/warning-dropDatabase-shardedCluster.rst
+   If you specify a write concern that requires acknowledgement from
+   fewer than the majority, the command uses write concern
+   :writeconcern:`"majority"`.
+
+   If you specify a write concern that requires acknowledgement from
+   more than the majority, the command uses the specified write concern.
+
+Sharded Clusters
+   .. include:: /includes/extracts/mongos-operations-wc-drop-database.rst
+
+   .. include:: /includes/warning-dropDatabase-shardedCluster.rst
 
 Change Streams
 ~~~~~~~~~~~~~~
