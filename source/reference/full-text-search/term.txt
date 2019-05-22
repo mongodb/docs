@@ -1,0 +1,222 @@
+.. _term-ref:
+
+===============
+Term (Operator)
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Description
+-----------
+
+The ``term`` operator specifies an unanalyzed search. The engine
+searches for the query terms exactly as they are, with no
+:ref:`analyzer <ref-analyzers>` modifications. Any analyzer which was
+used during the index creation still applies to the index, but the
+search itself does not use an analyzer.
+
+``term`` has the following syntax:
+
+.. code-block:: javascript
+
+   { 
+     $searchBeta: {  
+       "term": {
+         "query": "<search-term>",
+         "path": "<field-to-search>",
+         "wildcard": <boolean>,
+         "regex": <boolean>,
+         "prefix": <boolean>
+       }
+     }
+   }
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``query``
+     - string or array of strings
+     - The term or terms to search for.
+     - yes
+     -
+
+   * - ``path``
+     - string or array of strings
+     - The indexed field or fields to search.
+     - yes
+     -
+
+   * - ``wildcard``
+     - boolean
+     - Enable wildcard searching.
+     - no
+     - ``false``
+
+   * - ``regex``
+     - boolean
+     - Enable regular expression searching.
+     - no
+     - ``false``
+
+   * - ``prefix``
+     - boolean
+     - Use the string specified in ``query`` as a prefix and search
+       for any term which starts with it.
+     - no
+     - ``false``
+
+Examples
+--------
+
+The following examples use a collection called ``fruit`` which contains
+the following documents:
+
+.. code-block:: json
+
+   {
+     "_id" : 1,
+     "type" : "apple",
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+   },
+   {
+     "_id" : 2,
+     "type" : "banana",
+     "description" : "Bananas are usually sold in bunches of five or six."
+   }
+
+The ``fruit`` collection has a |fts| index on the ``description`` field
+which uses the :ref:`standard <ref-standard-analyzer>` analyzer. The
+``standard`` analyzer lower-cases all words and disregards common stop
+words (``"the", "a", "and",`` etc).
+
+Basic Example
+~~~~~~~~~~~~~
+
+The following |fts| example performs a basic search of the
+``description`` field for the query term ``several``, using
+the ``term`` operator.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta: {  
+         "term": {
+           "query": "several",
+           "path": "description"
+         }
+       }
+     }
+   ])
+
+The above query returns the document with ``_id: 1``, which has the
+word ``several`` in the ``description`` field.
+
+The following example returns no results. The ``standard`` analyzer
+which was used to create the index lower-cases all tokens, and the
+``term`` operator specifies an unanalyzed search. ``Smith`` is not
+in the index, but ``smith`` is.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta: {  
+         "term": {
+           "query": "Smith",
+           "path": "description"
+         }
+       }
+     }
+   ])
+
+Wildcard Example
+~~~~~~~~~~~~~~~~
+
+The ``wildcard`` option allows you to use the ``*`` character, which
+evaluates to zero or more characters of any value within a given
+token.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta: {  
+         "term": {
+           "query": "s*l*",
+           "path": "description",
+           "wildcard": true
+         }
+       }
+     }
+   ])
+
+The above query returns both the documents in the collection. ``s*l*``
+matches ``several`` in the first document's ``description`` field
+and ``sold`` in the second.
+
+Regular Expression Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta: {  
+         "term": {
+           "query": "([a-z]{7})",
+           "path": "description",
+           "regex": true
+         }
+       }
+     }
+   ])
+
+The above query returns both the documents in the collection, because
+both ``description`` fields contain seven-letter words.
+
+Prefix Example
+~~~~~~~~~~~~~~
+
+The ``prefix`` option allows you to search for all tokens which
+begin with a given string.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta: {  
+         "term": {
+           "query": "sev",
+           "path": "description",
+           "prefix": true
+         }
+       }
+     }
+   ])
+
+The above query returns the following result:
+
+.. code-block:: json
+
+   { 
+     "_id" : 1,
+     "type" : "apple",
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+     "_fts_metadata" : { "_id" : 1, "score" : 1 }
+   }
+
+The document with ``_id: 1`` matches the query because the word
+``several`` in the ``description`` field begins with ``sev``.
