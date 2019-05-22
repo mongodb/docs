@@ -1,0 +1,304 @@
+.. _compound-ref:
+
+===================
+Compound (Operator)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Description
+-----------
+
+The ``compound`` operator combines two or more operators into a single
+query. Each element of a ``compound`` query is called a clause, and each
+clause consists of one or more sub-queries.
+
+Documents in the result set are returned with a match score,
+which is calculated by summing the score that each document received
+for each individual clause which generated a match. The result set is
+ordered by score, highest to lowest.
+
+``compound`` uses the following terms to construct a query:
+
+.. list-table::
+   :widths: 15 85
+
+   * - ``must``
+     - Clauses which must match to produce results. 
+ 
+   * - ``mustNot``
+     - Clauses which must not match for a document to be included in the
+       results.
+ 
+   * - ``should``
+     - Clauses which cause documents in the result set to be
+       scored higher if they match.
+ 
+       ``minimumShouldMatch`` is an option of ``should``. If you use more
+       than one ``should`` clause, you can use the ``minimumShouldMatch``
+       option to specify a minimum number of ``should`` clauses which
+       must be satisfied for a document to be included in the result set.
+       See an :ref:`example <min-example>`.
+ 
+   * - ``filter``
+     - Clauses which must all match all for a document to be
+       included in the results. ``filter`` clauses do not contribute to
+       a returned document's score. See an :ref:`example
+       <filter-example>`.
+
+Any of the above clauses may contain query criteria using any top-level
+operator, such as :ref:`term <term-ref>`, :ref:`search <search-ref>`,
+or :ref:`span <span-ref>`.
+
+``compound`` has the following syntax:
+
+.. code-block:: javascript
+
+   { 
+     $searchBeta: {  
+       "compound": {
+         <must | mustNot | should | filter>: { <clause> }
+       }
+     }
+   }
+
+Examples
+--------
+
+The following examples use a collection called ``fruit`` which contains
+the following documents:
+
+.. code-block:: json
+
+   {
+     "_id" : 1,
+     "type" : "apple",
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+   },
+   {
+     "_id" : 2,
+     "type" : "banana",
+     "description" : "Bananas are usually sold in bunches of five or six."
+   },
+   {
+     "_id" : 3,
+     "type" : "pear",
+     "description" : "Bosc and Bartlett are the most common varieties of pears."
+   }
+
+The ``fruit`` collection has a |fts| index on the ``description`` field
+which uses the :ref:`standard <ref-standard-analyzer>` analyzer. The
+``standard`` analyzer lower-cases all words and disregards common stop
+words (``"the", "a", "and",`` etc).
+
+``must`` and ``mustNot`` Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses a combination of ``must`` and ``mustNot``
+clauses to contruct a query. The ``must`` clause performs a
+:ref:`search <search-ref>` operation for the term ``varieties`` in the
+``description`` field. For a document to match, it must fulfill the
+``must`` clause. The ``mustNot`` clause performs a search operation for
+the term ``apples`` in the ``description`` field. For a document to
+match, it must *not* fulfill the ``mustNot`` clause.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta: {  
+         "compound": {
+           "must": {
+             "search": {
+               "query": "varieties",
+               "path": "description"
+             }
+           },
+           "mustNot": {
+             "search": {
+               "query": "apples",
+               "path": "description"
+             }
+           }
+         }
+       }
+     }
+   ])
+
+The above query returns the document with ``_id: 3`` because its
+``description`` field contains the word ``varities`` and does not
+contain ``apples``.
+
+``must`` and ``should`` Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query uses ``must`` to specify search conditions
+which must be met and ``should`` to specify preference for documents
+containing the word ``Fuji``. The ``$project`` pipeline stage restricts
+output to the ``_fts_metadata`` field, which the |fts| engine adds to
+result documents.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta: {  
+         "compound": {
+           "must": {
+             "search": {
+               "query": "varieties",
+               "path": "description"
+             }
+           },
+           "should": {
+             "search": {
+               "query": "Fuji",
+               "path": "description"
+             }
+           }
+         }
+       }
+     },
+     {
+       $project: {
+         "_id": 0,
+         "_fts_metadata": 1
+       }
+     }
+   ])
+
+The above query returns the following results:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_fts_metadata" : { "_id" : 1, "score" : 1.2990015745162964 } }
+   { "_fts_metadata" : { "_id" : 3, "score" : 0.4991762340068817 } }
+
+The document with ``_id: 1`` has a higher score because its
+``description`` field contains the word ``Fuji``, satisfying the
+``should`` clause.
+
+.. _min-example:
+
+minimumShouldMatch Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In a query with multiple ``should`` clauses, you can use the
+``miniumumShouldMatch`` option to specify a minimum number of clauses
+which must match to return a result.
+
+The following query has one ``must`` clause and two ``should``
+clauses, with a ``minimumShouldMatch`` value of ``1``. A document
+must include the term ``varieties`` in the ``description`` field
+and must include either ``Fuji`` or ``Golden Delicious`` in the
+description field to be included in the result set.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     {
+       $searchBeta: {
+         "compound": {
+           "must": {
+             "search": {
+                "query": "varieties",
+                "path": "description"
+             }
+           },
+           "should": [
+             {
+               "search": {
+                 "query": "Fuji",
+                 "path": "description"
+               }
+             },
+             {
+               "search": {
+                 "query": "Golden Delicious",
+                 "path": "description"
+               }
+             }],
+             "minimumShouldMatch": 1
+           }
+         }
+       }
+   ])
+
+The above query returns the following result:
+
+.. code-block:: json
+   :copyable: false
+
+   { 
+     "_id" : 1, 
+     "type" : "apple",
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+     "_fts_metadata" : { "_id" : 1, "score" : 0.42081722617149353 }
+   }
+
+The document with ``_id: 1`` matches the ``must`` clause and the first
+of the two ``should`` clauses.
+
+.. _filter-example:
+
+``filter`` Example
+~~~~~~~~~~~~~~~~~~
+
+``filter`` behaves the same as ``must``, except that the ``filter``
+clause is not considered in a returned document's score, and therefore
+does not affect the order of the returned documents.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     {
+       $searchBeta: {
+         "compound": {
+           "must": {
+             "search": {
+               "query": "varieties",
+               "path": "description"
+             }
+           },
+           "should": {
+             "search": {
+               "query": "banana",
+               "path": "description"
+             }
+           },
+           "filter": {
+             "term": {
+               "query": "granny",
+               "path": "description"
+             }
+           }
+         }
+       }
+     }
+   ])
+
+The above query returns the following result:
+
+.. code-block:: json
+   :copyable: false
+
+   { 
+     "_id" : 1, 
+     "type" : "apple",
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+     "_fts_metadata" : { "_id" : 1, "score" : 0.42081722617149353 }
+   }
+
+The above document fulfills all the requirements for inclusion:
+
+- Both the ``must`` clause and the ``filter`` clause match.
+- The ``minimumShouldMatch`` value is not specified, so it defaults to
+  ``0``, which allows the ``should`` clause to fail and still return
+  a document.
