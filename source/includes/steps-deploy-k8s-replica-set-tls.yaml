@@ -1,0 +1,155 @@
+---
+title: "Copy the following example :term:`replica set` |k8s| |k8s-obj|."
+stepnum: 1
+level: 4
+ref: copy-k8s-example-tls
+content: |
+
+   This is a |yaml| file that you can modify to meet your desired
+   configuration. Change the highlighted settings to match your desired
+   :term:`replica set` configuration.
+
+   .. literalinclude:: /reference/k8s/example-replica-set-tls.yaml
+      :language: yaml
+      :emphasize-lines: 5-7,9-13,16-22
+---
+stepnum: 2
+level: 4
+ref: paste-k8s-example-tls
+source:
+  file: steps-deploy-k8s-replica-set.yaml
+  ref: paste-k8s-example
+---
+stepnum: 3
+level: 4
+ref: change-k8s-values-tls
+source:
+  file: steps-deploy-k8s-replica-set.yaml
+  ref: change-k8s-values
+---
+title: "Configure the TLS settings for your replica set."
+stepnum: 4
+level: 4
+ref: add-tls-settings
+content: |
+
+  Enable |tls| in your deployment by configuring the following
+  settings in your |k8s| object:
+
+  .. list-table::
+     :widths: 20 20 40 20
+     :header-rows: 1
+
+     * - Key
+       - Type
+       - Description
+       - Example
+
+     * - :setting:`spec.security.tls.enabled`
+       - boolean
+       - If this value is ``true``, |tls| is enabled on the MongoDB
+         deployment.
+
+         The default :setting:`TLS mode <net.ssl.mode>` is
+         ``requireSSL`` which configures the hosts to only use and
+         accept TLS encrypted connections.
+       - ``true``
+
+     * - :setting:`spec.additionalMongodConfig.net.ssl.mode`
+       - string
+       - *Optional.* Changes the :setting:`TLS mode <net.ssl.mode>`
+         the MongoDB deployment uses for intra-cluster communication and
+         clients connecting to the database.
+
+       - ``requireSSL``
+
+  The following options are valid for
+  :setting:`spec.additionalMongodConfig.net.ssl.mode`:
+
+  .. include:: /includes/list-table-requiressl-modes.rst
+
+---
+stepnum: 5
+level: 4
+ref: add-k8s-values-tls
+source:
+  file: steps-deploy-k8s-replica-set.yaml
+  ref: add-k8s-values
+---
+stepnum: 6
+level: 4
+ref: save-object-spec-tls
+source:
+  file: steps-deploy-k8s-replica-set.yaml
+  ref: save-object-spec
+---
+stepnum: 7
+level: 4
+ref: start-k8s-deployment-tls
+source:
+  file: steps-deploy-k8s-replica-set.yaml
+  ref: start-k8s-deployment
+---
+title: "Check the status of your deployment."
+stepnum: 8
+level: 4
+ref: check-k8s-deployment-tls-rs
+content: |
+
+  The |k8s-op-short| will proceed to create the MongoDB resources and
+  request the |k8s| |certauth| to approve the database
+  host's certificates. Verify that the certificates are pending approval
+  by running the following command:
+
+  .. code-block:: sh
+
+     kubectl get mdb <resource-name> -n <namespace> -o yaml -w
+
+  The ``status`` field of the output should resemble the following:
+  
+  .. code-block:: sh
+     :copyable: false
+
+     status:
+       lastTransition: 2019-05-01T15:36:59Z
+       message: Not all certificates have been approved by Kubernetes CA
+       phase: Failed
+       type: ""
+       version: ""
+
+  If you do not see the ``status.message`` above, see
+  :ref:`k8s-troubleshooting` to help diagnose the issue.
+---
+title: "Approve the certificate for each host in your deployment."
+level: 4
+ref: approve-certificates-tls
+content: |
+
+  Approve the certificate for each host using the following command:
+
+  .. code-block:: sh
+
+     kubectl certificate approve <metadata.name>-<member>.<namespace>
+
+  .. example::
+
+     The following commands approve the certificates for the
+     replica set example in the previous step:
+
+     .. code-block:: sh
+        :copyable: false
+
+        kubectl certificate approve my-secure-rs-0.my-namespace
+        kubectl certificate approve my-secure-rs-1.my-namespace
+        kubectl certificate approve my-secure-rs-2.my-namespace
+
+  The |k8s-op-short| prints a message to the console when a certificate
+  is approved.
+---
+title: "Track the status of your deployment."
+level: 4
+ref: track-k8s-deployment-tls
+content: |
+
+  .. include:: /includes/check-resource-status.rst
+...
