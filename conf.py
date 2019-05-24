@@ -58,7 +58,9 @@ pygments_style = 'sphinx'
 
 source_constants = {
     'version': version,
-    'k8s-op-short': 'Kubernetes Operator'
+    'k8s-op-short': 'Kubernetes Operator',
+    'aagent': 'MongoDB Agent or legacy Automation Agent',
+    'aagents': 'MongoDB Agents or legacy Automation Agents'
 }
 
 rst_epilog = '\n'.join([
@@ -83,6 +85,7 @@ rst_epilog = '\n'.join([
     '.. |cidr| replace:: :abbr:`CIDR (Classless Inter-Domain Routing)`',
     '.. |cifs| replace:: :abbr:`CIFS (Common Internet File System)`',
     '.. |com| replace:: Cloud Manager or Ops Manager',
+    '.. |compass| replace:: :compass:`MongoDB Compass </>`',
     '.. |dns| replace:: :abbr:`DNS (Domain Name System)`',
     '.. |dns-srv| replace:: :abbr:`DNS (Domain Name System)` :abbr:`SRV (Service)`',
     '.. |ent-build| replace:: MongoDB Enterprise',
@@ -188,6 +191,7 @@ extlinks = {
     'cloudmgr': ('http://docs.cloudmanager.mongodb.com/%s', ''),
     'atlas': ('http://docs.atlas.mongodb.com/%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
+    'compass': ('https://docs.mongodb.com/compass/current%s',''),
     'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs','')
 }
