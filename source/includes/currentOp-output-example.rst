@@ -161,6 +161,8 @@
                         "command" : <document>,
                         "originatingCommand" : <document>,
                         "planSummary": <string>,
+                        "prepareReadConflicts" : <NumberLong()>,
+                        "writeConflicts" : <NumberLong()>,
                         "cursor" : {                              // only for getMore operations
                            "cursorId" : <NumberLong()>,
                            "createdDate" : <ISODate()>,
@@ -275,6 +277,8 @@
                          "ns" : <string>,
                          "command" : <document>,
                          "planSummary": <string>,
+                         "prepareReadConflicts" : <NumberLong()>,
+                         "writeConflicts" : <NumberLong()>,
                          "cursor" : {                              // only for getMore operations
                             "cursorId" : <NumberLong()>,
                             "createdDate" : <ISODate()>,
