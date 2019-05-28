@@ -1,3 +1,19 @@
+.. _opsmgr-server-4.1.7:
+
+|onprem| Rapid Release 4.1.7
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-05-29*
+
+- The Monitoring and Backup Agent have been merged into the Automation
+  Agent, which will now be known as the MongoDB Agent.
+  :doc:`Learn more </reference/faq/faq-mongodb-agent>` about this
+  change.
+
+- Enhanced left-hand navigations.
+
+- Agent Upgrade: :ref:`mongodb-10.0.0.5753`
+
 .. _opsmgr-server-4.1.6:
 
 |onprem| Rapid Release 4.1.6
