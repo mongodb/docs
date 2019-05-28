@@ -1,7 +1,6 @@
 .. admonition:: mLab is now a part of MongoDB, Inc.
    :class: note
 
-   The procedure to migrate from mLab to MongoDB Atlas will be
-   further streamlined in the future. If you are looking to migrate
-   immediately, use the following procedure to migrate your data
-   using the Atlas Live Migration Service.
+   mLab users will be migrated to MongoDB Atlas. To learn more about
+   migrating from mLab to MongoDB Atlas, see the
+   `mLab documentation <https://docs.mlab.com/mlab-to-atlas/?>`__.
