@@ -236,9 +236,14 @@
 
    * - ``numShards``
      - integer
-     - Optional
+     - Conditional
      - Selects whether the cluster is a :term:`replica set` or a
        :term:`sharded cluster`.
+
+       .. important::
+
+          If you use the ``replicationSpecs`` parameter, you must set
+          ``numShards``.
 
        If this is set to ``1``, the cluster is a replica set. For more
        information on MongoDB replica sets, see :manual:`Replication
@@ -636,7 +641,7 @@
           If you set ``replicationSpecs``, you must:
 
           - Set ``clusterType``
-          - Set ``diskTypeGB``
+          - Set ``numShards``
           - Not set ``replicationSpec``
           - Not use |nvme-clusters|
           - Not use Azure clusters
@@ -671,7 +676,7 @@
    * - | ``replicationSpecs[n]``
        | ``.numShards``
      - integer
-     - Optional
+     - Required
      - Number of shards to deploy in the specified zone.
 
    * - | ``replicationSpecs[n]``
