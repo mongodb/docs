@@ -33,7 +33,7 @@ Definition
         query: <document>,
         sort: <document>,
         remove: <boolean>,
-        update: <document>,
+        update: <document or aggregation pipeline>, // Changed in MongoDB 4.2
         new: <boolean>,
         fields: <document>,
         upsert: <boolean>,
@@ -167,6 +167,12 @@ If the operation results in an upsert, the collection must already exist.
 
 Examples
 --------
+
+.. contents:: In this section
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
 
 Update and Return
 ~~~~~~~~~~~~~~~~~
@@ -451,13 +457,21 @@ The operation returns the following document:
 
 .. _findAndModify-command-arrayFilters:
 
-Specify ``arrayFilters`` for an Array Update Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Array Update Operations with ``arrayFilters``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
 
 .. include:: /includes/extracts/arrayFilters-blurb.rst
 
 Update Elements Match ``arrayFilters`` Criteria
 ```````````````````````````````````````````````
+
+.. note::
+
+   .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
 
 Create a collection ``students`` with the following documents:
 
@@ -501,6 +515,10 @@ after the operation, the collection has the following documents:
 Update Specific Elements of an Array of Documents
 `````````````````````````````````````````````````
 
+.. note::
+
+   .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+
 Create a collection ``students2`` with the following documents:
 
 .. code-block:: javascript
@@ -524,19 +542,17 @@ Create a collection ``students2`` with the following documents:
       }
    ])
 
-To modify the value of the ``mean`` field for all elements in the
-``grades`` array where the grade is greater than or equal to ``85``,
-use the positional :update:`$[\<identifier\>]` operator with the
-``arrayFilters``:
-
-.. cssclass:: copyable-code
+The following operation finds a document where the ``_id`` field equals
+``1`` and uses the filtered positional operator :update:`$[\<identifier\>]` with
+the ``arrayFilters`` to modify the ``mean`` for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``.
 
 .. code-block:: javascript
 
    db.runCommand(
       {
         findAndModify: "students2",
-        query: { },
+        query: { _id : 1 },
         update: { $set: { "grades.$[elem].mean" : 100 } },
         arrayFilters: [ { "elem.grade": { $gte: 85 } } ] 
       }
@@ -563,6 +579,70 @@ operation, the collection has the following documents:
          { "grade" : 87, "mean" : 90, "std" : 3 },
          { "grade" : 85, "mean" : 85, "std" : 4 }
       ]
+   }
+
+.. _cmdfindOneAndUpdate-agg-pipeline:
+
+Use an Aggregation Pipeline for Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, :dbcommand:`findAndModify` can accept an
+aggregation pipeline for the update. The pipeline can consist of the
+following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Create a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students2.insert([
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ])
+
+The following operation finds a document where the ``_id`` field equals
+``1`` and uses an aggregation pipeline to add the field ``total`` to
+the document:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "students2",
+        query: {  "_id" : 1 },
+        update: [ { $set: { "total" : { $sum: "$grades.grade" } } } ],
+        new: true
+      }
+   )
+
+After the operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 4
+   
+   { 
+     "_id" : 1, 
+     "grades" : [ { "grade" : 80, "mean" : 75, "std" : 6 }, { "grade" : 85, "mean" : 90, "std" : 4 }, { "grade" : 85, "mean" :85, "std" : 6 } ], 
+     "total" : 250
+   }
+   {
+      "_id" : 2,
+      "grades" : [ { "grade" : 90, "mean" : 75, "std" : 6 }, { "grade" : 87, "mean" : 90, "std" : 3 }, { "grade" : 85, "mean" : 85,"std" : 4 } ]
    }
 
 .. seealso:: :ref:`perform-findAndModify-linearizable-reads`
