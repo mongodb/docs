@@ -249,16 +249,16 @@ content: |
 ref: transactions-read-concern-majority
 content: |
    Disabling :readconcern:`"majority"` read concern affects support for
-   :doc:`transactions </core/transactions>` on sharded clusters.
+   :doc:`transactions </core/transactions>` on sharded clusters. Specifically:
 
-   - Specifically, a transaction with read concern :readconcern:`"snapshot"` errors
-     if the transaction involves a shard with read concern
-     :readconcern:`"majority"` disabled.
+   - A transaction cannot use read concern :readconcern:`"snapshot"` if
+     the transaction involves a shard that has :ref:`disabled read
+     concern "majority" <disable-read-concern-majority>`.
 
-   - Specifically, a transaction that spans multiple shards errors if
-     the transaction involves a shard with read concern  :readconcern:`"majority"`
-     disabled.
-   
+   - A transaction that writes to multiple shards errors if any of the
+     transaction's read or write operations involves a shard that has
+     disabled read concern :readconcern:`"majority"`.
+
    However, it does not affect :doc:`transactions </core/transactions>`
    on replica sets. For transactions on replica sets, you can specify
    read concern :readconcern:`"majority"` (or :readconcern:`"snapshot"`
@@ -272,28 +272,25 @@ content: |
 ref: transactions-read-concern-majority-sharded-clusters
 content: |
 
-   On sharded clusters,
-      If a transaction involves a shard that has :ref:`disabled read
-      concern "majority" <disable-read-concern-majority>`, the
-      transaction can only use read concern :readconcern:`"local"` or
-      :readconcern:`"majority"` and the transaction must only target
-      that single shard. That is,
-
-      - You cannot run transactions with read concern
-        :readconcern:`"snapshot"` if the transaction involves a shard
-        that has disabled read concern ``"majority"``. The
-        transaction with read concern :readconcern:`"snapshot"` errors
-        and aborts.
+   On sharded clusters, 
+      - If a transaction involves a shard that has :ref:`disabled read
+        concern "majority" <disable-read-concern-majority>`, you cannot
+        use read concern :readconcern:`"snapshot"` for the transaction.
+        You can only use read concern :readconcern:`"local"` or
+        :readconcern:`"majority"` for the transaction. If you use read
+        concern :readconcern:`"snapshot"`, the transaction errors and
+        aborts.
 
         .. code-block:: none
            :copyable: false
 
            readConcern level 'snapshot' is not supported in sharded clusters when enableMajorityReadConcern=false.
 
-      - You cannot run transactions that span multiple shards if the
-        transaction involves a shard that has disabled read concern
-        ``"majority"``. The transaction errors during the commit and
-        aborts.
+      - Transactions whose write operations span multiple shards will
+        error and abort if any of the transaction's read or write
+        operations involves a shard that has disabled read concern
+        ``"majority"``.
+
 ---
 ref: transactions-read-concern-majority-replica-set
 content: |  
@@ -416,5 +413,15 @@ content: |
    Starting in MongoDB 4.2, you cannot read/write to :doc:`capped
    </core/capped-collections>` collections in :doc:`transactions
    </core/transactions>`.
+---
+ref: transactions-arbiters
+content: |
 
+   Transactions whose write operations span multiple shards will error
+   and abort if any transaction operation reads from or writes to a
+   shard contains an arbiter.
+
+   See also |disabledrcmaj| for transaction restrictions on shards that
+   have disabled read concern majority.
+   
 ...
