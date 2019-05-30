@@ -14,10 +14,10 @@
 
    * - mongocxx 3.4.x
      - |checkmark|
-     -
-     -
-     -
-     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
      -
      -
 
@@ -28,7 +28,7 @@
      - |checkmark|
      - |checkmark|
      -
-     - 
+     -
 
    * - mongocxx 3.2.x
      -
@@ -38,7 +38,7 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
- 
+
    * - mongocxx 3.1.x
      -
      -
