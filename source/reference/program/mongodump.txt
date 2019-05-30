@@ -23,8 +23,6 @@ Synopsis
 contents of a database. :binary:`~bin.mongodump` can export data from
 either :binary:`~bin.mongod` or :binary:`~bin.mongos` instances.
 
-.. include:: /includes/extracts/require-cmd-line-mongodump.rst
-
 :binary:`~bin.mongodump` can be a part of a :ref:`backup strategy
 <backup-with-mongodump>` with :binary:`~bin.mongorestore` for partial
 backups based on a query, syncing from production to staging or
@@ -42,6 +40,8 @@ For an overview of :binary:`~bin.mongodump` in conjunction with
 
 Syntax
 ------
+
+.. include:: /includes/extracts/require-cmd-line-mongodump.rst
 
 .. code-block:: sh
 
@@ -108,16 +108,34 @@ preference <replica-set-read-preference>`:
   :option:`--uri connection string <mongodump --uri>`
 
   .. code-block:: sh
-  
+
      mongodump --uri "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myReplicaSetName&readPreference=secondary" [additional options]
 
-- You can specify the read preference in using the
-  :option:`--readPreference <mongodump --readPreference>` command line
-  option:
+  If specifying the read preference tags, include the
+  :urioption:`readPreferenceTags` option:
 
   .. code-block:: sh
+
+     mongodump --uri "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myReplicaSetName&readPreference=secondary&readPreferenceTags=region:east" [additional options]
+
+- You can specify the read preference in using the
+  :option:`--readPreference <mongodump --readPreference>` command-line
+  option. The command-line option takes a string if specifying only the read preference mode:
+
+  .. code-block:: sh
+
+     mongodump --host "myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference secondary [additional options]
+
+  Or, the command-line option can takes a quote-enclosed document 
+  ``'{ mode: <mode>, tagSets: [ <tag1>, ... ], maxStalenessSeconds:<num>}'`` 
+  to specify the mode, the optional :ref:`read preference tag
+  sets <configure-read-pref-tags>`, and the optional
+  :ref:`maxStalenessSeconds
+  <replica-set-read-preference-max-staleness>`:
   
-     mongodump --host "myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference primary [additional options]
+  .. code-block:: sh
+
+     mongodump --host "myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference '{mode: "secondary", tagSets: [ { "region": "east" } ]}' [additional options]
 
 For more information on the options available, see :ref:`mongodump-options`.
 
@@ -150,13 +168,32 @@ preference <replica-set-read-preference>`:
   
      mongodump --uri "mongodb://mongos0.example.com:27017/?readPreference=secondary" [additional options]
 
-- You can specify the read preference in using the
-  :option:`--readPreference <mongodump --readPreference>` command line
-  option:
+  If specifying the read preference tags, include the
+  :urioption:`readPreferenceTags` option:
 
   .. code-block:: sh
   
-     mongodump --host "mongos0.example.com:27017" --readPreference primary [additional options]
+     mongodump --uri "mongodb://mongos0.example.com:27017/?readPreference=secondary&readPreferenceTags=region:east" [additional options]
+
+- You can specify the read preference in using the
+  :option:`--readPreference <mongodump --readPreference>` command-line
+  option.  The command-line option takes a string if specifying only the read preference mode:
+
+  .. code-block:: sh
+  
+     mongodump --host "mongos0.example.com:27017" --readPreference secondary [additional options]
+
+  Or, the command-line option can takes a quote-enclosed document 
+  ``'{ mode: <mode>, tagSets: [ <tag1>, ... ], maxStalenessSeconds: <num>}'`` 
+  to specify the mode, the optional :ref:`read preference tag
+  sets <configure-read-pref-tags>`, and the optional
+  :ref:`maxStalenessSeconds
+  <replica-set-read-preference-max-staleness>`:
+
+
+  .. code-block:: sh
+
+     mongodump --host "mongos0.example.com:27017" --readPreference '{mode: "secondary", tagSets: [ { "region": "east" } ]}' [additional options]
 
 For more information on the options available, see :ref:`mongodump-options`.
 
@@ -175,7 +212,7 @@ Read Preference
 By default, :binary:`~bin.mongodump` uses read preference
 :readmode:`primary`. To override the default, you can specify the
 :ref:`read preference <replica-set-read-preference>` in the
-:option:`--readPreference <mongodump --readPreference>` command line
+:option:`--readPreference <mongodump --readPreference>` command-line
 option or in the :option:`--uri connection string <mongodump --uri>`.
 
 Starting in version 4.2, if you specify read preference in the URI
