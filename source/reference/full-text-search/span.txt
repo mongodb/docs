@@ -1,0 +1,223 @@
+.. _span-ref:
+
+===============
+Span (Operator)
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Description
+-----------
+
+The ``span`` operator finds text search matches within regions of a
+text field. You can use it to find strings which are near each other to
+specified degrees of precision. The ``span`` operator is more
+computationally intensive than other operators, because queries must
+keep track of positional information.
+
+``span`` queries are not ranked by score.
+
+``span`` has the following syntax:
+
+.. code-block:: javascript
+
+   {
+      $searchBeta: {
+        "span": {
+          <clauses>: {
+            <search queries>
+          }
+        }
+      }
+   }
+
+.. note::
+
+   Internal ``span`` search queries can use the :ref:`term <term-ref>`
+   operator, but not the :ref:`search <search-ref>` or
+   :ref:`compound <compound-ref>` operators.
+
+Examples
+--------
+
+The following examples use a collection called ``fruit`` which
+contains the following documents:
+
+.. code-block:: json
+
+   {
+     "_id" : 1,
+     "type" : "apple",
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+   },
+   {
+     "_id" : 2,
+     "type" : "banana",
+     "description" : "Bananas are usually sold in bunches of five or six."
+   },
+   { 
+     "_id" : 3,
+     "type" : "grapes",
+     "description" : "Six bunches of grapes weigh about 3 pounds." 
+   }
+
+``first``
+~~~~~~~~~
+
+The following example uses a ``first`` clause to find documents
+in which the string ``bunches`` appears near the beginning of the
+``description`` field. The ``endPositionLte`` parameter has a
+value of ``2``, specifying that the search term must be the first
+or second word in the field.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta: {
+         "span": {  
+           "first": { 
+             "operator": {
+               "term": { 
+                 "path": "description",
+                 "query": "bunches"
+               } 
+             },
+             "endPositionLte": 2
+           }
+         }
+       }
+     }
+   ])
+
+The above query returns the document with ``_id: 3``, which has a
+``description`` field with ``bunches`` as the second word.
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 3, "type" : "grapes", "description" : "Six bunches of grapes weigh about 3 pounds." }
+
+``near``
+~~~~~~~~
+
+The following query looks for documents in which the strings
+``bunches`` and ``bananas`` are found near each other. The
+``inOrder`` parameter is set to ``false``, so the search terms can
+be in any order. The ``slop`` parameter is set to ``4``, so
+the search terms must be separated by no more than 4 words.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta : {
+         "span": {   
+           "near": { 
+             "clauses": [ 
+               { "term": { "path": "description", "query": "bunches" } },
+               { "term": { "path": "description", "query": "bananas" } }
+             ],
+             "slop": 4,
+             "inOrder": false
+           }
+         }
+       }
+     }
+   ])
+
+The above query finds the following result:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 2, "type" : "banana", "description" : "Bananas are usually sold in bunches of five or six." }
+
+``or``
+~~~~~~
+
+The following query uses two ``term`` clauses to look for documents
+in which the ``description`` field has either ``bananas`` or ``apples``
+as the first word.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     { 
+       $searchBeta: {
+         "span": { 
+           "first": { 
+             "endPositionLte": 1,
+             "operator": { 
+               "or": { 
+                 "clauses": [ 
+                   { "term": { "path": "description", "query": "bananas" } },
+                   { "term": { "path": "description", "query": "apples" } }
+                 ]
+               }
+             }
+           }
+         }
+       }  
+     }
+   ])
+
+The above query finds the following results:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 1, "type" : "apple", "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp." }
+   { "_id" : 2, "type" : "banana", "description" : "Bananas are usually sold in bunches of five or six." }
+
+``subtract``
+~~~~~~~~~~~~
+
+The ``subtract`` clause is useful for excluding certain strings from
+your search results. The following query looks for documents in which
+the ``description`` field contains the words ``six`` and ``bunches``,
+in any order, within 3 words of each other. It excludes any document
+in which the word ``five`` occurs between ``six`` and ``bunches``.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     {
+       $searchBeta : {
+         "span": {  
+           "subtract": { 
+             "include": {
+               "span": {  
+                 "near": { 
+                   "clauses": [ 
+                     { "term": { "path": "description", "query": "six" } },
+                     { "term": { "path": "description", "query": "bunches" } }
+                   ],
+                   "inOrder": false
+                 }
+               }
+             },
+             "exclude": { "term": { "path": "description", "query": "five" } }
+           }
+         }
+       }
+     }
+   ])
+
+The above query finds the following result:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 3, "type" : "grapes", "description" : "Six bunches of grapes weigh about 3 pounds." }
+
+The document with ``_id: 2`` is not included. Although its
+``description`` field includes the words ``six`` and ``bunches``,
+it also has ``five`` between them, and ``five`` is in the ``exclude``
+clause of the query.
