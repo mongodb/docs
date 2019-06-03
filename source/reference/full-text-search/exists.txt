@@ -1,0 +1,180 @@
+.. _exists-ref:
+
+=================
+Exists (Operator)
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: exists
+
+   The ``exists`` operator tests if a path to a specified field name
+   exists in a document. It is often used as part of a :ref:`compound
+   <compound-ref>` query in conjunction with other search clauses.
+
+   ``exists`` has the following syntax:
+   
+   .. code-block:: javascript
+   
+      { 
+        $searchBeta: {  
+          "exists": {
+            "path": "<field-to-test-for>",
+          }
+        }
+      }
+
+Examples
+--------
+
+The following examples use a collection called ``fruit`` that contains
+the following documents:
+
+.. code-block:: json
+
+   {
+     "_id" : 1,
+     "type" : "apple",
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+   },
+   {
+     "_id" : 2,
+     "type" : "banana",
+     "description" : "Bananas are usually sold in bunches of five or six."
+   },
+   { "_id" : 3,
+     "type": "apple",
+     "description" : "Apple pie and apple cobbler are popular apple-based desserts."
+   },
+   { "_id" : 4,
+     "description" : "Types of citrus fruit include lemons, oranges, and grapefruit.", 
+     "quantities" : {
+       "lemons": 200,
+       "oranges": 240,
+       "grapefruit": 160
+     }
+   }
+
+The ``fruit`` collection has a |fts| index on the ``description`` field
+that uses the :ref:`standard <ref-standard-analyzer>` analyzer. The
+``standard`` analyzer lower-cases all words and disregards common stop
+words (``"the", "a", "and",`` etc).
+
+Basic Example
+~~~~~~~~~~~~~
+
+The following example searches for documents which include a field
+called ``type``:
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     {
+       $searchBeta: {
+         "exists": {
+           "path": "type"
+         }
+       }
+     }
+   ])
+
+The above query returns the first three documents of the collection. The
+document with ``_id: 4`` is not included because it does not have a
+``type`` field.
+
+Embedded Example
+~~~~~~~~~~~~~~~~
+
+Use dot notation to search for embedded fields. The following example
+searches for documents which have a field named ``lemons`` embedded
+within a field named ``quantities``.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     {
+       $searchBeta: {
+         "exists": {
+           "path": "quantities.lemons"
+         }
+       }
+     }
+   ])
+
+The above query returns the following result:
+
+.. code-block:: json
+
+   { 
+     "_id" : 4,
+     "description" : "Types of citrus fruit include lemons, oranges, and grapefruit.", 
+     "quantities" : {
+       "lemons": 200,
+       "oranges": 240,
+       "grapefruit": 160
+     }
+   }
+
+Compound Example
+~~~~~~~~~~~~~~~~
+
+The following example uses ``exists`` as part of a :ref:`compound
+<compound-ref>` query.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     {
+       $searchBeta: {
+         "compound": {
+           "must": [
+             {
+               "exists": {
+                 "path": "type"
+               }
+             },
+             {
+               "search": {
+                 "query": "apple",
+                 "path": "type"
+               }
+             }],
+           "should": {
+             "search": {
+               "query": "fuji",
+               "path": "description"
+             }
+           }
+         }
+       }
+     }
+   ])
+
+The above query returns the following results:
+
+.. code-block:: json
+   :copyable: false
+
+   { 
+     "_id" : 1, 
+     "type" : "apple", 
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp." 
+   }
+   { 
+     "_id" : 3, 
+     "type" : "apple",
+     "description" : "Apple pie and apple cobbler are popular apple-based desserts."
+   }
+
+Both documents have a ``type`` field, and both include the search term
+``apple``. The document with ``_id: 1`` is returned first because it
+satisfies the :data:`should` clause.
