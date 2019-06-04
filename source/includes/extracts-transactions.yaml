@@ -423,5 +423,38 @@ content: |
 
    See also |disabledrcmaj| for transaction restrictions on shards that
    have disabled read concern majority.
+---
+ref: transactions-committed-visibility
+content: |
    
+   Until a transaction commits, the data changes made in the
+   transaction are not visible outside the transaction.
+
+   However, when a transaction writes to multiple shards, not all
+   outside read operations need to wait for the result of the committed
+   transaction to be visible across the shards. For example, if a
+   transaction is committed and write 1 is visible on shard A but write
+   2 is not yet visible on shard B, an outside read at read concern
+   :readconcern:`"local"` can read the results of write 1 without
+   seeing write 2.
+
+---
+ref: transactions-multi-shard-block-external-reads
+content: |
+   
+   During the commit for a transaction, outside read operations may try
+   to read the same documents that will be modified by the transaction.
+   If the transaction writes to multiple shards, then during the commit
+   attempt across the shards
+   
+   - Outside reads that use read concern :readconcern:`snapshot` or
+     :readconcern:`"linearizable"`, or are part of causally consistent
+     sessions (i.e. include :ref:`afterClusterTime <afterClusterTime>`)
+     wait for all writes of a transaction to be visible.
+
+   - Outside reads using other read concerns do not wait for all writes
+     of a transaction to be visible but instead read the
+     before-transaction version of the documents available.
+
 ...
+
