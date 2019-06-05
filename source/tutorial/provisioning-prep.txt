@@ -23,24 +23,25 @@ Each server must meet the following requirements.
 
 - At least 4 GB of RAM.
 
-- If you use Amazon Web Services (AWS) EC2 instances, we recommend at
-  least an ``m3.medium`` instance.
+- If you use |aws| EC2 instances, you should use a minimum of an
+  ``m3.medium`` instance.
 
-- The {+aagent+} must be installed only on 64-bit architectures.
+- The {+mdbagent+} must be installed only on 64-bit architectures.
 
 .. include:: /includes/prerequisites-automation-agent-servers.rst
 
-{+aagent+} Permissions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MongoDB Agent System User Permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The {+aagent+} must have permission:
+If you want the {+mdbagent+} to manage your MongoDB deployments, the
+{+mdbagent+} System User must have permission:
 
-- To stop the MongoDB processes. The {+aagent+} restarts the
-  processes using the agent's own set of MongoDB binaries.
+- To stop the MongoDB processes. The {+mdbagent+} System User restarts
+  the processes using the agent's own set of MongoDB binaries.
 
   If you had installed MongoDB with a package manager, use the same
-  package manager to install the {+aagent+}. This gives the agent
-  the same owner as MongoDB.
+  package manager to install the {+mdbagent+}. This gives the
+  {+mdbagent+} the same owner as MongoDB.
 
 - To ``Read`` and ``Write`` the MongoDB data directories and log
   directories.
@@ -51,16 +52,16 @@ The {+aagent+} must have permission:
   processes.
 
   .. example::
-     If your {+aagent+} runs as the ``mongod`` user in the
-     ``mongod`` group, the MongoDB process must also run as the
-     ``mongod`` user in the ``mongod`` group.
+     If your {+mdbagent+} runs as the ``mongod`` system user in the
+     ``mongod`` system group, the MongoDB process must also run as the
+     ``mongod`` system user in the ``mongod`` system group.
 
   .. note::
-     On Microsoft Windows systems, the {+aagent+}, and therefore
+     On Microsoft Windows systems, the {+mdbagent+}, and therefore
      the ``mongod`` or ``mongos`` services it manages, run as Windows
      services as the ``SYSTEM`` user. The existing MongoDB process
      should run as either ``SYSTEM`` or ``Administrator`` before adding
-     it to automation.
+     it to Automation.
 
 Installation Options
 --------------------
@@ -68,72 +69,73 @@ Installation Options
 Installing MongoDB Enterprise Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. important::
+.. warning::
 
-   If you run
+   If you want to run
    :product:`MongoDB Enterprise <mongodb-enterprise-advanced>`, you
-   must :manually install a set of dependencies to each server *before
-   :installing MongoDB*. Automation may fail if these dependencies are
-   :not installed.
+   must manually install a set of dependencies to each host *before
+   installing MongoDB*. Automation cannot install MongoDB Enterprise if
+   these dependencies are not installed.
 
-..    The MongoDB manual provides the appropriate command to install the
-..    dependencies.
+.. tabs::
 
-.. See the link for the server's operating system:
+   tabs:
+     - id: debian
+       name: Ubuntu / Debian
+       content: |
 
-.. .. include:: /includes/list-links-per-os-for-enterprise-dependencies.rst
+         .. code-block:: sh
 
-Red Hat Enterprise Linux/CentOS
-+++++++++++++++++++++++++++++++
+            sudo apt-get install libcurl3 libgssapi-krb5-2 libkrb5-dbg \
+              libldap-2.4-2 libpcap0.8 libpci3 libsasl2-2 libsensors4 \
+              libsnmp30 libssl1.0.0 libwrap0
 
-Version 6
-`````````
-.. class:: copyable-code
-.. code-block:: sh
+     - id: rhel
+       name: RHEL / CentOS
+       content: |
 
-   yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5-libs \
-     libcurl libpcap net-snmp openldap openssl
+         .. tabs::
 
-Version 7
-`````````
-.. class:: copyable-code
-.. code-block:: sh
+            tabs:
+              - id: v6
+                name: 6.x
+                content: |
 
-   yum install cyrus-sasl cyrus-sasl-gssapi cyrus-sasl-plain krb5-libs \
-     libcurl libpcap lm_sensors-libs net-snmp net-snmp-agent-libs \
-     openldap openssl rpm-libs tcp_wrappers-libs
+                  .. code-block:: sh
 
-Ubuntu & Debian
-+++++++++++++++
+                     yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi \
+                       krb5-libs libcurl libpcap net-snmp openldap openssl
 
-.. class:: copyable-code
-.. code-block:: sh
+              - id: v7
+                name: 7.x
+                content: |
 
-   sudo apt-get install libcurl3 libgssapi-krb5-2 libkrb5-dbg \
-     libldap-2.4-2 libpcap0.8 libpci3 libsasl2-2 libsensors4 libsnmp30 \
-     libssl1.0.0 libwrap0
+                  .. code-block:: sh
 
-SUSE
-++++
+                     yum install cyrus-sasl cyrus-sasl-gssapi cyrus-sasl-plain \
+                       krb5-libs libcurl libpcap lm_sensors-libs net-snmp \
+                       net-snmp-agent-libs openldap openssl rpm-libs tcp_wrappers-libs
 
-.. class:: copyable-code
-.. code-block:: sh
+     - id: suse
+       name: SUSE
+       content: |
 
-   zypper install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5 \
-     libcurl4 libldap-2_4-2 libopenssl1_0_0 libsensors4 libsnmp30 \
-     libpcap1 libwrap0 rpm
+         .. code-block:: sh
 
-Amazon Linux
-++++++++++++
+            zypper install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5 \
+              libcurl4 libldap-2_4-2 libopenssl1_0_0 libsensors4 libsnmp30 \
+              libpcap1 libwrap0 rpm
 
-.. class:: copyable-code
-.. code-block:: sh
+     - id: amz
+       name: Amazon Linux
+       content: |
 
-   yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi \
-     krb5-libs libcurl libpcap net-snmp openldap openssl
+         .. code-block:: sh
+
+            yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi \
+              krb5-libs libcurl libpcap net-snmp openldap openssl
 
 .. include:: /includes/prerequisites-automation-agent-new-deployment.rst
 
 .. include:: /includes/prerequisites-automation-agent-monitored-deployment.rst
-
 
