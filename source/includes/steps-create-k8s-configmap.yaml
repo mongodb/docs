@@ -21,13 +21,51 @@ ref: configure-k8s-configmap
 content: |
   .. include:: /includes/list-table-configmap-keys.rst
 ---
-title: "Save this file with a ``.yaml`` file extension."
+title: "(Optional) Enable X.509 authentication at the |com| project level."
 stepnum: 4
+level: 4
+ref: configure-configmap-x509
+content: |
+
+  Enabling X.509 authentication at the project level configures all agents
+  to use X.509 client authentication when communicating with MongoDB
+  deployments.
+
+  |cloud-short| or one of the following versions of |onprem| is required
+  to use X.509 client authentication:
+
+  .. list-table::
+     :widths: 50 50
+     :header-rows: 1
+
+     * - |onprem| Version
+       - Required Patch
+
+     * - |onprem| 4.1
+       - 4.1.7
+
+     * - |onprem| 4.0
+       - 4.0.11
+
+  To enable X.509 authentication, add the highlighted lines to your
+  ConfigMap:
+
+  {{example}}
+
+  .. include:: /includes/list-table-configmap-keys-x509.rst
+replacement:
+  example: |
+    .. literalinclude:: /reference/k8s/example-configmap-x509.yaml
+       :language: yaml
+       :emphasize-lines: 13-14
+---
+title: "Save this file with a ``.yaml`` file extension."
+stepnum: 5
 level: 4
 ref: save-k8s-configmap
 ---
 title: "Invoke the |k8s| command to create your |k8s-configmap|."
-stepnum: 5
+stepnum: 6
 level: 4
 ref: create-k8s-configmap
 content: |
@@ -42,7 +80,7 @@ content: |
      specified in your |k8s-configmap|.
 ---
 title: "Invoke the |k8s| command to verify your |k8s-configmap|."
-stepnum: 6
+stepnum: 7
 level: 4
 ref: verify-k8s-configmap
 content: |
@@ -67,4 +105,46 @@ content: |
      Namespace:      <metadata.namespace>
      Labels:         <none>
      Annotations:    <none>
+---
+title: "If X.509 is enabled, approve the X.509 client certificates for the agents."
+stepnum: 8
+level: 4
+ref: approve-agent-certificates
+content: |
+  .. note::
+
+     If X.509 client authentication was *not* enabled in step 4, skip
+     this step.
+
+  Run the following command to verify the agent certificate signing
+  requests are pending:
+
+  .. code-block:: sh
+
+     kubectl get csr
+
+  The command returns the following output:
+
+  .. code-block:: sh
+     :copyable: false
+
+     NAME                           AGE       REQUESTOR                                                   CONDITION
+     mms-automation-agent.mongodb   4s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     mms-backup-agent.mongodb       0s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     mms-monitoring-agent.mongodb   3s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+  Approve the certificate for each agent using the ``NAME`` field
+  above in the following command:
+
+  .. code-block:: sh
+
+     kubectl certificate approve <NAME>
+
+  The following commands approve the agent |csrs|:
+
+  .. code-block:: sh
+
+     kubectl certificate approve mms-automation-agent.mongodb
+     kubectl certificate approve mms-backup-agent.mongodb
+     kubectl certificate approve mms-monitoring-agent.mongodb
 ...

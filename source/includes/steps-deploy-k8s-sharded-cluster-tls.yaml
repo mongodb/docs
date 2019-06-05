@@ -11,7 +11,7 @@ content: |
 
    .. literalinclude:: /reference/k8s/example-sharded-cluster-tls.yaml
       :language: yaml
-      :emphasize-lines: 5-7,9-16,19-25
+      :emphasize-lines: 5-7,9-16,19-27
 
 ---
 stepnum: 2
@@ -88,49 +88,192 @@ level: 4
 ref: approve-certificates-tls
 content: |
 
-  Approve the certificate for each config server using the following
-  command:
+  Retrieve the |csrs| for each host by running the following command:
 
   .. code-block:: sh
 
-     kubectl certificate approve <metadata.name>-config-<member>.<namespace>
+     kubectl get csr
 
-  Approve the certificate for each ``mongos`` using the following
-  command:
+  The output of the command and number of certificates to approve
+  depend on whether X.509 internal cluster authentication is enabled by
+  setting :setting:`spec.security.clusterAuthenticationMode` to
+  ``x509`` in step 4.
 
-  .. code-block:: sh
+  .. tabs::
 
-     kubectl certificate approve <metadata.name>-mongos-<member>.<namespace>
+     tabs:
+       - id: x509disabled
+         name: X.509 Disabled
+         content: |
+           The command's output resembles the following:
 
-  Approve the certificate for each ``mongod`` host using the following
-  command:
+           .. code-block:: sh
 
-  .. code-block:: sh
+              NAME                                       AGE       REQUESTOR                                                   CONDITION
+              my-secure-sc-0-0.mongodb                   30s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-0-1.mongodb                   28s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-0-2.mongodb                   27s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-1-0.mongodb                   22s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-1-1.mongodb                   13s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-1-2.mongodb                   6s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-config-0.mongodb              36s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-config-1.mongodb              34s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-config-2.mongodb              32s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-mongos-0.mongodb              49s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-mongos-1.mongodb              42s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
 
-     kubectl certificate approve <metadata.name>-mongod-<member>.<namespace>
+           Using the ``NAME`` field above, approve each certificate from the
+           previous command's output using the following command:
 
-  .. example::
+           .. code-block:: sh
 
-     The following commands approve the certificates for the
-     sharded cluster example in the previous step:
+              kubectl certificate approve <NAME>
 
-     .. code-block:: sh
-        :copyable: false
+           .. example::
 
-        kubectl certificate approve my-secure-sc-config-0.my-namespace
-        kubectl certificate approve my-secure-sc-config-1.my-namespace
-        kubectl certificate approve my-secure-sc-config-2.my-namespace
-        kubectl certificate approve my-secure-sc-mongos-0.my-namespace
-        kubectl certificate approve my-secure-sc-mongos-1.my-namespace
-        kubectl certificate approve my-secure-sc-0-0.my-namespace
-        kubectl certificate approve my-secure-sc-0-1.my-namespace
-        kubectl certificate approve my-secure-sc-0-2.my-namespace
-        kubectl certificate approve my-secure-sc-1-0.my-namespace
-        kubectl certificate approve my-secure-sc-1-1.my-namespace
-        kubectl certificate approve my-secure-sc-1-2.my-namespace
+              The following commands approve the certificates for the
+              replica set example in the previous step:
 
-  The |k8s-op-short| prints a message to the console when a certificate
-  is approved.
+              .. code-block:: sh
+                 :copyable: false
+
+                 kubectl certificate approve my-secure-sc-0-0.mongodb
+                 kubectl certificate approve my-secure-sc-0-1.mongodb
+                 kubectl certificate approve my-secure-sc-0-2.mongodb
+                 kubectl certificate approve my-secure-sc-1-0.mongodb
+                 kubectl certificate approve my-secure-sc-1-1.mongodb
+                 kubectl certificate approve my-secure-sc-1-2.mongodb
+                 kubectl certificate approve my-secure-sc-config-0.mongodb
+                 kubectl certificate approve my-secure-sc-config-1.mongodb
+                 kubectl certificate approve my-secure-sc-config-2.mongodb
+                 kubectl certificate approve my-secure-sc-mongos-0.mongodb
+                 kubectl certificate approve my-secure-sc-mongos-1.mongodb
+
+           |kubectl| prints a message to the console when a certificate
+           is approved.
+
+       - id: x509enabled
+         name: X.509 Enabled
+         content: |
+
+           The command's output resembles the following:
+
+           .. code-block:: sh
+
+              NAME                                       AGE       REQUESTOR                                                   CONDITION
+              mms-automation-agent.mongodb               20m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              mms-backup-agent.mongodb                   20m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              mms-monitoring-agent.mongodb               20m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-0-0.mongodb                   30s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-0-1.mongodb                   28s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-0-2.mongodb                   27s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-1-0.mongodb                   22s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-1-1.mongodb                   13s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-1-2.mongodb                   6s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-config-0.mongodb              36s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-config-1.mongodb              34s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-config-2.mongodb              32s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-mongos-0.mongodb              49s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-mongos-1.mongodb              42s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+           Using the ``NAME`` field above, approve each certificate from the
+           previous command's output using the following command:
+
+           .. code-block:: sh
+
+              kubectl certificate approve <NAME>
+
+           .. example::
+
+              The following commands approve the certificates for the
+              replica set example in the previous step:
+
+              .. code-block:: sh
+                 :copyable: false
+
+                 kubectl certificate approve my-secure-sc-0-0.mongodb
+                 kubectl certificate approve my-secure-sc-0-1.mongodb
+                 kubectl certificate approve my-secure-sc-0-2.mongodb
+                 kubectl certificate approve my-secure-sc-1-0.mongodb
+                 kubectl certificate approve my-secure-sc-1-1.mongodb
+                 kubectl certificate approve my-secure-sc-1-2.mongodb
+                 kubectl certificate approve my-secure-sc-config-0.mongodb
+                 kubectl certificate approve my-secure-sc-config-1.mongodb
+                 kubectl certificate approve my-secure-sc-config-2.mongodb
+                 kubectl certificate approve my-secure-sc-mongos-0.mongodb
+                 kubectl certificate approve my-secure-sc-mongos-1.mongodb
+
+           |kubectl| prints a message to the console when a certificate
+           is approved.
+
+           When :setting:`spec.security.clusterAuthenticationMode` is set to
+           ``x509`` an additional |csr| will be generated per host for the
+           clusterfile.
+
+           After the first batch of certificates are approved, run the
+           command to retrieve the |csrs| again:
+
+           .. code-block:: sh
+
+              kubectl get csr
+
+           The clusterfile |csrs| are now present in the output:
+
+           .. code-block:: sh
+
+              NAME                                        AGE       REQUESTOR                                                   CONDITION
+              mms-automation-agent.mongodb                22m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              mms-backup-agent.mongodb                    22m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              mms-monitoring-agent.mongodb                22m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-0-0-clusterfile.mongodb        40s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-0-0.mongodb                    2m22s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-0-1-clusterfile.mongodb        36s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-0-1.mongodb                    2m20s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-0-2-clusterfile.mongodb        32s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-0-2.mongodb                    2m19s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-1-0-clusterfile.mongodb        27s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-1-0.mongodb                    2m14s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-1-1-clusterfile.mongodb        23s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-1-1.mongodb                    2m5s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-1-2-clusterfile.mongodb        20s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-1-2.mongodb                    118s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-config-0-clusterfile.mongodb   10s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-config-0.mongodb               2m28s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-config-1-clusterfile.mongodb   5s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-config-1.mongodb               2m26s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-config-2-clusterfile.mongodb   2s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-config-2.mongodb               2m24s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-mongos-0-clusterfile.mongodb   18s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-mongos-0.mongodb               2m41s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-sc-mongos-1-clusterfile.mongodb   12s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-sc-mongos-1.mongodb               2m34s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+           Approve the clusterfile |csrs| using the same command:
+
+           .. code-block:: sh
+
+              kubectl certificate approve <NAME>
+
+           .. example::
+
+              The following commands approve the clusterfile
+              certificates:
+
+              .. code-block:: sh
+                 :copyable: false
+
+                 kubectl certificate approve my-secure-sc-0-0-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-0-1-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-0-2-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-1-0-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-1-1-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-1-2-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-config-0-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-config-1-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-config-2-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-mongos-0-clusterfile.mongodb
+                 kubectl certificate approve my-secure-sc-mongos-1-clusterfile.mongodb
+
 ---
 title: "Track the status of your :term:`sharded cluster` deployment."
 stepnum: 10
