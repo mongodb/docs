@@ -7,6 +7,6 @@ list of sharded clusters and replica sets eligible for backup. If
 the appropriate hosts are not added, or the Monitoring Agent is not
 being correctly run, the lists may be incomplete or out-of-date.
 
-If you have not already installed and configured the Monitoring Agent,
-please refer to the :doc:`/tutorial/nav/install-monitoring-agent`
+If you have not already installed and configured the {+mdbagent+},
+please refer to the :doc:`/tutorial/nav/install-mongodb-agent`
 documentation.
