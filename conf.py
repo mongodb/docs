@@ -195,7 +195,8 @@ extlinks = {
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
     'compass': ('https://docs.mongodb.com/compass/current%s',''),
     'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
-    'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs','')
+    'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
+    'website': ('https://www.mongodb.com%s?jmp=docs','')
 }
 
 intersphinx_mapping = {}
