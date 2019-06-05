@@ -1,3 +1,28 @@
+.. _automation-5.4.19.5537:
+
+Automation Agent 5.4.19.5537
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.12 on 2019-06-06 <opsmgr-server-4.0.12>`
+
+- **Fix:** Automation Agent now periodically closes all idle |http|
+  connections.
+
+- **Fix:** Allow Automation Agent to connect to |mongos| through either
+  "short" or "long" hostnames.
+
+- **Fix:** Fix failure in the ``make-init-scripts`` tool.
+
+- **Fix:** Lower the default |http| Header time out in the Automation
+  Agent from 15 minutes to 30 seconds. This ensures faster failures
+  in the event of |onprem| service infrastructure changes (such as
+  load balancers moving nodes out of a pool).
+
+- **Fix:** When restoring a sharded cluster, ensure that all sharding
+  metadata is removed for the ``config.system.sessions`` table. Failure
+  to do so leads to MongoDB being unable to re-create this collection
+  after the restore is complete.
+
 .. _automation-5.4.16.5515-1:
 
 Automation Agent 5.4.16.5515-1
@@ -94,11 +119,11 @@ Automation Agent 5.4.9.5483
 
 :ref:`Released with Ops Manager 4.0.1 on 2018-08-02 <opsmgr-server-4.0.1>`
 
-- **Critical Fix:** Set ``TasksMax=infinity`` and 
+- **Critical Fix:** Set ``TasksMax=infinity`` and
   ``TasksAccounting=false`` in ``systemd`` scripts for
   Automation Agent.
 
-- **Fix:** Automation Agent handling of enterprise builds for 
+- **Fix:** Automation Agent handling of enterprise builds for
   Amazon Linux 2.
 
 .. _automation-5.4.6.5465:

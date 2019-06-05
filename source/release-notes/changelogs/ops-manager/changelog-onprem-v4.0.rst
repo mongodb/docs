@@ -1,3 +1,20 @@
+.. _opsmgr-server-4.0.12:
+
+|onprem| Server 4.0.12
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2019-06-06*
+
+- **Fix:** :guilabel:`Authentication & TLS/SSL` settings allows removal
+  of ``PEM`` key file and password no matter the ``sslMode``.
+
+- **Fix:** Fixed support for the ``security.clusterIpSourceWhitelist``
+  MongoDB configuration option.
+
+- Dependency Update: Updated jetty to 9.4.18.
+
+- **Agent Upgrades:** :ref:`automation-5.4.19.5537`
+
 .. _opsmgr-server-4.0.11:
 
 |onprem| Server 4.0.11
@@ -15,16 +32,16 @@
 - A new option to bypass invitations allows users to be added to
   organizations and projects immediately, without requiring them to
   accept an invitation. Organization and project owners can enable
-  this setting in the User Authentication section of the :ref:`Ops
-  Manager Config wizard <opsmgr-config-user-authentication-tab>`.
+  this setting in the User Authentication section of the
+  :ref:`Ops Manager Config wizard <opsmgr-config-user-authentication-tab>`.
 
   This setting is only available when managing user accounts in the
   :ref:`Application Database <mms-application-database>`. The
   invitation bypass option is available for users added via the UI
   and the |api|.
 
-- **Fix:** When enabling MongoDB profiling from the Profile tab,
-  ensure that the pending changes banner is shown without requiring
+- **Fix:** When enabling MongoDB profiling from the :guilabel:`Profile`
+  tab, ensure that the pending changes banner is shown without requiring
   a browser refresh.
 
 - Updated JDK to version 8u212. On Windows, Ops Manager now requires
@@ -95,7 +112,7 @@
 
 *Released 2019-01-10*
 
-- Address the `CVE-2018-19361 <https://nvd.nist.gov/vuln/detail/CVE-2018-19361>`__ 
+- Address the `CVE-2018-19361 <https://nvd.nist.gov/vuln/detail/CVE-2018-19361>`__
   affecting the `jackson-databind <https://github.com/FasterXML/jackson-databind>`__
   library up to and including version 2.9.7.
 
@@ -184,7 +201,7 @@
 - **Fix:** Log collection fails for log files greater than
   approximately 2.2 GB.
 - |ldap| connections will now use a connection pool. This reduces load
-  on |ldap| servers. 
+  on |ldap| servers.
 - Update bundled version of the |bic-full| to version 2.6.1.
 
 .. _opsmgr-server-4.0.2:
@@ -236,10 +253,10 @@
 - **Critical Fix:** Fix issue which caused the :guilabel:`All Clusters`
   page to fail to display content.
 
-- During a backup initial sync, ensure that the UUID of the 
+- During a backup initial sync, ensure that the UUID of the
   ``system.views`` collection is preserved.
 
-- In Local Mode, the Backup Daemon will now unpack MongoDB tarballs. 
+- In Local Mode, the Backup Daemon will now unpack MongoDB tarballs.
   Administrators no longer need to unpack them themselves.
 
 - Reinstate support for ``security.encryptionKeyFile`` parameter.
