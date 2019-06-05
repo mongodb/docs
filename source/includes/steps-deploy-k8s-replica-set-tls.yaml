@@ -11,7 +11,7 @@ content: |
 
    .. literalinclude:: /reference/k8s/example-replica-set-tls.yaml
       :language: yaml
-      :emphasize-lines: 5-7,9-13,16-22
+      :emphasize-lines: 5-7,9-13,16-24
 ---
 stepnum: 2
 level: 4
@@ -54,6 +54,20 @@ content: |
          ``requireSSL`` which configures the hosts to only use and
          accept TLS encrypted connections.
        - ``true``
+
+     * - :setting:`spec.security.clusterAuthenticationMode`
+       - string
+       - *Optional.* Enables :ref:`X.509 internal cluster authentication <x509-internal-authentication>`.
+
+         Remove this field from your ConfigMap to disable X.509 internal
+         cluster authentication.
+
+         .. important::
+
+            Once internal cluster authentication is enabled, it can not be
+            disabled.
+
+       - ``x509``
 
      * - :setting:`spec.additionalMongodConfig.net.ssl.mode`
        - string
@@ -125,26 +139,136 @@ level: 4
 ref: approve-certificates-tls
 content: |
 
-  Approve the certificate for each host using the following command:
+  Retrieve the |csrs| for each host by running the following command:
 
   .. code-block:: sh
 
-     kubectl certificate approve <metadata.name>-<member>.<namespace>
+     kubectl get csr
 
-  .. example::
+  The output of the command and number of certificates to approve
+  depend on whether X.509 internal cluster authentication is enabled by
+  setting :setting:`spec.security.clusterAuthenticationMode` to
+  ``x509`` in step 4.
 
-     The following commands approve the certificates for the
-     replica set example in the previous step:
+  .. tabs::
 
-     .. code-block:: sh
-        :copyable: false
+     tabs:
+       - id: x509disabled
+         name: X.509 Disabled
+         content: |
+           The command's output resembles the following:
 
-        kubectl certificate approve my-secure-rs-0.my-namespace
-        kubectl certificate approve my-secure-rs-1.my-namespace
-        kubectl certificate approve my-secure-rs-2.my-namespace
+           .. code-block:: sh
 
-  The |k8s-op-short| prints a message to the console when a certificate
-  is approved.
+              NAME                                 AGE       REQUESTOR                                                   CONDITION
+              my-secure-rs-0.mongodb               33s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-rs-1.mongodb               31s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-rs-2.mongodb               24s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+           Using the ``NAME`` field above, approve each certificate from the
+           previous command's output using the following command:
+
+           .. code-block:: sh
+
+              kubectl certificate approve <NAME>
+
+           .. example::
+
+              The following commands approve the certificates for the
+              replica set example in the previous step:
+
+              .. code-block:: sh
+                 :copyable: false
+
+                 kubectl certificate approve my-secure-rs-0.mongodb
+                 kubectl certificate approve my-secure-rs-1.mongodb
+                 kubectl certificate approve my-secure-rs-2.mongodb
+
+           |kubectl| prints a message to the console when a certificate
+           is approved.
+
+       - id: x509enabled
+         name: X.509 Enabled
+         content: |
+
+           The command's output resembles the following:
+
+           .. code-block:: sh
+
+              NAME                           AGE       REQUESTOR                                                   CONDITION
+              mms-automation-agent.mongodb   15m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              mms-backup-agent.mongodb       15m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              mms-monitoring-agent.mongodb   15m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-rs-0.mongodb         6s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-rs-1.mongodb         4s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-rs-2.mongodb         1s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+           Using the ``NAME`` field above, approve each certificate from the
+           previous command's output using the following command:
+
+           .. code-block:: sh
+
+              kubectl certificate approve <NAME>
+
+           .. example::
+
+              The following commands approve the certificates for the
+              replica set example in the previous step:
+
+              .. code-block:: sh
+                 :copyable: false
+
+                 kubectl certificate approve my-secure-rs-0.mongodb
+                 kubectl certificate approve my-secure-rs-1.mongodb
+                 kubectl certificate approve my-secure-rs-2.mongodb
+
+           |kubectl| prints a message to the console when a certificate
+           is approved.
+
+           When :setting:`spec.security.clusterAuthenticationMode` is set to
+           ``x509`` an additional |csr| will be generated per host for the
+           clusterfile.
+
+           After the first batch of certificates are approved, run the
+           command to retrieve the |csrs| again:
+
+           .. code-block:: sh
+
+              kubectl get csr
+
+           The clusterfile |csrs| are now present in the output:
+
+           .. code-block:: sh
+              :copyable: false
+
+              NAME                                       AGE       REQUESTOR                                                   CONDITION
+              mms-automation-agent.mongodb               17m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              mms-backup-agent.mongodb                   17m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              mms-monitoring-agent.mongodb               17m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-rs-0-clusterfile.mongodb         13s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-rs-0.mongodb                     105s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-rs-1-clusterfile.mongodb         7s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-rs-1.mongodb                     103s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+              my-secure-rs-2-clusterfile.mongodb         3s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+              my-secure-rs-2.mongodb                     100s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+
+           Approve the clusterfile |csrs| using the same command:
+
+           .. code-block:: sh
+
+              kubectl certificate approve <NAME>
+
+           .. example::
+
+              The following commands approve the clusterfile
+              certificates:
+
+              .. code-block:: sh
+                 :copyable: false
+
+                 kubectl certificate approve my-secure-rs-0-clusterfile.mongodb
+                 kubectl certificate approve my-secure-rs-1-clusterfile.mongodb
+                 kubectl certificate approve my-secure-rs-2-clusterfile.mongodb
 ---
 title: "Track the status of your deployment."
 level: 4

@@ -86,6 +86,8 @@ rst_epilog = '\n'.join([
     '.. |cifs| replace:: :abbr:`CIFS (Common Internet File System)`',
     '.. |com| replace:: Cloud Manager or Ops Manager',
     '.. |compass| replace:: :compass:`MongoDB Compass </>`',
+    '.. |csr| replace:: :abbr:`CSR (Certificate Signing Request)`',
+    '.. |csrs| replace:: :abbr:`CSRs (Certificate Signing Requests)`',
     '.. |dns| replace:: :abbr:`DNS (Domain Name System)`',
     '.. |dns-srv| replace:: :abbr:`DNS (Domain Name System)` :abbr:`SRV (Service)`',
     '.. |ent-build| replace:: MongoDB Enterprise',
