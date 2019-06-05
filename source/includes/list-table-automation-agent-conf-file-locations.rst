@@ -1,27 +1,38 @@
-.. list-table::
-   :widths: 30 20 50
-   :header-rows: 1
+.. tabs-platforms::
 
-   * - Platform
-     
-     - Installation Method
-       
-     - Default Config File Path
+   tabs:
 
-   * - RHEL, CentOS, Amazon Linux and Ubuntu
+     - id: windows
+       content: |
 
-     - package manager
+         .. code-block:: ps1
 
-     - ``/etc/mongodb-mms/automation-agent.config``
+            C:\MMSData\Automation\automation-agent.config
 
-   * - macOS or other Linux distributions
+     - id: macos
+       content: |
 
-     - ``tar``
-     
-     - ``/path/to/install/local.config``
+         .. code-block:: sh
 
-   * - Windows
+            /path/to/install/local.config
 
-     - ``msi``
-     
-     - ``C:\MMSData\Automation\automation-agent.config``
+     - id: linux
+       content: |
+
+         .. code-block:: sh
+
+            /path/to/install/local.config
+
+     - id: rhel
+       content: |
+
+         .. code-block:: sh
+
+            /etc/mongodb-mms/automation-agent.config
+
+     - id: debian
+       content: |
+
+         .. code-block:: sh
+
+            /etc/mongodb-mms/automation-agent.config
