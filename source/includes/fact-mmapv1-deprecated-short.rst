@@ -1,2 +1,2 @@
-MongoDB deprecated the :ref:`storage-mmapv1` in MongoDB 4.0 and will remove it in
-a future release.
+MongoDB deprecated the MMAPv1 storage engine in MongoDB 4.0 and removed
+it in MongoDB 4.2.

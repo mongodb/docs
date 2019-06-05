@@ -2,24 +2,34 @@ ref: security
 edition: onprem
 content: |
 
-  To ensure the security of your |onprem| agents, |onprem| servers,
-  and MongoDB deployments, |onprem| supports the security options
-  described on this page.
+  To ensure the security of your {+mdbagent+}s, |onprem| hosts,
+  and MongoDB deployments, |onprem| supports the following security
+  options.
 
-  |tls-ssl| Support for Encrypted Connections
-  -------------------------------------------
+  |tls| for Encrypted Connections
+  -------------------------------
 
-  |onprem| supports encrypted connections using |tls-ssl| server or
-  client certificates. Client certificates identify the user while
-  server certificates identifies the server.
+  |onprem| supports encrypted connections using |tls| server or
+  client certificates. Client certificates identify the *user* while
+  server certificates identifies the *host*.
 
-  - All |onprem| agents can connect to |onprem| using |tls-ssl| server or client certificates.
+  - The {+mdbagent+} uses |tls| server or client certificate that the
+    legacy Automation Agent used.
+
+    - If the legacy Monitoring Agent used its own |tls| server or
+      client certificate before the update to the {+mdbagent+},
+      {+magent+} continues to use that certificate.
+
+    - If the legacy Backup Agent used its own |tls| server or client
+      certificate before the update to the {+mdbagent+}, {+bagent+}
+      continues to use that certificate.
 
   - |onprem| can
     :doc:`connect to its backing databases </tutorial/configure-ssl-connection-to-backing-mongodb>`
-    using |tls-ssl| server or client certificates.
+    using |tls| server or client certificates.
 
-  - |onprem| users can connect to the |onprem| console or |api| using |tls-ssl| :doc:`server certificates </tutorial/configure-ssl-connection-to-web-interface>`.
+  - |onprem| users can connect to the |onprem| console or |api| using
+    |tls| :doc:`server certificates </tutorial/configure-ssl-connection-to-web-interface>`.
 
   Authentication Mechanisms
   -------------------------
@@ -41,7 +51,7 @@ content: |
        - :doc:`Kerberos </tutorial/enable-kerberos-authentication-for-group>`
        - :doc:`LDAP </tutorial/enable-ldap-authentication-for-group>`
      * - Ops Manager
-       - Linux Backing Database
+       - Backing Database
        - :icon:`check-circle`
        - :icon:`check-circle`
        - :icon:`check-circle`
@@ -49,34 +59,7 @@ content: |
        - :icon:`check-circle`
        - :icon:`check-circle`
        - :icon:`check-circle`
-     * - Ops Manager
-       - Windows Backing Database
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       -
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-     * - {+magent+}
-       - Ops Manager
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-     * - {+bagent+}
-       - Ops Manager
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-       - :icon:`check-circle`
-     * - {+aagent+}
+     * - {+mdbagent+}
        - Ops Manager
        - :icon:`check-circle`
        - :icon:`check-circle`
@@ -88,17 +71,17 @@ content: |
      * - |onprem| User
        - Ops Manager
        - :icon:`check-circle`
-       - 
-       - 
-       - 
-       - 
-       - 
+       -
+       -
+       -
+       -
+       -
        - :icon:`check-circle` :doc:`* </tutorial/configure-for-ldap-authentication>`
 
   .. note::
 
-     Kerberos and |ldap| authentication is available with MongoDB
-     Enterprise only.
+     Kerberos and |ldap| authentication is available with
+     :product:`MongoDB Enterprise <mongodb-enterprise-advanced>` only.
 
 ---
 ref: security
@@ -106,116 +89,109 @@ edition: cloud
 content: |
 
   |mms| provides configurable encryption, authentication, and
-  authorization to ensure the security of your |mms| agents and MongoDB
-  deployments. |mms| supports :ref:`SSL <cloud-ssl>`,
+  authorization to ensure the security of your {+mdbagent+}s and
+  MongoDB deployments. |mms| supports :ref:`TLS <cloud-tls>`,
   :ref:`cloud-mongodb-cr`, :ref:`cloud-ldap`, and
   :ref:`cloud-kerberos`.
 
   .. _cloud-ssl:
+  .. _cloud-tls:
 
-  SSL Encryption
-  --------------
+  |tls| Encryption
+  ----------------
 
-  |mms| can use SSL for encrypting communications for the following
-  {+magent+} and {+bagent+} connections:
+  |mms| can use |tls| for encrypting communications for when the
+  {+mdbagent+} connects to:
 
-  - Connections to |mms|.
+  - |mms|.
 
-  - Connections to MongoDB instances that use SSL. You must set each
-    MongoDB host's :guilabel:`Use SSL` setting in |mms| and must
-    configure the agents' SSL settings. See
-    :doc:`/tutorial/configure-monitoring-agent-for-ssl` and
-    :doc:`/tutorial/configure-backup-agent-for-ssl`.
+  - MongoDB instances that use |tls|. You must set each
+    MongoDB host's :guilabel:`Use TLS` setting in |mms| and must
+    configure the agent's |tls| settings. See
+    :doc:`/tutorial/configure-mongodb-agent-for-tls`.
 
   Access Control and Authentication
   ---------------------------------
 
   MongoDB uses Role-Based Access Control (RBAC) to determine access to
   a MongoDB system. When run with access control, MongoDB requires
-  users to authenticate themselves to determine their access.
+  users to authenticate themselves and then determines that user's
+  permissions.
 
-  If you :ref:`enable authentication <enable-authentication>` for your
-  deployments, the |mms| agents authenticate to the deployments as
-  MongoDB users with appropriate privileges.
+  If your MongoDB deployment uses authentication and the
+  {+mdbagent+}:
 
-  If a MongoDB deployment runs with access control, the Monitoring and
-  {+bagent+}s must authenticate to the deployment as MongoDB users
-  with appropriate access. See the following:
+  - Uses Automation to manage the deployment, |mms| creates the
+    appropriate MongoDB user, gives it all necessary roles, and
+    authenticates to the deployments as that MongoDB user.
 
-  - :doc:`/reference/required-access-monitoring-agent`
-  - :doc:`/reference/required-access-backup-agent`
+  - Does not use Automation to manage the deployment, you must create a
+    MongoDB user for the {+mdbagent+} Monitoring and Backup functions
+    with :doc:`appropriate access </reference/required-access-mongodb-agent>`.
 
-  To learn more about authenticating with the supported mechanisms, see
-  :ref:`cloud-mongodb-cr`, :ref:`cloud-ldap`, and :ref:`cloud-kerberos`.
+  .. note::
+
+     Kerberos and |ldap| authentication is available with
+     :product:`MongoDB Enterprise <mongodb-enterprise-advanced>` only.
+
 
   .. _cloud-mongodb-cr:
+  .. _cloud-scram:
 
-  MONGODB-CR
-  ----------
+  SCRAM-SHA-1 and SCRAM-SHA-256
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  |mms| can use the MongoDB Challenge-Response (``MONGODB-CR``)
-  authentication mechanism to authenticate to a MongoDB deployment.
-  To learn more, see the ``MONGODB-CR`` section on the
-  :manual:`Authentication page </core/authentication>` in the MongoDB
-  manual.
+  |mms| can use the ``SCRAM-SHA-1`` and ``SCRAM-SHA-256``
+  authentication mechanisms to authenticate a user on a MongoDB
+  deployment. To learn about SCRAM, see the :manual:`SCRAM page
+  </core/security-scram>` in the MongoDB manual.
 
-  If your MongoDB deployment uses ``MONGODB-CR`` for authentication,
-  you must create a MongoDB user for the |mms| agents as well as
-  specify the host's authentication settings.
+  If your MongoDB deployment uses ``SCRAM`` authentication and the
+  {+mdbagent+}:
 
-  To create a MongoDB user, see
-  :doc:`/tutorial/configure-monitoring-agent-for-cr` and
-  :doc:`/tutorial/configure-backup-agent-for-cr`.
-
-  You can specify the host's authentication settings when
-  :doc:`adding the host </tutorial/add-existing-mongodb-processes>`,
-  or you can
-  :doc:`edit the settings </tutorial/edit-host-authentication-credentials>` for an existing host.
+  - Uses Automation to manage the deployment, |mms| creates the
+    appropriate MongoDB user and gives it all necessary roles.
+  - Does not use Automation to manage the deployment, you must
+    :doc:`create a MongoDB user </tutorial/configure-mongodb-agent-for-scram>`
+    for the {+mdbagent+} Monitoring and Backup functions.
 
   .. _cloud-ldap:
 
   |ldap|
-  ------
+  ~~~~~~
 
-  |mms| agents can use the |ldap| authentication mechanism to
+  The {+mdbagent+} can use the |ldap| authentication mechanism to
   authenticate to the MongoDB deployment.
 
   If your MongoDB deployment uses |ldap| for authentication, you must
-  create a MongoDB user for the |mms| agents as well as specify the
-  host's authentication settings.
+  :doc:`create a MongoDB user for the {+mdbagent+}
+  </tutorial/configure-mongodb-agent-for-ldap>` and specify the
+  host's authentication settings when you:
 
-  To create a MongoDB user for the agents, see
-  :doc:`/tutorial/configure-monitoring-agent-for-ldap` and
-  :doc:`/tutorial/configure-backup-agent-for-ldap`.
-
-  You can specify the host's authentication settings when
-  :doc:`adding the host </tutorial/add-existing-mongodb-processes>`,
-  or you can
-  :doc:`edit the settings </tutorial/edit-host-authentication-credentials>` for an existing host.
+  - :doc:`Add a MongoDB host </tutorial/add-existing-mongodb-processes>`
+    or
+  - :doc:`Edit the settings </tutorial/edit-host-authentication-credentials>`
+    for an existing host.
 
   .. _cloud-kerberos:
 
   Kerberos
-  --------
+  ~~~~~~~~
+
+  The {+mdbagent+} can use the Kerberos authentication mechanism to
+  authenticate to the MongoDB deployment.
 
   If your MongoDB deployment uses Kerberos for authentication, you
-  must create the Kerberos Principal for the |mms| agents, create a
-  MongoDB user for that Kerberos Principal, edit the agent's
-  configuration file, and specify the host's authentication settings.
+  must:
 
-  If you are running both the {+magent+} and the {+bagent+} on
-  the same server, then both agents must connect as the same Kerberos
-  Principal.
+  - :ref:`Create the Kerberos UPN for the {+mdbagent+} <create-krb5-upn-for-mongodb-agent>`
+  - :ref:`Create a MongoDB user for that Kerberos UPN <create-mongodb-user-for-mongodb-agent>`
+  - Use the same Kerberos |upn| for Automation and Backup functions.
+  - :doc:`Edit the agent's configuration file </reference/mongodb-agent-settings>`
+  - Specify the host's authentication settings when you:
 
-  To create a Kerberos Principal and the associated MongoDB user as
-  well as edit the configuration file, see
-  :doc:`/tutorial/configure-monitoring-agent-for-kerberos` and
-  :doc:`/tutorial/configure-backup-agent-for-kerberos`.
-
-  You can specify the host's authentication settings when
-  :doc:`adding the host </tutorial/add-existing-mongodb-processes>`,
-  or you can
-  :doc:`edit the settings </tutorial/edit-host-authentication-credentials>`
-  for an existing host.
+    - :doc:`Add a host </tutorial/add-existing-mongodb-processes>` or
+    - :doc:`Edit the settings </tutorial/edit-host-authentication-credentials>`
+      for an existing host.
 
 ...
