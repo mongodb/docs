@@ -51,8 +51,6 @@ Definition
    - Can output to a sharded collection. Input collection can
      also be sharded.
 
-   - Can output to a capped collection.
-
    For a comparison with the :pipeline:`$out` stage which also outputs
    the aggregation results to a collection, see
    :ref:`merge-out-comparison`.
@@ -138,12 +136,13 @@ The :pipeline:`$merge` takes a document with the following fields:
            - For a :ref:`sharded cluster <sharded-cluster>`, the
              specified output database must already exist.
 
+         - The output collection cannot be the same collection as the
+           collection being aggregated.
+
          - The output collection cannot appear in any other stages of
            the pipeline.
 
          - The output collection can be a sharded collection.
-
-         - The output collection can be a capped collection.
 
   * - :ref:`on <merge-on>`
 
@@ -533,21 +532,21 @@ Output to a Sharded Collection
 
 .. _merge-behavior-replaceCollection:
 
-Replace Documents vs Replace Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Replace Documents (``$merge``) vs Replace Collection (``$out``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container::
 
    :pipeline:`$merge` can replace an existing document in the output
-   collection if the aggregation results contains a document or documents
-   that match based on the :ref:`on <merge-on>` specification. As such,
-   :pipeline:`$merge` can completely replace an existing collection if the
-   aggregation results include matching documents for all existing
-   documents in the collection and you specify :ref:`"replace"
-   <merge-whenMatched-replace>` for :ref:`whenMatched
-   <merge-whenMatched>`.
+   collection if the aggregation results contains a document or
+   documents that match based on the :ref:`on <merge-on>`
+   specification. As such, :pipeline:`$merge` can replace all documents
+   in the existing collection if the aggregation results include
+   matching documents for all existing documents in the collection and
+   you specify :ref:`"replace" <merge-whenMatched-replace>` for
+   :ref:`whenMatched <merge-whenMatched>`.
 
-   However, to replace an existing collection regardless of the
+   However, **to replace an existing collection** regardless of the
    aggregation results, use :pipeline:`$out` instead.
 
 Existing Documents and ``_id`` and Shard Key Values
@@ -555,9 +554,10 @@ Existing Documents and ``_id`` and Shard Key Values
 
 .. container::
 
-   If the :pipeline:`$merge` results in a change in the ``_id`` value or,
-   if the output collection is sharded, the shard key value for an existing
-   document, :pipeline:`$merge` errors.
+   The :pipeline:`$merge` errors if the :pipeline:`$merge` results in a
+   change to an existing document's ``_id`` value. Additionally, for a
+   sharded collection, :pipeline:`$merge` also errors if it results in
+   a change to the shard key value of an exising document.
 
    Any writes completed by the :pipeline:`$merge` before the error will
    not be rolled back.
@@ -643,10 +643,6 @@ Comparison with ``$out``
 
         - - Cannot output to a sharded collection. Input collection,
             however, can be sharded.
-
-      * - - Can output to a capped collection.
-
-        - - Cannot output to a capped collection.
 
       * - - Corresponds to SQL statements:
 
