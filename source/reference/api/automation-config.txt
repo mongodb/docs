@@ -16,22 +16,26 @@ Overview
 --------
 
 The Public API provides the ``automationConfig`` resource to let you
-manipulate your group’s :doc:`automation configuration
-</reference/cluster-configuration>`. The configuration defines the
-various MongoDB clusters, replica sets and standalones in the
-deployment and defines how each process runs. The {+aagent+}s
-build the deployment according to the goals specified. Each {+aagent+} is responsible for the MongoDB processes that run on its host.
-The configuration also specifies settings for the deployment's agents.
+manipulate your group’s
+:doc:`automation configuration </reference/cluster-configuration>`.
+The configuration defines the various MongoDB clusters, replica sets
+and standalones in the deployment and defines how each process runs.
+{+aagent+} builds the deployment according to the goals specified.
+Each {+mdbagent+} using Automation is responsible for the MongoDB
+processes that run on its host. The configuration also specifies
+settings for the deployment's {+mdbagent+}s.
 
-When a running MongoDB process matches its defined configuration, the process
-is in "goal state." When all processes on all hosts are in goal state, the
-deployment itself is in goal state.
+When a running MongoDB process matches its defined configuration, the
+process is in "goal state". When all processes on all hosts are in goal
+state, the deployment itself is in goal state.
 
-For example automation configurations, please see the following page on GitHub:
-`<https://github.com/10gen-labs/mms-api-examples/tree/master/automation/>`_.
+For example automation configurations, please see
+`mms-api-examples <https://github.com/10gen-labs/mms-api-examples/tree/master/automation/>`_
+on GitHub.
 
-To update the automation configuration, you must issue the request from an IP
-address on your user account's :ref:`whitelist <whitelist-for-api-operations>`.
+To update the automation configuration, you must issue the request from
+an IP address on your user account's
+:ref:`whitelist <whitelist-for-api-operations>`.
 
 Endpoints
 ---------
@@ -41,7 +45,7 @@ Get the Automation Configuration
 
 Retrieve the current automation configuration for a group.
 
-.. code-block:: none
+.. code-block:: http
 
    GET /groups/{GROUP-ID}/automationConfig
 
@@ -50,27 +54,28 @@ Retrieve the current automation configuration for a group.
 Update the Automation Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: none
+.. code-block:: http
 
    PUT /groups/{GROUP-ID}/automationConfig
 
-Use ``PUT`` to update a group's automation configuration. **Do not** use
-``PATCH``. For steps for updating an automation configuration, see
+Use ``PUT`` to update a group's automation configuration. **Do not**
+use ``PATCH``. For steps for updating an automation configuration, see
 :doc:`/tutorial/update-automation-configuration`.
 
-To make updates to the {+magent+} or {+bagent+} *other than*
-``hostname``, you must do so through a different endpoint. See
-:ref:`update-monitoring-or-backup-agent-via-api` and
-:ref:`update-monitoring-backup-versions`.
+To make updates to the {+mdbagent+} *other than*
+``hostname``, you must do so through a different endpoint.
 
 When you submit updates, |mms| makes internal modifications to the data
-and then saves your new configuration version. For example, |mms| might
-add a field to each specified community MongoDB
-version to indicate where the agents download them from.
+and then saves your new configuration version.
 
-The {+aagent+}s continuously poll |mms| for changes to the
-configuration and fetch configuration updates when they occur. The agents
-then adjust the states of their live processes to match.
+.. example::
+
+   |mms| might add a field to each specified community MongoDB version
+   to indicate where the Agents download them from.
+
+The MongoDB Agents continuously poll |mms| for changes to the
+configuration and fetch configuration updates when they occur. The
+Agents then adjust the states of their live processes to match.
 
 .. _concurrent-cluster-config:
 
@@ -81,76 +86,85 @@ then adjust the states of their live processes to match.
    modifications, and then submit their modifications, the later
    modification wins.
 
+.. get-monitoring-or-backup-agent-via-api:
+
+Get {+magent+} or {+bagent+} Attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| provides the following endpoints to get these configurations.
+
+Get {+magent+} Attributes
+`````````````````````````
+
+.. code-block:: http
+
+   GET /groups/{GROUP-ID}/automationConfig/monitoringAgentConfig
+
+Get {+bagent+} Attributes
+`````````````````````````
+
+.. code-block:: http
+
+   GET /groups/{GROUP-ID}/automationConfig/backupAgentConfig
+
 .. _update-monitoring-or-backup-agent-via-api:
 
-Update the {+magent+} or {+bagent+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Update {+magent+} or {+bagent+} Attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some attributes of the `monitoringVersions` and `backupVersions` objects
-cannot be updated through the ``automationConfig`` endpoint.
+Some attributes of the `monitoringVersions` and `backupVersions`
+objects cannot be updated through the ``automationConfig`` endpoint.
 |mms| provides the following endpoints to update these fields.
 
 .. important::
 
    Do **not** use these endpoints to update the agent's host. To update
-   ``monitoringVersions.hostname`` or ``backupVersions.hostname``, use the
-   endpoint to :ref:`update the entire configuration
+   ``monitoringVersions.hostname`` or ``backupVersions.hostname``, use
+   the endpoint to :ref:`update the entire configuration
    <update-automation-configuration-via-api>`.
 
-Update {+magent+} attributes:
+Update {+magent+} Attributes
+````````````````````````````
 
-.. code-block:: none
+.. code-block:: http
 
    PUT /groups/{GROUP-ID}/automationConfig/monitoringAgentConfig
 
-Update {+bagent+} attributes:
+To change these settings with the {+mdbagent+}, the body of this
+request should include one or more of these settings inside a
+``configOverrides`` object:
 
-.. code-block:: none
+.. include:: /includes/list-tables/config-override-monitoring-settings.rst
+
+Update {+bagent+} Attributes
+````````````````````````````
+.. code-block:: http
 
    PUT /groups/{GROUP-ID}/automationConfig/backupAgentConfig
 
-The endpoints update the following agent attributes. Pass an object with all
-the attributes *that you use*, whether or not the value is changing. If you do
-not use a field, do not include it:
+To change these settings with the {+mdbagent+}, the body of this
+request should include one or more of these settings inside a
+``configOverrides`` object:
 
-- ``logPath`` (required for non-Windows operating systems)
-- ``logPathWindows`` (required for Windows operating systems)
-- ``logRotate``
-
-  - ``logRotate.sizeThresholdMB``
-  - ``logRotate.timeThresholdHrs``
-  - ``logRotate.numUncompressed``
-  - ``logRotate.percentOfDiskspace``
-
-- ``username``
-- ``password``
-- ``kerberosPrincipal``
-- ``kerberosKeytab``
-- ``kerberosWindowsUsername`` (only required if Windows MongoDB deployment uses Kerberos authentication)
-- ``kerberosWindowsPassword`` (only required if Windows MongoDB deployment uses Kerberos authentication)
-- ``sslPEMKeyFile``
-- ``sslPEMKeyFileWindows`` (only required if deployment contains Windows processes)
-- ``sslPEMKeyPwd``
+.. include:: /includes/list-tables/config-override-backup-settings.rst
 
 .. _update-monitoring-backup-versions:
 
 Update Agent Versions
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: none
+.. code-block:: http
 
    POST /groups/{GROUP-ID}/automationConfig/updateAgentVersions
 
-This endpoint updates the following agents and tools to the latest
+This endpoint updates the {+mdbagent+} and tools to the latest
 versions available at the time of the request:
 
-- :doc:`{+aagent+} </tutorial/nav/automation-agent/>`
-- :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`
-- :doc:`{+bagent+} </tutorial/nav/backup-agent/>`
-- `BI Connector <https://docs.mongodb.com/bi-connector/current/>`_
+- :doc:`{+mdbagent+} </tutorial/nav/mongodb-agent/>`
+- :bic:`BI Connector </>`
 
 After this request completes, |mms| modifies the agent configuration
-and saves the updated version. For additional details on executing
+and saves the updated version. To learn more about executing
 this request, see :ref:`this example <update-agend-versions-example>`.
 
 .. _other-representations-automation-configuration:
@@ -158,29 +172,32 @@ this request, see :ref:`this example <update-agend-versions-example>`.
 Other Representations of the Automation Configuration
 -----------------------------------------------------
 
-The {+aagent+} stores a copy of the configuration in the
-``mms-cluster-config-backup.json`` file. The agent stores the most recent
-version of configuration **with which the agent was able to reach goal
-state**. If an agent is not able to process configuration changes, it
-continues to store an older version of the configuration.
+{+aagent+} stores a copy of the configuration in the
+``mms-cluster-config-backup.json`` file. Automation stores the most
+recent version of configuration *with which Automation was able to
+reach goal state*. If an Agent is not able to process configuration
+changes, it continues to store an older version of the configuration.
 
 .. cond:: onprem
 
-   Users with :ref:`global roles <global-roles>` can view |mms|'s internal
-   representation of the deployment configuration, which is much larger than
-   the automation configuration and includes additional fields used only
-   internally. **Never** use this representation to update the automation
-   configuration. The representation is called the ``Raw AutomationConfig`` is
-   viewable through the :guilabel:`Deployment` page.
+   Users with :ref:`global roles <global-roles>` can view |mms|'s
+   internal representation of the deployment configuration, which is
+   much larger than the automation configuration and includes
+   additional fields used only internally. *Never* use this
+   representation to update the automation configuration. The
+   representation is called the ``Raw AutomationConfig`` is viewable
+   through the :guilabel:`Deployment` page.
 
 .. _automation-configuration-sample-entity:
 
 Automation Configuration Entity
 -------------------------------
 
-This section describes the fields that comprise the automation configuration.
-For additional examples, see the following page on GitHub:
-`<https://github.com/10gen-labs/mms-api-examples/tree/master/automation/>`_.
+This section describes the fields that comprise the automation
+configuration. For additional examples, please see
+`mms-api-examples <https://github.com/10gen-labs/mms-api-examples/tree/master/automation/>`_
+on GitHub.
+
 
 .. contents:: This section includes the following:
    :local:
@@ -204,17 +221,17 @@ MongoDB Versions Specifications
 .. include:: /includes/api/automation-configuration/mongoDbVersions.rst
 
 {+aagent+}
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~
 
 .. include:: /includes/api/automation-configuration/agentVersion.rst
 
 {+magent+}
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~
 
 .. include:: /includes/api/automation-configuration/monitoringVersions.rst
 
 {+bagent+}
-~~~~~~~~~~~~
+~~~~~~~~~~
 
 .. include:: /includes/api/automation-configuration/backupVersions.rst
 
@@ -243,8 +260,8 @@ Authentication
 
 .. include:: /includes/api/automation-configuration/auth.rst
 
-SSL
-~~~
+|tls|
+~~~~~
 
 .. include:: /includes/api/automation-configuration/ssl.rst
 
@@ -272,19 +289,23 @@ Get the Automation Configuration
 Request
 ```````
 
-.. only:: cloud
+.. cond:: cloud
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
 
-      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig"
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --include \
+       --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig"
 
-.. only:: onprem
+.. cond:: onprem
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
 
-      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest -i "https://{opsManagerHost}:{port}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig"
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --include \
+       --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig"
 
 Response
 ````````
@@ -312,22 +333,30 @@ Request
 ```````
 
 The following replaces the automation configuration with the updated
-configuration saved in ``Users/admin/updated-conf.json``. For an example of an
-updated configuration document, see :ref:`example-updated-configuration`.
+configuration saved in ``Users/admin/updated-conf.json``. For an
+example of an updated configuration document, see
+:ref:`example-updated-configuration`.
 
-.. only:: cloud
+.. cond:: cloud
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
 
-      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" -H "Content-Type: application/json" --digest -i -X PUT "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig" --data @/Users/admin/updated-conf.json
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PUT "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig"
+       --data @/Users/admin/updated-conf.json
 
-.. only:: onprem
+.. cond:: onprem
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
 
-      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" -H "Content-Type: application/json" --digest -i -X PUT "https://{opsManagerHost}:{port}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig" --data @/Users/admin/updated-conf.json
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PUT "https://{+opsmgr-url+}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig" --data @/Users/admin/updated-conf.json
 
 Response
 ````````
@@ -351,13 +380,13 @@ Response Body
 Example Automation Configuration
 ````````````````````````````````
 
-The following is an example entity passed through the ``--data @<configuration>``
-option. The exact fields included in an automation configuration depend on the
-|mms| group.
+The following example entity is passed through the
+``--data @<configuration>`` option. The exact fields included in an
+automation configuration depend on the |mms| group.
 
-The example uses ``...`` when a field has multiple entries and also in place
-of some field values. For detailed information on a field, see the
-:ref:`automation-configuration-sample-entity` section on this page.
+The example uses ``...`` when a field has multiple entries and also in
+place of some field values. For detailed information on a field, see
+the :ref:`automation-configuration-sample-entity` section on this page.
 
 .. code-block:: json
 
@@ -512,38 +541,46 @@ of some field values. For detailed information on a field, see the
    }
 
 Update the {+magent+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 Request
 ```````
 
-.. only:: cloud
+.. cond:: cloud
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
 
-      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" -H "Content-Type: application/json" --digest -i -X PUT https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/monitoringAgentConfig --data '
-      {
-        "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
-        "logRotate": {
-          "sizeThresholdMB": 1000,
-          "timeThresholdHrs": 12
-        }
-      }'
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PUT "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/monitoringAgentConfig"
+       --data '
+         {
+           "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
+           "logRotate": {
+             "sizeThresholdMB": 1000,
+             "timeThresholdHrs": 12
+           }
+         }'
 
-.. only:: onprem
+.. cond:: onprem
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
 
-      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" -H "Content-Type: application/json" --digest -i -X PUT https://{opsManagerHost}:{port}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/monitoringAgentConfig --data '
-      {
-        "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
-        "logRotate": {
-          "sizeThresholdMB": 1000,
-          "timeThresholdHrs": 12
-        }
-      }'
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PUT "https://{+opsmgr-url+}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/monitoringAgentConfig"
+       --data '
+         {
+           "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
+           "logRotate": {
+             "sizeThresholdMB": 1000,
+             "timeThresholdHrs": 12
+           }
+         }'
 
 Response
 ````````
@@ -562,37 +599,47 @@ Response Body
 
    {}
 
-Update the {+bagent+}
-~~~~~~~~~~~~~~~~~~~~~~~
+Update the Backup Log Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Request
 ```````
 
-.. only:: cloud
+.. cond:: cloud
 
    .. code-block:: sh
 
-      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" -H "Content-Type: application/json" --digest -i -X PUT https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/backupAgentConfig --data '
-      {
-        "logPath": "/var/log/mongodb-mms-automation/backup-agent.log",
-        "logRotate": {
-          "sizeThresholdMB": 1000,
-          "timeThresholdHrs": 36
-        }
-      }'
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PUT "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/backupAgentConfig"
+       --data '
+         {
+           "logPath": "/var/log/mongodb-mms-automation/backup-agent.log",
+           "logRotate": {
+             "sizeThresholdMB": 1000,
+             "timeThresholdHrs": 36
+           }
+         }'
 
-.. only:: onprem
+.. cond:: onprem
 
    .. code-block:: sh
 
-      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" -H "Content-Type: application/json" --digest -i -X PUT https://{opsManagerHost}:{port}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/backupAgentConfig --data '
-      {
-        "logPath": "/var/log/mongodb-mms-automation/backup-agent.log",
-        "logRotate": {
-          "sizeThresholdMB": 1000,
-          "timeThresholdHrs": 36
-        }
-      }'
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PUT "https://{+opsmgr-url+}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/backupAgentConfig"
+       --data '
+         {
+           "logPath": "/var/log/mongodb-mms-automation/backup-agent.log",
+           "logRotate": {
+             "sizeThresholdMB": 1000,
+             "timeThresholdHrs": 36
+           }
+         }'
 
 Response
 ````````
@@ -619,7 +666,7 @@ Update Agent Versions
 Request
 ```````
 
-.. only:: cloud
+.. cond:: cloud
 
    .. code-block:: sh
 
@@ -628,14 +675,15 @@ Request
       --include \
       --request POST "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/updateAgentVersions"
 
-.. only:: onprem
+.. cond:: onprem
 
    .. code-block:: sh
 
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-      --header "Content-Type: application/json" \
-      --include \
-      --request POST https://{opsManagerHost}:{port}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/updateAgentVersions
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/updateAgentVersions"
 
 Response
 ````````
@@ -650,6 +698,20 @@ Response Header
 Response Body
 +++++++++++++
 
-.. code-block:: json
+.. cond:: cloud
 
-   {"automationAgentVersion":"5.8.0.5546-1","monitoringAgentVersion":"6.7.0.466-1","biConnectorVersion":"2.6.1","backupAgentVersion":"7.1.0.1011-1"}
+   .. code-block:: json
+
+      {
+        "automationAgentVersion": "{+mdbagent-version-cloud+}",
+        "biConnectorVersion": "2.6.1",
+      }
+
+.. cond:: onprem
+
+   .. code-block:: json
+
+      {
+        "automationAgentVersion": "{+mdbagent-version-opsmgr+}",
+        "biConnectorVersion": "2.6.1",
+      }
