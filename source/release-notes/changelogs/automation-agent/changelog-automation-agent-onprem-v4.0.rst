@@ -11,22 +11,23 @@ Automation Agent 5.4.19.5537
 - **Fix:** Allow Automation Agent to connect to |mongos| through either
   "short" or "long" hostnames.
 
-- **Fix:** Fix failure in the ``make-init-scripts`` tool.
+- **Fix:** Fix failure in the
+  :doc:`make-init-scripts </tutorial/stop-using-automation>` tool.
 
 - **Fix:** Lower the default |http| Header time out in the Automation
   Agent from 15 minutes to 30 seconds. This ensures faster failures
-  in the event of |onprem| service infrastructure changes (such as
-  load balancers moving nodes out of a pool).
+  in the event of |onprem| service infrastructure changes, such as
+  load balancers moving nodes out of a pool.
 
-- **Fix:** When restoring a sharded cluster, ensure that all sharding
-  metadata is removed for the ``config.system.sessions`` table. Failure
-  to do so leads to MongoDB being unable to re-create this collection
-  after the restore is complete.
+- **Fix:** When restoring a sharded cluster, remove all sharding
+  metadata from the :data:`config.system.sessions` collection. If you
+  do not remove the sharding metadata, MongoDB cannot to re-create this
+  collection after the restore is complete.
 
-.. _automation-5.4.16.5515-1:
+.. _automation-5.4.16.5515:
 
-Automation Agent 5.4.16.5515-1
-------------------------------
+Automation Agent 5.4.16.5515
+----------------------------
 
 :ref:`Released with Ops Manager 4.0.8 on 2019-02-07 <opsmgr-server-4.0.8>`
 

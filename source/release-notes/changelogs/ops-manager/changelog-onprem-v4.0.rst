@@ -6,7 +6,8 @@
 *Released on 2019-06-06*
 
 - **Fix:** :guilabel:`Authentication & TLS/SSL` settings allows removal
-  of ``PEM`` key file and password no matter the ``sslMode``.
+  of ``PEM`` key file and password no matter the
+  :option:`sslMode <mongod.--sslMode>`.
 
 - **Fix:** Fixed support for the ``security.clusterIpSourceWhitelist``
   MongoDB configuration option.
@@ -103,7 +104,7 @@
   |onprem|, for |onprem| installations using |ldap| for user
   authentication, and ActiveDirectory as the |ldap| server.
 
-- **Agent Upgrades:** :ref:`automation-5.4.16.5515-1`
+- **Agent Upgrades:** :ref:`automation-5.4.16.5515`
 
 .. _opsmgr-server-4.0.7:
 
