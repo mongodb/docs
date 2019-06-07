@@ -17,43 +17,64 @@ Definition
 
    .. versionadded:: 3.2
    
-   Updates multiple documents within the collection based on the filter.
-   
-   The :method:`~db.collection.updateMany()` method has the following form:
+   Updates all documents that match the specified filter for a
+   collection.
 
-   .. versionchanged:: 3.6
+Syntax
+------
 
-   .. code-block:: javascript
+The :method:`~db.collection.updateMany()` method has the following form:
 
-      db.collection.updateMany(
-         <filter>,
-         <update>,
-         {
-           upsert: <boolean>,
-           writeConcern: <document>,
-           collation: <document>,
-           arrayFilters: [ <filterdocument1>, ... ]
-         }
-      )
+.. code-block:: javascript
 
-   The :method:`~db.collection.updateMany()` method takes the following
-   parameters:
+   db.collection.updateMany(
+      <filter>,
+      <update>,
+      {
+        upsert: <boolean>,
+        writeConcern: <document>,
+        collation: <document>,
+        arrayFilters: [ <filterdocument1>, ... ]
+      }
+   )
 
-   .. include:: /includes/apiargs/method-db.collection.updateMany-param.rst
+Parameters
+~~~~~~~~~~
 
+The :method:`~db.collection.updateMany()` method takes the following
+parameters:
 
-   :returns:
+.. include:: /includes/apiargs/method-db.collection.updateMany-param.rst
+
+Returns
+~~~~~~~
+
+The method returns a document that contains:
       
-      A document containing:
-      
-      - A boolean ``acknowledged`` as ``true`` if the operation ran with 
-        :term:`write concern` or ``false`` if write concern was disabled
-       
-      - ``matchedCount`` containing the number of matched documents
-      
-      - ``modifiedCount`` containing the number of modified documents
-      
-      - ``upsertedId`` containing the ``_id`` for the upserted document
+- A boolean ``acknowledged`` as ``true`` if the operation ran with 
+  :term:`write concern` or ``false`` if write concern was disabled
+ 
+- ``matchedCount`` containing the number of matched documents
+
+- ``modifiedCount`` containing the number of modified documents
+
+- ``upsertedId`` containing the ``_id`` for the upserted document
+
+Access Control
+--------------
+
+On deployments running with :setting:`~security.authorization`, the
+user must have access that includes the following privileges:
+
+- :authaction:`update` action on the specified collection(s).
+
+- :authaction:`find` action on the specified collection(s).
+
+- :authaction:`insert` action on the specified collection(s) if the
+  operation results in an upsert.
+
+The built-in role :authrole:`readWrite` provides the required
+privileges.
 
 Behavior
 --------
@@ -66,6 +87,69 @@ If ``upsert: true`` and no documents match the ``filter``,
 :method:`~db.collection.updateMany()` creates a new 
 document based on the ``filter`` and ``update`` parameters. See 
 :ref:`updateMany-example-update-multiple-documents-with-upsert`.
+
+.. _updateMany-behavior-update-expressions:
+
+Update with an Update Operator Expressions Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For the modification specification, the
+:method:`db.collection.updateMany()` method can accept a document that
+only contains :ref:`update operator <update-operators>` expressions to
+perform.
+
+For example:
+
+.. code-block:: javascript
+   :emphasize-lines: 3
+   :copyable: false
+
+   db.collection.updateMany( 
+      <query>,
+      { $set: { status: "D" }, $inc: { quantity: 2 } },
+      ...
+   )
+
+.. _updateMany-behavior-aggregation-pipeline:
+
+Update with an Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :method:`db.collection.updateMany()` method
+can accept an :doc:`aggregation pipeline
+</core/aggregation-pipeline>` ``[ <stage1>, <stage2>, ... ]`` that
+specifies the modifications to perform. The pipieline can consist of
+the following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+For example:
+
+.. code-block:: javascript
+   :emphasize-lines: 3-6
+   :copyable: false
+
+   db.collection.updateMany( 
+      <query>,
+      [ 
+         { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ] } }, 
+         { $unset: [ "misc1", "misc2" ] } 
+      ]
+      ...
+   )
+
+.. note::
+
+   The ``$set`` and ``$unset`` used in the pipeline refers to the
+   aggregation stages :pipeline:`$set` and :pipeline:`$unset`
+   respectively, and not the update operators :update:`$set` and :update:`$unset`.
+
+For examples, see :ref:`updateMany-example-agg`.
+
 
 .. _updateMany-capped-collections:
 
@@ -155,6 +239,136 @@ If no matches were found, the operation instead returns:
    { "acknowledged" : true, "matchedCount" : 0, "modifiedCount" : 0 }
 
 Setting ``upsert: true`` would insert a document if no match was found.
+
+.. _updateMany-example-agg:
+
+Update with Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :method:`db.collection.updateMany()` can use
+an aggregation pipeline for the update. The pipeline can consist of the
+following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+Example 1
+`````````
+
+The following examples uses the aggregation pipeline to modify a field
+using the values of the other fields in the document.
+
+Create a ``members`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insertMany([
+      { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 2, "misc1" : "note to self: confirm status", "misc2" : "Need to activate" },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+   ])
+
+Assume that instead of separate ``misc1`` and ``misc2`` fields, you
+want to gather these into a new ``comments`` field. The following
+update operation uses an aggregation pipeline to add the new
+``comments`` field and remove the ``misc1`` and ``misc2`` fields for
+all documents in the collection.
+
+.. code-block:: javascript
+
+   db.members.updateMany(
+      { },
+      [
+         { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ] } },
+         { $unset: [ "misc1", "misc2" ] }
+      ]
+   )
+
+.. note::
+
+   The ``$set`` and ``$unset`` used in the pipeline refers to the
+   aggregation stages :pipeline:`$set` and :pipeline:`$unset`
+   respectively, and not the update operators :update:`$set` and :update:`$unset`.
+
+First Stage
+   The :pipeline:`$set` stage creates a new array field ``comments``
+   whose elements are the current content of the ``misc1`` and
+   ``misc2`` fields.
+
+Second Stage
+   The :pipeline:`$unset` stage removes the ``misc1`` and ``misc2`` fields.
+
+After the command, the collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "member" : "abc123", "status" : "Modified", "points" : 2, "comments" : [ "note to self: confirm status", "Need to activate" ] }
+   { "_id" : 2, "member" : "xyz123", "status" : "Modified", "points" : 60, "comments" : [ "reminder: ping me at 100pts", "Some random comment" ] }
+
+Example 2
+`````````
+
+The aggregation pipeline allows the update to perform conditional
+updates based on the current field values as well as use current field
+values to calculate a separate field value.
+
+For example, create a ``students3`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.students3.insert([
+      { "_id" : 1, "tests" : [ 95, 92, 90 ] },
+      { "_id" : 2, "tests" : [ 94, 88, 90 ] },
+      { "_id" : 3, "tests" : [ 70, 75, 82 ] }
+   ]);
+
+Using an aggregation pipeline, you can update the documents with the
+calculated grade average and letter grade.
+
+.. code-block:: javascript
+
+   db.students3.updateMany(
+      { },
+      [
+        { $set: { average : { $avg: "$tests" } } },
+        { $set: { grade: { $switch: {
+                              branches: [
+                                  { case: { $gte: [ "$average", 90 ] }, then: "A" },
+                                  { case: { $gte: [ "$average", 80 ] }, then: "B" },
+                                  { case: { $gte: [ "$average", 70 ] }, then: "C" },
+                                  { case: { $gte: [ "$average", 60 ] }, then: "D" }
+                              ],
+                              default: "F"
+        } } } }
+      ]
+   )
+
+.. note::
+
+   The ``$set`` used in the pipeline refers to the aggregation stage
+   :pipeline:`$set`, and not the update operators :update:`$set`.
+
+First Stage
+   The :pipeline:`$set` stage calculates a new field ``average`` based
+   on the average of the ``tests`` field. See :group:`$avg` for
+   more information on the ``$avg`` aggregation operator.
+
+Second Stage
+   The :pipeline:`$set` stage calculates a new field ``grade`` based on
+   the ``average`` field calculated in the previous stage. See
+   :expression:`$switch` for more information on the ``$switch``
+   aggregation operator.
+
+After the command, the collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "tests" : [ 95, 92, 90 ], "average" : 92.33333333333333, "grade" : "A" }
+   { "_id" : 2, "tests" : [ 94, 88, 90 ], "average" : 90.66666666666667, "grade" : "A" }
+   { "_id" : 3, "tests" : [ 70, 75, 82 ], "average" : 75.66666666666667, "grade" : "C" }
+
 
 .. _updateMany-example-update-multiple-documents-with-upsert:
 
