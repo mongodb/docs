@@ -1,0 +1,232 @@
+=========
+aggregate
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: aggregate
+
+   Performs aggregation operation using the :doc:`aggregation pipeline
+   </reference/operator/aggregation-pipeline>`. The pipeline allows users
+   to process data from a collection or other source with a sequence of
+   stage-based manipulations.
+
+Syntax
+------
+
+Usage
+~~~~~
+
+.. tip::
+
+   The :binary:`~bin.mongo` shell provides the
+   :method:`db.collection.aggregate()` and :method:`db.aggregate()`
+   helper methods as alternatives to running the command directly.
+
+:dbcommand:`aggregate` has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        aggregate: "<collection>" || 1,
+        pipeline: [ <stage>, <...> ],
+        explain: <boolean>,
+        allowDiskUse: <boolean>,
+        cursor: <document>,
+        maxTimeMS: <int>,
+        bypassDocumentValidation: <boolean>,
+        readConcern: <document>,
+        collation: <document>,
+        hint: <string or document>,
+        comment: <string>, 
+        writeConcern: <document>
+      }
+   )
+
+Accepted Fields
+~~~~~~~~~~~~~~~
+
+:dbcommand:`aggregate` accepts the following fields:
+
+.. include:: /includes/apiargs/dbcommand-aggregate-field.rst
+
+Returns
+~~~~~~~
+
+Returns a :term:`cursor`. Refer to  <command output link> for more information.
+
+Required Permissions
+--------------------
+
+If your MonogoDB deployment enforces :ref:`authorization`, the user
+executing the :dbcommand:`aggregate` command requires the
+:authaction:`find` privilege on the collection against which you are
+querying. The :authrole:`read` built-in role provides the requisite
+permissions.
+
+If using the :pipeline:`$out` pipeline operator in the aggregation operation, the user also requires:
+
+- the :authaction:`insert` privilege on the collection to which you are
+  writing the result of the aggregation operation.
+
+- the :authaction:`remove` privilege on the collection to which you are
+  writing the result of the aggregation operation if said collection
+  already exists.
+
+The :authrole:`readWrite` built-in role provides the required
+:authaction:`insert` and :authaction:`remove` permissions.
+
+If you are using the :pipeline:`$out` pipeline operator in the
+aggregation operation *and* wish to bypass :doc:`schema validation
+</core/schema-validation>`, the user requires the
+:authaction:`bypassDocumentValidation` privielge on the collection to
+which you are writing data. The :authrole:`dbAdmin` built-in role
+provides the required permissions.
+
+Behavior
+--------
+
+Sessions
+~~~~~~~~
+
+.. versionadded:: 4.0
+
+For cursors created inside a session, you cannot call
+:dbcommand:`getMore` outside the session.
+
+Similarly, for cursors created outside of a session, you cannot call
+:dbcommand:`getMore` inside a session.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+However, the following stages are not allowed within transactions:
+
+- :pipeline:`$collStats`
+- :pipeline:`$currentOp`
+- :pipeline:`$indexStats`
+- :pipeline:`$listLocalSessions`
+- :pipeline:`$listSessions`
+- :pipeline:`$out`
+- :pipeline:`$planCacheStats`
+
+You also cannot specify the ``explain`` option.
+
+.. include:: /includes/extracts/transactions-operations-getMore.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :dbcommand:`aggregate`
+
+Examples
+--------
+
+Basic Aggregation with a Match, Group and Sum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``orders`` contains documents such as the following:
+
+.. code-block:: javascript
+   
+   {
+      _id: ObjectId("5cebfea1c4e1d21372f6fad5"),
+      cust_id: "A123",
+      amount: 500,
+      status: "A"
+   }
+
+The following example performs an :dbcommand:`aggregate` operation on the``orders`` collection to filter documents by the status field, selection only those with ``status: A`` and then group those documents by ``cust_id`` to calculate the sum of the amount for each unique ``cust_id``:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      aggregate: "orders",
+      pipeline: [
+         { $match: { status: "A" } },
+         { $group: { _id: "$cust_id", total: { $sum: "$amount" } } }
+      ],
+      cursor: { }
+   } )
+
+Aggregate Data with Multi-Stage Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``articles`` contains documents such as the following:
+
+.. code-block:: javascript
+
+   {
+      _id: ObjectId("52769ea0f3dc6ead47c9a1b2"),
+      author: "abc123",
+      title: "zzz",
+      tags: [ "programming", "database", "mongodb" ]
+   }
+
+The following example performs an :dbcommand:`aggregate` operation on
+the ``articles`` collection to calculate the count of each distinct
+element in the ``tags`` array that appears in the collection.
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      aggregate: "articles", 
+      pipeline: [
+         { $project: { tags: 1 } },
+         { $unwind: "$tags" },
+         { $group: { _id: "$tags", count: { $sum : 1 } } }
+      ],
+      cursor: { }
+   } )
+
+In the :binary:`~bin.mongo` shell, this operation can use the
+:method:`db.collection.aggregate()` helper as in the following:
+
+.. code-block:: javascript
+
+   db.articles.aggregate( [
+      { $project: { tags: 1 } },
+      { $unwind: "$tags" },
+      { $group: { _id: "$tags", count: { $sum : 1 } } }
+   ] )
+
+Use ``$currentOp`` on an Admin Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example runs a pipeline with two stages on the admin
+database. The first stage runs the :pipeline:`$currentOp` operation 
+and the second stage filters the results of that operation. 
+
+.. code-block:: javascript
+
+   db.adminCommand( { 
+      aggregate : 1, 
+      pipeline : [ { 
+         $currentOp : { allUsers : true, idleConnections : true } }, { 
+         $match : { shard : "shard01" } 
+         } 
+      ], 
+      cursor : { } 
+   } )
+
+.. note::
+
+   The :dbcommand:`aggregate` command does not specify a collection and
+   instead takes the form `{aggregate: 1}`. This is because the initial 
+   :pipeline:`$currentOp` stage does not draw input from a collection. It
+   produces its own data that the rest of the pipeline uses. 
+
+   The new :method:`db.aggregate()` helper has been added to assist in
+   running collectionless aggregations such as this. The above aggregation
+   could also be run like :ref:`this <admin-pipeline-currentOp>` example.

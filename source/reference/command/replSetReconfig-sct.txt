@@ -1,0 +1,317 @@
+===============
+replSetReconfig
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: replSetReconfig
+
+   Modifies the configuration of an existing replica set. You can use
+   this command to add and remove members, and to alter the options set
+   on existing members. You must run this command on the ``admin``
+   database of the :term:`primary` replica set member.
+
+Syntax
+------
+
+Usage
+~~~~~
+
+.. tip:: 
+
+   The :binary:`~bin.mongo` shell provides the
+   :method:`rs.reconfig()` helper method as an alternative to running the
+   command directly.
+
+:dbcommand:`replSetReconfig` has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand(
+       { 
+           replSetReconfig: <new_config_document>, 
+           force: <bool>
+       }
+    )
+
+Refer to :doc:`/reference/replica-configuration` for information about
+replica set config documents.
+
+Accepted Fields
+~~~~~~~~~~~~~~~
+
+:dbcommand:`replSetReconfig` accepts the following optional field:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+
+   * - ``force``
+     - *Optional*. Specify ``true`` to force the
+       available replica set members to accept the new configuration.
+
+       Use this option if there is no current primary in the replica set,
+       or to restore a replica set to new servers with different
+       hostnames.
+
+       .. warning::
+          Forcing the :dbcommand:`replSetReconfig` command can lead to a
+          :term:`rollback` situation. Use with caution.
+
+       Default: ``false``.
+
+Returns
+~~~~~~~
+
+Returns a document containing the status of the operation. If successful,
+the document will indicate ``"ok : 1``, as well as the cluster time and
+operation time. If unsuccessful, it will provide an error message.
+
+Required Permissions
+--------------------
+
+If your MonogoDB deployment enforces :ref:`authorization`, the user
+executing the :dbcommand:`replSetReconfig` command requires [whatever
+permissions they require]. The [role] role provides the requisite
+permissions.
+
+Considerations
+--------------
+
+Mixed Version Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning:: 
+   .. include:: /includes/warning-mixed-version-rs-config.rst
+
+
+Availability
+~~~~~~~~~~~~
+
+A majority of the set's members must be operational for the changes to 
+propagate properly.
+
+:dbcommand:`replSetReconfig` can trigger the current 
+primary to step down in some situations. When the primary steps down, 
+it forcibly closes all client connections. Primary step-down triggers 
+an :ref:`election <replica-set-elections>` to select a new 
+:term:`primary`. 
+
+.. include:: /includes/fact-election-latency.rst
+
+During the election process, the cluster cannot
+accept write operations until it elects the new primary.
+
+.. include:: /includes/fact-retryable-writes-failover-election.rst
+
+To further reduce potential impact to a production cluster,
+reconfigure only during scheduled maintenance periods.
+
+Member Priority and Votes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+- .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+   
+- .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+
+Behavior
+--------
+
+Locking
+~~~~~~~
+
+:dbcommand:`replSetReconfig` obtains a special mutually
+exclusive lock to prevent more than one
+:dbcommand:`replSetReconfig` operation from occurring at the same
+time.
+
+Drop Outgoing Connections After Removing a Member
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using :dbcommand:`replSetReconfig` to remove a replica set member does
+not automatically drop open outgoing connections from other replica
+set members to the removed member.
+
+By default, replica set members wait for 5 minutes before dropping
+connections to the removed member. In sharded replica sets, you can
+modify this timeout using the
+:parameter:`ShardingTaskExecutorPoolHostTimeoutMS` server parameter.
+
+.. versionadded:: 4.2
+
+   To immediately drop all outgoing connections from the replica set to
+   the removed member, run the :dbcommand:`dropConnections`
+   administrative command on each remaining member on the replica set:
+
+.. code-block:: javascript
+
+   db.adminCommand( 
+     {
+       "dropConnections" : 1,
+       "hostAndPort" : [
+         "<hostname>:<port>"
+       ] 
+     } 
+   )
+
+Replace ``<hostname>`` and ``<port>`` with those of the removed 
+member.
+
+``{ force: true }``
+~~~~~~~~~~~~~~~~~~~
+  
+.. warning::
+
+   Forcing the :dbcommand:`replSetReconfig` command can lead to a
+   :term:`rollback` situation. Use with caution.
+
+Example
+-------
+
+Consider a replica set with the following :method:`rs.conf()` output:
+
+.. code-block:: javascript
+
+   {
+    "_id" : "replset",
+    "version" : 2,
+    < ... >
+    "members" : [
+        {
+            "_id" : 0,
+            "host" : "localhost:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            },
+            "slaveDelay" : NumberLong(0),
+            "votes" : 1
+        },
+        {
+            "_id" : 1,
+            "host" : "localhost:27018",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            },
+            "slaveDelay" : NumberLong(0),
+            "votes" : 1
+        },
+        {
+            "_id" : 2,
+            "host" : "localhost:27019",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            },
+            "slaveDelay" : NumberLong(0),
+            "votes" : 1
+        }
+    ],
+    "settings" : {
+        < ... >
+    }
+}
+
+The following example uses :dbcommand:`replSetReconfig` to modify the
+replica set configuration of the replica set to which the
+:binary:`~bin.mongo` shell is connected. The new replica set
+configuration makes the replica set member with ``_id : 2`` serve as an
+:term:`arbiter`:
+
+.. code-block:: javascript
+
+   db.adminCommand({ 
+     replSetReconfig: {
+        "_id" : "replSet",
+        "version" : 3,
+        < ... >,
+        "members" : [
+            {
+               "_id" : 0,
+               "host" : "localhost:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 1,
+               "host" : "localhost:27018",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 2,
+               "host" : "localhost:27019",
+               "arbiterOnly" : true,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            }
+        ],
+        settings : {
+            < ... >
+        }
+    }},
+     force: false 
+   })
+
+The command returns a document that indicates the update has been
+successful, as in the following:
+
+.. code-block:: javascript
+   
+   {
+        "ok" : 1,
+        "$clusterTime" : {
+            "clusterTime" : Timestamp(1559661363, 2),
+            "signature" : {
+                "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                "keyId" : NumberLong(0)
+            }
+        },
+        "operationTime" : Timestamp(1559661363, 2)
+    }
+
+Additional Information
+----------------------
+
+:ref:`replSetGetConfig-output`,
+:doc:`/reference/replica-configuration`, :method:`rs.reconfig()`, and
+:method:`rs.conf()`.

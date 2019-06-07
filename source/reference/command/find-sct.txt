@@ -1,0 +1,230 @@
+====
+find
+====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: find
+
+   .. versionadded:: 3.2
+
+   Executes a query and returns the first batch of results and the
+   cursor id, from which the client can construct a cursor.
+
+Syntax
+------
+
+Usage
+~~~~~
+
+.. tip::
+
+   The :binary:`~bin.mongo`
+   shell provides the :method:`db.collection.find()` helper
+   method as an alternative to running the command directly.
+
+:dbcommand:`find` has the following syntax:
+
+.. versionchanged:: 4.2
+
+   MongoDB removes the deprecated ``maxScan`` option to the
+   :dbcommand:`find` command. Use the ``maxTimeMS`` option instead.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         "find": "<collection>",
+         "filter": <document>,
+         "sort": <document>,
+         "projection": <document>,
+         "hint": <document or string>,
+         "skip": <int>,
+         "limit": <int>,
+         "batchSize": <int>,
+         "singleBatch": <bool>,
+         "comment": <string>,
+         "maxTimeMS": <int>,
+         "readConcern": <document>,
+         "max": <document>,
+         "min": <document>,
+         "returnKey": <bool>,
+         "showRecordId": <bool>,
+         "tailable": <bool>,
+         "oplogReplay": <bool>,
+         "noCursorTimeout": <bool>,
+         "awaitData": <bool>,
+         "allowPartialResults": <bool>,
+         "collation": <document>
+      }
+   )
+
+Accepted Fields
+~~~~~~~~~~~~~~~
+
+:dbcommand:`find` accepts the following fields:
+
+.. versionchanged:: 4.2
+
+   MongoDB removes the deprecated ``maxScan`` field. Use the
+   ``maxTimeMS`` field instead.
+
+.. include:: /includes/apiargs/dbcommand-find-field.rst
+
+Returns
+~~~~~~~
+
+Returns a :term:`cursor`  with the first batch of results and the cursor ID.
+
+Required Permissions
+--------------------
+
+If your MonogoDB deployment enforces :ref:`authorization`, the user
+executing the :dbcommand:`aggregate` command requires the
+:authaction:`find` privilege on the collection that you are
+querying. The :authrole:`read` built-in role provides the requisite
+permission.
+
+Behavior
+--------
+
+Sessions
+~~~~~~~~
+
+.. versionadded:: 4.0
+
+For cursors created inside a session, you cannot call
+:dbcommand:`getMore` outside the session.
+
+Similarly, for cursors created outside of a session, you cannot call
+:dbcommand:`getMore` inside a session.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-operations-getMore.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :dbcommand:`find`
+
+Examples
+--------
+
+Basic Find Operation
+~~~~~~~~~~~~~~~~~~~~
+
+The following command runs the :dbcommand:`find` command
+agains the ``restaurants`` collection, filtering on the
+``cuisine`` and ``borough`` fields.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        find: "restaurants",
+        filter: { cuisine: "italian", borough: "Queens"}
+      }
+   )
+
+Specify a Sort and Limit
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command runs the :dbcommand:`find`
+command filtering on the ``rating`` field and the ``cuisine`` field.
+The command includes a ``projection`` to only return the
+following fields in the matching documents: ``_id``, ``name``,
+``rating``, and ``address`` fields.
+
+The command sorts the documents in the result set by the ``name``
+field and limits the result set to 5 documents.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        find: "restaurants",
+        filter: { rating: { $gte: 9 }, cuisine: "italian" },
+        projection: { name: 1, rating: 1, address: 1 },
+        sort: { name: 1 },
+        limit: 5
+      }
+   )
+
+Override Default Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To override the default read concern level of :readconcern:`"local"`,
+use the ``readConcern`` option.
+
+The following operation on a replica set specifies a :term:`read
+concern` of :readconcern:`"majority"` to read the most recent copy of
+the data confirmed as having been written to a majority of the nodes.
+
+.. include:: /includes/fact-enable-majority-readConcern.rst
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        find: "restaurants",
+        filter: { rating: { $lt: 5 } },
+        readConcern: { level: "majority" }
+      }
+   )
+
+.. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+The :dbcommand:`getMore` command uses the ``readConcern`` level
+specified in the originating :dbcommand:`find` command.
+
+A ``readConcern`` can be specified for the :binary:`~bin.mongo` shell method
+:method:`db.collection.find()` using the :method:`cursor.readConcern`
+method:
+
+.. code-block:: javascript
+
+   db.restaurants.find( { rating: { $lt: 5 } } ).readConcern("majority")
+
+For more information on available read concerns, see
+:ref:`read-concern`.
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+The following operation runs the :dbcommand:`find`
+command with the collation specified:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        find: "myColl",
+        filter: { category: "cafe", status: "a" },
+        sort: { category: 1 },
+        collation: { locale: "fr", strength: 1 }
+      }
+   )
+
+.. note::
+
+   The :binary:`~bin.mongo` shell provides the
+   :method:`cursor.collation()` method to specify :ref:`collation
+   <collation>` for a :method:`db.collection.find()` operation.
+
+.. seealso:: :ref:`3.2-driver-compatibility`
+
+
