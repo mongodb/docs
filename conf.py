@@ -82,7 +82,8 @@ extlinks = {
     'gopkg' : ('https://godoc.org%s',''),
     'osi' : ('https://opensource.org%s', ''),
     'cc' : ('http://creativecommons.org/licenses%s', ''),
-    'tldrl' : ('https://www.tldrlegal.com%s', '')
+    'tldrl' : ('https://www.tldrlegal.com%s', ''),
+    'contact': ('https://www.mongodb.com/lp/contact%s?jmp=docs',''),
 }
 
 source_constants = {
