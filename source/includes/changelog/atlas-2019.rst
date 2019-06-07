@@ -1,4 +1,13 @@
-.. _atlas-v0190507:
+.. _atlas-v20190528:
+
+29 May 2019 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Support for |gcp| Osaka region.
+- Support to search for organization or project names
+  that are one character long.
+
+.. _atlas-v20190507:
 
 07 May 2019 Release
 ~~~~~~~~~~~~~~~~~~~
