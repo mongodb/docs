@@ -38,7 +38,8 @@ extensions = [
     'tabs',
     'icon',
     'landing_cards',
-    'div'
+    'div',
+    'source_constants'
 ]
 
 locale_dirs = [os.path.join(conf.paths.projectroot, conf.paths.locale)]
@@ -138,6 +139,13 @@ rst_epilog = [
     '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`',
     '.. |fts| replace:: Full Text Search'
 ]
+
+source_constants = {
+    'data-lake-tenant': 'data source',
+    'data-lake-tenants': 'data sources',
+    'data-lake' : 'Atlas Data Lake',
+    'data-lake-short' : 'Data Lake'
+}
 
 rst_epilog.extend(get_replacements(conf))
 rst_epilog = '\n'.join(rst_epilog)
