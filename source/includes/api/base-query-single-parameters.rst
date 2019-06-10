@@ -8,13 +8,13 @@
      - Description
      - Default
 
-   * - pretty
+   * - ``pretty``
      - boolean
      - Indicates whether the response body should be in a
        `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
      - ``false``
 
-   * - envelope
+   * - ``envelope``
      - boolean
      - Indicates whether or not to wrap the response in an
        envelope.
@@ -26,9 +26,17 @@
        For endpoints that return one result, the response body
        includes:
 
-       status
-         |http| response code
-       envelope
-         The expected response body
+       .. list-table::
+          :widths: 15 85
+          :header-rows: 1
+          :stub-columns: 1
+
+          * - Name
+            - Description
+
+          * - ``status``
+            - |http| response code
+          * - ``envelope``
+            - Expected response body
 
      - ``false``
