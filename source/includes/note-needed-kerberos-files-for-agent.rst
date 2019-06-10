@@ -1,5 +1,5 @@
-Two Kerberos-related files must be installed on any host running the
-Monitoring or Backup Agent: 
+Two Kerberos-related files must be installed on any host running 
+{+magent+} or {+bagent+}: 
 
 - Create or configure the 
   `krb5.conf <https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html>`_ 
@@ -43,4 +43,4 @@ Monitoring or Backup Agent:
 - On Linux systems: ensure `kinit <http://web.mit.edu/KERBEROS/krb5-devel/doc/user/user_commands/kinit.html>`_ 
   binary is located at ``/usr/bin/kinit``. ``kinit``
   obtains or renews a Kerberos ticket-granting ticket, which
-  authenticates the agent using Kerberos.
+  authenticates the Agent using Kerberos.
