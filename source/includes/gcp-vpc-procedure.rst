@@ -3,9 +3,12 @@ Configure VPC Peering for a GCP-backed Cluster
 
 To configure VPC Peering for a GCP-backed cluster:
 
-1. From the :guilabel:`Clusters` view, select the :guilabel:`Security`
-   tab, then click :guilabel:`Peering`, then :guilabel:`New Peering
-   Connection`.
+1. In the :guilabel:`Security` section of the left navigation, click
+   :guilabel:`Network Access`.
+
+#. Click the :guilabel:`Peering` tab.
+
+#. Click :icon-fa5:`plus` :guilabel:`New Peering Connection`.
 
 #. Enter the required information in the :guilabel:`Peering Connection` modal.
 
@@ -47,10 +50,12 @@ To configure VPC Peering for a GCP-backed cluster:
 
 #. In :guilabel:`Project ID`, enter your |service| Project ID.
 
-   You can find this name in the VPC Peering view. From the :guilabel:`Clusters`
-   view in |service|, click :guilabel:`Security`, and then :guilabel:`Peering`.
+   You can find this name in the VPC Peering view. In the :guilabel:`Security` section of the left navigation, click
+   :guilabel:`Network Access` and then click the :guilabel:`Peering`
+   tab.
 
 #. In :guilabel:`VPC network name`, enter your Atlas VPC Name.
 
-   You can find this name VPC Peering view. From the :guilabel:`Clusters`
-   view  in |service|, click :guilabel:`Security`, and then :guilabel:`Peering`.
+   You can find this name in the VPC Peering view. In the :guilabel:`Security` section of the left navigation, click
+   :guilabel:`Network Access` and then click the :guilabel:`Peering`
+   tab.
