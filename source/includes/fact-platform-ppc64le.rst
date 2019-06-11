@@ -16,5 +16,5 @@
 
    * - Ubuntu 16.04
      - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - Removed starting in 3.6.13
+     - Removed starting in 3.4.21
