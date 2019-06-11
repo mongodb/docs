@@ -8,4 +8,4 @@
    * - RHEL/CentOS 7.1
      - |checkmark|
    * - Ubuntu 16.04
-     - |checkmark|
+     - Removed starting in 3.4.21
