@@ -1,0 +1,167 @@
+.. _ref-index-definitions:
+
+=================
+Index Definitions
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When you configure a |fts| index, you can specify that certain fields
+should be indexed with a particular analyzer or with multiple
+analyzers. You can also specify that certain fields should be indexed
+while others are left unindexed, or you can dynamically index all the
+fields in a collection.
+
+.. _static-dynamic-mappings:
+
+Static and Dynamic Mappings
+---------------------------
+
+Individual field mappings that you configure when you create the index
+are called *static mappings*.
+
+Mappings that are automatically assigned when new data is
+inserted into a field are called *dynamic mappings*. Dynamic mappings
+are useful if you have a dynamic schema and you don't know ahead of
+time all the fields that a collection may contain. You can configure
+an entire index to use dynamic mappings, or specify individual fields
+to be dynamically mapped.
+
+.. note::
+
+   Dynamically mapped indexes occupy more disk space than static
+   mappings and may be less performant.
+
+See the :ref:`index configuration example
+<index-config-example>`.
+
+.. _bson-data-types:
+
+Defining an Index
+-----------------
+
+When you create a new |fts| index, you have the opportunity to specify
+a custom definition for the index. See :ref:`ref-create-index` for
+complete instructions on creating a new |fts| index.
+
+.. figure:: /images/create-fts-index.png
+     :alt: Screenshot of Create a FTS Index modal window
+     :figwidth: 650px
+
+.. include:: /includes/default-fts-index-name.rst
+
+The default index definition will work with any collection. If you wish
+to create a custom index definition, you can specify which fields
+should be indexed with which analyzer and as which data type.
+
+.. _index-config-example:
+
+Static Mapping Example
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following example index definition file uses static mappings.
+
+- The default index analyzer is :ref:`lucene.standard
+  <ref-standard-analyzer>`.
+- The default search analyzer is :ref:`lucene.standard
+  <ref-standard-analyzer>`.
+- The index specifies static field mappings (``dynamic``: false).
+- The field ``address`` is of type ``document``. It has two embedded
+  sub-fields, ``city`` and ``state``.
+- The ``city`` sub-field uses the :ref:`lucene.simple
+  <ref-simple-analyzer>` analyzer by default for queries.
+  It uses the ``ignoreAbove`` option to ignore any string of
+  more than 255 bytes in length.
+- The ``state`` sub-field uses the :ref:`lucene.english
+  <ref-language-analyzers>` analyzer by default for queries.
+- The ``company`` field is of type ``string``. It uses the
+  :ref:`lucene.whitespace <ref-whitespace-analyzer>` analyzer by
+  default for queries. It has a ``multi`` analyzer named
+  ``mySecondaryAnalyzer`` which uses the :ref:`lucene.french
+  <ref-language-analyzers>` analyzer by default for queries.
+
+  For more information on ``multi`` analyzers, see :ref:`Path
+  construction <ref-path>`.
+
+.. code-block:: json
+
+   {
+     "analyzer": "lucene.standard",
+     "searchAnalyzer": "lucene.standard",
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "address": {
+           "type": "document",
+           "fields": {
+             "city": {
+               "type": "string",
+               "analyzer": "lucene.simple",
+               "ignoreAbove": 255
+             },
+             "state": {
+               "type": "string",
+               "analyzer": "lucene.simple"
+             }
+           }
+         },
+         "company": {
+           "type": "string",
+           "analyzer": "lucene.whitespace",
+           "multi": {
+             "mySecondaryAnalyzer": {
+               "type": "string",
+               "analyzer": "lucene.french"
+             }
+           }
+         }
+       }
+     }
+   }
+
+BSON Data Types
+---------------
+
+``string``
+~~~~~~~~~~
+
+The ``string`` data type takes the following parameters:
+
+.. list-table::
+   :widths: 30 60 10
+   :header-rows: 1
+
+   * - Option
+     - Purpose
+     - Default
+
+   * - ``analyzer: <string>``
+     - Name of a built-in or overridden :ref:`analyzer <analyzers-ref>`
+       to use for indexing the field.
+     - ``standard``
+
+   * - ``searchAnalyzer: <string>``
+     - Analyzer to use when querying the field.
+     - ``standard``
+
+   * - ``fields:``
+     - Mapping from subfield name to a ``string``-type field
+       definition.
+     - Empty
+
+   * - ``ignoreAbove: <int>``
+     - Do not index if the field value is greater than the specified
+       number of characters.
+     - None
+
+``document``
+~~~~~~~~~~~~
+
+The ``document`` data type is for fields with embedded documents.
+It takes a ``fields`` object, with one or more field definitions.
