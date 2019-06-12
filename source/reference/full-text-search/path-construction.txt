@@ -1,0 +1,260 @@
+.. _ref-path:
+
+=================
+Path Construction
+=================
+
+.. default-domain:: mongodb
+
+The ``path`` parameter is used by the |fts| 
+:ref:`operators <query-syntax-ref>` to specify the field or fields
+to be searched. It may contain:
+
+- A string
+- An array of strings
+- A :ref:`multi analyzer <ref-multi-analyzer>` specification
+- An array containing a combination of strings and multi analyzer
+  specifications
+
+To search only a single indexed field, use a quoted string in the
+``path`` parameter. The following example searches a field named
+``description``.
+
+.. code-block:: javascript
+
+   "path": "description"
+
+To search multiple indexed fields, use an array of quoted strings
+in the ``path`` parameter. Documents which match on any of the
+specified fields are included in the result set. The following
+example searches the ``description`` and ``type`` fields.
+
+.. code-block:: javascript
+
+   "path": ["description", "type"]
+
+If your :ref:`index definition <index-config-example>` contains a field
+with multiple analyzers, you can specify which one to use. The ``path``
+parameter can take an object with the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - ``value``
+     - The name of the field to search.
+
+   * - ``multi``
+     - The name of the alternate analyzer specified in a
+       ``multi`` object in an index definition.
+
+In the following index definition, fields named ``names`` and ``notes``
+use the :ref:`standard <ref-standard-analyzer>` analyzer.
+A field named ``comments`` uses ``standard`` as its default analyzer, and
+it also specifies a ``multi`` named ``mySecondaryAnalyzer`` which uses
+the :ref:`lucene.whitespace <ref-whitespace-analyzer>` analyzer.
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "names": {
+           "type": "string",
+           "analyzer": "lucene.standard"
+         },
+         "notes": {
+           "type": "string",
+           "analyzer": "lucene.standard"
+         },
+         "comments": {
+           "type": "string",
+           "analyzer": "lucene.standard",
+           "multi": {
+             "mySecondaryAnalyzer": {
+               "analyzer": "lucene.whitespace",
+               "type": "string"
+             }
+           }
+         }
+       }
+     }
+   }
+
+The following ``path`` example searches the ``comments`` field using
+the ``multi`` named ``mySecondaryAnalyzer`` in the index definition.
+
+.. code-block:: javascript
+
+   "path": { "value": "comments", "multi": "mySecondaryAnalyzer" }
+
+To search a combination of indexed fields and fields with multiple
+analyzers, use an array. The following example searches the
+``names`` and ``notes`` fields with the default analyzer, and the
+``comments`` field using the ``multi`` named
+``mySecondaryAnalyzer`` in the index definition.
+
+.. code-block:: javascript
+
+   "path": [ "names", "notes", { "value": "comments", "multi": "mySecondaryAnalyzer" } ]
+
+Examples
+--------
+
+The following examples use a collection named ``cars`` which has the
+following documents:
+
+.. code-block:: json
+
+   {
+     "_id" : 1,
+     "type" : "sedan",
+     "make" : "Toyota",
+     "description" : "Blue four-door sedan, lots of trunk space."
+   }
+   { 
+     "_id" : 2,
+     "type" : "coupe",
+     "make" : "BMW",
+     "description" : "Red two-door convertible, driver's-side airbag."
+   }
+   { 
+     "_id" : 3,
+     "type" : "SUV",
+     "make" : "Ford",
+     "description" : "Black four-door SUV, three rows of seats."
+   }
+
+.. _ref-multi-analyzer:
+
+The index definition for the ``cars`` collection is as follows:
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "make": {
+           "type": "string",
+           "analyzer": "lucene.standard"
+         },
+         "description": {
+           "type": "string",
+           "analyzer": "lucene.standard",
+           "multi": {
+             "simpleAnalyzer": {
+               "analyzer": "lucene.simple",
+               "type": "string"
+             }
+           }
+         }
+       }
+     }
+   }
+
+The above index definition specifies that the ``make`` field is
+indexed with the :ref:`standard analyzer <ref-standard-analyzer>`.
+The ``description`` field uses the ``standard`` analyzer by
+default, but it can also use the :ref:`simple analyzer
+<ref-simple-analyzer>` by specifying ``simpleAnalyzer`` with the
+``multi`` parameter.
+
+Single Field Search
+~~~~~~~~~~~~~~~~~~~
+
+The following example searches for the string ``Ford`` in the
+``make`` field:
+
+.. code-block:: javascript
+
+   db.cars.aggregate([
+     {
+       $searchBeta: {
+         "search": { 
+           "query": "Ford", 
+           "path": "make"
+         }
+       }
+     }
+   ])
+
+The above example returns the document with ``_id: 3``.
+
+Multiple Field Search
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses an array of fields in the ``path``
+parameter to search for the string ``blue`` in either the ``make``
+or the ``description`` field.
+
+.. code-block:: javascript
+
+   db.cars.aggregate([
+     {
+       $searchBeta: {
+         "search": { 
+           "query": "blue", 
+           "path": [ "make", "description" ]
+         }
+       }
+     }
+   ])
+
+The above query returns the following result:
+
+.. code-block:: json
+   :copyable: false
+
+   { 
+     "_id" : 1,
+     "type" : "sedan",
+     "make" : "Toyota",
+     "description" : "Blue four-door sedan, lots of trunk space."
+   }
+
+Alternate Analyzer Search
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``multi`` named ``simpleAnalyzer``
+in the index definition, which uses the :ref:`simple analyzer
+<ref-simple-analyzer>`. The query searches the ``description``
+field for the string ``driver``.
+
+.. code-block:: javascript
+
+   db.cars.aggregate([
+     {
+       $searchBeta: {
+         "search": { 
+           "query": "driver", 
+           "path": { "value": "description", "multi": "simpleAnalyzer" }
+         }
+       }
+     }
+   ])
+
+The above query returns the following result:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id" : 2,
+     "type" : "coupe",
+     "make" : "BMW",
+     "description" : "Red two-door convertible, driver's-side airbag."
+   }
+
+The :ref:`simple analyzer <ref-simple-analyzer>` indexes ``driver's
+side airbag`` as ``[driver s side airbag``], so it matches on
+``driver``.
+
+By contrast, the default :ref:`standard analyzer
+<ref-standard-analyzer>` indexes ``driver's side airbag`` as ``[driver's
+side airbag``], so it would match on ``driver's`` or ``side`` but not
+``driver``.

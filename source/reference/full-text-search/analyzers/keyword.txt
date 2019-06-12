@@ -13,26 +13,20 @@ field are returned.
 Example
 -------
 
-The following example ``config.json`` creates an index using the
-``keyword`` analyzer:
+The following example index definition specifies an index on
+the ``summary`` field using the ``keyword`` analyzer:
 
 .. code-block:: json
 
    {
-     "indexes": [
-       {
-         "database": "test",
-         "collection": "cases",
-         "mappings": {
-           "fields": {
-             "summary": {
-               "type": "string",
-               "analyzer": "lucene.keyword"
-             }
-           }
+     "mappings": {
+       "fields": {
+         "summary": {
+           "type": "string",
+           "analyzer": "lucene.keyword"
          }
        }
-     ]
+     }
    }
 
 Consider a collection named ``cases`` with the following documents:
@@ -55,16 +49,31 @@ The following query uses the index on the ``summary`` field:
             "path": "summary"
            }
         }
-     },
-     {
-        $project: {
-          "summary": 1
-        } 
      }
    ])
 
 The above query returns the following result:
 
 .. code-block:: json
+   :copyable: false
 
    { "_id" : 1, "summary" : "No action required at this time." }
+
+The following query returns no results: 
+
+.. code-block:: json
+
+   db.cases.aggregate([
+     { 
+        $searchBeta: {
+          "term": {
+            "query": "action",
+            "path": "summary"
+           }
+        }
+     }
+   ])
+
+Two documents in the collection contain the string ``action``, but the
+``keyword`` analyzer matches only documents in which the search term
+matches the entire contents of the field exactly.
