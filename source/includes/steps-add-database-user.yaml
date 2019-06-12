@@ -1,0 +1,137 @@
+---
+title: "Copy the following example |k8s-configmap|."
+level: 4
+stepnum: 1
+ref: copy-k8s-user-configmap
+content: |
+
+  .. literalinclude:: /reference/k8s/example-user.yaml
+     :language: yaml
+     :emphasize-lines: 5,7-8,11-12
+
+---
+title: "Open your preferred text editor and paste the example ConfigMap into a new text file."
+stepnum: 2
+level: 4
+ref: paste-k8s-configmap
+---
+title: "Change the five highlighted lines."
+level: 4
+stepnum: 3
+ref: change-k8s-user-configmap
+content: |
+
+  Use the following table to guide you through changing the highlighted
+  lines in the ConfigMap:
+
+  .. list-table::
+   :widths: 20 20 40 20
+   :header-rows: 1
+
+   * - Key
+     - Type
+     - Description
+     - Example
+
+   * - ``metadata.name``
+     - string
+     - The name of the database user resource.
+     - ``mms-user-1``
+
+   * - ``spec.username``
+     - string
+     - The subject line of the x509 client certificate signed
+       by the |k8s| |certauth| (Kube CA).
+
+       .. important::
+
+          The username must comply with the
+          `RFC 2253 <https://tools.ietf.org/html/rfc2253>`__
+          LDAPv3 Distinguished Name standard.
+       
+       To get the subject line of the X.509 certificate, run the
+       following command:
+
+       .. code-block:: sh
+
+          openssl x509 -noout \
+            -subject -in <my-cert.pem> \
+            -nameopt RFC2253 
+
+     - ``CN=mms-user,U=My Organizational Unit,O=My Org,L=New York,ST=New York,C=US``
+
+   * - ``spec.project``
+     - string
+     - The name of the project containing the MongoDB database
+       where user will be added.
+     - ``my-project``
+
+   * - ``spec.roles.db``
+     - string
+     - The database the :ref:`role <roles>` can act on.
+     - ``admin``
+
+   * - ``spec.roles.name``
+     - string
+     - The name of the :ref:`role <roles>` to grant the database
+       user. The role name can be any
+       :ref:`built-in MongoDB role <built-in-roles>` or
+       :opsmgr:`custom role </tutorial/manage-mongodb-roles>` that exists
+       in |com|.
+     - ``readWriteAnyDatabase``
+---
+title: "Add any additional roles for the user to the ConfigMap."
+level: 4
+stepnum: 3
+ref: add-additional-roles-k8s-user
+content: |
+  You may grant additional roles to this user using the format defined
+  in the following example:
+
+  .. code-block:: yaml
+     :copyable: false
+     :emphasize-lines: 10-14
+
+     ---
+     apiVersion: mongodb.com/v1
+     kind: MongoDBUser
+     metadata:
+       name: mms-user-1
+     spec:
+       username: CN=mms-user,U=My Organizational Unit,O=My Org,L=New York,ST=New York,C=US
+       project: my-project
+       db: "$external"
+       roles:
+         - db: admin
+           name: backup
+         - db: admin
+           name: restore
+     ...
+
+---
+title: "Create the user."
+level: 4
+stepnum: 4
+ref: create-k8s-user
+content: |
+
+  Invoke the following |k8s| command to create your database user:
+
+  .. code-block:: sh
+
+     kubectl apply -f <database-user-conf>.yaml
+---
+title: "View the newly created user in |com|."
+level: 4
+stepnum: 5
+ref: view-k8s-user
+content: |
+
+  You can view the newly-created user in |com|:
+
+  1. From the Project's :guilabel:`Deployment` view, click
+     the :guilabel:`Security` tab.
+
+  #. Click the :guilabel:`MongoDB Users` nested tab.
+
+...
