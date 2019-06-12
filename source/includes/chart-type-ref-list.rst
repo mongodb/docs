@@ -23,6 +23,6 @@ for each chart type in MongoDB Charts:
 
   - :ref:`Choropleth <choropleth-ref>`
 
-  - :ref:`Geospatial Heatmap <geospatial-heatmap-type>`
-
   - :ref:`Geospatial Scatter Chart <geospatial-scatter-type>`
+
+  - :ref:`Geospatial Heatmap <geospatial-heatmap-type>`
