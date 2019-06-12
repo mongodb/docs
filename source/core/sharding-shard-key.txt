@@ -11,6 +11,9 @@ Shard Keys
 
 .. default-domain:: mongodb
 
+.. role:: red(strong)
+   :class: text-danger
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -34,10 +37,11 @@ distribution. See :ref:`sharding-shard-key-selection`.
 
 .. important::
 
-   .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+   - Once you shard a collection, the selection of the shard key is
+     immutable; i.e. you cannot select a different shard key for that
+     collection.
 
-.. TODO:: Split this include out into an actual tutorial
-   .. include:: /includes/limits-sharding-shardkey-immutable.rst
+   - .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
 
 .. _sharding-shard-key-creation:
 
@@ -58,6 +62,15 @@ shard key to the :method:`sh.shardCollection()` method:
 - The ``key`` parameter consists of a document containing a field and
   the index traversal direction for that field.
 
+.. important::
+
+   - Once you shard a collection, the selection of the shard key is
+     immutable; i.e. you cannot select a different shard key for that
+     collection.
+
+   - .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+
 For instructions specific to sharding a collection using the
 :ref:`hashed sharding <sharding-hashed>` strategy, see
 :ref:`deploy-hashed-sharded-cluster-shard-collection`
@@ -65,6 +78,63 @@ For instructions specific to sharding a collection using the
 For instructions specific to sharding a collection using the
 :ref:`ranged sharding <sharding-ranged>` strategy, see
 :ref:`deploy-ranged-sharded-cluster-shard-collection`.
+
+.. _update-shard-key:
+
+Change a Document's Shard Key Value
+-----------------------------------
+
+Starting in MongoDB 4.2, you can update a document's shard key value
+unless the shard key field is the immutable ``_id`` field.
+
+You can use the following operations to update a document's shard key
+value:
+
+.. note::
+
+   To update the shard key value, you :red:`must` run the operations on
+   a :binary:`~bin.mongos` either in a :doc:`transaction
+   </core/transactions>` or as a :doc:`retryable write
+   </core/retryable-writes>`. Do :red:`not` issue the operation
+   directly on the shard.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Command
+     - Method
+
+   * - :dbcommand:`update` with ``multi: false``
+     - | :method:`db.collection.updateOne()`
+       | :method:`db.collection.update()` with ``multi: false``
+
+   * - :dbcommand:`findAndModify`
+     - | :method:`db.collection.findOneAndUpdate()`
+       | :method:`db.collection.findAndModify()`
+
+   * -
+     - | :method:`db.collection.bulkWrite()`
+       | :method:`Bulk.find.updateOne()`
+       
+       If the shard key modification results in moving the document to
+       another shard, you cannot specify more than one shard key
+       modification in the bulk operation; i.e. batch size of
+       1.
+       
+       If the shard key modification does not result in moving the
+       document to another shard, you can specify multiple shard
+       key modification in the bulk operation.
+
+
+.. important::
+
+   When running these operations, you must include an equality
+   condition on the shard key in the query filter. For example, if a
+   collection ``messages`` uses ``{ country : 1, userid : 1 }`` as the
+   shard key, to update the shard key for a document, you must include
+   ``country: <value>, userid: <value>`` in the query filter. You can
+   include additional fields in the query as appropriate.
 
 .. _sharding-internals-shard-key-indexes:
 .. _sharding-shard-key-indexes:
@@ -287,3 +357,5 @@ data distribution. Consider each factor when choosing a shard key.
 
 If your data model requires sharding on a key that changes
 monotonically, consider using :doc:`/core/hashed-sharding`.
+
+

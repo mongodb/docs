@@ -1,6 +1,6 @@
-Once you shard a collection, the shard key and the shard key values are
-immutable; i.e.
+Starting in MongoDB 4.2, you can update a document's shard key value
+unless the shard key field is the immutable ``_id`` field. For details
+on updating the shard key, see :ref:`update-shard-key`.
 
-- You cannot select a different shard key for that collection.
+Before MongoDB 4.2, a document's shard key field value is immutable.
 
-- You cannot update the values of the shard key fields.
