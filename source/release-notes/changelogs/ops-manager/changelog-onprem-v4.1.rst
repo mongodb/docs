@@ -1,3 +1,18 @@
+.. _opsmgr-server-4.1.8:
+
+|onprem| Rapid Release 4.1.8
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-06-13*
+
+- You can now search for organization or project names that are one (1) character
+  long.
+- Fixed a bug when the
+  :doc:`Version Manifest </tutorial/update-version-manifest>` could
+  not be uploaded in
+  :doc:`Local Mode </tutorial/configure-local-mode>`.
+- Agent Upgrade: :ref:`mongodb-10.1.0.5785`.
+
 .. _opsmgr-server-4.1.7:
 
 |onprem| Rapid Release 4.1.7
