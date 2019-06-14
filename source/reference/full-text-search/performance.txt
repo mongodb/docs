@@ -1,0 +1,79 @@
+.. _perf-ref:
+
+============================================
+Full Text Search: Performance Considerations
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|fts| runs a new process, called ``mongot``, alongside
+the :binary:`mongod <bin.mongod>` process on each host in your
+|service| cluster. ``mongot`` maintains all
+|fts| indexes on collections in your |service| databases.
+The amount of CPU, memory, and disk resources ``mongot`` consumes
+depends on several factors, including your index configuration
+and the complexity of your queries.
+
+Index Size and Configuration
+----------------------------
+
+When you :ref:`create <ref-create-index>` a |fts| index, the default
+configuration sets field mapping to :ref:`dynamic
+<static-dynamic-mappings>`, which means that all the data in your
+collection is actively added to your |fts| index. Other options
+such as enabling highlights can also result in your index taking up more
+disk space. You can reduce the size and performance footprint of your
+|fts| index by specifying a custom :ref:`index definition
+<ref-index-definitions>` to narrow the amount and type of data that is
+indexed.
+
+Creating and Updating a Full Text Search Index
+----------------------------------------------
+
+Creating a |fts| index is resource-intensive. The performance of your
+|service| cluster may be impacted while the index builds.
+
+If you :ref:`change the configuration <edit-index-ref>` of a |fts|
+index it must rebuild, which also consumes resources and may affect
+database performance.
+
+.. note::
+
+   Do not run queries against a |fts| index while it is
+   building. You may get incomplete results. Ensure
+   that all nodes in your cluster have the :ref:`Active
+   <node-status-ref>` status before running |fts| queries.
+
+Query Operators and Query Complexity
+------------------------------------
+
+The complexity level of |fts| queries and the type of :ref:`operators
+<fts-operators-ref>` used can affect database performance. Highly
+complex queries with :ref:`multiple clauses <compound-ref>` are
+resource-intensive, as are queries which use the :ref:`regex
+<term-ref>` (regular expression) operator.
+
+|fts| queries are ranked by :ref:`score <score-ref>`. Queries that
+return a large number of results are more computationally intensive
+because they must keep track of all the scores for the result set.
+
+Performance Monitoring
+----------------------
+
+You can :ref:`monitor <monitor-cluster-metrics>` your |service|
+cluster and view charts with performance statistics on the |service|
+:guilabel:`Metrics` tab. These metrics can help you see how |fts|
+queries and index building affect your cluster's performance.
+
+.. note::
+
+   If your cluster's resources are stretched or near the
+   limits of acceptable performance, consider :doc:`upgrading
+   </scale-cluster>` to a larger cluster size before implementing
+   |fts| functionality.
