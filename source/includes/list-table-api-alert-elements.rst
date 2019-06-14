@@ -89,8 +89,8 @@
        - ``BACKGROUND_FLUSH_AVG``
        - ``CACHE_BYTES_READ_INTO``
        - ``CACHE_BYTES_WRITTEN_FROM``
-       - ``CACHE_USAGE_DIRTY``
-       - ``CACHE_USAGE_USED``
+       - ``CACHE_DIRTY_BYTES``
+       - ``CACHE_USED_BYTES``
        - ``COMPUTED_MEMORY``
        - ``CONNECTIONS``
        - ``CURSORS_TOTAL_CLIENT_CURSORS_SIZE``
