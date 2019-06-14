@@ -1,0 +1,49 @@
+.. _scoring-ref:
+
+=======
+Scoring
+=======
+
+.. default-domain:: mongodb
+
+Every document returned by a |fts| query is assigned a score based
+on relevance, and the documents included in a result set are returned
+in order from highest score to lowest.
+
+Many factors can influence a document's score, including:
+
+- The position of the search term in the document,
+- The frequency of occurrence of the search term in the document,
+- The type of :ref:`operator <fts-operators>` the query uses,
+- The type of :ref:`analyzer <analyzers-ref>` the query uses.
+
+The score assigned to a returned document is part of the
+document's metadata. You can include each returned document's
+score along with the result set by using a :manual:`$project stage
+</reference/operator/aggregation/project>` in your aggregation
+pipeline. The following example query uses a ``$project`` stage
+to add a field named ``score`` to the returned documents:
+
+.. code-block:: javascript
+
+   db.movies.aggregate([
+     {
+       $searchBeta: {
+         "search": {
+           "query": "Helsinki",
+           "path": "plot"
+         }
+       }
+     },
+     {
+       $project: { 
+         plot: 1,
+         title: 1,
+         score: { $meta: "searchScore" }
+       }
+     }
+   ])
+
+More information about the Lucene scoring algorithm can be found in
+the `Lucene documentation
+<https://lucene.apache.org/core/3_5_0/scoring.html>`__.
