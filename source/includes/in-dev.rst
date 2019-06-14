@@ -1,5 +1,3 @@
-MongoDB 4.2 is currently in development.
-
 .. warning::
 
    While the 4.2 release candidates are available, these versions of MongoDB

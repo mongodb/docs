@@ -75,10 +75,10 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'package-branch': '4.1',
-    'windows-dir-version': '4.1',  # Not sure if always equal to package-branch.
-    'package-name-org': 'mongodb-org-unstable',
-    'package-name-enterprise': 'mongodb-enterprise-unstable',
+    'package-branch': '4.2',   # For rc = testing.  For GA, will be 4.2.
+    'windows-dir-version': '4.2',  # The wizard installs in 4.2 branch
+    'package-name-org': 'mongodb-org',
+    'package-name-enterprise': 'mongodb-enterprise',
     'version': version,
     'release': release,
     'pgp-version': version,
