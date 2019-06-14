@@ -19,7 +19,7 @@
 
 The following page describes the configuration options available for
 {+data-lake+}. Each {+data-lake-short+} configuration file defines
-mappings between your {+data-lake-tenants+} and {+data-lake-short+}.
+mappings between your {+data-lake-stores+} and {+data-lake-short+}.
 
 {+data-lake-short+} configuration files use the JSON format.  You must
 connect to the {+data-lake-short+} using the :binary:`~bin.mongo` shell
@@ -44,8 +44,8 @@ of the 24 hour period covered by that file:
 
 The following configuration file does the following:
 
-- Defines a {+data-lake-tenant+} on the ``datacenter-alpha`` S3 bucket
-  in the ``us-east-1`` AWS region. The {+data-lake-tenant+}
+- Defines a {+data-lake-store+} on the ``datacenter-alpha`` S3 bucket
+  in the ``us-east-1`` AWS region. The {+data-lake-store+}
   is specifically restricted to only datafiles in the ``metrics``
   folder path.
 
@@ -69,7 +69,7 @@ The following configuration file does the following:
        }
      ],
      "databases" : {
-       "datacenter-metrics" : {
+       "datacenter-alpha-metrics" : {
          "hardware" : [
            {
              "store" : "datacenter-alpha",
@@ -80,14 +80,12 @@ The following configuration file does the following:
      }
    }
 
-{+data-lake+} parses the S3 bucket ``datacenter-alpha`` and scans
-all files under ``/metrics/hardware/``. For files without an
-extension, {+data-lake-short+} assumes ``.json`` as the format. 
-The collection ``definition`` uses
-:ref:`definition parsing syntax <datalake-definition-syntax>`
-to add a field ``date`` to each document generated from the filename,
-where the field value equals the filename as parsed and converted to a 
-ISO-8601 date.
+{+data-lake+} parses the S3 bucket ``datacenter-alpha`` and scans all
+files under ``/metrics/hardware/``. The collection ``definition`` uses
+:ref:`definition parsing syntax <datalake-definition-syntax>` to add a
+field ``date`` to each document generated from the filename, where the
+field value equals the filename as parsed and converted to a  ISO-8601
+date.
 
 Users connected to the {+data-lake-short+} can use the MongoDB
 Query Language and supported aggregations to analyze data in the
@@ -170,13 +168,13 @@ The {+data-lake-short+} configuration document has the following format:
    }
 
 :ref:`datalake-stores-reference`
-  The ``stores`` object defines each {+data-lake-tenant+} associated
+  The ``stores`` object defines each {+data-lake-store+} associated
   to the {+data-lake-short+}. {+data-lake-short+} can only access
-  {+data-lake-tenants+} defined in the ``stores`` object.
+  {+data-lake-stores+} defined in the ``stores`` object.
 
 :ref:`datalake-databases-reference`
   The ``databases`` object defines the mapping between each
-  {+data-lake-tenant+} defined in ``stores`` and a MongoDB database
+  {+data-lake-store+} defined in ``stores`` and a MongoDB database
   and collection. 
 
 .. _datalake-stores-reference:
@@ -198,16 +196,16 @@ The {+data-lake-short+} configuration document has the following format:
 
 .. datalakeconf:: stores
 
-   Each object in the array represents one {+data-lake-tenant+}
+   Each object in the array represents one {+data-lake-store+}
    which can be mapped to a MongoDB database and collection. 
 
 .. datalakeconf:: stores.[n].s3
 
-   Defines an |aws| S3 bucket as a {+data-lake-tenant+}.
+   Defines an |aws| S3 bucket as a {+data-lake-store+}.
 
 .. datalakeconf:: stores.[n].s3.name
 
-   Name of the {+data-lake-tenant+}. The
+   Name of the {+data-lake-store+}. The
    :datalakeconf:`databases.database.collection.store`
    field references this value as part of mapping configuration.
 
@@ -241,11 +239,11 @@ The {+data-lake-short+} configuration document has the following format:
       |--software
          |--computed
 
-   {+data-lake-tenant+} prepends the value of ``prefix`` to the
+   {+data-lake-store+} prepends the value of ``prefix`` to the
    :datalakeconf:`databases.<database>.<collection>.[n].definition`
    to create the full path for files to ingest. Setting the ``prefix``
    to ``/software`` restricts any :datalakeconf:`databases` 
-   objects using the {+data-lake-tenant+} to only subpaths 
+   objects using the {+data-lake-store+} to only subpaths 
    ``/software``.
 
    If omitted, {+data-lake-short+} searches all files from the
@@ -282,21 +280,20 @@ The {+data-lake-short+} configuration document has the following format:
 
    Each nested object represents a database and its collections,
    each of which maps to a :datalakeconf:`stores` 
-   {+data-lake-tenant+}. 
+   {+data-lake-store+}. 
 
 .. datalakeconf:: databases.<database>
 
    The name of the database to which {+data-lake-short+} maps the
-   data contained in the {+data-lake-tenant+}. Each
+   data contained in the {+data-lake-store+}. Each
    ``<database>`` can have multiple nested 
-   :datalakeconf:`~databases.<database>.<collection>`
-   objects. 
+   ``<collection>`` objects. 
 
 .. datalakeconf:: databases.<database>.<collection>
 
    The name of the collection to which {+data-lake-short+} maps the
    data contained each
-   :datalakeconf:`databases.<database>.<collection>.[n].store. Each 
+   :datalakeconf:`databases.<database>.<collection>.[n].store`. Each 
    object in the array represents the mapping between the collection 
    and an object in the :datalakeconf:`stores` array. 
 
@@ -309,7 +306,7 @@ The {+data-lake-short+} configuration document has the following format:
 
 .. datalakeconf:: databases.<database>.<collection>.[n].store
 
-   Name of a {+data-lake-tenant+} to map to the ``<collection>``. 
+   Name of a {+data-lake-store+} to map to the ``<collection>``. 
    Must match the :datalakeconf:`~stores.[n].s3.name` of at
    an object in the :datalakeconf:`stores` array. 
 
@@ -317,7 +314,7 @@ The {+data-lake-short+} configuration document has the following format:
 
    *Optional* Specifies the default format {+data-lake-short+} assumes
    if it encounters a file without an extension while searching the
-   :datalakeconf:`~databases.<database>.<collection[n].store`.
+   :datalakeconf:`~databases.<database>.<collection>[n].store`.
 
    If omitted, {+data-lake-short+} attempts to detect the file type
    by scanning a few bytes of the file.
@@ -325,9 +322,14 @@ The {+data-lake-short+} configuration document has the following format:
 .. datalakeconf:: databases.<database>.<collection>.[n].definition
 
    Controls how {+data-lake+} searches for and parses files in the
-   :datalakeconf:`~databases.<database>.<collection[n].store` before
+   :datalakeconf:`~databases.<database>.<collection>.[n].store` before
    mapping them to the
-   :datalakeconf:`~databases.<database>.<collection>`.
+   ``<collection>``. 
+   {+data-lake-short+} prepends the
+   :datalakeconf:`stores.[n].s3.prefix` to the
+   ``definition`` to build the full path to search within. Specify
+   ``/`` to capture all files and folders from the ``prefix``
+   path.
 
    For example, consider an S3 bucket ``metrics`` with the following 
    structure:
@@ -340,21 +342,21 @@ The {+data-lake-short+} configuration document has the following format:
       |--software
          |--computed
 
-   A ``definition`` of ``/hardware`` directs {+data-lake-short+} to
-   search only that folder for files to ingest.
+   A ``definition`` of ``/`` directs {+data-lake-short+} to search
+   all files and folders in the ``metrics`` bucket.
 
-   If the associated :datalakeconf:`stores` object has a 
-   :datalakeconf:`~stores.[n].s3.prefix` specified, {+data-lake-short+}
-   prepends that value to the definition. For example, a
-   prefix of ``software`` and a definition of ``hardware`` results in a
-   full path of ``/software/computed``. {+data-lake-short+} only
-   searches under that full path for files to ingest.
+   A ``definition`` of ``/hardware`` directs {+data-lake-short+} to
+   search only that path for files to ingest.
+
+   If the :datalakeconf:`~stores.[n].s3.prefix` is ``software``,
+   {+data-lake-short+} searches for files only in the path
+   ``/software/computed``.
 
    Appending the ``*`` wildcard character to the definition 
-   directs {+data-lake-short+} to include all files from that point
-   in the path. For example, ``/software/computed*``
+   directs {+data-lake-short+} to include all files and folders from 
+   that point in the path. For example, ``/software/computed*``
    would match files like ``/software/computed-detailed``,
-   ``/software/computed-summary``, and ``/software/computedArchive``.
+   ``/software/computedArchive``, and ``/software/computed/errors``
 
    :datalakeconf:`~databases.<database>.<colection>.[n].definition`
    supports additional syntax for parsing filenames, including:
@@ -370,10 +372,11 @@ The {+data-lake-short+} configuration document has the following format:
 Definition Syntax
 -----------------
 
-:datalakeconf:`~databases.<database>.<colection>.[n].definition`
+:datalakeconf:`~databases.<database>.<collection>.[n].definition`
 supports parsing filenames into computed fields. {+data-lake-short+}
 can add the computed fields to each document generated from the
-parsed file.
+parsed file. {+data-lake-short+} can target queries on those
+computed field values to only those file(s) with a matching file name.
 
 - You can specify a single parsing function on the filename:
 
@@ -382,20 +385,20 @@ parsed file.
 
      /path/to/files/{<fieldA> <data-type>}
 
-- You can specify a single parsing function alongside static strings
-  in the filename:
-
-  .. code-block:: none
-     :copyable: false
-   
-     /path/to/files/prefix-{<fieldA> <data-type>}-suffix
-
 - You can specify multiple parsing functions on the filename:
 
   .. code-block:: none
      :copyable: false
 
      /path/to/files/{<fieldA> <data-type>}-{<fieldB> <data-type>}
+
+- You can specify a parsing functions alongside static strings
+  in the filename:
+
+  .. code-block:: none
+     :copyable: false
+   
+     /path/to/files/prefix-{<fieldA> <data-type>}-suffix
 
 For more information on supported data types, see
 :ref:`datalake-definition-data-types`.
@@ -411,7 +414,7 @@ For more information on supported data types, see
 Parse Single Field from Filename
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a {+data-lake-tenant+} ``accountingArchive`` containing files
+Consider a {+data-lake-store+} ``accountingArchive`` containing files
 where the filename describes an invoice date. For  example, the filename
 ``/invoices/1551398400.json`` contains the invoices for the UNIX
 timestamp ``1551398400``. 
@@ -434,14 +437,16 @@ generates:
 {+data-lake-short+} adds the computed field and value to each
 document generated from the filename. Documents generated from the
 example filename includes a field 
-``invoiceDate: ISODate("2019-03-01T00:00:00Z")``.
+``invoiceDate: ISODate("2019-03-01T00:00:00Z")``. Queries on the
+``invoiceDate`` field can be targeted to only those files
+that match the specified value.
 
 .. _datalake-advanced-definition-parse-multiple:
 
 Parse Multiple Fields from Filename
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a {+data-lake-tenant+} ``accountingArchive`` containing files
+Consider a {+data-lake-store+} ``accountingArchive`` containing files
 where the filename describes an invoice number and invoice date. For 
 example, the filename ``/invoices/MONGO12345-1551398400.json`` contains
 the invoice ``MONGO12345`` for the UNIX timestamp ``1551398400``. 
@@ -462,7 +467,7 @@ generates:
      "accounting" : {
        "invoices" : [
          "store" : "accountingArchive",
-         "definition" : "/invoices/{invoiceNumber string}-{invoiceDate : timestamp}"
+         "definition" : "/invoices/{invoiceNumber string}-{invoiceDate timestamp}"
        ]
      }
    }
@@ -474,17 +479,21 @@ example filename include the following fields:
 - ``invoiceNumber : "MONGO12345"``
 - ``invoiceDate : ISODate("2019-03-01T00:00:00Z")``
 
+Queries that include *both* the ``invoiceNumber`` and ``invoiceDate`` 
+fields can be targeted to only those files that match the
+specified values.
+
 .. _datalake-advanced-definition-parse-regex:
 
 Use Regular Expression to Parse Fields from Filename
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a {+data-lake-tenant+} ``accountingArchive`` containing files
+Consider a {+data-lake-store+} ``accountingArchive`` containing files
 where the filename describes an invoice number and invoice date. For 
 example, the filename ``/invoices/MONGO12345-20190102.json`` contains
 the invoice ``MONGO12345`` for the date ``20190102``. 
 
-The following The following :ref:`datalake-databases-reference` object
+The following :ref:`datalake-databases-reference` object
 generates:
 
 - A field ``invoiceNumber`` by parsing the first segment of the filename
@@ -526,12 +535,15 @@ example filename include the following fields:
    example, if the regex string includes double quotes, you must 
    escape those values.
 
+Queries that include *all* generated fields can be targeted to only
+those files that match the specified values.
+
 .. _datalake-advanced-definition-parse-range:
 
 Identify Ranges of Queryable Data from Filename
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a {+data-lake-tenant+} ``accountingArchive``  containing files
+Consider a {+data-lake-store+} ``accountingArchive``  containing files
 where the filename describes the range of data contained in the file.
 For example, the filename ``/invoices/1546300800-1546387200.json``
 contains invoices for the time period between 2019-01-01 and 2019-01-02
@@ -557,6 +569,9 @@ When {+data-lake-short+} receives a query on the ``"invoiceDate"``
 field, the specified definition allows it to identify which 
 files contain the data that matches the query.
 
+Queries on the ``invoiceDate`` field can be targeted to only those
+files whose range captures the specified value.
+
 .. important::
 
    The field specified for the min and max ranges *must* exist in
@@ -569,7 +584,7 @@ files contain the data that matches the query.
 Generate Dynamic Collection Names from File Path
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a {+data-lake-tenant+} ``accountingArchive``  with the
+Consider a {+data-lake-store+} ``accountingArchive``  with the
 following directory structure:
 
 .. code-block:: text
@@ -648,10 +663,10 @@ data types, and an example of usage:
 
    * - ``isodate``
      - Parses the filename as an ISO 8601 format date
-     - filename: ``/metrics/20190103T00:00:00Z.json``
+     - filename: ``/metrics/2019-01-03T00:00:00Z.json``
 
        definition: ``/metrics/{startTimestamp isodate }``
 
        Inserts the 
        ``"startTimestamp": ISODate("2019-01-03T00:00:00Z")`` field into 
-       the document produced by ``/metrics/20190103T00:00:00Z.json``.
+       the document produced by ``/metrics/2019-01-03T00:00:00Z.json``.

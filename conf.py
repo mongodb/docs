@@ -141,8 +141,8 @@ rst_epilog = [
 ]
 
 source_constants = {
-    'data-lake-tenant': 'data store',
-    'data-lake-tenants': 'data stores',
+    'data-lake-store': 'data store',
+    'data-lake-stores': 'data stores',
     'data-lake' : 'Atlas Data Lake',
     'data-lake-short' : 'Data Lake'
 }
