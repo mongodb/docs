@@ -1,3 +1,12 @@
+.. _mongodb-10.1.2.5805:
+
+MongoDB Agent 10.1.2.5805
+---------------------------
+
+*Released* 2019-06-11
+
+- Monitoring function converted to use the new MongoDB Go Driver.
+
 .. _mongodb-10.1.0.5785:
 
 MongoDB Agent 10.1.0.5785
