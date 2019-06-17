@@ -1,0 +1,301 @@
+title: Navigate to your |service| cluster.
+ref: navigate-to-cluster
+content: |
+  In the |service| UI, navigate to the :guilabel:`Clusters` page for 
+  your project.
+---
+title: Click the :guilabel:`...` button for your cluster.
+ref: click-ellipis-fts
+content: |
+  Locate the :guilabel:`...` button next to the
+  :guilabel:`Collections` button and click to reveal the dropdown
+  menu.
+---
+title: Select :guilabel:`Load Sample Dataset` from the dropdown menu.
+ref: select-load-sample-dataset
+  The sample dataset takes a few minutes to load. When it finishes,
+  proceed to the next step.
+---
+title: Click the :guilabel:`Collections` button for your cluster.
+ref: click-collections-button
+---
+title: Select the :guilabel:`sample_mflix` database.
+ref: select-sample-mflix
+content: |
+  Locate the :guilabel:`sample_mflix` database in the list of namespaces
+  and click it to reveal its collections.
+---
+title: Select the :guilabel:`movies` collection.
+ref: select-movies
+content: |
+  Select :guilabel:`movies` from the list of collections under the
+  :guilabel:`sample_mflix` database.
+---
+title: Select the :guilabel:`Full Text Search` tab on the right-side panel.
+ref: select-fts-tab
+
+---
+title: Click the button labelled :guilabel:`Create a FTS Index`.
+ref: click-create-fts-index
+
+---
+title: Enter an index definition in the modal window.
+ref: enter-index-definition
+content: |
+  The ``movies`` collection is large, so in order to save space we will
+  only index the ``title``, ``genres``, and ``plot`` fields.
+
+  Replace the default definition with the following:
+
+  .. code-block:: json
+
+     {
+       "mappings": {
+         "dynamic": false,
+         "fields": {
+           "title": {
+             "type": "string",
+             "analyzer": "lucene.standard",
+             "multi": {
+               "keywordAnalyzer": {
+                 "type": "string",
+                 "analyzer": "lucene.keyword"
+               }
+             }
+           },
+           "genres": {
+             "type": "string",
+             "analyzer": "lucene.standard"
+           },
+           "plot": {
+             "type": "string",
+             "analyzer": "lucene.standard"
+           }
+         }
+       }
+     }
+
+  The above index definition specifies the :ref:`standard analyzer
+  <ref-standard-analyzer>` as the default analyzer for all three
+  indexed fields. It also specifies the :ref:`keyword analyzer
+  <ref-keyword-analyzer>` as an alternate analyzer for the ``title``
+  field, with the name ``keywordAnalyzer``. The keyword analyzer
+  indexes the entire field as a single term, so it only returns
+  results if the search term and the specified field match exactly.
+
+  For more information about static and dynamic field mappings, see
+  :ref:`index definitions <ref-index-definitions>`. For more
+  information about ``multi`` analyzer designations, see
+  :ref:`ref-path`.
+
+  Leave the default index name ``default`` in place and click the
+  :guilabel:`Create Index` button.
+
+  .. note::
+  
+     If you use the name ``default`` for your index you do not need
+     to specify it by name when querying against it. If you use a 
+     custom name you must add the ``"index": <index-name>`` parameter
+     to all :ref:`$searchBeta <query-syntax-ref>` queries.
+---
+title: Wait for the index to finish building.
+ref: wait-for-index
+content: |
+  The index should take about one minute to build. While it is
+  building, the :guilabel:`Status` column reads ``Build in
+  Progress``. When it is finished building, the
+  :guilabel:`Status` column reads ``Active``.
+---
+title: Connect to your cluster in the ``mongo`` shell.
+ref: connect-to-cluster-fts
+content: |
+  Open the :binary:`mongo <bin.mongo>` shell in a terminal window and
+  connect to your cluster. For detailed instructions on connecting,
+  see :doc:`/connect-to-cluster`.
+---
+title: Use the ``sample_mflix`` database.
+ref: use-sample-mflix
+content: |
+  Run the following command at the ``mongo`` shell prompt:
+
+  .. code-block:: javascript
+
+     use sample_mflix
+---
+title: Run your first Full Text Search query.
+ref: run-first-query
+content: |
+  The following query searches for the word ``Boston`` in
+  the ``plot`` field. It includes a :manual:`$limit
+  </reference/operator/aggregation/limit>` stage to limit the output
+  to 5 results and a :manual:`$project
+  </reference/operator/aggregation/project>` stage to exclude all
+  fields except ``title`` and ``plot``.
+
+  .. code-block:: javascript
+
+     db.movies.aggregate([
+       {
+         $searchBeta: {
+           "search": { 
+             "query": "Boston", 
+             "path": "plot"
+           }
+         }
+       },
+       {
+         $limit: 5
+       },
+       {
+         $project: {
+           "_id": 0,
+           "title": 1,
+           "plot": 1
+         }
+       }
+     ])
+
+  The above query returns the following results:
+
+  .. code-block:: json
+     :copyable: false
+
+     { "plot" : "Boston spinster blossoms under therapy and finds impossible romance.",
+       "title" : "Now, Voyager" }
+     { "plot" : "A series of brutal murders in Boston sparks a seemingly
+       endless and increasingly complex manhunt.", "title" : "The Boston Strangler" }
+     { "plot" : "Story of an underground newspaper in Boston about to be taken
+       over by big business.", "title" : "Between the Lines" }
+     { "plot" : "An Irish bomber escapes from prison and targets a member of
+       the Boston bomb squad.", "title" : "Blown Away" }
+     { "plot" : "Lindsay is stuck in the middle of her relationship with Ben
+       and his passion for the Boston Red Sox.", "title" : "Fever Pitch" }
+  
+  For more information about the :ref:`$searchBeta <query-syntax-ref>`
+  pipeline stage, see its reference page. For complete aggregation
+  pipeline documentation, see the :manual:`MongoDB Server Manual
+  </aggregation>`.
+---
+title: Run a more complex query. 
+ref: more-complex-query
+content: |
+  ``$searchBeta`` has several :ref:`operators <fts-operators>` for
+  constructing different types of queries. The following query uses the
+  :ref:`compound <compound-ref>` operator to combine several operators
+  into a single query. It has the following search criteria:
+
+  - The ``plot`` field must contain either ``Hawaii`` or ``Alaska``.
+  - The ``plot`` field must contain a four-digit number, such as a
+    year.
+  - The ``genres`` field must not contain either ``Comedy`` or
+    ``Romance``.
+  - The ``title`` field must not contain ``Beach`` or ``Snow``.
+
+  .. code-block:: javascript
+
+     db.movies.aggregate([
+       {
+         $searchBeta: {
+           "compound": {
+             "must": [ {
+               "search": {
+                  "query": ["Hawaii", "Alaska"],
+                  "path": "plot"
+               },
+             },
+             {
+               "term": {
+                  "query": "([0-9]{4})",
+                  "regex": true,
+                  "path": "plot"
+               }
+             } ],
+             "mustNot": [ {
+               "search": {
+                 "query": ["Comedy", "Romance"],
+                 "path": "genres"
+               }
+             },
+             {
+               "term": {
+                 "query": ["Beach", "Snow"],
+                 "path": "title"
+               }
+             } ]
+           }
+         }
+       }, 
+       { 
+         $project: { 
+           "title": 1,
+           "plot": 1,
+           "genres": 1,
+           "_id": 0 
+         } 
+       }
+     ])
+
+  The above query returns the following results:
+
+  .. code-block:: json
+     :copyable: false
+
+     { "plot" : "A modern aircraft carrier is thrown back in time to 1941
+       near Hawaii, just hours before the Japanese attack on Pearl Harbor.",
+       "genres" : [ "Action", "Sci-Fi" ], "title" : "The Final Countdown" }
+     { "plot" : "Follows John McCain's 2008 presidential campaign, from his
+       selection of Alaska Governor Sarah Palin as his running mate to
+       their ultimate defeat in the general election.",
+       "genres" : [ "Biography", "Drama", "History" ], "title" : "Game Change" }
+     { "plot" : "A devastating and heartrending take on grizzly bear
+       activists Timothy Treadwell and Amie Huguenard, who were killed in
+       October of 2003 while living among grizzlies in Alaska.",
+       "genres" : [ "Documentary", "Biography" ], "title" : "Grizzly Man" }
+     { "plot" : "Truman Korovin is a lonely, sharp-witted cab driver in
+       Fairbanks, Alaska, 1980. The usual routine of picking up fares and
+       spending his nights at his favorite bar, the Boatel, is
+       disrupted ...", "genres" : [ "Drama" ], "title" : "Chronic Town" }
+---
+title: Run a query using a ``multi`` analyzer. 
+ref: more-multi-query
+content: |
+  In the index definition you created in step 9, you specified that the
+  ``title`` field should be able to use either the :ref:`standard
+  <ref-standard-analyzer>` analyzer or the :ref:`keyword
+  <ref-keyword-analyzer>` analyzer for queries. The following query
+  uses the alternate analyzer, named ``keywordAnalyzer``, to search
+  for exact matches on the string ``The Count of Monte Cristo``.
+
+  .. code-block:: javascript
+
+     db.movies.aggregate([
+       {
+         $searchBeta: {
+           "search": {
+             "query": "The Count of Monte Cristo",
+             "path": { "value": "title", "multi": "keywordAnalyzer" }
+           }
+         }
+       }, 
+       { 
+         $project: { 
+           "title": 1,
+           "year": 1,
+           "_id": 0 
+         } 
+       }
+     ])
+
+  The above query returns the following results:
+
+  .. code-block:: json
+     :copyable: false
+
+     { "title" : "The Count of Monte Cristo", "year" : 1934 }
+     { "title" : "The Count of Monte Cristo", "year" : 1954 }
+     { "title" : "The Count of Monte Cristo", "year" : 1998 }
+
+  By contrast, the same query using the ``standard`` analyzer would
+  find all the movies with the word ``Count`` or ``Monte`` or
+  ``Cristo`` in the title.
+...
