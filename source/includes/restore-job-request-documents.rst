@@ -17,7 +17,7 @@
        .. note::
 
           If you set ``checkpointId``, you cannot set ``oplogInc``,
-          ``oplogTs``, or ``pointInTimeUTCMillis``.
+          ``oplogTs``, ``snapshotId``, or ``pointInTimeUTCMillis``.
 
        If you provide this setting, this endpoint restores all data up
        to this checkpoint to the database you specify in the
@@ -122,7 +122,7 @@
           If you set ``oplogTs``, you:
 
           - Must set ``oplogInc``. 
-          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
+          - Cannot set ``checkpointId``, ``snapshotId``, or ``pointInTimeUTCMillis``.
 
        If you provide this setting, this endpoint restores all data up
        to *and including* this Oplog timestamp to the database you
@@ -141,7 +141,7 @@
           If you set ``oplogInc``, you:
 
           - Must set ``oplogTs``. 
-          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
+          - Cannot set ``checkpointId``, ``snapshotId``, or ``pointInTimeUTCMillis``.
 
        If you provide this setting, this endpoint restores all data up
        to *and including* this Oplog timestamp to the database you
@@ -162,8 +162,14 @@
        .. note::
 
           If you set ``pointInTimeUTCMillis``, you cannot set
-          ``oplogInc``, ``oplogTs``, or ``checkpointId``.
+          ``oplogInc``, ``oplogTs``, ``snapshotId``, or ``checkpointId``.
 
    * - ``snapshotId``
      - string
      - Unique identifier of the snapshot to restore.
+
+       .. note::
+
+          If you set ``snapshotId``, you cannot set
+          ``oplogInc``, ``oplogTs``, ``pointInTimeUTCMillis``, or ``checkpointId``.
+
