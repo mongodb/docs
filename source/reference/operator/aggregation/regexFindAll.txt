@@ -93,6 +93,78 @@ The operator returns an array:
 
      [ { "match" : <string>, "idx" : <num>, "captures" : <array of strings> }, ... ]
 
+.. seealso::
+
+   - :expression:`$regexFind`
+
+   - :expression:`$regexMatch`
+
+Behavior
+--------
+
+``$regexFindAll`` and Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:expression:`$regexFindAll` ignores the collation specified for the
+collection, :method:`db.collection.aggregate()`, and the index, if used.
+
+For example, the create a sample collection with collation strength
+``1`` (i.e. compare base character only and ignore other differences
+such as case and diacritics):
+
+.. code-block:: javascript
+
+   db.createCollection( "myColl", { collation: { locale: "fr", strength: 1 } } )
+
+Insert the following documents:
+
+.. code-block:: javascript
+
+   db.myColl.insertMany([
+      { _id: 1, category: "café" },
+      { _id: 2, category: "cafe" },
+      { _id: 3, category: "cafE" }
+   ])
+
+Using the collection's collation, the following operation performs a
+case-insensitive and diacritic-insensitive match:
+
+.. code-block:: javascript
+
+   db.myColl.aggregate( [ { $match: { category: "cafe" } } ] )
+
+The operation returns the following 3 documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "café" }
+   { "_id" : 2, "category" : "cafe" }
+   { "_id" : 3, "category" : "cafE" }
+
+However, the aggregation expression :expression:`$regexFind` ignores
+collation; that is, the following regular expression pattern matching examples
+are case-sensitive and diacritic sensitive:
+
+.. code-block:: javascript
+
+   db.myColl.aggregate( [ { $addFields: { results: { $regexFindAll: { input: "$category", regex: /cafe/ }  } } } ] )
+   db.myColl.aggregate( 
+      [ { $addFields: { results: { $regexFindAll: { input: "$category", regex: /cafe/ }  } } } ], 
+      { collation: { locale: "fr", strength: 1 } }       // Ignored in the $regexFindAll
+   )
+
+Both operations return the following:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "café", "results" : [ ] }
+   { "_id" : 2, "category" : "cafe", "results" : [ { "match" : "cafe", "idx" : 0, "captures" : [ ] } ] }
+   { "_id" : 3, "category" : "cafE", "results" : [ ] }
+
+To perform a case-insensitive regex pattern matching, use the
+:ref:`regexFindAll-example-i-options` instead. See
+:ref:`regexFindAll-example-i-options` for an example.
+
 Examples
 --------
 
@@ -239,6 +311,8 @@ regex pattern ``/tier/``:
       { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : [ ] }
       { "_id" : 6, "description" : "métier work vocation", 
                    "returnObject" : [ { "match" : "tier", "idx" : 2, "captures" : [ ] } ] }
+
+.. _regexFindAll-example-i-options:
 
 ``i`` Option
 ````````````
@@ -505,7 +579,7 @@ Create a sample collection ``feedback`` with the following documents:
       { "_id" : 4, comment: "It's just me. I'm testing.  fred@MongoDB.com" }
    ])
    
-The following aggregation uses the :expression:`$regexFind` to extract
+The following aggregation uses the :expression:`$regexFindAll` to extract
 all emails from the ``comment`` field (case insensitive).
 
 .. code-block:: javascript
