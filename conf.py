@@ -39,7 +39,8 @@ extensions = [
     'icon',
     'landing_cards',
     'div',
-    'source_constants'
+    'source_constants',
+    'xmlrole'
 ]
 
 locale_dirs = [os.path.join(conf.paths.projectroot, conf.paths.locale)]
