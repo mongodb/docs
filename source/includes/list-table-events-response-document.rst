@@ -136,6 +136,10 @@
      - string
      - The name of the shard associated to the event.
 
+   * - ``targetPublicKey``
+     - string
+     - The public key of the |api| Key targeted by the event.
+
    * - ``targetUsername``
      - string
      - The username for the |service| user targeted by the
@@ -157,4 +161,12 @@
      - The username for the |service| user who triggered the event.
        If this field is present in the response,
        |service| does not return the ``publicKey`` field.
+
+   * - ``whitelistEntry``
+     - string
+     - The white list entry of the API Key targeted by the event.
+
+
+
+
 
