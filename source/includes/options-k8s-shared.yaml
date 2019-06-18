@@ -113,14 +113,14 @@ type: string
 directive: setting
 optional: false
 description: |
-  *Required.* Name of the |k8s-configmap| with the |com| connection 
+  *Required.* Name of the |k8s-configmap| with the |com| connection
   configuration.
 
   .. admonition:: Value must match namespace and name of ConfigMap
      :class: note
 
-     This value *must* match the value you provided for 
-     :setting:`metadata.name` in your |com| 
+     This value *must* match the value you provided for
+     :setting:`metadata.name` in your |com|
      :ref:`project ConfigMap <create-k8s-project>`.
 
      If this |k8s-mdbrsc| is in a different |k8s-ns| than the
@@ -169,14 +169,38 @@ description: |
 ---
 program: _shared
 name: spec.podSpec.cpu
-type: string
+type: number
 directive: setting
 optional: true
 description: |
-  Minimum CPU capacity that must be available on a |k8s|
+  Maximum CPU capacity that must be available on a |k8s|
   |k8s-node| to host this {{component}} |k8s-mdbrsc|.
+
+  This value maps to the
+  :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+  for CPU for the created pod.
 replacement:
   component: :term:`standalone deployment`
+
+---
+program: _shared
+name: spec.podSpec.cpuRequests
+type: number
+directive: setting
+optional: true
+description: |
+  Minimum CPU capacity for the |k8s-node| being created to host
+  this {{component}} |k8s-mdbrsc|. If omitted, this value is set to
+  {{cpuLimit}}.
+
+  This value maps to the
+  :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+  for CPU for the created pod.
+
+  The requested value must be less than or equal to {{cpuLimit}}.
+replacement:
+  component: standalone database
+  cpuLimit: :setting:`spec.podSpec.cpu`
 
 ---
 program: _shared
@@ -185,7 +209,7 @@ type: string
 directive: setting
 optional: false
 description: |
-  *Required.* Minimum memory capacity that must be available on a
+  Maximum memory capacity that must be available on a
   |k8s| |k8s-node| to host this |k8s-mdbrsc| on |k8s|. This value is
   expressed as an integer followed by a unit of memory in
   |jedec| notation.
@@ -195,13 +219,33 @@ description: |
      If this |k8s-mdbrsc| requires 4 gigabytes of memory, set
      this value to ``4G``.
 
-  This value maps both to
-  :k8sdocs:`limits and requests fields </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
-  for memory for the pod created.
+  This value maps to the
+  :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+  for memory for the created pod.
 
   .. important::
 
      {{memoryWarning}}
+
+---
+program: _shared
+name: spec.podSpec.memoryRequests
+type: string
+directive: setting
+optional: false
+description: |
+  Minimum memory capacity for the |k8s-node| being created to host
+  this {{component}} |k8s-mdbrsc|. If omitted, this value is set to
+  {{memoryLimit}}.
+
+  This value maps to the
+  :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+  for memory for the created pod.
+
+
+  The requested value must be less than or equal to {{memoryLimit}}.
+replacement:
+  memoryLimit: :setting:`spec.podSpec.memory`
 
 ---
 program: _shared
@@ -280,7 +324,7 @@ description: |
 
   .. example::
 
-     A user can isolate "dev" and "testing" environments to ensure 
+     A user can isolate "dev" and "testing" environments to ensure
      |k8s-pods| go to |k8s-nodes| with appropriate labels.
 
 ---
@@ -335,7 +379,7 @@ description: |
          |k8s-obj| specification.
 
 
-         .. note:: 
+         .. note::
 
             .. include:: /includes/fact-reclaimpolicy-to-retain.rst
 
@@ -394,7 +438,7 @@ description: |
          this storage type as a |k8s-sc| object before using it in this
          |k8s-obj| specification.
 
-         .. note:: 
+         .. note::
 
             .. include:: /includes/fact-reclaimpolicy-to-retain.rst
 
@@ -449,6 +493,7 @@ description: |
   The following are valid options:
 
   .. include:: /includes/list-table-requiressl-modes.rst
+
 ---
 program: _shared
 name: spec.security.clusterAuthenticationMode
@@ -466,4 +511,17 @@ description: |
 
      Once internal cluster authentication is enabled, it can not be
      disabled.
+
+---
+program: _shared
+name: spec.externallyExposed
+type: boolean
+directive: setting
+optional: true
+default: "false"
+description: |
+
+  Determines whether the MongoDB deployment is exposed outside of the
+  Kubernetes cluster. This results in |k8s| creating a `NodePort service <https://kubernetes.io/docs/concepts/services-networking/service/#nodeport>`__.
+
 ...
