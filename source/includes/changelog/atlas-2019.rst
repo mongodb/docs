@@ -1,3 +1,29 @@
+.. _atlas-v20190611:
+
+18 June 2019 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Supports MongoDB 4.2.
+
+- Supports :xml:`<mono><ref target="fts-top-ref">$searchBeta</ref></mono>`.
+
+  - Includes Memory, CPU, and Disk Usage :ref:`monitoring <monitor-cluster-metrics>`.
+    For more information, see :ref:`Performance Considerations <perf-ref>`.
+
+  - Includes alerts for Memory.
+
+  - Requires MongoDB 4.2.
+
+- Introduces :doc:`{+data-lake+} </data-lake>` on-demand query service.
+
+- Supports :doc:`Cloud Provider Snapshots <backup/cloud-provider-snapshots/>`
+  for 4.2 replica sets.
+
+- Supports Encryption at Rest for snapshots.
+
+- Added :ref:`Aggregation Pipeline Builder <cloud-agg-pipeline>` to the
+  :doc:`Data Explorer </data-explorer>`.
+
 .. _atlas-v20190528:
 
 29 May 2019 Release
