@@ -1,6 +1,6 @@
-=================================
-Get All Containers in One Project
-=================================
+===============================================
+Get All Network Peering Containers in a Project
+===============================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,9 @@ Get All Containers in One Project
    :depth: 2
    :class: singlecol
 
-Retrieve a list of all cloud provider containers in one project.
+Retrieve a list of all Network Peering containers in one project.
+You must have the :authrole:`Project Read Only` or a more permissive
+role to successfully call this endpoint.
 
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
@@ -40,27 +42,23 @@ Request Path Parameters
    * - ``GROUP-ID``
      - string
      - Required
-     - Unique identifier for the project whose container you want to
+     - Unique identifier for the project whose list of Network Peering containers you want to
        retrieve.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. list-table::
-   :header-rows: 1
-   :widths: 15 10 10 65
+.. include:: /includes/api/base-query-list-parameters.rst
 
-   * - Parameter
-     - Type
-     - Necessity
-     - Description
+.. list-table::
+   :widths: 15 10 10 55
 
    * - ``providerName``
      - string
      - Optional
-     - Cloud provider for this |vpc| peering connection.
-       Accepted values are ``AWS`` and ``GCP``. If omitted,
-       |service| set this parameter to ``AWS``.
+     - Cloud provider for this Network peering container.
+       Accepted values are ``AWS``, ``GCP``, and ``Azure``. If omitted,
+       |service| sets this parameter to ``AWS``.
 
 
 Request Body Parameters
@@ -98,20 +96,20 @@ Response Elements
 
             * - ``providerName``
               - string
-              - Cloud provider for this |vpc| peering connection.
+              - Cloud provider for this Network Peering container.
 
             * - ``provisioned``
               - boolean
               - Flag that indicates if the project has clusters
-                deployed in the |vpc|.
+                deployed in the Network Peering container.
 
             * - ``regionName``
               - string
-              - Region. Provided for |aws| |vpc|\s only.
+              - Region.
 
             * - ``vpcId``
               - string
-              - Unique identifier of the project's |vpc|.
+              - Unique identifier of the project's Network Peering container.
 
      - id: gcp
        name: GCP
@@ -132,31 +130,35 @@ Response Elements
             * - ``gcpProjectId``
               - string
               - Unique identifier of the |gcp| project in which the
-                |vpc| resides.
+                Network Peering container resides.
 
             * - ``id``
               - string
-              - Unique identifier of the container.
+              - Unique identifier of the Network Peering container.
 
             * - ``providerName``
               - string
-              - Cloud provider for this |vpc| peering connection.
+              - Cloud provider for this Network Peering connection.
 
             * - ``provisioned``
               - boolean
               - Flag that indicates if the project has clusters
-                deployed in the |vpc|.
+                deployed in the Network Peering container.
 
             * - ``networkName``
               - string
-              - Name of the |vpc| of the |service| project.
+              - Name of the network peer to which |service| connects.
+
+     - id: azure
+       name: Azure
+       content: |
+
+         .. include:: /includes/api/list-tables/vnet-azure-get-containers-response.rst
 
 Example Request
 ---------------
 
 .. tabs::
-
-   hidden: true
 
    tabs:
      - id: aws
@@ -181,12 +183,21 @@ Example Request
               --header "Accept: application/json" \
               --request GET "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/containers?providerName=GCP&pretty=true"
 
+     - id: azure
+       name: Azure
+       content: |
+
+         .. code-block:: sh
+            :linenos:
+
+            curl --user "{USERNAME}:{APIKEY}" --digest \
+              --header "Accept: application/json" \
+              -- request GET "https://cloud.mongodb.com/api/atlas/v1.0/groups/6dc6f13787d9d655db5b6bd1/containers?providerName=Azure&pretty=true 
+
 Example Response
 ----------------
 
 .. tabs::
-
-   hidden: true
 
    tabs:
      - id: aws
@@ -233,4 +244,28 @@ Example Response
                  "provisioned" : true
                } ],
                "totalCount":1
+            }
+
+     - id: azure
+       name: Azure
+       content: |
+      
+         .. code-block:: json
+            :linenos:
+
+            {
+               "links" : [ {
+                  "href" : "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/containers?providerName=Azure&pretty=true&pageNum=1&itemsPerPage=100",
+               "rel" : "self"
+               } ],
+               "results" : [ {
+                 "atlasCidrBlock" : "192.168.248.0/21",
+                 "azureSubscriptionId" : "602336d43d098d433845971g",
+                 "id" : "5cb5f17280eef56a459fa2ea",
+                 "providerName" : "AZURE",
+                 "provisioned" : true,
+                 "region" : "US_EAST_2",
+                 "vnetName" : "vnet_6dc5f17280eef56a459fa2ea_cucjobcas"
+               } ],
+               "totalCount" : 1
             }

@@ -1,4 +1,5 @@
 .. note::
 
-   This is separate from the |vpc| ID. You can use the |api| to
-   get the :doc:`list of VPC connections and Peer IDs </reference/api/vpc-get-connections-list>`.
+   This is separate from the :doc:`peering container ID </reference/api/vpc-get-containers-list>`.
+   Use the :doc:`Get All Peering Connections </reference/api/vpc-get-connections-list/>` |api| to
+   retrieve a list of peering connection ids for an |service| project.

@@ -8,11 +8,11 @@
 
    * - ``containerId``
      - string
-     - Unique identifier of the |service| |vpc| container for |gcp|.
+     - Unique identifier of the |service| Network Peering container for |gcp|.
 
    * - ``gcpProjectId``
      - string
-     - |gcp| project ID of the owner of the peer |vpc|.
+     - |gcp| project ID of the owner of the network peer.
 
    * - ``errorMessage``
      - string
@@ -26,7 +26,7 @@
 
    * - ``networkName``
      - string
-     - Name of the peer |vpc|.
+     - Name of the network peer to which |service| connects.
 
    * - ``status``
      - string

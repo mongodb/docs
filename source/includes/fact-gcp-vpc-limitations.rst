@@ -1,5 +1,5 @@
-GCP-backed clusters configured for VPC Peering cannot:
-  
+GCP-backed clusters configured for |service| Network Peering cannot:
+
 * Be accessed by using the |service| hostname from outside the peered
   VPC. If the database host's public IP is used and the connecting
   client's IP address is on the :ref:`IP whitelist <whitelist>`, the

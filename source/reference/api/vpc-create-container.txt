@@ -1,6 +1,6 @@
-========================
-Create One New Container
-========================
+======================================
+Create A New Network Peering Container
+======================================
 
 .. default-domain:: mongodb
 
@@ -12,9 +12,10 @@ Create One New Container
    :depth: 2
    :class: singlecol
 
-Creates one cloud provider container with a |vpc| into which |service|
-can deploy clusters. An |service| project can have a maximum of one
-|aws| container per |aws| region and one |gcp| container.
+Creates one Network Peering container into which |service|
+can deploy Network Peering connections. An |service| project can have a maximum of one container
+for each cloud provider. You must have either the :authrole:`Project Owner` or :authrole:`Organization Owner`
+role to succesfully call this endpoint.
 
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
@@ -42,7 +43,7 @@ Request Path Parameters
    * - ``GROUP-ID``
      - string
      - Required
-     - Unique identifier for the project whose container you want to
+     - Unique identifier for the |service| project whose Network Peering container details you want to
        retrieve.
 
 Request Query Parameters
@@ -79,13 +80,13 @@ Request Body Parameters
             * - ``providerName``
               - string
               - Optional
-              - Cloud provider for this |vpc| peering connection.
+              - Cloud provider for this Network Peering connection.
                 If omitted, |service| sets this parameter to ``AWS``.
 
             * - ``regionName``
               - string
               - Required
-              - |aws| Region.
+              - |aws| region.
 
      - id: gcp
        name: GCP
@@ -105,21 +106,44 @@ Request Body Parameters
               - Required
               - |cidr| block that |service| uses for your clusters.
 
-                .. include:: /includes/fact-vpc-cidr-block.rst
+                .. include:: /includes/fact-network-peering-gcp-azure.rst
 
             * - ``providerName``
               - string
               - Required
-              - Cloud provider for this |vpc| peering connection.
+              - Cloud provider for this Network Peering connection.
                 Set this value to ``GCP``.
+
+     - id: azure
+       name: Azure
+       content: |
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 15 10 75
+
+            * - Field
+              - Type
+              - Description
+             
+            * - ``atlasCidrBlock``
+              - string
+              - CIDR block that |service| uses for the Network Peering
+                containers in your project.
+
+            * - ``providerName``
+              - string
+              - Name of the cloud provider.
+
+            * - ``region``
+              - string
+              - Azure region where the container resides. 
 
 
 Response Elements
 ~~~~~~~~~~~~~~~~~
 
 .. tabs::
-
-   hidden: true
 
    tabs:
      - id: aws
@@ -140,12 +164,12 @@ Response Elements
 
             * - ``id``
               - string
-              - Unique identifier of the container.
+              - Unique identifier of the Network Peering container.
 
             * - ``provisioned``
               - boolean
-              - Flag that indicates if the project has clusters
-                deployed in the |vpc|.
+              - Indicates whether the project has Network Peering
+                connections deployed in the container.
 
             * - ``regionName``
               - string
@@ -174,7 +198,7 @@ Response Elements
             * - ``gcpProjectId``
               - string
               - Unique identifier of the |gcp| project in which the
-                |vpc| resides.
+                Network Peering connection resides.
 
             * - ``id``
               - string
@@ -182,19 +206,61 @@ Response Elements
 
             * - ``provisioned``
               - boolean
-              - Flag that indicates if the project has clusters
-                deployed in the |vpc|.
+              - Indicates whether the project has Network Peering
+                connections deployed in the container.
 
             * - ``networkName``
               - string
-              - Name of the |vpc| of the |service| project.
+              - Name of the Network Peering connection in the |service| project.
+
+     - id: azure
+       name: Azure
+       content: |
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 15 10 75
+
+            * - Field
+              - Type
+              - Description
+            
+            * - ``atlasCidrBlock``
+              - string
+              - CIDR block that |service| uses for the clusters in
+                your project.
+
+            * - ``azureSubscriptionId``
+              - string
+              - Unique identifer of the Azure subscription in which the
+                VNet resides.
+
+            * - ``id``
+              - string
+              - Unique identifier of the container.
+
+            * - ``providerName``
+              - string
+              - Name of the cloud provider.
+
+            * - ``provisioned``
+              - boolean
+              - Indicates whether the project has Network Peering
+                connections deployed in the container.
+
+            * - ``region``
+              - string
+              - Azure region where the container resides.
+
+            * - ``vnetName``
+              - string
+              - The name of the Azure VNet. This value is ``null`` until you
+                provision an Azure VNet in the container.
 
 Example Request
 ---------------
 
 .. tabs::
-
-   hidden: true
 
    tabs:
      - id: aws
@@ -234,12 +300,30 @@ Example Request
                   "providerName" : "GCP"
                 }'
 
+     - id: azure
+       name: Azure
+       content: |
+
+         .. code-block:: sh
+            :emphasize-lines: 4-9
+            :linenos:
+
+            curl --user "{USERNAME}:{APIKEY}" --digest \
+              --header "Accept: application/json" \
+              --header "Content-Type: application/json" \
+              --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/containers?pretty=true" \
+              --data '
+                {
+                  "atlasCidrBlock" : "10.8.0.0/21",
+                  "providerName" : "AZURE",
+                  "region" : "US_EAST_2"
+                }'
+
+
 Example Response
 ----------------
 
 .. tabs::
-
-   hidden: true
 
    tabs:
      - id: aws
@@ -272,4 +356,22 @@ Example Response
               "gcpProjectId" : "my-sample-project-191923",
               "networkName" : "test1",
               "provisioned" : true
+            }
+
+     - id: azure
+       name: Azure
+       content: |
+
+         .. code-block:: json
+            :emphasize-lines: 2, 4, 7
+            :linenos:
+
+            {
+              "atlasCidrBlock":"10.8.0.0/21",
+              "azureSubscriptionId":"602336d43d098d433845971g",
+              "id":"5cbf563d87d9d67253be590a",
+              "providerName":"AZURE",
+              "provisioned":false,
+              "region":"US_EAST_2",
+              "vnetName":null
             }

@@ -33,8 +33,8 @@
 
    * - ``id``
      - string
-     - |service| assigned unique ID for the connection. Only specific
-       to and used by |service|.
+     - The CIDR block that |service| uses for the clusters in
+       your project.
 
    * - ``routeTableCidrBlock``
      - string

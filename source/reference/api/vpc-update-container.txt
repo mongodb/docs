@@ -1,6 +1,6 @@
-====================
-Update One Container
-====================
+==================================
+Update A Network Peering Container
+==================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,9 @@ Update One Container
    :depth: 2
    :class: singlecol
 
-Modify the network details and labels of one cloud provider container.
+Modify the network details and labels of one Network Peering container
+in an |service| project. You must have the :authrole:`Project Owner` role or the
+:authrole:`Organization Owner` role to successfully call this endpoint.
 
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
@@ -40,13 +42,13 @@ Request Path Parameters
    * - ``GROUP-ID``
      - string
      - Required
-     - Unique identifier for the project whose container you want to
+     - Unique identifier for the |service| project whose Network Peering container details you want to
        retrieve.
 
    * - ``CONTAINER-ID``
      - string
      - Required
-     - Unique identifier for the container.
+     - Unique identifier for the Network Peering container.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,7 +110,7 @@ Request Body Parameters
               - Optional
               - |cidr| block that |service| uses for your clusters.
 
-                .. include:: /includes/fact-vpc-cidr-block.rst
+                .. include:: /includes/fact-network-peering-gcp-azure.rst
 
             * - ``gcpProjectId``
               - string
@@ -121,6 +123,36 @@ Request Body Parameters
               - Required
               - Cloud provider for this |vpc| peering connection.
                 Set this value to ``GCP``.
+     
+     - id: azure
+       name: Azure
+       content: |
+
+          .. list-table::
+            :header-rows: 1
+            :widths: 15 10 10 65
+
+            * - Parameter
+              - Type
+              - Necessity
+              - Description
+
+            * - ``providerName``
+              - string
+              - Required
+              - Name of the cloud provider.
+
+            * - ``atlasCidrBlock``
+              - string
+              - Optional
+              - CIDR block that |service| uses for the Network Peering connections in
+                your project.
+
+            * - ``region``
+              - string
+              - Optional
+              - Azure region where the VNet resides.
+
 
 
 Response Elements
@@ -192,11 +224,17 @@ Response Elements
             * - ``provisioned``
               - boolean
               - Flag that indicates if the project has clusters
-                deployed in the |vpc|.
+                deployed in the Network Peering container.
 
             * - ``networkName``
               - string
-              - Name of the |vpc| of the |service| project.
+              - Name of the network peer to which the |service| project is connected.
+
+     - id: azure
+       name: Azure
+       content: |
+
+          .. include:: /includes/api/list-tables/vnet-azure-update-containers-response.rst 
 
 
 Example Request
@@ -241,6 +279,24 @@ Example Request
                   "providerName" : "GCP"
                 }'
 
+     - id: azure
+       content: Azure
+       content: |
+
+         .. code-block:: sh
+            :emphasize-lines: 4-7
+            :linenos:
+
+            curl --user "{USERNAME}:{APIKEY}" --digest \
+              --header "Accept: application/json" \
+              --header "Content-Type: application/json" \
+              --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/containers/1112222b3bf99403840e8934?pretty=true" \
+              --data '{
+                  "atlasCidrBlock" : "10.8.1.0/18",
+                  "providerName" : "Azure"
+                }' 
+
+
 Example Response
 ----------------
 
@@ -279,4 +335,21 @@ Example Response
               "gcpProjectId" : "my-sample-project-191923",
               "networkName" : "test1",
               "provisioned" : true
+            }
+
+     - id: azure
+       name: Azure
+       content: |
+
+         .. code-block:: json
+            :emphasize-lines: 2
+            :linenos:
+
+            {
+              "atlasCidrBlock" : "10.8.0.0/21",
+              "azureSubscriptionId" : "99d999c9-9e99-999b-9999-ec9fbd9b99ea",
+              "id" : "1112269b3bf99403840e8934",
+              "provisioned" : true,
+              "region" : "US_EAST_2",
+              "vnetName" : "vnet-123456"
             }

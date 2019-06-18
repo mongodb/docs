@@ -1,5 +1,5 @@
 You must enable Connect via Peering Only mode for a project before you
-create a GCP peering connection in that project. Only peered VPCs can
+create a GCP peering connection in that project. Only peered networks can
 access clusters in a project with Connect via Peering Only mode enabled.
 These clusters are not accessible through the public internet.
 
@@ -8,7 +8,7 @@ These clusters are not accessible through the public internet.
    You can only enable Connect via Peering Only mode in an |service| project that does
    not yet have any dedicated clusters. Please file a :ref:`support ticket <faq-support>`
    if you already have a |gcp|-backed cluster in a project and want
-   to set up |vpc| peering.
+   to set up Network Peering.
 
 To enable Connect via Peering Only mode:
 
