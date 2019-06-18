@@ -1,3 +1,13 @@
+.. _cloudmanager-v20190528:
+
+29 May 2019 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Support to search for organization or project names
+  that are one character long.
+- Agent Upgrade:
+  :ref:`mongodb-10.1.0.5785`
+
 .. _cloudmanager-v20190507:
 
 13 May 2019 Release

@@ -1,3 +1,14 @@
+.. _mongodb-10.1.0.5785:
+
+MongoDB Agent 10.1.0.5785
+-------------------------
+
+*Released* :ref:`2019-05-29 <cloudmanager-v20190528>`
+
+- Monitoring module updated to MongoDB's new Go driver.
+- Incremental work to support the upcoming MongoDB 4.2
+  release.
+
 .. _mongodb-10.0.1.5755-1:
 
 MongoDB Agent 10.0.1.5755-1

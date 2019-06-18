@@ -80,7 +80,7 @@ source_constants = {
     'autoagent-version': '6.5.1.5691-1',
     'bagent-version': '7.6.0.1059',
     'magent-version': '7.2.0.488-1',
-    'mdbagent-version-cloud': '10.1.0.5762-1',
+    'mdbagent-version-cloud': '10.1.0.5785',
     'autoagent-version-cloud': '6.5.1.5691-1',
     'bagent-version-cloud': '7.6.0.1059',
     'magent-version-cloud': '7.2.0.488-1',
