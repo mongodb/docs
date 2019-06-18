@@ -181,18 +181,6 @@
 
                 .. include:: /includes/fact-encryption-at-rest-restrictions.rst
 
-            - id: azure
-              name: AZURE
-              content: |
-
-                Specify ``AZURE`` to enable
-                :ref:`Encryption at Rest <security-azure-kms>` using
-                the |service| project Azure Key Management System
-                settings. The cluster must meet the following
-                requirements:
-
-                .. include:: /includes/fact-encryption-at-rest-restrictions.rst
-
             - id: gcp
               name: GCP
               content: |
@@ -201,6 +189,18 @@
                 :doc:`Encryption at Rest </security-kms-encryption/>` using the
                 |service| project |gcp| Key Management System settings.
                 The cluster must meet the following requirements:
+
+                .. include:: /includes/fact-encryption-at-rest-restrictions.rst
+
+            - id: azure
+              name: Azure
+              content: |
+
+                Specify ``AZURE`` to enable
+                :ref:`Encryption at Rest <security-azure-kms>` using
+                the |service| project Azure Key Management System
+                settings. The cluster must meet the following
+                requirements:
 
                 .. include:: /includes/fact-encryption-at-rest-restrictions.rst
 
@@ -389,23 +389,20 @@
 
        .. include:: /includes/fact-instance-size-names.rst
 
-       .. tabs::
+       .. tabs-cloud-providers::
 
           tabs:
             - id: aws
-              name: AWS
               content: |
 
                 .. include:: /includes/extracts/fact-cluster-instance-sizes-AWS.rst
 
             - id: gcp
-              name: GCP
               content: |
 
                 .. include:: /includes/extracts/fact-cluster-instance-sizes-GCP.rst
 
             - id: azure
-              name: Azure
               content: |
 
                 .. include:: /includes/extracts/fact-cluster-instance-sizes-AZURE.rst

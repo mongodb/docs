@@ -1,8 +1,7 @@
-.. tabs::
+.. tabs-cloud-providers::
 
    tabs:
      - id: aws
-       name: AWS
        content: |
 
          - ``US_EAST_1``
@@ -13,7 +12,6 @@
          :ref:`amazon-aws`.
 
      - id: gcp
-       name: GCP
        content: |
 
          - ``CENTRAL_US``
@@ -24,7 +22,6 @@
          :ref:`google-gcp`.
 
      - id: azure
-       name: Azure
        content: |
 
          - ``US_EAST_2``
