@@ -408,6 +408,7 @@
      - Cloud service provider on which the servers are provisioned.
 
        .. include:: /includes/fact-cloud-service-providers.rst
+       
        - ``TENANT`` - A multi-tenant deployment on one of the supported
          cloud service providers. Only valid when
          ``providerSettings.instanceSizeName`` is either ``M2`` or
@@ -736,4 +737,3 @@
      - string
      - Optional
      - Name for the zone in a |global-write-cluster|.
-

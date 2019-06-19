@@ -1,4 +1,4 @@
-.. admonition:: Feature unavailable in Free and Shared Tier Clusters
+.. admonition:: Feature unavailable in Free and Shared-Tier Clusters
    :class: note
 
    This feature is not available for ``M0`` (Free Tier), ``M2``, and
