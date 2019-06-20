@@ -751,7 +751,7 @@ concerns, see :doc:`/reference/write-concern`.
 
        You can specify a :writeconcern:`number <\<number\>>`, the
        string :writeconcern:`majority <"majority">`, or a
-       :writeconcern:`tag set <\<tag set\>>`.
+       :writeconcern:`tag set <\<write concern name\>>`.
 
        For details, see :ref:`wc-w`.
 
@@ -849,14 +849,18 @@ For example:
      mongodb://mongos1.example.com,mongos2.example.com/?readPreference=secondary&maxStalenessSeconds=120
 
 - The following connection string to a sharded cluster specifies
-  :readmode:`secondary` read preference mode as well as two
-  readPreferenceTags:
+  :readmode:`secondary` read preference mode as well as three
+  :urioption:`readPreferenceTags`:
 
   .. code-block:: none
 
-     mongodb://mongos1.example.com,mongos2.example.com/?readPreference=secondary&readPreferenceTags=dc:ny,rack:1&readPreferenceTags=dc:ny
+     mongodb://mongos1.example.com,mongos2.example.com/?readPreference=secondary&readPreferenceTags=dc:ny,rack:r1&readPreferenceTags=dc:ny&readPreferenceTags=
 
-Order matters when using multiple ``readPreferenceTags``.
+Order matters when using multiple ``readPreferenceTags``. The
+``readPreferenceTags`` are tried in order until a match is found. Once
+found, that specification is used to find all eligible matching
+members and any remaining ``readPreferenceTags``  are ignored.
+For details, see :ref:`read-preference-tag-order-matching`.
 
 .. list-table::
    :header-rows: 1
@@ -907,13 +911,26 @@ Order matters when using multiple ``readPreferenceTags``.
 
    * - .. urioption:: readPreferenceTags
 
-     - Specifies a tag set as a comma-separated list of colon-separated
-       key-value pairs. For example, ``readPreferenceTags=dc:ny,rack:1``.
+     - Specifies the :ref:`tags document
+       <replica-set-read-preference-tag-sets>` as a comma-separated
+       list of colon-separated key-value pairs. For example,
+       
+       - To specify the tags document ``{ "dc": "ny", "rack": "r1" }``,
+         use ``readPreferenceTags=dc:ny,rack:r1`` in the connection
+         string.
+         
+       - To specify an empty tags document ``{ }``, use
+         ``readPreferenceTags=`` without setting the value.
 
-       To specify a *list* of tag sets, use multiple
-       ``readPreferenceTags``. Order matters when using multiple
-       ``readPreferenceTags``.
+       To specify a *list* of tag documents, use multiple
+       ``readPreferenceTags``. For example,
+       ``readPreferenceTags=dc:ny,rack:r1&readPreferenceTags=``.
 
+       Order matters when using multiple ``readPreferenceTags``. The
+       ``readPreferenceTags`` are tried in order until a match is
+       found. For details, see
+       :ref:`read-preference-tag-order-matching`.
+       
        This connection string option is not available for the
        :binary:`mongo` shell. See :method:`cursor.readPref()` and
        :method:`Mongo.setReadPref()` instead.

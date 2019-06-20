@@ -321,18 +321,7 @@ Replica Set Configuration Fields
 
       *Default*: none
 
-      .. include:: /includes/fact-tag-set-field.rst
-
-      Use :rsconf:`replicaset.members[n].tags` to
-      configure write concerns in conjunction with
-      :rsconf:`settings.getLastErrorModes` and
-      :rsconf:`settings.getLastErrorDefaults`.
-
-      .. include:: /includes/fact-tag-sets-must-be-strings.rst
-
-      For more information on configuring tag sets for read preference
-      and write concern, see
-      :doc:`/tutorial/configure-replica-set-tag-sets`.
+      .. include:: /includes/fact-tags-field.rst
 
    .. rsconf::  members[n].slaveDelay
 
@@ -444,21 +433,34 @@ Replica Set Configuration Fields
 
       *Type*: document
 
-      A document used to define an extended :term:`write concern`
-      through the use of :rsconf:`members[n].tags`.
-      The extended :term:`write concern` can provide :term:`data-center
+      A document used to define a custom :ref:`write concern
+      <write-concern>` through the use of :rsconf:`members[n].tags`.
+      The custom write concern can provide :term:`data-center
       awareness`.
 
-      For example, the following document defines an extended write
-      concern named ``eastCoast`` and associates with a write to a
-      member that has the ``east`` tag.
+      .. code-block:: none
+        
+         { getLastErrorModes: { 
+            <name of write concern> : { <tag1>: <number>, .... },
+            ...
+         } }
+      
+      The ``<number>`` refers to the number of different tag values
+      required to satisfy the write concern. For example, the following
+      :rsconf:`settings.getLastErrorModes` defines a write concern
+      named ``datacenter`` that requires the write to propagate to two
+      members whose ``dc`` tag values differ.
+      
+      .. code-block:: none
+
+         { getLastErrorModes: { datacenter: { "dc": 2 } } }
+
+      To use the custom write concern, pass in the write concern name
+      to the :ref:`wc-w`, e.g.
 
       .. code-block:: none
 
-         { getLastErrorModes: { eastCoast: { "east": 1 } } }
-
-      Write operations to the replica set can use the extended write
-      concern, e.g. ``{ w: "eastCoast" }``.
+         { w: "datacenter" }
 
       See :doc:`/tutorial/configure-replica-set-tag-sets` for more
       information and example.
