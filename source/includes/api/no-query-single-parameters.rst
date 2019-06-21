@@ -1,4 +1,3 @@
-This endpoint may use any of the HTTP request query parameters 
-available to all |mms| API resources. These are all optional.
+The following query parameters are optional:
 
 .. include:: /includes/api/base-query-single-parameters.rst
