@@ -1,8 +1,7 @@
 To access the :guilabel:`Data Explorer`:
 
-1. Click :guilabel:`Clusters` in the top-left corner of |service|.
+1. Click :guilabel:`Deployment` in the left navigation.
 
-#. Click :guilabel:`Collections` for your desired cluster.
+#. Select the desired MongoDB deployment.
 
-Or, if you are already viewing a specific cluster, select the
-:guilabel:`Collections` tab.
+#. Select the :guilabel:`Data Explorer` tab.
