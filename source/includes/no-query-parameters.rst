@@ -1,3 +1,3 @@
-This endpoint may use any of the HTTP request query parameters available to all |service| API resources. These are all optional.
+The following query parameters are optional:
 
 .. include:: /includes/base-query-parameters.rst
