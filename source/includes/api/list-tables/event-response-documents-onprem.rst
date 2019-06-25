@@ -135,6 +135,10 @@
      - string
      - The name of the shard associated with the event.
 
+   * - targetPublicKey
+     - string
+     - Public key of the API Key targeted by the event.
+
    * - targetUsername
      - string
      - Username for the |mms| user targeted by this event.
@@ -157,4 +161,8 @@
 
        If this field is present in the response, |mms| does not return
        ``publicKey`` field.
+
+   * - whitelistEntry
+     - string
+     - Whitelist entry of the API Key targeted by the event.
 
