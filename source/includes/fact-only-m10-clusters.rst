@@ -1,0 +1,1 @@
+Applicable only for ``M10+`` clusters.

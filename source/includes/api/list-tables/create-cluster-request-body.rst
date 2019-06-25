@@ -28,7 +28,9 @@
    * - ``backupEnabled``
      - boolean
      - Optional
-     - Set to ``true`` to enable |service|
+     - .. include:: /includes/fact-only-m10-clusters.rst
+     
+       Set to ``true`` to enable |service|
        :doc:`continuous backups </backup/continuous-backups>` for the
        cluster.
 
@@ -268,7 +270,9 @@
    * - ``providerBackupEnabled``
      - boolean
      - Optional
-     - Flag indicating if the cluster uses :ref:`backup-cloud-provider`
+     - .. include:: /includes/fact-only-m10-clusters.rst
+     
+       Flag indicating if the cluster uses :ref:`backup-cloud-provider`
        for backups.
 
        If ``true``, the cluster uses :ref:`backup-cloud-provider` for
@@ -316,7 +320,7 @@
        | ``.diskTypeName``
      - string
      - Azure Required
-     - Azure disk type of the server's root volume. If ommitted,
+     - Azure disk type of the server's root volume. If omitted,
        |service| uses the default disk type for the selected
        ``providerSettings.instanceSizeName``.
 
@@ -699,7 +703,7 @@
    * - | ``replicationSpecs[n]``
        | ``.regionsConfig``
        | ``.electableNodes``
-     - ingteger
+     - integer
      - Optional
      - Number of electable nodes for |service| to deploy to the region.
        Electable nodes can become the :term:`primary` and can
