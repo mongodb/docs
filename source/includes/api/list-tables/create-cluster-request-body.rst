@@ -310,6 +310,8 @@
      -
        .. include:: /includes/providerSettings-diskIOPS.rst
 
+       .. include:: /includes/fact-aws-minimum-iops.rst
+
    * - | ``providerSettings``
        | ``.diskTypeName``
      - string
