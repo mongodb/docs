@@ -83,7 +83,6 @@
 
             The following index options can be specified:
 
-            - Build index in the background
             - Create a :ref:`unique index <unique-index>`
             - Create :ref:`TTL <ttl-index>`
             - Partial :ref:`filter expression <partial-index>`

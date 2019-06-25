@@ -1,7 +1,7 @@
-If your collection holds a large amount of data, and your application
-needs to be able to access the data while building the index, consider
-building the index in the background, as described in
-:ref:`index-creation-background`.
+Applications may encounter reduced performance during index
+builds, including limited read/write access to the collection. For
+more information on the index build process, see
+:ref:`index-operations`.
 
 .. include:: /includes/note-build-indexes-on-replica-sets.rst
 

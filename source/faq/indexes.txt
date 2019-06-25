@@ -33,17 +33,30 @@ administrative operation. In general, applications should not call
 How does an index build affect database performance?
 ----------------------------------------------------
 
-When building an index on a collection, the database that holds the
-collection is unavailable for read or write operations until the index
-build completes. If you need to build a large index, consider building
-the index in the :ref:`background <index-creation-background>`. See
-:ref:`index-creation-operations` and
-:doc:`/tutorial/build-indexes-on-replica-sets`.
+MongoDB index builds against a populated collection require an exclusive
+read-write lock against the collection. Operations that require a read
+or write lock on the collection must wait until the
+:binary:`~bin.mongod` releases the lock.
+
+.. include:: /includes/extracts/4.2-index-faq.rst
+
+Index builds on replica sets have specific performance considerations
+and risks. See :ref:`index-operations-replicated-build` for more
+information. To minimize the impact of building an index on replica
+sets, including shard replica sets, use a rolling index build procedure
+as described in :doc:`/tutorial/build-indexes-on-replica-sets`. 
 
 To return information on currently running index creation operations,
 see :ref:`currentOp-index-creation`. To kill a running index creation
-operation, see :method:`db.killOp()`. The partially built index will be
+operation on a :term:`primary` or standalone :binary:`~bin.mongod`, use 
+:method:`db.killOp()`. The partially built index will be
 deleted.
+
+You cannot terminate a *replicated* index build on secondary members of
+a replica set. You must first :method:`drop <db.collection.dropIndex()>`
+the index on the primary. The secondaries will replicate the drop
+operation and drop the indexes *after* the index build completes.
+All further replication blocks behind the index build and drop. 
 
 How do I see what indexes exist on a collection?
 ------------------------------------------------
