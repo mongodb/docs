@@ -35,13 +35,15 @@ Definition
             "path": "<field-to-search>",
             "wildcard": <boolean>,
             "regex": <boolean>,
-            "prefix": <boolean>
+            "prefix": <boolean>,
+            "fuzzy": { "maxEdits": <integer>, "prefixLength": <integer> }
           }
         }
       }
    
    .. list-table::
       :header-rows: 1
+      :widths: 10 20 50 10 10
    
       * - Field
         - Type
@@ -80,6 +82,37 @@ Definition
           for any term which starts with it.
         - no
         - ``false``
+
+      * - ``fuzzy``
+        - object
+        - Enable fuzzy search. Find strings which are similar to the
+          search term or terms.
+        - no
+        -
+
+      * - ``fuzzy.maxEdits``
+        - integer
+        - Maximum number of single-character edits required to match the
+          specified search term.
+  
+          .. note::
+  
+                 For beta purposes, ``maxEdits`` has a maximum allowable
+                 value of ``2``.
+        - no
+        - ``2``
+  
+      * - ``fuzzy.prefixLength``
+        - integer
+        - Number of characters at the beginning of the result that
+          must exactly match the search term.
+        - no
+        - ``0``
+
+   .. important::
+  
+      The ``wildcard``, ``regex``, ``prefix`` and ``fuzzy`` options
+      cannot be used in combination with each other.
 
 Examples
 --------
@@ -218,9 +251,45 @@ The above query returns the following result:
    { 
      "_id" : 1,
      "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
-     "_fts_metadata" : { "_id" : 1, "score" : 1 }
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
    }
 
 The document with ``_id: 1`` matches the query because the word
 ``several`` in the ``description`` field begins with ``sev``.
+
+Fuzzy Example
+~~~~~~~~~~~~~
+
+Use the ``fuzzy`` option to search for strings which are
+similar to a term or terms which you specify.
+
+The following query searches for strings which are within one
+character of the strings ``fuj`` and ``bannas``.
+
+- The ``maxEdits`` field specifies that only one character change is
+  allowed to match the query to the document.
+
+- The ``prefixLength`` field specifies that the first two characters
+  of the query term may not be changed to match a result.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate([
+     {
+       $searchBeta: {
+         "term": {
+           "path": "description",
+           "query": ["fuj", "bannas"],
+           "fuzzy": { "maxEdits": 1, "prefixLength": 2 }
+         }
+       }
+     }
+
+The above query finds both of the documents in the collection. The
+``$project`` stage limits the output to the ``description`` field.
+
+.. code-block:: json
+   :copyable: false
+
+   { "description" : "Bananas are usually sold in bunches of five or six." }
+   { "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp." }
