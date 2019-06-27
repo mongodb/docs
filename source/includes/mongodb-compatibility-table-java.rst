@@ -1,3 +1,46 @@
+.. note:: MongoDB 4.2 Feature Availability
+
+   The following table specifies which key MongoDB 4.2 features are available in
+   `the latest beta release <https://github.com/mongodb/mongo-java-driver/releases/tag/r3.11.0-beta4>`__
+   of the driver:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large 
+
+   * - Feature
+     - Available in latest beta release
+
+   * - Distributed Transactions
+     - |checkmark|
+
+   * - Callback/Convenient API (Transaction Error Handling)
+     - |checkmark|
+
+   * - On-Demand Materialized Views
+     - |checkmark|
+
+   * - Index all paths
+     - |checkmark|
+
+   * - Expressive update
+     - 
+
+   * - Retryable Reads
+     - |checkmark|
+
+   * - Retryable Writes On By Default
+     - |checkmark|
+
+   * - Keepalive Connections
+     - |checkmark|
+
+   * - Client-side Encryption
+     - |checkmark|
+
+.. include:: /includes/extracts/java-driver-compatibility-matrix-mongodb.rst
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
