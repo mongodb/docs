@@ -65,9 +65,14 @@ rst_epilog = [
     '.. _service:  https://www.mongodb.com/cloud/atlas?jmp=docs',
     '.. _stitch-docs: https://docs.mongodb.com/stitch',
     '.. |2fa| replace:: :abbr:`2FA (Two Factor Authentication)`',
+    '.. |a-service| replace:: an Atlas',
+    '.. |A-service| replace:: An Atlas',
+    '.. |aki| replace:: :abbr:`AKI (Azure Key Identifier)`',
+    '.. |akv| replace:: :abbr:`AKV (Azure Key Vault)`',
     '.. |api| replace:: :abbr:`API (Application Programming Interface)`',
     '.. |arn| replace:: :abbr:`ARN (Amazon Resource Name)`',
     '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`',
+    '.. |azure| replace:: :abbr:`Azure (Microsoft Azure)`',
     '.. |bic-full| replace:: :bic:`MongoDB Connector for BI </>`',
     '.. |bic-official| replace:: MongoDB Connector for Business Intelligence for Atlas',
     '.. |bic-short| replace:: :bic:`BI Connector </>`',
@@ -76,33 +81,34 @@ rst_epilog = [
     '.. |certauth| replace:: Certificate Authority',
     '.. |cidr| replace:: :abbr:`CIDR (Classless Inter-Domain Routing)`',
     '.. |cifs| replace:: :abbr:`CIFS (Common Internet File System)`',
+    '.. |cmk| replace:: :abbr:`CMK (customer master key)`',
     '.. |compass| replace:: MongoDB Compass',
     '.. |copy| unicode:: U+000A9',
-    '.. |datadog| replace:: `Datadog <https://www.datadoghq.com/>`__',
-    '.. |data-lake| replace:: Data Lake',
     '.. |data-lakes| replace:: Data Lakes',
-    '.. |Epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
-    '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |data-lake| replace:: Data Lake',
+    '.. |datadog| replace:: `Datadog <https://www.datadoghq.com/>`__',
     '.. |Epoch-time-ms| replace:: Timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |epoch-time-ms| replace:: timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |Epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
+    '.. |fts| replace:: Full Text Search',
     '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
-    '.. |azure| replace:: :abbr:`Azure (Microsoft Azure)`',
     '.. |global-write-clusters| replace:: Global Clusters',
     '.. |global-write-cluster| replace:: Global Cluster',
     '.. |global-write| replace:: Global Writes',
     '.. |https| replace:: :abbr:`HTTPS (Secure HyperText Transport Protocol)`',
     '.. |http| replace:: :abbr:`HTTP (HyperText Transport Protocol)`',
-    '.. |iam| replace:: :abbr:`IAM (AWS Identity and Access Management)`',
+    '.. |iam| replace:: :abbr:`IAM (Identity and Access Management)`',
     '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`',
+    '.. |iops| replace:: :abbr:`IOPS (Input/Output Operations per Second)`',
     '.. |ipaddr| replace:: :abbr:`IP (Internet Protocol)`',
     '.. |ipv4| replace:: :abbr:`IPv4 (Internet Protocol version 4)`',
     '.. |ipv6| replace:: :abbr:`IPv6 (Internet Protocol version 6)`',
-    '.. |iops| replace:: :abbr:`IOPS (Input/Output Operations per Second)`',
     '.. |iso8601-duration| replace:: Duration in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=851138376#Durations>`__ notation',
     '.. |iso8601-time| replace:: Timestamp in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`__ date and time format in |utc|',
     '.. |iso8601| replace:: `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`__',
-    '.. |jira| replace:: `Jira <https://jira.mongodb.org>`__',
+    '.. |jira| replace:: `Jira <https://jira.mongodb.org>`__"',
     '.. |json| replace:: :abbr:`JSON (Javascript Object Notation)`',
     '.. |kdc| replace:: :abbr:`KDC (Key Distribution Center)`',
     '.. |kmip| replace:: :abbr:`KMIP (Key Management Interoperability)`',
@@ -112,12 +118,14 @@ rst_epilog = [
     '.. |mms-full| replace:: MongoDB Cloud Manager',
     '.. |mms| replace:: Cloud Manager',
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
+    '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`',
+    '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
     '.. |piv| replace:: :abbr:`PIV (Personal Identity Verification)`',
     '.. |rdp| replace:: :abbr:`RDP (Remote Desktop Protocol)`',
-    '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
     '.. |restapi| replace:: :abbr:`REST (Representational State Transfer)` :abbr:`API (Application Programming Interface)`',
     '.. |rest| replace:: :abbr:`REST (Representational State Transfer)`',
     '.. |s3| replace:: :abbr:`S3 (Simple Storage Service)`',
+    '.. |sak| replace:: :abbr:`SAK (Service Account Key)`',
     '.. |service-fullname| replace:: MongoDB Atlas',
     '.. |service-pricing| replace:: Atlas pricing page',
     '.. |service| replace:: Atlas',
@@ -139,9 +147,10 @@ rst_epilog = [
     '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`',
     '.. |vpc| replace:: :abbr:`VPC (Virtual Private Cloud)`',
     '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`',
-    '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`',
-    '.. |fts| replace:: Full Text Search'
 ]
+
+rst_epilog.extend(get_replacements(conf))
+rst_epilog = '\n'.join(rst_epilog)
 
 source_constants = {
     'data-lake-store': 'data store',
@@ -149,9 +158,6 @@ source_constants = {
     'data-lake' : 'Atlas Data Lake',
     'data-lake-short' : 'Data Lake'
 }
-
-rst_epilog.extend(get_replacements(conf))
-rst_epilog = '\n'.join(rst_epilog)
 
 pygments_style = 'sphinx'
 
@@ -164,7 +170,10 @@ extlinks = {
     'stitch': ('https://docs.mongodb.com/stitch%s', ''),
     'charts': ('https://docs.mongodb.com/charts/saas%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
-    'website': ('https://www.mongodb.com%s?jmp=docs', '')
+    'website': ('https://www.mongodb.com%s?jmp=docs', ''),
+    'aws': ('http://docs.aws.amazon.com%s',''),
+    'azure': ('https://docs.microsoft.com/en-us/azure%s',''),
+    'gcp': ('https://cloud.google.com%s','')
 }
 
 # add `extlinks` for each published version.

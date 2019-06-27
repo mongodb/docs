@@ -1,8 +1,8 @@
 .. _security-azure-kms:
 
-======================================
-Encryption at Rest via Azure Key Vault
-======================================
+============================================
+Customer Key Management with Azure Key Vault
+============================================
 
 .. default-domain:: mongodb
 
@@ -17,74 +17,87 @@ Encryption at Rest via Azure Key Vault
 
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
-|service| supports using a Key Identifier
-provided by Azure Key Vault to configure the
-:manual:`encrypted storage engine </core/security-encryption-at-rest>`
-on ``M10`` or greater replica set clusters.
+|service| uses your Azure Key Identifier (AKI) from your Azure Key
+Vault (AKV) to encrypt and decrypt your MongoDB master keys. These
+MongoDB master keys are used to encrypt cluster database files and
+:ref:`cloud providers snapshots <backup-cloud-provider>`.
 
-This procedure covers configuring Encryption at Rest via 
-Azure Key Vault for an |service| project. You must configure
-Encryption at Rest using your Key Management for the |service| project 
-before enabling it on clusters in that project. For instructions on
-enabling Encryption at Rest using your Key Management when deploying an 
-|service| cluster, see :ref:`create-cluster-enable-encryption`. 
-For instructions on enabling Encryption at Rest using your Key 
-Management for an existing |service| cluster, see 
-:ref:`scale-cluster-enable-encryption`.
+.. include:: /includes/fact-atlas-key-rotation.rst
 
-To learn more about Encryption at Rest using your Key Management in 
-|service|, see :ref:`security-kms-encryption`.
+|service| encrypts your data at rest using encrypted storage media.
+Using keys you manage with |akv|, |service| encrypts your
+data a second time when it writes it to the MongoDB
+:manual:`encrypted storage engine </core/security-encryption-at-rest>`.
+You use your |aki| to encrypt the MongoDB master encryption keys.
 
-.. important::
+This page covers configuring customer key management using |akv| on
+your |service| project.
 
-   To disable Encryption at Rest using your Key Management in an 
-   |service| project, you must disable it for every cluster in the 
-   project *before* removing all configuration details in the project. 
-   Do **not** disable or delete any Azure Key Vault keys used by any 
-   cluster in your |service| project before you have completely disabled
-   Encryption at Rest within the |service| project. If |service|
-   cannot access an Azure Key Vault key, any data encrypted by that
-   key becomes inaccessible.
+You must configure customer key management for the |service| project
+before enabling it on clusters in that project.
 
 .. _azure-kms-prereqs:
+
+.. _security-azure-kms-restrictions:
 
 Prerequisites
 -------------
 
 .. include:: /includes/fact-azure-kms-prereqs.rst
 
-.. _security-azure-kms-restrictions:
+.. include:: /includes/fact-kms-prereqs.rst
 
-.. include:: /includes/fact-kms-restrictions.rst
-    
+Procedure
+---------
+
 .. _azure-kms-configure-project:
 
-Configure Encryption at Rest for an |service| project
------------------------------------------------------
+Enable Customer-Managed Keys for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must enable customer key management for a project before you can
+enable it on a cluster in that project.
 
 .. include:: /includes/steps/configure-azure-encryption-for-project.rst
-   
+
+Disable Customer-Managed Keys for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must disable customer key management on each cluster in a project
+before you can disable the feature for the project.
+
+.. important::
+
+   Do *not* disable or delete any |akv| keys that any cluster in your
+   |service| project uses before you have disabled customer key
+   management within the |service| project. If |service| cannot access
+   an |akv| key, any data that key encrypted becomes inaccessible.
+
+Alerts
+------
+
 |service| automatically creates an
 :alert:`encryption key rotation alert <Azure encryption key elapsed time since last rotation is above (n) days>`
-once you configure Encryption at Rest using your Key Management for a
-project. You can reset this alert at any time by
-:ref:`rotating your Azure Key Identifier <azure-kms-rotate-key>`.
+once you configure customer key management for a project.
 
-.. _azure-kms-rotate-key:
+To reset this alert, :doc:`/tutorial/security-azure-kms-rotate-key`.
 
-Rotate your Azure Key Identifier
---------------------------------
+Related Topics
+--------------
 
-For clusters using |service| :ref:`security-azure-kms`, |service|
-automatically rotates the MongoDB master keys every 90 days. However,
-|service| does **not** automatically rotate the Key Identifier
-used for Encryption at Rest using your Key Management. This procedure 
-documents manually rotating your |service| project Key Identifier by 
-specifying a new key identifier in |service|. This procedure
-assumes you have already created a new key in the Azure Key Vault
-associated to the |service| project.
+- To enable Encryption at Rest using your Key Management when deploying
+  an |service| cluster, see :ref:`create-cluster-enable-encryption`.
 
-.. include:: /includes/steps/rotate-azure-encryption-key.rst
+- To enable Encryption at Rest using your Key Management for an
+  existing |service| cluster, see
+  :ref:`scale-cluster-enable-encryption`.
 
-|service| resets the :alert:`encryption key rotation alert <Azure encryption key elapsed time since last rotation is above (n) days>`
-timer at the completion of this procedure. 
+- To learn more about Encryption at Rest using your Key Management in
+  |service|, see :ref:`security-kms-encryption`.
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /tutorial/security-azure-kms-rotate-key

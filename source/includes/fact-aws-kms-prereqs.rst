@@ -1,21 +1,24 @@
-The following prerequisites are required to enable Encryption at Rest
-via AWS KMS for a MongoDB project:
+To enable customer-managed keys with |aws| |kms| for a MongoDB
+project, you must:
 
-* An AWS customer master key (CMK). See `Creating Keys <https://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html>`_
-  in the AWS documentation for instructions.
+- Have an |aws| customer master key (|cmk|).
+  To learn how to create a key, see
+  :aws:`Creating Keys </kms/latest/developerguide/create-keys.html>`
+  in the |aws| documentation.
 
-* An AWS IAM user in the same AWS account used to create the AWS CMK.
-  |service| must have permission to perform the following actions with
-  your key:
+- Have an |aws| |iam| user in the same |aws| account used to create the
+  |aws| |cmk|. |service| must have permission to perform the following
+  actions with your key:
 
-  - `DescribeKey <https://docs.aws.amazon.com/kms/latest/APIReference/API_DescribeKey.html>`_
+  - :aws:`DescribeKey </kms/latest/APIReference/API_DescribeKey.html>`
 
-  - `Encrypt <https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html>`_
+  - :aws:`Encrypt </kms/latest/APIReference/API_Encrypt.html>`
 
-  - `Decrypt <https://docs.aws.amazon.com/kms/latest/APIReference/API_Decrypt.html>`_ 
+  - :aws:`Decrypt </kms/latest/APIReference/API_Decrypt.html>`
 
-  See `IAM Users <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html>`_
-  in the AWS documentation for instructions on creating an IAM user.
+  To learn how to create an |iam| user, see
+  :aws:`IAM Users </IAM/latest/UserGuide/id_users.html>`
+  in the |aws| documentation.
 
-|service| uses the same IAM user credentials and CMK settings for all 
-clusters in a project for which Encryption at Rest is enabled.
+  |service| uses the same |iam| user credentials and |cmk| settings for
+  all clusters in a project for which Encryption at Rest is enabled.
