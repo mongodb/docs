@@ -1,6 +1,6 @@
 .. topic:: Multiple Monitoring Agents
 
-   You can :ref:`activate<activate-monitoring>` the Monitoring function
+   You can :ref:`activate Monitoring <activate-monitoring>`
    on multiple {+mdbagent+}s to distribute monitoring assignments and
    provide failover. |mms| distributes monitoring assignments among up
    to 100 running {+mdbagent+}s. Each {+mdbagent+} running active
@@ -18,8 +18,8 @@
    periodically ask |mms| if it should begin monitoring.
 
    To tune the frequency at which standby {+mdbagent+}s check to see if
-   they should begin monitoring and the interval |mms| uses to determine
-   if a standby agent should start monitoring, see
+   they should begin monitoring and the interval |mms| uses to
+   determine if a standby agent should start monitoring, see
    :ref:`standby-monitoring-agent`.
 
    If you install multiple Monitoring Agents, ensure that *all* the
