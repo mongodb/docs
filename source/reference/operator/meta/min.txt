@@ -36,6 +36,16 @@ Definition
       db.collection.find( { <query> } )._addSpecial( "$min", { field1: <min value1>, ... fieldN: <min valueN> } )
       db.collection.find( { $query: { <query> }, $min: { field1: <min value1>, ... fieldN: <min valueN> } } )
 
+.. topic:: Index Use
+
+   Starting in MongoDB 4.2, you must explicitly specify the particular
+   index with the :method:`~cursor.hint()` method to run
+   :method:`~cursor.min()`/ :operator:`$min` with the following
+   exception: you do not need to hint if the
+   :method:`~db.collection.find()` query is an equality condition on
+   the ``_id`` field ``{ _id: <value> }``.
+
+
 Behavior
 --------
 
@@ -49,7 +59,7 @@ following example:
 
 .. code-block:: javascript
 
-   db.collection.find( { _id: 7 } ).min( { age: 25 } )
+   db.collection.find( { _id: { $in: [ 6, 7 ] } } ).min( { age: 25 } ).hint( { age: 1 } )
 
 The query will use the index on the ``age`` field, even if the
 index on ``_id`` may be better.
@@ -85,35 +95,11 @@ Consider the following operations on a collection named
 
 .. code-block:: javascript
 
-   db.collection.find().min( { age: 20 } )
+   db.collection.find().min( { age: 20 } ).hint( { age: 1 } )
 
 This operation limits the query to those documents where the
 field ``age`` is at least ``20`` and forces a query plan which scans the
 ``{ age: 1 }`` index from 20 to :bsontype:`MaxKey <data_maxkey>`.
-
-Index Selection
-~~~~~~~~~~~~~~~
-
-You can explicitly specify the corresponding index with
-:method:`~cursor.hint()`. Otherwise, MongoDB selects the index using
-the fields in the :operator:`$max` and :operator:`$min` bounds; however, if
-multiple indexes exist on same fields with different sort orders, the selection
-of the index may be ambiguous.
-
-Consider a collection named ``collection`` that has the following
-two indexes:
-
-.. code-block:: javascript
-
-   { age: 1, type: -1 }
-   { age: 1, type: 1 }
-
-Without explicitly using :method:`~cursor.hint()`, it is unclear
-which index the following operation will select:
-
-.. code-block:: javascript
-
-   db.collection.find().min( { age: 20, type: 'C' } )
 
 Use with ``$max``
 ~~~~~~~~~~~~~~~~~
@@ -131,4 +117,4 @@ following example:
 
 .. code-block:: javascript
 
-   db.collection.find().min( { age: 20 } ).max( { age: 25 } )
+   db.collection.find().min( { age: 20 } ).max( { age: 25 } ).hint( { age: 1 } )
