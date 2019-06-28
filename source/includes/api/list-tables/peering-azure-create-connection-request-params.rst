@@ -6,10 +6,6 @@
      - Type
      - Description
 
-   * - ``atlasCidrBlock``
-     - string
-     - CIDR block that |service| uses for the clusters in your project.
-
    * - ``azureDirectoryId``
      - string
      - Unique identifier for an Azure :abbr:`AD (Active Directory)` directory.
