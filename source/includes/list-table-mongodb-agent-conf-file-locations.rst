@@ -1,27 +1,52 @@
-.. list-table::
-   :widths: 30 20 50
-   :header-rows: 1
+.. tabs-platforms::
 
-   * - Platform
-     
-     - Installation Method
-       
-     - Default Config File Path
+   .. tab::
+      :tabid: windows
 
-   * - RHEL, CentOS, Amazon Linux and Ubuntu
+      The location of the {+mdbagent+} configuration file is
+      ``C:\MMSData\Automation\automation-agent.config``.
 
-     - package manager
+      .. note::
 
-     - ``/etc/mongodb-mms/automation-agent.config``
+         The {+mdbagent+} configuration file is named
+         ``automation-agent.config`` as a way to enable easier upgrades
+         for those using :doc:`legacy agents
+         </tutorial/nav/legacy-agents>`.
 
-   * - macOS or other Linux distributions
+   .. tab::
+      :tabid: macos
 
-     - ``tar``
-     
-     - ``/path/to/install/local.config``
+      The location of the {+mdbagent+} configuration file is
+      ``/path/to/install/local.config``.
 
-   * - Windows
+   .. tab::
+      :tabid: linux
 
-     - ``msi``
-     
-     - ``C:\MMSData\Automation\automation-agent.config``
+      The location of the {+mdbagent+} configuration file is
+      ``/path/to/install/local.config``.
+
+   .. tab::
+      :tabid: rhel
+
+      The location of the {+mdbagent+} configuration file is
+      ``/etc/mongodb-mms/automation-agent.config``.
+
+      .. note::
+
+         The {+mdbagent+} configuration file is named
+         ``automation-agent.config`` as a way to enable easier upgrades
+         for those using :doc:`legacy agents
+         </tutorial/nav/legacy-agents>`.
+
+   .. tab::
+      :tabid: debian
+
+      The location of the {+mdbagent+} configuration file is
+      ``/etc/mongodb-mms/automation-agent.config``.
+
+      .. note::
+
+         The {+mdbagent+} configuration file is named
+         ``automation-agent.config`` as a way to enable easier upgrades
+         for those using :doc:`legacy agents
+         </tutorial/nav/legacy-agents>`.
