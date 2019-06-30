@@ -79,8 +79,9 @@
 
 - Improve support for global diagnostic download for large deployments.
 
-- Update Ops Manager |jdk| (x86_64) to 8u181.
-
+- Updates Ops Manager |jdk| (x86_64) to 8u181, which enables endpoint
+  identification by default.
+  
 - When configuring MongoDB |ldap| authentication, allow setting the
   User to Distinguished Name Mapping without setting the Authorization
   Query Template.

@@ -5,7 +5,8 @@
 
 *Released on 2018-08-02*
 
-- Update Ops Manager JDK (x86_64) to 8u181.
+- Updates Ops Manager |jdk| (x86_64) to 8u181, which enables endpoint
+  identification by default.
 
 .. _opsmgr-server-3.4.14:
 

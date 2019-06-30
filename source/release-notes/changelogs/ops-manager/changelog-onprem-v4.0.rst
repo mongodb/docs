@@ -351,8 +351,9 @@
 
 - Security patches for third-party library dependencies.
 
-- Update Ops Manager JDK (x86_64) to 8u181^M
-
+- Updates Ops Manager |jdk| (x86_64) to 8u181, which enables endpoint
+  identification by default.
+  
 - When configuring MongoDB |ldap| authentication, allow setting the User
   to Distinguished Name Mapping without setting the Authorization Query
   Template.
