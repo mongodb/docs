@@ -3,7 +3,7 @@
   :header-rows: 1
   :stub-columns: 1
 
-  * - Name
+  * - Query Parameter
     - Type
     - Description
     - Default

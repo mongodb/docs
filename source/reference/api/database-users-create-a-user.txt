@@ -10,6 +10,8 @@ Create a Database User
    :depth: 2
    :class: singlecol
 
+.. include:: /includes/styles/corrections.rst
+
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
 .. include:: /includes/api-base-url.rst
@@ -21,7 +23,7 @@ Create a Database User
 Syntax
 ------
 
-.. code-block:: none
+.. code-block:: http
 
    POST /api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers
 
@@ -31,15 +33,15 @@ Request Path Parameters
 .. list-table::
    :header-rows: 1
 
-   * - Parameter
-     - Required/Optional
+   * - Path Parameter
+     - Necessity
      - Description
 
    * - ``GROUP-ID``
 
-     - Required.
+     - Required
 
-     - The unique identifier for the :ref:`project <group-id>`.
+     - Unique identifier for the :ref:`project <group-id>`.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,11 +53,16 @@ Request Body Parameters
 
 .. list-table::
    :header-rows: 1
+   :widths: 15 10 10 65
 
-   * - Name
+   * - Body Parameter
+     - Type
+     - Necessity
      - Description
 
    * - ``databaseName``
+     - string
+     - Required
      - The user's :ref:`authentication database
        <authentication-database>`. A user must provide both a username
        and authentication database to log into MongoDB. In |service|
@@ -63,25 +70,51 @@ Request Body Parameters
        the ``admin`` database.
 
    * - ``deleteAfterDate``
-     - *Optional* `ISO-8601
-       <https://en.wikipedia.org/wiki/ISO_8601>`_-formatted UTC date
-       after which |service| deletes the user. The specified date must
-       be in the future and within one week of the time you make the
-       API request.
+     - string
+     - Optional
+     - |iso8601-time| after which |service| deletes the user. The
+       specified date must be in the future and within one week of the
+       time you make the |api| request.
 
        .. note::
 
-          You may include an ISO-8601 time zone designator to ensure
+          You may include an |iso8601| time zone designator to ensure
           that the expiration date occurs with respect to the local
           time in the specified time zone.
 
-   * - ``groupId``
-     - ID of the |service| project the user belongs to.
+   * - ``ldapAuthType``
+     - string
+     - Optional
+     - Method by which the provided ``username`` is authenticated. If
+       no value is given, |service| uses the default value of ``NONE``.
 
-   * - ``username``
-     - Username for authenticating to MongoDB.
+       Accepted values include:
+
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
+
+          * - ``NONE``
+            - |service| authenticates this user through
+              :manual:`SCRAM-SHA </core/security-scram>`, not |ldap|.
+          * - ``USER``
+            - |ldap| server authenticates this user through the user's
+              |ldap| user.
+          * - ``GROUP``
+            - |ldap| server authenticates this user using their
+              |ldap| user and authorizes this user using their |ldap|
+              group. To learn more about |ldap| security, see
+              :doc:`/security-ldaps`.
+
+   * - ``groupId``
+     - string
+     - Required
+     - Unique identifier of the |service| project to which the user
+       belongs.
 
    * - ``roles``
+     - string array
+     - Required
      - .. include:: /includes/fact-database-user-role.rst
 
        .. include:: /includes/fact-subset-privilege-actions.rst
@@ -91,26 +124,34 @@ Request Body Parameters
           If a user is assigned a :ref:`custom MongoDB role
           <mongodb-roles>`, they cannot be assigned any other roles.
 
-   * - ``roles.databaseName``
-     - Database on which the user has the specified role. A role
-       on the ``admin`` database can include privileges that apply to
-       the other databases.
-
-   * - ``roles.collectionName``
-
+   * - | ``roles``
+       | ``.collectionName``
+     - string
+     - Required
      - Collection for which the role applies.
 
-       You can specify a collection for the
-       ``read`` and ``readWrite`` roles. If you do not specify a
-       collection for ``read`` and ``readWrite``, the role applies to
-       all collections in the database (excluding some collections in
-       the ``system.`` database).
+       You can specify a collection for the ``read`` and ``readWrite``
+       roles. If you do not specify a collection for ``read`` and
+       ``readWrite``, the role applies to all collections in the
+       database (excluding some collections in the ``system.``
+       database).
 
        .. note::
 
           .. include:: /includes/fact-read-read-write-actions.rst
 
-   * - ``roles.roleName``
+   * - | ``roles``
+       | ``.databaseName``
+     - string
+     - Required
+     - Database on which the user has the specified role. A role
+       on the ``admin`` database can include privileges that apply to
+       the other databases.
+
+   * - | ``roles``
+       | ``.roleName``
+     - string
+     - Required
      - Name of the role. This value can either be a
        :manual:`built-in role </reference/built-in-roles/>` or a
        :ref:`custom role <mongodb-roles>`.
@@ -154,14 +195,21 @@ Request Body Parameters
           ``admin``.
 
    * - ``password``
-     - The user's password. This field is NOT included in the entity
+     - string
+     - Required
+     - The user's password. This field is *not* included in the entity
        returned from the server.
+
+   * - ``username``
+     - string
+     - Required
+     - Username for authenticating to MongoDB.
 
 Response Elements
 ~~~~~~~~~~~~~~~~~
 
-If you set the query element ``envelope`` to ``true``, the response is wrapped
-by the ``content`` object.
+If you set the query element ``envelope`` to ``true``, the response is
+wrapped by the ``content`` object.
 
 .. include:: /includes/api/list-tables/database-users-get-response.rst
 
@@ -173,30 +221,41 @@ Request
 
 .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-.. class:: copyable-code
+.. code-block:: sh
 
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers" --data '
-   {
-     "databaseName" : "admin",
-     "roles" : [ {
-       "databaseName" : "sales",
-       "roleName" : "readWrite"
-     }, {
-       "databaseName" : "marketing",
-       "roleName" : "read"
-     } ],
-     "username" : "david",
-     "password" : "changeme123"
-   }'
+   curl --user "{USERNAME}:{APIKEY}" --digest \
+     --header "Accept: application/json" \
+     --header "Content-Type: application/json" \
+     --include \
+     --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers"
+     --data '
+       {
+         "databaseName" : "admin",
+         "password" : "changeme123",
+         "roles" : [ {
+           "databaseName" : "sales",
+           "roleName" : "readWrite"
+         }, {
+           "databaseName" : "marketing",
+           "roleName" : "read"
+         } ],
+         "username" : "david",
+       }'
 
 Response
 ~~~~~~~~
 
-.. code-block:: none
+Response Header
+~~~~~~~~~~~~~~~
 
-   HTTP/1.1 201 Created
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/201.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
 
    {
      "databaseName" : "admin",
@@ -209,5 +268,6 @@ Response
        "databaseName" : "marketing",
        "roleName" : "read"
      } ],
-     "username" : "david"
+     "username" : "david",
+     "ldapAuthType" : "NONE"
    }
