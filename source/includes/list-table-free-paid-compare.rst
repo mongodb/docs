@@ -18,7 +18,7 @@
    * - MongoDB Version Support
      - 4.0
      - 4.0
-     - 3.4, 3.6, 4.0
+     - 3.4, 3.6, 4.0, 4.2 (beta)
 
    * - Metrics and Alerts
    
