@@ -47,7 +47,7 @@ databases in the target MongoDB instance except the ``admin`` and
 ``local`` databases.
 
 You can specify a database in which to store schema information with
-the :option:`--sampleSource <mongosqld --sampleSource>`
+the :option:`--schemaSource <mongosqld --schemaSource>`
 option. Otherwise, :binary:`~bin.mongosqld` holds the schema in memory.
 
 Starting ``mongosqld`` with a Schema File
@@ -66,12 +66,12 @@ instance.
 Starting ``mongosqld`` with a Schema Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the :option:`--sampleSource <mongosqld --sampleSource>`
+Use the :option:`--schemaSource <mongosqld --schemaSource>`
 option to specify a database to store schema information.
 
 .. code-block:: shell
 
-   mongosqld --sampleSource sampleDb
+   mongosqld --schemaSource sampleDb
 
 Starting ``mongosqld`` with Specified Namespaces
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -159,13 +159,15 @@ Schema Options
 
 .. include:: /includes/option/option-mongosqld-sampleNamespaces.rst
 
-.. include:: /includes/option/option-mongosqld-sampleMode.rst
+.. include:: /includes/option/option-mongosqld-schemaMode.rst
 
-.. include:: /includes/option/option-mongosqld-sampleSource.rst
+.. include:: /includes/option/option-mongosqld-schemaSource.rst
+
+.. include:: /includes/option/option-mongosqld-schemaName.rst
 
 .. include:: /includes/option/option-mongosqld-sampleSize.rst
 
-.. include:: /includes/option/option-mongosqld-sampleRefreshIntervalSecs.rst
+.. include:: /includes/option/option-mongosqld-schemaRefreshIntervalSecs.rst
 
 .. include:: /includes/option/option-mongosqld-uuidSubtype3Encoding.rst
 
@@ -350,13 +352,15 @@ Data Sampling Options
 
    schema:
      sample:
-       mode: <[read|write]>
-       source: <string>
        size: <integer>
        prejoin: <boolean>
        namespaces: <array of strings>
-       refreshIntervalSecs: <integer>
        uuidSubtype3Encoding: <[old|csharp|java]>
+     stored:
+       mode: <[custom|auto]>
+       source: <string>
+       name: <db-name>
+     refreshIntervalSecs: <integer>
 
 .. list-table::
    :header-rows: 1
@@ -365,13 +369,17 @@ Data Sampling Options
      - Type
      - Corresponds to
 
-   * - .. setting:: schema.sample.mode
+   * - .. setting:: schema.stored.mode
      - string
-     - :option:`--sampleMode <mongosqld --sampleMode>`
+     - :option:`--schemaMode <mongosqld --schemaMode>`
 
-   * - .. setting:: schema.sample.source
+   * - .. setting:: schema.stored.source
      - string
-     - :option:`--sampleSource  <mongosqld --sampleSource>`
+     - :option:`--schemaSource  <mongosqld --schemaSource>`
+
+   * - .. setting:: schema.stored.name
+     - string
+     - :option:`--schemaName  <mongosqld --schemaName>`
 
    * - .. setting:: schema.sample.size
      - integer
@@ -385,9 +393,9 @@ Data Sampling Options
      - string or array of strings
      - :option:`--sampleNamespaces <mongosqld --sampleNamespaces>`
 
-   * - .. setting:: schema.sample.refreshIntervalSecs
+   * - .. setting:: schema.refreshIntervalSecs
      - integer
-     - :option:`--sampleRefreshIntervalSecs <mongosqld --sampleRefreshIntervalSecs>`
+     - :option:`--schemaRefreshIntervalSecs <mongosqld --schemaRefreshIntervalSecs>`
 
    * - .. setting:: schema.sample.uuidSubtype3Encoding
      - string
@@ -841,40 +849,40 @@ namespace.
 Specify a Database to Persist a Schema
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the :option:`--sampleSource <mongosqld --sampleSource>` option to
+Use the :option:`--schemaSource <mongosqld --schemaSource>` option to
 specify a database in which to store schema information. Use the
-:option:`--sampleMode <mongosqld --sampleMode>` option to specify
+:option:`--schemaMode <mongosqld --schemaMode>` option to specify
 whether :binary:`~bin.mongosqld` can write to the schema database or
 only read from it.
 
-.. include:: /includes/sampleSource-example.rst
+.. include:: /includes/schemaSource-example.rst
 
 .. include:: /includes/fact-samplemode-write-permission.rst
 
 Specify a Data Resampling Interval
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the :option:`--sampleRefreshIntervalSecs <mongosqld
---sampleRefreshIntervalSecs>` option to specify
+Use the :option:`--schemaRefreshIntervalSecs <mongosqld
+--schemaRefreshIntervalSecs>` option to specify
 an interval in seconds for :binary:`~bin.mongosqld` to resample data
 and regenerate the schema. The default value for this option is ``0``,
 which means that :binary:`~bin.mongosqld` never resamples data.
 
 If you set a resampling interval with
-:option:`--sampleRefreshIntervalSecs <mongosqld
---sampleRefreshIntervalSecs>` and you specify a schema
-database with :option:`--sampleSource  <mongosqld --sampleSource>`, you
-cannot set :option:`--sampleMode  <mongosqld --sampleMode>` to ``read``.
+:option:`--schemaRefreshIntervalSecs <mongosqld
+--schemaRefreshIntervalSecs>` and you specify a schema
+database with :option:`--schemaSource  <mongosqld --schemaSource>`, you
+cannot set :option:`--schemaMode  <mongosqld --schemaMode>` to ``custom``.
 
 The following example does not specify a schema database or a schema
 file, so it holds its schema in memory. It uses
-:option:`--sampleRefreshIntervalSecs <mongosqld
---sampleRefreshIntervalSecs>` to specify a data resampling
+:option:`--schemaRefreshIntervalSecs <mongosqld
+--schemaRefreshIntervalSecs>` to specify a data resampling
 interval of 3600 seconds.
 
 .. code-block:: shell
 
-   mongosqld --sampleRefreshIntervalSecs 3600
+   mongosqld --schemaRefreshIntervalSecs 3600
 
 .. _mongosqld-auth-example:
 
@@ -1023,52 +1031,52 @@ with each.
      - ``mongosqld`` Options
      - Behavior
 
-   * - Standalone Reader
-     - - :option:`--sampleMode <mongosqld --sampleMode>` ``read``
-       - :option:`--sampleSource <mongosqld --sampleSource>` *not used*
-     - :manual:`Standalone </reference/glossary/#term-standalone>`
-       :program:`mongod` instance. :binary:`~bin.mongosqld`
-       samples data upon startup. If :option:`--sampleRefreshIntervalSecs
-       <mongosqld --sampleRefreshIntervalSecs>` > 0, resample
+   * - Standalone Schema
+     - - :option:`--schemaMode <mongosqld --schemaMode>` *not used*
+       - :option:`--schemaSource <mongosqld --schemaSource>` *not used*
+     - :binary:`~bin.mongosqld` samples data upon startup. If
+       :option:`--schemaRefreshIntervalSecs
+       <mongosqld --schemaRefreshIntervalSecs>` > 0, resample
        at specified interval.
 
        .. example::
 
           .. code-block:: sh
 
-             mongosqld --sampleMode read
+             mongosqld --schemaRefreshIntervalSecs 3600
 
-   * - Clustered Reader
-     - - :option:`--sampleMode <mongosqld --sampleMode>` ``read``
-       - :option:`--sampleSource <mongosqld --sampleSource>` <dbName>
-       - :option:`--sampleRefreshIntervalSecs <mongosqld --sampleRefreshIntervalSecs>` *not used*
-     - In a :manual:`replica set </replication/>` or
-       :manual:`sharded cluster </sharding>`
-       environment, sample data only at startup. Read schema data
-       from specified schema database on the :manual:`primary
-       </core/replica-set-primary/>`.
+       For more information, see :ref:`bi-cached-sampling`.
+
+   * - Custom Schema
+     - - :option:`--schemaMode <mongosqld --schemaMode>` ``custom``
+       - :option:`--schemaSource <mongosqld --schemaSource>` <dbName>
+       - :option:`--schemaRefreshIntervalSecs <mongosqld --schemaRefreshIntervalSecs>` *not used*
+     - Read schema data from the database specified by
+       :option:`--schemaSource <mongosqld --schemaSource>`.
 
        .. example::
 
           .. code-block:: sh
 
-             mongosqld --sampleMode read \
-                       --sampleSource schemaDb
+             mongosqld --schemaMode custom \
+                       --schemaSource schemaDb
 
-   * - Clustered Writer
-     - - :option:`--sampleMode <mongosqld --sampleMode>` ``write``
-       - :option:`--sampleSource <mongosqld --sampleSource>` <dbName>
-       - :option:`--sampleRefreshIntervalSecs  <mongosqld --sampleRefreshIntervalSecs>` > 0
-     - Read and persist schema data in a user-specified schema
+   * - Auto Schema
+     - - :option:`--schemaMode <mongosqld --schemaMode>` ``auto``
+       - :option:`--schemaSource <mongosqld --schemaSource>` <dbName>
+       - :option:`--schemaRefreshIntervalSecs  <mongosqld --schemaRefreshIntervalSecs>` > 0
+     - Sample and persist schema data in a user-specified schema
        database.
 
        .. example::
 
           .. code-block:: sh
 
-              mongosqld --sampleMode write \
-                        --sampleSource schemaDb \
-                        --sampleRefreshIntervalSecs 3600
+              mongosqld --schemaMode auto \
+                        --schemaSource schemaDb \
+                        --schemaRefreshIntervalSecs 3600
+
+       For more information, see :ref:`bi-persistent-schema`.
 
 Invalid Configurations
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -1085,22 +1093,22 @@ and cause an error at startup.
      - Behavior
 
    * - Standalone Writer (**invalid**)
-     - - :option:`--sampleMode <mongosqld --sampleMode>` ``write``
-       - :option:`--sampleSource <mongosqld --sampleMode>` *not used*
+     - - :option:`--schemaMode <mongosqld --schemaMode>` ``auto``
+       - :option:`--schemaSource <mongosqld --schemaSource>` *not used*
      - This configuration is invalid for a :manual:`standalone
        </reference/glossary/#term-standalone>`
-       :binary:`~bin.mongod` instance because in ``write`` mode there
+       :binary:`~bin.mongod` instance because in ``auto`` mode there
        must be a writeable database specified.
 
    * - Clustered Sampling Reader (**invalid**)
-     - - :option:`--sampleMode <mongosqld --sampleMode>` ``read``
-       - :option:`--sampleSource <mongosqld --sampleSource>` <dbName>
-       - :option:`--sampleRefreshIntervalSecs <mongosqld --sampleRefreshIntervalSecs>` > 0
+     - - :option:`--schemaMode <mongosqld --schemaMode>` ``custom``
+       - :option:`--schemaSource <mongosqld --schemaSource>` <dbName>
+       - :option:`--schemaRefreshIntervalSecs <mongosqld --schemaRefreshIntervalSecs>` > 0
      - When used in a MongoDB :manual:`replica set
        </replication/>` or :manual:`sharded cluster </sharding>`,
        this configuration is invalid. When a
        database is specified for storing schema data with
-       :option:`--sampleSource <mongosqld --sampleSource>`, :option:`--sampleMode <mongosqld --sampleMode>` must be set to
-       ``write`` so that the schema may be updated from
+       :option:`--schemaSource <mongosqld --schemaSource>`, :option:`--schemaMode <mongosqld --schemaMode>` must be set to
+       ``auto`` so that the schema may be updated from
        the :manual:`primary </core/replica-set-primary/>` to
        maintain cluster-wide consistency.
