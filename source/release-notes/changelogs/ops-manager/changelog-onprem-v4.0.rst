@@ -16,6 +16,9 @@
 
 - **Agent Upgrades:** :ref:`automation-5.4.19.5537`
 
+- **EOL:** Ops Manager support for Ubuntu 14.04 has ended. Ops Manager 
+  4.0.12 does not run on Ubuntu 14.04. 
+
 .. _opsmgr-server-4.0.11:
 
 |onprem| Server 4.0.11
