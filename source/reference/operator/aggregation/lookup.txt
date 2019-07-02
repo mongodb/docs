@@ -73,16 +73,6 @@ The :pipeline:`$lookup` takes a document with the following fields:
        ``localField``, the :pipeline:`$lookup` treats the
        field as having a value of ``null`` for matching purposes.
 
-       .. note::
-
-          If your ``localField`` is an array, you may want to add an
-          :pipeline:`$unwind` stage to your pipeline. Otherwise, the
-          equality condition between the ``localField`` and
-          ``foreignField`` is ``foreignField: { $in: [
-          localField.elem1, localField.elem2, ... ] }``.
-
-          See the :ref:`example <unwind-example>` on this page.
-
    * - ``foreignField``
 
      - Specifies the field from the documents in the ``from``
@@ -393,73 +383,74 @@ The operation would correspond to the following pseudo-SQL statement:
 Use ``$lookup`` with an Array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If your ``localField`` is an array and you'd like to match the elements
-inside it against a ``foreignField`` which is a single element, you'll
-need to :pipeline:`$unwind` the array as one stage of the aggregation
-pipeline.
+Starting MongoDB 3.4, if the ``localField`` is an array, you can match
+the array elements against a scalar ``foreignField`` without needing an
+:pipeline:`$unwind` stage.
 
-Consider a collection ``orders`` with the following document:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "item" : "MON1003", "price" : 350, "quantity" : 2, "specs" :
-   [ "27 inch", "Retina display", "1920x1080" ], "type" : "Monitor" }
-
-Another collection ``inventory`` contains the following documents:
+For example, create an example collection ``classes`` with the
+following document:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "sku" : "MON1003", "type" : "Monitor", "instock" : 120,
-   "size" : "27 inch", "resolution" : "1920x1080" }
-   { "_id" : 2, "sku" : "MON1012", "type" : "Monitor", "instock" : 85,
-   "size" : "23 inch", "resolution" : "1280x800" }
-   { "_id" : 3, "sku" : "MON1031", "type" : "Monitor", "instock" : 60,
-   "size" : "23 inch", "display_type" : "LED" }
+   db.classes.insert( [
+      { _id: 1, title: "Reading is ...", enrollmentlist: [ "giraffe2", "pandabear", "artie" ], days: ["M", "W", "F"] },
+      { _id: 2, title: "But Writing ...", enrollmentlist: [ "giraffe1", "artie" ], days: ["T", "F"] }
+   ])
 
-The following aggregation operation performs a join on documents in the
-``orders`` collection which match a particular element of the ``specs``
-array to the ``size`` field in the ``inventory`` collection.
+Create another collection ``members`` with the following documents:
 
 .. code-block:: javascript
 
-   db.orders.aggregate([
-      {
-         $unwind: "$specs"
-      },
+   db.members.insert( [
+      { _id: 1, name: "artie", joined: new Date("2016-05-01"), status: "A" }, 
+      { _id: 2, name: "giraffe", joined: new Date("2017-05-01"), status: "D" }, 
+      { _id: 3, name: "giraffe1", joined: new Date("2017-10-01"), status: "A" }, 
+      { _id: 4, name: "panda", joined: new Date("2018-10-11"), status: "A" },  
+      { _id: 5, name: "pandabear", joined: new Date("2018-12-01"), status: "A" },
+      { _id: 6, name: "giraffe2", joined: new Date("2018-12-01"), status: "D" }
+   ])
+
+The following aggregation operation joins documents in the ``classes``
+collection with the ``members`` collection, matching on the ``members``
+field to the ``name`` field:
+
+.. code-block:: javascript
+
+   db.classes.aggregate([
       {
          $lookup:
             {
-               from: "inventory",
-               localField: "specs",
-               foreignField: "size",
-               as: "inventory_docs"
+               from: "members",
+               localField: "enrollmentlist",
+               foreignField: "name",
+               as: "enrollee_info"
            }
-      },
-      {
-         $match: { "inventory_docs": { $ne: [] } }
       }
    ])
 
-The operation returns the following document:
+The operation returns the following:
 
 .. code-block:: javascript
 
    {
       "_id" : 1,
-      "item" : "MON1003",
-      "price" : 350,
-      "quantity" : 2,
-      "specs" : "27 inch",
-      "type" : "Monitor",
-      "inventory_docs" : [
-         {
-            "_id" : 1,
-            "sku" : "MON1003",
-            "type" : "Monitor",
-            "instock" : 120,
-            "size" : "27 inch",
-            "resolution" : "1920x1080"
-         }
+      "title" : "Reading is ...",
+      "enrollmentlist" : [ "giraffe2", "pandabear", "artie" ],
+      "days" : [ "M", "W", "F" ],
+      "enrollee_info" : [
+         { "_id" : 1, "name" : "artie", "joined" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
+         { "_id" : 5, "name" : "pandabear", "joined" : ISODate("2018-12-01T00:00:00Z"), "status" : "A" },
+         { "_id" : 6, "name" : "giraffe2", "joined" : ISODate("2018-12-01T00:00:00Z"), "status" : "D" }
+      ]
+   }
+   {
+      "_id" : 2,
+      "title" : "But Writing ...",
+      "enrollmentlist" : [ "giraffe1", "artie" ],
+      "days" : [ "T", "F" ],
+      "enrollee_info" : [
+         { "_id" : 1, "name" : "artie", "joined" : ISODate("2016-05-01T00:00:00Z"), "status" : "A" },
+         { "_id" : 3, "name" : "giraffe1", "joined" : ISODate("2017-10-01T00:00:00Z"), "status" : "A" }
       ]
    }
 
