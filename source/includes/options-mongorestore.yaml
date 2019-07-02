@@ -170,17 +170,24 @@ aliases: -d
 directive: option
 args:  <database>
 description: |
-  Specifies a database for {{program}} to restore data *into*.
-  If the database does not exist, {{program}} creates the
-  database. If you do not specify a ``<db>``, {{program}}
-  creates new databases that correspond to the databases where data
-  originated and data may be overwritten. Use this option to restore data
-  into a MongoDB instance that already has data.
 
-  {{role}} does *not* control which :term:`BSON` files
-  {{program}} restores. You must use the
-  {{program}} :ref:`path option <mongorestore-path-option>` to
-  limit that restored data.
+  Specifies the destination database for {{program}} to restore data
+  *into* when restoring from a BSON file. If the database does not
+  exist, {{program}} creates the database. For example, the following
+  restores the ``salaries`` collection into the ``reporting`` database.
+
+  .. code-block:: sh
+     :copyable: false
+
+     mongorestore --db reporting dump/test/salaries.bson 
+
+  If you do not specify {{role}}, {{program}} takes the database name
+  from the data files.
+
+  The use of :option:`--db` and :option:`--collection` options are
+  deprecated when restoring from a directory or an archive file.
+  Instead, to restore from an archive or a directory, see
+  :option:`--nsInclude` instead.
   
   .. note::
    
@@ -194,11 +201,24 @@ aliases: -c
 directive: option
 args: <collection>
 description: |
-  Specifies a single collection for {{program}} to restore. If
+
+  Specifies the name of the destination collection for {{program}} to
+  restore data *into* when restoring from a BSON file. If
   you do not specify {{role}}, {{program}} takes
   the collection name from the input filename. If the input file has an
   extension, MongoDB omits the extension of the file from the collection
   name.
+
+  .. code-block:: sh
+     :copyable: false
+
+     mongorestore --db reporting --collection employeesalaries dump/test/salaries.bson 
+
+  The use of :option:`--db` and :option:`--collection` options are
+  deprecated when restoring from a directory or an archive file.
+  Instead, to restore from an archive or a directory, see
+  :option:`--nsInclude` instead.
+
 optional: true
 ---
 program: mongorestore
@@ -351,9 +371,8 @@ name: <path>
 directive: option
 args: null
 description: |
-  The final argument of the {{program}} command is a
-  directory path. This argument specifies the location of the
-  database dump from which to restore.
+  
+  The directory path or BSON file name from which to restore data.
 
   You cannot specify both the ``<path>`` argument and the ``--dir``
   option, which also specifies the dump directory, to {{program}}.
@@ -427,10 +446,14 @@ description: |
 
   .. note::
 
-     - You cannot use the ``--archive`` option with the ``--dir`` option.
+     - You cannot use the ``--archive`` option with the :option:`--dir`
+       option. 
 
-     - {{program}} still supports the positional ``-`` parameter to
-       restore a *single* collection from the standard input.
+     - If you use the {{role}} option with the :option:`\<path\>`
+       parameter, {{program}} ignores :option:`\<path\>` parameter.
+   
+    - {{program}} still supports the positional ``-`` parameter to
+      restore a *single* collection from the standard input.
 
 optional: true
 ---
@@ -442,13 +465,13 @@ description: |
   .. versionadded:: 3.2
 
   Restores from compressed files or data stream created by
-  :binary:`~bin.mongodump --archive <mongodump>`
+  :binary:`~bin.mongodump --gzip <mongodump>`
 
   To restore from a dump directory that contains compressed files, run
-  :binary:`~bin.mongorestore` with the new ``--gzip`` option.
+  :binary:`~bin.mongorestore` with the :option:`--gzip` option.
 
   To restore from a compressed archive file, run :binary:`~bin.mongorestore` with
-  the ``--gzip`` option in conjunction with the ``--archive`` option.
+  both the :option:`--gzip`  and the `--archive` options.
 optional: true
 ---
 program: mongorestore
@@ -468,10 +491,16 @@ pre: |
   .. versionadded:: 3.4
 
 description: |
-  Excludes the specified :term:`namespaces <namespace>` from the
-  restore operation.
-post: |
-  .. include:: /includes/extracts/ns-pattern-simple-exclude.rst
+
+  Specifies a :term:`namespace` pattern (e.g. ``"test.myCollection"``,
+  ``"reporting.*"``, ``"dept*.bar"``) to *exclude* the matching
+  namespaces from the restore. In the pattern, you can use asterisks
+  ``*`` as *wild cards*. For an example of the wildcard pattern, see
+  :ref:`example-basic-wildcard-usage`.
+  
+  You can specify {{role}} multiple times to exclude multiple namespace
+  patterns.
+
 optional: true
 ---
 program: mongorestore
@@ -482,14 +511,21 @@ pre: |
   .. versionadded:: 3.4
 
 description: |
-  Includes only the specified :term:`namespaces <namespace>` in the
-  restore operation.
-  By enabling you to specify multiple collections to restore,
-  {{role}} offers a superset of the functionality of the
-  :option:`--collection` option.
+
+  Specifies a :term:`namespace` pattern (e.g. ``"test.myCollection"``,
+  ``"reporting.*"``, ``"dept*.bar"``) to restore only the namespaces
+  that match the pattern. In the pattern, you can use asterisks ``*``
+  as *wild cards*. For an example of the wildcard pattern, see
+  :ref:`example-basic-wildcard-usage`.
+
+  You can specify {{role}} multiple times to include multiple namespace
+  patterns.
+
+  If source directory or file (i.e. the directory/file from which you
+  are restoring the data) does not contain data files that match the
+  namespace pattern, no data will be restored.
+
 optional: true
-post: |
-  .. include:: /includes/extracts/ns-pattern-simple-include.rst
 ---
 program: mongorestore
 name: nsFrom

@@ -24,10 +24,75 @@ database dump created by :binary:`~bin.mongodump` or the standard input
 (starting in version 3.0.0) into a :binary:`~bin.mongod` or
 :binary:`~bin.mongos` instance.
 
-.. include:: /includes/extracts/require-cmd-line-mongorestore.rst
-
 For an overview of :binary:`~bin.mongorestore` usage, see
 :doc:`/tutorial/backup-and-restore-tools`.
+
+Syntax
+------
+
+.. include:: /includes/extracts/require-cmd-line-mongorestore.rst
+
+.. code-block:: sh
+
+   mongorestore [options] [<directory>/<BSON file>]
+
+
+For example, to restore from a ``dump`` directory to a local
+:binary:`~bin.mongod` instance running on port ``27017``:
+
+.. code-block:: sh
+
+   mongorestore  dump/
+
+As :binary:`~bin.mongorestore` restores from the ``dump/`` directory,
+it creates the database and collections as needed and logs its progress:
+
+.. code-block:: sh
+   :copyable: false
+
+   2019-07-08T14:37:38.942-0400	preparing collections to restore from
+   2019-07-08T14:37:38.944-0400	reading metadata for test.bakesales from dump/test/bakesales.metadata.json
+   2019-07-08T14:37:38.944-0400	reading metadata for test.salaries from dump/test/salaries.metadata.json
+   2019-07-08T14:37:38.976-0400	restoring test.salaries from dump/test/salaries.bson
+   2019-07-08T14:37:38.985-0400	no indexes to restore
+   2019-07-08T14:37:38.985-0400	finished restoring test.salaries (10 documents, 0 failures)
+   2019-07-08T14:37:39.009-0400	restoring test.bakesales from dump/test/bakesales.bson
+   2019-07-08T14:37:39.011-0400	restoring indexes for collection test.bakesales from metadata
+   2019-07-08T14:37:39.118-0400	finished restoring test.bakesales (21 documents, 0 failures)
+   2019-07-08T14:37:39.118-0400	restoring users from dump/admin/system.users.bson
+   2019-07-08T14:37:39.163-0400	restoring roles from dump/admin/system.roles.bson
+   2019-07-08T14:37:39.249-0400	31 document(s) restored successfully. 0 document(s) failed to restore.
+
+You can also restore a specific collection or collections from the
+``dump/`` directory. For example, the following operation restores a
+single collection from corresponding data files in the ``dump/``
+directory:
+
+.. code-block:: sh
+
+   mongorestore --nsInclude test.purchaseorders dump/
+
+If the ``dump/`` directory does not contain the corresponding data file
+for the specified namespace, no data will be restored. For example, the
+following specifies a collection namespace that does not have a
+corresponding data in the ``dump/`` directory:
+
+.. code-block:: sh
+
+   mongorestore --nsInclude foo.bar dump/
+
+The :binary:`~bin.mongorestore` outputs the following messages:
+
+.. code-block:: sh
+   :copyable: false
+
+   2019-07-08T14:38:15.142-0400	preparing collections to restore from
+   2019-07-08T14:38:15.142-0400	0 document(s) restored successfully. 0 document(s) failed to restore.
+
+For more examples, see :ref:`mongorestore-examples`.
+
+For more information on the options and arguments, see
+:ref:`mongorestore-options`.
 
 Behavior
 --------
@@ -78,7 +143,6 @@ FIPS
 
 .. include:: /includes/extracts/4.2-changes-fips-program.rst
 
-
 Write Concern
 ~~~~~~~~~~~~~
 
@@ -90,13 +154,14 @@ the write concern specified in the URI string.
 
 In earlier versions, the two options are incompatible.
 
-
 .. _mongorestore-required-access:
 
 Required Access
 ---------------
 
 .. include:: /includes/access-mongorestore-collections.rst
+
+.. _mongorestore-options:
 
 Options
 -------
@@ -197,44 +262,98 @@ Options
 
 .. include:: /includes/option/option-mongorestore-gzip.rst
 
-.. include:: /includes/option/option-mongorestore-<path>.rst
-
 .. include:: /includes/option/option-mongorestore-archive.rst
 
+.. include:: /includes/option/option-mongorestore-<path>.rst
+
 .. include:: /includes/option/option-mongorestore-dir.rst
+
+.. _mongorestore-examples:
 
 Examples
 --------
 
+Restore with Access Control
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, :binary:`~bin.mongorestore` restores from
+``/opt/backup/mongodump-2011-10-24`` to a :binary:`~bin.mongod`
+instance running on port ``27017`` on the host
+``mongodb1.example.net``. The :option:`--uri <mongorestore --uri>`
+string omits the user's password to have :binary:`~bin.mongorestore`
+prompt for the password.
+
+.. code-block:: sh
+
+   mongorestore --uri "mongodb://user@mongodb1.example.net:27017/?authSource=admin" /opt/backup/mongodump-2011-10-24
+
+Alternatively, you can specify the host, port, username, and
+authentication database using :option:`--host <mongorestore --host>`,
+:option:`--port <mongorestore --port>`, :option:`--username <mongorestore
+--username>`, and :option:`--authenticationDatabase <mongorestore
+--authenticationDatabase>`.  Omit :option:`--password <mongorestore
+--password>` to have :binary:`~bin.mongorestore` prompt for the password:
+
+.. code-block:: sh
+
+   mongorestore --host mongodb1.example.net --port 27017 --username user --authenticationDatabase=admin /opt/backup/mongodump-2011-10-24
+
 Restore a Collection
 ~~~~~~~~~~~~~~~~~~~~
 
-Consider the following example:
-
-.. code-block:: sh
-
-   mongorestore --collection people --db accounts dump/
-
-Here, :binary:`~bin.mongorestore` reads the database dump in the ``dump/``
-sub-directory of the current directory, and restores *only* the
-documents in the collection named ``people`` from the database named
-``accounts``. :binary:`~bin.mongorestore` restores data to the instance
-running on the localhost interface on port ``27017``.
-
 .. versionadded:: 3.4
 
-You may alternatively use :option:`--nsInclude <mongorestore
---nsInclude>` to specify the canonical name of the collection that you
-wish to restore rather than :option:`--collection <mongorestore
---collection>`. :option:`--nsInclude <mongorestore --nsInclude>`
-enables you to specify the :term:`namespace` of one or more collections
-that you wish to include in the restore operation. The following
-example restores the ``people`` collection from the ``accounts``
-database in the ``dump/`` sub-directory of the current directory:
+To restore a specific collection, use :option:`--nsInclude
+<mongorestore --nsInclude>`, passing in the full namespace
+(``<database>.<collection>``) of the collection.
+
+For example, the following restores the collection named
+``purchaseorders`` in the database ``test`` from the corresponding
+files located in the ``dump/`` directory.
 
 .. code-block:: sh
 
-   mongorestore --nsInclude accounts.people dump/
+   mongorestore --nsInclude test.purchaseorders dump/
+
+The :binary:`~bin.mongorestore` outputs the results, including the
+number of documents restored:
+
+.. code-block:: sh
+   :copyable: false
+   
+   2019-06-28T19:23:42.858-0400   preparing collections to restore from
+   2019-06-28T19:23:42.858-0400   reading metadata for test.purchaseorders from dump/test/purchaseorders.metadata.json
+   2019-06-28T19:23:42.893-0400   restoring test.purchaseorders from dump/test/purchaseorders.bson
+   2019-06-28T19:23:42.896-0400   restoring indexes for collection test.purchaseorders from metadata
+   2019-06-28T19:23:42.991-0400   finished restoring test.purchaseorders (6 documents, 0 failures)
+   2019-06-28T19:23:42.991-0400   6 document(s) restored successfully. 0 document(s) failed to restore.
+
+If the ``dump/`` directory does not contain the corresponding data
+files for the specified namespace, no data will be restored:
+
+.. code-block:: sh
+   :copyable: false
+
+   2019-07-08T14:39:57.121-0400	preparing collections to restore from
+   2019-07-08T14:39:57.121-0400	0 document(s) restored successfully. 0 document(s) failed to restore.
+
+Alternatively, you can restore a specific collection using the
+:option:`--db <mongorestore --db>`, :option:`--collection <mongorestore
+--collection>`, and a ``.bson`` file:
+
+.. code-block:: sh
+
+   mongorestore --db test --collection purchaseorders dump/test/purchaseorders.bson
+
+.. code-block:: sh
+   :copyable: false
+
+   2019-06-30T12:21:44.777-0400   checking for collection data in dump/test/purchaseorders.bson
+   2019-06-30T12:21:44.779-0400   reading metadata for test.purchaseorders from dump/test/purchaseorders.metadata.json
+   2019-06-30T12:21:44.813-0400   restoring test.purchaseorders from dump/test/purchaseorders.bson
+   2019-06-30T12:21:44.881-0400   restoring indexes for collection test.purchaseorders from metadata
+   2019-06-30T12:21:44.987-0400   finished restoring test.purchaseorders (6 documents, 0 failures)
+   2019-06-30T12:21:44.987-0400   6 document(s) restored successfully. 0 document(s) failed to restore.
 
 .. _example-basic-wildcard-usage:
 
@@ -303,34 +422,22 @@ namespaces. The following operation
 
    mongorestore --nsInclude 'data.*' --nsFrom 'data.$prefix$_$customer$' --nsTo '$customer$.$prefix$'
 
-Restore with Access Control
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the following example, :binary:`~bin.mongorestore` restores a
-database dump located at ``/opt/backup/mongodump-2011-10-24``, to a
-database running on port ``37017`` on the host
-``mongodb1.example.net``. The :binary:`~bin.mongorestore` command
-authenticates to the MongoDB instance using the username ``user`` and
-the password ``pass``, as follows:
-
-.. code-block:: sh
-
-   mongorestore --host mongodb1.example.net --port 37017 --username user --password "pass" /opt/backup/mongodump-2011-10-24
-
-Restore a Collection from Standard Input
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can also *pipe* data directly into to :binary:`~bin.mongorestore`
-through standard input, as in the following example:
-
-.. code-block:: sh
-
-   zcat /opt/backup/mongodump-2014-12-03/accounts.people.bson.gz | mongorestore --collection people --db accounts -
-
 .. _mongorestore-example-archive-file:
 
+Restore from an Archive File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To restore from an archive file, run :binary:`~bin.restore` with the new
+``--archive`` option and the archive filename.
+
+.. code-block:: sh
+
+   mongorestore --archive=test.20150715.archive 
+
+.. _mongorestore-example-archive-file-db:
+
 Restore a Database from an Archive File
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````````````
 
 .. versionadded:: 3.2
 
@@ -341,21 +448,8 @@ following operation restores the ``test`` database from the file
 
 .. code-block:: sh
 
-   mongorestore --archive=test.20150715.archive --db test
+   mongorestore --archive=test.20150715.archive  --nsInclude "test.*"
 
-.. _mongorestore-example-archive-stdin:
-
-Restore a Database from Standard Input
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 3.2
-
-To restore from the standard input, run :binary:`~bin.mongorestore`
-with the ``archive`` option but *omit* the filename. For example:
-
-.. code-block:: sh
-
-   mongodump --archive --db test --port 27017 | mongorestore --archive --port 27018
 
 .. _mongorestore-example-gzip:
 
@@ -367,19 +461,37 @@ Restore from Compressed Data
    compressed files or data stream created by :binary:`~bin.mongodump`.
 
 To restore from a dump directory that contains compressed files, run
-:binary:`~bin.mongorestore` with the new ``--gzip`` option. For
-example, the following operation restores the ``test`` database from
-the compressed files located in the default ``dump`` directory:
+:binary:`~bin.mongorestore` with the :option:`--gzip <mongorestore
+--gzip>`. For example, the following operation restores the ``test``
+database from the compressed files located in the default ``dump``
+directory:
 
 .. code-block:: sh
 
-   mongorestore --gzip --db test
+   mongorestore --gzip  --nsInclude "test.*" dump/
 
-To restore from a compressed archive file, run :binary:`~bin.mongorestore`
-with the ``--gzip`` option in conjunction with the new ``--archive``
+To restore from a compressed archive file, run
+:binary:`~bin.mongorestore` with the :option:`--gzip <mongorestore
+--gzip>` option and the :option:`--archive <mongorestore --archive>`
 option. For example, the following operation restores the ``test``
 database from the archive file ``test.20150715.gz``.
 
 .. code-block:: sh
 
-   mongorestore --gzip --archive=test.20150715.gz --db test
+   mongorestore --gzip --archive=test.20150715.gz --nsInclude "test.*"
+
+.. _mongorestore-example-archive-stdin:
+
+Restore a Database from Standard Input
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+To restore from the standard input, run :binary:`~bin.mongorestore`
+with the :option:`--archive <mongorestore --archive>` option but *omit*
+the filename. For example:
+
+.. code-block:: sh
+
+   mongodump --archive --db test --port 27017 | mongorestore --archive --port 27018
+
