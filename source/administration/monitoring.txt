@@ -521,18 +521,18 @@ use the following command to view the "balancer" lock.
 Storage Node Watchdog
 ---------------------
 
-.. versionadded:: 3.6
+.. note::
 
-.. note:: Available only in MongoDB Enterprise. Not available on macOS.
+   - Starting in MongoDB 4.2, the :ref:`Storage Node Watchdog
+     <storage-node-watchdog>` is available in both the Community and
+     MongoDB Enterprise editions.
 
-The Storage Node Watchdog monitors the
-filesystems used by MongoDB to detect unresponsive conditions.
+   - In earlier versions (3.2.16+, 3.4.7+, 3.6.0+, 4.0.0+), the
+     :ref:`Storage Node Watchdog <storage-node-watchdog>` is only
+     available in MongoDB Enterprise edition.
 
-The Storage Node Watchdog can be enabled with
-the :parameter:`watchdogPeriodSeconds` parameter on a :binary:`~bin.mongod`.
-
-When enabled, the Storage Node Watchdog
-monitors the following directories:
+The Storage Node Watchdog monitors the following MongoDB directories to
+detect filesystem unresponsiveness:
 
 * The :option:`--dbpath <mongod --dbpath>` directory
 * The ``journal`` directory inside the :option:`--dbpath <mongod --dbpath>` directory if
@@ -540,18 +540,38 @@ monitors the following directories:
 * The directory of :option:`--logpath <mongod --logpath>` file
 * The directory of :option:`--auditPath <mongod --auditPath>` file
 
-If any of the filesystems containing these directories become unresponsive,
-the Storage Node Watchdog terminates the
+By default, the Storage Node Watchdog is disabled. You can only enable
+the Storage Node Watchdog on a :binary:`~bin.mongod` at startup time by
+setting the :parameter:`watchdogPeriodSeconds` parameter to an integer
+greater than or equal to 60. However, once enabled, you can pause the
+Storage Node Watchdog and restart during runtime. See
+:parameter:`watchdogPeriodSeconds` parameter for details.
+
+If any of the filesystems containing the monitored directories become
+unresponsive, the Storage Node Watchdog terminates the
 :binary:`~bin.mongod` and exits with a status code of 61. If the
-:binary:`~bin.mongod` is serving as the :term:`primary`, terminating initiates
-:term:`failover` allowing another member to become primary.
+:binary:`~bin.mongod` is the :term:`primary` of a replica set, the
+termination initiates a :term:`failover`, allowing another member to
+become primary.
 
 Once a :binary:`~bin.mongod` has terminated, it may not be possible to cleanly
 restart it on the *same* machine.
 
+.. topic:: Symlinks
+
+   If any of its monitored directories is a symlink to other volumes, the
+   Storage Node Watchdog does not monitor the symlink target.
+
+   For example, if the :binary:`~bin.mongod` uses
+   :setting:`storage.directoryPerDB: true <storage.directoryPerDB>` (or
+   :option:`--directoryperdb <mongod --directoryperdb>`) and symlinks a
+   database directory to another volume, the Storage Node Watchdog does
+   not follow the symlink to monitor the target.
+
 The maximum time the Storage Node Watchdog can
 take to detect an unresponsive filesystem and terminate is nearly *twice* the
 value of :parameter:`watchdogPeriodSeconds`.
+
 
 .. toctree::
    :titlesonly:

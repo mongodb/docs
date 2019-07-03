@@ -336,11 +336,11 @@ Authentication Parameters
    |both|
 
    Set to either:
-   
+
    - ``preferTLS``
-   
+
    - ``requireTLS``
-   
+
    The :parameter:`tlsMode` parameter is useful during :doc:`rolling
    upgrade to TLS/SSL </tutorial/upgrade-cluster-to-ssl>` to minimize
    downtime.
@@ -356,7 +356,7 @@ Authentication Parameters
 .. parameter:: tlsWithholdClientCertificate
 
    *Default*: false
- 
+
    .. versionadded:: 4.2
 
    |both|
@@ -380,11 +380,11 @@ Authentication Parameters
 .. parameter:: sslWithholdClientCertificate
 
    *Default*: false
- 
+
    .. deprecated:: 4.2 Use :parameter:`tlsWithholdClientCertificate` instead.
 
    |both|
-  
+
    A TLS certificate is set for a :binary:`mongod <bin.mongod>` or
    :binary:`mongos <bin.mongos>` either by the
    :option:`--tlsClusterFile <mongod --tlsClusterFile>` option or by the
@@ -619,7 +619,7 @@ General Parameters
    Generally, the timeout value should be greater than the average amount of
    time for a query to return results. Use tools like the :method:`cursor.explain()`
    cursor modifier to analyze the average query time and select an appropriate
-   timeout period. 
+   timeout period.
 
 .. parameter:: failIndexKeyTooLong
 
@@ -788,7 +788,7 @@ General Parameters
 
    A boolean flag that determines whether the
    :method:`db.serverStatus()` method and :dbcommand:`serverStatus`
-   command return :serverstatus:`opWriteConcernCounters` information. [#perf]_ 
+   command return :serverstatus:`opWriteConcernCounters` information. [#perf]_
 
    You can only set
    :parameter:`reportOpWriteConcernCountersInServerStatus` during
@@ -806,58 +806,83 @@ General Parameters
 
 .. parameter:: watchdogPeriodSeconds
 
-   .. versionadded:: 3.6
-
    |mongod-only|
 
    *Type*: integer
 
    *Default*: -1 (disabled)
 
-   .. note:: Available only in MongoDB Enterprise. Not available on macOS.
+   .. note::
 
-   Determines how often the
-   :ref:`Storage Node Watchdog <storage-node-watchdog>` checks the status of
-   the monitored filesystems.
+      - Starting in MongoDB 4.2, the :ref:`Storage Node Watchdog
+        <storage-node-watchdog>` is available in both the Community and
+        MongoDB Enterprise editions.
+
+      - In earlier versions (3.2.16+, 3.4.7+, 3.6.0+, 4.0.0+), the
+        :ref:`Storage Node Watchdog <storage-node-watchdog>` is only
+        available in MongoDB Enterprise edition.
+
+   Determines how frequent the :ref:`Storage Node Watchdog
+   <storage-node-watchdog>` checks the status of the monitored
+   filesystems:
+
+   * The :option:`--dbpath <mongod --dbpath>` directory
+   * The ``journal`` directory inside the :option:`--dbpath <mongod --dbpath>` directory if
+     :option:`journaling <mongod --journal>` is enabled
+   * The directory of :option:`--logpath <mongod --logpath>` file
+   * The directory of :option:`--auditPath <mongod --auditPath>` file
+
+   Valid values for :parameter:`watchdobgPeriodSeconds` are:
+
+   - ``-1`` (the default), to disable/pause :ref:`Storage Node Watchdog
+     <storage-node-watchdog>`, or
+
+   - An integer greater than or equal to 60.
 
    .. note::
 
-      If a filesystem on a monitored directory becomes unresponsive, it can
-      take a maximum of nearly *twice* the value of
-      :parameter:`watchdogPeriodSeconds` to terminate the :binary:`~bin.mongod`.
+      - If a filesystem on a monitored directory becomes unresponsive,
+        it can take a maximum of nearly *twice* the value of
+        :parameter:`watchdogPeriodSeconds` to terminate the
+        :binary:`~bin.mongod`.
+      
+      - If any of its monitored directory is a symlink to other
+        volumes, the Storage Node Watchdog does not monitor the symlink
+        target. For example, if the :binary:`~bin.mongod` uses
+        :setting:`storage.directoryPerDB: true
+        <storage.directoryPerDB>` (or :option:`--directoryperdb <mongod
+        --directoryperdb>`) and symlinks a database directory to
+        another volume, the Storage Node Watchdog does not follow the
+        symlink to monitor the target.
 
-   Valid values are -1, meaning the
-   :ref:`Storage Node Watchdog <storage-node-watchdog>` is disabled, or an
-   integer greater than or equal to 60.
-
-   By default the :ref:`Storage Node Watchdog <storage-node-watchdog>` is
-   disabled. To enable it, :parameter:`watchdogPeriodSeconds` must be set at
-   startup time.
+   To enable :ref:`Storage Node Watchdog <storage-node-watchdog>`,
+   :parameter:`watchdogPeriodSeconds` must be set during startup.
 
    .. code-block:: sh
 
       mongod --setParameter watchdogPeriodSeconds=60
 
-   You can only enable the :ref:`Storage Node Watchdog <storage-node-watchdog>`
-   at startup.
+   You can only enable the :ref:`Storage Node Watchdog
+   <storage-node-watchdog>` at startup. However, once enabled, you can
+   pause the :ref:`Storage Node Watchdog <storage-node-watchdog>` or
+   change the :parameter:`watchdogPeriodSeconds` during runtime.
 
-   However, once enabled, you can pause the :ref:`Storage Node Watchdog
-   <storage-node-watchdog>` or change the :parameter:`watchdogPeriodSeconds`
-   during runtime.
+   Once enabled,
 
-   To pause the :ref:`Storage Node Watchdog <storage-node-watchdog>` during
-   runtime, set :parameter:`watchdogPeriodSeconds` to -1.
+   - To pause the :ref:`Storage Node Watchdog <storage-node-watchdog>`
+     during runtime, set :parameter:`watchdogPeriodSeconds` to -1.
 
-   .. code-block:: javascript
+     .. code-block:: javascript
 
-      db.adminCommand( { setParameter: 1, watchdogPeriodSeconds: -1 } )
+        db.adminCommand( { setParameter: 1, watchdogPeriodSeconds: -1 } )
 
-   To resume or change the period during runtime, set
-   :parameter:`watchdogPeriodSeconds` to a number greater than or equal to 60.
+   - To resume or change the period during runtime, set
+     :parameter:`watchdogPeriodSeconds` to a number greater than or
+     equal to 60.
 
-   .. code-block:: javascript
+     .. code-block:: javascript
 
-      db.adminCommand( { setParameter: 1, watchdogPeriodSeconds: 120 } )
+        db.adminCommand( { setParameter: 1, watchdogPeriodSeconds: 120 } )
 
    .. note ::
 
@@ -957,7 +982,7 @@ Logging Parameters
    ``storage.journal``. That is, if you specify a :setting:`storage
    <systemLog.component.storage.verbosity>` verbosity level, this level
    also applies to:
-   
+
    - :setting:`storage.journal
      <systemLog.component.storage.journal.verbosity>` components
      *unless* you specify the verbosity level for
@@ -1836,7 +1861,7 @@ Sharding Parameters
 
    Starting in MongoDB 4.0, the default value of
    :parameter:`taskExecutorPoolSize` is ``1``:
-   
+
    - In MongoDB 4.0 deployment, you can set
      :parameter:`taskExecutorPoolSize` to ``0`` and, on Linux, set
      :v4.0:`AsyncRequestsSenderUseBaton
@@ -2066,7 +2091,7 @@ Sharding Parameters
       mongod --setParameter skipShardingConfigurationChecks=true
 
    .. important::
-   
+
       Once maintenance has completed, remove the
       :parameter:`skipShardingConfigurationChecks` parameter when
       restarting the :binary:`~bin.mongod`.
