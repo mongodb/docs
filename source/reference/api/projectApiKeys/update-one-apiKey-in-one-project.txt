@@ -19,7 +19,7 @@ Resource
 
 .. code-block:: http
 
-   PATCH /orgs/{ORG-ID}/apiKeys/{API-KEY-ID}
+   PATCH /groups/{GROUP-ID}/apiKeys/{API-KEY-ID}
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,19 +32,19 @@ Request Path Parameters
      - Type
      - Description
 
-   * - ``ORG-ID``
+   * - ``GROUP-ID``
      - string
-     - Unique identifier for the :ref:`organization <organizations>`
-       whose API keys you want to retrieve. Use the 
-       :doc:`/orgs </reference/api/organization-get-all>` endpoint
+     - Unique identifier for the Project whose |api| keys you want to
+       update. Use the
+       :doc:`/groups </reference/api/project-get-all>` endpoint
        to retrieve all organizations to which the authenticated
        user has access.
 
    * - ``API-KEY-ID``
      - string
-     - Unique identifier for the API key you want to update. Use the 
-       :doc:`/orgs/{ORG-ID}/apiKeys </reference/api/apiKeys-orgs-get-all>` endpoint
-       to retrieve all API keys to which the authenticated
+     - Unique identifier for the API key you want to update. Use the
+       :doc:`/groups/{GROUP-ID}/apiKeys </reference/api/projectApiKeys/get-all-apiKeys-in-one-project>` endpoint
+       to retrieve all |api| keys to which the authenticated
        user has access for the specified organization.
 
 Request Query Parameters
@@ -55,39 +55,37 @@ Request Query Parameters
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+One of the two body parameters are required.
+
 .. list-table::
    :widths: 15 20 25 75
    :header-rows: 1
 
    * - Name
      - Type
-     - Required/Optional
+     - Necessity
      - Description
 
    * - ``desc``
      - string
      - Optional
-     - Description of the key. This parameter is optional; however, the
-       request must contain either a ``desc`` parameter or a ``roles``
-       parameter. If ``desc`` is provided, it must be between 1 and 250
-       characters long. 
+     - Description of the key between 1 and 250 characters in length,
+       inclusive.
+
+       .. important::
+
+          The request must contain either a ``desc`` parameter or a
+          ``roles`` parameter. If ``desc`` is provided, it must be
+          between 1 and 250 characters long.
 
    * - ``roles``
      - string array
      - Optional
-     - List of roles that the API key should have. This parameter is
-       optional; however, the request must contain either a ``desc``
-       parameter or a ``roles`` parameter. If ``roles`` is provided,
-       there must be at least one role listed, and all roles must be
-       valid for an Organization.
+     - List of roles that the |api| Key should be granted. A minimum
+       of one role must be provided. Any roles provided must be
+       valid for a Project:
 
-       Organization roles include:
-
-       - ``ORG_OWNER``
-       - ``ORG_MEMBER``
-       - ``ORG_PROJECT_CREATOR``
-       - ``ORG_BILLING_ADMIN``
-       - ``ORG_READ_ONLY``
+       .. include:: /includes/api/lists/project-roles.rst
 
 Response
 --------
@@ -100,16 +98,17 @@ Example Request
 .. include:: /includes/fact-apikey-username.rst
 
 .. code-block:: sh
-   :emphasize-lines: 5-8
+   :linenos:
+   :emphasize-lines: 6-8
 
-   curl --user "{USERNAME}:{APIKEY}" --digest \
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
      --header "Accept: application/json" \
      --header "Content-Type: application/json" \
-     --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/orgs/{ORG-ID}/apiKeys/{API-KEY-ID}?pretty=true" \
+     --include \
+     --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5953c5f380eef53887615f9a/apiKeys/5d1d143c87d9d63e6d694746?pretty=true" \
      --data '{
-       "desc" : "Updated API key description for test purposes",
-       "roles": ["ORG_MEMBER", "ORG_READ_ONLY"]
-     }'
+         "roles": [ "GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE" ]
+       }'
 
 Example Response
 ----------------
@@ -126,21 +125,29 @@ Response Body
 
 .. code-block:: json
    :copyable: false
+   :linenos:
+   :emphasize-lines: 14-15, 21-22
 
    {
-     "desc" : "Updated API key description for test purposes",
-     "id" : "5c47ba5127d9d61b9fd8a27b",
+     "desc" : "New API key for test purposes",
+     "id" : "5d1d143c87d9d63e6d694746",
      "links" : [ {
-       "href" : "https://cloud.mongodb.com/api/atlas/v1.0/orgs/5980cfc70b6d12029d82e3f6/apiKeys/5c47ba5127d9d61b9fd8a27b",
+       "href" : "https://cloud.mongodb.com/api/atlas/v1.0/orgs/5980cfe20b6d97029d82fa63/apiKeys/5d1d143c87d9d63e6d694746",
        "rel" : "self"
      } ],
-     "privateKey" : "********-****-****-db2c132ca78d",
-     "publicKey" : "kzurbumc",
+     "privateKey" : "********-****-****-eac4256753ba",
+     "publicKey" : "{PUBLIC-KEY}",
      "roles" : [ {
-       "orgId" : "5980cfc70b6d97029d82e3f6",
+       "orgId" : "5980cfe20b6d97029d82fa63",
+       "roleName" : "ORG_BILLING_ADMIN"
+     }, {
+       "groupId" : "5953c5f380eef53887615f9a",
+       "roleName" : "GROUP_DATA_ACCESS_READ_WRITE"
+     }, {
+       "orgId" : "5980cfe20b6d97029d82fa63",
        "roleName" : "ORG_MEMBER"
      }, {
-       "orgId" : "5980cfc70b6d97029d82e3f6",
-       "roleName" : "ORG_READ_ONLY"
+       "groupId" : "5953c5f380eef53887615f9a",
+       "roleName" : "GROUP_READ_ONLY"
      } ]
    }

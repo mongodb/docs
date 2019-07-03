@@ -14,6 +14,13 @@
      - string
      - Unique identifier for this Organization |api| key.
 
+   * - ``links``
+     - string
+     - An array of documents, representing a :ref:`link <api-linking>`
+       to one or more sub-resources and/or related resources such as
+       :ref:`list pagination <api-lists>`. See :ref:`api-linking` for
+       more information.
+
    * - ``privateKey``
      - string
      - Redacted private key for this Organization |api| key.
@@ -42,10 +49,14 @@
      - Name of the role. This resource returns all the roles the user
        has in either |service| or |mms|. Possible values are:
 
-       ** Organization Roles**
+       **Organization Roles**
+
+       If this is an ``roles.orgId`` (organization), values include:
 
        .. include:: /includes/api/lists/org-roles.rst
 
-       ** Project Roles**
+       **Project Roles**
+
+       If this is a ``roles.groupId`` (project), values include:
 
        .. include:: /includes/api/lists/project-roles.rst

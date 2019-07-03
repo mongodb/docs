@@ -42,10 +42,10 @@
      - Name of the role. This resource returns all the roles the user
        has in either |service| or |mms|. Possible values are:
 
-       ** Organization Roles**
+       **Organization Roles**
 
        .. include:: /includes/api/lists/org-roles.rst
 
-       ** Project Roles**
+       **Project Roles**
 
        .. include:: /includes/api/lists/project-roles.rst
