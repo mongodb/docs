@@ -53,9 +53,13 @@
 
        If this is an ``roles.orgId`` (organization), values include:
 
+       If this is an ``roles.orgId`` (organization), values include:
+
        .. include:: /includes/api/lists/org-roles.rst
 
        **Project Roles**
+
+       If this is a ``roles.groupId`` (project), values include:
 
        If this is a ``roles.groupId`` (project), values include:
 
