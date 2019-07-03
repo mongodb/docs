@@ -52,6 +52,8 @@ version = conf.version.branch
 release = conf.version.release
 pygments_style = 'sphinx'
 
+manifest_version = '4.2'
+
 extlinks = {
     'hardlink' : ( 'https://docs.opsmanager.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
@@ -193,11 +195,11 @@ try:
         html_theme_options['edition'] = 'hosted'
         html_theme_options['sitename'] = 'Ops Manager Docs'
 
-        if release == "Upcoming":
+        if release in ["Upcoming", "upcoming", "Rapid", "rapid"]:
             rst_epilog.append(".. |release-string| replace:: \   ")
 
             # If upcoming, pop in the latest stable/current version
-            rst_epilog.append(".. |manifestlink| replace:: https://opsmanager.mongodb.com/static/version_manifest/{0}.json".format(conf.git.branches.current))
+            rst_epilog.append(".. |manifestlink| replace:: https://opsmanager.mongodb.com/static/version_manifest/{0}.json".format(manifest_version))
 
         else:
             rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
