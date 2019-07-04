@@ -15,8 +15,7 @@
 
    * - ``data.credentials``
      - string
-     - Name of the |k8s| secret containing the |com| username and Public
-       API key. If you have not created these credentials yet,
-       see :ref:`create-k8s-secret`.
-
+     - Name of the |k8s| secret containing the |com| Public and Private
+       Keys for your desired |svc-api-key|. If you have not
+       created these credentials yet, see :ref:`create-k8s-secret`.
      - ``mycredentials``
