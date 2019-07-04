@@ -1,3 +1,11 @@
+.. _automation-5.4.20.5541:
+
+Automation Agent 5.4.20.5541
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.13 on 2019-07-04 <opsmgr-server-4.0.13>`
+
+
 .. _automation-5.4.19.5537:
 
 Automation Agent 5.4.19.5537

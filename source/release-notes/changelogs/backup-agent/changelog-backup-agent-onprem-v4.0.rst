@@ -1,3 +1,15 @@
+.. _backup-6.8.7.1024:
+
+Backup Agent 6.8.7.1024
+-----------------------
+
+:ref:`Released with Ops Manager 4.0.13 on 2019-07-04 <opsmgr-server-4.0.13>`
+
+- **Fix:** Improve the ability of the Backup Agent to stop the
+  balancer when preparing to take a snapshot for a sharded cluster.
+- **Fix:** Set a |tls| timeout for connections between the Backup Agent
+  and Ops Manager services.
+
 .. _backup-6.8.6.1013:
 
 Backup Agent 6.8.6.1013

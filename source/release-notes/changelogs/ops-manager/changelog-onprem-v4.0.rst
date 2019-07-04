@@ -1,3 +1,16 @@
+.. _opsmgr-server-4.0.13:
+
+|onprem| Server 4.0.13
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2019-07-04*
+
+- Removing whitelist from Admin (General > Users) now possible.
+  Displays error message when Authentication expires
+
+- **Agent Upgrades:** :ref:`automation-5.4.20.5541`,
+  :ref:`backup-6.8.7.1024`
+
 .. _opsmgr-server-4.0.12:
 
 |onprem| Server 4.0.12
