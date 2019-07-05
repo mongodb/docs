@@ -35,7 +35,7 @@ For the following |onprem| release series, you may run its
    * - 3.6
      -
      -
-     - 3.2.0
+     - *3.2.0*
      - 3.4.0
      - 3.6.0
      -
@@ -45,7 +45,7 @@ For the following |onprem| release series, you may run its
      -
      -
      -
-     - 3.4.0
+     - *3.4.0*
      - 3.6.0
      - 4.0.0
      -
@@ -54,7 +54,7 @@ For the following |onprem| release series, you may run its
      -
      -
      -
-     - 3.4.0
+     - *3.4.0*
      - 3.6.0
      - 4.0.0
      -
@@ -64,7 +64,7 @@ For the following |onprem| release series, you may run its
      -
      -
      -
-     - 3.6.0
+     - *3.6.0*
      - 4.0.0
      - 4.2.0
 
@@ -72,6 +72,8 @@ For the following |onprem| release series, you may run its
 Each version listed spans the full release series starting from the
 listed version (i.e., a minimum MongoDB 2.6 version of 2.6.6 implies
 compatibility with MongoDB versions 2.6.6 to 2.6.12).
+
+MongoDB versions in *italics* are deprecated.
 
 To learn more about MongoDB versioning, see
 :ref:`release-version-numbers` in the MongoDB Manual.
