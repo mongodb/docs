@@ -70,7 +70,8 @@ extlinks = {
     'website': ('https://www.mongodb.com%s?jmp=docs',''),
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
     'aws': ('http://docs.aws.amazon.com%s',''),
-    'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', '')
+    'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
+    'wikipedia' : ('https://en.wikipedia.org/wiki%s', '')
 }
 
 source_constants = {
