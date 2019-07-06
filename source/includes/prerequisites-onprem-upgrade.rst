@@ -10,6 +10,10 @@ Your servers must meet the :doc:`/core/requirements`.
    :manual:`MongoDB Production Notes </administration/production-notes>`,
    can lead to production failure.
 
+If your backing databases run the MMAPv1 storage engine, you are
+prompted to upgrade the storage engine for those backing databases to
+WiredTiger before attempting the upgrade.
+
 Administrator Privileges
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
