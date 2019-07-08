@@ -1,4 +1,4 @@
-If you have an |onprem| installation with more than one OM host
+If you have an |onprem| installation with more than one |onprem| host
 pointing to the same Application Database, you can upgrade |onprem| to
 a newer version without incurring monitoring downtime. During this
 upgrade, |onprem| enters a state known as **Upgrade Mode**: a state in
