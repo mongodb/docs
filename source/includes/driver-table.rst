@@ -27,6 +27,7 @@
      - `Source <https://github.com/mongodb/mongo-csharp-driver>`__
      - `API <http://mongodb.github.io/mongo-csharp-driver/>`__
      - `JIRA <https://jira.mongodb.org/browse/CSHARP>`__
+     -
 
    * - :doc:`Go </drivers/go>`
      - `Releases <https://github.com/mongodb/mongo-go-driver/releases>`__
