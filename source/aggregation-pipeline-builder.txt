@@ -44,51 +44,83 @@ Create an Aggregation Pipeline
 
 .. include:: /includes/steps/create-agg-pipeline.rst
 
+Specify Custom Collation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :manual:`custom collation </reference/collation/>` to specify
+language-specific rules for string comparison, such as rules for
+letter case and accent marks.
+
+To specify a custom collation:
+
+1. Click the :guilabel:`Collation` button at the top of the pipeline
+   builder.
+
+#. Enter your collation document.
+
+Limitations
+~~~~~~~~~~~
+
+The :pipeline:`$out` stage is not available if you are connected to a
+`Data Lake <https://www.mongodb.com/atlas/data-lake>`__. 
+
 .. _save-agg-pipeline:
 
 Save a Pipeline
 ---------------
 
-To save a pipeline:
+You can save your pipeline so it can be reloaded into
+the pipeline builder in the future. You can also create a
+:manual:`view </core/views/>` from the results of your pipeline.
 
-1. Name your pipeline using the
-   :guilabel:`Enter a pipeline name` input at the top of the
-   :guilabel:`Aggregations` view.
+To save your pipeline:
 
-2. Click :guilabel:`Save Pipeline`.
+1. Click the :guilabel:`Save` button at the top of the pipeline
+   builder.
+
+#. Enter a name for your pipeline.
+
+#. Click :guilabel:`Save`.
+
+Create a View from Pipeline Results 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   Creating a view from pipeline results does not save the pipeline
+   itself.
+
+To create a view from your pipeline results:
+
+1. Click the arrow next to the :guilabel:`Save` button at the top
+   of the pipeline builder.
+
+#. Click :guilabel:`Create a View`.
+
+#. Enter a name for your view.
+
+#. Click :guilabel:`Create`.
+
+|compass-short| creates a view from your pipeline results in the same
+database where the pipeline was created.
 
 .. _open-saved-pipeline:
 
 Open a Saved Pipeline
 ---------------------
 
-.. important::
+1. Click the :guilabel:`Folder` icon at the top left of the
+   pipeline builder.
 
-   Opening a saved pipeline abandons any unsaved changes to the
-   pipeline you are currently working on. If the circle at the
-   top-right of the :guilabel:`Aggregations` view is orange, this
-   means you have unsaved changes to your pipeline.
+#. Hover over the pipeline you want to open and click :guilabel:`Open`.
 
-To open a previously saved pipeline:
+#. In the modal, click :guilabel:`Open Pipeline`.
 
-1. Click the :guilabel:`Folder` icon to the left of the pipeline name
-   input.
+Pipeline Options
+----------------
 
-2. Hover over the pipeline you want to open and click :guilabel:`Open`.
-
-3. In the ensuing dialog, click :guilabel:`Open Pipeline`.
-
-Additional Pipeline Options
----------------------------
-
-Click the :guilabel:`...` button to the right of the
-:guilabel:`Save Pipeline` button to access additional pipeline
-options:
-
-.. figure:: /images/compass/agg-builder-export-dropdown.png
-   :alt: Aggregation Builder additional pipeline options
-
-The following additional options are available:
+The toggles at the top of the pipeline builder control the
+following options:
 
 .. list-table::
    :header-rows: 1
@@ -96,67 +128,82 @@ The following additional options are available:
 
    * - Option
      - Description
-   * - Export to Language
-     - Format and export the current pipeline in the selected language.
-       The languages currently supported are Java, Node, C#, and
-       Python 3. For more information, see
-       :ref:`Export Pipeline to Specific Langague
-       <compass-export-pipeline>`.
-   * - Clone Pipeline
-     - Creates a new version of the current pipeline by appending
-       ``(copy)`` to the current pipeline name, retaining the current
-       pipeline state. This allows you to modify and save a new version
-       of the pipeline.
-   * - New Pipeline
-     - Resets the pipeline to its initial state.
+   * - .. data:: Sample Mode
+     - (*Recommended*) When enabled, limits input documents passed to
+       :pipeline:`$group`, :pipeline:`$bucket`, and
+       :pipeline:`$bucketAuto` stages. Set the document limit with the
+       :data:`Limit` setting.
 
-       .. important::
-
-          The :guilabel:`New Pipeline` option does not save your
-          current pipeline state. If you wish to
-          :ref:`save your current pipeline <save-agg-pipeline>`, you
-          must do so before selecting this option.
-
-          If the circle at the top-right of the :guilabel:`Aggregations` view
-          is orange, this means you have unsaved changes to your pipeline.
-
-The following toggles provide additional pipeline options:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Option
-     - Description
-   * - Comment Mode
-     - When enabled, adds helper comments to each stage.
-   * - Sample Mode
-     - (*Recommended*) When enabled, limits input documents to ``100000``
-       before :manual:`$group
-       </reference/operator/aggregation/group/>`, :manual:`$bucket
-       </reference/operator/aggregation/bucket/>`, and
-       :manual:`$bucketAuto
-       </reference/operator/aggregation/bucketAuto/>` stages.
-   * - Auto Preview
+   * - .. data:: Auto Preview
      - When enabled, |compass-short| automatically updates the
        preview documents pane to reflect the results of each active
        stage as the pipeline progresses.
+
+Pipeline Settings
+~~~~~~~~~~~~~~~~~
+
+To view and modify pipeline settings:
+
+1. Click the gear icon at the top right of the pipeline builder to
+   open the :guilabel:`Settings` panel.
+
+#. Modify the pipeline settings. The following settings can be modified:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70 30
+
+      * - Option
+        - Description
+        - Default
+      * - .. data:: Comment Mode
+        - When enabled, adds helper comments to each stage.
+        - Enabled
+      * - .. data:: Number of Preview Documents
+        - Number of documents to show in the preview.
+        - 20
+      * - .. data:: Max Time
+        - Cumulative time limit in milliseconds for processing
+          the pipeline. Use this option to prevent long hang times.
+        - 5000
+      * - .. data:: Limit
+        - When :guilabel:`Sample Mode` is enabled, number of documents
+          passed to :pipeline:`$group`, :pipeline:`$bucket`, and
+          :pipeline:`$bucketAuto` stages. Lower limits improve pipeline
+          execution time, but may miss documents.
+        - 100000
+
+#. Click :guilabel:`Apply` to save changes and close the
+   :guilabel:`Settings` panel.
 
 Example
 -------
 
 The following example walks through creating and executing a pipeline
-for a collection containing airline flight statistics.
+for a collection containing airline data. You can download this
+dataset from the following link:
+`air_airlines.json <https://raw.githubusercontent.com/mongodb/docs-assets/compass/air_airlines.json>`__.
+
+For instructions on importing JSON data into your cluster, see
+:manual:`mongoimport </reference/program/mongoimport/>`. This
+procedure assumes you have the data in the
+``example.air_airlines`` namespace.
+
 
 Create the Pipeline
 ~~~~~~~~~~~~~~~~~~~
 
 The following pipeline has two aggregation stages:
-:manual:`$match </reference/operator/aggregation/match/>` and
-:manual:`$group </reference/operator/aggregation/group/>`. The
-``$match`` stage returns documents with ``carrierFsCode`` equal to
-``1I``, and the ``$group`` stage groups the documents returned from
-the previous stage by the ``departureAirportFsCode`` property:
+:pipeline:`$group` and :pipeline:`$match`.
+
+- The ``$group`` stage groups documents by their
+  ``active`` status and ``country``. The stage also adds
+  a new field called ``flightCount`` containing the number
+  of documents in each group.
+
+- The ``$match`` stage filters documents to only return
+  those with a ``flightCount`` value greater than or
+  equal to ``5``.
 
 .. figure:: /images/compass/agg-builder-full-example.png
    :alt: Aggregation Builder Full Example
@@ -164,53 +211,66 @@ the previous stage by the ``departureAirportFsCode`` property:
 Copy the Pipeline to the Clipboard
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using the :ref:`Export to Language <compass-export-pipeline>` feature,
-select :guilabel:`Node` and copy the pipeline into the clipboard:
+1. Click the :guilabel:`Export to Language` button at the top
+   of the pipeline builder. The button opens the following modal:
 
-.. figure:: /images/compass/agg-builder-example-export-to-node.png
-   :alt: Aggregation Builder Full Example
+   .. figure:: /images/compass/agg-builder-example-export-to-node.png
+      :alt: Aggregation Builder Full Example
 
-The aggregation pipeline syntax for Node applications is compatible
-with the :manual:`Mongo shell <mongo>`. The next step uses the Mongo
-shell to execute the pipeline, though you could also use a Node
-application with the `MongoDB NodeJS Driver
-<http://mongodb.github.io/node-mongodb-native/>`_ to achieve a similar
-result.
+#. Click the :guilabel:`Copy` button in the :guilabel:`My Pipeline`
+   panel on the left. This button copies your pipeline to your
+   clipboard in Mongo shell syntax. You will use the pipeline in the
+   following section.
 
 Execute the Pipeline
 ~~~~~~~~~~~~~~~~~~~~
 
-Launch and connect to a :manual:`mongod
-</reference/program/mongod/>` instance. Next, switch to the ``test``
-database where the ``flightStats`` collection exists:
+1. Launch and connect to a
+   :manual:`mongod </reference/program/mongod/>` instance which contains the imported ``air_airlines.json`` dataset.
+   
+#. Switch to the ``example`` database where the ``air_airlines``
+   collection exists:
+
+   .. code-block:: javascript
+
+      use example
+
+#. Run the following command to execute the pipeline created in
+   |compass-short|:
+
+   .. code-block:: javascript
+
+      db.air_airlines.aggregate([{
+        $group: {
+          _id: {
+            active: '$active',
+            country: '$country'
+          },
+          flightCount: {
+            $sum: 1
+          }
+        }
+      }, {
+        $match: {
+          flightCount: {
+            $gte: 5
+          }
+        }
+      }])
+
+The following is an excerpt of the documents returned by
+the pipeline:
 
 .. code-block:: javascript
 
-   use test
-
-The following command executes the pipeline created in |compass|:
-
-.. code-block:: javascript
-
-   db.flightStats.aggregate([
-   {
-     $match: {
-       carrierFsCode: "1I"
-     }
-   },
-   {
-     $group: {
-       _id: "$departureAirportFsCode",
-       flights: { $push: "$flightId" }
-     }
-   }
-   ])
-
-The pipeline returns the following document:
-
-.. code-block:: javascript
-
-   { "_id" : "EWR", "flights" : [ 543184347, 544589251, 544589200, 543183182, 545515483, 544595864 ] }
+   { "_id" : { "active" : "Y", "country" : "Nigeria" }, "flightCount" : 5 }
+   { "_id" : { "active" : "N", "country" : "Switzerland" }, "flightCount" : 46 }
+   { "_id" : { "active" : "N", "country" : "Bahrain" }, "flightCount" : 8 }
+   { "_id" : { "active" : "N", "country" : "Guinea-Bissau" }, "flightCount" : 8 }
+   { "_id" : { "active" : "N", "country" : "Argentina" }, "flightCount" : 14 }
+   { "_id" : { "active" : "N", "country" : "Moldova" }, "flightCount" : 17 }
+   { "_id" : { "active" : "Y", "country" : "Israel" }, "flightCount" : 6 }
+   { "_id" : { "active" : "N", "country" : "Finland" }, "flightCount" : 7 }
 
 .. class:: hidden
 
