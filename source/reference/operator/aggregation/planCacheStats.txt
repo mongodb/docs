@@ -366,8 +366,46 @@ The operation returns all entries in the cache:
 
 See also :ref:`plan-cache-key`. 
 
-Return Plan Cache Information for Specific Query Shape
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _planCacheStats-list-query-shapes:
+
+List Query Shapes
+~~~~~~~~~~~~~~~~~
+
+Like the :dbcommand:`planCacheListQueryShapes` command, the
+:pipeline:`$planCacheStats` stage can be used to obtain a list of all
+of the query shapes for which there is a cached plan. The
+:pipeline:`$planCacheStats` aggregation stage is preferred over the
+deprecated :method:`PlanCache.listQueryShapes()` method and the
+deprecated :dbcommand:`planCacheListQueryShapes` command.
+
+
+For example, the following uses the :pipeline:`$project` stage to only
+output the ``createdFromQuery`` field and the ``queryHash`` field.
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [ { $planCacheStats: { } } , { $project: {createdFromQuery: 1, queryHash: 1 } } ] )
+ 
+The operation returns the following query shapes:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("5") } }, "sort" : {  }, "projection" : {  } }, "queryHash" : "117A6B10" }
+   { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" }, "sort" : {  }, "projection" : {  } }, "queryHash" : "4D151C4C" }
+   { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 20 } }, "sort" : {  }, "projection" : {  } }, "queryHash" : "23B19B75" }
+   { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("10") } }, "sort" : {  }, "projection" : {  } }, "queryHash" : "117A6B10" }
+
+.. _planCacheStats-list-plans-for-shape:
+
+.. _planCacheStats-cache-entry-for-query-shape:
+
+Find Cache Entry Details for a Query Shape
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return plan cache information for a particular query shape, the
+:pipeline:`$planCacheStats` stage can be followed by a
+:pipeline:`$match` on the ``planCacheKey`` field.
 
 The following aggregation pipeline uses :pipeline:`$planCacheStats`
 followed by a :pipeline:`$match` and :pipeline:`$project` to return
@@ -377,49 +415,37 @@ specific information for a particular query shape:
 
    db.orders.aggregate( [ 
       { $planCacheStats: { } },
-      { $match: { queryHash: "117A6B10"} },
-      { $project: { createdFromQuery: 1, queryHash: 1, planCacheKey: 1, isActive: 1, works: 1, cachedPlan: 1} }
+      { $match: { planCacheKey: "DD67E353"} }
    ] )
 
-The operation returns the following two documents:
+The operation returns the following:
 
 .. code-block:: javascript
-
+   :copyable: false
+   
    {
       "createdFromQuery" : {
-         "query" : {
-            "item" : "abc",
-            "price" : {
-               "$gte" : NumberDecimal("5")
-            }
-         },
-         "sort" : {
-         
-         },
-         "projection" : {
-         
-         }
+         "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" },
+         "sort" : { },
+         "projection" : { }
       },
-      "queryHash" : "117A6B10",
-      "planCacheKey" : "A1824628",
+      "queryHash" : "4D151C4C",
+      "planCacheKey" : "DD67E353",
       "isActive" : false,
       "works" : NumberLong(4),
       "cachedPlan" : {
          "stage" : "FETCH",
-         "filter" : {
-            "price" : {
-               "$gte" : NumberDecimal("5")
-            }
-         },
          "inputStage" : {
             "stage" : "IXSCAN",
             "keyPattern" : {
-               "item" : 1
+               "quantity" : 1,
+               "type" : 1
             },
-            "indexName" : "item_1",
+            "indexName" : "quantity_1_type_1",
             "isMultiKey" : false,
             "multiKeyPaths" : {
-               "item" : [ ]
+               "quantity" : [ ],
+               "type" : [ ]
             },
             "isUnique" : false,
             "isSparse" : false,
@@ -427,61 +453,141 @@ The operation returns the following two documents:
             "indexVersion" : 2,
             "direction" : "forward",
             "indexBounds" : {
-               "item" : [
-                  "[\"abc\", \"abc\"]"
+               "quantity" : [
+                  "[5.0, inf.0]"
+               ],
+               "type" : [
+                  "[\"apparel\", \"apparel\"]"
                ]
             }
-         }
-      }
-   }
-   {
-      "createdFromQuery" : {
-         "query" : {
-            "item" : "abc",
-            "price" : {
-               "$gte" : NumberDecimal("10")
-            }
-         },
-         "sort" : {
-         
-         },
-         "projection" : {
-         
          }
       },
-      "queryHash" : "117A6B10",
-      "planCacheKey" : "2E6E536B",
-      "isActive" : false,
-      "works" : NumberLong(3),
-      "cachedPlan" : {
-         "stage" : "FETCH",
-         "inputStage" : {
-            "stage" : "IXSCAN",
-            "keyPattern" : {
-               "item" : 1,
-               "price" : 1
-            },
-            "indexName" : "item_1_price_1",
-            "isMultiKey" : false,
-            "multiKeyPaths" : {
-               "item" : [ ],
-               "price" : [ ]
-            },
-            "isUnique" : false,
-            "isSparse" : false,
-            "isPartial" : true,
-            "indexVersion" : 2,
-            "direction" : "forward",
-            "indexBounds" : {
-               "item" : [
-                  "[\"abc\", \"abc\"]"
-               ],
-               "price" : [
-                  "[10, inf.0]"
-               ]
+      "timeOfCreation" : ISODate("2019-07-10T21:39:04.580Z"),
+      "creationExecStats" : [
+         {
+            "nReturned" : 2,
+            "executionTimeMillisEstimate" : 0,
+            "totalKeysExamined" : 3,
+            "totalDocsExamined" : 2,
+            "executionStages" : {
+               "stage" : "FETCH",
+               "nReturned" : 2,
+               "executionTimeMillisEstimate" : 0,
+               "works" : 4,
+               "advanced" : 2,
+               "needTime" : 1,
+               "needYield" : 0,
+               "saveState" : 0,
+               "restoreState" : 0,
+               "isEOF" : 1,
+               "docsExamined" : 2,
+               "alreadyHasObj" : 0,
+               "inputStage" : {
+                  "stage" : "IXSCAN",
+                  "nReturned" : 2,
+                  "executionTimeMillisEstimate" : 0,
+                  "works" : 4,
+                  "advanced" : 2,
+                  "needTime" : 1,
+                  "needYield" : 0,
+                  "saveState" : 0,
+                  "restoreState" : 0,
+                  "isEOF" : 1,
+                  "keyPattern" : {
+                     "quantity" : 1,
+                     "type" : 1
+                  },
+                  "indexName" : "quantity_1_type_1",
+                  "isMultiKey" : false,
+                  "multiKeyPaths" : {
+                     "quantity" : [ ],
+                     "type" : [ ]
+                  },
+                  "isUnique" : false,
+                  "isSparse" : false,
+                  "isPartial" : false,
+                  "indexVersion" : 2,
+                  "direction" : "forward",
+                  "indexBounds" : {
+                     "quantity" : [
+                        "[5.0, inf.0]"
+                     ],
+                     "type" : [
+                        "[\"apparel\", \"apparel\"]"
+                     ]
+                  },
+                  "keysExamined" : 3,
+                  "seeks" : 2,
+                  "dupsTested" : 0,
+                  "dupsDropped" : 0
+               }
+            }
+         },
+         {
+            "nReturned" : 2,
+            "executionTimeMillisEstimate" : 0,
+            "totalKeysExamined" : 3,
+            "totalDocsExamined" : 3,
+            "executionStages" : {
+               "stage" : "FETCH",
+               "filter" : {
+                  "type" : {
+                     "$eq" : "apparel"
+                  }
+               },
+               "nReturned" : 2,
+               "executionTimeMillisEstimate" : 0,
+               "works" : 4,
+               "advanced" : 2,
+               "needTime" : 1,
+               "needYield" : 0,
+               "saveState" : 0,
+               "restoreState" : 0,
+               "isEOF" : 1,
+               "docsExamined" : 3,
+               "alreadyHasObj" : 0,
+               "inputStage" : {
+                  "stage" : "IXSCAN",
+                  "nReturned" : 3,
+                  "executionTimeMillisEstimate" : 0,
+                  "works" : 4,
+                  "advanced" : 3,
+                  "needTime" : 0,
+                  "needYield" : 0,
+                  "saveState" : 0,
+                  "restoreState" : 0,
+                  "isEOF" : 1,
+                  "keyPattern" : {
+                     "quantity" : 1
+                  },
+                  "indexName" : "quantity_1",
+                  "isMultiKey" : false,
+                  "multiKeyPaths" : {
+                     "quantity" : [ ]
+                  },
+                  "isUnique" : false,
+                  "isSparse" : false,
+                  "isPartial" : false,
+                  "indexVersion" : 2,
+                  "direction" : "forward",
+                  "indexBounds" : {
+                     "quantity" : [
+                        "[5.0, inf.0]"
+                     ]
+                  },
+                  "keysExamined" : 3,
+                  "seeks" : 1,
+                  "dupsTested" : 0,
+                  "dupsDropped" : 0
+               }
             }
          }
-      }
+      ],
+      "candidatePlanScores" : [
+         1.5003000000000002,
+         1.5003000000000002
+      ],
+      "indexFilterSet" : false
    }
 
-See also :ref:`plan-cache-key`. 
+See also :ref:`plan-cache-key` and :ref:`query-hash`.
