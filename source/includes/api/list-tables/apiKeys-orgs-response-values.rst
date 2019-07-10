@@ -23,7 +23,10 @@
 
    * - ``privateKey``
      - string
-     - Redacted private key for this Organization |api| key.
+     - Redacted Private key for this Project |api| key.
+
+       .. note:: This key displays unredacted when first created.
+
 
    * - ``publicKey``
      - string
