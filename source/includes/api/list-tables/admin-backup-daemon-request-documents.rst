@@ -63,22 +63,8 @@
    * - machine.headRootDirectory
      - string
      - Optional
-     - Root-relative
-       :wikipedia:`URL-encoded path </Percent-encoding?oldid=810929127>`
-       of the :term:`head directory` on this :term:`Backup Daemon`
-       host.
-
-       .. note::
-          Requests should encode slashes in the URL path.
-
-          .. example::
-
-             For Linux platforms, the head directory would be added in
-             this format:
-
-             .. code-block:: sh
-
-                http://localhost:8080/api/public/v1.0/admin/backup/daemon/config/localhost/%2Fdata%2Fbackup%2F
+     - Root-relative path of the :term:`head directory` on this
+       :term:`Backup Daemon` host.
 
    * - machine.machine
      - string
