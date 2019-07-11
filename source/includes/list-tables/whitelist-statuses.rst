@@ -14,13 +14,14 @@
      - |service| is configuring the Whitelist entry for the project.
 
    * - Active
-     - |service| can use the whitelist entry with every container
-       provisioned for the project.
+     - |service| has configured the whitelist entry for every container
+       provisioned in the project.
 
    * - Active in regions: <regions>
-     - |service| can use the whitelist entry for the regions listed,
-       but not any other containers that exist for the project.
-       This applies to |aws| security groups only.
+     - |service| has configured the whitelist entry for every container
+       provisioned in the project for the regions listed, but not any
+       other containers that exist for the project. This applies to
+       |aws| security groups only.
 
    * - Failed
      - |service| could not configure the whitelist entry for every
