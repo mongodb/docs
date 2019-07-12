@@ -6,6 +6,12 @@ Path Construction
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
 The ``path`` parameter is used by the |fts| 
 :ref:`operators <query-syntax-ref>` to specify the field or fields
 to be searched. It may contain:
@@ -105,6 +111,9 @@ analyzers, use an array. The following example searches the
 Examples
 --------
 
+Static Mapping Examples
+~~~~~~~~~~~~~~~~~~~~~~~
+
 The following examples use a collection named ``cars`` which has the
 following documents:
 
@@ -130,6 +139,10 @@ following documents:
    }
 
 .. _ref-multi-analyzer:
+
+:ref:`Static field mappings <static-dynamic-mappings>` allow you to
+specify how individual fields within a collection should be indexed
+and searched.
 
 The index definition for the ``cars`` collection is as follows:
 
@@ -157,7 +170,7 @@ The index definition for the ``cars`` collection is as follows:
      }
    }
 
-The above index definition specifies that the ``make`` field is
+The preceding index definition specifies that the ``make`` field is
 indexed with the :ref:`standard analyzer <ref-standard-analyzer>`.
 The ``description`` field uses the ``standard`` analyzer by
 default, but it can also use the :ref:`simple analyzer
@@ -183,7 +196,7 @@ The following example searches for the string ``Ford`` in the
      }
    ])
 
-The above example returns the document with ``_id: 3``.
+The preceding example returns the document with ``_id: 3``.
 
 Multiple Field Search
 ~~~~~~~~~~~~~~~~~~~~~
@@ -205,7 +218,7 @@ or the ``description`` field.
      }
    ])
 
-The above query returns the following result:
+The preceding query returns the following result:
 
 .. code-block:: json
    :copyable: false
@@ -238,7 +251,7 @@ field for the string ``driver``.
      }
    ])
 
-The above query returns the following result:
+The preceding query returns the following result:
 
 .. code-block:: json
    :copyable: false
@@ -258,3 +271,78 @@ By contrast, the default :ref:`standard analyzer
 <ref-standard-analyzer>` indexes ``driver's side airbag`` as ``[driver's
 side airbag``], so it would match on ``driver's`` or ``side`` but not
 ``driver``.
+
+Dynamic Mappings Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses a collection called ``posts`` with the
+following documents:
+
+.. code-block:: json
+
+   { 
+    "_id": 1, 
+    "username": "pinto",
+    "post": {
+      "date": "12-03-2018",
+      "forum": "Tofu Recipes",
+      "body": "Spicy Garlic Tofu cooks up crispy in 10 minutes or less.
+               Serve with broccoli and rice for a delicious vegetarian meal."
+    }
+  }
+  { 
+    "_id": 2, 
+    "username": "paloma",
+    "post": {
+      "date": "12-08-2018",
+      "forum": "Tofu Recipes",
+      "body": "Crispy Tofu in Shiitake Broth has flavors of citrus and
+               umami. Great as an appetizer or entree."
+    }
+  }
+
+:ref:`Dynamic field mappings <static-dynamic-mappings>` allow
+you to index all fields in a collection as needed.
+
+The index definition for the ``posts`` collection is as follows:
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": true
+     }
+   }
+
+Nested Field Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following :ref:`compound query <compound-ref>` searches the field
+``post.body`` for the string ``broccoli``, and also specifies that the
+field must not contain the string ``cauliflower``.
+
+.. code-block:: javascript
+
+   db.posts.aggregate([
+     {
+       $searchBeta: {
+         "compound": {
+           "must": {
+             "search": {
+               "query": "broccoli",
+               "path": "post.body"
+             }
+           },
+           "mustNot": {
+             "search": {
+               "query": "cauliflower",
+               "path": "post.body"
+             }
+           }
+         }
+       }
+     }
+   ])
+
+The preceding query returns the document with ``_id: 1``, in which the
+``posts.body`` field contains the string ``broccoli``.
