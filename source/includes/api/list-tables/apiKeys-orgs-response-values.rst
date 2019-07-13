@@ -23,7 +23,7 @@
 
    * - ``privateKey``
      - string
-     - Redacted Private key for this Project |api| key.
+     - Redacted Private key for this Organization |api| key.
 
        .. note:: This key displays unredacted when first created.
 
@@ -56,13 +56,9 @@
 
        If this is an ``roles.orgId`` (organization), values include:
 
-       If this is an ``roles.orgId`` (organization), values include:
-
        .. include:: /includes/api/lists/org-roles.rst
 
        **Project Roles**
-
-       If this is a ``roles.groupId`` (project), values include:
 
        If this is a ``roles.groupId`` (project), values include:
 

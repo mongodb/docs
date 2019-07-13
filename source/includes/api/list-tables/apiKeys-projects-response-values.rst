@@ -8,27 +8,30 @@
 
    * - ``desc``
      - string
-     - Description of this Project |api| key.
+     - Description of this Organization |api| key assigned to this
+       Project.
 
    * - ``id``
      - string
-     - Unique identifier for this Project |api| key.
+     - Unique identifier for this Organization |api| key assigned to
+       this Project.
 
    * - ``privateKey``
      - string
-     - Redacted Private key for this Project |api| key.
+     - Redacted Private key for this Organization |api| key assigned to
+       this Project.
 
        .. note:: This key displays unredacted when first created.
 
    * - ``publicKey``
      - string
-     - Public key for this Project |api| key.
+     - Public key for this Organization |api| key assigned to this Project.
 
    * - ``roles``
      - object array
-     - Roles that this Project |api| key has. This array returns
-       all the Organization and Project roles the user has in either
-       |service| or |mms|.
+     - Roles that this Organization |api| key assigned to this Project
+       has. This array returns all the Organization and Project roles
+       the user has in either |service| or |mms|.
 
    * - ``roles.groupId``
      - string
