@@ -11,11 +11,10 @@ Add Existing MongoDB Processes to |mms|
    :class: singlecol
 
 |mms| provides a wizard for adding your existing MongoDB deployments to
-monitoring and management. The wizard prompts you to install an 
-{+aagent+} if none exists, and then prompts you to 
-identify the :term:`cluster <sharded cluster>`, the
-:term:`replica set`, or the :term:`standalone` to add. You can choose
-to add the deployment to
+monitoring and management. The wizard prompts you to install an
+{+aagent+} if none exists, and then prompts you to identify the
+:term:`cluster <sharded cluster>`, the :term:`replica set`, or the
+:term:`standalone` to add. You can choose to add the deployment to
 :ref:`Monitoring <monitoring-functional-overview>` or to both
 :ref:`Monitoring <monitoring-functional-overview>` and
 :ref:`Automation <automation>`.
@@ -30,64 +29,137 @@ Deployments must have unique names within the projects.
 
 .. include:: /includes/important-unique-names-deployment-items.rst
 
-|tls-ssl|
-~~~~~~~~~
+MongoDB Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you enable |tls-ssl|, the :abbr:`FQDN (Fully Qualified Domain Name)`
-for the host serving a MongoDB process must match the 
-:abbr:`SAN (Subject Alternative Name)` for the |ssl| 
-certificate on that host. 
+Automation does not support all MongoDB options. To review which
+options are supported, see
+:doc:`/reference/cluster-configuration-process-options`.
 
-Though it is possible to use one |ssl| certificate with multiple 
-:abbr:`SANs (Subject Alternative Names)` or a wildcard |ssl|
-certificate on each host, it is not advised. Per 
-`RFC 2818, section 3.1 <https://tools.ietf.org/html/rfc2818#section-3.1>`_, 
-keep the scope of SSL certificates as narrow as possible to 
-prevent man-in-the-middle attacks.
+|tls|
+~~~~~
+
+If you enable |tls|, the |fqdn| for the host serving a MongoDB process
+must match the :abbr:`SAN (Subject Alternative Name)` for the |tls|
+certificate on that host.
+
+.. caution::
+
+   Though you can use one |tls| certificate with many
+   :abbr:`SANs (Subject Alternative Names)` or a wildcard |tls|
+   certificate on each host, you should not. You should follow
+   :rfc:`RFC 2818, section 3.1 <2818#section-3.1>`: keep the scope of
+   |tls| certificates as narrow as possible. This prevents
+   man-in-the-middle attacks.
 
 Preferred Hostnames
 ~~~~~~~~~~~~~~~~~~~
 
-If the MongoDB process is accessible only by specific hostname, |fqdn|,
-|ipv4| address or |ipv6| address, or if you need to specify the
-hostname to use for hosts with multiple aliases, set up a preferred
-hostname. For details, see the :guilabel:`Preferred Hostnames` setting
+Set up a preferred hostname if you:
+
+- Require a specific hostname, |fqdn|, |ipv4| address or |ipv6|
+  address to access the MongoDB process, or
+- Must specify the hostname to use for hosts with multiple aliases.
+
+To learn more, see the :guilabel:`Preferred Hostnames` setting
 in :ref:`group-settings-page`.
 
 .. cond:: onprem
 
    .. include:: /includes/fact-restore-deleted-host.rst
 
+Managing Windows MongoDB Services
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are adding an existing MongoDB process that runs as a Windows
+Service to Automation, Automation:
+
+- Stops and disables the existing service
+- Creates and starts a new service
+
 Authentication
 ~~~~~~~~~~~~~~
 
-- When adding to Monitoring:
-    If your MongoDB deployment requires authentication, you must
-    provide the necessary credentials for monitoring when adding the
-    deployment to |mms|. For information on configuring authentication,
-    see :doc:`/tutorial/edit-host-authentication-credentials`.
+If the |mms| project has MongoDB authentication settings enabled
+for its deployments, the MongoDB deployment to import must support
+the project's authentication mechanism.
 
-- When adding to Automation:
-    If the |mms| project has MongoDB authentication settings enabled for
-    its deployments, the MongoDB deployment to import must support the
-    projects's authentication mechanism.
+When Adding a Deployment to Be Monitored but not Managed
+````````````````````````````````````````````````````````
 
-    If either the MongoDB deployment requires authentication or
-    the |mms| project has authentication settings enabled, you must add
-    an automation user with the appropriate roles to the MongoDB
-    process in order to perform the import. If the |mms| project has
-    authentication settings enabled, add the |mms| project's automation
-    user to the MongoDB process. See
-    :ref:`add-existing-mongodb-prerequisites`.
+If your MongoDB deployment requires authentication, you must
+:doc:`provide the necessary credentials </tutorial/edit-host-authentication-credentials/>`
+for monitoring when adding the deployment to |mms|.
 
-    .. admonition:: Adding a MongoDB Windows Service to Automation
-       :class: note
+- If the deployment does not use Automation, but *did* use Backup,
+  Monitoring, or both, you can find those credentials where the
+  credentials were before updating to the {+mdbagent+}.
 
-       If you are adding an existing MongoDB process that runs as a
-       Windows Service to Automation, Automation:
+- If the deployment does not use Automation, but *will* use Backup,
+  Monitoring, or both, you must add the credentials you granted
+  those functions to |mms|:
 
-       - Stops and disables the existing service
-       - Creates and starts a new service
+  - For Monitoring:
+
+    1. Navigate to :guilabel:`Deployment` :icon-fa5:`arrow-right`
+       :guilabel:`<deployment>` :icon-fa5:`arrow-right`
+       :icon-mms:`ellipsis` :icon-fa5:`arrow-right`
+       :guilabel:`Monitoring Settings`.
+
+    2. Click :guilabel:`Credentials`.
+
+    3. Add the appropriate credentials:
+
+       .. include:: /includes/tabs-monitoring-auth-settings.rst
+
+  - For Backup:
+
+    1. Navigate to :guilabel:`Backup` :icon-fa5:`arrow-right`
+       :guilabel:`<backup-deployment>` :icon-fa5:`arrow-right`
+       :icon-mms:`ellipsis` :icon-fa5:`arrow-right`
+       :guilabel:`Edit Credentials`.
+
+    2. Click :guilabel:`Credentials`.
+
+    3. Add the appropriate credentials:
+
+       .. include:: /includes/tabs-backup-auth-settings.rst
+
+When Adding a Deployment to be Managed
+``````````````````````````````````````
+
+- If the deployment *uses* Automation, |mms| uses the credentials
+  from the legacy Automation Agent. You can delete the credentials
+  from the legacy Backup, and Monitoring Agents. The {+mdbagent+}
+  uses those credentials for its Automation, Backup, and Monitoring
+  functions.
+
+- If the deployment *will* use Automation but did not prior to being
+  imported, you need to:
+
+  1. :manual:`Add the MongoDB Agent user </core/security-users/>`
+     to your databases.
+
+  2. Add the MongoDB Agent user to |mms|:
+
+     a. Navigate to :guilabel:`Deployment` :icon-fa5:`arrow-right`
+        :guilabel:`Security` :icon-fa5:`arrow-right`
+        :guilabel:`Edit Settings` :icon-fa5:`arrow-right`
+        :guilabel:`Edit Credentials`.
+
+     .. cond:: cloud
+
+        #. Continue through the modal until you see the
+           :guilabel:`Configure Cloud Manager Agents` page
+
+     .. cond:: onprem
+
+        #. Continue through the modal until you see the
+           :guilabel:`Configure Ops Manager Agents` page
+
+     #. Add the appropriate credentials:
+
+        .. include:: /includes/tabs-mongodbagent-auth-settings.rst
 
 .. _automation-updated-security-settings:
 
@@ -101,11 +173,11 @@ Automation and Updated Security Settings Upon Import
 Prerequisites
 -------------
 
-.. note::
-
-   The following prerequisite applies only when adding to Automation.
-
 .. include:: /includes/prerequisite-for-adding-existing-deployment-to-automation.rst
+
+.. important::
+
+   .. include:: /includes/fact-import-sharded-cluster-to-automation-user-requirements.rst
 
 .. _add-existing-mongodb-hosts:
 
