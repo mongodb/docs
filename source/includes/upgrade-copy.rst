@@ -22,7 +22,7 @@ running a |oldseries| release.
 To upgrade from a version earlier than the |oldseries|, you must
 successively upgrade major releases until you have upgraded to
 |oldseries|. For example, if you are running a |olderseries|, you must
-upgrade first to |upgradefirst| *before* you can upgrade to |newversion|.
+|upgradefirst| *before* you can upgrade to |newversion|.
 
 Preparedness
 ~~~~~~~~~~~~
