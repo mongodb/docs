@@ -12,10 +12,20 @@
      - Node.js v8.X.X
      - Node.js v10.x.x
 
+   * - 3.3.X
+     -
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+
    * - 3.1.X
-     - 
-     - 
-     - 
+     -
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -23,9 +33,9 @@
 
 
    * - 3.0.X
-     - 
-     - 
-     - 
+     -
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|

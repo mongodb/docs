@@ -13,6 +13,12 @@ Python 2 Compatibility
      - Python 2.6
      - Python 2.7, PyPy
 
+   * - 3.9
+     -
+     -
+     -
+     - |checkmark|
+
    * - 3.8
      -
      -

@@ -13,6 +13,15 @@
      - PHP 7.2
      - PHP 7.3
 
+   * - mongodb-1.6
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+
    * - mongodb-1.5
      - |checkmark|
      - |checkmark|
