@@ -22,3 +22,5 @@
    - PHPC 1.6.0/PHPLIB 1.5.0
 
    - Scala 2.7.0
+
+   - Go 1.1
