@@ -14,7 +14,8 @@
 
    * - ``actions.action``
      - string
-     - Name of the privilege action.
+     - Name of the privilege action. For a complete list of actions
+       available in the |service| API, see :doc:`/reference/api/custom-role-actions`.
 
    * - ``actions.resources``
      - array
