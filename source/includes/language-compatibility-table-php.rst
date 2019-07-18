@@ -13,7 +13,15 @@
      - PHP 5.6
      - PHP 5.5
 
-   * - mongodb-1.6
+   * - ext 1.6 + lib 1.5
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+
+   * - ext 1.5 + lib 1.4
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -21,15 +29,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - mongodb-1.5
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-
-   * - mongodb-1.4
+   * - ext 1.4 + lib 1.3
      -
      - |checkmark|
      - |checkmark|
@@ -37,7 +37,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - mongodb-1.3
+   * - ext 1.3 + lib 1.2
      -
      - |checkmark|
      - |checkmark|

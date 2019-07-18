@@ -12,7 +12,7 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
-   * - PHPLIB 1.5 + mongodb-1.6
+   * - ext 1.6 + lib 1.5
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -22,7 +22,7 @@
      -
 
 
-   * - PHPLIB 1.4 + mongodb-1.5
+   * - ext 1.5 + lib 1.4
      -
      - |checkmark|
      - |checkmark|
@@ -31,7 +31,7 @@
      - |checkmark|
      -
 
-   * - PHPLIB 1.3 + mongodb-1.4
+   * - ext 1.4 + lib 1.3
      -
      -
      - |checkmark|
@@ -40,7 +40,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - PHPLIB 1.2 + mongodb-1.3
+   * - ext 1.3 + lib 1.2
      -
      -
      -
@@ -49,7 +49,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - PHPLIB 1.1 + mongodb-1.2
+   * - ext 1.2 + lib 1.1
      -
      -
      -
@@ -58,7 +58,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - PHPLIB 1.0 + mongodb-1.1
+   * - ext 1.1 + lib 1.0
      -
      -
      -
@@ -67,7 +67,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - mongodb-1.0
+   * - ext 1.0
      -
      -
      -
