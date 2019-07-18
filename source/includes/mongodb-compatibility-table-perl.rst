@@ -14,7 +14,7 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
-   * - 2.2.x
+   * - 2.2
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -23,7 +23,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - 2.0.x
+   * - 2.0
      -
      - |checkmark|
      - |checkmark|
@@ -32,7 +32,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - 1.8.x
+   * - 1.8
      -
      -
      -
@@ -41,7 +41,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - 1.6.x
+   * - 1.6
      -
      -
      -
@@ -50,7 +50,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - 1.4.x
+   * - 1.4
      -
      -
      -
@@ -59,7 +59,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - 1.2.x
+   * - 1.2
      -
      -
      -
@@ -68,7 +68,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - 1.0.x
+   * - 1.0
      -
      -
      -

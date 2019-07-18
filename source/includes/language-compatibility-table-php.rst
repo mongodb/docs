@@ -6,12 +6,12 @@
    :class: compatibility-large
 
    * - PHP Driver
-     - PHP 5.5
-     - PHP 5.6
-     - PHP 7.0
-     - PHP 7.1
-     - PHP 7.2
      - PHP 7.3
+     - PHP 7.2
+     - PHP 7.1
+     - PHP 7.0
+     - PHP 5.6
+     - PHP 5.5
 
    * - mongodb-1.6
      - |checkmark|
@@ -20,7 +20,6 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-
 
    * - mongodb-1.5
      - |checkmark|
@@ -31,17 +30,17 @@
      - |checkmark|
 
    * - mongodb-1.4
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
      -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
    * - mongodb-1.3
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
      -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|

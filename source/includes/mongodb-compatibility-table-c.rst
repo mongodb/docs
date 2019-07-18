@@ -21,6 +21,32 @@
      - |checkmark|
      -
 
+   * - Version 1.14
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+
+   * - Version 1.13
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+
+   * - Version 1.12
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
 
    * - Version 1.11
      -
@@ -85,6 +111,16 @@
      - |checkmark|
      - |checkmark|
 
+   * - Version 1.4
+     -
+     -
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+
    * - Version 1.3
      -
      -
@@ -94,7 +130,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.1.0
+   * - Version 1.2
      -
      -
      -
@@ -103,7 +139,16 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.0.0
+   * - Version 1.1
+     -
+     -
+     -
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+
+   * - Version 1.0
      -
      -
      -

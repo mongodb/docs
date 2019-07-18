@@ -25,8 +25,6 @@
      - |checkmark|
      - |checkmark|
 
-
-
    * - 3.8
      -
      - |checkmark|

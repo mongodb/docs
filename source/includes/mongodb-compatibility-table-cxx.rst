@@ -13,7 +13,7 @@
      - MongoDB 2.6
      - MongoDB 2.4
 
-   * - mongocxx 3.5.x
+   * - mongocxx 3.5
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -23,7 +23,7 @@
      -
      -
 
-   * - mongocxx 3.4.x
+   * - mongocxx 3.4
      -
      - |checkmark|
      - |checkmark|
@@ -33,7 +33,7 @@
      -
      -
 
-   * - mongocxx 3.3.x
+   * - mongocxx 3.3
      -
      -
      - |checkmark|
@@ -43,7 +43,7 @@
      -
      -
 
-   * - mongocxx 3.2.x
+   * - mongocxx 3.2
      -
      -
      -
@@ -53,7 +53,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - mongocxx 3.1.x
+   * - mongocxx 3.1
      -
      -
      -
@@ -63,7 +63,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - mongocxx-3.0.x
+   * - mongocxx 3.0
      -
      -
      -
