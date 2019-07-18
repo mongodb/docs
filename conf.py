@@ -65,6 +65,7 @@ rst_epilog = '\n'.join([
     '.. |hardlink| replace:: {0}/{1}'.format(conf.project.url, conf.git.branches.current),
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
     '.. |bi| replace:: MongoDB Connector for BI',
+    '.. |mdbsg| replace:: MongoDB Style Guide'
 ])
 
 pygments_style = 'sphinx'
@@ -79,9 +80,29 @@ extlinks = {
     'mms-docs': ('https://docs.cloudmanager.mongodb.com%s', ''),
     'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
+    'cldmgr': ('https://docs.cloudmanager.mongodb.com/%s', ''),
+    'atlas': ('https://docs.atlas.mongodb.com/%s', ''),
     'products': ('https://www.mongodb.com/products%s', ''),
     'wtdocs': ('http://source.wiredtiger.com/mongodb-3.4%s', ''),
-
+    'v2.2': ('https://docs.mongodb.com/v2.2%s', ''),
+    'v2.4': ('https://docs.mongodb.com/v2.4%s', ''),
+    'v2.6': ('https://docs.mongodb.com/v2.6%s', ''),
+    'v3.0': ('https://docs.mongodb.com/v3.0%s', ''),
+    'v3.2': ('https://docs.mongodb.com/v3.2%s', ''),
+    'v3.4': ('https://docs.mongodb.com/v3.4%s', ''),
+    'v3.6': ('https://docs.mongodb.com/v3.6%s', ''),
+    'v4.0': ('https://docs.mongodb.com/v4.0%s', ''),
+    'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
+    'k8s': ('https://docs.mongodb.com/kubernetes-operator/stable%s',''),
+    'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
+    'website': ('https://www.mongodb.com%s?jmp=docs',''),
+    'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
+    'aws': ('http://docs.aws.amazon.com%s',''),
+    'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
+    'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
+    'mw' : ('https://www.merriam-webster.com/dictionary/%s',''),
+    'mdbdrivers' : ('https://docs.mongodb.com/ecosystem/drivers/%s',''),
+    'cmos17' : ('https://www.chicagomanualofstyle.org/book/ed17%s','')
 }
 
 ## add `extlinks` for each published version.
