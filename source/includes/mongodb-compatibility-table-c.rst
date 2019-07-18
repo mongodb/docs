@@ -120,7 +120,6 @@
      - |checkmark|
      - |checkmark|
 
-
    * - Version 1.3
      -
      -
