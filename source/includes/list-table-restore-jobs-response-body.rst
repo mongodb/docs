@@ -29,8 +29,8 @@
 
        ``download``
          |service| provides a URL to download a ``.tar.gz`` of the
-         snapshot with ``snapshotId``. The contents of the archive
-         contain the data files for your |service| cluster. 
+         snapshot with ``snapshotId``. The contents of the ``tar.gz``
+         archive contain the data files for your |service| cluster. 
          To learn more about manually restoring the downloaded data 
          files, see :ref:`restore-cloud-provider-snapshot-download`.
 
