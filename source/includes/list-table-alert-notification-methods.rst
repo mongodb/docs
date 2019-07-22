@@ -164,36 +164,3 @@
 
        Users can acknowledge OpsGenie alerts only from the OpsGenie
        dashboard.
-
-   * - Webhook
-
-     - Sends an HTTP POST request to an endpoint for programmatic
-       processing. The request body contains a JSON document that uses
-       the same format as the |service| |api|\'s
-       :doc:`Alerts resource </reference/api/alerts>`.
-       This option is available only if you have configured Webhook
-       settings on the
-       :doc:`Project Settings </tutorial/manage-project-settings>`
-       page.
-
-       To successfully deliver a webhook to the specified endpoint, the
-       endpoint must accept incoming HTTP POST requests from the
-       following |ipaddr| addresses and |cidr| blocks:
-
-       - 18.214.178.145
-       - 18.235.48.235
-       - 18.235.145.62
-       - 34.235.52.68
-       - 35.171.106.60
-       - 35.174.179.65
-       - 35.174.230.146
-       - 35.175.94.38
-       - 52.87.98.128
-       - 107.20.0.247
-       - 4.35.16.128/25
-       - 4.71.186.128/25
-
-       .. important::
-       
-          MongoDB reserves the right to change these IP addresses at
-          any time without user notice.
