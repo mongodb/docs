@@ -21,6 +21,14 @@
      - |checkmark|
      - |checkmark|
 
+   * - 3.2.X
+     -
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
    * - 3.1.X
      -
@@ -31,7 +39,6 @@
      - |checkmark|
      - |checkmark|
 
-
    * - 3.0.X
      -
      -
@@ -40,7 +47,6 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-
 
    * - 2.2.X
      - |checkmark|
