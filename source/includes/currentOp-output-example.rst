@@ -32,6 +32,10 @@
                             }
                          ],
                          "opid" : <number>,
+                         "lsid" : {
+                            "id" : <UUID>,
+                            "uid" : <BinData>
+                         },
                          "secs_running" : <NumberLong()>,
                          "microsecs_running" : <number>,
                          "op" : <string>,
@@ -59,6 +63,8 @@
                          "killPending" : <boolean>,
                          "numYields" : <number>,
                          "locks" : {
+                             "ParallelBatchWriterMode" : <string>,
+                             "ReplicationStateTransition" : <string>,
                              "Global" : <string>,
                              "Database" : <string>,
                              "Collection" : <string>,
@@ -67,7 +73,7 @@
                          },
                          "waitingForLock" : <boolean>,
                          "lockStats" : {
-                             "Global": {
+                             "ParallelBatchWriterMode" : {
                                 "acquireCount": {
                                    "r": <NumberLong>,
                                    "w": <NumberLong>,
@@ -92,6 +98,12 @@
                                    "R" : NumberLong(0),
                                    "W" : NumberLong(0)
                                 }
+                             },
+                             "ReplicationStateTransition" : {
+                                ...
+                             },
+                             "Global": {
+                                ...
                              },
                              "Database" : {
                                 ...
@@ -184,6 +196,8 @@
                         "killPending" : <boolean>,
                         "numYields" : <number>,
                         "locks" : {
+                            "ParallelBatchWriterMode" : <string>,
+                            "ReplicationStateTransition" : <string>,
                             "Global" : <string>,
                             "Database" : <string>,
                             "Collection" : <string>,
@@ -192,7 +206,7 @@
                         },
                         "waitingForLock" : <boolean>,
                         "lockStats" : {
-                            "Global": {
+                            "ParallelBatchWriterMode" : {
                                "acquireCount": {
                                   "r": <NumberLong>,
                                   "w": <NumberLong>,
@@ -217,6 +231,12 @@
                                   "R" : NumberLong(0),
                                   "W" : NumberLong(0)
                                }
+                            },
+                            "ReplicationStateTransition" : { 
+                               ...
+                            },
+                            "Global" : {
+                               ...
                             },
                             "Database" : {
                                ...
@@ -300,6 +320,8 @@
                          "killPending" : <boolean>,
                          "numYields" : <number>,
                          "locks" : {
+                             "ParallelBatchWriterMode" : <string>,
+                             "ReplicationStateTransition" : <string>,
                              "Global" : <string>,
                              "Database" : <string>,
                              "Collection" : <string>,
@@ -308,7 +330,7 @@
                          },
                          "waitingForLock" : <boolean>,
                          "lockStats" : {
-                             "Global": {
+                             "ParallelBatchWriterMode": {
                                 "acquireCount": {
                                    "r": <NumberLong>,
                                    "w": <NumberLong>,
@@ -333,6 +355,12 @@
                                    "R" : NumberLong(0),
                                    "W" : NumberLong(0)
                                 }
+                             },
+                             "ReplicationStateTransition" : {
+                                ...
+                             },
+                             "Global" : {
+                                ...
                              },
                              "Database" : {
                                 ...
