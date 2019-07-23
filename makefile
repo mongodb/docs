@@ -48,15 +48,15 @@ stage: stage-cloud stage-opsmgr ## Stage both Cloud and On-Prem
 
 ## Build both Cloud/Ops Manager HTML files
 html:
-	time giza make html
+	giza make html
 
 ## Build Ops Manager HTML files
 html-opsmgr:
-	time giza make html-onprem
+	giza make html-onprem
 
 ## Build Cloud Manager HTML files
 html-cloud:
-	time giza make html-cloud
+	giza make html-cloud
 
 
 ##########################################################
@@ -66,17 +66,17 @@ html-cloud:
 ## Build both Cloud/Ops Manager HTML files to a fresh build directory
 clean-html:
 	rm -rf build/${GIT_BRANCH}
-	time giza make html
+	giza make html
 
 ## Build Ops Manager HTML files to a fresh build directory
 clean-html-opsmgr:
 	rm -rf build/${GIT_BRANCH}
-	time giza make html-onprem
+	giza make html-onprem
 
 ## Build Cloud Manager HTML files to a fresh build directory
 clean-html-cloud:
 	rm -rf build/${GIT_BRANCH}
-	time giza make html-cloud
+	giza make html-cloud
 
 
 ##########################################################
