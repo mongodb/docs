@@ -199,7 +199,8 @@ extlinks = {
     'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
     'website': ('https://www.mongodb.com%s?jmp=docs',''),
-    'k8sdocs': ('https://kubernetes.io/docs%s', '')
+    'k8sdocs': ('https://kubernetes.io/docs%s', ''),
+    'gh' : ('https://github.com%s', '')
 }
 
 intersphinx_mapping = {}
