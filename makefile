@@ -27,13 +27,13 @@ STABLE_BRANCH=`grep 'manual' build/docs-tools/data/mms-published-branches.yaml |
 ## fake-deploy-cloud, ... but eh
 .PHONY: help html publish publish-cloud publish-onprem stage-cloud fake-deploy-cloud deploy-cloud stage-onprem fake-deploy-onprem deploy-onprem deploy-opsmgr-current deploy-opsmgr-upcoming deploy-cloud-search-index deploy-opsmgr-search-index
 
-## Show this help message
-help:
+help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
+stage: stage-cloud stage-opsmgr ## Stage both Cloud and On-Prem
 
 ##########################################################
 ####                                                  ####
