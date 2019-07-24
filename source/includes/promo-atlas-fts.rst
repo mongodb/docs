@@ -1,8 +1,7 @@
 .. admonition:: Atlas Full-Text Search
    :class: note
 
-   `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?jmp=docs>`_
-   Full-Text Search Indexes leverage Apache Lucene to
+   MongoDB Atlas Full-Text Search Indexes leverage Apache Lucene to
    power rich text search with features like language analysis and
    scoring.
 
