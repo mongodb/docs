@@ -13,6 +13,7 @@
      Groups and projects are synonymous terms.
 
   - ``GROUP_OWNER``
+  - ``GROUP_CLUSTER_MANAGER``
   - ``GROUP_READ_ONLY``
   - ``GROUP_DATA_ACCESS_ADMIN``
   - ``GROUP_DATA_ACCESS_READ_WRITE`` 
