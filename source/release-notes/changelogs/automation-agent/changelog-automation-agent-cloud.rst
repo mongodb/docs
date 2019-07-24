@@ -1,3 +1,12 @@
+.. _automation-10.2.1.5858:
+
+Automation Agent 10.2.1.5858
+----------------------------
+
+*Released* 2019-07-23
+
+- Further work to support the upcoming release of MongoDB 4.2
+
 .. _automation-6.5.5.5702-1:
 
 Automation Agent 6.5.5.5702-1
