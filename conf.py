@@ -154,7 +154,7 @@ htmlhelp_basename = 'MongoDB doc'
 html_theme_options = {
     'branch': conf.git.branches.current,
     'google_analytics': 'UA-7301842-7',
-    'has_mdb_agent' : True,
+    'has_mdb_agent' : False,
     'manual_branch': conf.git.branches.manual,
     'nav_excluded': sconf.theme.nav_excluded,
     'project': conf.project.name,
