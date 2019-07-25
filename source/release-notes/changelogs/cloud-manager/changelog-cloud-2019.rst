@@ -1,3 +1,11 @@
+.. _cloudmanager-v20190709:
+
+09 July 2019 Release
+~~~~~~~~~~~~~~~~~~~~
+
+Unifies the login experience: accounts for MongoDB Cloud, Support, and
+JIRA use the same credentials.
+
 .. _cloudmanager-v20190611:
 
 11 June 2019 Release
