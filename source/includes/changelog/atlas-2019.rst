@@ -1,3 +1,21 @@
+.. _atlas-v20190709:
+
+09 July 2019 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Enables free daily backups for M2 and M5 clusters.
+- Unifies the login experience: accounts for MongoDB Cloud, Support,
+  and JIRA use the same credentials.
+- Adds new project-level role :authrole:`Project Cluster Manager`. This
+  role allows operators to scale clusters but not allow those operators
+  to:
+
+  - Terminate clusters,
+  - Change the security configuration changes, or
+  - Access data.
+
+- Allows deploy single-shard sharded clusters in Atlas.
+
 .. _atlas-v20190611:
 
 18 June 2019 Release
