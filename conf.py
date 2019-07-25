@@ -76,6 +76,7 @@ rst_epilog = [
     '.. |bic-full| replace:: :bic:`MongoDB Connector for BI </>`',
     '.. |bic-official| replace:: MongoDB Connector for Business Intelligence for Atlas',
     '.. |bic-short| replace:: :bic:`BI Connector </>`',
+    '.. |bic-short-no-link| replace:: BI Connector',
     '.. |bic| replace:: BI Connector for Atlas',
     '.. |bson| replace:: :abbr:`BSON (Binary Javascript Object Notation)`',
     '.. |certauth| replace:: Certificate Authority',
