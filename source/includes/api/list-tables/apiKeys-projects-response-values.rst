@@ -31,7 +31,7 @@
      - object array
      - Roles that this Organization |api| key assigned to this Project
        has. This array returns all the Organization and Project roles
-       the user has in either |service| or |mms|.
+       the user has in |service|.
 
    * - ``roles.groupId``
      - string
@@ -45,7 +45,7 @@
    * - ``roles.roleName``
      - string
      - Name of the role. This resource returns all the roles the user
-       has in either |service| or |mms|. Possible values are:
+       has in |service|. Possible values are:
 
        **Organization Roles**
 
