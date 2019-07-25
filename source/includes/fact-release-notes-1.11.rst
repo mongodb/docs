@@ -4,5 +4,5 @@
 - Added support for :ref:`disconnecting <disconnect>` from the active
   MongoDB instance without restarting |compass|.
 
-- Added :ref:`Table View <documents-table-view>` for documents as a
+- Added :ref:`Table View <docs-list-table-view>` for documents as a
   method of viewing the contents of a collection in tabular format.
