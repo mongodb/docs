@@ -23,43 +23,14 @@ in a single document structure instead of normalizing across multiple
 documents and collections, this single-document atomicity obviates the
 need for multi-document transactions for many practical use cases.
 
-.. topic:: Distributed Transactions and Multi-Document Transactions
-
-   Starting in MongoDB 4.2, the two terms are synonymous. Distributed
-   transactions refer to multi-document transactions on sharded
-   clusters and replica sets. Multi-document transactions (whether on
-   sharded clusters or replica sets) are also known as distributed
-   transactions starting in MongoDB 4.2.
-
 For situations that require atomicity of reads and writes to multiple
 documents (in a single or multiple collections), MongoDB supports
-multi-document transactions:
-
-- **In version 4.0**, MongoDB supports multi-document transactions on
-  replica sets.
-
-- **In version 4.2**, MongoDB introduces distributed transactions,
-  which adds support for multi-document transactions on sharded
-  clusters and incorporates the existing support for
-  multi-document transactions on replica sets.
-
-  To use transactions on MongoDB 4.2 deployments(replica sets and
-  sharded clusters), clients :red:`must` use MongoDB drivers updated for
-  MongoDB 4.2.
-
-  .. include:: /includes/extracts/transactions-beta.rst
-
-With the introduction of distributed transactions, transactions can be
-used across multiple operations, collections, databases, documents, and
-shards.
-
-.. include:: /includes/extracts/transactions-usage.rst
+multi-document transactions. With distributed transactions,
+transactions can be used across multiple operations, collections,
+databases, documents, and shards.
 
 Transactions API
 ----------------
-
-The API for using transactions is the same whether for a replica set or
-a sharded cluster.
 
 The following example highlights the key components
 of the transactions API:
@@ -73,12 +44,19 @@ of the transactions API:
 
        content: |
 
-          .. note::
+          *For transactions on MongoDB 4.2 deployments (replica sets
+          and sharded clusters)*, clients :red:`must` use MongoDB
+          drivers updated for MongoDB 4.2.
 
-             The example uses the new callback API for working with
-             transactions. The new callback API incorporates retry
-             logic for ``TransientTransactionError`` or
-             ``UnknownTransactionCommitResult`` commit errors.
+          .. important::
+          
+             When using the drivers, each operation in the transaction
+             must be associated with the session.
+
+          The example uses the new callback API for working with
+          transactions. The new callback API incorporates retry logic
+          for ``TransientTransactionError`` or
+          ``UnknownTransactionCommitResult`` commit errors.
 
           .. code-block:: python
 
@@ -115,18 +93,25 @@ of the transactions API:
                                           write_concern=my_write_concern_majority,
                                           read_preference=ReadPreference.PRIMARY)
 
-
      - id: javatxn
        name: Java
 
        content: |
 
-          .. note::
+          *For transactions on MongoDB 4.2 deployments (replica sets
+          and sharded clusters)*, clients :red:`must` use MongoDB
+          drivers updated for MongoDB 4.2.
 
-             The example uses the new callback API for working with
-             transactions. The new callback API incorporates retry
-             logic for ``TransientTransactionError`` or
-             ``UnknownTransactionCommitResult`` commit errors.
+          .. important::
+          
+             When using the drivers, each operation in the transaction
+             must be associated with the session.
+
+
+          The example uses the new callback API for working with
+          transactions. The new callback API incorporates retry logic
+          for ``TransientTransactionError`` or
+          ``UnknownTransactionCommitResult`` commit errors.
 
           .. code-block:: java
 
@@ -164,11 +149,8 @@ of the transactions API:
                      /*
                         Important:: You must pass the session to the operations.
                       */
-
                      coll1.insertOne(clientSession, new Document("abc", 1));
                      coll2.insertOne(clientSession, new Document("xyz", 999));
-
-
                      return "Inserted into collections in different databases";
                  }
              };
@@ -184,12 +166,19 @@ of the transactions API:
        name: Node.js
        content: |
 
-          .. note::
+          *For transactions on MongoDB 4.2 deployments (replica sets
+          and sharded clusters)*, clients :red:`must` use MongoDB
+          drivers updated for MongoDB 4.2.
 
-             The example uses the new callback API for working with
-             transactions. The new callback API incorporates retry
-             logic for ``TransientTransactionError`` or
-             ``UnknownTransactionCommitResult`` commit errors.
+          .. important::
+          
+             When using the driver, each operation in the transaction
+             must be associated with the session.
+
+          The example uses the new callback API for working with
+          transactions. The new callback API incorporates retry logic
+          for ``TransientTransactionError`` or
+          ``UnknownTransactionCommitResult`` commit errors.
 
           .. code-block:: javascript
 
@@ -214,32 +203,37 @@ of the transactions API:
    
              try {
                await session.withTransaction(async function() {
-               
-
+      
                   const coll1 = client.db('mydb1').collection('foo');
                   
                   // Important:: You must pass the session to the operations.
-
                   await coll1.insertOne({ abc: 1 }, { session });
 
                   const coll2 = client.db('mydb2').collection('bar');
 
                   // Important:: You must pass the session to the operations.
-
                   await coll2.insertOne({ xyz: 999 }, { session });
                });
              } catch (err) {
                // transaction failed after attempted retry
                // some error handling
              }
+
      - id: phptxn
        name: PHP
        content: |
 
-          .. note::
+          *For transactions on MongoDB 4.2 deployments (replica sets
+          and sharded clusters)*, clients :red:`must` use MongoDB
+          drivers updated for MongoDB 4.2.
 
-             The following example omits retry logic and robust error
-             handling for simplicity's sake.
+          .. important::
+          
+             When using the driver, each operation in the transaction
+             must be associated with the session.
+          
+          The following example omits retry logic and robust error
+          handling for simplicity's sake.
 
           .. code-block:: php
 
@@ -309,89 +303,36 @@ of the transactions API:
 
               session.endSession();
 
-.. seealso::
 
-   - :ref:`transactions-read-concern`
-   - :ref:`transactions-read-preference`
-   - :ref:`transactions-write-concern`
-
-Transactions and Sessions
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- Transactions are associated with a session; i.e. you start a
-  transaction for a session.
-
-- At any given time, you can have at most one open transaction for a
-  session.
-
-- When using the drivers, each operation in the transaction must be
-  associated with the session. Depending on the driver, the new
-  callback API either requires you to explicitly pass the session to
-  each operation or uses lexical scoping to implicitly pass the session
-  to each operation for you. Refer to your driver specific
-  documentation for details.
-
-- If a session ends and it has an open transaction, the transaction
-  aborts.
-
-.. _transactions-drivers:
-
-Transactions and MongoDB Drivers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|arrow| *For transactions on MongoDB 4.2 deployments (replica sets and
-sharded clusters)*, clients :red:`must` use MongoDB drivers updated for
-MongoDB 4.2:
-
-.. include:: /includes/list-4.2-drivers.rst
-
-.. topic:: Distributed Transactions and MongoDB 4.0 drivers
-
-   On sharded clusters with multiple :binary:`~bin.mongos` instances,
-   performing transactions with drivers updated for MongoDB 4.0
-   (instead of MongoDB 4.2) will fail and can result in errors,
-   including:
-
-   .. note::
-
-      Your driver may return a different error. Refer to your driver's
-      documentation for details.
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 80
-   
-      * - Error Code
-        - Error Message
-   
-      * - 251
-        - ``cannot continue txnId -1 for session ... with txnId 1``
-
-      * - 50940
-        - ``cannot commit with no participants``
-
-
-|arrow| *For transactions on MongoDB 4.0 replica sets*, clients require
-MongoDB drivers updated for MongoDB 4.0 or later.
-
-.. include:: /includes/list-4.0-drivers.rst
-
-Transactions and the ``mongo`` Shell
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following :binary:`~bin.mongo` shell methods are available for
-transactions:
-
-- :method:`Session.startTransaction()`
-
-- :method:`Session.commitTransaction()`
-
-- :method:`Session.abortTransaction()`
 
 .. _transactions-atomicity:
 
 Transactions and Atomicity
 --------------------------
+
+.. topic:: Distributed Transactions and Multi-Document Transactions
+
+   Starting in MongoDB 4.2, the two terms are synonymous. Distributed
+   transactions refer to multi-document transactions on sharded
+   clusters and replica sets. Multi-document transactions (whether on
+   sharded clusters or replica sets) are also known as distributed
+   transactions starting in MongoDB 4.2.
+
+For situations that require atomicity of reads and writes to multiple
+documents (in a single or multiple collections), MongoDB supports
+multi-document transactions:
+
+- **In version 4.0**, MongoDB supports multi-document transactions on
+  replica sets.
+
+- **In version 4.2**, MongoDB introduces distributed transactions,
+  which adds support for multi-document transactions on sharded
+  clusters and incorporates the existing support for
+  multi-document transactions on replica sets.
+
+  To use transactions on MongoDB 4.2 deployments(replica sets and
+  sharded clusters), clients :red:`must` use MongoDB drivers updated for
+  MongoDB 4.2.
 
 Multi-document transactions are atomic (i.e. provide an
 "all-or-nothing" proposition):
@@ -407,6 +348,8 @@ Multi-document transactions are atomic (i.e. provide an
   operation in the transaction fails, the transaction aborts and all
   data changes made in the transaction are discarded without ever
   becoming visible.
+
+.. include:: /includes/extracts/transactions-usage.rst
 
 .. seealso:: :ref:`transactions-prod-consideration-outside-reads`
 
@@ -472,6 +415,21 @@ Restricted Operations
 
    - :doc:`Transactions and Operations Reference </core/transactions-operations>`
 
+Transactions and Sessions
+-------------------------
+
+- Transactions are associated with a session; i.e. you start a
+  transaction for a session.
+
+- At any given time, you can have at most one open transaction for a
+  session.
+
+- When using the drivers, each operation in the transaction must be
+  associated with the session. Refer to your driver specific
+  documentation for details.
+
+- If a session ends and it has an open transaction, the transaction
+  aborts.
 
 .. _transaction-options:
 
@@ -759,14 +717,16 @@ Storage Engines
 
 .. include:: /includes/extracts/transactions-inmemory-txn-page.rst
 
+Additional Transactions Topics
+------------------------------
+
 .. toctree::
-   :hidden:
    :titlesonly:
    
-   /core/transactions-in-applications
+   Transactions and MongoDB Drivers </core/transactions-in-applications>
    /core/transactions-production-consideration
    /core/transactions-sharded-clusters
    /core/transactions-operations
 
-.. |arrow| unicode:: U+27A4
+
 

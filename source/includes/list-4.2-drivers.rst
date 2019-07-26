@@ -1,7 +1,7 @@
 .. COMMENT to render hlist correctly, each column should have same number of items - otherwise it does a center horizontal align across columns
 
 .. hlist::
-   :columns: 3
+   :columns: 4
 
    - Java 3.11.0
 

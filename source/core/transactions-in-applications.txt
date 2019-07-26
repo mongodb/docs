@@ -1,8 +1,9 @@
-.. _transactions-retry:
 
-============================
-Transactions in Applications
-============================
+.. _transactions-drivers:
+
+========================
+Transactions and Drivers
+========================
 
 .. default-domain:: mongodb
 
@@ -12,53 +13,16 @@ Transactions in Applications
    :depth: 1
    :class: singlecol
 
+*For transactions on MongoDB 4.2 deployments (replica sets and sharded
+clusters)*, clients :red:`must` use MongoDB drivers updated for MongoDB
+4.2:
 
-Highly Available Applications
------------------------------
+.. include:: /includes/list-4.2-drivers.rst
 
-Regardless of the database system, whether MongoDB or relational
-databases, applications should take measures to handle errors during
-transaction commits and incorporate retry logic for transactions.
+*For transactions on MongoDB 4.0 replica sets*, clients require MongoDB
+drivers updated for MongoDB 4.0 or later.
 
-.. _transient-transaction-error:
-
-``"TransientTransactionError"``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The individual write operations inside the transaction are not
-retryable, regardless of whether :urioption:`retryWrites` is set to
-``true``. If an operation encounters an error `associated with the label
-<https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#error-labels>`_ 
-``"TransientTransactionError"``, the transaction as a whole can be retried.
-
-- The callback API incorporates retry logic for
-  ``"TransientTransactionError"``.
-
-- The core transaction API does not incorporate retry logic
-  for ``"TransientTransactionError"``. To handle
-  ``"TransientTransactionError"``, applications should explicitly
-  incorporate retry logic for the error.
-
-.. _unknonw-transaction-commit-result:
-
-``"UnknownTransactionCommitResult"``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The commit operations are :doc:`retryable write operations
-</core/retryable-writes>`. If the commit operation encounters an error,
-MongoDB drivers retry the commit regardless of whether
-:urioption:`retryWrites` is set to ``true``.
-
-If the commit operation encounters an error labeled
-``"UnknownTransactionCommitResult"``, the commit can be retried.
-
-- The callback API incorporates retry logic for
-  ``"UnknownTransactionCommitResult"``.
-
-- The core transaction API does not incorporate retry logic for
-  ``"UnknownTransactionCommitResult"``. To handle
-  ``"UnknownTransactionCommitResult"``, applications should explicitly
-  incorporate retry logic for the error.
+.. include:: /includes/list-4.0-drivers.rst
 
 Callback API
 -------------
@@ -66,10 +30,10 @@ Callback API
 The new callback API incorporates logic:
 
 - To retry the transaction as a whole if the transaction encounters a
-  ``"TransientTransactionError"``.
+  :ref:`transient-transaction-error`.
 
 - To retry the commit operation if the commit encounters an
-  ``"UnknownTransactionCommitResult"``.
+  :ref:`unknonw-transaction-commit-result`.
 
 .. tabs::
 
@@ -84,8 +48,8 @@ The new callback API incorporates logic:
 
              The example uses the new callback API for working with
              transactions. The new callback API incorporates retry
-             logic for ``TransientTransactionError`` or
-             ``UnknownTransactionCommitResult`` commit errors.
+             logic for :ref:`transient-transaction-error` or
+             :ref:`unknonw-transaction-commit-result` commit errors.
 
           .. code-block:: python
 
@@ -131,8 +95,8 @@ The new callback API incorporates logic:
 
              The example uses the new callback API for working with
              transactions. The new callback API incorporates retry
-             logic for ``TransientTransactionError`` or
-             ``UnknownTransactionCommitResult`` commit errors.
+             logic for :ref:`transient-transaction-error` or
+             :ref:`unknonw-transaction-commit-result` commit errors.
 
           .. code-block:: java
 
@@ -184,29 +148,87 @@ The new callback API incorporates logic:
              } finally {
                  clientSession.close();
              }
+
+     - id: nodejs
+       name: Node.js
+       content: |
+
+          *For transactions on MongoDB 4.2 deployments (replica sets
+          and sharded clusters)*, clients :red:`must` use MongoDB
+          drivers updated for MongoDB 4.2.
+
+          .. note::
+
+             The example uses the new callback API for working with
+             transactions. The new callback API incorporates retry
+             logic for :ref:`transient-transaction-error` or
+             :ref:`unknonw-transaction-commit-result` commit errors.
+
+          .. code-block:: javascript
+
+             /*
+               For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
+               uri = 'mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl';
+               For a sharded cluster, connect to the mongos instances; e.g.
+               uri = 'mongodb://mongos0.example.com:27017,mongos1.example.com:27017:27017/admin';
+              */
+            
+             const client = new MongoClient(uri);
+             await client.connect();
+
+             const session = client.startSession({defaultTransactionOptions: {
+                readConcern: { level: 'local' },
+                writeConcern: { w: 'majority' },
+                readPreference: 'primary'
+             }});
+
+             // Note: the `withTransaction` method only supports functions that return a `Promise`
+             // Prerequisites: Assumes collections already exist. CRUD operations in transactions must be on existing collections
+   
+             try {
+               await session.withTransaction(async function() {
+               
+
+                  const coll1 = client.db('mydb1').collection('foo');
+                  
+                  // Important:: You must pass the session to the operations.
+
+                  await coll1.insertOne({ abc: 1 }, { session });
+
+                  const coll2 = client.db('mydb2').collection('bar');
+
+                  // Important:: You must pass the session to the operations.
+
+                  await coll2.insertOne({ xyz: 999 }, { session });
+               });
+             } catch (err) {
+               // transaction failed after attempted retry
+               // some error handling
+             }
+
 Core API
 --------
 
 The core transaction API does not incorporate retry logic for errors
 labeled:
 
-- ``"TransientTransactionError"``. To handle
-  ``"TransientTransactionError"``, applications should explicitly
+- :ref:`transient-transaction-error`. To handle
+  :ref:`transient-transaction-error`, applications should explicitly
   incorporate retry logic for the error.
 
-- ``"UnknownTransactionCommitResult"``. To handle
-  ``"UnknownTransactionCommitResult"``, applications should explicitly
+- :ref:`unknonw-transaction-commit-result`. To handle
+  :ref:`unknonw-transaction-commit-result`, applications should explicitly
   incorporate retry logic for the error.
 
 Explicitly Handle ``TransientTransactionError``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If an operation in a transaction returns an error labeled
-``"TransientTransactionError"``, the transaction as a whole can be
+:ref:`transient-transaction-error`, the transaction as a whole can be
 retried.
 
 For example, the following code sample runs a function and retries the
-function if a ``"TransientTransactionError"`` is encountered:
+function if a :ref:`transient-transaction-error` is encountered:
 
 .. include:: /includes/driver-examples/driver-example-transactions-retry-1.rst
 
@@ -214,10 +236,10 @@ Explicitly Handle ``UnknownTransactionCommitResult``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If the commit returns an error labeled
-``"UnknownTransactionCommitResult"``, the commit can be retried.
+:ref:`unknonw-transaction-commit-result`, the commit can be retried.
 
 For example, the following code sample commits a transaction and
-retries the commit if a ``"UnknownTransactionCommitResult"`` error is
+retries the commit if a :ref:`unknonw-transaction-commit-result` error is
 encountered:
 
 .. include:: /includes/driver-examples/driver-example-transactions-retry-2.rst
@@ -229,3 +251,95 @@ Incorporating logic to retrying the transaction for transient errors
 and retrying the commit, the full code example is:
 
 .. include:: /includes/driver-examples/driver-example-transactions-retry-3.rst
+
+
+.. _transactions-retry:
+
+Transaction Error Handling
+---------------------------
+
+Regardless of the database system, whether MongoDB or relational
+databases, applications should take measures to handle errors during
+transaction commits and incorporate retry logic for transactions.
+
+.. _transient-transaction-error:
+
+``"TransientTransactionError"``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The *individual* write operations inside the transaction are not
+retryable. If an
+operation encounters an error `associated with the label
+<https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#error-labels>`_ 
+``"TransientTransactionError"``,
+the transaction as a whole can be retried.
+
+- The callback API incorporates retry logic for
+  ``"TransientTransactionError"``.
+
+- The core transaction API does not incorporate retry logic
+  for ``"TransientTransactionError"``. To handle
+  ``"TransientTransactionError"``, applications should explicitly
+  incorporate retry logic for the error.
+
+.. _unknonw-transaction-commit-result:
+
+``"UnknownTransactionCommitResult"``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The commit operations are :doc:`retryable write operations
+</core/retryable-writes>`. If the commit operation encounters an error,
+MongoDB drivers retry the commit.
+
+If the commit operation encounters an error labeled
+``"UnknownTransactionCommitResult"``, the commit can be retried.
+
+- The callback API incorporates retry logic for
+  ``"UnknownTransactionCommitResult"``.
+
+- The core transaction API does not incorporate retry logic for
+  ``"UnknownTransactionCommitResult"``. To handle
+  ``"UnknownTransactionCommitResult"``, applications should explicitly
+  incorporate retry logic for the error.
+
+
+Driver Version Errors
+~~~~~~~~~~~~~~~~~~~~~
+
+On sharded clusters with multiple :binary:`~bin.mongos` instances,
+performing transactions with drivers updated for MongoDB 4.0 (instead
+of MongoDB 4.2) will fail and can result in errors, including:
+
+.. note::
+
+   Your driver may return a different error. Refer to your driver's
+   documentation for details.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Error Code
+     - Error Message
+
+   * - 251
+     - ``cannot continue txnId -1 for session ... with txnId 1``
+
+   * - 50940
+     - ``cannot commit with no participants``
+
+
+*For transactions on MongoDB 4.2 deployments (replica sets and sharded
+clusters)*, use the MongoDB drivers updated for MongoDB 4.2
+
+Additional Information
+----------------------
+
+The following :binary:`~bin.mongo` shell methods are available for
+transactions:
+
+- :method:`Session.startTransaction()`
+
+- :method:`Session.commitTransaction()`
+
+- :method:`Session.abortTransaction()`
