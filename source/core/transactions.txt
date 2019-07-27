@@ -51,11 +51,13 @@ of the transactions API:
           .. important::
           
              When using the drivers, each operation in the transaction
-             must be associated with the session.
+             must be associated with the session (i.e. pass in the session to each operation).
 
           The example uses the new callback API for working with
-          transactions. The new callback API incorporates retry logic
-          for ``TransientTransactionError`` or
+          transactions, which starts a transaction, executes the
+          specified operations, and commits (or aborts on error). The
+          new callback API also incorporates retry logic for
+          ``TransientTransactionError`` or
           ``UnknownTransactionCommitResult`` commit errors.
 
           .. code-block:: python
@@ -78,6 +80,8 @@ of the transactions API:
                  'mydb2',
                  write_concern=my_write_concern_majority).bar.insert_one({'xyz': 0})
 
+             # Step 1: Define the callback; specify the sequence of operations to perform inside the transactions.
+
              def callback(my_session):
                  collection_one = my_session.client.mydb1.foo
                  collection_two = my_session.client.mydb2.bar
@@ -87,7 +91,12 @@ of the transactions API:
                  collection_one.insert_one({'abc': 1}, session=my_session)
                  collection_two.insert_one({'xyz': 999}, session=my_session)
 
+             #. Step 2: Start a client session.
+
              with client.start_session() as session:
+
+                 # Step 3: Use with_transaction to start a transaction, execute the callback, and commit (or abort on error).
+
                  session.with_transaction(callback,
                                           read_concern=ReadConcern('local'),
                                           write_concern=my_write_concern_majority,
@@ -105,12 +114,13 @@ of the transactions API:
           .. important::
           
              When using the drivers, each operation in the transaction
-             must be associated with the session.
-
+             must be associated with the session (i.e. pass in the session to each operation).
 
           The example uses the new callback API for working with
-          transactions. The new callback API incorporates retry logic
-          for ``TransientTransactionError`` or
+          transactions, which starts a transaction, executes the
+          specified operations, and commits (or aborts on error). The
+          new callback API also incorporates retry logic for
+          ``TransientTransactionError`` or
           ``UnknownTransactionCommitResult`` commit errors.
 
           .. code-block:: java
@@ -133,13 +143,19 @@ of the transactions API:
              client.getDatabase("mydb2").getCollection("bar")
                      .withWriteConcern(WriteConcern.MAJORITY).insertOne(new Document("xyz", 0));
 
+             /* Step 1: Start a client session. */
+
              final ClientSession clientSession = client.startSession();
+
+             /* Step 2: Optional. Define options to use for the transaction. */
 
              TransactionOptions txnOptions = TransactionOptions.builder()
                      .readPreference(ReadPreference.primary())
                      .readConcern(ReadConcern.LOCAL)
                      .writeConcern(WriteConcern.MAJORITY)
                      .build();
+
+             /* Step 3: Define the sequence of operations to perform inside the transactions. */
 
              TransactionBody txnBody = new TransactionBody<String>() {
                  public String execute() {
@@ -155,6 +171,11 @@ of the transactions API:
                  }
              };
              try {
+                 /* 
+                    Step 4: Use .withTransaction() to start a transaction, 
+                    execute the callback, and commit (or abort on error).
+                 */
+
                  clientSession.withTransaction(txnOptions, txnBody);
              } catch (RuntimeException e) {
                  // some error handling
@@ -172,12 +193,14 @@ of the transactions API:
 
           .. important::
           
-             When using the driver, each operation in the transaction
-             must be associated with the session.
+             When using the drivers, each operation in the transaction
+             must be associated with the session (i.e. pass in the session to each operation).
 
           The example uses the new callback API for working with
-          transactions. The new callback API incorporates retry logic
-          for ``TransientTransactionError`` or
+          transactions, which starts a transaction, executes the
+          specified operations, and commits (or aborts on error). The
+          new callback API also incorporates retry logic for
+          ``TransientTransactionError`` or
           ``UnknownTransactionCommitResult`` commit errors.
 
           .. code-block:: javascript
@@ -192,24 +215,31 @@ of the transactions API:
              const client = new MongoClient(uri);
              await client.connect();
 
+             /* 
+               Prerequisites: Assumes the collections already exist. 
+               CRUD operations in transactions must be on existing collections.
+              */
+  
+             /* Step 1: Start a client session. The default transaction options are optional.*/
              const session = client.startSession({defaultTransactionOptions: {
                 readConcern: { level: 'local' },
                 writeConcern: { w: 'majority' },
                 readPreference: 'primary'
              }});
 
-             // Note: the `withTransaction` method only supports functions that return a `Promise`
-             // Prerequisites: Assumes collections already exist. CRUD operations in transactions must be on existing collections
-   
+              
              try {
+               /* 
+                  Step 2: Use withTransaction method to start a transaction, 
+                  execute the callback, and commit (or abort on error).
+                  The withTransaction method only supports functions that return a `Promise`.
+                */
                await session.withTransaction(async function() {
-      
                   const coll1 = client.db('mydb1').collection('foo');
+                  const coll2 = client.db('mydb2').collection('bar');
                   
                   // Important:: You must pass the session to the operations.
                   await coll1.insertOne({ abc: 1 }, { session });
-
-                  const coll2 = client.db('mydb2').collection('bar');
 
                   // Important:: You must pass the session to the operations.
                   await coll2.insertOne({ xyz: 999 }, { session });
@@ -241,13 +271,20 @@ of the transactions API:
              $client->mydb1->createCollection('foo', ['writeConcern' => new \MongoDB\Driver\WriteConcern('majority')]);
              $client->mydb2->createCollection('bar', ['writeConcern' => new \MongoDB\Driver\WriteConcern('majority')]);
              
+             /* Step 1: Start a client session. */
+
              $session = $client->startSession();
+             
+             /* Step 2: Start a transaction.  The transaction options are optional.*/
              $session->startTransaction([
                  'readConcern' => new \MongoDB\Driver\ReadConcern("local"),
                  'writeConcern' => new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY)
              ]);
          
-             /* Important:: You must pass the session to the operations. */
+             /* 
+                Step 3: Specify the operations to perform inside the transaction. 
+                Important:: You must pass the session to the operations. 
+              */
       
              $client->mydb1->foo->insertOne(
                  ['abc' => 1],
@@ -257,7 +294,9 @@ of the transactions API:
                  ['xyz' => 999],
                  ['session' => $session]
              );
-   
+
+            /* Step 4: Commit the Transaction. */
+
              $session->commitTransaction()
    
      - id: mongoshell
@@ -723,7 +762,7 @@ Additional Transactions Topics
 .. toctree::
    :titlesonly:
    
-   Transactions and MongoDB Drivers </core/transactions-in-applications>
+   /core/transactions-in-applications
    /core/transactions-production-consideration
    /core/transactions-sharded-clusters
    /core/transactions-operations
