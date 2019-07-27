@@ -43,13 +43,23 @@ The new callback API incorporates logic:
        name: Python
 
        content: |
+                 
+          .. important::
+          
+             - For transactions on MongoDB 4.2 deployments (replica
+               sets and sharded clusters), clients :red:`must` use
+               MongoDB drivers updated for MongoDB 4.2.
+          
+             - When using the drivers, each operation in the
+               transaction must be associated with the session (i.e.
+               pass in the session to each operation).
 
-          .. note::
-
-             The example uses the new callback API for working with
-             transactions. The new callback API incorporates retry
-             logic for :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
+          The example uses the new callback API for working with
+          transactions, which starts a transaction, executes the
+          specified operations, and commits (or aborts on error). The
+          new callback API incorporates retry logic for
+          :ref:`transient-transaction-error` or
+          :ref:`unknown-transaction-commit-result` commit errors.
 
           .. code-block:: python
 
@@ -71,6 +81,8 @@ The new callback API incorporates logic:
                  'mydb2',
                  write_concern=my_write_concern_majority).bar.insert_one({'xyz': 0})
 
+             # Step 1: Define the callback that specifies the sequence of operations to perform inside the transactions.
+
              def callback(my_session):
                  collection_one = my_session.client.mydb1.foo
                  collection_two = my_session.client.mydb2.bar
@@ -80,7 +92,12 @@ The new callback API incorporates logic:
                  collection_one.insert_one({'abc': 1}, session=my_session)
                  collection_two.insert_one({'xyz': 999}, session=my_session)
 
+             #. Step 2: Start a client session.
+
              with client.start_session() as session:
+
+                 # Step 3: Use with_transaction to start a transaction, execute the callback, and commit (or abort on error).
+
                  session.with_transaction(callback,
                                           read_concern=ReadConcern('local'),
                                           write_concern=my_write_concern_majority,
@@ -91,12 +108,22 @@ The new callback API incorporates logic:
 
        content: |
 
-          .. note::
+          .. important::
+          
+             - For transactions on MongoDB 4.2 deployments (replica
+               sets and sharded clusters), clients :red:`must` use
+               MongoDB drivers updated for MongoDB 4.2.
+          
+             - When using the drivers, each operation in the
+               transaction must be associated with the session (i.e.
+               pass in the session to each operation).
 
-             The example uses the new callback API for working with
-             transactions. The new callback API incorporates retry
-             logic for :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
+          The example uses the new callback API for working with
+          transactions, which starts a transaction, executes the
+          specified operations, and commits (or aborts on error). The
+          new callback API incorporates retry logic for
+          :ref:`transient-transaction-error` or
+          :ref:`unknown-transaction-commit-result` commit errors.
 
           .. code-block:: java
 
@@ -118,13 +145,19 @@ The new callback API incorporates logic:
              client.getDatabase("mydb2").getCollection("bar")
                      .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("xyz", 0));
 
+             /* Step 1: Start a client session. */
+
              final ClientSession clientSession = client.startSession();
+
+             /* Step 2: Optional. Define options to use for the transaction. */
 
              TransactionOptions txnOptions = TransactionOptions.builder()
                      .readPreference(ReadPreference.primary())
                      .readConcern(ReadConcern.LOCAL)
                      .writeConcern(WriteConcern.MAJORITY)
                      .build();
+
+             /* Step 3: Define the sequence of operations to perform inside the transactions. */
 
              TransactionBody txnBody = new TransactionBody<String>() {
                  public String execute() {
@@ -142,6 +175,11 @@ The new callback API incorporates logic:
                  }
              };
              try {
+                 /* 
+                     Step 4: Use .withTransaction() to start a transaction, 
+                     execute the callback, and commit (or abort on error).
+                  */
+                                  
                  clientSession.withTransaction(txnOptions, txnBody);
              } catch (RuntimeException e) {
                  // some error handling
@@ -153,16 +191,22 @@ The new callback API incorporates logic:
        name: Node.js
        content: |
 
-          *For transactions on MongoDB 4.2 deployments (replica sets
-          and sharded clusters)*, clients :red:`must` use MongoDB
-          drivers updated for MongoDB 4.2.
+          .. important::
 
-          .. note::
+             - For transactions on MongoDB 4.2 deployments (replica
+               sets and sharded clusters), clients :red:`must` use
+               MongoDB drivers updated for MongoDB 4.2.
+          
+             - When using the drivers, each operation in the
+               transaction must be associated with the session (i.e.
+               pass in the session to each operation).
 
-             The example uses the new callback API for working with
-             transactions. The new callback API incorporates retry
-             logic for :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
+          The example uses the new callback API for working with
+          transactions, which starts a transaction, executes the
+          specified operations, and commits (or aborts on error). The
+          new callback API incorporates retry logic for
+          :ref:`transient-transaction-error` or
+          :ref:`unknown-transaction-commit-result` commit errors.
 
           .. code-block:: javascript
 
@@ -190,21 +234,18 @@ The new callback API incorporates logic:
                
 
                   const coll1 = client.db('mydb1').collection('foo');
-                  
+                  const coll2 = client.db('mydb2').collection('bar');              
                   // Important:: You must pass the session to the operations.
 
                   await coll1.insertOne({ abc: 1 }, { session });
-
-                  const coll2 = client.db('mydb2').collection('bar');
-
-                  // Important:: You must pass the session to the operations.
-
                   await coll2.insertOne({ xyz: 999 }, { session });
                });
              } catch (err) {
                // transaction failed after attempted retry
                // some error handling
              }
+
+.. _txn-core-api:
 
 Core API
 --------
