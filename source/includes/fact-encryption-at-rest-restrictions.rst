@@ -1,6 +1,6 @@
 .. list-table::
    :header-rows: 1
-   :widths: 75 25
+   :widths: 60 40
 
    * - Parameter
      - Requirement

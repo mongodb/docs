@@ -49,7 +49,8 @@
 
        .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
 
-   * - ``biConnector.enabled``
+   * - | ``biConnector``
+       | ``.enabled``
      - boolean
      - Optional
      - Specifies whether or not |bic| is enabled on the cluster.
@@ -57,21 +58,21 @@
        - Set to ``true`` to enable |bic|.
        - Set to ``false`` to disable |bic|.
 
-   * - ``biConnector.readPreference``
+   * - | ``biConnector``
+       | ``.readPreference``
      - string
      - Optional
      - Specifies the read preference to be used by |bic| on the
        cluster. Each |bic| read preference contains a distinct
        combination of :manual:`readPreference </core/read-preference/>`
-       and :manual:`readPreferenceTags
-       </core/read-preference/#tag-sets>` options. For details on |bic|
-       read preferences, refer to the
+       and :manual:`readPreferenceTags </core/read-preference/#tag-sets>`
+       options. To learn more about |bic| read preferences, see
        :ref:`BI Connector Read Preferences Table <bic-read-preferences>`.
 
        - Set to ``"primary"`` to have |bic| read from the primary.
 
-       - Set to ``"secondary"`` to have |bic| read from a
-         secondary member. *Default if there are no
+       - Set to ``"secondary"`` to have |bic| read from a secondary
+         member. *The preference defaults to this value if there are no
          analytics nodes in the cluster*.
 
        - Set to ``"analytics"`` to have |bic| read from an
@@ -83,7 +84,7 @@
             To set the ``readPreference`` value to ``"analytics"``,
             the cluster must have at least one analytics node.
 
-            If the readPreference value is ``analytics``, you
+            If the ``readPreference`` value is ``"analytics"``, you
             cannot remove all analytics nodes from the cluster.
 
    * - ``clusterType``
@@ -307,7 +308,7 @@
      - string
      - Conditional
      - Cloud service provider on which the server for a
-       multi-tenant cluster is provisioned. 
+       multi-tenant cluster is provisioned.
 
        This setting is only valid when ``providerSetting.providerName``
        is ``TENANT`` and ``providerSetting.instanceSizeName`` is ``M2``
@@ -387,8 +388,6 @@
        definitions of data-bearing servers, see
        :ref:`server-number-costs`.
 
-       .. include:: /includes/fact-instance-size-names.rst
-
        .. tabs-cloud-providers::
 
           tabs:
@@ -396,6 +395,8 @@
               content: |
 
                 .. include:: /includes/extracts/fact-cluster-instance-sizes-AWS.rst
+
+                .. include:: /includes/fact-instance-size-names.rst
 
             - id: gcp
               content: |

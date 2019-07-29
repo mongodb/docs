@@ -29,7 +29,7 @@
      - boolean
      - Optional
      - .. include:: /includes/fact-only-m10-clusters.rst
-     
+
        Set to ``true`` to enable |service|
        :doc:`continuous backups </backup/continuous-backups>` for the
        cluster.
@@ -51,7 +51,8 @@
 
        .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
 
-   * - ``biConnector.enabled``
+   * - | ``biConnector``
+       | ``.enabled``
      - boolean
      - Optional
      - Specifies whether or not |bic| is enabled on the cluster.
@@ -59,21 +60,21 @@
        - Set to ``true`` to enable |bic|.
        - Set to ``false`` to disable |bic|.
 
-   * - ``biConnector.readPreference``
+   * - | ``biConnector``
+       | ``.readPreference``
      - string
      - Optional
      - Specifies the read preference to be used by |bic| on the
        cluster. Each |bic| read preference contains a distinct
        combination of :manual:`readPreference </core/read-preference/>`
-       and :manual:`readPreferenceTags
-       </core/read-preference/#tag-sets>` options. For details on |bic|
-       read preferences, refer to the
+       and :manual:`readPreferenceTags </core/read-preference/#tag-sets>`
+       options. To learn more about |bic| read preferences, see
        :ref:`BI Connector Read Preferences Table <bic-read-preferences>`.
 
        - Set to ``"primary"`` to have |bic| read from the primary.
 
-       - Set to ``"secondary"`` to have |bic| read from a
-         secondary member. *Default if there are no
+       - Set to ``"secondary"`` to have |bic| read from a secondary
+         member. *The preference defaults to this value if there are no
          analytics nodes in the cluster*.
 
        - Set to ``"analytics"`` to have |bic| read from an
@@ -85,7 +86,7 @@
             To set the ``readPreference`` value to ``"analytics"``,
             the cluster must have at least one analytics node.
 
-            If the readPreference value is ``analytics``, you
+            If the ``readPreference`` value is ``"analytics"``, you
             cannot remove all analytics nodes from the cluster.
 
    * - ``clusterType``
@@ -135,7 +136,10 @@
    * - ``diskSizeGB``
      - double
      - Conditional
-     -
+     - Capacity, in gigabytes, of the host's root volume. Increase this
+       number to add capacity, up to a maximum possible value of
+       ``4096`` (i.e., 4 TB). This value must be a positive integer.
+
        .. admonition:: When should you use ``diskSizeGB``?
           :class: note
 
@@ -144,11 +148,6 @@
           - Cannot be used with |nvme-clusters|
           - Cannot be used with Azure clusters
           - Must be used when ``replicationSpecs`` is set
-
-       The size in gigabytes of the server's root volume. You can add
-       capacity by increasing this number, up to a maximum possible
-       value of ``4096`` (i.e., 4 TB). This value must be a positive
-       integer.
 
        The minimum disk size for dedicated clusters is 10GB for |aws|
        and |gcp|, and 32GB for Azure. If you specify ``diskSizeGB``
@@ -271,7 +270,7 @@
      - boolean
      - Optional
      - .. include:: /includes/fact-only-m10-clusters.rst
-     
+
        Flag indicating if the cluster uses :ref:`backup-cloud-provider`
        for backups.
 
@@ -383,8 +382,6 @@
        definitions of data-bearing servers, see
        :ref:`server-number-costs`.
 
-       .. include:: /includes/fact-instance-size-names.rst
-
        .. tabs-cloud-providers::
 
           tabs:
@@ -392,6 +389,8 @@
               content: |
 
                 .. include:: /includes/extracts/fact-cluster-instance-sizes-AWS.rst
+
+                .. include:: /includes/fact-instance-size-names.rst
 
             - id: gcp
               content: |
@@ -412,7 +411,7 @@
      - Cloud service provider on which the servers are provisioned.
 
        .. include:: /includes/fact-cloud-service-providers.rst
-       
+
        - ``TENANT`` - A multi-tenant deployment on one of the supported
          cloud service providers. Only valid when
          ``providerSettings.instanceSizeName`` is either ``M2`` or

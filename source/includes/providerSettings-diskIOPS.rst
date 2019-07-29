@@ -1,16 +1,11 @@
 .. _provider-settings-disk-iops:
 
-.. note::
-
-   Requires that ``providerSettings.instanceSizeName`` be
-   ``M30`` or greater.
-
-.. include:: /includes/fact-not-available-with-nvme.rst
-
-The maximum input/output operations per second (IOPS) the system can
+Maximum input/output operations per second (IOPS) the system can
 perform. The possible values depend on the selected
-``providerSettings.instanceSizeName`` and
-``diskSizeGB``.
+``providerSettings.instanceSizeName`` and ``diskSizeGB``.
+
+This setting requires that ``providerSettings.instanceSizeName`` to be
+``M30`` or greater and cannot be used with |nvme-clusters|.
 
 To view the possible range of |iops| values for the selected instance
 size and storage capacity:
