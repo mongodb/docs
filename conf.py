@@ -66,6 +66,12 @@ rst_epilog = '\n'.join([
 
 pygments_style = 'sphinx'
 
+source_constants = {
+    'version': version,
+    'release': release,
+    'pgp-version': version
+}
+
 extlinks = {
     'hardlink' : ( 'http://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
