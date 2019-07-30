@@ -14,8 +14,6 @@
         - Project Billing Admin
       * - ``GROUP_CHARTS_ADMIN``
         - Project Charts Admin
-      * - ``GROUP_CLUSTER_MANAGER``
-        - Project Cluster Manager
       * - ``GROUP_DATA_ACCESS_ADMIN``
         - Project Data Access Admin
       * - ``GROUP_DATA_ACCESS_READ_ONLY``
@@ -45,8 +43,6 @@
         - Project Backup Admin
       * - ``GROUP_CHARTS_ADMIN``
         - Project Charts Admin
-      * - ``GROUP_CLUSTER_MANAGER``
-        - Project Cluster Manager
       * - ``GROUP_DATA_ACCESS_ADMIN``
         - Project Data Access Admin
       * - ``GROUP_DATA_ACCESS_READ_ONLY``
