@@ -11,9 +11,9 @@
   the `Visual C++ Redistributable Packages for Visual Studio 2013
   <https://www.microsoft.com/en-us/download/details.aspx?id=40784>`__.
 
-- **EOL:** Ops Manager support for Ubuntu 14.04 has ended. Ops Manager 
-  3.6.12 is not supported on Ubuntu 14.04. 
-  
+- **EOL:** Ops Manager support for Ubuntu 14.04 has ended. Ops Manager
+  3.6.12 is not supported on Ubuntu 14.04.
+
 .. _opsmgr-server-3.6.11:
 
 |onprem| Server 3.6.11
@@ -353,6 +353,11 @@ Automation
   </tutorial/view-logs>` for all MongoDB and |onprem| Agent
   processes. The logs are sent to the |onprem| server and available
   for download by |onprem| administrators.
+
+- Ended support for the ``seedSecondary.sh`` script. You cannot run the
+  ``seedSecondary.sh`` script on any MongoDB database running MongoDB
+  3.6 or later. To learn more about restoring a snapshot, see
+  :doc:`Restore a Completed Snapshot </tutorial/restore-full-snapshot-http>`.
 
 - Agent Upgrade: :ref:`automation-4.5.7.2375`
 
