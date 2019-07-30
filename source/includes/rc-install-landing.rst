@@ -21,7 +21,7 @@
       :widths: 30 70
 
       * - Select Version.
-        - ``4.2.0-rc1``
+        - ``4.2.0-rc4``
 
       * - Select OS.
         - Select your operating system.
