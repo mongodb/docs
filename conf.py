@@ -98,6 +98,11 @@ extlinks = {
     'java-async-docs': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
     'java-async-api': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', '')
 }
+source_constants = {
+    'version': version,
+    'release': release,
+    'pgp-version': version
+}
 
 ## add `extlinks` for each published version.
 for i in conf.git.branches.published:
