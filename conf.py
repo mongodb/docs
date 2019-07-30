@@ -85,7 +85,8 @@ source_constants = {
     'rsa-key': '68818C72E52529D4',
     'pgp-fingerprint-fmt': '9DA3 1620 334B D75D 9DCB 49F3 6881 8C72 E525 29D4',
     'pgp-short-fingerprint' : '0x68818C72E52529D4',
-    'source-available' : '`source available and free to use <https://github.com/mongodb/mongo/>`_'
+    'source-available' : '`source available and free to use <https://github.com/mongodb/mongo/>`_',
+    'windows-sha256': '0147CA4AAE70B6563B6703B720D982BF3B85533F9FB4E42E0D7F14CF690BA271'
 }
 
 
