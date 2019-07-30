@@ -90,6 +90,11 @@ extlinks = {
     'wtdocs': ('http://source.wiredtiger.com/mongodb-3.2%s', ''),
 
 }
+source_constants = {
+    'version': version,
+    'release': release,
+    'pgp-version': version
+}
 
 ## add `extlinks` for each published version.
 for i in conf.git.branches.published:
