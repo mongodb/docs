@@ -1,8 +1,9 @@
 For a given region in an |service| project with multi-region clusters
-or clusters in multiple regions, you cannot have more than 40 MongoDB
-nodes on all other regions in that project. This limit applies
-across all cloud service providers. |gcp| regions communicating with
-each other do not count against that limit.
+or clusters in multiple regions, there is a limit of
+**40 MongoDB nodes on all other regions** in that project. This limit
+applies across all cloud service providers and can be raised upon
+request. |gcp| regions communicating with each other do not count
+against this limit.
 
 .. example::
 
@@ -14,4 +15,9 @@ each other do not count against that limit.
 
 For |service| projects where every cluster is deployed to a single
 region, you cannot create a multi-region cluster in that project if
-there are already 40 or more nodes in that single region.
+there are already 40 or more nodes in that single region unless you
+request that the limit be raised.
+
+Please contact |service| support for questions or assistance raising
+this limit. To contact support, click :guilabel:`Support` from the
+left-hand navigation bar of the |service| UI.

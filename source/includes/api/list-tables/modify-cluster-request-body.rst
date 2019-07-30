@@ -535,15 +535,17 @@
        You must specify at least one ``replicationSpec.<region>``
        document.
 
-       For each ``<region>`` document, you must specify the
-       ``electableNodes``, ``priority``, and ``readOnlyNodes`` fields.
-
-       .. include:: /includes/fact-group-region-association.rst
-
        Select your cloud provider's tab for example cluster region
        names:
 
        .. include:: /includes/fact-cloud-region-name-examples.rst
+
+       For each ``<region>`` document, you must specify the
+       ``analyticsNodes``, ``electableNodes``, ``priority``, and
+       ``readOnlyNodes`` fields. For information on cross-region
+       node limits, see :ref:`mod-cluster-considerations`.
+
+       .. include:: /includes/fact-group-region-association.rst
 
    * - | ``replicationSpec``
        | ``.<region>``
