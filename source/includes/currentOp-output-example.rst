@@ -284,7 +284,7 @@
                                "db" : <string>
                             }
                          ],
-                         "userImpersonators" : [
+                         "runBy" : [
                             {
                                "user" : <string>,
                                "db" : <string>
