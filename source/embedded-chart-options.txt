@@ -19,8 +19,59 @@ query parameters to their iframe URLs.
    options on your data sources. For instructions, see
    :ref:`embedding-charts`. 
 
-Specify Refresh Interval
-------------------------
+Query Parameter Order for Verified Signatures
+---------------------------------------------
+
+If you are using a :ref:`Verified Signature <embedding-procedure>` to
+render your chart, you must specify the query parameters of your
+payload in the following order, or else your signature verification
+will fail:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 40
+
+   * - Parameter Position
+     - Name
+     - Description
+
+   * - 1
+     - ``id``
+     - ``id`` parameter from the Embed Chart snippet.
+
+   * - 2
+     - ``tenant``
+     - ``tenant`` parameter from the Embed Chart snippet.
+
+   * - 3
+     - ``timestamp``
+     - Current time.
+
+   * - 4
+     - ``expires-in``
+     - *(Optional)* Number of seconds for which the signature is valid.
+       If omitted, the signature is valid for 24 hours after it is
+       created.
+
+   * - 5
+     - ``filter``
+     - *(Optional)* MQL document to filter rendered documents.
+       See :ref:`embed-options-filter`.
+
+   * - 6
+     - ``autorefresh``
+     - *(Optional)* Interval in seconds at which the chart refreshes.
+       See :ref:`embed-options-refresh`.
+
+The code examples on the
+`MongoDB Charts Embedding Examples <https://github.com/mongodb/charts-embedding-examples>`__
+GitHub page provide sample payload generations with properly-formatted
+query parameters.
+
+.. _embed-options-refresh:
+
+Specify a Refresh Interval
+--------------------------
 
 Use the ``autorefresh`` query parameter to define the interval,
 in seconds, at which the chart refreshes with the latest data from
@@ -68,3 +119,72 @@ Considerations
      will not render and an error will be displayed as the signature is
      no longer valid. The host web page must regenerate a new signature
      to resume rendering the chart.
+
+.. _embed-options-filter:
+
+Specify a Filter
+----------------
+
+Use the ``filter`` query parameter to only display data in your
+embedded chart which matches a specified :abbr:`MQL (MongoDB Query Language)`
+filter.
+
+.. important::
+
+   For security reasons, the ``filter`` query parameter can only be used
+   on charts embedded with a
+   :ref:`Verified Signature <embedding-procedure>`. You should generate
+   your ``filter`` in your server-side code, rather than receiving
+   it from the client. Generating the filter from the server
+   prevents the client from modifying the filter and potentially
+   accessing restricted data. 
+
+Syntax
+~~~~~~
+
+Specify an MQL document as your ``filter`` query parameter. Use the
+same syntax used in the :ref:`query bar <query-bar>` in the Chart
+Builder.
+
+MQL queries contain characters that must be URL-encoded before
+your server-side code calculates the verified signature.
+When |charts-short| verifies the signature, it URL-encodes the filter
+again using the JavaScript
+`encodeURIComponent
+<https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent>`__
+function. This function encodes
+spaces as ``%20``, rather than ``+`` or a raw space. You must use the
+same ``encodeURIComponent`` encoding algorithm to encode your query. To
+see how correctly encode an MQL filter using different server-side
+programming languages, see `MongoDB Charts Embedding Examples
+<https://github.com/mongodb/charts-embedding-examples>`__ on GitHub.
+
+Example
+~~~~~~~
+
+The following iframe ``src`` URL renders a chart which only displays
+documents with an ``imdb.rating`` greater than or equal to ``8``:
+
+.. code-block:: none
+   :emphasize-lines: 6
+
+   https://charts.mongodb.com/charts-atlasproject1-piocy/embed/charts?
+   id=93584ddb-1115-4a12-afd9-5129e47bbb0d&
+   tenant=3397ee6d-5079-4a20-b097-cedd475220b5&
+   timestamp=1564156636&
+   expires-in=300&
+   filter=%7B%22imdb.rating%22%3A%20%7B%24gte%3A%208%7D%7D&
+   autorefresh=30&
+   signature=8e0d92b33934c928f6c6974e2f0102ace77f56d851cb0d33893e84c359ab1043
+
+The URL uses an encoded ``filter`` parameter of
+``%7B%22imdb.rating%22%3A%20%7B%24gte%3A%208%7D%7D``. Decoded, this
+filter is:
+
+.. code-block:: json
+
+   {"imdb.rating": {$gte: 8}}
+
+The server-side code creates a payload with the necessary information
+to render the chart, including the filter. The payload ensures that
+the verified signature is valid before rendering the chart.
