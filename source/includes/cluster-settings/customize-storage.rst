@@ -1,9 +1,8 @@
-Each cluster tier comes with a default set of resources. Clusters of
-size M10 and larger provide the ability to customize your storage
-capacity.
+Each cluster comes with a default set of resources. Clusters tier. M10 and larger 
+provide the ability to customize your storage capacity.
 
 |service| provides the following storage configuration options,
-depending on the selected cloud provider and instance size.
+depending on the selected cloud provider and cluster tier.
 
 .. list-table::
    :widths: 20 20 60
@@ -11,7 +10,7 @@ depending on the selected cloud provider and instance size.
 
    * - Cluster Class
      - AWS only
-     - Clusters of size M40 and larger on AWS offer multiple options,
+     - Cluster tiers M40 and larger on AWS offer multiple options,
        including:
 
        - :guilabel:`Low CPU`
@@ -39,7 +38,7 @@ depending on the selected cloud provider and instance size.
 
    * - Auto-Expand Storage
      - 
-     - Available on clusters of size M10 and larger. When disk usage
+     - Available on cluster tier M10 and larger. When disk usage
        reaches 90%, automatically increase storage to achieve 70%
        utilization. To enable this feature, check the box marked
        :guilabel:`Auto-expand storage when disk usage reaches 90%`.
@@ -56,7 +55,7 @@ depending on the selected cloud provider and instance size.
 
           AWS clusters with local :ref:`NVMe SSDs <nvme-storage>`
           cannot expand incrementally. When disk usage reaches 90%,
-          NVMe clusters scale to the next available instance size, if
+          NVMe clusters scale to the next available cluster tier, if
           any.
 
    * - |iops|
@@ -90,22 +89,22 @@ depending on the selected cloud provider and instance size.
 
    For cluster tiers up to and including M40, |service| enforces a
    50:1 ratio of disk storage to RAM to facilitate consistent
-   performance of clusters with large datasets. For cluster tiers of
+   performance of clusters with large datasets. For cluster tier
    M50 and higher, the enforced ratio is 100:1. 
 
    .. example::
 
-      To support 3 TB of disk storage you must select a cluster tier 
+      To support 3 TB of disk storage you must select a cluster 
       with at least 32 GB of RAM (M50 or higher).
 
    |service| has a 4 TB disk storage limit on all replica sets and
-   shards, regardless of cluster tier. To expand total cluster
+   shards, regardless of cluster. To expand total cluster
    storage beyond 4 TB, enable :ref:`sharding
    <cluster-option-sharding>`.
 
    For clusters with :guilabel:`Auto-Expand Storage` enabled,
    |service| respects the calculated maximum storage for the
-   selected cluster tier. Users whose disk storage reaches the
+   selected cluster. Users whose disk storage reaches the
    allowable limit receive notification by email.
 
 For more information on the default resources and available

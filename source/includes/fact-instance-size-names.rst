@@ -1,5 +1,5 @@
-|service| supports the following instance sizes.
-|service| supports deploying ``M2`` and ``M5`` instances
+|service| supports the following cluster tiers.
+|service| supports deploying ``M2`` and ``M5`` tiers
 into a subset of available regions. The documentation for
 ``providersettings.regionName`` includes a list of these regions.
 
@@ -14,4 +14,8 @@ into a subset of available regions. The documentation for
 
    - Prepended with ``R`` instead of an ``M`` (``R40`` for example) run
      a low CPU version of the cluster.
+
+Clusters with ``_NVME`` appended (for example:
+``M40_NVME``) use locally attached :ref:`NVMe storage <nvme-storage>`
+for exceptional performance with the most IO-intensive workloads.
 

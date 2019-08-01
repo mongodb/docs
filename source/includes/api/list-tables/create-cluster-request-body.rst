@@ -354,9 +354,9 @@
           * - ``P50``
             - 4095GB
 
-       :sup:`1` Default for ``M20`` and ``M30`` Azure instances
+       :sup:`1` Default for ``M20`` and ``M30`` Azure clusters
 
-       :sup:`2` Default for ``M40+`` Azure instances
+       :sup:`2` Default for ``M40+`` Azure clusters
 
    * - | ``providerSettings``
        | ``.encryptEBSVolume``
@@ -364,7 +364,7 @@
      - AWS Optional
      - If enabled, the Amazon EBS encryption feature encrypts the
        server's root volume for both data at rest within the volume
-       and for data moving between the volume and the instance.
+       and for data moving between the volume and the cluster.
 
        .. note::
 
@@ -376,9 +376,9 @@
        | ``.instanceSizeName``
      - string
      - Required
-     - |service| provides different instance sizes, each with a default
-       storage capacity and RAM size. The instance size you select is
-       used for all the data-bearing servers in your cluster. For
+     - |service| provides different cluster tiers, each with a default
+       storage capacity and RAM size. The cluster you select is
+       used for all the data-bearing servers in your cluster tier. For
        definitions of data-bearing servers, see
        :ref:`server-number-costs`.
 

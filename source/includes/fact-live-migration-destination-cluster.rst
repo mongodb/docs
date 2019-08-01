@@ -22,5 +22,5 @@
 - The live migration process may not be able to keep up with a source
   cluster whose write workload is greater than what can be transferred
   and applied to the destination cluster. You may need to scale the
-  destination cluster up to an instance with more processing power,
+  destination cluster up to a tier with more processing power,
   bandwidth or disk IO.

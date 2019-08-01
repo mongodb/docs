@@ -70,7 +70,7 @@
        volume. You can add capacity by increasing this number, up to a
        maximum possible value of ``4096`` (i.e., 4 TB).
 
-       Each instance size has its own default value. To view default
+       Each cluster tier has its own default value. To view default
        values:
 
        1. Open the |service| web interface.
@@ -227,7 +227,7 @@
    * - | ``providerSettings``
        | ``.instanceSizeName``
      - string
-     - Name of the instance size used for the |service| cluster.
+     - Name of the cluster tier used for the |service| cluster.
 
        .. include:: /includes/fact-instance-size-names.rst
 
@@ -293,9 +293,9 @@
           * - ``P50``
             - 4095GB
 
-       :sup:`1` Default for ``M20`` and ``M30`` Azure instances
+       :sup:`1` Default for ``M20`` and ``M30`` Azure cluster tiers
 
-       :sup:`2` Default for ``M40+`` Azure instances
+       :sup:`2` Default for ``M40+`` Azure cluster tiers
 
    * - | ``providerSettings``
        | ``.encryptEBSVolume``
@@ -303,7 +303,7 @@
      - *AWS only*. If enabled, the Amazon EBS encryption feature
        encrypts the server's root volume for both data at rest within
        the volume and for data moving between the volume and the
-       instance.
+       cluster.
 
    * - ``replicationFactor``
      - number

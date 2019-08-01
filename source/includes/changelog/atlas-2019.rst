@@ -90,10 +90,10 @@
 26 March 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- |service| instances can re-use public IP addresses when replaced in
+- |service| clusters can re-use public IP addresses when replaced in
   the same region.
 - Can configure backup schedule and retention for Snapshots Backup.
-- |aws| EC2 Capacity for all instance sizes in all regions and
+- |aws| EC2 Capacity for all cluster tiers in all regions and
   availability zones is visible via the |service| Admin UI.
 
 .. _atlas-v20190305:
@@ -129,13 +129,13 @@
   this special node type makes use of replica set tags to let you
   target workloads to specific secondaries.
 - Support for |aws| Stockholm region. With this
-  region comes a new largest cluster instance size, ``M700``.
+  region comes a new largest cluster, ``M700``.
 - |service| on :ref:`Azure <microsoft-azure>` 2.0.
 
-  -  ``M10``, ``M80``, and ``M200`` instances are now supported in all
-     regions. The ``M90`` instance size is going to be removed shortly.
+  -  ``M10``, ``M80``, and ``M200`` clusters are now supported in all
+     regions. The ``M90`` tier is going to be removed shortly.
   - Pricing reductions in most regions.
-  - All :ref:`Azure <microsoft-azure>` instances have been migrated to
+  - All :ref:`Azure <microsoft-azure>` clusters have been migrated to
     latest generation hardware.
 
 .. _atlas-v20190122:

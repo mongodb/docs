@@ -11,7 +11,7 @@
 
 - |service| deploys the :ref:`config servers <sharding-config-server>`
   as a three-node replica set. The config servers run on
-  M30 instances. 
+  M30 cluster tiers. 
 
   For cross-region clusters, |service| distributes the config server
   replia set nodes to ensure optimal availability. For example, 

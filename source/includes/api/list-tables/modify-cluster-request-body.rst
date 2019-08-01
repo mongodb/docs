@@ -148,8 +148,8 @@
        capacity by increasing this number, up to a maximum possible
        value of ``4096`` (i.e., 4 TB).
 
-       Each instance size has its own default value. If you set a value
-       below the instance default, |service| replaces it with the
+       Each cluster tier has its own default value. If you set a value
+       below the cluster default, |service| replaces it with the
        default value. To view default values: open the |service| web
        interface; click the button to add a new cluster; view the
        available default sizes; close the window without saving
@@ -362,7 +362,7 @@
 
        :sup:`1` Default for ``M20`` and ``M30`` Azure instances
 
-       :sup:`2` Default for ``M40+`` Azure instances
+       :sup:`2` Default for ``M40+`` Azure clusters
 
    * - | ``providerSettings``
        | ``.encryptEBSVolume``
@@ -370,7 +370,7 @@
      - AWS Optional
      - If enabled, the Amazon EBS encryption feature encrypts the
        server's root volume for both data at rest within the volume
-       and for data moving between the volume and the instance.
+       and for data moving between the volume and the cluster.
 
        .. note::
 
@@ -382,8 +382,8 @@
        | ``.instanceSizeName``
      - string
      - Required
-     - |service| provides different instance sizes, each with a default
-       storage capacity and RAM size. The instance size you select is
+     - |service| provides different cluster tiers, each with a default
+       storage capacity and RAM size. The cluster you select is
        used for all the data-bearing servers in your cluster. For
        definitions of data-bearing servers, see
        :ref:`server-number-costs`.

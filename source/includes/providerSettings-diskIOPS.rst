@@ -15,7 +15,7 @@ size and storage capacity:
 #. Under :guilabel:`Cloud Provider & Region`, select ``AWS``.
 #. Under :guilabel:`Cloud Provider & Region`, select the region
    corresponding to your configured ``providerSettings.regionName``.
-#. Under :guilabel:`Cluster Tier`, select the instance size
+#. Under :guilabel:`Cluster Tier`, select the cluster tier
    corresponding to your configured
    ``providerSettings.instanceSizeName``.
 #. Under :guilabel:`Cluster Tier`, set the :guilabel:`Storage Capacity`
@@ -38,7 +38,7 @@ You can see the available |iops| range by checking the
    ``STANDARD``.
 
 The default value for ``providerSettings.diskIOPS`` is the same as the
-instance size's :guilabel:`Standard IOPS` value, as viewable in the
+cluster tier's :guilabel:`Standard IOPS` value, as viewable in the
 |service| interface.
 
 Changing this value affects the cost of running the cluster

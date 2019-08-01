@@ -34,7 +34,7 @@
      - :ref:`VPC Peering Connection wizard <vpc-peering>`
 
    * - Global Region Selection
-     - |service| supports deploying ``M0`` instances in a subset of
+     - |service| supports deploying ``M0`` clusters in a subset of
        regions in |aws|, |gcp|, and Azure.
      - |service| supports deploying ``M2`` and ``M5`` clusters in a
        subset of regions in |aws|, |gcp|, and Azure.
@@ -59,9 +59,9 @@
    * - Sharding
      - No
      - No
-     - Yes, for clusters using an ``M30+`` instance
+     - Yes, for clusters using an ``M30+`` tier
 
-   * - Dedicated Instance
+   * - Dedicated Cluster
      - No, ``M0`` Free Tier clusters run in a shared environment
      - No, ``M2`` and ``M5`` clusters run in a shared environment
      - Yes, ``M10+`` clusters deploy each :binary:`mongod` process to
