@@ -87,6 +87,11 @@
 
 - Agent Upgrades: :ref:`automation-5.4.9.5483`, :ref:`backup-6.0.10.976`
 
+- **Critical Fix:** Set ``TasksMax=infinity`` and 
+  ``TasksAccounting=false`` in ``systemd`` scripts for
+  SUSE 12 versions of |mms|.
+  
+
 .. _opsmgr-server-3.6.7:
 
 |onprem| Server 3.6.7
