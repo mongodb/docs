@@ -1,3 +1,34 @@
+.. _opsmgr-server-4.0.14:
+
+|onprem| Server 4.0.14
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2019-07-31*
+
+- **Dependency Update:** Updated ``org.quartz-scheduler:quartz`` to 2.3.1 to
+  address CVE-2018-20433.
+
+- **Fix:** Backup Daemons on Amazon Linux 2 and SUSE 12/15 can
+  successfully download required MongoDB builds.
+
+  .. note::
+     This problem was introduced in |onprem|
+     :ref:`4.0.13 <opsmgr-server-4.0.13>` and resolved in |onprem|
+     4.0.14.
+
+- **Fix**: Fixed a bug which prevented the following two algorithms to
+  be disabled by default when using
+  :doc:`SSL connections with {+onprem+} </tutorial/configure-ssl-connection-to-web-interface>`:
+
+  - ``TLS_DHE_RSA_WITH_AES_256_GCM_SHA384``
+  - ``TLS_DHE_RSA_WITH_AES_256_CBC_SHA256``
+
+  These algorithms are now disabled by default.
+
+- Improved performance when downloading multiple restores concurrently.
+
+- **Agent Upgrades:** :ref:`automation-5.4.21.5544`
+
 .. _opsmgr-server-4.0.13:
 
 |onprem| Server 4.0.13
@@ -25,7 +56,7 @@
 - **Fix:** Fixed support for the ``security.clusterIpSourceWhitelist``
   MongoDB configuration option.
 
-- Dependency Update: Updated jetty to 9.4.18.
+- **Dependency Update:** Updated jetty to 9.4.18.
 
 - **Agent Upgrades:** :ref:`automation-5.4.19.5537`
 

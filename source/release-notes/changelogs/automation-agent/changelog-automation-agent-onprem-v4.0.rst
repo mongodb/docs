@@ -1,10 +1,20 @@
+.. _automation-5.4.21.5544:
+
+Automation Agent 5.4.21.5544
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.14 on 2019-07-31 <opsmgr-server-4.0.14>`
+
+- **Fix:** Restore downloads performed by Automation Agent now respect
+  the configured :asetting:`sslTrustedMMSServerCertificate` |onprem|
+  parameter.
+
 .. _automation-5.4.20.5541:
 
 Automation Agent 5.4.20.5541
 ----------------------------
 
 :ref:`Released with Ops Manager 4.0.13 on 2019-07-04 <opsmgr-server-4.0.13>`
-
 
 .. _automation-5.4.19.5537:
 

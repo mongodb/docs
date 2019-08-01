@@ -114,7 +114,8 @@ source_constants = {
     'agent-dl-tar-rhel-7-ppc': 'RHEL/CentOS (7.X) Power (ppc64le) - TAR',
     'agent-dl-tar-rhel-7-x64': 'RHEL/CentOS (7.X), SUSE12, Amazon Linux 2 - TAR',
     'agent-dl-tar-ubuntu-16-ppc': 'Ubuntu 16.X Power (ppc64le) - TAR',
-    'opsmgr-example-url': '<OpsManagerHost>:<Port>'
+    'opsmgr-example-url': '<OpsManagerHost>:<Port>',
+    'onprem': 'Ops Manager'
 }
 
 languages = [
