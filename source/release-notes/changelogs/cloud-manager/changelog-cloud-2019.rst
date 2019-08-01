@@ -1,3 +1,13 @@
+.. _cloudmanager-v20190730:
+
+30 July 2019 Release
+~~~~~~~~~~~~~~~~~~~~
+
+Disables the ability to create new Personal |api| Keys. These keys are
+deprecated. Use
+:doc:`Programmatic API Keys </tutorial/manage-programmatic-access>` to
+access the |mms| |api|.
+
 .. _cloudmanager-v20190709:
 
 09 July 2019 Release

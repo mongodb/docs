@@ -1,7 +1,16 @@
+.. _mongodb-10.3.0.5877:
+
+MongoDB Agent 10.3.0.5877
+-------------------------
+
+*Released 2019-08-01*
+
+Further work to support upcoming release of MongoDB Server 4.2.
+
 .. _mongodb-10.1.2.5805:
 
 MongoDB Agent 10.1.2.5805
----------------------------
+-------------------------
 
 *Released* 2019-06-11
 
@@ -15,8 +24,7 @@ MongoDB Agent 10.1.0.5785
 *Released* :ref:`2019-05-29 <cloudmanager-v20190528>`
 
 - Monitoring module updated to MongoDB's new Go driver.
-- Incremental work to support the upcoming MongoDB 4.2
-  release.
+- Incremental work to support the upcoming MongoDB Server 4.2 release.
 
 .. _mongodb-10.0.1.5755-1:
 
