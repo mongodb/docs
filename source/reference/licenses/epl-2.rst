@@ -1,0 +1,6 @@
+- javax.ws.rs:javax.ws.rs-api\@2.1.1
+- org.glassfish.hk2:guice-bridge\@2.5.0
+- org.glassfish.hk2:hk2-api\@2.5.0
+- org.glassfish.hk2:hk2-locator\@2.5.0
+- org.glassfish.hk2:hk2-utils\@2.5.0
+- org.glassfish.hk2.external:aopalliance-repackaged\@2.5.0

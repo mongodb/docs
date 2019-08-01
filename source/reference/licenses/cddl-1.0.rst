@@ -1,0 +1,7 @@
+- javax.activation:javax.activation-api\@1.2.0
+- javax.mail:mail\@1.5.0-b01
+- javax.persistence:persistence-api\@1.0.2
+- javax.servlet:servlet-api\@2.4
+- opendmk:jdmkrt-1.0-b02.jar
+- opendmk:jdmktk-1.0-b02.jar
+- opendmk:jmxremote_optional-1.0-b02

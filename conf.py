@@ -73,7 +73,15 @@ extlinks = {
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
     'aws': ('http://docs.aws.amazon.com%s',''),
     'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
-    'wikipedia' : ('https://en.wikipedia.org/wiki%s', '')
+    'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
+    'mvn' : ('https://mvnrepository.com/artifact%s',''),
+    'npmjs' : ('https://www.npmjs.com/package%s',''),
+    'gh' : ('https://github.com%s',''),
+    'gopkg-gh' : ('https://godoc.org/github.com%s',''),
+    'gopkg' : ('https://godoc.org%s',''),
+    'osi' : ('https://opensource.org%s', ''),
+    'cc' : ('http://creativecommons.org/licenses%s', ''),
+    'tldrl' : ('https://www.tldrlegal.com%s', '')
 }
 
 source_constants = {

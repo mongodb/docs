@@ -1,0 +1,2 @@
+- AdoptOpenJDK 11
+- com.google.errorprone:javac-shaded\@9+181-r4173-1

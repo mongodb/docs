@@ -1,0 +1,17 @@
+- com.sun.mail:javax.mail\@1.6.1
+- com.sun.xml.bind:jaxb-core\@2.3.0.1
+- javax.activation:activation\@1.1.1
+- javax.annotation:javax.annotation-api\@1.3.2
+- javax.annotation:jsr250-api\@1.0
+- javax.servlet:javax.servlet-api\@3.1.0
+- javax.transaction:javax.transaction-api\@1.3
+- javax.transaction:transaction-api\@1.1
+- javax.ws.rs:jsr311-api\@1.1.1
+- javax.xml:jaxrpc-api\@1.1
+- javax.xml.bind:jaxb-api\@2.4.0-b180830.0359
+- org.glassfish.hk2:osgi-resource-locator\@1.0.1
+- org.glassfish.hk2.external:javax.inject\@2.5.0-b42
+- org.glassfish.jersey.connectors:jersey-apache-connector\@2.17
+- org.glassfish.jersey.containers:jersey-container-jetty-http\@2.17
+- org.glassfish.jersey.test-framework:jersey-test-framework-core\@2.17
+- org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty\@2.17

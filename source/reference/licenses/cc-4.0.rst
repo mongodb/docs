@@ -1,0 +1,2 @@
+- caniuse-lite\@1.0.30000977
+- fortawesome/free-solid-svg-icons\@5.9.0

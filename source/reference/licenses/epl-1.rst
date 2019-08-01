@@ -1,0 +1,10 @@
+- ch.qos.logback:logback-access\@1.2.3
+- ch.qos.logback:logback-classic\@1.2.3
+- ch.qos.logback:logback-core\@1.2.3
+- com.mchange:c3p0\@0.9.5.3
+- com.mchange:mchange-commons-java\@0.2.15
+- com.sun.xml.bind:jaxb-impl\@2.4.0-b180830.0438
+- junit:junit\@4.12
+- org.eclipse.jdt:ecj\@3.17.0
+- org.eclipse.jdt.core.compiler:ecj\@4.6.1
+- org.jvnet.mimepull:mimepull\@1.9.6

@@ -1,0 +1,2 @@
+- com.sun.jdmk:jmxtools\@1.2.1
+- com.sun.jmx:jmxri\@1.2.1
