@@ -1,3 +1,18 @@
+.. _atlas-v20190730:
+
+30 July 2019 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Supports the Azure United Arab Emirates North region.
+- Introduces ``M80`` general class cluster tier on |aws| offering
+  next-gen infrastructure. This replaces the more expensive ``M100``.
+- Removes ``M100`` cluster tier on |aws| as an option for new cluster
+  deployments.
+- Disables the ability to create new Personal |api| Keys. These keys
+  are deprecated. Use
+  :doc:`Programmatic API Keys </tutorial/manage-programmatic-access>`
+  to access the |mms| |api|.
+
 .. _atlas-v20190709:
 
 09 July 2019 Release
@@ -112,9 +127,9 @@
     - ``eu-west-1`` (``M0``)
     - ``us-west-2`` (``M0``)
 
-  - Azure 
+  - Azure
 
-    - ``northeurope`` (``M0``) 
+    - ``northeurope`` (``M0``)
     - ``westus`` (``M0/M2/M5``)
 
 - Cloud Provider Snapshots for Geo-sharded clusters.
