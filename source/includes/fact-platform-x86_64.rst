@@ -4,9 +4,6 @@
       :widths: 20 80
       :class: border-table
 
-      * - Ubuntu 14.04
-        - Support removed from MongoDB 3.4.21+ and 3.6.13+.
-
       * - SLES 11 
         - Support removed from MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
 
@@ -62,6 +59,11 @@
      -
      - Community only
      - Community only
+
+   * - Ubuntu 14.04
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
    * - Ubuntu 16.04
      - |checkmark|
