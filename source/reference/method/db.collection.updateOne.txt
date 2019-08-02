@@ -40,7 +40,8 @@ The :method:`~db.collection.updateOne()` method has the following syntax:
         upsert: <boolean>,
         writeConcern: <document>,
         collation: <document>,
-        arrayFilters: [ <filterdocument1>, ... ]
+        arrayFilters: [ <filterdocument1>, ... ],
+        hint:  <document|string>        // Available starting in MongoDB 4.2.1
       }
    )
 
@@ -60,12 +61,12 @@ parameters:
 
      - Description
 
-   * - :ref:`filter <updateOne-filter>`
+   * - :ref:`filter <update-one-filter>`
 
      - document
 
-     - .. _updateOne-filter:
-     
+     - .. _update-one-filter:
+       
        The selection criteria for the update. The same :ref:`query
        selectors <query-selectors>` as in the :method:`find()
        <db.collection.find()>` method are available.
@@ -131,6 +132,27 @@ parameters:
        For examples, see :ref:`updateOne-arrayFilters`.
        
        .. versionadded:: 3.6
+
+   * - :ref:`hint <update-one-hint>` 
+
+     - Document or string
+
+     - .. _update-one-hint:
+
+       Optional. A document or string that specifies the :doc:`index
+       </indexes>` to use to support the :ref:`query predicate
+       <update-one-filter>`.
+       
+       The option can take an index specification document or the index
+       name string.
+       
+       If you specify an index that does not exist, the operation
+       errors.
+
+       For an example, see :ref:`ex-update-one-hint`.
+
+       .. versionadded:: 4.2.1
+
 
 Returns
 ~~~~~~~
@@ -245,7 +267,7 @@ document based on the ``filter`` criteria and ``update`` modifications. See
 :ref:`updateOne-example-update-with-upsert`.
 
 If you specify ``upsert: true`` on a sharded collection, you must
-include the full shard key in the :ref:`filter <updateOne-filter>`. For
+include the full shard key in the :ref:`filter <update-one-filter>`. For
 additional :method:`db.collection.updateOne()` behavior on a sharded
 collection, see :ref:`updateOne-sharded-collection`.
 
@@ -265,9 +287,9 @@ To use :method:`db.collection.updateOne()` on a sharded collection:
 
 - If you don't specify ``upsert: true``, you must include an exact
   match on the ``_id`` field or target a single shard (such as by
-  including the shard key in the :ref:`filter <updateOne-filter>`).
+  including the shard key in the :ref:`filter <update-one-filter>`).
 
-- If you specify ``upsert: true``, the :ref:`filter <updateOne-filter>`
+- If you specify ``upsert: true``, the :ref:`filter <update-one-filter>`
   must include the shard key.
 
 Shard Key Modification
@@ -746,6 +768,54 @@ operation, the collection has the following documents:
          { "grade" : 85, "mean" : 85, "std" : 4 }
       ]
    }
+
+.. _ex-update-one-hint:
+
+Specify ``hint`` for Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2.1
+
+Create a sample ``members`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insertMany([
+      { "_id" : 1, "member" : "abc123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" },
+      { "_id" : 3, "member" : "lmn123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 4, "member" : "pqr123", "status" : "D", "points" : 20,  "misc1" : "Deactivated", "misc2" : null },
+      { "_id" : 5, "member" : "ijk123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 6, "member" : "cde123", "status" : "A", "points" : 86,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+   ])
+
+Create the following indexes on the collection:
+
+.. code-block:: javascript
+
+   db.members.createIndex( { status: 1 } )
+   db.members.createIndex( { points: 1 } )
+
+The following update operation explicitly hints to use the index ``{
+status: 1 }``:
+
+.. note::
+
+   If you specify an index that does not exist, the operation errors.
+
+.. code-block:: javascript
+
+   db.members.updateOne(
+      { "points": { $lte: 20 }, "status": "P" }, 
+      { $set: { "misc1": "Need to activate" } },
+      { hint: { status: 1 } }
+   )
+
+The update command returns the following:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
 
 .. seealso:: To update multiple documents, see
    :method:`db.collection.updateMany()`.
