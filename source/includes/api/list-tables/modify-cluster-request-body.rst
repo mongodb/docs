@@ -749,5 +749,6 @@
        | ``.zoneName``
      - string
      - Optional
-     - Name for the zone in a |global-write-cluster|.
+     - Name for the zone in a |global-write-cluster|. Do not provide
+       this value if ``clusterType`` is not ``GEOSHARDED``.
 
