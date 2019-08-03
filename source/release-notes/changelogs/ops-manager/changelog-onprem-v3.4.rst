@@ -86,7 +86,7 @@
 
 - Agent Upgrades: :ref:`automation-3.2.16.2263`
 
-- **Fix:** ``credentialstool`` and ``encryptiontool`` 
+- **Fix:** ``credentialstool`` and ``encryptiontool``
   load dependencies correctly.
 
 - **Fix:** Backup groom jobs no longer get stuck on
@@ -157,7 +157,7 @@
         menu [ :icon:`ellipsis-h` ].
      #. Click :guilabel:`Resync`.
 
-     Do not resync the entire :term:`sharded cluster` if a 
+     Do not resync the entire :term:`sharded cluster` if a
      :term:`config server` triggers this alert. Resync the config
      server in question only.
 
@@ -464,4 +464,4 @@ Release Advisories for |onprem| 3.4
 .. include:: /release-notes/release-advisories/advisories-v3.4.rst
 
 For procedures to upgrade to 3.4, see
-:doc:`/tutorial/nav/upgrade-application`.
+:doc:`/tutorial/upgrade-ops-manager`.

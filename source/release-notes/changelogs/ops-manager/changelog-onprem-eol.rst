@@ -371,7 +371,7 @@ Release Advisories for |onprem| 2.0
 
 .. include:: /release-notes/release-advisories/advisories-v2.0.rst
 
-See: :doc:`/tutorial/nav/upgrade-application` for upgrade instructions
+See: :doc:`/tutorial/upgrade-ops-manager` for upgrade instructions
 for your operating system.
 
 .. _opsmgr-server-1.8:
@@ -694,7 +694,7 @@ New Features
   version upgrades, adding replica set members, adding shards, and
   changing oplog size. You can both
   :doc:`import existing deployments </tutorial/add-existing-mongodb-processes>` into Automation
-  and :doc:`create new deployments </tutorial/add-servers-automation>` 
+  and :doc:`create new deployments </tutorial/add-servers-automation>`
   on your provisioned hardware.
 
 - Windows support (Monitoring and Backup only). You can
