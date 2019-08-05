@@ -1,3 +1,12 @@
+.. _mongodb-10.3.1.5880:
+
+MongoDB Agent 10.3.1.5880
+-------------------------
+
+*Released 2019-08-05*
+
+Fixes issue with health check for integration with Kubernetes Operator
+
 .. _mongodb-10.3.0.5877:
 
 MongoDB Agent 10.3.0.5877
