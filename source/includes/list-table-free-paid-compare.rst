@@ -7,7 +7,7 @@
      - Shared Starter Cluster (``M2`` and ``M5``)
      - Dedicated Cluster (``M10`` and larger)
 
-   * - Storage
+   * - Storage (Data Size + Index Size)
      - | 512 MB
 
      - | ``M2``: 2 GB
