@@ -1,5 +1,5 @@
 The version of your existing |onprem| installation determines the
-upgrade path you must take to upgrade to Ops Manager 4.0 or later.
+upgrade path you must take to upgrade to Ops Manager 4.2 or later.
 
 .. important::
 
@@ -24,9 +24,13 @@ The following table lists upgrade paths for all versions:
 
      - Upgrade Path
 
+   * - 4.2.x
+     - Use this tutorial to upgrade from |onprem| 4.2.x to a more
+       recent 4.2.x version.
+
    * - 4.0.x
-     - Use this tutorial to upgrade from |onprem| 4.0.x to a more
-       recent 4.0.x version.
+     - Use this tutorial to upgrade from |onprem| 4.0.x to version
+       4.2.x.
 
    * - 3.6.x
      - Use this tutorial to upgrade from |onprem| 3.6.x to version

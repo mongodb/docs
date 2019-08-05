@@ -7,15 +7,15 @@ If you are running MongoDB 4.2 with
 
 .. only:: onprem
 
-   - Cannot back up sharded clusters. Do not upgrade sharded clusters to
-     ``"featureCompatibilityVersion" : 4.2`` if you need to back up your
-     sharded cluster.
+   - Cannot back up sharded clusters. Do not upgrade sharded clusters
+     to ``"featureCompatibilityVersion" : 4.2`` if you need to back up
+     your sharded cluster.
 
    - Cannot restore to a specific a
-     :doc:`point in time </tutorial/nav/restore-overview>` or use
-     a :doc:`queryable restores </tutorial/query-backup>`. Do not upgrade
-     to ``"featureCompatibilityVersion" : 4.2`` if you require point in time
-     or queryable restores.
+     :doc:`point in time </tutorial/nav/restore-overview>` or use a
+     :doc:`queryable restores </tutorial/query-backup>`. Do not
+     upgrade to ``"featureCompatibilityVersion" : 4.2`` if you require
+     point in time or queryable restores.
 
    - Cannot use namespace filter lists to define the
      :term:`namespaces <namespace>` included in a backup.
@@ -29,20 +29,20 @@ If you are running MongoDB 4.2 with
 
 .. only:: cloud
 
-   - Cannot back up sharded clusters. Do not upgrade sharded clusters to
-     ``"featureCompatibilityVersion" : 4.2`` if you need to back up your
-     sharded cluster.
+   - Cannot back up sharded clusters. Do not upgrade sharded clusters
+     to ``"featureCompatibilityVersion" : 4.2`` if you need to back up
+     your sharded cluster.
 
    - Cannot restore to a specific a
      :doc:`point in time </tutorial/nav/restore-overview>` or use
      :doc:`queryable restores </tutorial/query-backup>`. Do not upgrade
-     to ``"featureCompatibilityVersion" : 4.2`` if you require point in time
-     or queryable restores.
+     to ``"featureCompatibilityVersion" : 4.2`` if you require point
+     in time or queryable restores.
 
    - Must deploy a MongoDB Agent with every |mongod| node in
      the cluster.
 
-Backup and restore performance will decrease for MongoDB 4.2 replica
-sets with many small collections (e.g., tens of
+Backup and restore performance decreases for MongoDB 4.2 replica
+sets with many small collections: those with tens of
 thousands of collections with less than 1 GB of data per
-collection).
+collection.
