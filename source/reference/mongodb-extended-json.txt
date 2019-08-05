@@ -1,6 +1,6 @@
-=====================
-MongoDB Extended JSON
-=====================
+==========================
+MongoDB Extended JSON (v2)
+==========================
 
 .. default-domain:: mongodb
 
@@ -10,468 +10,660 @@ MongoDB Extended JSON
    :depth: 1
    :class: singlecol
 
-:term:`JSON` can only represent a subset of the types supported by
-:term:`BSON`. To preserve type information, MongoDB adds the following
-extensions to the JSON format:
+.. admonition:: Disambiguation
+   :class: important
 
-- *Strict mode*. Strict mode representations of BSON types conform to
-  the `JSON RFC <http://www.json.org>`_. Any JSON parser can parse
-  these strict mode representations as key/value pairs; however, only
-  the MongoDB internal JSON parser recognizes the type
-  information conveyed by the format.
+   The following page discusses MongoDB Extended JSON v2. For
+   discussion on the Legacy MongoDB Extended JSON v1, see
+   :doc:`/reference/mongodb-extended-json-v1`.
 
-- ``mongo`` *Shell mode*. The MongoDB internal JSON parser and the
-  :binary:`~bin.mongo` shell can parse this mode.
+   For :binary:`~bin.mongo` shell wrapper methods for types, see
+   :doc:`/core/shell-types`.
 
-The representation used for the various data types depends on the
-context in which the JSON is parsed.
+:term:`JSON` can only directly represent a subset of the types
+supported by :term:`BSON`. To preserve type information, MongoDB adds
+the following extensions to the JSON format.
 
-Parsers and Supported Format
-----------------------------
+- Canonical Mode
+      A string format that emphasizes type preservation at the expense
+      of readability and interoperability. That is, conversion from
+      canonical to BSON will generally preserve type information except
+      in certain specific cases.
 
-Input in Strict Mode
-~~~~~~~~~~~~~~~~~~~~
+- Relaxed Mode
+      A string format that emphasizes readability and interoperability
+      at the expense of type preservation. That is, conversion from
+      relaxed format to BSON can lose type information.
 
-The following can parse representations in strict mode *with*
-recognition of the type information.
+Both formats conform to the `JSON RFC <http://www.json.org>`_ and can be
+parsed by the various MongoDB drivers and tools.
 
-- :ecosystem:`REST Interfaces </tools/http-interfaces>`
+MongoDB Extended JSON v2 Usage
+------------------------------
 
-- :binary:`~bin.mongoimport`
+Drivers
+~~~~~~~
 
-- ``--query`` option of various MongoDB tools
+The following drivers use the Extended JSON v2.0
 
-- :products:`MongoDB Compass </compass>`
+.. hlist::
+   :columns: 3
 
-Other JSON parsers, including :binary:`~bin.mongo` shell, can parse
-strict mode representations as key/value pairs, but *without*
-recognition of the type information.
+   - C
 
-Input in ``mongo`` Shell Mode
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   - C++
 
-The following can parse representations in ``mongo`` shell mode *with*
-recognition of the type information.
+   - Go
 
-- :ecosystem:`REST Interfaces </tools/http-interfaces>`
+   - Java
 
-- :binary:`~bin.mongoimport`
+   - Node
 
-- ``--query`` option of various MongoDB tools
+   - Perl
 
-- :binary:`~bin.mongo` shell
+   - PHPC
 
-Output in Strict mode
-~~~~~~~~~~~~~~~~~~~~~
+   - Python
 
-:binary:`~bin.mongoexport` and :ecosystem:`REST and HTTP Interfaces
-</tools/http-interfaces>` output data in *Strict mode*.
+   - Scala
+   
+For C# and Ruby that use Legacy MongoDB Extended JSON v1, refer to
+:doc:`/reference/mongodb-extended-json-v1`.
 
-Output in ``mongo`` Shell Mode
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MongoDB Command-Line Tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:binary:`~bin.bsondump` outputs in ``mongo`` *Shell mode*.
+.. include:: /includes/extracts/4.2-changes-extended-json-v2.rst
 
 BSON Data Types and Associated Representations
 ----------------------------------------------
 
-The following presents the BSON data types and the associated
-representations in *Strict mode* and ``mongo`` *Shell mode*.
+The following presents some common BSON data types and the associated
+representations in *Canonical* and *Relaxed*.
 
-Binary
-~~~~~~
+.. list-table::
+   :widths: 15 15 15 30
+   
+   * - - :bsontype:`Array`
+       - :bsontype:`Binary`
+       - :bsontype:`Date`
 
-.. bsontype:: data_binary
+     - - :bsontype:`Decimal128`
+       - :bsontype:`Document`
+       - :bsontype:`Double`
+
+     - - :bsontype:`Int32`
+       - :bsontype:`Int64`
+       - :bsontype:`MaxKey`
+   
+     - - :bsontype:`MinKey`
+       - :bsontype:`ObjectId`
+       - :bsontype:`Regular Expression`
+       - :bsontype:`Timestamp`
+
+For a complete list, see
+https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#conversion-table.
+
+.. bsontype:: Array
+
+--------------------------------------------------- 
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Canonical
+
+     - Relaxed
+
+   * - .. code-block:: none
+          :copyable: false
+
+          [ <elements> ]
+
+     - .. code-block:: none
+          :copyable: false
+
+          <Same as Canonical>
+
+.. container::
 
    .. list-table::
-      :header-rows: 1
-      :widths: 50 5 40
+   
+      * - Where the array elements are as follows:
 
-      * - Strict Mode
+      * - - ``<elements>``
+               Array elements use Extended JSON.
+               To specify an empty array, omit the content ``[ ]``.
 
-        -
 
-        - :binary:`~bin.mongo` Shell Mode
+.. bsontype:: Binary
 
-      * - .. code-block:: none
+---------------------------------------------------
 
-             { "$binary": "<bindata>", "$type": "<t>" }
+.. list-table::
+   :header-rows: 1
+   :class: border-table
 
-        -
+   * - Canonical
+     - Relaxed
 
-        - .. code-block:: none
+   * - .. code-block:: none
+          :copyable: false
 
-             BinData ( <t>, <bindata> )
+          { "$binary": 
+             {
+                "base64": "<payload>",
+                "subtype": "<t>" 
+             }
+          }
 
-- ``<bindata>`` is the base64 representation of a binary string.
+     - .. code-block:: none
+          :copyable: false
+     
+          <Same as Canonical>
 
-- ``<t>`` is a representation of a single byte indicating the data type. In
-  *Strict mode* it is a hexadecimal string, and in *Shell mode* it is an integer.
-  See the extended bson documentation. http://bsonspec.org/spec.html
+.. container::
+
+   .. list-table::
+   
+      * - Where the values are as follows:
+
+      * - - ``"<payload>"``
+              Base64 encoded (with padding as "=") payload string.
+
+          - ``"<t>"``
+              A one- or two-character hex string that corresponds to a
+              BSON binary subtype. See the extended bson documentation
+              http://bsonspec.org/spec.html for subtypes available.
 
 .. _extended-json-date:
 
-Date
-~~~~
+.. bsontype:: Date
 
-.. bsontype:: data_date
+---------------------------------------------------
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 40 20 40
+*For dates between years 1970 and 9999, inclusive*:
 
-      * - Strict Mode
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+ 
+   * - Canonical
+     - Relaxed
 
-        -
+   * - .. code-block:: none
+          :copyable: false
 
-        - :binary:`~bin.mongo` Shell Mode
+          {"$date": {"$numberLong": "<millis>"}}
 
-      * - .. code-block:: none
+     - .. code-block:: none
+          :copyable: false
+     
+          {"$date": "<ISO-8601 Date/Time Format>"}
 
-             { "$date": "<date>" }
+*For dates before year 1970 or after year 9999*:
 
-        -
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+ 
+   * - Canonical
+     - Relaxed
 
-        - .. code-block:: none
+   * - .. code-block:: none
+          :copyable: false
 
-             new Date ( <date> )
+          {"$date": {"$numberLong": "<millis>"}}
+     
+     - .. code-block:: none
+          :copyable: false
+     
+          <Same as Canonical>
 
-   In *Strict mode*, ``<date>`` is an ISO-8601 date format with a mandatory time
-   zone field following the template ``YYYY-MM-DDTHH:mm:ss.mmm<+/-Offset>``.
-
-   In *Shell mode*, ``<date>`` is the JSON representation of a 64-bit signed
-   integer giving the number of milliseconds since epoch UTC.
-
-Timestamp
-~~~~~~~~~
-
-.. bsontype:: data_timestamp
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 40 10 30
-
-      * - Strict Mode
-
-        -
-
-        - :binary:`~bin.mongo` Shell Mode
-
-      * - .. code-block:: none
-
-             { "$timestamp": { "t": <t>, "i": <i> } }
-
-        -
-
-        - .. code-block:: none
-
-             Timestamp( <t>, <i> )
-
-- ``<t>`` is the JSON representation of a 32-bit unsigned integer for
-  seconds since epoch.
-
-- ``<i>`` is a 32-bit unsigned integer for the increment.
-
-Regular Expression
-~~~~~~~~~~~~~~~~~~
-
-.. bsontype:: data_regex
+.. container::
 
    .. list-table::
-      :header-rows: 1
-      :widths: 50 5 30
-
-      * - Strict Mode
-
-        -
-
-        - :binary:`~bin.mongo` Shell Mode
-
-      * - .. code-block:: none
-
-             { "$regex": "<sRegex>", "$options": "<sOptions>" }
-
-        -
-
-        - .. code-block:: none
-
-             /<jRegex>/<jOptions>
-
-- ``<sRegex>`` is a string of valid JSON characters.
-
-- ``<jRegex>`` is a string that may contain valid JSON characters and
-  unescaped double quote (``"``) characters, but may not contain
-  unescaped forward slash (``/``) characters.
-
-- ``<sOptions>`` is a string containing the regex options represented
-  by the letters of the alphabet.
-
-- ``<jOptions>`` is a string that may contain only the characters 'g',
-  'i', 'm' and 's' (added in v1.9). Because the ``JavaScript`` and
-  ``mongo Shell`` representations support a limited range of options,
-  any nonconforming options will be dropped when converting to this
-  representation.
-
-OID
-~~~
-
-.. bsontype:: data_oid
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 40 20 40
-
-      * - Strict Mode
-
-        -
-
-        - :binary:`~bin.mongo` Shell Mode
-
-      * - .. code-block:: none
-
-             { "$oid": "<id>" }
-
-        -
-
-        - .. code-block:: none
-
-             ObjectId( "<id>" )
-
-   ``<id>`` is a 24-character hexadecimal string.
-
-DB Reference
-~~~~~~~~~~~~
-
-.. bsontype:: data_ref
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 50 5 30
-
-      * - Strict Mode
-
-        -
-
-        - :binary:`~bin.mongo` Shell Mode
-
-      * - .. code-block:: none
-
-             { "$ref": "<name>", "$id": "<id>" }
-
-        -
-
-        - .. code-block:: none
-
-             DBRef("<name>", "<id>")
-
-- ``<name>`` is a string of valid JSON characters.
-
-- ``<id>`` is any valid extended JSON type.
-
-Undefined Type
-~~~~~~~~~~~~~~
-
-.. bsontype:: data_undefined
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 40 20 40
-
-      * - Strict Mode
-
-        -
-
-        - :binary:`~bin.mongo` Shell Mode
-
-      * - .. code-block:: none
-
-             { "$undefined": true }
-
-        -
-
-        - .. code-block:: none
-
-             undefined
-
-   The representation for the JavaScript/BSON undefined type.
-
-   You *cannot* use ``undefined`` in query documents.
-   Consider the following document inserted into the ``people`` collection:
    
-   .. code-block:: sh
-   
-      db.people.insert( { name : "Sally", age : undefined } )
+      * - Where the values are as follows:
+      * - - ``"<millis>"``
+               A 64-bit signed integer as string. The value
+               represents milliseconds relative to the epoch.
 
-   The following queries return an error:
-   
-   .. code-block:: sh
-   
-      db.people.find( { age : undefined } )
-      db.people.find( { age : { $gte : undefined } } )
-   
-   However, you can query for undefined values using :query:`$type`, as
-   in:
-   
-   .. code-block:: sh
-      
-      db.people.find( { age : { $type : 6 } } )
-   
-   This query returns all documents for which the ``age`` field has
-   value ``undefined``.
+          - ``"<ISO-8601 Date/Time Format>"``
+               A date in `ISO-8601 Internet
+               Date/Time Format
+               <https://tools.ietf.org/html/rfc3339#section-5.6>`__ as string.
+               The date/time has a maximum time precision of milliseconds:
 
-MinKey
-~~~~~~
+               - Fractional seconds have exactly 3 decimal
+                 places if the fractional part is non-zero.
 
-.. bsontype:: data_minkey
+               - Otherwise, fractional seconds SHOULD be omitted if zero.
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 40 20 40
+.. bsontype:: Decimal128
 
-      * - Strict Mode
-
-        -
-
-        - :binary:`~bin.mongo` Shell Mode
-
-      * - .. code-block:: none
-
-             { "$minKey": 1 }
-
-        -
-
-        - .. code-block:: none
-
-             MinKey
-
-   The representation of the MinKey BSON data type that compares lower
-   than all other types. See
-   :ref:`faq-dev-compare-order-for-BSON-types` for more information on
-   comparison order for BSON types.
-
-MaxKey
-~~~~~~
-
-.. bsontype:: data_maxkey
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 40 20 40
-
-      * - Strict Mode
-
-        -
-
-        - :binary:`~bin.mongo` Shell Mode
-
-      * - .. code-block:: none
-
-             { "$maxKey": 1 }
-
-        -
-
-        - .. code-block:: none
-
-             MaxKey
-
-   The representation of the MaxKey BSON data type that compares higher
-   than all other types. See
-   :ref:`faq-dev-compare-order-for-BSON-types` for more information on
-   comparison order for BSON types.
-
-NumberLong
-~~~~~~~~~~
-
-.. versionadded:: 2.6
-
-.. bsontype:: data_numberlong
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 40 10 30
-
-      * - Strict Mode
-
-        -
-
-        - :binary:`~bin.mongo` Shell Mode
-
-      * - .. code-block:: none
-
-             { "$numberLong": "<number>" }
-
-        -
-
-        - .. code-block:: none
-
-             NumberLong( "<number>" )
-
-   ``NumberLong`` is a 64 bit signed integer. You must include quotation
-   marks or it will be interpreted as a floating point number, resulting
-   in a loss of accuracy.
-
-   For example, the following commands insert ``9223372036854775807`` as a
-   ``NumberLong`` with and without quotation marks around the integer value:
-
-   .. code-block:: sh
-
-      db.json.insert( { longQuoted : NumberLong("9223372036854775807") } )
-      db.json.insert( { longUnQuoted : NumberLong(9223372036854775807) } )
-
-   When you retrieve the documents, the value of ``longUnQuoted`` has
-   changed, while ``longQuoted`` retains its accuracy:
-
-   .. code-block:: sh
-
-      db.json.find()
-      { "_id" : ObjectId("54ee1f2d33335326d70987df"), "longQuoted" : NumberLong("9223372036854775807") }
-      { "_id" : ObjectId("54ee1f7433335326d70987e0"), "longUnQuoted" : NumberLong("-9223372036854775808") }
-
-NumberDecimal
-~~~~~~~~~~~~~
+--------------------------------------------------- 
 
 .. versionadded:: 3.4
 
-.. bsontype:: data_numberdecimal
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Canonical
+
+     - Relaxed
+
+   * - .. code-block:: none
+          :copyable: false
+
+          { "$numberDecimal": "<number>" }
+
+     - .. code-block:: none
+          :copyable: false
+
+          <Same as Canonical>
+
+.. container::
 
    .. list-table::
-      :header-rows: 1
-      :widths: 40 10 30
+   
+      * - Where the values are as follows:
 
-      * - Strict Mode
+      * - - ``"<number>"``
+              A `high-precision decimal
+              <https://github.com/mongodb/specifications/blob/master/source/bson-decimal128/decimal128.rst>`_ 
+              as string.
 
-        -
+.. bsontype:: Document
 
-        - :binary:`~bin.mongo` Shell Mode
+--------------------------------------------------- 
 
-      * - .. code-block:: none
+.. list-table::
+   :header-rows: 1
+   :class: border-table
 
-             { "$numberDecimal": "<number>" }
+   * - Canonical
 
-        -
+     - Relaxed
 
-        - .. code-block:: none
+   * - .. code-block:: none
+          :copyable: false
 
-             NumberDecimal( "<number>" )
+          { <content> }
 
-   ``NumberDecimal`` is a `high-precision decimal
-   <https://github.com/mongodb/specifications/blob/master/source/bson-de
-   cimal128/decimal128.rst>`_. You must include quotation marks, or the
-   input number will be treated as a double, resulting in data loss. 
+     - .. code-block:: none
+          :copyable: false
 
-   For example, the following commands insert ``123.40`` as a
-   ``NumberDecimal`` with and without quotation marks around the value:
+          <Same as Canonical>
 
-   .. code-block:: sh
+.. container::
 
-      db.json.insert( { decimalQuoted : NumberDecimal("123.40") } )
-      db.json.insert( { decimalUnQuoted : NumberDecimal(123.40) } )
+   .. list-table::
+   
+      * - Where the document contents are as follows:
 
-   When you retrieve the documents, the value of ``decimalUnQuoted`` has
-   changed, while ``decimalQuoted`` retains its specified precision:
+      * - - ``<content>``
+               Name:value pairs that use Extended JSON.
+               To specify an empty document, omit the content ``{ }``.
 
-   .. code-block:: sh
+.. bsontype:: Double
 
-      db.json.find()
-      { "_id" : ObjectId("596f88b7b613bb04f80a1ea9"), "decimalQuoted" : NumberDecimal("123.40") }
-      { "_id" : ObjectId("596f88c9b613bb04f80a1eaa"), "decimalUnQuoted" : NumberDecimal("123.400000000000") }
+---------------------------------------------------
+
+*For finite numbers*:
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+ 
+   * - Canonical
+     - Relaxed
+
+   * - .. code-block:: none
+          :copyable: false
+
+          {"$numberDouble": "<decimal string>" }
+
+     - .. code-block:: none
+          :copyable: false
+
+          <non-integer number>
+
+*For infinite numbers or NAN*:
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+ 
+   * - Canonical
+     - Relaxed
+
+   * - .. code-block:: none
+          :copyable: false
+
+          {"$numberDouble": <"Infinity"|"-Infinity"|"NaN"> }
+     
+     - .. code-block:: none
+          :copyable: false
+     
+          <Same as Canonical>
+
+.. container::
+
+   .. list-table::
+   
+      * - Where the values are as follows:
+      * - - ``"<decimal string>"``
+               A 64-bit signed floating point as a string.
+
+          - ``<non-integer number>``
+              A non-integer number. Integer numbers are parsed as
+              integer instead of double.
+
+.. bsontype:: Int64
+
+--------------------------------------------------- 
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Canonical
+
+     - Relaxed
+
+   * - .. code-block:: none
+          :copyable: false
+
+          { "$numberLong": "<number>" }
+
+     - .. code-block:: none
+          :copyable: false
+
+          <integer>
+
+.. container::
+
+   .. list-table::
+   
+      * - Where the values are as follows:
+
+      * - - ``"<number>"``
+              A 64-bit signed integer as string.
+
+          - ``<integer>``
+              A 64-bit signed integer.
+
+.. bsontype:: Int32
+
+--------------------------------------------------- 
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Canonical
+
+     - Relaxed
+
+   * - .. code-block:: none
+          :copyable: false
+
+          { "$numberInt": "<number>" }
+
+     - .. code-block:: none
+          :copyable: false
+
+          <integer>
+
+.. container::
+
+   .. list-table::
+   
+      * - Where the values are as follows:
+
+      * - - ``"<number>"``
+              A 32-bit signed integer as string.
+
+          - ``<integer>``
+              A 32-bit signed integer.
+
+.. bsontype:: MaxKey
+
+--------------------------------------------------- 
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Canonical
+
+     - Relaxed
+
+
+   * - .. code-block:: none
+          :copyable: false
+
+          { "$maxKey": 1 }
+
+     - .. code-block:: none
+          :copyable: false
+
+          <Same as Canonical>
+
+The MaxKey BSON data type compares higher than all other types. See
+:ref:`faq-dev-compare-order-for-BSON-types` for more information on
+comparison order for BSON types.
+
+.. bsontype:: MinKey
+
+--------------------------------------------------- 
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Canonical
+
+     - Relaxed
+
+
+   * - .. code-block:: none
+          :copyable: false
+
+          { "$minKey": 1 }
+
+     - .. code-block:: none
+          :copyable: false
+
+          <Same as Canonical>
+
+The MinKey BSON data type compares lower than all other types. See
+:ref:`faq-dev-compare-order-for-BSON-types` for more information on
+comparison order for BSON types.
+
+.. bsontype:: ObjectId
+
+--------------------------------------------------- 
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Canonical
+     - Relaxed
+
+   * - .. code-block:: none
+          :copyable: false
+
+          { "$oid": "<ObjectId bytes>" }
+
+     - .. code-block:: none
+          :copyable: false
+
+          <Same as Canonical>
+
+.. container::
+
+   .. list-table::
+   
+      * - Where the values are as follows:
+
+      * - - ``"<ObjectId bytes>"``
+              A 24-character, big-endian hexadecimal string that
+              represents the ObjectId bytes.
+
+.. bsontype:: Regular Expression
+
+--------------------------------------------------- 
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Canonical
+
+     - Relaxed
+
+   * - .. code-block:: none
+          :copyable: false
+
+          { "$regularExpression": 
+             {
+                "pattern": "<regexPattern>", 
+                "options": "<options>"
+            }
+          }
+
+     - .. code-block:: none
+          :copyable: false
+
+          <Same as Canonical>
+
+.. container::
+
+   .. list-table::
+   
+      * - Where the values are as follows:
+
+      * - - ``"<regexPattern>"``
+              A string that corresponds to the regular expression
+              pattern. The string can contain valid JSON characters and
+              unescaped double quote (``"``) characters, but may not
+              contain unescaped forward slash (``/``) characters.
+
+          - ``"<options>"``
+              A string that specifies BSON regular expression options
+              ('g', 'i', 'm' and 's') or an empty string ``""``.
+          
+              Options other than ('g', 'i', 'm' and 's') will be dropped
+              when converting to this representation.
+
+              .. important::
+
+                 The options MUST be in alphabetical order.
+
+.. bsontype:: Timestamp
+
+--------------------------------------------------- 
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Canonical
+
+     - Relaxed
+
+   * - .. code-block:: none
+          :copyable: false
+
+          {"$timestamp": {"t": <t>, "i": <i>}}
+
+     - .. code-block:: none
+          :copyable: false
+
+          <Same as Canonical>
+
+.. container::
+
+   .. list-table::
+   
+      * - Where the values are as follows:
+
+      * - - ``<t>``
+              A positive integer for the seconds since epoch.
+
+          - ``<i>``
+              A positive integer for the increment.
+
+
+Example
+-------
+
+.. list-table::
+   :widths: 20 40 40
+   :header-rows: 1
+   
+   * - Example Field Name
+     - Canonical Format
+     - Relaxed Format
+
+   * - "_id:"
+   
+     - {"$oid":"5d505646cf6d4fe581014ab2"}
+     - {"$oid":"5d505646cf6d4fe581014ab2"}
+
+   * - "arrayField":
+     - ["hello",{"$numberInt":"10"}]
+     - ["hello",10]
+
+   * - "dateField":
+     - {"$date":{"$numberLong":"1565546054692"}}
+     - {"$date":"2019-08-11T17:54:14.692Z"}
+
+   * - "dateBefore1970":
+     - {"$date":{"$numberLong":"-1577923200000"}}
+     - {"$date":{"$numberLong":"-1577923200000"}}
+     
+   * - "decimal128Field":
+     - {"$numberDecimal":"10.99"}
+     - {"$numberDecimal":"10.99"}
+
+   * - "documentField":
+     - {"a":"hello"}
+     - {"a":"hello"}
+
+   * - "doubleField":
+     - {"$numberDouble":"10.5"}
+     - 10.5
+
+   * - "infiniteNumber"
+     - {"$numberDouble":"Infinity"}
+     - {"$numberDouble":"Infinity"}
+    
+   * - "int32field":
+     - {"$numberInt":"10"}
+     - 10
+
+   * - "int64Field":
+     - {"$numberLong":"50"}
+     - 50
+
+   * - "minKeyField":
+     - {"$minKey":1}
+     - {"$minKey":1}
+
+   * - "maxKeyField":
+     - {"$maxKey":1}
+     - {"$maxKey":1}
+
+   * - "regexField":
+     - {"$regularExpression":{"pattern":"^H","options":"i"}}
+     - {"$regularExpression":{"pattern":"^H","options":"i"}}
+
+   * - "timestampField":
+     - {"$timestamp":{"t":1565545664,"i":1}}
+     - {"$timestamp":{"t":1565545664,"i":1}}

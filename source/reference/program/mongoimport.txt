@@ -34,12 +34,23 @@ Behavior
 
 .. include:: /includes/fact-type-fidelity-loss.rst
 
-JSON
-~~~~
+JSON Format
+~~~~~~~~~~~
 
-:binary:`~bin.mongoexport` and :binary:`~bin.mongoimport` use the :doc:`strict
-mode representation </reference/mongodb-extended-json>` for certain
-types.
+Starting in MongoDB 4.2, :binary:`~bin.mongoimport` expects import data
+to be in Extended JSON v2.0 (either Relaxed or Canonical mode)
+by default. To recognize data that is in Extended JSON v1.0 format, see
+:option:`--legacy <mongoimport --legacy>`.
+
+In earlier versions, :binary:`~bin.mongoimport` expects data in
+:doc:`/reference/mongodb-extended-json-v1` format.
+
+.. tip::
+
+   In general, the versions of :binary:`~bin.mongoexport` and
+   :binary:`~bin.mongoimport` should match. That is, to import data
+   created from :binary:`~bin.mongoexport`, you should use the
+   corresponding version of :binary:`~bin.mongoimport`.
 
 Encoding
 ~~~~~~~~
@@ -149,6 +160,41 @@ Options
 .. include:: /includes/option/option-mongoimport-stopOnError.rst
 
 .. include:: /includes/option/option-mongoimport-jsonArray.rst
+
+.. option:: --legacy
+
+   Indicates that the import data is in :doc:`Extended JSON v1 format
+   </reference/mongodb-extended-json-v1>` instead of the default
+   :doc:`Extended JSON v2 format </reference/mongodb-extended-json>`.
+
+   .. tip::
+
+      In general, the versions of :binary:`~bin.mongoexport` and
+      :binary:`~bin.mongoimport` should match. That is, to import
+      data created from :binary:`~bin.mongoexport`, you should use
+      the corresponding version of :binary:`~bin.mongoimport`.
+
+   For example, if the import data is in v1 format:
+   
+   .. code-block:: javascript
+
+      {"_id":1.0,"myregfield":{"$regex":"foo","$options":"i"}}
+   
+   Import without the :option:`--legacy <mongoimport --legacy>` option results in
+   the following document in the collection:
+   
+   .. code-block:: javascript
+   
+      { "_id" : 1, "myregfield" : { "$regex" : "foo", "$options" : "i" } }
+
+   Import with the :option:`--legacy <mongoimport --legacy>` results in
+   the following document in the collection:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "myregfield" : { "$regularExpression" : { "pattern" : "foo", "options" : "i" } } }
+
+   .. versionadded:: 4.2
 
 .. include:: /includes/option/option-mongoimport-maintainInsertionOrder.rst
 
