@@ -30,7 +30,7 @@
      - :ecosystem:`Motor </drivers/python>`
      - `0.4 <https://pypi.python.org/pypi/motor/>`_
 
-   * - :ecosystem:`Node.js </drivers/node-js>`
+   * - :ecosystem:`Node.js </drivers/node>`
      - `1.4.29 <https://github.com/mongodb/node-mongodb-native/releases>`_
 
 
