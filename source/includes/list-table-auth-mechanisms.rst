@@ -30,7 +30,7 @@
 
      - External authentication using Kerberos. This mechanism is
        available only in `MongoDB Enterprise
-       <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
+       <http://www.mongodb.com/products/mongodb-enterprise-advanced?jmp=docs>`_.
 
    * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
 
@@ -38,4 +38,4 @@
        for authenticating in-database users. ``PLAIN`` transmits
        passwords in plain text. This mechanism is available only in
        `MongoDB Enterprise
-       <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
+       <http://www.mongodb.com/products/mongodb-enterprise-advanced?jmp=docs>`_.
