@@ -1,4 +1,4 @@
-- Added support for :doc:`plugins </plugins/creating-compass-plugins>`
+- Added support for plugins
   that extend the functionality of |compass|.
 
 - Added support for :ref:`disconnecting <disconnect>` from the active
