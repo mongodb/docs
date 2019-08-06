@@ -16,28 +16,91 @@ Query Plans
 
 .. TODO Consider moving this to the mechanics of the index section
 
-The MongoDB query optimizer processes queries and chooses the most
-efficient query plan for a query given the available indexes. The query
-system then uses this query plan each time the query runs.
+For a query, the MongoDB query optimizer chooses and caches the most
+efficient query plan given the available indexes. The evaluation of the
+most efficient query plan is based on the number of "work units"
+(``works``) performed by the query execution plan when the query planner
+evaluates candidate plans.
 
-.. include:: /includes/fact-query-optimizer-cache-behavior.rst
+The associated plan cache entry is used for subsequent queries with the
+same query shape.
 
-For each query, the query planner searches the query plan cache for an entry
-that fits the :term:`query shape`. If there are no matching entries, the
-query planner generates candidate plans for evaluation over a trial period.
-The query planner chooses a winning plan, creates a cache entry containing
-the winning plan, and uses it to generate the result documents.
+.. _cache-entry-state:
 
-If a matching entry exists, the query planner generates a plan based on that
-entry and evaluates its performance through a ``replanning`` mechanism. This
-mechanism makes a ``pass/fail`` decision based on the plan performance and
-either keeps or evicts the cache entry. On eviction, the query planner selects
-a new plan using the normal planning process and caches it. The query planner
-executes the plan and returns the result documents for the query.
+Plan Cache Entry State
+~~~~~~~~~~~~~~~~~~~~~~
 
-The following diagram illustrates the query planner logic:
+Starting in MongoDB 4.2, the cache entry is associated with a state:
 
-.. include:: /images/query-planner-diagram.rst
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - State
+     - Description
+   
+   * - :ref:`Missing <cache-entry-missing>`
+   
+     - .. _cache-entry-missing:
+
+       No entry for this shape exists in the cache.
+       
+       For a query, if the cache entry state for a shape is
+       :ref:`Missing <cache-entry-missing>`:
+
+       #. Candidate plans are evaluated and a winning plan is selected.
+
+       #. The selected plan is added to the cache in :ref:`Inactive
+          <cache-entry-inactive>` state with its ``works`` value.
+       
+   * - :ref:`Inactive <cache-entry-inactive>`
+
+     - .. _cache-entry-inactive:
+
+       The entry in the cache is a placeholder entry for this shape.
+       That is, the planner has seen the shape and calculated its cost
+       (``works`` value) and stored as a placeholder entry but the query
+       shape is **not** used to generate query plans.
+    
+       For a query, if the cache entry state for a shape is
+       :ref:`Inactive <cache-entry-inactive>`:
+
+       #. Candidate plans are evaluated and a winning plan is selected.
+  
+       #. The selected plan's ``works`` value is compared
+          to the :ref:`Inactive <cache-entry-inactive>` entry's. If the
+          selected plan's ``works`` value is:
+     
+          - Less than or equal to the :ref:`Inactive <cache-entry-inactive>` entry's,
+               The selected plan replaces the placeholder
+               :ref:`Inactive <cache-entry-inactive>` entry and has an
+               :ref:`Active <cache-entry-active>` state.
+       
+               If before the replacement happens, the :ref:`Inactive
+               <cache-entry-inactive>` entry becomes :ref:`Active
+               <cache-entry-active>` (for example, due to another query
+               operation), the newly active entry will only be replaced
+               if its ``works`` value is greater than the selected plan.
+
+          - Greater than the :ref:`Inactive <cache-entry-inactive>` entry's,
+              The :ref:`Inactive <cache-entry-inactive>` entry remains
+              but its ``works`` value is incremented.
+
+   * - :ref:`Active <cache-entry-active>`
+
+     - .. _cache-entry-active:
+
+       The entry in the cache is for the winning plan. The planner can
+       use this entry to generate query plans.
+
+       For a query, if the cache entry state for a shape is
+       :ref:`Active <cache-entry-active>`:
+
+       The active entry is used to generate query plans.
+
+       The planner also evaluates the entry's performance and if its
+       ``works`` value no longer meets the selection criterion, it will
+       transition to :ref:`Inactive <cache-entry-inactive>` state.
 
 See :ref:`query-plans-plan-cache-flushes` for additional scenarios that trigger
 changes to the plan cache.
@@ -60,8 +123,13 @@ Plan Cache Flushes
 ------------------
 
 The query plan cache does not persist if a :binary:`~bin.mongod`
-restarts or shuts down. In addition, catalog operations like index or
-collection drops clear the plan cache.
+restarts or shuts down. In addition:
+
+- Catalog operations like index or collection drops clear the plan
+  cache.
+
+- Least recently used (LRU) cache replacement mechanism clears the
+  least recently accessed cache entry, regardless of state.
 
 Users can also:
 
