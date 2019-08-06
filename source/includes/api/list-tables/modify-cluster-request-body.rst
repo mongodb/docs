@@ -239,32 +239,35 @@
    * - ``numShards``
      - integer
      - Conditional
-     - Selects whether the cluster is a :term:`replica set` or a
-       :term:`sharded cluster`.
+     - Number of shards to deploy in a sharded cluster.
 
        .. important::
 
           If you use the ``replicationSpecs`` parameter, you must set
           ``numShards``.
 
-       If this is set to ``1``, the cluster is a replica set. For more
-       information on MongoDB replica sets, see :manual:`Replication
-       </replication>` in the MongoDB manual.
+       The possible values are ``1`` through ``50``, inclusive. The
+       default value is 1.
+       
+       - If you specify a ``numShards`` value of ``1`` and a
+         ``clusterType`` of ``SHARDED``, |service| deploys a
+         single-shard :term:`sharded cluster`.
 
-       If this is set to ``2`` or higher, the cluster is a sharded
-       cluster with the number of shards specified. For more
-       information on sharded clusters, see
+       - If you specify a ``numShards`` value of ``1`` and a
+         ``clusterType`` of ``REPLICASET``, |service| deploys a
+         :term:`replica set`.
+
+       .. include:: /includes/fact-single-shard-cluster-warning.rst
+
+       For more information on sharded clusters, see
        :manual:`Sharding </sharding>` in the MongoDB manual.
 
        For details on how this setting affects costs, see
        :ref:`server-number-costs`.
 
-       The possible values are ``1`` through ``50``, inclusive. The
-       default value is ``1``.
-
        .. note::
 
-          Do not include in the request body for 
+          Do not include in the request body for
           :doc:`Global Clusters </global-clusters>`.
 
    * - ``paused``
