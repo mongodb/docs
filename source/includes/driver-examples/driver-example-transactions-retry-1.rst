@@ -143,7 +143,7 @@
      - id: c
        content: |
 
-         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c 
+         .. literalinclude:: /driver-examples/test-mongoc-transactions.c 
             :language: c
             :start-after: runs transactions with retry logic
             :end-before: commit transactions with retry logic

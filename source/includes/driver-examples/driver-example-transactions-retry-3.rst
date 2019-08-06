@@ -242,7 +242,7 @@
      - id: c
        content: |
 
-         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c 
+         .. literalinclude:: /driver-examples/test-mongoc-transactions.c 
             :language: c
             :start-after: Start Transactions Retry Example 3
             :end-before: End Transactions Retry Example 3
