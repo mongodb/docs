@@ -229,6 +229,43 @@ For complete documentation on wildcard index creation restrictions, see
 Wildcard Index Query/Sort Support
 ---------------------------------
 
+Covered Queries
+~~~~~~~~~~~~~~~
+
+Wildcard indexes can support a :ref:`covered query <covered-queries>` 
+**only if** all of the following are true:
+
+- The query planner selects the wildcard index for satisfying the
+  query predicate.
+
+- The query predicate specifies *exactly* one field covered by the wildcard
+  index.
+
+- The projection explicitly excludes ``_id`` and includes *only* the query
+  field.
+
+- The specified query field is never an array.
+
+Consider the following wildcard index on the ``employees`` collection:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { "$**" : 1 } )
+
+The following operation queries for a single field 
+``lastName`` and projects out all other fields from the
+resulting document:
+
+.. code-block:: javascript
+
+   db.products.find(
+     { "lastName" : "Doe" },
+     { "_id" : 0, "lastName" : 1 }
+   )
+
+Assuming that the specified ``lastName`` is never an array, MongoDB
+can use the ``$**`` wildcard index for supporting a covered query.
+
 Multi-Field Query Predicates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -255,7 +292,7 @@ Queries with Sort
 MongoDB can use a wildcard index for satisfying the 
 :method:`~cursor.sort()` **only if** all of the following are true:
 
-- The query planner selected the wildcard index for satisfying the
+- The query planner selects the wildcard index for satisfying the
   query predicate.
 
 - The :method:`~cusor.sort()` specifies **only** the query predicate
