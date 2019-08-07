@@ -250,6 +250,11 @@ Backups
 
 .. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
 
+Balancer State and Autosplit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-balancer-autosplit.rst
+
 .. _4.2-security:
 
 Security Improvements
@@ -823,148 +828,8 @@ Flow control is :parameter:`enabled <enableFlowControl>` by default.
 
 For more information, see :ref:`replication-flow-control`.
 
-General Improvements
---------------------
-
-``outputConfig`` Option
-~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 4.2 adds the :option:`--outputConfig <mongod --outputConfig>`
-option for :binary:`~bin.mongod` and :binary:`~bin.mongos`. The option
-outputs to ``stdout`` the :binary:`~bin.mongod`/:binary:`~bin.mongos`
-instance's configuration, in YAML format.
-
-If the configuration uses any :ref:`externally-sourced-values`, the
-option returns the resolved value for those options.
-
-.. warning::
-   
-   This may include any configured passwords or secrets previously
-   obfuscated through the external source.
-
-For usage examples, see:
-
-- :ref:`expansion-directive-output`
-
-- :doc:`/tutorial/convert-command-line-options-to-yaml`
-
-Remove Index Key Size Limit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 4.2, for :ref:`featureCompatibilityVersion
-<view-fcv>` set to ``"4.2"`` or greater, MongoDB removes the
-:limit:`Index Key Limit`. For fCV set to ``"4.0"``, the limit still
-applies.
-
-.. seealso:: :ref:`4.2 Indexes Compatibility Changes <4.2-index-compat-changes>`
-
-Remove Index Name Length Limit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/extracts/4.2-changes-index-names.rst
-
-.. seealso:: 
-   :ref:`4.2 Indexes Compatibility Changes <4.2-index-compat-changes>`,
-   :ref:`4.2-compatibility-enabled`
-
-Improvements to ``dropIndexes``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Drop multiple indexes
-`````````````````````
-
-Starting in MongoDB 4.2, you can specify multiple indexes to the
-:dbcommand:`dropIndexes` command and its :binary:`~bin.mongo` shell
-helper :method:`db.collection.dropIndexes()`. To specify multiple
-indexes to drop, pass an array of index names to
-:dbcommand:`dropIndexes`/:method:`db.collection.dropIndexes()`.
-
-Kill related queries only
-`````````````````````````
-
-.. include:: /includes/extracts/fact-releaseNotes-dropIndexes-query-behavior.rst
-
-Externally Sourced Values for Configuration Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-expansion-directive-intro.rst
-
-The following expansion directives are available:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Expansion Directive
-     - Description
-
-   * - :configexpansion:`__rest`
-     - Allows users to specify a ``REST`` endpoint as the external source
-       for configuration file options *or* the full configuration file.
-
-   * - :configexpansion:`__exec`
-     - Allows users to specify a shell or terminal command as the
-       external source for configuration file options *or* the
-       full configuration file.
-
-For complete documentation, see :ref:`externally-sourced-values`.
-
-.. _4.2-currentOp:
-
-``currentOp``
-~~~~~~~~~~~~~
-
-MongoDB 4.2 adds a new option ``idleCursors`` to the
-:pipeline:`$currentOp` aggregation stage in order to return information
-on idle cursors.
-
-In addition, MongoDB 4.2 adds the following new fields to the documents
-returned from the :pipeline:`$currentOp` aggregation stage,
-:dbcommand:`currentOp` command, and :method:`db.currentOp()` helper:
-
-.. list-table::
-   :header-rows: 1
-
-   * - ``$currentOp``
-     - ``currentOp``/``db.currentOp()``
-     - Description
-
-   * - :data:`$currentOp.type`
-     - :data:`currentOp.type`
-   
-     - Specifies whether the reported operation is an ``op``,
-       ``idleSession``, or ``idleCursor``.
-
-   * - :data:`$currentOp.cursor`
-     - :data:`currentOp.cursor`
-
-     - Specifies cursor details. Available when returning ``getmore``
-       operations or ``idleCursor`` information. 
-
-   * - :data:`$currentOp.effectiveUsers`
-     - :data:`currentOp.effectiveUsers`
-
-     - Specifies users associated with the operation.
-
-   * - :data:`$currentOp.prepareReadConflicts`
-     - :data:`currentOp.prepareReadConflicts`
-
-     - Specifies the number of times the current operation had to wait
-       for a prepared transaction with a write to commit or abort.
-
-   * - :data:`$currentOp.runBy`
-     - :data:`currentOp.runBy`
-
-     - Specifies users that are impersonating the effective users for
-       the operation.
-
-   * - :data:`$currentOp.writeConflicts`
-     - :data:`currentOp.writeConflicts`
-   
-     - Specifies the number of times the current operation conflicted
-       with another write operation.
-
-See also :ref:`4.2 current op compatibility changes <4.2-current-op-compat>`
+Logging and Diagnostics
+-----------------------
 
 Logging
 ~~~~~~~
@@ -1049,6 +914,63 @@ Logging
 - .. include:: /includes/extracts/4.2-changes-log-query-shapes-plan-cache-key.rst
 
   See :ref:`4.2-query-plans`.
+
+.. _4.2-currentOp:
+
+``currentOp``
+~~~~~~~~~~~~~
+
+MongoDB 4.2 adds a new option ``idleCursors`` to the
+:pipeline:`$currentOp` aggregation stage in order to return information
+on idle cursors.
+
+In addition, MongoDB 4.2 adds the following new fields to the documents
+returned from the :pipeline:`$currentOp` aggregation stage,
+:dbcommand:`currentOp` command, and :method:`db.currentOp()` helper:
+
+.. list-table::
+   :header-rows: 1
+
+   * - ``$currentOp``
+     - ``currentOp``/``db.currentOp()``
+     - Description
+
+   * - :data:`$currentOp.type`
+     - :data:`currentOp.type`
+   
+     - Specifies whether the reported operation is an ``op``,
+       ``idleSession``, or ``idleCursor``.
+
+   * - :data:`$currentOp.cursor`
+     - :data:`currentOp.cursor`
+
+     - Specifies cursor details. Available when returning ``getmore``
+       operations or ``idleCursor`` information. 
+
+   * - :data:`$currentOp.effectiveUsers`
+     - :data:`currentOp.effectiveUsers`
+
+     - Specifies users associated with the operation.
+
+   * - :data:`$currentOp.prepareReadConflicts`
+     - :data:`currentOp.prepareReadConflicts`
+
+     - Specifies the number of times the current operation had to wait
+       for a prepared transaction with a write to commit or abort.
+
+   * - :data:`$currentOp.runBy`
+     - :data:`currentOp.runBy`
+
+     - Specifies users that are impersonating the effective users for
+       the operation.
+
+   * - :data:`$currentOp.writeConflicts`
+     - :data:`currentOp.writeConflicts`
+   
+     - Specifies the number of times the current operation conflicted
+       with another write operation.
+
+See also :ref:`4.2 current op compatibility changes <4.2-current-op-compat>`
 
 ``serverStatus`` Metrics
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1147,6 +1069,125 @@ Starting in version MongoDB 4.2, :dbcommand:`replSetGetStatus` and its
 MongoDB 4.2 deprecates the field
 :data:`~replSetGetStatus.lastStableCheckpointTimestamp`.
 
+Lock Diagnostics Reporting
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-global-lock-reporting.rst
+
+``collStats`` Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :pipeline:`$collStats` aggregation, the
+:dbcommand:`collStats` command, and the :binary:`~bin.mongo` shell
+helper :method:`db.collection.stats` return information on indexes that
+are currently being built. 
+
+For details, see:
+
+- :data:`collStats.nindexes`
+- :data:`collStats.indexDetails`
+- :data:`collStats.indexBuilds`
+- :data:`collStats.totalIndexSize`
+- :data:`collStats.indexSizes`
+
+Starting in MongoDB 4.2, the :pipeline:`$collStats` aggregation, the
+:dbcommand:`collStats` command, and the :binary:`~bin.mongo` shell
+helper :method:`db.collection.stats` return the ``scaleFactor`` used to
+scale the various size data.
+
+``dbStats`` Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :dbcommand:`dbStats` command, and the
+:binary:`~bin.mongo` shell helper :method:`db.stats()` return
+the ``scaleFactor`` used to scale the various size data.
+
+General Improvements
+--------------------
+
+Externally Sourced Values for Configuration Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-expansion-directive-intro.rst
+
+The following expansion directives are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Expansion Directive
+     - Description
+
+   * - :configexpansion:`__rest`
+     - Allows users to specify a ``REST`` endpoint as the external source
+       for configuration file options *or* the full configuration file.
+
+   * - :configexpansion:`__exec`
+     - Allows users to specify a shell or terminal command as the
+       external source for configuration file options *or* the
+       full configuration file.
+
+For complete documentation, see :ref:`externally-sourced-values`.
+
+``outputConfig`` Option
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds the :option:`--outputConfig <mongod --outputConfig>`
+option for :binary:`~bin.mongod` and :binary:`~bin.mongos`. The option
+outputs to ``stdout`` the :binary:`~bin.mongod`/:binary:`~bin.mongos`
+instance's configuration, in YAML format.
+
+If the configuration uses any :ref:`externally-sourced-values`, the
+option returns the resolved value for those options.
+
+.. warning::
+   
+   This may include any configured passwords or secrets previously
+   obfuscated through the external source.
+
+For usage examples, see:
+
+- :ref:`expansion-directive-output`
+
+- :doc:`/tutorial/convert-command-line-options-to-yaml`
+
+Remove Index Key Size Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, for :ref:`featureCompatibilityVersion
+<view-fcv>` set to ``"4.2"`` or greater, MongoDB removes the
+:limit:`Index Key Limit`. For fCV set to ``"4.0"``, the limit still
+applies.
+
+.. seealso:: :ref:`4.2 Indexes Compatibility Changes <4.2-index-compat-changes>`
+
+Remove Index Name Length Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-index-names.rst
+
+.. seealso:: 
+   :ref:`4.2 Indexes Compatibility Changes <4.2-index-compat-changes>`,
+   :ref:`4.2-compatibility-enabled`
+
+Improvements to ``dropIndexes``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Drop multiple indexes
+`````````````````````
+
+Starting in MongoDB 4.2, you can specify multiple indexes to the
+:dbcommand:`dropIndexes` command and its :binary:`~bin.mongo` shell
+helper :method:`db.collection.dropIndexes()`. To specify multiple
+indexes to drop, pass an array of index names to
+:dbcommand:`dropIndexes`/:method:`db.collection.dropIndexes()`.
+
+Kill related queries only
+`````````````````````````
+
+.. include:: /includes/extracts/fact-releaseNotes-dropIndexes-query-behavior.rst
+
 ``zstd`` Availability
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -1233,34 +1274,6 @@ privilege has no effect starting in MongoDB 4.2.
 
 In MongoDB 4.0, users required the :authaction:`killCursors` privilege
 in order to kill their own cursors.
-
-``collStats`` Improvements
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 4.2, the :pipeline:`$collStats` aggregation, the
-:dbcommand:`collStats` command, and the :binary:`~bin.mongo` shell
-helper :method:`db.collection.stats` return information on indexes that
-are currently being built. 
-
-For details, see:
-
-- :data:`collStats.nindexes`
-- :data:`collStats.indexDetails`
-- :data:`collStats.indexBuilds`
-- :data:`collStats.totalIndexSize`
-- :data:`collStats.indexSizes`
-
-Starting in MongoDB 4.2, the :pipeline:`$collStats` aggregation, the
-:dbcommand:`collStats` command, and the :binary:`~bin.mongo` shell
-helper :method:`db.collection.stats` return the ``scaleFactor`` used to
-scale the various size data.
-
-``dbStats`` Improvements
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 4.2, the :dbcommand:`dbStats` command, and the
-:binary:`~bin.mongo` shell helper :method:`db.stats()` return
-the ``scaleFactor`` used to scale the various size data.
    
 New Parameters
 ~~~~~~~~~~~~~~
@@ -1374,16 +1387,6 @@ Map-Reduce
 ~~~~~~~~~~
 
 .. include:: /includes/extracts/4.2-changes-map-reduce-deprecation.rst
-
-Balancer State and Autosplit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/extracts/4.2-changes-balancer-autosplit.rst
-
-Lock Diagnostics Reporting
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/extracts/4.2-changes-global-lock-reporting.rst
 
 Rollback Time Limit
 ~~~~~~~~~~~~~~~~~~~
