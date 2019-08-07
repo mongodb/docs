@@ -38,17 +38,6 @@ To contribute to the documentation,
 
 - Fork this repository on GitHub and issue a pull request. 
 
-Additional Information
-----------------------
-
-See the following documents for an overview of the
-documentation style, and process. These links point back to the MongoDB
-Manual materials:
-
-- `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
-- `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
-- `Documentation Organization <http://docs.mongodb.org/manual/meta/organization>`_
-- `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
 
 Report Issues
 -------------
