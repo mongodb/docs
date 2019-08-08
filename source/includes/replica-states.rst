@@ -58,6 +58,8 @@
      - This member is actively performing a :doc:`rollback </core/replica-set-rollbacks>`.  Eligible to
        vote. Data is not available for reads from this member.
 
+       .. include:: /includes/extracts/4.2-changes-rollback-user-ops.rst
+
    * - 10
      - :replstate:`REMOVED`
      - This member was once in a replica set but was subsequently removed.
