@@ -175,7 +175,8 @@ extlinks = {
     'website': ('https://www.mongodb.com%s?jmp=docs', ''),
     'aws': ('http://docs.aws.amazon.com%s',''),
     'azure': ('https://docs.microsoft.com/en-us/azure%s',''),
-    'gcp': ('https://cloud.google.com%s','')
+    'gcp': ('https://cloud.google.com%s',''),
+    'hardlink': ('https://docs.atlas.mongodb.com%s', '')
 }
 
 # add `extlinks` for each published version.

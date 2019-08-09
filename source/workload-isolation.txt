@@ -1,0 +1,133 @@
+.. _create-cluster-multi-region:
+
+=========================================================
+Multi-Region, Workload Isolation, and Replication Options
+=========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service| supports adding cluster nodes in different geographic regions
+with different workload priorities to direct application queries to the
+most appropriate cluster nodes.
+
+To configure multi-region and workload isolation cluster options, toggle
+:guilabel:`Select Multi-Region, Workload Isolation, and Replication Options (M10+ clusters)`
+to :guilabel:`Yes`.
+
+.. figure:: /images/workload-isolation.png
+   :figwidth: 720px
+   :alt: Image showing workload isolation settings
+
+.. include:: /includes/extracts/fact-no-node-restriction-base.rst
+
+.. admonition:: AWS Only
+   :class: note
+
+   If this is the first ``M10+`` dedicated paid cluster for the
+   selected region or regions *and* you plan on creating one or more
+   |vpc| peering connections, please review the documentation
+   on :doc:`VPC Peering Connections </security-vpc-peering>` before
+   continuing.
+
+.. _deploy-across-multiple-regions:
+
+Electable Nodes for High Availability
+-------------------------------------
+
+.. include:: /includes/fact-electable-nodes-high-avail.rst
+
+Click :guilabel:`Add a region` to add a new row for region
+selection and select the region from the dropdown. Specify the
+desired number of :guilabel:`Nodes` for the region. The total
+number of electable nodes across all regions in the cluster must
+be 3, 5, or 7.
+
+.. admonition:: Backup Data Center Location
+   :class: note
+
+   If this is the first cluster in the project *and* you
+   intend to enable
+   :ref:`continuous snapshot backups <create-cluster-backups>`,
+   |service| selects the backup data center location for the
+   project based on the geographical location of the
+   cluster's :guilabel:`Highest Priority` region. To learn more
+   about how |service| creates the backup data center, see
+   :doc:`Fully Managed Backup Service </backup-cluster>`.
+
+When selecting a :guilabel:`Region`, regions marked as
+:guilabel:`Recommended` provide higher availability compared to
+other regions. For more information, see:
+
+- :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`.
+- :ref:`GCP Recommended Regions <google-gcp-availability-zones>`.
+- :ref:`Azure Recommended Regions <microsoft-azure-availability-zones>`.
+
+Each node in the selected regions can participate in replica set
+:term:`elections <election>`, and can become the :term:`primary`
+as long as the majority of nodes in the replica set are available.
+
+You can improve the replication factor of single-region clusters
+by increasing the number of :guilabel:`Nodes` for your
+:guilabel:`Highest Priority` region. You do not have to add
+additional regions to modify the replication factor of your
+:guilabel:`Highest Priority` region.
+
+To remove a region, click the :icon:`trash-alt` icon next to that
+region. You cannot remove the :guilabel:`Highest Priority` region.
+
+|service| provides checks for whether your selected cross-regional
+configuration provides availability during partial or whole
+regional outages. To ensure availability during a full region
+outage, you need at least one node in three different regions. To
+ensure availability during a partial region outage, you must have
+at least 3 electable nodes in a :guilabel:`Recommended` region
+*or* at least 3 electable nodes across at least 2 regions.
+
+.. _deploy-read-only-replicas:
+
+Read-Only Nodes for Optimal Local Reads
+---------------------------------------
+
+Use read-only nodes to optimize local reads in
+the nodes' respective service areas.
+
+Click :guilabel:`Add a region` to select a region in which to
+deploy read-only nodes. Specify the desired number of
+:guilabel:`Nodes` for the region.
+
+Read-only nodes cannot provide high availability because they
+cannot participate in :term:`elections <election>`, or become the
+:term:`primary` for their cluster. Read-only nodes have
+distinct :manual:`read preference </core/read-preference>` tags
+that allow you to direct queries to desired regions.
+
+To remove a read-only region, click the :icon:`trash-alt` icon
+next to that region.
+
+.. _deploy-analytics-nodes:
+
+Analytics Nodes for Workload Isolation
+--------------------------------------
+
+.. include:: /includes/fact-create-cluster-analytics-nodes.rst
+
+Analytics nodes cannot participate in
+:term:`elections <election>`, or become the :term:`primary` for
+their cluster.
+
+To remove an analytics node, click the :icon:`trash-alt` icon
+next to that region.
+
+Considerations
+--------------
+
+- Having a large number of regions or having nodes spread across
+  long distances may lead to long election times or replication lag.
+
+- .. include:: /includes/fact-cross-region-limits.rst

@@ -47,10 +47,9 @@
      - No
      - No
      - Yes. Specify additional regions for high
-       availability or local reads when
-       :doc:`creating </create-new-cluster>` or
-       :doc:`scaling </scale-cluster>` a cluster.
-
+       availability or local reads when :doc:`creating </tutorial/create-new-cluster>`
+       or :doc:`scaling </scale-cluster>` a cluster.
+     
    * - Backups
      - No
      - Yes, :ref:`daily backup snapshots <m2-m5-snapshots>`

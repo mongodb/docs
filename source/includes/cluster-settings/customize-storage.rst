@@ -83,8 +83,6 @@ depending on the selected cloud provider and cluster tier.
           Changes to |iops| provisioning affect
           :ref:`cost <instance-storage-speed>`.
 
-.. _configuration-storage-considerations:
-
 .. important::
 
    For cluster tiers up to and including M40, |service| enforces a
