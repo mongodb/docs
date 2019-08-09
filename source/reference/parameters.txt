@@ -1953,6 +1953,79 @@ Sharding Parameters
 
       mongos --setParameter ShardingTaskExecutorPoolRefreshTimeoutMS=30000
 
+.. parameter:: ShardingTaskExecutorPoolReplicaSetMatching
+
+   .. versionadded:: 4.2
+
+   Type: string
+
+   Default: "matchPrimaryNode"
+
+   |mongos-only|
+   
+   The policy that determines the minimum size limit of the
+   :binary:`~bin.mongos` instance's connection pools to the sharded
+   cluster's replica set secondaries.
+
+   Available values are:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 85
+      
+      * - Matching Policy
+        - Description
+
+      * - ``"matchPrimaryNode"`` (Default)
+      
+        - For each replica set in the sharded cluster (i.e. shard
+          replica set and config servers), the minimum size limit of
+          the :binary:`~bin.mongos` instance's connection pool to each
+          secondary of that replica set is equal to the size of its
+          connection pool to the primary.
+
+          In case of primary stepdown, ``matchPrimaryNode`` ensures
+          that any secondary that becomes the primary can handle the
+          current level of primary reads and writes.
+
+      * - ``"matchBusiestNode"``
+
+        - For each replica set in the sharded cluster (i.e. shard
+          replica set and config servers), the minimum size limit of
+          the :binary:`~bin.mongos` instance's connection pool to each
+          member of that replica set is equal to the largest among
+          the active connections counts to the primary and each
+          secondary members.
+
+          With ``"matchBusiestNode"``, :binary:`~bin.mongos` maintains
+          enough connections to each secondary to handle the current
+          level of primary and secondary reads and writes. The number
+          of connections to maintain in the pool decreases as the
+          number of active connections decreases.
+
+      * - ``"disabled"``
+
+        - For each replica set in the sharded cluster (i.e. shard
+          replica set and config servers), the minimum number of
+          connections in the :binary:`~bin.mongos` instance's
+          connection pool to each secondary is equal to the
+          :parameter:`ShardingTaskExecutorPoolMinSize`.
+
+   The following example sets the
+   :parameter:`ShardingTaskExecutorPoolReplicaSetMatching` to
+   ``"matchBusiestNode"`` during startup:
+
+   .. code-block:: sh
+
+      mongod --setParameter ShardingTaskExecutorPoolReplicaSetMatching="matchBusiestNode"
+
+   During runtime, you can also set the parameter with the
+   :dbcommand:`setParameter` command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1,  ShardingTaskExecutorPoolReplicaSetMatching: "matchBusiestNode" } )
+
 .. parameter:: taskExecutorPoolSize
 
    .. versionchanged:: 4.0
