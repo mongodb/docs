@@ -5,7 +5,7 @@
       :class: border-table
 
       * - Ubuntu 14.04
-        - Support removed in MongoDB 4.2+, 4.0.10+, 3.6.13+, and 3.4.21+.
+        - Support removed in MongoDB 4.2+.
 
       * - Debian 7
         - Support removed in MongoDB 4.0+, 3.6.6+, 3.4.16+, and 3.2.21+.
@@ -91,6 +91,12 @@
      -
      -
      - Community only
+
+   * - Ubuntu 14.04
+     - 
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
    * - Ubuntu 16.04
      - |checkmark|
