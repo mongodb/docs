@@ -88,7 +88,7 @@ rst_epilog = [
     '.. |data-lakes| replace:: Data Lakes',
     '.. |data-lake| replace:: Data Lake',
     '.. |datadog| replace:: `Datadog <https://www.datadoghq.com/>`__',
-    '.. |dns| replace:: abbr:`DNS (Domain Name System)`',
+    '.. |dns| replace:: :abbr:`DNS (Domain Name System)`',
     '.. |Epoch-time-ms| replace:: Timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |epoch-time-ms| replace:: timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |Epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
