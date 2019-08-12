@@ -68,6 +68,7 @@ extlinks = {
     'v4.0': ('https://docs.mongodb.com/v4.0%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
     'k8s': ('https://docs.mongodb.com/kubernetes-operator/stable%s',''),
+    'atlas': ('https://docs.atlas.mongodb.com%s',''),
     'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
     'website': ('https://www.mongodb.com%s?jmp=docs',''),
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
