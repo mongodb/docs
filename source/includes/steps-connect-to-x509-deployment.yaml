@@ -1,0 +1,88 @@
+---
+title: "Copy and save the following example |k8s-configmap|."
+level: 4
+stepnum: 1
+ref: copy-k8s-x509-configmap
+content: |
+
+  Save the following ConfigMap as ``x509-mongodb-user.yaml``:
+
+  .. code-block:: none
+     :linenos:
+
+     ---
+     apiVersion: mongodb.com/v1
+     kind: MongoDBUser
+     metadata:
+       name: new-x509-user
+     spec:
+       username: "CN=my-x509-authenticated-user, OU=organizationalunit, O=organization"
+       db: "$external"
+       project: my-project
+       roles:
+         - db: "admin"
+           name: "clusterAdmin"
+
+  This ConfigMap ``.yaml`` file describes a ``MongoDBUser`` custom object. You
+  can use these custom objects to create MongoDB users.
+  
+  In this example, the ConfigMap describes the user as an X.509
+  user that the client can use to connect to MongoDB with the
+  corresponding X.509 certificate.
+---
+title: "Create the X.509 MongoDB user."
+level: 4
+stepnum: 2
+ref: create-x509-user
+content: |
+  Run the following command to apply the ConfigMap and create the
+  X.509 MongoDB user:
+
+  .. code-block:: sh
+
+     kubectl -n {namespace} apply -f x509-mongodb-user.yaml
+
+  You should see an output similar to the following:
+
+  .. code-block:: sh
+     :copyable: false
+
+     mongodbuser.mongodb.com/new-x509-user created
+---
+title: "Verify your newly created user"
+level: 4
+stepnum: 3
+ref: verify-x509-user
+content: |
+  Run the following command to check the state of the ``new-x509-user``:
+
+  .. code-block:: sh
+
+     kubectl -n {namespace} get mdbu/new-x509-user -o yaml
+
+  You should see an output similar to the following:
+
+  .. code-block:: sh
+     :copyable: false
+
+     NAME            CREATED AT
+     new-x509-user   8m
+---
+title: "Use your X.509 user to connect to the MongoDB deployment"
+level: 4
+stepnum: 4
+ref: connect-with-x509-user
+content: |
+  Once you have created your X.509 user, try to connect to the
+  deployment using the mongo Shell:
+
+  .. code-block:: sh
+
+     mongo --host {host} --ssl --sslCAFile /var/run/secrets/kubernetes.io/serviceaccount/ca.crt --sslPEMKeyFile x509-full.pem --authenticationMode MONGODB-X509
+
+  .. note::
+
+     On Kubernetes Pods, the |certauth| file is saved in
+     ``/var/run/secrets/kubernetes.io/serviceaccount/ca.crt``, which
+     is the file location used for the ``--sslCAFile`` connection
+     option.

@@ -1,0 +1,102 @@
+.. _create-x509-certs:
+
+==================================
+Generate X.509 Client Certificates
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2 
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+The |k8s-op-full| can deploy MongoDB instances with 
+:manual:`X.509 authentication </core/security-x.509/>`
+enabled. If X.509 authentication has been enabled for the deployment,
+you must generate and use an X.509 certificate to connect to the
+deployment. This new client certificate must be signed by the
+Kubernetes |certauth| to be accepted by the MongoDB deployment.
+
+Use the procedure outlined in this document to:
+
+- Generate an X.509 certificate.
+
+- Get that certificate signed by the Kubernetes
+  :abbr:`CA (Certificate Authority)`.
+  
+- Use the certificate to connect to your X.509-enabled MongoDB
+  deployment.
+
+Prerequisites
+-------------
+
+.. note::
+
+   A full description of Transport Layer Security (TLS), Public Key Infrastructure (PKI)
+   certificates, and Certificate Authorities is beyond the scope of this
+   document. This page assumes prior knowledge of |tls| and
+   X.509 authentication.
+
+- To complete this tutorial, you must have the |k8s-op|
+  installed. For instructions on installing the |k8s-op-short|, 
+  see :ref:`install-k8s`.
+
+- This tutorial assumes you have a MongoDB deployment which
+  requires X.509 authentication. For instructions on deploying
+  MongoDB resources, see :ref:`deploy-resources`.
+
+- This tutorial uses ``CFSSL`` to generate X.509 certificates. ``CFSSL``
+  is a certificate generation tool built by
+  `Cloudflare <https://www.cloudflare.com/>`__. For instructions on
+  installing ``CFSSL``, refer to the
+  `CFSSL GitHub page <https://github.com/cloudflare/cfssl>`__.
+
+Procedure
+---------
+
+.. note::
+
+   The user configuration files used in this tutorial are
+   strictly examples. You may need to adjust the values in the
+   examples to suit your deployment's needs. For more
+   information on formatting user ConfigMaps,
+   see :ref:`manage-db-users`.
+
+Generate a Private Key and Certificate Signing Request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/create-cert-signing-req.rst
+
+.. _submit-new-csr-to-k8s:
+
+Submit the New CSR to the Kubernetes |certauth|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Kubernetes' own certificate authority provides the trusted |certauth|
+for the Kubernetes cluster. You need the ``.csr`` and ``.pem`` files
+generated in the previous section to request a new certificate from
+Kubernetes.
+
+.. include:: /includes/steps/submit-cert-request.rst
+
+Obtain the Newly Issued Certificate from the Kubernetes CA
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the new certificate. 
+The ``status.certificate`` attribute of the CSR
+generated in the :ref:`previous section <submit-new-csr-to-k8s>`
+contains the certificate.
+
+.. include:: /includes/steps/get-cert-from-k8s-ca.rst
+
+Connect to the X.509-Enabled MongoDB Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the client certificate created, you can create a MongoDB user
+and connect to the X.509-enabled deployment.
+
+.. include:: /includes/steps/connect-to-x509-deployment.rst
