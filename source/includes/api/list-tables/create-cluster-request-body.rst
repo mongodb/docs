@@ -44,6 +44,12 @@
 
        The default value is ``false``.
 
+       .. note::
+
+          This option is not supported on sharded clusters running
+          MongoDB 4.2. Sharded clusters running MongoDB 4.2 must use
+          :doc:`/backup/cloud-provider-snapshots`.
+
    * - ``biConnector``
      - document
      - Optional
@@ -223,6 +229,7 @@
        - ``3.4``
        - ``3.6``
        - ``4.0``
+       - ``4.2``
 
        You must set this value to ``4.0`` if
        ``providerSettings.instanceSizeName``
