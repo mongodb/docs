@@ -82,8 +82,27 @@ and ``phone``. Encrypted fields are stored as
      "ssn" : BinData(6,"AaloEw285E3AnfjP+r8ph2YCvMI1+rWzpZK97tV6iz0jx")
    }
 
-A user with access to the MongoDB server that does *not* have access to
-the required keys cannot decrypt any encrypted field. 
+The :bsontype:`BinData <Binary>` blob metadata includes the Customer Master Key
+(CMK) and data key used to encrypt the binary data. The 4.2-compatible drivers
+and 4.2 :binary:`~bin.mongo` shell automatically decrypt ``BinData`` type 6 
+fields. The automatic decryption process works as follows:
+
+1. Read the metadata stored in the encrypted :bsontype:`BinData <Binary>` blob.
+
+#. Check the key vault configured in the current database connection for the 
+   specified data key.
+
+#. Check the KMS configured in the current database connection for the
+   specified CMK. 
+
+#. Decrypt the data key using the CMK.
+
+#. Decrypt the value using the data key.
+
+Applications *must* have access to both the CMK *and* the data key associated to
+the ``BinData`` blob to decrypt the value. Applications with access to the
+MongoDB server that do not *also* have access to the required keys cannot
+decrypt the ``BinData``.
 
 MongoDB supports two methods of client-side field level encryption using the
 official MongoDB 4.2-compatible drivers:
@@ -171,10 +190,10 @@ on implementing automatic field level encryption.
 Encryption Algorithms
 ---------------------
 
-MongoDB field level encryption uses the encrypt-then-MAC approach 
-combined with either a deterministic or random initialization
-vector to encrypt field values. MongoDB *only* supports the
-AES-256-CBC encryption algorithm with HMAC-SHA-512 MAC. 
+MongoDB client-side field level encryption uses the encrypt-then-MAC approach
+combined with either a deterministic or random initialization vector to encrypt
+field values. MongoDB *only* supports the AES-256-CBC encryption algorithm with
+HMAC-SHA-512 MAC. 
 
 .. _field-level-encryption-deterministic:
 
@@ -202,7 +221,7 @@ data confidentiality, it also prevents support for any read operations
 which must operate on the encrypted field to evaluate the query.
 
 Random encryption also supports encrypting entire objects or arrays. For
-example, consider the following example document:
+example, consider the following document:
 
 .. code-block:: json
 
@@ -271,7 +290,10 @@ driver and each encryption component:
 
 ``mongocryptd`` is a driver-spawned client-side process that parses and
 validates the JSON schema encryption rules. ``mongocryptd`` is a required
-component for supporting automatic field encryption and decryption.
+component for supporting automatic field encryption and decryption and
+is included as a component in the 
+:doc:`MongoDB  Enterprise Server 
+</administration/install-enterprise>` package.
 
 4.2 drivers automatically spawn the ``mongocryptd`` process if
 available on the host system. Applications can control the spawning
@@ -286,8 +308,9 @@ MongoDB 4.2 client-side field level encryption with
 automatic field encryption is available in the following driver 
 versions:
 
-- Node ``3.3.0-beta 1``
-- Java ``3.11.0-rc0``
+- :ecosystem:`Node </drivers/node>` ``3.3.0``
+- :ecosystem:`Java </drivers/java>` ``3.11.0``
+- :ecosystem:`Python (PyMongo) </drivers/pymongo>` ``3.9.0``
 
 Please refer to the driver documentation for syntax and implementation
 examples.

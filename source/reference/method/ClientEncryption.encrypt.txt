@@ -1,0 +1,168 @@
+==========================
+ClientEncryption.encrypt()
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 4.2
+
+.. include:: /includes/fact-client-side-field-level-encryption-beta.rst
+
+.. method:: ClientEncryption.encrypt(encryptionKeyId, value, encryptionAlgorithm)
+
+   :method:`ClientEncryption.encrypt` encrypts the ``value`` using the 
+   specified ``encryptionKeyId`` and ``encryptionAlgorithm``.
+   :method:`~ClientEncryption.encrypt` supports explicit (manual) encryption
+   of field values.
+
+   :method:`~ClientEncryption.encrypt` has the following syntax:
+
+   .. code-block:: shell
+
+      clientEncryption = db.getMongo().getClientEncryption()
+      
+      clientEncryption.encrypt(
+        encryptionKeyId,
+        value,
+        encryptionAlgorithm
+      )
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Parameter
+   
+        - Type
+   
+        - Description
+
+      * - ``encryptionKeyId``
+        
+        - ``UUID``
+
+        - The data key to use for encrypting the ``value``.
+        
+          The :abbr:`UUID (Universally unique identifier)` is a BSON 
+          :bsontype:`binary data` object with subtype ``4`` that identifies
+          a specific data key. If the data key does not exist in the 
+          key vault configured for the database connection, 
+          :method:`~ClientEncryption.encrypt()` returns an error.
+
+      * - ``value``
+       
+        - See :ref:`encrypt-bson-types`.
+
+        - The value to encrypt.
+
+      * - ``encryptionAlgorithm``
+        
+        - string
+        
+        - The encryption algorithm to use for encrypting the ``value``.
+
+          - ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``
+
+          - ``AEAD_AES_256_CBC_HMAC_SHA_512-Random``
+          
+          For complete documentation on the supported encryption algorithms, 
+          see :ref:`field-level-encryption-algorithms`.
+
+:returns: 
+  
+  A :bsontype:`binary data <Binary>`  object with 
+  `subtype 6 <https://github.com/mongodb/specifications/blob/master/source/client-side-encryption/subtype6.rst>`_.
+
+Behavior
+--------
+
+Enable Client-Side Field Level Encryption on Database Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/csfle-requires-enabling-encryption.rst
+
+.. _encrypt-bson-types:
+
+Unsupported BSON Types
+~~~~~~~~~~~~~~~~~~~~~~
+
+:method:`~ClientEncryption.encrypt()` does *not* supports encrypting 
+values with the following BSON types:
+
+- ``minKey``
+- ``maxKey``
+- ``null``
+- ``undefined``
+
+If encrypting a field using ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``,
+:method:`~ClientEncryption.encrypt()` does *not* support the following
+BSON types:
+
+- ``double``
+- ``decimal128``
+- ``bool``
+- ``object``
+- ``array``
+- ``javascriptWithScope``
+
+Example
+-------
+
+.. note::
+
+   .. include:: /includes/extracts/csfle-environmental-variables.rst
+
+The following operation issued from the :binary:`~bin.mongo` shell:
+
+- Establishes a connection to the ``myMongo.example.net`` cluster with
+  client-side field level encryption enabled.
+
+- Retrieves the ``ClientEncryption`` object using the
+  :method:`getClientEncryption()` constructor on an encryption-enabled
+  connection.
+
+- Explicitly encrypts a value using 
+  :ref:`random <field-level-encryption-random>` encryption.
+
+.. code-block:: javascript
+   :emphasize-lines: 18-22
+
+   clientSideFLEOptions = {
+     "keyVaultNamespace" : "encryption.dataKeys",
+     "kmsProviders" : {
+       "aws" : {
+         "accessKeyId" : "AWS_ACCESS_KEY_ID",
+         "secretAccessKey" : "AWS_SECRET_ACCESS_KEY"
+       }
+     }
+   }
+
+   encryptedClient = Mongo( 
+     "mongodb://myMongo.example.net:27017/?replSetName=myMongo", 
+     clientSideFLEOptions
+   )
+
+   clientEncryption = encryptedClient.getClientEncryption();
+
+   clientEncryption.encrypt(
+     UUID("64e2d87d-f168-493c-bbdf-a394535a2cb9"), 
+     "123-45-6789", 
+     "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+   )
+
+If sucessful, :method:`~ClientEncryption.encrypt` returns the encrypted 
+value:
+
+.. code-block:: javascript
+   :copyable: false
+
+   BinData(6,"AmTi2H3xaEk8u9+jlFNaLLkC3Q/+kmwDbbWrq+h9nuv9W+u7A5a0UnpULBNZH+Q21fAztPpU09wpKPrju9dKfpN1Afpj1/ZhFcH6LYZOWSBBOAuUNjPLxMNSYOOuITuuYWo=")
+
+For complete documentation on initiating MongoDB connections with
+client-side field level encryption enabled, see :method:`Mongo()`.

@@ -1,0 +1,151 @@
+====================
+KeyVault.createKey()
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 4.2
+
+.. include:: /includes/fact-client-side-field-level-encryption-beta.rst
+
+.. method:: KeyVault.createKey(keyManagementService, customerMasterKey, ["keyAltName"])
+
+   Adds a data key to the key vault associated to the database connection.
+   :doc:`Client-side field level encryption
+   </core/security-client-side-encryption>` uses data keys for supporting
+   encryption and decryption of field values.
+
+   :method:`~KeyVault.createKey()` has the following syntax:
+
+   .. code-block:: javascript
+
+      keyVault = db.getMongo().getKeyVault()
+      
+      keyVault.createKey(
+        keyManagementService,
+        customerMasterKey,
+        [ "keyAltName" ]
+      )
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Parameter
+   
+        - Type
+   
+        - Description
+
+      * - ``keyManagementService``
+        
+        - string
+
+        - (Required) The Key Managmenet Service (KMS) to use for retrieving the 
+          Customer Master Key (CMK).
+
+          Specify ``aws`` for Amazon Web Service KMS.
+
+          Specify ``local`` for a local single-key KMS. 
+
+          If the database connection was not configured with the specified 
+          KMS, data key creation fails.
+
+      * - ``customerMasterKey``
+        
+        - string
+
+        - The identifier for the CMK to use for encrypting the data key. 
+
+          - For ``keyManagementService.aws``, specify the full
+            `Amazon Resource Name (ARN) <https://docs.aws.amazon.com/general/  latest/gr/aws-arns-and-namespaces.html>`__
+            of the master key. :method:`~KeyVault.createKey()` retrieves the
+            specified CMK from the AWS KMS and uses it to encrypt the data key.
+            
+            If the CMK does not exist, or if the KMS configuration does not 
+            provide access to that CMK, :method:`~KeyVault.createKey()` returns
+            an error.
+
+          - For ``keyManagementService.local``, specify a string key. 
+            :method:`~KeyVault.createKey()` uses the specified key and the
+            ``local`` master key to encrypt the data key.
+
+      * - ``keyAltName``
+        - array of strings
+        - *Optional*
+        
+          The alternative name for the data key. Use ``keyAltName`` to 
+          improve findability of a specific data key, or as an analog to a 
+          comment. 
+          
+          ``keyAltName`` *must* be unique. :method:`getKeyVault` creates a
+          unique index on ``keyAltName`` to enforce uniqueness of
+          ``keyAltName``.
+
+:returns: A ``WriteResult`` object.
+
+Behavior
+--------
+
+Requires Configuring Client-Side Field Level Encryption on Database Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/csfle-requires-enabling-encryption.rst
+
+Example
+-------
+
+.. note::
+
+   .. include:: /includes/extracts/csfle-environmental-variables.rst
+
+The following operation issued from the :binary:`~bin.mongo` shell:
+
+- Establishes a connection to the ``myMongo.example.net`` cluster with
+  client-side field level encryption enabled.
+
+- Retrieves the key vault object using the encryption-enabled connection object.
+
+- Creates a new client-side field level encryption data key and stores 
+  that key in the key vault.
+
+.. code-block:: javascript
+   :emphasize-lines: 18
+
+   clientSideFLEOptions = {
+     "keyVaultNamespace" : "encryption.dataKeys",
+     "kmsProviders" : {
+       "aws" : {
+         "accessKeyId" : "AWS_ACCESS_KEY_ID",
+         "secretAccessKey" : "AWS_SECRET_ACCESS_KEY"
+       }
+     }
+   }
+
+   encryptedClient = Mongo( 
+     "mongodb://myMongo.example.net:27017/?replSetName=myMongo", 
+     clientSideFLEOptions
+   )
+
+   keyVault = encryptedClient.getKeyVault();
+
+   keyVault.createKey("aws", "arn:aws:kms:us-east-1:test:test:test", [ "ssn-encryption-key" ])
+
+If successfull, :method:`~KeyVault.createKey()` returns a ``WriteResult``.
+To retrieve the created key:
+
+- :method:`~KeyVault.getKeys()` to get all keys.
+
+- :method:`~KeyVault.getKey()` to retrieve the created key by ``UUID``.
+
+- :method:`~KeyVault.getKeyByAltName()` to retrieve the key by its 
+  alternative name.
+
+- Use :method:`db.collection.find()` to query the key vault directly for the
+  data key by ``_id`` or ``keyAltName``.
