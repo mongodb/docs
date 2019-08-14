@@ -63,7 +63,8 @@ rst_epilog = [
     '.. |tls-ssl| replace:: :abbr:`TLS (Transport Layer Security)`/:abbr:`SSL (Secure Sockets Layer)`',
     '.. |service| replace:: Atlas',
     '.. |enc-channel| replace:: :ref:`encoding channel <encoding-channels>`',
-    '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`'
+    '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`',
+    '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`'
 ]
 
 rst_epilog.extend(get_replacements(conf))
@@ -76,7 +77,8 @@ extlinks = {
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'v0.10': ('https://docs.mongodb.com/charts/v0.10%s', ''),
     'atlas': ('https://docs.atlas.mongodb.com%s', ''),
-    'stitch': ('https://docs.mongodb.com/stitch%s', '')
+    'stitch': ('https://docs.mongodb.com/stitch%s', ''),
+    'onprem': ('https://docs.mongodb.com/charts/onprem%s', '')
 }
 
 source_constants = {
