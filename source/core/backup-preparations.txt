@@ -8,21 +8,11 @@ Backup Preparations
    :local:
    :backlinks: none
    :depth: 1
-   :class: twocols
-
-.. |san| replace:: :abbr:`SAN (Storage Area Network)`
-.. |nas| replace:: :abbr:`NAS (Network Attached Storage)`
-
-Overview
---------
+   :class: singlecol
 
 Before backing up your cluster or replica set, decide how to back up
 the data and what data to back up. This page describes items you must
 consider before starting a backup.
-
-.. important::
-
-   .. include:: /includes/fact-backup-standalone-restriction.rst
 
 For an overview of how Backup works, see
 :ref:`mms-backup-functional-overview`.
@@ -36,11 +26,11 @@ Snapshot Frequency and Retention Policy
 
 .. only:: onprem
 
-   By default, |mms| takes a base snapshot of your data every 24 hours. 
+   By default, |mms| takes a base snapshot of your data every 24 hours.
 
 .. only:: cloud
 
-   By default, |mms| takes a base snapshot of your data every 6 hours. 
+   By default, |mms| takes a base snapshot of your data every 6 hours.
 
 If desired, administrators can change the frequency of base snapshots
 to 6, 8, 12, or 24 hours. |mms| creates snapshots automatically on a
@@ -110,7 +100,7 @@ snapshot:
 * If the new reference time is before the current reference time, the
   next snapshot occurs at the new reference time tomorrow. See
   the first two rows of the table below for examples.
- 
+
 * If the new reference time is after the current reference time, and
   you make the change before the current reference time, the next
   snapshot occurs at the new reference time today. See the third row
@@ -169,10 +159,41 @@ If you change the schedule to save fewer snapshots, |mms| does **not**
 delete existing snapshots to conform to the new schedule. To delete
 unneeded snapshots, see :doc:`/tutorial/delete-backup-snapshots`.
 
+Limits
+~~~~~~
+
+- |mms| does not backup deployments where the total number of
+  collections on the deployment meets or exceeds ``100,000``.
+
+- |mms| does not replicate index collection options.
+
+Encryption
+~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-encrypted-backups.rst
+
+.. _4.2-backup-considerations:
+
+Backup Considerations for Databases Running FCV 4.2
+---------------------------------------------------
+
+.. include:: /release-notes/release-advisories/advisories-v4.2-backup.rst
+
+Backup Considerations for Databases not Running FCV 4.2
+-------------------------------------------------------
+
+.. important::
+
+   .. include:: /includes/fact-backup-standalone-restriction.rst
+
+The following considerations apply when your databases run any version
+of MongoDB 4.0 or earlier or when they run MongoDB 4.2 with
+``"featureCompatibilityVersion" : 4.2``
+
 .. _namespaces-filter:
 
 Namespaces Filter
------------------
+~~~~~~~~~~~~~~~~~
 
 The namespaces filter lets you specify which databases and collections
 to back up. You create either a :guilabel:`Blacklist` of those to
@@ -192,11 +213,11 @@ want backed up.
 
    MongoDB deployments with ``"featureCompatibilityVersion" : 4.2``
    do not support namespaces filters.
- 
+
 .. _considerations-backup-storage-engine:
 
 Storage Engine
---------------
+~~~~~~~~~~~~~~
 
 To backup MongoDB clusters, use the :ref:`WiredTiger storage engine <storage-wiredtiger>` storage engine.
 
@@ -206,24 +227,11 @@ If your current backing databases use MMAPv1, upgrade to WiredTiger:
 
 * :manual:`Change Replica Set to Wired Tiger </tutorial/change-replica-set-wiredtiger>`
 
-MongoDB deprecated the :ref:`storage-mmapv1` in MongoDB 4.0 and will remove it in
-a future release. For more information on storage engines, see :manual:`Storage
-</core/storage>` in the MongoDB manual.
-
-Limits
-~~~~~~
-* |mms| does not backup deployments where the total number of
-  collections on the deployment meets or exceeds ``100,000``.
-
-* |mms| does not replicate index collection options.
-
-Encryption
-~~~~~~~~~~
-
-.. include:: /includes/extracts/fact-encrypted-backups.rst
+MongoDB 4.2 removes MMAPv1 storage. To learn more about storage
+engines, see :manual:`Storage </core/storage>` in the MongoDB manual.
 
 Resyncing Production Deployments
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For production deployments, it is recommended that as a best practice
 you periodically (annually) :doc:`resync </tutorial/resync-backup>` all
@@ -254,7 +262,7 @@ You may also want to resync your backup after:
 .. _checkpoint:
 
 Checkpoints
------------
+~~~~~~~~~~~
 
 For :term:`sharded clusters <sharded cluster>`, checkpoints provide
 additional restore points between snapshots. With
@@ -279,7 +287,7 @@ restoration from a snapshot.
 .. _snapshot-while-balancer-enabled:
 
 Snapshots when Agent Cannot Stop Balancer
------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For :term:`sharded clusters <sharded cluster>`, |mms| disables the
 :term:`balancer` before taking a cluster snapshot. In certain
@@ -291,17 +299,10 @@ snapshots taken during an active balancing operation run the risk of
 data loss or orphaned data.
 
 Snapshots when Agent Cannot Contact a ``mongod``
-------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For :term:`sharded clusters <sharded cluster>`, if the {+bagent+}
 cannot reach a :program:`mongod` process, whether a shard or config
 server, then the agent cannot insert a synchronization :term:`oplog`
 token. If this happens, |mms| does not create the snapshot and
 displays a warning message.
-
-.. _4.2-backup-considerations:
-
-Specific Considerations for MongoDB 4.2
----------------------------------------
-
-.. include:: /release-notes/release-advisories/advisories-v4.2-backup.rst

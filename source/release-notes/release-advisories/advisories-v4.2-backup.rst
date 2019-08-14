@@ -5,7 +5,9 @@ limited. Support will be extended in future releases of |mms|.
 If you are running MongoDB 4.2 with
 ``"featureCompatibilityVersion" : 4.2``, you:
 
-.. only:: onprem
+.. cond:: onprem
+
+   - Must run MongoDB Enterprise.
 
    - Cannot back up sharded clusters. Do not upgrade sharded clusters
      to ``"featureCompatibilityVersion" : 4.2`` if you need to back up
@@ -18,16 +20,26 @@ If you are running MongoDB 4.2 with
      point in time or queryable restores.
 
    - Cannot use namespace filter lists to define the
-     :term:`namespaces <namespace>` included in a backup.
+     :term:`namespaces <namespace>` included in a backup. Snapshots
+     using FCV 4.2 always include all namespaces.
 
-   - Cannot specify a sync source database.
+   - Cannot specify a sync source database. For FCV 4.2 replica sets,
+     no Initial Sync step is required. When taking a Snapshot, |mms|
+     selects the replica set member with the least performance impact
+     and greatest storage-level duplication of Snapshot data.
 
-   - Cannot save your backup to a file system store.
+   - Cannot save your backup to a file system store. Backup supports
+     :doc:`MongoDB </tutorial/manage-blockstore-storage>` and
+     :doc:`S3 Snapshot Storage </tutorial/manage-s3-blockstore-storage>`.
 
    - Must deploy a MongoDB Agent with every |mongod| node in
      the cluster.
 
-.. only:: cloud
+.. cond:: cloud
+
+   - Must run MongoDB Enterprise. MongoDB, Inc. grants a
+     :doc:`special license </reference/legal/cloud-manager-backup-license>`
+     to use MongoDB Enterprise for |mms| backups.
 
    - Cannot back up sharded clusters. Do not upgrade sharded clusters
      to ``"featureCompatibilityVersion" : 4.2`` if you need to back up
@@ -38,6 +50,15 @@ If you are running MongoDB 4.2 with
      :doc:`queryable restores </tutorial/query-backup>`. Do not upgrade
      to ``"featureCompatibilityVersion" : 4.2`` if you require point
      in time or queryable restores.
+
+   - Cannot use namespace filter lists to define the
+     :term:`namespaces <namespace>` included in a backup. Snapshots
+     using FCV 4.2 always include all namespaces.
+
+   - Cannot specify a sync source database. For FCV 4.2 replica sets,
+     no Initial Sync step is required. When taking a Snapshot, |mms|
+     selects the replica set member with the least performance impact
+     and greatest storage-level duplication of Snapshot data.
 
    - Must deploy a MongoDB Agent with every |mongod| node in
      the cluster.
