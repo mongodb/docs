@@ -3,5 +3,4 @@
 
    The {+data-lake+} is available as a Beta feature. The product
    and the corresponding documentation may change at any time during
-   the Beta stage. For support, see
-   :doc:`Request Support </support>`.
+   the Beta stage. For support, see :doc:`Atlas Support </support>`.
