@@ -57,12 +57,179 @@ cubilia Curae; Nunc non interdum purus, ultricies laoreet tortor.
 B. Define a JSON Schema
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Proin non mi a felis luctus vulputate nec pharetra odio. Ut pretium
-scelerisque nulla, sed euismod nisi pellentesque sit amet. Proin mollis
-mauris eu libero ullamcorper rutrum. Pellentesque vitae enim sed magna
-accumsan maximus et quis mi. Ut vel laoreet turpis. Vivamus vitae odio
-sed arcu finibus pretium vel maximus nisi. Nullam gravida consequat
-porta.
+`JSON Schema
+<http://json-schema.org/>`_ is a vocabulary that allows you to annotate and 
+validate JSON documents. MongoDB extends the JSON Schema standard to allow CSFLE
+to use automatically encrypt and decrypt the fields of documents in a collection. 
+
+The following fields are required in the JSON Schema to enable automatic 
+encryption and decryption for each field:
+
+* The encryption algorithm (:manual:`Deterministic Encryption </core/security-client-side-encryption#deterministic-encryption>` or :manual:`Random Encryption </core/security-client-side-encryption#random-encryption>`)
+* The data key
+* The BSON Type (only required by deterministically encrypted fields)
+
+.. note::
+
+    A single data key can be used for all encrypted fields, or you can use individual data keys that are specific to each field.
+
+
+The MedcoMD engineers receive specific requirements for the fields of
+data and their encryption strategies. The following table illustrates
+the data model of the Medco Management System.
+
+
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field type
+     - Encryption Algorithm
+     - BSON Type
+   * - Name
+     - Non-Encrypted 
+     - String
+   * - SSN
+     - Deterministic
+     - Int
+   * - Blood Type
+     - Random
+     - String
+   * - Medical Records
+     - Random
+     - Array
+   * - Insurance: Policy Number
+     - Deterministic
+     - Int (embedded inside `insurance` object) 
+   * - Insurance: Provider
+     - Non-Encrypted
+     - String (embedded inside `insurance` object)
+
+
+
+
+To automatically encrypt and decrypt data, the MedcoMD engineers create
+a JSON Schema that specifies which fields should be encrypted, and which
+encryption method to use. Initially, they define a data key for all
+fields in the data model by specifying the `encryptMetadata
+<https://docs.mongodb.com/manual/reference/security-client-side-automatic-json-schema/#encryptmetadata-schema-keyword>`_
+attribute. All child properties will inherit this encryption key unless
+specifically overwritten. 
+
+.. code-block:: javascript
+
+        {
+            "bsonType" : "object",
+            "encryptMetadata" : {
+                "keyId" : // copy and paste your keyID generated here
+            },
+            "properties": {
+                // copy and paste your fields here 
+            }
+        }
+
+MedcoMD engineers create JSON objects for each field and append them to
+the `properties` map.
+
+SSN
++++
+``ssn`` is a field representing the patient's social security number. This
+field is sensitive and should be encrypted. MedcoMD engineers decide 
+upon deterministic encryption based on the following properties:
+
+* Queryable
+* High cardinality 
+
+.. code-block:: json
+
+    "ssn": {
+        "encrypt": {
+            "bsonType": "int",
+            "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
+        }
+    }
+
+
+
+Blood Type
+++++++++++
+``bloodType`` is a field representing the patient's blood type. This field is 
+sensitive and should be encrypted. MedcoMD engineers decide 
+upon random encryption based on the following properties:
+
+* No plans to query
+* Low cardinality 
+
+.. code-block:: json
+
+    "bloodType": {
+        "encrypt": {
+            "bsonType": "string",
+            "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+        }
+    }
+
+
+Medical Records
++++++++++++++++
+``medicalRecords`` is an array field holding a set of medical records. Each 
+medical record document specifies information, such as the patient's blood 
+pressure, weight, and heart rate.  This field is sensitive and should be 
+encrypted. MedcoMD engineers decide upon random encryption based on 
+the following properties:
+
+* Array fields must use random encryption with CSFLE to enable auto-encryption
+
+.. code-block:: json
+
+    "medicalRecords": {
+        "encrypt": {
+            "bsonType": "array",
+            "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+        }
+    }
+
+Insurance: Policy Number
+++++++++++++++++++++++++
+``insurance.policyNumber`` is a field embedded inside the ``Insurance`` object 
+field and represents the patient's policy number. This policy number is a 
+distinct and sensitive field. MedcoMD engineers decide upon 
+deterministic encryption based on the following properties:
+
+* Queryable
+* High cardinality 
+
+.. code-block:: json
+
+    "insurance": {
+        "bsonType": "object",
+        "properties": {
+            "policyNumber": {
+                "encrypt": {
+                    "bsonType": "int",
+                    "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
+                }
+            }
+        }
+    }    
+
+
+Recap
++++++++
+MedcoMD engineers created a JSON Schema that satisfies their requirements of 
+making sensitive data queryable and secure. View the full `JSON Schema 
+for the Medco Medical Management System <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-json-schema-helper-and-json/MedcoMDSchema.json>`_. 
+
+
+.. tabs::
+
+   tabs:
+
+     - id: java-jsonschema-generation
+       name: "Java"
+       content: |
+       
+        View the `helper code in Java <https://gist.github.com/ccho-mongodb/088176b1bed3b9e54cdc0c2c3c537d1b>`_. 
 
 C. Configure the MongoDB Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
