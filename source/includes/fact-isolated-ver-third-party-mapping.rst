@@ -1,4 +1,4 @@
 .. note::
 
-   Third party mapping services such as Mapbox are not available in
+   Third party mapping services are not available in
    :guilabel:`Compass Isolated Edition`.
