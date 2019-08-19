@@ -4,6 +4,9 @@ db.collection.update()
 
 .. default-domain:: mongodb
 
+.. role:: red(strong)
+   :class: text-danger
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -325,7 +328,7 @@ Upsert Behavior
 ```````````````
 
 If ``upsert`` is ``true`` and no document matches the query criteria,
-:method:`~db.collection.update()` inserts a *single* document: The
+:method:`~db.collection.update()` inserts a *single* document: 
 
 - If the ``<update>`` parameter is a :ref:`replacement document (i.e.,
   contains only field and value pairs)
@@ -357,6 +360,11 @@ If ``upsert`` is ``true`` and no document matches the query criteria,
 
 If ``upsert`` is ``true`` and there are documents that match the query
 criteria, :method:`~db.collection.update()` performs an update.
+
+If you specify ``upsert: true`` on a sharded collection, you must
+include the full shard key in the ``filter``. For additional
+:method:`db.collection.update()` behavior on a sharded collection, see
+:ref:`update-sharded-collection`.
 
 .. seealso:: :update:`$setOnInsert`
 
@@ -434,16 +442,55 @@ If the :ref:`\<update\> <update-parameter>` document contains *only*
 
 For an example, see :ref:`example-update-multi`.
 
+.. _update-sharded-collection:
+
 Sharded Collections
 ~~~~~~~~~~~~~~~~~~~
 
-To use :method:`db.collection.update()` with ``multi: false`` on a sharded collection, you
-must include an exact match on the ``_id`` field or target a single
-shard (such as by including the shard key).
+To use :method:`db.collection.update()` with ``multi: false`` on a
+sharded collection, you must include an exact match on the ``_id``
+field or target a single shard (such as by including the shard key).
+
+When the :method:`db.collection.update()` performs update operations
+(and not document replacement operations),
+:method:`db.collection.update()` can target multiple shards.
+
+.. seealso:: :method:`~db.collection.findAndModify()`
+
+Replace Document Operations
+````````````````````````````
+
+Starting in MongoDB 4.2, replace document operations attempt to target
+a single shard, first by using the query filter. If the operation
+cannot target a single shard by the query filter, it then attempts to target
+by the replacement document.
+
+In earlier versions, the operation attempts to target using the
+replacement document.
+
+
+``upsert`` on a Sharded Collection
+``````````````````````````````````
+
+For a :method:`db.collection.update()` operation that includes
+``upsert: true`` and is on a sharded collection, you must include the
+full shard key in the ``filter``:
+
+- For an update operation.
+
+- For a replace document operation (starting in MongoDB 4.2).
+
+
+Shard Key Modification
+``````````````````````
 
 .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
 
-.. seealso:: :method:`~db.collection.findAndModify()`
+To use :method:`db.collection.update()` to update the shard key:
+
+- You must specify ``multi: false``.
+
+.. include:: /includes/shard-key-modification-requirements.rst
 
 Transactions
 ~~~~~~~~~~~~

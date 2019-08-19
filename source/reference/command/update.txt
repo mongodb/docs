@@ -4,6 +4,9 @@ update
 
 .. default-domain:: mongodb
 
+.. role:: red(strong)
+   :class: text-danger
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -114,11 +117,13 @@ Each document contains the following fields:
 
        For details, see :ref:`update-command-behaviors`.
 
-   * - ``upsert``
+   * - :ref:`upsert <update-command-upsert>`
 
      - boolean
 
-     - Optional. If ``true``, perform an insert if no documents match the query. If
+     - .. _update-command-upsert:
+     
+       Optional. If ``true``, perform an insert if no documents match the query. If
        both ``upsert`` and ``multi`` are true and no documents match the
        query, the update operation inserts only a single document.
 
@@ -330,11 +335,38 @@ Document Validation
 Sharded Collections
 ~~~~~~~~~~~~~~~~~~~
 
-To use :dbcommand:`update` with ``multi: false`` on a sharded collection, you
-must include an exact match on the ``_id`` field or target a single
-shard (such as by including the shard key).
+To use :dbcommand:`update` with ``multi: false`` on a sharded
+collection,
+
+- If you do not specify :ref:`upsert: true <update-command-upsert>`,
+  you must include an equality match on the ``_id`` field or target a
+  single shard (such as by including the shard key).
+
+- If you specify :ref:`upsert: true <update-command-upsert>`, the
+  filter :ref:`q <update-command-q>` must include an equality match on the
+  shard key.
+
+Shard Key Modification
+``````````````````````
 
 .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+To use :dbcommand:`update` to update the shard key:
+
+- You must specify ``multi: false``.
+
+.. include:: /includes/shard-key-modification-requirements.rst
+
+Replace Document
+````````````````
+
+Starting in MongoDB 4.2, when replacing a document, :dbcommand:`update`  attempts
+to target a shard, first by using the query filter. If the operation
+cannot target a single shard by the query filter, it then attempts to target
+by the replacement document.
+
+In earlier versions, the operation attempts to target using the
+replacement document.
 
 Transactions
 ~~~~~~~~~~~~

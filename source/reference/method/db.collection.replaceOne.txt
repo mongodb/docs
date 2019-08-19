@@ -4,6 +4,9 @@ db.collection.replaceOne()
 
 .. default-domain:: mongodb
 
+.. role:: red(strong)
+   :class: text-danger
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -16,9 +19,9 @@ Definition
 .. method:: db.collection.replaceOne(filter, replacement, options)
 
    .. versionadded:: 3.2
-	
+
    Replaces a single document within the collection based on the filter.
-	
+
    The :method:`~db.collection.replaceOne()` method has the following form:
 
    .. code-block:: javascript
@@ -39,29 +42,38 @@ Definition
    .. include:: /includes/apiargs/method-db.collection.replaceOne-param.rst
 
    :returns:
-      
+
       A document containing:
-		
-      - A boolean ``acknowledged`` as ``true`` if the operation ran with 
+
+      - A boolean ``acknowledged`` as ``true`` if the operation ran with
         :term:`write concern` or ``false`` if write concern was disabled
-		 
+
       - ``matchedCount`` containing the number of matched documents
-		
+
       - ``modifiedCount`` containing the number of modified documents
-		
+
       - ``upsertedId`` containing the ``_id`` for the upserted document
 
 Behavior
 --------
 
-:method:`~db.collection.replaceOne()` replaces the first matching document in 
-the collection that matches the ``filter``, using the ``replacement`` 
+:method:`~db.collection.replaceOne()` replaces the first matching document in
+the collection that matches the ``filter``, using the ``replacement``
 document.
 
-If ``upsert: true`` and no documents match the ``filter``, 
-:method:`~db.collection.replaceOne()` creates a new 
-document based on the ``replacement`` document. See 
-:ref:`replaceOne-example-replace-with-upsert`.
+``upsert``
+~~~~~~~~~~
+
+If ``upsert: true`` and no documents match the ``filter``,
+:method:`db.collection.replaceOne()` creates a new document based on
+the ``replacement`` document.
+
+If you specify ``upsert: true`` on a sharded collection, you must
+include the full shard key in the ``filter``. For additional
+:method:`db.collection.replaceOne()` behavior on a sharded collection,
+see :ref:`replaceOne-sharded-collection`.
+
+See :ref:`replaceOne-example-replace-with-upsert`.
 
 .. _replaceOne-capped-collection:
 
@@ -70,9 +82,44 @@ Capped Collections
 
 .. include:: /includes/extracts/capped-collection-immutable-document-size-replace.rst
 
-.. TBD - need to test more thoroughly to pin down func.
-.. Sharded Collections
-.. ~~~~~~~~~~~~~~~~~~~
+.. _replaceOne-sharded-collection:
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, :method:`db.collection.replaceOne()` attempts
+to target a single shard, first by using the query filter. If the operation
+cannot target a single shard by the query filter, it then attempts to target
+by the replacement document. 
+
+In earlier versions, the operation attempts to target using the
+replacement document.
+
+If replacing a document in a sharded collection, the replacement
+document must include the shard key. Additional requirements apply for
+:ref:`replaceOne-sharded-upsert` and
+:ref:`replaceOne-shard-key-modification`.
+
+.. _replaceOne-sharded-upsert:
+
+``upsert`` on a Sharded Collection
+``````````````````````````````````
+
+Starting in MongoDB 4.2, for a :method:`db.collection.replaceOne()`
+operation that includes ``upsert: true`` and is on a sharded
+collection, you must include the full shard key in the ``filter``.
+
+.. _replaceOne-shard-key-modification:
+
+Shard Key Modification
+``````````````````````
+
+.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+To use :method:`db.collection.replaceOne()` to update the shard key:
+
+.. include:: /includes/shard-key-modification-requirements.rst
+
 
 Transactions
 ~~~~~~~~~~~~
@@ -103,20 +150,20 @@ The ``restaurant`` collection contains the  following documents:
    { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "Borough" : "Queens", "violations" : 2 },
    { "_id" : 3, "name" : "Empire State Pub", "Borough" : "Brooklyn", "violations" : 0 }
 
-The following operation replaces a single document where 
+The following operation replaces a single document where
 ``name: "Central Perk Cafe"``:
 
 .. code-block:: javascript
 
    try {
-      db.restaurant.replaceOne( 
-         { "name" : "Central Perk Cafe" }, 
-         { "name" : "Central Pork Cafe", "Borough" : "Manhattan" } 
+      db.restaurant.replaceOne(
+         { "name" : "Central Perk Cafe" },
+         { "name" : "Central Pork Cafe", "Borough" : "Manhattan" }
       );
    } catch (e){
       print(e);
    }
-  
+
 The operation returns:
 
 .. code-block:: javascript
@@ -129,7 +176,7 @@ If no matches were found, the operation instead returns:
 
    { "acknowledged" : true, "matchedCount" : 0, "modifiedCount" : 0 }
 
-Setting ``upsert: true`` would insert the document if no match was found. See 
+Setting ``upsert: true`` would insert the document if no match was found. See
 :ref:`replaceOne-example-replace-with-upsert`
 
 .. _replaceOne-example-replace-with-upsert:
@@ -146,22 +193,22 @@ The ``restaurant`` collection contains the following documents:
    { "_id" : 3, "name" : "Empire State Pub", "Borough" : "Brooklyn", "violations" : 0 }
 
 
-The following operation attempts to replace the document with 
+The following operation attempts to replace the document with
 ``name : "Pizza Rat's Pizzaria"``, with ``upsert : true``:
 
 .. code-block:: javascript
 
    try {
       db.restaurant.replaceOne(
-         { "name" : "Pizza Rat's Pizzaria" }, 
-         { "_id": 4, "name" : "Pizza Rat's Pizzaria", "Borough" : "Manhattan", "violations" : 8 }, 
+         { "name" : "Pizza Rat's Pizzaria" },
+         { "_id": 4, "name" : "Pizza Rat's Pizzaria", "Borough" : "Manhattan", "violations" : 8 },
          { upsert: true }
       );
    } catch (e){
       print(e);
    }
 
-Since ``upsert : true`` the document is inserted based on the 
+Since ``upsert : true`` the document is inserted based on the
 ``replacement`` document. The operation returns:
 
 .. code-block:: javascript
@@ -187,7 +234,7 @@ The collection now contains the following documents:
 Replace with Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Given a three member replica set, the following operation specifies a 
+Given a three member replica set, the following operation specifies a
 ``w`` of ``majority`` and ``wtimeout`` of ``100``:
 
 .. code-block:: javascript
@@ -202,7 +249,7 @@ Given a three member replica set, the following operation specifies a
       print(e);
    }
 
-If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+If the acknowledgement takes longer than the ``wtimeout`` limit, the following
 exception is thrown:
 
 .. code-block:: javascript
@@ -214,7 +261,7 @@ exception is thrown:
       },
       "errmsg" : "waiting for replication timed out"
    })
-   
+
 Specify Collation
 ~~~~~~~~~~~~~~~~~
 
@@ -237,7 +284,7 @@ option:
       { category: "cafe", status: "a" },
       { category: "cafÉ", status: "Replaced" },
       { collation: { locale: "fr", strength: 1 } }
-      
+
    );
 
 

@@ -84,19 +84,13 @@ For instructions specific to sharding a collection using the
 Change a Document's Shard Key Value
 -----------------------------------
 
+.. topic:: When updating the shard key value
+
+   .. include:: /includes/shard-key-modification-requirements.rst
+
 Starting in MongoDB 4.2, you can update a document's shard key value
-unless the shard key field is the immutable ``_id`` field.
-
-You can use the following operations to update a document's shard key
-value:
-
-.. note::
-
-   To update the shard key value, you :red:`must` run the operations on
-   a :binary:`~bin.mongos` either in a :doc:`transaction
-   </core/transactions>` or as a :doc:`retryable write
-   </core/retryable-writes>`. Do :red:`not` issue the operation
-   directly on the shard.
+unless the shard key field is the immutable ``_id`` field. To update,
+use the following operations to update a document's shard key value:
 
 .. list-table::
    :header-rows: 1
@@ -106,35 +100,27 @@ value:
      - Method
 
    * - :dbcommand:`update` with ``multi: false``
-     - | :method:`db.collection.updateOne()`
+     - | :method:`db.collection.replaceOne()`
+       | :method:`db.collection.updateOne()`
        | :method:`db.collection.update()` with ``multi: false``
 
    * - :dbcommand:`findAndModify`
-     - | :method:`db.collection.findOneAndUpdate()`
+     - | :method:`db.collection.findOneAndReplace()`
+       | :method:`db.collection.findOneAndUpdate()`
        | :method:`db.collection.findAndModify()`
 
    * -
      - | :method:`db.collection.bulkWrite()`
        | :method:`Bulk.find.updateOne()`
-       
+
        If the shard key modification results in moving the document to
        another shard, you cannot specify more than one shard key
        modification in the bulk operation; i.e. batch size of
        1.
-       
+
        If the shard key modification does not result in moving the
        document to another shard, you can specify multiple shard
        key modification in the bulk operation.
-
-
-.. important::
-
-   When running these operations, you must include an equality
-   condition on the shard key in the query filter. For example, if a
-   collection ``messages`` uses ``{ country : 1, userid : 1 }`` as the
-   shard key, to update the shard key for a document, you must include
-   ``country: <value>, userid: <value>`` in the query filter. You can
-   include additional fields in the query as appropriate.
 
 .. _sharding-internals-shard-key-indexes:
 .. _sharding-shard-key-indexes:
