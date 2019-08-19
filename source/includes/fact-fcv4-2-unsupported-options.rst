@@ -11,3 +11,5 @@ MongoDB databases that run with an
   (Whitelists and Blacklists)
 - :term:`Sync stores <sync store>`
 - :term:`File System Stores <File System Store>`
+
+Support will be extended in future point releases of |onprem| 4.2.
