@@ -44,15 +44,52 @@ Requirements
 - Nullam imperdiet lorem vitae vulputate lacinia.
 - Donec eget velit tincidunt, gravida diam ac, efficitur lacus.
 
-A. Create a Local Master Key
+A. Create a Master Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Aenean eu consequat lorem. Ut posuere est sed sodales pharetra. Cras
-volutpat, massa laoreet varius dictum, leo odio porttitor ante, nec
-auctor tortor orci et mi. Maecenas tempor, lacus vehicula molestie
-pulvinar, ante eros faucibus odio, sed consequat quam tellus vel arcu.
-Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere
-cubilia Curae; Nunc non interdum purus, ultricies laoreet tortor.
+MongoDB `Client-Side Field Level Encryption (CSFLE) <https://docs.mongodb.com/manual/core/security-client-side-encryption/>`_ uses an encryption strategy called *envelope encryption* in which keys used to encrypt/decrypt data (called **data encryption keys**) are encrypted with another key (called the **master key**). For more information on the features of envelope encryption and key management concepts, see `AWS Key Management Service Concepts <https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#enveloping>`_.
+
+The master key, used by the MongoDB driver to create and encrypt data keys, should be stored remotely in a `Key Management System <https://en.wikipedia.org/wiki/Key_management#Key_management_system>`_. The data encryption keys, generated and used by the MongoDB driver to encrypt and decrypt document fields, are stored in a key vault collection in the same database as the encrypted data.
+
+In this step, we generate a local master key to expedite setup of our development environment.
+
+.. admonition:: Local Master Keys Are Not Secure
+   :class: important
+
+   To ensure that the master key cannot be compromised, do not use a local master key in a production environment. Instead, use a secure KMS such as `AWS KMS <https://aws.amazon.com/kms/>`_.
+
+   We demonstrate how to transition from a locally-hosted master key to a remote AWS KMS master key in a later step of this guide.
+
+.. tabs::
+
+  tabs:
+
+    - id: java-master-key-generator
+      name: "Java"
+      content: |
+
+        The following script generates a 96-byte local master key and saves it to a file called ``master-key.txt`` in the directory from which the script is executed.
+
+        .. code-block:: java
+
+          import java.io.FileOutputStream;
+          import java.io.IOException;
+          import java.security.SecureRandom;
+
+          public class CreateMasterKeyFile {
+            public static void main(final String[] args) {
+
+              final byte[] localMasterKey = new byte[96];
+              new SecureRandom().nextBytes(localMasterKey);
+
+              try (FileOutputStream stream = new FileOutputStream("master-key.txt")) {
+                stream.write(localMasterKey);
+              } catch (IOException e)  {
+                e.printStackTrace();
+              }
+            }
+          }
+
 
 B. Define a JSON Schema
 ~~~~~~~~~~~~~~~~~~~~~~~
