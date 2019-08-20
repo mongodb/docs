@@ -1,3 +1,15 @@
+.. _atlas-v20190820:
+
+20 August 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports the |aws| Bahrain region.
+- Changes the preferred region in a multi-region cluster without
+  requiring a rolling resync.
+- Enables always-on database-level authentication access auditing for
+  dedicated clusters.
+- Adds key-value pair labels to cluster resources in the Public API.
+
 .. _atlas-v20190730:
 
 30 July 2019 Release
