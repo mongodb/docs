@@ -1,3 +1,10 @@
+.. _cloudmanager-v20190820:
+
+20 August 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports MongoDB 4.2.
+
 .. _cloudmanager-v20190730:
 
 30 July 2019 Release
