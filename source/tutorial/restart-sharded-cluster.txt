@@ -1,0 +1,98 @@
+=========================
+Restart a Sharded Cluster
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The tutorial is specific to MongoDB |version|. For earlier versions of
+MongoDB, refer to the corresponding version of the MongoDB Manual.
+
+This procedure demonstrates the shutdown and startup sequence for restarting
+a sharded cluster. Stopping or starting the components of a sharded cluster
+in a different order may cause communication errors between members. For
+example, :doc:`shard </core/sharded-cluster-shards>` servers may appear to hang
+if there are no :doc:`config servers </core/sharded-cluster-config-servers>`
+available.
+
+.. important:: This procedure should only be performed during a planned
+   maintenance period. During this period, applications should stop
+   all reads and writes to the cluster in order to prevent potential
+   data loss or reading stale data.
+
+.. _shutdown-sharded-cluster:
+
+Disable the Balancer
+--------------------
+
+Disable the balancer to stop :doc:`chunk migration
+</core/sharding-balancer-administration>` and do not perform any metadata
+write operations until the process finishes. If a migration is in
+progress, the balancer will complete the in-progress migration before
+stopping.
+
+To disable the balancer, connect to one of the cluster's
+:binary:`~bin.mongos` instances and issue the following command: 
+
+.. code-block:: javascript
+
+   sh.stopBalancer()
+
+To check the balancer state, issue the :method:`sh.getBalancerState()`
+command.
+
+For more information, see :ref:`sharding-balancing-disable-temporarily`.
+
+Stop Sharded Cluster
+--------------------
+
+.. include:: /includes/steps/stop-sharded-cluster.rst
+
+
+.. _start-sharded-cluster:
+
+Start Sharded Cluster
+---------------------
+
+.. include:: /includes/steps/start-sharded-cluster.rst
+
+Re-Enable the Balancer
+----------------------
+
+Re-enable the balancer to resume
+:doc:`chunk migrations </core/sharding-balancer-administration>`.
+
+Connect to one of the cluster's :binary:`~bin.mongos` instances and run
+the :method:`sh.startBalancer()` command: 
+
+.. code-block:: javascript
+
+   sh.startBalancer()
+
+To check the balancer state, issue the :method:`sh.getBalancerState()`
+command.
+
+For more information, see :ref:`sharding-balancing-enable`.
+
+Validate Cluster Accessibility
+------------------------------
+
+Connect a :binary:`mongo <bin.mongo>` shell to one of the cluster's
+:binary:`mongos <bin.mongos>` processes. Use :method:`sh.status()`
+to check the overall cluster status.
+
+To confirm that all shards are accessible and communicating, insert
+test data into a temporary sharded collection. Confirm that data is
+being split and migrated between each shard in your cluster. You can
+connect a :binary:`mongo <bin.mongo>` shell to each shard primary and
+use :method:`db.collection.find()` to validate that the data was
+sharded as expected.
+
+.. important:: To prevent potential data loss or reading stale data,
+   do not start application reads and writes to the cluster
+   until after confirming the cluster is healthy and accessible.
