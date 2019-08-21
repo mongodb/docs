@@ -29,6 +29,13 @@
      - ``2``
      - ``0``
 
+   * - ``max_execution_time``
+     - integer
+     - Specifies the maximum length of time an aggregation operation
+       may run. A value of ``0`` specifies no limit.
+     - ``0``
+     - ``0``
+
    * - ``max_nested_table_depth``
      - integer
      - Specifies the maximum number of unique nested field paths that
