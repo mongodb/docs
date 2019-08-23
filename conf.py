@@ -78,7 +78,8 @@ extlinks = {
     'v0.10': ('https://docs.mongodb.com/charts/v0.10%s', ''),
     'atlas': ('https://docs.atlas.mongodb.com%s', ''),
     'stitch': ('https://docs.mongodb.com/stitch%s', ''),
-    'onprem': ('https://docs.mongodb.com/charts/onprem%s', '')
+    'onprem': ('https://docs.mongodb.com/charts/onprem%s', ''),
+    'compass': ('https://docs.mongodb.com/compass/master%s', '')
 }
 
 source_constants = {
