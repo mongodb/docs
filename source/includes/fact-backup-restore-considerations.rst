@@ -1,6 +1,8 @@
 You must restore a backup to an |service| cluster running the same
-major release version of MongoDB as the cluster that you want to
-restore.
+major release version of MongoDB  or the next release version of MongoDB 
+as the cluster that you want to restore. You cannot restore a backup 
+to an |service| cluster running a lower release version of MongoDB than the 
+cluster that you want to restore.
 
 .. tip::
 
