@@ -478,21 +478,136 @@ following procedure to configure and instantiate the MongoDB client:
 E. Perform Encrypted Read/Write Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Etiam hendrerit posuere justo, ac hendrerit lorem pellentesque sed.
-Fusce ullamcorper neque eu libero aliquam, sed placerat sapien cursus.
-Vestibulum maximus magna sed velit feugiat tempor.
+The MedcoMD engineers now have a CSFLE-enabled client and can test that
+the client can perform queries that meet the requirements. Doctors
+should be able to read and write to all fields, and receptionists should
+only be allowed to read and write to non-sensitive fields. 
 
-Ut accumsan pellentesque metus, at porta felis dapibus vulputate. Aenean
-malesuada interdum libero in feugiat. Fusce pharetra massa eget leo
-varius, et gravida massa tempus.
+Insert a Document with Encrypted Fields
++++++++++++++++++++++++++++++++++++++++
 
-Ut mattis eros elit, sed ultrices purus lacinia sed. Curabitur tincidunt
-tellus eget neque porta dictum ac vel orci. Vestibulum ante ipsum primis
-in faucibus orci luctus et ultrices posuere cubilia Curae.
+MedcoMD engineers write a function to create a new patient record:
 
-Praesent feugiat arcu risus elementum eleifend. Nullam sed iaculis
-erat.
 
+.. tabs::
+
+   tabs:
+
+     - id: java-jsonschema-generation
+       name: "Java"
+       content: |
+       
+        .. code-block:: java
+
+            public static void insertPatient(MongoCollection collection, String name, int ssn, String bloodType, ArrayList<Document> medicalRecords, int policyNumber, String provider) {
+                Document patient = new Document()
+                    .append("name", name)
+                    .append("ssn", ssn)
+                    .append("bloodType", bloodType)
+                    .append("medicalRecords", medicalRecords);
+                Document insurance = new Document()
+                    .append("policyNumber", policyNumber)
+                    .append("provider", provider)
+                    .append("insurance", insurance);
+                collection.insertOne(patient);
+            }
+
+When a CSFLE-enabled client inserts a new patient record into the Medical Care 
+Management System, it automatically encrypts the fields. This operation 
+produces a document similar to the following:
+
+.. code-block:: json 
+
+    {
+        "_id": "5d7a7bbe6d58fd263b6d7315",
+        "name": "Jon Doe",
+        "ssn": "Ac+ZbPM+sk7gl7CJCcIzlRAQUJ+uo/0WhqX+KbTNdhqCszHucqXNiwqEUjkGlh7gK8pm2JhIs/P3//nkVP0dWu8pSs6TJnpfUwRjPfnI0TURzQ==",
+        "bloodType": "As+ZbPM+sk7gl7CJCcIzlRACESwHCTCtK/lQV9kF6/LRoL3mh59gzBVA42vGBVfLIycYWpfAy7ZCi2eRGEgMX5CrGl259Wfu6Zf/ELBVqQDnyQ==",
+        "medicalRecords": "As+ZbPM+sk7gl7CJCcIzlRAEFt249toVYOlvlC/79cAtQ5jvE/ukF1ZLxRZn1g0zBBtPnf6L0AFTKMVdNJnjMGPMTszYU58qRE9uMvCU05DVHYl8DJnbtGXXFRLJ7ElQOc=",
+        "insurance": {
+            "provider": "MaestCare",
+            "policyNumber": "Ac+ZbPM+sk7gl7CJCcIzlRAQm7kFhN1hy3l7Wt3BSpBMbvVSuiaDsf3UPF9bvJLTEcC+Ka+3kZI4SVZinj4tyc5uDYeyh6+7phpKrQo4CHWyg=="
+        }
+    }
+
+.. note:: 
+    Clients that do not have CSFLE configured will insert unencrypted data. We 
+    recommend using :manual:`server-side schema validation </core/schema-validation/>`
+    to enforce encrypted writes for fields that should be encrypted. 
+
+Query for Documents on a Deterministically Encrypted Field
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Queries on encrypted fields can be done using traditional MongoDB driver
+methods as well. When a query is made using a client configured to use
+CSFLE, such as when a doctor in the MedcoMD management system searches
+for a patient with their SSN, the patient's data is returned
+unencrypted:
+
+.. code-block:: json 
+
+    {
+        "_id": "5d6ecdce70401f03b27448fc",
+        "name": "Jon Doe",
+        "ssn": 241014209,
+        "bloodType": "AB+",
+        "medicalRecords": [
+            {
+                "weight": 180,
+                "bloodPressure": "120/80"
+            }
+        ],
+        "insurance": {
+            "provider": "MaestCare",
+            "policyNumber": 123142
+        }
+    }
+
+
+.. note:: 
+    For queries using a client that is not configured to use CSFLE, such
+    as when receptionists in the MedcoMD management system search for a
+    patient with their ``ssn``, a null value is returned. A client without CSFLE 
+    configured cannot query on a sensitive field.
+
+Query for Documents on a Randomly Encrypted Field
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. warning::
+    You cannot directly query for documents on a randomly encrypted field, however 
+    you can use another field to find the document that contains an approximation of
+    the randomly encrypted field data.
+
+MedcoMD engineers determined that the fields they randomly encrypted
+would not be used to find patients records. Had this been required, for example,
+if the patient's ``ssn`` was randomly encrypted, MedcoMD engineers
+could have included another plaintext field called ``last4ssn`` that
+contains the last 4 digits of the ``ssn`` field. They could then query
+on this field as a proxy for the ``ssn``.
+
+
+
+.. code-block:: json 
+   :emphasize-lines: 5
+
+    {
+        "_id": "5d6ecdce70401f03b27448fc",
+        "name": "Jon Doe",
+        "ssn": 241014209,
+        "last4ssn": 4209,
+        "bloodType": "AB+",
+        "medicalRecords": [
+            {
+                "weight": 180,
+                "bloodPressure": "120/80"
+            }
+        ],
+        "insurance": {
+            "provider": "MaestCare",
+            "policyNumber": 123142
+        }
+    }
+ 
 .. _fle-convert-to-a-remote-master-key:
 
 F. Convert to a Remote Master Key
