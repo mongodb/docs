@@ -21,7 +21,7 @@
 
    * - ``configurationType``
      - string
-     - Denotes the configuration method for the audit filter. Possible values
+     - Denotes the creation method for the audit filter. Possible values
        are:
 
        - ``NONE`` - auditing not configured for the project.
@@ -30,5 +30,5 @@
 
    * - ``enabled``
      - boolean
-     - Denotes whether or not the project associated with the ``{GROUP-ID}`` has
-       :doc:`database auditing </database-auditing>` enabled. 
+     - ``true`` if the project associated to the ``{GROUP-ID}`` has
+       :doc:`database auditing </database-auditing>` enabled.
