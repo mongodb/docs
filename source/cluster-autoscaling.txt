@@ -1,0 +1,145 @@
+.. _cluster-autoscaling:
+
+====================
+Cluster Auto-Scaling
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. admonition:: Feature Availability
+   :class: note
+
+   This feature is available for ``M10+`` clusters using the
+   :guilabel:`General` storage class.
+
+You can configure your |service| cluster to automatically scale
+its cluster tier and storage capacity up or down in response to
+cluster usage. Cluster auto-scaling removes the need to write scripts
+or use consulting services to analyze cluster usage to make
+scaling decisions.
+
+Auto-scaling works on a rolling basis, meaning the process does not
+incur any downtime.
+
+How Auto-Scaling Works
+----------------------
+
+.. note::
+
+   The metrics described in this section are subject to improvement
+   by the |service| development team.
+
+|service| analyzes the following cluster metrics to determine when to
+scale a cluster, and whether to scale the cluster tier up or down:
+
+- CPU Utilization 
+
+- Memory Utilization
+
+Before scaling your cluster, |service| checks that the cluster
+would not be in a tier outside of your specified
+:guilabel:`Minimum` and :guilabel:`Maximum Cluster Size` range.
+
+Scaling Up a Cluster
+~~~~~~~~~~~~~~~~~~~~
+
+If the next highest cluster tier is within your
+:guilabel:`Maximum Cluster Size` range, |service| scales the cluster up
+to the next tier if *one* of the following is true for the current
+cluster:
+
+- Average CPU Utilization has exceeded 75% for the past hour, or
+
+- Memory Utilization has exceeded 75% for the past hour.
+
+Scaling Down a Cluster
+~~~~~~~~~~~~~~~~~~~~~~
+
+If the next lowest cluster tier is within your
+:guilabel:`Minimum Cluster Size` range, |service| scales the cluster
+down to the next lowest tier if *both* of the following are true:
+
+- Based on data collected from the past 72 hours, the desired CPU
+  Utilization and Memory Utilization on the *target*
+  cluster tier will not exceed 50%, and
+
+- The cluster has not been scaled down 72 hours
+
+Configure Auto-Scaling Options
+------------------------------
+
+You can configure auto-scaling options when you
+:ref:`create <create-new-cluster>` or :ref:`modify <scale-cluster>` a
+cluster.
+
+|service| displays auto-scaling options in the :guilabel:`Auto-Scale`
+section of the cluster builder:
+
+.. figure:: /images/autoscale.png
+   :figwidth: 720px
+   :alt: Image showing the auto-scaling cluster options.
+
+Auto-Scale Cluster Tier
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In the :guilabel:`Cluster tier` section of the :guilabel:`Auto-scale`
+options, you can specify the minimum and maximum sizes
+to which your cluster can automatically scale.
+
+Auto-scaling is disabled by default. To enable auto-scaling:
+
+1. Check :guilabel:`Cluster tier`.
+
+#. Select a :guilabel:`Maximum Cluster Size` from the dropdown.
+
+When you enable auto-scaling, by default your cluster can only scale up
+and the :guilabel:`Minimum cluster size` is disabled. To enable scaling
+down and specify a minimum cluster size:
+
+1. Check :guilabel:`Allow cluster to be scaled down`.
+
+#. Select a :guilabel:`Minimum Cluster Size` from the dropdown.
+
+.. admonition:: Considerations
+   :class: important
+
+   - Automatically scaling down to a
+     lower cluster tier may leave your cluster unable to handle your
+     workload. Only allow the cluster to be scaled down if you have
+     a clear understanding of your cluster's workload.
+
+   - You cannot scale to a cluster smaller than ``M10``.
+
+Auto-Scale Cluster Storage
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to automatically scaling your cluster tier, |service|
+can also automatically scale your cluster storage. When cluster storage
+scaling is enabled and disk usage reaches 90%, |service|
+automatically increases storage by an amount necessary to achieve
+70% utilization.
+
+Cluster storage scaling is enabled by default. To opt out of
+cluster storage scaling, un-check the :guilabel:`Storage` checkbox.
+
+For more information on cluster storage, see
+:ref:`create-cluster-storage`.
+
+Acknowledge Auto-Scaling Events
+-------------------------------
+
+When an auto-scaling event occurs:
+
+- |service| logs the event in the project
+  :guilabel:`Activity Feed`. For more information on the
+  :guilabel:`Activity Feed`, see :ref:`project-activity-feed`.
+
+- |service| sends an email to all cluster members with
+  information on the event. The email includes the original cluster
+  tier and the new cluster tier after auto-scaling has occurred.
