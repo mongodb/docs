@@ -95,7 +95,10 @@
   are affected the next time you request a configuration change to a cluster.
 - |service| projects may now use either the :doc:`Continuous Backup
   </backup/continuous-backups>` or the :doc:`Cloud Provider Snapshots
-  <backup/cloud-provider-snapshots/>` backup method. You must delete all existing snapshots before switching between backup methods for an |service| project.
+  <backup/cloud-provider-snapshots/>` backup method. An |service|
+  project supports multiple backup types among clusters within that
+  project. You must terminate the existing backup method before
+  switching between backup methods for an |service| cluster.
 - Enhanced left-hand navigation.
 
 .. _atlas-v20190416:
