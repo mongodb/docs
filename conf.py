@@ -128,6 +128,7 @@ rst_epilog = [
     '.. |rest| replace:: :abbr:`REST (Representational State Transfer)`',
     '.. |s3| replace:: :abbr:`S3 (Simple Storage Service)`',
     '.. |sak| replace:: :abbr:`SAK (Service Account Key)`',
+    '.. |sca| replace:: :abbr:`SCA (Strong Customer Authentication)`',
     '.. |service-fullname| replace:: MongoDB Atlas',
     '.. |service-pricing| replace:: Atlas pricing page',
     '.. |service| replace:: Atlas',
