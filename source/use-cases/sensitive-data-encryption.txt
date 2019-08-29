@@ -13,26 +13,59 @@ Sensitive Data Encryption
 Introduction
 ------------
 
-Cras sed rutrum nisi, vitae tristique risus. Aliquam erat volutpat.
-Donec auctor nisl eget ornare accumsan. Pellentesque lectus tortor,
-consectetur molestie pellentesque ac, blandit non libero.
+Many applications make use of sensitive data such as confidential personal details, payment information, or proprietary data. In some jurisdictions, this type of data is subject to governance, privacy, and security compliance mandates. Unauthorized access of sensitive data or a failure to comply with a mandate often results in significant reputation damage and financial penalties. Therefore, it is important to keep sensitive data secure.
+
+MongoDB offers several methods that protect your data from unauthorized access including:
+ 
+* `Role-based access control <https://docs.mongodb.com/manual/core/authorization/>`_
+* `Monitoring and logging <https://docs.mongodb.com/manual/core/auditing/>`_
+* `TLS/SSL network transport encryption <https://docs.mongodb.com/manual/core/security-transport-encryption/>`_
+* `Encryption at rest <https://docs.mongodb.com/manual/core/security-encryption-at-rest/>`_
+
+Another MongoDB feature that prevents unauthorized access of data is `Client-Side Field Level Encryption (CSFLE) <https://docs.mongodb.com/manual/core/security-client-side-encryption/>`_. This feature allows a developer to selectively encrypt individual fields of a document on the client-side before it is sent to the server. This keeps the encrypted data private from the providers hosting the database as well as any user that has direct access to the database.
+
+This guide provides steps for setup and implementation of CSFLE with a practical example.
+
+.. note::
+
+  Client-side Field Level Encryption is available starting in MongoDB 4.2 Enterprise only.
 
 Problem
 ~~~~~~~
 
-Pellentesque non mi et est congue mattis pretium sit amet mi. Praesent
-nec tortor nec arcu molestie dapibus. Phasellus at nunc ut quam molestie
-finibus. Suspendisse finibus lectus eget nulla eleifend, vel consequat
-leo rhoncus. Phasellus lacinia tortor id aliquet condimentum. Morbi
-sodales est a leo rhoncus, non pretium neque dignissim.
+In this scenario, we secure sensitive data on a Medical Care Management System which stores patients' personal information, insurance information, and medical records for a fictional company, *MedcoMD*. None of the patient data is public, and certain data such as their social security number (SSN), insurance policy number, and vital sign measurements are particularly sensitive and subject to privacy compliance. It is important for the company and the patient that the data is kept private and secure.
+
+MedcoMD needs this system to satisfy the following use cases:
+
+- Doctors use the system to access Patients' medical records, insurance information, and add new vital sign measurements.
+- Receptionists use the system to verify the Patients' identity, using a combination of their contact information and the last four digits of their Social Security Number (SSN).
+- Receptionists can view a Patient's insurance policy provider, but not their policy number.
+- Receptionists cannot access a Patient's medical records.
+
+MedcoMD is also concerned with disclosure of sensitive data through any of the following methods:
+
+- Accidental disclosure of data on the Receptionist's publicly-viewable screen.
+- Direct access to the database by a superuser such as a database administrator.
+- Capture of data over an insecure network.
+- Access to the data by reading a server's memory.
+- Access to the on-disk data by reading database or backup files.
+
+What can MedcoMD do to balance the functionality and access restrictions of their Medical Care Management System?
 
 Solution
 ~~~~~~~~
 
-Praesent sit amet elit pretium mi molestie porta a sit amet ipsum. Sed
-sollicitudin purus et mi blandit sodales.
+The MedcoMD software engineers review the Medical Care Management System specification and research the proper solution for limiting access to sensitive data.
 
-- Deterministic vs Non-Deterministic
+The first MongoDB security feature they evaluated was `Role-Based Access Control <https://docs.mongodb.com/manual/core/authorization/>`_ which allows administrators to grant and restrict collection-level permissions for users. With the appropriate role definition and assignment, this solution prevents accidental disclosure of data and access. However, it does not prevent capture of the data over an insecure network, direct access of data by a superuser, access to data by reading the server's memory, or access to on-disk data by reading the database or backup files.
+
+The next MongoDB security features they evaluated were `Encryption at Rest <https://docs.mongodb.com/manual/core/security-encryption-at-rest/>`_ which encrypts the database files on disk and `Transport Encryption using TLS/SSL <https://docs.mongodb.com/manual/core/security-transport-encryption/>`_ which encrypts data over the network. When applied together, these two features prevent access to on-disk database files as well as capture of the data on the network, respectively. When combined with Role-Based Access Control, these three security features offer near-comprehensive security coverage of the sensitive data, but lack a mechanism to prevent the data from being read from the server's memory.
+
+Finally, the MedcoMD developers discovered a feature that independently satisfies all the security criteria. Client-side Field Level Encryption allows the developers to specify the fields of a document that should be kept encrypted. Sensitive data is transparently encrypted/decrypted by the client and only communicated to and from the server in encrypted form. This mechanism keeps the specified data fields secure in encrypted form on both the server and the network. While all clients have access to the non-sensitive data fields, only appropriately-configured CSFLE clients are able to read and write the sensitive data fields.
+
+MedcoMD will provide Receptionists with a client that is not configured to access data encrypted with CSFLE. This will prevent them from viewing the sensitive fields and accidentally leaving them displayed on-screen in a public area. MedcoMD will provide Doctors with a client with CSFLE enabled which will allow them to access the sensitive data fields in the privacy of their own office.
+
+Equipped with CSFLE, MedcoMD can keep their sensitive data secure and compliant to data privacy regulations with MongoDB.
 
 Procedure
 ---------
@@ -95,11 +128,11 @@ B. Define a JSON Schema
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 `JSON Schema
-<http://json-schema.org/>`_ is a vocabulary that allows you to annotate and 
+<http://json-schema.org/>`_ is a vocabulary that allows you to annotate and
 validate JSON documents. MongoDB extends the JSON Schema standard to allow CSFLE
-to use automatically encrypt and decrypt the fields of documents in a collection. 
+to use automatically encrypt and decrypt the fields of documents in a collection.
 
-The following fields are required in the JSON Schema to enable automatic 
+The following fields are required in the JSON Schema to enable automatic
 encryption and decryption for each field:
 
 * The encryption algorithm (:manual:`Deterministic Encryption </core/security-client-side-encryption#deterministic-encryption>` or :manual:`Random Encryption </core/security-client-side-encryption#random-encryption>`)
@@ -124,7 +157,7 @@ the data model of the Medco Management System.
      - Encryption Algorithm
      - BSON Type
    * - Name
-     - Non-Encrypted 
+     - Non-Encrypted
      - String
    * - SSN
      - Deterministic
@@ -137,7 +170,7 @@ the data model of the Medco Management System.
      - Array
    * - Insurance: Policy Number
      - Deterministic
-     - Int (embedded inside `insurance` object) 
+     - Int (embedded inside `insurance` object)
    * - Insurance: Provider
      - Non-Encrypted
      - String (embedded inside `insurance` object)
@@ -151,7 +184,7 @@ encryption method to use. Initially, they define a data key for all
 fields in the data model by specifying the `encryptMetadata
 <https://docs.mongodb.com/manual/reference/security-client-side-automatic-json-schema/#encryptmetadata-schema-keyword>`_
 attribute. All child properties will inherit this encryption key unless
-specifically overwritten. 
+specifically overwritten.
 
 .. code-block:: javascript
 
@@ -161,7 +194,7 @@ specifically overwritten.
                 "keyId" : // copy and paste your keyID generated here
             },
             "properties": {
-                // copy and paste your fields here 
+                // copy and paste your fields here
             }
         }
 
@@ -171,11 +204,11 @@ the `properties` map.
 SSN
 +++
 ``ssn`` is a field representing the patient's social security number. This
-field is sensitive and should be encrypted. MedcoMD engineers decide 
+field is sensitive and should be encrypted. MedcoMD engineers decide
 upon deterministic encryption based on the following properties:
 
 * Queryable
-* High cardinality 
+* High cardinality
 
 .. code-block:: json
 
@@ -190,12 +223,12 @@ upon deterministic encryption based on the following properties:
 
 Blood Type
 ++++++++++
-``bloodType`` is a field representing the patient's blood type. This field is 
-sensitive and should be encrypted. MedcoMD engineers decide 
+``bloodType`` is a field representing the patient's blood type. This field is
+sensitive and should be encrypted. MedcoMD engineers decide
 upon random encryption based on the following properties:
 
 * No plans to query
-* Low cardinality 
+* Low cardinality
 
 .. code-block:: json
 
@@ -209,10 +242,10 @@ upon random encryption based on the following properties:
 
 Medical Records
 +++++++++++++++
-``medicalRecords`` is an array field holding a set of medical records. Each 
-medical record document specifies information, such as the patient's blood 
-pressure, weight, and heart rate.  This field is sensitive and should be 
-encrypted. MedcoMD engineers decide upon random encryption based on 
+``medicalRecords`` is an array field holding a set of medical records. Each
+medical record document specifies information, such as the patient's blood
+pressure, weight, and heart rate.  This field is sensitive and should be
+encrypted. MedcoMD engineers decide upon random encryption based on
 the following properties:
 
 * Array fields must use random encryption with CSFLE to enable auto-encryption
@@ -228,13 +261,13 @@ the following properties:
 
 Insurance: Policy Number
 ++++++++++++++++++++++++
-``insurance.policyNumber`` is a field embedded inside the ``Insurance`` object 
-field and represents the patient's policy number. This policy number is a 
-distinct and sensitive field. MedcoMD engineers decide upon 
+``insurance.policyNumber`` is a field embedded inside the ``Insurance`` object
+field and represents the patient's policy number. This policy number is a
+distinct and sensitive field. MedcoMD engineers decide upon
 deterministic encryption based on the following properties:
 
 * Queryable
-* High cardinality 
+* High cardinality
 
 .. code-block:: json
 
@@ -248,14 +281,14 @@ deterministic encryption based on the following properties:
                 }
             }
         }
-    }    
+    }
 
 
 Recap
 +++++++
-MedcoMD engineers created a JSON Schema that satisfies their requirements of 
-making sensitive data queryable and secure. View the full `JSON Schema 
-for the Medco Medical Management System <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-json-schema-helper-and-json/MedcoMDSchema.json>`_. 
+MedcoMD engineers created a JSON Schema that satisfies their requirements of
+making sensitive data queryable and secure. View the full `JSON Schema
+for the Medco Medical Management System <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-json-schema-helper-and-json/MedcoMDSchema.json>`_.
 
 
 .. tabs::
@@ -266,7 +299,7 @@ for the Medco Medical Management System <https://raw.githubusercontent.com/mongo
        name: "Java"
        content: |
        
-        View the `helper code in Java <https://gist.github.com/ccho-mongodb/088176b1bed3b9e54cdc0c2c3c537d1b>`_. 
+        View the `helper code in Java <https://gist.github.com/ccho-mongodb/088176b1bed3b9e54cdc0c2c3c537d1b>`_.
 
 C. Configure the MongoDB Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
