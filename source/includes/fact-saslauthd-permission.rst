@@ -7,8 +7,8 @@
 
    - The user starting the :binary:`mongod <bin.mongod>` or 
      :binary:`mongos <bin.mongos>`, *or* 
-   - a group to which that user belongs.
+   - A group to which that user belongs.
 
-   The ``mongod`` or ``mongos`` cannot successfully authenticate via
+   The :binary:`~bin.mongod` or :binary:`~bin.`mongos` cannot successfully authenticate via
    ``saslauthd`` without the specified permission on the ``saslauthd`` 
    directory and its contents.
