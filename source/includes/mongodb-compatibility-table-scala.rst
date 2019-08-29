@@ -111,5 +111,3 @@
      -
      - |checkmark|
      - |checkmark|
-
-.. include:: /includes/older-server-versions-unsupported.rst
