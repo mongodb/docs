@@ -29,6 +29,11 @@ The ``map`` function has the following requirements:
 
 - The ``map`` function may optionally call ``emit(key,value)`` any number of
   times to create an output document associating ``key`` with ``value``.
+  
+- Starting in version 4.2.1, MongoDB deprecates the use of JavaScript
+  with scope (i.e. :doc:`BSON type 15 </reference/bson-types/>`) for
+  the ``map`` function. To scope variables, use the ``scope`` parameter
+  instead.
 
 The following ``map`` function will call ``emit(key,value)`` either
 0 or 1 times depending on the value of the input document's
@@ -93,6 +98,11 @@ The ``reduce`` function exhibits the following behaviors:
   requirement may be violated when large documents are returned and then
   joined together in subsequent ``reduce`` steps.
 
+- Starting in version 4.2.1, MongoDB deprecates the use of JavaScript
+  with scope (i.e. :doc:`BSON type 15 </reference/bson-types/>`) for
+  the ``reduce`` function. To scope variables, use the ``scope``
+  parameter instead.
+  
 Because it is possible to invoke the ``reduce`` function
 more than once for the same key, the following
 properties need to be true:
@@ -265,5 +275,10 @@ aware that:
 
 - The ``finalize`` function can access the variables defined in
   the ``scope`` parameter.
+
+- Starting in version 4.2.1, MongoDB deprecates the use of JavaScript
+  with scope (i.e. :doc:`BSON type 15 </reference/bson-types/>`) for
+  the ``finalize`` function. To scope variables, use the ``scope``
+  parameter instead.
 
 .. end-finalize
