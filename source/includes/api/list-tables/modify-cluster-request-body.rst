@@ -10,11 +10,69 @@
    * - ``autoScaling``
      - document
      - Optional
-     - Contains the ``diskGBEnabled`` field which specifies whether to
-       enable or disable disk auto-scaling.
+     - Configure your cluster to automatically scale its storage and
+       cluster tier. For more information on cluster auto-scaling, see
+       :ref:`cluster-autoscaling`.
+
+   * - | ``autoScaling``
+       | ``.compute``
+     - document
+     - Optional
+     - Specifies whether the cluster automatically scales its cluster
+       tier and whether the cluster can scale down.
+
+       .. important::
+
+          Cluster tier auto-scaling is not available for clusters
+          using ``Low CPU`` or ``NVME`` storage classes.
+
+   * - | ``autoScaling``
+       | ``.compute``
+       | ``.enabled``
+     - boolean
+     - Optional
+     - Specifies whether cluster tier auto-scaling is enabled. The
+       default is ``false``.
+
+       - Set to ``true`` to enable cluster tier auto-scaling. If
+         enabled, you must specify a value for
+         ``providerSettings.autoScaling.compute.maxInstanceSize``.
+
+       - Set to ``false`` to disable cluster tier auto-scaling.
+
+   * - | ``autoScaling``
+       | ``.compute``
+       | ``.scaleDownEnabled``
+     - boolean
+     - Optional
+     - Set to true to enable the cluster tier to scale down. This
+       option is only available if ``autoScaling.compute.enabled``
+       is ``true``.
+       
+       If this option is enabled, you must specify a value for
+       ``providerSettings.autoScaling.compute.minInstanceSize``.
 
    * - | ``autoScaling``
        | ``.diskGBEnabled``
+     - boolean
+     - Optional
+     - .. admonition:: Deprecated
+          :class: note
+
+          ``autoScaling.diskGBEnabled`` is deprecated. Use
+          ``autoScaling.diskGB.enabled`` instead to enable disk
+          auto-scaling.
+
+   * - | ``autoScaling``
+       | ``.diskGB``
+     - document
+     - Optional
+     - Contains the ``enabled`` field which specifies whether to enable
+       or disable disk auto-scaling.
+
+   * - | ``autoScaling``
+       | ``.diskGB``
+       | ``.enabled``
      - boolean
      - Optional
      - Specifies whether disk auto-scaling is enabled. The default
@@ -312,6 +370,45 @@
      - Configuration for the provisioned servers on which MongoDB
        runs. The available options are specific to the cloud service
        provider.
+
+   * - | ``providerSettings``
+       | ``.autoScaling``
+     - document
+     - Conditional
+     - Contains the ``minInstanceSize`` and ``maxInstanceSize`` fields
+       which specify the range of instance sizes to which your cluster
+       can scale. Required if
+       ``autoScaling.compute.enabled`` is ``true``.
+
+   * - | ``providerSettings``
+       | ``.autoScaling``
+       | ``.compute``
+     - document
+     - Conditional
+     - Contains the ``minInstanceSize`` and ``maxInstanceSize`` fields
+       which specify the range of instance sizes to which your cluster
+       can scale. Required if your cluster has cluster tier
+       auto-scaling enabled.
+
+   * - | ``providerSettings``
+       | ``.autoScaling``
+       | ``.compute``
+       | ``.minInstanceSize``
+     - string
+     - Conditional
+     - Minimum instance size to which your cluster can
+       automatically scale (e.g., ``M10``). Required if
+       ``autoScaling.compute.scaleDownEnabled`` is ``true``.
+
+   * - | ``providerSettings``
+       | ``.autoScaling``
+       | ``.compute``
+       | ``.maxInstanceSize``
+     - string
+     - Conditional
+     - Maximum instance size to which your cluster can
+       automatically scale (e.g., ``M40``). Required if
+       ``autoScaling.compute.enabled`` is ``true``.
 
    * - | ``providerSettings``
        | ``.backingProviderName``

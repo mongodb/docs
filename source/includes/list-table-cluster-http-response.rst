@@ -8,12 +8,46 @@
 
    * - ``autoScaling``
      - document
-     - Contains the ``diskGBEnabled`` field which specifies whether to
-        enable or disable disk auto-scaling.
+     - Contains auto-scaling information for the cluster. For more
+       information on cluster auto-scaling, see
+       :ref:`cluster-autoscaling`.
 
-   * - ``autoScaling.diskGBEnabled``
+   * - | ``autoScaling``
+       | ``.compute``
+     - document
+     - Specifies whether the cluster automatically scales its cluster
+       tier and whether the cluster can scale down.
+
+   * - | ``autoScaling``
+       | ``.compute``
+       | ``.enabled``
      - boolean
-     - Specifies whether disk auto-scaling is enabled.
+     - Specifies whether cluster tier auto-scaling is enabled.
+
+   * - | ``autoScaling``
+       | ``.compute``
+       | ``.scaleDownEnabled``
+     - boolean
+     - Specifies whether the cluster tier can scale down.
+
+   * - | ``autoScaling``
+       | ``.diskGBEnabled``
+     - boolean
+     - Specifies whether disk auto-scaling is enabled. This is the
+       same value as ``autoScaling.diskGB.enabled``.
+
+   * - | ``autoScaling``
+       | ``.diskGB``
+     - document
+     - Contains the ``enabled`` field which specifies whether to enable
+       or disable disk auto-scaling.
+
+   * - | ``autoScaling``
+       | ``.diskGB``
+       | ``.enabled``
+     - boolean
+     - Specifies whether disk auto-scaling is enabled. This is the
+       same value as ``autoScaling.diskGBEnabled``.
 
    * - ``backupEnabled``
      - boolean
@@ -185,6 +219,36 @@
      - Configuration for the provisioned servers on which MongoDB
        runs. The available options are specific to the cloud service
        provider.
+
+   * - | ``providerSettings``
+       | ``.autoScaling``
+     - document
+     - Contains the ``compute`` field which specifies the range of
+       instance sizes to which your cluster can scale.
+
+   * - | ``providerSettings``
+       | ``.autoScaling``
+       | ``.compute``
+     - document
+     - Contains the ``minInstanceSize`` and ``maxInstanceSize`` fields
+       which specify the range of instance sizes to which your cluster
+       can scale.
+
+   * - | ``providerSettings``
+       | ``.autoScaling``
+       | ``.compute``
+       | ``.minInstanceSize``
+     - string
+     - Minimum instance size to which your cluster can
+       automatically scale.
+
+   * - | ``providerSettings``
+       | ``.autoScaling``
+       | ``.compute``
+       | ``.maxInstanceSize``
+     - string
+     - Maximum instance size to which your cluster can
+       automatically scale.
 
    * - | ``providerSettings``
        | ``.providerName``
