@@ -69,6 +69,8 @@
   :k8s:`MongoDB Enterprise Kubernetes Operator </>`. This support is
   currently in alpha and not recommended for production use.
 
+- Supports :doc:`SAML authentication </tutorial/configure-for-saml-authentication>`.
+
 - Removes the Version Manager.
 
 Platform Support
