@@ -15,7 +15,7 @@ Definition
 
 .. query:: $type
 
-   :query:`$type` selects the documents where the *value* of the
+   :query:`$type` selects documents where the *value* of the
    ``field`` is an instance of the specified :term:`BSON` type(s).
    Querying by data type is useful when dealing with highly
    unstructured data where data types are not predictable.
@@ -59,11 +59,32 @@ Behavior
 --------
 
 :query:`$type` returns documents where the BSON type of the ``field``
-matches the BSON type passed to :query:`$type`.
+matches the BSON type passed to :query:`$type`. 
 
-Starting in MongoDB 3.6, :query:`$type` now works with arrays in the
-same way it works with other BSON types. Previous versions only matched
-documents where the ``field`` contained a nested array.
+Arrays
+~~~~~~
+
+For documents where ``field`` is an array, :query:`$type` returns
+documents in which at least one array element matches a type passed to
+:query:`$type`.
+
+Querying for the Array BSON Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With MongoDB 3.6 and later, querying for ``$type: "array"`` returns
+documents where the field itself is an array. Prior to MongoDB 3.6,
+``$type: "array"`` returned documents where the field is an array
+containing at least one element of type ``array``. For example, given
+the following documents:
+
+.. code-block:: javascript
+
+   { "data" : [ "values", [ "values" ] ] }
+   { "data" : [ "values" ] }
+
+With MongoDB 3.6 and later, the query 
+``find( {"data" : { $type : "array" } } )`` returns both documents.
+Prior to MongoDB 3.6, the query returns only the first document.
 
 .. _document-type-available-types:
 
@@ -147,12 +168,14 @@ values:
          { "_id" : 1, address : "2030 Martian Way", zipCode : "90698345" },
          { "_id" : 2, address: "156 Lunar Place", zipCode : 43339374 },
          { "_id" : 3, address : "2324 Pluto Place", zipCode: NumberLong(3921412) },
-         { "_id" : 4, address : "55 Saturn Ring" , zipCode : NumberInt(88602117) }
+         { "_id" : 4, address : "55 Saturn Ring" , zipCode : NumberInt(88602117) },
+         { "_id" : 5, address : "104 Venus Drive", zipCode : ["834847278", "1893289032"]}
       ]
    )
 
 The following queries return all documents where ``zipCode`` is the
-:term:`BSON` type ``string``:
+:term:`BSON` type ``string`` *or* is an array containing an element of
+the specified type:
 
 
 .. code-block:: javascript
@@ -165,9 +188,11 @@ These queries return:
 .. code-block:: javascript
 
    { "_id" : 1, "address" : "2030 Martian Way", "zipCode" : "90698345" }
+   { "_id" : 5, address : "104 Venus Drive", zipCOde : ["834847278", "1893289032"]}
 
 The following queries return all documents where ``zipCode`` is the
-:term:`BSON` type ``double``:
+:term:`BSON` type ``double`` *or* is an array containing an element of
+the specified type:
 
 .. code-block:: javascript
 
@@ -181,7 +206,8 @@ These queries return:
    { "_id" : 2, "address" : "156 Lunar Place", "zip" : 43339374 }
 
 The following query uses the ``number`` alias to return documents where
-``zipCode`` is the :term:`BSON` type ``double``, ``int``, or ``long``:
+``zipCode`` is the :term:`BSON` type ``double``, ``int``, or ``long``
+*or* is an array containing an element of the specified types:
 
 .. code-block:: javascript
 
@@ -215,7 +241,8 @@ The ``grades`` collection contains names and averages, where
    )
 
 The following queries return all documents where ``classAverage`` is the
-:term:`BSON` type ``string`` or ``double``. The first query uses numeric aliases
+:term:`BSON` type ``string`` or ``double`` *or* is an array containing
+an element of the specified types. The first query uses numeric aliases
 while the second query uses string aliases.
 
 .. code-block:: javascript
@@ -286,7 +313,8 @@ And ``maxKey`` for any grade that is the highest passing grade:
    }
 
 The following query returns any restaurant whose ``grades.grade`` field
-contains ``minKey``:
+contains ``minKey`` *or* is an array containing an element of
+the specified type:
 
 .. code-block:: javascript
 
@@ -319,7 +347,8 @@ This returns
    }
 
 The following query returns any restaurant whose ``grades.grade`` field
-contains ``maxKey``:
+contains ``maxKey`` *or* is an array containing an element of
+the specified type:
 
 
 .. code-block:: javascript
@@ -438,8 +467,9 @@ The above query returns the following documents:
       "readings": []
    }
 
-In the documents with ``_id : 1``, ``_id : 2``, ``_id : 3``,
-and ``_id : 4``, the ``readings`` field is an array.
+In the documents with ``_id : 1``, ``_id : 2``, ``_id : 3``, and
+``_id : 4``, the ``readings`` field is an array.
+
 
 Additional Information
 ----------------------
