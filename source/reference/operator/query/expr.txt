@@ -77,24 +77,44 @@ The operation returns the following results:
 Using ``$expr`` With Conditional Statements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a ``supplies`` collection with the following documents. If 
-the ``qty`` is at least ``100``, a ``50%`` discount is applied. 
-Otherwise, a ``25%`` discount is applied:
+Some queries require the ability to execute conditional logic when 
+defining a query  filter. The aggregation framework provides the
+:expression:`cond` operator for applying  conditional logic to a
+pipeline stage. You can use :query:`$expr` with the :expression:`$cond` 
+operator to query based on conditional modifications to the source data.
+
+Consider a ``supplies`` collection with the following documents. Each 
+document in the ``supplies`` collection represents an item, its 
+quantity, and its price:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "binder", "qty": 100 , "price": 12 }
-   { "_id" : 2, "item" : "notebook", "qty": 200 , "price": 8 }
-   { "_id" : 3, "item" : "pencil", "qty": 50 , "price": 6 }
-   { "_id" : 4, "item" : "eraser", "qty": 150 , "price": 3 }
+   { "_id" : 1, "item" : "binder", "qty" : 100 , "price" : 12 }
+   { "_id" : 2, "item" : "notebook", "qty" : 200 , "price" : 8 }
+   { "_id" : 3, "item" : "pencil", "qty" : 50 , "price" : 6 }
+   { "_id" : 4, "item" : "eraser", "qty" : 150 , "price" : 3 }
+   { "_id" : 5, "item" : "legal pad", "qty" : 42 , "price" : 10}
 
-The following operation uses :query:`$expr` with :expression:`$cond`
-to mimic a conditional statement. It finds documents where the ``price`` 
-is less than ``5`` after the applied discounts. 
+An application automatically applies a ``50%`` discount to the price of
+any item  with a quantity of more than ``100``. Otherwise, the
+application applies a ``25%``  discount to the price.
 
-If the document has a ``qty`` value greater than or equal to ``100``, 
-the query divides the ``price`` by ``2``. Otherwise, it divides the ``price`` 
-by ``4``:
+A user needs to know which items in the ``supplies`` collection have a
+discounted  price of less than ``5``. The user writes a query that:
+
+1. Uses conditional logic to identify the discount applicable to a given
+   document.
+
+2. Calculates that document's discounted price. 
+  
+3. Only returns documents whose discounted price is less than ``5``. 
+  
+The query returns only documents from the ``supplies`` collection whose 
+discounted price is less than ``5``. 
+
+The following operation implements the previous steps using the
+:query:`$expr` operator  to access the :expression:`cond` and
+:expression:`$lt` aggregation operators:
 
 .. code-block:: javascript
 
@@ -103,17 +123,61 @@ by ``4``:
            $lt:[ { 
               $cond: {
                  if: { $gte: ["$qty", 100] },
-                 then: { $divide: ["$price", 2] },
-                 else: { $divide: ["$price", 4] }
+                 then: { $multiply: ["$price", 0.50] },
+                 else: { $multiply: ["$price", 0.75] }
                }
            }, 
            5 ] }
     } )
 
-The operation returns the following results:
+
+- :expression:`$cond` modifies the input document depending on the value
+  of ``qty``.  Specifically, it compares the ``qty`` using
+  :expression:`$gte` and modifies the price  using
+  :expression:`$multiply`.
+
+  - The document ``_id : 1`` has a ``qty`` of 100. :expression:`$cond`
+    returns  the result of multiplying the ``price`` by ``0.50``,
+    effectively applying a ``50%`` discount,  yielding a value of ``6``.
+
+  - The document ``id : 3`` has a ``qty`` of ``50``. :expression:`$cond`
+    returns the result of  multiplying the ``price`` by ``0.75``,
+    effectively applying a ``25%`` discount, yielding a  value of ``4``.
+
+- :expression:`$lt` compares the returned value to the provided value 
+  ``5``. 
+
+  - The document ``_id : 1`` returns ``6`` from :expression:`cond`.
+    Since ``$lt [6, 5]``  evaluates to false, the expression does not 
+    return the document.
+
+  - The document ``_id : 3`` returns ``4`` from :expression:`cond`.
+    Since ``$lt [4, 5]``  evaluates to true, the expression returns the
+    document.
+
+:method:`~db.collection.find()` continues to apply :expression:`$cond`
+to each document in the  ``supplies`` collection. The operation returns
+the following results:
 
 .. code-block:: javascript
 
    { "_id" : 2, "item" : "notebook", "qty": 200 , "price": 8 }
    { "_id" : 3, "item" : "pencil", "qty": 50 , "price": 6 }
    { "_id" : 4, "item" : "eraser", "qty": 150 , "price": 3 }
+
+:expression:`$cond` modifies the input documents as part of the query
+filtering but does  not persist the modifications to disk. The results
+represent the matching  documents in their original state. The find
+operation did not return the  ``binder`` or ``legal pad`` documents, as
+their modified price was greater than  ``5``. Specifically:
+
+- ``binder`` has a quantity of ``200``. The :expression:`$cond` logic
+  applies a ``.75``  multiplier which resolves to ``6``. Since ``6`` is
+  greater than ``5``,  :method:`~db.collection.find()` filters out the
+  ``binder`` document.
+
+- ``legal pad`` has a quantity of ``42``. The :expression:`$cond` logic
+  applies a ``.50``  multiplier which resolves to ``5``. Since the
+  operation used the :expression:`$lt`  operator, the modified price is
+  not less than ``5`` and :method:`~db.collection.find()`  filters out 
+  the ``legal pad`` document.
