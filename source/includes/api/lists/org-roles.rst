@@ -5,12 +5,12 @@
    * - Role Value in API
      - Role
    * - ``ORG_OWNER``
-     - Organization Owner
+     - :authrole:`Organization Owner`
    * - ``ORG_MEMBER``
-     - Organization Member
+     - :authrole:`Organization Member`
    * - ``ORG_GROUP_CREATOR``
-     - Organization Project Creator
+     - :authrole:`Organization Project Creator`
    * - ``ORG_BILLING_ADMIN``
-     - Organization Billing Administrator
+     - :authrole:`Organization Billing Administrator`
    * - ``ORG_READ_ONLY``
-     - Organization Read Only
+     - :authrole:`Organization Read Only`

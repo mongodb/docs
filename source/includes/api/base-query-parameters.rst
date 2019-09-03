@@ -8,8 +8,8 @@
      - Description
      - Default
 
-   * - pageNum
-     - ``integer``
+   * - ``pageNum``
+     - integer
      - Page number (1-based).
      - ``1``
 
@@ -26,8 +26,7 @@
 
    * - ``envelope``
      - boolean
-     - Indicates whether or not to wrap the response in an
-       envelope.
+     - Indicates whether or not to wrap the response in an envelope.
 
        Some |api| clients cannot access the |http| response headers or
        status code. To remediate this, set ``"envelope" : true`` in the

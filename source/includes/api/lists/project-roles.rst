@@ -7,27 +7,27 @@
       * - Role Value in API
         - Role
       * - ``GROUP_AUTOMATION_ADMIN``
-        - Project Automation Admin
+        - :authrole:`Project Automation Admin`
       * - ``GROUP_BACKUP_ADMIN``
-        - Project Backup Admin
+        - :authrole:`Project Backup Admin`
       * - ``GROUP_BILLING_ADMIN``
-        - Project Billing Admin
+        - :authrole:`Project Billing Admin`
       * - ``GROUP_CHARTS_ADMIN``
-        - Project Charts Admin
+        - :authrole:`Project Charts Admin`
       * - ``GROUP_DATA_ACCESS_ADMIN``
-        - Project Data Access Admin
+        - :authrole:`Project Data Access Admin`
       * - ``GROUP_DATA_ACCESS_READ_ONLY``
-        - Project Data Access Read Only
+        - :authrole:`Project Data Access Read Only`
       * - ``GROUP_DATA_ACCESS_READ_WRITE``
-        - Project Data Access Read/Write
+        - :authrole:`Project Data Access Read/Write`
       * - ``GROUP_MONITORING_ADMIN``
-        - Project Monitoring Admin
+        - :authrole:`Project Monitoring Admin`
       * - ``GROUP_OWNER``
-        - Project Owner
+        - :authrole:`Project Owner`
       * - ``GROUP_READ_ONLY``
-        - Project Read Only
+        - :authrole:`Project Read Only`
       * - ``GROUP_USER_ADMIN``
-        - Project User Admin
+        - :authrole:`Project User Admin`
 
 .. cond:: onprem
 
@@ -38,22 +38,22 @@
       * - Role Value in API
         - Role
       * - ``GROUP_AUTOMATION_ADMIN``
-        - Project Automation Admin
+        - :authrole:`Project Automation Admin`
       * - ``GROUP_BACKUP_ADMIN``
-        - Project Backup Admin
+        - :authrole:`Project Backup Admin`
       * - ``GROUP_CHARTS_ADMIN``
-        - Project Charts Admin
+        - :authrole:`Project Charts Admin`
       * - ``GROUP_DATA_ACCESS_ADMIN``
-        - Project Data Access Admin
+        - :authrole:`Project Data Access Admin`
       * - ``GROUP_DATA_ACCESS_READ_ONLY``
-        - Project Data Access Read Only
+        - :authrole:`Project Data Access Read Only`
       * - ``GROUP_DATA_ACCESS_READ_WRITE``
-        - Project Data Access Read/Write
+        - :authrole:`Project Data Access Read/Write`
       * - ``GROUP_MONITORING_ADMIN``
-        - Project Monitoring Admin
+        - :authrole:`Project Monitoring Admin`
       * - ``GROUP_OWNER``
-        - Project Owner
+        - :authrole:`Project Owner`
       * - ``GROUP_READ_ONLY``
-        - Project Read Only
+        - :authrole:`Project Read Only`
       * - ``GROUP_USER_ADMIN``
-        - Project User Admin
+        - :authrole:`Project User Admin`
