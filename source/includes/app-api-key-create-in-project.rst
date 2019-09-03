@@ -15,6 +15,10 @@
 #. Select the :ref:`new role or roles <project-roles>` for the
    |api| Key from the :guilabel:`Project Permissions` menu.
 
+#. Copy and save the :guilabel:`Public Key`. 
+
+   The public key acts as the username when making API requests.
+
 #. Click :guilabel:`Next`.
 
 #. From the :guilabel:`Private Key & Whitelist` step of the
@@ -34,5 +38,4 @@
 
    The :guilabel:`Private Key` is only shown once: *on this page*.
    Click the :guilabel:`Copy` button to add the Private Key to the
-   clipboard. Save and secure this Private Key as you would any other
-   password.
+   clipboard. Save and secure both the Public and Private Keys.
