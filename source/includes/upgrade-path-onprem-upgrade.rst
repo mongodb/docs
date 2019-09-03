@@ -33,18 +33,20 @@ The following table lists upgrade paths for all versions:
        4.2.x.
 
    * - 3.6.x
-     - Use this tutorial to upgrade from |onprem| 3.6.x to version
-       4.0.x.
+     - Use the
+       :v4.0:`v4.0 upgrade tutorial </tutorial/nav/upgrade-application>`
+       to upgrade from |onprem| 3.6.x to version 4.0.x.
 
    * - 3.4.x
-     - Refer to the
-       :v3.6:`v3.6 upgrade documentation </tutorial/nav/upgrade-application>`
+     - Use the
+       :v3.6:`v3.6 upgrade tutorial </tutorial/nav/upgrade-application>`
        to upgrade from |onprem| 3.4.x to version 3.6.x.
 
    * - 2.x or earlier
 
-     - For the specific upgrade path for your version, refer to
-       :v3.4:`v3.4 upgrade documentation </tutorial/nav/upgrade-application>`.
+     - Use the
+       :v3.4:`v3.4 upgrade tutorial </tutorial/nav/upgrade-application>`
+       to upgrade from |onprem| 2.x or earlier.
 
 There are no supported downgrade paths for |onprem|.
 
