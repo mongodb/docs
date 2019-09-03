@@ -64,11 +64,12 @@ extlinks = {
     'api': ('http://api.mongodb.com/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'gettingstarted': ('http://docs.mongodb.org/getting-started%s', ''),
-    'atlas': ('https://docs.atlas.mongodb.com%s',''), 
+    'atlas': ('https://docs.atlas.mongodb.com%s',''),
     'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
     'guides': ('https://docs.mongodb.com/guides%s', ''),
     'java-docs-latest': ('http://mongodb.github.io/mongo-java-driver/3.11/%s', ''),
+    'aws-docs': ('https://docs.aws.amazon.com/%s', ''),
 }
 
 intersphinx_mapping = {}
