@@ -1,3 +1,13 @@
+.. _automation-5.4.22.5547:
+
+Automation Agent 5.4.22.5547
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.15 on 2019-09-05 <opsmgr-server-4.0.15>`
+
+- Fixes a bug where the MongoDB Agent could panic and delete files from
+  its current working directory.
+
 .. _automation-5.4.21.5544:
 
 Automation Agent 5.4.21.5544

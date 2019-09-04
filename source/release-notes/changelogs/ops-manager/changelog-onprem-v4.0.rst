@@ -1,3 +1,14 @@
+.. _opsmgr-server-4.0.15:
+
+|onprem| Server 4.0.15
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2019-09-05*
+
+- Loosens validations to allow for spaces in replica set names.
+
+- Agent Upgrades: :ref:`automation-5.4.22.5547`
+
 .. _opsmgr-server-4.0.14:
 
 |onprem| Server 4.0.14
