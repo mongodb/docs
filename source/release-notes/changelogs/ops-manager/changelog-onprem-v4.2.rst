@@ -1,3 +1,20 @@
+.. _opsmgr-server-4.2.1:
+
+|onprem| Server 4.2.1
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-09-05*
+
+- Fixes an issue in |onprem| 4.2.0 that prevented |onprem|
+  versions 4.0.2, 4.0.3, 4.0.4 and 4.0.5 from being :doc:`upgraded
+  </tutorial/upgrade-ops-manager>` to |onprem| 4.2.0. This is
+  resolved in |onprem| 4.2.1 such that all |onprem| 4.0.x
+  versions can be upgraded to |onprem| 4.2.1+.
+
+- Removes need for a persistent cookie to be set on login.
+
+- Agent Upgrade: :ref:`mongodb-10.2.6.5879-1`.
+
 .. _opsmgr-server-4.2.0:
 
 |onprem| Server 4.2.0
