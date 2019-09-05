@@ -1,7 +1,7 @@
 
-|service| will not charge VAT unless your billing or invoice address is
-in a country that is a member of the :abbr:`EU (European Union)` and:
+If your country is a member of the :abbr:`EU (European Union)`, 
+|service| will not charge VAT if:
 
-- There is no VAT ID Number entered.
+- You do not enter a VAT ID Number.
 - Your `VAT ID Number` is not valid.
 - Your company's billing or invoice address is in Ireland.
