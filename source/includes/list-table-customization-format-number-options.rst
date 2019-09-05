@@ -4,6 +4,9 @@
 
    * - Option
      - Description
+   * - Thousands Separators
+     - Show or hide commas as thousands separators for data values.
+       By default, |charts-short| shows thousands separators.
    * - Decimals
      - Specifies to how many decimal places |charts-short| rounds each
        data value or label. If you specify this option, |charts-short|
