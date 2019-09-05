@@ -256,29 +256,53 @@ of the transactions API:
        name: PHP
        content: |
 
-          The example uses the new callback API for working with
-          transactions, which starts a transaction, executes the
-          specified operations, and commits (or aborts on error). The
-          new callback API also incorporates retry logic for
-          ``TransientTransactionError`` or
-          ``UnknownTransactionCommitResult`` commit errors.
+          The following example omits retry logic and robust error
+          handling for simplicity's sake.
 
           .. important::
           
              - For transactions on MongoDB 4.2 deployments (replica
-               sets and sharded clusters), clients :red:`must` use
+               sets and sharded clusters)*, clients :red:`must` use
                MongoDB drivers updated for MongoDB 4.2.
 
-             - When using the drivers, each operation in the
-               transaction must be associated with the session (i.e.
-               pass in the session to each operation).
+             - When using the driver, each operation in the transaction
+               must be associated with the session (i.e. pass in the
+               session to each operation).
 
-          .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
-             :language: php
-             :dedent: 8
-             :start-after: Start Transactions withTxn API Example 1
-             :end-before: End Transactions withTxn API Example 1
+          .. code-block:: php
 
+             /*  Prereq: Create collections. CRUD operations in transactions must be on existing collections. */
+             $client->mydb1->createCollection('foo', ['writeConcern' => new \MongoDB\Driver\WriteConcern('majority')]);
+             $client->mydb2->createCollection('bar', ['writeConcern' => new \MongoDB\Driver\WriteConcern('majority')]);
+             
+             /* Step 1: Start a client session. */
+
+             $session = $client->startSession();
+             
+             /* Step 2: Start a transaction.  The transaction options are optional.*/
+             $session->startTransaction([
+                 'readConcern' => new \MongoDB\Driver\ReadConcern("local"),
+                 'writeConcern' => new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY)
+             ]);
+         
+             /* 
+                Step 3: Specify the operations to perform inside the transaction. 
+                Important:: You must pass the session to the operations. 
+              */
+      
+             $client->mydb1->foo->insertOne(
+                 ['abc' => 1],
+                 ['session' => $session]
+             );
+             $client->mydb2->bar->insertOne(
+                 ['xyz' => 999],
+                 ['session' => $session]
+             );
+
+            /* Step 4: Commit the Transaction. */
+
+             $session->commitTransaction()
+   
      - id: mongoshell
        name: mongo Shell
 
