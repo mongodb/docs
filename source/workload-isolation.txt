@@ -42,11 +42,32 @@ Electable Nodes for High Availability
 
 .. include:: /includes/fact-electable-nodes-high-avail.rst
 
+Each electable node can:
+
+- Participate in replica set elections.
+    
+- Become the :term:`primary` as long as the majority of nodes in the
+  replica set are available.
+
+Configure Regions for Electable Nodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Click :guilabel:`Add a region` to add a new row for region
 selection and select the region from the dropdown. Specify the
 desired number of :guilabel:`Nodes` for the region. The total
 number of electable nodes across all regions in the cluster must
 be 3, 5, or 7.
+
+When selecting a :guilabel:`Region`, regions marked as
+:guilabel:`Recommended` provide higher availability compared to
+other regions. For more information, see:
+
+- :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`.
+- :ref:`GCP Recommended Regions <google-gcp-availability-zones>`.
+- :ref:`Azure Recommended Regions <microsoft-azure-availability-zones>`.
+
+To remove a region, click the :icon:`trash-alt` icon next to that
+region. You cannot remove the :guilabel:`Highest Priority` region.
 
 .. admonition:: Backup Data Center Location
    :class: note
@@ -60,34 +81,48 @@ be 3, 5, or 7.
    about how |service| creates the backup data center, see
    :doc:`Fully Managed Backup Service </backup-cluster>`.
 
-When selecting a :guilabel:`Region`, regions marked as
-:guilabel:`Recommended` provide higher availability compared to
-other regions. For more information, see:
+Improve the Availability of a Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`.
-- :ref:`GCP Recommended Regions <google-gcp-availability-zones>`.
-- :ref:`Azure Recommended Regions <microsoft-azure-availability-zones>`.
-
-Each node in the selected regions can participate in replica set
-:term:`elections <election>`, and can become the :term:`primary`
-as long as the majority of nodes in the replica set are available.
-
-You can improve the replication factor of single-region clusters
-by increasing the number of :guilabel:`Nodes` for your
-:guilabel:`Highest Priority` region. You do not have to add
-additional regions to modify the replication factor of your
+You can improve the redundancy and availability of a single region by
+increasing the number of :guilabel:`Nodes` in that region. In a
+single-region cluster, that region is your 
+:guilabel:`Highest Priority` region. If you choose to add another
+region, you may reconfigure the cluster to use that as your 
 :guilabel:`Highest Priority` region.
 
-To remove a region, click the :icon:`trash-alt` icon next to that
-region. You cannot remove the :guilabel:`Highest Priority` region.
+To ensure availability during a full region outage, you need at least
+one node in three different regions. To ensure availability during a
+partial region outage, you must have at least three electable nodes in
+a :guilabel:`Recommended` region *or* at least three electable nodes
+across at least two regions.
 
-|service| provides checks for whether your selected cross-regional
-configuration provides availability during partial or whole
-regional outages. To ensure availability during a full region
-outage, you need at least one node in three different regions. To
-ensure availability during a partial region outage, you must have
-at least 3 electable nodes in a :guilabel:`Recommended` region
-*or* at least 3 electable nodes across at least 2 regions.
+Modify the Highest Priority Region in an Active Multi-Region Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you change the :guilabel:`Highest Priority` region in an active
+multi-region cluster, |service| performs a rolling restart on all
+nodes in that cluster. This change triggers an election which
+selects a new ``PRIMARY`` in the region specified (assuming that the
+number of nodes in each region remains the same and nothing else is
+modified).
+
+.. example::
+
+    If you have an active 5-node cluster with the following
+    configuration:
+
+    - 3 nodes in ``us-east-1`` (the :guilabel:`Highest Priority` region,
+      housing the primary node)
+    - 2 nodes in ``us-west-2``
+
+    You can choose to make ``us-west-2`` your 
+    :guilabel:`Highest Priority` region by setting it as the first row
+    of your cluster's :guilabel:`Electable nodes`. After the change, 
+    |service| performs a rolling restart on all nodes and elects a new
+    ``PRIMARY`` in ``us-west-2``. There is no initial sync or
+    re-provisioning of servers required to make this configuration
+    change.
 
 .. _deploy-read-only-replicas:
 
