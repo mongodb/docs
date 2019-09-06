@@ -1,0 +1,128 @@
+title: Read the Local Master Key from a File
+ref: read-local-master-key-from-file
+level: 4
+content: |
+  First, retrieve the contents of the local master key file that you generated
+  in the :ref:`Create a Master Key <fle-create-a-master-key>` section:
+
+  .. tabs::
+
+     tabs:
+
+       - id: use-cases-fle-guide-java
+         name: "Java"
+         content: |
+
+           .. code-block:: java
+              :emphasize-lines: 11
+
+              String path = "master-key.txt";
+
+              byte[] fileBytes = new byte[96];
+
+              try (FileInputStream fis = new FileInputStream(path)) {
+                fileBytes = fis.readAllBytes();
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
+
+              final byte[] localMasterKey = Arrays.copyOf(fileBytes, 96);
+
+
+---
+title: Specify KMS Provider Settings
+ref: specify-kms-provider-settings
+level: 4
+content: |
+  Next, specify the KMS provider settings. The client uses these settings to 
+  discover the master key. Set the provider name to ``local`` when using a local 
+  master key:
+
+  .. tabs::
+
+     tabs:
+
+       - id: use-cases-fle-guide-java
+         name: "Java"
+         content: |
+
+           .. code-block:: java
+              :emphasize-lines: 4,5
+
+              String kmsProvider = "local";
+
+              Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>() {{
+                put(kmsProvider, new HashMap<String, Object>() {{
+                  put("key", localMasterKey);
+                }});
+              }};
+
+
+---
+title: Create a Data Encryption Key
+ref: create-a-data-encryption-key
+level: 4
+content: |
+  Construct a client with the MongoDB connection string and key vault 
+  namespace configuration, and create a data encryption key. The key vault in 
+  this example uses the ``encryption`` database and ``__keyVault`` collection.
+
+  .. tabs::
+
+     tabs:
+
+       - id: use-cases-fle-guide-java
+         name: "Java"
+         content: |
+
+           .. code-block:: java
+              :emphasize-lines: 8,9,12
+
+              String connectionString = "mongodb://localhost:27017";
+              String keyVaultNamespace = "encryption.__keyVault";
+
+              ClientEncryptionSettings clientEncryptionSettings = ClientEncryptionSettings.builder()
+                .keyVaultMongoClientSettings(MongoClientSettings.builder()
+                  .applyConnectionString(new ConnectionString(connectionString))
+                  .build())
+                .keyVaultNamespace(keyVaultNamespace)
+                .kmsProviders(kmsProviders)
+                .build();
+
+              ClientEncryption clientEncryption = ClientEncryptions.create(clientEncryptionSettings);
+
+
+  .. note::
+
+     Ensure that the client has `ReadWrite
+     <https://docs.mongodb.com/manual/reference/built-in-roles/#readWrite>`_
+     permissions on the specified key vault namespace.
+
+
+---
+title: Verify the data encryption key was created
+ref: verify-data-key-created
+level: 4
+content: |
+  Verify that the key document was created in your MongoDB replica set in the 
+  key vault collection. This document contains the following data:
+  
+  * Data encryption key, in encrypted form.
+  * Data encryption key UUID.
+  * KMS provider information for the master key.
+  * Other metadata such as creation and last modified date.
+ 
+  The document in the key vault collection should resemble the following:
+
+  .. code-block:: none
+  
+     {
+       "_id" : UUID("..."),
+       "keyMaterial" : BinData(0,"..."),
+       "creationDate" : ISODate("..."),
+       "updateDate" : ISODate("..."),
+       "status" : 0,
+       "masterKey" : {
+         "provider" : "local"
+       }
+     }
