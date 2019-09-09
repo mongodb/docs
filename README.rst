@@ -12,6 +12,8 @@ the documentation locally if you have `giza
      cd docs/
      make html
 
+If successful, the built HTML files will be located in ``build/master/html/``.
+
 Contribute
 ----------
 
