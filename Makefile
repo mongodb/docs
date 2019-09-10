@@ -10,7 +10,7 @@ REPO_DIR=$(shell pwd)
 # within one bucket. For the manual it is empty.
 PROJECT=manual
 
-DRIVERS_PATH=source/driver-examples
+DRIVERS_PATH=source/driver-examples 
 
 BLOCKS_FILE=./build/${GIT_BRANCH}/tests.blocks
 TEST_FILE=./build/${GIT_BRANCH}/tests.js
