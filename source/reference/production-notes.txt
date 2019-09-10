@@ -1,0 +1,412 @@
+==============================
+|k8s-op-full| Production Notes
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page details system configuration recommendations for the
+|k8s-op-full| when running in production.
+
+Ensure Proper Persistence Configuration
+---------------------------------------
+
+You use a |k8s-op-short| to ensure stateful configurations of |k8s|
+deployments. The storage of your |k8s| deployment must persist, so
+verify that the |k8s-pvcs| are configured to meet your storage needs.
+
+.. note::
+
+   The |k8s-op-short|:
+
+   - Supports mounting storage devices to one or more directories
+     called mount points.
+   - Creates one |k8s-pvc| per MongoDB mount point.
+   - Sets the default path in each container to ``/data``.
+
+.. code-block:: yaml
+   :linenos:
+   :emphasize-lines: 16, 46-52
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-sharded-cluster
+   spec:
+     shardCount: 2
+     mongodsPerShardCount: 3
+     mongosCount: 2
+     configServerCount: 3
+     version: 4.0.0
+     service: my-service
+     featureCompatibilityVersion: "3.6"
+     project: my-project
+     credentials: my-credentials
+     type: ShardedCluster
+     persistent: true
+     configSrvPodSpec:
+       cpu: '0.5'
+       memory: 512M
+       podAntiAffinityTopologyKey: kubernetes.io/hostname
+       podAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+         - labelSelector:
+             matchExpressions:
+             - key: security
+               operator: In
+               values:
+               - S1
+           topologyKey: failure-domain.beta.kubernetes.io/zone
+     mongosPodSpec:
+       cpu: '0.8'
+       memory: 1G
+       podAntiAffinityTopologyKey: rackId
+       nodeAffinity:
+         preferredDuringSchedulingIgnoredDuringExecution:
+         - weight: 1
+           preference:
+             matchExpressions:
+             - key: another-node-label-key
+               operator: In
+               values:
+               - another-node-label-value
+     shardPodSpec:
+       cpu: '0.6'
+       memory: 3G
+       persistence:
+         multiple:
+           data:
+             storage: 20G
+           logs:
+             storage: 4G
+             storageClass: standard
+       podAntiAffinityTopologyKey: kubernetes.io/hostname
+
+.. seealso::
+
+   - :setting:`spec.persistent`
+   - :setting:`spec.podSpec.persistence.single`
+   - :setting:`spec.podSpec.persistence.multiple.data`
+
+Name Your MongoDB Service with its Purpose
+------------------------------------------
+
+If using your own MongoDB Service, set the ``spec.service`` parameter
+to something that helps you identify this deployment's purpose.
+
+.. code-block:: yaml
+   :linenos:
+   :emphasize-lines: 8
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-replica-set
+   spec:
+     members: 3
+     version: 4.0.0
+     service: drilling-pumps-geosensors
+     featureCompatibilityVersion: "3.6"
+
+Specify Resource Requirements
+-----------------------------
+
+For the replica sets, sharded clusters, and config servers you create
+using the |k8s-op-short|, set the resource utilization bounds for both
+compute and memory. |k8s| refers to the lower bound of a resource as a
+*request* and the upper bound as a *limit*.
+
+- Set :k8sdocs:`CPU requests and limits</tasks/configure-pod-container/assign-cpu-resource/>`
+  to guarantee the CPU allocation and resource reporting.
+- Set :k8sdocs:`Memory requests and limits</tasks/configure-pod-container/assign-memory-resource/>`
+  to guarantee the requested memory allocation for the WiredTiger
+  cache and resource reporting.
+
+.. note::
+
+   Monitoring tools report the size of the |k8s-node| rather than the
+   actual size of the container.
+
+.. example::
+
+   .. code-block:: yaml
+      :linenos:
+      :emphasize-lines: 18-19, 31-32, 44-45
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
+      metadata:
+        name: my-sharded-cluster
+      spec:
+        shardCount: 2
+        mongodsPerShardCount: 3
+        mongosCount: 2
+        configServerCount: 3
+        version: 4.0.0
+        service: my-service
+        featureCompatibilityVersion: "3.6"
+        project: my-project
+        credentials: my-credentials
+        type: ShardedCluster
+        persistent: true
+        configSrvPodSpec:
+          cpu: '0.5'
+          memory: 512M
+          podAntiAffinityTopologyKey: kubernetes.io/hostname
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: security
+                  operator: In
+                  values:
+                  - S1
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+        mongosPodSpec:
+          cpu: '0.8'
+          memory: 1G
+          podAntiAffinityTopologyKey: rackId
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                - key: another-node-label-key
+                  operator: In
+                  values:
+                  - another-node-label-value
+        shardPodSpec:
+          cpu: '0.6'
+          memory: 3G
+          persistence:
+            multiple:
+              data:
+                storage: 20G
+              logs:
+                storage: 4G
+                storageClass: standard
+          podAntiAffinityTopologyKey: kubernetes.io/hostname
+
+Use Multiple Availability Zones
+-------------------------------
+
+Set the |k8s-op-short| and |k8s-statefulsets| to distribute all members
+of one replica set to different |k8s-nodes| to ensure high
+availability.
+
+
+.. example::
+
+   .. code-block:: yaml
+      :linenos:
+      :emphasize-lines: 20-29, 33-42, 53
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
+      metadata:
+        name: my-sharded-cluster
+      spec:
+        shardCount: 2
+        mongodsPerShardCount: 3
+        mongosCount: 2
+        configServerCount: 3
+        version: 4.0.0
+        service: my-service
+        featureCompatibilityVersion: "3.6"
+        project: my-project
+        credentials: my-credentials
+        type: ShardedCluster
+        persistent: true
+        configSrvPodSpec:
+          cpu: '0.5'
+          memory: 512M
+          podAntiAffinityTopologyKey: kubernetes.io/hostname
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: security
+                  operator: In
+                  values:
+                  - S1
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+        mongosPodSpec:
+          cpu: '0.8'
+          memory: 1G
+          podAntiAffinityTopologyKey: rackId
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                - key: another-node-label-key
+                  operator: In
+                  values:
+                  - another-node-label-value
+        shardPodSpec:
+          cpu: '0.6'
+          memory: 3G
+          persistence:
+            multiple:
+              data:
+                storage: 20G
+              logs:
+                storage: 4G
+                storageClass: standard
+          podAntiAffinityTopologyKey: kubernetes.io/hostname
+
+Co-locate ``mongos`` Pods with Your Applications
+------------------------------------------------
+
+The lightweight ``mongos`` instance can be run in the same |k8s-node|
+as your apps using MongoDB. The |k8s-op-short| supports standard |k8s|
+:k8sdocs:`node-affinity and node anti-affinity </concepts/configuration/assign-pod-node/#affinity-and-anti-affinity>`
+features. Using these features, you can force install the ``mongos``
+on the same pod as your application.
+
+.. example::
+
+   The ``podAffinity`` key determines if an application should be
+   installed on the same pod, node, or data center as another
+   application.
+
+   You add a label and value in the ``spec.template.metadata.labels``
+   |yaml| collection to tag the deployment.
+
+   | You can then specify which label the ``mongos`` uses in the
+   | ``mongosPodSpec.podAffinity``
+   | ``.requiredDuringSchedulingIgnoredDuringExecution.labelSelector``
+   | |yaml| collection. The ``matchExpressions`` collection defines the
+   | ``label`` the Operator uses to target on which pod the ``mongos``
+   | should be installed.
+
+   In this example, the ``web-store`` value for the ``app`` key labels
+   the pod on which the ``web-server`` is installed. The
+   ``labelSelector`` key declares that the ``mongos`` app must be
+   installed on the same pod that has its ``app`` label set to be
+   ``In`` values that include ``web-store``.
+
+   .. code-block:: yaml
+      :linenos:
+      :emphasize-lines: 9-10, 12-20
+
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: web-server
+      spec:
+        replicas: 3
+        template:
+          metadata:
+            labels:
+              app: web-store
+
+      mongosPodSpec:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - web-store
+
+Manage Multitenancy with Labels
+-------------------------------
+
+If you need to physically separate different MongoDB resources (such
+as ``test`` and ``staging`` environments) or want to place |k8s-pods|
+on some specific nodes (such as |ssd| support) use the
+:k8sdocs:`pod affinity </concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity>` |k8s| feature.
+
+.. code-block:: yaml
+   :linenos:
+
+   mongosPodSpec:
+     podAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+         - labelSelector:
+           matchExpressions:
+           - key: app
+             operator: In
+             values:
+             - web-store
+
+Enable TLS
+----------
+
+The |k8s-op-short| supports |tls| encryption. Use |tls| with your
+MongoDB deployment to encrypt your data over the network.
+
+.. code-block:: yaml
+   :linenos:
+   :emphasize-lines: 11-17
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-tls-enabled-rs
+   spec:
+     type: ReplicaSet
+     members: 3
+     version: 4.0.4
+     project: my-project
+     credentials: my-credentials
+     security:
+       tls:
+         enabled: true
+     additionalMongodConfig:
+       net:
+         ssl:
+           mode: "preferSSL"
+
+Enable Authentication
+---------------------
+
+The |k8s-op-short| supports X.509 user authentication. You must create
+an additional |k8s-crd| for your MongoDB users and the MongoDB Agents.
+The Operator generates and distributes the certificate.
+
+Example Deployment CRD
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: yaml
+   :linenos:
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-tls-enabled-rs
+   spec:
+     type: ReplicaSet
+     members: 3
+     version: 4.0.4
+     project: my-project
+     credentials: my-credentials
+     security:
+       clusterAuthenticationMode: x509
+       tls:
+         enabled: true
+
+Example User CRD
+~~~~~~~~~~~~~~~~
+
+.. code-block:: yaml
+   :linenos:
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDBUser
+   metadata:
+     name: user-with-roles
+   spec:
+     username: "CN=mms-user-1,OU=cloud,O=MongoDB,L=New York,ST=New York,C=US"
+     db: "$external"
+     project: my-project
+     roles:
+       - db: "admin"
+         name: "clusterAdmin"
