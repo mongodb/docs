@@ -7,7 +7,7 @@ PRODUCTION_BUCKET=docs-mongodb-org-prod
 
 # "PROJECT" currently exists to support having multiple projects
 # within one bucket. For the manual it is empty.
-PROJECT=
+PROJECT=manual
 
 DRIVERS_PATH=source/driver-examples
 
@@ -37,6 +37,18 @@ test: html ## Runs test framework over the corpus
 html: examples ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
+next-gen-html:
+	# snooty parse and then build-front-end
+	echo "k10t3mDLEk4fwtTi" | snooty build ${REPO_DIR} 'mongodb+srv://andrew:@cluster0-ylwlz.mongodb.net/test?retryWrites=true' || exit 0;
+	cp -r ${REPO_DIR}/../snooty ${REPO_DIR};
+	cd snooty; \
+	touch .env.production; \
+	echo "GATSBY_SITE=${PROJECT}" >> .env.production; \
+	echo "PARSER_USER=${USER}" >> .env.production; \
+	echo "PARSER_BRANCH=${GIT_BRANCH}" >> .env.production; \
+	npm run build; \
+	cp -r ${REPO_DIR}/snooty/public ${REPO_DIR}; 
+
 publish: examples ## Builds this branch's publishable HTML and other artifacts under build/public
 	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish
@@ -46,8 +58,8 @@ publish: examples ## Builds this branch's publishable HTML and other artifacts u
 #   <basename>/<filename>.
 #   * Upload each to the S3 bucket under <project>/<username>/<basename>/<filename>
 stage: ## Host online for review
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
+	mut-publish public ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
+	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/"
 
 # - Enter build/public/<branch>, as well as any symbolic links pointing
 #   to it, and recurse over each file <basename>/<filename>.
