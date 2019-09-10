@@ -1,3 +1,39 @@
+.. _atlas-v20190910:
+
+10 September 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introducing the :ref:`Query Profiler <profile-database>` for ``M10+``
+  clusters.
+
+- Newly deployed |service-fullname| clusters in the following Azure
+  regions will be spread across availability zones:
+
+  - Central US
+  - East US
+  - East US 2
+  - West US 2
+  - France Central
+  - North Europe
+  - UK South
+  - West Europe
+  - Japan East
+  - Southeast Asia
+
+  Pre-existing clusters, and clusters in all other Azure other regions
+  will continue to be deployed in *Availability Sets*.
+
+- Internal Stitch/Charts-created database users and IP whitelist
+  entries no longer show in the Atlas UI.
+
+- MongoDB Cloud billing authenticates credit cards for customers in the
+  European Economic Area in compliance with the second Payment Services
+  Directive (PSD2). To learn more about Strong Customer Authentication,
+  see :ref:`sca-changes`.
+
+- Enables always-on database-level authentication 
+  :ref:`access auditing <access-tracking>` for dedicated clusters.
+
 .. _atlas-v20190820:
 
 20 August 2019 Release
@@ -6,8 +42,6 @@
 - Supports the |aws| Bahrain region.
 - Changes the preferred region in a multi-region cluster without
   requiring a rolling resync.
-- Enables always-on database-level authentication access auditing for
-  dedicated clusters.
 - Adds key-value pair labels to cluster resources in the Public API.
 
 .. _atlas-v20190730:
