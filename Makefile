@@ -1,5 +1,5 @@
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-USER=`whoami`
+USER=$(shell whoami)
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-staging
