@@ -10,7 +10,7 @@ REPO_DIR=$(shell pwd)
 # within one bucket. For the manual it is empty.
 PROJECT=manual
 
-DRIVERS_PATH=source/driver-examples 
+DRIVERS_PATH=source/driver-examples
 
 BLOCKS_FILE=./build/${GIT_BRANCH}/tests.blocks
 TEST_FILE=./build/${GIT_BRANCH}/tests.js
@@ -47,6 +47,7 @@ next-gen-html:
 	echo "GATSBY_SITE=${PROJECT}" >> .env.production; \
 	echo "PARSER_USER=${USER}" >> .env.production; \
 	echo "PARSER_BRANCH=${GIT_BRANCH}" >> .env.production; \
+	echo "GATSBY_CONTENT_BRANCH=${GIT_BRANCH}" >> .env.production; \
 	npm run build; \
 	cp -r ${REPO_DIR}/snooty/public ${REPO_DIR}; 
 
