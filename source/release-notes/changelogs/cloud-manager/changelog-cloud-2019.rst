@@ -1,3 +1,12 @@
+.. _cloudmanager-v20190910:
+
+10 September 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- MongoDB Cloud billing authenticates credit cards for customers in the
+  European Economic Area in compliance with the second Payment Services
+  Directive (PSD2). To learn more about Strong Customer Authentication, see :ref:`sca-changes-cm`.
+
 .. _cloudmanager-v20190820:
 
 20 August 2019 Release
