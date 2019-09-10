@@ -4,6 +4,7 @@ STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prod
+REPO_DIR=$(shell pwd)
 
 # "PROJECT" currently exists to support having multiple projects
 # within one bucket. For the manual it is empty.
