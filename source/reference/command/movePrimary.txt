@@ -33,37 +33,77 @@ movePrimary
    has switched to the specified shard. To fully decommission a
    shard, use the :dbcommand:`removeShard` command.
 
-   .. note::
+   :dbcommand:`movePrimary` is an administrative command that is only
+   available for :binary:`~bin.mongos` instances.
 
-      The destination shard must rebuild its indexes
-      in the foreground when it becomes the primary shard.
-      The collection locks while the indexes are building,
-      preventing reads and writes until the indexes are finished.
-      See :doc:`/core/index-creation` for details.
+   .. warning::
 
-   :dbcommand:`movePrimary` is an administrative command that is only available
-   for :binary:`~bin.mongos` instances.
+      After starting :dbcommand:`movePrimary`, do **not** perform any
+      read or write operations against any unsharded collection in that
+      database until the command completes. Read or write operations
+      issued against those collections during the migration can result
+      in unexpected behavior, including potential failure of the
+      migration operation or loss of data. 
 
 .. _movePrimary-consideration:
 
 Considerations
 --------------
 
-.. include:: /includes/warning-movePrimary.rst
-
-Avoid accessing an un-sharded collection during migration.
-:dbcommand:`movePrimary` does not prevent reading and writing during its
-operation, and such actions yield undefined behavior.
-
-:dbcommand:`movePrimary` may take significant time to complete, and
-you should plan for this unavailability.
-
 .. include:: /includes/extracts/mongos-operations-wc-move-primary.rst
 
-:dbcommand:`movePrimary` will fail if the destination shard contains a
-conflicting collection name.  This may occur if documents are written to an
-un-sharded collection while the collection is moved away, and later the original
-primary shard is restored.
+.. _movePrimary-maintenance-window:
+
+Issue ``movePrimary`` During A Maintenance Window
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`movePrimary` may require a significant time to complete
+depending on the size of the database and factors such as network health
+or machine resources. Read or write operations issued against the
+database during the migration can result in unexpected behavior,
+including potential failure of the migration operation or loss of data.
+
+Consider scheduling a maintenance window during which applications stop
+all reads and writes to the cluster. Issuing :dbcommand:`movePrimary`
+during planned downtime mitigates the risk of encountering undefined
+behavior due to interleaving reads or writes to the unsharded
+collections in the database. 
+
+Using ``movePrimary`` To Move Unsharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/warning-movePrimary.rst
+
+Namespace Conflicts Prevent Migration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`movePrimary` fails if the destination shard contains a
+conflicting collection namespace. For example:
+
+1. An administrator issues ``movePrimary`` to change the
+   primary shard for the ``hr`` database.
+
+#. A user or application issues a write operation against an unsharded
+   collection in ``hr`` while ``movePrimary`` is moving that collection.
+   The write operation creates the collection in the original primary
+   shard.
+  
+#. An administrator later issues ``movePrimary`` to restore
+   the original primary shard for the ``hr`` database.
+
+#. ``movePrimary`` fails due to the conflicting namespace
+   left behind from the interleaving write operation.
+
+Destination Shard Must Rebuild Indexes 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As part of the ``movePrimary`` operation, the destination shard must
+rebuild indexes on the migrated collections after becoming the primary
+shard. This may require a significant amount of time depending on
+the number of indexes per collection and the amount of data to index.
+
+See :doc:`/core/index-creation` for more information on the index
+build process. 
 
 Additional Information
 ----------------------
