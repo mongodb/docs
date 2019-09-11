@@ -68,11 +68,83 @@ create both a ``hashed`` index and an ascending/descending (i.e.
 non-hashed) index on the same field: MongoDB will use the scalar index
 for range queries.
 
+
 .. _hashed-index-warning:
+
+2\ :sup:`53` Limit
+~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/warning-hashed-index-floating-point.rst
 
-.. COMMENTED OUT the footnote.. Used to belong to a point item that was
-   removed 6 months ago.
-   .. [#hash-size] The hash stored in the ``hashed`` index is 64 bits of the
-      128 bit ``md5`` hash.
+.. _hashed-index-power-pc-check:
+
+PowerPC and 2\ :sup:`63`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+For :doc:`hashed indexes </core/index-hashed>`, MongoDB 4.2 ensures
+that the hashed value for the floating point value 2\ :sup:`63` on
+PowerPC is consistent with other platforms. 
+
+Although :doc:`hashed indexes </core/index-hashed>` on a field that may
+contain floating point values greater than 2\ :sup:`53` is an
+unsupported configuration, clients may still insert documents where the
+indexed field has the value 2\ :sup:`63`.
+
+To list all ``hashed`` indexes for all
+collections in your deployment, you can use the following
+operation in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   db.adminCommand("listDatabases").databases.forEach(function(d){
+      let mdb = db.getSiblingDB(d.name);
+      mdb.getCollectionInfos({ type: "collection" }).forEach(function(c){
+         let currentCollection = mdb.getCollection(c.name);
+         currentCollection.getIndexes().forEach(function(idx){
+           let idxValues = Object.values(Object.assign({}, idx.key));
+
+           if (idxValues.includes("hashed")) {
+             print("Hashed index: " + idx.name + " on " + idx.ns);
+             printjson(idx);
+           };
+         }); 
+      });
+   });
+
+To check if the indexed field contains the value 2\ :sup:`63`, run the
+following operation for the collection and the indexed field:
+
+- If the indexed field type is a scalar and never a document:
+
+  .. code-block:: javascript
+  
+     // substitute the actual collection name for <collection>
+     // substitute the actual indexed field name for <indexfield>
+    
+     db.<collection>.find( { <indexfield>: Math.pow(2,63) } );
+
+- If the indexed field type is a document (or a scalar), you can run:
+
+  .. code-block:: javascript
+ 
+     // substitute the actual collection name for <collection>
+     // substitute the actual indexed field name for <indexfield>
+
+     db.<collection>.find({
+         $where: function() {
+             function findVal(obj, val) {
+                 if (obj === val)
+                     return true;
+
+                 for (const child in obj) {
+                     if (findVal(obj[child], val)) {
+                         return true;
+                     }
+                 }
+                 return false;
+             }
+             return findVal(this.<indexfield>, Math.pow(2, 63));
+         }
+     })
+
+

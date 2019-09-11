@@ -439,47 +439,80 @@ General Changes
 Indexes
 ~~~~~~~
 
-- MongoDB implements a stronger restriction on running
-  :dbcommand:`reIndex` command and :method:`db.collection.reIndex()`
-  shell helper against a collection in a sharded cluster by disallowing
-  :dbcommand:`reIndex` and :method:`db.collection.reIndex()` on a
-  :binary:`~bin.mongos`.
+Stronger Restrictions on ``reIndex``
+````````````````````````````````````
 
-- You cannot specify :method:`db.collection.dropIndex("*")
-  <db.collection.dropIndex>` to drop all non-``_id`` indexes. Use
-  :method:`db.collection.dropIndexes()` instead.
+MongoDB implements a stronger restriction on running
+:dbcommand:`reIndex` command and :method:`db.collection.reIndex()`
+shell helper against a collection in a sharded cluster by disallowing
+:dbcommand:`reIndex` and :method:`db.collection.reIndex()` on a
+:binary:`~bin.mongos`.
+
+Restriction on ``db.collection.dropIndex()`` Method
+```````````````````````````````````````````````````
+
+You cannot specify :method:`db.collection.dropIndex("*")
+<db.collection.dropIndex>` to drop all non-``_id`` indexes. Use
+:method:`db.collection.dropIndexes()` instead.
+
+Duplicate Index Creation Attempt Error Message
+``````````````````````````````````````````````
+
+MongoDB changes the returned response if you create an index with one
+name, and then try to create the index again with another name.
+
+Starting in version 4.2, the :dbcommand:`createIndexes` command and the
+:binary:`~bin.mongo` shell helpers
+:method:`db.collection.createIndex()` and
+:method:`db.collection.createIndexes()` report an error if you create
+an index with one name, and then try to create the same index again but
+with another name.
+
+.. code-block:: javascript
  
-- MongoDB changes the returned response if you create an index with one
-  name, and then try to create the index again with another name.
+   {
+      "ok" : 0,
+      "errmsg" : "Index with name: x_1 already exists with a different name",
+      "code" : 85,
+      "codeName" : "IndexOptionsConflict"
+   }
 
-  Starting in version 4.2, the :dbcommand:`createIndexes` command and
-  the :binary:`~bin.mongo` shell helpers
-  :method:`db.collection.createIndex()` and
-  :method:`db.collection.createIndexes()` report an error if you
-  create an index with one name, and then try to create the same index
-  again but with another name.
+In previous versions, MongoDB did not create the index again, but
+would return a response object with ``ok`` value of ``1`` and a note
+that implied that the index was not recreated. For example:
 
-  .. code-block:: javascript
- 
-     {
-        "ok" : 0,
-        "errmsg" : "Index with name: x_1 already exists with a different name",
-        "code" : 85,
-        "codeName" : "IndexOptionsConflict"
-     }
+.. code-block:: javascript
 
-  In previous versions, MongoDB did not create the index again, but
-  would return a response object with ``ok`` value of ``1`` and a note
-  that implied that the index was not recreated. For example:
+  {
+     "numIndexesBefore" : 2,
+     "numIndexesAfter" : 2,
+     "note" : "all indexes already exist",
+     "ok" : 1
+  }
 
-  .. code-block:: javascript
+.. _4.2-compatibility-hashed-value:
 
-     {
-        "numIndexesBefore" : 2,
-        "numIndexesAfter" : 2,
-        "note" : "all indexes already exist",
-        "ok" : 1
-     }
+Hashed Index on PowerPC
+```````````````````````
+
+For :doc:`hashed indexes </core/index-hashed>`, MongoDB 4.2 ensures
+that the hashed value for the floating point value 2\ :sup:`63` on
+PowerPC is consistent with other platforms. In previous versions, the
+hashed value for the floating point value 2\ :sup:`63` on PowerPC is
+inconsistent with other platforms.
+
+Although :doc:`hashed indexes </core/index-hashed>` on a field that may
+contain floating point values greater than 2\ :sup:`53` is an
+unsupported configuration, clients may still insert documents where the
+indexed field has the value 2\ :sup:`63`.
+
+To list all hashed indexes for your deployment, see
+:ref:`hashed-index-power-pc-check`.
+
+If the current MongoDB 4.0 sharded cluster on PowerPC contains hashed
+values for 2\ :sup:`63` as part of the shard key, additional
+considerations must be taken before upgrading the sharded cluster to
+4.2. See :doc:`/release-notes/4.2-upgrade-sharded-cluster`.
 
 min()/max()
 ~~~~~~~~~~~

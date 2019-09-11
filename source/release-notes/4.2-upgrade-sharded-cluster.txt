@@ -96,8 +96,6 @@ and check the ``featureCompatibilityVersion``:
    connect to the member as a :ref:`shard local user
    <shard-local-users>`.
 
-.. cssclass:: copyable-code
-
 .. code-block:: javascript
 
    db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
@@ -107,8 +105,6 @@ All members should return a result that includes
 
 To set or update ``featureCompatibilityVersion``, run the
 following command on the :binary:`~bin.mongos`:
-
-.. cssclass:: copyable-code
 
 .. code-block:: javascript
 
@@ -128,6 +124,41 @@ Back up the ``config`` Database
 
 *Optional but Recommended.* As a precaution, take a backup of the
 ``config`` database *before* upgrading the sharded cluster.
+
+Hashed Indexes on PowerPC
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*For PowerPC Only*
+
+For :doc:`hashed indexes </core/index-hashed>`, MongoDB 4.2 ensures
+that the hashed value for the floating point value 2\ :sup:`63` on
+PowerPC is consistent with other platforms. 
+
+Although :doc:`hashed indexes </core/index-hashed>` on a field that may
+contain floating point values greater than 2\ :sup:`53` is an
+unsupported configuration, clients may still insert documents where the
+indexed field has the value 2\ :sup:`63`.
+
+- If the current MongoDB 4.0 sharded cluster on *PowerPC* has hashed
+  shard key values for 2\ :sup:`63`, then, before upgrading:
+
+  #. Make a backup of the docs; e.g. :binary:`~bin.mongoexport` with
+     the :option:`--query <mongoexport --query>` to select the documents
+     with 2\ :sup:`63` in the shard key field.
+
+  #. Delete the documents with the 2\ :sup:`63` value.
+
+  After you upgrade following the procedure below, you will import the
+  deleted documents.
+
+- If an existing MongoDB 4.0 collection on *PowerPC* has a hashed index
+  entry for the value 2\ :sup:`63` that is not used as the shard key,
+  you also have the option to drop the index before upgrading and then
+  re-create it after the upgrade is complete.
+
+To list all hashed indexes for your deployment and find documents whose
+indexed field contains the value 2\ :sup:`63`
+:ref:`Hashed Indexes and PowerPC check<hashed-index-power-pc-check>`.
 
 Download |newversion| Binaries
 ------------------------------
@@ -159,6 +190,16 @@ Post Upgrade
 
 4.2-Compatible Drivers Retry Writes by Default
   .. include:: /includes/extracts/4.2-changes-drivers-retryWrites-default.rst
+
+PowerPC and Hashed Index Value of  2\ :sup:`63`
+   If on PowerPC, you had found hashed index field with the value 2\
+   :sup:`63`,
+
+   - If you deleted the documents, replace them from the export (done
+     as part of the prerequisites).
+
+   - If you dropped the hashed index before upgrading, recreate the
+     index.
 
 Additional Upgrade Procedures
 -----------------------------
