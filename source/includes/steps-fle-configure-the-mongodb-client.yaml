@@ -1,0 +1,104 @@
+title: Specify the Key Vault Collection Namespace
+ref: specify-the-key-vault-collection-namespace
+content: |
+  The key vault collection contains the data key that the client uses to
+  encrypt and decrypt fields. MedcoMD uses the collection
+  ``encryption.__keyVault`` as the key vault.
+
+  .. tabs::
+     
+     .. tab:: Java
+        :tabid: use-cases-fle-guide-java
+        
+        .. code-block:: java
+           
+           String keyVaultNamespace = "encryption.__keyVault";
+---
+title: Specify the Local Master Encryption Key
+ref: specify-the-local-master-encryption-key
+content: |
+  The client expects a key management system to store and provide the
+  application's master encryption key. For now, MedcoMD only has a local
+  master key, so they use the ``local`` KMS provider and specify the key
+  inline.
+
+  .. tabs::
+     
+     .. tab:: Java
+        :tabid: use-cases-fle-guide-java
+        
+        .. code-block:: java
+           :emphasize-lines: 2,3
+           
+           Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>() {{
+             put("local", new HashMap<String, Object>() {{
+               put("key", localMasterKey);
+             }});
+           }};
+---
+title: Map the JSON Schema to the Patients Collection
+ref: map-the-json-schema-to-the-patients-collection
+content: |
+  The JSON Schema that MedcoMD defined doesn't explicitly specify the
+  collection to which it applies. To assign the schema, they map it to
+  the ``medicalRecords.patients`` collection namespace:
+
+  .. tabs::
+     
+     .. tab:: Java
+        :tabid: use-cases-fle-guide-java
+        
+        .. code-block:: java
+           :emphasize-lines: 2
+           
+           HashMap<String, BsonDocument> schemaMap = new HashMap<String, BsonDocument>() {{
+             put("medicalRecords.patients", BsonDocument.parse(jsonSchema));
+           }}
+---
+title: Specify the Location of the Encryption Daemon Binary
+ref: specify-the-location-of-the-encryption-daemon-binary
+content: |
+  MongoDB drivers use the ``mongocryptd`` binary to perform client-side
+  encryption. For automatic encryption, the client manages the
+  ``mongocryptd`` process. To configure the client to find the binary,
+  MedcoMD specifies the binary's path as an extra option:
+  
+  .. tabs::
+     
+     .. tab:: Java
+        :tabid: use-cases-fle-guide-java
+        
+        .. code-block:: java
+           :emphasize-lines: 2
+           
+           final Map<String, Object> extraOptions = new HashMap<String, Object>() {{
+             put("mongocryptdPath", "/usr/local/bin/mongocryptd");
+           }};
+---
+title: Create the MongoClient
+ref: create-the-mongoclient
+content: |
+  To create the CSFLE-enabled client, MedcoMD instantiates a standard
+  MongoDB client object with the additional automatic encryption
+  settings:
+
+  .. tabs::
+     
+     .. tab:: Java
+        :tabid: use-cases-fle-guide-java
+        
+        .. code-block:: java
+           :emphasize-lines: 3-8
+           
+           MongoClientSettings clientSettings = MongoClientSettings.builder()
+             .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
+             .autoEncryptionSettings(AutoEncryptionSettings.builder()
+               .keyVaultNamespace(keyVaultNamespace)
+               .kmsProviders(kmsProviders)
+               .schemaMap(schemaMap)
+               .extraOptions(extraOptions)
+               .build())
+             .build();
+           
+           MongoClient mongoClient = MongoClients.create(clientSettings);
+...
