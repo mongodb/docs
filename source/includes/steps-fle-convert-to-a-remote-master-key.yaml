@@ -1,0 +1,108 @@
+title: Create an AWS IAM User
+ref: create-an-aws-iam-user
+content: |
+  Create a new programmatic IAM user to use in CSFLE-enabled clients.
+  The user will encrypt and decrypt the remote master key and must have
+  full ``List`` and ``Read`` permissions for the KMS service.
+
+  .. admonition:: Client IAM User Credentials
+     :class: note
+     
+     The CSFLE-enabled client takes the IAM User's :guilabel:`Access Key
+     ID` and :guilabel:`Secret Access Key` as configuration values. Note
+     these down for later when we reconfigure the client.
+---
+title: Create the Master Key
+ref: create-the-master-key
+content: |
+  In AWS KMS, generate a new master key. The key's name and description
+  don't affect the functionality of CSFLE but should describe that it's
+  for the CSFLE-enabled client.
+  
+  In the :guilabel:`Usage Permissions` step of the key generation
+  process, select the newly created IAM User with full KMS ``List`` and
+  ``Read`` permissions. This allows the user to encrypt and decrypt the
+  new master key.
+
+  .. important::
+     
+     The new client IAM User *should not* have administrative permissions
+     for the master key.
+---
+title: Specify the AWS KMS Provider Credentials
+ref: specify-the-aws-kms-provider-credentials
+content: |
+  Unlike the local KMS provider, the AWS KMS provider does not accept
+  the master key directly from the client configuration code. Instead,
+  it accepts the :guilabel:`Access Key ID` and :guilabel:`Secret Access
+  Key` of the IAM user with permission to encrypt and decrypt the master
+  key.
+
+  Update the KMS Provider configuration in CSFLE-enabled client creation code:
+  
+  .. tabs::
+     
+     .. tab:: Java
+        :tabid: use-cases-fle-guide-java
+        
+        .. code-block:: java
+           :emphasize-lines: 5-8
+           
+           final BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
+           final BsonString awsAccessKeyId = new BsonString("<IAM User Access Key ID>");
+           final BsonString awsSecretAccessKey = new BsonString("<IAM User Secret Access Key>");
+           Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>() {{
+             put("aws", new HashMap<String, Object>() {{
+               put("region", masterKeyRegion);
+               put("accessKeyId", awsAccessKeyId);
+               put("secretAccessKey", awsSecretAccessKey);
+             }});
+           }};
+---
+title: Create a New Data Key
+ref: create-a-new-data-key
+content: |
+  The development data key was generated from a local master key, so you
+  need to generate a new data key from the remote master key. To
+  generate the key from an AWS KMS master key, you will need to know the
+  key's AWS region and `Amazon Resource Number
+  <https://docs.aws.amazon.com/kms/latest/developerguide/viewing-keys.html#find-cmk-id-arn>`_
+  (ARN).
+  
+  Once you have the required information, run the following code to
+  generate the new data key:
+
+  .. tabs::
+     
+     .. tab:: Java
+        :tabid: use-cases-fle-guide-java
+
+        .. code-block:: Java
+           :emphasize-lines: 9-14, 17
+           
+           ClientEncryption clientEncryption = ClientEncryptions.create(ClientEncryptionSettings.builder()
+               .keyVaultMongoClientSettings(MongoClientSettings.builder()
+                   .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
+                   .build())
+               .keyVaultNamespace(keyVaultNamespace)
+               .kmsProviders(kmsProviders)
+               .build());
+           
+           final BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
+           final BsonString masterKeyArn = new BsonString("<Master Key ARN>"); // e.g. "arn:aws:kms:us-east-2:111122223333:alias/test-key"
+           DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(new BsonDocument() {{
+             put("region", masterKeyRegion);
+             put("key", masterKeyArn);
+           }})
+           
+           BsonBinary dataKeyId = clientEncryption.createDataKey("aws", dataKeyOptions);
+           String base64DataKeyId = Base64.getEncoder().encodeToString(dataKeyId.getData());
+---
+title: Update the JSON Schema
+ref: update-the-json-schema
+content: |
+  The development JSON Schema directly referenced the development data
+  key id, so you need to generate a new JSON Schema. To do so, repeat
+  the :ref:`Define a JSON Schema <fle-define-a-json-schema>` step with
+  the new data key that was created with the remote master key.
+...
