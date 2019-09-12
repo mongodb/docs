@@ -50,7 +50,7 @@
   versions.
 
 - Containerizes |onprem| in a Docker Container for use with the
-  :k8s:`MongoDB Enterprise Kubernetes Operator`. This support is
+  :k8s:`MongoDB Enterprise Kubernetes Operator </>`. This support is
   currently in alpha and not recommended for production use.
 
 - Removes the Version Manager.
