@@ -140,9 +140,12 @@
    * - VictorOps
 
      - Sends the alert to a `VictorOps <https://victorops.com/>`_ 
-       account. Enter a VictorOps |api| key and an optional
+       account. Enter a VictorOps
+       `API key <https://help.victorops.com/knowledge-base/rest-endpoint-integration-guide/>`_ 
+       to integrate the VictorOps endpoint for alerts and an optional 
        `routing key <https://help.victorops.com/knowledge-base/routing-keys/>`_
-       for routing alerts to a specific VictorOps group. Define
+       to route alerts to a specific VictorOps group. Click 
+       :guilabel:`Post test issue to VictorOps` to test VictorOps configuration. Define
        escalation and routing rules directly in VictorOps.
 
        This option is available only for alerts that require 
