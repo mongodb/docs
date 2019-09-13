@@ -15,33 +15,54 @@ Definition
 
 .. pipeline:: $group
 
-   Groups documents by some specified expression and outputs to the
-   next stage a document for each distinct grouping. The output
-   documents contain an ``_id`` field which contains the distinct group
-   by key. The output documents can also contain computed fields that
-   hold the values of some accumulator expression grouped by the
-   :pipeline:`$group`\'s ``_id`` field. :pipeline:`$group` does *not*
-   order its output documents.
+   Groups input documents by the specified ``_id`` expression and for
+   each distinct grouping, outputs a document. The ``_id`` field of each
+   output document contains the unique group by value.  The output
+   documents can also contain computed fields that hold the values of
+   some :ref:`accumulator expression <accumulators-group>`.
+
+   .. note::
+
+      :pipeline:`$group` does *not* order its output documents.
 
    The :pipeline:`$group` stage has the following prototype form:
 
    .. code-block:: javascript
 
-      { $group: { _id: <expression>, <field1>: { <accumulator1> : <expression1> }, ... } }
+      { 
+        $group: 
+          { 
+            _id: <expression>, // Group By Expression
+            <field1>: { <accumulator1> : <expression1> }, 
+            ... 
+          } 
+       }
 
-   The ``_id`` field is *mandatory*; however, you can specify an
-   ``_id`` value of null, or any other constant value, to calculate
-   accumulated values for all the input documents as a whole.
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
 
-   The remaining computed fields are *optional* and computed using the
-   ``<accumulator>`` operators.
+      * - Field
+        - Description
 
-   The ``_id`` and the ``<accumulator>`` expressions can accept any
-   valid :ref:`expression <aggregation-expressions>`. For more
-   information on expressions, see :ref:`aggregation-expressions`.
+      * - ``_id``
+        - *Required.* If you specify an ``_id`` value of null, or any
+          other constant value, the ``$group`` stage calculates
+          accumulated values for all the input documents as a whole.
+          :ref:`See example of Group by Null <null-example>`.
+
+      * - ``field``
+        - *Optional.* Computed using the
+          :ref:`accumulator operators <accumulators-group>`.
+
+   The ``_id`` and the :ref:`accumulator operators <accumulators-group>`
+   can accept any valid ``expression``. For more information on
+   expressions, see :ref:`aggregation-expressions`.
 
 Considerations
 --------------
+
+.. _accumulators-group:
 
 Accumulator Operator
 ~~~~~~~~~~~~~~~~~~~~
@@ -57,12 +78,13 @@ operators:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :pipeline:`$group` stage has a limit of 100 megabytes of RAM. By
-default, if the stage exceeds this limit, :pipeline:`$group` will
-produce an error. However, to allow for the handling of large datasets,
-set the :method:`allowDiskUse <db.collection.aggregate()>` option to
-``true`` to enable :pipeline:`$group` operations to write to temporary
-files. See :method:`db.collection.aggregate()` method and the
-:dbcommand:`aggregate` command for details.
+default, if the stage exceeds this limit, :pipeline:`$group` returns an
+error. To allow for the handling of large datasets, set the
+:method:`allowDiskUse <db.collection.aggregate()>` option to
+``true``. This flag enables :pipeline:`$group` operations to write to
+temporary files. For more information, see the
+:method:`db.collection.aggregate()` method and the
+:dbcommand:`aggregate` command.
 
 Examples
 --------
@@ -72,94 +94,136 @@ Examples
 Calculate Count, Sum, and Average
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Given a collection ``sales`` with the following documents:
+.. include:: /includes/fact-group-sales-documents.rst
+
+Group by Day of the Year
+````````````````````````
+
+The following pipeline calculates the total sales amount, average sales
+quantity, and sale count for each day in the year 2014:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : ISODate("2014-03-01T08:00:00Z") }
-   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : ISODate("2014-03-01T09:00:00Z") }
-   { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-03-15T09:00:00Z") }
-   { "_id" : 4, "item" : "xyz", "price" : 5, "quantity" : 20, "date" : ISODate("2014-04-04T11:21:39.736Z") }
-   { "_id" : 5, "item" : "abc", "price" : 10, "quantity" : 10, "date" : ISODate("2014-04-04T21:23:13.331Z") }
+   db.sales.aggregate([
+     // First Stage
+     {
+       $match : { "date": { $gte: new ISODate("2014-01-01"), $lt: new ISODate("2015-01-01") } }
+     },
+     // Second Stage
+     {
+       $group : {
+          _id : { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } },
+          averageQuantity: { $avg: "$quantity" },
+          count: { $sum: 1 }
+       }
+     },
+     // Third Stage
+     {
+       $sort : { totalSaleAmount: -1 }
+     }
+    ])
 
-Group by Month, Day, and Year
-`````````````````````````````
+First Stage:
+  The :pipeline:`$match` stage filters the documents to only pass
+  documents from the year 2014 to the next stage.
 
-The following aggregation operation uses the :pipeline:`$group` stage
-to group the documents by the month, day, and year and calculates the
-total price and the average quantity as well as counts the documents
-per each group:
+Second Stage:
+  The :pipeline:`$group` stage groups the documents by date and
+  calculates the total sale amount, average quantity, and total count of the
+  documents in each group.
 
-.. code-block:: javascript
-
-   db.sales.aggregate(
-      [
-         {
-           $group : {
-              _id : { month: { $month: "$date" }, day: { $dayOfMonth: "$date" }, year: { $year: "$date" } },
-              totalPrice: { $sum: { $multiply: [ "$price", "$quantity" ] } },
-              averageQuantity: { $avg: "$quantity" },
-              count: { $sum: 1 }
-           }
-         }
-      ]
-   )
+Third Stage:
+  The :pipeline:`$sort` stage sorts the results by the total
+  sale amount for each group in descending order.
 
 The operation returns the following results:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : { "month" : 3, "day" : 15, "year" : 2014 }, "totalPrice" : 50, "averageQuantity" : 10, "count" : 1 }
-   { "_id" : { "month" : 4, "day" : 4, "year" : 2014 }, "totalPrice" : 200, "averageQuantity" : 15, "count" : 2 }
-   { "_id" : { "month" : 3, "day" : 1, "year" : 2014 }, "totalPrice" : 40, "averageQuantity" : 1.5, "count" : 2 }
+   { "_id" : "2014-04-04", "totalSaleAmount" : NumberDecimal("200"), "averageQuantity" : 15, "count" : 2 }
+   { "_id" : "2014-03-15", "totalSaleAmount" : NumberDecimal("50"), "averageQuantity" : 10, "count" : 1 }
+   { "_id" : "2014-03-01", "totalSaleAmount" : NumberDecimal("40"), "averageQuantity" : 1.5, "count" : 2 }
+
+This aggregation operation is equivalent to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT date,
+          Sum(( price * quantity )) AS totalSaleAmount,
+          Avg(quantity)             AS averageQuantity,
+          Count(*)                  AS Count
+   FROM   sales
+   GROUP  BY Date(date)
+   ORDER  BY totalSaleAmount DESC
+
+.. seealso::
+
+   - :pipeline:`$match`
+   - :pipeline:`$sort`
+   - :method:`db.collection.countDocuments()` which wraps the
+     :pipeline:`$group` aggregation stage with a :group:`$sum` expression.
+
+.. _null-example:
 
 Group by ``null``
 `````````````````
 
 The following aggregation operation specifies a group ``_id`` of
-``null``, calculating the total price and the average quantity as well
-as counts for all documents in the collection:
+``null``, calculating the total sale amount, average quantity, and count of
+*all* documents in the collection.
 
 .. code-block:: javascript
 
-   db.sales.aggregate(
-      [
-         {
-           $group : {
-              _id : null,
-              totalPrice: { $sum: { $multiply: [ "$price", "$quantity" ] } },
-              averageQuantity: { $avg: "$quantity" },
-              count: { $sum: 1 }
-           }
-         }
-      ]
-   )
+   db.sales.aggregate([
+     {
+       $group : {
+          _id : null,
+          totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } },
+          averageQuantity: { $avg: "$quantity" },
+          count: { $sum: 1 }
+       }
+     }
+    ])
 
 The operation returns the following result:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : null, "totalPrice" : 290, "averageQuantity" : 8.6, "count" : 5 }
+   { 
+     "_id" : null, 
+     "totalSaleAmount" : NumberDecimal("452.5"), 
+     "averageQuantity" : 7.875, 
+     "count" : 8 
+   }
 
-.. seealso:: :pipeline:`$count`
+This aggregation operation is equivalent to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT Sum(price * quantity) AS totalSaleAmount,
+          Avg(quantity)         AS averageQuantity,
+          Count(*)              AS Count
+   FROM   sales    
+
+.. seealso::
+
+   - :pipeline:`$count`
+
+   - :method:`db.collection.countDocuments()` which wraps the
+     :pipeline:`$group` aggregation stage with a :group:`$sum` expression.
 
 .. _aggregation-group-distinct-values:
 
-Retrieve Distinct Values
-~~~~~~~~~~~~~~~~~~~~~~~~
+Group By Item
+~~~~~~~~~~~~~
 
-Given a collection ``sales`` with the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : ISODate("2014-03-01T08:00:00Z") }
-   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : ISODate("2014-03-01T09:00:00Z") }
-   { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-03-15T09:00:00Z") }
-   { "_id" : 4, "item" : "xyz", "price" : 5, "quantity" : 20, "date" : ISODate("2014-04-04T11:21:39.736Z") }
-   { "_id" : 5, "item" : "abc", "price" : 10, "quantity" : 10, "date" : ISODate("2014-04-04T21:23:13.331Z") }
+.. include:: /includes/fact-group-sales-documents.rst
 
 The following aggregation operation uses the :pipeline:`$group` stage
-to group the documents by the item to retrieve the distinct item values:
+to retrieve the distinct item values:
 
 .. code-block:: javascript
 
@@ -168,25 +232,88 @@ to group the documents by the item to retrieve the distinct item values:
 The operation returns the following result:
 
 .. code-block:: javascript
+   :copyable: false
 
-  { "_id" : "xyz" }
-  { "_id" : "jkl" }
-  { "_id" : "abc" }
+   { "_id" : "abc" }
+   { "_id" : "jkl" }
+   { "_id" : "def" }
+   { "_id" : "xyz" }
+
+Group by Item Having
+~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation groups documents by the ``item``
+field, calculating the total sale amount per item and returning only
+the items with total sale amount greater than or equal to 100:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+     [
+       // First Stage 
+       { 
+         $group : 
+           { 
+             _id : "$item", 
+             totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } }
+           } 
+        },
+        // Second Stage
+        {
+          $match: { "totalSaleAmount": { $gte: 100 } }
+        }
+      ] 
+    )
+
+First Stage:
+  The :pipeline:`$group` stage groups the documents by ``item`` to
+  retrieve the distinct item values. This stage returns the
+  ``totalSaleAmount`` for each item.
+
+Second Stage:
+  The :pipeline:`$match` stage filters the resulting documents to only
+  return items with a ``totalSaleAmount`` greater than or equal to 100.
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : "abc", "totalSaleAmount" : NumberDecimal("170") }
+   { "_id" : "xyz", "totalSaleAmount" : NumberDecimal("150") }
+   { "_id" : "def", "totalSaleAmount" : NumberDecimal("112.5") }
+
+This aggregation operation is equivalent to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT item,
+      Sum(( price * quantity )) AS totalSaleAmount
+   FROM   sales
+   GROUP  BY item
+   HAVING totalSaleAmount >= 100
+
+.. seealso::
+
+   - :pipeline:`$match`
 
 .. _aggregation-pivot-data:
 
 Pivot Data
 ~~~~~~~~~~
 
-A collection ``books`` contains the following documents:
+From the :binary:`~bin.mongo` shell, create a sample collection named
+``books`` with the following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 }
-   { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 }
-   { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
-   { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 }
-   { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
+   db.books.insertMany([
+     { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
+     { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
+     { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 },
+     { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
+     { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
+   ])
 
 Group ``title`` by ``author``
 `````````````````````````````
@@ -196,11 +323,9 @@ collection to have titles grouped by authors.
 
 .. code-block:: javascript
 
-   db.books.aggregate(
-      [
-        { $group : { _id : "$author", books: { $push: "$title" } } }
-      ]
-   )
+   db.books.aggregate([
+      { $group : { _id : "$author", books: { $push: "$title" } } }
+    ])
 
 The operation returns the following documents:
 
@@ -214,41 +339,89 @@ The operation returns the following documents:
 Group Documents by ``author``
 `````````````````````````````
 
-The following aggregation operation uses the :variable:`$$ROOT <ROOT>`
-system variable to group the documents by authors. The resulting
-documents must not exceed the :limit:`BSON Document Size` limit.
+The following aggregation operation groups documents by ``author``:
 
 .. code-block:: javascript
 
-   db.books.aggregate(
-      [
-        { $group : { _id : "$author", books: { $push: "$$ROOT" } } }
-      ]
-   )
+   db.books.aggregate([
+      // First Stage
+      { 
+        $group : { _id : "$author", books: { $push: "$$ROOT" } } 
+      },
+      // Second Stage
+      { 
+        $addFields:
+          {
+            totalCopies : { $sum: "$books.copies" }
+          }
+      }
+    ])
 
-The operation returns the following documents:
+First Stage:
+  :pipeline:`$group` uses the :variable:`$$ROOT <ROOT>`
+  system variable to group the entire documents by authors. This stage
+  passes the following documents to the next stage:
 
-.. code-block:: javascript
+  .. code-block:: javascript
+     :copyable: false
 
-   {
-     "_id" : "Homer",
-     "books" :
-        [
-          { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
-          { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
-        ]
-   }
+     { "_id" : "Homer", 
+       "books" : 
+         [ 
+            { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 }, 
+            { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
+         ]
+      },
+      { "_id" : "Dante", 
+        "books" : 
+          [ 
+            { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
+            { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
+            { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
+          ]
+      }
 
-   {
-     "_id" : "Dante",
-     "books" :
-        [
-          { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
-          { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
-          { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
-        ]
-   }
+Second Stage:
+  :pipeline:`$addFields` adds a field to the output containing
+  the total copies of books for each author.
 
-.. seealso:: The :doc:`/tutorial/aggregation-zip-code-data-set`
-   tutorial provides an extensive example of the :pipeline:`$group`
-   operator in a common use case.
+  .. note::
+
+     The resulting documents must not exceed the
+     :limit:`BSON Document Size` limit of 16 megabytes.
+   
+  The operation returns the following documents:
+
+  .. code-block:: javascript
+
+     {
+       "_id" : "Homer",
+       "books" :
+          [
+            { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
+            { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
+          ],
+        "totalCopies" : 20
+     }
+
+     {
+       "_id" : "Dante",
+       "books" :
+          [
+            { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
+            { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
+            { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
+          ],
+        "totalCopies" : 5
+     }
+
+.. seealso::
+
+   - :pipeline:`$addFields`
+
+Additional Resources
+--------------------
+
+The :doc:`/tutorial/aggregation-zip-code-data-set`
+tutorial provides an extensive example of the :pipeline:`$group`
+operator in a common use case.
