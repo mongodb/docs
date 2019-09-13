@@ -15,16 +15,28 @@
 
 - For source clusters running MongoDB version 3.2 a user must have,
   at a minimum, both :authrole:`clusterManager` and
-  :authrole:`readAnyDatabase` roles. For example:
+  :authrole:`readAnyDatabase` roles, as well as read access on the
+  ``local`` database. This requires a :manual:`custom role
+  </core/security-user-defined-roles/>`, which you can create with
+  the following commands:
 
   .. code-block:: javascript
 
       use admin
+      db.createRole(
+        {
+          role: "migrate",
+          privileges: [
+            { resource: { db: "local", collection: "" }, actions: [ "find" ] }
+          ],
+          roles: ["readAnyDatabase", "clusterManager"]
+        }
+      )
       db.createUser(
         {
           user: "mySourceUser",
           pwd: "mySourceP@$$word",
-          roles: [ "clusterManager", "readAnyDatabase" ]
+          roles: [ "migrate" ]
         }
       )
 
