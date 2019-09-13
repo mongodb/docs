@@ -390,6 +390,11 @@
        definitions of data-bearing servers, see
        :ref:`server-number-costs`.
 
+       .. important::
+          If you are deploying a :doc:`Global Cluster 
+          </global-clusters>`, you must choose a cluster tier of 
+          ``M30`` or larger. 
+
        .. tabs-cloud-providers::
 
           tabs:
