@@ -1,0 +1,137 @@
+.. _connect-from-outside-k8s:
+
+=====================================================
+Connect to a MongoDB Resource from Outside Kubernetes
+=====================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The following procedure describes how to connect to a MongoDB resource
+deployed by |k8s| from outside of the |k8s| cluster.
+
+.. important::
+   
+   You can only connect to a :doc:`standalone
+   </tutorial/deploy-standalone>` or a :doc:`sharded cluster
+   </tutorial/deploy-sharded-cluster>` resource from outside of the
+   |k8s| cluster.
+
+Procedure
+---------
+
+To connect to a MongoDB resource deployed by |k8s| from outside of
+the |k8s| cluster, you must set the resource's
+:setting:`spec.exposedExternally` flag to ``true``.
+
+When this flag is set to ``true``, the |k8s-op-short| creates a
+`NodePort service
+<https://kubernetes.io/docs/concepts/services-networking/service/>`__.
+The NodePort service exposes the deployment as a network service,
+thereby enabling access from outside of the |k8s| cluster.
+
+Example Deployment Configurations
+---------------------------------
+
+.. tabs-deployments::
+
+   .. tab::
+      :tabid: standalone
+
+      The following example standalone configuration object exposes
+      the deployment outside of the |k8s| cluster by setting
+      ``spec.exposedExternally`` to ``true``:
+
+      .. literalinclude:: /reference/k8s/example-exposed-standalone.yaml
+         :language: yaml
+         :emphasize-lines: 15
+  
+      Once your standalone instance is deployed in |com|, run the
+      following command to get information on the NodePort service
+      created by the Operator:
+
+      .. code-block:: sh
+
+         kubectl get services -n <namespace>
+
+      The list output by this command should contain an entry
+      similar to the following:
+
+      .. code-block:: sh
+         :copyable: false
+
+         NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+
+         standalone-svc-external   NodePort    10.102.27.116   <none>        27017:30994/TCP   8m30s
+
+      In this case, the :binary:`~bin.mongod` is exposed on port
+      ``27017`` in the |k8s| container, and the NodePort service
+      exposes the ``mongod`` via port ``30994``.
+      
+      When you connect to your deployment, you must specify the external
+      :abbr:`DNS (Domain Name System)` of a node in the |k8s| cluster as
+      the ``--host`` option in your ``mongo`` command. If a node in the
+      |k8s| cluster has an external DNS of
+      ``ec2-54-212-23-143.us-west-2.compute.amazonaws.com``, you
+      can connect to this standalone instance from outside of |k8s|
+      using the following command:
+
+      .. code-block:: sh
+
+         mongo --host ec2-54-212-23-143.us-west-2.compute.amazonaws.com --port 30994
+
+      .. include:: /includes/fact-get-external-dns.rst
+
+   .. tab::
+      :tabid: shard
+
+      The following example sharded cluster configuration object exposes
+      the deployment outside of the |k8s| cluster by setting
+      ``spec.exposedExternally`` to ``true``:
+
+      .. literalinclude:: /reference/k8s/example-exposed-sharded.yaml
+         :language: yaml
+         :emphasize-lines: 19
+
+      Once your sharded cluster is deployed in |com|, run the
+      following command to get information on the NodePort service
+      created by the Operator:
+
+      .. code-block:: sh
+
+         kubectl get services -n <namespace>
+
+      The list output by this command should contain an entry
+      similar to the following:
+
+      .. code-block:: sh
+         :copyable: false
+
+         NAME                          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+
+         shardedcluster-svc-external   NodePort    10.106.44.30    <none>        27017:30078/TCP   10s
+
+      In this case, the :binary:`~bin.mongos` is exposed on port
+      ``27017`` in the |k8s| container, and the NodePort service
+      exposes the ``mongos`` via port ``30078``.
+
+      When you connect to your deployment, you must specify the external
+      :abbr:`DNS (Domain Name System)` of a node in the |k8s| cluster as
+      the ``--host`` option in your ``mongo`` command. If a node in the
+      |k8s| cluster has an external DNS of
+      ``ec2-54-212-23-143.us-west-2.compute.amazonaws.com``, you
+      can connect to this standalone instance from outside of |k8s|
+      using the following command:
+
+      .. code-block:: sh
+
+         mongo --host ec2-54-212-23-143.us-west-2.compute.amazonaws.com --port 30078
+
+      .. include:: /includes/fact-get-external-dns.rst
+
+      
