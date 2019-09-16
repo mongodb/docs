@@ -1,0 +1,725 @@
+title: "Copy the following example {{k8sResource}} Kubernetes resource."
+stepnum: 0
+level: 4
+ref: copy-k8s-example-resource
+content: |
+
+   Change the highlighted settings of this |yaml| file to match your
+   desired {{k8sResource}} configuration.
+
+   {{k8sExample}}
+---
+title: "Copy the lines from the following {{k8sResource}} Kubernetes resource."
+stepnum: 0
+level: 4
+ref: copy-k8s-example-resource-tls-only
+content: |
+
+   Change the highlighted settings of this |yaml| file to match your
+   desired {{k8sResource}} configuration.
+
+   {{k8sExample}}
+
+---
+title: "Paste the copied example to to create a new {{k8sResource}} resource."
+stepnum: 0
+level: 4
+ref: paste-new-k8s-example-resource
+content: |
+  Open your preferred text editor and paste the |k8s-obj|
+  specification into a new text file.
+
+---
+title: "Paste the copied example section into your existing {{k8sResource}} resource."
+stepnum: 0
+level: 4
+ref: paste-k8s-example-resource-section
+content: |
+  Open your preferred text editor and paste the |k8s-obj|
+  specification at the end of your resource file in the ``spec``
+  section.
+
+---
+title: "Change the highlighted settings to your preferred values."
+stepnum: 0
+level: 4
+ref: change-k8s-rs-values
+content: |
+
+   .. list-table::
+      :widths: 20 20 40 20
+      :header-rows: 1
+
+      * - Key
+        - Type
+        - Description
+        - Example
+
+      * - :setting:`metadata.name`
+        - string
+        - Label for this |k8s| :term:`replica set` |k8s-obj|.
+
+          .. seealso::
+
+             - :setting:`metadata.name`
+             - |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
+
+        - ``myproject``
+
+      * - :setting:`metadata.namespace`
+        - string
+        - Scope of object names. |k8s| |k8s-ns| where this
+          |k8s-mdbrsc| and other |k8s-objs| are created.
+
+          Using two different namespaces allows you to delete your
+          standalone or all of the resources in the namespace without
+          affecting your |k8s-op-short|.
+
+          .. seealso::
+
+             - :setting:`metadata.namespace`
+             - |k8s| documentation on |k8s-nss|
+
+        - ``mongodb``
+
+      * - :setting:`spec.members`
+        - integer
+        - Number of members of the :term:`replica set`.
+        - ``3``
+
+      * - :setting:`spec.version`
+        - string
+        - Version of MongoDB that this :term:`replica set` should run.
+
+          The format should be ``X.Y.Z`` for the Community edition and
+          ``X.Y.Z-ent`` for the Enterprise edition.
+
+          To learn more about MongoDB versioning, see
+          :ref:`release-version-numbers` in the MongoDB Manual.
+        - ``3.6.7``
+
+      * - | ``spec``
+          | ``.opsManager``
+          | ``.configMapRef``
+          | :setting:`.name <spec.opsManager.configMapRef.name>`
+        - string
+        - Name of the |k8s-configmap| with the |onprem| connection
+          configuration. The
+          :setting:`spec.cloudManager.configMapRef.name` setting is an
+          alias for this setting and can be used in its place.
+
+          .. admonition:: Value must match namespace and name of ConfigMap
+             :class: note
+
+             This value *must* match the value you provided for
+             :setting:`metadata.name` in your |onprem|
+             :ref:`project ConfigMap <create-k8s-project>`.
+
+             If this |k8s-mdbrsc| is in a different |k8s-ns| than the
+             :ref:`project ConfigMap <create-k8s-project>`, you should
+             set this value to the namespace *and* name of the
+             ConfigMap in this format:
+             ``<metadata.namespace>/<metadata.name>``
+
+          .. include:: /includes/k8s/fact-k8s-operator-manages-configmap.rst
+
+        - ``<myconfigmap>`` or
+          ``<namespace>/<myconfigmap>``
+
+      * - :setting:`spec.credentials`
+        - string
+        - Name of the |k8s| |k8s-secret| you
+          :ref:`created <create-k8s-secret>` as |mms| |api|
+          authentication credentials for the |k8s-op-short| to
+          communicate with |onprem|.
+
+          .. admonition:: Value must use namespace and name of Secret
+             :class: note
+
+             This value *must* match the value you provided for
+             :setting:`namespace` and `name` for your |mms| |k8s|
+             :ref:`Secret <create-k8s-credentials>`.
+
+             If this |k8s-obj| is in a different |k8s-ns| than the
+             Secret, you should set this value to the namespace *and*
+             name of the Secret in this format:
+             ``<namespace>/<name>``
+
+          .. include:: /includes/k8s/fact-k8s-operator-manages-secret.rst
+
+        - ``<mycredentials>`` or
+          ``<namespace>/<mycredentials>``
+
+      * - :setting:`spec.type`
+        - string
+        - Type of |k8s-mdbrsc| to create.
+
+        - ``ReplicaSet``
+
+      * - :setting:`spec.persistent`
+        - string
+        - *Optional.*
+
+          Flag indicating if this |k8s-mdbrsc| should use |k8s-pvs| for
+          storage. Persistent volumes are not deleted when the
+          |k8s-mdbrsc| is stopped or restarted.
+
+          If this value is ``true``, then
+          :setting:`spec.podSpec.persistence.single` is set to its
+          default value of ``16G``.
+
+          To change your |k8s-pvcs| configuration, configure the
+          following collections to meet your deployment requirements:
+
+          - If you want one |k8s-pv| for each |k8s-pod|, configure the
+            :setting:`spec.podSpec.persistence.single` collection.
+
+          - If you want separate |k8s-pvs| for data, journals, and
+            logs for each |k8s-pod|, configure the following
+            collections:
+
+            - :setting:`spec.podSpec.persistence.multiple.data`
+            - :setting:`spec.podSpec.persistence.multiple.journal`
+            - :setting:`spec.podSpec.persistence.multiple.logs`
+
+          .. include:: /includes/k8s/k8s-persistent-volumes.rst
+
+        - ``true``
+---
+title: "Configure the TLS settings for your {{k8sResource}}."
+stepnum: 0
+level: 4
+ref: add-tls-settings
+content: |
+
+  Enable |tls| in your deployment by configuring the following
+  settings in your |k8s| object:
+
+  .. list-table::
+     :widths: 20 10 10 40 20
+     :header-rows: 1
+
+     * - Key
+       - Type
+       - Necessity
+       - Description
+       - Example
+
+     * - | ``spec``
+         | ``.security``
+         | :setting:`.tls.enabled<spec.security.tls.enabled>`
+       - boolean
+       - Optional
+       - If this value is ``true``, |tls| is enabled on the MongoDB
+         deployment.
+
+         The default :setting:`TLS mode <net.ssl.mode>` is
+         ``requireSSL`` which configures the hosts to only use and
+         accept TLS encrypted connections.
+       - ``true``
+
+     * - | ``spec``
+         | ``.additionalMongodConfig``
+         | :setting:`.net.ssl.mode<spec.additionalMongodConfig.net.ssl.mode>`
+       - string
+       - Optional
+       - Changes the :setting:`TLS mode <net.ssl.mode>` the
+         MongoDB deployment uses for intra-cluster communication and
+         clients connecting to the database.
+
+       - ``requireSSL``
+
+  The following options are valid for
+  :setting:`spec.additionalMongodConfig.net.ssl.mode`:
+
+  .. include:: /includes/list-table-requiressl-modes.rst
+
+  .. note::
+
+     .. include:: /includes/fact-unsupported-mongod-options.rst
+---
+title: "Configure the TLS and X.509 settings for your {{k8sResource}}."
+stepnum: 4
+level: 4
+ref: add-tls-x509-settings
+content: |
+
+  Enable |tls| in your deployment by configuring the following
+  settings in your |k8s| object:
+
+  .. list-table::
+     :widths: 20 10 10 40 20
+     :header-rows: 1
+
+     * - Key
+       - Type
+       - Necessity
+       - Description
+       - Example
+
+     * - | ``spec``
+         | ``.security``
+         | :setting:`.tls.enabled<spec.security.tls.enabled>`
+       - boolean
+       - Optional
+       - If this value is ``true``, |tls| is enabled on the MongoDB
+         deployment.
+
+         The default :setting:`TLS mode <net.ssl.mode>` is
+         ``requireSSL`` which configures the hosts to only use and
+         accept TLS encrypted connections.
+       - ``true``
+
+     * - | ``spec``
+         | ``.security``
+         | :setting:`.clusterAuthenticationMode<spec.security.clusterAuthenticationMode>`
+       - string
+       - Optional
+       - Enables :ref:`X.509 internal cluster authentication <x509-internal-authentication>`.
+
+         Remove this field from your ConfigMap to disable X.509
+         internal cluster authentication.
+
+         .. important::
+
+            Once internal cluster authentication is enabled, it can not
+            be disabled.
+
+       - ``x509``
+
+     * - | ``spec``
+         | ``.additionalMongodConfig``
+         | :setting:`.net.ssl.mode<spec.additionalMongodConfig.net.ssl.mode>`
+       - string
+       - Optional
+       - Changes the :setting:`TLS mode <net.ssl.mode>` the
+         MongoDB deployment uses for intra-cluster communication and
+         clients connecting to the database.
+
+       - ``requireSSL``
+
+  The following options are valid for
+  :setting:`spec.additionalMongodConfig.net.ssl.mode`:
+
+  .. include:: /includes/list-table-requiressl-modes.rst
+
+  .. note::
+
+     .. include:: /includes/fact-unsupported-mongod-options.rst
+
+---
+title: "Add any additional accepted settings for a {{k8sResource}} deployment."
+stepnum: 0
+level: 4
+ref: add-k8s-rs-values
+content: |
+
+  You can also add any of the following optional settings to the |k8s-obj|
+  specification file for a {{k8sResource}} deployment:
+
+  - :setting:`spec.logLevel`
+  - :setting:`spec.featureCompatibilityVersion`
+  - :setting:`spec.podSpec.cpu`
+  - :setting:`spec.podSpec.cpuRequests`
+  - :setting:`spec.podSpec.memory`
+  - :setting:`spec.podSpec.memoryRequests`
+  - :setting:`spec.podSpec.persistence.single`
+  - :setting:`spec.podSpec.persistence.multiple.data`
+  - :setting:`spec.podSpec.persistence.multiple.journal`
+  - :setting:`spec.podSpec.persistence.multiple.logs`
+  - :setting:`spec.podSpec.podAffinity`
+  - :setting:`spec.podSpec.podAntiAffinityTopologyKey`
+  - :setting:`spec.podSpec.nodeAffinity`
+
+---
+title: "Save this {{k8sResource}} config file with a ``.yaml`` file extension."
+stepnum: 0
+level: 4
+ref: save-object-spec
+
+---
+title: "Start your {{k8sResource}} deployment."
+stepnum: 0
+level: 4
+ref: start-k8s-deployment
+content: |
+
+   Invoke the following |k8s| command to create your
+   {{k8sResource}}:
+
+   .. code-block:: sh
+
+      kubectl apply -f <{{k8sResourceType}}-conf>.yaml
+
+---
+title: "Track the status of your {{k8sResource}} deployment."
+stepnum: 0
+level: 4
+ref: track-k8s-deployment-basic
+content: |
+
+  .. include:: /includes/check-resource-status.rst
+
+---
+title: "Approve the certificate for each host in your deployment."
+stepnum: 0
+level: 4
+ref: approve-certificates-tls
+content: |
+
+  Invoke the following command to retrieve the |csrs| for each host:
+
+  .. code-block:: sh
+
+     kubectl get csr
+
+  The command's output resembles the following:
+
+  .. code-block:: sh
+
+     NAME                                 AGE       REQUESTOR                                                   CONDITION
+     my-secure-rs-0.mongodb               33s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-rs-1.mongodb               31s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-rs-2.mongodb               24s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+  Using the ``NAME`` field above, approve each certificate from the
+  previous command's output using the following command:
+
+  .. code-block:: sh
+
+     kubectl certificate approve <NAME>
+
+  .. example::
+
+     The following commands approve the certificates for the
+     replica set example in the previous step:
+
+     .. code-block:: sh
+        :copyable: false
+
+        kubectl certificate approve my-secure-rs-0.mongodb
+        kubectl certificate approve my-secure-rs-1.mongodb
+        kubectl certificate approve my-secure-rs-2.mongodb
+
+  |kubectl| prints a message to the console when a certificate
+  is approved.
+
+---
+title: "Approve the certificate for each host in your deployment."
+stepnum: 0
+level: 4
+ref: approve-certificates-tls-x509
+content: |
+
+  Invoke the following command to retrieve the |csrs| for each host:
+
+  .. code-block:: sh
+
+     kubectl get csr
+
+  The command's output resembles the following:
+
+  .. code-block:: sh
+
+     NAME                           AGE       REQUESTOR                                                   CONDITION
+     mms-automation-agent.mongodb   15m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-rs-0.mongodb         6s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-rs-1.mongodb         4s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-rs-2.mongodb         1s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+  .. note::
+
+     The |k8s-op-short| generates |csrs| for the {+mdbagent+}s when
+     MongoDB resources are present.
+
+  Using the ``NAME`` field above, approve each certificate from the
+  ``get csr`` output using the following command:
+
+  .. code-block:: sh
+
+     kubectl certificate approve <NAME>
+
+  .. example::
+
+     Invoke the following commands to approve the certificates for the
+     replica set:
+
+     .. code-block:: sh
+        :copyable: false
+
+        kubectl certificate approve my-secure-rs-0.mongodb
+        kubectl certificate approve my-secure-rs-1.mongodb
+        kubectl certificate approve my-secure-rs-2.mongodb
+
+  |kubectl| prints a message to the console when a certificate is
+  approved.
+
+  When :setting:`spec.security.clusterAuthenticationMode` is set to
+  ``x509``, the |k8s-op-short| generates an additional |csr| per host
+  for the clusterfile.
+
+  After the first batch of certificates are approved, run the
+  command to retrieve the |csrs| again:
+
+  .. code-block:: sh
+
+     kubectl get csr
+
+  The clusterfile |csrs| are now present in the output:
+
+  .. code-block:: sh
+     :copyable: false
+
+     NAME                                       AGE       REQUESTOR                                                   CONDITION
+     mms-automation-agent.mongodb               17m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-rs-0-clusterfile.mongodb         13s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-rs-0.mongodb                     105s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-rs-1-clusterfile.mongodb         7s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-rs-1.mongodb                     103s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-rs-2-clusterfile.mongodb         3s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-rs-2.mongodb                     100s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+
+  Approve the clusterfile |csrs| using the same command:
+
+  .. code-block:: sh
+
+     kubectl certificate approve <NAME>
+
+  .. example::
+
+     The following commands approve the clusterfile
+     certificates:
+
+     .. code-block:: sh
+        :copyable: false
+
+        kubectl certificate approve my-secure-rs-0-clusterfile.mongodb
+        kubectl certificate approve my-secure-rs-1-clusterfile.mongodb
+        kubectl certificate approve my-secure-rs-2-clusterfile.mongodb
+
+---
+stepnum: 0
+title: "Check the status of your deployment."
+level: 4
+ref: check-k8s-deployment-tls
+content: |
+  The |k8s-op-short| creates the MongoDB resources and requests the
+  |k8s| |certauth| to approve the database host's certificates. Run the
+  following command to verify that the certificates are pending
+  approval:
+
+  .. code-block:: sh
+
+     kubectl get mdb <resource-name> -n <namespace> -o yaml -w
+
+  The ``status`` field of the output should resemble the following:
+
+  .. code-block:: sh
+     :copyable: false
+
+     status:
+       lastTransition: 2019-05-01T15:36:59Z
+       message: Not all certificates have been approved by Kubernetes CA
+       phase: Failed
+       type: ""
+       version: ""
+
+  If you do not see the ``status.message`` above, see
+  :ref:`k8s-troubleshooting` to help diagnose the issue.
+
+---
+title: "Approve the certificate for each host in your deployment."
+stepnum: 0
+level: 4
+ref: approve-certificates-sc-tls
+content: |
+
+  Invoke the following command to retrieve the |csrs| for each host:  Invoke the following command to retrieve the |csrs| for each host:
+
+  .. code-block:: sh
+
+     kubectl get csr
+
+  The command's output resembles the following:
+
+  .. code-block:: sh
+
+     NAME                                       AGE       REQUESTOR                                                   CONDITION
+     my-secure-sc-0-0.mongodb                   30s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-0-1.mongodb                   28s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-0-2.mongodb                   27s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-1-0.mongodb                   22s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-1-1.mongodb                   13s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-1-2.mongodb                   6s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-config-0.mongodb              36s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-config-1.mongodb              34s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-config-2.mongodb              32s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-mongos-0.mongodb              49s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-mongos-1.mongodb              42s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+  Using the ``NAME`` field above, approve each certificate from the
+  previous command's output using the following command:
+
+  .. code-block:: sh
+
+     kubectl certificate approve <NAME>
+
+  .. example::
+
+     The following commands approve the certificates for the
+     replica set example in the previous step:
+
+     .. code-block:: sh
+        :copyable: false
+
+        kubectl certificate approve my-secure-sc-0-0.mongodb
+        kubectl certificate approve my-secure-sc-0-1.mongodb
+        kubectl certificate approve my-secure-sc-0-2.mongodb
+        kubectl certificate approve my-secure-sc-1-0.mongodb
+        kubectl certificate approve my-secure-sc-1-1.mongodb
+        kubectl certificate approve my-secure-sc-1-2.mongodb
+        kubectl certificate approve my-secure-sc-config-0.mongodb
+        kubectl certificate approve my-secure-sc-config-1.mongodb
+        kubectl certificate approve my-secure-sc-config-2.mongodb
+        kubectl certificate approve my-secure-sc-mongos-0.mongodb
+        kubectl certificate approve my-secure-sc-mongos-1.mongodb
+
+  |kubectl| prints a message to the console when a certificate
+  is approved.
+
+---
+title: "Approve the certificate for each host in your deployment."
+stepnum: 0
+level: 4
+ref: approve-certificates-sc-tls-X509
+content: |
+
+  Invoke the following command to retrieve the |csrs| for each host:
+
+  .. code-block:: sh
+
+     kubectl get csr
+
+  The command's output resembles the following:
+
+  .. code-block:: sh
+
+     NAME                                       AGE       REQUESTOR                                                   CONDITION
+     mms-automation-agent.mongodb               20m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-0-0.mongodb                   30s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-0-1.mongodb                   28s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-0-2.mongodb                   27s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-1-0.mongodb                   22s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-1-1.mongodb                   13s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-1-2.mongodb                   6s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-config-0.mongodb              36s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-config-1.mongodb              34s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-config-2.mongodb              32s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-mongos-0.mongodb              49s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-mongos-1.mongodb              42s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+  Using the ``NAME`` field above, approve each certificate from the
+  previous command's output using the following command:
+
+  .. code-block:: sh
+
+     kubectl certificate approve <NAME>
+
+  .. example::
+
+     The following commands approve the certificates for the
+     replica set example in the previous step:
+
+     .. code-block:: sh
+        :copyable: false
+
+        kubectl certificate approve my-secure-sc-0-0.mongodb
+        kubectl certificate approve my-secure-sc-0-1.mongodb
+        kubectl certificate approve my-secure-sc-0-2.mongodb
+        kubectl certificate approve my-secure-sc-1-0.mongodb
+        kubectl certificate approve my-secure-sc-1-1.mongodb
+        kubectl certificate approve my-secure-sc-1-2.mongodb
+        kubectl certificate approve my-secure-sc-config-0.mongodb
+        kubectl certificate approve my-secure-sc-config-1.mongodb
+        kubectl certificate approve my-secure-sc-config-2.mongodb
+        kubectl certificate approve my-secure-sc-mongos-0.mongodb
+        kubectl certificate approve my-secure-sc-mongos-1.mongodb
+
+  |kubectl| prints a message to the console when a certificate
+  is approved.
+
+  When :setting:`spec.security.clusterAuthenticationMode` is set to
+  ``x509`` an additional |csr| will be generated per host for the
+  clusterfile.
+
+  After the first batch of certificates are approved, run the
+  command to retrieve the |csrs| again:
+
+  .. code-block:: sh
+
+     kubectl get csr
+
+  The clusterfile |csrs| are now present in the output:
+
+  .. code-block:: sh
+
+     NAME                                        AGE       REQUESTOR                                                   CONDITION
+     mms-automation-agent.mongodb                22m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-0-0-clusterfile.mongodb        40s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-0-0.mongodb                    2m22s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-0-1-clusterfile.mongodb        36s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-0-1.mongodb                    2m20s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-0-2-clusterfile.mongodb        32s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-0-2.mongodb                    2m19s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-1-0-clusterfile.mongodb        27s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-1-0.mongodb                    2m14s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-1-1-clusterfile.mongodb        23s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-1-1.mongodb                    2m5s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-1-2-clusterfile.mongodb        20s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-1-2.mongodb                    118s      system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-config-0-clusterfile.mongodb   10s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-config-0.mongodb               2m28s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-config-1-clusterfile.mongodb   5s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-config-1.mongodb               2m26s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-config-2-clusterfile.mongodb   2s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-config-2.mongodb               2m24s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-mongos-0-clusterfile.mongodb   18s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-mongos-0.mongodb               2m41s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
+     my-secure-sc-mongos-1-clusterfile.mongodb   12s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     my-secure-sc-mongos-1.mongodb               2m34s     system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+  .. note::
+
+     The |k8s-op-short| generates |csrs| for the {+mdbagent+}s when
+     MongoDB resources are present.
+
+  Approve the clusterfile |csrs| using the same command:
+
+  .. code-block:: sh
+
+     kubectl certificate approve <NAME>
+
+  .. example::
+
+     The following commands approve the clusterfile
+     certificates:
+
+     .. code-block:: sh
+        :copyable: false
+
+        kubectl certificate approve my-secure-sc-0-0-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-0-1-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-0-2-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-1-0-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-1-1-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-1-2-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-config-0-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-config-1-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-config-2-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-mongos-0-clusterfile.mongodb
+        kubectl certificate approve my-secure-sc-mongos-1-clusterfile.mongodb
+
+...
+
+
+
