@@ -66,7 +66,273 @@ Command Fields
 
 The command accepts the following fields:
 
-.. include:: /includes/apiargs/dbcommand-find-field.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``find``
+   
+        - string
+   
+        - The name of the collection or :doc:`view </core/views>` to query.
+          
+          
+   
+      * - ``filter``
+   
+        - document
+   
+        - Optional. The query predicate. If unspecified, then all documents in
+          the collection will match the predicate.
+          
+          
+   
+      * - ``sort``
+   
+        - document
+   
+        - Optional. The sort specification for the ordering of the results.
+          
+          
+   
+      * - ``projection``
+   
+        - document
+   
+        - Optional. The :ref:`projection specification <projections>` to
+          determine which fields to include in the returned documents. See
+          :ref:`projections` and :doc:`/reference/operator/projection`.
+          
+          .. include:: /includes/extracts/views-unsupported-projection-operators.rst
+          
+          
+   
+      * - ``hint``
+   
+        - string or document
+   
+        - Optional. Index specification. Specify either the index name as a
+          string or the index key pattern. If specified, then the query system
+          will only consider plans using the hinted index.
+          
+          .. versionchanged:: 4.2
+          
+             With the following exception, ``hint`` is required if the command
+             includes the ``min`` and/or ``max`` fields; ``hint`` is not
+             required with ``min`` and/or ``max`` if the ``filter`` is an
+             equality condition on the ``_id`` field ``{ _id: <value> }``.
+          
+          
+   
+      * - ``skip``
+   
+        - Positive integer
+   
+        - Optional. Number of documents to skip. Defaults to 0.
+          
+          
+   
+      * - ``limit``
+   
+        - Non-negative integer
+   
+        - Optional. The maximum number of documents to return. If unspecified,
+          then defaults to no limit. A limit of 0 is equivalent to setting no
+          limit.
+          
+          
+   
+      * - ``batchSize``
+   
+        - non-negative integer
+   
+        - Optional. The number of documents to return in the first batch.
+          Defaults to 101. A batchSize of 0 means that the cursor will be
+          established, but no documents will be returned in the first batch.
+          
+          Unlike the previous wire protocol version, a batchSize of 1 for
+          the :dbcommand:`find` command does not close the cursor.
+          
+          
+   
+      * - ``singleBatch``
+   
+        - boolean
+   
+        - Optional. Determines whether to close the cursor after the first
+          batch. Defaults to false.
+          
+          
+   
+      * - ``comment``
+   
+        - string
+   
+        - Optional. A comment to attach to the query to help interpret and trace query
+          :dbcommand:`profile` data.
+          
+          
+   
+      * - ``maxTimeMS``
+   
+        - positive integer
+   
+        - Optional. The cumulative time limit in milliseconds for processing operations on
+          the cursor. MongoDB aborts the operation at the earliest following
+          :term:`interrupt point`.
+          
+          .. include:: /includes/extracts/maxTimeMS-readConcern.rst
+          
+          
+   
+      * - ``readConcern``
+   
+        - document
+   
+        - Optional. Specifies the :term:`read concern`.
+          
+          .. include:: /includes/fact-readConcern-syntax.rst
+          
+          .. include:: /includes/fact-readConcern-option-description.rst
+          
+          The :dbcommand:`getMore` command uses the ``readConcern`` level
+          specified in the originating ``find`` command.
+          
+          
+   
+      * - ``max``
+   
+        - document
+   
+        - Optional. The *exclusive* upper bound for a specific index. See
+          :method:`cursor.max()` for details.
+          
+          Starting in MongoDB 4.2, to use the ``max`` field, the command must
+          also use ``hint`` unless the specified ``filter`` is an
+          equality condition on the ``_id`` field ``{ _id: <value> }``.
+          
+          
+   
+      * - ``min``
+   
+        - document
+   
+        - Optional. The *inclusive* lower bound for a specific index. See
+          :method:`cursor.min()` for details.
+          
+          Starting in MongoDB 4.2, to use the ``min`` field, the command must
+          also use ``hint`` unless the specified ``filter`` is an
+          equality condition on the ``_id`` field ``{ _id: <value> }``.
+          
+          
+   
+      * - ``returnKey``
+   
+        - boolean
+   
+        - Optional. If true, returns only the index keys in the resulting documents.
+          Default value is false. If returnKey is true and the :dbcommand:`find`
+          command does not use an index, the returned documents will be empty.
+          
+          
+   
+      * - ``showRecordId``
+   
+        - boolean
+   
+        - Optional. Determines whether to return the record identifier for each document.
+          If true, adds a field $recordId to the returned documents.
+          
+          
+   
+      * - ``tailable``
+   
+        - boolean
+   
+        - Optional. Returns a :term:`tailable cursor` for a capped collections.
+          
+          
+   
+      * - ``awaitData``
+   
+        - boolean
+   
+        - Optional. Use in conjunction with the tailable option to block a
+          :dbcommand:`getMore` command on the cursor temporarily if at the end
+          of data rather than returning no data. After a timeout period,
+          :dbcommand:`find` returns as normal.
+          
+          
+   
+      * - ``oplogReplay``
+   
+        - boolean
+   
+        - Optional. An internal command for replaying a :ref:`replica set's oplog
+          <replica-set-oplog>`.
+          
+          To use ``oplogReplay``, the ``find`` field must refer to a
+          :doc:`capped collection </core/capped-collections>` and you must
+          provide a ``filter`` option comparing the ``ts`` document field to a
+          :data:`timestamp` using one of the following comparison operators:
+          
+          * :expression:`$gte`
+          * :expression:`$gt`
+          * :expression:`$eq`
+          
+          For example, the following command replays documents from the ``data``
+          :doc:`capped collection </core/capped-collections>` with a timestamp
+          later than or equal to January 1st, 2018 UTC:
+          
+          .. code-block:: javascript
+          
+             { find: "data",
+               oplogReplay: true,
+               filter: { ts: { $gte: new Timestamp(1514764800, 0) } } }
+          
+          .. versionchanged:: 3.6
+          
+             :expression:`$eq` is now supported.
+          
+          
+   
+      * - ``noCursorTimeout``
+   
+        - boolean
+   
+        - Optional. Prevents the server from timing out idle cursors after an inactivity
+          period (10 minutes).
+          
+          
+   
+      * - ``allowPartialResults``
+   
+        - boolean
+   
+        - Optional. For queries against a sharded collection, returns partial results from
+          the :binary:`~bin.mongos` if some shards are unavailable instead of
+          throwing an error.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+
 
 Behavior
 --------
