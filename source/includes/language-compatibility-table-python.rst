@@ -110,6 +110,16 @@ Python 3 Compatibility
      - Python 3.6
      - Python 3.7
 
+   * - 3.9
+     -
+     -
+     - |checkmark|
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
    * - 3.8
      -
      -
