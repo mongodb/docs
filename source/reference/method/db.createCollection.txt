@@ -55,11 +55,306 @@ Definition
 
    The :method:`db.createCollection()` method has the following parameters:
 
-   .. include:: /includes/apiargs/method-db.createCollection-param.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``name``
+   
+        - string
+   
+        - The name of the collection to create.
+          
+          
+   
+      * - ``options``
+   
+        - document
+   
+        - Optional. Configuration options for creating a capped collection, for
+          preallocating space in a new collection, or for creating a view.
+          
+          
+   
+
 
    The ``options`` document contains the following fields:
 
-   .. include:: /includes/apiargs/method-db.createCollection-options-param.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``capped``
+   
+        - boolean
+   
+        - Optional. To create a :term:`capped collection`,
+          specify ``true``. If you specify ``true``, you must also set a maximum
+          size in the ``size`` field.
+          
+          
+   
+      * - ``autoIndexId``
+   
+        - boolean
+   
+        - Optional. Specify ``false`` to disable the automatic creation of an index on the
+          ``_id`` field.
+          
+          .. important::
+          
+             For replica sets, do not set ``autoIndexId`` to ``false``.
+          
+          .. deprecated:: 3.2
+          
+          
+   
+      * - ``size``
+   
+        - number
+   
+        - Optional. Specify a maximum size in bytes for a capped collection. Once a
+          capped collection reaches its maximum size, MongoDB removes the older
+          documents to make space for the new documents. The ``size`` field is
+          required for capped collections and ignored for other collections.
+          
+          
+   
+      * - ``max``
+   
+        - number
+   
+        - Optional. The maximum number of documents allowed in the capped collection. The
+          ``size`` limit takes precedence over this limit. If a capped
+          collection reaches the ``size`` limit before it reaches the maximum
+          number of documents, MongoDB removes old documents. If you prefer to
+          use the ``max`` limit, ensure that the ``size`` limit, which is
+          required for a capped collection, is sufficient to contain the
+          maximum number of documents.
+          
+          
+   
+      * - ``usePowerOf2Sizes``
+   
+        - boolean
+   
+        - Optional. Available for the MMAPv1 storage engine only.
+          
+          .. deprecated:: 3.0
+          
+             For the MMAPv1 storage engine, all collections use the :ref:`power
+             of 2 sizes allocation <power-of-2-allocation>` unless the
+             ``noPadding`` option is ``true``. The ``usePowerOf2Sizes`` option
+             does not affect the allocation strategy.
+          
+          
+   
+      * - ``noPadding``
+   
+        - boolean
+   
+        - Optional. Available for the MMAPv1 storage engine only.
+          
+          .. versionadded:: 3.0
+          
+             ``noPadding`` flag disables the :ref:`power of 2 sizes allocation
+             <power-of-2-allocation>` for the collection. With ``noPadding``
+             flag set to true, the allocation strategy does not include
+             additional space to accommodate document growth, as such, document
+             growth will result in new allocation. Use for collections with
+             workloads that are insert-only or in-place updates (such as
+             incrementing counters).
+          
+             Defaults to ``false``.
+          
+          .. warning::
+          
+             Do not set ``noPadding`` if the workload includes removes or any
+             updates that may cause documents to grow. For more information,
+             see :ref:`exact-fit-allocation`.
+          
+          
+   
+      * - ``storageEngine``
+   
+        - document
+   
+        - Optional. Available for the WiredTiger storage engine only.
+          
+          .. versionadded:: 3.0
+          
+          Allows users to specify configuration to the storage engine on a
+          per-collection basis when creating a collection. The value of the
+          ``storageEngine`` option should take the following form:
+          
+          .. code-block:: javascript
+          
+             { <storage-engine-name>: <options> }
+          
+          Storage engine configuration specified when creating collections are
+          validated and logged to the :term:`oplog` during replication to
+          support replica sets with members that use different storage
+          engines.
+          
+          
+   
+      * - ``validator``
+   
+        - document
+   
+        - Optional. Allows users to specify :doc:`validation rules or expressions
+          </core/document-validation>` for the collection. For more information,
+          see :doc:`/core/document-validation`.
+          
+          .. versionadded:: 3.2
+          
+          The ``validator`` option takes a document that specifies the
+          validation rules or expressions. You can specify the expressions using
+          the same operators as the :ref:`query operators <query-selectors>`
+          with the exception of :query:`$geoNear`, :query:`$near`,
+          :query:`$nearSphere`, :query:`$text`, and :query:`$where`.
+          
+          .. note::
+          
+             - Validation occurs during updates and inserts. Existing
+               documents do not undergo validation checks until modification.
+          
+             - You cannot specify a validator for collections in the ``admin``,
+               ``local``, and ``config`` databases.
+          
+             - You cannot specify a validator for ``system.*`` collections.
+          
+          
+   
+      * - ``validationLevel``
+   
+        - string
+   
+        - Optional. Determines how strictly MongoDB applies the
+          validation rules to existing documents during an update.
+          
+          .. versionadded:: 3.2
+          
+          .. include:: /includes/extracts/table-validationLevel-values.rst
+          
+          
+   
+      * - ``validationAction``
+   
+        - string
+   
+        - Optional. Determines whether to ``error`` on invalid documents or just ``warn``
+          about the violations but allow invalid documents to be inserted.
+          
+          .. versionadded:: 3.2
+          
+          .. important::
+          
+             Validation of documents only applies to those documents as
+             determined by the ``validationLevel``.
+          
+          .. include:: /includes/extracts/table-validationAction-values.rst
+          
+          
+   
+      * - ``indexOptionDefaults``
+   
+        - document
+   
+        - Optional. Allows users to specify a default configuration for indexes when
+          creating a collection.
+          
+          The ``indexOptionDefaults`` option accepts a ``storageEngine``
+          document, which should take the following form:
+          
+          .. code-block:: javascript
+          
+             { <storage-engine-name>: <options> }
+          
+          Storage engine configuration specified when creating indexes are
+          validated and logged to the :term:`oplog` during replication to
+          support replica sets with members that use different storage
+          engines.
+          
+          .. versionadded:: 3.2
+          
+          
+   
+      * - ``viewOn``
+   
+        - string
+   
+        - The name of the source collection or view from which to create the
+          view. The name is not the full namespace of the collection or
+          view; i.e. does not include the database name and implies the same
+          database as the view to create. You must create views in the same
+          database as the source collection.
+          
+          
+          See also :method:`db.createView()`.
+          
+          .. versionadded:: 3.4
+          
+          
+          
+   
+      * - ``pipeline``
+   
+        - array
+   
+        - An array that consists of the :ref:`aggregation pipeline stage
+          <aggregation-pipeline>`.  :method:`db.createView` creates the view by
+          applying the specified ``pipeline`` to the ``viewOn`` collection or view.
+          
+          .. include:: /includes/extracts/views-public-definition.rst
+          
+          
+          See also :method:`db.createView()`.
+          
+          .. versionadded:: 3.4
+          
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Specifies the default :ref:`collation <collation>` for the collection.
+          
+          .. include:: /includes/extracts/collation-description.rst
+          
+          .. include:: /includes/extracts/collation-option-specification.rst
+          
+          .. include:: /includes/extracts/collation-collection-level.rst
+          
+          .. include:: /includes/extracts/collation-unspecified.rst
+          
+          For a collection, you can only specify the collation during the
+          collection creation. Once set, you cannot modify the collection's
+          default collation.
+          
+          For an example, see :ref:`createCollection-collation-example`.
+          
+          .. versionadded:: 3.4
+          
+          
+   
+
 
 Access Control
 --------------
