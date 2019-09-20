@@ -41,9 +41,9 @@ This guide provides steps for setup and implementation of CSFLE with a
 practical example.
 
 .. note::
-
-  Client-side Field Level Encryption is available starting in MongoDB
-  4.2 Enterprise only.
+   
+   Automatic Client-Side Field Level Encryption is available starting in
+   MongoDB 4.2 Enterprise only.
 
 Problem
 ~~~~~~~
@@ -92,7 +92,7 @@ of their Medical Care Management System?
 Solution
 ~~~~~~~~
 
-The MedcoMD software engineers review the Medical Care Management System
+The MedcoMD engineers review the Medical Care Management System
 specification and research the proper solution for limiting access to
 sensitive data.
 
@@ -119,9 +119,9 @@ Access Control, these three security features offer near-comprehensive
 security coverage of the sensitive data, but lack a mechanism to prevent
 the data from being read from the server's memory.
 
-Finally, the MedcoMD developers discovered a feature that independently
+Finally, the MedcoMD engineer discovered a feature that independently
 satisfies all the security criteria. Client-side Field Level Encryption
-allows the developers to specify the fields of a document that should be
+allows the engineers to specify the fields of a document that should be
 kept encrypted. Sensitive data is transparently encrypted/decrypted by
 the client and only communicated to and from the server in encrypted
 form. This mechanism keeps the specified data fields secure in encrypted
@@ -142,43 +142,51 @@ compliant to data privacy regulations with MongoDB.
 Procedure
 ---------
 
+.. tabs-drivers::
+   
+   .. tab::
+      :tabid: java-sync
+      
+      For more information, including 'full examples, see the `Client
+      Side Encryption
+      <https://mongodb.github.io/mongo-java-driver/3.11/driver/tutorials/client-side-encryption/>`_
+      page in the official Java driver documentation.
+      
+
 Requirements
 ~~~~~~~~~~~~
 
 MongoDB Server 4.2 Enterprise
-  * For installation instructions, refer to the
+  - For installation instructions, refer to the
     :manual:`Enterprise Edition Installation Tutorials </installation/#mongodb-enterprise-edition-installation-tutorials>`.
 
-
 MongoDB Driver Compatible with CSFLE
-  * For a list of drivers that support CSFLE, refer to the
+  - For a list of drivers that support CSFLE, refer to the
     :manual:`driver compatibility table </core/security-client-side-encryption/#driver-compatibility-table>`.
 
-
 AWS Key Management Service (KMS)
-  * The client application will need the following AWS KMS permissions
+  - The client application will need the following AWS KMS permissions
     for the master key:
 
-    * :aws-docs:`Encrypt <kms/latest/APIReference/API_Encrypt.html>`
-    * :aws-docs:`Decrypt <kms/latest/APIReference/API_Decrypt.html>`
+    - :aws-docs:`Encrypt <kms/latest/APIReference/API_Encrypt.html>`
+    - :aws-docs:`Decrypt <kms/latest/APIReference/API_Decrypt.html>`
 
     To learn how to create an IAM user and assign these permissions, see
     :aws-docs:`AWS IAM Users </IAM/latest/UserGuide/id_users.html>` .
 
-  * Compatible MongoDB drivers currently include integration with AWS
+  - Compatible MongoDB drivers currently include integration with AWS
     KMS. Support for other KMS providers may be added in the future.
 
 File System Permissions
-  * The client application or a privileged user needs permissions to
+  - The client application or a privileged user needs permissions to
     start the :manual:`mongocryptd
     </core/security-client-side-encryption/#field-level-encryption-mongocryptd>`
     process on the host.
 
-
 .. _fle-create-a-master-key:
 
 A. Create a Master Key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 MongoDB `Client-Side Field Level Encryption (CSFLE)
 <https://docs.mongodb.com/manual/core/security-client-side-encryption/>`_
@@ -190,14 +198,13 @@ concepts, see `AWS Key Management Service Concepts
 <https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#enveloping>`_.
 
 The master key, used by the MongoDB driver to create and encrypt data
-keys, should be stored remotely in a `Key Management System
-<https://en.wikipedia.org/wiki/Key_management#Key_management_system>`_.
-The data encryption keys, generated and used by the MongoDB driver to
-encrypt and decrypt document fields, are stored in a key vault
-collection in the same database as the encrypted data.
+keys, should be stored remotely in a :wikipedia:`Key Management System
+<Key_management#Key_management_system>`. The data encryption keys,
+generated and used by the MongoDB driver to encrypt and decrypt document
+fields, are stored in a key vault collection in the same database as the
+encrypted data.
 
-In this step, we generate a local master key to expedite setup of our
-development environment.
+To begin development, MedcoMD engineers generate a local master key:
 
 .. admonition:: Local Master Keys Are Not Secure
    :class: important
@@ -209,38 +216,34 @@ development environment.
    We demonstrate how to transition from a locally-hosted master key to
    a remote AWS KMS master key in a later step of this guide.
 
-.. tabs::
-
-  tabs:
-
-    - id: java-master-key-generator
-      name: "Java"
-      content: |
-
-        The following script generates a 96-byte local master key and
-        saves it to a file called ``master-key.txt`` in the directory
-        from which the script is executed.
-
-        .. code-block:: java
-
-          import java.io.FileOutputStream;
-          import java.io.IOException;
-          import java.security.SecureRandom;
-
-          public class CreateMasterKeyFile {
-            public static void main(final String[] args) {
-
-              final byte[] localMasterKey = new byte[96];
-              new SecureRandom().nextBytes(localMasterKey);
-
-              try (FileOutputStream stream = new FileOutputStream("master-key.txt")) {
-                stream.write(localMasterKey);
-              } catch (IOException e)  {
-                e.printStackTrace();
-              }
+.. tabs-drivers::
+   
+   .. tab::
+      :tabid: java-sync
+      
+      The following script generates a 96-byte local master key and
+      saves it to a file called ``master-key.txt`` in the directory
+      from which the script is executed.
+      
+      .. code-block:: java
+      
+        import java.io.FileOutputStream;
+        import java.io.IOException;
+        import java.security.SecureRandom;
+      
+        public class CreateMasterKeyFile {
+          public static void main(final String[] args) {
+      
+            final byte[] localMasterKey = new byte[96];
+            new SecureRandom().nextBytes(localMasterKey);
+      
+            try (FileOutputStream stream = new FileOutputStream("master-key.txt")) {
+              stream.write(localMasterKey);
+            } catch (IOException e)  {
+              e.printStackTrace();
             }
           }
-
+        }
 
 .. _fle-create-a-data-encryption-key:
 
@@ -254,24 +257,23 @@ access the key for automatic encryption and decryption.
 The client requires the following configuration values to generate a new
 data encryption key:
 
-* The local master key or AWS KMS master key access settings.
-* A MongoDB connection string that authenticates on a running server.
-* The key vault namespace (database and collection).
+- The local master key or AWS KMS master key access settings.
+
+- A MongoDB connection string that authenticates on a running server.
+
+- The key vault namespace (database and collection).
 
 Follow the steps below to generate a single data encryption key from the
 local master key.
 
-.. tabs::
-  
-  hidden: true
-  tabs:
-    - id: use-cases-fle-guide-java
-      name: "Java"
-      content: |
-      
-        You can also download the `complete code example on GitHub
-        <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-csfle-data-encryption-key/DataEncryptionKeyGenerator.java>`_.
-
+.. tabs-drivers::
+   :hidden: true
+   
+   .. tab::
+      :tabid: java-sync
+       
+      You can also download the `complete code example on GitHub
+      <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-csfle-data-encryption-key/DataEncryptionKeyGenerator.java>`_.
 
 .. include:: /includes/steps/create-data-encryption-key.rst
 
@@ -366,8 +368,8 @@ The ``ssn`` field represents the patient's social security number. This
 field is sensitive and should be encrypted. MedcoMD engineers decide
 upon deterministic encryption based on the following properties:
 
-* Queryable
-* High cardinality
+- Queryable
+- High cardinality
 
 .. code-block:: json
 
@@ -387,8 +389,8 @@ The ``bloodType`` field represents the patient's blood type. This field
 is sensitive and should be encrypted. MedcoMD engineers decide upon
 random encryption based on the following properties:
 
-* No plans to query
-* Low cardinality
+- No plans to query
+- Low cardinality
 
 .. code-block:: json
 
@@ -410,7 +412,8 @@ such as their blood pressure, weight, and heart rate. This field is
 sensitive and should be encrypted. MedcoMD engineers decide upon random
 encryption based on the following properties:
 
-* Array fields must use random encryption with CSFLE to enable auto-encryption
+- Array fields must use random encryption with CSFLE to enable
+  auto-encryption
 
 .. code-block:: json
 
@@ -429,8 +432,8 @@ The ``insurance.policyNumber`` field is embedded inside the
 policy number is a distinct and sensitive field. MedcoMD engineers
 decide upon deterministic encryption based on the following properties:
 
-* Queryable
-* High cardinality
+- Queryable
+- High cardinality
 
 .. code-block:: json
 
@@ -456,15 +459,13 @@ full `JSON Schema for the Medco Medical Management System
 <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-json-schema-helper-and-json/MedcoMDSchema.json>`_.
 
 
-.. tabs::
-
-   tabs:
-
-     - id: java-jsonschema-generation
-       name: "Java"
-       content: |
+.. tabs-drivers::
+   
+   .. tab::
+      :tabid: java-sync
        
-        View the `helper code in Java <https://gist.github.com/ccho-mongodb/088176b1bed3b9e54cdc0c2c3c537d1b>`_.
+      View the `helper code in Java
+      <https://gist.github.com/ccho-mongodb/088176b1bed3b9e54cdc0c2c3c537d1b>`_.
 
 D. Create the MongoDB Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -481,42 +482,46 @@ E. Perform Encrypted Read/Write Operations
 The MedcoMD engineers now have a CSFLE-enabled client and can test that
 the client can perform queries that meet the requirements. Doctors
 should be able to read and write to all fields, and receptionists should
-only be allowed to read and write to non-sensitive fields. 
+only be allowed to read and write to non-sensitive fields.
 
 Insert a Document with Encrypted Fields
 +++++++++++++++++++++++++++++++++++++++
 
 MedcoMD engineers write a function to create a new patient record:
 
+.. tabs-drivers::
+   
+   .. tab::
+      :tabid: java-sync
+      
+      .. code-block:: java
+      
+         public static void insertPatient(
+             MongoCollection collection,
+             String name,
+             int ssn,
+             String bloodType,
+             ArrayList<Document> medicalRecords,
+             int policyNumber,
+             String provider
+         ) {
+             Document patient = new Document()
+                 .append("name", name)
+                 .append("ssn", ssn)
+                 .append("bloodType", bloodType)
+                 .append("medicalRecords", medicalRecords);
+             Document insurance = new Document()
+                 .append("policyNumber", policyNumber)
+                 .append("provider", provider)
+                 .append("insurance", insurance);
+             collection.insertOne(patient);
+         }
 
-.. tabs::
-
-   tabs:
-
-     - id: java-jsonschema-generation
-       name: "Java"
-       content: |
-       
-        .. code-block:: java
-
-            public static void insertPatient(MongoCollection collection, String name, int ssn, String bloodType, ArrayList<Document> medicalRecords, int policyNumber, String provider) {
-                Document patient = new Document()
-                    .append("name", name)
-                    .append("ssn", ssn)
-                    .append("bloodType", bloodType)
-                    .append("medicalRecords", medicalRecords);
-                Document insurance = new Document()
-                    .append("policyNumber", policyNumber)
-                    .append("provider", provider)
-                    .append("insurance", insurance);
-                collection.insertOne(patient);
-            }
-
-When a CSFLE-enabled client inserts a new patient record into the Medical Care 
-Management System, it automatically encrypts the fields. This operation 
+When a CSFLE-enabled client inserts a new patient record into the Medical Care
+Management System, it automatically encrypts the fields. This operation
 produces a document similar to the following:
 
-.. code-block:: json 
+.. code-block:: json
 
     {
         "_id": "5d7a7bbe6d58fd263b6d7315",
@@ -530,10 +535,11 @@ produces a document similar to the following:
         }
     }
 
-.. note:: 
-    Clients that do not have CSFLE configured will insert unencrypted data. We 
-    recommend using :manual:`server-side schema validation </core/schema-validation/>`
-    to enforce encrypted writes for fields that should be encrypted. 
+.. note::
+   
+   Clients that do not have CSFLE configured will insert unencrypted data. We
+   recommend using :manual:`server-side schema validation </core/schema-validation/>`
+   to enforce encrypted writes for fields that should be encrypted.
 
 Query for Documents on a Deterministically Encrypted Field
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -544,7 +550,7 @@ CSFLE, such as when a doctor in the MedcoMD management system searches
 for a patient with their SSN, the patient's data is returned
 unencrypted:
 
-.. code-block:: json 
+.. code-block:: json
 
     {
         "_id": "5d6ecdce70401f03b27448fc",
@@ -564,19 +570,21 @@ unencrypted:
     }
 
 
-.. note:: 
-    For queries using a client that is not configured to use CSFLE, such
-    as when receptionists in the MedcoMD management system search for a
-    patient with their ``ssn``, a null value is returned. A client without CSFLE 
-    configured cannot query on a sensitive field.
+.. note::
+   
+   For queries using a client that is not configured to use CSFLE, such
+   as when receptionists in the MedcoMD management system search for a
+   patient with their ``ssn``, a null value is returned. A client without CSFLE
+   configured cannot query on a sensitive field.
 
 Query for Documents on a Randomly Encrypted Field
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. warning::
-    You cannot directly query for documents on a randomly encrypted field, however 
-    you can use another field to find the document that contains an approximation of
-    the randomly encrypted field data.
+   
+   You cannot directly query for documents on a randomly encrypted
+   field, however you can use another field to find the document that
+   contains an approximation of the randomly encrypted field data.
 
 MedcoMD engineers determined that the fields they randomly encrypted
 would not be used to find patients records. Had this been required, for example,
@@ -585,9 +593,7 @@ could have included another plaintext field called ``last4ssn`` that
 contains the last 4 digits of the ``ssn`` field. They could then query
 on this field as a proxy for the ``ssn``.
 
-
-
-.. code-block:: json 
+.. code-block:: json
    :emphasize-lines: 5
 
     {
@@ -624,7 +630,7 @@ procedure:
 .. include:: /includes/steps/fle-convert-to-a-remote-master-key.rst
 
 Recap
-+++++
+~~~~~
 
 After following the procedure, MedcoMD engineers have converted the
 application to use a remote master key. They used the master key to
@@ -663,14 +669,14 @@ CSFLE can automatically encrypt and decrypt fields based on a provided
 JSON Schema that specifies which fields to encrypt and how to encrypt
 them.
 
-**4. Tested and Validated the CSFLE Client**
+**4. Tested and Validated Queries with the CSFLE Client**
 
 MedcoMD engineers tested their CSFLE implementation by inserting and
 querying documents with encrypted fields. They then validated that
 clients without CSFLE enabled could not read the encrypted data.
 
 **5. Took the Client to Production**
-   
+
 MedcoMD converted the application to use a remote a master key instead
 of the local development key. They generated a new data key from the
 remote master key and used it to update the JSON Schema. Once they had
