@@ -1,20 +1,38 @@
+.. _mongodb-10.4.1.5917:
+
+MongoDB Agent 10.4.1.5917
+-------------------------
+
+*Released* 2019-09-13
+
+- Fix encoding issue for keyfiles containing newlines.
+
+.. _mongodb-10.4.0.5913:
+
+MongoDB Agent 10.4.0.5913
+-------------------------
+
+*Released* :ref:`2019-09-10 <cloudmanager-v20190910>`
+
+- Support for :doc:`rolling keyfile changes </tutorial/rotate-keyfile>` in MongoDB 4.2.
+
 .. _mongodb-10.3.1.5880:
 
 MongoDB Agent 10.3.1.5880
 -------------------------
 
-*Released 2019-08-05*
+*Released* 2019-08-05
 
-Fixes issue with health check for integration with Kubernetes Operator
+- Fixes issue with health check for integration with Kubernetes Operator.
 
 .. _mongodb-10.3.0.5877:
 
 MongoDB Agent 10.3.0.5877
 -------------------------
 
-*Released 2019-08-01*
+*Released* 2019-08-01
 
-Further work to support upcoming release of MongoDB Server 4.2.
+- Further work to support upcoming release of MongoDB Server 4.2.
 
 .. _mongodb-10.1.2.5805:
 

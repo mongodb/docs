@@ -6,6 +6,8 @@
 - MongoDB Cloud billing authenticates credit cards for customers in the
   European Economic Area in compliance with the second Payment Services
   Directive (PSD2). To learn more about Strong Customer Authentication, see :ref:`sca-changes-cm`.
+- Agent Upgrade:
+  :ref:`mongodb-10.4.0.5913`
 
 .. _cloudmanager-v20190820:
 
