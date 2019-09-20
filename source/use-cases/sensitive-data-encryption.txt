@@ -13,59 +13,131 @@ Sensitive Data Encryption
 Introduction
 ------------
 
-Many applications make use of sensitive data such as confidential personal details, payment information, or proprietary data. In some jurisdictions, this type of data is subject to governance, privacy, and security compliance mandates. Unauthorized access of sensitive data or a failure to comply with a mandate often results in significant reputation damage and financial penalties. Therefore, it is important to keep sensitive data secure.
+Many applications make use of sensitive data such as confidential
+personal details, payment information, or proprietary data. In some
+jurisdictions, this type of data is subject to governance, privacy, and
+security compliance mandates. Unauthorized access of sensitive data or a
+failure to comply with a mandate often results in significant reputation
+damage and financial penalties. Therefore, it is important to keep
+sensitive data secure.
 
-MongoDB offers several methods that protect your data from unauthorized access including:
+MongoDB offers several methods that protect your data from unauthorized
+access including:
 
 * `Role-based access control <https://docs.mongodb.com/manual/core/authorization/>`_
 * `Monitoring and logging <https://docs.mongodb.com/manual/core/auditing/>`_
 * `TLS/SSL network transport encryption <https://docs.mongodb.com/manual/core/security-transport-encryption/>`_
 * `Encryption at rest <https://docs.mongodb.com/manual/core/security-encryption-at-rest/>`_
 
-Another MongoDB feature that prevents unauthorized access of data is `Client-Side Field Level Encryption (CSFLE) <https://docs.mongodb.com/manual/core/security-client-side-encryption/>`_. This feature allows a developer to selectively encrypt individual fields of a document on the client-side before it is sent to the server. This keeps the encrypted data private from the providers hosting the database as well as any user that has direct access to the database.
+Another MongoDB feature that prevents unauthorized access of data is
+`Client-Side Field Level Encryption (CSFLE)
+<https://docs.mongodb.com/manual/core/security-client-side-encryption/>`_.
+This feature allows a developer to selectively encrypt individual fields
+of a document on the client-side before it is sent to the server. This
+keeps the encrypted data private from the providers hosting the database
+as well as any user that has direct access to the database.
 
-This guide provides steps for setup and implementation of CSFLE with a practical example.
+This guide provides steps for setup and implementation of CSFLE with a
+practical example.
 
 .. note::
 
-  Client-side Field Level Encryption is available starting in MongoDB 4.2 Enterprise only.
+  Client-side Field Level Encryption is available starting in MongoDB
+  4.2 Enterprise only.
 
 Problem
 ~~~~~~~
 
-In this scenario, we secure sensitive data on a Medical Care Management System which stores patients' personal information, insurance information, and medical records for a fictional company, *MedcoMD*. None of the patient data is public, and certain data such as their social security number (SSN), insurance policy number, and vital sign measurements are particularly sensitive and subject to privacy compliance. It is important for the company and the patient that the data is kept private and secure.
+In this scenario, we secure sensitive data on a Medical Care Management
+System which stores patients' personal information, insurance
+information, and medical records for a fictional company, *MedcoMD*.
+None of the patient data is public, and certain data such as their
+social security number (SSN), insurance policy number, and vital sign
+measurements are particularly sensitive and subject to privacy
+compliance. It is important for the company and the patient that the
+data is kept private and secure.
 
 MedcoMD needs this system to satisfy the following use cases:
 
-- Doctors use the system to access Patients' medical records, insurance information, and add new vital sign measurements.
-- Receptionists use the system to verify the Patients' identity, using a combination of their contact information and the last four digits of their Social Security Number (SSN).
-- Receptionists can view a Patient's insurance policy provider, but not their policy number.
+- Doctors use the system to access Patients' medical records, insurance
+  information, and add new vital sign measurements.
+
+- Receptionists use the system to verify the Patients' identity, using a
+  combination of their contact information and the last four digits of
+  their Social Security Number (SSN).
+
+- Receptionists can view a Patient's insurance policy provider, but not
+  their policy number.
+
 - Receptionists cannot access a Patient's medical records.
 
-MedcoMD is also concerned with disclosure of sensitive data through any of the following methods:
+MedcoMD is also concerned with disclosure of sensitive data through any
+of the following methods:
 
-- Accidental disclosure of data on the Receptionist's publicly-viewable screen.
-- Direct access to the database by a superuser such as a database administrator.
+- Accidental disclosure of data on the Receptionist's publicly-viewable
+  screen.
+
+- Direct access to the database by a superuser such as a database
+  administrator.
+
 - Capture of data over an insecure network.
+
 - Access to the data by reading a server's memory.
+
 - Access to the on-disk data by reading database or backup files.
 
-What can MedcoMD do to balance the functionality and access restrictions of their Medical Care Management System?
+What can MedcoMD do to balance the functionality and access restrictions
+of their Medical Care Management System?
 
 Solution
 ~~~~~~~~
 
-The MedcoMD software engineers review the Medical Care Management System specification and research the proper solution for limiting access to sensitive data.
+The MedcoMD software engineers review the Medical Care Management System
+specification and research the proper solution for limiting access to
+sensitive data.
 
-The first MongoDB security feature they evaluated was `Role-Based Access Control <https://docs.mongodb.com/manual/core/authorization/>`_ which allows administrators to grant and restrict collection-level permissions for users. With the appropriate role definition and assignment, this solution prevents accidental disclosure of data and access. However, it does not prevent capture of the data over an insecure network, direct access of data by a superuser, access to data by reading the server's memory, or access to on-disk data by reading the database or backup files.
+The first MongoDB security feature they evaluated was `Role-Based Access
+Control <https://docs.mongodb.com/manual/core/authorization/>`_ which
+allows administrators to grant and restrict collection-level permissions
+for users. With the appropriate role definition and assignment, this
+solution prevents accidental disclosure of data and access. However, it
+does not prevent capture of the data over an insecure network, direct
+access of data by a superuser, access to data by reading the server's
+memory, or access to on-disk data by reading the database or backup
+files.
 
-The next MongoDB security features they evaluated were `Encryption at Rest <https://docs.mongodb.com/manual/core/security-encryption-at-rest/>`_ which encrypts the database files on disk and `Transport Encryption using TLS/SSL <https://docs.mongodb.com/manual/core/security-transport-encryption/>`_ which encrypts data over the network. When applied together, these two features prevent access to on-disk database files as well as capture of the data on the network, respectively. When combined with Role-Based Access Control, these three security features offer near-comprehensive security coverage of the sensitive data, but lack a mechanism to prevent the data from being read from the server's memory.
+The next MongoDB security features they evaluated were `Encryption at
+Rest
+<https://docs.mongodb.com/manual/core/security-encryption-at-rest/>`_
+which encrypts the database files on disk and `Transport Encryption
+using TLS/SSL
+<https://docs.mongodb.com/manual/core/security-transport-encryption/>`_
+which encrypts data over the network. When applied together, these two
+features prevent access to on-disk database files as well as capture of
+the data on the network, respectively. When combined with Role-Based
+Access Control, these three security features offer near-comprehensive
+security coverage of the sensitive data, but lack a mechanism to prevent
+the data from being read from the server's memory.
 
-Finally, the MedcoMD developers discovered a feature that independently satisfies all the security criteria. Client-side Field Level Encryption allows the developers to specify the fields of a document that should be kept encrypted. Sensitive data is transparently encrypted/decrypted by the client and only communicated to and from the server in encrypted form. This mechanism keeps the specified data fields secure in encrypted form on both the server and the network. While all clients have access to the non-sensitive data fields, only appropriately-configured CSFLE clients are able to read and write the sensitive data fields.
+Finally, the MedcoMD developers discovered a feature that independently
+satisfies all the security criteria. Client-side Field Level Encryption
+allows the developers to specify the fields of a document that should be
+kept encrypted. Sensitive data is transparently encrypted/decrypted by
+the client and only communicated to and from the server in encrypted
+form. This mechanism keeps the specified data fields secure in encrypted
+form on both the server and the network. While all clients have access
+to the non-sensitive data fields, only appropriately-configured CSFLE
+clients are able to read and write the sensitive data fields.
 
-MedcoMD will provide Receptionists with a client that is not configured to access data encrypted with CSFLE. This will prevent them from viewing the sensitive fields and accidentally leaving them displayed on-screen in a public area. MedcoMD will provide Doctors with a client with CSFLE enabled which will allow them to access the sensitive data fields in the privacy of their own office.
+MedcoMD will provide Receptionists with a client that is not configured
+to access data encrypted with CSFLE. This will prevent them from viewing
+the sensitive fields and accidentally leaving them displayed on-screen
+in a public area. MedcoMD will provide Doctors with a client with CSFLE
+enabled which will allow them to access the sensitive data fields in the
+privacy of their own office.
 
-Equipped with CSFLE, MedcoMD can keep their sensitive data secure and compliant to data privacy regulations with MongoDB.
+Equipped with CSFLE, MedcoMD can keep their sensitive data secure and
+compliant to data privacy regulations with MongoDB.
 
 Procedure
 ---------
@@ -84,23 +156,22 @@ MongoDB Driver Compatible with CSFLE
 
 
 AWS Key Management Service (KMS)
-  * The client application will need the following AWS KMS permissions to the
-    master key:
+  * The client application will need the following AWS KMS permissions
+    for the master key:
 
     * :aws-docs:`Encrypt <kms/latest/APIReference/API_Encrypt.html>`
     * :aws-docs:`Decrypt <kms/latest/APIReference/API_Decrypt.html>`
 
-    To learn how to create an IAM user and assign these
-    permissions, see :aws-docs:`AWS IAM Users </IAM/latest/UserGuide/id_users.html>`
-    .
+    To learn how to create an IAM user and assign these permissions, see
+    :aws-docs:`AWS IAM Users </IAM/latest/UserGuide/id_users.html>` .
 
-  * Compatible MongoDB drivers currently include integration with AWS KMS.
-    Support for other KMS providers may be added in the future.
-
+  * Compatible MongoDB drivers currently include integration with AWS
+    KMS. Support for other KMS providers may be added in the future.
 
 File System Permissions
-  * The client application or a privileged user needs permissions to start the
-    :manual:`mongocryptd </core/security-client-side-encryption/#field-level-encryption-mongocryptd>`
+  * The client application or a privileged user needs permissions to
+    start the :manual:`mongocryptd
+    </core/security-client-side-encryption/#field-level-encryption-mongocryptd>`
     process on the host.
 
 
@@ -109,18 +180,34 @@ File System Permissions
 A. Create a Master Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB `Client-Side Field Level Encryption (CSFLE) <https://docs.mongodb.com/manual/core/security-client-side-encryption/>`_ uses an encryption strategy called *envelope encryption* in which keys used to encrypt/decrypt data (called **data encryption keys**) are encrypted with another key (called the **master key**). For more information on the features of envelope encryption and key management concepts, see `AWS Key Management Service Concepts <https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#enveloping>`_.
+MongoDB `Client-Side Field Level Encryption (CSFLE)
+<https://docs.mongodb.com/manual/core/security-client-side-encryption/>`_
+uses an encryption strategy called *envelope encryption* in which keys
+used to encrypt/decrypt data (called **data encryption keys**) are
+encrypted with another key (called the **master key**). For more
+information on the features of envelope encryption and key management
+concepts, see `AWS Key Management Service Concepts
+<https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#enveloping>`_.
 
-The master key, used by the MongoDB driver to create and encrypt data keys, should be stored remotely in a `Key Management System <https://en.wikipedia.org/wiki/Key_management#Key_management_system>`_. The data encryption keys, generated and used by the MongoDB driver to encrypt and decrypt document fields, are stored in a key vault collection in the same database as the encrypted data.
+The master key, used by the MongoDB driver to create and encrypt data
+keys, should be stored remotely in a `Key Management System
+<https://en.wikipedia.org/wiki/Key_management#Key_management_system>`_.
+The data encryption keys, generated and used by the MongoDB driver to
+encrypt and decrypt document fields, are stored in a key vault
+collection in the same database as the encrypted data.
 
-In this step, we generate a local master key to expedite setup of our development environment.
+In this step, we generate a local master key to expedite setup of our
+development environment.
 
 .. admonition:: Local Master Keys Are Not Secure
    :class: important
 
-   To ensure that the master key cannot be compromised, do not use a local master key in a production environment. Instead, use a secure KMS such as `AWS KMS <https://aws.amazon.com/kms/>`_.
+   To ensure that the master key cannot be compromised, do not use a
+   local master key in a production environment. Instead, use a secure
+   KMS such as `AWS KMS <https://aws.amazon.com/kms/>`_.
 
-   We demonstrate how to transition from a locally-hosted master key to a remote AWS KMS master key in a later step of this guide.
+   We demonstrate how to transition from a locally-hosted master key to
+   a remote AWS KMS master key in a later step of this guide.
 
 .. tabs::
 
@@ -130,7 +217,9 @@ In this step, we generate a local master key to expedite setup of our developmen
       name: "Java"
       content: |
 
-        The following script generates a 96-byte local master key and saves it to a file called ``master-key.txt`` in the directory from which the script is executed.
+        The following script generates a 96-byte local master key and
+        saves it to a file called ``master-key.txt`` in the directory
+        from which the script is executed.
 
         .. code-block:: java
 
@@ -158,12 +247,12 @@ In this step, we generate a local master key to expedite setup of our developmen
 B. Create a Data Encryption Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, we generate a data encryption key. The MongoDB driver stores
-the key in a key vault collection where CSFLE-enabled clients can access the
-key for automatic encryption and decryption.
+In this section, we generate a data encryption key. The MongoDB driver
+stores the key in a key vault collection where CSFLE-enabled clients can
+access the key for automatic encryption and decryption.
 
-The client requires the following configuration values to generate a new data
-encryption key:
+The client requires the following configuration values to generate a new
+data encryption key:
 
 * The local master key or AWS KMS master key access settings.
 * A MongoDB connection string that authenticates on a running server.
@@ -191,28 +280,27 @@ local master key.
 C. Define a JSON Schema
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-`JSON Schema
-<http://json-schema.org/>`_ is a vocabulary that allows you to annotate and
-validate JSON documents. MongoDB extends the JSON Schema standard to allow CSFLE
-to use automatically encrypt and decrypt the fields of documents in a collection.
+`JSON Schema <http://json-schema.org/>`_ is a vocabulary that allows you
+to annotate and validate JSON documents. MongoDB drivers use an extended
+version of the JSON Schema standard to configure automatic client-side
+encryption and decryption of specific fields of the documents in a
+collection. The extended MongoDB CSFLE standard requires the following
+information:
 
-The following fields are required in the JSON Schema to enable automatic
-encryption and decryption for each field:
+- The encryption algorithm to use when encrypting each field
+  (:manual:`Deterministic Encryption
+  </core/security-client-side-encryption#deterministic-encryption>` or
+  :manual:`Random Encryption
+  </core/security-client-side-encryption#random-encryption>`)
 
-* The encryption algorithm (:manual:`Deterministic Encryption </core/security-client-side-encryption#deterministic-encryption>` or :manual:`Random Encryption </core/security-client-side-encryption#random-encryption>`)
-* The data key
-* The BSON Type (only required by deterministically encrypted fields)
+- One or more data encryption keys encrypted with the CSFLE master key
 
-.. note::
-
-    A single data key can be used for all encrypted fields, or you can use individual data keys that are specific to each field.
-
+- The BSON Type of each field (only required for deterministically
+  encrypted fields)
 
 The MedcoMD engineers receive specific requirements for the fields of
 data and their encryption strategies. The following table illustrates
 the data model of the Medco Management System.
-
-
 
 .. list-table::
    :header-rows: 1
@@ -220,54 +308,61 @@ the data model of the Medco Management System.
    * - Field type
      - Encryption Algorithm
      - BSON Type
+   
    * - Name
      - Non-Encrypted
      - String
+   
    * - SSN
      - Deterministic
      - Int
+   
    * - Blood Type
      - Random
      - String
+   
    * - Medical Records
      - Random
      - Array
+   
    * - Insurance: Policy Number
      - Deterministic
      - Int (embedded inside `insurance` object)
+   
    * - Insurance: Provider
      - Non-Encrypted
      - String (embedded inside `insurance` object)
 
+Data Encryption Key
++++++++++++++++++++
 
-
-
-To automatically encrypt and decrypt data, the MedcoMD engineers create
-a JSON Schema that specifies which fields should be encrypted, and which
-encryption method to use. Initially, they define a data key for all
-fields in the data model by specifying the `encryptMetadata
-<https://docs.mongodb.com/manual/reference/security-client-side-automatic-json-schema/#encryptmetadata-schema-keyword>`_
-attribute. All child properties will inherit this encryption key unless
-specifically overwritten.
+The MedcoMD engineers created a single data key to use when encrypting
+all fields in the data model. To configure this, they specify the
+:manual:`encryptMetadata
+</reference/security-client-side-automatic-json-schema/#encryptmetadata-schema-keyword>`
+key at the root level of the JSON Schema. As a result, all encrypted
+fields defined in the `properties` field of the schema will inherit this
+encryption key unless specifically overwritten.
 
 .. code-block:: javascript
-
-        {
-            "bsonType" : "object",
-            "encryptMetadata" : {
-                "keyId" : // copy and paste your keyID generated here
-            },
-            "properties": {
-                // copy and paste your fields here
-            }
-        }
+   
+   {
+       "bsonType" : "object",
+       "encryptMetadata" : {
+           "keyId" : // copy and paste your keyID generated here
+       },
+       "properties": {
+           // copy and paste your field schemas here
+       }
+   }
 
 MedcoMD engineers create JSON objects for each field and append them to
 the `properties` map.
 
 SSN
 +++
-``ssn`` is a field representing the patient's social security number. This
+
+The ``ssn`` field represents the patient's social security number. This
 field is sensitive and should be encrypted. MedcoMD engineers decide
 upon deterministic encryption based on the following properties:
 
@@ -287,9 +382,10 @@ upon deterministic encryption based on the following properties:
 
 Blood Type
 ++++++++++
-``bloodType`` is a field representing the patient's blood type. This field is
-sensitive and should be encrypted. MedcoMD engineers decide
-upon random encryption based on the following properties:
+
+The ``bloodType`` field represents the patient's blood type. This field
+is sensitive and should be encrypted. MedcoMD engineers decide upon
+random encryption based on the following properties:
 
 * No plans to query
 * Low cardinality
@@ -306,11 +402,13 @@ upon random encryption based on the following properties:
 
 Medical Records
 +++++++++++++++
-``medicalRecords`` is an array field holding a set of medical records. Each
-medical record document specifies information, such as the patient's blood
-pressure, weight, and heart rate.  This field is sensitive and should be
-encrypted. MedcoMD engineers decide upon random encryption based on
-the following properties:
+
+The ``medicalRecords`` field is an array that contains a set of medical
+record documents. Each medical record document represents a separate
+visit and specifies information about the patient at that that time,
+such as their blood pressure, weight, and heart rate. This field is
+sensitive and should be encrypted. MedcoMD engineers decide upon random
+encryption based on the following properties:
 
 * Array fields must use random encryption with CSFLE to enable auto-encryption
 
@@ -323,12 +421,13 @@ the following properties:
         }
     }
 
-Insurance: Policy Number
-++++++++++++++++++++++++
-``insurance.policyNumber`` is a field embedded inside the ``Insurance`` object
-field and represents the patient's policy number. This policy number is a
-distinct and sensitive field. MedcoMD engineers decide upon
-deterministic encryption based on the following properties:
+Insurance Policy Number
++++++++++++++++++++++++
+
+The ``insurance.policyNumber`` field is embedded inside the
+``insurance`` field and represents the patient's policy number. This
+policy number is a distinct and sensitive field. MedcoMD engineers
+decide upon deterministic encryption based on the following properties:
 
 * Queryable
 * High cardinality
@@ -349,10 +448,12 @@ deterministic encryption based on the following properties:
 
 
 Recap
-+++++++
-MedcoMD engineers created a JSON Schema that satisfies their requirements of
-making sensitive data queryable and secure. View the full `JSON Schema
-for the Medco Medical Management System <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-json-schema-helper-and-json/MedcoMDSchema.json>`_.
++++++
+
+MedcoMD engineers created a JSON Schema that satisfies their
+requirements of making sensitive data queryable and secure. View the
+full `JSON Schema for the Medco Medical Management System
+<https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-json-schema-helper-and-json/MedcoMDSchema.json>`_.
 
 
 .. tabs::
@@ -422,31 +523,33 @@ Summary
 
 MedcoMD wanted to develop a system that securely stores sensitive
 medical records for their patients. They also wanted strong data access
-and security guarantees that did not require human input. MedcoMD
-decided that MongoDB client-side field-level encryption met their needs.
-To implement CSFLE they:
+and security guarantees that do not rely on individual users. After
+researching the available options, MedcoMD determined that MongoDB
+Client-Side Field Level Encryption satisfies their requirements and
+decided to implement it in their application. To implement CSFLE they:
 
 **1. Created a Local Master Encryption Key**
-   
+
 A local master key allowed MedcoMD to rapidly develop the client
 application without external dependencies and avoid accidentally leaking
 sensitive production credentials.
 
-**2. Generated a Data Key from the Master Key**
-   
-CSFLE uses envelope encryption, so they used the master key to generate
-a data key that encrypts and decrypts each field. This allows the data
-key to be stored in MongoDB and shared with all clients but only be
-usable by CSFLE-enabled clients that have access to the master key.
+**2. Generated an Encrypted Data Key with the Master Key**
+
+CSFLE uses envelope encryption, so they generated a data key that
+encrypts and decrypts each field and then encrypted the data key using a
+master key. This allows MedcoMD to store the encrypted data key in
+MongoDB so that it is shared with all clients while preventing access to
+clients that don't have access to the master key.
 
 **3. Created a JSON Schema**
-   
+
 CSFLE can automatically encrypt and decrypt fields based on a provided
 JSON Schema that specifies which fields to encrypt and how to encrypt
 them.
 
 **4. Tested and Validated the CSFLE Client**
-   
+
 MedcoMD engineers tested their CSFLE implementation by inserting and
 querying documents with encrypted fields. They then validated that
 clients without CSFLE enabled could not read the encrypted data.
@@ -458,7 +561,7 @@ of the local development key. They generated a new data key from the
 remote master key and used it to update the JSON Schema. Once they had
 the updated schema, they were ready to go to production.
 
-For more information on client-side field-level encryption in MongoDB,
+For more information on client-side field level encryption in MongoDB,
 check out the reference docs in the server manual:
 
 - :manual:`Client-Side Field Level Encryption </core/security-client-side-encryption>`
