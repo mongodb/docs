@@ -197,13 +197,54 @@ Authentication Parameters
 
    .. code-block:: sh
 
-      mongod --setParameter opensslCipherConfig=HIGH:!EXPORT:!aNULL@STRENGTH --tlsMode requireTLS --tlsCertificateKeyFile Certs/server.pem
+      mongod --setParameter opensslCipherConfig='HIGH:!EXPORT:!aNULL@STRENGTH' --tlsMode requireTLS --tlsCertificateKeyFile Certs/server.pem
 
    For versions 4.0 and earlier:
 
    .. code-block:: sh
 
-      mongod --setParameter opensslCipherConfig=HIGH:!EXPORT:!aNULL@STRENGTH --sslMode requireSSL --sslPEMKeyFile Certs/server.pem
+      mongod --setParameter opensslCipherConfig='HIGH:!EXPORT:!aNULL@STRENGTH' --sslMode requireSSL --sslPEMKeyFile Certs/server.pem
+
+.. parameter:: opensslDiffieHellmanParameters
+
+   .. versionadded:: 3.6
+
+   *Available on Linux only*
+
+   Specify the path to the PEM file that contains the OpenSSL
+   Diffie-Hellman parameters. Specifying the OpenSSL Diffie-Hellman
+   parameters enables support for :ref:`dhe` cipher suites during
+   TLS/SSL encryption.
+   
+   Ephemeral Diffie-Hellman (DHE) cipher suites (and Ephemeral Elliptic
+   Curve Diffie-Hellman (ECDHE) cipher suites) provide
+   :ref:`tls-forward-secrecy`. :ref:`tls-forward-secrecy` cipher suites
+   create an ephemeral session key that is protected by the server's
+   private key but never transmitted. This ensures that even if a
+   server's private key is compromised, you cannot decrypt past
+   sessions with the compromised key.
+
+   .. note::
+   
+      Starting in MongoDB 4.2, if
+      :parameter:`opensslDiffieHellmanParameters` is unset but
+      :ref:`ECDHE is enabled <ecdhe>`, MongoDB enables DHE using
+      ``ffdhe3072`` Diffie-Hellman parameter, as defined in
+      :rfc:`7919#appendix-A.2`. The ``ffdhe3072`` is a strong parameter
+      (i.e. size is greater than 1024). Strong parameters are not
+      supported with Java 6 and 7 unless extended support has been
+      purchased from Oracle.
+
+   You can only set :parameter:`opensslDiffieHellmanParameters` during
+   startup, and cannot change this setting using the
+   :dbcommand:`setParameter` database command.
+
+   If for performance reasons, you need to disable support for DHE
+   cipher suites, use the :parameter:`opensslCipherConfig` parameter:
+
+   .. code-block:: sh
+
+      mongod --setParameter opensslCipherConfig='HIGH:!EXPORT:!aNULL:!DHE:!kDHE@STRENGTH' ...
 
 .. parameter:: saslauthdPath
 
