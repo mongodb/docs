@@ -18,8 +18,8 @@ ref: 4.2-downgrade-fcv-index-name
 content: |
 
    Starting in MongoDB 4.2, for ``featureCompatibilityVersion`` (fCV)
-   set to ``"4.2"`` or greater, MongoDB removes the :limit:`Index Key
-   Limit`. For fCV set to ``"4.0"``, the limit still applies.
+   set to ``"4.2"`` or greater, MongoDB removes the :limit:`Index Name
+   Length`. For fCV set to ``"4.0"``, the limit still applies.
 
    If you have an index with a name that exceeds the :limit:`Index Name
    Length` once fCV is set to ``"4.0"``,
@@ -39,11 +39,17 @@ content: |
 ref: 4.2-downgrade-fcv-unique-index
 content: |
 
-   For ``featureCompatibilityVersion`` (fCV) set to ``"4.2"``, MongoDB
-   uses a new internal format for unique indexes that is incompatible
-   with 4.0. The new format applies to both existing unique indexes as
-   well as newly created/rebuilt unique indexes. Use the following
-   script to drop and recreate all unique indexes.
+   With ``featureCompatibilityVersion`` (fCV) ``"4.2"``, MongoDB uses a
+   new internal format for unique indexes that is incompatible with
+   MongoDB 4.0. The new internal format applies to both existing unique
+   indexes as well as newly created/rebuilt unique indexes.
+   
+   If fCV has ever been set to ``"4.2"``, use the following script to
+   drop and recreate all unique indexes.
+   
+---
+ref: 4.2-downgrade-fcv-unique-index-script
+content: |
 
    .. code-block:: javascript
 
@@ -51,51 +57,139 @@ content: |
       // Run this script to drop and recreate unique indexes 
       // for backwards compatibility with 4.0.
       
-      // Obtain a list of unique indexes for both v:1 and v:2
-      var unique_idx_v1 = [];
-      var unique_idx_v2 = [];
       db.adminCommand("listDatabases").databases.forEach(function(d){
          let mdb = db.getSiblingDB(d.name);
-         mdb.getCollectionInfos().forEach(function(c){
+         
+         mdb.getCollectionInfos( { type: "collection" } ).forEach(function(c){
             let currentCollection = mdb.getCollection(c.name);
-            currentCollection.getIndexes().forEach(function(i){
-               if (i.unique){
-                  if (i.v === 1) {
-                     unique_idx_v1.push(i);
-                  }
-                  else {
-                     unique_idx_v2.push(i);
-                  }
-                  return;
+      
+            currentCollection.getIndexes().forEach(function(idx){
+               if (idx.unique){
+                  print("Dropping and recreating the following index:" + tojson(idx))
+                  
+                  assert.commandWorked(mdb.runCommand({dropIndexes: c.name, index: idx.name}));
+
+                  let res = mdb.runCommand({ createIndexes: c.name, indexes: [idx] });
+                  if (res.ok !== 1)
+                     assert.commandWorked(res);
                }
             });
          });
       });
+---
+ref: 4.2-downgrade-fcv-unique-index-access-control-sharded-cluster
+content: |
+
+      If your sharded cluster has access control enabled, your
+      downgrade user privileges must include additional privileges to
+      manage indexes on the ``config`` database.
+
+      .. code-block:: javascript
       
-      printjson(unique_idx_v1);
-      printjson(unique_idx_v2);
-      
-      // Drop and recreate all v:1 indexes
-      for (let idx of unique_idx_v1) {
-         let [dbName, collName] = idx.ns.split(".");
-         let res = db.getSiblingDB(dbName).runCommand({dropIndexes: collName, index: idx.name});
-         assert.commandWorked(res);
-         res = db.getSiblingDB(dbName).runCommand({
-            createIndexes: collName,
-            indexes: [{"key": idx.key, "name": idx.name, "unique": true, "v": 1}]
+         db.getSiblingDB("admin").createRole({
+              role: "configIndexRole",
+              privileges: [
+                 {
+                   resource: { db: "config", collection: "" },
+                   actions: [ "find", "dropIndex", "createIndex", "listIndexes" ]
+                 }
+              ],
+              roles: [  ]
          });
-         assert.commandWorked(res);
-      }
+
+      Add the newly created role to your downgrade user. For example,
+      if you have a user ``myDowngradeUser`` in the ``admin`` database
+      that already has the :authrole:`root` role, use
+      :method:`db.grantRolesToUser()` to grant the additional role:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("admin").grantRolesToUser( "myDowngradeUser", 
+            [ { role: "configIndexRole", db: "admin" } ], 
+            {  w: "majority", wtimeout: 4000 }
+         );
+---
+ref: 4.2-downgrade-fcv-unique-index-script-local-users
+content: |
+
+   After you have run the script on :binary:`~bin.mongos`, you need to
+   check individual shards if you have created :ref:`shard local
+   users<shard-local-users>`. That is, if you created maintenance users
+   directly on the shards instead of through :binary:`~bin.mongos`, run
+   the script on the primary member of the shard.
+
+   .. code-block:: javascript
+
+      // A script to rebuild unique indexes after downgrading fcv 4.2 to 4.0.
+      // Run this script on shards to drop and recreate unique indexes 
+      // for backwards compatibility with 4.0.
       
-      // Drop and recreate all v:2 indexes
-      for (let idx of unique_idx_v2) {
-         let [dbName, collName] = idx.ns.split(".");
-         let res = db.getSiblingDB(dbName).runCommand({dropIndexes: collName, index: idx.name});
-         assert.commandWorked(res);
-         res = db.getSiblingDB(dbName).runCommand({
-            createIndexes: collName,
-            indexes: [{"key": idx.key, "name": idx.name, "unique": true, "v": 2}]
+      let mdb = db.getSiblingDB('admin');
+      
+      mdb.getCollectionInfos( { type: "collection" } ).forEach(function(c){
+         let currentCollection = mdb.getCollection(c.name);
+   
+         currentCollection.getIndexes().forEach(function(idx){
+            if (idx.unique){
+               print("Dropping and recreating the following index:" + tojson(idx))
+
+               assert.commandWorked(mdb.runCommand({dropIndexes: c.name, index: idx.name}));
+
+               let res = mdb.runCommand({ createIndexes: c.name, indexes: [idx] });
+               if (res.ok !== 1)
+                  assert.commandWorked(res);
+            }
          });
-         assert.commandWorked(res);
-      }
+      });
+   
+---
+ref: 4.2-downgrade-fcv-wildcard-index
+content: |
+   
+   For ``featureCompatibilityVersion`` (fCV) set to ``"4.2"``, MongoDB
+   supports creating :doc:`/core/index-wildcard`. You must drop all
+   wildcard indexes before downgrading to fCV ``"4.0"``. 
+
+   Use the following script to drop and recreate all wildcard indexes:
+
+   .. code-block:: javascript
+
+      // A script to drop wildcard indexes before downgrading fcv 4.2 to 4.0.
+      // Run this script to drop wildcard indexes 
+      // for backwards compatibility with 4.0.
+      
+      db.adminCommand("listDatabases").databases.forEach(function(d){
+         let mdb = db.getSiblingDB(d.name);
+         mdb.getCollectionInfos({ type: "collection" }).forEach(function(c){
+            let currentCollection = mdb.getCollection(c.name);
+            currentCollection.getIndexes().forEach(function(idx){
+               
+               var key = Object.keys(idx.key);
+               if (key[0].includes("$**")) {
+
+                 print("Dropping index: " + idx.name + " from " + idx.ns);
+
+                 let res = mdb.runCommand({dropIndexes: currentCollection, index: idx.name});
+                 assert.commandWorked(res);
+
+               }
+
+            });
+         });
+      });
+
+   .. important::
+
+      Downgrading to fCV ``"4.0"`` during an in-progress wildcard index
+      build does *not* automatically drop or kill the index build. The
+      index build can complete after downgrading to fcv ``"4.0"``,
+      resulting in a valid wildcard index on the collection. Starting
+      the 4.0 binary against against that data directory will result in
+      startup failures.
+
+      Use :method:`db.currentOp()` to check for any in-progress wildcard
+      index builds. Once any in-progress wildcard index builds complete,
+      run the script to drop them *before* downgrading to 
+      fCV ``"4.0"``.
+
 ...

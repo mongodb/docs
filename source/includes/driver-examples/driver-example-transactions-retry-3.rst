@@ -2,81 +2,6 @@
 
    tabs:
 
-     - id: shell
-       content: |
-         .. code-block:: javascript
-
-            // Runs the txnFunc and retries if TransientTransactionError encountered
-
-            function runTransactionWithRetry(txnFunc, session) {
-                while (true) {
-                    try {
-                        txnFunc(session);  // performs transaction
-                        break;
-                    } catch (error) {
-                        // If transient error, retry the whole transaction
-                        if ( error.hasOwnProperty("errorLabels") && error.errorLabels.includes("TransientTransactionError")  ) {
-                            print("TransientTransactionError, retrying transaction ...");
-                            continue;
-                        } else {
-                            throw error;
-                        }
-                    }
-                }
-            }
-
-            // Retries commit if UnknownTransactionCommitResult encountered
-
-            function commitWithRetry(session) {
-                while (true) {
-                    try {
-                        session.commitTransaction(); // Uses write concern set at transaction start.
-                        print("Transaction committed.");
-                        break;
-                    } catch (error) {
-                        // Can retry commit
-                        if (error.hasOwnProperty("errorLabels") && error.errorLabels.includes("UnknownTransactionCommitResult") ) {
-                            print("UnknownTransactionCommitResult, retrying commit operation ...");
-                            continue;
-                        } else {
-                            print("Error during commit ...");
-                            throw error;
-                        }
-                   }
-                }
-            }
-
-            // Updates two collections in a transactions
-
-            function updateEmployeeInfo(session) {
-                employeesCollection = session.getDatabase("hr").employees;
-                eventsCollection = session.getDatabase("reporting").events;
-
-                session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
-
-                try{
-                    employeesCollection.updateOne( { employee: 3 }, { $set: { status: "Inactive" } } );
-                    eventsCollection.insertOne( { employee: 3, status: { new: "Inactive", old: "Active" } } );
-                } catch (error) {
-                    print("Caught exception during transaction, aborting.");
-                    session.abortTransaction();
-                    throw error;
-                }
-
-                commitWithRetry(session);
-            }
-
-            // Start a session.
-            session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
-
-            try{
-               runTransactionWithRetry(updateEmployeeInfo, session);
-            } catch (error) {
-               // Do something with error
-            } finally {
-               session.endSession();
-            }
-
      - id: python
        content: |
          .. important::
@@ -139,11 +64,18 @@
             }
             
             void updateEmployeeInfo() {
+
                 MongoCollection<Document> employeesCollection = client.getDatabase("hr").getCollection("employees");
-                MongoCollection<Document> eventsCollection = client.getDatabase("hr").getCollection("events");
+                MongoCollection<Document> eventsCollection = client.getDatabase("reporting").getCollection("events");
+
+                TransactionOptions txnOptions = TransactionOptions.builder()
+                        .readPreference(ReadPreference.primary())
+                        .readConcern(ReadConcern.MAJORITY)
+                        .writeConcern(WriteConcern.MAJORITY)
+                        .build();
 
                 try (ClientSession clientSession = client.startSession()) {
-                    clientSession.startTransaction();
+                    clientSession.startTransaction(txnOptions);
 
                     employeesCollection.updateOne(clientSession,
                             Filters.eq("employee", 3),
@@ -246,5 +178,13 @@
          .. literalinclude:: /driver-examples/cpp-transactions.cpp
             :language: cpp
             :dedent: 8
+            :start-after: Start Transactions Retry Example 3
+            :end-before: End Transactions Retry Example 3
+
+     - id: go
+       content: |
+
+         .. literalinclude:: /driver-examples/go_examples.go
+            :language: go
             :start-after: Start Transactions Retry Example 3
             :end-before: End Transactions Retry Example 3

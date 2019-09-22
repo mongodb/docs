@@ -10,6 +10,11 @@ serverStatus
    :depth: 1
    :class: singlecol
 
+
+.. |mongod-only| replace:: *Available on mongod only.*
+
+.. |mongos-only| replace:: *Available on mongos only.*
+
 Definition
 ----------
 
@@ -20,19 +25,24 @@ Definition
    applications can run this command at a regular interval to
    collect statistics about the instance.
 
-   .. code-block:: javascript
+Syntax
+------
 
-      db.runCommand( { serverStatus: 1 } )
+The command has the following syntax:
 
-   The value (i.e. ``1`` above) does not affect the operation of the
-   command. The :binary:`~bin.mongo` shell provides the
-   :method:`db.serverStatus()` wrapper for the command.
+.. code-block:: javascript
 
-   .. seealso::
+   db.runCommand( { serverStatus: 1 } )
 
-      Much of the output of :dbcommand:`serverStatus` is also displayed
-      dynamically by :binary:`~bin.mongostat`. See the
-      :doc:`/reference/program/mongostat` command for more information.
+The value (i.e. ``1`` above) does not affect the operation of the
+command. The :binary:`~bin.mongo` shell provides the
+:method:`db.serverStatus()` wrapper for the command.
+
+.. seealso::
+
+   Much of the output of :dbcommand:`serverStatus` is also displayed
+   dynamically by :binary:`~bin.mongostat`. See the
+   :doc:`/reference/program/mongostat` command for more information.
 
 Behavior
 --------
@@ -65,8 +75,6 @@ Output
 
    For the :dbcommand:`serverStatus` output specific to the version of
    your MongoDB, refer to the appropriate version of the MongoDB Manual.
-
-.. include:: /includes/extracts/serverStatus-command-output-change.rst
 
 .. _server-status-instance-information:
 
@@ -199,7 +207,8 @@ connections
    "connections" : {
       "current" : <num>,
       "available" : <num>,
-      "totalCreated" : NumberLong(<num>)
+      "totalCreated" : <num>,
+      "active" : <num>
    },
 
 .. serverstatus:: connections
@@ -232,6 +241,13 @@ connections
    Count of **all** incoming connections created to the server. This
    number includes connections that have since closed.
 
+.. serverstatus:: connections.active
+
+   The number of active client connections to the server. Active client
+   connections refers to client connections that currently have
+   operations in progress.
+
+   .. versionadded:: 4.0.7
 
 .. _server-status-extra-info:
 .. _server-status-extra_info:
@@ -274,6 +290,115 @@ extra_info
    disk I/O, and "soft" page faults that only require moving pages in
    memory. MongoDB counts both hard and soft page faults in this
    statistic.
+
+.. _server-status-flowControl:
+
+flowControl
+~~~~~~~~~~~
+
+.. versionadded:: 4.2
+
+.. code-block:: javascript
+
+   "flowControl" : {
+      "enabled" : <boolean>,
+      "targetRateLimit" : <int>,
+      "timeAcquiringMicros" : <NumberLong>,
+      "locksPerOp" : <double>,
+      "sustainerRate" : <int>,
+      "isLagged" : <boolean>,
+      "isLaggedCount" : <int>,
+      "isLaggedTimeMicros" : <NumberLong>,
+   },
+
+.. serverstatus:: flowControl
+
+   A document that returns statistics on the :ref:`flow-control`. With
+   flow control enabled, as the :data:`majority commit
+   <replSetGetStatus.optimes.lastCommittedOpTime>` point lag grows
+   close to the :parameter:`flowControlTargetLagSeconds`, writes on the
+   primary must obtain tickets before taking locks. As such, the
+   metrics returned are meaningful when run on the primary.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.enabled
+
+   A boolean that indicates whether :ref:`flow-control` is
+   enabled(``true``) or disabled (``false``).
+   
+   See also :parameter:`enableFlowControl`.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.targetRateLimit
+
+   When run on the primary, the maximum number of tickets that can be
+   acquired per second.
+
+   When run on a secondary, the returned number is a placeholder.
+   
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.timeAcquiringMicros
+
+   When run on the primary, the total time write operations have waited
+   to acquire a ticket.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.locksPerOp
+
+   When run on the primary, an approximation of the number of locks taken
+   per operation.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.sustainerRate
+
+   When run on the primary, an approximation of operations applied per
+   second by the secondary that is sustaining the commit point.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.isLagged
+
+   When run on the primary, a boolean that indicates whether flow
+   control has engaged. Flow control engages when the majority
+   committed lag is greater than some percentage of the configured
+   :parameter:`flowControlTargetLagSeconds`.
+
+   When run on a secondary, the returned boolean is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.isLaggedCount
+
+   When run on a primary, the number of times flow control has engaged
+   since the last restart. Flow control engages when the majority
+   committed lag is greater than some percentage of the
+   :parameter:`flowControlTargetLagSeconds`.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: flowControl.isLaggedTimeMicros
+
+   When run on the primary, the amount of time flow control has spent
+   being engaged since the last restart. Flow control engages when the
+   majority committed lag is greater than some percentage of the
+   :parameter:`flowControlTargetLagSeconds`.
+
+   When run on a secondary, the returned number is a placeholder.
+
+   .. versionadded:: 4.2
 
 .. _server-status-freeMonitoring:
 
@@ -432,8 +557,14 @@ logicalSessionRecordCache
       "transactionReaperJobCount" : <num>,
       "lastTransactionReaperJobDurationMillis" : <num>,
       "lastTransactionReaperJobTimestamp" : <Date>,
-      "lastTransactionReaperJobEntriesCleanedUp" : <num>
+      "lastTransactionReaperJobEntriesCleanedUp" : <num>,
+      "sessionCatalogSize" : <num>   // Starting in MongoDB 4.2
    },
+
+.. serverstatus:: logicalSessionRecordCache
+
+   Provides metrics around the caching of :doc:`server sessions
+   </reference/server-sessions/>`.
 
 .. serverstatus:: logicalSessionRecordCache.activeSessionsCount
 
@@ -493,6 +624,21 @@ logicalSessionRecordCache
 
    The number of entries in the :data:`config.transactions` collection
    that were deleted during the last transaction record cleanup.
+
+.. serverstatus:: logicalSessionRecordCache.sessionCatalogSize
+
+   - For a :binary:`~bin.mongod` instance, 
+        The size of its in-memory cache of the `config.transactions`
+        entries. This corresponds to retryable writes
+        or transactions whose sessions have not expired within the
+        :parameter:`localLogicalSessionTimeoutMinutes`.
+
+   - For a :binary:`~bin.mongos` instance, 
+        The number of the in-memory cache of its sessions that have had
+        transactions within the most recent
+        :parameter:`localLogicalSessionTimeoutMinutes` interval.
+
+   .. versionadded:: 4.2
 
 .. _locks:
 .. _server-status-locks:
@@ -1258,25 +1404,37 @@ security
 
    .. versionadded:: 3.0
 
-   A document that reports on security configuration and details. Only
-   appears for :binary:`~bin.mongod` instances compiled with support for TLS/SSL.
+
+   A document that reports on security configuration and details;
+   specifically, this section reports on the
+   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+   certificate.
+   
+   The :serverstatus:`security` information only appears for
+   :binary:`~bin.mongod` instances and :binary:`~bin.mongos` instances
+   with support for TLS/SSL.
 
    .. serverstatus:: security.SSLServerSubjectName
 
-      The subject name associated with the TLS/SSL certificate specified by
-      :setting:`net.ssl.PEMKeyFile`.
+      The subject name associated with the
+      :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+      certificate.
 
    .. serverstatus:: security.SSLServerHasCertificateAuthority
 
-      A boolean that is ``true`` when the TLS/SSL certificate specified by
-      :setting:`net.ssl.PEMKeyFile` is associated with a certificate
-      authority. ``false`` when the TLS/SSL certificate is self-signed.
+      A boolean that is:
+
+      - ``true`` when the :binary:`~bin.mongod`/:binary:`~bin.mongos`
+        instance's TLS/SSL certificate is associated with a certificate
+        authority.
+
+      - ``false`` when the TLS/SSL certificate is self-signed.
 
    .. serverstatus:: security.SSLServerCertificateExpirationDate
 
-      A :ref:`date object <mongo-shell-data-type>` that represents
-      the date when the TLS/SSL certificate specified by
-      :setting:`net.ssl.PEMKeyFile` expires.
+      The expiration date and time of the
+      :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+      certificate.
 
 .. _server-status-sharding:
 
@@ -1362,6 +1520,7 @@ shardingStatistics
                "countDocsClonedOnDonor" : NumberLong(<num>),
                "countRecipientMoveChunkStarted" : NumberLong(<num>),
                "countDocsDeletedOnDonor" : NumberLong(<num>),
+               "countDonorMoveChunkLockTimeout" : NumberLong(<num>),
                "catalogCache" : {
                   "numDatabaseEntries" : NumberLong(<num>),
                   "numCollectionEntries" : NumberLong(<num>),
@@ -1479,6 +1638,16 @@ shardingStatistics
 
    .. versionadded:: 4.2
 
+.. serverstatus:: shardingStatistics.countRecipientMoveChunkStarted
+
+   Cumulative, always-increasing count of chunks this member, acting as
+   the primary of the recipient shard, has started to receive (whether
+   the move has succeeded or not.
+
+   Only present when run on a shard.
+
+   .. versionadded:: 4.2
+
 .. serverstatus:: shardingStatistics.countDocsDeletedOnDonor
 
    Cumulative, always-increasing count of documents that have been
@@ -1489,11 +1658,11 @@ shardingStatistics
 
    .. versionadded:: 4.2
 
-.. serverstatus:: shardingStatistics.countRecipientMoveChunkStarted
+.. serverstatus:: shardingStatistics.countDonorMoveChunkLockTimeout
 
-   Cumulative, always-increasing count of chunks this member, acting as
-   the primary of the recipient shard, has started to receive (whether
-   the move has succeeded or not.
+   Cumulative, always-increasing count of chunk migrations that were
+   aborted due to lock acquisition timeouts, where the member acted as
+   the primary of the donor shard.
 
    Only present when run on a shard.
 
@@ -1588,34 +1757,102 @@ storageEngine
 transactions
 ~~~~~~~~~~~~
 
-.. versionadded:: 3.6.3
+.. tabs::
 
-.. code-block:: javascript
+   tabs:
 
-   "transactions" : {
-      "retriedCommandsCount" : <NumberLong>,
-      "retriedStatementsCount" : <NumberLong>,
-      "transactionsCollectionWriteCount" : <NumberLong>,
-      "currentActive" : <NumberLong>,
-      "currentInactive" : <NumberLong>,
-      "currentOpen" : <NumberLong>,
-      "totalAborted" : <NumberLong>,
-      "totalCommitted" : <NumberLong>,
-      "totalStarted" : <NumberLong>,
-      "totalPrepared" : <NumberLong>,
-      "totalPreparedThenCommitted" : <NumberLong>,
-      "totalPreparedThenAborted" :  <NumberLong>,
-      "currentPrepared" :  <NumberLong>,
-      "oldestActiveOplogEntryTimestamp" : <Timestamp>
-   },
+      - id: mongod
+        name: mongod
+        content: |
+
+           .. versionadded:: 3.6.3
+
+           .. code-block:: javascript
+
+              "transactions" : {
+                 "retriedCommandsCount" : <NumberLong>,
+                 "retriedStatementsCount" : <NumberLong>,
+                 "transactionsCollectionWriteCount" : <NumberLong>,
+                 "currentActive" : <NumberLong>,
+                 "currentInactive" : <NumberLong>,
+                 "currentOpen" : <NumberLong>,
+                 "totalAborted" : <NumberLong>,
+                 "totalCommitted" : <NumberLong>,
+                 "totalStarted" : <NumberLong>,
+                 "totalPrepared" : <NumberLong>,
+                 "totalPreparedThenCommitted" : <NumberLong>,
+                 "totalPreparedThenAborted" :  <NumberLong>,
+                 "currentPrepared" :  <NumberLong>
+              },
+
+      - id: mongos
+        name: mongos
+        content: |
+
+           .. versionadded:: 4.2
+
+           .. code-block:: javascript
+
+              "transactions" : {
+                 "totalStarted" : <NumberLong>,
+                 "totalCommitted" : <NumberLong>,
+                 "totalAborted" : <NumberLong>,
+                 "abortCause" : {
+                    <String1> : <NumberLong>,
+                    <String2>" : <NumberLong>,
+                    ...
+                 },
+                 "totalContactedParticipants" : <NumberLong>,
+                 "totalParticipantsAtCommit" : <NumberLong>,
+                 "totalRequestsTargeted" : <NumberLong>,
+                 "commitTypes" : {
+                    "noShards" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    },
+                    "singleShard" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    },
+                    "singleWriteShard" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    },
+                    "readOnly" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    },
+                    "twoPhaseCommit" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" :<NumberLong>,
+                    },
+                    "recoverWithToken" : {
+                       "initiated" : <NumberLong>,
+                       "successful" : <NumberLong>,
+                       "successfulDurationMicros" : <NumberLong>,
+                    }
+                 }
+              },
 
 .. serverstatus:: transactions
 
-   A document with data about the :doc:`retryable writes
-   </core/retryable-writes>` and 
-   :doc:`multi-document transactions </core/transactions>`.
+   *Available on mongod in 3.6.3+ and on mongos in 4.2+.*
+
+   When run on a :binary:`~bin.mongod`, a document with data about the
+   :doc:`retryable writes </core/retryable-writes>` and
+   :doc:`transactions </core/transactions>`.
+
+   When run on a :binary:`~bin.mongos`, a document with data about the
+   :doc:`transactions </core/transactions>` run on the instance.
 
 .. serverstatus:: transactions.retriedCommandsCount
+
+   |mongod-only|
 
    The total number of retry attempts that have been received after the
    corresponding retryable write command has already been committed.
@@ -1638,6 +1875,8 @@ transactions
 
 .. serverstatus:: transactions.retriedStatementsCount
 
+   |mongod-only|
+
    The total number of write statements associated with the retried
    commands in :serverstatus:`transactions.retriedCommandsCount`.
 
@@ -1651,6 +1890,8 @@ transactions
    .. versionadded:: 3.6.3
 
 .. serverstatus:: transactions.transactionsCollectionWriteCount
+
+   |mongod-only|
 
    The total number of writes to the :data:`config.transactions`
    collection, triggered when a new retryable write statement is
@@ -1670,11 +1911,15 @@ transactions
 
 .. serverstatus:: transactions.currentActive
 
+   |mongod-only|
+
    The total number of open transactions currently executing a command.
 
    .. versionadded:: 4.0.2
 
 .. serverstatus:: transactions.currentInactive
+
+   |mongod-only|
 
    The total number of open transactions that are not currently
    executing a command.
@@ -1682,6 +1927,8 @@ transactions
    .. versionadded:: 4.0.2
 
 .. serverstatus:: transactions.currentOpen
+
+   |mongod-only|
 
    The total number of open transactions. A transaction is opened when
    the first command is run as a part of that transaction, and stays
@@ -1691,26 +1938,189 @@ transactions
 
 .. serverstatus:: transactions.totalAborted
 
-   The total number of transactions aborted on this server since the
-   :binary:`mongod <bin.mongod>` process's last startup.
+   *Available on mongod in 4.0.2+ and mongos in 4.2+.*
 
-   .. versionadded:: 4.0.2
+   For the :binary:`~bin.mongod`, the total number of transactions
+   aborted on this instance since its last startup.
+
+   For the :binary:`~bin.mongos`, the total number of transactions
+   aborted through this instance since its last startup.
 
 .. serverstatus:: transactions.totalCommitted
 
-   The total number of transactions committed on this server since the
-   :binary:`mongod <bin.mongod>` process's last startup.
+   *Available on mongod in 4.0.2+ and mongos in 4.2+.*
 
-   .. versionadded:: 4.0.2
+   For the :binary:`~bin.mongod`, the total number of transactions
+   committed on the instance since its last startup.
+
+   For the :binary:`~bin.mongos`,the total number of transactions
+   committed through this instance since its last startup.
 
 .. serverstatus:: transactions.totalStarted
 
-   The total number of transactions started on this server since the
-   :binary:`mongod <bin.mongod>` process's last startup.
+   *Available on mongod in 4.0.2+ and mongos in 4.2+.*
 
-   .. versionadded:: 4.0.2
+   For the :binary:`~bin.mongod`, the total number of transactions
+   started on this instance since its last startup.
 
+   For the :binary:`~bin.mongos`, the total number of transactions
+   started on this instance since its last startup.
+
+.. serverstatus:: transactions.abortCause
+
+   |mongos-only|
+
+   Breakdown of the :serverstatus:`transactions.totalAborted` by cause.
+   If a client issues an explicit ``abortTransaction``, the cause is
+   listed as ``abort``.
+
+   For example:
+
+   .. code-block:: javascript
+
+      "totalAborted" : NumberLong(5),
+      "abortCause" : {
+         "abort" : NumberLong(1),
+         "DuplicateKey" : NumberLong(1),
+         "StaleConfig" : NumberLong(3),
+         "SnapshotTooOld" : NumberLong(1)
+      },
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalContactedParticipants
+
+   |mongos-only|
+
+   The total number of shards contacted for all transactions started
+   through this :binary:`~bin.mongos` since its last startup.
+
+   The number of shards contacted during the transaction processes can
+   include those shards that may not be included as part of the commit.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalParticipantsAtCommit
+
+   |mongos-only|
+
+   Total number of shards involved in the commit for all transactions
+   started through this :binary:`~bin.mongos` since its last startup.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.totalRequestsTargeted
+
+   |mongos-only|
+
+   Total number of network requests targeted by the
+   :binary:`~bin.mongos` as part of its transactions.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: transactions.commitTypes
+
+   |mongos-only|
+
+   Breakdown of the commits by types.  For example:
+   
+   .. code-block:: javascript
+      :copyable: false
+
+      "noShards" : {
+         "initiated" : NumberLong(0),
+         "successful" : NumberLong(0),
+         "successfulDurationMicros" : NumberLong(0)
+      },
+      "singleShard" : {
+         "initiated" : NumberLong(5),
+         "successful" : NumberLong(5),
+         "successfulDurationMicros" : NumberLong(203118)
+      },
+      "singleWriteShard" : {
+         "initiated" : NumberLong(0),
+         "successful" : NumberLong(0),
+         "successfulDurationMicros" : NumberLong(0)
+      },
+      "readOnly" : {
+         "initiated" : NumberLong(0),
+         "successful" : NumberLong(0),
+         "successfulDurationMicros" : NumberLong(0)
+      },
+      "twoPhaseCommit" : {
+         "initiated" : NumberLong(1),
+         "successful" : NumberLong(1),
+         "successfulDurationMicros" : NumberLong(179616)
+      },
+      "recoverWithToken" : {
+         "initiated" : NumberLong(0),
+         "successful" : NumberLong(0),
+         "successfulDurationMicros" : NumberLong(0)
+      }
+
+   The types of commit are:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Type
+        - Description
+
+      * - ``noShards``
+
+        - Commits of transactions that did not contact any shards.
+
+      * - ``singleShard``
+        - Commits of transactions that affected a single shard.
+
+      * - ``singleWriteShard``
+
+        - Commits of transactions that contacted multiple shards but
+          whose write operations only affected a single shard.
+
+      * - ``readOnly``
+
+        - Commits of transactions that only involved read operations.
+
+      * - ``twoPhaseCommit``
+
+        - Commits of transactions that included writes to multiple
+          shards
+   
+      * - ``recoverWithToken``
+
+        - Commits that recovered the outcome of transactions from
+          another instance or after this instance was restarted.
+
+   For each commit type, the command returns the following metrics:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Metrics
+        - Description
+
+      * - ``initiated``
+      
+        - Total number of times that commits of this type were
+          initiated.
+
+      * - ``successful``
+
+        - Total number of times that commits of this type succeeded.
+
+      * - ``successfulDurationMicros``
+
+        - Total time, in microseconds, taken by successful commits of
+          this type.
+
+   .. versionadded:: 4.2
+   
 .. serverstatus:: transactions.totalPrepared
+
+   |mongod-only|
 
    The total number of transactions in prepared state on this server
    since the :binary:`mongod <bin.mongod>` process's last startup.
@@ -1718,6 +2128,8 @@ transactions
    .. versionadded:: 4.2
 
 .. serverstatus:: transactions.totalPreparedThenCommitted
+
+   |mongod-only|
 
    The total number of transactions that were prepared and committed on
    this server since the :binary:`mongod <bin.mongod>` process's last
@@ -1727,6 +2139,8 @@ transactions
 
 .. serverstatus:: transactions.totalPreparedThenAborted
 
+   |mongod-only|
+
    The total number of transactions that were prepared and aborted on
    this server since the :binary:`mongod <bin.mongod>` process's last
    startup.
@@ -1735,16 +2149,12 @@ transactions
 
 .. serverstatus:: transactions.currentPrepared
 
+   |mongod-only|
+
    The current number of transactions in prepared state on this server.
 
    .. versionadded:: 4.2
 
-.. serverstatus:: transactions.oldestActiveOplogEntryTimestamp
-
-   The optime of the oldest oplog entry associated with an active
-   transaction.
-
-   .. versionadded:: 4.2
 
 transportSecurity
 ~~~~~~~~~~~~~~~~~
@@ -2075,7 +2485,8 @@ wiredTiger
 
    .. versionadded:: 3.0
 
-   A document that returns statistics on WiredTiger's write ahead log.
+   A document that returns statistics on WiredTiger's write ahead log
+   (i.e. the journal).
 
    .. seealso:: :ref:`journaling-wiredTiger`
 
@@ -2249,71 +2660,50 @@ metrics
       },
       "repl" : {
          "executor" : {
-                     "counters" : {
-                        "eventCreated" : <num>,
-                        "eventWait" :  <num>,
-                        "cancels" : <num>,
-                        "waits" : <num>,
-                        "scheduledNetCmd" : <num>,
-                        "scheduledDBWork" : <num>,
-                        "scheduledXclWork" : <num>,
-                        "scheduledWorkAt" :  <num>,
-                        "scheduledWork" :  <num>,
-                        "schedulingFailures" :  <num>
-                     },
-                     "queues" : {
-                        "networkInProgress" : <num>,
-                        "dbWorkInProgress" : <num>,
-                        "exclusiveInProgress" : <num>,
-                        "sleepers" : <num>,
-                        "ready" : <num>,
-                        "free" : <num>
-                     },
-                     "unsignaledEvents" : <num>,
-                     "eventWaiters" : <num>,
-                     "shuttingDown" : <boolean>
-                     "networkInterface" : "NetworkInterfaceASIO inShutdown: 0"
+            "pool" : {
+               "inProgressCount" : <num>
             },
-            "apply" : {
-               "attemptsToBecomeSecondary" : NumberLong(<num>),
-               "batchSize" : NumberLong(<num>),
-               "batches" : {
-                  "num" : <num>,
-                  "totalMillis" : <num>
-               },
-               "ops" : NumberLong(<num>)
+            "queues" : {
+               "networkInProgress" : <num>,
+               "sleepers" : <num>
             },
-            "buffer" : {
-               "count" : NumberLong(<num>),
-               "maxSizeBytes" : <num>,
-               "sizeBytes" : NumberLong(<num>)
+            "unsignaledEvents" : <num>,
+            "shuttingDown" : <boolean>,
+            "networkInterface" : <string>
+         },
+         "apply" : {
+            "attemptsToBecomeSecondary" : <NumberLong>,
+            "batches" : {
+               "num" : <num>,
+               "totalMillis" : <num>
             },
-            "network" : {
-               "bytes" : NumberLong(<num>),
-               "getmores" : {
-                  "num" : <num>,
-                  "totalMillis" : <num>
-               },
-               "ops" : NumberLong(<num>),
-               "readersCreated" : NumberLong(<num>)
+            "ops" : <NumberLong>
+         },
+         "buffer" : {
+            "count" : <NumberLong>,
+            "maxSizeBytes" : <NumberLong>,
+            "sizeBytes" : <NumberLong>
+         },
+         "initialSync" : {
+            "completed" : <NumberLong>,
+            "failedAttempts" : <NumberLong>,
+            "failures" : <NumberLong>,
+         },
+         "network" : {
+            "bytes" : <NumberLong>,
+            "getmores" : {
+               "num" : <num>,
+               "totalMillis" : <num>
             },
-            "oplog" : {
-               "insert" : {
-                  "num" : <num>,
-                  "totalMillis" : <num>
-               },
-               "insertBytes" : NumberLong(<num>)
-            },
-            "preload" : {
-               "docs" : {
-                  "num" : <num>,
-                  "totalMillis" : <num>
-               },
-               "indexes" : {
-                  "num" : <num>,
-                  "totalMillis" : <num>
-               }
-            }
+            "notMasterLegacyUnacknowledgedWrites" : <NumberLong>,
+            "notMasterUnacknowledgedWrites" : <NumberLong>,
+            "ops" : <NumberLong>,
+            "readersCreated" : <NumberLong>
+         },
+         "stepDown" : {
+            "userOperationsKilled" : <NumberLong>,
+            "userOperationsRunning" : <NumberLong>
+         }
       },
       "storage" : {
             "freelist" : {
@@ -2562,63 +2952,56 @@ metrics
       data even if the ``getmore`` operation does not initial return
       data.
 
+.. serverstatus:: metrics.repl.network.notMasterLegacyUnacknowledgedWrites
+
+   The number of unacknowledged (``w: 0``) legacy write operations (see
+   :ref:`wp-request-opcodes`) that failed because the current
+   :binary:`~bin.mongod` is not in :replstate:`PRIMARY` state.
+
+   .. versionadded:: 4.2
+
+.. serverstatus:: metrics.repl.network.notMasterUnacknowledgedWrites
+
+   The number of unacknowledged (``w: 0``) write operations that failed
+   because the current :binary:`~bin.mongod` is not in
+   :replstate:`PRIMARY` state.
+
+   .. versionadded:: 4.2
+
 .. serverstatus:: metrics.repl.network.ops
 
-   :serverstatus:`metrics.repl.network.ops` reports the total
+   The total
    number of operations read from the replication source.
 
 .. serverstatus:: metrics.repl.network.readersCreated
 
-   :serverstatus:`metrics.repl.network.readersCreated` reports
-   the total number of oplog query processes created. MongoDB will
+   The total number of oplog query processes created. MongoDB will
    create a new oplog query any time an error occurs in the
    connection, including a timeout, or a network
    operation. Furthermore,
    :serverstatus:`metrics.repl.network.readersCreated` will
    increment every time MongoDB selects a new source for replication.
 
-.. serverstatus:: metrics.repl.preload
+.. serverstatus:: metrics.repl.stepDown
 
-   :serverstatus:`metrics.repl.preload` reports on the
-   "pre-fetch" stage, where MongoDB loads documents and indexes into
-   RAM to improve replication throughput.
+   Information on user operations that were running when the
+   :binary:`~bin.mongod` stepped down.
 
-   See :ref:`replica-set-internals-multi-threaded-replication` for
-   more information about the *pre-fetch* stage of the replication
-   process.
+   .. versionadded:: 4.2
 
-.. serverstatus:: metrics.repl.preload.docs
+.. serverstatus:: metrics.repl.stepDown.userOperationsKilled
 
-   A document that reports on the documents loaded into memory during
-   the *pre-fetch* stage.
+   The number of user operations killed when the :binary:`~bin.mongod`
+   stepped down.
 
-.. serverstatus:: metrics.repl.preload.docs.num
+   .. versionadded:: 4.2
 
-   The total number of documents loaded during the *pre-fetch* stage of
-   replication.
+.. serverstatus:: metrics.repl.stepDown.userOperationsRunning
 
-.. serverstatus:: metrics.repl.preload.docs.totalMillis
+   The number of user operations that remained running when the
+   :binary:`~bin.mongod` stepped down.
 
-   The total amount of time spent loading documents as part of
-   the *pre-fetch* stage of replication.
-
-.. serverstatus:: metrics.repl.preload.indexes
-
-   A document that reports on the index items loaded into memory during
-   the *pre-fetch* stage of replication.
-
-   See :ref:`replica-set-internals-multi-threaded-replication` for
-   more information about the *pre-fetch* stage of replication.
-
-.. serverstatus:: metrics.repl.preload.indexes.num
-
-   The total number of index entries loaded by members before updating
-   documents as part of the *pre-fetch* stage of replication.
-
-.. serverstatus:: metrics.repl.preload.indexes.totalMillis
-
-   The total amount of time, in milliseconds, spent loading index
-   entries as part of the *pre-fetch* stage of replication.
+   .. versionadded:: 4.2
 
 .. serverstatus:: metrics.storage.freelist.search.bucketExhausted
 
@@ -2748,3 +3131,8 @@ watchdog
 
    The value set by :parameter:`watchdogPeriodSeconds`. This represents the
    period in between status checks.
+
+Output Changelog
+----------------
+
+.. include:: /includes/extracts/serverStatus-command-output-change.rst

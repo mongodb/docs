@@ -1,0 +1,110 @@
+==============================
+KeyVault.addKeyAlternateName()
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 4.2
+
+.. include:: /includes/fact-client-side-field-level-encryption-beta.rst
+
+.. method:: KeyVault.addKeyAlternateName(UUID, keyAltName)
+
+   Adds the ``keyAltName`` to the ``keyAltNames`` array of the data key 
+   with ``UUID``.
+
+   ``keyAltName`` *must* be unique among all keys in the key vault.
+   :method:`getKeyVault` creates a :ref:`unique index <index-type-unique>` on
+   ``keyAltNames`` to enforce uniqueness of ``keyAltName``.
+
+   :method:`~KeyVault.addKeyAlternateName()` has the following syntax:
+
+   .. code-block:: none
+
+      keyVault = db.getMongo().getKeyVault()
+      
+      keyVault.addKeyAlternateName(
+        UUID("<UUID string>"),
+        "keyAltName"
+      )
+
+:returns: 
+
+  Returns the previous version of the data key document. 
+  
+  Returns ``null`` if no data key has the specified ``UUID()``.
+
+Behavior
+--------
+
+Requires Configuring Client-Side Field Level Encryption on Database Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/csfle-requires-enabling-encryption.rst
+
+Example
+-------
+
+.. note::
+
+   .. include:: /includes/extracts/csfle-environmental-variables.rst
+
+The following operation issued from the :binary:`~bin.mongo` shell:
+
+- Establishes a connection to the ``myMongo.example.net`` cluster with
+  client-side field level encryption enabled.
+
+- Retrieves the key vault object using the encryption-enabled connection object.
+
+- Adds the specified ``keyAltName`` to the data key with the specified ``UUID``.
+
+.. code-block:: javascript
+   :emphasize-lines: 18
+
+   clientSideFLEOptions = {
+     "keyVaultNamespace" : "encryption.dataKeys",
+     "kmsProviders" : {
+       "aws" : {
+         "accessKeyId" : "AWS_ACCESS_KEY_ID",
+         "secretAccessKey" : "AWS_SECRET_ACCESS_KEY"
+       }
+     }
+   }
+
+   encryptedClient = Mongo( 
+     "mongodb://myMongo.example.net:27017/?replSetName=myMongo", 
+     clientSideFLEOptions
+   )
+
+   keyVault = encryptedClient.getKeyVault();
+
+   keyVault.addKeyAlternateName(UUID("b4b41b33-5c97-412e-a02b-743498346079"),"ssn-encryption-key")
+
+If successful, :method:`~KeyVault.addKeyAlternateName()` returns the
+previous version of data key document:
+
+.. code-block:: json
+
+   {
+       "_id" : UUID("b4b41b33-5c97-412e-a02b-743498346079"),
+       "keyMaterial" : BinData(0,"PXRsLOAYxhzTS/mFQAI8486da7BwZgqA91UI7NKz/T/AjB0uJZxTvhvmQQsKbCJYsWVS/cp5Rqy/FUX2zZwxJOJmI3rosPhzV0OI5y1cuXhAlLWlj03CnTcOSRzE/YIrsCjMB0/NyiZ7MRWUYzLAEQnE30d947XCiiHIb8a0kt2SD0so8vZvSuP2n0Vtz4NYqnzF0CkhZSWFa2e2yA=="),
+       "creationDate" : ISODate("2019-08-12T21:21:30.569Z"),
+       "updateDate" : ISODate("2019-08-12T21:21:30.569Z"),
+       "status" : 0,
+       "version" : NumberLong(0),
+       "masterKey" : {
+           "provider" : "local"
+       },
+       "keyAltNames" : [
+       ]
+   }
+
+To view the current version of the data key document, use 
+:method:`KeyVault.getKey()` specifying the ``_id`` of the returned document *or* :method:`KeyVault.getKeyByAltName()` specifying one of the 
+``keyAltNames``.

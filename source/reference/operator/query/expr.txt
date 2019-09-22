@@ -77,43 +77,99 @@ The operation returns the following results:
 Using ``$expr`` With Conditional Statements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a ``supplies`` collection with the following documents. If 
-the ``qty`` is at least ``100``, a ``50%`` discount is applied. 
-Otherwise, a ``25%`` discount is applied:
+Some queries require the ability to execute conditional logic when 
+defining a query filter. The aggregation framework provides the
+:expression:`$cond` operator to express conditional statements. By using
+:query:`$expr` with the :expression:`$cond` operator, you can
+specify a conditional filter for your query statement.
+
+Consider a ``supplies`` collection with the following documents. Each 
+document in the ``supplies`` collection represents an item, its 
+quantity, and its price:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "binder", "qty": 100 , "price": 12 }
-   { "_id" : 2, "item" : "notebook", "qty": 200 , "price": 8 }
-   { "_id" : 3, "item" : "pencil", "qty": 50 , "price": 6 }
-   { "_id" : 4, "item" : "eraser", "qty": 150 , "price": 3 }
+   { "_id" : 1, "item" : "binder", "qty" : 100 , "price" : NumberDecimal("12") }
+   { "_id" : 2, "item" : "notebook", "qty" : 200 , "price" : NumberDecimal("8") }
+   { "_id" : 3, "item" : "pencil", "qty" : 50 , "price" : NumberDecimal("6") }
+   { "_id" : 4, "item" : "eraser", "qty" : 150 , "price" : NumberDecimal("3") }
+   { "_id" : 5, "item" : "legal pad", "qty" : 42 , "price" : NumberDecimal("10") }
 
-The following operation uses :query:`$expr` with :expression:`$cond`
-to mimic a conditional statement. It finds documents where the ``price`` 
-is less than ``5`` after the applied discounts. 
+Assume that for an upcoming sale next month, you will discount the
+prices by
 
-If the document has a ``qty`` value greater than or equal to ``100``, 
-the query divides the ``price`` by ``2``. Otherwise, it divides the ``price`` 
-by ``4``:
+- ``50%`` if the quantity is at least 100
+
+- ``25%`` otherwise
+
+Before applying the discounts, you would like to know which items in the
+``supplies`` collection have a discounted price of less than ``5``. The
+user writes a query that:
+
+1. Uses conditional logic to identify the discount applicable to a given
+   document.
+
+2. Calculates that document's discounted price. 
+  
+3. Only returns documents whose discounted price is less than ``5``.
+
+The following example uses :query:`$expr` with :expression:`$cond` to
+calculate the discounted price based on the ``qty`` and 
+:expression:`$lt` to return documents whose calculated discount price
+is less than ``NumberDecimal("5")``:
 
 .. code-block:: javascript
 
-    db.supplies.find( {
-        $expr: { 
-           $lt:[ { 
-              $cond: {
-                 if: { $gte: ["$qty", 100] },
-                 then: { $divide: ["$price", 2] },
-                 else: { $divide: ["$price", 4] }
-               }
-           }, 
-           5 ] }
-    } )
+   let discountedPrice = { 
+    $cond: { 
+      if: { $gte: ["$qty", 100] }, 
+      then: { $multiply: ["$price", 0.50] }, 
+      else: { $multiply: ["$price", 0.75] } 
+    } 
+   };
 
-The operation returns the following results:
+   db.supplies.find( { $expr: { $lt:[ discountedPrice,  NumberDecimal("5") ] } });
+
+
+The following table shows the discounted price for each document and
+whether discounted price is less than ``NumberDecimal("5")`` (i.e.
+whether the document meets the query condition).
+
+.. list-table::
+ :header-rows: 1
+ :widths: 80 20 30
+
+ * - Document
+   - Discounted Price
+   - < NumberDecimal("5")
+ * - {"_id": 1, "item": "binder", "qty": 100, "price": NumberDecimal("12") }
+   - NumberDecimal("6")
+   - ``false``
+ * - {"_id": 2, "item": "noteboook", "qty": 200, "price": NumberDecimal("8") }
+   - NumberDecimal("4")
+   - ``true``
+ * - {"_id": 3, "item": "pencil", "qty": 50, "price": NumberDecimal("6") }
+   - NumberDecimal("4.5")
+   - ``true``  
+ * - {"_id": 4, "item": "eraser", "qty": 150, "price": NumberDecimal("3") }
+   - NumberDecimal("1.5")
+   - ``true``
+ * - {"_id": 5, "item": "legal pad", "qty": 42, "price": NumberDecimal("10") }
+   - NumberDecimal("7.5")
+   - ``false``  
+
+The :method:`db.collection.find()` operation returns the documents whose
+calculated discount price is less than ``NumberDecimal("5")``:
 
 .. code-block:: javascript
 
-   { "_id" : 2, "item" : "notebook", "qty": 200 , "price": 8 }
-   { "_id" : 3, "item" : "pencil", "qty": 50 , "price": 6 }
-   { "_id" : 4, "item" : "eraser", "qty": 150 , "price": 3 }
+   { "_id" : 2, "item" : "notebook", "qty": 200 , "price": NumberDecimal("8") }
+   { "_id" : 3, "item" : "pencil", "qty": 50 , "price": NumberDecimal("6") }
+   { "_id" : 4, "item" : "eraser", "qty": 150 , "price": NumberDecimal("3") }
+
+Even though :expression:`$cond` calculates an effective discounted
+price, that price is not reflected in the returned documents. Instead,
+the returned documents represent the matching documents in their
+original state. The find operation did not return the ``binder``
+or ``legal pad`` documents, as their discounted price was greater than
+``5``.

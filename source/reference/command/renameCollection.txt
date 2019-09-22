@@ -30,15 +30,76 @@ Definition
 
    The command contains the following fields:
 
-   .. include:: /includes/apiargs/dbcommand-renameCollection-field.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``renameCollection``
+   
+        - string
+   
+        - The :term:`namespace` of the collection to rename. The namespace is a
+          combination of the database name and the name of the collection.
+          
+          
+   
+      * - ``to``
+   
+        - string
+   
+        - The new namespace of the collection. If the new namespace specifies a
+          different database, the :dbcommand:`renameCollection` command copies
+          the collection to the new database and drops the source collection.
+          
+          
+   
+      * - ``dropTarget``
+   
+        - boolean
+   
+        - Optional. If ``true``, :binary:`~bin.mongod` will drop the ``target`` of
+          :dbcommand:`renameCollection` prior to renaming the collection. The
+          default value is ``false``.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document that expresses the :doc:`write concern </reference/write-concern>`
+          for the operation. Omit to use the default write
+          concern.
+          
+          .. include:: /includes/extracts/mongos-operations-wc-rename-collection.rst
+          
+          
+   
+
 
 Behavior
 --------
 
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
 :dbcommand:`renameCollection` is **not** compatible with sharded collections.
+
+Existing Target Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :dbcommand:`renameCollection` fails if ``target`` is the name of an existing
 collection *and* you do not specify ``dropTarget: true``.
+
+Performance
+~~~~~~~~~~~
 
 .. versionchanged:: 3.6
 
@@ -53,22 +114,43 @@ If the target database differs from the source database,
 :dbcommand:`renameCollection` copies all documents from the source collection
 to the target collection. Depending on the size of the collection, this
 may take longer to complete. Other operations which require exclusive
-access to the affected databases will be blocked until the rename completes.
-See :ref:`faq-concurrency-operations-locks` for operations which require
-exclusive access to all databases.
+access to the affected collections will be blocked until the rename 
+completes.
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.2
+
+.. include:: /includes/extracts/renameCollection-resource-lock.rst
+
+``local`` Database
+~~~~~~~~~~~~~~~~~~
+
+- You cannot rename a collection from a replicated database to the
+  ``local`` database, which is not replicated.
+
+- You cannot rename a collection from the ``local`` database, which is
+  not replicated, to a replicated database.
+
+Open Cursors
+~~~~~~~~~~~~
 
 .. warning::
 
    The :method:`db.collection.renameCollection()` method and
    :dbcommand:`renameCollection` command will invalidate open cursors
    which interrupts queries that are currently returning data.
-   
-   For :doc:`/changeStreams`, the
-   :method:`db.collection.renameCollection()` method and
-   :dbcommand:`renameCollection` command create an
-   :ref:`change-event-invalidate` for any existing
-   :doc:`/changeStreams` opened on the source or target collection.
 
+Change Streams
+~~~~~~~~~~~~~~
+
+For :doc:`/changeStreams`, the
+:method:`db.collection.renameCollection()` method and
+:dbcommand:`renameCollection` command create an
+:ref:`change-event-invalidate` for any existing :doc:`/changeStreams`
+opened on the source or target collection.
+   
 Example
 -------
 

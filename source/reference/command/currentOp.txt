@@ -256,6 +256,37 @@ Output Fields
 
    .. versionadded:: 3.6
 
+.. data:: currentOp.effectiveUsers
+
+   An array that contains a document for each user associated with the
+   operation. Each user document contains the ``user`` name and the
+   authentication ``db``.
+
+   .. seealso:: :data:`currentOp.runBy`
+
+   .. versionadded:: 4.2
+
+.. data:: currentOp.runBy
+
+   An array that contains a document for each user who is impersonating
+   the :data:`effectiveUser(s)<currentOp.effectiveUsers>` for the
+   operation. The runBy document contains the ``user`` name
+   and the authentication ``db``. In general, the runBy user is
+   the ``__system`` user; e.g.
+   
+   .. code-block:: javascript
+   
+      "runBy" : [
+         {
+            "user" : "__system",
+            "db" : "local"
+         }
+      ]
+
+   *Only available on sharded clusters*
+
+   .. versionadded:: 4.2
+
 .. data:: currentOp.lsid
 
    The session identifier.
@@ -267,9 +298,10 @@ Output Fields
 
 .. data:: currentOp.transaction
 
-   A document that contains multi-document transaction information.
+   A document that contains :doc:`multi-document transaction
+   </core/transactions>` information.
 
-   Only present if the operation is part of a transaction.
+   Only present if the operation is part of a multi-document transaction.
 
    .. versionadded:: 4.0
 
@@ -278,7 +310,8 @@ Output Fields
       A document that contains information on multi-document
       transaction.
 
-      Only present if the operation is part of a transaction.
+      Only present if the operation is part of a multi-document
+      transaction.
 
       .. versionadded:: 4.0
 
@@ -286,7 +319,7 @@ Output Fields
 
          The transaction number.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document transaction.
 
          .. versionadded:: 4.0
 
@@ -295,26 +328,20 @@ Output Fields
          A boolean flag that indicates if autocommit is on for the
          transaction.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document transaction.
 
          .. versionadded:: 4.0.2
 
       .. data:: currentOp.transaction.parameters.readConcern
 
-         The :ref:`read concern <txn-read-concern>` for the
+         The :ref:`read concern <transactions-read-concern>` for the
          transaction.
 
          Multi-document transactions support read concern
          :readconcern:`"snapshot"`, :readconcern:`"local"`, and
-         :readconcern:`"majority"`. However, for :readconcern:`"local"`
-         and :readconcern:`"majority"` read concern, MongoDB may
-         sometimes substitute a stronger read concern.
+         :readconcern:`"majority"`.
 
-         If MongoDB substituted a stronger read concern, the
-         :data:`currentOp.transaction.parameters.readConcern` value
-         returns the substituted read concern.
-
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document transaction.
 
          .. versionadded:: 4.0.2
 
@@ -323,7 +350,7 @@ Output Fields
          The timestamp of the snapshot being read by the operations in
          the transaction.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document transaction.
 
          .. versionadded:: 4.0.2
 
@@ -331,7 +358,7 @@ Output Fields
 
          The date and time (with time zone) of the transaction start.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document transaction.
 
          .. versionadded:: 4.0.2
 
@@ -345,7 +372,7 @@ Output Fields
          should equal the
          :data:`~currentOp.transaction.parameters.timeOpenMicros`.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document transaction.
 
          .. versionadded:: 4.0.2
 
@@ -361,7 +388,7 @@ Output Fields
          should equal the
          :data:`~currentOp.transaction.parameters.timeOpenMicros`.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document transaction.
 
          .. versionadded:: 4.0.2
 
@@ -377,7 +404,7 @@ Output Fields
          should equal the
          :data:`~currentOp.transaction.parameters.timeOpenMicros`.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document transaction.
 
       .. data:: currentOp.transaction.expiryTime
 
@@ -391,7 +418,7 @@ Output Fields
          For more information, seee :ref:`transaction-limit` for
          transactions.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document transaction.
 
          .. versionadded:: 4.0.2
 
@@ -490,6 +517,24 @@ Output Fields
 
    The ``IXSCAN`` also includes the specification document of the index
    used.
+
+.. data:: currentOp.prepareReadConflicts
+
+   The number of times the current operation had to wait for a
+   prepared transaction with a write to commit or abort.
+
+   While waiting, the current operation continues to hold any necessary
+   locks and storage engine resources.
+
+   .. versionadded:: 4.2
+
+.. data:: currentOp.writeConflicts
+
+   The number of times the current operation conflicted with
+   another write operation on the same document.
+
+   .. versionadded:: 4.2
+
 
 .. data:: currentOp.cursor
 
@@ -729,3 +774,35 @@ Output Fields
 
       Number of times the operation encountered deadlocks while waiting
       for lock acquisitions.
+
+.. data:: currentOp.waitingForFlowControl
+
+   A boolean that indicates if the operation is in the process of waiting for
+   :ref:`flow control <replication-flow-control>`.
+
+   .. versionadded:: 4.2
+
+.. data:: currentOp.flowControlStats
+
+   The flow control statistics for this operation.
+
+   .. versionadded:: 4.2
+
+   .. data:: currentOp.flowControlStats.acquireCount
+   
+      The number of times this operation acquired a ticket.
+
+      .. versionadded:: 4.2
+
+   .. data:: currentOp.flowControlStats.acquireWaitCount
+
+      The number of times this operation waited to aqcuire a ticket.
+
+      .. versionadded:: 4.2
+
+   .. data:: currentOp.flowControlStats.timeAcquiringMicros
+
+      The total time this operation has waited to acquire a ticket.
+
+      .. versionadded:: 4.2
+

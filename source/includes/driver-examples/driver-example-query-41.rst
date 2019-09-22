@@ -3,18 +3,18 @@
    tabs:
      - id: shell
        content: |
-         .. class:: copyable-code
+         
          .. code-block:: javascript
 
             db.inventory.find( { item : { $exists: false } } )
 
      - id: compass
        content: |
-        Copy the following query filter document into the
-        :ref:`query bar <compass-query-bar>` and click
-        :guilabel:`Find`:
+         Copy the following query filter document into the
+         :ref:`query bar <compass-query-bar>` and click
+         :guilabel:`Find`:
 
-         .. class:: copyable-code
+         
          .. code-block:: javascript
 
             { item : { $exists: false } }
@@ -112,7 +112,7 @@
 
      - id: go
        content: |
-         .. literalinclude:: /driver-examples/crud_examples.go
+         .. literalinclude:: /driver-examples/go_examples.go
             :language: go
             :dedent: 2
             :start-after: Start Example 41

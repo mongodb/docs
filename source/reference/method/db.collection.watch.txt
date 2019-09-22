@@ -15,14 +15,178 @@ Definition
 
 .. method:: db.collection.watch( pipeline, options )
 
+
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+
+   *For replica sets and sharded clusters only*
+
    Opens a :ref:`change stream cursor <changeStreams>` on the 
    collection. 
 
-   .. include:: /includes/apiargs/method-db.collection.watch-param.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``pipeline``
+   
+        - array
+   
+        - :doc:`Aggregation pipeline </core/aggregation-pipeline>` consisting
+          of one or more of the following aggregation stages:
+          
+          .. include:: /includes/extracts/changestream-available-pipeline-stages.rst
+          
+          Specify a pipeline to filter/modify the change events output.
+          
+          .. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
+          
+          
+   
+      * - ``options``
+   
+        - document
+   
+        - Optional. Additional options that modify the behavior of
+          :method:`~db.collection.watch()`.
+          
+          You must pass an empty array ``[]`` to the ``pipeline`` parameter if
+          you are not specifying a pipeline but are passing the ``options``
+          document.
+          
+          
+   
+
 
    The ``options`` document can contain the following fields and values:
 
-   .. include:: /includes/apiargs/method-db.collection.watch-options.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``resumeAfter``
+   
+        - document
+   
+        - Optional. Directs :method:`~db.collection.watch` to attempt resuming
+          notifications starting after the operation specified in the resume
+          token. 
+          
+          Each change stream event document includes a resume token as the
+          ``_id`` field. Pass the *entire* ``_id`` field of the change event
+          document that represents the operation you want to resume after.
+          
+          ``resumeAfter`` is mutually exclusive with ``startAfter`` and
+          ``startAtOperationTime``.
+          
+          
+   
+      * - ``startAfter``
+   
+        - document
+   
+        - Optional. Directs :method:`~db.collection.watch` to attempt starting a new
+          change stream after the operation specified in the resume token.
+          Allows notifications to resume after an invalidate event.
+                  
+          Each change stream event document includes a resume token as the
+          ``_id`` field. Pass the *entire* ``_id`` field of the change event
+          document that represents the operation you want to resume after.
+                  
+          ``startAfter`` is mutually exclusive with ``resumeAfter`` and
+          ``startAtOperationTime``.
+          
+          .. versionadded:: 4.2
+          
+          
+   
+      * - ``fullDocument``
+   
+        - string
+   
+        - Optional. By default, :method:`~db.collection.watch()` returns the delta of
+          those fields modified by an update operation, instead of the entire
+          updated document.
+          
+          Set ``fullDocument`` to ``"updateLookup"`` to direct
+          :method:`~db.collection.watch()` to look up the most current 
+          majority-committed version of the updated document.
+          :method:`~db.collection.watch()` returns a ``fullDocument`` field with
+          the document lookup in addition to the ``updateDescription`` delta.
+          
+          
+   
+      * - ``batchSize``
+   
+        - int
+   
+        - Optional. Specifies the maximum number of change events to return in each
+          batch of the response from the MongoDB cluster. 
+          
+          Has the same functionality as :method:`cursor.batchSize()`.
+          
+          
+   
+      * - ``maxAwaitTimeMS``
+   
+        - int
+   
+        - Optional. The maximum amount of time in milliseconds the server waits for new
+          data changes to report to the change stream cursor before returning an
+          empty batch.
+          
+          Defaults to ``1000`` milliseconds.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. Pass a :ref:`collation document <collation-document-fields>`
+          to specify a :doc:`collation </reference/collation>` for the 
+          change stream cursor.
+          
+          Starting in MongoDB 4.2, defaults to ``simple`` binary comparison if
+          omitted. In earlier versions, change streams opened on a single
+          collection would inherit the collection's default collation.
+          
+          
+   
+      * - ``startAtOperationTime``
+   
+        - Timestamp
+   
+        - Optional. The starting point for the change stream. If the specified starting
+          point is in the past, it must be in the time range of the oplog. To
+          check the time range of the oplog, see
+          :method:`rs.printReplicationInfo()`.
+          
+          ``startAtOperationTime`` is mutually exclusive with ``resumeAfter``
+          and ``startAfter``.
+          
+          
+          
+          .. versionadded:: 4.0
+          
+          
+          
+   
+
 
    :returns:
       A :term:`cursor` that remains open as long as a connection to the
@@ -32,6 +196,33 @@ Definition
 
    .. seealso::  :method:`db.watch()` and :method:`Mongo.watch()`
 
+
+Availability
+------------
+
+Deployment
+~~~~~~~~~~
+
+:method:`db.collection.watch()` is available for replica set and
+sharded cluster deployments :
+
+- For a replica set, you can issue :method:`db.collection.watch()` on
+  any data-bearing member.
+
+- For a sharded cluster, you must issue :method:`db.collection.watch()`
+  on a :binary:`~bin.mongos` instance.
+
+Storage Engine
+~~~~~~~~~~~~~~
+
+You can only use :method:`db.collection.watch()` with the :ref:`Wired
+Tiger storage engine <storage-wiredtiger>`.
+
+Read Concern ``majority`` Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/changestream-rc-majority-4.2.rst
+
 Behavior
 --------
 
@@ -40,32 +231,16 @@ Behavior
 
 - .. include:: /includes/extracts/changestream-cursor-open.rst
 
-- You can only use :method:`db.collection.watch()` with the :ref:`Wired
-  Tiger storage engine <storage-wiredtiger>`.
-
-- :method:`db.collection.watch()` is available for replica sets and
-  sharded clusters:
-
-  - For a replica set, you can issue :method:`db.watch()` on any
-    data-bearing member.
-
-  - For a sharded cluster, you must issue :method:`db.watch()` on a
-    :binary:`~bin.mongos` instance.
-
-Availability
-~~~~~~~~~~~~
-
-Change stream is only available if :readconcern:`"majority"` read
-concern support is enabled (default).
-
 Resumability
 ~~~~~~~~~~~~
 
 .. include:: /includes/extracts/changestream-resume.rst
 
-.. include:: /includes/extracts/changestream-resume-token-change.rst
+.. topic:: Resume Token
 
-.. include:: /includes/extracts/changestream-resume-token-compatibility.rst
+   .. include:: /includes/extracts/changestream-resume-token-versions-4.2-greater.rst
+
+   .. include:: /includes/extracts/changestream-resume-token-hex-change.rst
 
 .. |watchmethod| replace:: :method:`db.collection.watch()`
 
@@ -163,6 +338,10 @@ For complete documentation on change stream output, see
 
 Change Stream with Aggregation Pipeline Filter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
 
 The following operation opens a change stream cursor against the 
 ``data.sensors`` collection using an aggregation pipeline to

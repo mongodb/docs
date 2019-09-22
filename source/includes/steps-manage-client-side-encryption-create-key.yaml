@@ -1,0 +1,240 @@
+level: 4
+ref: create-database-object
+title: "Create the database connection."
+content: |
+
+  Use the :method:`Mongo()` constructor to create a database connection 
+  configured for client-side field level encryption.
+
+  Client-side field level encryption requires a Key Management Service (KMS).
+  Each tab corresponds to a supported KMS. 
+
+  .. tabs::
+
+     .. tab:: Amazon Web Services KMS
+        :tabid: aws
+
+        Create a :binary:`~bin.mongo` shell session. To mitigate the risk of 
+        the AWS Access Key or Secret leaking into logs, specify environmental
+        variables containing the required values as part of the 
+        :option:`mongo --eval <mongo --eval>` startup option.
+
+        .. code-block:: shell
+
+           mongo --eval "
+               var AWS_ACCESS_KEY_ID = '$AWS_ACCESS_KEY_ID'
+               var AWS_SECRET_ACCESS_KEY = '$AWS_SECRET_ACCESS_KEY'
+             " \
+             --shell --nodb
+
+        Use the :method:`Mongo()` constructor from the :binary:`mongo` 
+        shell to establish the database connection:
+
+        .. code-block:: javascript
+           :emphasize-lines: 12-15
+
+           var ClientSideFieldLevelEncryptionOptions = {
+             "keyVaultClient" : Mongo("mongodb://keyVaultCluster.example.net:27017"),
+             "keyVaultNamespace" : "encryption.dataKeys",
+             "kmsProviders" : {
+               "aws" : {
+                 "accessKeyId" : AWS_ACCESS_KEY_ID,
+                 "secretAccessKey" : AWS_SECRET_ACCESS_KEY
+               }
+             }
+           }
+
+           csfleDatabaseConnection = Mongo(
+             "mongodb://mymongo.example.net:27017/?replicaSet="myMongoCluster",
+             ClientSideFieldLevelEncryptionOptions
+           )
+
+        Replace the ``keyVaultClient`` 
+        :ref:`connection string <mongodb-uri>` with the URI of the remote
+        key vault cluster. Alternatively, omit ``keyVaultClient`` to use
+        the :method:`Mongo()` database connection as the key vault host.
+
+        Use the ``csfleDatabaseConnection`` object to access 
+        :doc:`client-side field level encryption 
+        </reference/method/js-client-side-field-level-encryption>` 
+        shell methods.
+
+     .. tab:: Local KMS
+        :tabid: local
+
+        .. admonition:: Development or Evaluation Only
+           :class: note
+
+           The local KMS is best suited for development or 
+           evaluation of client-side field level encryption. Secure the 
+           local key from unauthorized access regardless of the 
+           deployment environment.
+
+        Create a :binary:`~bin.mongo` shell session. To mitigate the risk of 
+        the local key leaking into logs, specify environmental
+        variables containing the required values as part of the 
+        :option:`mongo --eval <mongo --eval>` startup option.
+
+        .. code-block:: shell
+
+           mongo --eval "var LOCAL_KEY = '$LOCAL_KEY' " \
+             --shell --nodb
+
+        The ``LOCAL_KEY`` *must* be at 96 bytes in length. 
+
+        Use the :method:`Mongo()` constructor from the :binary:`mongo` 
+        shell to establish the database connection:
+
+        .. code-block:: javascript
+           :emphasize-lines: 11-14
+
+           var ClientSideFieldLevelEncryptionOptions = {
+             "keyVaultClient" : Mongo("mongodb://keyVaultCluster.example.net:27017"),
+             "keyVaultNamespace" : "encryption.dataKeys",
+             "kmsProviders" : {
+               "local" : {
+                 "key" : LOCAL_KEY
+               }
+             }
+           }
+
+           csfleDatabaseConnection = Mongo(
+             "mongodb://mymongo.example.net:27017/?replicaSet="myMongoCluster",
+             ClientSideFieldLevelEncryptionOptions
+           )
+
+        Replace the ``keyVaultClient`` 
+        :ref:`connection string <mongodb-uri>` with the URI of the remote
+        key vault cluster. Alternatively, omit ``keyVaultClient`` to use
+        the :method:`Mongo()` database connection as the key vault host.
+
+        Use the ``csfleDatabaseConnection`` object to access 
+        :doc:`client-side field level encryption 
+        </reference/method/js-client-side-field-level-encryption>` 
+        shell methods.
+
+  For complete documentation on establishing database connections 
+  configured for client-side field level encryption, see the 
+  :method:`Mongo()` constructor reference.
+
+---
+level: 4
+ref: create-key-vault
+title: "Create the key vault object."
+content: |
+
+  Use the :method:`getKeyVault()` method on the 
+  ``csfleDatabaseConnection`` database connection object to create the 
+  key vault object:
+  
+  .. code-block:: javascript
+
+     keyVault = csfleDatabaseConnection.getKeyVault();
+
+---
+level: 4
+ref: create-data-key
+title: "Create the data key."
+content: |
+  
+  Use the :method:`KeyVault.createKey()` method on the ``keyVault`` 
+  object to create a new data key in the key vault.
+
+  .. tabs::
+   
+     .. tab:: Amazon Web Services KMS
+        :tabid: aws
+
+        .. code-block:: javascript
+           
+           keyVault.createKey(
+             "aws",
+             "arn:aws:kms:region:account:key/keystring",
+             [ "keyAlternateName" ]
+          )
+
+        The first parameter *must* be ``"aws"`` to specify the configured
+        Amazon Web Services KMS.
+
+        The second parameter *must* be the full Amazon Resource Name (ARN) of
+        the Customer Master Key (CMK). MongoDB uses the specified CMK to 
+        encrypt the data key.
+
+        The third parameter *may* be an array of one or more ``keyAltNames`` for
+        the data key. Each key alternate name *must* be unique.
+        :method:`getKeyVault()` creates a unique index on ``keyAltNames`` to
+        enforce uniqueness of key alternate names. Consider assigning at least 
+        one alternate name to faciliate data key findability.
+
+     .. tab:: Local KMS
+        :tabid: local
+
+        .. code-block:: javascript
+           
+           keyVault.createKey(
+             "local",
+             "CustomerMasterKeyString",
+             [ "keyAlternateName" ]
+          )
+
+        The first parameter *must* be ``local`` to specify the configured
+        local KMS.
+
+        The second parameter *must* be a string of any length. MongoDB uses
+        the specified key and the local keyfile string to encrypt the data key.
+
+        The third parameter *may* be an array of one or more ``keyAltNames`` for
+        the data key. Each key alternate name *must* be unique.
+        :method:`getKeyVault()` creates a unique index on ``keyAltNames`` to
+        enforce uniqueness of key alternate names. Consider assigning at least 
+        one alternate name to faciliate data key findability.
+
+---
+level: 4
+ref: retrieve-UUID
+title: "Retrieve the created data key."
+content: |
+
+  Use the :method:`KeyVault.getKeyByAltName()` method on the
+  ``keyVault`` object to retrieve the created data key by its alternate name. 
+
+  .. code-block:: javascript
+
+     keyVault.getKeyByAltName("keyAlternateName")
+
+  The method returns output similar to the following:
+
+  .. code-block:: json
+     :emphasize-lines: 2
+
+     {
+         "_id" : UUID("b4b41b33-5c97-412e-a02b-743498346079"),
+         "keyMaterial" : BinData(0,"PXRsLOAYxhzTS/mFQAI8486da7BwZgqA91UI7NKz/T/AjB0uJZxTvhvmQQsKbCJYsWVS/cp5Rqy/FUX2zZwxJOJmI3rosPhzV0OI5y1cuXhAlLWlj03CnTcOSRzE/YIrsCjMB0/NyiZ7MRWUYzLAEQnE30d947XCiiHIb8a0kt2SD0so8vZvSuP2n0Vtz4NYqnzF0CkhZSWFa2e2yA=="),
+         "creationDate" : ISODate("2019-08-12T21:21:30.569Z"),
+         "updateDate" : ISODate("2019-08-12T21:21:30.569Z"),
+         "status" : 0,
+         "version" : NumberLong(0),
+         "masterKey" : {
+             "provider" : "local"
+         },
+         "keyAltNames" : [
+             "keyAlternateName"
+         ]
+     }
+
+  The :abbr:`UUID (Universally unique identifier)` is a BSON 
+  :bsontype:`Binary (BinData) <Binary>` object with subtype ``4`` that uniquely
+  identifies the data key. The ``UUID`` string is the base64-decoded 
+  representation of the :bsontype:`Binary` ``$binary.base64`` field.
+
+  For a key created without an alternate name, issue the 
+  :method:`KeyVault.getKeys()` method with the :method:`~cursor.sort()` 
+  modifier to sort on `creationDate` descending:
+
+  .. code-block:: javascript
+
+     keyVault.getKeys().sort({"creationDate" : -1})
+
+  The operation returns all data keys starting from the most recently inserted
+  data key. 
+...

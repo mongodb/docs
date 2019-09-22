@@ -33,3 +33,13 @@ as the ``<metaDataKeyword>``:
        |empty-value|.
 
      - Descending
+
+:atlas:`MongoDB Atlas Full-Text Search </full-text-search>` provides
+additional ``$meta`` keywords, such as:
+
+- :atlas:`"searchScore" </reference/full-text-search/scoring>` and
+
+- :atlas:`"searchHighlights"
+  </reference/full-text-search/highlighting>`.
+
+Refer to the Atlas Full-Text Search documentation for details.

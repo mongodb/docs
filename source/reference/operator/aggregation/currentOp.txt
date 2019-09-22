@@ -168,13 +168,14 @@ Constraints
 Example
 -------
 
-The following example runs the :pipeline:`$currentOp` operation in the
-first stage and filters the results of that operation in the second
-stage. Specifically, the first stage returns documents for all active
-operations as well as inactive sessions that are holding locks as part
-of a transaction. The second stage filters for just those documents
-related to inactive sessions that are holding locks as part of a
-transaction.
+The following example returns information on inactive sessions that are
+holding locks as part of a transaction. Specifically:
+
+- The first stage returns documents for all active operations as well
+  as inactive sessions that are holding locks as part of a transaction.
+
+- The second stage filters for just those documents related to inactive
+  sessions that are holding locks as part of a transaction.
 
 .. tip::
 
@@ -210,73 +211,88 @@ Both operations return documents of the form:
       "type" : "idleSession",
       "host" : "example.mongodb.com:27017",
       "desc" : "inactive transaction",
-      "client" : "198.51.100.1:53809",
-      "connectionId" : NumberLong(40),
+      "client" : "198.51.100.1:50428",
+      "connectionId" : NumberLong(32),
       "appName" : "",
       "clientMetadata" : {
          "driver" : {
             "name" : "PyMongo",
-            "version" : "3.7.2"
+            "version" : "3.9.0"
          },
          "os" : {
             "type" : "Darwin",
             "name" : "Darwin",
             "architecture" : "x86_64",
-            "version" : "10.14.2"
+            "version" : "10.14.5"
          },
          "platform" : "CPython 3.7.1.final.0"
       },
       "lsid" : {
-         "id" : UUID("02039c77-3f05-4dd6-a42d-d2168a73fc95"),
-         "uid" : BinData(0,"47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=")
+         "id" : UUID("ff21e1a9-a130-4fe0-942f-9e6b6c67ea3c"),
+         "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
       },
       "transaction" : {
          "parameters" : {
-            "txnNumber" : NumberLong(1),
+            "txnNumber" : NumberLong(4),
             "autocommit" : false,
             "readConcern" : {
-               "level" : "snapshot"
+               "level" : "snapshot",
+               "afterClusterTime" : Timestamp(1563892246, 1)
             }
          },
-         "readTimestamp" : Timestamp(1548869277, 3),
-         "startWallClockTime" : "2019-01-30T12:28:06.979-0500",
-         "timeOpenMicros" : NumberLong(34930476),
-         "timeActiveMicros" : NumberLong(210),
-         "timeInactiveMicros" : NumberLong(34930266),
-         "expiryTime" : "2019-01-30T12:29:06.979-0500"
-      }
+         "readTimestamp" : Timestamp(0, 0),
+         "startWallClockTime" : "2019-07-23T10:30:49.461-0400",
+         "timeOpenMicros" : NumberLong(1913590),
+         "timeActiveMicros" : NumberLong(55),
+         "timeInactiveMicros" : NumberLong(1913535),
+         "expiryTime" : "2019-07-23T10:31:49.461-0400"
+      },
       "waitingForLock" : false,
       "active" : false,
       "locks" : {
+         "ReplicationStateTransition" : "w",
          "Global" : "w",
          "Database" : "w",
          "Collection" : "w"
       },
       "lockStats" : {
+         "ReplicationStateTransition" : {
+            "acquireCount" : {
+               "w" : NumberLong(5)
+            }
+         },
          "Global" : {
             "acquireCount" : {
-               "r" : NumberLong(2),
+               "r" : NumberLong(3),
                "w" : NumberLong(1)
             }
          },
          "Database" : {
             "acquireCount" : {
-               "r" : NumberLong(1),
+               "r" : NumberLong(2),
                "w" : NumberLong(1)
             }
          },
          "Collection" : {
             "acquireCount" : {
-               "r" : NumberLong(1),
                "w" : NumberLong(1)
             }
          },
-         "oplog" : {
-               "acquireCount" : {
-                  "r" : NumberLong(2)
-               }
+         "Mutex" : {
+            "acquireCount" : {
+               "r" : NumberLong(3)
             }
-      }
+         },
+         "oplog" : {
+            "acquireCount" : {
+               "r" : NumberLong(2)
+            }
+         }
+      },
+      "waitingForFlowControl" : false,
+      "flowControlStats" : {
+       }
+      
    }
 
 .. _currentOp-stage-output-fields:
@@ -363,6 +379,35 @@ relevant for the operation:
 
    .. versionadded:: 3.6
 
+.. data:: $currentOp.effectiveUsers
+
+   An array that contains a document for each user associated with the
+   operation. Each user document contains the ``user`` name and the
+   authentication ``db``.
+
+   .. seealso:: :data:`$currentOp.runBy`
+
+   .. versionadded:: 4.2
+
+.. data:: $currentOp.runBy
+
+   An array that contains a document for each user who is impersonating
+   the :data:`effectiveUser(s)<$currentOp.effectiveUsers>` for the
+   operation. The runBy document contains the ``user`` name
+   and the authentication ``db``. In general, the impersonating user is
+   the ``__system`` user; e.g.
+   
+   .. code-block:: javascript
+   
+      "runBy" : [
+         {
+            "user" : "__system",
+            "db" : "local"
+         }
+      ]
+
+   .. versionadded:: 4.2
+
 .. data:: $currentOp.opid
 
    The identifier for the operation. You can pass this value to
@@ -400,7 +445,8 @@ relevant for the operation:
 
 .. data:: $currentOp.transaction
 
-   A document that contains multi-document transaction information.
+   A document that contains :doc:`multi-document transaction
+   </core/transactions>` information.
 
    Only present if the operation is part of a transaction.
 
@@ -411,7 +457,8 @@ relevant for the operation:
       A document that contains information on multi-document
       transaction.
 
-      Only present if the operation is part of a transaction.
+      Only present if the operation is part of a multi-document
+      transaction.
 
       .. versionadded:: 4.0
 
@@ -419,7 +466,8 @@ relevant for the operation:
 
          The transaction number.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document
+         transaction.
 
          .. versionadded:: 4.0
 
@@ -428,26 +476,22 @@ relevant for the operation:
          A boolean flag that indicates if autocommit is on for the
          transaction.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document
+         transaction.
 
          .. versionadded:: 4.0.2
 
       .. data:: $currentOp.transaction.parameters.readConcern
 
-         The :ref:`read concern <txn-read-concern>` for the
+         The :ref:`read concern <transactions-read-concern>` for the
          transaction.
 
          Multi-document transactions support read concern
          :readconcern:`"snapshot"`, :readconcern:`"local"`, and
-         :readconcern:`"majority"`. However, for :readconcern:`"local"`
-         and :readconcern:`"majority"` read concern, MongoDB may
-         sometimes substitute a stronger read concern.
+         :readconcern:`"majority"`.
 
-         If MongoDB substituted a stronger read concern, the
-         :data:`$currentOp.transaction.parameters.readConcern` value
-         returns the substituted read concern.
-
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document
+         transaction.
 
          .. versionadded:: 4.0.2
 
@@ -456,7 +500,8 @@ relevant for the operation:
          The timestamp of the snapshot being read by the operations in
          the transaction.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document
+         transaction.
 
          .. versionadded:: 4.0.2
 
@@ -464,7 +509,8 @@ relevant for the operation:
 
          The date and time (with time zone) of the transaction start.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document
+         transaction.
 
          .. versionadded:: 4.0.2
 
@@ -478,7 +524,8 @@ relevant for the operation:
          :data:`timeInactiveMicros <$currentOp.transaction.parameters.timeInactiveMicros>`
          should equal the :data:`timeOpenMicros <$currentOp.transaction.timeOpenMicros>`.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document
+         transaction.
 
          .. versionadded:: 4.0.2
 
@@ -494,7 +541,8 @@ relevant for the operation:
          should equal the
          :data:`timeOpenMicros <$currentOp.transaction.parameters.timeOpenMicros>`.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document
+         transaction.
 
          .. versionadded:: 4.0.2
 
@@ -510,7 +558,8 @@ relevant for the operation:
          should equal the
          :data:`timeOpenMicros <$currentOp.transaction.parameters.timeOpenMicros>`.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document
+         transaction.
 
       .. data:: $currentOp.transaction.expiryTime
 
@@ -524,7 +573,8 @@ relevant for the operation:
          For more information, seee :ref:`transaction-limit` for
          transactions.
 
-         Only present if the operation is part of a transaction.
+         Only present if the operation is part of a multi-document
+         transaction.
 
          .. versionadded:: 4.0.2
 .. data:: $currentOp.op
@@ -699,6 +749,23 @@ relevant for the operation:
    Not available when running with ``localOps: true`` on
    :binary:`~bin.mongos`.
 
+.. data:: $currentOp.prepareReadConflicts
+
+   The number of times the current operation had to wait for a
+   prepared transaction with a write to commit or abort.
+
+   While waiting, the operation continues to hold any necessary locks
+   and storage engine resources.
+
+   .. versionadded:: 4.2
+
+.. data:: $currentOp.writeConflicts
+
+   The number of times the current operation conflicted with
+   another write operation on the same document.
+
+   .. versionadded:: 4.2
+
 .. data:: $currentOp.numYields
 
    :data:`~$currentOp.numYields` is a counter that reports the number of times the
@@ -720,6 +787,39 @@ relevant for the operation:
    The possible modes are as follows:
 
    .. include:: /includes/fact-lock-modes.rst
+
+.. data:: $currentOp.lockStats
+
+   For each lock type and mode (see :data:`~$currentOp.locks` for
+   descriptions of lock types and modes), returns the following
+   information:
+
+   .. data:: $currentOp.lockStats.acquireCount
+
+      Number of times the operation acquired the lock in the specified
+      mode.
+
+   .. data:: $currentOp.lockStats.acquireWaitCount
+
+      Number of times the operation had to wait for the
+      :data:`~$currentOp.lockStats.acquireCount` lock acquisitions
+      because the locks were held in a conflicting mode.
+      :data:`~$currentOp.lockStats.acquireWaitCount` is less than or
+      equal to :data:`~$currentOp.lockStats.acquireCount`.
+
+   .. data:: $currentOp.lockStats.timeAcquiringMicros
+
+      Cumulative time in microseconds that the operation had to wait to
+      acquire the locks.
+
+      :data:`~$currentOp.lockStats.timeAcquiringMicros` divided by
+      :data:`~$currentOp.lockStats.acquireWaitCount` gives an
+      approximate average wait time for the particular lock mode.
+
+   .. data:: $currentOp.lockStats.deadlockCount
+
+      Number of times the operation encountered deadlocks while waiting
+      for lock acquisitions.
 
 .. data:: $currentOp.waitingForLock
 
@@ -754,36 +854,34 @@ relevant for the operation:
    termination.  When the operation encounters its next safe termination point, the
    operation will terminate.
 
-.. data:: $currentOp.lockStats
 
-   For each lock type and mode (see :data:`$currentOp.locks` for
-   descriptions of lock types and modes), returns the following
-   information:
+.. data:: $currentOp.waitingForFlowControl
 
-   .. data:: $currentOp.lockStats.acquireCount
+   A boolean that indicates if the operation had to wait because
+   of :ref:`flow control <replication-flow-control>`.
 
-      Number of times the operation acquired the lock in the specified
-      mode.
+   .. versionadded:: 4.2
 
-   .. data:: $currentOp.lockStats.acquireWaitCount
+.. data:: $currentOp.flowControlStats
 
-      Number of times the operation had to wait for the
-      :data:`~$currentOp.lockStats.acquireCount` lock acquisitions
-      because the locks were held in a conflicting mode.
-      :data:`~$currentOp.lockStats.acquireWaitCount` is less than or
-      equal to :data:`~$currentOp.lockStats.acquireCount`.
+   The flow control statistics for this operation.
 
-   .. data:: $currentOp.lockStats.timeAcquiringMicros
+   .. versionadded:: 4.2
 
-      Cumulative time in microseconds that the operation had to wait to
-      acquire the locks.
+   .. data:: $currentOp.flowControlStats.acquireCount
+   
+      The number of times this operation acquired a ticket.
 
-      :data:`~$currentOp.lockStats.timeAcquiringMicros` divided by
-      :data:`~$currentOp.lockStats.acquireWaitCount` gives an
-      approximate average wait time for the particular lock mode.
+      .. versionadded:: 4.2
 
-   .. data:: $currentOp.lockStats.deadlockCount
+   .. data:: $currentOp.flowControlStats.acquireWaitCount
 
-      Number of times the operation encountered deadlocks while waiting
-      for lock acquisitions.
+      The number of times this operation waited to aqcuire a ticket.
 
+      .. versionadded:: 4.2
+
+   .. data:: $currentOp.flowControlStats.timeAcquiringMicros
+
+      The total time this operation has waited to acquire a ticket.
+
+      .. versionadded:: 4.2

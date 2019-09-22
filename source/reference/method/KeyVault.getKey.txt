@@ -1,0 +1,106 @@
+=================
+KeyVault.getKey()
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 4.2
+
+.. include:: /includes/fact-client-side-field-level-encryption-beta.rst
+
+.. method:: KeyVault.getKey(UUID)
+
+   Gets a data key with the specified ``UUID``. The data key must exist in the 
+   key vault associated to the database connection.
+
+   :method:`~KeyVault.getKey()` has the following syntax:
+
+   .. code-block:: none
+
+      keyVault = db.getMongo().getKeyVault()
+      
+      keyVault.getKey(UUID("<UUID String>"))
+
+   The :abbr:`UUID (Universally unique identifier)` is a BSON 
+   :bsontype:`binary data <Binary>` object with subtype ``4``.
+
+:returns: 
+  
+  Document representing a matching data key.
+
+  Returns nothing if no key in the key vault has the specified 
+  ``UUID``.
+
+Behavior
+--------
+
+Requires Configuring Client-Side Field Level Encryption on Database Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/csfle-requires-enabling-encryption.rst
+
+Example
+-------
+
+.. note::
+
+   .. include:: /includes/extracts/csfle-environmental-variables.rst
+
+The following operation issued from the :binary:`~bin.mongo` shell:
+
+- Establishes a connection to the ``myMongo.example.net`` cluster with
+  client-side field level encryption enabled.
+
+- Retrieves the key vault object using the encryption-enabled connection object.
+
+- Retrieves a data key with the specified ``UUID``.
+
+.. code-block:: javascript
+   :emphasize-lines: 18
+
+   clientSideFLEOptions = {
+     "keyVaultNamespace" : "encryption.dataKeys",
+     "kmsProviders" : {
+       "aws" : {
+         "accessKeyId" : "AWS_ACCESS_KEY_ID",
+         "secretAccessKey" : "AWS_SECRET_ACCESS_KEY"
+       }
+     }
+   }
+
+   encryptedClient = Mongo( 
+     "mongodb://myMongo.example.net:27017/?replSetName=myMongo", 
+     clientSideFLEOptions
+   )
+
+   keyVault = encryptedClient.getKeyVault();
+
+   keyVault.getKey(UUID("b4b41b33-5c97-412e-a02b-743498346079"))
+
+:method:`~KeyVault.getKey()` returns the following data key:
+
+.. code-block:: json
+
+   {
+     "_id" : UUID("b4b41b33-5c97-412e-a02b-743498346079"),
+     "keyMaterial" : BinData(0,"PXRsLOAYxhzTS/mFQAI8486da7BwZgqA91UI7NKz/T/AjB0uJZxTvhvmQQsKbCJYsWVS/cp5Rqy/FUX2zZwxJOJmI3rosPhzV0OI5y1cuXhAlLWlj03CnTcOSRzE/YIrsCjMB0/NyiZ7MRWUYzLAEQnE30d947XCiiHIb8a0kt2SD0so8vZvSuP2n0Vtz4NYqnzF0CkhZSWFa2e2yA=="),
+     "creationDate" : ISODate("2019-08-12T21:21:30.569Z"),
+     "updateDate" : ISODate("2019-08-12T21:21:30.569Z"),
+     "status" : 0,
+     "version" : NumberLong(0),
+     "masterKey" : {
+       "provider" : "aws",
+       "key" : "arn:aws:kms:region:account:key/keystring",
+       "region" : "region",
+       "endpoint" : "kms.region.amazonaws.com:443"
+     },
+     "keyAltNames" : [
+       "dataKeyAlternativeName"
+     ]
+   }

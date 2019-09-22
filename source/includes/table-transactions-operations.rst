@@ -15,7 +15,9 @@
        - :pipeline:`$indexStats`
        - :pipeline:`$listLocalSessions`
        - :pipeline:`$listSessions`
+       - :pipeline:`$merge`
        - :pipeline:`$out`
+       - :pipeline:`$planCacheStats`
 
    * - :method:`db.collection.countDocuments()` 
      -
@@ -32,7 +34,11 @@
 
    * - :method:`db.collection.distinct()`
      - :dbcommand:`distinct`
-     - 
+     - Available on unsharded collections.
+       
+       | For sharded collections, use the aggregation pipeline with the
+         :pipeline:`$group` stage. See :ref:`transactions-operations-distinct`.
+       
 
    * - :method:`db.collection.find()`
      - :dbcommand:`find`

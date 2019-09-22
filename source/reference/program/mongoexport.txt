@@ -6,6 +6,9 @@
 
 .. default-domain:: mongodb
 
+.. role:: red(strong)
+   :class: text-danger
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -18,23 +21,211 @@
 Synopsis
 --------
 
-:binary:`~bin.mongoexport` is a utility that produces a JSON or CSV export
-of data stored in a MongoDB instance.
-
-See the :doc:`mongoimport` document for more
-information regarding the :binary:`~bin.mongoimport` utility, which
-provides the inverse "importing" capability.
+:binary:`~bin.mongoexport` is a command-line tool that produces a JSON
+or CSV export of data stored in a MongoDB instance.
 
 .. include:: /includes/extracts/require-cmd-line-mongoexport.rst
 
-Considerations
---------------
+.. seealso::
 
-.. include:: /includes/fact-type-fidelity-loss.rst
+   :binary:`~bin.mongoimport` which provides the corresponding "import"
+   capability.
+
+
+Syntax
+-------
 
 :binary:`~bin.mongoexport` must be run directly from the system command line.
 
-.. include:: /includes/fact-type-fidelity-loss-example.rst
+.. code-block:: sh
+
+   mongoexport --collection <coll> [options]
+
+You must specify the :option:`collection <mongoexport --collection>` to
+export. If you do not specify an :option:`output file <mongoexport
+--out>`, :binary:`~bin.mongoexport` writes to the standard output (e.g.
+stdout).
+
+Connect to a MongoDB Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a local MongoDB instance running on port 27017, you do
+not have to specify the host or port.
+
+For example, to export the specified :option:`collection <mongoexport
+--collection>` to the specified :option:`output file <mongoexport
+--out>` from a local MongoDB instance running on port 27017:
+
+.. code-block:: sh
+
+   mongoexport --collection events --db reporting --out events.json
+
+To specify a host and/or port of the MongoDB instance, you can either:
+
+- Specify the hostname and port in the :option:`--uri connection string
+  <mongoexport --uri>`:
+
+  .. code-block:: sh
+  
+     mongoexport --uri "mongodb://mongodb0.example.com:27017/reporting"  --collection events  --out events.json [additional options]
+
+  If using the :option:`--uri connection string <mongoexport --uri>`,
+  specify the database as part of the string. You cannot use the
+  command-line option :option:`--db <mongoexport --db>` in conjunction
+  with the :option:`--uri connection string <mongoexport --uri>`.
+  
+- Specify the hostname and port in the :option:`--host <mongoexport
+  --host>`:
+
+  .. code-block:: sh
+
+     mongoexport --host "mongodb0.example.com:27017" --collection events --db reporting --out events.json [additional options]
+  
+- Specify the hostname and port in the :option:`--host <mongoexport
+  --host>` and :option:`--port <mongoexport --port>`:
+
+  .. code-block:: sh
+
+     mongoexport --host "mongodb0.example.com" --port 27017 --collection events --db reporting --out events.json [additional options]
+
+For more information on the options available, see :ref:`mongoexport-options`.
+
+Connect to a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a replica set to export its data, you can either:
+
+- Specify the replica set name and members in the :option:`--uri connection string <mongoexport --uri>`:
+
+  .. code-block:: sh
+  
+     mongoexport --uri "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/reporting?replicaSet=myReplicaSetName" --collection events --out events.json [additional options]
+
+  If using the :option:`--uri connection string <mongoexport --uri>`,
+  specify the database as part of the string. You cannot use the
+  command-line option :option:`--db <mongoexport --db>` in conjunction
+  with the :option:`--uri connection string <mongoexport --uri>`.
+
+- Specify the replica set name and members in the :option:`--host <mongoexport --host>`:
+
+  .. code-block:: sh
+
+     mongoexport --host "myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com" --collection events --db reporting --out events.json [additional options]
+
+By default, :binary:`~bin.mongoexport` reads from the primary of the
+replica set. To override the default, you can specify the :ref:`read
+preference <replica-set-read-preference>`:
+
+- You can specify the read preference in the
+  :option:`--uri connection string <mongoexport --uri>`
+
+  .. code-block:: sh
+
+     mongoexport --uri "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/reporting?replicaSet=myReplicaSetName&readPreference=secondary" --collection events --out events.json [additional options]
+
+  If specifying the read preference tags, include the
+  :urioption:`readPreferenceTags` option:
+
+  .. code-block:: sh
+
+     mongoexport --uri "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/reporting?replicaSet=myReplicaSetName&readPreference=secondary&readPreferenceTags=region:east" --collection events --out events.json [additional options]
+
+  If using the :option:`--uri connection string <mongoexport --uri>`,
+  specify the database as part of the string. You cannot use the
+  command-line option :option:`--db <mongoexport --db>` in conjunction
+  with the :option:`--uri connection string <mongoexport --uri>`.
+
+- You can specify the read preference in using the
+  :option:`--readPreference <mongoexport --readPreference>` command-line
+  option. The command-line option takes a string if specifying only the read preference mode:
+
+  .. code-block:: sh
+
+     mongoexport --host "myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference secondary --collection events --db reporting --out events.json [additional options]
+
+  Or, the command-line option can takes a quote-enclosed document 
+  ``'{ mode: <mode>, tagSets: [ <tag1>, ... ], maxStalenessSeconds:<num>}'`` 
+  to specify the mode, the optional :ref:`read preference tag
+  sets <configure-read-pref-tags>`, and the optional
+  :ref:`maxStalenessSeconds
+  <replica-set-read-preference-max-staleness>`:
+  
+  .. code-block:: sh
+
+     mongoexport --host "myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference '{mode: "secondary", tagSets: [ { "region": "east" } ]}' --collection events --db reporting --out events.json [additional options]
+
+For more information on the options available, see :ref:`mongoexport-options`.
+
+Connect to a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a sharded cluster to export its data, you can either:
+
+- Specify the hostname of the :binary:`~bin.mongos` instance in the
+  :option:`--uri connection string <mongoexport --uri>`
+
+  .. code-block:: sh
+  
+     mongoexport --uri "mongodb://mongos0.example.com:27017/reporting" --collection events --out events.json [additional options]
+  
+  If using the :option:`--uri connection string <mongoexport --uri>`,
+  specify the database as part of the string. You cannot use the
+  command-line option :option:`--db <mongoexport --db>` in conjunction
+  with the :option:`--uri connection string <mongoexport --uri>`.
+
+- Specify the hostname and port of the :binary:`~bin.mongos` instance in the :option:`--host <mongoexport --host>` 
+
+  .. code-block:: sh
+
+     mongoexport --host "mongos0.example.com:27017" --collection events --db reporting --out events.json[additional options]
+
+By default, :binary:`~bin.mongoexport` reads from the primary of the
+shard replica set. To override the default, you can specify the :ref:`read
+preference <replica-set-read-preference>`:
+
+- You can specify the read preference in the
+  :option:`--uri connection string <mongoexport --uri>`
+
+  .. code-block:: sh
+  
+     mongoexport --uri "mongodb://mongos0.example.com:27017/reporting?readPreference=secondary" --collection events --out events.json [additional options]
+
+  If specifying the read preference tags, include the
+  :urioption:`readPreferenceTags` option:
+
+  .. code-block:: sh
+  
+     mongoexport --uri "mongodb://mongos0.example.com:27017/reporting?readPreference=secondary&readPreferenceTags=region:east" --collection events --out events.json [additional options]
+
+  If using the :option:`--uri connection string <mongoexport --uri>`,
+  specify the database as part of the string. You cannot use the
+  command-line option :option:`--db <mongoexport --db>` in conjunction
+  with the :option:`--uri connection string <mongoexport --uri>`.
+
+- You can specify the read preference in using the
+  :option:`--readPreference <mongoexport --readPreference>` command-line
+  option.  The command-line option takes a string if specifying only the read preference mode:
+
+  .. code-block:: sh
+  
+     mongoexport --host "mongos0.example.com:27017" --readPreference secondary --collection events --db reporting --out events.json [additional options]
+
+  Or, the command-line option can takes a quote-enclosed document 
+  ``'{ mode: <mode>, tagSets: [ <tag1>, ... ], maxStalenessSeconds:<num>}'`` 
+  to specify the mode, the optional :ref:`read preference tag
+  sets <configure-read-pref-tags>`, and the optional
+  :ref:`maxStalenessSeconds
+  <replica-set-read-preference-max-staleness>`:
+  
+  .. code-block:: sh
+
+     mongoexport --host "mongos0.example.com:27017" --readPreference '{mode: "secondary", tagSets: [ { "region": "east" } ]}' --collection events --db reporting --out events.json [additional options]
+
+For more information on the options available, see :ref:`mongoexport-options`.
+
+.. seealso::
+
+   :ref:`mongoexport-examples`
 
 Required Access
 ---------------
@@ -49,23 +240,51 @@ When connecting to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that enforce
 parameters based on the configured
 :ref:`authentication mechanism <available-authentication-mechanisms>`.
 
-.. _mongoexport-read-preference:
+Behavior
+--------
+
+Type Fidelity
+~~~~~~~~~~~~~
+
+.. include:: /includes/fact-type-fidelity-loss.rst
+
+Starting in version 4.2, :binary:`~bin.mongoexport`:
+
+- Outputs data in :doc:`Extended JSON v2.0 (Relaxed mode)
+  </reference/mongodb-extended-json>` by default.
+
+- Outputs :doc:`Extended JSON v2.0 (Canonical mode)
+  </reference/mongodb-extended-json>` if used with
+  :option:`--jsonFormat <mongoexport --jsonFormat>`.
+  
+Earlier versions used :doc:`Extended JSON v1.0 (Canonical mode)
+</reference/mongodb-extended-json-v1>`.
+
+.. include:: /includes/fact-type-fidelity-loss-example.rst
+
+FIPS
+~~~~
+
+.. include:: /includes/extracts/4.2-changes-fips-program.rst
 
 Read Preference
----------------
+~~~~~~~~~~~~~~~
 
-:binary:`~bin.mongoexport` defaults to :readmode:`primary` :ref:`read
-preference <replica-set-read-preference>` when connected to a :binary:`~bin.mongos`
-or a :term:`replica set`.
+By default, :binary:`~bin.mongoexport` uses read preference
+:readmode:`primary`. To override the default, you can specify the
+:ref:`read preference <replica-set-read-preference>` in the
+:option:`--readPreference <mongoexport --readPreference>` command line
+option or in the :option:`--uri connection string <mongoexport --uri>`.
 
-You can override the default read preference using the
-:option:`--readPreference <mongoexport --readPreference>` option.
+Starting in version 4.2, if you specify read preference in the URI
+string and the :option:`--readPreference <mongoexport
+--readPreference>`, the :option:`--readPreference <mongoexport
+--readPreference>` value overrides the read preference specified in the
+URI string.
 
-.. important::
+In earlier versions, the two options are incompatible.
 
-   Using a non-primary read preference on a :binary:`~bin.mongos` may
-   produce inconsistencies in data, including duplicates or missing
-   documents.
+.. _mongoexport-options:
 
 Options
 -------
@@ -108,8 +327,6 @@ Options
 
 .. include:: /includes/option/option-mongoexport-sslAllowInvalidHostnames.rst
 
-.. include:: /includes/option/option-mongoexport-sslFIPSMode.rst
-
 .. include:: /includes/option/option-mongoexport-username.rst
 
 .. include:: /includes/option/option-mongoexport-password.rst
@@ -136,6 +353,16 @@ Options
 
 .. include:: /includes/option/option-mongoexport-out.rst
 
+.. option:: --jsonFormat <canonical|relaxed>
+   
+   *Default*: relaxed
+
+   Modifies the output to use either canonical or relaxed mode of the
+   :doc:`/reference/mongodb-extended-json` format.
+   
+   For differences between canonical and relaxed modes, see
+   :doc:`/reference/mongodb-extended-json`.
+
 .. include:: /includes/option/option-mongoexport-jsonArray.rst
 
 .. include:: /includes/option/option-mongoexport-pretty.rst
@@ -154,8 +381,10 @@ Options
 
 .. include:: /includes/option/option-mongoexport-sort.rst
 
-Use
----
+.. _mongoexport-examples:
+
+Examples
+--------
 
 Export in CSV Format
 ~~~~~~~~~~~~~~~~~~~~
@@ -252,16 +481,46 @@ writes the export to the ``contacts.json`` file in :term:`JSON` format.
 Export from Remote Host Running with Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example exports the ``contacts`` collection from the
-``marketing`` database, which requires authentication.
+The following example exports the ``contacts`` collection in the
+``marketing`` database from a remote MongoDB instance that requires
+authentication.
 
-This data resides on the MongoDB instance located on the host
-``mongodb1.example.net`` running on port ``37017``, which requires the username
-``user`` and the password ``pass``.
+Specify the:
+
+- :option:`--host <mongoexport --host>`
+
+- :option:`--port <mongoexport --port>`
+
+- :option:`--username <mongoexport --username>`
+
+- :option:`--authenticationDatabase <mongoexport --authenticationDatabase>`
+
+- :option:`--collection <mongoexport --collection>`
+
+- :option:`--db <mongoexport --db>`
+
+- :option:`--out <mongoexport --out>`
+
+.. tip::
+
+   Omit the :option:`--password <mongoexport --password>` option to
+   have ``mongoexport`` prompt for the password:
 
 .. code-block:: sh
 
-   mongoexport --host mongodb1.example.net --port 37017 --username user --password "pass" --collection contacts --db marketing --out mdb1-examplenet.json
+   mongoexport --host mongodb1.example.net --port 27017 --username someUser --authenticationDatabase admin --collection contacts --db marketing --out mdb1-examplenet.json
+
+
+Alternatively, you use the :option:`--uri <mongoexport --uri>` option to specify the host, port, username, authentication database, and db.
+
+.. tip::
+
+   Omit the password in the URI string to have ``mongoexport`` prompt
+   for the password:
+
+.. code-block:: sh
+
+   mongoexport --uri 'mongodb://someUser@mongodb0.example.com:27017/marketing?authsource=admin' --collection contacts --out mdb1-examplenet.json
 
 Export Query Results
 ~~~~~~~~~~~~~~~~~~~~
@@ -269,12 +528,14 @@ You can export only the results of a query by supplying a query filter with
 the :option:`--query <mongoexport --query>` option, and limit the results to a single
 database using the ":option:`--db <mongoexport --db>`" option.
 
-For instance, this command returns all documents in the ``sales`` database's
-``contacts`` collection that contain a field named ``field`` with a value
-of ``1``.
+For instance, this command returns all documents in the ``sales``
+database's ``contacts`` collection that contain a field named ``dept``
+equal to ``"ABC"`` and the field ``date`` greater than or equal to
+ISODate("2018-01-01") (using the :ref:`canonical format for dates
+{ "$date": "YYYY-MM-DDTHH:mm:ss.mmm\<offset\>"} <extended-json-date>` )
 
 .. code-block:: sh
 
-   mongoexport --db sales --collection contacts --query '{"field": 1}'
+   mongoexport --db sales --collection contacts --query '{"dept": "ABC", date: { $gte: { "$date": "2018-01-01T00:00:00.000Z" } }}'
 
 .. include:: /includes/fact-quote-command-line-query.rst

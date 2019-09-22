@@ -3,13 +3,11 @@
    tabs:
      - id: shell
        content: |
-         List all Indexes on a Database
+         List All Indexes for a Database
          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-         To list all indexes on all collections in a database, you
-         can use the following operation in the :program:`mongo` shell:
-
-         .. cssclass:: copyable-code
+         To list all the collection indexes in a database, you can use the
+         following operation in the :binary:`~bin.mongo` shell:
 
          .. code-block:: javascript
 
@@ -19,10 +17,36 @@
                printjson(indexes);
             });
 
-         .. versionchanged:: 3.0
+         Starting in version 3.0, MongoDB deprecates direct access to
+         the ``system.indexes`` collection, which had previously been
+         used to list all indexes in a database.
 
-            MongoDB 3.0 deprecates direct access to the ``system.indexes``
-            collection, which had previously been used to list all indexes
-            in a database.
+         .. _list-specific-index-types:
 
-         .. include:: /includes/fact-wiredtiger-compatibility-with-old-shells.rst
+         List Specific Type of Indexes
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+         To list all indexes of a certain type (e.g. :doc:`hashed
+         </core/index-hashed>`, :doc:`text </core/index-text>`) for all
+         collections in all database, you can use the following
+         operation in the :binary:`~bin.mongo` shell:
+
+         .. code-block:: javascript
+
+            // The following finds all hashed indexes
+
+            db.adminCommand("listDatabases").databases.forEach(function(d){
+               let mdb = db.getSiblingDB(d.name);
+               mdb.getCollectionInfos({ type: "collection" }).forEach(function(c){
+                  let currentCollection = mdb.getCollection(c.name);
+                  currentCollection.getIndexes().forEach(function(idx){
+                    let idxValues = Object.values(Object.assign({}, idx.key));
+
+                    if (idxValues.includes("hashed")) {
+                      print("Hashed index: " + idx.name + " on " + idx.ns);
+                      printjson(idx);
+                    };
+                  }); 
+               });
+            });
+

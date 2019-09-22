@@ -20,6 +20,10 @@ Definition
 .. method:: db.collection.findAndModify(document)
 
 
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+
+
    Modifies and returns a single document. By default, the returned
    document does not include the modifications made on the update. To
    return the document with the modifications made on the update, use
@@ -30,15 +34,13 @@ Definition
    The :method:`~db.collection.findAndModify()` method has the following
    form:
 
-   .. versionchanged:: 3.6
-
    .. code-block:: none
 
       db.collection.findAndModify({
           query: <document>,
           sort: <document>,
           remove: <boolean>,
-          update: <document>,
+          update: <document or aggregation pipeline>, // Changed in MongoDB 4.2
           new: <boolean>,
           fields: <document>,
           upsert: <boolean>,
@@ -53,7 +55,176 @@ Definition
 
    .. |operation| replace:: :method:`db.collection.findAndModify()`
 
-   .. include:: /includes/apiargs/method-db.collection.findAndModify-param.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``query``
+   
+        - document
+   
+        - Optional. The selection criteria for the modification. The ``query`` field
+          employs the same :ref:`query selectors <query-selectors>` as used in
+          the :method:`db.collection.find()` method. Although the query may
+          match multiple documents, |operation|
+          **will only select one document to modify**.
+          
+          If unspecified, defaults to an empty document.
+          
+          Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+          errors if the query argument is not a document.
+          
+          
+   
+      * - ``sort``
+   
+        - document
+   
+        - Optional. Determines which document the operation modifies if the query selects
+          multiple documents. |operation| modifies
+          the first document in the sort order specified by this argument.
+          
+          Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+          errors if the sort argument is not a document.
+          
+          
+   
+      * - ``remove``
+   
+        - boolean
+   
+        - Must specify either the ``remove`` or the ``update`` field. Removes
+          the document specified in the ``query`` field. Set this to ``true``
+          to remove the selected document . The default is ``false``.
+          
+          
+   
+      * - ``update``
+   
+        - document or array
+   
+        - Must specify either the ``remove`` or the ``update`` field. Performs
+          an update of the selected document. 
+          
+          - If passed a document with :ref:`update operator expressions
+            <update-operators>`, |operation| performs the specified
+            modification.
+          
+          - If passed a replacement document ``{ <field1>: <value1>, ...}``,
+            the |operation| performs a replacement.
+          
+          - Starting in MongoDB 4.2, if passed an :doc:`aggregation pipeline
+            </core/aggregation-pipeline>` ``[ <stage1>, <stage2>, ... ]``,
+            |operation| modifies the document per the pipeline. The pipeline
+            can consist of the following stages:
+          
+            .. include:: /includes/list-update-agg-stages.rst
+          
+          
+   
+      * - ``new``
+   
+        - boolean
+   
+        - Optional. When ``true``, returns the modified document rather than the original.
+          The |operation| method ignores the
+          ``new`` option for ``remove`` operations. The default is ``false``.
+          
+          
+   
+      * - ``fields``
+   
+        - document
+   
+        - Optional. A subset of fields to return. The ``fields`` document specifies an
+          inclusion of a field with ``1``, as in: ``fields: { <field1>: 1,
+          <field2>: 1, ... }``. See :ref:`projection <read-operations-projection>`.
+          
+          Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+          errors if the fields argument is not a document.
+          
+          
+   
+      * - ``upsert``
+   
+        - boolean
+   
+        - .. include:: /includes/extracts/findAndModify-behavior-method.rst
+          
+          
+   
+      * - ``bypassDocumentValidation``
+   
+        - boolean
+   
+        - Optional. Enables :method:`db.collection.findAndModify` to bypass document validation
+          during the operation. This lets you update documents that do not
+          meet the validation requirements.
+          
+          .. versionadded:: 3.2
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern </reference/write-concern>`.
+          Omit to use the default write concern.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          .. versionadded:: 3.2
+          
+          
+   
+      * - ``maxTimeMS``
+   
+        - integer
+   
+        - Optional. Specifies a time limit in milliseconds for processing the operation.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+      * - ``arrayFilters``
+   
+        - array
+   
+        - Optional. An array of filter documents that determine which array elements to
+          modify for an update operation on an array field.
+          
+          .. include::  /includes/extracts/arrayFilters-details.rst
+          
+          
+          For examples, see :ref:`findAndModify-arrayFilters`.
+          
+          .. note::
+          
+             .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+          
+          .. versionadded:: 3.6
+          
+          
+          
+   
+
 
 Return Data
 -----------
@@ -119,11 +290,15 @@ Sharded Collections
 ~~~~~~~~~~~~~~~~~~~
 
 When using :dbcommand:`findAndModify` in a :term:`sharded <sharding>`
-environment, the ``query`` **must** contain the :term:`shard key` for
-all operations against the sharded cluster for the *sharded* collections.
+environment, the ``query`` **must** contain an equality condition on
+:term:`shard key` for all operations against the sharded cluster for
+the *sharded* collections.
 
 :dbcommand:`findAndModify` operations issued against :binary:`~bin.mongos`
 instances for *non-sharded* collections function normally.
+
+.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
 
 Document Validation
 ~~~~~~~~~~~~~~~~~~~
@@ -145,14 +320,30 @@ Transactions
 
 .. include:: /includes/extracts/transactions-supported-operation.rst
 
-If the operation results in an upsert, the collection must already exist.
+.. include:: /includes/extracts/transactions-usage.rst
+
+Existing Collections and Transactions
+`````````````````````````````````````
+
+Inside a transaction, you can specify read/write operations on existing
+collections. If the |operation| results in an
+upsert, the collection must already exist.
+
+Write Concerns and Transactions
+````````````````````````````````
 
 .. include:: /includes/extracts/transactions-operations-write-concern.rst
 
-.. include:: /includes/extracts/transactions-usage.rst
+
 
 Examples
 --------
+
+.. contents:: In this section
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
 
 Update and Return
 ~~~~~~~~~~~~~~~~~
@@ -339,10 +530,19 @@ The operation returns the following document:
 Specify ``arrayFilters`` for an Array Update Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note::
+
+   .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+
 .. include:: /includes/extracts/arrayFilters-blurb.rst
 
 Update Elements Match ``arrayFilters`` Criteria
 ```````````````````````````````````````````````
+
+.. note::
+
+   .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+
 
 Create a collection ``students`` with the following documents:
 
@@ -384,6 +584,11 @@ after the operation, the collection has the following documents:
 Update Specific Elements of an Array of Documents
 `````````````````````````````````````````````````
 
+.. note::
+
+   .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+
+
 Create a collection ``students2`` with the following documents:
 
 .. code-block:: javascript
@@ -407,16 +612,15 @@ Create a collection ``students2`` with the following documents:
       }
    ])
 
-To modify the value of the ``mean`` field for all elements in the
-``grades`` array where the grade is greater than or equal to ``85``,
-use the filtered positional operator :update:`$[\<identifier\>]` with
-the ``arrayFilters`` in the :method:`db.collection.findAndModify`
-method:
+The following operation finds a document where the ``_id`` field equals
+``1`` and uses the filtered positional operator :update:`$[\<identifier\>]` with
+the ``arrayFilters`` to modify the ``mean`` for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``.
 
 .. code-block:: javascript
 
    db.students2.findAndModify({
-      query: { },
+      query: { _id : 1 },
       update: { $set: { "grades.$[elem].mean" : 100 } },
       arrayFilters: [ { "elem.grade": { $gte: 85 } } ] 
    })
@@ -429,11 +633,11 @@ operation, the collection has the following documents:
 
    {
       "_id" : 1,
-      "grades" : [
-         { "grade" : 80, "mean" : 75, "std" : 6 },
-         { "grade" : 85, "mean" : 100, "std" : 4 },
-         { "grade" : 85, "mean" : 100, "std" : 6 } 
-       ]
+      "grades" : [ 
+         { "grade" : 80, "mean" : 75, "std" : 6 }, 
+         { "grade" : 85, "mean" : 100, "std" : 4 }, 
+         { "grade" : 85, "mean" : 100, "std" : 6 }
+      ] 
    }
    {
       "_id" : 2,
@@ -444,5 +648,69 @@ operation, the collection has the following documents:
       ]
    }
 
+.. _findAndModify-agg-pipeline:
+
+Use an Aggregation Pipeline for Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, :method:`db.collection.findAndModify()` can
+accept an aggregation pipeline for the update. The pipeline can consist
+of the following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+For example, create a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students2.insert([
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ])
+
+The following operation finds a document where the ``_id`` field equals
+``1`` and uses an aggregation pipeline to calculate a new field
+``total`` from the ``grades`` field:
+
+.. code-block:: javascript
+
+   db.students2.findAndModify( {
+      query: {  "_id" : 1 },
+      update: [ { $set: { "total" : { $sum: "$grades.grade" } } } ],  // The $set stage is an alias for ``$addFields`` stage
+      new: true
+   } )
+
+.. note::
+
+   The ``$set`` used in the pipeline refers to the aggregation stage
+   :pipeline:`$set` and not the update operator :update:`$set`.
+
+The operation returns the *updated* document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "grades" : [ { "grade" : 80, "mean" : 75, "std" : 6 }, { "grade" : 85, "mean" : 90, "std" : 4 }, { "grade" : 85, "mean" : 85, "std" : 6 } ],
+      "total" : 250
+   }
 
 .. seealso:: :ref:`perform-findAndModify-linearizable-reads`

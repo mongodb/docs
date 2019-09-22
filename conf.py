@@ -75,18 +75,19 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'package-branch': '4.1',
-    'windows-dir-version': '4.1',  # Not sure if always equal to package-branch.
-    'package-name-org': 'mongodb-org-unstable',
-    'package-name-enterprise': 'mongodb-enterprise-unstable',
+    'package-branch': '4.2',   # For rc = testing.  For GA, will be 4.2.
+    'windows-dir-version': '4.2',  # The wizard installs in 4.2 branch
+    'package-name-org': 'mongodb-org',
+    'package-name-enterprise': 'mongodb-enterprise',
     'version': version,
     'release': release,
     'pgp-version': version,
     'pgp-fingerprint': 'E162F504A20CDF15827F718D4B7C549A058F8B6B',
     'rsa-key': '4B7C549A058F8B6B',
     'pgp-fingerprint-fmt': 'E162 F504 A20C DF15 827F  718D 4B7C 549A 058F 8B6B',
-    'windows-sha256': 'C777DF7816BB8C9A760FDEA782113949408B6F39D72BE29A2551FA51E2FE0473',
-    'pgp-short-fingerprint' : '0x4B7C549A058F8B6B'
+    'windows-sha256': 'AF5AF79EFE540DCDDC2825A396C71FCFC4FEB463BC9CADDCCDE20AD126321CCC',
+    'pgp-short-fingerprint' : '0x4B7C549A058F8B6B',
+    'source-available' : '`source available and free to use <https://github.com/mongodb/mongo/>`_'
 }
 
 
@@ -104,8 +105,8 @@ extlinks = {
     'products': ('https://www.mongodb.com/products%s', ''),
     'wtdocs': ('http://source.wiredtiger.com/mongodb-3.4%s', ''),
     'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
-    'node-docs': ('http://mongodb.github.io/node-mongodb-native/2.2/%s', ''),
-    'node-api': ('http://mongodb.github.io/node-mongodb-native/2.2/api/%s', ''),
+    'node-docs': ('http://mongodb.github.io/node-mongodb-native/3.3/%s', ''),
+    'node-api': ('http://mongodb.github.io/node-mongodb-native/3.3/api/%s', ''),
     'ruby-api': ('http://api.mongodb.com/ruby/current/Mongo/%s', ''),
     'scala-api': ('http://mongodb.github.io/mongo-scala-driver/2.0/scaladoc/org/mongodb/scala/MongoCollection.html#%s', ''),
     'csharp-api': ('https://api.mongodb.com/csharp/current/html/%s.htm', ''),
@@ -184,7 +185,7 @@ html_theme_options = {
     'stable': conf.version.stable,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
-    'upcoming': conf.version.upcoming,
+    'upcoming': conf.version.upcoming
 }
 
 html_sidebars = sconf.sidebars

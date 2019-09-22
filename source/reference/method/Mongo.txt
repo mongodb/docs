@@ -13,25 +13,322 @@ Mongo()
 Description
 -----------
 
-.. method:: Mongo(host)
+.. versionchanged:: 4.2
+
+.. method:: Mongo(host, ClientSideFieldLevelEncryptionOptions)
 
    JavaScript constructor to instantiate a database connection from the
    :binary:`~bin.mongo` shell or from a JavaScript file.
 
-   The :method:`Mongo()` method has the following parameter:
+   The :method:`Mongo()` method has the following parameters:
 
-   .. include:: /includes/apiargs/method-Mongo-param.rst
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
 
-Instantiation Options
----------------------
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``host``
+   
+        - string
+   
+        - Optional. The host, either in the form of ``<host>`` or 
+          ``<host><:port>``.
 
-Use the constructor without a parameter to instantiate a connection to
-the localhost interface on the default port.
+          If omitted, :method:`Mongo` instantiates a connection to the 
+          localhost interface on the default port ``27017``.
 
-Pass the ``<host>`` parameter to the constructor to instantiate a
-connection to the ``<host>`` and the default port.
+      * - ``ClientSideFieldLevelEncryptionOptions``
+        
+        - Document
 
-Pass the ``<host><:port>`` parameter to the constructor to instantiate a
-connection to the ``<host>`` and the ``<port>``.
+        - *Optional* 
+          
+          .. versionadded:: 4.2
+
+          Configuration parameters for enabling
+          :doc:`/core/security-client-side-encryption`.
+
+          .. include:: /includes/fact-client-side-field-level-encryption-beta.rst
+
+          ``ClientSideFieldLevelEncryptionOptions`` overrides the existing
+          client-side field level encryption configuration of the database
+          connection. If omitted, :method:`Mongo()` inherits the client-side
+          field level encryption configuration of the current database
+          connection.
+
+          For documentation of usage and syntax, see
+          :ref:`ClientSideFieldLevelEncryptionOptions`.
 
 .. seealso:: :method:`Mongo.getDB()` and :method:`db.getMongo()`.
+
+.. _ClientSideFieldLevelEncryptionOptions:
+
+``ClientSideFieldLevelEncryptionOptions``
+-----------------------------------------
+
+.. versionadded:: 4.2
+
+The ``ClientSideFieldLevelEncryptionOptions`` document specifies configuration
+options for :doc:`/core/security-client-side-encryption`. If the database
+connection has an existing client-side field level encryption configuration,
+specifying ``ClientSideFieldLevelEncryptionOptions`` overrides that
+configuration. 
+
+For example, starting the :binary:`~bin.mongo` shell
+with client-side field level encryption :ref:`command-line options
+<mongo-client-side-field-level-encryption-options>` enables 
+client-side encryption for that connection. New database connections
+created using :method:`Mongo()` inherit the encryption settings *unless*
+:method:`Mongo()` includes ``ClientSideFieldLevelEncryptionOptions``. 
+
+The ``ClientSideFieldLevelEncryptionOptions`` document has the following syntax:
+
+.. code-block:: none
+
+   {
+     "keyVaultClient" : <object>,
+     "keyVaultNamespace" : "<string>",
+     "kmsProvider" : <object>,
+     "schemaMap" : <object>,
+     "bypassAutoEncryption" : <boolean>
+   }
+
+The ``ClientSideFieldLevelEncryptionOptions`` document takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 80
+
+   * - Parameter
+
+     - Type
+   
+     - Description
+
+   * - ``keyVaultClient``
+
+     - :method:`Mongo()` connection object.
+
+     - *(Optional)* The MongoDB cluster hosting the key vault collection. 
+       Omit to use the current database connection as the key vault host.
+
+       Specify a :method:`Mongo()` connection object pointing to the 
+       cluster:
+
+       .. code-block:: javascript
+          
+          var keyVaultClient = Mongo(<MongoDB URI>);
+
+          var ClientSideFieldLevelEncryptionOptions = {
+            "keyVaultClient" : keyVaultClient,
+            "keyVaultNamespace" : "<database>.<collection>",
+            "kmsProvider" : { ... }
+          }
+
+   * - ``keyVaultNamespace``
+     
+     - string
+
+     - *(Required)* The full :term:`namespace` of the key vault collection.
+
+   * - ``kmsProvider``
+     
+     - document
+
+     - *(Required)*  The Key Management Service (KMS) used by 
+       client-side field level encryption for managing a Customer Master 
+       Key (CMK). Client-side field level encryption uses the CMK for
+       encrypting and decrypting data keys. 
+
+       Client-side field level encryption either the Amazon Web Services
+       KMS *or* a local single-key KMS.
+
+       - For specifying an AWS KMS:
+
+         .. code-block:: json
+
+            {
+              "aws" : {
+                "accessKeyId" : "AWSAccessKeyId",
+                "secretAccessKey" : "AWSSecretAccessKey"
+              }
+            }
+
+         The specified ``accessKeyId`` must correspond to an IAM user 
+         with all ``List`` and ``Read`` permissions for the KMS service.
+
+         .. include:: /includes/extracts/csfle-environmental-variables.rst
+
+       - For specifying a local KMS:
+
+         .. code-block:: json
+
+            {
+              "local" : {
+                 "key" : BinData(0, "<96 byte base-64 encoded key>")
+              }
+            }
+
+   * - ``schemaMap``
+
+     - document
+
+     - *(Optional)* The automatic client-side field level encryption rules 
+       specified using the JSON schema Draft 4 standard syntax and
+       encryption-specific keywords.
+
+       For complete documentation, see
+       :doc:`/reference/security-client-side-automatic-json-schema`.
+
+   * - ``bypassAutoEncryption``
+     
+     - boolean
+
+     - *(Optional)* Specify ``true`` to bypass automatic client-side field 
+       level encryption rules and perform explicit (manual) per-field 
+       encryption.
+
+Example
+-------
+
+Connect to a MongoDB Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation creates a new connection object from the 
+:binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   cluster = Mongo("mongodb://mymongo.example.net:27017/?replicaSet="myMongoCluster")
+
+Issue operations against the ``cluster`` object to interact with the 
+``mymongo.example.net:27017`` cluster:
+
+.. code-block:: javascript
+
+   myDB = cluster.getDB("myDB"); //returns the database object
+   myColl = myDB.myColl("myColl"); // returns the collection object
+
+.. _mongo-connection-client-side-encryption-enabled:
+
+Connect to a MongoDB Cluster with Client-Side Encryption Enabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/csfle-environmental-variables.rst
+
+The following operation creates a new connection object from the 
+:binary:`~bin.mongo` shell. The connection object has client-side encryption
+enabled for performing manual encryption of fields:
+
+.. code-block:: javascript
+   :emphasize-lines: 11-14
+
+   var ClientSideFieldLevelEncryptionOptions = {
+     "keyVaultNamespace" : "encryption.dataKeys",
+     "kmsProviders" : {
+       "aws" : {
+         "accessKeyId" : "AWS_ACCESS_KEY_ID",
+         "secretAccessKey" : "AWS_SECRET_ACCESS_KEY"
+       }
+     }
+   }
+
+   cluster = Mongo(
+     "mongodb://mymongo.example.net:27017/?replicaSet="myMongoCluster",
+     ClientSideFieldLevelEncryptionOptions
+   )
+
+Issue operations against the ``cluster`` object to interact with the 
+``mymongo.example.net:27017`` cluster and perform explicit encryption:
+
+.. code-block:: javascript
+
+   // returns the database object
+   myDB = cluster.getDB("myDB");
+
+   // returns the collection object
+   myColl = myDB.myColl("myColl"); 
+
+   // returns object for managing data keys
+   keyVault = cluster.getKeyVault(); 
+
+   // returns object for explicit encryption/decryption
+   clientEncryption = cluster.getClientEncryption(); 
+
+See :doc:`/reference/method/js-client-side-field-level-encryption` for
+a complete list of client-side field level encryption methods.
+
+.. _mongo-connection-automatic-client-side-encryption-enabled:
+
+Connect to a MongoDB Cluster with Automatic Client-Side Encryption Enabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/csfle-environmental-variables.rst
+
+The following operation creates a new connection object from the
+:binary:`~bin.mongo` shell. The connection object has 
+:ref:`automatic client-side encryption <field-level-encryption-automatic>` 
+enabled for performing automatic encryption of fields in the 
+``hr.employees`` collection:
+
+.. code-block:: javascript
+   :emphasize-lines: 25-28
+
+   var ClientSideFieldLevelEncryptionOptions = {
+     "keyVaultNamespace" : "encryption.dataKeys",
+     "kmsProviders" : {
+       "aws" : {
+         "accessKeyId" : "AWS_ACCESS_KEY_ID",
+         "secretAccessKey" : "AWS_SECRET_ACCESS_KEY"
+       }
+     },
+     schemaMap : {
+       "hr.employees" : {
+         "bsonType": "object",
+         "properties" : {
+           "ssn" : {
+             "encrypt" : {
+               "keyId" : UUID("bffb361b-30d3-42c0-b7a4-d24a272b72e3"),
+               "bsonType" : "string",
+               "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+             }
+           }
+         }
+       }
+     }
+   }
+
+   cluster = Mongo(
+     "mongodb://mymongo.example.net:27017/?replicaSet="myMongoCluster",
+     ClientSideFieldLevelEncryptionOptions
+   )
+
+Issue operations against the ``cluster`` object to interact with the 
+``mymongo.example.net:27017`` cluster and utilize automatic encryption:
+
+.. code-block:: javascript
+
+   // returns the database object
+   myDB = cluster.getDB("myDB");
+
+   // returns the collection object
+   myColl = myDB.myColl("myColl"); 
+
+   myColl.insertOne({"name" : "J Doe", "ssn" : "123-45-6789"})
+
+The specified automatic encryption rules encrypt the ``ssn`` field using the
+specified data key and algorithm. Only clients configured for the
+correct KMS *and* access to the specified data key can decrypt the field.
+
+See :doc:`/reference/method/js-client-side-field-level-encryption` for
+a complete list of client-side field level encryption methods.

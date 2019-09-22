@@ -20,7 +20,7 @@ description: |
   The default :doc:`log message </reference/log-messages>`
   verbosity level for :ref:`components <log-message-components>`. The
   verbosity level determines the amount of :ref:`Informational and
-  Debug <log-severity-levels>` messages MongoDB outputs.
+  Debug <log-severity-levels>` messages MongoDB outputs. [#log-message]_
 
   .. include:: /includes/log-verbosity-levels.rst
 
@@ -34,6 +34,10 @@ description: |
 
   For various ways to set the log verbosity level, see
   :ref:`log-messages-configure-verbosity`.
+
+  .. [#log-message]
+
+     .. include:: /includes/extracts/4.2-changes-debug-log-message.rst
 
 optional: true
 ---
@@ -513,21 +517,32 @@ program: conf
 name: net.port
 type: integer
 directive: setting
-replacement:
-  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
-  intro: "The"
-inherit:
-  name: port
-  program: _shared
-  file: options-shared.yaml
+
+description: |
+   *Default*:
+
+   - 27017 for :binary:`~bin.mongod` (if not a shard member or a config server
+     member) or :binary:`~bin.mongos` instance
+
+   - 27018 if :binary:`~bin.mongod` is a :setting:`shard member
+     <sharding.clusterRole>`
+
+   - 27019 if :binary:`~bin.mongod` is a :setting:`config server member
+     <sharding.clusterRole>`
+   
+   The TCP port on which the MongoDB instance listens for
+   client connections.
+     
+optional: true
 ---
 program: conf
 name: net.bindIp
 type: string
 directive: setting
 replacement:
-  program: ":binary:`~bin.mongos` and :binary:`~bin.mongod`"
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   intro: "The"
+  ipv6: ":setting:`net.ipv6 : true <net.ipv6>`"
 inherit:
   name: bind_ip
   program: mongod
@@ -535,13 +550,21 @@ inherit:
 post: |
   To bind to all IPv4 addresses, enter ``0.0.0.0``.
 
-  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0``
-  or alternatively, use the :setting:`net.bindIpAll` setting.
+  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0`` or
+  starting in MongoDB 4.2, an asterisk ``"*"`` (enclose the asterisk in
+  quotes to distinguish from `YAML alias nodes
+  <https://yaml.org/spec/1.2/spec.html#alias/>`__). Alternatively, use
+  the :setting:`net.bindIpAll` setting.
 
   .. note::
 
-     :setting:`net.bindIp` and :setting:`net.bindIpAll` are mutually
-     exclusive. That is, you can specify one or the other, but not both.
+     - :setting:`net.bindIp` and :setting:`net.bindIpAll` are mutually
+       exclusive. That is, you can specify one or the other, but not
+       both.
+     
+     - The command-line option ``--bind_ip`` overrides the configuration
+       file setting :setting:`net.bindIp`.
+
 ---
 program: conf
 name: net.bindIpAll
@@ -549,21 +572,26 @@ type: boolean
 default: false
 directive: setting
 replacement:
-  program: ":binary:`~bin.mongos` and :binary:`~bin.mongod`"
+  program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   condition: "true"
+  ipv6: ":setting:`net.ipv6 : true <net.ipv6>`"
 inherit:
   name: bind_ip_all
   program: mongod
   file: options-mongod.yaml
 post: |
 
-   Alternatively, set the :setting:`net.bindIp` setting to
-   ``::,0.0.0.0`` to bind to all IP addresses.
+   Alternatively, set :setting:`net.bindIp` to ``::,0.0.0.0`` or,
+   starting in MongoDB 4.2, to an asterisk ``"*"`` (enclose the
+   asterisk in quotes to distinguish from `YAML alias nodes
+   <https://yaml.org/spec/1.2/spec.html#alias/>`__) to bind to all IP
+   addresses.
 
    .. note::
 
       :setting:`net.bindIp` and :setting:`net.bindIpAll` are mutually
-      exclusive. That is, you can specify one or the other, but not both.
+      exclusive. Specifying both options causes {{program}} to throw
+      an error and terminate.
 
 ---
 program: conf
@@ -652,11 +680,15 @@ name: net.ipv6
 type: boolean
 default: false
 directive: setting
-description: |
-
-   Enables or disables IPv6 support. :binary:`~bin.mongos` or
-   :binary:`~bin.mongod` disables IPv6 support by default.
-
+replacement:
+  program: ":binary:`~bin.mongos`/:binary:`~bin.mongod`"
+  intro: "Set {{role}} to ``true`` to enable"
+  bindIp: ":setting:`net.bindIp`"
+  bindIpAll: ":setting:`net.bindIpAll`"
+inherit:
+  name: ipv6
+  program: mongod
+  file: options-mongod.yaml
 ---
 program: conf
 name: net.tls.mode
@@ -678,7 +710,7 @@ directive: setting
 replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   directive: "setting"
-  file: ":setting:`net.tls.PEMKeyFile`"
+  file: ":setting:`net.tls.certificateKeyFile`"
 inherit:
   name: tlsCertificateSelector
   program: mongod
@@ -698,7 +730,7 @@ inherit:
   file: options-mongod.yaml
 ---
 program: conf
-name: net.tls.PEMKeyFile
+name: net.tls.certificateKeyFile
 type: string
 directive: setting
 replacement:
@@ -707,21 +739,21 @@ replacement:
   selector: ":setting:`net.tls.certificateSelector`"
   
 inherit:
-  name: tlsPEMKeyFile
+  name: tlsCertificateKeyFile
   program: mongod
   file: options-mongod.yaml
 ---
 program: conf
-name: net.tls.PEMKeyPassword
+name: net.tls.certificateKeyFilePassword
 type: string
 directive: setting
 replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   intro: "The"
-  pemKeyOption: ":setting:`~net.tls.PEMKeyFile`"
+  pemKeyOption: ":setting:`~net.tls.certificateKeyFile`"
   selector: ":setting:`net.tls.certificateSelector`"
 inherit:
-  name: tlsPEMKeyPassword
+  name: tlsCertificateKeyFilePassword
   program: mongod
   file: options-mongod.yaml
 ---
@@ -731,7 +763,7 @@ type: string
 directive: setting
 replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
-  pemKeyOption: ":setting:`~net.tls.PEMKeyFile`"
+  pemKeyOption: ":setting:`~net.tls.certificateKeyFile`"
   intro: "The"
   directive: "setting"
   selector: ":setting:`net.tls.clusterCertificateSelector`"
@@ -928,7 +960,7 @@ replacement:
   program: ":binary:`~bin.mongos` or :binary:`~bin.mongod`"
   intro: "The"
   selector: ":setting:`net.ssl.certificateSelector`"
-  alternative: ":setting:`net.tls.PEMKeyFile`"
+  alternative: ":setting:`net.tls.certificateKeyFile`"
 inherit:
   name: sslPEMKeyFile
   program: mongod
@@ -943,7 +975,7 @@ replacement:
   intro: "The"
   pemKeyOption: ":setting:`~net.ssl.PEMKeyFile`"
   selector: ":setting:`net.ssl.certificateSelector`"
-  alternative: ":setting:`net.tls.PEMKeyPassword`"
+  alternative: ":setting:`net.tls.certificateKeyFilePassword`"
 inherit:
   name: sslPEMKeyPassword
   program: mongod
@@ -1404,6 +1436,30 @@ post: |
 
 ---
 program: conf
+name: storage.indexBuildRetry
+type: boolean
+default: true
+directive: setting
+description: |
+  Specifies whether :binary:`~bin.mongod` rebuilds incomplete indexes on the
+  next start up. This applies in cases where :binary:`~bin.mongod` restarts
+  after it has shut down or stopped in the middle of an index build. In
+  such cases, :binary:`~bin.mongod` always removes any incomplete indexes,
+  and then, by default, attempts to rebuild them. To stop :binary:`~bin.mongod`
+  from rebuilding indexes, set this option to ``false``.
+
+  .. versionchanged:: 4.0
+
+     The setting {{role}} cannot be used in conjunction with
+     :setting:`replication.replSetName`.
+
+post: |
+  The {{role}} setting is available only for :binary:`~bin.mongod`.
+
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+
+---
+program: conf
 name: storage.syncPeriodSecs
 type: number
 default: 60
@@ -1733,7 +1789,6 @@ directive: setting
 type: "float"
 replacement:
   program: ":binary:`~bin.mongod`"
-  intro: "The"
 inherit:
   name: wiredTigerCacheSizeGB
   program: mongod
@@ -2238,16 +2293,36 @@ post: |
 
 ---
 program: conf
-name:  cloud.monitoring.free.tag
+name:  cloud.monitoring.free.tags
 type: string
 directive: setting
 inherit:
-  name: enableFreeMonitoringTag
+  name: freeMonitoringTag
   program: mongod
   file: options-mongod.yaml
 post: |
 
    For the corresponding command-line option, see
-   :option:`--enableFreeMonitoringTag <mongod --enableFreeMonitoringTag>`.
+   :option:`--freeMonitoringTag <mongod --freeMonitoringTag>`.
+---
+program: conf
+name: security.clusterIpSourceWhitelist
+type: list
+directive: setting
+inherit:
+  name: clusterIpSourceWhitelist
+  program: mongod
+  file: options-mongod.yaml
+description: |
+  
+  {{role}} requires specifying each IPv4/6 address or Classless Inter-Domain
+  Routing (`CIDR <https://tools.ietf.org/html/rfc4632>`_) range as a YAML list:
 
+  .. code-block:: yaml
+     
+     security:
+       clusterIpSourceWhitelist:
+         - 192.0.2.0/24
+         - 127.0.0.1
+         - ::1
 ...

@@ -70,23 +70,34 @@ action:
         { ns: "test.foo", min: { x: 2 }, jumbo: true },
         { $unset: { jumbo: "" } }
      )
+
 ---
-title: Restart the balancer.
-ref: restart-balancer
-level: 4
-content: |
-   Restart the balancer, following the steps in
-   :ref:`sharding-balancing-enable`.
----
-title: Optional. Clear current cluster meta information.
+title: Clear the cached routing information.
 ref: flush-router-config
 level: 4
-pre: |
-   To ensure that :binary:`~bin.mongos` instances update their cluster
-   information cache, run :dbcommand:`flushRouterConfig` in the
-   ``admin`` database.
-action:
-   language: javascript
-   code: |
-     db.adminCommand({ flushRouterConfig: 1 } )
+content: |
+
+   After the jumbo flag has been cleared out from the ``chunks``
+   collection, update the cluster routing metadata cache.
+
+   Starting in MongoDB 4.0.6 (and 3.6.11), you must flush the cache on
+   the **config server primary** for the namespace. This notifies the
+   balancer of the jumbo flag clearance.
+
+   In earlier versions (MongoDB 3.4-series, MongoDB 3.6.0-3.6.10,
+   MongoDB 4.0.0-4.0.5), you must step down the config server primary.
+
+   Starting in MongoDB 4.0.6 (and 3.6.11)
+     Connect a
+     :binary:`~bin.mongo` shell to the **config server primary** and run
+     :dbcommand:`flushRouterConfig` for the collection:
+
+     .. code-block:: javascript
+
+       db.adminCommand( { flushRouterConfig:  "test.foo" } )
+
+   In earlier versions (MongoDB 3.4-series, MongoDB 3.6.0-3.6.10, MongoDB 4.0.0-4.0.5)
+      Step down the config server primary to clear the routing metadata cache
+      from the config servers.
+
 ...

@@ -1,0 +1,511 @@
+==================================
+Client-Side Field Level Encryption
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-client-side-field-level-encryption-beta.rst
+
+.. versionadded:: 4.2
+
+The official MongoDB 4.2-compatible drivers provide a client-side field level
+encryption framework. Applications can encrypt fields in documents *prior* to
+transmitting data over the wire to the server. Only applications with access to
+the correct encryption keys can decrypt and read the protected data. Deleting an
+encryption key renders all data encrypted using that key as permanently
+unreadable.
+
+For example, a MongoDB cluster enforcing 
+:ref:`authentication <authentication>` uses 
+:ref:`TLS encryption <transport-encryption>` to protect data in transit.
+The cluster also uses the 
+:ref:`MongoDB encrypted storage engine <encrypted-storage-engine>` to
+secure data on disk. Consider the following scenarios:
+
+- An employee has administrative access to the cluster and its host 
+  machines. The employee's access level allows them to view 
+  high-sensitivity data in a decrypted state as part of their normal 
+  duties.
+
+- A third-party provider hosts the MongoDB cluster. The provider
+  has a host-machine or database-level security breach where 
+  unauthorized parties access the data in a decrypted state.
+
+- A third-party data analytics firm has access to data that includes
+  private, personal, or confidential information. The third-party
+  firm loads the decrypted data into an unsecured data storage volume 
+  which unauthorized parties can access.
+
+With each scenario, a user with privileged access to either the MongoDB cluster
+or a host machine can bypass encryption and read data that is private,
+privileged, or confidential. Using client-side field level encryption to protect
+data *prior* to being written to the server mitigates the risk of exposing that
+data in the event network or disk encryption is bypassed.
+
+Consider the following document:
+
+.. code-block:: json
+
+   {
+     "name" : "John Doe",
+     "address" : {
+       "street" : "1234 Main Street",
+       "city" : "MongoDBVille",
+       "zip" : 99999
+     },
+     "phone" : "949-555-1212",
+     "ssn" : "123-45-6789"
+   }
+
+With client-side field level encryption, the application can 
+specifically encrypt sensitive information like the ``ssn``
+and ``phone``. Encrypted fields are stored as
+:bsontype:`binary data <data_binary>` with 
+`subtype 6 <https://github.com/mongodb/specifications/blob/master/source/client-side-encryption/subtype6.rst>`_:
+
+.. code-block:: json
+
+   {
+     "name" : "John Doe",
+     "address" : {
+       "street" : "1234 Main Street",
+       "city" : "MongoDBVille",
+       "zip" : 99999
+     },
+     "phone" : BinData(6,"U2FsdGVkX1+CGIDGUnGgtS46+c7R5u17SwPDEmzyCbA="),
+     "ssn" : BinData(6,"AaloEw285E3AnfjP+r8ph2YCvMI1+rWzpZK97tV6iz0jx")
+   }
+
+MongoDB supports two methods of client-side field level encryption using the
+official MongoDB 4.2-compatible drivers:
+
+Explicit (manual) encryption of fields
+  MongoDB 4.2-compatible drivers support explicitly encrypting
+  or decrypting fields with a specific data key and encryption
+  algorithm.
+
+  Applications must modify any code associated with constructing read and write
+  operations to include encryption/decryption logic via the driver encryption
+  library. Applications are responsible for selecting the appropriate data
+  key for encryption/decryption on a per-operation basis.
+
+  The 4.2 :binary:`~bin.mongo` shell provides the following methods for 
+  performing explicit encryption and decryption:
+
+  - :method:`getClientEncryption()`
+  - :method:`ClientEncryption.encrypt()`
+  - :method:`ClientEncryption.decrypt()`
+
+Automatic encryption of fields
+  MongoDB 4.2 Enterprise extends 4.2-compatible driver encryption support to 
+  include :ref:`automatic field level encryption 
+  <field-level-encryption-automatic>` 
+  using :ref:`JSON schema syntax <field-level-encryption-json-schema>`.
+  
+  Applications must modify only the driver client object configuration code to
+  include automatic encryption settings. All read/write operations to a cluster
+  via the encryption-configured client are automatically encrypted and decrypted
+  using the predefined automatic encryption rules. Code associated with
+  constructing read and write operations does not require additional
+  modification.
+
+MongoDB 4.2-compatible drivers and the 4.2 :binary:`~bin.mongo` shell 
+automatically decrypt :bsontype:`Binary` subtype 6 ``BinData`` objects
+created using client-side field level encryption. For more information on 
+automatic decryption, see :ref:`field-level-encryption-automatic-decryption`.
+
+.. important::
+
+   MongoDB client-side field level encryption only supports encrypting
+   single fields in a document. To encrypt an entire document, you must
+   encrypt each individual field in the document. 
+
+.. _field-level-encryption-automatic:
+
+Automatic Field Level Encryption
+--------------------------------
+
+.. include:: /includes/fact-enterprise-only-admonition.rst
+
+Official MongoDB 4.2-compatible drivers support automatic client-side field
+level encryption. Applications configured for automatic client-side field level
+encryption identify specific fields in documents for encryption.
+4.2 drivers use the automatic encryption rules specified to the client for
+identifying encrypted fields and their associated encryption keys.
+
+For write operations, 4.2 drivers encrypt field values *prior* to writing to the
+MongoDB database. For read operations, 4.2 drivers encrypt field values in the
+query *prior* to issuing the read operation. 4.2 drivers can 
+:ref:`automatically decrypt <field-level-encryption-automatic-decryption>` 
+encrypted values returned in a document *only if* the client has access to the 
+keys used to protect those values.
+
+Applications must specify the following components when
+instantiating the client to enable automatic client-side field level encryption:
+
+- A MongoDB cluster storing the key vault of data keys.
+
+- The key vault namespace (``<database>.<collection>``) used to
+  store encrypted data keys. 
+
+- A supported :ref:`Key Management Service (KMS) <field-level-encryption-kms>` 
+  provider used to manage Customer Master Keys (CMK). MongoDB encrypts all data
+  keys using the specified CMK *prior* to storing them in the key vault, leaving
+  only metadata unencrypted.
+  
+  Drivers need access to the KMS to encrypt and decrypt protected
+  fields *or* to create new data keys.
+
+- Per-field encryption rules using 
+  :ref:`JSON schema syntax <field-level-encryption-json-schema>`. 
+
+The 4.2-compatible drivers use the Enterprise-only
+:ref:`field-level-encryption-mongocryptd` process to parse the JSON
+schema and apply the encryption rules when reading or writing documents.
+Automatic encryption *requires* the ``mongocryptd`` process.
+
+Each official MongoDB 4.2-compatible driver introduces new functionality
+for supporting automatic encryption and data key management. Defer to
+your preferred driver's documentation for language-specific instructions
+on implementing automatic field level encryption.
+
+.. _field-level-encryption-automatic-decryption:
+
+Automatic Field Decryption
+--------------------------
+
+MongoDB 4.2-compatible drivers and the 4.2 :binary:`~bin.mongo` shell
+automatically decrypt :bsontype:`BinData <Binary>` subtype 6 fields created 
+using client-side field level encryption.
+
+The :bsontype:`BinData <Binary>` blob metadata
+includes the data key ``_id`` and encryption algorithm used to encrypt the
+binary data. The 4.2-compatible drivers and 4.2 :binary:`~bin.mongo` shell
+automatically decrypt ``BinData`` type 6 fields. The automatic decryption
+process works as follows:
+
+1. Retrieve the data key used to encrypt the value from the
+   :bsontype:`BinData <Binary>` blob metadata.
+
+#. Check the key vault configured in the current database connection for the 
+   specified data key. MongoDB encrypts data keys with a 
+   Customer Master Key prior to storing them in the key vault. 
+   
+#. Retrieve the unique identifier of the CMK from the data key metadata.
+
+#. Use the :ref:`Key Management Service <field-level-encryption-kms>` (KMS).
+   configured in the current database connection to decrypt the data
+   key using the CMK.
+
+#. Decrypt the :bsontype:`BinData <Binary>` value using the decrypted data key.
+
+Applications with access to the MongoDB server that do not *also* have access to
+the required keys cannot decrypt the ``BinData``.
+
+For more information on configuring the database connection for 
+client-side field level encryption, see the 
+:method:`Mongo()` constructor *or* defer to the documentation for 
+your preferred driver's client construction method.
+
+.. _field-level-encryption-algorithms:
+
+Encryption Algorithms
+---------------------
+
+MongoDB client-side field level encryption uses the encrypt-then-MAC approach
+combined with either a deterministic or random initialization vector to encrypt
+field values. MongoDB *only* supports the AES-256-CBC encryption algorithm with
+HMAC-SHA-512 MAC. 
+
+.. _field-level-encryption-deterministic:
+
+Deterministic Encryption
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The deterministic encryption algorithm ensures a given input value *always*
+encrypts to the same output value each time the algorithm is executed. While
+deterministic encryption provides greater support for read operations, encrypted
+data with low cardinality is susceptible to frequency analysis recovery.
+
+For sensitive fields that are *not* used in read operations, applications may
+use :ref:`field-level-encryption-random` for improved protection from frequency
+analysis recovery.
+
+.. _field-level-encryption-random:
+
+Random Encryption
+~~~~~~~~~~~~~~~~~
+
+The random encryption algorithm ensures that a given input value
+*always* encrypts to a different output value each time the algorithm is
+executed. While random encryption provides the strongest guarantees of
+data confidentiality, it also prevents support for any read operations
+which must operate on the encrypted field to evaluate the query.
+
+Random encryption also supports encrypting entire objects or arrays. For
+example, consider the following document:
+
+.. code-block:: json
+
+   {
+    "personal_information" : {
+      "ssn" : "123-45-6789",
+      "credit_score" : 750,
+      "credit_cards" : [ "1234-5678-9012-3456", "9876-5432-1098-7654"]
+    },
+    "phone_numbers" : [ "(212) 555-0153" ]
+   }
+
+Encrypting the ``personal_information`` and ``phone_numbers`` fields using the
+random encryption algorithm encrypts the *entire* object. While this protects
+all fields nested under those fields, it also prevents querying against those
+nested fields. 
+
+For sensitive fields that *are* used in read operations,
+applications must use :ref:`field-level-encryption-deterministic` for improved
+read support on encrypted fields.
+
+Encryption Components
+---------------------
+
+MongoDB client-side field level encryption uses the following 
+components:
+
+- A third-party :ref:`Key Management Service (KMS) <field-level-encryption-kms>`
+  for storing and retrieving a Customer Master Key (CMK).
+
+- A :ref:`key vault <field-level-encryption-keyvault>` of data keys. 
+
+- The ``libmongocrypt`` library that manages encryption, decryption,
+  and communication between the KMS and ``mongocryptd``. Included with
+  MongoDB 4.2 drivers.
+
+- The :ref:`field-level-encryption-mongocryptd` daemon for supporting 
+  automatic encryption. Included in MongoDB Enterprise *only*.
+
+- *Optional* Server-side :ref:`schema-validation-json` 
+  that specifies encryption validation rules.
+
+The following diagram illustrates the relationships between the
+driver and each encryption component:
+
+.. figure:: /images/client-side-field-level-encryption-diagram.svg
+   :alt: Diagram of relationships between driver and encryption components
+   :figwidth: 600px
+
+.. _field-level-encryption-kms:
+
+Supported Key Management Services
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Client-side field level encryption requires a Key Management Service (KMS) for
+accessing a Customer Master Key (CMK). MongoDB automatically encrypts data keys
+using the specified CMK during 
+:doc:`data key creation </reference/method/KeyVault.createKey>`. 
+
+Deleting the CMK renders all data keys encrypted with that CMK as permanently
+unreadable, which in turn renders all values encrypted with those data keys as
+permanently unreadable.
+
+Client-side field level encryption supports the following KMS providers:
+
+- :ref:`Amazon Web Services KMS <field-level-encryption-aws-kms>`
+- :ref:`Locally Managed Keyfile <field-level-encryption-local-kms>`
+
+.. _field-level-encryption-aws-kms:
+
+Amazon Web Services KMS
+```````````````````````
+
+MongoDB client-side encryption supports using the 
+`Amazon Web Services Key Management Service <https://aws.amazon.com/kms>`__
+for encrypting and decrypting data keys. Specifically, MongoDB 
+securely transmits the data key to AWS KMS for encrypting or decrypting using
+the specified Customer Master Key (CMK). The CMK never leaves the 
+AWS KMS. 
+
+The :binary:`~bin.mongo` shell supports two methods for configuring 
+access to an AWS KMS:
+
+- Use the client-side field level encryption :ref:`command-line options 
+  <mongo-client-side-field-level-encryption-options>`,
+
+  *or*
+
+- Use the :method:`Mongo()` constructor to create a database connection with 
+  the required AWS :ref:`KMS configuration options 
+  <ClientSideFieldLevelEncryptionOptions>`.
+
+Configuring access to an AWS KMS requires at minimum an AWS access key and its
+corresponding secret key. The IAM user associated to the access key *must*
+have at least one policy with the following actions:
+
+- ``kms:Decrypt`` 
+  `(reference) 
+  <https://docs.aws.amazon.com/kms/latest/APIReference/API_Decrypt.html>`__ 
+
+- ``kms:Encrypt`` 
+  `(reference) 
+  <https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html>`__ 
+
+.. admonition:: Implement Seperation of Least Privilege for KMS Access
+   :class: note
+
+   Consider configuring IAM user roles such that MongoDB has only the 
+   access to the actions and resources required to function. 
+
+   For example, the following policy JSON scopes the required actions to a
+   single CMK:
+
+   .. code-block:: json
+
+      {
+          "Version": "2012-10-17",
+          "Statement": [
+              {
+                  "Sid": "VisualEditor0",
+                  "Effect": "Allow",
+                  "Action": [
+                      "kms:Decrypt",
+                      "kms:Encrypt"
+                  ],
+                  "Resource": "arn:aws:kms:region:account:key/12a345b6-cd7e-8f9g-0h1i-jk23l45mn6o7"
+              }
+          ]
+      }
+
+For complete documentation on data key management using AWS KMS, see 
+:doc:`/tutorial/manage-client-side-encryption-data-keys`.
+
+.. _field-level-encryption-local-kms:
+
+Locally Managed Key
+```````````````````
+
+The :binary:`~bin.mongo` shell supports specifying a locally managed key as a 
+KMS using the :method:`Mongo()` constructor. The local key *must* be a 
+96-byte long string.
+
+For complete documentation on data key management using the local keyfile,
+see :doc:`/tutorial/manage-client-side-encryption-data-keys`.
+
+.. _field-level-encryption-keyvault:
+
+Key Vault
+~~~~~~~~~
+
+The key vault is a collection that stores data keys for use with
+client-side field level encryption. Data keys are encrypted using a 
+Customer Master Key (CMK) managed through a supported
+:ref:`Key Management System (KMS) <field-level-encryption-kms>`.
+
+The :binary:`~bin.mongo` shell provides helper methods for data key 
+management:
+
+.. list-table::
+   :widths: 40 40
+
+   * - Retrieving Data Keys
+     -
+       - :method:`KeyVault.getKey()`
+       - :method:`KeyVault.getKeys()`
+       - :method:`KeyVault.getKeyByAltName()`
+
+   * - Creating or Modifying Data Keys
+     -
+      - :method:`KeyVault.createKey()`
+      - :method:`KeyVault.addKeyAlternateName()`
+      - :method:`KeyVault.removeKeyAlternateName()`
+
+   * - Removing Data Keys
+       
+       .. important::
+          
+          Removing a data key renders all fields encrypted using that 
+          data key as permanently unreadable.
+
+     - 
+      - :method:`KeyVault.deleteKey()`
+
+Applications with :authrole:`read` access to the key vault collection can
+retrieve data keys by querying the collection. However, only applications with
+access to the CMK used to encrypt a data key can use that key for encryption or
+decryption.
+
+By default MongoDB stores the key vault collection on the connected cluster.
+MongoDB also supports specifying a remote cluster as the key vault. Applications
+must have access to both the remote key vault cluster and the connection 
+cluster to perform client-side field level encryption operations.
+
+Data keys have the following structure:
+
+.. code-block:: json
+
+   {
+     "_id" : UUID("<string>"),
+     "keyMaterial" : BinData(0,"<encrypted binary data string>"),
+   	 "creationDate" : ISODate("2019-08-20T15:45:02.575Z"),
+   	 "updateDate" : ISODate("2019-08-20T15:45:02.575Z"),
+   	 "status" : <int>,
+   	 "version" : NumberLong(0),
+   	 "masterKey" : {
+   	   "provider" : "<string>",
+   	   "key" : "<string>",
+   	   "region" : "<string>",
+   	   "endpoint" : "<string>"
+   	 },
+   	 "keyAltNames" : [
+       "<string>"
+     ]
+   }
+
+For complete documentation on data key management, see
+:doc:`/tutorial/manage-client-side-encryption-data-keys`.
+
+.. _field-level-encryption-mongocryptd:
+.. _mongocryptd:
+
+``mongocryptd``
+~~~~~~~~~~~~~~~
+
+*MongoDB Enterprise Only*
+
+``mongocryptd`` is a driver-spawned client-side process that parses and
+validates the JSON schema encryption rules. ``mongocryptd`` is a required
+component in 
+:ref:`automatic field encryption <field-level-encryption-automatic>` and
+is included as a component in the 
+:doc:`MongoDB  Enterprise Server </administration/install-enterprise>` package.
+
+4.2 drivers automatically spawn the ``mongocryptd`` process if
+available on the host system. Applications can control the spawning
+behavior as part of the automatic encryption options. Defer to the
+driver documentation for the specific options and syntax for
+controlling ``mongocryptd`` spawning.
+
+Driver Compatibility Table
+--------------------------
+
+MongoDB 4.2 client-side field level encryption with
+automatic field encryption is available in the following driver 
+versions:
+
+- :ecosystem:`Node </drivers/node>` ``3.3.0``
+- :ecosystem:`Java </drivers/java>` ``3.11.0``
+- :ecosystem:`Python (PyMongo) </drivers/pymongo>` ``3.9.0``
+
+Please refer to the driver documentation for syntax and implementation
+examples.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /reference/security-client-side-automatic-json-schema.txt
+   /tutorial/manage-client-side-encryption-data-keys.txt

@@ -25,7 +25,17 @@
                          "clientMetadata" : <document>,
                          "active" : <boolean>,
                          "currentOpTime" : <string>,
+                         "effectiveUsers" : [
+                            {
+                               "user" : <string>,
+                               "db" : <string>
+                            }
+                         ],
                          "opid" : <number>,
+                         "lsid" : {
+                            "id" : <UUID>,
+                            "uid" : <BinData>
+                         },
                          "secs_running" : <NumberLong()>,
                          "microsecs_running" : <number>,
                          "op" : <string>,
@@ -53,6 +63,8 @@
                          "killPending" : <boolean>,
                          "numYields" : <number>,
                          "locks" : {
+                             "ParallelBatchWriterMode" : <string>,
+                             "ReplicationStateTransition" : <string>,
                              "Global" : <string>,
                              "Database" : <string>,
                              "Collection" : <string>,
@@ -61,7 +73,7 @@
                          },
                          "waitingForLock" : <boolean>,
                          "lockStats" : {
-                             "Global": {
+                             "ParallelBatchWriterMode" : {
                                 "acquireCount": {
                                    "r": <NumberLong>,
                                    "w": <NumberLong>,
@@ -86,6 +98,12 @@
                                    "R" : NumberLong(0),
                                    "W" : NumberLong(0)
                                 }
+                             },
+                             "ReplicationStateTransition" : {
+                                ...
+                             },
+                             "Global": {
+                                ...
                              },
                              "Database" : {
                                 ...
@@ -141,6 +159,12 @@
                         },
                         "active" : <boolean>,
                         "currentOpTime" : <string>,
+                        "effectiveUsers" : [
+                           {
+                              "user" : <string>,
+                              "db" : <string>
+                           }
+                        ],
                         "opid" : <number>,
                         "secs_running" : <NumberLong()>,
                         "microsecs_running" : <number>,
@@ -149,6 +173,8 @@
                         "command" : <document>,
                         "originatingCommand" : <document>,
                         "planSummary": <string>,
+                        "prepareReadConflicts" : <NumberLong()>,
+                        "writeConflicts" : <NumberLong()>,
                         "cursor" : {                              // only for getMore operations
                            "cursorId" : <NumberLong()>,
                            "createdDate" : <ISODate()>,
@@ -170,6 +196,8 @@
                         "killPending" : <boolean>,
                         "numYields" : <number>,
                         "locks" : {
+                            "ParallelBatchWriterMode" : <string>,
+                            "ReplicationStateTransition" : <string>,
                             "Global" : <string>,
                             "Database" : <string>,
                             "Collection" : <string>,
@@ -178,7 +206,7 @@
                         },
                         "waitingForLock" : <boolean>,
                         "lockStats" : {
-                            "Global": {
+                            "ParallelBatchWriterMode" : {
                                "acquireCount": {
                                   "r": <NumberLong>,
                                   "w": <NumberLong>,
@@ -203,6 +231,12 @@
                                   "R" : NumberLong(0),
                                   "W" : NumberLong(0)
                                }
+                            },
+                            "ReplicationStateTransition" : { 
+                               ...
+                            },
+                            "Global" : {
+                               ...
                             },
                             "Database" : {
                                ...
@@ -244,13 +278,27 @@
                          "clientMetadata" : <document>,
                          "active" : <boolean>,
                          "currentOpTime" : <string>,
-                         "opid" : <number>,
+                         "effectiveUsers" : [
+                            {
+                               "user" : <string>,
+                               "db" : <string>
+                            }
+                         ],
+                         "runBy" : [
+                            {
+                               "user" : <string>,
+                               "db" : <string>
+                            }
+                         ],
+                         "opid" : <string>,
                          "secs_running" : <NumberLong()>,
                          "microsecs_running" : <number>,
                          "op" : <string>,
                          "ns" : <string>,
                          "command" : <document>,
                          "planSummary": <string>,
+                         "prepareReadConflicts" : <NumberLong()>,
+                         "writeConflicts" : <NumberLong()>,
                          "cursor" : {                              // only for getMore operations
                             "cursorId" : <NumberLong()>,
                             "createdDate" : <ISODate()>,
@@ -272,6 +320,8 @@
                          "killPending" : <boolean>,
                          "numYields" : <number>,
                          "locks" : {
+                             "ParallelBatchWriterMode" : <string>,
+                             "ReplicationStateTransition" : <string>,
                              "Global" : <string>,
                              "Database" : <string>,
                              "Collection" : <string>,
@@ -280,7 +330,7 @@
                          },
                          "waitingForLock" : <boolean>,
                          "lockStats" : {
-                             "Global": {
+                             "ParallelBatchWriterMode": {
                                 "acquireCount": {
                                    "r": <NumberLong>,
                                    "w": <NumberLong>,
@@ -305,6 +355,12 @@
                                    "R" : NumberLong(0),
                                    "W" : NumberLong(0)
                                 }
+                             },
+                             "ReplicationStateTransition" : {
+                                ...
+                             },
+                             "Global" : {
+                                ...
                              },
                              "Database" : {
                                 ...

@@ -1,7 +1,5 @@
-MongoDB only provides packages for the following 64-bit LTS (long-term support)
+MongoDB only provides packages for the following :red:`64-bit` LTS (long-term support)
 Ubuntu releases:
-
-- 14.04 LTS (trusty)
 
 - 16.04 LTS (xenial)
 

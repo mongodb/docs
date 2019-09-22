@@ -127,7 +127,8 @@
 
          .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c 
             :language: c
-            :lines: 3090-3117
+            :start-after: commit transactions with retry logic
+            :end-before: updates two collections in a transaction 
 
      - id: cpp
        content: |
@@ -135,5 +136,13 @@
          .. literalinclude:: /driver-examples/cpp-transactions.cpp
             :language: cpp
             :dedent: 8
+            :start-after: Start Transactions Retry Example 2
+            :end-before: End Transactions Retry Example 2
+
+     - id: go
+       content: |
+
+         .. literalinclude:: /driver-examples/go_examples.go
+            :language: go
             :start-after: Start Transactions Retry Example 2
             :end-before: End Transactions Retry Example 2

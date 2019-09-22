@@ -145,7 +145,8 @@
 
          .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c 
             :language: c
-            :lines: 3057-3087
+            :start-after: runs transactions with retry logic
+            :end-before: commit transactions with retry logic
 
      - id: cpp
        content: |
@@ -153,5 +154,13 @@
          .. literalinclude:: /driver-examples/cpp-transactions.cpp
             :language: cpp
             :dedent: 8
+            :start-after: Start Transactions Retry Example 1
+            :end-before: End Transactions Retry Example 1
+
+     - id: go
+       content: |
+
+         .. literalinclude:: /driver-examples/go_examples.go
+            :language: go
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1

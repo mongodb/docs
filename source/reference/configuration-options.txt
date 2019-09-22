@@ -31,15 +31,17 @@ Using a configuration file makes managing :binary:`~bin.mongod` and
 deployments. You can also add comments to the configuration file to
 explain the server's settings.
 
-On Linux, a default :file:`/etc/mongod.conf` configuration file is
-included when using a package manager to install MongoDB.
+.. admonition:: Default Configuration File
+   :class: note
 
-On Windows, a default :file:`<install directory>/bin/mongod.cfg`
-configuration file is included during the installation.
+   - On Linux, a default :file:`/etc/mongod.conf` configuration file is
+     included when using a package manager to install MongoDB.
 
-On macOS, the installation does not include a default configuration
-file; instead, to use a configuration file, create a file.  
+   - On Windows, a default :file:`<install directory>/bin/mongod.cfg`
+     configuration file is included during the installation.
 
+   - On macOS, a default :file:`/usr/local/etc/mongod.conf` configuration
+     file is included when installing from MongoDB's official Homebrew tap.
 
 File Format
 ~~~~~~~~~~~
@@ -86,98 +88,36 @@ configuration file, :binary:`~bin.mongod` may not start.
 
 .. [#yaml-json] YAML is a superset of :term:`JSON`.
 
-.. _externally-sourced-values:
-
 Externally Sourced Values
-~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````
 
 .. versionadded:: 4.2
 
-Starting in MongoDB 4.2, users can use expansion directives in the
-configuration file to define the value of configuration file options with
-values from an external source. The following expansion directives are
-available:
+   .. include:: /includes/fact-expansion-directive-intro.rst
 
-- :configexpansion:`__rest`
+The following expansion directives are available:
 
-You must use the :option:`--configExpand <mongod --configExpand>`
-option for the :binary:`~bin.mongod`/:binary:`~bin.mongos` to enable parsing of
-expansion directives. If you specify any expansion directives in the
-configuration file and start the :binary:`~bin.mongod`/:binary:`~bin.mongos`
-without this option, the :binary:`~bin.mongod`/:binary:`~bin.mongos` fails
-to start. This option must be configured on the command line only, and can not
-be expressed in either YAML or INI configuration files.
- 
-.. configexpansion:: __rest
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
 
-   The ``__rest`` expansion directive allows users to use externally sourced
-   values in a configuration file. ``__rest`` makes http(s) calls for values
-   and can be used two ways.
+   * - Expansion Directive
+     - Description
 
-   ``__rest`` can fetch field values:
+   * - :configexpansion:`__rest`
+     - Allows users to specify a ``REST`` endpoint as the external source
+       for configuration file options *or* the full configuration file.
+       
+       .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-rest.rst
 
-   .. code-block:: yaml
+   * - :configexpansion:`__exec`
+     - Allows users to specify a shell or terminal command as the
+       external source for configuration file options *or* the
+       full configuration file.
+       
+       .. include:: /includes/extracts/4.2-changes-expansion-configuration-file-permission-exec.rst
 
-      <field> : 
-         __rest: <string>
-         type: string
-         trim: < none | whitespace >
-
-   ``__rest`` can also be used to fetch entire configuration files:
-
-   .. code-block:: yaml
-
-      __rest: <string>
-      type: yaml
-      trim: < none | whitespace >  
-
-   The ``__rest`` expansion directive takes a string representing the url for
-   which the mongod or mongos issues a ``GET`` request to retrieve the value.
-
-   .. note::
-
-      - ``__rest`` URLs must be HTTPS unless they are referring to
-        localhost, in which case they can use unencrypted HTTP URLs.
-      - If the REST endpoint requires authentication, encode credentials into the
-        URL with standard
-        `RFC 3986 User Information <https://tools.ietf.org/html/rfc3986#section-3.2.1>`_
-        format.
-      - HTTPS requests require TLS 1.1 or later on the client and the host.
-
-   The following optional fields affect the behavior of the ``__rest``
-   expansion directive:
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 80
-
-      * - Field
-        - Description
-
-      * - ``type``
- 
-        - Optional. Defaults to ``string``
-
-          For ``string``, the :binary:`~bin.mongod`/:binary:`~bin.mongos` uses
-          the value returned from the endpoint as a literal string. This value
-          is not parsed for additional structure beyond what is specific to the
-          setting.
-
-          For ``yaml``, the ``__rest`` directive must be the *only* block in
-          the entire configuration file. Users must define their entire
-          configuration file within the specified endpoint, and the return type
-          must be YAML. See the :ref:`yaml example<rest-yaml-example>`.
-
-          .. warning::
-             Recursive ``__rest`` expansion directives are forbidden. If the
-             value returned from a ``__rest`` expansion directive contains an
-             expansion directive, the :binary:`~bin.mongod`/
-             :binary:`~bin.mongos` throws an error and fails to start.
-
-      * - ``trim``
-
-        - Optional. Defaults to ``none``. Specify ``whitespace`` to trim any
-          leading or trailing whitespace from the resulting response.
+For complete documentation, see :ref:`externally-sourced-values`.
 
 Use the Configuration File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -209,128 +149,28 @@ If you installed from a package and have started MongoDB using your
 system's :term:`init script`, you are already using a configuration
 file.
 
-.. _rest-yaml-example:
+Expansion Directives and ``--configExpand``
+```````````````````````````````````````````
 
-``__rest`` Expansion with YAML Example
-``````````````````````````````````````
+If you are using :ref:`expansion directives <expansion-directives>`
+in the configuration file, you must include the
+:option:`--configExpand <mongod --configExpand>` option when starting
+the :binary:`~bin.mongod` or :binary:`~bin.mongos`. For example:
 
-When using expansion directives, you must include the :option:`--configExpand
-<mongod --configExpand>` command line option when starting the the
-:binary:`~bin.mongod`/:binary:`~bin.mongos`.
+.. code-block:: sh
 
-For example, the configuration file ``mongod.conf`` consists of the following
-``__rest`` expansion directive. 
+   mongod --config /etc/mongod.conf  --configExpand "rest,exec"
+   mongos --config /etc/mongos.conf  --configExpand "rest,exec"
 
-.. code-block:: yaml
+If the configuration file includes an expansion directive and you start
+the :binary:`~bin.mongod`/:binary:`~bin.mongos` without specifying
+that directive in the :option:`--configExpand <mongod --configExpand>`
+option, the :binary:`~bin.mongod`/:binary:`~bin.mongos` fails to start.
 
-  __rest: "https://mongoconf.example.net:8080/record/1"
-  type: yaml
-
-.. note::
-   When using the ``__rest`` expansion directive with ``type : yaml``, the
-   configuration file must include only the expansion directive and its
-   related options. All other required configuration options must exist on
-   the remote resource specified in ``__rest``.
-
-The YAML document recorded at the URL is:
-
-.. code-block:: yaml
-
-  net:
-     port: 20128
-
-To start :binary:`~bin.mongod` using the configuration, include both the
-configuration file and the :option:`--configExpand <mongod --configExpand>`
-options:
-
-.. code-block:: yaml
-
-  mongod -f mongod.conf --configExpand rest
-
-To verify the configuration, you can include the 
-:option:`--outputConfig <mongod --outputConfig>` option.
-The :option:`--outputConfig <mongod --outputConfig>` option prints the
-specified configuration, including any resolved values,  to ``stdout`` and
-halts the :binary:`~bin.mongod`.
-
-.. warning::
-   
-   The :option:`--outputConfig <mongod --outputConfig>` option returns the
-   resolved values for any field using an expansion directive. This includes
-   any private or sensitive information previously obscured by using an
-   external source for configuration.
-
-For example:
-
-.. code-block:: yaml
-
-   mongod -f mongod.conf --configExpand rest  --outputConfig
-
-Will output:
-
-.. code-block:: yaml
-
-  config: mongod.conf
-  configExpand: rest
-  net:
-    port: 20128
-  outputConfig: true
-
-``--outputConfig`` with Configuration Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :option:`--outputConfig <mongod --outputConfig>` option causes the
-:binary:`~bin.mongod` or :binary:`~bin.mongos` to output its resolved YAML
-configuration document to ``stdout`` and halt. For configuration options using
-externally sourced values, :option:`--outputConfig <mongod --outputConfig>`
-returns the resolved value for those options.
-
-.. warning::
-   
-   The :option:`--outputConfig <mongod --outputConfig>` option returns the
-   resolved values for any field using an expansion directive. This includes
-   any private or sensitive information previously obscured by using an
-   external source for configuration.
-
-.. example::
-
-   The following configuration file ``mongod.conf`` contains a ``__rest``
-   expansion directive. 
-
-   .. code-block:: yaml
-
-      net:
-         port:
-            __rest: "https://mongoconf.example.net:8080/record/1"
-
-   The string recorded at the URL is:
-
-   .. code-block:: yaml
-
-      20128
-
-   After starting the :binary:`~bin.mongod` with:
-
-   .. code-block:: yaml
-
-      mongod -f mongod.conf --configExpand rest --outputConfig
-
-   The output is:
-
-   .. code-block:: yaml
-
-      config: mongod.conf
-      net:
-        port: 20128
-      outputConfig: true
+For complete documentation, see :ref:`externally-sourced-values`.
 
 Core Options
 ------------
-
-.. admonition:: Starting in version 4.2
-
-   - MongoDB removes the ``storage.indexBuildRetry`` option and the
-     corresponding ``--noIndexBuildRetry`` command-line option.
 
 ``systemLog`` Options
 ~~~~~~~~~~~~~~~~~~~~~
@@ -406,6 +246,10 @@ Core Options
          write:
             verbosity: <int>
 
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-debug-log-message.rst
+
 .. include:: /includes/option/setting-conf-systemLog.component.accessControl.verbosity.rst
 
 .. include:: /includes/option/setting-conf-systemLog.component.command.verbosity.rst
@@ -471,11 +315,11 @@ Core Options
       monitoring:
          free:
             state: <string>
-            tag: <string>
+            tags: <string>
 
 .. include:: /includes/option/setting-conf-cloud.monitoring.free.state.rst
 
-.. include:: /includes/option/setting-conf-cloud.monitoring.free.tag.rst
+.. include:: /includes/option/setting-conf-cloud.monitoring.free.tags.rst
 
 
 ``net`` Options
@@ -503,8 +347,8 @@ Core Options
          certificateSelector: <string>
          clusterCertificateSelector: <string>
          mode: <string>
-         PEMKeyFile: <string>
-         PEMKeyPassword: <string>
+         certificateKeyFile: <string>
+         certificateKeyFilePassword: <string>
          clusterFile: <string>
          clusterPassword: <string>
          CAFile: <string>
@@ -562,16 +406,16 @@ Core Options
 
 .. versionadded:: 4.2
 
-   MongoDB 4.2 adds ``tls`` options with identical functionality as the previous
-   ``ssl`` options. 
+   The ``tls`` options provide identical functionality as the
+   previous ``ssl`` options.
 
 .. code-block:: yaml
 
    net:
       tls:
          mode: <string>
-         PEMKeyFile: <string>
-         PEMKeyPassword: <string>
+         certificateKeyFile: <string>
+         certificateKeyFilePassword: <string>
          certificateSelector: <string>
          clusterCertificateSelector: <string>
          clusterFile: <string>
@@ -587,9 +431,9 @@ Core Options
 
 .. include:: /includes/option/setting-conf-net.tls.mode.rst
 
-.. include:: /includes/option/setting-conf-net.tls.PEMKeyFile.rst
+.. include:: /includes/option/setting-conf-net.tls.certificateKeyFile.rst
 
-.. include:: /includes/option/setting-conf-net.tls.PEMKeyPassword.rst
+.. include:: /includes/option/setting-conf-net.tls.certificateKeyFilePassword.rst
 
 .. include:: /includes/option/setting-conf-net.tls.certificateSelector.rst
 
@@ -630,7 +474,7 @@ Core Options
 .. code-block:: yaml
 
    net:
-      ssl:
+      ssl:                            # deprecated since 4.2
          sslOnNormalPorts: <boolean>  # deprecated since 2.6
          mode: <string>
          PEMKeyFile: <string>
@@ -706,6 +550,8 @@ Core Options
       transitionToAuth: <boolean>
       javascriptEnabled:  <boolean>
       redactClientLogData: <boolean>
+      clusterIpSourceWhitelist:
+        - <string>
       sasl:
          hostName: <string>
          serviceName: <string>
@@ -747,6 +593,8 @@ Core Options
 .. include:: /includes/option/setting-conf-security.javascriptEnabled.rst
 
 .. include:: /includes/option/setting-conf-security.redactClientLogData.rst
+
+.. include:: /includes/option/setting-conf-security.clusterIpSourceWhitelist.rst
 
 .. _encryption-key-management-conf-options:
 
@@ -873,6 +721,7 @@ LDAP Parameters
 
    storage:
       dbPath: <string>
+      indexBuildRetry: <boolean>
       journal:
          enabled: <boolean>
          commitIntervalMs: <num>
@@ -893,6 +742,8 @@ LDAP Parameters
             inMemorySizeGB: <number>
 
 .. include:: /includes/option/setting-conf-storage.dbPath.rst
+
+.. include:: /includes/option/setting-conf-storage.indexBuildRetry.rst
 
 .. include:: /includes/option/setting-conf-storage.journal.enabled.rst
 
@@ -963,6 +814,8 @@ LDAP Parameters
 
 .. _configuration-profiling-slowOpSampleRate:
 .. include:: /includes/option/setting-conf-operationProfiling.slowOpSampleRate.rst
+
+.. _replication-options:
 
 ``replication`` Options
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1084,8 +937,25 @@ Windows Service Options
 
 .. include:: /includes/option/setting-conf-processManagement.windowsService.servicePassword.rst
 
+Removed MMAPv1 Options
+----------------------
+
+Starting in version 4.2, MongoDB removes the deprecated MMAPv1 storage
+engine and the MMAPv1-specific configuration options:
+
+.. include:: /includes/removed-mmapv1-options.rst
+
+For earlier versions of MongoDB, refer to the corresponding version of
+the manual. For example:
+
+- :v4.0:`https://docs.mongodb.com/v4.0 </reference/configuration-options>`
+- :v3.6:`https://docs.mongodb.com/v3.6 </reference/configuration-options>`
+- :v3.4:`https://docs.mongodb.com/v3.4 </reference/configuration-options>`
+
 .. toctree::
    :hidden:
    :titlesonly:
 
+   /reference/expansion-directives
+   /tutorial/convert-command-line-options-to-yaml
    /reference/configuration-file-settings-command-line-options-mapping

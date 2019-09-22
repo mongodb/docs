@@ -111,7 +111,7 @@
 
      - id: go
        content: |
-         .. literalinclude:: /driver-examples/crud_examples.go
+         .. literalinclude:: /driver-examples/go_examples.go
             :language: go
             :dedent: 2
             :start-after: Start Example 11

@@ -15,12 +15,6 @@ Definition
 
 .. dbcommand:: isMaster
 
-   .. note::
-
-      Starting in MongoDB 4.0, the :dbcommand:`isMaster` command accepts an
-      optional field ``saslSupportedMechs: <db.user>`` to return an
-      additional field :data:`isMaster.saslSupportedMechs` in its result.
-
    :dbcommand:`isMaster` returns a document that describes the role of
    the :binary:`~bin.mongod` instance. If the optional field
    ``saslSupportedMechs`` is specified, the command also returns an
@@ -41,22 +35,35 @@ Definition
    members and to discover additional members of a :term:`replica
    set`.
 
-   The :method:`db.isMaster()` method in the :binary:`~bin.mongo` shell
-   provides a wrapper around :dbcommand:`isMaster`.
+Syntax
+------
 
-   The command takes the following form:
+The command takes the following form:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.runCommand( { isMaster: 1 } )
+   db.runCommand( { isMaster: 1 } )
 
-   The command can also take an optional field ``saslSupportedMechs``
-   set to the ``<db.user>``
+Starting in MongoDB 4.0, the :dbcommand:`isMaster` command accepts an
+optional field ``saslSupportedMechs: <db.user>`` to return an
+additional field :data:`isMaster.saslSupportedMechs` in its result.
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.runCommand( { isMaster: 1, saslSupportedMechs: "<db.username>" } )
+   db.runCommand( { isMaster: 1, saslSupportedMechs: "<db.username>" } )
    
+The :method:`db.isMaster()` method in the :binary:`~bin.mongo` shell
+provides a wrapper around :dbcommand:`isMaster`.
+
+Behavior
+--------
+
+.. |operation| replace:: :dbcommand:`isMaster`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
 
 Output
 ------
@@ -118,6 +125,13 @@ roles:
    Only available when ``featureCompatibilityVersion`` is ``"3.6"`` or greater.
    See :ref:`3.6-compatibility-enabled`.
  
+.. data:: isMaster.connectionId
+
+   .. versionadded:: 4.2
+
+   An identifier for the :binary:`~bin.mongod`/:binary:`~bin.mongos`
+   instance's outgoing connection to the client.
+
 .. data:: isMaster.minWireVersion
 
    .. versionadded:: 2.6
@@ -225,6 +239,16 @@ Replica Sets
 :dbcommand:`isMaster` contains these fields when returned by a member
 of a replica set:
 
+.. data:: isMaster.hosts
+
+   An array of strings in the format of ``"[hostname]:[port]"`` that
+   lists all members of the :term:`replica set` that are neither
+   :term:`hidden <hidden member>`, :term:`passive <passive member>`,
+   nor :term:`arbiters <arbiter>`.
+
+   Drivers use this array and the :data:`isMaster.passives` to determine
+   which members to read from.
+
 .. data:: isMaster.setName
 
    The name of the current :replica set.
@@ -240,16 +264,6 @@ of a replica set:
    A boolean value that, when ``true``, indicates if the
    :binary:`~bin.mongod` is a :term:`secondary` member of a :term:`replica
    set`.
-
-.. data:: isMaster.hosts
-
-   An array of strings in the format of ``"[hostname]:[port]"`` that
-   lists all members of the :term:`replica set` that are neither
-   :term:`hidden <hidden member>`, :term:`passive <passive member>`,
-   nor :term:`arbiters <arbiter>`.
-
-   Drivers use this array and the :data:`isMaster.passives` to determine
-   which members to read from.
 
 .. data:: isMaster.passives
 
@@ -298,7 +312,9 @@ of a replica set:
 
 .. data:: isMaster.tags
 
-   .. include:: /includes/fact-tag-set-field.rst
+   .. include:: /includes/fact-tags-field.rst
+
+   .. seealso:: :rsconf:`members[n].tags`
 
 .. data:: isMaster.me
 
@@ -326,7 +342,7 @@ of a replica set:
 
    .. data:: isMaster.lastWrite.lastWriteDate
 
-      A :bsontype:`date <data_date>` object containing the
+      A date object containing the
       time of the last write operation.
 
    .. data:: isMaster.lastWrite.majorityOpTime
@@ -336,7 +352,7 @@ of a replica set:
 
    .. data:: isMaster.lastWrite.majorityWriteDate
 
-      A :bsontype:`date <data_date>` object containing the
+      A date object containing the
       time of the last write operation readable by
       :readconcern:`majority <"majority">` reads.
 

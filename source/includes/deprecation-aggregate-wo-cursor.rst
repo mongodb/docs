@@ -3,9 +3,8 @@ MongoDB 3.6 removes the use of :dbcommand:`aggregate` command
 ``explain`` option. Unless you include the ``explain`` option, you must
 specify the cursor option.
 
-To indicate a cursor with the default batch size, specify ``cursor:
-{}``.
+- To indicate a cursor with the default batch size, specify ``cursor:
+  {}``.
 
-To indicate a cursor with a non-default batch size, use ``cursor: {
-batchSize: <num> }``.
-
+- To indicate a cursor with a non-default batch size, use ``cursor: {
+  batchSize: <num> }``.

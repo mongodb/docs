@@ -15,13 +15,204 @@ Definition
 
 .. method:: db.collection.aggregate(pipeline, options)
 
+
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+
    Calculates aggregate values for the data in a collection or a :doc:`view </core/views>`.
 
-   .. include:: /includes/apiargs/method-db.collection.aggregate-param.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``pipeline``
+   
+        - array
+   
+        - A sequence of data aggregation operations or stages. See the
+          :doc:`aggregation pipeline operators
+          </reference/operator/aggregation-pipeline>` for details.
+          
+          .. versionchanged:: 2.6
+             The method can still accept the pipeline stages as separate
+             arguments instead of as elements in an array; however, if you do
+             not specify the ``pipeline`` as an array, you cannot specify the
+             ``options`` parameter.
+          
+          
+   
+      * - ``options``
+   
+        - document
+   
+        - Optional. Additional options that :method:`~db.collection.aggregate()` passes
+          to the :dbcommand:`aggregate` command.
+          
+          .. versionadded:: 2.6
+             Available only if you specify the ``pipeline`` as an array.
+          
+          
+   
+
 
    The ``options`` document can contain the following fields and values:
 
-   .. include:: /includes/apiargs/method-db.collection.aggregate-options.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``explain``
+   
+        - boolean
+   
+        - Optional. Specifies to return the information on the processing of the pipeline. See
+          :ref:`example-aggregate-method-explain-option` for an example.
+          
+          Not available in :doc:`multi-document transactions </core/transactions>`.
+          
+          
+   
+      * - ``allowDiskUse``
+   
+        - boolean
+   
+        - Optional. Enables writing to temporary files. When set to ``true``, aggregation
+          operations can write data to the :file:`_tmp` subdirectory in the
+          :setting:`~storage.dbPath` directory. See
+          :ref:`example-aggregate-method-external-sort` for an example.
+          
+          .. include:: /includes/extracts/4.2-changes-usedDisk.rst
+          
+          
+   
+      * - ``cursor``
+   
+        - document
+   
+        - Optional. Specifies the *initial* batch size for the cursor. The value of the ``cursor``
+          field is a document with the field ``batchSize``. See
+          :ref:`example-aggregate-method-initial-batch-size` for syntax and example.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+      * - ``maxTimeMS``
+   
+        - non-negative integer
+   
+        - Optional. Specifies a time limit in milliseconds for processing
+          operations on a cursor. If you do not specify a value for maxTimeMS,
+          operations will not time out. A value of ``0`` explicitly
+          specifies the default unbounded behavior.
+          
+          MongoDB terminates operations that exceed their allotted time limit
+          using the same mechanism as :method:`db.killOp()`. MongoDB only
+          terminates an operation at one of its designated :term:`interrupt 
+          points <interrupt point>`.
+          
+          
+   
+      * - ``bypassDocumentValidation``
+   
+        - boolean
+   
+        - Optional. Applicable only if you specify the :pipeline:`$out` or :pipeline:`$merge` aggregation
+          stages.
+          
+          
+          
+          Enables :method:`db.collection.aggregate` to bypass document validation
+          during the operation. This lets you insert documents that do not
+          meet the validation requirements.
+          
+          .. versionadded:: 3.2
+          
+          
+   
+      * - ``readConcern``
+   
+        - document
+   
+        - Optional. Specifies the :term:`read concern`.
+          
+          .. include:: /includes/fact-readConcern-syntax.rst
+          
+          .. include:: /includes/fact-readConcern-option-description.rst
+          
+          .. include:: /includes/extracts/4.2-changes-out-linearizable.rst
+          
+          .. include:: /includes/extracts/4.2-changes-linearizable-merge-restriction.rst
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+      * - ``hint``
+   
+        - string or document
+   
+        - Optional. The index to use for the aggregation. The index is on the initial
+          collection/view against which the aggregation is run.
+          
+          Specify the index either by the index name or by the index
+          specification document.
+          
+          .. note::
+          
+             The ``hint`` does not apply to :pipeline:`$lookup` and
+             :pipeline:`$graphLookup` stages.
+          
+          .. versionadded:: 3.6
+          
+          
+   
+      * - ``comment``
+   
+        - string
+   
+        - Optional. Users can specify an arbitrary string to help trace the operation 
+          through the database profiler, currentOp, and logs.
+          
+          .. versionadded:: 3.6
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document that expresses the :doc:`write concern </reference/write-concern>`
+          to use with the :pipeline:`$out` or :pipeline:`$merge` stage. 
+          
+          Omit to use the default write concern with the :pipeline:`$out` or
+          :pipeline:`$merge` stage.
+          
+          
+   
+
 
    :returns:
       A :term:`cursor` to the documents produced by the final stage of
@@ -97,6 +288,8 @@ However, the following stages are not allowed within transactions:
 - :pipeline:`$listLocalSessions`
 - :pipeline:`$listSessions`
 - :pipeline:`$out`
+- :pipeline:`$merge`
+- :pipeline:`$planCacheStats`
 
 You also cannot specify the ``explain`` option.
 
@@ -105,6 +298,15 @@ You also cannot specify the ``explain`` option.
 .. include:: /includes/extracts/transactions-usage.rst
 
 .. |operation| replace:: :method:`db.collection.aggregate()`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+For :method:`db.collection.aggregate()` operation that do not include
+the :pipeline:`$out` or :pipeline:`$merge` stages:
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
 
 Examples
 --------
@@ -151,35 +353,35 @@ The operation returns a cursor with the following documents:
 Return Information on Aggregation Pipeline Operation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following aggregation operation sets the option ``explain`` to
-``true`` to return information about the aggregation operation.
+The following example uses :method:`db.collection.explain()` to view
+detailed information regarding the execution plan of the aggregation
+pipeline.
 
 .. code-block:: javascript
 
-   db.orders.aggregate(
-                        [
-                          { $match: { status: "A" } },
-                          { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-                          { $sort: { total: -1 } }
-                        ],
-                        {
-                          explain: true
-                        }
-                      )
+   db.orders.explain().aggregate([
+      { $match: { status: "A" } },
+      { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+      { $sort: { total: -1 } }
+   ])
 
-The operation returns a cursor with the document that contains detailed
-information regarding the processing of the aggregation pipeline. For
-example, the document may show, among other details, which index, if
-any, the operation used. [#agg-index-filters]_ If the ``orders`` collection
-is a sharded collection, the document would also show the division of
-labor between the shards and the merge operation, and for targeted
-queries, the targeted shards.
+The operation returns a document that details the processing of the
+aggregation pipeline. For example, the document may show, among other
+details, which index, if any, the operation used. [#agg-index-filters]_
+If the ``orders`` collection is a sharded collection, the document
+would also show the division of labor between the shards and the merge
+operation, and for targeted queries, the targeted shards.
 
 .. note:: The intended readers of the ``explain`` output document are humans, and
    not machines, and the output format is subject to change between
    releases.
 
-.. include:: /includes/note-mongo-shell-automatically-iterates-cursor.rst
+You can view more verbose explain output by passing the
+``executionStats`` or ``allPlansExecution`` explain modes to the
+:method:`db.collection.explain()` method.
+
+.. [#agg-index-filters] :ref:`index-filters` can affect the choice of index
+   used. See :ref:`index-filters` for details.
 
 .. _example-aggregate-method-external-sort:
 
@@ -311,7 +513,7 @@ Override ``readConcern``
 Use the ``readConcern`` option to specify the read concern for
 the operation.
 
-.. include:: /includes/extracts/4.2-changes-out-linearizable.rst
+.. include:: /includes/extracts/4.2-changes-linearizable-agg.rst
 
 The following operation on a replica set specifies a
 :doc:`/reference/read-concern` of :readconcern:`"majority"` to read the
@@ -335,8 +537,6 @@ majority of the nodes.
       { readConcern: { level: "majority" } }
    )
 
-.. [#agg-index-filters] :ref:`index-filters` can affect the choice of index
-   used. See :ref:`index-filters` for details.
 
 Specify a Comment
 ~~~~~~~~~~~~~~~~~

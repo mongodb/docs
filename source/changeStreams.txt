@@ -20,15 +20,6 @@ Change Streams
    :description: MongoDB triggers, change streams, database triggers, real time
    :keywords: MongoDB triggers, change streams, database triggers, real time
 
-
-.. admonition:: Database Triggers and Change Streams
-   :class: note
-
-   Database triggers, based on change streams, are available via
-   MongoDB Stitch. Please review the `Database Triggers documentation
-   <https://docs.mongodb.com/stitch/mongodb/triggers/>`_ for more
-   information.
-
 .. versionadded:: 3.6
 
 Change streams allow applications to access real-time data changes
@@ -39,12 +30,27 @@ immediately react to them. Because change streams use the aggregation
 framework, applications can also filter for specific changes or
 transform the notifications at will.
 
-Change stream is available for :doc:`replica sets <replication>` and
-:doc:`sharded clusters </sharding>` that use :ref:`WiredTiger
-<storage-wiredtiger>` storage engine and replica set protocol version 1
-(:rsconf:`pv1 <protocolVersion>`). Change streams can also be used on
-deployments which employ MongoDB's
-:ref:`encryption-at-rest<encrypted-storage-engine>` feature.
+Availability
+------------
+
+Change streams are available for :doc:`replica sets <replication>` and
+:doc:`sharded clusters </sharding>`:
+
+- **Storage Engine.** 
+
+  The replica sets and sharded clusters must use the :ref:`WiredTiger
+  <storage-wiredtiger>` storage engine. Change streams can also be used
+  on deployments that employ MongoDB's
+  :ref:`encryption-at-rest<encrypted-storage-engine>` feature.
+  
+- **Replica Set Protocol Version.** 
+
+  The replica sets and sharded clusters must use replica set protocol
+  version 1 (:rsconf:`pv1 <protocolVersion>`).
+
+- **Read Concern "majority" Enablement.**  
+
+  .. include:: /includes/extracts/changestream-rc-majority-4.2.rst
 
 Watch Collection/Database/Deployment
 ------------------------------------
@@ -101,30 +107,20 @@ You can open change streams against:
 
 .. _open-change-stream:
 
-.. important::
-
-   Change stream is only available if :readconcern:`"majority"` read
-   concern support is enabled (default).
-
 Open A Change Stream
 --------------------
 
-For a replica set, you can open change stream for any of the
-data-bearing members.
+To open a change stream:
 
-For a sharded cluster, you must issue the open change stream operation
-against the :binary:`~bin.mongos`.
+- For a replica set, you can issue the open change stream operation
+  from any of the data-bearing members.
+
+- For a sharded cluster, you must issue the open change stream
+  operation from the :binary:`~bin.mongos`.
 
 The following example opens a change stream for a collection and
 iterates over the cursor to retrieve the change stream documents.
-[#start-time]_ While the connection to the MongoDB deployment remains
-open, the cursor remains open until one of the following occurs:
-
-- The cursor is explicitly closed.
-
-- An :ref:`invalidate event <change-event-invalidate>` occurs.
-
-- .. include:: /includes/extracts/changestream-remove-shard.rst
+[#start-time]_
 
 .. tabs-drivers::
 
@@ -237,15 +233,33 @@ open, the cursor remains open until one of the following occurs:
              :start-after: Start Changestream Example 1
              :end-before: End Changestream Example 1
 
+     - id: go
+       content: |
+          The Go examples below assume that you have `connected to a MongoDB replica set and have accessed a database
+          <https://godoc.org/go.mongodb.org/mongo-driver/mongo#NewClient/>`__
+          that contains an ``inventory`` collection.
 
-To retrieve the data change event notifications, iterate the change
-stream ``cursor``.
+          .. literalinclude:: /driver-examples/go_examples.go
+             :language: go
+             :dedent: 2
+             :start-after: Start Changestream Example 1
+             :end-before: End Changestream Example 1
+
+To retrieve the :ref:`data change event <change-stream-output>` from
+the cursor, iterate the change stream cursor. For information on the
+change stream event, see :ref:`change-stream-output`.
+
+While the connection to the MongoDB deployment remains
+open, the cursor remains open until one of the following occurs:
+
+- The cursor is explicitly closed.
+
+- An :ref:`invalidate event <change-event-invalidate>` occurs.
+
+- .. include:: /includes/extracts/changestream-remove-shard.rst
 
 .. note::
    The lifecycle of an unclosed cursor is language-dependent.
-
-See :ref:`change-stream-output` for more information on the change stream
-response document format.
 
 .. [#start-time]
 
@@ -253,6 +267,8 @@ response document format.
    to open the cursor at a particular point in time. If the specified
    starting point is in the past, it must be in the time range of the
    oplog.
+
+.. _change-stream-modify-output:
 
 Modify Change Stream Output
 ---------------------------
@@ -348,6 +364,26 @@ Modify Change Stream Output
        content: |
           .. include:: /includes/fact-change-streams-modify-output.rst
 
+     - id: go
+       content: |
+
+         .. include:: /includes/fact-change-streams-modify-output.rst
+
+         .. literalinclude:: /driver-examples/go_examples.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Changestream Example 4
+            :end-before: End Changestream Example 4
+
+.. tip::
+
+   The :ref:`_id <change-stream-event-id>` field of the change stream
+   event document act as the :ref:`resume token
+   <change-stream-resume>`. Do not use the pipeline to modify or remove
+   the change stream event's ``_id`` field. 
+
+   .. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
+   
 
 See :ref:`change-stream-output` for more information on the change stream
 response document format.
@@ -512,6 +548,18 @@ document.
             :start-after: Start Changestream Example 2
             :end-before: End Changestream Example 2
 
+     - id: go
+       content: |
+          
+         To return the most current majority-committed version of the
+         updated document, ``SetFullDocument(options.UpdateLookup)``
+         change stream option.
+
+         .. literalinclude:: /driver-examples/go_examples.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Changestream Example 2
+            :end-before: End Changestream Example 2
 
 .. note::
 
@@ -560,14 +608,12 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
      - id: python
        content: |
 
-         In the example below, ``resume_token`` contains the change
-         stream notification id. The ``resume_after`` modifier takes a
-         parameter that must resolve to a resume token. Passing the
-         ``resume_token`` to the ``resume_after`` modifier directs the
-         change stream to attempt to resume notifications starting after
-         the operation specified in the resume token.
+         You can use the ``resume_after`` modifier to resume
+         notifications after the operation specified in the resume
+         token. The ``resume_after`` modifier takes a value that must
+         resolve to a resume token, e.g. ``resume_token`` in the
+         example below.
 
-         .. class:: copyable-code
 
          .. literalinclude:: /driver-examples/test_examples.py
             :language: python
@@ -578,13 +624,11 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
      - id: motor
        content: |
 
-         In the example below, ``resume_token`` contains the change
-         stream notification id. The ``resume_after`` modifier takes a parameter that must resolve to a resume
-         token. Passing the ``resume_token`` to the ``resume_after`` modifier directs
-         the change stream to attempt to resume notifications starting after the
-         operation specified in the resume token.
-
-         .. class:: copyable-code
+         You can use the ``resume_after`` modifier to resume
+         notifications after the operation specified in the resume
+         token. The ``resume_after`` modifier takes a value that must
+         resolve to a resume token, e.g. ``resume_token`` in the
+         example below.
 
          .. literalinclude:: /driver-examples/test_examples_motor.py
             :language: python
@@ -594,13 +638,12 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
 
      - id: java-sync
        content: |
-         In the example below, the ``resumeToken`` contains the change
-         stream notification id. The ``resumeAfter()`` method takes a parameter that must resolve to a resume
-         token. Passing the ``resumeToken`` to the ``resumeAfter()`` method directs
-         the change stream to attempt to resume notifications starting after the
-         operation specified in the resume token.
-
-         .. class:: copyable-code
+       
+         You can use the ``resumeAfter()`` method to resume
+         notifications after the operation specified in the resume
+         token. The ``resumeAfter()`` method takes a value that must
+         resolve to a resume token, e.g. ``resumeToken`` in the
+         example below.
 
          .. literalinclude:: /driver-examples/DocumentationSamples.java
             :language: java
@@ -610,7 +653,7 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
 
      - id: csharp
        content: |
-
+         
          In the example below, the ``resumeToken`` is retrieved from the last change stream document
          and passed to the ``Watch()`` method as an option. Passing the ``resumeToken``
          to the ``Watch()`` method directs
@@ -632,7 +675,7 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          to recreate the stream after it has been destroyed. Passing the ``_id`` to
          the change stream attempts to resume notifications starting after the
          operation specified.
-
+         
          .. class:: copyable-code
 
          .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
@@ -645,12 +688,11 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
      - id: nodejs
        content: |
 
-         In the example below, ``resumeToken`` contains the change
-         stream notification id. The ``resumeAfter`` takes a parameter
-         that must resolve to a resume token. Passing the
-         ``resumeToken`` to the ``resumeAfter`` modifier directs the
-         change stream to attempt to resume notifications starting after
-         the operation specified.
+         You can use the ``resumeAfter`` option to resume
+         notifications after the operation specified in the resume
+         token. The ``resumeAfter`` option takes a value that must
+         resolve to a resume token, e.g. ``resumeToken`` in the
+         example below.
 
          .. literalinclude:: /driver-examples/node_changestreams.js
             :language: javascript
@@ -661,12 +703,12 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
      - id: php
        content: |
 
-         In the example below, ``$resumeToken`` contains the change
-         stream notification id. The ``resumeAfter`` option takes a
-         value that must resolve to a resume token. Passing the
-         ``$resumeToken`` to the ``resumeAfter`` option directs the
-         change stream to attempt to resume notifications starting after
-         the operation specified in the resume token.
+         You can use the ``resumeAfter`` option to resume
+         notifications after the operation specified in the resume
+         token. The ``resumeAfter`` option takes a value that must
+         resolve to a resume token, e.g. ``$resumeToken`` in the
+         example below.
+
 
          .. class:: copyable-code
 
@@ -679,18 +721,35 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
      - id: ruby
        content: |
 
-         In the example below, ``resume_token`` contains the change
-         stream notification id. The ``resume_after`` modifier takes a
-         parameter that must resolve to a resume token. Passing the
-         ``resume_token`` to the ``resume_after`` modifier directs the
-         change stream to attempt to resume notifications starting after
-         the operation specified in the resume token.
+         You can use the ``resume_after`` modifier to resume
+         notifications after the operation specified in the resume
+         token. The ``resume_after`` modifier takes a value that must
+         resolve to a resume token, e.g. ``resume_token`` in the
+         example below.
 
          .. class:: copyable-code
 
          .. literalinclude:: /driver-examples/change_stream_examples_spec.rb
             :language: ruby
             :dedent: 6
+            :start-after: Start Changestream Example 3
+            :end-before: End Changestream Example 3
+
+     - id: go
+       content: |
+
+         You can use `ChangeStreamOptions.SetResumeAfter
+         <https://godoc.org/go.mongodb.org/mongo-driver/mongo/options#ChangeStreamOptions.SetResumeAfter>`_
+         to specify the resume
+         token for the change stream. If the resumeAfter option is set,
+         the change stream resumes notifications after the operation
+         specified in the resume token. The ``SetResumeAfter`` takes a
+         value that must resolve to a resume token, e.g.
+         ``resumeToken`` in the example below.
+
+         .. literalinclude:: /driver-examples/go_examples.go
+            :language: go
+            :dedent: 2
             :start-after: Start Changestream Example 3
             :end-before: End Changestream Example 3
 
@@ -717,12 +776,25 @@ the :ref:`change stream event document <change-stream-output>`. See
 
 .. _change-stream-resume-token:
 
-Resume Token and ``featureCompatibilityVersion``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Resume Tokens
+~~~~~~~~~~~~~
 
-.. include:: /includes/extracts/changestream-resume-token-change.rst
+The ``_id`` value of a :ref:`change stream event document
+<change-stream-output>` acts as the resume token:
 
-.. include:: /includes/extracts/changestream-resume-token-compatibility.rst
+.. code-block:: none
+
+   {
+      "_data" : <BinData|hex string>
+   }
+
+.. include:: /includes/extracts/changestream-resume-token-versions-4.2-greater.rst
+
+.. include:: /includes/extracts/changestream-resume-token-hex-change.rst
+
+.. tip::
+
+   .. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
 
 Use Cases
 ---------
@@ -778,9 +850,18 @@ cursor opened against the :term:`primary`. If a client issues an insert
 operation, the change stream only notifies the application of the data change
 once that insert has persisted to a majority of data-bearing members.
 
-If an operation is associated with a :doc:`multi-document transactions
+If an operation is associated with a :doc:`transaction
 </core/transactions>`, the change event document includes the
 ``txnNumber`` and the ``lsid``.
+
+Collation
+---------
+
+Starting in MongoDB 4.2, change streams use ``simple`` binary
+comparisons unless an explicit collation is provided. In earlier
+versions, change streams opened on a single collection
+(:method:`db.collection.watch()`) would inherit that collection's
+default collation.
 
 .. toctree::
    :titlesonly:

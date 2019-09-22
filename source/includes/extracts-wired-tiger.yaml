@@ -169,7 +169,7 @@ content: |
 ref: wt-cache-default-setting
 content: |
 
-   Starting in 3.4, the WiredTiger internal cache, by default, will use
+   Starting in MongoDB 3.4, the default WiredTiger internal cache size is
    the larger of either:
 
    - 50% of (RAM - 1 GB), or
@@ -181,6 +181,16 @@ content: |
    Conversely, a system with a total of 1.25 GB of RAM will allocate 256
    MB to the WiredTiger cache because that is more than half of the
    total RAM minus one gigabyte (``0.5 * (1.25 GB - 1 GB) = 128 MB < 256 MB``).
+   
+   .. note::
+
+      In some instances, such as when running in a container, the database
+      can have memory constraints that are lower than the total system
+      memory. In such instances, this memory limit, rather than the total
+      system memory, is used as the maximum RAM available.
+   
+      To see the memory limit, see :data:`hostInfo.system.memLimitMB`.
+   
 ---
 ref: wt-filesystem-cache
 content: |
@@ -189,18 +199,19 @@ content: |
 ---
 ref: wt-snapshot-frequency
 content: |
-   .. versionchanged:: 3.6
-      MongoDB configures WiredTiger to create checkpoints (i.e. write the
-      snapshot data to disk) at intervals of 60 seconds.
+
+      Starting in version 3.6, MongoDB configures WiredTiger to create
+      checkpoints (i.e. write the snapshot data to disk) at intervals
+      of 60 seconds. In earlier versions, MongoDB sets checkpoints to
+      occur in WiredTiger on user data at an interval of 60 seconds or
+      when 2 GB of journal data has been written, whichever occurs
+      first.
+
 ---
 ref: wt-journal-frequency
 content: |
-   - .. versionadded:: 3.2
-        Every 50 milliseconds.
-
-   - .. versionchanged:: 3.6
-        MongoDB sets checkpoints to occur in WiredTiger on user data at an
-        interval of 60 seconds.
+   - MongoDB syncs the buffered journal data to disk every 50 milliseconds (Starting
+     in MongoDB 3.2)
 
    - If the write operation includes a write concern of :writeconcern:`j:
      true <j>`, WiredTiger forces a sync of the WiredTiger journal files.
@@ -209,4 +220,11 @@ content: |
      creates a new journal file approximately every 100 MB of data. When
      WiredTiger creates a new journal file, WiredTiger syncs the previous
      journal file.
+---
+ref: wt-log-compression-limit
+content: |
+
+   If a log record less than or equal to 128 bytes (the mininum
+   :ref:`log record size for WiredTiger <wt-jouraling-record>`),
+   WiredTiger does not compress that record.
 ...

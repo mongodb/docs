@@ -17,48 +17,95 @@ Definition
 
    Call the :method:`~Mongo.setReadPref()` method on a :method:`Mongo
    <db.getMongo()>` connection object to control how the client will
-   route all queries to members of the replica set.
+   route all queries to members of the replica set. [#specificqueries]_
 
-   .. include:: /includes/apiargs/method-Mongo.setReadPref-param.rst
+   .. note::
 
+      You must call :method:`Mongo.setReadPref()` on the connection object
+      before retrieving documents using that connection to use that read
+      preference.
+
+.. [#specificqueries]
+
+   To apply a read preference for a specific query or queries, you can
+   apply :method:`cursor.readPref()` to a cursor before iteration. See
+   :method:`cursor.readPref()` for details.
+   
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - :ref:`mode <mongo-setReadPref-mode>`
+
+     - string
+
+     - .. _mongo-setReadPref-mode:
+
+       One of the following :term:`read preference` modes: :readmode:`primary`,
+       :readmode:`primaryPreferred`, :readmode:`secondary`,
+       :readmode:`secondaryPreferred`, or :readmode:`nearest`
+
+   * - ``tagSet``
+
+     - array of documents
+
+     - Optional. A :ref:`tag set
+       <replica-set-read-preference-tag-sets>` used to target reads to
+       members with the specified tag(s). ``tagSet`` is not available
+       if using read preference mode :readmode:`primary`.
+
+       For details, see :ref:`replica-set-read-preference-tag-sets`.
+
+:method:`Mongo.setReadPref()` does not support the
+:ref:`replica-set-read-preference-max-staleness` option for read
+preference.
+      
 Examples
 --------
 
-To set a read preference mode in the :binary:`~bin.mongo` shell, use the
-following operation:
+The following operation uses the read preference mode to target the
+read to a secondary member.
 
 .. code-block:: javascript
 
-   db.getMongo().setReadPref('primaryPreferred')
+   db.getMongo().setReadPref('secondary')
 
-To set a read preference that uses a tag set, specify an array of tag
-sets as the second argument to :method:`Mongo.setReadPref()`, as in the
-following:
+To target secondaries with specific tags, include the tag set array:
 
 .. code-block:: javascript
 
-   db.getMongo().setReadPref('primaryPreferred', [ { "dc": "east" } ] )
+   db.getMongo().setReadPref(
+      "secondary",
+      [
+         { "datacenter": "B" },    // First, try matching by the datacenter tag
+         { "region": "West"},      // If not found, then try matching by the region tag
+         { }                       // If not found, then use the empty document to match all eligible members
+      ]
+   )
 
-You can specify multiple tag sets, in order of preference, as in the
-following:
+During the secondary selection process, MongoDB tries to find secondary
+members with the ``datacenter: "B"`` tag first.
 
-.. code-block:: javascript
+- If found, MongoDB limits the eligible secondaries to those with the
+  ``datacenter: "B"`` tag and ignores the remaining tags. 
+  
+- If none are found, then, MongoDB tries to find secondary members with
+  the ``"region": "West"`` tag. 
 
-   db.getMongo().setReadPref('secondaryPreferred',
-                             [ { "dc": "east", "use": "production" },
-                               { "dc": "east", "use": "reporting" },
-                               { "dc": "east" },
-                               {}
-                             ] )
+  - If found, MongoDB limits the eligible secondaries to those with the
+    ``"region": "West"`` tag.
 
-If the replica set cannot satisfy the first tag set, the client will
-attempt to use the second read preference. Each tag set can contain zero
-or more field/value tag pairs, with an "empty" document acting as a
-wildcard which matches a replica set member with any tag set or no tag
-set.
+  - If none are found, MongoDB uses any eligible secondaries.
 
-.. note::
+See :ref:`read-pref-order-matching` for details.
 
-   You must call :method:`Mongo.setReadPref()` on the connection object
-   before retrieving documents using that connection to use that read
-   preference.
+.. seealso:: :doc:`/tutorial/configure-replica-set-tag-sets`

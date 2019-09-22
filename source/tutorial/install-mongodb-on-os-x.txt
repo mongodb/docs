@@ -13,67 +13,187 @@ Install MongoDB Community Edition on macOS
 Overview
 --------
 
-Use this tutorial to install MongoDB Community Edition on macOS systems.
+.. _`MongoDB Download Center`: https://www.mongodb.com/download-center/community?jmp=docs
 
-.. admonition:: Platform Support
 
-   - .. include:: /includes/extracts/4.0-errata-wt-4018.rst
+The following tutorial uses 
+`Homebrew <https://brew.sh/?jmp=mongodb-docs>`_ to install MongoDB 
+{+version+} Community Edition on macOS systems. To install a different 
+version of MongoDB, please refer to that version's documentation.  For example:
 
-     For details, see :issue:`WT-4018`.
-   
-   - MongoDB only supports macOS versions 10.11 and later on Intel
-     x86-64. See :ref:`mongodb-supported-platforms` for more
-     information.
+- :v4.0:`https://docs.mongodb.com/v4.0 </tutorial/install-mongodb-on-os-x>`
+- :v3.6:`https://docs.mongodb.com/v3.6 </tutorial/install-mongodb-on-os-x>`
+- :v3.4:`https://docs.mongodb.com/v3.4 </tutorial/install-mongodb-on-os-x>`
 
-You may download MongoDB Community Edition through either the `MongoDB
-Download Center <https://www.mongodb.com/download-center?jmp=docs#production>`_ or the
-popular macOS package manager `Homebrew <http://brew.sh/>`_.
+Platform Support
+----------------
 
-.. note::
-
-   .. include:: /includes/fact-default-bind-ip-change.rst
+MongoDB 4.2+ only supports macOS versions 10.12+ on
+Intel x86-64. See :ref:`mongodb-supported-platforms` for more
+information.
 
 .. _install-with-homebrew:
 
 Install MongoDB Community Edition
 ---------------------------------
 
-.. include:: /includes/extracts/install-past-mongodb-org-osx.rst
+.. _osx-prereq:
 
-.. note::
+Prerequisites
+~~~~~~~~~~~~~
 
-   You can also spin up MongoDB on AWS, Azure, or GCP using Atlas, our
-   fully-managed database-as-a-service. Atlas enables you to configure anything
-   from a free sandbox environment to a globally sharded production cluster.
-   `Set up a free cluster now
-   <https://www.mongodb.com/cloud/atlas?utm_source=install-mongodb-on-os-x&utm_campaign=20-docs-in-20-days&utm_medium=docs>`_.
+If you have the Homebrew ``brew`` package installed on your OSX host 
+*and* you have previously tapped the official 
+`MongoDB Homebrew Tap <https://github.com/mongodb/homebrew-brew>`_, 
+skip to the prerequisites and go to the :ref:`install` step.
 
-You can install MongoDB by downloading the ``.tgz`` file manually or
-by using ``homebrew``. Click on the appropriate tab for corresponding instructions.
+Install Homebrew
+````````````````
 
-.. tabs::
+.. container::
 
-   tabs:
+   OSX does not include the Homebrew ``brew`` package by default.
+   Install ``brew`` using the 
+   `official instructions <https://brew.sh/#install>`_.
+
+Tap the MongoDB Homebrew Tap
+````````````````````````````
+
+.. container::
    
-      - id: manual
-        name: Install MongoDB Community Edition Manually
-        content: |
+   Issue the following from the terminal to
+   tap the official 
+   `MongoDB Homebrew Tap <https://github.com/mongodb/homebrew-brew>`_:
 
-           .. include:: /includes/steps/install-mongodb-on-osx-manually.rst
+   .. code-block:: sh
 
-      - id: homebrew
-        name: Install MongoDB Community Edition with Homebrew
+      brew tap mongodb/brew 
 
-        content: |
+.. _install:
 
-            `Homebrew <http://brew.sh/>`_ installs binary packages based on published
-            "formulae." This section describes how to update ``brew`` to the latest
-            packages and install MongoDB Community Edition. Homebrew requires some initial
-            setup and configuration, which is beyond the scope of this document.
+Install MongoDB
+~~~~~~~~~~~~~~~
 
-            .. include:: /includes/steps/install-mongodb-on-osx-with-homebrew.rst
+.. container::
+
+   From a terminal, issue the following:
+
+   .. code-block:: sh
+
+      brew install mongodb-community@{+version+}
+
+   .. tip::
+   
+      If you have previously installed an older version of the formula,
+      you may encounter a ChecksumMismatchError. To resolve, see
+      :ref:`troubleshooting-checksumerror`.
+
+   In addition to the :doc:`binaries </reference/program>`, the install
+   creates:
+
+   - the :doc:`configuration file </reference/configuration-options>`
+     (:file:`/usr/local/etc/mongod.conf`)
+
+   - the  :setting:`log directory path <systemLog.path>` (``/usr/local/var/log/mongodb``)
+
+   - the :setting:`data directory path <storage.dbPath>` (``/usr/local/var/mongodb``)
 
 Run MongoDB
------------
+~~~~~~~~~~~
 
-.. include:: /includes/steps/run-mongodb-on-linux.rst
+.. container::
+
+   From a terminal, issue the following to run MongoDB (i.e.
+   the :binary:`~bin.mongod` process) in the foreground.
+
+   .. code-block:: sh
+
+      mongod --config /usr/local/etc/mongod.conf
+
+   Alternatively, to run MongoDB as a macOS service, issue the
+   following (the process uses the :file:`/usr/local/etc/mongod.conf`
+   file created during the install):
+
+   .. code-block:: sh
+
+      brew services start mongodb-community@{+version+}
+
+Connect and Use MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   To begin using MongoDB, connect a :binary:`~bin.mongo` shell to the
+   running instance. From a new terminal, issue the following:
+
+   .. code-block:: sh
+
+      mongo
+
+   For information on CRUD (Create,Read,Update,Delete) operations, see:
+
+   - :doc:`/tutorial/insert-documents`
+   - :doc:`/tutorial/query-documents`
+   - :doc:`/tutorial/update-documents`
+   - :doc:`/tutorial/remove-documents`
+
+Additional Considerations
+-------------------------
+
+.. _troubleshooting-checksumerror:
+
+Troubleshooting ChecksumMismatchError
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have previously installed an older version of the formual,
+you may encounter a ChecksumMismatchError, as in the following
+example:
+
+.. code-block:: sh
+
+   Error: An exception occurred within a child process:
+
+     ChecksumMismatchError: SHA256 mismatch
+
+   Expected: c7214ee7bda3cf9566e8776a8978706d9827c1b09017e17b66a5a4e0c0731e1f
+
+     Actual: 6aa2e0c348e8abeec7931dced1f85d4bb161ef209c6af317fe530ea11bbac8f0
+
+    Archive: /Users/kay/Library/Caches/Homebrew/downloads/a6696157a9852f392ec6323b4bb697b86312f0c345d390111bd51bb1cbd7e219--mongodb-macos-x86_64-4.2.0.tgz
+
+   To retry an incomplete download, remove the file above.
+
+To fix:
+
+#. Remove the downloaded :file:`.tgz` archive.
+
+#. Retap the formula.
+
+   .. code-block:: sh
+
+      brew untap mongodb/brew && brew tap mongodb/brew
+
+#. Retry the install.
+
+   .. code-block:: sh
+
+      brew install mongodb-community@{+version+}
+
+Localhost Binding
+~~~~~~~~~~~~~~~~~
+
+Starting with MongoDB 3.6, MongoDB binaries, :binary:`mongod
+<bin.mongod>` and :binary:`mongos <bin.mongos>`, bind to
+``localhost`` by default.
+
+When bound only to the localhost, these binaries can only accept
+connections from clients that are running on the same machine. Remote
+clients cannot connect to the binaries bound only to localhost. For
+more information, including how to override and bind to other ip
+addresses, see :ref:`3.6-bind_ip-compatibility`.
+
+.. toctree::
+   :hidden:
+   :titlesonly:
+
+   Install using .tgz Tarball </tutorial/install-mongodb-on-os-x-tarball>

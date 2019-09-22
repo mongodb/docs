@@ -145,6 +145,10 @@ members of replica sets.
 Output to a Collection with an Action
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-map-reduce-deprecation.rst
+
 This option is only available when passing a collection that
 already exists to ``out``. It is not available 
 on secondary members of replica sets.
@@ -189,6 +193,11 @@ following parameters:
 
 - ``sharded``:
 
+  .. note::
+
+     Starting in version 4.2, the use of the ``sharded`` option is
+     deprecated.
+
   Optional. If ``true`` *and* you have enabled sharding on output
   database, the map-reduce operation will shard the output collection
   using the ``_id`` field as the shard key.
@@ -197,6 +206,11 @@ following parameters:
   map-reduce fails.
 
 - ``nonAtomic``:
+
+  .. note::
+  
+     Starting in MongoDB 4.2, explicitly setting ``nonAtomic`` to ``false`` is
+     deprecated.
 
   Optional. Specify output operation as non-atomic. This applies **only**
   to the ``merge`` and ``reduce`` output modes, which may take minutes to

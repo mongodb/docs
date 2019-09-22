@@ -40,15 +40,18 @@ optional: true
 ---
 program: mongod
 name: configExpand
-args: <none|rest>
+args: <none|rest|exec>
 default: |
   none
 directive: option
 description: |
   .. versionadded:: 4.2
 
-  Enables using :ref:`Expansion Directives <externally-sourced-values>` to set
-  externally sourced values for configuration file options.
+  Enables using :ref:`Expansion Directives <externally-sourced-values>`
+  in configuration files. Expansion directives allow you to set
+  externally sourced values for configuration file options. 
+
+  {{role}} supports the following expansion directives:
 
   .. list-table::
      :header-rows: 1
@@ -60,18 +63,28 @@ description: |
 
      * - ``none``
 
-       - Default. {{program}} does not expand expansion directives. {{program}}
-         fails to start if any configuration file settings use expansion
-         directives.
+       - Default. {{program}} does not expand expansion directives. 
+         {{program}} fails to start if any configuration file settings 
+         use expansion directives.
 
      * - ``rest``
 
-       - {{program}} only expands ``__rest`` expansion directives. {{program}}
-         fails to start if any configuration file settings use any other
-         expansion directive.
+       - {{program}} expands ``__rest`` expansion directives when 
+         parsing the configuration file. 
+
+     * - ``exec``
+
+       - {{program}} expands ``__exec`` expansion directives when
+         parsing the configuration file.
+
+  You can specify multiple expansion directives as a comma-separated
+  list, e.g. ``rest, exec``. If the configuration file contains
+  expansion directives not specified to {{role}}, the {{program}}
+  returns an error and terminates.
 
   See :ref:`externally-sourced-values` for configuration files
   for more information on expansion directives.
+
 optional: true
 ---
 program: mongod
@@ -80,6 +93,10 @@ inherit:
   name: verbose
   program: _shared
   file: options-shared.yaml
+post: |
+   .. note::
+
+      .. include:: /includes/extracts/4.2-changes-debug-log-message.rst
 ---
 program: mongod
 name: quiet
@@ -90,10 +107,21 @@ inherit:
 ---
 program: mongod
 name: port
-inherit:
-  name: port
-  program: _shared
-  file: options-shared.yaml
+args: <port>
+
+directive: option
+description: |
+
+   *Default*:
+
+   - 27017 if :binary:`~bin.mongod` is not a shard member or a config server member
+   - 27018 if :binary:`~bin.mongod` is a :option:`shard member <mongod --shardsvr>`
+   - 27019 if :binary:`~bin.mongod` is a :option:`config server member <mongod --configsvr>`
+
+   The TCP port on which the MongoDB instance listens for
+   client connections.
+   
+optional: true
 ---
 program: mongod
 name: bind_ip
@@ -115,21 +143,52 @@ description: |
 
   .. example:: ``localhost,/tmp/mongod.sock``
 
+  You can specify both IPv4 and IPv6 addresses, or hostnames that
+  resolve to an IPv4 or IPv6 address.
+
+  .. example:: ``localhost, 2001:0DB8:e132:ba26:0d5c:2774:e7f9:d513``
+
+  .. note::
+
+     If specifying an IPv6 address *or* a hostname that resolves to an
+     IPv6 address to {{role}}, you must start {{program}} with 
+     {{ipv6}} to enable IPv6 support. Specifying an IPv6 address
+     to {{role}} does not enable IPv6 support.
+
+  If specifying a 
+  `link-local IPv6 address <https://en.wikipedia.org/w/index.php?title=Link-local_address&oldid=880793020#IPv6>`_ 
+  (``fe80::/10``), you must append the 
+  `zone index <https://en.wikipedia.org/w/index.php?title=IPv6_address&oldid=877601778#Scoped_literal_IPv6_addresses>`_
+  to that address (i.e. ``fe80::<address>%<adapter-name>``). 
+
+  .. example:: ``localhost,fe80::a00:27ff:fee0:1fcf%enp0s3``
+
   .. include:: /includes/tip-hostnames.rst
 
   .. include:: /includes/warning-bind-ip-security-considerations.rst
+  
+  For more information about IP Binding, refer to the
+  :doc:`/core/security-mongodb-configuration` documentation.
 
+replacement:
+  ipv6: ":option:`--ipv6`"
 optional: true
 post: |
   To bind to all IPv4 addresses, enter ``0.0.0.0``.
 
-  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0``
-  or alternatively, use the :setting:`net.bindIpAll` setting.
+  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0`` or
+  starting in MongoDB 4.2, an asterisk ``"*"`` (enclose the asterisk in
+  quotes to avoid filename pattern expansion). Alternatively, use the
+  :setting:`net.bindIpAll` setting.
 
   .. note::
 
-     ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive. That
-     is, you can specify one or the other, but not both.
+     - ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive.
+       Specifying both options causes {{program}} to throw an error and
+       terminate.
+
+     - The command-line option ``--bind`` overrides the configuration
+       file setting :setting:`net.bindIp`.
 
 ---
 program: mongod
@@ -138,19 +197,26 @@ args: null
 directive: option
 description: |
 
-   .. versionadded:: 3.6
+  .. versionadded:: 3.6
 
-   If {{condition}}, the {{program}} instance binds to all ip addresses. When
-   attaching {{program}} to a publicly accessible interface, ensure
-   that you have implemented proper authentication and firewall
-   restrictions to protect the integrity of your database.
+  If {{condition}}, the {{program}} instance binds to all IPv4
+  addresses (i.e. ``0.0.0.0``). If {{program}} starts with
+  {{ipv6}}, {{role}} also binds to all IPv6 addresses
+  (i.e. ``::``). 
 
-   .. include:: /includes/warning-bind-ip-security-considerations.rst
+  {{program}} only supports IPv6 if started with {{ipv6}}. Specifying
+  {{role}} alone does not enable IPv6 support.
+  
+  .. include:: /includes/warning-bind-ip-security-considerations.rst
+  
+  For more information about IP Binding, refer to the
+  :doc:`/core/security-mongodb-configuration` documentation.
 
 post: |
 
-  Alternatively, you can set the ``--bind_ip`` option to
-  ``::,0.0.0.0`` to bind to all IP addresses.
+  Alternatively, you can set the ``--bind_ip`` option to ``::,0.0.0.0``
+  or, starting in MongoDB 4.2, to an asterisk ``"*"`` (enclose the
+  asterisk in quotes to avoid filename pattern expansion).
 
   .. note::
 
@@ -159,6 +225,7 @@ post: |
 
 replacement:
   condition: "specified"
+  ipv6: ":option:`--ipv6`"
 ---
 program: mongod
 name: listenBacklog
@@ -477,6 +544,8 @@ description: |
   typically you will run {{program}} as a daemon, either by using
   {{role}} or by using a controlling process that handles the
   daemonization process (e.g. as with ``upstart`` and ``systemd``).
+
+  The {{role}} option is not supported on Windows.
 optional: true
 replacement:
   verb: "Enables"
@@ -584,19 +653,9 @@ post: |
   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
 
   .. include:: /includes/extracts/no-journaling-writeConcernMajorityJournalDefault-false.rst
+  
+  .. include:: /includes/extracts/4.2-changes-inmem-startup-warning.rst
 
----
-program: mongod
-name: journalOptions
-args: <arguments>
-directive: option
-description: |
-  Provides functionality for testing. Not for general use, and will affect data
-  file integrity in the case of abnormal system shutdown.
-post: |
-  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
-
-optional: true
 ---
 program: mongod
 name: journalCommitInterval
@@ -611,7 +670,7 @@ description: |
   the {{program}} process allows between
   journal operations. Values can range from 1 to 500 milliseconds. Lower
   values increase the durability of the journal, at the expense of disk
-  performance.  The default journal commit interval is 100 milliseconds.
+  performance. The default journal commit interval is 100 milliseconds.
 
   On WiredTiger, the default journal commit interval is 100 milliseconds. Additionally,
   a write with ``j:true`` will cause an immediate sync of the journal.
@@ -629,8 +688,20 @@ args: null
 directive: option
 description: |
 
-   Enables IPv6 support. {{program}} disables IPv6 support by default.
+   {{intro}} IPv6 support. {{program}} disables IPv6 support by default.
 
+   Setting {{role}} does *not* direct the {{program}} to listen on any
+   local IPv6 addresses or interfaces. To configure the {{program}} to
+   listen on an IPv6 interface, you must either:
+
+   - Configure {{bindIp}} with one or more IPv6 addresses or
+     hostnames that resolve to IPv6 addresses, **or**
+   - Set {{bindIpAll}} to ``true``.
+
+replacement:
+  intro: "Enables"
+  bindIp: ":option:`--bind_ip`"
+  bindIpAll: ":option:`--bind_ip_all`"
 optional: true
 ---
 program: mongod
@@ -719,50 +790,6 @@ description: |
 optional: true
 ---
 program: mongod
-name: nssize
-args: <value>
-default: 16
-directive: option
-description: |
-  {{verb}} default size for namespace files, which are files that end
-  in ``.ns``. Each collection and index counts as a namespace.
-
-  Use this setting to control size for newly created namespace files. This
-  option has no impact on existing files. The maximum size for a namespace
-  file is 2047 megabytes. The default value of 16 megabytes provides for
-  approximately 24,000 namespaces.
-optional: true
-replacement:
-  verb: "Specifies the"
----
-program: mongod
-name: quota
-args: null
-directive: option
-description: |
-  {{verb}} a maximum limit for the number data files each database can
-  have. When running with the {{role}} option, MongoDB has a maximum of 8
-  data files per database. Adjust the quota with
-  {{quota_files}}.
-optional: true
-replacement:
-  quota_files: :option:`--quotaFiles`
-  verb: "Enables"
----
-program: mongod
-name: quotaFiles
-args: <number>
-default: 8
-directive: option
-description: |
-  {{verb}} limit on the number of data files per database. {{role}}
-  option requires that you set {{quota_flag}}.
-optional: true
-replacement:
-  quota_flag: :option:`--quota`
-  verb: "Modifies the"
----
-program: mongod
 name: repair
 args: null
 directive: option
@@ -846,23 +873,6 @@ post: |
 optional: true
 ---
 program: mongod
-name: smallfiles
-args: null
-directive: option
-description: |
-  {{intro}} a smaller default file size. The {{role}} option
-  reduces the initial size for data files and limits the maximum size to
-  512 megabytes. {{role}} also reduces the size of each :term:`journal`
-  file from 1 gigabyte to 128 megabytes. Use {{role}} if you have a large
-  number of databases that each holds a small quantity of data.
-
-  The {{role}} option can lead the {{program}} instance to create a large
-  number of files, which can affect performance for larger databases.
-optional: true
-replacement:
-  intro: "Sets MongoDB to use"
----
-program: mongod
 name: shutdown
 args: null
 directive: option
@@ -875,6 +885,8 @@ description: |
 
   The {{role}} option is available only on Linux systems.
 optional: true
+post: |
+   For additional ways to shut down, see also :ref:`terminate-mongod-processes`.
 ---
 program: mongod
 name: syncdelay
@@ -949,6 +961,38 @@ description: |
 optional: true
 ---
 program: mongod
+name: noIndexBuildRetry
+# The description for this option applies specifically to the command
+# line. The equivalent option in the configuration file has a different
+# description because it uses "opposite" wording. The command-line option
+# is false by default, while the config-file option is true by default.
+args: null
+directive: option
+description: |
+
+  .. versionchanged:: 4.0
+
+     {{role}} cannot be used in
+     conjunction with :option:`--replSet <mongod --replSet>`; i.e., you cannot
+     use {{role}} for a :binary:`~bin.mongod` instance that is part of
+     a replica set.
+
+  Stops the {{program}} **standalone** instance from rebuilding incomplete indexes on the next
+  start up. This applies in cases where the {{program}} restarts after it
+  has shut down or stopped in the middle of an index build. In such cases,
+  the {{program}} always removes any incomplete indexes, and then also, by
+  default, attempts to rebuild them. To stop the {{program}} from
+  rebuilding incomplete indexes on start up, include this option on the
+  command-line.
+
+  The {{role}} only applies to standalones.
+
+post: |
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+
+optional: true
+---
+program: mongod
 name: replSet
 args: <setname>
 directive: option
@@ -957,6 +1001,9 @@ description: |
   this set. All hosts in the replica set must have the same set name.
 
   Starting in MongoDB 4.0,
+
+  - {{role}} cannot be used in conjunction with
+    :option:`--noIndexBuildRetry <mongod --noIndexBuildRetry >`.
 
   - For the WiredTiger storage engine, {{role}} cannot be used in
     conjunction with :option:`--nojournal <mongod --nojournal>`.
@@ -1165,10 +1212,10 @@ description: |
 
   .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
 
-  
+  .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst
 optional: true
 replacement:
-   file: ":option:`--sslPEMKeyFile`"
+   file: ":option:`--tlsCertificateKeyFile`"
    alternative: ":option:`--tlsCertificateSelector <mongod --tlsCertificateSelector>`"
 ---
 program: mongod
@@ -1283,7 +1330,7 @@ description: |
   .. note::
 
    Starting in 4.0, on macOS or Windows, you can use a certificate from
-   the operating system's secure store instead of a PEM key file. See
+   the operating system's secure store instead of a PEM file. See
    {{selector}}.
 
   {{intro}} :file:`.pem` file that contains both the TLS/SSL certificate
@@ -1299,7 +1346,7 @@ optional: true
 replacement:
   intro: "Specifies the"
   selector: ":option:`--sslCertificateSelector`"
-  alternative: ":option:`--tlsPEMKeyFile <mongod --tlsPEMKeyFile>`"
+  alternative: ":option:`--tlsCertificateKeyFile <mongod --tlsCertificateKeyFile>`"
 ---
 program: mongod
 name: sslPEMKeyPassword
@@ -1331,7 +1378,7 @@ replacement:
   intro: "Specifies the"
   pemKeyOption: ":option:`--sslPEMKeyFile`"
   selector: ":option:`--sslCertificateSelector`"
-  alternative: ":option:`--tlsPEMKeyPassword <mongod --tlsPEMKeyPassword>`"
+  alternative: ":option:`--tlsCertificateKeyFilePassword <mongod --tlsCertificateKeyFilePassword>`"
 ---
 program: mongod
 name: sslClusterFile
@@ -1479,6 +1526,7 @@ description: |
   .. note::
      
      Starting in MongoDB 4.0, you cannot specify {{role}} on macOS.  Use {{selector}} instead.
+
 
   .. include:: /includes/extracts/ssl-facts-see-more.rst
 optional: true
@@ -1629,7 +1677,7 @@ description: |
 
      Available on Windows and macOS as an alternative to {{file}}.
      
-     {{file}} and {{role}} options are mutually exclusive. You can only
+     The {{file}} and {{role}} options are mutually exclusive. You can only
      specify one.
 
   Specifies a certificate property in order to select a matching
@@ -1640,10 +1688,11 @@ description: |
 
   .. include:: /includes/extracts/tls-facts-certificate-selector-properties.rst
 
+  .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst
   
 optional: true
 replacement:
-   file: ":option:`--tlsPEMKeyFile`"
+   file: ":option:`--tlsCertificateKeyFile`"
 ---
 program: mongod
 name: tlsClusterCertificateSelector
@@ -1720,7 +1769,7 @@ replacement:
   directive: "option"
 ---
 program: mongod
-name: tlsPEMKeyFile
+name: tlsCertificateKeyFile
 args: <filename>
 directive: option
 description: |
@@ -1729,7 +1778,7 @@ description: |
   .. note::
 
    Starting in 4.0, on macOS or Windows, you can use a certificate from
-   the operating system's secure store instead of a PEM key file. See
+   the operating system's secure store instead of specifying a PEM file. See
    {{selector}}.
 
   {{intro}} :file:`.pem` file that contains both the TLS certificate
@@ -1747,7 +1796,7 @@ replacement:
   selector: ":option:`--tlsCertificateSelector`"
 ---
 program: mongod
-name: tlsPEMKeyPassword
+name: tlsCertificateKeyFilePassword
 args: <value>
 directive: option
 description: |
@@ -1767,14 +1816,14 @@ description: |
   - On macOS or Windows, if the private key in the PEM file is
     encrypted, you must explicitly specify the {{role}} option.
     Alternatively, you can use a certificate from the secure system
-    store (see {{selector}}) instead of a PEM key file or use an
+    store (see {{selector}}) instead of a PEM file or use an
     unencrypted PEM file.
 
   .. include:: /includes/extracts/tls-facts-see-more.rst
 optional: true
 replacement:
   intro: "Specifies the"
-  pemKeyOption: ":option:`--tlsPEMKeyFile`"
+  pemKeyOption: ":option:`--tlsCertificateKeyFile`"
   selector: ":option:`--tlsCertificateSelector`"
 ---
 program: mongod
@@ -1787,7 +1836,7 @@ description: |
   .. note::
 
      Starting in 4.0, on macOS or Windows, you can use a certificate
-     from the operating system's secure store instead of a PEM key
+     from the operating system's secure store instead of a PEM
      file. See {{selector}}.
 
   {{intro}} :file:`.pem` file that contains the x.509 certificate-key
@@ -1806,7 +1855,7 @@ description: |
   .. include:: /includes/extracts/tls-facts-see-more.rst
 optional: true
 replacement:
-  pemKeyOption: ":option:`--tlsPEMKeyFile`"
+  pemKeyOption: ":option:`--tlsCertificateKeyFile`"
   intro: "Specifies the"
   directive: "option"
   selector: ":option:`--tlsClusterCertificateSelector`"
@@ -2325,16 +2374,14 @@ program: mongod
 name: wiredTigerCacheSizeGB
 directive: option
 optional: true
-args: "float"
+args: "<float>"
 description: |
 
-   {{intro}} maximum size of the internal cache that WiredTiger will
-   use for all data.
-
-   .. versionchanged:: 3.4
-
-      Values can range from 256MB to 10TB and can be a float. In
-      addition, the default value has also changed.
+   Defines the maximum size of the internal cache that WiredTiger will
+   use for all data. The memory consumed by an index build (see
+   :parameter:`maxIndexBuildMemoryUsageMegabytes`) is separate from the
+   WiredTiger cache memory. Starting in MongoDB 3.4, the values can range
+   from 0.25 GB  to 10000 GB and can be a float.
 
    .. include:: /includes/extracts/wt-cache-default-setting.rst
 
@@ -2343,13 +2390,11 @@ description: |
 
    With WiredTiger, MongoDB utilizes both the WiredTiger internal cache
    and the filesystem cache.
-
+   
    .. include:: /includes/extracts/wt-filesystem-cache.rst
 
 post: |
   .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-cmdline-option.rst
-replacement:
-  intro: "Defines the"
 ---
 program: mongod
 name: wiredTigerJournalCompressor
@@ -2361,7 +2406,7 @@ description: |
 
   .. versionadded:: 3.0.0
 
-  {{intro}} type of compression to use to compress WiredTiger
+  Specifies the type of compression to use to compress WiredTiger
   journal data.
 
   Available compressors are:
@@ -2371,8 +2416,9 @@ description: |
   - :term:`snappy`
 
   - :term:`zlib`
-replacement:
-  intro: "Specifies the"
+  
+  - :term:`zstd` (Available starting in MongoDB 4.2)
+
 ---
 program: mongod
 name: wiredTigerCollectionBlockCompressor
@@ -2384,9 +2430,8 @@ description: |
 
   .. versionadded:: 3.0.0
 
-  {{intro}} default type of compression to use to compress collection
-  data. You can override this on a per-collection basis when creating
-  collections.
+  Specifies the default compression for collection data. You can
+  override this on a per-collection basis when creating collections.
 
   Available compressors are:
 
@@ -2396,13 +2441,13 @@ description: |
 
   - :term:`zlib`
 
+  - :term:`zstd` (Available starting MongoDB 4.2)
+
   {{role}} affects all collections created. If you change
   the value of {{role}} on an existing MongoDB deployment, all new
   collections will use the specified compressor. Existing collections
   will continue to use the compressor specified when they were
   created, or the default compressor at that time.
-replacement:
-  intro: "Specifies the"
 ---
 program: mongod
 name: wiredTigerIndexPrefixCompression
@@ -2554,6 +2599,8 @@ description: |
    the hostname does not match the ``SAN`` (or ``CN``), the
    :binary:`~bin.mongod` will fail to connect.
 
+   .. include:: /includes/extracts/4.2-changes-SAN-matching.rst
+
    .. include:: /includes/fact-enterprise-only-admonition.rst
 ---
 program: mongod
@@ -2646,14 +2693,14 @@ description: |
    Starting in MongoDB 3.6, MongoDB enables support for
    :readconcern:`"majority"` read concern by default.
 
-   For MongoDB 4.0.3+ and 3.6.1+, you can disable read concern
-   :readconcern:`"majority"` to prevent the storage cache pressure from
-   immobilizing a deployment with a three-member
-   primary-secondary-arbiter (PSA) architecture. For more information
-   about disabling read concern :readconcern:`"majority"`, see
-   :ref:`4.0-disable-read-concern-majority`.
+   You can disable read concern :readconcern:`"majority"` to prevent
+   the storage cache pressure from immobilizing a deployment with a
+   three-member primary-secondary-arbiter (PSA) architecture. For more
+   information about disabling read concern :readconcern:`"majority"`,
+   see :ref:`disable-read-concern-majority`.
 
-   To disable, set {{role}} to false.
+   To disable, set {{role}} to false. {{role}} has no effect for
+   MongoDB versions: 4.0.0, 4.0.1, 4.0.2, 3.6.0.
 
    .. important::
 
@@ -2663,15 +2710,9 @@ description: |
       cluster with a three-member PSA shards, disable to prevent the
       storage cache pressure from immobilizing the deployment.
 
-      Disabling :readconcern:`"majority"` read concern disables support
-      for :doc:`/changeStreams`.
+      .. include:: /includes/extracts/transactions-read-concern-majority.rst
 
-      Disabling :readconcern:`"majority"` does not affect
-      :doc:`multi-document transactions </core/transactions>`; i.e. you
-      can specify read concern "majority" for multi-document
-      transactions even if read concern "majority" is disabled.
-
-   {{role}} has no effect for MongoDB versions: 4.0.0, 4.0.1, 4.0.2, 3.6.0.
+      .. include:: /includes/extracts/changestream-disable-rc-majority.rst
 
 ---
 program: mongod
@@ -3251,8 +3292,28 @@ description: |
   the LDAP groups to which the authenticated user belongs to. The query is
   relative to the host or hosts specified in {{ldapServers}}.
 
-  Use the ``{USER}`` placeholder in the URL to substitute the authenticated
-  username, or the transformed username if a {{mapping}} is specified.
+  In the URL, you can use the following substituion tokens:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 80
+     
+     * - Substitution Token
+       - Description
+
+     * - ``{USER}`` 
+     
+       - Substitutes the authenticated username, or the
+         :setting:`transformed <security.ldap.userToDNMapping>`
+         username if a {{mapping}} is specified.
+
+     * - ``{PROVIDED_USER}``
+
+       - Substitutes the supplied username, i.e. before either
+         authentication or :setting:`LDAP transformation
+         <security.ldap.userToDNMapping>`.
+         
+         .. versionadded:: 4.2
 
   When constructing the query URL, ensure that the order of LDAP parameters
   respects RFC4516:
@@ -3321,7 +3382,7 @@ optional: true
 program: mongod
 name: networkMessageCompressors
 args: <string>
-default: snappy,zlib
+default: snappy,zstd,zlib
 directive: option
 description: |
 
@@ -3340,14 +3401,16 @@ description: |
 
    - :term:`snappy`
 
-   - :term:`zlib` (Available in MongoDB 3.6 or greater)
+   - :term:`zlib` (Available starting in MongoDB 3.6)
+
+   - :term:`zstd` (Available  starting in MongoDB 4.2)
 
    **In versions 3.6 and 4.0**, :binary:`~bin.mongod` and
    :binary:`~bin.mongos` enable network compression by default with
    ``snappy`` as the compressor.
    
    **Starting in version 4.2**, :binary:`~bin.mongod` and
-   :binary:`~bin.mongos` instances default to both ``snappy,zlib``
+   :binary:`~bin.mongos` instances default to both ``snappy,zstd,zlib``
    compressors, in that order.
 
    To disable network compression, set the value to ``disabled``.
@@ -3373,11 +3436,21 @@ description: |
 
    .. versionadded:: 4.2
 
-   Outputs the resolved YAML configuration document for the {{program}} to ``stdout``
-   and halts the server instance. For configuration options using 
-   :ref:`externally-sourced-values`, {{role}} returns the resolved value for those
-   options. This may include any configured passwords or secrets previously 
-   obfuscated through the external source.
+   Outputs the {{program}} instance's configuration options, formatted
+   in YAML, to ``stdout`` and exits the {{program}} instance. For
+   configuration options that uses :ref:`externally-sourced-values`,
+   {{role}} returns the resolved value for those options.
+   
+   .. warning::
+      
+      This may include any configured passwords or secrets previously
+      obfuscated through the external source.
+   
+   For usage examples, see:
+      
+   - :ref:`expansion-directive-output`
+   
+   - :doc:`/tutorial/convert-command-line-options-to-yaml`
 
 optional: true
 ---
@@ -3435,7 +3508,7 @@ post: |
    :setting:`cloud.monitoring.free.state`.
 ---
 program: mongod
-name: enableFreeMonitoringTag
+name: freeMonitoringTag
 args: <string>
 directive: option
 description: |
@@ -3452,7 +3525,7 @@ optional: true
 post: |
    
    For the corresponding configuration file setting, see
-   :setting:`cloud.monitoring.free.tag`.
+   :setting:`cloud.monitoring.free.tags`.
 ---
 program: mongod
 name: kmipClientCertificateSelector
@@ -3483,4 +3556,43 @@ description: |
 optional: true
 replacement:
    file: ":option:`--kmipClientCertificateFile`"
+---
+program: mongod
+name: clusterIpSourceWhitelist
+args: <string>
+directive: option
+optional: true
+pre: |
+
+  .. versionadded:: 3.6
+
+  A list of IP addresses/CIDR (`Classless Inter-Domain Routing
+  <https://tools.ietf.org/html/rfc4632>`__) ranges against which the
+  :binary:`~bin.mongod` validates authentication requests from other members of
+  the replica set and, if part of a sharded cluster, the :binary:`~bin.mongos`
+  instances. The :binary:`~bin.mongod` verifies that the originating IP is
+  either explicitly in the list or belongs to a CIDR range in the list. If the
+  IP address is not present, the server does not authenticate the
+  :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+
+  {{role}} has no effect on a :binary:`~bin.mongod` started without
+  :ref:`authentication <authentication>`.
+
+description: |
+
+  {{role}} accepts multiple comma-separated IPv4/6 addresses or Classless
+  Inter-Domain Routing (`CIDR <https://tools.ietf.org/html/rfc4632>`_) ranges:
+
+  .. code-block:: shell
+
+     mongod --clusterIpSourceWhitelist 192.0.2.0/24,127.0.0.1,::1
+
+post: |
+
+  .. important::
+
+     Ensure {{role}} includes the IP address *or* CIDR ranges that include the
+     IP address of each replica set member or :binary:`~bin.mongos` in the
+     deployment to ensure healthy communication between cluster components.
+
 ...

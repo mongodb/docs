@@ -34,7 +34,7 @@ stream response document can have.
          "db" : "<database>",
          "coll" : "<collection"
       },
-      "documentKey" : { "_id" : <ObjectId> },
+      "documentKey" : { "_id" : <value> },
       "updateDescription" : {
          "updatedFields" : { <document> },
          "removedFields" : [ "<field>", ... ]
@@ -58,15 +58,23 @@ following table describes each field in the change stream response document:
      - Type
      - Description
 
-   * - ``_id``
+   * - :ref:`_id <change-stream-event-id>`
      - document
-     - Metadata related to the operation.
+     - .. _change-stream-event-id:
 
-       Use this document as a ``resumeToken`` for the ``resumeAfter``
-       parameter when resuming a change stream.
-       
-       .. include:: /includes/extracts/changestream-resume-token-change.rst
-       
+       Metadata related to the operation. Acts as the ``resumeToken``
+       for the ``resumeAfter`` parameter when resuming a change stream.
+
+       .. code-block:: none
+
+          {
+             "_data" : <BinData|hex string>
+          }
+
+       The ``_data`` type depends on the MongoDB versions
+       and, in some cases, the feature compatibility version (fcv) at
+       the time of the change stream's opening/resumption. For details,
+       see :ref:`change-stream-resume-token`.
 
    * - ``operationType``
      - string
@@ -131,7 +139,7 @@ following table describes each field in the change stream response document:
 
    * - ``documentKey``
      - document
-     - The ObjectID of the document created or modified by the ``insert``,
+     - A document that contains the ``_id`` of the document created or modified by the ``insert``,
        ``replace``, ``delete``, ``update`` operations  (i.e. CRUD operations).
        For sharded collections, also displays the full shard key for the
        document. The ``_id`` field is not repeated if it is already a
@@ -166,6 +174,13 @@ following table describes each field in the change stream response document:
        transaction </core/transactions>`, the associated change stream
        notifications will have the same ``clusterTime`` value, namely
        the time when the transaction was committed.
+       
+       On a sharded cluster, events that occur on different shards can
+       have the same ``clusterTime`` but be associated with different
+       transactions or even not be associcated with any transaction. To
+       identify events for a single transaction, you can use the
+       combination of ``lsid`` and ``txnNumber`` in the change stream
+       event document.
 
        .. versionadded:: 4.0
 

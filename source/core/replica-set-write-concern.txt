@@ -25,10 +25,13 @@ value greater than ``1`` to require acknowledgment from the primary and
 as many secondaries as needed to meet the specified value, up to the
 total number of data-bearing members in the replica set.
 
-Write operations with a write concern of :writeconcern:`"majority"` 
-require acknowledgment from a simple majority of data-bearing
-voting replica set members (i.e. :rsconf:`members[n].votes` is greater
-than ``0`` and :rsconf:`members[n].arbiterOnly` is ``false``). For
+Write operations with a write concern of :writeconcern:`"majority"`
+require acknowledgement that the write operations have propagated to
+the majority (``M``) of data-bearing voting members. The majority
+(``M``) is calculated as a simple majority of *all* voting members, but the
+write operation returns acknowledgement after propagating to M-number
+of data-bearing voting members (primary and secondaries with
+:rsconf:`members[n].votes` greater than ``0``). For
 clusters where members have :ref:`journaling <journaling-internals>`
 enabled, combining ``"majority"`` write concern with 
 :writeconcern:`j : true <j>` can prevent
@@ -78,8 +81,10 @@ does not block indefinitely.
    )
 
 The application waits until the primary returns write concern
-acknowledgment, indicating that a simple majority of data-bearing voting
-members acknowledged the write operation. For example, in a 3-member
+acknowledgment, indicating that a simple majority (``M``) of
+data-bearing voting members acknowledged the write operation. The
+majority (``M``) is calculated as the majority of *all* voting members,
+and not just the data-bearing voting members. For example, in a 3-member
 replica set the operation would require acknowledgment from 2 out of
 the 3 members. If the replica set was later scaled to include two 
 additional voting nodes, the same operation would require 

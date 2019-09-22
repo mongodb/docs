@@ -15,6 +15,10 @@ Definition
 
 .. method:: db.collection.bulkWrite()
 
+
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+
    .. versionadded:: 3.2
    
    Performs multiple write operations with controls for order of 
@@ -32,7 +36,65 @@ Definition
          }
       )
    
-   .. include:: /includes/apiargs/method-db.collection.bulkWrite-params.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``operations``
+   
+        - array
+   
+        - An array of :method:`~db.collection.bulkWrite()` write 
+          operations.
+          
+          Valid operations are:
+          
+          - :ref:`insertOne <bulkwrite-write-operations-insertOne>`
+          
+          - :ref:`updateOne <bulkwrite-write-operations-updateOneMany>`
+          
+          - :ref:`updateMany <bulkwrite-write-operations-updateOneMany>`
+          
+          - :ref:`deleteOne <bulkwrite-write-operations-deleteOneMany>`
+          
+          - :ref:`deleteMany <bulkwrite-write-operations-deleteOneMany>`
+          
+          - :ref:`replaceOne <bulkwrite-write-operations-replaceOne>`
+          
+          See :ref:`bulkwrite-write-operations` for usage of each operation.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>`. Omit to use the default write concern.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          
+   
+      * - ``ordered``
+   
+        - boolean
+   
+        - Optional. A boolean specifying whether the :binary:`~bin.mongod` instance should perform 
+          an ordered or unordered operation execution. Defaults to ``true``.
+          
+          See :ref:`bulkwrite-write-operations-executionofoperations`
+          
+          
+   
+
 
    :returns:
       - A boolean ``acknowledged`` as ``true`` if the operation ran with 
@@ -77,19 +139,6 @@ See :method:`db.collection.insertOne()`.
 updateOne and updateMany
 ++++++++++++++++++++++++
 
-.. versionchanged:: 3.6
-
-   The ``updateOne`` and ``updateMany`` operations add support for
-   ``arrayFilters`` parameter that determines which elements to modify
-   in an array field. Refer to :method:`db.collection.updateOne()` and
-   :method:`db.collection.updateMany()` for details.
-
-.. versionchanged:: 3.4
-
-   Add support for :ref:`collation <collation>`. Refer to
-   :method:`db.collection.updateOne()` and
-   :method:`db.collection.updateMany()` for details
-
 ``updateOne`` updates a *single* document in the collection that matches the 
 filter. If multiple documents match, ``updateOne`` will update the *first* 
 matching document only. See :method:`db.collection.updateOne()`.
@@ -100,10 +149,10 @@ matching document only. See :method:`db.collection.updateOne()`.
       { updateOne : 
          { 
             "filter" : <document>, 
-            "update" : <document>, 
+            "update" : <document or pipeline>,          // Changed in MongoDB 4.2
             "upsert" : <boolean>,
-            "collation": <document>,
-            "arrayFilters": [ <filterdocument1>, ... ]
+            "collation": <document>,                    // Available starting in 3.4
+            "arrayFilters": [ <filterdocument1>, ... ]  // Available starting in 3.6
          } 
       } 
    ] )
@@ -117,22 +166,31 @@ filter. See :method:`db.collection.updateMany()`.
       { updateMany : 
          { 
             "filter" : <document>, 
-            "update" : <document>, 
+            "update" : <document or pipeline>,          // Changed in MongoDB 4.2 
             "upsert" : <boolean>,
-            "collation": <document>,
-            "arrayFilters": [ <filterdocument1>, ... ]
+            "collation": <document>,                    // Available starting in 3.4
+            "arrayFilters": [ <filterdocument1>, ... ]  // Available starting in 3.6
          } 
       } 
    ] )
 
-Use :ref:`query selectors<query-selectors>` such as those used with
-:method:`~db.collection.find()` for the ``filter`` field.
+For the ``filter`` field, use :ref:`query selectors<query-selectors>`
+such as those used with :method:`~db.collection.find()`.
 
-Use :doc:`/reference/operator/update/` 
-such as :update:`$set`, :update:`$unset`, or :update:`$rename` 
-for the ``update`` field.
+For the ``update`` field, you can use:
+
+- A document that only contains :ref:`update operator
+  <update-operators>` expressions.
+
+- An :doc:`aggregation pipeline </core/aggregation-pipeline>` ``[
+  <stage1>, <stage2>, ... ]`` that specifies the modifications to
+  perform.
 
 By default, ``upsert`` is ``false``.
+
+For details on ``arrayFilters`` and :ref:`collation <collation>`, refer
+to :method:`db.collection.updateOne()` and
+:method:`db.collection.updateMany()`.
 
 .. _bulkwrite-write-operations-replaceOne:
 
@@ -295,15 +353,35 @@ document.
 ``deleteOne`` and ``deleteMany`` throw a ``WriteError`` if used on a 
 capped collection.
 
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+If run inside a transaction, the collection must already exist for
+insert and ``upsert: true`` operations.
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+For error handling inside a transaction, see :ref:`bulkwrite-error-handling-txn`.
+
+.. |operation| replace:: :method:`db.collection.bulkWrite()`
+
+.. _bulkWrite-error-handling:
+
 Error Handling
 ~~~~~~~~~~~~~~
 
-:method:`~db.collection.bulkWrite()` throws a ``BulkWriteError`` exception on 
-errors.
+:method:`db.collection.bulkWrite()` throws a ``BulkWriteError``
+exception on errors (unless the operation is part of a transaction on
+MongoDB 4.0). See :ref:`bulkwrite-error-handling-txn`.
 
-Excluding :doc:`/reference/write-concern` errors, ordered operations stop 
-after an error, while unordered operations continue to process any 
-remaining write operations in the queue.
+Excluding :doc:`/reference/write-concern` errors, ordered operations
+stop after an error, while unordered operations continue to process any
+remaining write operations in the queue, unless when run inside a
+transaction. See :ref:`bulkwrite-error-handling-txn`.
 
 Write concern errors are displayed in the ``writeConcernErrors`` field, while 
 all other errors are displayed in the ``writeErrors`` field. If an error is 
@@ -316,15 +394,19 @@ Transactions
 
 .. include:: /includes/extracts/transactions-supported-operation.rst
 
-For insert and ``upsert: true`` operations, the collection must already
-exist.
+If run inside a transaction, the collection must already exist for
+insert and ``upsert: true`` operations.
 
 .. include:: /includes/extracts/transactions-operations-write-concern.rst
 
 .. include:: /includes/extracts/transactions-usage.rst
 
-.. |operation| replace:: :method:`db.collection.bulkWrite()`
+.. _bulkwrite-error-handling-txn:
 
+Error Handling inside Transactions
+++++++++++++++++++++++++++++++++++
+
+.. include:: /includes/extracts/4.2-changes-bulkWrite-txn-error-handling.rst
 
 Examples
 --------
