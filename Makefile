@@ -5,6 +5,8 @@ PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prod
 REPO_DIR=$(shell pwd)
+SNOOTY_DB_USR = $(shell printenv MONGO_ATLAS_USERNAME)
+SNOOTY_DB_PWD = $(shell printenv MONGO_ATLAS_PASSWORD)
 
 # "PROJECT" currently exists to support having multiple projects
 # within one bucket. For the manual it is empty.
@@ -40,16 +42,14 @@ html: examples ## Builds this branch's HTML under build/<branch>/html
 
 next-gen-html:
 	# snooty parse and then build-front-end
-	echo "k10t3mDLEk4fwtTi" | snooty build ${REPO_DIR} 'mongodb+srv://andrew:@cluster0-ylwlz.mongodb.net/test?retryWrites=true' || exit 0;
-	cp -r ${REPO_DIR}/../snooty ${REPO_DIR};
+	echo "${SNOOTY_DB_PWD}" | snooty build "${REPO_DIR}" "mongodb+srv://${SNOOTY_DB_USR}:@cluster0-ylwlz.mongodb.net/snooty?retryWrites=true" || exit 0;
+	cp -r "${REPO_DIR}/../snooty" ${REPO_DIR};
 	cd snooty; \
-	touch .env.production; \
-	echo "GATSBY_SITE=${PROJECT}" >> .env.production; \
-	echo "PARSER_USER=${USER}" >> .env.production; \
-	echo "PARSER_BRANCH=${GIT_BRANCH}" >> .env.production; \
-	echo "GATSBY_CONTENT_BRANCH=${GIT_BRANCH}" >> .env.production; \
+	echo "GATSBY_SITE=${PROJECT}" > .env.production; \
+	echo "GATSBY_PARSER_USER=${USER}" >> .env.production; \
+	echo "GATSBY_PARSER_BRANCH=${GIT_BRANCH}" >> .env.production; \
 	npm run build; \
-	cp -r ${REPO_DIR}/snooty/public ${REPO_DIR}; 
+	cp -r "${REPO_DIR}/snooty/public" ${REPO_DIR};
 
 publish: examples ## Builds this branch's publishable HTML and other artifacts under build/public
 	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
