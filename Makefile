@@ -44,6 +44,7 @@ next-gen-html:
 	# snooty parse and then build-front-end
 	echo "${SNOOTY_DB_PWD}" | snooty build "${REPO_DIR}" "mongodb+srv://${SNOOTY_DB_USR}:@cluster0-ylwlz.mongodb.net/snooty?retryWrites=true" || exit 0;
 	cp -r "${REPO_DIR}/../snooty" ${REPO_DIR};
+	make examples; \
 	cd snooty; \
 	echo "GATSBY_SITE=${PROJECT}" > .env.production; \
 	echo "GATSBY_PARSER_USER=${USER}" >> .env.production; \
