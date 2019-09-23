@@ -18,15 +18,15 @@ help: ## Show this help message
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
-html:  migrate-assets ## Builds this branch's HTML under build/<branch>/html
+html: ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
 ## Builds this branch's HTML under build/<branch>/html
-clean-html: migrate-assets
+clean-html: 
 	rm -rf build/${GIT_BRANCH}
 	giza make html
 
-publish: migrate-assets ## Builds this branch's publishable HTML and other artifacts under build/public
+publish: ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
