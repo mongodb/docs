@@ -224,15 +224,13 @@ Collections
    .. include:: /includes/admonition-config-db-is-internal.rst
 
    The :data:`~config.databases` collection stores a document for each
-   database in the cluster, and tracks if the database has sharding
-   enabled. :data:`~config.databases` represents each database in a
-   distinct document. When a databases have sharding enabled, the
-   ``primary`` field holds the name of the :term:`primary shard`.
+   database in the cluster. For each database, the corresponding
+   document displays the name, the database's :ref:`primary shard
+   <primary-shard>`, and the database's sharding enabled status.
 
    .. code-block:: javascript
 
-      { "_id" : "admin", "partitioned" : false, "primary" : "config" }
-      { "_id" : "mydb", "partitioned" : true, "primary" : "shard0000" }
+      { "_id" : "mydb", "primary" : "shard0000", "partitioned" : true }
 
 .. data:: config.lockpings
 
@@ -289,11 +287,20 @@ Collections
    collection for reporting purposes.
 
    The following document shows the status of the :binary:`~bin.mongos`
-   running on ``example.com:30000``.
+   running on ``example.com:27017``.
 
    .. code-block:: javascript
 
-      { "_id" : "example.com:30000", "ping" : ISODate("2012-10-12T17:08:13.538Z"), "up" : 13699, "waiting" : true }
+      {
+         "_id" : "example.com:27017",
+         "ping" : ISODate("2019-09-25T22:48:34.062Z"),
+         "up" : NumberLong(488),
+         "waiting" : true,
+         "mongoVersion" : "3.4.21",
+         "advisoryHostFQDNs" : [
+            "example.com"
+         ]
+      }
 
 .. data:: config.settings
 
@@ -318,7 +325,7 @@ Collections
    .. code-block:: javascript
 
       { "_id" : "chunksize", "value" : 64 }
-      { "_id" : "balancer", "stopped" : false }
+      { "_id" : "balancer", "stopped" : false, "mode" : "full" }
       { "_id" : "autosplit", "enabled" : true }
 
 .. data:: config.shards
@@ -330,7 +337,7 @@ Collections
    
    .. code-block:: javascript
 
-      { "_id" : "shard0000", "host" : "localhost:30000" }
+      { "_id" : "shard0000", "host" : "localhost:30000", "state" : 1 }
 
    If the shard is a replica set, the
    ``host`` field displays the name of the replica set, then a slash, then
@@ -339,7 +346,7 @@ Collections
 
    .. code-block:: javascript
 
-      { "_id" : "shard0001", "host" : "shard0001/localhost:27018,localhost:27019,localhost:27020" }
+      { "_id" : "shard0001", "host" : "shard0001/localhost:27018,localhost:27019,localhost:27020", "state" : 1 }
 
    If the shard has :ref:`zones <zone-sharding>` assigned, this
    document has a ``tags`` field, that holds an array of the zones
@@ -347,7 +354,7 @@ Collections
 
    .. code-block:: javascript
 
-      { "_id" : "shard0002", "host" : "localhost:30002", "tags": [ "NYC" ] }
+      { "_id" : "shard0002", "host" : "localhost:30002", "state" : 1, "tags": [ "NYC" ] }
 
 .. data:: config.tags
 
@@ -372,13 +379,17 @@ Collections
    .. include:: /includes/admonition-config-db-is-internal.rst
 
    The :data:`~config.version` collection holds the current metadata version number. This
-   collection contains only one document:
+   collection contains only one document.  For example:
+   
+   .. code-block:: javascript
+
+      { "_id" : 1, "minCompatibleVersion" : 5, "currentVersion" : 6, "clusterId" : ObjectId("5d8beccf85e012bbe8d92fe6") }
 
    To access the :data:`~config.version` collection you must use the
-   :method:`db.getCollection()` method. For example, to display the
+   :method:`db.getCollection()` method. For example, to return the
    collection's document:
 
    .. code-block:: javascript
 
-      mongos> db.getCollection("version").find()
-      { "_id" : 1, "version" : 3 }
+      db.getCollection("version").find()
+
