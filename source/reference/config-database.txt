@@ -164,7 +164,7 @@ to support sharding:
 
    .. data:: config.changelog.what
 
-      Reflects the type of change recorded. Possible values are:
+      Reflects the type of change recorded. Possible values include:
 
       - ``dropCollection``
       - ``dropCollection.start``
@@ -191,14 +191,14 @@ to support sharding:
 
    The :data:`~config.chunks` collection stores a document for each chunk in
    the cluster.  Consider the following example of a document for a
-   chunk named ``records.pets-animal_\"cat\"``:
+   chunk named ``mydb.foo-a_\"cat\"``:
 
    .. code-block:: javascript
 
       {
          "_id" : "mydb.foo-a_\"cat\"",
-         "lastmod" : Timestamp(1000, 3),
-         "lastmodEpoch" : ObjectId("5078407bd58b175c5c225fdc"),
+         "lastmod" : Timestamp(2, 1), 
+         "lastmodEpoch" : ObjectId("5d8aa9fbe7a2f52c300e8e6f"),
          "ns" : "mydb.foo",
          "min" : {
                "animal" : "cat"
@@ -206,7 +206,8 @@ to support sharding:
          "max" : {
                "animal" : "dog"
          },
-         "shard" : "shard0004"
+         "shard" : "shard0004",
+         "history" : [ { "validAfter" : Timestamp(1569368571, 27), "shard" : "shard0004" } ] 
       }
 
    These documents store the range of values for the shard key that
@@ -233,7 +234,8 @@ to support sharding:
                "a" : 1
          },
          "unique" : false,
-         "lastmodEpoch" : ObjectId("5078407bd58b175c5c225fdc")
+         "lastmodEpoch" : ObjectId("5078407bd58b175c5c225fdc"),
+         "uuid" :  UUID("f8669e52-5c1b-4ea2-bbdc-a00189b341da")
       }
 
 .. data:: config.databases
@@ -241,15 +243,20 @@ to support sharding:
    .. include:: /includes/admonition-config-db-is-internal.rst
 
    The :data:`~config.databases` collection stores a document for each
-   database in the cluster, and tracks if the database has sharding
-   enabled. :data:`~config.databases` represents each database in a
-   distinct document. When a databases have sharding enabled, the
-   ``primary`` field holds the name of the :term:`primary shard`.
+   database in the cluster. lists information on the database(s). 
+   
+   For each database, the corresponding document displays the name, the
+   database's :ref:`primary shard <primary-shard>` , the database's
+   sharding enabled status, and a version.
 
    .. code-block:: javascript
 
-      { "_id" : "admin", "partitioned" : false, "primary" : "config" }
-      { "_id" : "mydb", "partitioned" : true, "primary" : "shard0000" }
+      { "_id" : "test", "primary" : "shardA", "partitioned" : true, "version" : { "uuid" : UUID("516a5f79-5eb9-4844-8ee9-b8e9de91b760"), "lastMod" : 1 } }
+      { "_id" : "hr", "primary" : "shardA", "partitioned" : false, "version" : { "uuid" : UUID("8e39d61d-6259-4c33-a5ed-bcd2ae317b6f"), "lastMod" : 1 } }
+      { "_id" : "reporting", "primary" : "shardB", "partitioned" : false, "version" : { "uuid" : UUID("07c63242-51b3-460c-865f-a67b3372d792"), "lastMod" : 1 } }
+
+   The method :method:`sh.status()` returns this information in the
+   :ref:`sharding-status-databases-fields` section.
 
 .. data:: config.lockpings
 
@@ -323,11 +330,20 @@ to support sharding:
    collection for reporting purposes.
 
    The following document shows the status of the :binary:`~bin.mongos`
-   running on ``example.com:30000``.
+   running on ``example.com:27017``.
 
    .. code-block:: javascript
 
-      { "_id" : "example.com:30000", "ping" : ISODate("2012-10-12T17:08:13.538Z"), "up" : 13699, "waiting" : true }
+      {
+         "_id" : "example.com:27017",
+         "advisoryHostFQDNs" : [
+            "example.com"
+         ],
+         "mongoVersion" : "4.2.0",
+         "ping" : ISODate("2019-09-25T19:26:52.360Z"),
+         "up" : NumberLong(50),
+         "waiting" : true
+      }
 
 .. data:: config.settings
 
@@ -361,12 +377,13 @@ to support sharding:
      - :dbcommand:`balancerStop` also disables auto-splitting for the
        sharded cluster.
 
-   The following is an example ``settings`` collection:
+   The following are some example documents in the ``settings``
+   collection:
 
    .. code-block:: javascript
 
       { "_id" : "chunksize", "value" : 64 }
-      { "_id" : "balancer", "stopped" : false }
+      { "_id" : "balancer", "mode" : "full", "stopped" : false }
       { "_id" : "autosplit", "enabled" : true }
 
 .. data:: config.shards
@@ -378,7 +395,7 @@ to support sharding:
 
    .. code-block:: javascript
 
-      { "_id" : "shard0000", "host" : "localhost:30000" }
+      { "_id" : "shard0000", "host" : "localhost:30000", "state" : 1 }
 
    If the shard is a replica set, the
    ``host`` field displays the name of the replica set, then a slash, then
@@ -387,7 +404,7 @@ to support sharding:
 
    .. code-block:: javascript
 
-      { "_id" : "shard0001", "host" : "shard0001/localhost:27018,localhost:27019,localhost:27020" }
+      { "_id" : "shard0001", "host" : "shard0001/localhost:27018,localhost:27019,localhost:27020", "state" : 1 }
 
    If the shard has :ref:`zones <zone-sharding>` assigned, this
    document has a ``tags`` field, that holds an array of the zones
@@ -395,7 +412,7 @@ to support sharding:
 
    .. code-block:: javascript
 
-      { "_id" : "shard0002", "host" : "localhost:30002", "tags": [ "NYC" ] }
+      { "_id" : "shard0002", "host" : "localhost:30002", "state" : 1, "tags": [ "NYC" ] }
 
 .. data:: config.tags
 
@@ -420,16 +437,20 @@ to support sharding:
    .. include:: /includes/admonition-config-db-is-internal.rst
 
    The :data:`~config.version` collection holds the current metadata version number. This
-   collection contains only one document:
+   collection contains only one document.  For example:
 
-   To access the :data:`~config.version` collection you must use the
-   :method:`db.getCollection()` method. For example, to display the
+   .. code-block:: javascript
+
+      { "_id" : 1, "minCompatibleVersion" : 5, "currentVersion" : 6, "clusterId" : ObjectId("5d8bc01a690d8abbd2014ddd") }
+
+   To access the :data:`~config.version` collection, you must use the
+   :method:`db.getCollection()` method. For example, to retrieve the
    collection's document:
 
    .. code-block:: javascript
 
-      mongos> db.getCollection("version").find()
-      { "_id" : 1, "version" : 3 }
+      db.getCollection("version").find()
+   
 
 Collections to Support Sessions
 -------------------------------
@@ -439,7 +460,8 @@ Collections to Support Sessions
 Starting in MongoDB 3.6, the ``config`` database contains the
 *internal* collections to support :ref:`causally consistent sessions
 <sessions>` for standalones, replica sets, and sharded clusters and
-retryable writes for replica sets and sharded clusters.
+retryable writes and :doc:`transactions </core/transactions>` for
+replica sets and sharded clusters.
 
 .. warning::
 
