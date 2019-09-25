@@ -116,6 +116,7 @@ rst_epilog = '\n'.join([
     '.. |jedec| replace:: :abbr:`JEDEC (Joint Electron Device Engineering Council Solid State Technology Association)`',
     '.. |k8s-configmaps| replace:: `ConfigMaps <https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/>`__',
     '.. |k8s-configmap| replace:: `ConfigMap <https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/>`__',
+    '.. |k8s-custom-resource| replace:: `Custom Resource <https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/>`__',
     '.. |k8s-crds| replace:: `CustomResourceDefinitions <https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/>`__',
     '.. |k8s-crd| replace:: `CustomResourceDefinition <https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/>`__',
     '.. |k8s-mdbrscs| replace:: MongoDB Kubernetes resources',

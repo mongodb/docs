@@ -1,0 +1,136 @@
+==================
+Scale a Deployment
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can scale your :term:`replica set` and :term:`sharded cluster`
+deployments up or down to match your desired configuration. Scaling up
+increases the number of members and/or shards in the deployment,
+thereby improving your deployment's redundancy and availability. The
+scale of your deployment is configured in its corresponding
+|k8s-custom-resource|.
+
+Scale a Replica Set
+  To scale your replica set deployment, set the :setting:`spec.members`
+  setting to the desired number of replica set members. To learn more 
+  about replication, see :manual:`Replication </replication/>` in the
+  MongoDB manual. 
+
+Scale a Sharded Cluster
+  To scale your sharded cluster deployment, set the following settings
+  as desired:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 40
+
+     * - Setting
+       - Description
+
+     * - :setting:`spec.shardCount`
+       - Number of :term:`shards <shard>` in the sharded cluster.
+
+     * - :setting:`spec.mongodsPerShardCount`
+       - Number of members per shard.
+
+     * - :setting:`spec.mongosCount`
+       - Number of Shard Routers.
+
+     * - :setting:`spec.configServerCount`
+       - Number of members in the Config Server.
+
+  To learn more about sharded cluster configurations, see
+  :manual:`Sharded Cluster Components
+  </core/sharded-cluster-components/>` in the MongoDB manual.
+
+Considerations
+--------------
+
+The |k8s-op-short| does not support modifying deployment types.
+For example, you cannot convert a standalone deployment to a
+replica set. To modify the type of a deployment,
+we recommend the following procedure:
+
+1. Create the new deployment with the desired configuration.
+
+#. :opsmgr:`Back up the data </tutorial/nav/backup-deployments/>` from
+   your current deployment.
+
+#. :opsmgr:`Restore the data
+   </tutorial/nav/backup-restore-deployments/>` from your current
+   deployment to the new deployment.
+   
+#. Test your application connections to the new deployment as needed.
+
+#. Once you have verified that the new deployment contains the
+   required data and can be reached by your application(s), bring
+   down the old deployment.
+
+Examples
+--------
+
+Select the desired tab based on the deployment configuration you
+want to scale:
+
+.. tabs-deployments::
+
+   .. tab::
+      :tabid: repl
+
+      Consider a replica set resource with the following
+      |k8s-custom-resource|:
+      
+      .. literalinclude:: /reference/k8s/example-replica-set-minimal.yaml
+         :language: yaml
+         :emphasize-lines: 9
+
+      To scale up this replica set and add more members:
+      
+      1. Adjust the :setting:`spec.members` setting to the desired
+         number of members:
+
+         .. literalinclude:: /reference/k8s/example-replica-set-minimal-scaled.yaml
+            :language: yaml
+            :emphasize-lines: 9
+
+      #. Reapply the configuration to |k8s|:
+
+         .. code-block:: none
+
+            kubectl apply -f <repl-set-config>.yaml
+
+   .. tab::
+      :tabid: shard
+
+      Consider a sharded cluster resource with the following
+      |k8s-custom-resource|:
+
+      .. literalinclude:: /reference/k8s/example-sharded-cluster-minimal.yaml
+         :language: yaml
+         :emphasize-lines: 9-12
+
+      To scale up this sharded cluster:
+
+      1. Adjust the following settings to the desired values:
+
+         - :setting:`spec.shardCount`
+         - :setting:`spec.mongodsPerShardCount`
+         - :setting:`spec.mongosCount`
+         - :setting:`spec.configServerCount`
+
+         .. literalinclude:: /reference/k8s/example-sharded-cluster-minimal-scaled.yaml
+            :language: yaml
+            :emphasize-lines: 9-12
+
+      #. Reapply the configuration to |k8s|:
+
+         .. code-block:: none
+
+            kubectl apply -f <sharded-cluster-config>.yaml
