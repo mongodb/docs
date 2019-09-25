@@ -5,120 +5,152 @@
    * - Name
      - Type
      - Description
-   * - ``id``
+
+   * - ``acknowledgedUntil``
      - string
-     - Unique identifier.
-   * - ``groupId``
+     - |Epoch-time| when the alert has been acknowledged. Only
+       displayed if the alert has never been acknowledged.
+
+   * - ``acknowledgementComment``
      - string
-     - ID of the group that this alert was opened for.
+     - Comment left by the user who acknowledged the alert. Only
+       displayed if the alert has never been acknowledged.
+
+   * - ``acknowledgingUsername``
+     - string
+     - Username of the user who acknowledged the alert. Only displayed
+       if the alert has never been acknowledged.
+
    * - ``alertConfigId``
      - string
-     - ID of the alert configuration that triggered this alert.
+     - Unique identifier for the alert configuration that triggered
+       this alert.
+
+   * - ``clusterId``
+     - string
+     - unique identifier for the cluster to which this alert applies.
+       Only displayed for alerts of type ``BACKUP``, ``REPLICA_SET``,
+       and ``CLUSTER``.
+
+   * - ``clusterName``
+     - string
+     - Name the cluster to which this alert applies. Only present
+       for alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
+
+   * - ``created``
+     - string
+     - |Epoch-time| when the alert was opened.
+
+   * - ``currentValue``
+     - object
+     - Current value of the metric that triggered the alert. Only
+       present for alerts of type ``HOST_METRIC``.
+
+   * - ``currentValue.number``
+     - number
+     - Value of the metric.
+
+   * - ``currentValue.units``
+     - string
+     - Units for the value. Value depends on the type of metric.
+
+       .. example::
+
+          A metric that measures memory consumption would have a byte
+          measurement, while a metric that measures time would have a
+          time unit.
+
+       Possible values are:
+
+       .. include:: /includes/possibleValues-api-units.rst
 
    * - ``eventTypeName``
      - string
-     - The name of the event that triggered the alert.
+     - Name of the event that triggered the alert.
 
        .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
 
-   * - ``typeName``
+   * - ``groupId``
      - string
-     - *This field is deprecated and will be ignored.*
+     - Unique identifier of the group for which this alert was opened.
+
+   * - ``hostId``
+     - string
+     - unique identifier for the host to which the metric pertains.
+       Only displayed for alerts of type ``HOST``, ``HOST_METRIC``, and
+       ``REPLICA_SET``.
+
+   * - ``hostnameAndPort``
+     - string
+     - Hostname and port of each host to which the alert applies. This
+       can be a hostname, an |fqdn|, an |ipv4| address, or an |ipv6|
+       address. Only displayed for alerts of type ``HOST``,
+       ``HOST_METRIC``, and ``REPLICA_SET``.
+
+   * - ``id``
+     - string
+     - Unique identifier for this alert.
+
+   * - ``lastNotified``
+     - string
+     - |Epoch-time| when the last notification was sent for this alert.
+       Only displayed if notifications have been sent.
+
+   * - ``links``
+     - object array
+     - This array includes one or more links to sub-resources
+       and/or related resources. The relations between URLs are
+       explained in the :rfc:`Web Linking Specification <5988>`.
+
+   * - ``metricName``
+     - string
+     - Name of the measurement whose value went outside the
+       threshold. Only displayed if ``eventTypeName`` is set to
+       ``OUTSIDE_METRIC_THRESHOLD``.
+
+       For possible values, see :ref:`measurement-types-for-alerts-api`.
+
+   * - ``replicaSetName``
+     - string
+     - Name of the replica set. Only displayed for alerts of type
+       ``HOST``, ``HOST_METRIC``, ``BACKUP``, and ``REPLICA_SET``.
+
+   * - ``resolved``
+     - string
+     - |Epoch-time| when the alert was closed. Only displayed if the
+       status is ``CLOSED``.
 
    * - ``status``
      - string
-     - The current state of the alert. Possible values are:
+     - Current state of the alert. Possible values are:
 
        - ``TRACKING``
 
-         The alert condition exists but has not persisted beyond the defined
-         notification delay. For details, see :ref:`api-alert-status`.
+         The alert condition exists but has not persisted beyond the
+         defined notification delay. For details, see
+         :ref:`api-alert-status`.
 
        - ``OPEN``
        - ``CLOSED``
        - ``CANCELLED``
 
-   * - ``acknowledgedUntil``
-     - date
-     - The date through which the alert has been acknowledged. Will not be
-       present if the alert has never been acknowledged.
-   * - ``acknowledgementComment``
-     - string
-     - The comment left by the user who acknowledged the alert. Will not be
-       present if the alert has never been acknowledged.
-   * - ``acknowledgingUsername``
-     - string
-     - The username of the user who acknowledged the alert. Will not be
-       present if the alert has never been acknowledged.
-   * - ``created``
-     - date
-     - When the alert was opened.
-   * - ``updated``
-     - date
-     - When the alert was last updated.
-   * - ``resolved``
-     - date
-     - When the alert was closed. Only present if the status is
-       ``CLOSED``.
-   * - ``lastNotified``
-     - date
-     - When the last notification was sent for this alert. Only present if
-       notifications have been sent.
-   * - ``hostnameAndPort``
-     - string
-     - Hostname and port of each host to which the alert applies. This
-       can be a hostname, an |fqdn|, an |ipv4| address, or an |ipv6|
-       address. Only present for alerts of type ``HOST``,
-       ``HOST_METRIC``, and ``REPLICA_SET``.
-
-   * - ``hostId``
-     - string
-     - ID of the host to which the metric pertains. Only present for
-       alerts of type ``HOST``, ``HOST_METRIC``, and ``REPLICA_SET``.
-
-   * - ``replicaSetName``
-     - string
-     - Name of the replica set. Only present for alerts of type ``HOST``,
-       ``HOST_METRIC``, ``BACKUP``, and ``REPLICA_SET``.
-
-   * - ``metricName``
-     - string
-     - The name of the measurement whose value went outside the threshold. Only
-       present if ``eventTypeName`` is set to ``OUTSIDE_METRIC_THRESHOLD``.
-
-       For possible values, see below.
-
-   * - ``currentValue``
-     - object
-     - The current value of the metric that triggered the alert. Only present for
-       alerts of type ``HOST_METRIC``.
-   * - ``currentValue.number``
-     - number
-     - The value of the metric.
-   * - ``currentValue.units``
-     - string
-     - The units for the value. Depends on the type of metric. For example, a
-       metric that measures memory consumption would have a byte measurement,
-       while a metric that measures time would have a time unit. Possible values
-       are:
-
-       .. include:: /includes/possibleValues-api-units.rst
-
-   * - ``clusterId``
-     - string
-     - The ID of the cluster to which this alert applies. Only present for
-       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
-
-   * - ``clusterName``
-     - string
-     - The name the cluster to which this alert applies. Only present for
-       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
-
    * - ``sourceTypeName``
      - string
-     - For alerts of the type ``BACKUP``, the type of server being backed
-       up. Possible values are:
+     - Type of server being backed up when alerts are ``"type" :
+       "BACKUP"``. Possible values are:
 
        - ``REPLICA_SET``
        - ``SHARDED_CLUSTER``
        - ``CONFIG_SERVER``
+
+   * - ``tags``
+     - string array
+     - Identifying labels set for this alert.
+
+   * - ``typeName``
+     - string
+     - *This field is deprecated and will be ignored.*
+
+   * - ``updated``
+     - string
+     - |Epoch-time| when the alert was last updated.
