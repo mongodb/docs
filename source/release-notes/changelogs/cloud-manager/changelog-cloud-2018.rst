@@ -18,7 +18,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Can now manage deployments with FIPS mode enabled.
-- Can now create rolling indexes via Data Explorer.
+- Can now :ref:`create rolling indexes <data-explorer-create-an-index>`
+  via Data Explorer.
 - Agent Upgrades: :ref:`automation-5.9.0.5561-1`
 
 .. _cloudmanager-v20181004:
