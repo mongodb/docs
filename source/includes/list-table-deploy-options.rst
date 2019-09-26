@@ -35,7 +35,7 @@
      - Creates a MongoDB index. For details, see
        :doc:`/tutorial/create-indexes`.
 
-   * - :guilabel:`Advanced Options`
+   * - :guilabel:`Advanced Configuration Options`
 
      - Configures additional runtime options. For option descriptions, see
        :doc:`/reference/deployment-advanced-options`.
