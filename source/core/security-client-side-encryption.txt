@@ -485,12 +485,25 @@ For complete documentation on data key management, see
 
 *MongoDB Enterprise Only*
 
-``mongocryptd`` is a driver-spawned client-side process that parses and
-validates the JSON schema encryption rules. ``mongocryptd`` is a required
-component in 
-:ref:`automatic field encryption <field-level-encryption-automatic>` and
-is included as a component in the 
-:doc:`MongoDB  Enterprise Server </administration/install-enterprise>` package.
+``mongocryptd`` is required in :ref:`automatic client-side
+field encryption <field-level-encryption-automatic>` and is included as
+a component in the :doc:`MongoDB Enterprise Server
+</administration/install-enterprise>` package. ``mongocryptd`` performs 
+the following:
+
+- Parses the :ref:`automatic encryption rules
+  <field-level-encryption-json-schema>` specified to the database
+  connection. If the JSON schema contains invalid automatic encryption
+  syntax *or* any :query:`document validation <$jsonSchema>`
+  syntax, ``mongocryptd`` returns an error. 
+
+- Uses the specified automatic encryption rules to mark fields in 
+  read and write operations for encryption.
+
+- Reject read/write operations that may return unexpected or incorrect 
+  results when applied to an encrypted field. See 
+  :doc:`/reference/security-client-side-query-aggregation-support` for 
+  more information.
 
 4.2 drivers automatically spawn the ``mongocryptd`` process if
 available on the host system. Applications can control the spawning
@@ -498,7 +511,15 @@ behavior as part of the automatic encryption options. Defer to the
 driver documentation for the specific options and syntax for
 controlling ``mongocryptd`` spawning.
 
+``mongocryptd`` is only responsible for supporting automatic 
+client-side field level encryption and does *not* perform encryption 
+or decryption. MongoDB 4.2-compatible drivers use the Apache-licensed
+`libmongocrypt <https://github.com/mongodb/libmongocrypt>`__ 
+library for performing client-side field level encryption and 
+automatic decryption.
+
 .. _field-level-encryption-drivers:
+.. _csfle-driver-compatibility:
 
 Driver Compatibility Table
 --------------------------
@@ -514,9 +535,125 @@ versions:
 Please refer to the driver documentation for syntax and implementation
 examples.
 
+Limitations
+-----------
+
+Read and Write Operation Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :binary:`~bin.mongod` only stores encrypted :bsontype:`BinData
+<data_binary>` and applies any aggregation expression or query operator
+specifying an encrypted field against the ``BinData`` value. While the
+expression or operator may support ``BinData`` fields, the resulting
+value may be incorrect or unexpected when compared to issuing that same
+expression or operator against the decrypted value. The ``mongod``
+throws an error if the expression or operator does not support
+``BinData`` values.
+
+For example, consider a deterministically encrypted integer ``Salary``.
+A query filters for documents where ``Salary`` is greater than
+``100000``. The application explicitly (manually) encrypts the query
+value using deterministic encryption prior to issuing the query. The
+``mongod`` compares the *encrypted* ``BinData`` value of ``100000`` to
+the *encrypted* ``BinData`` values stored in each document. While the
+operation returns successfully, the comparison of the ``BinData`` values
+may return a different result than the comparison of the decrypted
+integer values.
+
+Automatic client-side field level encryption rejects read or write
+operations which would return incorrect or unexpected results when
+issued against an encrypted field. For complete documentation, see
+:doc:`/reference/security-client-side-query-aggregation-support`.
+Applications performing explicit (manual) encryption may reference the
+linked page as guidance for issuing read/write operations against
+encrypted fields.
+
+Views
+~~~~~
+
+Queries against :ref:`views <3.4-reference-views>` on collections
+containing client-side field level encrypted values may return
+unexpected or incorrect results if either the underlying view
+aggregation pipeline *or* the query references encrypted fields. If
+creating a view on a collection containing client-side field level
+encrypted values, avoid operating on encrypted fields to mitigate the
+risk of unexpected or incorrect results.
+
+While 4.2-compatible drivers configured for automatic client-side field
+level encryption have :doc:`validation
+</reference/security-client-side-query-aggregation-support>` for
+unsupported read and write operations, the underlying support library
+cannot introspect the view catalog to identify a given collection as a
+view. Applications therefore cannot rely on the automatic field level
+encryption validation to prevent unsupported queries against views on
+collections with encrypted fields. 
+
+For applications using explicit (manual) encryption to query a view on a
+collection containing encrypted values, consider constructing the query
+using *only* query operators with known :ref:`normal behavior
+<csfle-supported-query-operators>` when issued against encrypted fields.
+
+
+Collation
+~~~~~~~~~
+
+Client-side field level encryption does not respect user-specified
+collations or collection default :doc:`collations
+</reference/collation>`. Field level encryption obscures the field value
+and prevents normal collation behavior. Collation-sensitive queries
+against encrypted fields may return unexpected or incorrect results.
+
+While 4.2-compatible drivers configured for automatic client-side field
+level encryption have :doc:`validation
+</reference/security-client-side-query-aggregation-support>` for
+unsupported read and write operations, the underlying support library
+cannot introspect the collection catalog to identify the default
+collation. Applications therefore cannot rely on the automatic field
+level encryption validation to prevent querying on encrypted fields with
+collation defaults.
+
+Unique Indexes
+~~~~~~~~~~~~~~
+
+:ref:`Unique indexes <index-type-unique>` *cannot* guarantee
+uniqueness if the index key specifies any :ref:`randomly encrypted
+<field-level-encryption-random>` fields.
+
+Fields encrypted using the :ref:`random <field-level-encryption-random>`
+algorithm *always* produce a different encrypted value given a specific
+input. The server considers each encrypted value unique even though the
+decrypted value itself is not unique. The collection can therefore
+contain multiple documents with duplicate decrypted values for a field
+with an index-enforced unique constraint.
+
+While 4.2-compatible drivers configured for automatic client-side field
+level encryption have :doc:`validation
+</reference/security-client-side-query-aggregation-support>` for
+unsupported read and write operations, the underlying support library
+cannot introspect the index catalog to identify a given field as unique.
+Applications therefore cannot rely on the automatic field level
+encryption validation to prevent unique constraint violations on
+randomly-encrypted fields.
+
+Shard Key
+~~~~~~~~~
+
+Specifying a :ref:`shard key <shard-key>` on encrypted fields *or*
+encrypting fields of an existing shard key may result in unexpected or
+incorrect sharding behavior. 
+
+While 4.2-compatible drivers configured for automatic client-side field
+level encryption have :doc:`validation
+</reference/security-client-side-query-aggregation-support>` for
+unsupported read and write operations, the underlying support library
+cannot introspect the sharding catalog metadata to identify shard key
+fields. Applications therefore cannot rely on the automatic field level
+encryption validation to prevent encryption of shard key fields.
+
 .. toctree::
    :titlesonly:
    :hidden:
 
    /reference/security-client-side-automatic-json-schema.txt
    /tutorial/manage-client-side-encryption-data-keys.txt
+   /reference/security-client-side-query-aggregation-support.txt
