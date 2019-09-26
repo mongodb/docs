@@ -36,7 +36,7 @@ help:
 
 ## Builds this branch's HTML under build/<branch>/html
 html:
-	time giza make html
+	giza make html
 
 
 #################################################################
@@ -46,7 +46,7 @@ html:
 ## Build this branch's HTML files to a fresh build directory
 clean-html:
 	rm -rf build/${GIT_BRANCH}
-	time giza make html
+	giza make html
 
 
 #################################################################
