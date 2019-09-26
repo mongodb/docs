@@ -91,6 +91,124 @@ Examples
 
 .. _aggregation-group-count:
 
+Count the Number of Documents in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-group-sales-documents.rst
+
+The following aggregation operation uses the :pipeline:`$group` stage
+to count the number of documents in the ``sales`` collection:
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [
+     {
+       $group: {
+          _id: null,
+          count: { $sum: 1 }
+       }
+     }
+   ] )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : null, "count" : 8 }
+
+This aggregation operation is equivalent to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT COUNT(*) AS count FROM sales
+
+.. seealso::
+
+   - :pipeline:`$count`
+
+.. _aggregation-group-distinct-values:
+
+Retrieve Distinct Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation uses the :pipeline:`$group` stage
+to retrieve the distinct item values from the ``sales`` collection:
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [ { $group : { _id : "$item" } } ] )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : "abc" }
+   { "_id" : "jkl" }
+   { "_id" : "def" }
+   { "_id" : "xyz" }
+
+Group by Item Having
+~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation groups documents by the ``item``
+field, calculating the total sale amount per item and returning only
+the items with total sale amount greater than or equal to 100:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+     [
+       // First Stage 
+       { 
+         $group : 
+           { 
+             _id : "$item", 
+             totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } }
+           } 
+        },
+        // Second Stage
+        {
+          $match: { "totalSaleAmount": { $gte: 100 } }
+        }
+      ] 
+    )
+
+First Stage:
+  The :pipeline:`$group` stage groups the documents by ``item`` to
+  retrieve the distinct item values. This stage returns the
+  ``totalSaleAmount`` for each item.
+
+Second Stage:
+  The :pipeline:`$match` stage filters the resulting documents to only
+  return items with a ``totalSaleAmount`` greater than or equal to 100.
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : "abc", "totalSaleAmount" : NumberDecimal("170") }
+   { "_id" : "xyz", "totalSaleAmount" : NumberDecimal("150") }
+   { "_id" : "def", "totalSaleAmount" : NumberDecimal("112.5") }
+
+This aggregation operation is equivalent to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT item,
+      Sum(( price * quantity )) AS totalSaleAmount
+   FROM   sales
+   GROUP  BY item
+   HAVING totalSaleAmount >= 100
+
+.. seealso::
+
+   - :pipeline:`$match`
+
+.. _aggregation-group-count:
+
 Calculate Count, Sum, and Average
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -214,88 +332,6 @@ This aggregation operation is equivalent to the following SQL statement:
 
    - :method:`db.collection.countDocuments()` which wraps the
      :pipeline:`$group` aggregation stage with a :group:`$sum` expression.
-
-.. _aggregation-group-distinct-values:
-
-Retrieve Distinct Values
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-group-sales-documents.rst
-
-The following aggregation operation uses the :pipeline:`$group` stage
-to retrieve the distinct item values:
-
-.. code-block:: javascript
-
-   db.sales.aggregate( [ { $group : { _id : "$item" } } ] )
-
-The operation returns the following result:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : "abc" }
-   { "_id" : "jkl" }
-   { "_id" : "def" }
-   { "_id" : "xyz" }
-
-Group by Item Having
-~~~~~~~~~~~~~~~~~~~~
-
-The following aggregation operation groups documents by the ``item``
-field, calculating the total sale amount per item and returning only
-the items with total sale amount greater than or equal to 100:
-
-.. code-block:: javascript
-
-   db.sales.aggregate(
-     [
-       // First Stage 
-       { 
-         $group : 
-           { 
-             _id : "$item", 
-             totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } }
-           } 
-        },
-        // Second Stage
-        {
-          $match: { "totalSaleAmount": { $gte: 100 } }
-        }
-      ] 
-    )
-
-First Stage:
-  The :pipeline:`$group` stage groups the documents by ``item`` to
-  retrieve the distinct item values. This stage returns the
-  ``totalSaleAmount`` for each item.
-
-Second Stage:
-  The :pipeline:`$match` stage filters the resulting documents to only
-  return items with a ``totalSaleAmount`` greater than or equal to 100.
-
-The operation returns the following result:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : "abc", "totalSaleAmount" : NumberDecimal("170") }
-   { "_id" : "xyz", "totalSaleAmount" : NumberDecimal("150") }
-   { "_id" : "def", "totalSaleAmount" : NumberDecimal("112.5") }
-
-This aggregation operation is equivalent to the following SQL statement:
-
-.. code-block:: sql
-
-   SELECT item,
-      Sum(( price * quantity )) AS totalSaleAmount
-   FROM   sales
-   GROUP  BY item
-   HAVING totalSaleAmount >= 100
-
-.. seealso::
-
-   - :pipeline:`$match`
 
 .. _aggregation-pivot-data:
 
