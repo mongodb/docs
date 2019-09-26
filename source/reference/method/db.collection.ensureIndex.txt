@@ -20,7 +20,44 @@ Definition
 
    The :method:`~db.collection.ensureIndex()` method has the following fields:
 
-   .. include:: /includes/apiargs/method-db.collection.ensureIndex-param.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``keys``
+   
+        - document
+   
+        - A document that contains the field and value pairs where the field is
+          the index key and the value describes the type of index for that
+          field. For an ascending index on a field, specify a value of ``1``; for
+          descending index, specify a value of ``-1``.
+          
+          MongoDB supports several different index types including
+          :ref:`text <index-feature-text>`, :doc:`geospatial
+          </applications/geospatial-indexes>`, and :ref:`hashed
+          <index-type-hashed>` indexes. See :doc:`/core/index-types`
+          for more information.
+          
+          
+   
+      * - ``options``
+   
+        - document
+   
+        - Optional. A document that contains a set of options that controls the creation
+          of the index. See :ref:`ensureIndex-options` for details.
+          
+          
+   
+
 
 .. _ensureIndex-options:
 
@@ -37,7 +74,121 @@ Options for All Index Types
 The following options are available for all index types unless
 otherwise specified:
 
-.. include:: /includes/apiargs/method-db.collection.ensureIndex-options-param.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``background``
+   
+        - Boolean
+   
+        - Optional. Builds the index in the background so that building an index does
+          *not* block other database activities. Specify ``true`` to build in
+          the background. The default value is ``false``.
+          
+          
+   
+      * - ``unique``
+   
+        - Boolean
+   
+        - Optional. Creates a unique index so that the collection will not accept
+          insertion of documents where the index key or keys match an existing
+          value in the index. Specify ``true`` to create a unique index. The
+          default value is ``false``.
+          
+          The option is *unavailable* for :doc:`hashed </core/index-hashed>`
+          indexes.
+          
+          
+   
+      * - ``name``
+   
+        - string
+   
+        - Optional. The name of the index. If unspecified, MongoDB generates an index name
+          by concatenating the names of the indexed fields and the sort order.
+          
+          Whether user specified or MongoDB generated, index names including
+          their full namespace (i.e. ``database.collection``) cannot be longer
+          than the :limit:`Index Name Limit <Index Name Length>`.
+          
+          
+   
+      * - ``dropDups``
+   
+        - Boolean
+   
+        - Optional. Creates a unique index on a field that *may* have duplicates. MongoDB
+          indexes only the first occurrence of a key and **removes** all
+          documents from the collection that contain subsequent occurrences of
+          that key. Specify ``true`` to create unique index. The default value
+          is ``false``.
+          
+          The option is *unavailable* for :doc:`hashed </core/index-hashed>`
+          indexes.
+          
+          .. deprecated:: 2.6
+          
+          .. warning:: ``dropDups`` will delete data from your collection when
+             building the index.
+          
+          
+   
+      * - ``sparse``
+   
+        - Boolean
+   
+        - Optional. If ``true``, the index only references documents with the specified
+          field. These indexes use less space but behave differently in some
+          situations (particularly sorts). The default value is ``false``.
+          See :doc:`/core/index-sparse` for more information.
+          
+          .. versionchanged:: 2.6
+          
+             :doc:`2dsphere </core/2dsphere>` indexes are sparse by default and
+             ignore this option. For a compound index that includes
+             ``2dsphere`` index key(s) along with keys of other types, only the
+             ``2dsphere`` index fields determine whether the index references a
+             document.
+          
+             :doc:`2d </core/2d>`, :doc:`geoHaystack </core/geohaystack>`, and
+             :doc:`text </core/index-text>` indexes behave similarly to the
+             :doc:`2dsphere </core/2dsphere>` indexes.
+          
+          
+   
+      * - ``expireAfterSeconds``
+   
+        - integer
+   
+        - Optional. Specifies a value, in seconds, as a :term:`TTL` to control how long
+          MongoDB retains documents in this collection. See
+          :doc:`/tutorial/expire-data` for more information on this
+          functionality. This applies only to :term:`TTL` indexes.
+          
+          
+   
+      * - ``v``
+   
+        - index version
+   
+        - Optional. The index version number. The default index version depends on the
+          version of :binary:`~bin.mongod` running when creating the index. Before
+          version 2.0, the this value was 0; versions 2.0 and later use version
+          1, which provides a smaller and faster index format. Specify a
+          different index version *only* in unusual situations.
+          
+          
+   
+
 
 Options for ``text`` Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,7 +196,69 @@ Options for ``text`` Indexes
 The following options are available for :doc:`text </core/index-text>`
 indexes only:
 
-.. include:: /includes/apiargs/method-db.collection.ensureIndex-options-text.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``weights``
+   
+        - document
+   
+        - Optional. For :doc:`text </core/index-text>` indexes, a document that contains
+          field and weight pairs. The weight is an integer ranging from 1 to
+          99,999 and denotes the significance of the field relative to the
+          other indexed fields in terms of the score. You can specify weights
+          for some or all the indexed fields. See
+          :doc:`/tutorial/control-results-of-text-search` to adjust the scores.
+          The default value is ``1``.
+          
+          
+   
+      * - ``default_language``
+   
+        - string
+   
+        - Optional. For :doc:`text </core/index-text>` indexes, the language that
+          determines the list of stop words and the rules for the stemmer and
+          tokenizer. See :ref:`text-search-languages` for the available
+          languages and :doc:`/tutorial/specify-language-for-text-index` for
+          more information and examples. The default value is ``english``.
+          
+          
+   
+      * - ``language_override``
+   
+        - string
+   
+        - Optional. For :doc:`text </core/index-text>` indexes, the name of the field, in
+          the collection's documents, that contains the override language for
+          the document. The default value is ``language``. See
+          :ref:`specify-language-field-text-index-example` for an example.
+          
+          
+   
+      * - ``textIndexVersion``
+   
+        - integer
+   
+        - Optional. For :doc:`text </core/index-text>` indexes, the ``text`` index
+          version number. Version can be either ``1`` or ``2``. 
+          
+          In MongoDB 2.6, the default version is ``2``. MongoDB 2.4 can only
+          support version ``1``.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+
 
 Options for ``2dsphere`` Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -53,7 +266,32 @@ Options for ``2dsphere`` Indexes
 The following option is available for :doc:`2dsphere </core/2dsphere>`
 indexes only:
 
-.. include:: /includes/apiargs/method-db.collection.ensureIndex-options-2dsphere.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``2dsphereIndexVersion``
+   
+        - integer
+   
+        - Optional. For :doc:`2dsphere </core/2dsphere>` indexes, the ``2dsphere``
+          index version number. Version can be either ``1`` or ``2``. 
+          
+          In MongoDB 2.6, the default version is ``2``. MongoDB 2.4 can only
+          support version ``1``.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+
 
 Options for ``2d`` Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -61,7 +299,48 @@ Options for ``2d`` Indexes
 The following options are available for :doc:`2d </core/2d>` indexes
 only:
 
-.. include:: /includes/apiargs/method-db.collection.ensureIndex-options-2d.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``bits``
+   
+        - integer
+   
+        - Optional. For :doc:`2d </core/2d>` indexes, the number of precision of the
+          stored :term:`geohash` value of the location data.
+          
+          The ``bits`` value ranges from 1 to 32 inclusive. The default value
+          is ``26``.
+          
+          
+   
+      * - ``min``
+   
+        - number
+   
+        - Optional. For :doc:`2d </core/2d>` indexes, the lower inclusive boundary for
+          the longitude and latitude values. The default value is ``-180.0``.
+          
+          
+   
+      * - ``max``
+   
+        - number
+   
+        - Optional. For :doc:`2d </core/2d>` indexes, the upper inclusive boundary for
+          the longitude and latitude values. The default value is ``180.0``.
+          
+          
+   
+
 
 Options for ``geoHaystack`` Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,7 +348,31 @@ Options for ``geoHaystack`` Indexes
 The following option is available for :doc:`geoHaystack </core/geohaystack>`
 indexes only:
 
-.. include:: /includes/apiargs/method-db.collection.ensureIndex-options-geohaystack.rst
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``bucketSize``
+   
+        - number
+   
+        - For :doc:`geoHaystack </core/geohaystack>` indexes, specify the
+          number of units within which to group the location values; i.e. group
+          in the same bucket those location values that are within the
+          specified number of units to each other.
+          
+          The value must be greater than 0.
+          
+          
+   
+
 
 Behaviors
 ---------
