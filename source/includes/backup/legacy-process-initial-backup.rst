@@ -60,6 +60,8 @@
       metadata for those blocks is written to a MongoDB database on the
       |onprem| host.
 
+   #. Snapshot files to a :term:`File System Store`.
+
 .. note::
    The characteristics of each storage method is covered in
    :ref:`backup-configuration-options`.

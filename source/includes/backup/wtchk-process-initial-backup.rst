@@ -28,6 +28,8 @@
    a. Blocks to a :term:`blockstore <Backup Blockstore Database>`.
 
    #. Blocks to an :term:`AWS S3 bucket <S3 Snapshot Store>`. The
+      metadata for those blocks is written to a MongoDB database on the
+      |onprem| host.
 
 In both cases, metadata for each block is written to a MongoDB database on the |mms| host.
 
