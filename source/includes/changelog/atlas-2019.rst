@@ -1,9 +1,23 @@
+.. _atlas-v20191001:
+
+01 October 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces compute auto-scaling in public beta.
+- Enhances Integrations interface for third party services.
+- Introduces EU destinations for DataDog and Opsgenie integrations.
+- Supports the official Terraform MongoDB Atlas Provider.
+- Supports the MongoDB Atlas Open Service Broker for Kubernetes.
+- Introduces Point-in-Time Restore (PITR) available for clusters using
+  |aws| Cloud Provider Snapshots.
+- Increases throughput for M2 & M5 cluster tiers.
+
 .. _atlas-v20190910:
 
 10 September 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Introducing the :ref:`Query Profiler <profile-database>` for ``M10+``
+- Introduces the :ref:`Query Profiler <profile-database>` for ``M10+``
   clusters.
 
 - Newly deployed |service-fullname| clusters in the following Azure
