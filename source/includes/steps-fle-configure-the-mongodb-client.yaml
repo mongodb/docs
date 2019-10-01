@@ -13,6 +13,12 @@ content: |
         .. code-block:: java
            
            String keyVaultNamespace = "encryption.__keyVault";
+     .. tab::
+        :tabid: nodejs
+        
+        .. code-block:: javascript
+           
+           const keyVaultNamespace = "encryption.__keyVault";
 ---
 title: Specify the Local Master Encryption Key
 ref: specify-the-local-master-encryption-key
@@ -35,6 +41,17 @@ content: |
                put("key", localMasterKey);
              }});
            }};
+     .. tab::
+        :tabid: nodejs
+        
+        .. code-block:: javascript
+           
+           const kmsProviders = {
+             local: {
+               key: localMasterKey
+             }
+           }
+
 ---
 title: Map the JSON Schema to the Patients Collection
 ref: map-the-json-schema-to-the-patients-collection
@@ -54,6 +71,15 @@ content: |
            HashMap<String, BsonDocument> schemaMap = new HashMap<String, BsonDocument>() {{
              put("medicalRecords.patients", BsonDocument.parse(jsonSchema));
            }}
+     .. tab::
+        :tabid: nodejs
+        
+        .. code-block:: javascript
+        
+           const dataNamespace = "medicalRecords.patients";
+           const patientSchema = {
+             [dataNamespace]: jsonSchema
+           }
 ---
 title: Specify the Location of the Encryption Binary
 ref: specify-the-location-of-the-encryption-binary
@@ -88,6 +114,29 @@ content: |
               final Map<String, Object> extraOptions = new HashMap<String, Object>() {{
                 put("mongocryptdBypassSpawn", true);
               }};
+     .. tab::
+        :tabid: nodejs
+        
+        .. code-block:: javascript
+           :emphasize-lines: 2
+           
+           const extraOptions = {
+            mongocryptdPath: "/usr/local/bin/mongocryptd";
+           }
+        
+        .. admonition:: Encryption Binary Daemon
+           :class: note
+        
+           If the ``mongocryptd`` daemon is already running, you can
+           configure the client to skip starting it by passing the
+           following option:
+           
+           .. code-block:: javascript
+              :emphasize-lines: 2
+              
+               const extraOptions = {
+                 mongocryptdBypassSpawn: true;
+               }
 ---
 title: Create the MongoClient
 ref: create-the-mongoclient
@@ -115,4 +164,20 @@ content: |
              .build();
            
            MongoClient mongoClient = MongoClients.create(clientSettings);
+     .. tab::
+        :tabid: nodejs
+        
+        .. code-block:: javascript
+           
+           const secureClient = new MongoClient(connectionString, {
+               useNewUrlParser: true,
+               useUnifiedTopology: true,
+               monitorCommands: true,
+               autoEncryption: { 
+                 keyVaultNamespace, 
+                 kmsProviders, 
+                 schemaMap: patientSchema,
+                 extraOptions: extraOptions
+               }
+           });
 ...

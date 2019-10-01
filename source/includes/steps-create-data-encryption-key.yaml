@@ -24,6 +24,18 @@ content: |
            }
         
            final byte[] localMasterKey = Arrays.copyOf(fileBytes, 96);
+     .. tab::
+        :tabid: nodejs
+
+        .. code-block:: javascript
+        
+           const path = "./master-key.txt";
+           let localMasterKey;
+           fs.readFile(path, (err, data) => {
+             if (err) throw err;
+             localMasterKey = data;
+           });
+
 ---
 title: Specify KMS Provider Settings
 ref: specify-kms-provider-settings
@@ -48,6 +60,16 @@ content: |
                put("key", localMasterKey);
              }});
            }};
+     .. tab::
+        :tabid: nodejs
+
+        .. code-block:: javascript
+
+            const kmsProviders = {
+              local: {
+                key: localMasterKey
+              }
+            }
 ---
 title: Create a Data Encryption Key
 ref: create-a-data-encryption-key
@@ -77,6 +99,32 @@ content: |
              .build();
         
            ClientEncryption clientEncryption = ClientEncryptions.create(clientEncryptionSettings);
+     .. tab::
+        :tabid: nodejs
+
+        .. code-block:: javascript
+
+            const connectionString = "mongodb://localhost:27017";
+            const keyVaultNamespace = "encryption.__keyVault";
+            const client = new MongoClient(connectionString, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            });
+
+            client.connect().then((clientConnection)=>{
+              const encryption = new ClientEncryption(client, {
+                  keyVaultNamespace,
+                  kmsProviders
+              });
+              encryption.createDataKey('local', (err, key) => {
+                if (err) {
+                  console.log("dataKey creation error", err);
+                } else {
+                  console.log("dataKey created", key)
+                }
+              })
+            // ...
+            })
 
   .. note::
 

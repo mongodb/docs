@@ -142,17 +142,6 @@ compliant to data privacy regulations with MongoDB.
 Procedure
 ---------
 
-.. tabs-drivers::
-   
-   .. tab::
-      :tabid: java-sync
-      
-      For more information, including 'full examples, see the `Client
-      Side Encryption
-      <https://mongodb.github.io/mongo-java-driver/3.11/driver/tutorials/client-side-encryption/>`_
-      page in the official Java driver documentation.
-      
-
 Requirements
 ~~~~~~~~~~~~
 
@@ -244,6 +233,23 @@ To begin development, MedcoMD engineers generate a local master key:
             }
           }
         }
+   .. tab::
+      :tabid: nodejs
+
+      The following script generates a 96-byte local master key and
+      saves it to a file called ``master-key.txt`` in the directory
+      from which the script is executed.
+
+      .. code-block:: javascript
+
+        const fs = require('fs');
+        const secureRandom = require('secure-random');
+
+        const wstream = fs.createWriteStream('master-key.txt');
+        const data = secureRandom.randomUint8Array(96);
+        wstream.write(data);
+        wstream.end();
+
 
 .. _fle-create-a-data-encryption-key:
 
@@ -272,9 +278,16 @@ local master key.
    .. tab::
       :tabid: java-sync
        
-      You can also download the `complete code example on GitHub
+      You can also download the `complete Java data key generation code
+      example on GitHub
       <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-csfle-data-encryption-key/DataEncryptionKeyGenerator.java>`_.
-
+   .. tab::
+      :tabid: nodejs
+       
+      You can also download the `complete Node.js data key generation
+      code example on GitHub
+      <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-csfle-data-encryption-key/DataEncryptionKeyGenerator.js>`_.
+ 
 .. include:: /includes/steps/create-data-encryption-key.rst
 
 .. _fle-define-a-json-schema:
@@ -466,6 +479,11 @@ full `JSON Schema for the Medco Medical Management System
        
       View the `helper code in Java
       <https://gist.github.com/ccho-mongodb/088176b1bed3b9e54cdc0c2c3c537d1b>`_.
+   .. tab::
+      :tabid: nodejs
+       
+      View the `helper code in Javascript
+      <https://gist.github.com/mongomoe/a94c59a8e3acdfc96b82d76eb5ea654d>`_.
 
 D. Create the MongoDB Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -516,6 +534,30 @@ MedcoMD engineers write a function to create a new patient record:
                  .append("insurance", insurance);
              collection.insertOne(patient);
          }
+   .. tab::
+      :tabid: nodejs
+      
+      .. code-block:: javascript
+      
+         function insertPatient(collection, name, ssn, bloodType, medicalRecords,  policyNumber, provider) {
+             collection.insertOne({
+                name: name,
+                ssn: ssn,
+                bloodType: bloodType,
+                medicalRecords: medicalRecords,
+                insurance: {
+                    policyNumber: policyNumber,
+                    provider: provider
+                }
+             })
+             .then((writeResult) => {
+                 console.log('writeResult: \t', writeResult);
+             })
+             .catch((writeError) => {
+                 console.log('writeError occurred: \t', writeError);
+             })
+         }
+
 
 When a CSFLE-enabled client inserts a new patient record into the Medical Care
 Management System, it automatically encrypts the fields. This operation
@@ -688,3 +730,16 @@ check out the reference docs in the server manual:
 - :manual:`Client-Side Field Level Encryption </core/security-client-side-encryption>`
 - :manual:`Automatic Encryption JSON Schema Syntax </reference/security-client-side-automatic-json-schema>`
 - :manual:`Manage Client-Side Encryption Data Keys </tutorial/manage-client-side-encryption-data-keys>`
+
+
+.. tabs-drivers::
+   :hidden: true
+
+   .. tab::
+      :tabid: java-sync
+      
+      For additional information on CSFLE, see the `official Java driver documentation <https://mongodb.github.io/mongo-java-driver/3.11/driver/tutorials/client-side-encryption/>`_
+   .. tab::
+      :tabid: nodejs
+
+      For additional information on CSFLE, see the `official Node.js driver documentation <https://www.npmjs.com/package/mongodb-client-encryption>`_
