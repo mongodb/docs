@@ -3,13 +3,18 @@
 01 October 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Introduces compute auto-scaling in public beta.
+- Introduces :ref:`compute auto-scaling <cluster-autoscaling>` in public
+  beta.
 - Enhances Integrations interface for third party services.
 - Introduces EU destinations for DataDog and Opsgenie integrations.
-- Supports the official Terraform MongoDB Atlas Provider.
-- Supports the MongoDB Atlas Open Service Broker for Kubernetes.
-- Introduces Point-in-Time Restore (PITR) available for clusters using
-  |aws| Cloud Provider Snapshots.
+- Supports the official
+  `Terraform MongoDB Atlas Provider <https://www.mongodb.com/atlas/terraform>`__ .
+- Supports the
+  `MongoDB Atlas Open Service Broker <https://docs.mongodb.com/atlas-open-service-broker/current/>`__
+  for Kubernetes.
+- Introduces :ref:`Point-in-Time Restore (PITR) <aws-pit-restore>`
+  available for clusters using |aws|
+  :ref:`Cloud Provider Snapshots <backup-cloud-provider>`.
 - Increases throughput for M2 & M5 cluster tiers.
 
 .. _atlas-v20190910:
