@@ -114,7 +114,7 @@
 
 - Introduces :doc:`{+data-lake+} </data-lake>` on-demand query service.
 
-- Supports :doc:`Cloud Provider Snapshots <backup/cloud-provider-snapshots/>`
+- Supports :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>`
   for 4.2 replica sets.
 
 - Supports Encryption at Rest for snapshots.
@@ -139,7 +139,7 @@
 - :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>` are now
   available for |gcp|-backed clusters.
 - |service| clusters can now use :doc:`Google Cloud KMS for encryption at rest
-  <security-gcp-kms>`.
+  </security-gcp-kms>`.
 - |service| clusters now have a new MongoDB configuration option that allows
   agents to continue connecting even if you have exceeded the maximum
   number of connections. For example, this means that |service| continues
@@ -148,7 +148,7 @@
   are affected the next time you request a configuration change to a cluster.
 - |service| projects may now use either the :doc:`Continuous Backup
   </backup/continuous-backups>` or the :doc:`Cloud Provider Snapshots
-  <backup/cloud-provider-snapshots/>` backup method. An |service|
+  </backup/cloud-provider-snapshots/>` backup method. An |service|
   project supports multiple backup types among clusters within that
   project. You must terminate the existing backup method before
   switching between backup methods for an |service| cluster.
@@ -244,5 +244,4 @@
 - Provides more visibility to maintenance timing in the administration
   user interface.
 - Supports On-Demand
-  :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots>`.
-
+  :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>`.
