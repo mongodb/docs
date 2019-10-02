@@ -3,21 +3,27 @@ ref: create-database-object
 title: "Create the database connection."
 content: |
 
-  Use the :method:`Mongo()` constructor to create a database connection 
-  configured for client-side field level encryption.
-
-  Client-side field level encryption requires a Key Management Service (KMS).
-  Each tab corresponds to a supported KMS. 
+  Client-side field level encryption requires a Key Management Service
+  (KMS). Each tab corresponds to a supported KMS and contains 
+  instructions specific to that KMS. 
 
   .. tabs::
 
      .. tab:: Amazon Web Services KMS
         :tabid: aws
 
-        Create a :binary:`~bin.mongo` shell session. To mitigate the risk of 
-        the AWS Access Key or Secret leaking into logs, specify environmental
-        variables containing the required values as part of the 
-        :option:`mongo --eval <mongo --eval>` startup option.
+        Configuring client-side field level encryption for the AWS KMS
+        requires an AWS Access Key ID and its associated Secret Access
+        Key. The AWS Access Key *must* correspond to an IAM user with
+        all ``List`` and ``Read`` permissions for the KMS service. To
+        mitigate the risk of the AWS Access Key ID or Secret leaking
+        into logs, this procedure passes those values into the shell
+        using environment variables. 
+
+        Create a :binary:`~bin.mongo` shell session using the 
+        :option:`--eval <mongo --eval>`,
+        :option:`--shell <mongo --shell>`, and
+        :option:`--nodb <mongo --nodb>` options:
 
         .. code-block:: shell
 
@@ -27,15 +33,21 @@ content: |
              " \
              --shell --nodb
 
-        Use the :method:`Mongo()` constructor from the :binary:`mongo` 
-        shell to establish the database connection:
+        The example automatically opens a :binary:`~bin.mongo` 
+        shell without a connection to a MongoDB database. The 
+        ``--eval`` option set the ``AWS_ACCESS_KEY_ID`` and 
+        ``AWS_SECRET_ACCESS_KEY`` variables in the shell to the value
+        of the corresponding environment variable. The specified 
+        variables are also supported by the 
+        `AWS CLI <https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html>`__.
+
+        Create a new variable for storing the client-side field level
+        encryption configuration document:
 
         .. code-block:: javascript
-           :emphasize-lines: 12-15
 
            var ClientSideFieldLevelEncryptionOptions = {
-             "keyVaultClient" : Mongo("mongodb://keyVaultCluster.example.net:27017"),
-             "keyVaultNamespace" : "encryption.dataKeys",
+             "keyVaultNamespace" : "encryption.__dataKeys",
              "kmsProviders" : {
                "aws" : {
                  "accessKeyId" : AWS_ACCESS_KEY_ID,
@@ -44,74 +56,83 @@ content: |
              }
            }
 
-           csfleDatabaseConnection = Mongo(
-             "mongodb://mymongo.example.net:27017/?replicaSet="myMongoCluster",
-             ClientSideFieldLevelEncryptionOptions
-           )
-
-        Replace the ``keyVaultClient`` 
-        :ref:`connection string <mongodb-uri>` with the URI of the remote
-        key vault cluster. Alternatively, omit ``keyVaultClient`` to use
-        the :method:`Mongo()` database connection as the key vault host.
-
-        Use the ``csfleDatabaseConnection`` object to access 
-        :doc:`client-side field level encryption 
-        </reference/method/js-client-side-field-level-encryption>` 
-        shell methods.
-
-     .. tab:: Local KMS
+     .. tab:: Locally Managed Key
         :tabid: local
 
-        .. admonition:: Development or Evaluation Only
-           :class: note
-
-           The local KMS is best suited for development or 
-           evaluation of client-side field level encryption. Secure the 
-           local key from unauthorized access regardless of the 
-           deployment environment.
-
-        Create a :binary:`~bin.mongo` shell session. To mitigate the risk of 
-        the local key leaking into logs, specify environmental
-        variables containing the required values as part of the 
-        :option:`mongo --eval <mongo --eval>` startup option.
+        Configuring client-side field level encryption for a locally
+        managed key requires specifying a base64-encoded 96-byte string
+        with no line breaks. To mitigate the risk of the key leaking
+        into logs, this procedure passes the value into the ``mongo``
+        shell using an environment variable. 
+        
+        The following operation generates a key that meets the
+        stated requirements and adds it to the users 
+        ``~/.profile``. If the key ``DEV_LOCAL_KEY`` already exists, 
+        skip this operation.
 
         .. code-block:: shell
 
-           mongo --eval "var LOCAL_KEY = '$LOCAL_KEY' " \
+           echo "export DEV_LOCAL_KEY=\"$(head -c 96 /dev/urandom | base64 | tr -d '\n')\"" >> ~/.profile
+
+        The host operating system may require logging out and in
+        to refresh the loaded environment variables. Alternatively,
+        use ``source ~/.profile`` to manually refresh the shell. 
+
+        .. note::
+
+           The host operating system or shell may have different
+           procedures for setting persistent environment variables. 
+           Defer to the documentation for the host OS or shell for
+           a more specific procedure.
+
+        Create a :binary:`~bin.mongo` shell session using the
+        :option:`--eval <mongo --eval>`, 
+        :option:`--shell <mongo --shell>` and 
+        :option:`--nodb <mongo --nodb>` options.
+
+        .. code-block:: shell
+
+           mongo --eval "var LOCAL_KEY = '$DEV_LOCAL_KEY' " \
              --shell --nodb
 
-        The ``LOCAL_KEY`` *must* be at 96 bytes in length. 
+        The example automatically opens a :binary:`~bin.mongo` shell
+        without a connection to a MongoDB database. The ``--eval``
+        option set the ``LOCAL_KEY`` variable in the ``mongo`` shell to
+        the value of the corresponding environment variable.
 
-        Use the :method:`Mongo()` constructor from the :binary:`mongo` 
-        shell to establish the database connection:
+        Create a new variable in the ``mongo`` shell for storing the
+        client-side field level encryption configuration document:
 
         .. code-block:: javascript
-           :emphasize-lines: 11-14
 
            var ClientSideFieldLevelEncryptionOptions = {
-             "keyVaultClient" : Mongo("mongodb://keyVaultCluster.example.net:27017"),
-             "keyVaultNamespace" : "encryption.dataKeys",
+             "keyVaultNamespace" : "encryption.__dataKeys",
              "kmsProviders" : {
                "local" : {
-                 "key" : LOCAL_KEY
+                 "key" : BinData(0, LOCAL_KEY)
                }
              }
            }
+        
+  Use the :method:`Mongo()` constructor in the ``mongo`` shell to
+  establish a database connection to the target cluster. Configure the
+  connection for client-side field level encryption by specifying the
+  ``ClientSideFieldLevelEncryption`` document as the second parameter:
 
-           csfleDatabaseConnection = Mongo(
-             "mongodb://mymongo.example.net:27017/?replicaSet="myMongoCluster",
-             ClientSideFieldLevelEncryptionOptions
-           )
+  .. code-block:: javascript
 
-        Replace the ``keyVaultClient`` 
-        :ref:`connection string <mongodb-uri>` with the URI of the remote
-        key vault cluster. Alternatively, omit ``keyVaultClient`` to use
-        the :method:`Mongo()` database connection as the key vault host.
+     csfleDatabaseConnection = Mongo(
+       "mongodb://replaceMe.example.net:27017/?replicaSet=myMongoCluster",
+       ClientSideFieldLevelEncryptionOptions
+     )
 
-        Use the ``csfleDatabaseConnection`` object to access 
-        :doc:`client-side field level encryption 
-        </reference/method/js-client-side-field-level-encryption>` 
-        shell methods.
+  Replace the ``replaceMe.example.net`` :ref:`URI <mongodb-uri>` with
+  the connection string for the target cluster.
+
+  Use the ``csfleDatabaseConnection`` object to access 
+  :doc:`client-side field level encryption
+  </reference/method/js-client-side-field-level-encryption>` shell
+  methods.
 
   For complete documentation on establishing database connections 
   configured for client-side field level encryption, see the 
@@ -130,6 +151,15 @@ content: |
   .. code-block:: javascript
 
      keyVault = csfleDatabaseConnection.getKeyVault();
+
+  .. important::
+
+     Client-side field level encryption depends on server-enforced
+     uniqueness of key alternate names. :method:`getKeyVault()`
+     creates a :ref:`unique <index-type-unique>` index on 
+     ``keyAltNames`` if one does not exist. Do **not** drop the
+     :ref:`unique <index-type-unique>` index created by
+     :method:`getKeyVault()`.
 
 ---
 level: 4
@@ -160,34 +190,28 @@ content: |
         the Customer Master Key (CMK). MongoDB uses the specified CMK to 
         encrypt the data key.
 
-        The third parameter *may* be an array of one or more ``keyAltNames`` for
-        the data key. Each key alternate name *must* be unique.
-        :method:`getKeyVault()` creates a unique index on ``keyAltNames`` to
-        enforce uniqueness of key alternate names. Consider assigning at least 
-        one alternate name to faciliate data key findability.
-
-     .. tab:: Local KMS
+     .. tab:: Locally Managed Key
         :tabid: local
 
         .. code-block:: javascript
            
            keyVault.createKey(
              "local",
-             "CustomerMasterKeyString",
-             [ "keyAlternateName" ]
+             "",
+             [ "myFirstCSFLEDataKey" ]
           )
 
         The first parameter *must* be ``local`` to specify the configured
-        local KMS.
+        Locally Managed Key.
 
-        The second parameter *must* be a string of any length. MongoDB uses
-        the specified key and the local keyfile string to encrypt the data key.
-
-        The third parameter *may* be an array of one or more ``keyAltNames`` for
-        the data key. Each key alternate name *must* be unique.
-        :method:`getKeyVault()` creates a unique index on ``keyAltNames`` to
-        enforce uniqueness of key alternate names. Consider assigning at least 
-        one alternate name to faciliate data key findability.
+        The second parameter *must* be an empty string. MongoDB does
+        not use the value specified for this parameter. 
+          
+  The third parameter *may* be an array of one or more ``keyAltNames``
+  for the data key. Each key alternate name *must* be unique.
+  :method:`getKeyVault()` creates a unique index on ``keyAltNames`` to
+  enforce uniqueness on the field if one does not already exist. Key
+  alternate names facilitate data key findability.
 
 ---
 level: 4
@@ -200,7 +224,7 @@ content: |
 
   .. code-block:: javascript
 
-     keyVault.getKeyByAltName("keyAlternateName")
+     keyVault.getKeyByAltName("myFirstCSFLEDataKey")
 
   The method returns output similar to the following:
 
@@ -218,14 +242,24 @@ content: |
              "provider" : "local"
          },
          "keyAltNames" : [
-             "keyAlternateName"
+             "myFirstCSFLEDataKey"
          ]
      }
 
-  The :abbr:`UUID (Universally unique identifier)` is a BSON 
-  :bsontype:`Binary (BinData) <Binary>` object with subtype ``4`` that uniquely
-  identifies the data key. The ``UUID`` string is the base64-decoded 
-  representation of the :bsontype:`Binary` ``$binary.base64`` field.
+  The :abbr:`UUID (Universally unique identifier)` is a BSON
+  :bsontype:`Binary (BinData) <Binary>` object with subtype ``4`` that
+  uniquely identifies the data key. The ``UUID`` string is the hex
+  representation of the underlying :bsontype:`data <Binary>`.
+
+  Configuring official 4.2-compatible drivers for 
+  :ref:`automatic client-side field level encryption
+  <field-level-encryption-json-schema>` requires specifying the
+  data key ``_id`` using its ``base64`` representation. The following
+  operation converts a ``UUID`` from ``hex`` to ``base64``:
+
+  .. code-block:: javascript
+
+     keyVault.getKeyByAltName("myFirstCSFLEDataKey").next()._id.base64()
 
   For a key created without an alternate name, issue the 
   :method:`KeyVault.getKeys()` method with the :method:`~cursor.sort()` 
@@ -235,6 +269,6 @@ content: |
 
      keyVault.getKeys().sort({"creationDate" : -1})
 
-  The operation returns all data keys starting from the most recently inserted
-  data key. 
+  The operation returns all data keys starting from the most recently
+  inserted data key. 
 ...
