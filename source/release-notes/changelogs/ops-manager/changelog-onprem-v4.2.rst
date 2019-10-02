@@ -1,3 +1,19 @@
+.. _opsmgr-server-4.2.2:
+
+|onprem| Server 4.2.2
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-10-03*
+
+- Adds support for
+  :doc:`changing the MongoDB keyfile in a rolling fashion </tutorial/rotate-keyfile>`.
+
+- Fixes an issue where the Backup Daemon attempts to automatically
+  download MongoDB binaries when running in local mode. This avoids many
+  spurious errors in the log files.
+
+- Agent Upgrade: :ref:`mongodb-10.2.7.5898`.
+
 .. _opsmgr-server-4.2.1:
 
 |onprem| Server 4.2.1
