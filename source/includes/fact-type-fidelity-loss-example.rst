@@ -15,7 +15,7 @@ Use :binary:`~bin.mongoexport` to export the data:
 
 .. code-block:: none
 
-   mongoexport --db test --collection traffic --out traffic.json
+   mongoexport --db=test --collection=traffic --out=traffic.json
 
 In version 4.2+, the exported data is in :doc:`Extended JSON v2.0
 (Relaxed mode)</reference/mongodb-extended-json>`.
@@ -30,7 +30,7 @@ mode)</reference/mongodb-extended-json>`, include the
 
 .. code-block:: none
 
-   mongoexport --db test --collection traffic --jsonFormat=canonical --out traffic.json
+   mongoexport --db=test --collection=traffic --jsonFormat=canonical --out=traffic.json
 
 The exported data is in :doc:`Extended JSON v2.0 (Canonical
 mode)</reference/mongodb-extended-json>`:
