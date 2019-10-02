@@ -3,8 +3,8 @@
 01 October 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Introduces compute auto-scaling in public beta.
-- Introduces EU destinations for DataDog and Opsgenie integrations.
+- Enhances Integrations interface for third party services.
+- Introduces EU destination for Opsgenie integration.
 
 .. _cloudmanager-v20190910:
 
