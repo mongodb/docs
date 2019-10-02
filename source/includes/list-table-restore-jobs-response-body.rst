@@ -34,6 +34,9 @@
          To learn more about manually restoring the downloaded data 
          files, see :ref:`restore-cloud-provider-snapshot-download`.
 
+       ``pointInTime``
+         Perform a :ref:`Point-in-Time restore <aws-pit-restore>`.
+
    * - ``deliveryUrl``
      - array
      - One or more URLs for the compressed snapshot files for manual
@@ -64,6 +67,18 @@
      - One or more links to sub-resources and/or related resources.
        The relations between URLs are explained in the `Web Linking
        Specification <http://tools.ietf.org/html/rfc5988>`_.
+
+   * - ``oplogTs``
+     - timestamp
+     - If you performed a :ref:`Point-in-Time restores <aws-pit-restore>` at
+       a time specified by a timestamp from the :ref:`oplog
+       <ref-atlas-oplog>`, ``oplogTs`` indicates the timestamp used.
+
+   * - ``pointInTimeUTCSeconds``
+     - integer
+     - If you performed a :ref:`Point-in-Time restores <aws-pit-restore>` at
+       a time specified by a Unix time in seconds since epoch,
+       ``pointInTimeUTCSeconds`` indicates the Unix time used.
 
    * - ``snapshotId``
      - string

@@ -207,6 +207,12 @@
    * - ``paused``
      - boolean
      - Flag that indicates whether the cluster is paused or not.
+
+   * - ``pitEnabled``
+     - boolean
+     - Indicates if the cluster uses :ref:`Point-in-Time backups
+       <aws-pit-restore>`. If set to ``true``, ``providerBackupEnabled``
+       must also be set to ``true``.
        
    * - ``providerBackupEnabled``
      - boolean

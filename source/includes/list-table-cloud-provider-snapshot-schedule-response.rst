@@ -32,6 +32,11 @@
      - Number of snapshots |service| retains for the
        cluster.
 
+   * - ``restoreWindowDays``
+     - int
+     - Specifies a restore window in days for the cloud provider backup to
+       maintain.
+
    * - ``referenceHourOfDay``
      - int
      - :abbr:`UTC (Coordinated Universal Time)`

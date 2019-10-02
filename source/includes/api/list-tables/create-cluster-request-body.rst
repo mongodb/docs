@@ -332,6 +332,13 @@
           Do not include in the request body for
           :doc:`Global Clusters </global-clusters>`.
 
+   * - ``pitEnabled``
+     - boolean
+     - Optional
+     - Indicates if the cluster uses :ref:`Point-in-Time backups
+       <aws-pit-restore>`. If set to ``true``, ``providerBackupEnabled``
+       must also be set to ``true``.
+
    * - ``providerBackupEnabled``
      - boolean
      - Optional

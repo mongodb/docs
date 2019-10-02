@@ -344,6 +344,13 @@
        You cannot create a paused cluster. Either omit the field or
        explicitly set to false.
 
+   * - ``pitEnabled``
+     - boolean
+     - Optional
+     - Indicates if the cluster uses :ref:`Point-in-Time backups
+       <aws-pit-restore>`. If set to ``true``, ``providerBackupEnabled``
+       must also be set to ``true``.
+
    * - ``providerBackupEnabled``
      - boolean
      - Conditional
