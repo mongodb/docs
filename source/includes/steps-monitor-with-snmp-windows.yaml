@@ -1,8 +1,13 @@
+title: Copy configuration files.
 stepnum: 1
-source:
-  file: steps-monitor-with-snmp.yaml
-  ref: copy-config-files
-ref: copy-config-files-windows
+ref: copy-config-files
+pre: |
+  Use the following sequence of commands to move the SNMP
+  configuration files to the SNMP service configuration directory.
+
+  First, create the SNMP configuration directory if needed and then, from
+  the installation directory, copy the configuration files to the SNMP
+  service configuration directory:
 action:
   language: powershell
   code: |
@@ -16,22 +21,39 @@ action:
     Edit the configuration file to ensure that the communication
     between the agent (i.e. ``snmpd`` or the master) and sub-agent
     (i.e. MongoDB) uses TCP.
+post: |
+  Ensure that the ``agentXAddress`` specified in the SNMP
+  configuration file for MongoDB matches the ``agentXAddress`` in the
+  SNMP master configuration file.
 ---
+title: Start MongoDB.
 stepnum: 2
-source:
-  file: steps-monitor-with-snmp.yaml
-  ref: start-with-snmp
-ref: start-snmp-on-windows
+ref: start-with-snmp
+pre: |
+  Start |mongod-program| with the :setting:`snmp-subagent` to send data
+  to the SNMP master.
 action:
   language: powershell
   code: mongod.exe --snmp-subagent
 ---
+title: Confirm SNMP data retrieval.
 stepnum: 3
-source:
-  file: steps-monitor-with-snmp.yaml
-  ref: test-snmp
+ref: test-snmp
+pre: |
+  Use ``snmpwalk`` to collect data from |mongod-program|:
+
+  Connect an SNMP client to verify the ability to collect SNMP data
+  from MongoDB.
+
+  Install the `net-snmp <http://www.net-snmp.org/>`_ package to access
+  the ``snmpwalk`` client. ``net-snmp`` provides the ``snmpwalk``
+  SNMP client.
 action:
   language: powershell
   code: |
     snmpwalk -m C:\snmp\etc\config\MONGOD-MIB.txt -v 2c -c mongodb 127.0.0.1:<port> 1.3.6.1.4.1.34601
+post: |
+  ``<port>`` refers to the port defined by the SNMP master,
+  *not* the primary :setting:`~net.port` used by |mongod-program| for
+  client communication.
 ...
