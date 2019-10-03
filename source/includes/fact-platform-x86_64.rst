@@ -71,6 +71,12 @@
      - 3.6.5+
      -
 
+   * - Debian 10
+     - 4.2.1+
+     -
+     -
+     -
+
    * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 6.2 and later
      - |checkmark|
      - |checkmark|
