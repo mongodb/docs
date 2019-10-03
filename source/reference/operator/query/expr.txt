@@ -17,8 +17,8 @@ Definition
 
 .. query:: $expr
 
-   Allows the use of aggregation expressions within the query 
-   language. 
+   Allows the use of :ref:`aggregation expressions
+   <aggregation-expressions>` within the query language.
 
    :query:`$expr` has the following syntax:
 
@@ -26,8 +26,8 @@ Definition
 
       { $expr: { <expression> } }
 
-   The arguments can be any valid :ref:`expression 
-   <aggregation-expressions>`. For more information on expressions, see
+   The arguments can be any valid :ref:`aggregation expression 
+   <aggregation-expressions>`. For more information, see
    :ref:`aggregation-expressions`.
 
 Behavior
@@ -83,35 +83,29 @@ defining a query filter. The aggregation framework provides the
 :query:`$expr` with the :expression:`$cond` operator, you can
 specify a conditional filter for your query statement.
 
-Consider a ``supplies`` collection with the following documents. Each 
-document in the ``supplies`` collection represents an item, its 
-quantity, and its price:
+Create a sample ``supplies`` collection with the following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "binder", "qty" : 100 , "price" : NumberDecimal("12") }
-   { "_id" : 2, "item" : "notebook", "qty" : 200 , "price" : NumberDecimal("8") }
-   { "_id" : 3, "item" : "pencil", "qty" : 50 , "price" : NumberDecimal("6") }
-   { "_id" : 4, "item" : "eraser", "qty" : 150 , "price" : NumberDecimal("3") }
-   { "_id" : 5, "item" : "legal pad", "qty" : 42 , "price" : NumberDecimal("10") }
+   db.supplies.insertMany([
+      { "_id" : 1, "item" : "binder", "qty" : NumberInt("100"), "price" : NumberDecimal("12") },
+      { "_id" : 2, "item" : "notebook", "qty" : NumberInt("200"), "price" : NumberDecimal("8") },
+      { "_id" : 3, "item" : "pencil", "qty" : NumberInt("50"), "price" : NumberDecimal("6") },
+      { "_id" : 4, "item" : "eraser", "qty" : NumberInt("150"), "price" : NumberDecimal("3") },
+      { "_id" : 5, "item" : "legal pad", "qty" : NumberInt("42"), "price" : NumberDecimal("10") }
+   ])
 
-Assume that for an upcoming sale next month, you will discount the
-prices by
+Assume that for an upcoming sale next month, you want to discount the
+prices such that:
 
-- ``50%`` if the quantity is at least 100
+- If ``qty`` is greater than or equal to 100, the discounted price will
+  be 0.5 of the ``price``.
 
-- ``25%`` otherwise
+- If ``qty`` is less than 100, the discounted price is 0.75 of the
+  ``price``.
 
 Before applying the discounts, you would like to know which items in the
-``supplies`` collection have a discounted price of less than ``5``. The
-user writes a query that:
-
-1. Uses conditional logic to identify the discount applicable to a given
-   document.
-
-2. Calculates that document's discounted price. 
-  
-3. Only returns documents whose discounted price is less than ``5``.
+``supplies`` collection have a discounted price of less than ``5``.
 
 The following example uses :query:`$expr` with :expression:`$cond` to
 calculate the discounted price based on the ``qty`` and 
@@ -120,13 +114,17 @@ is less than ``NumberDecimal("5")``:
 
 .. code-block:: javascript
 
+   // Aggregation expression to calculate discounted price 
+
    let discountedPrice = { 
-    $cond: { 
-      if: { $gte: ["$qty", 100] }, 
-      then: { $multiply: ["$price", 0.50] }, 
-      else: { $multiply: ["$price", 0.75] } 
-    } 
+      $cond: { 
+         if: { $gte: ["$qty", 100] }, 
+         then: { $multiply: ["$price", NumberDecimal("0.50")] }, 
+         else: { $multiply: ["$price", NumberDecimal("0.75")] } 
+      } 
    };
+
+   // Query the supplies collection using the aggregation expression
 
    db.supplies.find( { $expr: { $lt:[ discountedPrice,  NumberDecimal("5") ] } });
 
@@ -143,19 +141,19 @@ whether the document meets the query condition).
    - Discounted Price
    - < NumberDecimal("5")
  * - {"_id": 1, "item": "binder", "qty": 100, "price": NumberDecimal("12") }
-   - NumberDecimal("6")
+   - NumberDecimal("6.00")
    - ``false``
  * - {"_id": 2, "item": "noteboook", "qty": 200, "price": NumberDecimal("8") }
-   - NumberDecimal("4")
+   - NumberDecimal("4.00")
    - ``true``
  * - {"_id": 3, "item": "pencil", "qty": 50, "price": NumberDecimal("6") }
-   - NumberDecimal("4.5")
+   - NumberDecimal("4.50")
    - ``true``  
  * - {"_id": 4, "item": "eraser", "qty": 150, "price": NumberDecimal("3") }
-   - NumberDecimal("1.5")
+   - NumberDecimal("1.50")
    - ``true``
  * - {"_id": 5, "item": "legal pad", "qty": 42, "price": NumberDecimal("10") }
-   - NumberDecimal("7.5")
+   - NumberDecimal("7.50")
    - ``false``  
 
 The :method:`db.collection.find()` operation returns the documents whose
