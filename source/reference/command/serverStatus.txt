@@ -63,6 +63,8 @@ all :ref:`server-status-repl` information in the output:
 
    db.runCommand( { serverStatus: 1,  repl: 1 } )
 
+.. _server-status-output:
+
 Output
 ------
 
@@ -248,6 +250,187 @@ connections
    operations in progress.
 
    .. versionadded:: 4.0.7
+
+.. _server-status-electionMetrics:
+
+electionMetrics
+~~~~~~~~~~~~~~~
+
+*Available starting in 4.2.1 (and 4.0.13)*
+
+The ``electionMetrics`` section provides information on elections
+called by this :binary:`~bin.mongod` instance in a bid to become the
+primary:
+
+.. code-block:: javascript
+
+   "electionMetrics" : {
+      "stepUpCmd" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "priorityTakeover" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "catchUpTakeover" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "electionTimeout" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "freezeTimeout" : {
+         "called" : <NumberLong>,
+         "successful" : <NumberLong>
+      },
+      "numStepDownsCausedByHigherTerm" : <NumberLong>,
+      "numCatchUps" : <NumberLong>,
+      "numCatchUpsSucceeded" : <NumberLong>,
+      "numCatchUpsAlreadyCaughtUp" : <NumberLong>,
+      "numCatchUpsSkipped" : <NumberLong>,
+      "numCatchUpsTimedOut" : <NumberLong>,
+      "numCatchUpsFailedWithError" :<NumberLong>,
+      "numCatchUpsFailedWithNewTerm" : <NumberLong>,
+      "numCatchUpsFailedWithReplSetAbortPrimaryCatchUpCmd" : <NumberLong>,
+      "averageCatchUpOps" : <double>
+   }
+
+.. serverstatus:: electionMetrics.stepUpCmd
+
+   Metrics on elections that were called by the :binary:`~bin.mongod`
+   instance as part of an :parameter:`election handoff
+   <enableElectionHandoff>` when the primary stepped down.
+
+   The :serverstatus:`~electionMetrics.stepUpCmd` includes both the number of elections
+   called and the number of elections that succeeded.
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.priorityTakeover
+
+   Metrics on elections that were called by the :binary:`~bin.mongod`
+   instance because its :rsconf:`~members.[n].priority` is higher
+   than the primary's.
+
+   The :serverstatus:`electionMetrics.priorityTakeover` includes both the number of
+   elections called and the number of elections that succeeded.
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.catchUpTakeover
+
+   Metrics on elections called by the :binary:`~bin.mongod` instance
+   because it is more-up-to-date than the primary.
+
+   The :serverstatus:`~electionMetrics.catchUpTakeover` includes both the number of
+   elections called and the number of elections that succeeded.
+
+   .. seealso:: :rsconf:`settings.catchUpTakeoverDelayMillis`
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.electionTimeout
+
+   Metrics on elections called by the :binary:`~bin.mongod` instance
+   because it has not been able to reach the primary within
+   :rsconf:`settings.electionTimeoutMillis`.
+   
+   The :serverstatus:`~electionMetrics.electionTimeout` includes both the number of
+   elections called and the number of elections that succeeded.
+   
+   .. seealso:: :rsconf:`settings.electionTimeoutMillis`
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.freezeTimeout
+
+   Metrics on elections called by the :binary:`~bin.mongod` instance
+   after its :dbcommand:`freeze period <replSetFreeze>` (during which the
+   member cannot seek an election) has expired.
+   
+   The :serverstatus:`electionMetrics.freezeTimeout` includes both the number of
+   elections called and the number of elections that succeeded.
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.numStepDownsCausedByHigherTerm
+
+   Number of times the :binary:`~bin.mongod` instance stepped down
+   because it saw a higher term (i.e. other member/members have
+   participated in additional elections).
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.numCatchUps
+
+   Number of elections where the :binary:`~bin.mongod` instance as the
+   newly-elected primary had to catch up to the highest known oplog
+   entry.
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.numCatchUpsSucceeded
+
+   Number of times the :binary:`~bin.mongod` instance as the
+   newly-elected primary successfully caught up to the highest known
+   oplog entry.
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.numCatchUpsAlreadyCaughtUp
+
+   Number of times the :binary:`~bin.mongod` instance as the
+   newly-elected primary concluded its catchup process because it was
+   already caught up when elected
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.numCatchUpsSkipped
+
+   Number of times the :binary:`~bin.mongod` instance as the
+   newly-elected primary skipped the catchup process.
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.numCatchUpsTimedOut
+
+   Number of times the :binary:`~bin.mongod` instance as the
+   newly-elected primary concluded its catchup process because of the
+   :rsconf:`settings.catchUpTimeoutMillis` limit.
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.numCatchUpsFailedWithError
+
+   Number of times the newly-elected primary's catchup process failed
+   with an error.
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.numCatchUpsFailedWithNewTerm
+
+   Number of times the newly-elected primary's catchup process
+   concluded because another member(s) had a higher term (i.e. other
+   member/members have participated in additional elections).
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.numCatchUpsFailedWithReplSetAbortPrimaryCatchUpCmd
+
+   Number of times the newly-elected primary's catchup process
+   concluded because the :binary:`~bin.mongod` received the
+   :dbcommand:`replSetAbortPrimaryCatchUp` command.
+
+   *Available starting in 4.2.1 (and 4.0.13)*
+
+.. serverstatus:: electionMetrics.averageCatchUpOps
+
+   Average number of operations applied during the newly-elected
+   primary's catchup processes.
+
+   *Available starting in 4.2.1*
 
 .. _server-status-extra-info:
 .. _server-status-extra_info:
