@@ -3,6 +3,7 @@
    :stub-columns: 1
    :class: compatibility-large
 
+
    * - C++ Driver Version
      - MongoDB 4.2
      - MongoDB 4.0
@@ -13,7 +14,7 @@
      - MongoDB 2.6
      - MongoDB 2.4
 
-   * - mongocxx 3.5
+   * - `*` mongocxx 3.5
      - |checkmark|
      - |checkmark|
      - |checkmark|
