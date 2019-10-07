@@ -63,7 +63,7 @@ migrate: get-assets
 	mkdir ${TARGET_DIR}
 
 	@echo "Copying over node-driver docs files"
-	cp -R build/node-driver-${GIT_BRANCH}/docs/* ${TARGET_DIR}
+	cp -R build/node-driver-${GIT_BRANCH}/docs/reference/* ${TARGET_DIR}
 
 get-assets:
 	giza generate assets
