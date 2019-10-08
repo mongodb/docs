@@ -11,7 +11,12 @@
 
         * - username
           - string
-          - Username of the |mms| user.
+          - Username of the |mms| user. Validated depending on the 
+            value of the :setting:`mms.email.validation` property:
+
+            .. include:: /includes/list-table-api-email-validation-options.rst
+            
+            See :setting:`mms.email.validation` for details.
 
         * - password
           - string
