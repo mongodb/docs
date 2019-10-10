@@ -1,102 +1,130 @@
 .. list-table::
-   :widths: 15 15 70
+   :widths: 15 10 10 65
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
+
+   * - acceptedTos
+     - boolean
+     - Required
+     - Flag indicating whether or not you accepted the terms of service
+       for using |s3|\-compatible stores with |onprem|. If this is
+       ``false``, the request results in an error and |onprem| doesn't
+       create the |s3|\-compatible store.
 
    * - assignmentEnabled
      - boolean
-     - *Optional.* Flag indicating whether this data store can be 
-       assigned backup jobs.
- 
+     - Optional
+     - Flag indicating whether you can assign backup jobs to this data
+       store.
+
    * - awsAccessKey
      - string
-     - The AWS Access Key ID that can access the S3 bucket specified in
+     - Required
+     - |aws| Access Key ID that can access the |s3| bucket specified in
        ``<s3BucketName>``.
- 
+
    * - awsSecretKey
      - string
-     - The AWS Secret Access Key that can access the S3 bucket  
+     - Required
+     - |aws| Secret Access Key that can access the |s3| bucket
        specified in ``<s3BucketName>``.
- 
+
    * - encryptedCredentials
      - boolean
-     - *Optional.* Flag indicating whether the username and password for 
-       this S3 blockstore were encrypted using the
+     - Optional
+     - Flag indicating whether the username and password for this |s3|
+       blockstore were encrypted using the
        :doc:`credentialstool </tutorial/encrypt-user-credentials>`.
- 
+
    * - id
      - string
-     - The unique name that labels this :term:`S3 Snapshot Store`.
-   
+     - Required
+     - Unique name that labels this :term:`S3 Snapshot Store`.
+
    * - labels
      - array of strings
-     - *Optional.* Array of tags to manage which 
-       :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`S3 blockstores <S3 Snapshot Store>`. 
+     - Optional
+     - Array of tags to manage which
+       :term:`backup jobs <backup job>` |onprem| can assign to which
+       :term:`S3 blockstores <S3 Snapshot Store>`.
 
-       Setting these tags limits which backup jobs this S3 blockstore 
-       can process. If omitted, this S3 blockstore can only process 
-       backup jobs for projects that do not use labels to filter their 
-       jobs. 
- 
+       Setting these tags limits which backup jobs this |s3| blockstore
+       can process. If omitted, this |s3| blockstore can only process
+       backup jobs for projects that do not use labels to filter their
+       jobs.
+
    * - loadFactor
      - number
-     - *Optional.* A positive, non-zero integer that expresses how much 
-       backup work this :term:`snapshot store` should perform compared 
-       to another snapshot store. This option is needed only if more 
-       than one snapshot store is in use.
+     - Optional
+     - Positive, non-zero integer that expresses how much backup work
+       this :term:`snapshot store` performs compared to another
+       snapshot store. This option is needed only if more than one
+       snapshot store is in use.
 
        .. seealso::
 
-          To learn more about :guilabel:`Load Factor`, see 
+          To learn more about :guilabel:`Load Factor`, see
           :doc:`Edit an Existing S3 Blockstore </tutorial/manage-s3-blockstore-storage>`
- 
+
    * - pathStyleAccessEnabled
      - boolean
-     - *Optional.* Flag indicating whether this S3 blockstore 
-       uses a path-style :abbr:`URL (Uniform Resource Locator)` 
-       endpoint (``s3.amazonaws.com/<bucket>``) instead of a
-       virtual-host-style :abbr:`URL (Uniform Resource Locator)` 
-       endpoint (``<bucket>.s3.amazonaws.com``).
+     - Required
+     - Flag indicating the style of this endpoint.
 
-       To review the :abbr:`S3 (Simple Storage Service)` bucket 
-       :abbr:`URL (Uniform Resource Locator)` conventions, see 
-       the `AWS S3 documentation <http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingBucket.html#access-bucket-intro>`_
+       - ``true`` means this |s3| blockstore uses a path-style
+         |url| endpoint (``s3.amazonaws.com/<bucket>``)
+       - ``false`` means this |s3| blockstore virtual-host-style |url|
+         endpoint (``<bucket>.s3.amazonaws.com``).
+
+       To review the |s3| bucket |url| conventions, see the
+       :aws:`AWS S3 documentation </AmazonS3/latest/dev/UsingBucket.html#access-bucket-intro>`.
 
    * - s3BucketEndpoint
      - string
-     - The URL used to access this AWS S3 or S3-compatible bucket.
- 
+     - Required
+     - |url| used to access this |aws| |s3| or |s3|\-compatible bucket.
+
    * - s3BucketName
      - string
-     - The name of the S3 bucket that hosts the S3 blockstore.
+     - Required
+     - Name of the |s3| bucket that hosts the |s3| blockstore.
+
+   * - s3MaxConnections
+     - integer
+     - Required
+     - Positive integer indicating the maximum number of connections
+       to this |s3| blockstore.
 
    * - sseEnabled
      - boolean
-     - *Optional.* Flag indicating whether this S3 blockstore 
-        enables `server-side encryption <http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html>`_.
- 
+     - Required
+     - Flag indicating whether this |s3| blockstore enables
+       :aws:`server-side encryption </AmazonS3/latest/dev/UsingServerSideEncryption.html>`.
+
    * - uri
      - string
-     - A comma-separated list of hosts in the ``<hostname:port>`` format  
-       that can be used to access this S3 blockstore.
- 
+     - Required
+     - Comma-separated list of hosts in the ``<hostname:port>`` format
+       that can access this |s3| blockstore.
+
    * - ssl
      - boolean
-     - *Optional.* Flag indicating whether this S3 blockstore only 
-       accepts connections encrypted using
-       :abbr:`TLS (Transport Layer Security)`.
- 
+     - Optional
+     - Flag indicating whether this |s3| blockstore only accepts
+       connections encrypted using |tls|.
+
    * - writeConcern
      - string
-     - *Optional.* The write concern used for this blockstore.
- 
-        The accepted values for this option are:
-       
+     - Optional
+     - Write concern used for this blockstore.
+
+       Accepted values for this option are:
+
        - ``ACKNOWLEDGED``
        - ``W2``
        - ``JOURNALED``
@@ -104,5 +132,5 @@
 
        .. seealso::
 
-          To learn about write acknowledgement levels in MongoDB, see 
+          To learn about write acknowledgement levels in MongoDB, see
           :manual:`Write Concern </reference/write-concern>`

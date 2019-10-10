@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 15 15 70
+   :widths: 15 10 75
    :header-rows: 1
    :stub-columns: 1
 
@@ -7,91 +7,104 @@
      - Type
      - Description
 
+   * - acceptedTos
+     - boolean
+     - Flag indicating whether or not you accepted the terms of service
+       for using |s3|\-compatible stores with |onprem|. If this is
+       ``false``, the request results in an error and |onprem| doesn't
+       create the |s3|\-compatible store.
+
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this data store can be assigned
-       backup jobs.
- 
+     - Flag indicating whether you can assign backup jobs to this data
+       store.
+
    * - awsAccessKey
      - string
-     - The AWS Access Key ID that can access the S3 bucket specified in
+     - |aws| Access Key ID that can access the |s3| bucket specified in
        ``<s3BucketName>``.
- 
+
    * - awsSecretKey
      - string
-     - The AWS Secret Access Key that can access the S3 bucket  
+     - |aws| Secret Access Key that can access the |s3| bucket
        specified in ``<s3BucketName>``.
- 
+
    * - encryptedCredentials
      - boolean
-     - Flag indicating whether the username and password for this S3 
-       blockstore were encrypted using the 
+     - Flag indicating whether the username and password for this S3
+       blockstore were encrypted using the
        :doc:`credentialstool </tutorial/encrypt-user-credentials>`.
- 
+
    * - id
      - string
-     - The unique name that labels this S3 blockstore.
- 
+     - Unique name that labels this |s3| blockstore.
+
    * - labels
      - array of strings
-     - Array of tags to manage which 
-       :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`S3 blockstores <S3 Snapshot Store>`. 
- 
+     - Array of tags to manage which
+       :term:`backup jobs <backup job>` |onprem| can assign to which
+       :term:`S3 blockstores <S3 Snapshot Store>`.
+
    * - links
      - object array
      - .. include:: /includes/api/links-explanation.rst
- 
+
    * - loadFactor
-     - number
-     - A positive, non-zero integer that expresses how much backup work
-       this :term:`snapshot store` should perform compared to another
-       snapshot store. This option is needed only if more than one 
+     - integer
+     - Positive, non-zero integer that expresses how much backup work
+       this :term:`snapshot store` performs compared to another
+       snapshot store. This option is needed only if more than one
        snapshot store is in use.
 
        .. seealso::
 
-          To learn more about :guilabel:`Load Factor`, see 
-          :doc:`Edit an Existing S3 Blockstore </tutorial/manage-s3-blockstore-storage>`
-  
+          To learn more about :guilabel:`Load Factor`, see
+          :doc:`Edit an Existing |s3| Blockstore </tutorial/manage-s3-blockstore-storage>`
+
    * - pathStyleAccessEnabled
      - boolean
-     - *Optional.* Flag indicating whether this S3 blockstore 
-       uses a path-style :abbr:`URL (Uniform Resource Locator)` 
-       endpoint (``s3.amazonaws.com/<bucket>``) instead of a
-       virtual-host-style :abbr:`URL (Uniform Resource Locator)` 
-       endpoint (``<bucket>.s3.amazonaws.com``).
+     - Flag indicating the style of this endpoint.
+
+       - ``true`` means this |s3| blockstore uses a path-style
+         |url| endpoint (``s3.amazonaws.com/<bucket>``)
+       - ``false`` means this |s3| blockstore virtual-host-style |url|
+         endpoint (``<bucket>.s3.amazonaws.com``).
 
    * - s3BucketEndpoint
      - string
-     - The URL used to access this AWS S3 or S3-compatible bucket.
- 
+     - |url| that |onprem| uses to access this |aws| |s3| or
+       |s3|\-compatible bucket.
+
    * - s3BucketName
      - string
-     - The name of the S3 bucket that hosts the S3 blockstore.
- 
+     - Name of the |s3| bucket that hosts the |s3| blockstore.
+
+   * - s3MaxConnections
+     - integer
+     - Positive integer indicating the maximum number of connections
+       to this |s3| blockstore.
+
    * - sseEnabled
      - boolean
-     - *Optional.* Flag indicating whether this S3 blockstore 
-        enables `server-side encryption <http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html>`_.
+     - Flag indicating whether this |s3| blockstore enables
+       :aws:`server-side encryption </AmazonS3/latest/dev/UsingServerSideEncryption.html>`.
 
    * - uri
      - string
-     - A comma-separated list of hosts in the ``<hostname:port>`` format  
-       that can be used to access this S3 blockstore.
- 
+     - Comma-separated list of hosts in the ``<hostname:port>`` format
+       that can access this |s3| blockstore.
+
    * - ssl
      - boolean
-     - Flag indicating whether this S3 blockstore only accepts 
-       connections encrypted using 
-       :abbr:`TLS (Transport Layer Security)`.
- 
+     - Flag indicating whether this |s3| blockstore only accepts
+       connections encrypted using |tls|.
+
    * - writeConcern
      - string
-     - The write concern used for this blockstore.
- 
-       The accepted values for this option are:
-       
+     - Write concern used for this blockstore.
+
+       Accepted values for this option are:
+
        - ``ACKNOWLEDGED``
        - ``W2``
        - ``JOURNALED``
@@ -99,5 +112,5 @@
 
        .. seealso::
 
-          To learn about write acknowledgement levels in MongoDB, see 
+          To learn about write acknowledgement levels in MongoDB, see
           :manual:`Write Concern </reference/write-concern>`
