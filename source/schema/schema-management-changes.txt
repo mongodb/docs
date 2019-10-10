@@ -1,0 +1,214 @@
+.. _2.11-schema-management-changes:
+
+=================================
+Schema Management Changes in 2.11
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The |bi| version 2.11 release introduces significant improvements to
+stored schema management. The new stored-schema format is
+equivalent to :ref:`DRDL <schema-with-drdl-file>` files. These
+improvements are incompatible with |bi-short| configurations from
+versions 2.10 and earlier. If you are running |bi-short| 2.10 or
+earlier, use the following sections to update your configuration to be
+compatible with version 2.11 or later.
+
+If you are already running version 2.11 or later, no further
+configuration changes are required. To learn more about the different
+schema management configurations introduced in version 2.11, see the
+:ref:`Sampling Mode Reference Chart <sampling-mode-chart>`.
+
+Standalone Reader Changes
+-------------------------
+
+Use the following table to modify your |bi-short| version 2.10 or
+earlier Standalone Reader configuration to be compatible with version
+2.11 and later: 
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 45 45
+
+   * - 
+     - Version 2.10 and Earlier
+     - Version 2.11 and Later
+
+   * - Mode
+     - Standalone Reader
+     - Standalone Reader
+
+   * - Behavior
+     - :binary:`~bin.mongosqld` samples data upon startup and holds the
+       schema in memory.
+     - :binary:`~bin.mongosqld` samples data upon startup and holds the
+       schema in memory.
+
+   * - Options
+     - 
+       - ``--sampleMode read``
+
+       - ``--sampleSource`` *not used*
+
+       .. include:: /includes/fact-v210-schema-options.rst
+
+     - None. The ``--sampleMode`` option is deprecated in version 2.11. Remove
+       this command line option or configuration file setting to
+       continue using standalone mode.
+
+       Any other standalone mode configurations that worked in earlier
+       releases will continue to work with version 2.11 and later.
+
+   * - Example
+     - The following example launches |bi-short| versions 2.10 and
+       earlier in Standalone Reader mode:
+
+       .. code-block:: sh
+
+          mongosqld --sampleMode read
+
+     - The following example launches |bi-short| versions 2.11 and later
+       in Standalone Reader mode:
+
+       .. code-block:: sh
+
+          mongosqld
+
+.. include:: /includes/sampling-ref-chart-link.rst
+
+Clustered-Reader Mode to Custom Mode
+------------------------------------
+
+Use the following table to modify your |bi-short| version 2.10 or
+earlier Clustered-Reader configuration to be compatible with the version
+2.11 and later: 
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 45 45
+
+   * - 
+     - Version 2.10 and Earlier
+     - Version 2.11 and Later
+
+   * - Mode
+     - Clustered-Reader Mode
+     - Custom Mode
+
+   * - Behavior
+     - The |bi-short| does not sample the schema and uses the MongoDB
+       schema stored in the ``--sampleSource`` database to build its
+       relational schema.
+     - The |bi-short| does not sample the schema and uses the
+       :ref:`DRDL <schema-with-drdl-file>` schema from the
+       :option:`--schemaSource <mongosqld --schemaSource>` database.
+
+   * - Options
+     - 
+       - ``--sampleMode read``
+
+       - ``--sampleSource`` <dbName>
+
+       .. include:: /includes/fact-v210-schema-options.rst
+
+     - - :option:`--schemaMode <mongosqld --schemaMode>` ``custom``
+       - :option:`--schemaSource <mongosqld --schemaSource>` <dbName>
+       - *Optional:* :option:`--schemaName <mongosqld --schemaName>` <schemaName>
+
+   * - Example
+     - The following example launches |bi-short| versions 2.10 and
+       earlier in Clustered-Reader mode:
+
+       .. code-block:: sh
+
+          mongosqld --sampleMode read \
+                    --sampleSource schemaDb
+
+     - The following example launches |bi-short| versions 2.11 and later
+       in Custom mode:
+
+       .. code-block:: sh
+
+             mongosqld --schemaMode custom \
+                       --schemaSource schemaDb
+
+.. include:: /includes/sampling-ref-chart-link.rst
+
+Clustered-Writer Mode to Auto Mode
+----------------------------------
+
+Use the following table to modify your |bi-short| version 2.10 or
+earlier Clustered-Writer configuration to be compatible with version 2.11
+and later: 
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 45 45
+
+   * - 
+     - Version 2.10 and Earlier
+     - Version 2.11 and Later
+
+   * - Mode
+     - Clustered-Writer Mode
+     - Auto Mode
+
+   * - Behavior
+     - The |bi-short| obtains its schema by sampling, and persists
+       information about the schema to the ``--sampleSource`` database.
+     - The |bi-short| obtains its schema by sampling and persists each
+       sampled schema to the
+       :option:`--schemaSource <mongosqld --schemaSource>` database in
+       the :ref:`DRDL <schema-with-drdl-file>` format.
+
+   * - Options
+     - 
+       - ``--sampleMode write``
+
+       - ``--sampleSource`` <dbName>
+
+       .. include:: /includes/fact-v210-schema-options.rst
+
+     - - :option:`--schemaMode <mongosqld --schemaMode>` ``auto``
+       - :option:`--schemaSource <mongosqld --schemaSource>` <dbName>
+       - *Optional:* :option:`--schemaName <mongosqld --schemaName>` <schemaName>
+
+   * - Example
+     - The following example launches |bi-short| versions 2.10 and
+       earlier in Clustered-Writer mode:
+
+       .. code-block:: sh
+
+          mongosqld --sampleMode write \
+                    --sampleSource schemaDb
+
+     - The following example launches |bi-short| versions 2.11 and later
+       in Auto mode:
+
+       .. code-block:: sh
+
+             mongosqld --schemaMode auto \
+                       --schemaSource schemaDb
+
+.. include:: /includes/sampling-ref-chart-link.rst
+
+Deprecations
+------------
+
+The ``--sampleRefreshIntervalSecs`` flag and its corresponding config
+file setting ``schema.sample.refreshIntervalSecs`` were deprecated in
+favor of
+:option:`--schemaRefreshIntervalSecs <mongosqld --schemaRefreshIntervalSecs>`
+and :setting:`schema.refreshIntervalSecs`. The old command line option
+and configuration file setting will continue to work in the 2.11
+release, but switching to the new command line option or configuration
+file setting is recommended.

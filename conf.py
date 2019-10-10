@@ -108,7 +108,8 @@ extlinks = {
     'manual': ('http://docs.mongodb.com/manual%s', ''),
     'v3.6': ('https://docs.mongodb.com/v3.6%s', ''),
     'website': ('https://www.mongodb.com%s?jmp=docs', ''),
-    'ms-docs': ('https://docs.microsoft.com/en-us%s','')
+    'ms-docs': ('https://docs.microsoft.com/en-us%s',''),
+    'v2.10': ('https://docs.mongodb.com/bi-connector/v2.10%s','')
 }
 
 intersphinx_mapping = {}
