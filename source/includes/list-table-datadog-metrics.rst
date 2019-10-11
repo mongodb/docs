@@ -115,3 +115,29 @@
      - Disk
      - Measure throughput of |iops| for the disk partition used by
        MongoDB.
+
+   * - | ``CACHE_BYTES_READ_INTO``
+       | (mongodb.atlas.wiredtiger.cache.bytes_read_into_cache)
+       | ``CACHE_BYTES_WRITTEN_FROM``
+       | (mongodb.atlas.wiredtiger.cache.bytes_written_from_cache)
+     - Process
+     - Measure average rate of bytes read into and written from 
+       :manual:`WiredTiger's cache 
+       </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`.
+
+   * - | ``CACHE_USED_BYTES``
+       | (mongodb.atlas.wiredtiger.cache.bytes_currently_in_cache)
+       | ``CACHE_DIRTY_BYTES``
+       | (mongodb.atlas.wiredtiger.cache.tracked_dirty_bytes_in_cache)
+     - Process
+     - Measure number of bytes of data and number of bytes of dirty data in 
+       :manual:`WiredTiger's cache 
+       </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`.
+
+   * - | ``TICKETS_AVAILABLE_READS``
+       | (mongodb.atlas.wiredtiger.concurrenttransactions.read.available)
+       | ``TICKETS_AVAILABLE_WRITES``
+       | (mongodb.atlas.wiredtiger.concurrenttransactions.write.available)
+     - Process
+     - Measure number of read and write operations in the 
+       :manual:`storage engine </core/wiredtiger>`.
