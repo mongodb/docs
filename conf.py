@@ -106,7 +106,8 @@ extlinks = {
     'sphinx-rst' : ('https://www.sphinx-doc.org/en/master/usage/restructuredtext%s', ''),
     'sphinx' : ('https://www.sphinx-doc.org/en/master%s', ''),
     'rst' : ('http://docutils.sourceforge.net/docs/ref/rst%s',''),
-    'cc' : ('https://creativecommons.org/licenses%s','')
+    'cc' : ('https://creativecommons.org/licenses%s',''),
+    'gh' : ('https://github.com%s','')
 }
 
 ## add `extlinks` for each published version.
