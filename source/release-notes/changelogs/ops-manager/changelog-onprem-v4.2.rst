@@ -1,3 +1,20 @@
+.. _opsmgr-server-4.2.3:
+
+|onprem| Server 4.2.3
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-10-10*
+
+- Removes the **Version Behind** alert if:
+
+  - The alert had been configured for deployments using the legacy
+    Monitoring and Backup Agents, and
+  - Deployments using that alert were upgraded to using the
+    :doc:`MongoDB Agent </tutorial/nav/mongodb-agent>`.
+
+
+- Upgrades Agent: :ref:`mongodb-10.2.8.5901-1`.
+
 .. _opsmgr-server-4.2.2:
 
 |onprem| Server 4.2.2
@@ -9,8 +26,8 @@
   :doc:`changing the MongoDB keyfile in a rolling fashion </tutorial/rotate-keyfile>`.
 
 - Fixes an issue where the Backup Daemon attempts to automatically
-  download MongoDB binaries when running in local mode. This avoids many
-  spurious errors in the log files.
+  download MongoDB binaries when running in local mode. This avoids
+  many spurious errors in the log files.
 
 - Agent Upgrade: :ref:`mongodb-10.2.7.5898`.
 

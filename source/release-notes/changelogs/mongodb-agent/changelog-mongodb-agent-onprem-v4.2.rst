@@ -1,3 +1,15 @@
+
+.. _mongodb-10.2.8.5901-1:
+
+MongoDB Agent 10.2.8.5901-1
+---------------------------
+
+:ref:`Released with Ops Manager 4.2.3 on 2019-10-10 <opsmgr-server-4.2.3>`
+
+- Fixes an issue where upgrading to
+  :ref:`MongoDB Agent 10.2.7 <mongodb-10.2.7.5898>` from any previous
+  version restarted all |mongos| processes.
+
 .. _mongodb-10.2.7.5898:
 
 MongoDB Agent 10.2.7.5898
@@ -5,17 +17,17 @@ MongoDB Agent 10.2.7.5898
 
 :ref:`Released with Ops Manager 4.2.2 on 2019-10-03 <opsmgr-server-4.2.2>`
 
-- Adds support for the ``businessCategory`` field in extended validation
-  SSL certificates.
+- Adds support for the ``businessCategory`` field in extended
+  validation |tls| certificates.
 - MongoDB Agent is now built using Go 1.12.
 - Adds support for the
   :xml:`<mono><ref target="index-type-partial">partialFilterExpression</ref></mono>`
   index option when creating an index using
   :doc:`Data Explorer </data-explorer>`.
-- **Backup:** Adds support for the ``businessCategory`` field in extended
-  validation SSL certificates.
-- **Monitoring:** Adds support for the ``businessCategory`` field in extended
-  validation SSL certificates.
+- **Backup:** Adds support for the ``businessCategory`` field in
+  extended validation |tls| certificates.
+- **Monitoring:** Adds support for the ``businessCategory`` field in
+  extended validation |tls| certificates.
 
 .. _mongodb-10.2.6.5879-1:
 
