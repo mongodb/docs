@@ -31,20 +31,8 @@ action:
                return 0
              fi
 
-             echo 'never' > ${thp_path}/enabled
-             echo 'never' > ${thp_path}/defrag
+             echo 'never' | tee ${thp_path}/enabled > /dev/null
 
-             re='^[0-1]+$'
-             if [[ $(cat ${thp_path}/khugepaged/defrag) =~ $re ]]
-             then
-               # RHEL 7
-               echo 0  > ${thp_path}/khugepaged/defrag
-             else
-               # RHEL 6
-               echo 'no' > ${thp_path}/khugepaged/defrag
-             fi
-
-             unset re
              unset thp_path
              ;;
          esac
@@ -55,19 +43,50 @@ level: 4
 ref: make-executable
 action:
   - pre: |
-      Run the following command to ensure that the init script can be used:
+      Run the following command to make the script executable:
 
     language: sh
     code: sudo chmod 755 /etc/init.d/disable-transparent-hugepages
 ---
-title: Configure your operating system to run it on boot.
+title: Run the script.
 stepnum: 3
+level: 4
+ref: run-script
+action:
+  - pre: |
+      Run the script manually once to ensure that the appropriate THP
+      setting has been changed:
+
+    language: sh
+    code:
+      sudo /etc/init.d/disable-transparent-hugepages start
+
+  - pre: |
+      Verify that THP has successfully been set to ``[never]`` by running the
+      following command:
+
+    language: sh
+    code:
+
+       cat /sys/kernel/mm/transparent_hugepage/enabled
+
+  - pre: |
+      On Red Hat Enterprise Linux, CentOS, and potentially other Red
+      Hat-based derivatives, you may instead need to use the following:
+
+    language: sh
+    code:
+
+       cat /sys/kernel/mm/redhat_transparent_hugepage/enabled
+---
+title: Configure your operating system to run it on boot.
+stepnum: 4
 level: 4
 ref: configure-initd
 action:
   - pre: |
-      Use the appropriate command to configure the new init script on your Linux
-      distribution.
+      To ensure that this setting is applied each time your system
+      boots, run the following command for your Linux distribution:
 
       .. list-table::
          :header-rows: 1
@@ -95,13 +114,13 @@ action:
 
                 sudo chkconfig --add disable-transparent-hugepages
 ---
-title: "Override tuned and ktune, if applicable"
-stepnum: 4
+title: "Customize tuned / ktune profile, if applicable."
+stepnum: 5
 level: 4
-ref: override-tuned-ktune
+ref: customize-tuned-profile
 action:
   - pre: |
-      If you are using ``tuned`` or ``ktune`` (for example, if you are running
-      Red Hat or CentOS 6+) you must now configure them to preserve the above
-      settings.
+      If you are using ``tuned`` or ``ktune`` on
+      :abbr:`RHEL (Red Hat Enterprise Linux)`/ CentOS,
+      you must now also create a custom ``tuned`` profile.
 ...
