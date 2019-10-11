@@ -32,7 +32,7 @@
    * - ``roles``
      - object array
      - Roles that this Global |api| Key has. This array returns
-       all the Global and Project roles the user has in |mms|.
+       all the Global roles the user has in |mms|.
 
    * - ``roles.roleName``
      - string

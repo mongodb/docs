@@ -6,49 +6,37 @@
      - Type
      - Description
 
-   * - ``created``
-     - string
-     - |Epoch-time| when you created this Global |api| Key.
-
    * - ``desc``
      - string
      - Description of this Global |api| Key.
 
-   * - ``globalRoles``
-     - string array
-     - Global roles that you assigned to this Global |api| Key.
-       Accepted values include:
-
-       .. include:: /includes/api/lists/global-roles.rst
-
-   * - ``numGroups``
-     - integer
-     - Number of projects related to the ``groupRoles``.
-
-   * - ``orgRoles``
-     - string array
-     - Organization roles that you assigned to this Global |api| Key.
-       Accepted values include:
-
-       .. include:: /includes/api/lists/org-roles.rst
-
-   * - ``groupRoles``
-     - string array
-     - Project roles that you assigned to this Global |api| Key.
-       Accepted values include:
-
-       .. include:: /includes/api/lists/project-roles.rst
-
-   * - ``privateKey``
-     - string
-     - Redacted Private key for this Global |api| Key.
-
-       .. note:: This key displays unredacted when first created.
-
-   * - ``userId``
+   * - ``id``
      - string
      - Unique identifier for this Global |api| Key.
 
-   * - ``username``
+   * - ``links``
      - string
-     - Public Key for this Global |api| Key.
+     - An array of documents, representing a :ref:`link <api-linking>`
+       to one or more sub-resources and/or related resources such as
+       :ref:`list pagination <api-lists>`. See :ref:`api-linking` for
+       more information.
+
+   * - ``privateKey``
+     - string
+     - Unredacted Private key for this Global |api| Key.
+
+   * - ``publicKey``
+     - string
+     - Public key for this Global |api| Key.
+
+   * - ``roles``
+     - object array
+     - Roles that this Global |api| Key has. This array returns
+       all the Global roles the user has in |mms|.
+
+   * - ``roles.roleName``
+     - string
+     - Name of the role. This resource returns all the roles the user
+       has in |mms|. Possible values are:
+
+       .. include:: /includes/api/lists/global-roles.rst
