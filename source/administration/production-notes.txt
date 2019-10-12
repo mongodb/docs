@@ -478,13 +478,46 @@ WiredTiger uses :term:`prefix compression` on all indexes by default.
 Clock Synchronization
 ---------------------
 
-Use `NTP <http://www.ntp.org/>`_ to synchronize the clocks on all
-components of your MongoDB deployment. :term:`Replica sets <replica
-set>` and :term:`sharded clusters <sharded cluster>` running MongoDB
-3.4.5 or earlier with the :doc:`WiredTiger </core/wiredtiger>` storage
-engine may experience :ref:`checkpoint
-<storage-wiredtiger-checkpoints>` hangs on systems with unreliable
-clocks.
+MongoDB :doc:`components </reference/program>` keep logical clocks for
+supporting time-dependent operations. Using `NTP <http://www.ntp.org/>`_
+to synchronize host machine clocks mitigates the risk of clock drift
+between components. Clock drift between components increases the
+likelihood of incorrect or abnormal behavior of time-dependent
+operations like the following:
+
+- If the underlying system clock of any given MongoDB
+  component drifts a year or more from other components in the same
+  deployment, communication between those members may become unreliable
+  or halt altogether.
+
+  The :parameter:`maxAcceptableLogicalClockDriftSecs` parameter controls
+  the amount of acceptable clock drift between components. Clusters with
+  a lower value of ``maxAcceptableLogicalClockDriftSecs`` have a
+  correspondingly lower tolerance for clock drift.
+
+- Two cluster members with different system clocks may return 
+  different values for operations that return the current 
+  cluster or system time, such as :method:`Date()`, 
+  :variable:`NOW`, and :variable:`CLUSTER_TIME`.
+
+- Features which rely on timekeeping may have inconsistent or
+  unpredictable behavior in clusters with clock drift between MongoDB
+  components. 
+  
+  For example, :ref:`TTL indexes <index-feature-ttl>` rely
+  on the system clock to calculate when to delete a given document. If
+  two members have different system clock times, each member could
+  delete a given document covered by the TTL index at a different
+  time. Since :ref:`sessions` use TTL indexes to control their
+  lifespan, clock drift could result in inconsistent or unpredictable
+  session timeout behavior.
+
+NTP synchronization is required for deployments running MongoDB lower
+than ``3.4.6`` or ``3.2.17`` with the Wired Tiger storage engine, where
+clock drift could lead to :issue:`checkpoint hangs <WT-3227>`. The issue
+was fixed in MongoDB :ref:`3.4.6+ <3.4.6-changelog>` and MongoDB
+:ref:`3.2.17+ <3.2.17-release-notes>`, and is resolved in all point
+release of MongoDB 3.6, 4.0, and 4.2.
 
 .. _prod-notes-platform-considerations:
 
