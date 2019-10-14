@@ -8,7 +8,7 @@ PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-node-driver
 
-PROJECT=node-driver
+PROJECT=node-mongodb-native
 TARGET_DIR=source-${GIT_BRANCH}
 
 # Parse our published-branches configuration file to get the name of
@@ -63,7 +63,7 @@ migrate: get-assets
 	mkdir ${TARGET_DIR}
 
 	@echo "Copying over node-driver docs files"
-	cp -R build/node-driver-${GIT_BRANCH}/docs/reference/* ${TARGET_DIR}
+	cp -R build/${PROJECT}/docs/guide/* ${TARGET_DIR}
 
 get-assets:
 	giza generate assets
