@@ -1,0 +1,133 @@
+.. _data-transfer-costs:
+
+===================
+Data Transfer Costs
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Sources of Data Transfer Costs
+------------------------------
+
+|service| data transfer costs depend on the cloud service provider
+where you deployed the cluster. Multi-region clusters may have higher
+data transfer costs depending on the number and location of additional
+regions, as well as the number of clusters deployed to each region.
+
+|service| tabulates data transfer costs daily.
+
+.. note::
+
+   |service| does not charge for data transfer on ``M0`` Free Tier
+   and ``M2/M5`` shared clusters.
+
+|aws|
+  |service| charges for data transfer between the |service| server and
+  another server. Data transfer charges include traffic between
+  cluster nodes, including an outgoing transfer from the source node
+  and an incoming transfer to the destination node within the same AWS
+  region. Charges for data transfer increase as follows, from lowest
+  to highest:
+
+  - Data transfer between the originating MongoDB |service| server and
+    a server in the same AWS region.
+
+  - Data transfer between the originating MongoDB |service| server and
+    a server in a different AWS region.
+
+  - Data transfer between the originating MongoDB |service| server and
+    a server not in an AWS region.
+
+|gcp|
+  |service| charges for outgoing data transfers from an |service|
+  server to another server. Incoming data transfers to an |service|
+  server are free. Data transfer charges for a |service| cluster are
+  as follows, from lowest to highest:
+
+  - Outgoing data transfer between the originating MongoDB |service|
+    node and:
+
+    - a server that is in the same region but not in the same zone, or
+
+    - a server where both the originating MongoDB |service| node and
+      the destination server are in different regions in the United
+      States of America.
+
+  - Outgoing data transfer between the originating MongoDB |service|
+    node and:
+
+    - a server in a different continent, or
+
+    - a server in the same continent (excluding USA) but a different
+      region, or
+
+    - a server or machine not in a |gcp| data center.
+
+:abbr:`Azure (Microsoft Azure)`
+  |service| charges for outgoing data transfer from an |service|
+  server to another server or machine *not* in the same region.
+  Incoming data transfers to a |service| server are free. Data
+  transfer charges for an |service| cluster depend on the geographic
+  location of the source server.
+
+Live Migrate Your Data to |service|
+-----------------------------------
+
+The |service| Live Migration Service is a free service hosted and
+operated by MongoDB to help users migrate existing MongoDB databases to
+|service-fullname|. All incoming data transfers to an |service| cluster
+are also free.
+`Learn more <https://www.mongodb.com/cloud/atlas/migrate?utm_source=atlas-billing&utm_campaign=20-docs-in-20-days-migrations&utm_medium=docs>`_
+about migrating to |service|.
+
+.. _reducing-data-transfer-costs:
+
+How to Reduce Data Transfer Costs
+---------------------------------
+
+The vast majority of |service| customers spend less than 10% of their
+budget on data transfer. If you are spending significantly more, some
+of these optimizations may reduce your data transfer costs:
+
+- Check all applications and processes that access your data for
+  inefficiencies. Ensure that queries do not:
+  
+  - Re-read data that already exists on the client.
+
+  - Re-write existing data to your cluster.
+
+- Ensure that queries originate from the same cloud
+  region and provider as your |service| cluster whenever possible.
+  
+  When cross-region queries are necessary:
+
+  - Ensure read queries :manual:`use the preference "nearest." 
+    </core/read-preference>`
+
+  - Source write queries from your :guilabel:`Highest Priority Region`
+    whenever possible. For more information on region priorities, see
+    :ref:`Electable Nodes for High Availability
+    <deploy-across-multiple-regions>`.
+
+- Use the :manual:`Aggregation Framework </aggregation>` to preprocess
+  your data before you transfer it. For example, you can project
+  document fields using the :pipeline:`$project` aggregation stage to
+  reduce the size of a document before you transfer it.
+
+- Ensure that your client driver is :manual:`using wire protocol
+  compression
+  </reference/configuration-options#net.compression.compressors>` to communicate with MongoDB (|service| will always use compression for 
+  intra-cluster communication). For more information on configuring
+  your driver, refer to your :driver:`Driver's Documentation </>`.
+
+.. note::
+
+   Queries from non-cloud environments into |service|, across cloud
+   providers, or between continents on the same cloud provider incur
+   the greatest data transfer costs.
