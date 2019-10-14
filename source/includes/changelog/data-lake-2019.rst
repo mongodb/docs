@@ -1,3 +1,22 @@
+.. _data-lake-v20191008:
+
+08 October 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Returns an error if a query produces a document larger than 16 MiB.
+
+- The :pipeline:`$indexStats` stage now produces an empty list of indexes instead 
+  of an error.
+
+- Supports :pipeline:`$out` to S3 storage format in JSON.
+
+- :pipeline:`$match` now implicitly treats all terms as conjunctions.
+
+- No longer parses empty files.
+
+- Fixes an issue that caused the ``{$match: {$expr: {$and: []}}}`` expression 
+  to terminate the connection.
+
 .. _data-lake-v20190917:
 
 17 September 2019 Release
@@ -19,9 +38,16 @@
 
 - Adds support for the :dbcommand:`getLastError` database command.
 
+- Fixes a bug with how union types are handled in Avro.
+
 - Supports :pipeline:`$out` aggregation pipeline stage to S3.
 
 - :dbcommand:`listIndexes` now always returns an empty list.
+
+- Translates dot-delimited CSV and TSV keys into subdocuments.
+
+- Storage configuration error message now includes a link to the 
+  documentation.
 
 - Supports the XLSX file format.
 
