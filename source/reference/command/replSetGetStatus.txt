@@ -22,6 +22,11 @@ Definition
    The :binary:`~bin.mongod` instance must be a replica set member for
    :dbcommand:`replSetGetStatus` to return successfully.
 
+   Data provided by this command derives from data included in
+   heartbeats sent to the server by other members of the replica set.
+   Because of the frequency of heartbeats, these data can be several
+   seconds out of date.
+
 Syntax
 ------
 
@@ -31,23 +36,34 @@ The command has the following syntax:
 
    db.adminCommand( { replSetGetStatus: 1 } )
 
-Starting in MongoDB 3.4, when running on a :doc:`secondary
-</core/replica-set-secondary>` member, you can optionally include
-``initialSync: 1`` to return :ref:`initial sync
-<replica-set-initial-sync>` status information:
+- Starting in MongoDB 4.2.1
+      If you run :dbcommand:`replSetGetStatus` or the
+      :binary:`~bin.mongo` shell helper :method:`rs.status()` on a
+      member during its :ref:`initial sync <replica-set-initial-sync>`
+      (i.e. :replstate:`STARTUP2` state), the command returns
+      :data:`replSetGetStatus.initialSyncStatus` metrics.
+      
+      Once the member finishes its initial sync and transitions to
+      another state, the :data:`replSetGetStatus.initialSyncStatus`
+      metrics are no longer available.
 
-.. code-block:: javascript
+- In earlier versions (3.4.x-4.2.0)
+      To return :ref:`initial sync <replica-set-initial-sync>` status
+      information, include ``initialSync: 1`` in the command on a
+      secondary member or a member in :replstate:`STARTUP2` state:
 
-   db.adminCommand( { replSetGetStatus: 1, initialSync: 1 } )
+      .. code-block:: javascript
 
-Data provided by this command derives from data included in
-heartbeats sent to the server by other members of the replica set.
-Because of the frequency of heartbeats, these data can be several
-seconds out of date.
+         db.adminCommand( { replSetGetStatus: 1, initialSync: 1 } )
 
-The :binary:`~bin.mongo` shell provides the :method:`rs.status()`
-helper; however, you cannot specify the ``initialSync: 1`` option
-using the helper.
+      The :data:`replSetGetStatus.initialSyncStatus` metrics remains
+      available after the member completes its initial sync. That is,
+      you can run the :dbcommand:`replSetGetStatus` command with the
+      ``initialSync: 1`` on the secondary member to return its initial
+      sync information.
+
+      You cannot specify ``initialSync: 1`` in the :binary:`~bin.mongo`
+      shell helper :method:`rs.status()`.
 
 .. _rs-status-output:
 
@@ -70,7 +86,8 @@ Example
 
              db.adminCommand( { replSetGetStatus : 1 } )
 
-          The command returns the following output for an example replica set primary:
+          The command returns the following output for an example
+          replica set primary:
 
           .. code-block:: javascript
 
@@ -219,7 +236,7 @@ Example
                 },
                 "operationTime" : Timestamp(1571066144, 1)
              }
-             
+
       - id: secondary
         name: Secondary
         content: |
@@ -238,36 +255,309 @@ Example
 
              {
                 "set" : "replset",
-                "date" : ISODate("2019-10-14T15:20:18.135Z"),
+                "date" : ISODate("2019-10-15T04:28:13.318Z"),
                 "myState" : 2,
                 "term" : NumberLong(1),
-                "syncingTo" : "m1.example.net:27017",
-                "syncSourceHost" : "m1.example.net:27017",
-                "syncSourceId" : 0,
+                "syncingTo" : "m2.example.net:27017",
+                "syncSourceHost" : "m2.example.net:27017",
+                "syncSourceId" : 1,
                 "heartbeatIntervalMillis" : NumberLong(2000),
                 "majorityVoteCount" : 2,
                 "writeMajorityCount" : 2,
                 "optimes" : {
                    "lastCommittedOpTime" : {
-                      "ts" : Timestamp(1571066416, 1),
+                      "ts" : Timestamp(1571113692, 1),
                       "t" : NumberLong(1)
                    },
-                   "lastCommittedWallTime" : ISODate("2019-10-14T15:20:16.247Z"),
+                   "lastCommittedWallTime" : ISODate("2019-10-15T04:28:12.660Z"),
                    "readConcernMajorityOpTime" : {
-                      "ts" : Timestamp(1571066416, 1),
+                      "ts" : Timestamp(1571113692, 1),
                       "t" : NumberLong(1)
                    },
-                   "readConcernMajorityWallTime" : ISODate("2019-10-14T15:20:16.247Z"),
+                   "readConcernMajorityWallTime" : ISODate("2019-10-15T04:28:12.660Z"),
                    "appliedOpTime" : {
-                      "ts" : Timestamp(1571066416, 1),
+                      "ts" : Timestamp(1571113692, 1),
                       "t" : NumberLong(1)
                    },
                    "durableOpTime" : {
-                      "ts" : Timestamp(1571066416, 1),
+                      "ts" : Timestamp(1571113692, 1),
                       "t" : NumberLong(1)
                    },
-                   "lastAppliedWallTime" : ISODate("2019-10-14T15:20:16.247Z"),
-                   "lastDurableWallTime" : ISODate("2019-10-14T15:20:16.247Z")
+                   "lastAppliedWallTime" : ISODate("2019-10-15T04:28:12.660Z"),
+                   "lastDurableWallTime" : ISODate("2019-10-15T04:28:12.660Z")
+                },
+                "lastStableRecoveryTimestamp" : Timestamp(1571113662, 1),
+                "lastStableCheckpointTimestamp" : Timestamp(1571113662, 1),
+                "members" : [
+                   {
+                      "_id" : 0,
+                      "name" : "m1.example.net:27017",
+                      "ip" : "198.51.100.1",
+                      "health" : 1,
+                      "state" : 1,
+                      "stateStr" : "PRIMARY",
+                      "uptime" : 178,
+                      "optime" : {
+                         "ts" : Timestamp(1571113682, 1),
+                         "t" : NumberLong(1)
+                      },
+                      "optimeDurable" : {
+                         "ts" : Timestamp(1571113682, 1),
+                         "t" : NumberLong(1)
+                      },
+                      "optimeDate" : ISODate("2019-10-15T04:28:02Z"),
+                      "optimeDurableDate" : ISODate("2019-10-15T04:28:02Z"),
+                      "lastHeartbeat" : ISODate("2019-10-15T04:28:11.857Z"),
+                      "lastHeartbeatRecv" : ISODate("2019-10-15T04:28:13.043Z"),
+                      "pingMs" : NumberLong(0),
+                      "lastHeartbeatMessage" : "",
+                      "syncingTo" : "",
+                      "syncSourceHost" : "",
+                      "syncSourceId" : -1,
+                      "infoMessage" : "",
+                      "electionTime" : Timestamp(1571113240, 1),
+                      "electionDate" : ISODate("2019-10-15T04:20:40Z"),
+                      "configVersion" : 2
+                   },
+                   {
+                      "_id" : 1,
+                      "name" : "m2.example.net:27017",
+                      "ip" : "198.51.100.2",
+                      "health" : 1,
+                      "state" : 2,
+                      "stateStr" : "SECONDARY",
+                      "uptime" : 178,
+                      "optime" : {
+                         "ts" : Timestamp(1571113682, 1),
+                         "t" : NumberLong(1)
+                      },
+                      "optimeDurable" : {
+                         "ts" : Timestamp(1571113682, 1),
+                         "t" : NumberLong(1)
+                      },
+                      "optimeDate" : ISODate("2019-10-15T04:28:02Z"),
+                      "optimeDurableDate" : ISODate("2019-10-15T04:28:02Z"),
+                      "lastHeartbeat" : ISODate("2019-10-15T04:28:11.857Z"),
+                      "lastHeartbeatRecv" : ISODate("2019-10-15T04:28:13.310Z"),
+                      "pingMs" : NumberLong(0),
+                      "lastHeartbeatMessage" : "",
+                      "syncingTo" : "m1.example.net:27017",
+                      "syncSourceHost" : "m1.example.net:27017",
+                      "syncSourceId" : 0,
+                      "infoMessage" : "",
+                      "configVersion" : 2
+                   },
+                   {
+                      "_id" : 2,
+                      "name" : "m3.example.net:27017",
+                      "ip" : "198.51.100.3",
+                      "health" : 1,
+                      "state" : 2,
+                      "stateStr" : "SECONDARY",
+                      "uptime" : 465,
+                      "optime" : {
+                         "ts" : Timestamp(1571113692, 1),
+                         "t" : NumberLong(1)
+                      },
+                      "optimeDate" : ISODate("2019-10-15T04:28:12Z"),
+                      "syncingTo" : "m2.example.net:27017",
+                      "syncSourceHost" : "m2.example.net:27017",
+                      "syncSourceId" : 1,
+                      "infoMessage" : "",
+                      "configVersion" : 2,
+                      "self" : true,
+                      "lastHeartbeatMessage" : ""
+                   }
+                ],
+                "ok" : 1,
+                "$clusterTime" : {
+                   "clusterTime" : Timestamp(1571113692, 1),
+                   "signature" : {
+                      "hash" : BinData(0,"YBSGbOPTeazPhppu6WnyVRZwYms="),
+                      "keyId" : NumberLong("6747879992702533634")
+                   }
+                },
+                "operationTime" : Timestamp(1571113692, 1)
+             }
+          
+          In earlier versions (3.4.x-4.2.0)
+             You can include the optional ``initialSync: 1`` to include
+             the :data:`replSetGetStatus.initialSyncStatus` in the
+             output (you can omit if you do not want to return the
+             initial sync status):
+      
+             .. code-block:: javascript
+
+                db.adminCommand( { replSetGetStatus : 1, initialSync: 1} )
+          
+      - id: startup2
+        name: Include Initial Sync Metrics
+        content: |
+
+          Starting in MongoDB 4.2.1, 
+             If you run :dbcommand:`replSetGetStatus` on a member
+             during its initial sync, the command returns
+             :data:`replSetGetStatus.initialSyncStatus` metrics.
+          
+             .. code-block:: javascript
+
+                db.adminCommand( { replSetGetStatus : 1} )
+             
+             Once the member finishes its initial sync and transitions to
+             another state,the :data:`replSetGetStatus.initialSyncStatus`
+             metrics is no longer available.
+
+          In earlier versions (3.4.x-4.2.0)
+             You can include the optional ``initialSync: 1`` to include
+             the :data:`replSetGetStatus.initialSyncStatus` in the
+             output (you can omit if you do not want to return the
+             initial sync status):
+      
+             .. code-block:: javascript
+
+                db.adminCommand( { replSetGetStatus : 1, initialSync: 1} )
+             
+             For 3.4.x-4.2.0 replica sets,
+             :data:`replSetGetStatus.initialSyncStatus` metrics remains
+             available after the member completes its initial sync.
+             That is, you can run the :dbcommand:`replSetGetStatus`
+             command with the ``initialSync: 1`` on the secondary
+             member to return its initial sync information.
+
+          The following example runs the :dbcommand:`replSetGetStatus`
+          command on the :term:`admin database` of the 4.2.1 replica
+          set member during its initial sync:
+
+          .. code-block:: javascript
+
+             {
+                "set" : "replset",
+                "date" : ISODate("2019-10-15T01:26:38.743Z"),
+                "myState" : 5,
+                "term" : NumberLong(1),
+                "syncingTo" : "m2.example.net:27017",
+                "syncSourceHost" : "m2.example.net:27017",
+                "syncSourceId" : 1,
+                "heartbeatIntervalMillis" : NumberLong(2000),
+                "majorityVoteCount" : 2,
+                "writeMajorityCount" : 2,
+                "optimes" : {
+                   "lastCommittedOpTime" : {
+                      "ts" : Timestamp(0, 0),
+                      "t" : NumberLong(-1)
+                   },
+                   "lastCommittedWallTime" : ISODate("1970-01-01T00:00:00Z"),
+                   "appliedOpTime" : {
+                      "ts" : Timestamp(0, 0),
+                      "t" : NumberLong(-1)
+                   },
+                   "durableOpTime" : {
+                      "ts" : Timestamp(0, 0),
+                      "t" : NumberLong(-1)
+                   },
+                   "lastAppliedWallTime" : ISODate("1970-01-01T00:00:00Z"),
+                   "lastDurableWallTime" : ISODate("1970-01-01T00:00:00Z")
+                },
+                "lastStableRecoveryTimestamp" : Timestamp(0, 0),
+                "lastStableCheckpointTimestamp" : Timestamp(0, 0),
+                "initialSyncStatus" : {
+                   "failedInitialSyncAttempts" : 0,
+                   "maxFailedInitialSyncAttempts" : 10,
+                   "initialSyncStart" : ISODate("2019-10-15T01:25:40.989Z"),
+                   "initialSyncAttempts" : [ ],
+                   "fetchedMissingDocs" : 0,
+                   "appliedOps" : 0,
+                   "initialSyncOplogStart" : Timestamp(1571102740, 1),
+                   "databases" : {
+                      "databasesCloned" : 2,
+                      "admin" : {
+                         "collections" : 4,
+                         "clonedCollections" : 4,
+                         "start" : ISODate("2019-10-15T01:25:41.154Z"),
+                         "end" : ISODate("2019-10-15T01:25:41.848Z"),
+                         "elapsedMillis" : 694,
+                         "admin.system.keys" : {
+                            "documentsToCopy" : 2,
+                            "documentsCopied" : 2,
+                            "indexes" : 1,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2019-10-15T01:25:41.156Z"),
+                            "end" : ISODate("2019-10-15T01:25:41.275Z"),
+                            "elapsedMillis" : 119,
+                            "receivedBatches" : 1
+                         },
+                         "admin.system.version" : {
+                            "documentsToCopy" : 2,
+                            "documentsCopied" : 2,
+                            "indexes" : 1,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2019-10-15T01:25:41.275Z"),
+                            "end" : ISODate("2019-10-15T01:25:41.382Z"),
+                            "elapsedMillis" : 107,
+                            "receivedBatches" : 1
+                         },
+                         "admin.system.users" : {
+                            "documentsToCopy" : 22,
+                            "documentsCopied" : 22,
+                            "indexes" : 2,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2019-10-15T01:25:41.382Z"),
+                            "end" : ISODate("2019-10-15T01:25:41.609Z"),
+                            "elapsedMillis" : 227,
+                            "receivedBatches" : 1
+                         },
+                         "admin.system.roles" : {
+                            "documentsToCopy" : 12,
+                            "documentsCopied" : 12,
+                            "indexes" : 2,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2019-10-15T01:25:41.609Z"),
+                            "end" : ISODate("2019-10-15T01:25:41.848Z"),
+                            "elapsedMillis" : 239,
+                            "receivedBatches" : 1
+                         }
+                      },
+                      "config" : {
+                         "collections" : 2,
+                         "clonedCollections" : 2,
+                         "start" : ISODate("2019-10-15T01:25:41.848Z"),
+                         "end" : ISODate("2019-10-15T01:25:42.243Z"),
+                         "elapsedMillis" : 395,
+                         "config.transactions" : {
+                            "documentsToCopy" : 0,
+                            "documentsCopied" : 0,
+                            "indexes" : 1,
+                            "fetchedBatches" : 0,
+                            "start" : ISODate("2019-10-15T01:25:41.849Z"),
+                            "end" : ISODate("2019-10-15T01:25:42.010Z"),
+                            "elapsedMillis" : 161,
+                            "receivedBatches" : 0
+                         },
+                         "config.system.sessions" : {
+                            "documentsToCopy" : 1,
+                            "documentsCopied" : 1,
+                            "indexes" : 2,
+                            "fetchedBatches" : 1,
+                            "start" : ISODate("2019-10-15T01:25:42.009Z"),
+                            "end" : ISODate("2019-10-15T01:25:42.243Z"),
+                            "elapsedMillis" : 234,
+                            "receivedBatches" : 1
+                         }
+                      },
+                      "test" : {
+                         "collections" : 1,
+                         "clonedCollections" : 0,
+                         "start" : ISODate("2019-10-15T01:25:42.243Z"),
+                         "test.hugeindex" : {
+                            "documentsToCopy" : 25000,
+                            "documentsCopied" : 22167,
+                            "indexes" : 2,
+                            "fetchedBatches" : 18,
+                            "start" : ISODate("2019-10-15T01:25:42.244Z"),
+                            "receivedBatches" : 19
+                         }
+                      }
+                   }
                 },
                 "lastStableRecoveryTimestamp" : Timestamp(1571066406, 1),
                 "lastStableCheckpointTimestamp" : Timestamp(1571066406, 1),
@@ -279,28 +569,28 @@ Example
                       "health" : 1,
                       "state" : 1,
                       "stateStr" : "PRIMARY",
-                      "uptime" : 683,
+                      "uptime" : 57,
                       "optime" : {
-                         "ts" : Timestamp(1571066416, 1),
+                         "ts" : Timestamp(1571102795, 1),
                          "t" : NumberLong(1)
                       },
                       "optimeDurable" : {
-                         "ts" : Timestamp(1571066416, 1),
+                         "ts" : Timestamp(1571102795, 1),
                          "t" : NumberLong(1)
                       },
-                      "optimeDate" : ISODate("2019-10-14T15:20:16Z"),
-                      "optimeDurableDate" : ISODate("2019-10-14T15:20:16Z"),
-                      "lastHeartbeat" : ISODate("2019-10-14T15:20:17.875Z"),
-                      "lastHeartbeatRecv" : ISODate("2019-10-14T15:20:18.008Z"),
+                      "optimeDate" : ISODate("2019-10-15T01:26:35Z"),
+                      "optimeDurableDate" : ISODate("2019-10-15T01:26:35Z"),
+                      "lastHeartbeat" : ISODate("2019-10-15T01:26:37.531Z"),
+                      "lastHeartbeatRecv" : ISODate("2019-10-15T01:26:38.697Z"),
                       "pingMs" : NumberLong(0),
                       "lastHeartbeatMessage" : "",
                       "syncingTo" : "",
                       "syncSourceHost" : "",
                       "syncSourceId" : -1,
                       "infoMessage" : "",
-                      "electionTime" : Timestamp(1571065745, 1),
-                      "electionDate" : ISODate("2019-10-14T15:09:05Z"),
-                      "configVersion" : 1
+                      "electionTime" : Timestamp(1571101495, 1),
+                      "electionDate" : ISODate("2019-10-15T01:04:55Z"),
+                      "configVersion" : 2
                    },
                    {
                       "_id" : 1,
@@ -309,58 +599,50 @@ Example
                       "health" : 1,
                       "state" : 2,
                       "stateStr" : "SECONDARY",
-                      "uptime" : 687,
+                      "uptime" : 57,
                       "optime" : {
-                         "ts" : Timestamp(1571066416, 1),
-                         "t" : NumberLong(1)
-                      },
-                      "optimeDate" : ISODate("2019-10-14T15:20:16Z"),
-                      "syncingTo" : "m1.example.net:27017",
-                      "syncSourceHost" : "m1.example.net:27017",
-                      "syncSourceId" : 0,
-                      "infoMessage" : "",
-                      "configVersion" : 1,
-                      "self" : true,
-                      "lastHeartbeatMessage" : ""
-                   },
-                   {
-                      "_id" : 2,
-                      "name" : "m3.example.net:27017",
-                      "ip" : "198.51.100.3",
-                      "health" : 1,
-                      "state" : 2,
-                      "stateStr" : "SECONDARY",
-                      "uptime" : 683,
-                      "optime" : {
-                         "ts" : Timestamp(1571066416, 1),
+                         "ts" : Timestamp(1571102795, 1),
                          "t" : NumberLong(1)
                       },
                       "optimeDurable" : {
-                         "ts" : Timestamp(1571066416, 1),
+                         "ts" : Timestamp(1571102795, 1),
                          "t" : NumberLong(1)
                       },
-                      "optimeDate" : ISODate("2019-10-14T15:20:16Z"),
-                      "optimeDurableDate" : ISODate("2019-10-14T15:20:16Z"),
-                      "lastHeartbeat" : ISODate("2019-10-14T15:20:17.875Z"),
-                      "lastHeartbeatRecv" : ISODate("2019-10-14T15:20:17.906Z"),
+                      "optimeDate" : ISODate("2019-10-15T01:26:35Z"),
+                      "optimeDurableDate" : ISODate("2019-10-15T01:26:35Z"),
+                      "lastHeartbeat" : ISODate("2019-10-15T01:26:37.531Z"),
+                      "lastHeartbeatRecv" : ISODate("2019-10-15T01:26:36.981Z"),
                       "pingMs" : NumberLong(0),
                       "lastHeartbeatMessage" : "",
                       "syncingTo" : "m1.example.net:27017",
                       "syncSourceHost" : "m1.example.net:27017",
                       "syncSourceId" : 0,
                       "infoMessage" : "",
-                      "configVersion" : 1
+                      "configVersion" : 2
+                   },
+                   {
+                      "_id" : 2,
+                      "name" : "m3.example.net:27017",
+                      "ip" : "198.51.100.3",
+                      "health" : 1,
+                      "state" : 5,
+                      "stateStr" : "STARTUP2",
+                      "uptime" : 1316,
+                      "optime" : {
+                         "ts" : Timestamp(0, 0),
+                         "t" : NumberLong(-1)
+                      },
+                      "optimeDate" : ISODate("1970-01-01T00:00:00Z"),
+                      "syncingTo" : "m2.example.net:27017",
+                      "syncSourceHost" : "m2.example.net:27017",
+                      "syncSourceId" : 1,
+                      "infoMessage" : "",
+                      "configVersion" : 2,
+                      "self" : true,
+                      "lastHeartbeatMessage" : ""
                    }
                 ],
-                "ok" : 1,
-                "$clusterTime" : {
-                   "clusterTime" : Timestamp(1571066416, 1),
-                   "signature" : {
-                      "hash" : BinData(0,"d1AJtiPijIVVTwzQDzHlNjlnCyM="),
-                      "keyId" : NumberLong("6747675998935842818")
-                   }
-                },
-                "operationTime" : Timestamp(1571066416, 1)
+                "ok" : 1
              }
 
 Output
@@ -644,77 +926,62 @@ following fields:
 
    .. versionadded:: 3.4
 
-      *Available only if the command is run with the initialSync: 1
-      option on a secondary*
-
    A document provides information on the progress and status of
-   :ref:`initial sync <replica-set-initial-sync>` on this secondary.
+   :ref:`initial sync <replica-set-initial-sync>` on this member.
 
-   .. note::
-
-      Some fields that relate to the progress of an on-going initial
-      sync only appear while the initial sync is in progress and do not
-      appear once the initial sync completes.
+   .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.failedInitialSyncAttempts
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
-
       The number of times the :ref:`initial sync
       <replica-set-initial-sync>` failed and had to restart on this
-      secondary.
+      member.
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.maxFailedInitialSyncAttempts
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
+      The maximum number of times the :ref:`initial sync
+      <replica-set-initial-sync>` can restart on this member before
+      the member shuts down.
 
-         The maximum number of times the :ref:`initial sync
-         <replica-set-initial-sync>` can restart on this secondary
-         before the member shuts down.
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.initialSyncStart
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
-
       The start timestamp of the :ref:`initial sync
-      <replica-set-initial-sync>` for this secondary.
+      <replica-set-initial-sync>` for this member.
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.initialSyncEnd
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
-
       The end timestamp of the :ref:`initial sync
-      <replica-set-initial-sync>` for this secondary.
+      <replica-set-initial-sync>` for this member.
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.initialSyncElapsedMillis
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
+      The number of milliseconds between
+      :data:`~replSetGetStatus.initialSyncStatus.initialSyncStart` and
+      :data:`~replSetGetStatus.initialSyncStatus.initialSyncEnd`.
 
-         The number of milliseconds between
-         :data:`~replSetGetStatus.initialSyncStatus.initialSyncStart`
-         and :data:`~replSetGetStatus.initialSyncStatus.initialSyncEnd`.
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.initialSyncAttempts
 
       .. versionadded:: 3.4
-
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
 
       Array of documents where each document corresponds to a single
       :ref:`initial sync <replica-set-initial-sync>` attempt. See also
@@ -727,98 +994,92 @@ following fields:
          {
             "durationMillis" : <duration in milliseconds>,
             "status" : <exit status>,
-            "syncSource" : <source node from which this secondary performs initial sync>
+            "syncSource" : <source node from which this member performs initial sync>
          }
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.fetchedMissingDocs
 
       .. versionadded:: 3.4
-
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
 
       The number of missing (i.e. uncloned) documents that were fetched
       from the sync source in order to apply to those documents the
       updates that occurred after the :ref:`initial sync
       <replica-set-initial-sync>` started.
 
-      As part of the initial sync process, the secondary uses the oplog
+      As part of the initial sync process, the member uses the oplog
       to update its data set to reflect the current state of the
       replica set.
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.appliedOps
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
-
       The number of ops that occurred after the :ref:`initial sync
       <replica-set-initial-sync>` started and were applied after cloning
       the databases.
 
-      As part of the initial sync process, the secondary uses the oplog
+      As part of the initial sync process, the member uses the oplog
       to update its data set to reflect the current state of the
       replica set.
-   
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
+
    .. data:: replSetGetStatus.initialSyncStatus.initialSyncOplogStart
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
-
       The start timestamp of the oplog application stage of the
       :ref:`initial sync <replica-set-initial-sync>` where the
-      secondary applies changes that occurred after the initial sync
+      member applies changes that occurred after the initial sync
       start.
 
-      As part of the initial sync process, the secondary uses the oplog
+      As part of the initial sync process, the member uses the oplog
       to update its data set to reflect the current state of the
       replica set.
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
    
    .. data:: replSetGetStatus.initialSyncStatus.initialSyncOplogEnd 
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
 
       The end timestamp of the oplog application stage of the
       :ref:`initial sync <replica-set-initial-sync>` where the
-      secondary applies changes that occurred after the initial sync
+      member applies changes that occurred after the initial sync
       start.
 
-      As part of the initial sync process, the secondary uses the oplog
+      As part of the initial sync process, the member uses the oplog
       to update its data set to reflect the current state of the
       replica set.
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.databases
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
-
       Detail on the databases cloned during :ref:`initial sync
       <replica-set-initial-sync>`.
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.databases.databasesCloned
 
       .. versionadded:: 3.4
 
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
-
       Number of databases cloned during :ref:`initial sync
       <replica-set-initial-sync>`.
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
 
    .. data:: replSetGetStatus.initialSyncStatus.databases.<dbname>
 
       .. versionadded:: 3.4
-
-         *Available only if the command is run with the initialSync: 1
-         option on a secondary*
 
       For each database, a document that returns information regarding
       the progress of the cloning of that database.
@@ -842,6 +1103,9 @@ following fields:
                "receivedBatches" : <number of batches of documents received to date>  // Added in 4.2
             }
          }
+
+      .. include:: /includes/fact-rs-status-init-sync-availability.rst
+
 
 .. data:: replSetGetStatus.members
 
