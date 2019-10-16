@@ -48,7 +48,7 @@
      - Set to true to enable the cluster tier to scale down. This
        option is only available if ``autoScaling.compute.enabled``
        is ``true``.
-       
+
        If this option is enabled, you must specify a value for
        ``providerSettings.autoScaling.compute.minInstanceSize``
 
@@ -310,7 +310,7 @@
 
        The possible values are ``1`` through ``50``, inclusive. The
        default value is 1.
-       
+
        - If you specify a ``numShards`` value of ``1`` and a
          ``clusterType`` of ``SHARDED``, |service| deploys a
          single-shard :term:`sharded cluster`.
@@ -409,7 +409,7 @@
      - string
      - Conditional
      - Cloud service provider on which the
-       server for a multi-tenant cluster is provisioned. 
+       server for a multi-tenant cluster is provisioned.
 
        This setting is only valid when ``providerSetting.providerName``
        is ``TENANT`` and ``providerSetting.instanceSizeName`` is ``M2``
@@ -494,9 +494,9 @@
        :ref:`server-number-costs`.
 
        .. important::
-          If you are deploying a :doc:`Global Cluster 
-          </global-clusters>`, you must choose a cluster tier of 
-          ``M30`` or larger. 
+          If you are deploying a :doc:`Global Cluster
+          </global-clusters>`, you must choose a cluster tier of
+          ``M30`` or larger.
 
        .. tabs-cloud-providers::
 
@@ -625,8 +625,10 @@
 
        .. important::
 
-          You **must** order each element in this document by
-          ``replicationSpec.<region>.priority`` descending.
+          If you use ``replicationSpec``, you must specify a minimum of
+          one ``replicationSpec.<region>`` document and sort each
+          ``.<region>`` document by ``.<region>.priority`` in
+          descending order.
 
        Use the ``replicationSpecs`` parameter to create a
        :doc:`Global Cluster </global-clusters>`.
@@ -639,15 +641,18 @@
    * - | ``replicationSpec``
        | ``.<region>``
      - document
-     - Optional
-     - Physical location of the region. Replace ``<region>`` with
-       the name of the region. Each ``<region>`` document describes the
+     - Required
+     - Physical location of the region. Replace ``<region>`` with the
+       name of the region. Each ``<region>`` document describes the
        region's priority in elections and the number and type of
-       MongoDB nodes |service| deploys to the region. You must order
-       each ``<region>`` by ``replicationSpec.priority`` descending.
+       MongoDB nodes |service| deploys to the region.
 
-       You must specify at least one ``replicationSpec.<region>``
-       document.
+       .. important::
+
+          If you use ``replicationSpec``, you must specify a minimum of
+          one ``replicationSpec.<region>`` document and sort each
+          ``.<region>`` document by ``.<region>.priority`` in
+          descending order.
 
        Select your cloud provider's tab for example cluster region
        names:
@@ -807,9 +812,14 @@
      - Optional
      - Physical location of the region. Each ``regionsConfig`` document
        describes the region's priority in elections and the number and
-       type of MongoDB nodes |service| deploys to the region. You must
-       order each ``regionsConfigs`` document by
-       ``regionsConfig.priority``, descending.
+       type of MongoDB nodes that |service| deploys to the region.
+
+       .. important::
+
+          If you use ``replicationSpec``, you must specify a minimum of
+          one ``replicationSpec.<regionsConfigs>`` document and sort each
+          ``.<regionsConfig>`` by ``.<regionsConfig>.priority`` in
+          descending order.
 
        .. include:: /includes/fact-group-region-association.rst
 
@@ -822,7 +832,7 @@
        | ``.regionsConfig``
        | ``.electableNodes``
      - integer
-     - Optional
+     - Required
      - Number of electable nodes for |service| to deploy to the region.
        Electable nodes can become the :term:`primary` and can
        facilitate local reads.
@@ -831,7 +841,7 @@
        | ``.regionsConfig``
        | ``.readOnlyNodes``
      - integer
-     - Optional
+     - Required
      - Number of read-only nodes for |service| to deploy to the region.
        Read-only nodes can never become the :term:`primary`, but can
        facilitate local-reads.
@@ -850,7 +860,7 @@
        | ``.regionsConfig``
        | ``.priority``
      - integer
-     - Optional
+     - Required
      - Election priority of the region. For regions with only
        read-only nodes, set this value to ``0``.
 
