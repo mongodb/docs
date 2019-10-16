@@ -1,5 +1,6 @@
-title: "Provision an |onprem| host."
 stepnum: 1
+title: "Provision an |onprem| host."
+level: 4
 ref: set-up-host
 content: |
 
@@ -12,7 +13,7 @@ content: |
      * - System Memory
        - 15 GB
      * - Disk Capacity
-       - 50 GB in ``/``
+       - 50 GB in ``/`` (The root directory of this host)
      * - Host OS Permissions
        - ``root``
      * - Host OS
@@ -27,6 +28,7 @@ content: |
      partition has 50 GB of space.
 
 ---
+stepnum: 2
 title: "Configure ``yum`` to install MongoDB."
 ref: config-yum
 content: |
@@ -36,13 +38,15 @@ content: |
 
   .. code-block:: sh
 
-     echo "[mongodb-org-4.0]
+     echo "[mongodb-org-4.2]
      name=MongoDB Repository
-     baseurl=https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/
+     baseurl=https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.2/x86_64/
      gpgcheck=1
      enabled=1
-     gpgkey=https://www.mongodb.org/static/pgp/server-4.0.asc" | sudo tee /etc/yum.repos.d/mongodb.repo
+     gpgkey=https://www.mongodb.org/static/pgp/server-4.2.asc" | sudo tee /etc/yum.repos.d/mongodb.repo
+
 ---
+stepnum: 3
 title: "Install MongoDB."
 ref: install-mongodb
 content: |
@@ -53,6 +57,7 @@ content: |
 
      sudo yum install -y mongodb-org mongodb-org-shell
 ---
+stepnum: 4
 title: "Create the |onprem| Application Database directory."
 ref: create-data-dir
 content: |
@@ -64,6 +69,7 @@ content: |
      sudo mkdir -p /data/appdb
      sudo chown -R mongod:mongod /data
 ---
+stepnum: 5
 title: "*(Optional)* Create the |onprem| backup data directory."
 ref: create-backup-dir
 content: |
@@ -75,6 +81,7 @@ content: |
      sudo mkdir -p /data/backup
      sudo chown mongod:mongod /data/backup
 ---
+stepnum: 6
 title: "Start the |onprem| Application Database mongod instance."
 ref: start-mongod-instance
 content: |
@@ -114,6 +121,7 @@ content: |
       --logpath /data/appdb/mongodb.log \
       --wiredTigerCacheSizeGB 1 --fork
 ---
+stepnum: 7
 title: "*(Optional)* Start the |onprem| Backup Database mongod instance."
 ref: start-mongod-backup-instance
 content: |
@@ -153,6 +161,7 @@ content: |
       --logpath /data/backup/mongodb.log \
       --wiredTigerCacheSizeGB 1 --fork
 ---
+stepnum: 8
 title: "Download the |onprem| package."
 ref: application-package-download
 content: |
@@ -177,6 +186,7 @@ content: |
      version number.
 
 ---
+stepnum: 9
 title: "Install |onprem|."
 ref: install
 content: |
@@ -196,13 +206,14 @@ content: |
   - A new system user, ``mongodb-mms``, under which the host runs.
 
   - The ``/opt/mongodb/mms/conf/conf-mms.properties`` file, which
-    contains the connection string to access the Application Database.
-    The default is ``locahost``, port ``27017``, so no changes are
-    necessary.
+    contains the connection string to access the Application Database
+    in :setting:`mongo.mongoUri` setting. The default value is
+    ``locahost``, port ``27017``, so no changes are necessary.
 
 ---
-title: "Start |onprem|."
 stepnum: 10
+title: "Start |onprem|."
+level: 4
 ref: start-the-application
 content: |
   Issue the following command:
@@ -211,8 +222,9 @@ content: |
 
      sudo service mongodb-mms start
 ---
-title: "Get your instance hostname."
 stepnum: 11
+title: "Get your instance hostname."
+level: 4
 ref: public-host-name
 content: |
   If you are using an EC2 instance, the hostname is the ``Public DNS``
@@ -226,8 +238,9 @@ content: |
 
      https://www.google.com/search?q=myip
 ---
-title: "Open the |onprem| home page and register the first user."
 stepnum: 12
+title: "Open the |onprem| home page and register the first user."
+level: 4
 ref: home-page
 content: |
 
@@ -236,7 +249,7 @@ content: |
 
      .. code-block:: sh
 
-        http://<opsManagerHost>:8080
+        http://{+opsmgr-url+}
 
   b. Click the :guilabel:`Register` link and follow the prompts to
      register the first user and create the first project. The first
@@ -244,8 +257,9 @@ content: |
      <global-owner-role>` role.
 
 ---
-title: "Configure |onprem|."
 stepnum: 13
+title: "Configure |onprem|."
+level: 4
 ref: configure-app
 content: |
 
@@ -254,26 +268,33 @@ content: |
   appropriate. When configuration is complete, |onprem| opens the
   :guilabel:`Deployment` page.
 
+  .. seealso::
+
+     To review the available |onprem| configuration settings, see
+     :doc:`/reference/config/ui-settings/`.
+
 ---
-title: "*(Optional)* Configure the backup capabilities."
 stepnum: 14
+title: "*(Optional)* Configure the backup capabilities."
+level: 4
 ref: configure-backup-feature
 content: |
-  a. Create a directory to store the :term:`head databases <head
-     database>`.
+  a. Create a directory to store the
+     :term:`head databases <head database>`.
+
+     .. code-block:: sh
+
+        sudo mkdir /data/headdb
 
      .. important::
-        Do not use this directory for any other purpose:
 
-        .. code-block:: sh
-
-           mkdir /data/backupDaemon
+        Do not use this directory for any other purpose.
 
   b. Make the directory writable by the ``mongodb-mms`` user:
 
      .. code-block:: sh
 
-        sudo chown mongodb-mms:mongodb-mms /data/backupDaemon
+        sudo chown mongodb-mms:mongodb-mms /data/headdb
 
   c. In |onprem|, while logged in as the user you registered during
      installation, click the :guilabel:`Admin` link at the top right of
@@ -284,19 +305,17 @@ content: |
   e. Follow the prompts to configure the Backup storage.
      |onprem| walks you through the configuration.
 
-     For :term:`snapshot storage <snapshot>`, select either the local
-     filesystem or the backup database. If you use a :term:`File System
-     Store`, you still need a small MongoDB database for :term:`oplog
-     storage <Oplog Store Database>`. At the prompt to configure the
-     connection string to the backup database, enter your local hostname
-     and port:
+     For :term:`snapshot storage <snapshot>`, select backup database.
+
+     When prompted, enter your local hostname and port for the
+     connection string to the backup database:
 
      .. code-block:: sh
 
         localhost:27018
 
-     |onprem| automatically prefixes connection strings with
-     ``mongodb://``. Your connection string should match the following:
+     |onprem| prefixes connection strings with ``mongodb://``. Your
+     connection string should match the following:
 
      .. code-block:: sh
         :copyable: false
@@ -304,8 +323,9 @@ content: |
         mongodb://localhost:27018
 
 ---
-title: "Set up your first deployment."
 stepnum: 15
+title: "Set up your first deployment."
+level: 4
 ref: deploy
 content: |
 
@@ -313,5 +333,10 @@ content: |
      the page to return to the :guilabel:`Deployment` page.
 
   b. Click :guilabel:`Add New` to deploy a MongoDB instance.
+
+     .. seealso::
+
+        - :doc:`replica set </tutorial/deploy-replica-set>`
+        - :doc:`sharded cluster </tutorial/deploy-sharded-cluster>`
 
 ...
