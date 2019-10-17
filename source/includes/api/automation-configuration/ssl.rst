@@ -1,4 +1,5 @@
-The ``ssl`` object is optional and enables SSL for encrypting connections.
+The ``ssl`` object enables |tls| for encrypting connections. This
+object is optional.
 
 .. code-block:: cfg
 
@@ -7,30 +8,33 @@ The ``ssl`` object is optional and enables SSL for encrypting connections.
    }
 
 .. list-table::
-   :widths: 30 10 80
+   :widths: 15 10 10 65
    :header-rows: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
    * - ssl
      - object
-     - *Optional*. Enables SSL for encrypting connections. To use SSL,
-       be sure to choose a package that supports SSL.
+     - Optional
+     - Enables |tls| for encrypting connections. To use |tls|,
+       be sure to choose a package that supports |tls|.
 
-       Starting in MongoDB 3.0, most MongoDB distributions now include
-       support for SSL. 
-
-       All `MongoDB Enterprise
-       <http://www.mongodb.com/products/mongodb-enterprise>`_ supported
-       platforms include SSL support.
+       All platforms that support
+       :product:`MongoDB Enterprise <mongodb-enterprise>` also support
+       |tls|.
 
    * - ssl.CAFilePath
      - string
-     - The path to the certificate used to authenticate through SSL.
-       
+     - Conditional
+     - Absolute file path to the certificate used to authenticate
+       through |tls|. Required if ``ssl.clientCertificateMode`` is set.
+
    * - ssl.clientCertificateMode
      - string
-     - Specifies whether connections to |mms| require an SSL certificate.
-       Valid values are ``OPTIONAL`` and ``REQUIRED``.
+     - Conditional
+     - Declaration as to whether connections to |mms| require a |tls|
+       certificate. Accepted values are ``OPTIONAL`` and ``REQUIRE``.
+       Required if ``ssl.CAFilePath`` is set.
