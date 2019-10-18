@@ -68,33 +68,27 @@ content: |
   Configuring client-side field level encryption for a locally
   managed key requires specifying a base64-encoded 96-byte
   string with no line breaks. The following operation generates
-  a key that meets the stated requirements:
+  a key that meets the stated requirements and loads it into
+  the :binary:`~bin.mongo` shell:
 
   .. code-block:: shell
+     :emphasize-lines: 1
 
-     echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')"
+     TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
+     
+     mongo --nodb --shell --eval "var TEST_LOCAL_KEY='$TEST_LOCAL_KEY'"
 
-  Create a :binary:`~bin.mongo` shell session using the 
-  :option:`--nodb <mongo --nodb>` option and issue the
-  following operation from that shell:
-
-  .. code-block:: shell
-
-     mongo --nodb
-
-  From the :binary:`~bin.mongo` shell session, issue the following
-  operation to create the client-side field level encryption
-  configuration object. Replace the ``key`` string with a valid
-  base64-encoded 96-byte string, such as the one genereated using the
-  code provided at the beginning of this example:
+  Create the client-side field level encryption object using the
+  generated local key string:
 
   .. code-block:: javascript
+     :emphasize-lines: 5
 
      var ClientSideFieldLevelEncryptionOptions = {
        "keyVaultNamespace" : "encryption.__dataKeys",
        "kmsProviders" : {
          "local" : {
-           "key" : BinData(0, "96-BYTE_LOCAL_KEY_STRING")
+           "key" : BinData(0, TEST_LOCAL_KEY)
          }
        }
      }
@@ -105,10 +99,11 @@ content: |
   URI <mongodb-uri>` of the target cluster.
 
   .. code-block:: javascript
+     :emphasize-lines: 2
        
      encryptedClient = Mongo( 
        "mongodb://myMongo.example.net:27017/?replSetName=myMongo", 
-       clientSideFLEOptions
+       ClientSideFieldLevelEncryptionOptions
      )
 
 ...
