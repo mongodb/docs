@@ -1,7 +1,57 @@
 .. important::
 
-   If SELinux is in ``enforcing`` mode, you must configure SELinux for
-   MongoDB if:
+   If SELinux is in ``enforcing`` mode, you must customize your SELinux
+   policy for MongoDB.
+
+.. container::
+
+   The current SELinux Policy does not allow the MongoDB process to
+   access ``/sys/fs/cgroup``, which is required to determine
+   the available memory on your system. If you intend to run SELinux in
+   ``enforcing`` mode, you will need to make the following adjustment
+   to your SELinux policy:
+
+   #. Ensure your system has the ``checkpolicy`` package installed:
+
+      .. code-block:: none
+
+         sudo yum install checkpolicy
+
+   #. Create a custom policy file :file:`mongodb_cgroup_memory.te`:
+
+      .. code-block:: none
+
+         cat > mongodb_cgroup_memory.te <<EOF
+         module mongodb_cgroup_memory 1.0;
+
+         require {
+             type cgroup_t;
+             type mongod_t;
+             class dir search;
+             class file { getattr open read };
+         }
+
+         #============= mongod_t ==============
+         allow mongod_t cgroup_t:dir search;
+         allow mongod_t cgroup_t:file { getattr open read };
+         EOF
+
+   #. Once created, compile and load the custom policy module by
+      running these three commands:
+
+      .. code-block:: none
+
+         checkmodule -M -m -o mongodb_cgroup_memory.mod mongodb_cgroup_memory.te
+         semodule_package -o mongodb_cgroup_memory.pp -m mongodb_cgroup_memory.mod
+         sudo semodule -i mongodb_cgroup_memory.pp
+
+   The MongoDB process is now able to access the correct files with
+   SELinux set to ``enforcing``.
+
+.. important::
+
+   You will also need to further customize your SELinux policy in the
+   following two cases if SELinux is in ``enforcing`` mode:
 
    - You are **not** using the default MongoDB directories (for RHEL 7.0), and/or
 
@@ -99,7 +149,7 @@ Non-Default MongoDB Ports
 
 .. container::
 
-   The current SELINUX Policy does not allow the MongoDB process to open
+   The current SELinux Policy does not allow the MongoDB process to open
    and read ``/proc/net/netstat`` for :ref:`param-ftdc` (FTDC). As such,
    the audit log may include numerous messages regarding lack of access
    to this path.
@@ -109,7 +159,13 @@ Non-Default MongoDB Ports
    Optionally, as a temporary fix, you can manually adjust the SELinux
    Policy:
 
-   #. Create a policy file :file:`mongodb_proc_net.te`:
+   #. Ensure your system has the ``checkpolicy`` package installed:
+
+      .. code-block:: none
+
+         sudo yum install checkpolicy
+
+   #. Create a custom policy file :file:`mongodb_proc_net.te`:
 
       .. code-block:: none
 
@@ -126,7 +182,8 @@ Non-Default MongoDB Ports
          allow mongod_t proc_net_t:file { open read };
          EOF
 
-   #. Once created, compile and load the custom policy module
+   #. Once created, compile and load the custom policy module by
+      running these three commands:
 
       .. code-block:: none
 
