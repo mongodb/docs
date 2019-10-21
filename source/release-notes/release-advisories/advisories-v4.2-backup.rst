@@ -2,6 +2,126 @@
 4.2 with ``"featureCompatibilityVersion" : 4.2`` is currently extremely
 limited. Support will be extended in future releases of |mms|.
 
+Backup Features Supported at Present
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. cond:: onprem
+
+   .. list-table::
+      :widths: 55 15 15 15
+      :header-rows: 1
+
+      * - Feature
+        - MongoDB 4.2 with FCV : 4.2
+        - MongoDB 4.2 with FCV : 4.0
+        - MongoDB 4.0 or earlier
+      * - Backs up Data using WiredTiger Snapshots
+        - :icon:`check-circle`
+        -
+        -
+      * - Backs up Data using the Backup Daemon
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Backs up Replica Sets
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Backs up Sharded Clusters
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Can Filter using Namespaces
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Can Specify Sync Source Database
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Can Restore Data to Specific Point in Time
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Supports Saving to Blockstore Snapshot Storage
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Supports Saving to S3 Snapshot Storage
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Supports Saving to File System Storage
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Supports Databases running MongoDB Enterprise
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Supports Databases running MongoDB Community
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Requires a MongoDB Agent on every |mongod| cluster node
+        - :icon:`check-circle`
+        -
+        -
+
+.. cond:: cloud
+
+   .. list-table::
+      :widths: 55 15 15 15
+      :header-rows: 1
+
+      * - Feature
+        - MongoDB 4.2 with FCV : 4.2
+        - MongoDB 4.2 with FCV : 4.0
+        - MongoDB 4.0 or earlier
+      * - Backs up Data using WiredTiger Snapshots
+        - :icon:`check-circle`
+        -
+        -
+      * - Backs up Data using the Backup Daemon
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Backs up Replica Sets
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Backs up Sharded Clusters
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Can Filter using Namespaces
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Can Specify Sync Source Database
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Can Restore Data to Specific Point in Time
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Supports Databases running MongoDB Enterprise
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Supports Databases running MongoDB Community
+        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Requires a MongoDB Agent on every |mongod| cluster node
+        - :icon:`check-circle`
+        -
+        -
+
+FCV 4.2 Considerations
+~~~~~~~~~~~~~~~~~~~~~~
+
 If you are running MongoDB 4.2 with
 ``"featureCompatibilityVersion" : 4.2``, you:
 
