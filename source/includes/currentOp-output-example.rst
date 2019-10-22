@@ -257,9 +257,10 @@
         name: Sharded Cluster (mongos)
         content: |
 
-            The following is a prototype of the :dbcommand:`currentOp`
+            The following is an example of the :dbcommand:`currentOp`
             output when run on a :binary:`~bin.mongos` of a sharded
-            cluster:
+            cluster (Fields may vary depending on the operation being
+            reported):
 
             .. versionchanged:: 4.2
 
@@ -276,6 +277,25 @@
                          "client_s" : <string>,
                          "appName" : <string>,
                          "clientMetadata" : <document>,
+                         "lsid" : {
+                            "id" : <UUID>,
+                            "uid" : <BinData>
+                         },
+                         "transaction" : {
+                            "parameters" : {
+                               "txnNumber" : <NumberLong()>,
+                               "autocommit" : <boolean>,
+                               "readConcern" : {
+                                  "level" : <string>
+                               }
+                            },
+                            "readTimestamp" : <Timestamp>,
+                            "startWallClockTime" : <string>,
+                            "timeOpenMicros" : <NumberLong()>,
+                            "timeActiveMicros" : <NumberLong()>,
+                            "timeInactiveMicros" : <NumberLong()>,
+                            "expiryTime" : <string>,
+                         },
                          "active" : <boolean>,
                          "currentOpTime" : <string>,
                          "effectiveUsers" : [
