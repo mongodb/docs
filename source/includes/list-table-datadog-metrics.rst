@@ -92,13 +92,11 @@
        chart, accessed via :ref:`Cluster Metrics
        <monitor-cluster-metrics>`.
 
-   * - | ``OPLOG_MASTER_TIME``
-       | (mongodb.atlas.replset.replicationheadroom)
-       | ``OPLOG_RATE_GB_PER_HOUR``
+   * - | ``OPLOG_RATE_GB_PER_HOUR``
        | (mongodb.atlas.replset.oplograte)
      - Process
-     - Measurements that apply to the MongoDB process's
-       :manual:`oplog </core/replica-set-oplog/>`.
+     - The average rate of :manual:`oplog </core/replica-set-oplog/>`
+       the primary generates in gigabytes per hour.
 
    * - | ``DISK_PARTITION_SPACE_FREE`` (mongodb.atlas.system.disk.space.free)
        | ``DISK_PARTITION_SPACE_USED`` (mongodb.atlas.system.disk.space.used)
