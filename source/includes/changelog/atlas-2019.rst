@@ -1,3 +1,19 @@
+.. _atlas-v20191022:
+
+23 October 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports the following |azure| regions:
+
+  - Germany West Central
+  - Switzerland North
+  
+- Supports ``M0`` Free Tier and ``M2``/``M5`` shared starter clusters in
+  the |gcp| Brazil (São Paulo) region.
+- Supports ``M0`` Free Tier clusters in the |aws| Syndey region.
+- Enables faster
+  :ref:`restores from Cloud Provider Snapshot backups <restore-cloud-provider-snapshot-atlas>`.
+
 .. _atlas-v20191001:
 
 01 October 2019 Release
