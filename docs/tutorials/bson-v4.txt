@@ -68,22 +68,22 @@ you wish to instantiate and passing it a ``BSON::ByteBuffer`` instance.
   String.from_bson(byte_buffer)
   BSON::Int32.from_bson(byte_buffer)
 
+
 Byte Buffers
 ------------
 
-In 4.0, BSON introduced the use of native byte buffers in both MRI and JRuby
-instead of using ``StringIO``. This was done for performance improvements.
+BSON library 4.0 introduces the use of native byte buffers in MRI and JRuby
+instead of using ``StringIO``, for improved performance.
 
-API
-```
+Writing
+```````
 
-A ``BSON::ByteBuffer`` can be instantiated with nothing (for write mode) or
-with a string of raw bytes (for read mode).
+To create a ``ByteBuffer`` for writing (i.e. serializing to BSON),
+instantiate ``BSON::ByteBuffer`` with no arguments:
 
 .. code-block:: ruby
 
   buffer = BSON::ByteBuffer.new # a write mode buffer.
-  buffer = BSON::ByteBuffer.new(string) # a read mode buffer.
 
 Writing to the buffer is done via the following API:
 
@@ -99,6 +99,32 @@ Writing to the buffer is done via the following API:
   # writes the string to the buffer.
   buffer.put_cstring(value)
 
+To obtain the serialized data as a byte string (for example, to send the data
+over a socket), call ``to_s`` on the buffer:
+
+.. code-block:: ruby
+
+  buffer = BSON::ByteBuffer.new
+  buffer.put_string('testing')
+  socket.write(buffer.to_s)
+
+.. note::
+
+  ``ByteBuffer`` keeps track of read and write positions separately.
+  There is no way to rewind the buffer for writing - ``rewind`` only affects
+  the read position.
+
+
+Reading
+```````
+
+To create a ``ByteBuffer`` for reading (i.e. deserializing from BSON),
+instantiate ``BSON::ByteBuffer`` with a byte string as the argument:
+
+.. code-block:: ruby
+
+  buffer = BSON::ByteBuffer.new(string) # a read mode buffer.
+
 Reading from the buffer is done via the following API:
 
 .. code-block:: ruby
@@ -111,19 +137,22 @@ Reading from the buffer is done via the following API:
   buffer.get_int64 # Pulls a 64-bit integer (8 bytes) from the buffer.
   buffer.get_string # Pulls a UTF-8 string from the buffer.
 
-Converting a buffer to its raw bytes (for example, for sending over a socket)
-is done by simply calling ``to_s`` on the buffer.
+To restart reading from the beginning of a buffer, use ``rewind``:
 
 .. code-block:: ruby
 
-  buffer = BSON::ByteBuffer.new
-  buffer.put_string('testing')
-  socket.write(buffer.to_s)
+  buffer.rewind
 
-Supported Objects
+.. note::
+
+  ``ByteBuffer`` keeps track of read and write positions separately.
+  ``rewind`` only affects the read position.
+
+
+Supported Classes
 -----------------
 
-Core Ruby objects that have representations in the BSON specification and
+Core Ruby classes that have representations in the BSON specification and
 will have a ``to_bson`` method defined for them are: ``Object``, ``Array``,
 ``FalseClass``, ``Float``, ``Hash``, ``Integer``, ``NilClass``, ``Regexp``,
 ``String``, ``Symbol`` (deprecated), ``Time``, ``TrueClass``.
