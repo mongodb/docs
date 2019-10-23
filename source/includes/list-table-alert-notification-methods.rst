@@ -75,12 +75,7 @@
 
        .. example::
 
-          For New Zealand enter ``01164`` before the phone number. 
-
-   * - HipChat
-
-     - Sends the alert to a HipChat room message stream. Enter the
-       HipChat room name and |api| token.
+          For New Zealand enter ``01164`` before the phone number.
 
    * - Slack
 
