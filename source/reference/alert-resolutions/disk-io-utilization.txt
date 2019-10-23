@@ -101,6 +101,8 @@ These are a few possible actions to consider to help resolve
           - Tier
           - Possible Actions
 
+            .. _aws-iops-solutions:
+
         * - |aws|
           - ``M10``, ``M20``
           - 
@@ -136,3 +138,60 @@ These are a few possible actions to consider to help resolve
 
 - Increase your cluster |iops| in the :doc:`Cluster Configuration Page
   </scale-cluster>`.
+
+Disk IOPS Burst Credits for |service| Clusters on |AWS|
+-------------------------------------------------------
+   
+|service| clusters deployed to |aws| with following criteria may use 
+burst credits when exceeding configured |iops| thresholds during periods 
+of high disk I/O:
+
+- Clusters where the :guilabel:`Provision IOPS` setting is disabled. 
+
+- Clusters configured with less than 1 TB of storage capacity.
+
+  .. note::
+
+     By default, all clusters smaller than the ``M140`` cluster tier are
+     configured with less than 1 TB of storage capacity.
+
+|aws| uses burst credits to temporarily increase |iops| beyond the 
+configured threshold during periods of high disk I/O activity. These 
+clusters refresh spent credits during periods of low disk I/0 activity.
+When burst credits are exhausted, |aws| limits |iops| for these clusters 
+to the configured threshold. This may result in decreased
+disk I/O performance on these clusters and a high :guilabel:`IOWait` 
+curve in the :guilabel:`Normalized System CPU` 
+:doc:`metric </monitor-cluster-metrics>`. 
+
+See the |aws| :aws:`EBS Volume Type documentation </AWSEC2/latest/UserGuide/EBSVolumeTypes.html>`
+for more information about burst credits and the rates at which they 
+deplete and refresh.
+
+If you regularly exceed your configured |iops| threshold, you can avoid 
+depleting your burst credits by increasing your configured |iops| with 
+any of the following actions:
+
+- :ref:`Increase Cluster IOPS <scale-cluster-storage>` to increase the 
+  cluster's |iops| threshold.
+
+- Enable the :ref:`Provision IOPS configuration option <storage-iops-ui>` 
+  option. Clusters configured with this option use ``io1`` storage 
+  volumes, which do not use burst credits and offer greater |iops| 
+  thresholds.
+
+- :ref:`Increase Storage Capacity <scale-cluster-storage>`. The 
+  |iops| threshold increases as you increase storage capacity. Clusters 
+  configured to use at least 1 TB of storage have baseline |iops| 
+  performance that is equal to or greater than the maximum burst 
+  performance. These volumes do not deplete burst credit 
+  balances.
+
+- :ref:`Upgrade Cluster Tier <scale-cluster-instance>`. Larger cluster
+  tiers include higher |iops| thresholds.
+
+  .. note::
+
+    Cluster tiers ``M140`` and larger are deployed with at least 1 TB
+    of storage capacity by default. Clusters with 1 TB or more of 
+    storage capacity do not deplete burst credit balances.
