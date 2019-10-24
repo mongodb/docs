@@ -25,6 +25,11 @@
      - Unique identifier of the |service| project to which the user
        belongs.
 
+   * - ``labels``
+     - array of documents
+     - Array containing key-value pairs that tag and categorize the 
+       database user.
+
    * - ``ldapAuthType``
      - string
      - Method by which the specified ``username`` is authenticated. If

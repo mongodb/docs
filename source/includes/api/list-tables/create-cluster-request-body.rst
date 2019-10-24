@@ -272,6 +272,16 @@
 
                 Specify ``NONE`` to disable Encryption at rest.
 
+   * - ``labels``
+     - array of documents
+     - Optional
+     - Array containing key-value pairs that tag and categorize the
+       cluster.
+
+       Each key and value has a maximum length of 255 characters.
+
+       .. include:: /includes/fact-example-labels.rst    
+
    * - ``name``
      - string
      - Required

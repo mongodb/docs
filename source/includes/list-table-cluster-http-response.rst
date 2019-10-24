@@ -133,6 +133,11 @@
      - string
      - Unique identifier of the cluster.
 
+   * - ``labels``
+     - array of documents
+     - Array containing key-value pairs that tag and categorize 
+       the cluster.     
+
    * - ``mongoDBVersion``
      - string
      - Version of MongoDB the cluster runs, in
