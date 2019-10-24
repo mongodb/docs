@@ -96,7 +96,8 @@ extlinks = {
     'csharp-api': ('https://api.mongodb.com/csharp/current/html/%s.htm', ''),
     'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
     'java-async-docs': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
-    'java-async-api': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', '')
+    'java-async-api': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', ''),
+    'atlas' : ('https://docs.atlas.mongodb.com%s','')
 }
 source_constants = {
     'version': version,
