@@ -101,7 +101,9 @@ extlinks = {
 source_constants = {
     'version': version,
     'release': release,
-    'pgp-version': version
+    'pgp-version': version,
+    'package-name-org': 'mongodb-org',
+    'package-name-enterprise': 'mongodb-enterprise',
 }
 
 ## add `extlinks` for each published version.
