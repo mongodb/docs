@@ -365,7 +365,7 @@ The {+data-lake-short+} configuration document has the following format:
    directs {+data-lake-short+} to include all files and folders from 
    that point in the path. For example, ``/software/computed*``
    would match files like ``/software/computed-detailed``,
-   ``/software/computedArchive``, and ``/software/computed/errors``
+   ``/software/computedArchive``, and ``/software/computed/errors``.
 
    :datalakeconf:`~databases.<database>.<colection>.[n].definition`
    supports additional syntax for parsing filenames, including:
@@ -401,13 +401,20 @@ computed field values to only those file(s) with a matching file name.
 
      /path/to/files/{<fieldA> <data-type>}-{<fieldB> <data-type>}
 
-- You can specify a parsing functions alongside static strings
+- You can specify parsing functions alongside static strings
   in the filename:
 
   .. code-block:: none
      :copyable: false
    
      /path/to/files/prefix-{<fieldA> <data-type>}-suffix
+
+- You can specify parsing functions along the path to the filename:
+
+  .. code-block:: none
+     :copyable: false 
+
+     /path/{<fieldA> <data-type>}/{<fieldB> <data-type>}/{<fieldC> <data-type>}/*
 
 For more information on supported data types, see
 :ref:`datalake-definition-data-types`.
@@ -416,6 +423,7 @@ For more information on supported data types, see
 - :ref:`datalake-advanced-definition-parse-multiple`
 - :ref:`datalake-advanced-definition-parse-regex`
 - :ref:`datalake-advanced-definition-parse-range`
+- :ref:`datalake-advanced-definition-create-partition`
 - :ref:`datalake-advanced-definition-generate-collection`
 
 .. _datalake-advanced-definition-parse-single:
@@ -597,6 +605,45 @@ files whose range captures the specified value.
    every document contained in the file to avoid unexpected or
    undesired behavior. {+data-lake-short+} does *not* perform any
    validation that the underlying data conforms to this constraint.
+
+.. _datalake-advanced-definition-create-partition:
+
+Create Partitions from File Path
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify parsing functions on any path leading up to the 
+filename. Each computed field is based on a parsing function along the path. 
+When querying the data, {+data-lake-short+} converts each computed field to 
+a partition. Partitions, which are synonymous with subdirectories, are then 
+used to filter files with increasing precision. 
+
+Consider a {+data-lake-store+} ``accountingArchive`` with the following 
+directory structure:
+
+.. code-block:: text
+   :copyable: false
+
+   invoices
+   |--MONGO12345
+      |--2019
+         |--01
+            |--02
+
+The following :ref:`datalake-databases-reference` object creates the 
+``invoiceNumber``, ``year``, ``month``, and ``day`` partitions with 
+a small set of filtered files:
+
+.. code-block:: text 
+   :copyable: false 
+
+   "databases" : {
+      "accounting" : {
+        "invoices" : [
+          "store" : "accountingArchive",
+          "definition" : "/invoices/{invoiceNumber string}/{year int}/{month int}/{day int}/*"
+        ]
+      }
+   }
 
 .. _datalake-advanced-definition-generate-collection:
 
