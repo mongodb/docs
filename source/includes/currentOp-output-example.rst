@@ -310,6 +310,20 @@
                                "db" : <string>
                             }
                          ],
+                         "twoPhaseCommitCoordinator" : {           // Starting in 4.2.1
+                            "lsid" : {
+                               "id" : <UUID>,
+                               "uid" : <BinData>
+                            },
+                            "txnNumber" : <NumberLong>,
+                            "numParticipants" : <NumberLong>,
+                            "state" : <string>,
+                            "commitStartTime" : <ISODate>,
+                            "hasRecoveredFromFailover" : <boolean>,
+                            "stepDurations" : <document>,
+                            "decision" : <document>,
+                            "deadline" : <ISODate>
+                         }
                          "opid" : <string>,
                          "secs_running" : <NumberLong()>,
                          "microsecs_running" : <number>,

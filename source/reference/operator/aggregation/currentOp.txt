@@ -61,11 +61,14 @@ Syntax
 
      - .. _currentOp-stage-allUsers:
      
-       Boolean. If set to ``false``, :pipeline:`$currentOp` will
-       only report on operations/idle connections/idle cursors/idle
-       sessions belonging to the user who ran the command. If set to
-       ``true``, :pipeline:`$currentOp` will report operations
-       belonging to all users.
+       Boolean. 
+       
+       - If set to ``false``, :pipeline:`$currentOp` will only report
+         on operations/idle connections/idle cursors/idle sessions
+         belonging to the user who ran the command.
+
+       - If set to ``true``, :pipeline:`$currentOp` will report
+         operations belonging to all users.
 
        .. note::
 
@@ -112,21 +115,32 @@ Syntax
 
      - .. _currentOp-stage-idleSessions:
 
-       Boolean. If set to ``true``, then in addition to reporting on
-       the active/dormant operations, :pipeline:`$currentOp` returns
-       information on inactive sessions that are holding locks as part
-       of a transaction. Each inactive session will appear as a
-       separate document in the ``$currentOp`` stream.
+       Boolean. 
+       
+       - If set to ``true``, in addition to active/dormant operations,
+         :pipeline:`$currentOp` will report on:
 
-       The document for a session includes information on the
-       session id in the :data:`~$currentOp.lsid` field and the
-       transaction in the :data:`~$currentOp.transaction` field.
+         - Inactive sessions that are holding locks as part of a
+           transaction. Each inactive session will appear as a separate
+           document in the ``$currentOp`` stream.
 
-       Starting in MongoDB 4.2, information on idle sessions have
-       the :data:`~$currentOp.type` set to ``"idleSession"``.
+           The document for a session includes information on the session
+           id in the :data:`~$currentOp.lsid` field and the transaction
+           in the :data:`~$currentOp.transaction` field.
 
-       If set to ``false``, :pipeline:`$currentOp` will not report on
-       inactive sessions.
+           Starting in MongoDB 4.2, information on idle sessions have the
+           :data:`~$currentOp.type` set to ``"idleSession"``.
+
+         - :data:`$currentOp.twoPhaseCommitCoordinator` in ``inactive``
+           :data:`~$currentOp.twoPhaseCommitCoordinator.state`
+
+       - If set to ``false``, :pipeline:`$currentOp` will not report on:
+
+         - Inactive sessions
+
+         - :data:`$currentOp.twoPhaseCommitCoordinator` information in
+           ``inactive``
+           :data:`~$currentOp.twoPhaseCommitCoordinator.state`
 
        Defaults to ``true``.
 
@@ -594,6 +608,265 @@ relevant for the operation:
    an internal thread that is currently idle. An operation can be
    active even if the operation has yielded to another operation.
 
+.. data:: $currentOp.twoPhaseCommitCoordinator
+
+   Information on either:
+
+   - .. _agg-current-op-commit-coord-metrics:
+   
+     The commit coordination metrics for a :doc:`transaction whose
+     write operations span multiple shards </core/transactions>`.
+   
+     Commit coordination is handled by a shard, and
+     :pipeline:`$currentOp` (run either on a :binary:`~bin.mongos` or a
+     shard member) returns a shard's coordination information only for
+     those transactions currently being coordinated by that shard.
+
+     To filter for just the commit coordination metrics:
+
+     .. code-block:: javascript
+
+        db.getSiblingDB("admin").aggregate( [ 
+            { $currentOp: { allUsers: true, idleSessions: true } }, 
+            { $match: { desc: "transaction coordinator" } }
+        ] )
+
+   - .. _agg-current-op-commit-coord-operation:
+
+     A specific commit coordination operation (i.e.
+     :data:`~$currentOp.type` is ``op`` and :data:`~$currentOp.desc` is
+     ``"TransactionCoordinator"``) spawned by the transaction
+     coordinator.
+
+   .. note::
+
+      - If run with :ref:`idleSessions: false
+        <currentOp-stage-idleSessions>`, :pipeline:`$currentOp` does not
+        return the :data:`$currentOp.twoPhaseCommitCoordinator`
+        information in ``inactive``
+        :data:`~$currentOp.twoPhaseCommitCoordinator.state`
+
+      - If access control is enabled and :ref:`allUsers: false
+        <currentOp-stage-allUsers>`, :pipeline:`$currentOp` does not
+        return :data:`$currentOp.twoPhaseCommitCoordinator` information.
+
+   .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.lsid
+
+      The session identifier for the multi-shard transaction.
+      
+      The combination of the
+      :data:`~$currentOp.twoPhaseCommitCoordinator.lsid` and
+      :data:`~$currentOp.twoPhaseCommitCoordinator.txnNumber` identifies
+      the transaction.
+
+      Available for both the :ref:`commit coordination metrics
+      <agg-current-op-commit-coord-metrics>` and for specific :ref:`coordination
+      operation <agg-current-op-commit-coord-operation>`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.txnNumber
+
+      The transaction number for the multi-shard transaction.
+
+      The combination of the
+      :data:`~$currentOp.twoPhaseCommitCoordinator.txnNumber` and
+      :data:`~$currentOp.twoPhaseCommitCoordinator.lsid` identifies the
+      transaction.
+
+      Available for both the :ref:`commit coordination metrics
+      <agg-current-op-commit-coord-metrics>` and for specific :ref:`coordination
+      operation <agg-current-op-commit-coord-operation>`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.action
+
+      The specific commit coordination operation spawned by the
+      transaction coordinator:
+      
+      - ``"sendingPrepare"``
+      - ``"sendingCommit"``
+      - ``"sendingAbort"``
+      - ``"writingParticipantList"``
+      - ``"writingDecision"``
+      - ``"deletingCoordinatorDoc"``
+
+      Only available for specific :ref:`coordination operation
+      <agg-current-op-commit-coord-operation>`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.startTime
+
+      The start date and time of the
+      :data:`~$currentOp.twoPhaseCommitCoordinator.action`.
+
+      Only available for specific :ref:`coordination operation
+      <agg-current-op-commit-coord-operation>`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.numParticipants
+
+      Number of shards participating in this commit.
+      
+      Only available for the :ref:`commit coordination metrics
+      <agg-current-op-commit-coord-metrics>`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.state
+
+      The current step/state of the commit coordination process.
+
+      .. list-table::
+         :widths: 20 80
+         :header-rows: 1
+         
+         * - Step/stage
+           - Description
+         
+         * - ``inactive``
+           - Not actively part of a commit.
+
+         * - ``writingParticipantList``
+         
+           - Writing a local record of the list of shards that are part
+             of this multi-shard transaction.
+
+         * - ``waitingForVotes``
+         
+           - Waiting for the participants to respond with vote to commit or abort.
+
+         * - ``writingDecision``
+         
+           - Writing a local record of the coordinator's decision to commit or
+             abort based on votes.
+
+         * - ``waitingForDecisionAck``
+ 
+           - Waiting for participants to acknowledge the coordinator's
+             decision to commit or abort.
+
+         * - ``deletingCoordinatorDoc``
+         
+           - Deleting the local record of commit decision.
+
+      Only available for the :ref:`commit coordination metrics
+      <agg-current-op-commit-coord-metrics>`.
+
+      See also
+      :data:`$currentOp.twoPhaseCommitCoordinator.stepDurations`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.commitStartTime
+
+      The date and time when the commit started.
+
+      Only available for the :ref:`commit coordination metrics
+      <agg-current-op-commit-coord-metrics>`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.hasRecoveredFromFailover
+
+      A boolean that indicates whether the commit coordination was
+      restarted due to failover on the shard that is coordinating the
+      commit.
+      
+      If
+      :data:`~$currentOp.twoPhaseCommitCoordinator.hasRecoveredFromFailover`
+      is true, then the times specified in
+      :data:`$currentOp.twoPhaseCommitCoordinator.stepDurations` may
+      not be accurate for all steps.
+
+      Only available for the :ref:`commit coordination metrics
+      <agg-current-op-commit-coord-metrics>`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.stepDurations
+
+      A document that contains the duration, in microseconds, of the
+      completed or in-progress :data:`steps/state
+      <$currentOp.twoPhaseCommitCoordinator.state>` of the active
+      process as well as the cumulative total duration; for example:
+      
+      .. code-block:: javascript
+
+         "stepDurations" : {
+            "writingParticipantListMicros" : NumberLong(17801),
+            "totalCommitDurationMicros" : NumberLong(42488463),
+            "waitingForVotesMicros" : NumberLong(30378502),
+            "writingDecisionMicros" : NumberLong(15015),
+            "waitingForDecisionAcksMicros" : NumberLong(12077145),
+            "deletingCoordinatorDocMicros" : NumberLong(6009)
+         },
+
+      If
+      :data:`$currentOp.twoPhaseCommitCoordinator.hasRecoveredFromFailover`
+      is true, then the times specified in
+      :data:`~$currentOp.twoPhaseCommitCoordinator.stepDurations` may
+      not be accurate for all steps.
+
+      For a coordinator in an ``inactive`` state, the document is empty:
+      
+      .. code-block:: javascript
+      
+         "stepDurations" : {
+         }
+
+      Only available for the :ref:`commit coordination metrics
+      <agg-current-op-commit-coord-metrics>`.
+
+      See :data:`$currentOp.twoPhaseCommitCoordinator.state`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.decision
+
+      A document that contains the commit/abort decision, for example:
+
+      - For a commmit decision:
+
+        .. code-block:: javascript
+
+           "decision" : {
+              "decision" : "commit",
+              "commitTimestamp" : Timestamp(1572034669, 3)
+           }
+
+      - For an abort decision:
+
+        .. code-block:: javascript
+
+           "decision" : {
+              "decision" : "abort",
+              "abortStatus" : {
+                 "code" : 282,
+                 "codeName" : "TransactionCoordinatorReachedAbortDecision",
+                 "errmsg" : "Transaction exceeded deadline"
+              }
+           }
+
+      Only available for the :ref:`commit coordination metrics
+      <agg-current-op-commit-coord-metrics>`.
+
+      .. versionadded:: 4.2.1
+
+   .. data:: $currentOp.twoPhaseCommitCoordinator.deadline
+
+      The date and time by which the commit must finish.
+
+      Only available for the :ref:`commit coordination metrics
+      <agg-current-op-commit-coord-metrics>`.
+
+      .. versionadded:: 4.2.1
+
 .. data:: $currentOp.currentOpTime
 
    The start time of the operation.
@@ -816,13 +1089,13 @@ relevant for the operation:
          Only present if the operation is part of a multi-document
          transaction.
 
-       .. data:: $currentOp.transaction.numParticipants
+      .. data:: $currentOp.transaction.numParticipants
        
-          Number of shards participating in this transaction.
+         Number of shards participating in this transaction.
        
-          Only present if the operation is part of a transaction on a
-          sharded cluster and :pipeline:`$currentOp` is run with
-          :ref:`localOps: true <currentOp-stage-localOps>`
+         Only present if the operation is part of a transaction on a
+         sharded cluster and :pipeline:`$currentOp` is run with
+         :ref:`localOps: true <currentOp-stage-localOps>`
 
           .. versionadded:: 4.2.1
 
