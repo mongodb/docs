@@ -1,3 +1,15 @@
+.. _opsmgr-server-4.3.2:
+
+|onprem| Server 4.3.2
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-10-25*
+
+- Includes enhancements to the integrations interface for third-party
+  services.
+
+Agent Upgrade: :ref:`mongodb-10.5.2.5949`.
+
 .. _opsmgr-server-4.3.1:
 
 |onprem| Server 4.3.1
