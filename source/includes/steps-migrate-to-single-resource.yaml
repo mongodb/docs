@@ -1,0 +1,119 @@
+---
+title: "Create a new ConfigMap for each MongoDB resource in the project."
+level: 4
+ref: new-configmap-per-resource
+content: |
+  To associate each MongoDB resource with a single project, each
+  resource must have a distinct |k8s-configmap|. The new ConfigMaps:
+
+  - Must have unique ``projectName`` fields.
+
+  - Cannot contain the ``credentials`` or ``authenticationMode``
+    fields.
+
+  All other fields can remain the same as the original project
+  ConfigMap. Invoke the following command for each ConfigMap to apply
+  them to |com|:
+
+  .. code-block:: sh
+
+     kubectl apply -f <myconfigmap.yaml>
+
+  To learn more about creating a project using a ConfigMap, see
+  :ref:`create-k8s-project`.
+
+---
+title: "Update MongoDB resource objects."
+level: 4
+ref: update-mdb-resources
+content: |
+
+  For each MongoDB resource in the project:
+
+  a. If :ref:`X.509 authentication <manage-db-users>` is enabled, add the
+     following fields to the |k8s| |k8s-obj|:
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 20 20 40
+
+        * - Field
+          - Type
+          - Description
+
+        * - :setting:`spec.security.authentication`
+          - object
+          - Contains authentication specifications for the
+            deployment.
+
+        * - :setting:`spec.security.authentication.enabled`
+          - boolean
+          - Specifies whether authentication is enabled for the
+            deployment. Set this value to ``true``.
+
+        * - :setting:`spec.security.authentication.modes`
+          - array
+          - Specifies supported authentication mechanisms for the
+            deployment. Set this value to ``["X509"]``
+
+  #. If internal cluster authentication is enabled, set
+     :setting:`spec.security.authentication.internalCluster` to ``X509``.
+
+  #. Add the :setting:`spec.opsManager.configMapRef.name` field to the
+     |k8s| |k8s-obj| and set the value to the ``metadata.name`` value
+     of the corresponding ConfigMap you created in step 1.
+
+  #. Remove the ``spec.project`` field from the resource object.
+
+  #. Invoke the following command for each resource object to apply
+     the updated configuration(s). When you apply a new configuration,
+     the Operator creates a new project in |com| containing the
+     deployment from the corresponding MongoDB resource. All
+     data on the resource database remains the same after the migration.
+
+     .. code-block:: sh
+
+        kubectl apply -f <configuration>.yaml
+
+
+---
+title: "Update MongoDB user objects."
+level: 4
+ref: update-mdb-users
+content: |
+  For each :ref:`MongoDB user <manage-db-users>` resource:
+
+  a. Remove the ``spec.project``  field.
+
+  #. Add the ``spec.mongodbResourceRef.name`` field and set the value
+     to the name of the relevant MongoDB resource in the same namespace.
+
+     .. note::
+
+        This may require duplicating your ``MongoDBUser`` resource if
+        you wish to have the same user in multiple clusters.
+---
+title: "Delete the original project ConfigMap."
+level: 4
+ref: delete-orig-configmap
+content: |
+  Invoke the following command to delete the original project ConfigMap
+  from your |k8s| namespace:
+
+  .. code-block:: sh
+
+     kubectl delete -f <configMap>.yaml
+---
+title: "(Optional) Remove Orphaned Clusters from |com|."
+level: 4
+ref: remove-orphaned-clusters
+content: |
+  .. important::
+
+     Removing clusters will delete their historical backups and
+     monitoring data.
+
+  After reconfiguring your deployments to exist in dedicated clusters,
+  you may have clusters remaining in the original project which are no
+  longer managed by the |k8s-op-short|. You can remove these clusters if
+  you wish.

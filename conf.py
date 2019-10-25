@@ -201,6 +201,7 @@ extlinks = {
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
     'website': ('https://www.mongodb.com%s?jmp=docs',''),
     'k8sdocs': ('https://kubernetes.io/docs%s', ''),
+    'v1.2': ('https://docs.mongodb.com/kubernetes-operator/v1.2%s', ''),
     'gh' : ('https://github.com%s', '')
 }
 
