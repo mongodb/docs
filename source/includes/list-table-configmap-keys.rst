@@ -52,6 +52,9 @@
           Operator adds additional internal information to Projects
           that it creates.
 
+          If you omit the ``projectName``, the |k8s-op-short| creates
+          a project with the same name as your |k8s| resource.
+
        If you need or want to use an existing Project, you can find
        the ``projectName`` by clicking the :guilabel:`All Clusters`
        link at the top left of the screen, then either search by
