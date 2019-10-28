@@ -82,10 +82,6 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         -
         -
-      * - Backs up Data using the Backup Daemon
-        -
-        - :icon:`check-circle`
-        - :icon:`check-circle`
       * - Backs up Replica Sets
         - :icon:`check-circle`
         - :icon:`check-circle`
