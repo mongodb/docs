@@ -16,7 +16,7 @@
    * - :ecosystem:`Java </drivers/java>`
      - `2.13 <https://github.com/mongodb/mongo-java-driver/releases>`_
 
-   * - :ecosystem:`Node.js </drivers/node-js>`
+   * - :ecosystem:`Node.js </drivers/node>`
      - `1.4.29 <https://github.com/mongodb/node-mongodb-native/releases>`_
 
    * - :ecosystem:`Perl </drivers/perl>`
