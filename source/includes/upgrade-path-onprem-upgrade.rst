@@ -29,8 +29,8 @@ The following table lists upgrade paths for all versions:
        recent 4.2.x version.
 
    * - 4.0.x
-     - Use this tutorial to upgrade from |onprem| 4.0.x to version
-       4.2.x.
+     - Use this tutorial to upgrade from |onprem| 4.0.x to the latest
+       patch version of 4.2.
 
    * - 3.6.x
      - Use the
