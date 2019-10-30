@@ -1,0 +1,122 @@
+.. _pa-index-ranking:
+
+====================================
+Index Ranking in Performance Advisor
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The :manual:`indexes </indexes>` suggested by the |pa| are ordered by
+their respective :guilabel:`Impact` scores. :guilabel:`Impact` indicates
+the estimated performance improvement that the suggested index would
+bring.
+
+How |pa| Suggests and Ranks Indexes
+-----------------------------------
+
+.. _query-shape-metrics:
+
+The |pa| monitors queries that take longer than ``100`` milliseconds to
+execute and groups these queries into common :term:`query shapes <query
+shape>`. The |pa| calculates the inefficiency of each query shape by
+considering the following aggregated metrics from queries which match
+the shape:
+
+- Amount of time spent executing the query.
+
+- Number of documents scanned.
+
+- Number of documents returned.
+
+To establish recommended indexes, the |pa| uses these metrics in a
+formula to calculate the :guilabel:`Impact`, or performance improvement
+that creating an index matching that query shape would cause. The |pa|
+compares the amount of time spent executing index-specific operations to
+the total operational latency in the deployment. When the |pa| suggests
+indexes, the indexes are ranked by their :guilabel:`Impact` score.
+
+Index Field Order
+-----------------
+
+The type of query operation in the query shape affects the order of the
+fields used to construct the index. In general, fields are ranked by
+their :term:`cardinality`.
+
+The following table shows how the |pa| ranks various operation types by
+order of relative importance:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 20
+
+   * - Rank
+     - Operation Type
+     - Example Operator
+
+   * - 1
+     - Equality match
+     - :query:`$eq`
+
+   * - 2
+     - Array query
+     - :query:`$in`
+
+   * - 3
+     - Range query
+     - :query:`$gte`
+
+   * - 4
+     - Type query
+     - :query:`$type`
+
+   * - 5
+     - Exists
+     - :query:`$exists`
+
+   * - 6
+     - All other operators
+     - :query:`$nearSphere`
+
+   * - 7
+     - Sort
+     - :manual:`sort() </reference/method/cursor.sort/>`
+
+Limiting Proposed Indexes
+-------------------------
+
+The |pa| does not suggest indexes which:
+
+- Have more than 16 fields, and/or
+
+- Contain ``_id`` as a field key.
+
+Additionally, the |pa| only suggests the index if:
+
+- For impacted queries, the difference between scanned documents and
+  returned documents is greater than 500, and
+
+- At least 60 seconds cumulatively were spent executing impacted
+  queries over the past 24 hours.
+
+Index De-Duplication
+~~~~~~~~~~~~~~~~~~~~
+
+The |pa| de-duplicates overlapping indexes before making suggestions.
+For example, consider if the |pa| calculates the following potential
+suggested indexes:
+
+.. code-block:: json
+   :copyable: false
+
+   { a : 1 }
+   { a : 1, b : 1 }
+
+Since ``{ a : 1 }`` is a prefix of ``{ a : 1, b : 1 }``, |pa| only
+suggests ``{ a : 1, b : 1 }``. For more information on index prefixes,
+see :manual:`Prefixes </core/index-compound/#prefixes>`.

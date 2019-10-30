@@ -122,6 +122,7 @@ rst_epilog = [
     '.. |mms| replace:: Cloud Manager',
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
     '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`',
+    '.. |pa| replace:: Performance Advisor',
     '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
     '.. |piv| replace:: :abbr:`PIV (Personal Identity Verification)`',
     '.. |rdp| replace:: :abbr:`RDP (Remote Desktop Protocol)`',
