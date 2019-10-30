@@ -83,21 +83,89 @@ instantiate ``BSON::ByteBuffer`` with no arguments:
 
 .. code-block:: ruby
 
-  buffer = BSON::ByteBuffer.new # a write mode buffer.
+  buffer = BSON::ByteBuffer.new
 
-Writing to the buffer is done via the following API:
+To write raw bytes to the byte buffer with no transformations, use
+``put_byte`` and ``put_bytes`` methods. They take a byte string as the argument
+and copy this string into the buffer. ``put_byte`` enforces that the argument
+is a string of length 1; ``put_bytes`` accepts any length strings.
+The strings can contain null bytes.
 
 .. code-block:: ruby
 
-  buffer.put_byte(value) # Appends a single byte.
-  buffer.put_double(value) # Appends a 64-bit floating point.
-  buffer.put_int32(value) # Appends a 32-bit integer (4 bytes).
-  buffer.put_int64(value) # Appends a 64-bit integer (8 bytes).
-  buffer.put_string(value) # Appends a UTF-8 string.
-  
-  # Converts value to string, which must not contain any null bytes, and
-  # writes the string to the buffer.
-  buffer.put_cstring(value)
+  buffer.put_byte("\x00")
+
+  buffer.put_bytes("\xff\xfe\x00\xfd")
+
+.. note::
+
+  ``put_byte`` and ``put_bytes`` do not write a BSON type byte prior to
+  writing the argument to the byte buffer.
+
+Subsequent write methods write objects of particular types in the
+`BSON spec <http://bsonspec.org/spec.html>`_. Note that the type indicated
+by the method name takes precedence over the type of the argument -
+for example, if a floating-point value is given to ``put_int32``, it is
+coerced into an integer and the resulting integer is written to the byte
+buffer.
+
+To write a UTF-8 string (BSON type 0x02) to the byte buffer, use ``put_string``:
+
+.. code-block:: ruby
+
+  buffer.put_string("hello, world")
+
+Note that BSON strings are always encoded in UTF-8. Therefore, the
+argument must be either in UTF-8 or in an encoding convertable to UTF-8
+(i.e. not binary). If the argument is in an encoding other than UTF-8,
+the string is first converted to UTF-8 and the UTF-8 encoded version is
+written to the buffer. The string must be valid in its claimed encoding,
+including being valid UTF-8 if the encoding is UTF-8.
+The string may contain null bytes.
+
+The BSON specification also defines a CString type, which is used for
+example for document keys. To write CStrings to the buffer, use ``put_cstring``:
+
+.. code-block:: ruby
+
+  buffer.put_cstring("hello, world")
+
+As with regular strings, CStrings in BSON must be UTF-8 encoded. If the
+argument is not in UTF-8, it is converted to UTF-8 and the resulting string
+is written to the buffer. Unlike ``put_string``, the UTF-8 encoding of
+the argument given to ``put_cstring`` cannot have any null bytes, since the
+CString serialization format in BSON is null terminated.
+
+Unlike ``put_string``, ``put_cstring`` also accepts symbols and integers.
+In all cases the argument is stringified prior to being written:
+
+.. code-block:: ruby
+
+  buffer.put_cstring(:hello)
+  buffer.put_cstring(42)
+
+To write a 32-bit or a 64-bit integer to the byte buffer, use
+``put_int32`` and ``put_int64`` methods respectively. Note that Ruby
+integers can be arbitrarily large; if the value being written exceeds the
+range of a 32-bit or a 64-bit integer, ``put_int32`` and ``put_int64``
+raise ``RangeError``.
+
+.. code-block:: ruby
+
+  buffer.put_int32(12345)
+  buffer.put_int64(123456789012345)
+
+.. note::
+
+  If ``put_int32`` or ``put_int64`` are given floating point arguments,
+  the arguments are first coerced into integers and the integers are
+  written to the byte buffer.
+
+To write a 64-bit floating point value to the byte buffer, use ``put_double``:
+
+.. code-block:: ruby
+
+  buffer.put_double(3.14159)
 
 To obtain the serialized data as a byte string (for example, to send the data
 over a socket), call ``to_s`` on the buffer:
