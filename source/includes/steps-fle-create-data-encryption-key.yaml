@@ -40,12 +40,11 @@ content: |
         :tabid: python
 
         .. code-block:: python
-           :emphasize-lines: 4
-
-           from bson import binary
+           :emphasize-lines: 3
 
            path = "./master-key.txt"
-           local_master_key = binary.Binary(open(path, "rb").read(96))
+           with open(path, "rb") as f:
+             local_master_key = f.read()
 
 ---
 title: Specify KMS Provider Settings
@@ -94,9 +93,9 @@ content: |
            :emphasize-lines: 2,3
 
             kms_providers = {
-                "local": {
-                    "key": local_master_key # local_master_key variable from the previous step
-                },
+              "local": {
+                "key": local_master_key # local_master_key variable from the previous step
+              },
             }
 
 ---
@@ -183,7 +182,7 @@ content: |
         :tabid: python
 
         .. code-block:: python
-           :emphasize-lines: 13,14,20,30
+           :emphasize-lines: 13,21
 
            from pymongo import MongoClient
            from pymongo.encryption_options import AutoEncryptionOpts
@@ -195,14 +194,7 @@ content: |
            connection_string = "mongodb://localhost:27017"
            key_vault_namespace = "encryption.__keyVault"
 
-           fle_opts = AutoEncryptionOpts(
-               kms_providers,  # pass in the kms_providers variable from  the previous step
-               key_vault_namespace
-           )
-           client = MongoClient(
-               connection_string,
-               auto_encryption_opts=fle_opts
-           )
+           client = MongoClient(connection_string)
            client_encryption = ClientEncryption(
                kms_providers,  # pass in the kms_providers variable from  the previous step
                key_vault_namespace,
@@ -212,16 +204,15 @@ content: |
 
 
            def create_data_encryption_key():
-
-               data_key = client_encryption.create_data_key("local")
-               uuid_data_key_id = UUID(bytes=data_key)
-               base_64_data_key_id = base64.b64encode(data_key)
+               data_key_id = client_encryption.create_data_key("local")
+               uuid_data_key_id = UUID(bytes=data_key_id)
+               base_64_data_key_id = base64.b64encode(data_key_id)
                print("DataKeyId [UUID]: ", str(uuid_data_key_id))
                print("DataKeyId [base64]: ", base_64_data_key_id)
-               return data_key
+               return data_key_id
 
 
-           data_key = create_data_encryption_key()
+           data_key_id = create_data_encryption_key()
 
 
   The ``_id`` field of the data encryption key is represented as a **UUID**
@@ -361,19 +352,19 @@ content: |
         :tabid: python
 
         .. code-block:: python
+           :emphasize-lines: 9,10
 
            from pprint import pprint
            connection_string = "mongodb://localhost:27017"
-           key_vault_namespace = "encryption.__keyVault"
-           
-           def verify_data_key_created(data_key, client, client_encryption, fle_opts):
-               db = client["encryption"]
-               collection = db["__keyVault"]
-               key = collection.find_one({"_id": data_key})
-               pprint(key)
+           key_vault_db = "encryption"
+           key_vault_coll = "__keyVault"
 
-           # pass in fle_opts, client, client_encryption, data_key variables created in previous section
-           verify_data_key_created(data_key, client, client_encryption, fle_opts)
+           client = MongoClient(connection_string)
+           key_vault = client[key_vault_db][key_vault_coll]
+
+           # Pass in the data_key_id created in previous section
+           key = key_vault.find_one({"_id": data_key_id})
+           pprint(key)
 
 
         This code example should print a retrieved document that resembles the
