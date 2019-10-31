@@ -1,0 +1,118 @@
+.. _security-ldaps-okta:
+
+========================================================================
+Configure User Authentication and Authorization with Okta LDAP Interface
+========================================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: connect
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+.. |ldap-provider-link| replace:: `Okta <https://okta.com>`__
+.. |ldap-provider| replace:: Okta
+.. |skip-ldap-link| replace:: :ref:`Skip this section <skip-okta-authz>`
+
+.. include:: /includes/ldap-provider-intro.rst
+
+Limitations
+-----------
+
+- You must deploy ``M10`` or larger |service| clusters to enable |ldap| 
+  integration. |ldap| integration is an |service| Enterprise feature.
+- |service| does not support authenticating and authorizing Okta
+  Active Directory synchronization users. |service| only supports 
+  authenticating and authorizing Okta users.
+- |service| does not support single sign-on integration 
+  for the |service| administrative web interface. |service| only 
+  supports authenticating and authorizing database users from Okta.
+
+Procedures
+----------
+
+Configure |ldap-provider| for LDAP Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following procedure configures |ldap-provider| for authentication 
+with |service|:
+
+.. include:: /includes/steps/ldap-authn-configure-okta.rst
+
+Configure |service| for LDAP Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following procedure enables |service| to authenticate database users from 
+|ldap-provider| |ldap|:
+
+
+.. include:: /includes/steps/configure-authentication-ldaps-okta.rst
+
+.. _configure-okta-authz:
+
+Configure |ldap-provider| for LDAP Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-skip-if-ldap-authz-disabled.rst
+
+The following procedure configures |service| to authorize users who 
+belong to |ldap-provider| |ldap| database access groups.
+
+.. include:: /includes/fact-ldap-authz-intro.rst
+
+.. include:: /includes/steps/ldap-configure-authz-okta.rst
+
+Configure |service| for LDAP Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-skip-if-ldap-authz-disabled.rst
+
+The following procedure adds the |ldap-provider| database access 
+groups to |service| and enables database user authorization in 
+|service|:
+
+.. include:: /includes/steps/configure-authorization-ldaps-okta.rst
+
+.. _skip-okta-authz:
+
+Connect to your Cluster using the Mongo Shell
+---------------------------------------------
+
+The following procedure verifies that |ldap| authentication (and |ldap|
+authorization, if enabled) is configured correctly:
+
+.. include:: /includes/fact-ldap-auth-connect-params.rst
+.. include:: /includes/steps/ldap-auth-connect-mongo-shell.rst
+
+.. _ldaps-okta-troubleshooting:
+
+Troubleshoot LDAP Connection Issues
+-----------------------------------
+
+.. include:: /includes/ldap-troubleshooting-intro.rst
+
+.. code-block:: sh
+
+   ldapsearch -H 'ldaps://<okta-instance-id>.ldap.okta.com' -D "<bind-user-dn>" -w "<bind-user-pwd>" -b 'ou=groups,dc=<okta-instance-id>,dc=okta,dc=com' '(&(objectClass=groupofUniqueNames)(uniqueMember=<bind-user-dn or group-dn>))
+
+For example, if your ``bind-user-dn`` is 
+``uid=jane@example.com,ou=users,dc=mdb-example,dc=okta,dc=com``
+and your ``<okta-instance-id>`` is ``mdb-example``, use the 
+following command:
+
+.. code-block:: sh
+   :copyable: false
+
+   ldapsearch -H 'ldaps://mdb-example.ldap.okta.com' -D "uid=jane@example.com,dc=mdb-example,dc=okta,dc=com" -w "REDACTED" -b 'ou=groups,dc=mdb-example,dc=okta,dc=com' '(&(objectClass=groupofUniqueNames)(uniqueMember=uid=jane@example.com,ou=users,dc=mdb-example,dc=okta,dc=com))'
+
+.. note::
+    
+    Other query templates may also work. Using the default template of 
+    ``{USER}?memberOf?base`` may result in longer search times.
