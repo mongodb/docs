@@ -1,9 +1,7 @@
 * Your data is currently in a MongoDB database.
 
   This guide focuses on migrating to Atlas from an existing MongoDB deployment
-  on AWS. If you have data in other database systems, such as MySQL, PostgreSQL, or
-  DynamoDB, please `contact us <https://mongodbcom-node-staging-2.corp.mongodb.com/contact>`_
-  for help with your migration.
+  on Compose.
 
 * Your current MongoDB database is running MongoDB 2.6 or higher.
 
@@ -25,7 +23,7 @@
 * (Optional) Enabled authentication on your source deployment.
 
   The migration process requires that authentication is enabled on your
-  source cluster in AWS. See :manual:`Enable Auth </tutorial/enable-authentication>`
+  source cluster. See :manual:`Enable Auth </tutorial/enable-authentication>`
   for instructions on enabling authentication.
   You can verify that authentication is enabled on your source cluster
   using the :manual:`mongo </reference/program/mongo/>` command:
@@ -34,7 +32,7 @@
 
      mongo <mongodb-connection-string> -u <mongodb-username> -p --authenticationDatabase admin
 
-* The database user from your source cluster on AWS that you will use to perform the migration has the required MongoDB roles.
+* The database user from your source cluster that you will use to perform the migration has the required MongoDB roles.
    
   The user must have the :authrole:`clusterMonitor` and :authrole:`backup` roles. To verify
   that the database user that you intend to use for migration has the appropriate
