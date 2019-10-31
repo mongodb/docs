@@ -39,3 +39,11 @@ Ops Manager
 - The containerization of |onprem| has been included as an alpha
   release. This alpha release is unsupported for production use. The
   Backup Daemon is not containerized.
+
+Upgrades
+````````
+When you use the |k8s-op-short| and upgrade |onprem|, upgrade to
+|onprem| 4.2.1. If you must remain on 4.2.0, change to your Kubernetes
+|k8s-statefulset| to restart your Automation Agents and trigger a
+rolling restart of all the database pods. This issue doesn't exist in
+|onprem| 4.2.1 or later.
