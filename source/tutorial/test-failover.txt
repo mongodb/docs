@@ -20,43 +20,89 @@ of handling elections without any downtime.
 
 .. include:: /includes/fact-retry-writes.rst
 
-You can use the following procedure to test the failure of a
-:term:`primary` replica set member in your |service| cluster and
-observe how your application responds to a replica set failover:
+You can use the |service| UI and API to test the failure of the
+replica set :term:`primary` in your |service| cluster and observe how your 
+application handles a replica set failover. 
+
+.. _test-failover-process:
+
+Test Failover Process 
+---------------------
+
+When you submit a request to test failover using the |service| UI 
+or |api|, |service| simulates a failover event. During this 
+process:
+
+a. |service| steps down the current :term:`primary`.
+
+#. The members of the replica set hold an election to choose which
+   of the secondaries will become the new primary.
+
+#. |service| brings the original primary back to the
+   :term:`replica set` as a :term:`secondary`. When the old primary
+   rejoins the replica set, it will sync with the new primary to
+   catch up any writes that occurred during its downtime.
+
+   .. note::
+      If the original primary accepted write operations that had not
+      been successfully replicated to the secondaries when the
+      primary stepped down, the primary rolls back those write
+      operations when it re-joins the replica set and begins
+      synchronizing. For more information on rollbacks, see
+      `Rollbacks During Replica Set Failover 
+      <https://docs.mongodb.com/manual/core/replica-set-rollbacks/>`_.
+
+   Contact MongoDB support for assistance with resolving rollbacks.
+
+.. note::
+
+   If you are testing failover on a sharded cluster, |service| triggers 
+   an election on all the replica sets in the sharded cluster.
+
+Test Failover Using the |service| UI 
+------------------------------------
+
+Log in to the |service| UI and do the following:
 
 1. Click :guilabel:`Clusters`.
 
 #. For the cluster you wish to perform failover testing, click on the
    :guilabel:`...` button.
 
-#. Click :guilabel:`Test Failover`.
+#. Click :guilabel:`Test Failover`. |service| displays a 
+   :guilabel:`Test Failover` modal with the steps |service| will take to 
+   simulate a failover event. 
 
-#. |service| displays a Test Failover modal with the steps |service|
-   will take to simulate a failover event. Click
-   :guilabel:`Restart Primary` to begin the test. During this process:
+#. Click :guilabel:`Restart Primary` to begin the test. See 
+   :ref:`Test Failover Process <test-failover-process>` for information 
+   on the failover process. |service| notifies you in the 
+   :guilabel:`Test Failover` modal the results of your failover process.
 
-   a. |service| shuts down the current :term:`primary`.
+Test Failover Using the API 
+---------------------------
 
-   #. The members of the replica set hold an election to choose which
-      of the secondaries will become the new primary.
+You can use the :ref:`Test Failover <test-failover-api>` |api| endpoint 
+to simulate a failover event. To learn more about the failover process,  
+see :ref:`Test Failover Process <test-failover-process>`.
 
-   #. |service| brings the original primary back to the
-      :term:`replica set` as a :term:`secondary`. When the old primary
-      rejoins the replica set, it will sync with the new primary to
-      catch up any writes that occurred during its downtime.
+You can verify that the failover was successful by doing the following:
 
-      .. note::
-        If the original primary accepted write operations that had not
-        been successfully replicated to the secondaries when the
-        primary stepped down, the primary rolls back those write
-        operations when it re-joins the replica set and begins
-        synchronizing. For more information on rollbacks, see
-        `Rollbacks During Replica Set Failover <https://docs.mongodb.com/manual/core/replica-set-rollbacks/>`_.
+1. Log in to the |service| UI and click :guilabel:`Clusters`.
 
-        Contact MongoDB support for assistance with resolving rollbacks.
+#. Click the name of the cluster for which you performed the failover 
+   test.
 
-   #. |service| notifies you in the Test Failover modal the results of your
-      failover process.
+#. Observe the following changes in the list of nodes in 
+   the :guilabel:`Overview` tab:
+
+   - The original ``PRIMARY`` node is now a ``SECONDARY`` node.
+
+   - A former ``SECONDARY`` node is now the ``PRIMARY`` node.
+
+.. _troubleshoot-failover-issues:
+
+Troubleshoot Failover Issues 
+----------------------------
 
 If your application does not handle the failover gracefully, ensure the
 following:
