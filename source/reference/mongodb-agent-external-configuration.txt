@@ -1,0 +1,80 @@
+========================================================================
+Configure MongoDB Agent for Externally Sourced Configuration File Values
+========================================================================
+
+.. default-domain:: mongodb
+
+.. include:: /includes/styles/corrections.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. versionadded:: 4.2 
+
+MongoDB supports using expansion directives in
+configuration files to load :manual:`externally sourced values
+</reference/expansion-directives>`. If you have advanced auditing or compliance needs, you can:
+
+- Store the MongoDB process configuration (``mongod`` or
+  ``mongos``) in memory so that passwords are not stored on disk, and 
+- Read {+mdbagent+} configurationpasswords from a shell command rather
+  than directly from the {+mdbagent+} configuration file.
+
+Store MongoDB Process Configuration Files in Memory 
+---------------------------------------------------
+
+By default, the {+mdbagent+} writes MongoDB process 
+configuration files on disk on its host. These configuration files might
+contain the following credentials:
+
+- :setting:`net.ssl.PEMKeyPassword` 
+- :setting:`net.tls.clusterPassword`
+- :setting:`security.kmip.clientCertificatePassword`
+- :setting:`security.ldap.bind.queryPassword`
+
+To avoid storing these credentials on disk for auditing or compliance
+reasons, you can store the MongoDB process configuration in memory by
+setting :setting:`enableLocalConfigurationServer` to ``true`` in the
+{+mdbagent+} :ref:`configuration file
+<mongodb-agent-config-file-location>`. 
+
+When the ``mongod`` configuration is served from
+memory, the ``mongod`` configuration file on disk includes only a
+:configexpansion:`__rest` expansion directive 
+that defines the |url| of the full configuration file. The ``mongod``
+process then securely requests the full configuration file from its
+local {+mdbagent+} using the |url| in the :configexpansion:`__rest`
+expansion directive. 
+
+Considerations
+~~~~~~~~~~~~~~
+
+.. _ext-config-availability:
+
+Impacts Availability of MongoDB Deployments
+```````````````````````````````````````````
+
+.. include:: /includes/consideration-external-config-impacts-availability.rst
+
+Limits Importing Existing MongoDB Deployments
+`````````````````````````````````````````````
+
+You cannot :doc:`import </tutorial/add-existing-mongodb-processes>`
+MongoDB processes that have configuration files with credentials stored
+in memory. When the configuration is stored in memory, MongoDB
+redacts any credentials after use. Therefore, MongoDB
+can't retrieve the credentials necessary to import the process.
+
+Remove Passwords from the MongoDB Agent Configuration File
+----------------------------------------------------------
+
+You can specify that the {+mdbagent+}\s' passwords are called from a
+shell command rather than read directly from the
+{+mdbagent+} configuration file. To use this feature, add the
+following settings to the {+mdbagent+}\'s configuration file:
+
+- :setting:`mmsApiKeyExec`
+- :setting:`sslMMSServerClientCertificatePasswordExec`
