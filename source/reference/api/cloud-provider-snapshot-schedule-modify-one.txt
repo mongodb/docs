@@ -1,6 +1,6 @@
-=======================================
-Modify Cloud Provider Snapshot Schedule
-=======================================
+============================================
+Modify Cloud Provider Snapshot Backup Policy
+============================================
 
 .. default-domain:: mongodb
 
@@ -18,93 +18,58 @@ Modify Cloud Provider Snapshot Schedule
 
 .. include:: /includes/api-base-url.rst
 
-Syntax
-------
+Resource
+--------
 
-.. code-block:: none
+.. code-block:: http
 
    PATCH /groups/{GROUP-ID}/clusters/{CLUSTER-NAME}/backup/schedule
+
+Request Parameters
+------------------
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 75
+   :widths: 15 10 75
 
-   * - Path Element
+   * - Parameter
+     - Type
      - Description
 
    * - ``GROUP-ID``
-     - The unique identifier of the :ref:`project <group-id>` for the
+     - string
+     - Unique identifier of the :ref:`project <group-id>` for the
        |service| cluster.
 
    * - ``CLUSTER-NAME``
-     - The name of the |service| cluster that contains the snapshot
-       you want to retrieve. 
+     - string
+     - Name of the |service| cluster that contains the snapshot
+       you want to retrieve.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/no-query-parameters.rst
+.. include:: /includes/api/no-query-single-parameters.rst
 
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Each of the following parameters are optional:
-
-.. list-table::
-   :widths: 10 10 80
-   :header-rows: 1
-   :stub-columns: 1
-
-
-   * - Name
-     - Type
-     - Description
-
-   * - ``numOfSnapshotsToRetain``
-     - int
-     - Number of snapshots |service| retains for the cluster. If the
-       provided value is lower than the currently configured
-       ``numOfSnapshotsToRetain``, |service| automatically deletes
-       the oldest stored snapshots until the total number of snapshots
-       matches the configured value.
-
-   * - ``referenceHourOfDay``
-     - int
-     - :abbr:`UTC (Coordinated Universal Time)`
-       Hour of day between ``0`` and ``23`` representing which hour
-       of the day that |service| takes a snapshot. The first snapshot
-       taken after updating the snapshot schedule occurs within
-       24 hours, breaking the default behavior of one snapshot every
-       24 hours. All subsequent snapshots occur once every 24 hours at
-       the configured point in time.
-
-   * - ``restoreWindowDays``
-     - int
-     - Must be a number greater than ``0``. Specifies a restore window
-       in days for the cloud provider backup to maintain.
-
-   * - ``referenceMinuteOfHour``
-     - int
-     - :abbr:`UTC (Coordinated Universal Time)`
-       Minute of day between ``0`` and ``59`` representing which minute
-       of the ``referenceHourOfDay`` that |service| takes the snapshot.
-       The first snapshot taken after updating the snapshot schedule 
-       occurs within 24 hours, breaking the default behavior of one 
-       snapshot every 24 hours. All subsequent snapshots occur once 
-       every 24 hours at the configured point in time.
+.. include:: /includes/api/list-tables/cloud-provider-snapshot-schedule-request.rst
 
 Response
 --------
 
-.. include:: /includes/list-table-cloud-provider-snapshot-schedule-response.rst
+.. include:: /includes/api/list-tables/cloud-provider-snapshot-schedule-response.rst
 
 Example Request
 ---------------
 
 .. code-block:: sh
+   :linenos:
+   :emphasize-lines: 5-31
 
    curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest --include \
      --header "Accept: application/json" \
@@ -112,32 +77,68 @@ Example Request
      --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5b6212af90dc76637950a2c6/clusters/MyCluster/backup/schedule" \
      --data '
        {
-         "numOfSnapshotsToRetain" : 5
-         "referenceHourOfDay" : 18
-         "referenceMinuteOfDay" : 30
-       }
-     '
+         "referenceHourOfDay": 12,
+         "referenceMinuteOfHour": 30,
+         "policies": [
+         {
+            "id": "5c95242c87d9d636e70c28ef",
+            "policyItems": [
+              {
+                "id": "5c95242c87d9d636e70c28f0",
+                "frequencyType": "hourly",
+                "frequencyInterval": 6,
+                "retentionValue": 2,
+                "retentionUnit": "days"
+              },
+              {
+                "id": "5c95242c87d9d636e70c28f2",
+                "frequencyType": "weekly",
+                "frequencyInterval": 1,
+                "retentionValue": 3,
+                "retentionUnit": "weeks"
+              }
+            ]
+          }
+        ],
+        "updateSnapshots": true
+       }'
+
 
 Example Response
 ----------------
 
 .. code-block:: json
+   :linenos:
+   :emphasize-lines: 12-29
+   :copyable: false
 
-  {
-      "clusterId": "5b6206f680eef53690a575b6",
-      "clusterName": "MyCluster",
-      "links": [
-          {
-              "href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5b6212af90dc76637950a2c6/clusters/MyCluster/backup/schedule",
-              "rel": "self"
-          },
-          {
-              "href": "https://cloud.mongodb.com/api/public/v1.0/groups/5b6212af90dc76637950a2c6",
-              "rel": "http://mms.mongodb.com/group"
-          }
-      ],
-      "nextSnapshot": "2018-08-02T20:01:58Z",
-      "numOfSnapshotsToRetain": 5,
-      "referenceHourOfDay": 18,
-      "referenceMinuteOfHour": 30
-  }
+   {
+     "clusterId" : "5c94f6ea80eef5617167224d",
+     "clusterName" : "Cluster0",
+     "links" : [ {
+       "href" : "https://cloud.mongodb.com/api/atlas/v1.0/groups/5b6212af90dc76637950a2c6/clusters/Cluster0/backup/schedule",
+       "rel" : "self"
+     }, {
+       "href" : "https://cloud.mongodb.com/api/atlas/v1.0/groups/5b6212af90dc76637950a2c6",
+       "rel" : "http://mms.mongodb.com/group"
+     } ],
+     "nextSnapshot" : "2019-04-03T18:30:08Z",
+     "policies" : [ {
+       "id" : "5c95242c87d9d636e70c28ef",
+       "policyItems" : [ {
+         "frequencyInterval" : 6,
+         "frequencyType" : "hourly",
+         "id" : "5c95242c87d9d636e70c28f0",
+         "retentionUnit" : "days",
+         "retentionValue" : 2
+       }, {
+         "frequencyInterval" : 1,
+         "frequencyType" : "weekly",
+         "id" : "5c95242c87d9d636e70c28f2",
+         "retentionUnit" : "weeks",
+         "retentionValue" : 3
+       } ]
+     } ],
+     "referenceHourOfDay" : 12,
+     "referenceMinuteOfHour" : 30
+   }
