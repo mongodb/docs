@@ -102,7 +102,8 @@
 
        :guilabel:`User API Token`:
           Your Flowdock personal |api| token found on the 
-          `<https://www.flowdock.com/account/tokens>`_ page of your Flowdock account.
+          `<https://www.flowdock.com/account/tokens>`_ page of your
+          Flowdock account.
 
    * - PagerDuty
 
@@ -118,17 +119,17 @@
        Users can acknowledge PagerDuty alerts only from the PagerDuty
        dashboard.
 
-   * - DataDog
+   * - Datadog
 
-     - Sends the alert to a `DataDog <https://www.datadoghq.com/alerts/>`_
-       account as a DataDog
+     - Sends the alert to a `Datadog <https://www.datadoghq.com/alerts/>`_
+       account as a Datadog
        `event <https://docs.datadoghq.com/graphing/event_stream/>`_. 
 
        When the alert is first opened, |service| sends the alert as an
        "error" event. Subsequent updates are sent as "info" events.
        When the alert is closed, |service| sends a "success" event.
 
-       If prompted, enter your DataDog |api| key under 
+       If prompted, enter your Datadog |api| key under 
        :guilabel:`API Key` and click
        :guilabel:`Validate Datadog API Key`.
 
@@ -140,8 +141,9 @@
        to integrate the VictorOps endpoint for alerts and an optional 
        `routing key <https://help.victorops.com/knowledge-base/routing-keys/>`_
        to route alerts to a specific VictorOps group. Click 
-       :guilabel:`Post test issue to VictorOps` to test VictorOps configuration. Define
-       escalation and routing rules directly in VictorOps.
+       :guilabel:`Post test issue to VictorOps` to test VictorOps
+       configuration. Define escalation and routing rules directly in
+       VictorOps.
 
        This option is available only for alerts that require 
        acknowledgement. Informational alerts, such as the alert that a 
@@ -150,15 +152,15 @@
        Users can acknowledge VictorOps alerts only from the VictorOps 
        dashboard.
 
-   * - OpsGenie
+   * - Opsgenie
 
-     - Sends the alert to an `OpsGenie <https://www.opsgenie.com/>`_
-       account. Enter only the OpsGenie |api| key. Define escalation
-       rules and alert assignments directly in OpsGenie.
+     - Sends the alert to an `Opsgenie <https://www.opsgenie.com/>`_
+       account. Enter only the Opsgenie |api| key. Define escalation
+       rules and alert assignments directly in Opsgenie.
 
        This option is available only for alerts that require 
        acknowledgement. Informational alerts, such as the alert that a 
        user has joined a project, cannot use this notification method.
 
-       Users can acknowledge OpsGenie alerts only from the OpsGenie
+       Users can acknowledge Opsgenie alerts only from the Opsgenie
        dashboard.

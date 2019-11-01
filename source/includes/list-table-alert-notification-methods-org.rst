@@ -108,7 +108,8 @@
 
        :guilabel:`User API Token`:
           Your Flowdock personal |api| token found on the 
-          `<https://www.flowdock.com/account/tokens>`_ page of your Flowdock account.
+          `<https://www.flowdock.com/account/tokens>`_ page of your
+          Flowdock account.
 
    * - PagerDuty
 
@@ -129,14 +130,14 @@
        |service| users can acknowledge PagerDuty alerts only from the
        PagerDuty dashboard.
 
-   * - DataDog
+   * - Datadog
 
      - :icon:`check`
 
      - :icon:`check`
 
-     - Sends the alert to a `DataDog <https://www.datadoghq.com/alerts/>`_
-       account as a DataDog
+     - Sends the alert to a `Datadog <https://www.datadoghq.com/alerts/>`_
+       account as a Datadog
        `event <https://docs.datadoghq.com/graphing/event_stream/>`_. 
 
        When the alert is first opened, |service| sends the alert as an
@@ -167,15 +168,15 @@
        Users can acknowledge VictorOps alerts only from the VictorOps 
        dashboard.
 
-   * - OpsGenie
+   * - Opsgenie
 
      - 
 
      - :icon:`check`
 
-     - Sends the alert to an `OpsGenie <https://www.opsgenie.com/>`_
-       account. Enter only the OpsGenie API key. Define escalation
-       rules and alert assignments directly in OpsGenie.
+     - Sends the alert to an `Opsgenie <https://www.opsgenie.com/>`_
+       account. Enter only the Opsgenie API key. Define escalation
+       rules and alert assignments directly in Opsgenie.
 
-       Users can acknowledge OpsGenie alerts only from the OpsGenie
+       Users can acknowledge Opsgenie alerts only from the Opsgenies
        dashboard.
