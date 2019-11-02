@@ -1,3 +1,15 @@
+.. _data-lake-v20191029:
+
+29 October 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports filtering partitions by `Parquet file row group 
+  <https://parquet.apache.org/documentation/latest/>`_ statistics.
+
+- Supports :manual:`ObjectIds </reference/method/ObjectId/>` in the 
+  path when specifying partition 
+  :datalakeconf:`~databases.<database>.<collection>.[n].definition`.
+
 .. _data-lake-v20191008:
 
 08 October 2019 Release
