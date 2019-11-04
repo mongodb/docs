@@ -62,7 +62,7 @@
 
 - **Fix:** :guilabel:`Authentication & TLS/SSL` settings allows removal
   of ``PEM`` key file and password no matter the
-  :option:`sslMode <mongod.--sslMode>`.
+  :option:`tlsMode <mongod.--tlsMode>`.
 
 - **Fix:** Fixed support for the ``security.clusterIpSourceWhitelist``
   MongoDB configuration option.

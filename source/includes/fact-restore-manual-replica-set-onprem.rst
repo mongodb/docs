@@ -1,12 +1,12 @@
 .. list-table::
    :widths: 20 10 55 5
    :header-rows: 1
- 
+
    * - Option
      - Necessity
      - Description
      - :icon:`check-circle`
- 
+
    * - ``--host``
      - Required
      - Provide the hostname, |fqdn|, |ipv4| address, or |ipv6| address
@@ -15,16 +15,16 @@
        copied the ``mongodb-backup-restore-util`` command provided in
        the |application|, this field is pre-configured.
      - :icon:`check-circle`
- 
+
    * - ``--port``
      - Required
      - Provide the port for the host that serves the |mongod| to which
        the :term:`oplog <Oplog Store Database>` should be applied.
      - :icon:`check-circle`
- 
+
    * - ``--opStart``
      - Required
-     - Provide the 
+     - Provide the
        :ref:`BSON timestamp <document-bson-type-timestamp>`
        for the first :term:`oplog <Oplog Store Database>` entry
        you want to include in the restore.
@@ -35,10 +35,10 @@
           value.
 
      - :icon:`check-circle`
- 
+
    * - ``--opEnd``
      - Required
-     - Provide the 
+     - Provide the
        :ref:`BSON timestamp <document-bson-type-timestamp>`
        for the last :term:`oplog <Oplog Store Database>` entry
        you want to include in the restore.
@@ -46,73 +46,73 @@
        .. note:: This value cannot be greater than the end of the oplog.
 
      - :icon:`check-circle`
- 
+
    * - ``--logFile``
      - Optional
      - Provide a path, including file name, where the
        :abbr:`MBRU (MongoDB Backup Restore Utility)` log is
        written.
      -
- 
+
    * - ``--oplogSourceAddr``
      - Required
      - Provide the |url| for the |mms| resource endpoint.
      - :icon:`check-circle`
- 
+
    * - ``--apiKey``
      - Required
      - Provide your |mms| Agent
        :doc:`API Key </tutorial/manage-agent-api-key>`.
      - :icon:`check-circle`
- 
+
    * - ``--groupId``
      - Required
      - Provide the :term:`group` ID.
      - :icon:`check-circle`
- 
+
    * - ``--rsId``
      - Required
      - Provide the :term:`replica set` ID.
      - :icon:`check-circle`
- 
+
    * - ``--whitelist``
      - Optional
      - Provide a list of databases and/or collections to which you
        want to limit the restore.
      -
- 
+
    * - ``--blacklist``
      - Optional
      - Provide a list of databases and/or collections to which you
        want to exclude from the restore.
      -
- 
+
    * - ``--seedReplSetMember``
      - Optional
      - Use if you need a replica set member to re-create the
        :term:`oplog <Oplog Store Database>` collection and seed
        it with the correct timestamp.
- 
+
        Requires ``--oplogSizeMB`` and ``--seedTargetPort``.
      -
- 
+
    * - ``--oplogSizeMB``
      - Conditional
      - Provide the :term:`oplog <Oplog Store Database>` size in MB.
- 
+
        Required if ``--seedReplSetMember`` is set.
      -
- 
+
    * - ``--seedTargetPort``
      - Conditional
      - Provide the port for the :term:`replica set`'s
        :term:`primary`. This may be different from the `ephemeral
        port <https://en.wikipedia.org/wiki/Ephemeral_port?oldid=797306581>`_
        used.
- 
+
        Required if ``--seedReplSetMember`` is set.
      -
- 
+
    * - ``--ssl``
      - Optional
      - Use if you need |tls-ssl| to apply the
@@ -120,18 +120,18 @@
 
        Requires ``--sslCAFile`` and ``--sslPEMKeyFile``.
      -
- 
+
    * - ``--sslCAFile``
      - Conditional
      - Provide the path to the |certauth| file.
- 
+
        Required if ``--ssl`` is set.
      -
- 
+
    * - ``--sslPEMKeyFile``
      - Conditional
      - Provide the path to the |pem| certificate file.
- 
+
        Required if ``--ssl`` is set.
      -
 
@@ -140,7 +140,7 @@
      - Provide the password for the |pem| certificate file specified
        in ``--sslPEMKeyFile``.
 
-       Required if ``--ssl`` is set and that |pem| key file is 
+       Required if ``--ssl`` is set and that |pem| key file is
        encrypted.
      -
 
@@ -184,9 +184,9 @@
      - Provide the absolute path to the trusted |certauth| certificates
        in |pem| format for the |mms| host. If this flag is not
        provided, the system |certauth| is used.
-   
+  
        .. only:: onprem
-       
+      
           If |mms| is using a self-signed |ssl| certificate, this
           setting is required.
      -
