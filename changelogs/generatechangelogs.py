@@ -7,9 +7,13 @@ from jira import JIRA
 
 logger = logging.getLogger('generatechangelogs.py')
 
-
 def get_config():
-    filepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config/changelog_conf.yaml'))
+    """
+    Read the changelog_conf.yaml file to get the required changelog
+    components
+    """
+    filepath = os.path.abspath(os.path.join(os.path.dirname(
+        __file__), '..', 'config/changelog_conf.yaml'))
     with open(filepath) as stream:
         try:
             config_yaml = yaml.safe_load(stream)
@@ -18,11 +22,16 @@ def get_config():
             print(exc)
 
 
-def get_issue_structure(version, config):
+def get_jira_issues(fixVersion):
+    """
+    Authenticate to JIRA and return the list of tickets matching the
+    specified projects and fixVersion
+    """
     projects = '("SERVER", "TOOLS", "WiredTiger")'
 
     oauth_dict = {}
-    credentialPath = os.path.join(os.path.expanduser('~'), '.config/.mongodb-jira.yaml')
+    credentialPath = os.path.join(
+        os.path.expanduser('~'), '.config/.mongodb-jira.yaml')
     try:
         stream = open(credentialPath)
         jira_yaml = yaml.safe_load(stream)
@@ -32,9 +41,9 @@ def get_issue_structure(version, config):
         print(exc)
         raise
     except IOError as e:
-        print("ERROR: Could not find JIRA OAuth credentials in ~/.config/.mongodb-jira.yaml")
+        print(
+            "ERROR: Could not find JIRA OAuth credentials in ~/.config/.mongodb-jira.yaml")
         raise
-
 
     # Connect to JIRA
     auth_jira = JIRA(oauth=oauth_dict, options={
@@ -42,13 +51,23 @@ def get_issue_structure(version, config):
 
     # Run the JIRA query
     query = "project in {0} and fixVersion = {1} and resolution = 'Fixed' ORDER BY key ASC".format(
-        projects, version)
+        projects, fixVersion)
     issues = auth_jira.search_issues(query, maxResults=200)
+
     logger.info("building changelog for {0} with {1} issue(s)".format(
-        version, len(issues)))
+        fixVersion, len(issues)))
 
     print("building changelog for {0} with {1} issue(s)".format(
-        version, len(issues)))
+        fixVersion, len(issues)))
+
+    return issues
+
+
+def get_issue_structure(config, issues):
+    """
+    Group the JIRA issues by component. Structure headings and
+    subheadings.
+    """
 
     # setup container of heading groups using the defined ordering.
     headings = collections.OrderedDict()
@@ -100,11 +119,11 @@ def get_issue_structure(version, config):
     return headings
 
 
-def get_changelog_content():
-
-    fixVersion = raw_input("Enter changelog version: ")
-    config = get_config()
-    headings = get_issue_structure(fixVersion, config)
+def generate_changelog_rst(config, headings, fixVersion):
+    """
+    Generate the changelog rst from the groupings established in
+    get_issue_structure()
+    """
 
     # invert the mapping of nested, so we can properly handle subheadings.
     nested = dict()
@@ -174,17 +193,43 @@ def get_changelog_content():
                                 "issue", issue[0])), wrap=False)
                     r.newline()
 
+    return r
+
+
+def write_changelog_file(rst, fixVersion):
+
     # Output the rst to source/includes/changelogs/releases
     sourceDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     fn = fixVersion + ".rst"
     outputDir = os.path.join(
         sourceDir, "source/includes/changelogs/releases", fn)
-    r.write(outputDir)
+    rst.write(outputDir)
     logger.info(
         "wrote changelog '{0}'. Commit this file independently.".format(outputDir))
 
-    print("wrote changelog '{0}'. Commit this file independently.".format(outputDir))
+    print(
+        "wrote changelog '{0}'. Commit this file independently.".format(outputDir))
 
 
-# main function
-get_changelog_content()
+
+def main():
+    # Prompt user for the version to generate the changelog for:
+    fixVersion = raw_input("Enter changelog version: ")
+
+    # Get list of JIRA issues to include in changelog
+    issues = get_jira_issues(fixVersion)
+
+    # Get config containing required changelog components and ordering
+    config = get_config()
+
+    # Generate issue headings based on component config
+    issue_headings = get_issue_structure(config, issues)
+
+    # Convert the issue headings into rst
+    changelog_rst = generate_changelog_rst(config, issue_headings, fixVersion)
+
+    # Write the changelog to source/includes/changelogs/releases
+    write_changelog_file(changelog_rst, fixVersion)
+
+if __name__ == "__main__":
+    main()
