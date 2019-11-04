@@ -2,148 +2,129 @@ title: "Retrieve the snapshot ID."
 stepnum: 1
 level: 4
 ref: snapshot-id
-pre: |
-  Use the :doc:`snapshots </reference/api/snapshots>` resource to get
-  the snapshot ID. Issue the following command, replacing:
+content: |
+  Call the
+  :doc:`Get All Snapshots </reference/api/snapshots/get-all-snapshots-for-one-cluster>`
+  resource to find the ID for the desired snapshot. Issue the
+  following command, replacing:
 
-  - ``<username>``,
+  .. list-table::
+     :widths: 15 10 75
+     :header-rows: 1
 
-  - ``<apiKey>`` with your :doc:`API credentials
-    </tutorial/configure-public-api-access>`,
+     * - Name
+       - Type
+       - Description
 
-  - ``<url>`` with the URL of |mms|,
+     * - ``PUBLIC-KEY``
+       - string
+       - Your public API Key for your |api| credentials.
 
-  - ``<group_id>`` with the project ID from your :doc:`Project Settings
-    <manage-project-settings>`, and
+     * - ``PRIVATE-KEY``
+       - string
+       - Your :ref:`private API Key <mms-prog-api-key>` for your |api|
+         credentials.
 
-  - ``<cluster_id>`` with the cluster ID.
-action:
-  language: none
-  code: |
-    curl -i -u "username:apiKey" --digest "http://<url>/api/public/v1.0/groups/<group_id>/clusters/<cluster_id>/snapshots"
+     * - ``{+opsmgr-url+}``
+       - string
+       - |url| of your |mms| instance.
+
+     * - ``GROUP-ID``
+       - string
+       - Unique identifier of your Project from your
+         :doc:`Project Settings <manage-project-settings>`.
+
+     * - ``CLUSTER-ID``
+       - string
+       - Unique identifier of your cluster.
+
+  .. code-block:: sh
+     :linenos:
+
+     curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+          --header "Accept: application/json" \
+          --header "Content-Type: application/json" \
+          --include \
+          --request GET "http://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/snapshots"
 ---
 title: "Create a restore job for the snapshot."
 stepnum: 2
 level: 4
 ref: create-restore-job
-pre: |
-  Use the :doc:`restoreJobs
-  </reference/api/restore-jobs>` resource to request an HTTP restore
-  of the snapshot.
+content: |
+  Call the
+  :doc:`Get One Restore Job </reference/api/restorejobs/get-one-single-restore-job-for-one-cluster>` resource to
+  request a snapshot restore.
 
   Issue the following command, replacing:
 
-  -  ``<username>``,
+  .. list-table::
+     :widths: 15 10 75
+     :header-rows: 1
 
-  - ``<apiKey>`` with your :doc:`API credentials
-    </tutorial/configure-public-api-access>`,
+     * - Name
+       - Type
+       - Description
 
-  - ``<url>`` with the URL of |mms|,
+     * - ``PUBLIC-KEY``
+       - string
+       - Your public API Key for your |api| credentials.
 
-  - ``<group_id>`` with the origin project ID from your
-    :doc:`Project Settings <manage-project-settings>`,
+     * - ``PRIVATE-KEY``
+       - string
+       - Your :ref:`private API Key <mms-prog-api-key>` for your |api|
+         credentials.
 
-  - ``<cluster_id>`` with the ID of the origin cluster of the
-    restore job,
+     * - ``{+opsmgr-url+}``
+       - string
+       - |url| of your |mms| instance.
 
-  - ``<target_group_id>`` with the ID of the project that contains the
-    target cluster for the restore job,
+     * - ``GROUP-ID``
+       - string
+       - Unique identifier of your project that contains the source
+         cluster for the restore job. You can find this value in the
+         :doc:`Project Settings <manage-project-settings>` of that
+         project.
 
-  - ``<target_cluster_id>`` with the ID of the target cluster for
-    the restore job, and
+     * - ``CLUSTER-ID``
+       - string
+       - Unique identifier of your source cluster for the restore job.
 
-  - ``<snapshot_id>`` with the snapshot ID you retrieved in the
-    previous step.
+     * - ``TARGET-GROUP-ID``
+       - string
+       - Unique identifier of your project that contains the target
+         cluster for the restore job.
 
-action:
-  language: none
-  code: |
-    curl -i -u "username:apiKey" -H "Content-Type: application/json" --digest -X POST "http://<url>/api/public/v1.0/groups/<group_id>/clusters/<cluster_id>/restoreJobs" --data '
-    {
-      "delivery" : {
-        "methodName" : "AUTOMATED_RESTORE",
-        "targetGroupId" : "<target_group_id>",
-        "targetClusterId" : "<target_cluster_id>"
-      },
-      "snapshotId": "<snapshot_id>"
-    }'
-  post: |
-    .. note::
+     * - ``TARGET-CLUSTER-ID``
+       - string
+       - Unique identifier of your target cluster for the restore job.
 
-       For more information on this endpoint and additional example
-       requests, refer to the
-       :doc:`Create One Restore Job for One Cluster
-       </reference/api/restorejobs/create-one-restore-job-for-one-cluster>`
-       API endpoint page.
----
-title: "Retrieve the restore link."
-stepnum: 3
-level: 4
-ref: retrieve-restore-link
-pre: |
-  Use the :doc:`restoreJobs </reference/api/restore-jobs>` resource to
-  retrieve the restore link. Issue the following command, replacing with your
-  username, API key, URL, project ID, and cluster ID as in the previous step.
-action:
-  language: none
-  code: |
-    curl -i -u "username:apiKey" --digest "http://<url>/api/public/v1.0/groups/<group_id>/clusters/<cluster_id>/restoreJobs"
-post: |
-  Copy the restore link from the ``delivery.url`` field.
----
-title: "Retrieve the automation configuration."
-stepnum: 4
-level: 4
-source:
-  file: steps-source-update-automation-configuration.yaml
-  ref: check-automation-config
----
-title: "Add the restore link to the automation configuration."
-stepnum: 5
-level: 4
-ref: add-restore-link
-pre: |
-  In the ``processes`` array, add the ``backupRestoreUrl`` field to
-  each :program:`mongod` (primary, secondary, and arbiter) to be
-  restored. Enter the restore link as the field's value.
-action:
-  pre: |
-    For example:
-  language: none
-  code: |
-    "processes" : [
-      {
-        ... ,
-        "hostname" : "example.mongodbdns.com",
-        "backupRestoreUrl" : "https://api-backup.mongodb.com/backup/restore/v2/pull/abc123abc123/def456def456/ghi789ghi789/rs-1440499848-570d78dfe4b0d7519182cc42.tar.gz",
-        ...
-      },
-      ...
-    ]
----
-stepnum: 6
-level: 4
-source:
-  file: steps-source-update-automation-configuration.yaml
-  ref: send-updated-configuration
----
-stepnum: 7
-level: 4
-source:
-  file: steps-source-update-automation-configuration.yaml
-  ref: confirm-update-of-config
----
-stepnum: 8
-level: 4
-source:
-  file: steps-source-update-automation-configuration.yaml
-  ref: check-deployment-status
----
-title: "Remove ``processes.backupRestoreUrl``."
-stepnum: 9
-level: 4
-ref: resend
-content: |
-  When Goal State is achieved, remove the ``processes.backupRestoreUrl``
-  field and resend the automation configuration.
+     * - ``SNAPSHOT-ID``
+       - string
+       - Unique identifier of the snapshot you want to restore.
+
+  .. code-block:: sh
+     :linenos:
+
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include \
+           --request  POST "http://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/restoreJobs"
+           --data '
+             {
+               "delivery" : {
+                 "methodName" : "AUTOMATED_RESTORE",
+                 "targetGroupId" : "{TARGET-GROUP-ID}",
+                 "targetClusterId" : "{TARGET-CLUSTER-ID}"
+               },
+               "snapshotId": "{SNAPSHOT-ID}"
+             }'
+
+  .. note::
+
+     To learn more about restoring snapshots with additional examples,
+     see the
+     :doc:`Create One Restore Job for One Cluster </reference/api/restorejobs/create-one-restore-job-for-one-cluster>`
+     |api| resource page.
 ...
