@@ -9,7 +9,8 @@ logger = logging.getLogger('generatechangelogs.py')
 
 
 def get_config():
-    with open('./changelog_conf.yaml') as stream:
+    filepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config/changelog_conf.yaml'))
+    with open(filepath) as stream:
         try:
             config_yaml = yaml.safe_load(stream)
             return config_yaml
@@ -21,7 +22,8 @@ def get_issue_structure(version, config):
     projects = '("SERVER", "TOOLS", "WiredTiger")'
 
     oauth_dict = {}
-    with open('./.mongodb-jira.yaml') as stream:
+    credentialPath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'changelogs/.mongodb-jira.yaml'))
+    with open(credentialPath) as stream:
         try:
             jira_yaml = yaml.safe_load(stream)
             oauth_dict = jira_yaml.get('jira')
@@ -35,9 +37,11 @@ def get_issue_structure(version, config):
     # Run the JIRA query
     query = "project in {0} and fixVersion = {1} and resolution = 'Fixed' ORDER BY key ASC".format(
         projects, version)
-    print(query + '\n')
     issues = auth_jira.search_issues(query, maxResults=200)
     logger.info("building changelog for {0} with {1} issue(s)".format(
+        version, len(issues)))
+
+    print("building changelog for {0} with {1} issue(s)".format(
         version, len(issues)))
 
     # setup container of heading groups using the defined ordering.
@@ -54,7 +58,6 @@ def get_issue_structure(version, config):
     # run through all issues, and put each one in the headings structure at the
     # best place
     for issue in issues:
-        print(issue)
         components = []
         for c in issue.fields.components:
             components.append(c.name)
@@ -166,15 +169,16 @@ def get_changelog_content():
                     r.newline()
 
     # Output the rst to source/includes/changelogs/releases
-    cwd = os.getcwd()
-    sourceDir = os.path.dirname(cwd)
+    sourceDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     fn = fixVersion + ".rst"
     outputDir = os.path.join(
         sourceDir, "source/includes/changelogs/releases", fn)
     r.write(outputDir)
-    print(outputDir)
     logger.info(
         "wrote changelog '{0}'. Commit this file independently.".format(outputDir))
+
+    print("wrote changelog '{0}'. Commit this file independently.".format(outputDir))
+
 
 # main function
 get_changelog_content()
