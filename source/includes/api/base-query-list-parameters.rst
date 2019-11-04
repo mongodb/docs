@@ -9,24 +9,24 @@
      - Default
 
    * - ``pageNum``
-     - integer
-     - Page number (1-based).
+     - number
+     - One-based integer that returns a subsection of results.
      - ``1``
 
    * - ``itemsPerPage``
-     - integer
+     - number
      - Number of items to return per page, up to a maximum of 500.
      - ``100``
 
    * - ``pretty``
      - boolean
-     - Indicates whether the response body should be in a
-       `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
+     - Flag that indicates whether the response body should be in a
+       :wikipedia:`prettyprint </Prettyprint?oldid=791126873>` format.
      - ``false``
 
    * - ``envelope``
      - boolean
-     - Indicates whether or not to wrap the response in an
+     - Flag that indicates whether or not to wrap the response in an
        envelope.
 
        Some |api| clients cannot access the |http| response headers or
