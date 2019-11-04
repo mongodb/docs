@@ -22,17 +22,23 @@ def get_issue_structure(version, config):
     projects = '("SERVER", "TOOLS", "WiredTiger")'
 
     oauth_dict = {}
-    credentialPath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'changelogs/.mongodb-jira.yaml'))
-    with open(credentialPath) as stream:
-        try:
-            jira_yaml = yaml.safe_load(stream)
-            oauth_dict = jira_yaml.get('jira')
-        except yaml.YAMLError as exc:
-            print(exc)
+    credentialPath = os.path.join(os.path.expanduser('~'), '.config/.mongodb-jira.yaml')
+    try:
+        stream = open(credentialPath)
+        jira_yaml = yaml.safe_load(stream)
+        oauth_dict = jira_yaml.get('jira')
+    except yaml.YAMLError as exc:
+        print("ERROR: Credentials YAML not properly formatted.")
+        print(exc)
+        raise
+    except IOError as e:
+        print("ERROR: Could not find JIRA OAuth credentials in ~/.config/.mongodb-jira.yaml")
+        raise
+
 
     # Connect to JIRA
     auth_jira = JIRA(oauth=oauth_dict, options={
-                     'server': 'https://jira.mongodb.org'})
+                     'server': 'https://jira.mongodb.org'}, validate=True)
 
     # Run the JIRA query
     query = "project in {0} and fixVersion = {1} and resolution = 'Fixed' ORDER BY key ASC".format(
