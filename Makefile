@@ -18,7 +18,7 @@ TEST_FILE=./build/${GIT_BRANCH}/tests.js
 # the current "stable" branch. This is weird and dumb, yes.
 STABLE_BRANCH=`grep 'manual' build/docs-tools/data/manual-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
-.PHONY: help lint html markdown stage deploy deploy-search-index examples redirects
+.PHONY: help lint html markdown stage deploy deploy-search-index examples redirects changelogs
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -143,3 +143,6 @@ examples:
 
 # go
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/go_examples.go
+
+changelogs:
+	python changelogs/generatechangelogs.py
