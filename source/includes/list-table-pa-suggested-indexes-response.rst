@@ -13,13 +13,13 @@
        suggested indexes.
 
    * - ``shapes[n].avgMs``
-     - long
+     - number
      - Average duration in milliseconds for the queries examined that
        match this shape.
 
    * - ``shapes[n].count``
-     - long
-     - The number of queries examined that match this shape.
+     - number
+     - Number of queries examined that match this shape.
 
    * - ``shapes[n].id``
      - objectId
@@ -27,14 +27,14 @@
        API request.
 
    * - ``shapes[n].inefficiencyScore``
-     - long
-     - The average number of documents read for every document returned
+     - number
+     - Average number of documents read for every document returned
        by the query. For more information, see :ref:`Understanding the
        Query Inefficiency Score <query-inefficiency-score>`.
 
    * - ``shapes[n].namespace``
      - string
-     - The namespace searched by the queries in this shape.
+     - Namespace searched by the queries in this shape.
 
    * - ``shapes[n].operations``
      - array of documents
@@ -50,26 +50,26 @@
 
    * - ``shapes[n].operations[n].raw``
      - string
-     - The raw log line produced by the query.
+     - Raw log line produced by the query.
 
    * - ``shapes[n].operations[n].stats``
      - document
      - Query statistics.
 
    * - ``shapes[n].operations[n].stats.ms``
-     - long
+     - number
      - Duration in milliseconds of the query.
 
    * - ``shapes[n].operations[n].stats.nReturned``
-     - long
+     - number
      - Number of results returned by the query.
 
    * - ``shapes[n].stats.nScanned``
-     - long
+     - number
      - Number of documents read by the query.
 
    * - ``shapes[n].stats.ts``
-     - long
+     - number
      - Query timestamp, in seconds since epoch.
 
    * - ``suggestedIndexes``
@@ -83,8 +83,14 @@
 
    * - ``suggestedIndexes[n].impact``
      - array of objectIds
-     - A list of objectIds which identify the shapes in this response
-       which pertain to this suggested index.
+     - List of unique identifers which correspond the query
+       shapes in this response which pertain to this suggested index.
+
+       .. note::
+
+          This field does not correspond to :guilabel:`Impact` in the
+          :ref:`Performance Advisor <performance-advisor>` user
+          interface.
 
    * - ``suggestedIndexes[n].index``
      - array of documents
@@ -99,8 +105,15 @@
 
    * - ``suggestedIndexes[n].index.<fieldname>``
      - string
-     - The specific field to be indexed.
+     - Specific field to be indexed.
 
    * - ``suggestedIndexes[n].namespace``
      - string
-     - The namespace of the suggested index.
+     - Namespace of the suggested index.
+
+   * - ``suggestedIndexes[n].weight``
+     - number
+     - Estimated percentage performance improvement that the suggested
+       index would provide. Corresponds to :ref:`Impact
+       <pa-index-ranking>` in the :ref:`Performance Advisor
+       <performance-advisor>` user interface.
