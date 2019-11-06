@@ -1,1 +1,1 @@
-make-next-gen-html
+build-and-stage-next-gen
