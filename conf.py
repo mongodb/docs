@@ -64,7 +64,8 @@ rst_epilog = [
     '.. |service| replace:: Atlas',
     '.. |enc-channel| replace:: :ref:`encoding channel <encoding-channels>`',
     '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`',
-    '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`'
+    '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
+    '.. |html| replace:: :abbr:`HTML (HyperText Markup Language)`',
 ]
 
 rst_epilog.extend(get_replacements(conf))
@@ -79,7 +80,11 @@ extlinks = {
     'atlas': ('https://docs.atlas.mongodb.com%s', ''),
     'stitch': ('https://docs.mongodb.com/stitch%s', ''),
     'onprem': ('https://docs.mongodb.com/charts/onprem%s', ''),
-    'compass': ('https://docs.mongodb.com/compass/master%s', '')
+    'compass': ('https://docs.mongodb.com/compass/master%s', ''),
+    'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
+    'mvn' : ('https://mvnrepository.com/artifact%s',''),
+    'npmjs' : ('https://www.npmjs.com/package%s',''),
+    'gh' : ('https://github.com%s',''),
 }
 
 source_constants = {
