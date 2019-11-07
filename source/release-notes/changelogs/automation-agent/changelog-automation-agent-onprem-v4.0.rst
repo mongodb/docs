@@ -1,3 +1,14 @@
+.. _automation-5.4.23.5559:
+
+Automation Agent 5.4.23.5559
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.16 on 2019-11-07 <opsmgr-server-4.0.16>`
+
+- Adds support for the ``businessCategory`` field in extended validation
+  |tls| certificates.
+- The Automation Agent is now built using Go 1.13.
+
 .. _automation-5.4.22.5547:
 
 Automation Agent 5.4.22.5547

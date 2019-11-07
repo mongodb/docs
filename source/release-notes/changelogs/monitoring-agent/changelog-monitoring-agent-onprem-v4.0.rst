@@ -1,3 +1,14 @@
+.. _monitoring-6.6.3.469:
+
+Monitoring Agent 6.6.3.469
+--------------------------
+
+:ref:`Released with Ops Manager 4.0.16 on 2019-11-07 <opsmgr-server-4.0.16>`
+
+- Adds support for the ``businessCategory`` field in extended validation
+  |tls| certificates.
+- The Monitoring Agent is now built using Go 1.13.
+
 .. _monitoring-6.6.2.464:
 
 Monitoring Agent 6.6.2.464

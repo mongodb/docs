@@ -1,3 +1,14 @@
+.. _backup-6.8.8.1027:
+
+Backup Agent 6.8.8.1027
+-----------------------
+
+:ref:`Released with Ops Manager 4.0.16 on 2019-11-07 <opsmgr-server-4.0.16>`
+
+- Adds support for the ``businessCategory`` field in extended validation
+  |tls| certificates.
+- The Backup Agent is now built using Go 1.13.
+
 .. _backup-6.8.7.1024:
 
 Backup Agent 6.8.7.1024

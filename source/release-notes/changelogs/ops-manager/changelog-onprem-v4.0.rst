@@ -1,3 +1,21 @@
+.. _opsmgr-server-4.0.16:
+
+|onprem| Server 4.0.16
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2019-11-07*
+
+- Improves backup initial sync time for MMAPv1 collections in which
+  there is a high rate of change during the backup initial sync.
+- Improves handling of operations that modify the data directory
+  (restores, storage engine changes, etc.) for deployments where the
+  MongoDB journal directory is mounted on a separate partition.
+- Includes various security improvements.
+- Upgrades the JDK to 1.8.232.
+
+- **Agent Upgrades:** :ref:`automation-5.4.23.5559`,
+  :ref:`backup-6.8.8.1027`, and :ref:`monitoring-6.6.3.469`
+
 .. _opsmgr-server-4.0.15:
 
 |onprem| Server 4.0.15
