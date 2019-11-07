@@ -10,7 +10,7 @@
 - Shards of a sharded cluster now appear in alphanumeric order.
 
 - Adds support for managing deployments using
-  :doc:`Externally Sourced Configuration File Values <reference/mongodb-agent-external-configuration>`.
+  :doc:`Externally Sourced Configuration File Values </reference/mongodb-agent-external-configuration>`.
 
 - Upgrades JDK to 11.0.5.10.
 
