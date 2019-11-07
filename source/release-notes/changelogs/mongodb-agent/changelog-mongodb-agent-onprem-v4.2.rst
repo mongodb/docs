@@ -1,3 +1,15 @@
+.. _mongodb-10.2.9.5909:
+
+MongoDB Agent 10.2.9.5909
+-------------------------
+
+:ref:`Released with Ops Manager 4.2.4 on 2019-11-07 <opsmgr-server-4.2.4>`
+
+- MongoDB Agent is now built using Go 1.13.
+- Fixes an issue where the MongoDB Agent fails to complete some
+  requested actions on a sharded cluster if a config server is down.
+- When creating an index using :doc:`Data Explorer </data-explorer>`,
+  the optional name property of an index is no longer ignored.
 
 .. _mongodb-10.2.8.5901-1:
 

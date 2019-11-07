@@ -1,3 +1,21 @@
+.. _opsmgr-server-4.2.4:
+
+|onprem| Server 4.2.4
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-11-07*
+
+- Supports the MongoDB Agent on RHEL 8 and CentOS 8.
+
+- Shards of a sharded cluster now appear in alphanumeric order.
+
+- Adds support for managing deployments using
+  :doc:`Externally Sourced Configuration File Values <reference/mongodb-agent-external-configuration>`.
+
+- Upgrades JDK to 11.0.5.10.
+
+- Upgrades Agent: :ref:`mongodb-10.2.9.5909`.
+
 .. _opsmgr-server-4.2.3:
 
 |onprem| Server 4.2.3
