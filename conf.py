@@ -68,10 +68,12 @@ extlinks = {
     'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
     'guides': ('https://docs.mongodb.com/guides%s', ''),
-    'java-docs-latest': ('https://mongodb.github.io/mongo-java-driver/3.11/%s', ''),
+    'java-docs-latest': ('http://mongodb.github.io/mongo-java-driver/3.11/%s', ''),
+    'kafka-21-javadoc': ('https://kafka.apache.org/21/javadoc/org/apache/kafka%s', ''),
     'csharp-docs-latest': ('http://mongodb.github.io/mongo-csharp-driver/2.9%s', ''),
     'aws-docs': ('https://docs.aws.amazon.com/%s', ''),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', ''),
+    'community-support': ('https://www.mongodb.com/community-support-resources%s', ''),
 }
 
 intersphinx_mapping = {}
