@@ -18,6 +18,8 @@ Performance Advisor
       which comes with certain MongoDB subscriptions. `Contact MongoDB
       <https://www.mongodb.com/contact>`_ for more information.
 
+.. _pa-slow-queries:
+
 .. include:: /includes/fact-performance-advisor.rst
 
 .. include:: /includes/fact-performance-advisor-permissions.rst
@@ -42,40 +44,6 @@ Considerations
 
 .. include:: /includes/considerations-performance-advisor.rst
 
-Slow Query Threshold
---------------------
-
-.. include:: /includes/fact-slow-query-threshold.rst
-
-.. _query-inefficiency-score:
-
-Understanding the Query Inefficiency Score
-------------------------------------------
-
-.. include:: /includes/fact-query-inefficiency-score.rst
-
-Limitations
------------
-
-The foillowing limitations apply to indexes and log sizes.
-
-Indexes
-```````
-
-The Performance Advisor cannot suggest indexes for MongoDB databases
-configured to use the :manual:`ctime timestamp format </reference/program/mongod/#cmdoption-mongod-timestampformat>`.
-As a workaround, set the timestamp format for such databases to either :manual:`iso8601-utc </reference/program/mongod/#cmdoption-mongod-timestampformat>`
-or :manual:`iso8601-utc </reference/program/mongod/#cmdoption-mongod-timestampformat>`.
-
-Log Size
-````````
-
-The Performance Advisor analyzes up to the first of the following limits:
-
-* the most recent 20,000 slow queries OR
-
-* the most recent 10MB of logs
-
 Access Performance Advisor
 --------------------------
 
@@ -83,7 +51,130 @@ To access the :guilabel:`Performance Advisor`:
 
 .. include:: /includes/steps/performance-advisor-view.rst
 
-.. class:: hidden
+Index Suggestions
+-----------------
 
-   .. toctree::
-      :titlesonly:
+The indexes suggested by the Performance Advisor are ordered by their
+respective :guilabel:`Impact` scores. :guilabel:`Impact` indicates the
+estimated performance improvement that the suggested index would bring.
+For more information on how the Performance Advisor ranks indexes, see
+:ref:`pa-index-ranking`.
+
+The |pa| displays a warning icon next to any index with an
+:guilabel:`Impact` score of 5% or greater, indicating indexes with the
+most potential to improve cluster performance.
+
+Each index suggested by the |pa| contains the following
+metrics. These metrics apply specifically to queries which would be
+improved by the index:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Metric
+     - Description
+
+   * - :guilabel:`Execution Count`
+     - Number of queries executed per hour which would be
+       improved.
+
+   * - :guilabel:`Average Execution Time`
+     - Current average execution time in milliseconds for affected
+       queries.
+
+   * - :guilabel:`Average Query Targeting`
+     - Average number of documents read per document returned by
+       affected queries. A higher query
+       targeting score indicates a greater degree of inefficiency. For
+       more information on query targeting, see :ref:`query-targeting`.
+
+   * - :guilabel:`In Memory Sort`
+     - Current number of affected queries per hour that needed to be
+       sorted in memory.
+
+Sample Queries
+~~~~~~~~~~~~~~
+
+For each suggested index, the Performance Advisor shows the most
+commonly executed query shapes which would be improved by index. For
+each query shape, the Performance Advisor displays the following
+metrics:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Metric
+     - Description
+
+   * - :guilabel:`Execution Count`
+     - Number of queries executed per hour which match the query
+       shape.
+
+   * - :guilabel:`Average Execution Time`
+     - Average execution time in milliseconds for queries
+       which match the query shape.
+
+   * - :guilabel:`Average Query Targeting`
+     - Average number of documents read for
+       every document returned by matching queries. A higher query
+       targeting score indicates a greater degree of inefficiency. For
+       more information on query targeting, see :ref:`query-targeting`.
+
+The Performance Advisor also shows individual sample queries executed
+which match the query shape, with specific metrics for that query.
+
+.. _query-targeting:
+
+Query Targeting
+~~~~~~~~~~~~~~~
+
+Each index suggestion includes an :guilabel:`Average Query Targeting`
+score indicating how many documents were read for every document
+returned for the index's corresponding query shapes. A score of 1
+represents very efficient query shapes because every document read
+matched the query and was returned with the query results. All suggested
+indexes represent an opportunity to improve query performance.
+
+Filter Index Suggestions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the Performance Advisor suggests indexes for all clusters
+in the deployment. To only show suggested indexes from a specific
+collection, use the :guilabel:`Collection` dropdown at the top of
+the Performance Advisor.
+
+You can also adjust the time range the Performance Advisor takes into
+account when suggesting indexes by using the :guilabel:`Time Range`
+dropdown at the top of the Performance Advisor.
+
+Limitations
+-----------
+
+Timestamp Format for Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Performance Advisor cannot suggest indexes for MongoDB databases
+configured to use the :manual:`ctime timestamp format
+</reference/program/mongod/#cmdoption-mongod-timestampformat>`. As a
+workaround, set the timestamp format for such databases to either
+:manual:`iso8601-utc
+</reference/program/mongod/#cmdoption-mongod-timestampformat>` or
+:manual:`iso8601-local
+</reference/program/mongod/#cmdoption-mongod-timestampformat>`.
+
+Log Size
+~~~~~~~~
+
+The Performance Advisor analyzes up to the first of the following limits:
+
+* the most recent 20,000 slow queries OR
+* the most recent 10MB of logs
+
+.. toctree::
+   :hidden:
+   :titlesonly:
+
+   /performance-advisor/slow-query-threshold
+   /performance-advisor/index-ranking
