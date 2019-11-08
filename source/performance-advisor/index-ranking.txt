@@ -1,0 +1,206 @@
+.. _pa-index-ranking:
+
+====================================
+Index Ranking in Performance Advisor
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The :manual:`indexes </indexes>` suggested by the |pa| are ordered by
+their respective :guilabel:`Impact` scores. :guilabel:`Impact` indicates
+the estimated performance improvement that the suggested index would
+bring.
+
+How |pa| Suggests and Ranks Indexes
+-----------------------------------
+
+.. _query-shape-metrics:
+
+The |pa| monitors queries that take longer than ``100`` milliseconds to
+execute and groups these queries into common :term:`query shapes <query
+shape>`. The |pa| calculates the inefficiency of each query shape by
+considering the following aggregated metrics from queries which match
+the shape:
+
+- Amount of time spent executing the query.
+
+- Number of documents scanned.
+
+- Number of documents returned.
+
+To establish recommended indexes, the |pa| uses these metrics in a
+formula to calculate the :guilabel:`Impact`, or performance improvement
+that creating an index matching that query shape would cause. The |pa|
+compares the amount of time spent executing index-specific operations to
+the total operational latency in the deployment. When the |pa| suggests
+indexes, the indexes are ranked by their :guilabel:`Impact` score.
+
+Index Field Order
+-----------------
+
+The type of query operation in the query shape affects the order of the
+fields used to construct the index. In general, fields are ranked by
+their :term:`cardinality`.
+
+The following table shows how the |pa| ranks various operation types by
+order of relative importance:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 20
+
+   * - Rank
+     - Operation Type
+     - Example Operator
+
+   * - 1
+     - Equality match
+     - :query:`$eq`
+
+   * - 2
+     - Array query
+     - :query:`$in`
+
+   * - 3
+     - Range query
+     - :query:`$gte`
+
+   * - 4
+     - Type query
+     - :query:`$type`
+
+   * - 5
+     - Exists
+     - :query:`$exists`
+
+   * - 6
+     - All other operators
+     - :query:`$nearSphere`
+
+   * - 7
+     - Sort
+     - :manual:`sort() </reference/method/cursor.sort/>`
+
+Limiting Proposed Indexes
+-------------------------
+
+The |pa| does not suggest indexes which:
+
+- Have more than 16 fields, and/or
+
+- Contain ``_id`` as a field key.
+
+Additionally, the |pa| only suggests the index if:
+
+- For impacted queries, the difference between scanned documents and
+  returned documents is greater than 500, and
+
+- At least 60 seconds cumulatively were spent executing impacted
+  queries over the past 24 hours.
+
+Index De-Duplication
+~~~~~~~~~~~~~~~~~~~~
+
+The |pa| de-duplicates overlapping indexes before making suggestions.
+For example, consider if the |pa| calculates the following potential
+suggested indexes:
+
+.. code-block:: json
+   :copyable: false
+
+   { a : 1 }
+   { a : 1, b : 1 }
+
+Since ``{ a : 1 }`` is a prefix of ``{ a : 1, b : 1 }``, |pa| only
+suggests ``{ a : 1, b : 1 }``. For more information on index prefixes,
+see :manual:`Prefixes </core/index-compound/#prefixes>`.
+
+Example: New York City Taxi Data
+--------------------------------
+
+This example uses a database named ``cab-db`` containing information about
+New York City taxi rides, with fields for the times of pickup and dropoff,
+ride distance, and a breakdown of ride costs. A typical document in the
+collection ``yellow`` looks like this:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+    	"_id" : ObjectId("5db9daab0b2a17b7706cd6a3"),
+    	"pickup_datetime" : "2014-06-30 02:09:23",
+    	"dropoff_datetime" : "2014-06-30 02:20:36",
+    	"passenger_count" : 2,
+    	"trip_distance" : 3,
+    	"fare_amount" : 12,
+    	"tip_amount" : 2.6,
+    	"total_amount" : 15.6
+   }
+
+The collection contains more than 10 million documents, so an application
+which needs to run queries based on specific field data is going to generate
+some very inefficient operations unless the collection is properly indexed.
+
+Typical queries for this application search for documents which contain
+a specific dropoff time, combined with one or more other fields. For
+example:
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.yellow.find({ "dropoff_datetime": "2014-06-19 21:45:00",
+                    "passenger_count": 1,
+                    "trip_distance": {"$gt": 3 }
+                  })
+
+The |pa| recommends the following indexes to improve performance:
+
+.. figure:: /images/suggested-indexes.png
+   :figwidth: 700px
+   :alt: Screen shot of suggested indexes
+
+.. note::
+
+   By default, the |pa| shows index recommendations for all collections
+   in your cluster. To narrow the recommendations down to a specific
+   collection, select one from the :guilabel:`Collection` dropdown
+   menu.
+
+The recommended indexes are listed in order of performance impact, from
+greatest to least. In this example, the first recommended index is
+estimated to improve overall cluster performance by 50.287%.
+
+The first recommendation is for an index on three fields:
+
+- ``passenger_count``
+- ``dropoff_datetime``
+- ``trip_distance``
+
+Click the :guilabel:`Create Index` button to get a copyable shell
+command which you can run in the :binary:`~bin.mongo` shell to create
+the suggested index.
+
+Creating this index improves performance by removing the need for the
+database engine to scan the entire collection to find documents matching
+the specified criteria, reducing typical query times from several seconds
+to 50 milliseconds or less.
+
+The suggested index command uses the ``background: true`` option so the
+index will build in the background and will not block any operations
+on the cluster. For more information about how indexes work,
+see the :manual:`MongoDB manual </indexes/>`.
+
+.. figure:: /images/index-advice.png
+   :figwidth: 550px
+   :alt: Screen shot of index command
+
+.. note::
+
+   You can also create indexes with the :ref:`Data Explorer
+   <data-explorer-indexes>`.
