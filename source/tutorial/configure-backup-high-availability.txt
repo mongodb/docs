@@ -10,9 +10,6 @@ Configure a Highly Available |mms| Backup Service
    :depth: 1
    :class: singlecol
 
-Overview
---------
-
 The :ref:`Backup Daemon <backup-daemon>` maintains copies of the data
 from your backed up :program:`mongod` instances and creates snapshots
 used for restoring data. The file system that the Backup Daemon uses
@@ -24,42 +21,42 @@ secondary replica set member. For sharded clusters the daemon maintains
 a local copy of each shard as well as a copy of the
 :term:`config database`.
 
-To configure high availability
+To configure high availability:
 
-- scale your deployment horizontally by using multiple :ref:`backup
-  daemons <backup-daemon>`,
+- Use multiple :ref:`backup daemons <backup-daemon>` to scale your
+  deployment horizontally.
 
-- provide :manual:`failover </core/replica-set-high-availability>` for
-  your |application| Database and Backup Database by deploying
-  :term:`replica sets <replica set>` for the dedicated MongoDB processes
-  that host the databases, and
+- Deploy your backing databases in :term:`replica sets <replica set>`
+  to provide :manual:`failover </core/replica-set-high-availability>`.
 
-- configure additional backup daemons to serve as dedicated restore
-  daemons that focus on restore jobs exclusively.
+- Add backup daemons dedicated to queryable restore jobs.
+
+- Add backup daemons dedicated to restore jobs.
 
 .. _multiple-backup-daemons:
 
 Multiple Backup Daemons
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
-To increase your storage and to scale horizontally, you can run multiple
-instances of the :term:`Backup Daemon`. Increase the available storage
-for the :term:`head databases <head database>` to provide scalability.
-This does not increase the available space for snapshot storage.
+To increase your storage and to scale horizontally, you can run
+multiple instances of the :term:`Backup Daemon`. Increase the available
+storage for the :term:`head databases <head database>` to provide
+scalability. This does not increase the available space for snapshot
+storage.
 
 With multiple daemons, you can choose which Backup Daemon, Sync Store,
-Oplog Store, Snapshot Store, and Assignment Labels to bind to a specific
-group. If you do not choose specific daemons and stores, |mms| uses all
-available backup components for each group.
+Oplog Store, Snapshot Store, and Assignment Labels to bind to a
+specific group. If you do not choose specific daemons and stores, |mms|
+uses all available backup components for each group.
 
 For a tutorial on how to assign Backup Jobs to Backup Daemons,
 see :doc:`/tutorial/assign-snapshot-stores-to-data-center`.
 
 Multiple Backup Daemons allow for **manual** failover should one daemon
 become unavailable. You can instruct |mms| to transfer the daemon's
-backup responsibilities to another Backup Daemon. |mms| reconstructs the
-data on the new daemon's server and binds the associated replica sets or
-shards to the new daemon. To learn how this process works, see
+backup responsibilities to another Backup Daemon. |mms| reconstructs
+the data on the new daemon's server and binds the associated replica
+sets or shards to the new daemon. To learn how this process works, see
 :doc:`/tutorial/move-jobs-to-new-backup-daemon`.
 
 |mms| reconstructs the data using a snapshot and the oplog from the
@@ -69,17 +66,16 @@ The Backup Daemon is installed with |onprem| package but must be
 specifically activated to run. Select the procedure specific to your
 platform on the :doc:`/installation` section.
 
-Replica Sets for Application and Backup Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Replica Sets for Backing Databases
+----------------------------------
 
 Deploy :term:`replica sets <replica set>` rather than standalones for
-the :doc:`dedicated MongoDB processes
-</tutorial/prepare-backing-mongodb-instances>` that host the
-|application| Database and Backup Database. Replica sets provide
+the :doc:`dedicated MongoDB processes </tutorial/prepare-backing-mongodb-instances>`
+that host the |application| and Backup Databases. Replica sets provide
 :manual:`automatic failover </core/replica-set-high-availability>`
 should the :term:`primary` become unavailable.
 
-When deploying a replica set with members in multiple facilities, 
+When deploying a replica set with members in multiple facilities,
 ensure that a single facility has enough votes to elect a
 :term:`primary` if needed. When choosing between facilities for this
 single facility, choose the facility that hosts the |application| and
@@ -95,8 +91,20 @@ partitions could prevent the set from being able to form a majority.
    - To deploy a replica set, see :manual:`Deploy a Replica Set
      </tutorial/deploy-replica-set>`.
 
+.. _restore-dedicated-query:
+
+Dedicated Queryable Daemons
+---------------------------
+
+To configure dedicated queryable daemons, adjust the settings per
+backup daemon on the :guilabel:`Daemon` :ref:`configuration
+<daemons-interface>` page. For the dedicated queryable daemon host,
+clear all checkboxes except :guilabel:`Queryable Restore Jobs`.
+
+.. _restore-dedicated-restore:
+
 Dedicated Restore Daemons
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 To decrease restore times or if you have multiple backup jobs per
 daemon, add dedicated restore daemons. To configure dedicated restore
