@@ -1,5 +1,5 @@
-Each cluster comes with a default set of resources. Clusters tier. M10 and larger 
-provide the ability to customize your storage capacity.
+Each cluster comes with a default set of resources. Clusters tier M10
+and larger provide the ability to customize your storage capacity.
 
 |service| provides the following storage configuration options,
 depending on the selected cloud provider and cluster tier.
@@ -25,7 +25,7 @@ depending on the selected cloud provider and cluster tier.
        :ref:`cost <instance-size-costs>`.
 
    * - Storage Capacity
-     - 
+     -
      - The size of the server data volume. To change this, either:
 
        - Specify the exact disk size in the text box, *or*
@@ -37,7 +37,7 @@ depending on the selected cloud provider and cluster tier.
        :ref:`cost <instance-size-costs>`.
 
    * - Auto-Expand Storage
-     - 
+     -
      - Available on cluster tier M10 and larger. When disk usage
        reaches 90%, automatically increase storage to achieve 70%
        utilization. To enable this feature, check the box marked
@@ -60,39 +60,18 @@ depending on the selected cloud provider and cluster tier.
 
    * - |iops|
      - AWS only
-     - |service| clusters on AWS of size M30 and greater allow you to
-       customize the maximum |iops| rate of your cluster. To provision
-       the |iops| rate of your cluster, check the box marked
-       :guilabel:`Provision IOPS` and either:
-
-       - Specify the exact |iops| rate in the text box, *or*
-
-       - Move the slide bar until the text box displays your preferred
-         |iops| rate.
-
-       .. note::
-
-          The available |iops| range for a cluster is tied to disk
-          :ref:`storage capacity <storage-capacity-ui>`. If you modify
-          your cluster's storage capacity, the range of available
-          |iops| values changes as well.
-
-          If you do not choose to provision |iops|, the default |iops|
-          rate changes as the cluster's storage capacity changes.
-
-          Changes to |iops| provisioning affect
-          :ref:`cost <instance-storage-speed>`.
+     - .. include:: /includes/cluster-settings/provision-iops-note.rst
 
 .. important::
 
    For cluster tiers up to and including M40, |service| enforces a
    50:1 ratio of disk storage to RAM to facilitate consistent
    performance of clusters with large datasets. For cluster tier
-   M50 and higher, the enforced ratio is 100:1. 
+   M50 and higher, the enforced ratio is 100:1.
 
    .. example::
 
-      To support 3 TB of disk storage you must select a cluster 
+      To support 3 TB of disk storage you must select a cluster
       with at least 32 GB of RAM (M50 or higher).
 
    |service| has a 4 TB disk storage limit on all replica sets and
