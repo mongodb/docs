@@ -120,3 +120,87 @@ suggested indexes:
 Since ``{ a : 1 }`` is a prefix of ``{ a : 1, b : 1 }``, |pa| only
 suggests ``{ a : 1, b : 1 }``. For more information on index prefixes,
 see :manual:`Prefixes </core/index-compound/#prefixes>`.
+
+Example: New York City Taxi Data
+--------------------------------
+
+This example uses a database named ``cab-db`` containing information about
+New York City taxi rides, with fields for the times of pickup and dropoff,
+ride distance, and a breakdown of ride costs. A typical document in the
+collection ``yellow`` looks like this:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+    	"_id" : ObjectId("5db9daab0b2a17b7706cd6a3"),
+    	"pickup_datetime" : "2014-06-30 02:09:23",
+    	"dropoff_datetime" : "2014-06-30 02:20:36",
+    	"passenger_count" : 2,
+    	"trip_distance" : 3,
+    	"fare_amount" : 12,
+    	"tip_amount" : 2.6,
+    	"total_amount" : 15.6
+   }
+
+The collection contains more than 10 million documents, so an application
+which needs to run queries based on specific field data is going to generate
+some very inefficient operations unless the collection is properly indexed.
+
+Typical queries for this application search for documents which contain
+a specific dropoff time, combined with one or more other fields. For
+example:
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.yellow.find({ "dropoff_datetime": "2014-06-19 21:45:00",
+                    "passenger_count": 1,
+                    "trip_distance": {"$gt": 3 }
+                  })
+
+The |pa| recommends the following indexes to improve performance:
+
+.. figure:: /images/suggested-indexes.png
+   :figwidth: 700px
+   :alt: Screen shot of suggested indexes
+
+.. note::
+
+   By default, the |pa| shows index recommendations for all collections
+   in your cluster. To narrow the recommendations down to a specific
+   collection, select one from the :guilabel:`Collection` dropdown
+   menu.
+
+The recommended indexes are listed in order of performance impact, from
+greatest to least. In this example, the first recommended index is
+estimated to improve overall cluster performance by 50.287%.
+
+The first recommendation is for an index on three fields:
+
+- ``passenger_count``
+- ``dropoff_datetime``
+- ``trip_distance``
+
+Click the :guilabel:`Create Index` button to get a copyable shell
+command which you can run in the :binary:`~bin.mongo` shell to create
+the suggested index.
+
+Creating this index improves performance by removing the need for the
+database engine to scan the entire collection to find documents matching
+the specified criteria, reducing typical query times from several seconds
+to 50 milliseconds or less.
+
+The suggested index command uses the ``background: true`` option so the
+index will build in the background and will not block any operations
+on the cluster. For more information about how indexes work,
+see the :manual:`MongoDB manual </indexes/>`.
+
+.. figure:: /images/index-advice.png
+   :figwidth: 550px
+   :alt: Screen shot of index command
+
+.. note::
+
+   You can also create indexes with the |service| :ref:`Data
+   Explorer <data-explorer-indexes>`.
