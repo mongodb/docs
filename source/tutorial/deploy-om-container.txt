@@ -1,0 +1,85 @@
+.. _deploy-om-container:
+
+:noprevnext:
+
+===========================
+Deploy an |onprem| Instance
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+.. include:: /includes/admonition-om-resource-alpha.rst
+
+You can deploy |onprem| in a container with the |k8s-op-short|.
+
+.. _om-rsrc-prereqs:
+
+Prerequisites
+-------------
+
+To deploy an |onprem| resource you must:
+
+1. :doc:`Install </tutorial/install-k8s-operator>` the |k8s-op| 1.3.0
+   or newer.
+#. Ensure that the host on which you want to deploy |onprem| has a
+   minimum of five gigabytes of memory.
+#. Create a |k8s| |k8s-secret| for an admin user in the same |k8s-ns| as
+   the |onprem| resource.
+
+   When you deploy the |onprem| resource, |onprem| creates a user with
+   these credentials and grants it the :authrole:`Global Owner`
+   role. Use these credentials to log in to |onprem|
+   for the first time. Once |onprem| is deployed, you should change the
+   password or remove this secret.
+   
+   .. code-block:: sh
+
+      kubectl create secret generic <adminusercredentials>
+        --from-literal=Username="<username>"
+        --from-literal=Password="<password>"  
+        --from-literal=FirstName="<firstname>" 
+        --from-literal=LastName="<lastname>>"
+        -n <namespace>
+
+Considerations
+--------------
+
+Encryption Key
+~~~~~~~~~~~~~~
+
+The |k8s-op-short| generates an encryption key to protect
+sensitive information in the :ref:`mms-application-database`. The
+|k8s-op-short| saves this key in a |k8s-secret| in the same namespace as
+the |onprem| resource. The |k8s-op-short| names the secret
+``<om-resource-name>-gen-key``. 
+
+If you remove the |onprem| resource, the key remains stored in the
+secret on |k8s| cluster. If you stored the Application Database in a
+|k8s-pv| and you create another |onprem| resource with the same name,
+the |k8s-op-short| reuses the secret. If you create an |onprem| resource
+with a different name, then |k8s-op-short| creates a new secret and
+Application Database, and the old secret isn't reused. 
+
+Application Database Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you create an instance of |onprem| through the |k8s-op-short|, the
+:ref:`mms-application-database` is deployed as a :term:`replica set`.
+You can't configure the Application Database as a :term:`standalone`
+database or :term:`sharded cluster`. If you
+have concerns about performance or size requirements for the Application
+Database, contact `MongoDB Support
+<https://support.mongodb.com/welcome>`__.  
+
+Procedure
+---------
+
+.. include:: /includes/steps/deploy-k8s-opsmgr.rst

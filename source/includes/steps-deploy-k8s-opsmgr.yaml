@@ -1,0 +1,234 @@
+---
+title: "Copy the following example |onprem| |k8s| |k8s-obj|."
+stepnum: 1
+level: 4
+ref: copy-k8s-example
+content: |
+
+   Change the highlighted settings to match your desired
+   |onprem| configuration.
+
+   .. literalinclude:: /reference/k8s/example-opsmgr-minimal.yaml
+      :language: yaml
+      :emphasize-lines: 5-10,12-13
+
+---
+title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
+stepnum: 2
+level: 4
+ref: paste-k8s-example
+---
+title: "Configure the settings highlighted in the prior example."
+stepnum: 3
+level: 4
+ref: change-k8s-values
+content: |
+
+   .. list-table::
+      :widths: 20 20 40 20
+      :header-rows: 1
+
+      * - Key
+        - Type
+        - Description
+        - Example
+
+      * - :opsmgrkube:`metadata.name`
+        - string
+        - Name for this |k8s| |onprem| |k8s-obj|.
+
+          .. seealso::
+
+             - :opsmgrkube:`metadata.name`
+             - |k8s| documentation on :k8sdocs:`names </concepts/overview/working-with-objects/names/>`.
+
+        - ``om``
+
+      * - :opsmgrkube:`spec.version`
+        - string
+        - Version of |onprem| to be installed.
+
+          The format should be :manual:`X.Y.Z </reference/versioning>`.
+          To view available |onprem| versions, view the
+          `container registry <https://quay.io/repository/mongodb/mongodb-enterprise-ops-manager?tag=latest&tab=tags>`__.
+        - ``4.2.0``
+
+      * - :opsmgrkube:`spec.adminCredentials`
+        - string
+        - Name of the |k8s-secret| you :ref:`created <om-rsrc-prereqs>`
+          for the |onprem| admin user.
+
+          .. note::
+
+             Configure the secret to use the same |k8s-ns| as the |onprem|
+             resource.
+             
+        - ``om-admin-secret``
+
+      * - | ``spec``
+          | ``.applicationDatabase`` 
+          | ``.``:setting:`~spec.members`
+        - integer
+        - Number of members of the :ref:`mms-application-database`
+          replica set.
+        - ``3``
+
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.``:setting:`~spec.version`
+        - string
+        - Version of MongoDB that the :ref:`mms-application-database`
+          should run.
+          
+          The format should be ``X.Y.Z`` for the Community edition and
+          ``X.Y.Z-ent`` for the :product:`Enterprise edition 
+          </mongodb-enterprise-advanced>`.
+
+          To learn more about MongoDB versioning, see see
+          :ref:`release-version-numbers` in the MongoDB Manual.
+        - ``4.0.7``
+
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.``:setting:`~spec.persistent`
+        - boolean
+        - *Optional.*
+
+          Flag indicating if this |k8s-mdbrsc| should use |k8s-pvs| for
+          storage. Persistent volumes are not deleted when the
+          |k8s-mdbrsc| is stopped or restarted.
+
+          If this value is ``true``, then
+          ``spec.applicationDatabase.podSpec.persistence.``
+          :setting:`~spec.podSpec.persistence.single`
+          is set to its default value of ``16G``.
+
+          To change your |k8s-pvcs| configuration, configure the
+          following collections to meet your deployment requirements:
+
+          - If you want one |k8s-pv| for each |k8s-pod|, configure the
+            ``spec.applicationDatabase.``
+            :setting:`~spec.podSpec.persistence.single` collection.
+
+          - If you want separate |k8s-pvs| for data, journals, and
+            logs for each |k8s-pod|, configure the following
+            collections:
+
+            - | ``spec.applicationDatabase``
+              | ``.podSpec.persistence.multiple.``
+              | :setting:`~spec.podSpec.persistence.multiple.data`
+            - | ``spec.applicationDatabase``
+              | ``.podSpec.persistence.multiple.``
+              | :setting:`~spec.podSpec.persistence.multiple.journal`
+            - | ``spec.applicationDatabase``
+              | ``.podSpec.persistence.multiple.``
+              | :setting:`~spec.podSpec.persistence.multiple.logs`
+
+          .. include:: /includes/k8s/k8s-persistent-volumes-om.rst
+
+        - ``true``
+
+---
+title: "(Optional) Configure any additional settings for an |onprem| deployment."
+stepnum: 4
+level: 4
+ref: add-k8s-values
+content: |
+  
+  You can add any of the following optional settings to the
+  |k8s-obj| specification file for an |onprem| deployment:
+
+  - :opsmgrkube:`spec.clusterName`
+  - :opsmgrkube:`spec.configuration`
+  - ``spec.applicationDatabase.``:setting:`~spec.logLevel`
+  - ``spec.applicationDatabase.``:setting:`~spec.featureCompatibilityVersion`
+  - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.cpu`
+  - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.cpuRequests`
+  - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.memory`
+  - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.memoryRequests`
+  - ``spec.applicationDatabase.podSpec.persistence.``:setting:`~spec.podSpec.persistence.single`
+  - ``spec.applicationDatabase.podSpec.persistence.multiple.``:setting:`~spec.podSpec.persistence.multiple.data`
+  - ``spec.applicationDatabase.podSpec.persistence.multiple.``:setting:`~spec.podSpec.persistence.multiple.journal`
+  - ``spec.applicationDatabase.podSpec.persistence.multiple.``:setting:`~spec.podSpec.persistence.multiple.logs`
+  - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.podAffinity`
+  - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.podAntiAffinityTopologyKey`
+  - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.nodeAffinity`
+
+---
+title: "Save this file with a ``.yaml`` file extension."
+stepnum: 5
+level: 4
+ref: save-object-spec
+
+---
+title: "Create your |onprem| instance."
+stepnum: 6
+level: 4
+ref: start-k8s-instance
+content: |
+
+   Invoke the following ``kubectl`` command on the filename of the
+   |onprem| resource definition:
+
+   .. code-block:: sh
+
+      kubectl apply -f <opsmgr-resource>.yaml
+
+---
+title: "Track the status of your |onprem| instance."
+stepnum: 7
+level: 4
+ref: track-k8s-instance
+content: |
+
+  To check the status of your |onprem| resource, invoke the following 
+  command:
+
+  .. code-block:: sh
+
+     kubectl get om -n <namespace> -o yaml -w
+  
+  The ``-w`` flag means "watch". With the "watch" flag set, the output
+  refreshes immediately when something changes.
+
+  If the deployment fails, see :doc:`/reference/troubleshooting`.
+
+---
+title: "Access your |onprem| instance from a browser."
+stepnum: 8
+level: 4
+ref: access-opsmgr-instance
+content: |
+  
+  a. After the resource deploys successfully, find the external port to 
+     your |onprem| instance.
+     
+     Invoke the following ``kubectl`` command on ``<metadata.name>-svc-external``:
+     ``metadata.name`` :
+
+     .. code-block:: sh
+
+        kubectl get svc <metadata.name>-svc-external -n <namespace>
+
+     The command returns the external port in the ``PORT(S)`` column. In
+     the following example output, the external port is ``30036``:
+
+     .. code-block:: sh
+        :copyable: false
+
+        NAME                            TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE
+        <metadata.name>-svc-external    NodePort   100.66.92.110    <none>        8080:30036/TCP    1d
+  
+  #. Set your firewall rules to allow access from the Internet to the
+     external port on the host.
+
+  #. Open a browser window and navigate to the |onprem| application
+     using the |fqdn| and port number.
+
+     .. code-block:: sh
+
+        http://ops.example.com:30036
+  
+  #. Log in to |onprem| using the :ref:`admin user credentials 
+     <om-rsrc-prereqs>`.
+...

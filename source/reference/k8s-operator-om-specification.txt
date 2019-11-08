@@ -1,0 +1,147 @@
+.. _k8s-om-specification:
+
+================================
+Ops Manager Object Specification
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols 
+
+.. include:: /includes/admonition-om-resource-alpha.rst
+
+The :gh:`MongoDB Enterprise Kubernetes Operator </mongodb/mongodb-enterprise-kubernetes>`
+creates a containerized |onprem| deployment from specification files 
+that you write.
+
+After you create or update an |onprem| resource 
+specification, you direct |k8s-op-full| to apply this specification to 
+your |k8s| environment. |k8s-op-short| creates the services and custom 
+|k8s| resources that |onprem| requires, then deploys |onprem| and its
+backing application database in containers in your |k8s| environment.
+
+Each |onprem| resource uses an |k8s-obj| specification in
+:abbr:`YAML (Yet Another Markup Language)` to define the characteristics
+and settings of the deployment.
+
+Example
+-------
+
+The following example shows a resource specification for an |onprem| 
+deployment:
+
+.. literalinclude:: /reference/k8s/example-ops-manager.yaml
+   :language: yaml
+
+Required |onprem| Resource Settings
+-----------------------------------
+
+This section describes settings that you must use for all |onprem|
+resources.
+
+.. opsmgrkube:: apiVersion
+
+   *Type*: string
+
+   *Required*. Version of the MongoDB |k8s| resource schema.
+
+.. opsmgrkube:: kind
+
+   *Type*: string
+
+   *Required*. Kind of MongoDB Kubernetes resource to create. Set this 
+   to ``MongoDBOpsManager``. 
+
+.. opsmgrkube:: metadata.name
+
+   *Type*: string
+
+   *Required*. Name of the MongoDB |k8s| resource you are creating.
+
+.. opsmgrkube:: spec.version
+
+   *Type*: number
+
+   *Required*. Version of |onprem| that you want to install 
+   on this MongoDB |k8s| resource.
+    
+.. opsmgrkube:: spec.adminCredentials
+
+   *Type*: string
+
+   *Required*. Name of the |k8s| |k8s-secret| you created for 
+   the |onprem| admin user. When you deploy the |onprem| resource, 
+   |k8s-op-short| creates a user with these credentials.
+
+   The admin user is granted the 
+   :opsmgr:`Global Owner </reference/user-roles/#global-automation-admin-role>`
+   role.      
+
+.. opsmgrkube:: spec.applicationDatabase
+
+   *Type*: collection
+
+   *Required*. |onprem| :opsmgr:`Application Database </core/system-overview/#application-database>` 
+   resource definition. 
+
+   The following settings from the 
+   :ref:`replica set <replica-set-settings>` resource specification are
+   required:
+
+   - ``spec.applicationDatabase.``:setting:`~spec.members`
+   - ``spec.applicationDatabase.``:setting:`~spec.version`
+   
+   The following settings from the  
+   :ref:`replica set <replica-set-settings>` resource specification are
+   optional:
+
+   - ``spec.applicationDatabase.``:setting:`~spec.persistent`
+   - ``spec.applicationDatabase.``:setting:`~spec.logLevel`
+   - ``spec.applicationDatabase.``:setting:`~spec.featureCompatibilityVersion`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.cpu`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.cpuRequests`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.memory`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.memoryRequests`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.persistence.single`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.persistence.multiple.data`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.persistence.multiple.journal`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.persistence.multiple.logs`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.podAffinity`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.podAntiAffinityTopologyKey`
+   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.nodeAffinity`
+
+
+   Do not use the following settings from the  
+   :ref:`replica set <replica-set-settings>` resource specification:
+
+   - :setting:`spec.additionalMongodConfig.net.ssl.mode`    
+   - :setting:`spec.security.clusterAuthenticationMode`
+   - :setting:`spec.security.tls.enabled`
+   - :setting:`spec.project` 
+   - :setting:`spec.credentials`
+
+Optional |onprem| Resource Settings
+-----------------------------------
+
+|onprem| resources can use the following settings:
+
+.. opsmgrkube:: spec.clusterName
+
+   *Type*: string
+
+   |k8s| assigns each |k8s-pod| a |fqdn|. The |k8s-op-short| calculates 
+   the |fqdn| for each |k8s-pod| using a provided ``clusterName``. |k8s| 
+   does not provide an |api| to query these hostnames.
+
+.. opsmgrkube:: spec.configuration
+
+   *Type*: collection
+
+   |onprem| configuration properties. 
+   See :opsmgr:`Ops Manager Configuration Settings
+   </reference/configuration/>` for property names and descriptions.
+
