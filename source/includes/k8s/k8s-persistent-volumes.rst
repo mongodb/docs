@@ -6,7 +6,8 @@
    This makes |k8s|
    `try to fix write permissions <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#discussion>`__
    for the |k8s-pv|. If redeploying the deployment item does not fix
-   issues with your |k8s-pvs|, contact MongoDB support.
+   issues with your |k8s-pvs|, contact `MongoDB Support
+   <https://support.mongodb.com/welcome>`__.
 
 .. note::
 

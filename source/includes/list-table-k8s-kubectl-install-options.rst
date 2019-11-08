@@ -129,3 +129,74 @@
                      env:
                      - name: MANAGED_SECURITY_CONTEXT
                        value: 'true'
+
+   * - ``OPS_MANAGER_IMAGE_REPOSITORY``
+     - |url| of the repository from which the image for an :doc:`Ops
+       Manager resource </tutorial/deploy-om-container>` is downloaded.
+
+       Default value is:
+       ``quay.io/mongodb/mongodb-enterprise-ops-manager``
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          OPS_MANAGER_IMAGE_REPOSITORY
+          spec.template.spec.containers.name.env.value:
+          quay.io/mongodb/mongodb-enterprise-ops-manager
+      
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 10-13
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: OPS_MANAGER_IMAGE_REPOSITORY
+                       value: quay.io/mongodb/mongodb-enterprise-ops-manager
+                     - name: OPS_MANAGER_IMAGE_PULL_POLICY
+                       value: Always
+       
+   * - ``OPS_MANAGER_IMAGE_PULL_POLICY``
+     - :k8sdocs:`Pull policy
+       </concepts/configuration/overview/#container-images>` for the
+       image deployed to an :doc:`Ops Manager resource
+       </tutorial/deploy-om-container>`.
+       
+       Accepted values are: ``Always``, ``IfNotPresent``, ``Never``
+
+       Default value is: ``Always``
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          OPS_MANAGER_IMAGE_PULL_POLICY
+          spec.template.spec.containers.name.env.value: 
+          <policy>
+
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 10-13
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: OPS_MANAGER_IMAGE_REPOSITORY
+                       value: quay.io/mongodb/mongodb-enterprise-ops-manager
+                     - name: OPS_MANAGER_IMAGE_PULL_POLICY
+                       value: Always
