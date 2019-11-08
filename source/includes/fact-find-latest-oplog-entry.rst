@@ -7,6 +7,8 @@
 
       db.getSiblingDB('local').oplog.rs.find().sort({$natural:-1}).limit(1).pretty()
 
+   A successful result should look like this:
+
    .. code-block:: json
       :copyable: false
       :emphasize-lines: 2
@@ -30,7 +32,7 @@
    .. note::
       To translate the epoch time into a human-readable
       timestamp, try using a tool like
-      `Epoch Converter <https://www.epochconverter.com/>`__ 
+      `Epoch Converter <https://www.epochconverter.com/>`__
 
       MongoDB does not endorse this service. Its reference
-      is intended only as informational. 
+      is intended only as informational.
