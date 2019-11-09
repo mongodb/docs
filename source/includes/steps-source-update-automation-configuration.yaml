@@ -1,55 +1,90 @@
-title: "Retrieve the automation configuration from |mms|."
+title: "Retrieve and validate the automation configuration from |mms|."
 stepnum: 0
 level: 4
 ref: check-automation-config
-pre: |
-  Use the :doc:`automationConfig </reference/api/automation-config>` resource
-  to retrieve the configuration. Issue the following command, replacing:
+content: |
 
-  - ``<username>`` with your user name,
+  a. Use the :doc:`automationConfig </reference/api/automation-config>`
+     resource to retrieve the configuration. Issue the following
+     command, replacing the placeholders with the `{{variables}}`_.
 
-  - ``<apiKey>`` with your :doc:`API credentials
-    </tutorial/configure-public-api-access>`,
+     .. cond:: cloud
 
-  - ``<url>`` with the URL of |mms|, and 
+        .. code-block:: sh
 
-  - ``<group_id>`` with the project ID from your :doc:`Project Settings
-    <manage-project-settings>`:
+           curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+                --request GET "https://{+cloudmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationConfig?pretty=true" \
+                --output currentAutomationConfig.json
 
-action:
-  language: none
-  code: |
-    curl -u "<username>:<apiKey>" "http://<url>/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i
-post: |
-  Confirm that the ``version`` field of the retrieved :ref:`automation
-  configuration <automation-configuration-sample-entity>` matches the
-  ``version`` field in the :ref:`mms-cluster-config-backup.json
-  <other-representations-automation-configuration>` file,
-  which is found on any server running the {+aagent+}.
+     .. cond:: onprem
+
+        .. code-block:: sh
+
+           curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+                --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationConfig?pretty=true" \
+                --output currentAutomationConfig.json
+
+  b. Validate the downloaded Automation Configuration file.
+
+     Compare the ``version`` field of the
+     ``currentAutomationConfig.json`` with that of the Automation
+     Configuration backup file, ``mms-cluster-config-backup.json``. The
+     ``version`` value is the last element in both |json| documents.
+     You can find this file on any host running the {+mdbagent+} at:
+
+     - Linux and macOS: ``/var/lib/mongodb-mms-automation/mms-cluster-config-backup.json``
+     - Windows: ``%SystemDrive%\MMSAutomation\versions\mms-cluster-config-backup.json``
+
+     If the ``version`` values match, you are working with the current
+     version of the Automation Configuration file.
+
 ---
-title: "Edit the automation configuration."
+title: "Edit the downloaded automation configuration file."
 stepnum: 0
 level: 4
 ref: open-for-editing
-pre: |
-  Refer to :doc:`/reference/cluster-configuration` for detailed descriptions of settings.
+content: |
+
+  Open ``currentAutomationConfig.json`` in your preferred text editor.
+
+  To learn more about the automation configuration options, see
+  :doc:`/reference/cluster-configuration`.
 ---
 title: Send the updated automation configuration.
 stepnum: 0
 level: 4
 ref: send-updated-configuration
-pre: |
-  Use the :doc:`automationConfig </reference/api/automation-config>` resource
-  to send the updated automation configuration.
+content: |
 
-  Issue the following command, replacing ``<configuration>`` with path to the
-  updated configuration document. Replace the username, API key, URL, and
-  project ID as in previous steps.
-action:
-  language: none
-  code: |
-    curl -u "<username>:<apiKey>" -H "Content-Type: application/json" "http://<url>/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i -X PUT --data @<configuration>
-post: |
+  Use the :doc:`automationConfig </reference/api/automation-config>`
+  resource to send the updated automation configuration.
+
+  Issue the following command, replacing ``{configuration-document}``
+  with path to the updated configuration document and the placeholders
+  with the `{{variables}}`_.
+
+  .. cond:: cloud
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --header "Content-Type: application/json"
+             --request PUT "https://{+cloudmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationConfig?pretty=true" \
+             --data '
+                 {configuration_document}
+               '
+
+  .. cond:: onprem
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --header "Content-Type: application/json"
+             --request PUT "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationConfig?pretty=true" \
+             --data '
+                 {configuration_document}
+               '
+
   Upon successful update of the configuration, the API returns the HTTP
   ``200 OK`` status code to indicate the request has succeeded.
 ---
@@ -57,29 +92,52 @@ title: Confirm successful update of the automation configuration.
 stepnum: 0
 level: 4
 ref: confirm-update-of-config
-pre: |
-  Retrieve the automation configuration from |mms| and confirm it contains the
-  changes. To retrieve the configuration, issue the following command,
-  replacing username, API key, URL, and project ID as in previous steps.
-action:
-  language: none
-  code: |
-    curl -u "<username>:<apiKey>" "http://<url>/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i
+content: |
+
+  Retrieve the automation configuration from |mms| and confirm it
+  contains the changes. To retrieve the configuration, issue the
+  following command, replacing the placeholders with the
+  `{{variables}}`_.
+
+  .. cond:: cloud
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+cloudmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationConfig?pretty=true"
+
+  .. cond:: onprem
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationConfig?pretty=true"
 ---
 title: Check the deployment status to ensure goal state is reached.
 stepnum: 0
 level: 4
 ref: check-deployment-status
-pre: |
-  Use the :doc:`automationStatus </reference/api/automation-status>` resource
-  to retrieve the deployment status. Issue the following command, replacing
-  username, API key, URL, and project ID as in previous steps.
-action:
-  language: none
-  code: |
-    curl -u "<username>:<apiKey>" "http://<url>/api/public/v1.0/groups/<group_id>/automationStatus" --digest -i
-post: |
-  Confirm that the values of all the ``lastGoalVersionAchieved`` fields in the
-  ``processes`` array match the ``goalVersion`` field. For more information on
-  deployment status, see :doc:`/reference/api/automation-status`.
+content: |
+
+  Use the :doc:`automationStatus </reference/api/automation-status>`
+  resource to retrieve the deployment status. Issue the following
+  command, replacing the placeholders with the `{{variables}}`_.
+
+  .. cond:: cloud
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+cloudmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationStatus?pretty=true"
+
+  .. cond:: onprem
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationStatus?pretty=true"
+
+  Confirm that the values of all the ``lastGoalVersionAchieved`` fields
+  in the ``processes`` array match the ``goalVersion`` field. To learn
+  about deployment status, see :doc:`/reference/api/automation-status`.
 ...

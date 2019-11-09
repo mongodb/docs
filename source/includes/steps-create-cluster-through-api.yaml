@@ -1,285 +1,266 @@
 title: "Retrieve the automation configuration from |mms|."
 stepnum: 1
-ref: check-automation-config
-pre: |
-  Use the :doc:`automationConfig </reference/api/automation-config>`
-  resource to retrieve the configuration. Issue the following command,
-  replacing:
-     
-  - ``<user@example.net>`` with your user credentials,
-  
-  - ``<public_api_key>`` with the previously retrieved :term:`Public API key`,
-  
-  - ``<app-example.net>`` with the URL of |mms|, and
-  
-  - ``<group_id>`` with the previously retrieved project ID:
-action:
-  language: none
-  code: |
-    curl -u "<user@example.net>:<public_api_key>" "http://<app-example.net>/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i
-post: |
-  Confirm that the ``version`` field of the retrieved :ref:`automation
-  configuration <automation-configuration-sample-entity>` matches the
-  ``version`` field in the :ref:`mms-cluster-config-backup.json
-  <other-representations-automation-configuration>` file,
-  which is found on any server running the {+aagent+}.
+level: 4
+source:
+  file: steps-source-update-automation-configuration.yaml
+  ref: check-automation-config
+replacement:
+  variables: "Variables for Cluster Creation API Resources"
 ---
 title: "Create the top level of the new automation configuration."
 stepnum: 2
+level: 4
 ref: begin-populating
-pre: |
+content: |
   Create a document with the following fields. As you build the
   configuration document, refer the
   :ref:`description of an automation configuration
   <automation-configuration-sample-entity>` for detailed explanations
-  of the settings. For examples, refer to the following page on GitHub:
-  `<https://github.com/10gen-labs/mms-api-examples/tree/master/automation/>`_.
-action:
-  language: javascript
-  code: |
-    {
-        "options": {
-            "downloadBase": "/var/lib/mongodb-mms-automation",
-            "downloadBaseWindows": "C:\\MMSAutomation\\versions"
-        },
-        "mongoDbVersions": [],
-        "monitoringVersions": [],
-        "backupVersions": [],
-        "processes": [],
-        "replicaSets": [],
-        "sharding": []
-    }
----
-title: "Add MongoDB versions to the automation configuration."
-stepnum: 3
-ref: add-mongodb-versions
-pre: |
-  In the ``mongoDbVersions`` array, add the versions of MongoDB to have
-  available to the deployment. Add only those versions you will use. For
-  this tutorial, the
-  following array includes just one version, ``3.2.12``, but you can specify multiple
-  versions. Using ``3.2.12`` allows this deployment to later upgrade to
-  ``3.4``, as described in
-  :doc:`/tutorial/update-mongodb-version-of-deployment-via-api`.
-action:
-  language: none
-  code: |
-    "mongoDbVersions": [
-        { "name": "3.2.12" }
-    ]
+  of the settings. For examples, see the :gh:`MongoDB Labs page </10gen-labs/mms-api-examples/tree/master/automation/>`.
+
+  .. code-block:: javascript
+     :linenos:
+
+     {
+         "options": {
+             "downloadBase": "/var/lib/mongodb-mms-automation",
+             "downloadBaseWindows": "C:\\MMSAutomation\\versions"
+         },
+         "mongoDbVersions": [],
+         "monitoringVersions": [],
+         "backupVersions": [],
+         "processes": [],
+         "replicaSets": [],
+         "sharding": []
+     }
+
 ---
 title: "Add the {+magent+} to the automation configuration."
 stepnum: 4
+level: 4
 ref: add-monitoring-agent
-pre: |
-  In the ``monitoringVersions.hostname`` field, enter the hostname of the
-  server where |mms| should install the {+magent+}. Use the fully
-  qualified domain name that running ``hostname -f`` on the
-  server returns, as in the following:
-action:
-  language: javascript
-  code: |
-    "monitoringVersions": [
-        {
-            "hostname": "<server_x.example.net>",
-            "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
-            "logRotate": {
-                "sizeThresholdMB": 1000,
-                "timeThresholdHrs": 24
-            }
-        }
-    ]
-post: |
+content: |
+  In the ``monitoringVersions.hostname`` field, enter the hostname of
+  the server where |mms| should install the {+magent+}. Use the fully
+  qualified domain name that running ``hostname -f`` on the server
+  returns, as in the following:
+
+  .. code-block:: javascript
+     :linenos:
+
+     "monitoringVersions": [
+       {
+         "hostname": "<server_x.example.com>",
+         "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
+         "logRotate": {
+           "sizeThresholdMB": 1000,
+           "timeThresholdHrs": 24
+         }
+       }
+     ]
+
+
   This configuration example also includes the ``logPath`` field, which
-  specifies the log location, and ``logRotate``, which specifies the log
-  thresholds.
+  specifies the log location, and ``logRotate``, which specifies the
+  log thresholds.
 ---
 title: Add the servers to the automation configuration.
 stepnum: 5
+level: 4
 ref: add-servers
-pre: |
-  This sharded cluster has 10 MongoDB instances, as
-  described in the :ref:`create-cluster-with-api-overview`, each running
-  on its own server. Thus, the automation configuration's ``processes`` array will have 10
-  documents, one for each MongoDB instance.
+content: |
+
+  This sharded cluster has 10 MongoDB instances, as described in the
+  :ref:`create-cluster-with-api-overview`, each running on its own
+  server. Thus, the automation configuration's ``processes`` array will
+  have 10 documents, one for each MongoDB instance.
 
   The following example adds the first document to the ``processes``
   array. Replace ``<process_name_1>`` with any name you choose, and
-  replace ``<server1.example.net>`` with the FQDN of the server. You
-  will need to add 9 documents: one for each MongoDB instance in your
-  sharded cluster.
+  replace ``<server1.example.com>`` with the |fqdn| of the host.
 
-  Specify the ``args2_6`` syntax for the ``processes.<args>``
-  field.
+  Add 9 documents: one for each MongoDB instance in your sharded
+  cluster.
+
+  Specify the ``args2_6`` syntax for the ``processes.<args>`` field.
   See :doc:`/reference/cluster-configuration-process-options` for more
   information.
-action:
-  language: javascript
-  code: |
-    "processes": [
-        {
-            "version": "3.2.12",
-            "name": "<process_name_1>",
-            "hostname": "<server1.example.net>",
-            "logRotate": {
-                "sizeThresholdMB": 1000,
-                "timeThresholdHrs": 24
-            },
-            "authSchemaVersion": 5,
-            "processType": "mongod",
-            "args2_6": {
-                "net": {
-                    "port": 27017
-                },
-                "storage": {
-                    "dbPath": "/data/"
-                },
-                "systemLog": {
-                    "path": "/data/mongodb.log",
-                    "destination": "file"
-                },
-                "replication": {
-                    "replSetName": "rs1"
-                }
-            }
-        },
-        ...
-    ]
+
+  .. code-block:: javascript
+     :linenos:
+
+     "processes": [
+       {
+         "version": "4.0.6",
+         "name": "<process_name_1>",
+         "hostname": "<server1.example.com>",
+         "logRotate": {
+           "sizeThresholdMB": 1000,
+           "timeThresholdHrs": 24
+         },
+         "authSchemaVersion": 5,
+         "featureCompatibilityVersion": "4.0",
+         "processType": "mongod",
+         "args2_6": {
+           "net": {
+             "port": 27017
+           },
+           "storage": {
+             "dbPath": "/data/"
+           },
+           "systemLog": {
+             "path": "/data/mongodb.log",
+             "destination": "file"
+           },
+           "replication": {
+             "replSetName": "rs1"
+           }
+         }
+       },
+     ]
 ---
 title: Add the sharded cluster topology to the automation configuration.
 stepnum: 6
+level: 4
 ref: add-topology
-action:
-  - pre: |
-      Add two replica set documents to the ``replicaSets`` array. Add
-      three members to each document. The following example shows one
-      replica set member added in the first replica set document:
-    language: javascript
-    code: |
-      "replicaSets": [
+content: |
+
+  Add two replica set documents to the ``replicaSets`` array. Add
+  three members to each document.
+
+  .. example::
+
+     This section adds one replica set member to the first replica set
+     document:
+
+     .. code-block:: javascript
+        :linenos:
+
+        "replicaSets": [
           {
-              "_id": "rs1",
-              "members": [
-                  {
-                      "_id": 0,
-                      "host": "<process_name_1>",
-                      "priority": 1,
-                      "votes": 1,
-                      "slaveDelay": 0,
-                      "hidden": false,
-                      "arbiterOnly": false
-                  },
-                  ...
-              ]
+            "_id": "rs1",
+            "members": [
+              {
+                "_id": 0,
+                "host": "<process_name_1>",
+                "priority": 1,
+                "votes": 1,
+                "slaveDelay": 0,
+                "hidden": false,
+                "arbiterOnly": false
+              },
+                ...
+            ]
           },
-          ...
-  - pre: |
-      In the ``sharding`` array, add the replica sets to the shards, and
-      add the three config servers, as in the following:
-    language: javascript
-    code: |
-      "sharding": [
-          {
-              "shards": [
-                  {
-                      "tags": [],
-                      "_id": "shard1",
-                      "rs": "rs1"
-                  },
-                  {
-                      "tags": [],
-                      "_id": "shard2",
-                      "rs": "rs2"
-                  }
-              ],
-              "name": "sharded_cluster_via_api",
-              "configServer": [
-                  "<process_name_7>",
-                  "<process_name_8>",
-                  "<process_name_9>"
-              ],
-              "collections": []
-          }
-      ]
+            ...
+
+  In the ``sharding`` array, add the replica sets to the shards, and
+  add the config server replica set name, as in the following:
+
+  .. code-block:: javascript
+     :linenos:
+
+     "sharding": [
+       {
+         "shards": [
+           {
+             "tags": [],
+             "_id": "shard1",
+             "rs": "rs1"
+           },
+           {
+             "tags": [],
+             "_id": "shard2",
+             "rs": "rs2"
+           }
+         ],
+         "name": "sharded_cluster_via_api",
+         "configServerReplicaSet": "rs-config",
+         "collections": []
+       }
+     ]
 ---
 title: Send the updated automation configuration.
 stepnum: 7
-ref: send-configuration-doc
-pre: |
-  Use the ``groups/<group_id>/automationConfig`` endpoint to
-  send the automation configuration document to |mms|.
-  Replace ``<configuration_document>`` with the configuration document you
-  created in the previous steps. Replace the credentials, Public API key,
-  URL, and group ID as in previous steps.
-action:
-  language: sh
-  code: |
-    curl -u "<user@example.net>:<public_api_key>" -H "Content-Type: application/json" "http://<app-example.net>/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i -X PUT --data '
-    <configuration_document>
-    '
-post: |
-  Upon successful update of the configuration, the API returns the
-  ``HTTP/1.1 200 OK`` status code to indicate the request has succeeded.
+level: 4
+source:
+  file: steps-source-update-automation-configuration.yaml
+  ref: send-updated-configuration
+replacement:
+  variables: "Variables for Cluster Creation API Resources"
 ---
 title: Confirm successful update of the automation configuration.
 stepnum: 8
-ref: confirm-update-of-configuration-doc
-pre: |
-  Retrieve the automation configuration
-  and confirm it contains the changes.
-
-  To retrieve the automation configuration, issue a command similar to the
-  following. Replace the credentials, URL, and group ID as in previous steps.
-action:
-  language: sh
-  code: |
-    curl -u "<user@example.net>:<public_api_key>" "http://<app-example.net>/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i
+level: 4
+source:
+  file: steps-source-update-automation-configuration.yaml
+  ref: confirm-update-of-config
+replacement:
+  variables: "Variables for Cluster Creation API Resources"
 ---
 title: Verify that the configuration update is deployed.
 stepnum: 9
+level: 4
 ref: check-deployment-status
-pre: |
+content: |
+
   Use the :doc:`automationStatus </reference/api/automation-status>`
   resource to verify the configuration update is fully deployed. Issue
-  the following command, replacing the credentials, Public API key, URL,
-  and project ID, as in previous steps.
+  the following command, replacing the value placeholders given in
+  `Variables for Cluster Creation API Resources`_:
 
-  .. code-block:: sh
+  .. cond:: cloud
 
-    curl -u "<user@example.net>:<public_api_key>" "http://<app-example.net>/api/public/v1.0/groups/<group_id>/automationStatus" --digest -i
+     .. code-block:: sh
 
-  The ``curl`` command returns a JSON object containing the ``processes``
-  array and the ``goalVersion`` key and value. The ``processes`` array
-  contains a document for each server that hosts a MongoDB instance. 
-  The new configuration is successfully deployed when all ``lastGoalVersionAchieved``
-  fields in the ``processes`` array equal the value specified for ``goalVersion``. 
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+cloudmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationStatus?pretty=true"
 
-  In the example response, ``processes[2].lastGoalVersionAchieved``
-  is behind ``goalVersion``. This indicates that the MongoDB instance at 
-  ``server3.example.net`` is running one version behind the ``goalVersion``. 
-  Wait several seconds and issue the ``curl`` command again. 
+  .. cond:: onprem
 
-  .. code-block:: javascript
+     .. code-block:: sh
 
-    {
-      "goalVersion": 2,
-      "processes": [{
-        "hostname": "server1.example.net",
-        "lastGoalVersionAchieved": 2,
-        "name": "ReplSet_0",
-        "plan": []
-      }, {
-        "hostname": "server2.example.net",
-        "lastGoalVersionAchieved": 2,
-        "name": "ReplSet_1",
-        "plan": []
-      }, {
-         "hostname": "server3.example.net",
-         "lastGoalVersionAchieved": 1,
-         "name": "ReplSet_2",
-         "plan":[...]
-      }]
-    }
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/automationStatus?pretty=true"
+
+  The ``curl`` command returns a |json| object containing the
+  ``processes`` array and the ``goalVersion`` key and value. The
+  ``processes`` array contains a document for each server that hosts a
+  MongoDB instance. The new configuration is successfully deployed when
+  all ``lastGoalVersionAchieved`` fields in the ``processes`` array
+  equal the value specified for ``goalVersion``.
+
+  .. example::
+
+     In this response, ``processes[2].lastGoalVersionAchieved`` is
+     behind ``goalVersion``. This indicates that the MongoDB instance
+     at ``server3.example.com`` is running one version behind the
+     ``goalVersion``. Wait several seconds and issue the ``curl``
+     command again.
+
+     .. code-block:: javascript
+        :linenos:
+        :emphasize-lines: 2, 15
+
+        {
+          "goalVersion": 2,
+          "processes": [{
+            "hostname": "server1.example.com",
+            "lastGoalVersionAchieved": 2,
+            "name": "ReplSet_0",
+            "plan": []
+          }, {
+            "hostname": "server2.example.com",
+            "lastGoalVersionAchieved": 2,
+            "name": "ReplSet_1",
+            "plan": []
+          }, {
+             "hostname": "server3.example.com",
+             "lastGoalVersionAchieved": 1,
+             "name": "ReplSet_2",
+             "plan":[...]
+          }]
+        }
 
   To view the new configuration in the |mms| web interface, click
   :guilabel:`Deployment`.
