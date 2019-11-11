@@ -87,7 +87,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Backs up Sharded Clusters
-        -
+        - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Can Filter using Namespaces
@@ -156,10 +156,6 @@ If you are running MongoDB 4.2 with
    - Must run MongoDB Enterprise. MongoDB, Inc. grants a
      :doc:`special license </reference/legal/cloud-manager-backup-license>`
      to use MongoDB Enterprise for |mms| backups.
-
-   - Cannot back up sharded clusters. Do not upgrade sharded clusters
-     to ``"featureCompatibilityVersion" : 4.2`` if you need to back up
-     your sharded cluster.
 
    - Cannot restore to a specific a
      :doc:`point in time </tutorial/nav/restore-overview>` or use
