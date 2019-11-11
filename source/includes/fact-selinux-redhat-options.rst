@@ -13,13 +13,13 @@
 
    #. Ensure your system has the ``checkpolicy`` package installed:
 
-      .. code-block:: none
+      .. code-block:: sh
 
          sudo yum install checkpolicy
 
    #. Create a custom policy file :file:`mongodb_cgroup_memory.te`:
 
-      .. code-block:: none
+      .. code-block:: sh
 
          cat > mongodb_cgroup_memory.te <<EOF
          module mongodb_cgroup_memory 1.0;
@@ -39,7 +39,7 @@
    #. Once created, compile and load the custom policy module by
       running these three commands:
 
-      .. code-block:: none
+      .. code-block:: sh
 
          checkmodule -M -m -o mongodb_cgroup_memory.mod mongodb_cgroup_memory.te
          semodule_package -o mongodb_cgroup_memory.pp -m mongodb_cgroup_memory.mod
@@ -161,13 +161,13 @@ Non-Default MongoDB Ports
 
    #. Ensure your system has the ``checkpolicy`` package installed:
 
-      .. code-block:: none
+      .. code-block:: sh
 
          sudo yum install checkpolicy
 
    #. Create a custom policy file :file:`mongodb_proc_net.te`:
 
-      .. code-block:: none
+      .. code-block:: sh
 
          cat > mongodb_proc_net.te <<EOF
          module mongodb_proc_net 1.0;
@@ -185,8 +185,8 @@ Non-Default MongoDB Ports
    #. Once created, compile and load the custom policy module by
       running these three commands:
 
-      .. code-block:: none
+      .. code-block:: sh
 
          checkmodule -M -m -o mongodb_proc_net.mod mongodb_proc_net.te
          semodule_package -o mongodb_proc_net.pp -m mongodb_proc_net.mod
-         semodule -i mongodb_proc_net.pp
+         sudo semodule -i mongodb_proc_net.pp
