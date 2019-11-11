@@ -210,16 +210,34 @@ content: |
 ---
 ref: wt-journal-frequency
 content: |
-   - MongoDB syncs the buffered journal data to disk every 50 milliseconds (Starting
-     in MongoDB 3.2)
 
-   - If the write operation includes a write concern of :writeconcern:`j:
-     true <j>`, WiredTiger forces a sync of the WiredTiger journal files.
+   WiredTiger syncs the buffered journal records to disk upon any of
+   the following conditions:
 
-   - Because MongoDB uses a journal file size limit of 100 MB, WiredTiger
-     creates a new journal file approximately every 100 MB of data. When
-     WiredTiger creates a new journal file, WiredTiger syncs the previous
-     journal file.
+   - For replica set primary (or a sync source), if there are
+     operations waiting for oplog entries. Operations that can wait for
+     oplog entries include:
+        
+     - the replication process itself
+
+     - read operations performed as part of :ref:`causally consistent
+       sessions <causal-consistency>`
+
+     - read operations on secondaries
+
+   - If a write operation includes or implies a write concern of
+     :writeconcern:`j: true <j>`.
+     
+     .. note::
+
+        Write concern :writeconcern:`"majority"` implies ``j: true`` if
+        the :rsconf:`writeConcernMajorityJournalDefault` is true.
+
+   - At every 100 milliseconds 
+
+   - When WiredTiger creates a new journal file. Because MongoDB uses a
+     journal file size limit of 100 MB, WiredTiger creates a new
+     journal file approximately every 100 MB of data.
 ---
 ref: wt-log-compression-limit
 content: |
