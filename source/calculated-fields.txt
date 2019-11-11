@@ -1,0 +1,227 @@
+.. _calculated-fields:
+
+=================
+Calculated Fields
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can combine the data from one or more fields in your collection into
+a single calculated field. For example, you can:
+
+- Convert a field in hours to seconds or in degrees Farenheit to Celsius
+- Multiply a price field by a quantity field to create a total
+- Combine multiple line items within an array to calculate a total 
+
+Considerations
+--------------
+
+- You can only create calculated fields from data within the same
+  document.
+- You can't :ref:`convert the type <convert-field-data-types>` of a
+  calculated field through the |charts| interface. However, you can use
+  :manual:`Type Expression Operators
+  </meta/aggregation-quick-reference/#type-expression-operators>` in a
+  calculated field's definition.
+- Once you create a calculated field, you can :ref:`modify
+  <edit-calculated-field>` its definition but not its name. However, you
+  can :ref:`remove <remove-calculated-field>` and recreate the field if
+  you need to rename it. 
+
+.. _create-calculated-field:
+
+Create a Calculated Field
+-------------------------
+
+You create a calculated field by combining the data of existing fields
+through simple expressions or :abbr:`MQL (MongoDB Query Language)`
+:ref:`agg-quick-ref-operator-expressions`.
+
+.. note::
+
+   The definition of a calculated field can contain either simple
+   expression language or operator expression language. You can't use 
+   both simple and operator expression language in the same definition.
+
+To create a calculated field:
+
+1. In the corner of the :guilabel:`Fields` pane, click
+   :icon-fa5:`plus`:guilabel:`Add Field`.
+
+#. Select :guilabel:`Calculated`.
+
+#. Enter the :guilabel:`Field Name` of the calculated field you want to
+   define. You can specify a nested field by using dot notation. For
+   example, ``metadata.target``.
+
+#. Enter the :guilabel:`Value Expression` using :ref:`simple expression
+   <calc-field-simple>` language or
+   :ref:`agg-quick-ref-operator-expressions`.
+
+#. Click :guilabel:`Save Field`.
+
+The calculated field appears in italics in the :guilabel:`Fields` pane.
+
+.. _calc-field-simple:
+
+Simple Expressions
+~~~~~~~~~~~~~~~~~~
+
+You can use the following simple expression language in a calculated
+field.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Expression Language
+     - Example
+
+   * - Field names
+     - | ``orderTotal``
+       | ``'orderTotal'``
+       | ``"orderTotal"``
+   
+   * - Literal numbers
+     - | ``2``
+       | ``0.5``
+   
+   * - Mathematical operators
+     - | ``+``
+       | ``-``
+       | ``*``
+       | ``/``
+
+   * - Brackets
+     - ``( )``
+
+Whitespace that is outside of quoted strings is not included in the 
+expression.
+
+.. figure:: /images/charts/calculated-field-simple.png
+   :figwidth: 75%
+   :alt: Click "Add Field", enter a field name and simple expressions definition, then click "Save Field".
+
+.. example::
+
+   The following examples are valid simple expressions to define a
+   calculated field.
+
+   Add the ``bathrooms`` field to the ``bedrooms`` field:
+
+   .. code-block:: json
+
+      bathrooms + bedrooms
+
+   Multiply the ``total amount`` field by 1.1:
+
+   .. code-block:: json
+
+      'total amount' * 1.1
+
+   Subtract ``32`` from the ``sensor.temp`` field, then multiply by
+   ``5`` and divide by ``9``:
+
+   .. code-block:: json
+      
+      (sensor.temp - 32)*5/9
+
+.. _calc-field-mql:
+
+Operator Expressions
+~~~~~~~~~~~~~~~~~~~~
+
+You can use :ref:`agg-quick-ref-operator-expressions` to define more
+complex calculated fields.
+
+.. example::
+
+   The following examples are valid operator expressions to define a
+   calculated field.
+
+   Multiply the ``price`` field by ``0.075``:
+
+   .. code-block:: json
+
+      { $multiply: [ "$price", 0.075 ] }
+
+   Combine multiple line items fields in an array to calculate a 
+   total:
+
+   .. code-block:: json
+
+      { $reduce: {
+        input: '$items', initialValue: 0,
+        in: { $sum : ["$$value",
+          { $multiply: ["$$this.price", 
+            "$$this.quantity"] }
+        ] } } }
+
+.. tip::
+   
+   You can use a calculated field in the definition of another
+   calculated field.
+
+   For example, if you create a ``salesTax`` calculated field with the
+   following definition:
+
+   .. code-block:: json
+   
+      { $multiply: [ "$price", 0.075 ] }
+
+   You can then create a ``totalCost`` calculated field that uses the
+   ``salesTax`` field in its definition:
+
+   .. code-block:: json
+
+      { $sum: ["$price", "$salesTax"] }
+
+.. _edit-calculated-field:
+
+Edit a Calculated Field
+-----------------------
+
+You can modify the definition of a calculated field.
+
+1. In the :guilabel:`Fields` pane, click the :guilabel:`Ellipsis (...)`
+   next to the name of the calculated field you want to modify.
+
+#. Select :guilabel:`Modify field`.
+
+#. Update the :guilabel:`Value Expression`.
+
+#. Click :guilabel:`Save Field`.
+
+If you are using the calculated field in a chart, the chart refreshes to
+reflect the new calculated field definition.
+
+.. figure:: /images/charts/calculated-field-modify.png
+   :figwidth: 50%
+   :alt: Click the ellipsis next to the field name, then click "Modify field".
+   
+.. _remove-calculated-field:
+
+Remove a Calculated Field
+-------------------------
+
+When you remove a calculated field, |charts| resamples the data source,
+updates the :guilabel:`Fields` pane, and refreshes your chart. If the
+calculated field was used in encodings or filters, it remains in the
+chart even after the field is removed from the :guilabel:`Fields` pane.
+
+To remove a calculated field:
+
+1. In the :guilabel:`Fields` pane, click the :guilabel:`Ellipsis (...)`
+   next to the name of the calculated field you want to remove.
+
+#. Select :guilabel:`Remove field`.
+
+.. figure:: /images/charts/calculated-field-remove.png
+   :figwidth: 50%
+   :alt: Click the ellipsis next to the field name, then click "Remove field".
