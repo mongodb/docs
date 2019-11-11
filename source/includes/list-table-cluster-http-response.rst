@@ -33,21 +33,7 @@
    * - | ``autoScaling``
        | ``.diskGBEnabled``
      - boolean
-     - Specifies whether disk auto-scaling is enabled. This is the
-       same value as ``autoScaling.diskGB.enabled``.
-
-   * - | ``autoScaling``
-       | ``.diskGB``
-     - document
-     - Contains the ``enabled`` field which specifies whether to enable
-       or disable disk auto-scaling.
-
-   * - | ``autoScaling``
-       | ``.diskGB``
-       | ``.enabled``
-     - boolean
-     - Specifies whether disk auto-scaling is enabled. This is the
-       same value as ``autoScaling.diskGBEnabled``.
+     - Specifies whether disk auto-scaling is enabled.
 
    * - ``backupEnabled``
      - boolean

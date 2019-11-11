@@ -56,25 +56,6 @@
        | ``.diskGBEnabled``
      - boolean
      - Optional
-     - .. admonition:: Deprecated
-          :class: note
-
-          ``autoScaling.diskGBEnabled`` is deprecated. Use
-          ``autoScaling.diskGB.enabled`` instead to enable disk
-          auto-scaling.
-
-   * - | ``autoScaling``
-       | ``.diskGB``
-     - document
-     - Optional
-     - Contains the ``enabled`` field which specifies whether to enable
-       or disable disk auto-scaling.
-
-   * - | ``autoScaling``
-       | ``.diskGB``
-       | ``.enabled``
-     - boolean
-     - Optional
      - Specifies whether disk auto-scaling is enabled. The default
        is ``true``.
 
