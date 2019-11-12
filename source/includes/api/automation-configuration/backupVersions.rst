@@ -21,7 +21,8 @@ the :doc:`{+bagent+} </tutorial/nav/backup-agent/>`.
                "sizeThresholdMB" : <number>,
                "timeThresholdHrs" : <integer>,
                "numUncompressed": <integer>,
-               "percentOfDiskspace" : <number>
+               "percentOfDiskspace" : <number>,
+               "numTotal" : <integer>
            }
        },
        ...
@@ -120,3 +121,9 @@ the :doc:`{+bagent+} </tutorial/nav/backup-agent/>`.
        files should take up before deletion. The default is ``.02``.
        To update, see the :ref:`backupAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
+
+   * - backupVersions.logRotate.numTotal
+     - integer
+     - *Optional*. If a number is not specified, the total number of log
+       files defaults to ``0`` and is determined by other ``backupVersion.logRotate`` 
+       settings. 

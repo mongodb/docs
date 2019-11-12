@@ -20,7 +20,8 @@ You can also use the array to restore an instance.
                "sizeThresholdMB" : <number>,
                "timeThresholdHrs" : <integer>,
                "numUncompressed": <integer>,
-               "percentOfDiskspace" : <number>
+               "percentOfDiskspace" : <number>,
+               "numTotal" : <integer>
            },
            "alias": <string>,
            "backupRestoreUrl" : <string>
@@ -143,6 +144,11 @@ You can also use the array to restore an instance.
        with the oldest log files first.
 
        The default is ``.02``.
+
+   * - processes.logRotate.numTotal
+     - integer
+     - *Optional*. If a number is not specified, the total number of log files defaults to ``0`` and 
+       is determined by other ``processes.logRotate`` settings.
 
    * - processes.alias
      - string

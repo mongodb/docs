@@ -21,7 +21,8 @@ of the :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
                "sizeThresholdMB" : <number>,
                "timeThresholdHrs" : <integer>,
                "numUncompressed": <integer>,
-               "percentOfDiskspace" : <number>
+               "percentOfDiskspace" : <number>,
+               "numTotal" : <integer>
            }
        },
        ...
@@ -120,3 +121,11 @@ of the :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
        files should take up before deletion. The default is ``.02``.
        To update, see the :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
+
+   * - monitoringVersions.logRotate.numTotal
+     - integer
+     - *Optional*. The total number of log files. If a number is not specified, the total 
+       number of log files defaults to ``0`` and is determined by other
+       ``monitoringVersions.logRotate`` settings.
+
+
