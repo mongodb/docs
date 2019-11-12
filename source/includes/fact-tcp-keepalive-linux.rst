@@ -1,45 +1,48 @@
-**On Linux systems**:
-
-- To view the keep alive setting, you can use one of the following
+- To view the keepalive setting on Linux, use one of the following
   commands:
 
-  .. code-block:: sh
+  .. container::
 
-     sysctl net.ipv4.tcp_keepalive_time
+     .. code-block:: sh
 
-  Or:
+        sysctl net.ipv4.tcp_keepalive_time
 
-  .. code-block:: sh
+     Or:
 
-     cat /proc/sys/net/ipv4/tcp_keepalive_time
+     .. code-block:: sh
 
-  The value is measured in seconds.
+        cat /proc/sys/net/ipv4/tcp_keepalive_time
 
-  .. note::
+     The value is measured in seconds.
 
-     Although the path includes ``ipv4``, the ``tcp_keepalive_time`` value
-     applies to both IPv4 and IPv6.
+     .. note::
+
+        Although the setting name includes ``ipv4``, the
+        ``tcp_keepalive_time`` value applies to both IPv4 and IPv6.
 
 - To change the ``tcp_keepalive_time`` value, you can use one of the
-  following command:
+  following commands, supplying a *<value>* in seconds:
 
-  .. code-block:: sh
+  .. container::
 
-     sudo sysctl -w net.ipv4.tcp_keepalive_time=<value>
+     .. code-block:: sh
 
-  Or:
+        sudo sysctl -w net.ipv4.tcp_keepalive_time=<value>
 
-  .. code-block:: sh
+     Or:
 
-     echo <value> | sudo tee /proc/sys/net/ipv4/tcp_keepalive_time
+     .. code-block:: sh
 
-  These operations do not persist across system reboots. To persist the
-  setting, add the following line to ``/etc/sysctl.conf``:
+        echo <value> | sudo tee /proc/sys/net/ipv4/tcp_keepalive_time
 
-  .. code-block:: sh
+     These operations do not persist across system reboots. To persist
+     the setting, add the following line to ``/etc/sysctl.conf``,
+     supplying a *<value>* in seconds, and reboot the machine:
 
-     net.ipv4.tcp_keepalive_time = <value>
+     .. code-block:: sh
 
-  On Linux, :binary:`~bin.mongod` and :binary:`~bin.mongos` processes limit the
-  keepalive to a maximum of 300 seconds (5 minutes) on their own
-  sockets by overriding keepalive values greater than 5 minutes.
+        net.ipv4.tcp_keepalive_time = <value>
+
+     Keepalive values greater than ``300`` seconds,
+     (5 minutes) will be overridden on :binary:`~bin.mongod` and
+     :binary:`~bin.mongos` sockets and set to ``300`` seconds.
