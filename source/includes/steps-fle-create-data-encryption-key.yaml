@@ -28,14 +28,10 @@ content: |
         :tabid: nodejs
 
         .. code-block:: javascript
-           :emphasize-lines: 5
+           :emphasize-lines: 2
 
-           const path = "./master-key.txt";
-           let localMasterKey;
-           fs.readFile(path, (err, data) => {
-             if (err) throw err;
-             localMasterKey = data;
-           });
+           const path = './master-key.txt';
+           const localMasterKey = fs.readFileSync(path);
      .. tab::
         :tabid: python
 
@@ -141,36 +137,34 @@ content: |
         :tabid: nodejs
 
         .. code-block:: javascript
-           :emphasize-lines: 10,11,13,14,16
+           :emphasize-lines: 12,14,15,17
 
-           const base64 = require("uuid-base64");
+           const base64 = require('uuid-base64');
 
-           const connectionString = "mongodb://localhost:27017";
-           const keyVaultNamespace = "encryption.__keyVault";
+           const connectionString = 'mongodb://localhost:27017';
+           const keyVaultNamespace = 'encryption.__keyVault';
            const client = new MongoClient(connectionString, {
              useNewUrlParser: true,
              useUnifiedTopology: true,
            });
 
-           client.connect()
-             .then((clientConnection) => {
+           async function main() {
+             try {
+               await client.connect();
                const encryption = new ClientEncryption(client, {
                  keyVaultNamespace,
                  kmsProviders,
                });
-               encryption.createDataKey("local", (err, key) => {
-                 if (err) {
-                   console.error(err);
-                 } else {
-                   const base64DataKeyId = key.toString("base64");
-                   const uuidDataKeyId = base64.decode(base64DataKeyId);
-                   console.log("DataKeyId [UUID]: ", uuidDataKeyId);
-                   console.log("DataKeyId [base64]: ", base64DataKeyId);
-                 }
-               });
-               // ...
-             });
-
+               const key = await encryption.createDataKey('local');
+               const base64DataKeyId = key.toString('base64');
+               const uuidDataKeyId = base64.decode(base64DataKeyId);
+               console.log('DataKeyId [UUID]: ', uuidDataKeyId);
+               console.log('DataKeyId [base64]: ', base64DataKeyId);
+             } finally {
+               await client.close();
+             }
+           }
+           main();
 
         .. note::
 
@@ -302,28 +296,31 @@ content: |
         .. code-block:: javascript
            :emphasize-lines: 4
 
-           const connectionString = "mongodb://localhost:27017/";
-           const keyVaultDb = "encryption";
-           const keyVaultCollection = "__keyVault";
-           const base64KeyId = "3k13WkSZSLy7kwAAP4HDyQ=="; // use the base64 data key id returned by createKey() in the prior step
+           const connectionString = 'mongodb://localhost:27017/';
+           const keyVaultDb = 'encryption';
+           const keyVaultCollection = '__keyVault';
+           const base64KeyId = '3k13WkSZSLy7kwAAP4HDyQ=='; // use the base64 data key id returned by createKey() in the prior step
 
            const client = new MongoClient(connectionString, {
              useNewUrlParser: true,
              useUnifiedTopology: true,
            });
 
-           client.connect()
-             .then((clientConnection) => {
-               const keyDB = clientConnection.db(keyVaultDb);
+           async function main() {
+             try {
+               await client.connect();
+               const keyDB = client.db(keyVaultDb);
                const keyColl = keyDB.collection(keyVaultCollection);
                const query = {
                  _id: base64KeyId,
                };
-               keyColl.findOne(query)
-                 .then((dataKey) => {
-                   console.log(dataKey);
-                 });
-             });
+               const dataKey = await keyColl.findOne(query);
+               console.log(dataKey);
+             } finally {
+               await client.close();
+             }
+           }
+           main();
 
         This code example should print a retrieved document that resembles the
         following:

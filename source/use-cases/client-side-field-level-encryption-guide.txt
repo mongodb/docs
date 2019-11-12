@@ -196,10 +196,6 @@ Additional Dependencies
              <https://www.npmjs.com/package/mongodb-client-encryption>`_
            - NodeJS wrapper for the ``libmongocrypt`` encryption library.
 
-         * - `secure-random
-             <https://www.npmjs.com/package/secure-random#nodejsbrowserify>`_
-           - Generate cryptographically strong random values.
-
          * - `uuid-base64
              <https://www.npmjs.com/package/uuid-base64#installation>`_
            - Convert between Base64 and hexadecimal UUIDs.
@@ -276,27 +272,21 @@ To begin development, MedcoMD engineers generate a locally-managed master key:
 
       .. code-block:: javascript
 
-        const fs = require("fs");
-        const secureRandom = require("secure-random");
+        const fs = require('fs');
+        const crypto = require('crypto');
 
-        const wstream = fs.createWriteStream("master-key.txt");
-        const data = secureRandom.randomUint8Array(96);
-        wstream.write(data);
-        wstream.end();
-
-      .. note::
-
-         This code includes a dependency on the ``secure-random``
-         npm package. See the `npmjs documentation on the secure-random
-         package <https://www.npmjs.com/package/secure-random>`_ for
-         installation instructions.
+        try {
+          fs.writeFileSync('master-key.txt', crypto.randomBytes(96));
+        } catch (err) {
+          console.error(err);
+        }
    .. tab::
       :tabid: python
 
       The following script generates a 96-byte locally-managed master key and
       saves it to a file called ``master-key.txt`` in the directory
       from which the script is executed.
-      
+
       .. code-block:: python
 
         import os
@@ -344,10 +334,10 @@ locally-managed master key.
       <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-csfle-data-encryption-key/DataEncryptionKeyGenerator.js>`_.
 
       .. note::
-      
+
          The code linked above includes a dependency on the
          ``mongo-client-encryption`` npm package. See the `npmjs
-         documentation on the mongodb-client-encryption package 
+         documentation on the mongodb-client-encryption package
          <https://www.npmjs.com/package/mongodb-client-encryption>`_ for
          installation instructions.
    .. tab::
@@ -623,23 +613,21 @@ MedcoMD engineers write a function to create a new patient record:
 
       .. code-block:: javascript
 
-         function insertPatient(collection, name, ssn, bloodType, medicalRecords,  policyNumber, provider) {
-             collection.insertOne({
-                name: name,
-                ssn: ssn,
-                bloodType: bloodType,
-                medicalRecords: medicalRecords,
-                insurance: {
-                    policyNumber: policyNumber,
-                    provider: provider
-                }
-             })
-             .then((writeResult) => {
-                 console.log("writeResult:", writeResult);
-             })
-             .catch((writeError) => {
-                 console.log("writeError occurred:", writeError);
-             })
+         async function insertPatient(collection, name, ssn, bloodType, medicalRecords, policyNumber, provider) {
+           try {
+             const writeResult = await collection.insertOne({
+               name,
+               ssn,
+               bloodType,
+               medicalRecords,
+               insurance: {
+                 policyNumber,
+                 provider
+               }
+             });
+           } catch (writeError) {
+             console.error('writeError occurred:', writeError);
+           }
          }
    .. tab::
       :tabid: python
