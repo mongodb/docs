@@ -1,19 +1,37 @@
-**For macOS systems**:
-
-- To view the keep alive setting, issue the following command:
+- To view the keepalive setting on macOS, issue the following command:
 
   .. code-block:: sh
 
      sysctl net.inet.tcp.keepinit
 
+<<<<<<< HEAD
 - To change the ``net.inet.tcp.keepinit`` value, you can use the
   following command:
 
   .. code-block:: sh
 
      sysctl -w net.inet.tcp.keepinit=<value>
+=======
+  The value is measured in milliseconds.
 
-  The above method for setting the TCP keepalive is not persistent; you
-  will need to reset the value each time you reboot or restart a
-  system. See your operating system’s documentation for instructions on
-  setting the TCP keepalive value persistently.
+  |
+
+- To change the ``net.inet.tcp.keepidle`` value, you can use the
+  following command, supplying a *<value>* in milliseconds:
+
+  .. code-block:: sh
+
+     sudo sysctl net.inet.tcp.keepidle=<value>
+
+  This operation does not persist across system reboots, and must be
+  set each time your system reboots. See your operating system's
+  documentation for instructions on setting this value persistently.
+  Keepalive values greater than or equal to ``600000`` milliseconds
+  (10 minutes) will be ignored by :binary:`~bin.mongod` and
+  :binary:`~bin.mongos`.
+
+  .. note::
+>>>>>>> 246c5d3e7... DOCSP-712 Audit of keepalive recommendations
+
+     In macOS 10.15 Catalina, Apple no longer allows for configuration
+     of the ``net.inet.tcp.keepidle`` option.
