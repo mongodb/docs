@@ -43,7 +43,7 @@
      - ``50``
      - ``50``
 
-   * - ``max_num_columns_per_table``
+   * - ``max_num_fields_per_collection``
      - integer
      - The maximum number of unique fields that ``mongosqld`` maps to
        relational columns for a collection.
