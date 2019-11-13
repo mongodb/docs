@@ -1,4 +1,6 @@
 
+.. _alerts-list-agent:
+
 Agent
 -----
 
@@ -58,6 +60,8 @@ Agent
      - New agent
      - Project, Global
 
+.. _alerts-list-auto-config:
+
 Automation Configuration
 ------------------------
 
@@ -72,6 +76,8 @@ Automation Configuration
    * - :alert-type:`AUTOMATION_CONFIG_PUBLISHED_AUDIT`
      - Deployment configuration published
      - Project, Global
+
+.. _alerts-list-backup:
 
 Backup
 ------
@@ -200,6 +206,8 @@ Backup
      - Backup sync has been initiated
      - Project, Global
 
+.. _alerts-list-bic:
+
 BI Connector
 ------------
 
@@ -218,6 +226,8 @@ BI Connector
    * - :alert-type:`BI_CONNECTOR_UP`
      - BI Connector is up
      - Project, Global
+
+.. _alerts-list-cluster:
 
 Cluster
 -------
@@ -246,6 +256,8 @@ Cluster
      - Shard removed
      - Project, Global
 
+.. _alerts-list-data-explorer:
+
 Data Explorer Accessed
 ----------------------
 
@@ -265,6 +277,8 @@ Data Explorer Accessed
      - User performed a Data Explorer CRUD operation, which modifies
        data
      - Project, Global
+
+.. _alerts-list-host:
 
 Host
 ----
@@ -413,6 +427,8 @@ Host
      - Host has the latest version
      - Project, Global
 
+.. _alerts-list-org:
+
 Organization
 ------------
 
@@ -473,6 +489,8 @@ Organization
      - Organization users do not have two-factor authentication enabled
      - Organization, Global
 
+.. _alerts-list-project:
+
 Project
 -------
 
@@ -491,6 +509,8 @@ Project
    * - :alert-type:`USERS_WITHOUT_MULTIFACTOR_AUTH`
      - Users do not have two-factor authentication enabled
      - Project, Global
+
+.. _alerts-list-replica-set:
 
 Replica Set
 -----------
@@ -547,6 +567,8 @@ Replica Set
      - Replica set has too many unhealthy members
      - Project, Global
 
+.. _alerts-list-team:
+
 Team
 ----
 
@@ -589,6 +611,8 @@ Team
    * - :alert-type:`USER_ADDED_TO_TEAM`
      - User added to team
      - Organization, Global
+
+.. _alerts-list-user:
 
 User
 ----
