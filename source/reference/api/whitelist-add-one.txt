@@ -60,11 +60,11 @@ whitelist entry you want to add to the project. You must specify
 an array even if you are only associating a single whitelist entry
 to the project.
 
-When you submit a ``POST`` request containing ``ipAddress`` or
-``cidrBlock`` values which are not already present in the whitelist,
-|service| adds those entries to the list of existing entries in the
-whitelist. |service| does *not* set the whtelist to only contain the
-entries specified in the request.
+When you submit a ``POST`` request containing ``awsSecurityGroup``,
+``ipAddress``, or ``cidrBlock`` values which are not already present in
+the whitelist, |service| adds those entries to the list of existing
+entries in the whitelist. |service| does *not* set the whitelist to only
+contain the entries specified in the request.
 
 .. list-table::
    :widths: 10 10 80
@@ -74,23 +74,34 @@ entries specified in the request.
      - Type
      - Description
 
+   * - ``awsSecurityGroup``
+     - string
+     - ID of the |aws| security group to whitelist. Mutually exclusive
+       with ``cidrBlock`` and ``ipAddress``.
+
+       .. note::
+
+          You must :ref:`configure VPC peering <vpc-peering>` for your
+          project before you can whitelist an |aws| security group.
+
    * - ``cidrBlock``
      - string
-     - The whitelist entry in Classless Inter-Domain Routing (CIDR)
-       notation. Mutually exclusive with ``ipAddress``.
+     - Whitelist entry in Classless Inter-Domain Routing (CIDR)
+       notation. Mutually exclusive with ``awsSecurityGroup`` and
+       ``ipAddress``.
 
    * - ``ipAddress``
      - string
-     - The whitelisted IP address. Mutually exclusive with
-       ``cidrBlock``.
+     - Whitelisted IP address. Mutually exclusive with
+       ``awsSecurityGroup`` and ``cidrBlock``.
 
    * - ``comment``
      - string
-     - *Optional* The comment associated with the whitelist entry.
+     - *Optional* Comment associated with the whitelist entry.
 
    * - ``deleteAfterDate``
      - date
-     - *Optional* The `ISO-8601
+     - *Optional* `ISO-8601
        <https://en.wikipedia.org/wiki/ISO_8601>`_-formatted UTC date
        after which |service| removes the entry from the whitelist. The
        specified date must be in the future and within one week of the
@@ -135,6 +146,10 @@ Example Request
          {
            "cidrBlock" : "203.0.113.0/24",
            "comment" : "CIDR block for Application Server B - D"
+         },
+         {
+           "awsSecurityGroup" : "sg-0026348ec11780bd1",
+           "comment" : "Whitelisted AWS Security Group"
          }
        ]'
 
@@ -173,7 +188,17 @@ Example Response
              "rel": "self"
            }
          ]
-       }
+       },
+       {
+         "awsSecurityGroup": "sg-0026348ec11780bd1",
+         "comment": "Whitelisted AWS Security Group",
+         "groupId": "5bbfb39280eef5488e6020c6",
+         "links": [
+           {
+             "href" : "https://cloud.mongodb.com/api/atlas/v1.0/groups/5aec7afbf7d068e35a39809b/whitelist/sg-0026348ec11780bd1",
+             "rel": "self"
+           }
+         ]
      ],
-     "totalCount": 2
+     "totalCount": 3
    }

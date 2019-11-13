@@ -6,16 +6,20 @@
      - Type
      - Description
 
+   * - ``awsSecurityGroup``
+     - string
+     - ID of the whitelisted |aws| security group. Mutually exclusive
+       with ``cidrBlock`` and ``ipAddress``.
+
    * - ``cidrBlock``
      - string
-     - The whitelist entry in Classless Inter-Domain Routing (CIDR)
-       notation.
+     - Whitelist entry in Classless Inter-Domain Routing (CIDR)
+       notation. Mutually exclusive with ``awsSecurityGroup`` and
+       ``ipAddress``.
 
    * - ``ipAddress``
      - string
-     - The whitelisted IP address. Only present for entries
-       not created using :abbr:`CIDR (Classless Inter-Domain Routing)`
-       notation.
+     - Whitelisted IP address. Mutually exclusive with ``awsSecurityGroup`` and ``cidrBlock``.
 
    * - ``groupId``
      - string
@@ -23,17 +27,17 @@
 
    * - ``comment``
      - string
-     - The comment associated with the whitelist entry.
+     - Comment associated with the whitelist entry.
 
    * - ``deleteAfterDate``
      - date
-     - The `ISO-8601 <https://en.wikipedia.org/wiki/ISO_8601>`_-
+     - `ISO-8601 <https://en.wikipedia.org/wiki/ISO_8601>`_-
        formatted date after which |service| deletes the temporary
-       whitelist entry. This field is only present for if an
+       whitelist entry. This field is only present if an
        expiration date was specified when creating the entry.
 
    * - ``links``
      - object array
-     - This array includes a :ref:`link <api-linking>`
+     - Includes a :ref:`link <api-linking>`
        to the whitelist entry, including the HTML-escaped IP or
        :abbr:`CIDR (Classless Inter-Domain Routing)` address.
