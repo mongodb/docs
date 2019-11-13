@@ -95,7 +95,7 @@
                            .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64-rpm.rst
 
                        - id: v7
-                         name: 7.x
+                         name: 7.x/8.x
                          content: |
 
                            Running RHEL / CentOS 7.x, SUSE 12, or
