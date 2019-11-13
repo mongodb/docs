@@ -1,0 +1,136 @@
+.. _security-ldaps-onelogin:
+
+===================================================================
+Configure User Authentication and Authorization with OneLogin VLDAP 
+===================================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: connect
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+.. |ldap-provider-link| replace:: `OneLogin <https://www.onelogin.com/>`__
+.. |ldap-provider| replace:: OneLogin
+.. |skip-ldap-link| replace:: :ref:`Skip this section <skip-onelogin-authz>`
+
+.. include:: /includes/ldap-provider-intro.rst
+
+Limitations
+-----------
+
+- You must deploy ``M10`` or larger |service| clusters to enable |ldap| 
+  integration. |ldap| integration is an |service| Enterprise feature.
+- |service| does not support authenticating and authorizing users
+  synchronized from existing LDAP directories. |service| only supports 
+  authenticating and authorizing OneLogin users. 
+- |service| does not support single sign-on integration 
+  for the |service| administrative web interface. |service| only 
+  supports authenticating and authorizing database users from OneLogin.
+
+Procedures
+----------
+
+.. _configure-onelogin-ldap:
+
+Configure |ldap-provider| for LDAP Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following procedure configures |ldap-provider| for authentication 
+with |service|:
+
+.. include:: /includes/steps/ldap-authn-configure-onelogin.rst
+
+Configure |service| for LDAP Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following procedure enables |service| to authenticate database users from 
+|ldap-provider| |ldap|:
+
+.. include:: /includes/steps/configure-authentication-ldaps-onelogin.rst
+
+.. _configure-onelogin-authz:
+
+Configure |ldap-provider| for LDAP Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-skip-if-ldap-authz-disabled.rst
+
+The following procedure configures |service| to authorize users who 
+belong to |ldap-provider| |ldap| database access groups.
+
+.. include:: /includes/fact-ldap-authz-intro.rst
+
+.. include:: /includes/steps/ldap-configure-authz-onelogin.rst
+
+Configure |service| for LDAP Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-skip-if-ldap-authz-disabled.rst
+
+The following procedure adds the |ldap-provider| database access 
+groups to |service| and enables database user authorization in 
+|service|:
+
+.. include:: /includes/steps/configure-authorization-ldaps-onelogin.rst
+
+.. _skip-onelogin-authz:
+
+Connect to your Cluster using the Mongo Shell
+---------------------------------------------
+
+The following procedure verifies that |ldap| authentication (and |ldap|
+authorization, if enabled) is configured correctly:
+
+.. include:: /includes/fact-ldap-auth-connect-params.rst
+
+.. note:: 
+
+   It may take several minutes after completing the configuration or 
+   several failed attempts to connect before you can successfully 
+   connect to a cluster secured by OneLogin |ldap| authentication or 
+   authorization.
+
+   If you receive authentication or authorization errors when you 
+   connect, wait a few minutes then try to connect several more times 
+   before :ref:`troubleshooting <ldaps-onelogin-troubleshooting>`.
+
+.. include:: /includes/steps/ldap-auth-connect-mongo-shell.rst
+
+.. _ldaps-onelogin-troubleshooting:
+
+Troubleshoot LDAP Connection Issues
+-----------------------------------
+
+.. note::
+
+   :ref:`Whitelist the machine <configure-onelogin-ldap>` you're 
+   running ``ldapsearch`` from before you troubleshoot OneLogin 
+   connection issues.
+
+.. include:: /includes/ldap-troubleshooting-intro.rst
+
+.. code-block:: sh
+
+   ldapsearch -H 'ldaps://ldap.us.onelogin.com:636' -D '<bind_user_dn>' -w '<bind_user_pwd>' -b 'dc=<onelogin_instance_id>,dc=onelogin,dc=com' -s sub
+
+For example, if your ``bind-user-dn`` is 
+``cn=jane@example.com,ou=users,dc=mdb-example,dc=onelogin,dc=com``
+and your ``<onelogin-instance-id>`` is ``mdb-example``, use the 
+following command:
+
+.. code-block:: sh
+   :copyable: false
+
+   ldapsearch -H 'ldaps://ldap.us.onelogin.com:636' -D 'cn=jane@example.com,ou=users,dc=mdb-example,dc=onelogin,dc=com' -w '<REDACTED>' -b 'dc=mdb-example,dc=onelogin,dc=com' -s sub
+
+.. note::
+     
+   Other query templates may also work.
