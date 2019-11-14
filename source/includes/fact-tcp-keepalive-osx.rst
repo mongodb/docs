@@ -4,14 +4,6 @@
 
      sysctl net.inet.tcp.keepinit
 
-<<<<<<< HEAD
-- To change the ``net.inet.tcp.keepinit`` value, you can use the
-  following command:
-
-  .. code-block:: sh
-
-     sysctl -w net.inet.tcp.keepinit=<value>
-=======
   The value is measured in milliseconds.
 
   |
@@ -31,7 +23,6 @@
   :binary:`~bin.mongos`.
 
   .. note::
->>>>>>> 246c5d3e7... DOCSP-712 Audit of keepalive recommendations
 
      In macOS 10.15 Catalina, Apple no longer allows for configuration
      of the ``net.inet.tcp.keepidle`` option.
