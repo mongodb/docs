@@ -1,0 +1,170 @@
+title: "In the :guilabel:`Security` section of the left navigation,
+  click :guilabel:`Network Access`."
+ref: network-access-pl
+level: 4
+stepnum: 1
+---
+title: "In the :guilabel:`Private Endpoint` tab, click :icon-fa5:`plus`
+  :guilabel:`Add PrivateLink Connection`."
+ref: add-privatelink-connection-pl
+level: 4
+stepnum: 2
+---
+title: "Select the |aws| region in which you want to create the 
+  |service| |vpc|, then click :guilabel:`Next`."
+ref: select-region-pl
+level: 4
+stepnum: 3
+content: |
+   You must select the same region in which your |aws| |vpc| 
+   resides.
+
+   .. note::
+      If your organization has no payment information stored, |service| 
+      prompts you to add it before continuing.
+
+   |service| creates |vpc| resources in the region
+   you selected. This might take several minutes to complete.
+---
+title: "Create the Atlas VPC Endpoint and your VPC Endpoint Interface."
+ref: aws-vpc-details-pl
+level: 4
+stepnum: 4
+content: |
+
+  a. Enter the following details about your |aws| |vpc|:
+
+     .. list-table::
+        :widths: 20 80
+
+        * - :guilabel:`Your VPC ID`
+          - Unique identifier of the peer |aws| |vpc|. Find this value on 
+            the |vpc| dashboard in your |aws| account.
+
+        * - :guilabel:`Your Subnet IDs`
+          - Unique identifiers of the subnets your |aws| |vpc| uses. 
+            Find these values on the :guilabel:`Subnet` dashboard in your |aws| account.
+
+  #. Copy the command the dialog displays and run it using the |aws| 
+     CLI.
+
+     .. note::
+      
+        You can't copy the command until |service| finishes
+        creating |vpc| resources in the background.
+
+        See :aws:`Creating an Interface Endpoint </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>` to perform this 
+        task using the |aws| CLI.
+
+     |aws| creates the private endpoint and connects it from your |vpc|
+     to the |service| |vpc| using the details you provided.
+     
+  #. You may receive an error like the following when you create the 
+     private endpoint:
+
+     .. code-block:: sh
+        :copyable: false
+
+        An error occurred (InvalidParameter) when calling the CreateVpcEndpoint 
+        operation: The VPC endpoint service com.amazonaws.vpce.us-east-1.vpce-svc-<...> 
+        does not support the availability zone of the subnet: subnet-<...>.
+
+     If you receive this error, |service| has deployed |vpc| 
+     resources into different availability zones than the ones to 
+     which you deployed your |vpc| subnets. To resolve this error: 
+      
+     i. :aws:`Describe the service endpoint </cli/latest/reference/ec2/
+        describe-vpc-endpoint-services.html>` on the ``service-name`` 
+        from the command displayed in the CLI command in the |service| 
+        UI.
+
+     #. Deploy a |vpc| subnet into at least one of the availability 
+        zones the service endpoint supports.
+
+     #. Create the private endpoint again using the |vpc| subnet IDs you
+        deployed into the supported availability zones. If you're using
+        the |aws| CLI, Replace the :guilabel:`Subnet IDs` in the 
+        |service| UI with the |vpc| subnets you deployed. Copy the 
+        displayed command again, then run it using the |aws| CLI.
+           
+  #. Click :guilabel:`Next`.
+---
+title: "Create the Application VPC Endpoint."
+ref: aws-private-endpoint-details-pl
+level: 4
+stepnum: 5
+content: |
+
+  a. Enter the following details about your |aws| private endpoints:
+
+     .. list-table::
+        :widths: 20 80
+
+        * - :guilabel:`Your VPC Endpoint ID`
+          - A 22-character alphanumeric string that identifies your 
+            private endpoint. Find this value on the |aws| VPC 
+            Dashboard under :guilabel:`Endpoints` > 
+            :guilabel:`Endpoint ID`.
+
+        * - :guilabel:`Your VPC Endpoint Hostname`
+          - The hostname of your private endpoint. Find this value on the
+            |aws| VPC Dashboard under 
+            :guilabel:`Endpoints` > :guilabel:`DNS Name`.
+
+            .. note::
+             
+               The |aws| UI might list multiple :guilabel:`DNS names`: one 
+               for the region and one for each availability zone to which 
+               the endpoint is deployed. 
+
+               Use the :guilabel:`DNS Name` for the region. This is the 
+               first :guilabel:`DNS Name` in the list.
+
+  #. Click :guilabel:`Create`.
+
+---
+title: "Configure the |vpc| endpoint security group to allow compute 
+  instances to access it."
+ref: attach-sg-pl
+level: 4
+stepnum: 6
+content: |
+
+  You can whitelist resources on the |vpc| endpoint security group using
+  several methods, including the following:
+
+  - :aws:`Attach the VPC endpoint security group </vpc/latest/userguide/VPC_SecurityGroups.html#SG_Changing_Group_Membership>` 
+    to the compute instances launched into your |vpc|. 
+  - :aws:`Whitelist instance IP addresses or security groups </AWSEC2/latest/UserGuide/ec2-security-groups.html#adding-security-group-rule>` 
+    to allow traffic from them to reach the |vpc| endpoint security 
+    group. 
+
+---
+title: "Verify that the {+aws-pl+} private endpoint is available."
+ref: verify-active-pl
+level: 4
+stepnum: 7
+content: |
+
+  You can connect to an |service| cluster using the {+aws-pl+} private 
+  endpoint when all of the resources are configured and the private
+  endpoint becomes available.
+
+  To verify that the {+aws-pl+} private endpoint is available:
+
+  a. In the :guilabel:`Security` section of the left navigation,
+     click :guilabel:`Network Access`.
+  #. In the :guilabel:`Private Endpoint` tab, verify the following 
+     statuses for the region that contains the cluster 
+     you want to connect to using {+aws-pl+}:
+
+     .. list-table::
+        :widths: 20 80
+
+        * - :guilabel:`Atlas Endpoint Service Status`
+          - Ready for connection requests
+           
+        * - :guilabel:`Interface Endpoint Status`
+          - Available
+
+...
