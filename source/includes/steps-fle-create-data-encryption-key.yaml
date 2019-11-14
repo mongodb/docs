@@ -11,19 +11,23 @@ content: |
         :tabid: java-sync
 
         .. code-block:: java
-           :emphasize-lines: 11
+           :emphasize-lines: 6
 
            String path = "master-key.txt";
 
-           byte[] fileBytes = new byte[96];
+           byte[] localMasterKey= new byte[96];
 
            try (FileInputStream fis = new FileInputStream(path)) {
-             fileBytes = fis.readAllBytes();
-           } catch (IOException e) {
-             e.printStackTrace();
+               fis.readNBytes(localMasterKey, 0, 96);
            }
+        .. note::
 
-           final byte[] localMasterKey = Arrays.copyOf(fileBytes, 96);
+           The `FileInputStream#readNBytes <https://docs.oracle.com/javase/9/docs/api/java/io/InputStream.html#readNBytes-byte:A-int-int->`_
+           method was introduced in Java 9. The helper method is used in
+           this guide to keep the implementation concise. If you are using
+           JDK 8, you may consider
+           `implementing a custom solution <https://stackoverflow.com/questions/858980/file-to-byte-in-java>`_
+           to read a file into a byte array.
      .. tab::
         :tabid: nodejs
 
@@ -62,15 +66,13 @@ content: |
         for the ClientEncryptionSettings Builder.
 
         .. code-block:: java
-           :emphasize-lines: 4,5
+           :emphasize-lines: 2,5
 
-           String kmsProvider = "local";
+           Map<String, Object> keyMap = new HashMap<String, Object>();
+           keyMap.put("key", localMasterKey);
 
-           Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>() {{
-             put(kmsProvider, new HashMap<String, Object>() {{
-               put("key", localMasterKey);
-             }});
-           }};
+           Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
+           kmsProviders.put("local", keyMap);
      .. tab::
         :tabid: nodejs
 
@@ -115,18 +117,18 @@ content: |
            String keyVaultNamespace = "encryption.__keyVault";
 
            ClientEncryptionSettings clientEncryptionSettings = ClientEncryptionSettings.builder()
-             .keyVaultMongoClientSettings(MongoClientSettings.builder()
-               .applyConnectionString(new ConnectionString(connectionString))
-               .build())
-             .keyVaultNamespace(keyVaultNamespace)
-             .kmsProviders(kmsProviders)
-             .build();
+               .keyVaultMongoClientSettings(MongoClientSettings.builder()
+                   .applyConnectionString(new ConnectionString(connectionString))
+                   .build())
+               .keyVaultNamespace(keyVaultNamespace)
+               .kmsProviders(kmsProviders)
+               .build();
 
            ClientEncryption clientEncryption = ClientEncryptions.create(clientEncryptionSettings);
            BsonBinary dataKeyId = clientEncryption.createDataKey(kmsProvider, new DataKeyOptions());
            System.out.println("DataKeyId [UUID]: " + dataKeyId.asUuid());
 
-           final String base64DataKeyId = Base64.getEncoder().encodeToString(dataKeyId.getData());
+           String base64DataKeyId = Base64.getEncoder().encodeToString(dataKeyId.getData());
            System.out.println("DataKeyId [base64]: " + base64DataKeyId);
 
         The ``createDataKey()`` method returns a :java-docs-latest:`BsonBinary
@@ -190,7 +192,7 @@ content: |
 
            client = MongoClient(connection_string)
            client_encryption = ClientEncryption(
-               kms_providers,  # pass in the kms_providers variable from  the previous step
+               kms_providers, # pass in the kms_providers variable from the previous step
                key_vault_namespace,
                client,
                CodecOptions(uuid_representation=STANDARD)
@@ -338,7 +340,7 @@ content: |
                _bsontype: 'Binary',
                sub_type: 0,
                position: 160,
-               buffer: <Buffer f1 4a 9f bd aa ac c9 89 e9 b3 da 48 72 8e a8 62 97 2a 4a a0 d2 d4 2d a8 f0 74 9c 16 4d  2c 95 34 19 22 05 05 84 0e 41 42 12 1e e3 b5 f0 b1 c5 a8 37 b8 ... 110 more bytes>
+               buffer: <Buffer f1 4a 9f bd aa ac c9 89 e9 b3 da 48 72 8e a8 62 97 2a 4a a0 d2 d4 2d a8 f0 74 9c 16 4d 2c 95 34 19 22 05 05 84 0e 41 42 12 1e e3 b5 f0 b1 c5 a8 37 b8 ... 110 more bytes>
              },
              creationDate: 2019-09-25T22:22:54.017Z,
              updateDate: 2019-09-25T22:22:54.017Z,

@@ -46,18 +46,19 @@ content: |
         :tabid: java-sync
 
         .. code-block:: java
-           :emphasize-lines: 5-8
+           :emphasize-lines: 7-9, 11
 
-           final BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
-           final BsonString awsAccessKeyId = new BsonString("<IAM User Access Key ID>");
-           final BsonString awsSecretAccessKey = new BsonString("<IAM User Secret Access Key>");
-           Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>() {{
-             put("aws", new HashMap<String, Object>() {{
-               put("region", masterKeyRegion);
-               put("accessKeyId", awsAccessKeyId);
-               put("secretAccessKey", awsSecretAccessKey);
-             }});
-           }};
+           BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
+           BsonString awsAccessKeyId = new BsonString("<IAM User Access Key ID>");
+           BsonString awsSecretAccessKey = new BsonString("<IAM User Secret Access Key>");
+           Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
+           Map<String, Object> providerDetails = new HashMap<String, Object>();
+
+           providerDetails.put("accessKeyId", awsAccessKeyId);
+           providerDetails.put("secretAccessKey", awsSecretAccessKey);
+           providerDetails.put("region", masterKeyRegion);
+
+           kmsProviders.put("aws", providerDetails);
      .. tab::
         :tabid: nodejs
 
@@ -100,7 +101,7 @@ content: |
         :tabid: java-sync
 
         .. code-block:: Java
-           :emphasize-lines: 9-14, 17
+           :emphasize-lines: 9-14, 16-17
 
            ClientEncryption clientEncryption = ClientEncryptions.create(ClientEncryptionSettings.builder()
                .keyVaultMongoClientSettings(MongoClientSettings.builder()
@@ -110,12 +111,12 @@ content: |
                .kmsProviders(kmsProviders)
                .build());
 
-           final BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
-           final BsonString masterKeyArn = new BsonString("<Master Key ARN>"); // e.g. "arn:aws:kms:us-east-2:111122223333:alias/test-key"
-           DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(new BsonDocument() {{
-             put("region", masterKeyRegion);
-             put("key", masterKeyArn);
-           }})
+           BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
+           BsonString masterKeyArn = new BsonString("<Master Key ARN>"); // e.g. "arn:aws:kms:us-east-2:111122223333:alias/test-key"
+           DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
+               new BsonDocument()
+                   .append("region", masterKeyRegion)
+                   .append("key", masterKeyArn));
 
            BsonBinary dataKeyId = clientEncryption.createDataKey("aws", dataKeyOptions);
            String base64DataKeyId = Base64.getEncoder().encodeToString(dataKeyId.getData());
