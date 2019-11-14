@@ -15,14 +15,11 @@
 
      The value is measured in seconds.
 
-<<<<<<< HEAD
-=======
      .. note::
 
         Although the setting name includes ``ipv4``, the
         ``tcp_keepalive_time`` value applies to both IPv4 and IPv6.
 
->>>>>>> 246c5d3e7... DOCSP-712 Audit of keepalive recommendations
 - To change the ``tcp_keepalive_time`` value, you can use one of the
   following commands, supplying a *<value>* in seconds:
 
