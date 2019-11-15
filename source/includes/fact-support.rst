@@ -19,8 +19,8 @@ MongoDB Atlas or Cloud Manager
    account <https://cloud.mongodb.com/user>`_ and open a
    support ticket.
 
-MongoDB Enterprise, Professional, or Ops Manager
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MongoDB Enterprise or Ops Manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container::
 
