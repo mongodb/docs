@@ -10,7 +10,7 @@ content: |
 
    .. literalinclude:: /reference/k8s/example-opsmgr-minimal.yaml
       :language: yaml
-      :emphasize-lines: 5-10,12-13
+      :emphasize-lines: 5,7-11,13-14
 
 ---
 title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
@@ -43,6 +43,16 @@ content: |
              - |k8s| documentation on :k8sdocs:`names </concepts/overview/working-with-objects/names/>`.
 
         - ``om``
+
+      * - :opsmgrkube:`spec.replicas`
+        - number
+        - Number of |onprem| instances to run in parallel.
+
+          The minimum valid value is ``1``.
+
+          .. include:: /includes/note-highly-available-om.rst
+
+        - ``1``
 
       * - :opsmgrkube:`spec.version`
         - string
@@ -187,9 +197,48 @@ content: |
   .. code-block:: sh
 
      kubectl get om -n <namespace> -o yaml -w
+
+  The command returns the following output under the ``status`` field
+  while the resource deploys:
   
-  The ``-w`` flag means "watch". With the "watch" flag set, the output
-  refreshes immediately when something changes.
+  .. code-block:: yaml
+     :copyable: false
+
+     status:
+      applicationDatabase:
+       lastTransition: "2019-11-15T19:48:01Z"
+       message: AppDB Statefulset is not ready yet
+       phase: Reconciling
+       type: ""
+       version: ""
+      opsManager:
+       lastTransition: "2019-11-15T19:48:01Z"
+       message: Ops Manager is still waiting to start
+       phase: Reconciling
+       version: ""
+
+  After the resource completes the ``Reconciling`` phase, the command
+  returns the following output under the ``status`` field: 
+
+  .. code-block:: yaml
+     :copyable: false
+
+     status:
+      applicationDatabase:
+       lastTransition: "2019-11-05T17:26:42Z"
+       phase: Running
+       type: ""
+       version: 4.0.7
+      opsManager:
+       lastTransition: "2019-11-05T17:26:34Z"
+       phase: Running
+       replicas: 1
+       url: http://om-test-svc.dev.svc.cluster.local:8080
+       version: 4.2.0
+
+  The ``status.opsManager.url`` is the connection URL of the resource,
+  which can be used to reach |onprem| from inside the |k8s|
+  cluster.
 
   If the deployment fails, see :doc:`/reference/troubleshooting`.
 
