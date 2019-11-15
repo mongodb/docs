@@ -7,8 +7,8 @@ The MongoDB Community Support forum is a community forum where experienced
 MongoDB users and MongoDB Community Support Engineers participate in
 discussions.
 
-MongoDB Enterprise, Professional, or Ops Manager
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MongoDB Enterprise or Ops Manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For technical support questions, please file a ticket through the
 `MongoDB Support Portal <https://support.mongodb.com?jmp=docs>`_.
