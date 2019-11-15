@@ -17,8 +17,8 @@
 
    * - RHEL/CentOS 6
      - |checkmark|
-     - 
-     - 
+     - Removed starting in 3.6.14
+     - Removed starting in 3.4.22
 
    * - SLES12
      - 4.0.6+
