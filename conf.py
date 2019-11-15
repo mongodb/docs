@@ -157,7 +157,6 @@ rst_epilog.extend(get_replacements(conf))
 rst_epilog = '\n'.join(rst_epilog)
 
 source_constants = {
-    'aws-pl': 'AWS PrivateLink',
     'data-lake-store': 'data store',
     'data-lake-stores': 'data stores',
     'data-lake' : 'Atlas Data Lake',
