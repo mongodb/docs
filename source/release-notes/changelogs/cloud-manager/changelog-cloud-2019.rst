@@ -1,3 +1,15 @@
+.. _cloudmanager-v20191112:
+
+18 November 2019 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Enables API management for third party service integrations.
+- Removes Automation for MongoDB 3.2 clusters.
+- Introduces the ``humanReadable`` field to webhook alert notifications. This 
+  field contains a human-readable description of the alert.
+- Enhancements to index recommendations in :doc:`Performance 
+  Advisor </performance-advisor/index-ranking>`.
+
 .. _cloudmanager-v20191001:
 
 01 October 2019 Release
