@@ -65,15 +65,19 @@
 
         - id: repl
           content: |
-            .. literalinclude:: /reference/k8s/example-replica-set-minimal.yaml
+            .. literalinclude:: /reference/k8s/example-replica-set.yaml
                :language: yaml
-               :emphasize-lines: 3,14
+               :lines: 1-17, 25
+               :linenos:
+               :emphasize-lines: 3,16
 
         - id: shard
           content: |
-            .. literalinclude:: /reference/k8s/example-sharded-cluster-minimal.yaml
+            .. literalinclude:: /reference/k8s/example-sharded-cluster.yaml
                :language: yaml
-               :emphasize-lines: 3,17
+               :lines: 1-20, 28
+               :linenos:
+               :emphasize-lines: 3,19
 
    .. warning::
 

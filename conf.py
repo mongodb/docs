@@ -60,7 +60,8 @@ source_constants = {
     'version': version,
     'k8s-op-short': 'Kubernetes Operator',
     'aagent': 'MongoDB Agent or legacy Automation Agent',
-    'aagents': 'MongoDB Agents or legacy Automation Agents'
+    'aagents': 'MongoDB Agents or legacy Automation Agents',
+    'mdbagent': 'MongoDB Agent'
 }
 
 rst_epilog = '\n'.join([
