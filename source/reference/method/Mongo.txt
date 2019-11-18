@@ -86,7 +86,8 @@ client-side encryption for that connection. New database connections
 created using :method:`Mongo()` inherit the encryption settings *unless*
 :method:`Mongo()` includes ``ClientSideFieldLevelEncryptionOptions``. 
 
-The ``ClientSideFieldLevelEncryptionOptions`` document has the following syntax:
+The ``ClientSideFieldLevelEncryptionOptions`` document has the following
+syntax:
 
 .. code-block:: none
 
@@ -150,20 +151,22 @@ parameters:
        KMS *or* a Locally Managed Key:
 
        Amazon Web Services KMS
-        Specify the ``aws`` document to ``kmsProvider`` with the 
-        following fields:
+         .. include:: /includes/extracts/csfle-aws-kms-4.2.0-4.2.1-broken.rst
 
-        .. code-block:: json
+         Specify the ``aws`` document to ``kmsProvider`` with the 
+         following fields:
+
+         .. code-block:: json
        
-           "kmsProvider" : {
-              "aws" : {
-                "accessKeyId" : "AWSAccessKeyId",
-                "secretAccessKey" : "AWSSecretAccessKey"
-              }
-            }
+            "kmsProvider" : {
+               "aws" : {
+                 "accessKeyId" : "AWSAccessKeyId",
+                 "secretAccessKey" : "AWSSecretAccessKey"
+               }
+             }
        
-        The specified ``accessKeyId`` must correspond to an IAM user 
-        with all ``List`` and ``Read`` permissions for the KMS service.
+         The specified ``accessKeyId`` must correspond to an IAM user 
+         with all ``List`` and ``Read`` permissions for the KMS service.
 
        Locally Managed Key
          Specify the ``local`` document to ``kmsProvider`` with  the
@@ -225,19 +228,33 @@ Issue operations against the ``cluster`` object to interact with the
 Connect to a MongoDB Cluster with Client-Side Encryption Enabled
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following operation creates a new connection object from the 
-:binary:`~bin.mongo` shell. The connection object has client-side encryption
-enabled for performing manual encryption of fields:
+Configuring client-side field level encryption for a :ref:`locally
+managed key <field-level-encryption-local-kms>` requires specifying a
+base64-encoded 96-byte string with no line breaks. The following
+operation generates a key that meets the stated requirements and loads
+it into the :binary:`~bin.mongo` shell:
+
+.. code-block:: shell
+   :emphasize-lines: 1
+
+   TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
+    
+   mongo --nodb --shell --eval "var TEST_LOCAL_KEY='$TEST_LOCAL_KEY'"
+
+The following operation creates a new connection object from the
+:binary:`~bin.mongo` shell. The
+:ref:`ClientSideFieldLevelEncryptionOptions` option specifies
+the required options for enabling client-side field level encryption
+using a locally managed key:
 
 .. code-block:: javascript
-   :emphasize-lines: 11-14
+   :emphasize-lines: 4-6, 10-13
 
    var ClientSideFieldLevelEncryptionOptions = {
      "keyVaultNamespace" : "encryption.dataKeys",
      "kmsProviders" : {
-       "aws" : {
-         "accessKeyId" : "AWS_ACCESS_KEY_ID",
-         "secretAccessKey" : "AWS_SECRET_ACCESS_KEY"
+       "local" : {
+         "key" : BinData(0, TEST_LOCAL_KEY)
        }
      }
    }
@@ -272,21 +289,33 @@ a complete list of client-side field level encryption methods.
 Connect to a MongoDB Cluster with Automatic Client-Side Encryption Enabled
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Configuring client-side field level encryption for a :ref:`locally
+managed key <field-level-encryption-local-kms>` requires specifying a
+base64-encoded 96-byte string with no line breaks. The following
+operation generates a key that meets the stated requirements and loads
+it into the :binary:`~bin.mongo` shell:
+
+.. code-block:: shell
+   :emphasize-lines: 1
+
+   TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
+    
+   mongo --nodb --shell --eval "var TEST_LOCAL_KEY='$TEST_LOCAL_KEY'"
+
 The following operation creates a new connection object from the
-:binary:`~bin.mongo` shell. The connection object has 
-:ref:`automatic client-side encryption <field-level-encryption-automatic>` 
-enabled for performing automatic encryption of fields in the 
-``hr.employees`` collection:
+:binary:`~bin.mongo` shell. The
+:ref:`ClientSideFieldLevelEncryptionOptions` option specifies
+the required options for enabling :ref:`automatic client-side encryption 
+<field-level-encryption-automatic>` on the ``hr.employees`` collection:
 
 .. code-block:: javascript
-   :emphasize-lines: 25-28
+   :emphasize-lines: 4-6, 8-21, 24-27
 
    var ClientSideFieldLevelEncryptionOptions = {
      "keyVaultNamespace" : "encryption.dataKeys",
      "kmsProviders" : {
-       "aws" : {
-         "accessKeyId" : "AWS_ACCESS_KEY_ID",
-         "secretAccessKey" : "AWS_SECRET_ACCESS_KEY"
+       "local" : {
+         "key" : BinData(0,"BASE64-ENCODED-96-BYTE-LOCAL-KEY")
        }
      },
      schemaMap : {
