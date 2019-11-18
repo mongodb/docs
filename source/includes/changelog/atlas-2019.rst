@@ -1,3 +1,35 @@
+.. _atlas_20191112:
+
+18 November 2019 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports :doc:`Private Endpoints with AWS PrivateLink 
+  </security-private-endpoint>`.
+
+- Supports "Passwordless" X.509 authentication for database users.
+
+- Enhancements to index recommendations in 
+  :doc:`Performance Advisor </performance-advisor/index-ranking>`.
+
+- Enables always-on database-level authentication 
+  :ref:`access auditing <access-tracking>` for dedicated clusters. 
+
+- Enables API management for :doc:`third party service integrations 
+  </reference/api/third-party-integration-settings/>` like DataDog and Slack.
+
+- Enables API management for AWS security group IDs on the |service| 
+  :doc:`project whitelist </reference/api/whitelist/>` when using VPC peering.
+
+- Introduces the ``humanReadable`` field to webhook alert notifications. This 
+  field contains a human-readable description of the alert.
+
+- Includes new guides for configuring |service| to authenticate and authorize 
+  users from third-party LDAP providers:
+
+  - :doc:`/security-ldaps-okta`
+
+  - :doc:`/security-ldaps-onelogin`
+
 .. _atlas-v20191022:
 
 23 October 2019 Release
@@ -65,9 +97,6 @@
   European Economic Area in compliance with the second Payment Services
   Directive (PSD2). To learn more about Strong Customer Authentication,
   see :ref:`sca-changes`.
-
-- Enables always-on database-level authentication 
-  :ref:`access auditing <access-tracking>` for dedicated clusters.
 
 .. _atlas-v20190820:
 
