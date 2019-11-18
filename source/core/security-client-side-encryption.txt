@@ -91,14 +91,14 @@ the official MongoDB 4.2-compatible drivers:
 
 Explicit (manual) encryption of fields
   MongoDB 4.2-compatible drivers support explicitly encrypting
-  or decrypting fields with a specific data key and encryption
+  or decrypting fields with a specific data encryption key and encryption
   algorithm.
 
   Applications must modify any code associated with constructing read
   and write operations to include encryption/decryption logic via the
   driver encryption library. Applications are responsible for selecting
-  the appropriate data key for encryption/decryption on a per-operation
-  basis.
+  the appropriate data encryption key for encryption/decryption on a
+  per-operation basis.
 
   The 4.2 :binary:`~bin.mongo` shell provides the following methods for 
   performing explicit encryption and decryption:
@@ -204,17 +204,18 @@ protection from frequency analysis recovery.
 
 .. _field-level-encryption-random:
 
-Random Encryption
-~~~~~~~~~~~~~~~~~
+Randomized Encryption
+~~~~~~~~~~~~~~~~~~~~~
 
-The random encryption algorithm ensures that a given input value
+The randomized encryption algorithm ensures that a given input value
 *always* encrypts to a different output value each time the algorithm is
-executed. While random encryption provides the strongest guarantees of
-data confidentiality, it also prevents support for any read operations
-which must operate on the encrypted field to evaluate the query.
+executed. While randomized encryption provides the strongest guarantees
+of data confidentiality, it also prevents support for any read
+operations which must operate on the encrypted field to evaluate the
+query.
 
-Random encryption also supports encrypting entire objects or arrays. For
-example, consider the following document:
+Randomized encryption also supports encrypting entire objects or arrays.
+For example, consider the following document:
 
 .. code-block:: json
 
@@ -228,7 +229,7 @@ example, consider the following document:
    }
 
 Encrypting the ``personal_information`` and ``phone_numbers`` fields
-using the random encryption algorithm encrypts the *entire* object.
+using the randomized encryption algorithm encrypts the *entire* object.
 While this protects all fields nested under those fields, it also
 prevents querying against those nested fields. 
 
@@ -241,35 +242,36 @@ support on encrypted fields.
 Automatic Field Decryption
 --------------------------
 
-The :bsontype:`BinData <Binary>` blob metadata includes the data key
-``_id`` and encryption algorithm used to encrypt the binary data. The
-4.2-compatible drivers and 4.2 :binary:`~bin.mongo` shell use this
-metadata to attempt automatic decryption ``BinData`` type 6 values. The
-automatic decryption process works as follows:
+The :bsontype:`BinData <Binary>` blob metadata includes the data
+encryption key ``_id`` and encryption algorithm used to encrypt the
+binary data. The 4.2-compatible drivers and 4.2 :binary:`~bin.mongo`
+shell use this metadata to attempt automatic decryption ``BinData`` type
+6 values. The automatic decryption process works as follows:
 
 1. Check the :bsontype:`BinData <Binary>` blob metadata for the
-   data key and encryption algorithm used to encrypt the value.
+   data encryption key and encryption algorithm used to encrypt the
+   value.
 
 #. Check the key vault configured in the current database connection for
-   the specified data key. If the key vault does not contain the 
-   specified key, automatic decryption fails and the driver returns
+   the specified data encryption key. If the key vault does not contain
+   the specified key, automatic decryption fails and the driver returns
    the ``BinData`` blob.
    
-#. Check the data key metadata for the Customer Master Key used
-   to encrypt the key material. 
+#. Check the data encryption key metadata for the Customer Master Key
+   used to encrypt the key material. 
 
-#. For the Amazon Web Services KMS, send the data key to the
+#. For the Amazon Web Services KMS, send the data encryption key to the
    KMS service for decryption. If the CMK does not exist *or* if the
    connection configuration does not grant access to the CMK, 
    decryption fails and the driver returns the ``BinData`` blob.
 
-   For the Locally Managed Key, retrieve the local key and decrypt
-   the data key. If the local key specified in the database
-   configuration was not used to encrypt the data key, decryption
-   fails and the driver returns the ``BinData`` blob.
+   For the Locally Managed Key, retrieve the local key and decrypt the
+   data encryption key. If the local key specified in the database
+   configuration was not used to encrypt the data encryption key,
+   decryption fails and the driver returns the ``BinData`` blob.
 
 #. Decrypt the :bsontype:`BinData <Binary>` value using the decrypted
-   data key and appropriate algorithm.
+   data encryption key and appropriate algorithm.
 
 Applications with access to the MongoDB server that do not *also* have
 access to the required master key and data encryption keys cannot
@@ -300,12 +302,12 @@ the ``hr.employees`` collection to include a ``validator``. The
 level encryption keywords to indicate that:
 
 - The ``taxid`` field **must** be encrypted. Clients should use the
-  specified data key and the :ref:`Random
-  <field-level-encryption-deterministic>` encryption algorithm when
+  specified data encryption key and the :ref:`randomized
+  <field-level-encryption-random>` encryption algorithm when
   encrypting the field. 
 
 - The ``taxid-short`` field **must** be encrypted. Clients should use
-  the specified data key and the :ref:`Deterministic
+  the specified data encryption key and the :ref:`deterministic
   <field-level-encryption-deterministic>` encryption algorithm when
   encrypting the field.
 
@@ -381,11 +383,11 @@ encrypted field.
 
 For example, client ``A`` encrypts the ``PII`` field using random
 encryption while client ``B`` encrypts the ``PII`` field using
-deterministic encryption. The random encryption algorithm always returns
-a different unique value while the deterministic algorithm always
-returns the same value. Queries expecting deterministically encrypted
-data for that field return inconsistent results, as the server cannot
-match any of the randomly encrypted fields.
+deterministic encryption. The randomized encryption algorithm always
+returns a different unique value while the deterministic algorithm
+always returns the same value. Queries expecting deterministically
+encrypted data for that field return inconsistent results, as the server
+cannot match any of the randomly encrypted fields.
 
 .. _field-level-encryption-drivers:
 .. _csfle-driver-compatibility:

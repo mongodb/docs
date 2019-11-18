@@ -1,8 +1,8 @@
 .. _field-level-encryption-json-schema:
 
-=======================================
-Automatic Encryption JSON Schema Syntax
-=======================================
+==========================
+Automatic Encryption Rules
+==========================
 
 .. default-domain:: mongodb
 
@@ -16,199 +16,95 @@ Automatic Encryption JSON Schema Syntax
 
 .. include:: /includes/extracts/csfle-enterprise-atlas-only.rst
 
-Automatic client-side field level encryption requires specifying
-per-field encryption rules using the `JSON Schema Draft 4 standard
-syntax <https://tools.ietf.org/html/draft-zyp-json-schema-04>`_ and
-encryption-specific schema keywords:
+Automatic client-side field level encryption requires user-specified
+rules which identify which fields must be encrypted and how to encrypt
+those fields. Applications must specify the automatic encryption rules
+using a strict subset of the `JSON Schema Draft 4 standard syntax
+<https://tools.ietf.org/html/draft-zyp-json-schema-04>`_ and
+the following encryption-specific keywords:
 
-- :ref:`field-level-encryption-encrypt-keyword` - JSON schema keyword 
-  that specifies the encryption options to use when encrypting the 
+- :ref:`field-level-encryption-encrypt-keyword` - specifies the
+  encryption options to use when encrypting the 
   current field. 
 
-- :ref:`field-level-encryption-encryptMetadata-keyword` - JSON schema 
-  keyword that specifies inheritable encryption options.
+- :ref:`field-level-encryption-encryptMetadata-keyword` -  
+  specifies inheritable encryption options.
 
-Official 4.2-compatible drivers require specifying the automatic client-side
-field level encryption rules as a :term:`BSON` document. MongoDB drivers include
-a BSON library for producing the required BSON document, including parsing an
-:doc:`extended JSON string </reference/mongodb-extended-json>` into BSON. 
-
-For example, the ``employees`` collection in the ``hr`` database contains
-documents which resemble the following:
+Consider a MongoDB database where the ``employees`` collection in the
+``hr`` database contains documents which resemble the following:
 
 .. code-block:: json
 
    {
      "fname" : "Jo",
      "lname" : "Doe",
-     "ssn" : "123-45-6789",
-     "ssn-last" : "6789",
-     "position" : {
-       "compensation" : 250000,
-       "title" : "MongoDB Expert"
-     }
+     "taxid" : "123-45-6789",
+     "taxid-short" : "6789"
    }
 
-Consider the following JSON schema written as an :doc:`extended JSON string
-</reference/mongodb-extended-json>` and applied to the ``hr.employees``
-collection:
+The ``taxid`` and ``taxid-short`` fields contain personally identifiable
+information (PII) that must be protected from unauthorized viewing on
+both the client *and* the server. The following automatic encryption
+rules for the ``hr.employees`` collection mark the ``taxid`` and
+``taxid-short`` fields for automatic client-side field level encryption.
+Official MongoDB 4.2-compatible :ref:`drivers
+<field-level-encryption-drivers>` and the 4.2 :binary:`~bin.mongo` shell
+configured with these rules automatically encrypt the ``taxid``
+and ``taxid-short`` fields for write or read operations to the
+``hr.employees`` collection.
 
 .. code-block:: json
-   :emphasize-lines: 4-10, 16-27, 30-33, 38-44
-
+   :emphasize-lines: 5-9, 12-16
+   
    {
-     {
-       "bsonType" : "object",
-       "encryptMetadata" : {
-         "keyId" : [ 
-           { 
-             "$binary" : 
-               { 
-                 "base64" : "M2IyNDExMDEtZTJiYi00MjU1LThjYWYtNDEzNmM1NjZhOTYy", 
-                 "subType" : 4 
-               } 
-           } 
-         ]
-       },
-       "properties" : {
-         "ssn" : {
-           "encrypt" : {
-             "keyId" : [
-               {
-                 "$binary" :
-                   {
-                     "base64" : "OTk2MmIwNTctMzcxOC00YmNmLTg5ODgtMGJjNTE5NzM4ZTA=",
-                     "subType" : 4
-                   }
-               }
-             ],
-             "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
-           }
-         },
-         "ssn-last" : {
-           "encrypt" :{
-             "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
+     "hr.employees": {
+       "bsonType": "object",
+       "properties": {
+         "taxid": {
+           "encrypt": {
+             "keyId": [UUID("11d58b8a-0c6c-4d69-a0bd-70c6d9befae9")],
+             "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512_Random",
              "bsonType" : "string"
            }
          },
-         "position" : {
-           "bsonType" : "object",
-           "encryptMetadata" : {
-              "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
-           },
-           "properties" : {
-             "compensation" : {
-               "encrypt" : {
-                 "bsonType" : "int"
-               }
-             }
+         "taxid-short": {
+           "encrypt": {
+             "keyId": [UUID("2ee77064-5cc5-45a6-92e1-7de6616134a8")],
+             "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic",
+             "bsonType": "string"
            }
          }
        }
      }
    }
 
-The JSON schema specifies the following encryption behavior:
+- For the MongoDB 4.2 shell, use the :method:`Mongo` constructor
+  to create the database connection with the automatic encryption rules
+  included as part of the client-side field level encryption
+  :ref:`configuration object <ClientSideFieldLevelEncryptionOptions>`.
+  See :ref:`mongo-connection-automatic-client-side-encryption-enabled`
+  for an example.
 
-.. list-table::
-   :widths: 30 70
-   :header-rows: 1
-
-   * - Field
-     - Encryption Behavior
-
-   * - ``ssn``
-     - The field *must* be encrypted using the
-       :ref:`random <field-level-encryption-random>` encryption algorithm and
-       the data key UUID with matching ``keyId``. 
-       
-       The UUID is a BSON `binary data <http://bsonspec.org/spec.html>`_ element
-       of subtype ``4``. Drivers include a BSON library for constructing
-       a BSON document or parsing a JSON document into BSON using
-       :doc:`MongoDB Extended JSON </reference/mongodb-extended-json>`. 
-       
-       For applications specifying an 
-       :doc:`extended JSON string </reference/mongodb-extended-json>` for 
-       parsing, the UUID *must* be specified as a base64 encoded string inside 
-       of a :bsontype:`binary data <Binary>` subtype 4 object. The example above 
-       uses the extended JSON syntax to represent a UUID:
-
-       .. code-block:: json
-          :copyable: false
-
-          "$binary" :
-            {
-              "base64" : "OTk2MmIwNTctMzcxOC00YmNmLTg5ODgtMGJjNTE5NzM4ZTA=",
-              "subType" : 4
-            }
-       
-       The specified binary data object is equivalent to:
-
-       .. code-block:: none
-          :copyable: false
-          
-          UUID("9962b057-3718-4bcf-8988-0bc519738e0")
-
-       The field specifies all required encryption options and
-       does not inherit any settings from any parent
-       ``encryptMetadata``.
-
-   * - ``ssn-last``
-     - The field *must* be encrypted using the 
-       :ref:`deterministic <field-level-encryption-deterministic>` 
-       encryption algorithm, where the BSON type of ``ssn-last``
-       *must* be a string.
-
-       Since ``ssn-last.encrypt`` does not specify a ``keyId``, it inherits the
-       value from the nearest ancestor ``encryptMetadata`` schema object that
-       specifies that keyword.
-
-   * - ``position.compensation``
-     - The field *must* be encrypted, where the BSON type of 
-       ``position.compensation`` *must* be an integer.
-
-       Since ``position.compensation`` does not specify  ``algorithm`` or
-       ``keyId``, it inherits values for each key from the nearest ancestor
-       ``encryptionMetadata`` schema object that specifies those keywords. Based
-       on the example schema:
-       
-       - It inherits its ``algorithm`` from
-         ``properties.position.encryptMetadata.algorithm``.
-         
-       - It inherits its ``keyId`` from ``encryptMetadata.keyId``. 
-
-MongoDB 4.2 clients configured with the JSON schema automatically encrypt and
-decrypt the ``ssn``, ``ssn-last``, and ``position.compensation`` fields on write
-and read respectively. If a read operation includes those fields as part of the
-query, the client automatically encrypts values in the query prior to issuing
-the read operation and decrypts the values returned from the server.
+- For the official MongoDB 4.2-compatible drivers, use the
+  driver-specific database connection constructor (e.g. ``MongoClient``)
+  to create the database connection with the automatic encryption rules
+  included as part of the client-side field level encryption
+  configuration object. Defer to the :ref:`driver API reference
+  <field-level-encryption-drivers>` for more complete documentation and
+  tutorials.
 
 .. important::
 
-   Automatic client-side field level encryption supports using JSON schema
-   syntax *only* for defining encryption behavior. Specifying document
-   validation schema keywords *will* result in configuration
-   failure. To define document validation rules, configure 
+   Automatic client-side field level encryption supports a strict subset
+   of the JSON schema syntax *only* for defining encryption behavior. Do
+   **not** specify document validation keywords in the automatic
+   encryption rules. To define document validation rules, configure
    :doc:`server-side schema validation </core/schema-validation/>`.
 
 .. _field-level-encryption-encrypt-keyword:
 
 ``encrypt`` Schema Keyword
 --------------------------
-
-The ``encrypt`` JSON schema keyword specifies the encryption options to
-use when encrypting a JSON field. ``encrypt`` can only be specified in
-subschemas with ``bsonType: "object"``.
-
-- ``encrypt`` must be the *only* keyword specified to the JSON field.
-
-- ``encrypt`` cannot contain arbitrary JSON schema keywords. Only the
-  encryption-related keywords ``algorithm``, ``bsonType``, and ``keyId`` are
-  allowed beneath ``encrypt``.
-
-- ``encrypt`` cannot be specified within any subschema of the ``items`` or
-  ``additionalItems`` keywords. Specifically, automatic client-side field
-  level encryption does not support encrypting individual elements of an array.
 
 .. code-block:: json
    :copyable: false
@@ -220,137 +116,152 @@ subschemas with ``bsonType: "object"``.
        "encrypt" : {
          "algorithm" : "<string>",
          "bsonType" : "<string>" | [ "<string>" ],
-         "keyId" : [ <BinData> | <UUID> ]
+         "keyId" : [ <UUID> ]
        }
      }
    }
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 10 60
+.. autoencryptkeyword:: encrypt
 
-   * - Field
-     - Type
-     - Description
+   *Object*
 
-   * - ``encrypt``
-     - object
-     - Indicates that ``<fieldName>`` *must* be encrypted. 
+   Indicates that ``<fieldName>`` must be encrypted. The ``encrypt``
+   object has the following requirements:
 
-       All ``encrypt`` options are optional. Unspecified options are
-       inherited from the nearest ``encryptMetadata`` ancestor.
-       :ref:`mongocryptd` can check the full tree of ``encryptMetadata``
-       ancestors to construct the ``encrypt`` object with all required
-       options. ``encryptMetadata`` options lower in the constructed tree
-       override options specified in ancestors. 
+   - ``encrypt`` cannot have any sibling fields in the 
+     ``<fieldName>`` object. ``encrypt`` must be the only child of the
+     ``<fieldName>`` object.
 
-   * - ``encrypt.algorithm``
-     - string
-     - Indicates which encryption algorithm to use when encrypting
-       values of ``<fieldName>``. Supports the following algorithms
-       *only*:
+   - ``encrypt`` cannot be specified within any subschema of the
+     ``items`` or ``additionalItems`` keywords. Specifically,
+     automatic client-side field level encryption does not support
+     encrypting individual elements of an array.
+      
+   The ``encrypt`` object can contain **only** the
+   following fields:
 
-       - ``AEAD_AES_256_CBC_HMAC_SHA_512-Random``
-       - ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``
+   - :autoencryptkeyword:`~encrypt.algorithm`
+   - :autoencryptkeyword:`~encrypt.bsonType`
+   - :autoencryptkeyword:`~encrypt.keyId`
 
-       For complete documentation on the encryption algorithms, see
-       :ref:`field-level-encryption-algorithms`.
+   Including any other field to the ``encrypt`` object
+   results in errors when issuing automatically encrypted read or write
+   operations
 
-       If ``encrypt.algorithm`` or its inherited value is
-       ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``, ``encrypt.bsonType``
-       is required.
 
-       If ``encrypt.algorithm`` or its inherited value is 
-       ``AEAD_AES_256_CBC_HMAC_SHA_512-Random``, ``encrypt.bsonType`` 
-       is optional. 
+   If :autoencryptkeyword:`~encrypt.keyId` or
+   :autoencryptkeyword:`~encrypt.algorithm` are omitted, the
+   :ref:`mongocryptd` checks the full tree of parent fields and attempts
+   to construct those options from the nearest
+   :autoencryptkeyword:`encryptMetadata` object that specifies the
+   option. :autoencryptkeyword:`~encrypt.bsonType` cannot be inherited
+   and *may* be required depending on the value of
+   :autoencryptkeyword:`~encrypt.algorithm`.
 
-   * - ``encrypt.bsonType``
-     - string | array of strings
-     - The :ref:`BSON type <bson-types>` of the ``<fieldName>``. 
-     
-       ``encrypt.bsonType`` does *not* support the following
-       types regardless of ``encrypt.algorithm``:
+   If ``mongocryptd`` cannot construct the full ``encrypt`` object using
+   the fields specified to the object and any required
+   ``encryptMetadata``-inherited keys, automatic encryption fails and
+   returns an error.
 
-       - ``minKey``
-       - ``maxKey``
-       - ``null``
-       - ``undefined`` 
+.. autoencryptkeyword:: encrypt.algorithm
 
-       If ``encrypt.algorithm`` or its inherited value is
-       ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``, ``encrypt.bsonType``
-       *must* specify a *single* type. The specified type *must not* be any of 
-       the following:
+   *String*
 
-       - ``double``
-       - ``decimal128``
-       - ``bool``
-       - ``object``
-       - ``array``
-       - ``javascriptWithScope``
+   Indicates which encryption algorithm to use when encrypting
+   values of ``<fieldName>``. Supports the following algorithms
+   *only*:
 
-       If ``encrypt.algorithm`` or its inherited value is
-       ``AED_AES_256_CBC_HMAC_SHA_512-Random``, ``encrypt.bsonType``
-       is optional and may specify multiple supported types. For fields with
-       ``bsonType`` of ``array`` or ``object``, drivers encrypt the
-       *entire* array or object and not their individual elements. 
+   - ``AEAD_AES_256_CBC_HMAC_SHA_512-Random``
+   - ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``
 
-   * - ``encrypt.keyId``
-     - array of Binary Data / UUIDs
-     - The UUID of the data key to use for encrypting field values. Specify
-       *one* string inside the array. 
-       
-       The UUID is a BSON `binary data <http://bsonspec.org/spec.html>`_ element
-       of subtype ``4``. Drivers include a BSON library for constructing
-       a BSON document or parsing an :doc:`extended JSON string 
-       </reference/mongodb-extended-json>` into BSON.
-       
-       For applications specifying an extended JSON string for parsing, the UUID
-       *must* be specified as a base64 encoded string inside of a
-       :bsontype:`binary data <Binary>` subtype 4 object. For example:
+   For complete documentation on the encryption algorithms, see
+   :ref:`field-level-encryption-algorithms`.
 
-       .. code-block:: none
-          :copyable: false
-          
-          {
-            "_id" : UUID("<UUID string>")
-          }
-          
-          // must be specified as  
-          
-          {
-            "$binary" : {
-              "base64" : "<base64-encoded UUID string>",
-              "subType" : 4
-            }
-          }
+   If omitted, :ref:`mongocryptd` checks the full tree of parent fields
+   for the nearest :autoencryptkeyword:`encryptMetadata.algorithm` key
+   and inherits that value. If no parent
+   :autoencryptkeyword:`~encryptMetadata.algorithm` exists, automatic
+   field level encryption fails and returns an error.
 
-       The ``encrypt.keyId`` or its inherited value *must* exist in the
-       key vault specified as  part of the auto encryption configuration
-       options. If the specified data key does not exist, automatic
-       encryption will fail.
+   - If ``encrypt.algorithm`` or its inherited value is
+     ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``,
+     the ``encrypt`` object *requires* the 
+     :autoencryptkeyword:`encrypt.bsonType` field.
 
-       MongoDB 4.2 drivers provide specific classes and methods for
-       data key creation. See the documentation for your
-       preferred MongoDB driver for more syntax and detailed
-       instructions.
+   - If ``encrypt.algorithm`` or its inherited value is
+     ``AEAD_AES_256_CBC_HMAC_SHA_512-Random``,
+     the ``encrypt`` object *may* include the 
+     :autoencryptkeyword:`encrypt.bsonType` field. 
+
+.. autoencryptkeyword:: encrypt.bsonType
+
+  *String | Array of Strings*
+
+  The :ref:`BSON type <bson-types>` of the field being encrypted.
+  Required if :autoencryptkeyword:`encrypt.algorithm` is
+  ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``.
+
+  If :autoencryptkeyword:`encrypt.algorithm` or its inherited value is
+  ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``, ``bsonType``
+  *must* specify a *single* type.  ``bsonType`` does **not**
+  support any of the following bson types with the deterministic
+  encryption algorithm:
+
+  - ``double``
+  - ``decimal128``
+  - ``bool``
+  - ``object``
+  - ``array``
+  - ``javascriptWithScope``
+
+  If :autoencryptkeyword:`encrypt.algorithm` or its inherited value is
+  ``AED_AES_256_CBC_HMAC_SHA_512-Random``, ``bsonType`` is
+  optional and may specify an array of supported bson types. For
+  fields with ``bsonType`` of ``array`` or ``object``, the client
+  encrypts the *entire* array or object and not their individual
+  elements. 
+
+  ``encrypt.bsonType`` does **not** support the following types
+  regardless of :autoencryptkeyword:`encrypt.algorithm` or its inherited
+  value:
+
+  - ``minKey``
+  - ``maxKey``
+  - ``null``
+  - ``undefined`` 
+
+.. autoencryptkeyword:: encrypt.keyId
+
+  *Array of UUID*
+
+  The UUID of the data encryption key to use for encrypting field
+  values. Specify *one* string inside the array. The UUID is a BSON
+  `binary data <http://bsonspec.org/spec.html>`_ element of subtype
+  ``4``.
+
+  If omitted, :ref:`mongocryptd` checks the full tree of parent
+  fields for the nearest 
+  :autoencryptkeyword:`encryptMetadata.keyId` key and inherits
+  that value. If no parent 
+  :autoencryptkeyword:`~encryptMetadata.keyId` exists,
+  automatic field level encryption fails and returns an error.
+
+  The :autoencryptkeyword:`~encrypt.keyId` or its inherited value *must*
+  exist in the key vault specified as  part of the auto encryption
+  :ref:`configuration options <ClientSideFieldLevelEncryptionOptions>`.
+  If the specified data encryption key does not exist, automatic
+  encryption fails.
+
+  Official MongoDB 4.2-compatible drivers have language-specific
+  requirements for specifying the UUID. Defer to the
+  :ref:`driver documentation <field-level-encryption-drivers>`
+  for complete documentation on implementing client-side field
+  level encryption.
 
 .. _field-level-encryption-encryptMetadata-keyword:
 
 ``encryptMetadata`` Schema Keyword
 ----------------------------------
-
-The ``encryptMetadata`` JSON schema keyword specifies inheritable encryption
-settings. Any nested ``encrypt`` schema keywords can inherit settings from a
-parent ``encryptMetadata``. ``encryptMetadata`` can only be specified within
-subschemas with ``bsonType: "object"``.
-
-- ``encryptMetadata`` cannot contain arbitrary JSON schema keywords. Only the 
-  encryption-related keywords ``algorithm`` and ``keyId`` are allowed beneath
-  ``encrypt``.
-
-- ``encryptMetadata`` cannot be specified to any subschema of the ``items`` or
-  ``additionalitems`` keywords. Specifically, automatic client-side field level
-  encryption does not support encrypting individual elements of an array.
 
 .. code-block:: json
    :copyable: false
@@ -360,80 +271,390 @@ subschemas with ``bsonType: "object"``.
      "bsonType" : "object",
      "encryptMetadata" : {
        "algorithm" : "<string>",
-       "keyId" : [ <BinData> | <UUID> ]
+       "keyId" : [ <UUID> ]
+     },
+     "properties" : {
+       "encrypt" : {}
      }
    }
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 10 60
+.. autoencryptkeyword:: encryptMetadata
 
-   * - Field
-     - Type
-     - Description
+  *Object*
 
-   * - ``encryptMetadata``
-     - object
-     - Defines inheritable encryption options for any 
-       ``encrypt`` keywords in subschemas. A child ``encrypt`` keyword
-       inherits each unspecified encryption option from the nearest ancestor
-       ``encryptMetadata`` object that specifies the option.
-       
-       You *must* specify at least one encryption option (i.e. ``encryptMetadata
-       : {}`` is invalid).
+  Defines encryption options which an :autoencryptkeyword:`encrypt`
+  object nested in the sibling ``properties`` may inherit. If an
+  :autoencryptkeyword:`encrypt` is missing an option required to support
+  encryption, ``mongocryptd`` searches the entire tree of parent objects
+  to locate an :autoencryptkeyword:`encryptMetadata` object that
+  specifies the missing option.
 
-   * - ``encryptMetadata.algorithm``
-     - string
-     - The encryption algorithm that child ``encrypt`` schema
-       objects *may* inherit:
+  ``encryptMetadata`` must be specified in subschemas with ``bsonType:
+  "object"``. ``encryptMetadata`` cannot be specified to any subschema
+  of the ``items`` or ``additionalitems`` keywords. Specifically,
+  automatic client-side field level encryption does not support
+  encrypting individual elements of an array.
 
-       - ``AEAD_AES_256_CBC_HMAC_SHA_512-Random``
-       - ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``
+  The ``encryptMetadata`` object can contain *only* the
+  following fields. Including any other field to the ``encrypt`` object
+  results in errors when issuing automatically encrypted read or write
+  operations:
 
-       For complete documentation on the encryption algorithms, see
-       :ref:`field-level-encryption-algorithms`.
+  - :autoencryptkeyword:`~encryptMetadata.algorithm`
+  - :autoencryptkeyword:`~encryptMetadata.keyId`
 
-       If specifying ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``, 
-       any ``encrypt`` keyword inheriting that value *must* specify
-       ``encrypt.bsonType``.
+.. autoencryptkeyword:: encryptMetadata.algorithm
 
-   * - ``encryptMetadata.keyId``
-     - array of Binary Data / UUIDs
-     - The UUID of the data key that ``encrypt`` subschema objects *may*
-       inherit to use for encrypting field values. Specify *one* string inside
-       the array.
-       
-       The UUID is a BSON `binary data <http://bsonspec.org/spec.html>`_ element
-       of subtype ``4``. Drivers include a BSON library for constructing
-       a BSON document or parsing an :doc:`extended JSON string 
-       </reference/mongodb-extended-json>` into BSON.
-       
-       For applications specifying an extended JSON string for parsing, the UUID
-       *must* be specified as a base64 encoded string inside of a
-       :bsontype:`binary data <Binary>` subtype 4 object. For example:
+  *String*
+  
+  The encryption algorithm to use to encrypt a given field. If an
+  :autoencryptkeyword:`encrypt` object is missing the
+  :autoencryptkeyword:`~encrypt.algorithm` field, ``mongocryptd``
+  searches the entire tree of parent objects to locate an
+  :autoencryptkeyword:`encryptMetadata` object that specifies
+  :autoencryptkeyword:`encryptMetadata.algorithm`.
 
-       .. code-block:: none
-          :copyable: false
-          
-          {
-            "_id" : UUID("<UUID string>")
-          }
-          
-          // must be specified as  
-          
-          {
-            "$binary" : {
-              "base64" : "<base64-encoded UUID string>",
-              "subType" : 4
-            }
-          }
+  Supports the following algorithms *only*:
 
-       The data key *must* exist in the key vault specified as 
-       part of the auto encryption configuration options. If the
-       specified data key does not exist, automatic encryption will
-       fail.
+  - ``AEAD_AES_256_CBC_HMAC_SHA_512-Random``
+  - ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``
 
-       MongoDB 4.2 drivers provide specific classes and methods for
-       data key creation. Applications can also query the
-       key vault collection for the available data keys.
+  For complete documentation on the encryption algorithms, see
+  :ref:`field-level-encryption-algorithms`.
 
+  If specifying ``AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic``, 
+  any ``encrypt`` object inheriting that value *must* specify
+  :autoencryptkeyword:`encrypt.bsonType`.
+
+.. autoencryptkeyword:: encryptMetadata.keyId
+
+  *Array of single UUID*
+
+  The UUID of a data encryption key. If an 
+  :autoencryptkeyword:`encrypt` object is missing the 
+  :autoencryptkeyword:`~encrypt.keyId` field, ``mongocryptd``
+  searches the entire tree of parent objects to locate 
+  an :autoencryptkeyword:`encryptMetadata` object that
+  specifies :autoencryptkeyword:`encryptMetadata.keyId`.
+
+  The UUID is a BSON `binary data <http://bsonspec.org/spec.html>`_
+  element of subtype ``4``.
+  
+  The data encryption key *must* exist in the key vault specified as
+  part of the auto encryption :ref:`configuration options
+  <ClientSideFieldLevelEncryptionOptions>`. The specified configuration
+  options must *also* include appropriate access to the Key Management
+  Service (KMS) and Customer Master Key (CMK) used to create the data
+  key. Automatic encryption fails if the data encryption key does not
+  exist *or* if the client cannot decrypt the key with the specified KMS
+  and CMK.
+
+  Official MongoDB 4.2-compatible drivers have language-specific
+  requirements for specifying the UUID. Defer to the
+  :ref:`driver documentation <field-level-encryption-drivers>`
+  for complete documentation on implementing client-side field
+  level encryption.
+
+Examples
+--------
+
+- :ref:`field-level-encryption-auto-encrypt-multiple-fields`
+- :ref:`field-level-encryption-auto-encrypt-multiple-fields-inheritance`
+
+.. _field-level-encryption-auto-encrypt-multiple-fields:
+
+Automatically Encrypt Multiple Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``MedCo.patients`` where each document has
+the following structure:
+
+.. code-block:: none
+
+   {
+     "fname" : "<String>",
+     "lname" : "<String>",
+     "passportId" : "<String>",
+     "bloodType" : "<String>",
+     "medicalRecords" : [
+       {<object>}
+     ],
+     "insurance" : {
+       "policyNumber" : "<string>",
+       "provider" : "<string>"
+     }
+   }
+
+The following fields contains personally identifiable information (PII)
+that may be queried:
+
+- ``passportId``
+- ``bloodType``
+- ``insurance.policyNumber``
+- ``insurance.provider``
+
+The :ref:`deterministic <field-level-encryption-deterministic>`
+encryption algorithm guarantees that the encrypted output of a value
+remains static. This allows queries for a specific value to return
+meaningful results at the cost of increased susceptibility to frequency
+analysis recovery. The deterministic encryption algorithm therefore
+meets both the encryption and queryability requirements of the data.
+
+The following fields contain legally protected personally identifiable
+information (PII) that may never be queried:
+
+- ``medicalRecords``
+
+The :ref:`randomized <field-level-encryption-random>` encryption
+algorithm guarantees that the encrypted output of a value is always
+unique. This prevents queries for a specific field value from returning
+meaningful results while supporting the highest possible protection of
+the field contents. The randomized encryption algorithm therefore meets
+both the encryption and queryability requirements of the data.
+
+The following schema specifies automatic encryption rules which meet the
+above requirements for the ``MedCo.patients`` collection:
+
+.. code-block:: json
+
+   {
+     "MedCo.patients" : {
+       "bsonType" : "object",
+       "properties" : {
+         "passportId" : {
+           "encrypt" : {
+             "keyId" : [UUID("bffb361b-30d3-42c0-b7a4-d24a272b72e3")],
+             "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
+             "bsonType" : "string"
+           }
+         },
+         "bloodType" : {
+           "encrypt" : {
+             "keyId" : [UUID("bffb361b-30d3-42c0-b7a4-d24a272b72e3")],
+             "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
+             "bsonType" : "string"
+           }
+         },
+         "medicalRecords" : {
+           "encrypt" : {
+             "keyId" : [UUID("f3821212-e697-4d65-b740-4a6791697c6d")],
+             "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Random",
+             "bsonType" : "string"
+           }
+         },
+         "insurance" : {
+           "bsonType" : "object",
+           "properties" : {
+             "policyNumber" : {
+               "encrypt" : {
+                 "keyId" : [UUID("bffb361b-30d3-42c0-b7a4-d24a272b72e3")],
+                 "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
+                 "bsonType" : "string"
+               }
+             },
+             "provider" : {
+               "encrypt" : {
+                 "keyId" : [UUID("bffb361b-30d3-42c0-b7a4-d24a272b72e3")],
+                 "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
+                 "bsonType" : "string"
+               }
+             }
+           }
+         }
+       }
+     }
+   }
+
+The above automatic encryption rules mark the ``passportId``,
+``bloodType``, ``insurance.policyNumber``, ``insurance.provider``,
+and ``medicalRecords`` fields for encryption. 
+
+- The ``passportId``, ``bloodType``, ``insurance.policyNumber``, and
+  ``provider`` fields require deterministic encryption using the
+  specified key.
+
+- The ``medicalRecords`` field requires randomized encryption using the
+  specified key. 
+
+While client-side field level encryption does not support encrypting
+individual array elements, randomized encryption supports encrypting the
+*entire* array field rather than individual elements in the field. The
+example automatic encryption rules specify randomized encryption for the
+``medicalRecords`` field to encrypt the entire array. If the automatic
+encryption rules specified :autoencryptkeyword:`encrypt` or
+:autoencryptkeyword:`encryptMetadata` within ``medicalRecords.items`` or
+``medicalRecords.additionalItems``, automatic field level encryption
+fails and returns an errors.
+
+The official MongoDB 4.2-compatible drivers and the
+:binary:`~bin.mongo` shell require specifying the automatic 
+encryption rules as part of creating the database connection object:
+
+- For the MongoDB 4.2 shell, use the :method:`Mongo()` constructor
+  to create a database connection. Specify the automatic encryption
+  rules to the ``schemaMap`` key of the 
+  :ref:`ClientSideFieldLevelEncryptionOptions` parameter. See
+  :ref:`mongo-connection-automatic-client-side-encryption-enabled` 
+  for a complete example.
+
+- For the official MongoDB 4.2-compatible drivers, use the 
+  driver-specific database connection constructor (e.g. ``MongoClient``)
+  to create the database connection with the automatic encryption rules
+  included as part of the client-side field level encryption
+  configuration object. Defer to the :ref:`driver API reference
+  <field-level-encryption-drivers>` for more complete documentation and
+  tutorials.
+
+For all clients, the ``keyVault`` and ``kmsProviders`` specified
+to the client-side field level encryption parameter *must* grant
+access to both the data encryption keys specified in the automatic
+encryption rules *and* the Customer Master Key used to encrypt the
+data encryption keys.
+
+.. _field-level-encryption-auto-encrypt-multiple-fields-inheritance:
+
+Automatically Encrypt Multiple Fields With Inheritance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``MedCo.patients`` where each document has
+the following structure:
+
+.. code-block:: none
+
+   {
+     "fname" : "<String>",
+     "lname" : "<String>",
+     "passportId" : "<String>",
+     "bloodType" : "<String>",
+     "medicalRecords" : [
+       {<object>}
+     ],
+     "insurance" : {
+       "policyNumber" : "<string>",
+       "provider" : "<string>"
+     }
+   }
+
+The following fields contain private data that may be queried:
+
+- ``passportId``
+- ``bloodType``
+- ``insurance.policyNumber``
+- ``insurance.provider``
+
+The :ref:`deterministic <field-level-encryption-deterministic>`
+encryption algorithm guarantees that the encrypted output of a value
+remains static. This allows queries for a specific value to return
+meaningful results at the cost of increased susceptibility to frequency
+analysis recovery. The deterministic encryption algorithm therefore
+meets both the encryption and queryability requirements of the data.
+
+The following fields contain private data that may never be queried:
+
+- ``medicalRecords``
+
+The :ref:`randomized <field-level-encryption-random>` encryption
+algorithm guarantees that the encrypted output of a value is always
+unique. This prevents queries for a specific field value from returning
+meaningful results while supporting the highest possible protection of
+the field contents. The randomized encryption algorithm therefore meets
+both the encryption and queryability requirements of the data.
+
+The following schema specifies automatic encryption rules which meet the
+encryption requirements for the ``MedCo.patients`` collection:
+
+.. code-block:: json
+
+   {
+     "MedCo.patients" : {
+       "bsonType" : "object",
+       "encryptMetadata" : {
+         "keyId" : [UUID("6c512f5e-09bc-434f-b6db-c42eee30c6b1")],
+         "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
+       },
+       "properties" : {
+         "passportId" : {
+           "encrypt" : {
+             "bsonType" : "string"
+           }
+         },
+         "bloodType" : {
+           "encrypt" : {
+             "bsonType" : "string"
+           }
+         },
+         "medicalRecords" : {
+           "encrypt" : {
+             "keyId" : [UUID("6c512f5e-09bc-434f-b6db-c42eee30c6b1")],
+             "algorithm" : "AEAD_AES_256_CBC_HMAC_SHA_512-Random",
+             "bsonType" : "string"
+           }
+         },
+         "insurance" : {
+           "bsonType" : "object",
+           "properties" : {
+             "policyNumber" : {
+               "encrypt" : {
+                 "bsonType" : "string"
+               }
+             },
+             "provider" : {
+               "encrypt" : {
+                 "bsonType" : "string"
+               }
+             }
+           }
+         }
+       }
+     }
+   }
+
+The above automatic encryption rules mark the ``passportId``,
+``bloodType``, ``insurance.policyNumber``, ``insurance.provider``,
+and ``medicalRecords`` fields for encryption. 
+
+- The ``passportId``, ``bloodType``, ``insurance.policyNumber``, and
+  ``provider`` fields inherit their encryption settings from the parent
+  ``encryptMetadata`` field. Specifically, these fields inherit
+  the :autoencryptkeyword:`~encryptMetadata.algorithm` and
+  :autoencryptkeyword:`~encryptMetadata.keyId` values specifying
+  deterministic encryption with the specified data encryption key.
+
+- The ``medicalRecords`` field requires randomized encryption using the
+  specified key. The ``encrypt`` options override those specified
+  in the parent ``encryptMetadata`` field.
+
+While client-side field level encryption does not support encrypting
+individual array elements, randomized encryption supports encrypting the
+*entire* array field rather than individual elements in the field. The
+example automatic encryption rules specify randomized encryption for the
+``medicalRecords`` field to encrypt the entire array. If the automatic
+encryption rules specified :autoencryptkeyword:`encrypt` or
+:autoencryptkeyword:`encryptMetadata` within ``medicalRecords.items`` or
+``medicalRecords.additionalItems``, automatic field level encryption
+fails and returns an errors.
+
+The official MongoDB 4.2-compatible drivers and the
+:binary:`~bin.mongo` shell require specifying the automatic 
+encryption rules as part of creating the database connection object:
+
+- For the MongoDB 4.2 shell, use the :method:`Mongo()` constructor
+  to create a database connection. Specify the automatic encryption
+  rules to the ``schemaMap`` key of the 
+  :ref:`ClientSideFieldLevelEncryptionOptions` parameter. See
+  :ref:`mongo-connection-automatic-client-side-encryption-enabled` 
+  for a complete example.
+
+- For the official MongoDB 4.2-compatible drivers, use the 
+  driver-specific database connection constructor (e.g. ``MongoClient``)
+  to create the database connection with the automatic encryption rules
+  included as part of the client-side field level encryption
+  configuration object. Defer to the :ref:`driver API reference
+  <field-level-encryption-drivers>` for more complete documentation and
+  tutorials.
+
+For all clients, the ``keyVault`` and ``kmsProviders`` specified
+to the client-side field level encryption parameter *must* grant
+access to both the data encryption keys specified in the automatic
+encryption rules *and* the Customer Master Key used to encrypt the
+data encryption keys.
