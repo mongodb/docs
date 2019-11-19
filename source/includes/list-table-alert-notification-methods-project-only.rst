@@ -142,12 +142,12 @@
           is available only if you have configured Webhook settings on
           the :ref:`Project Settings <group-settings-page>` page.
  
-      * - `DataDog <https://www.datadoghq.com/>`_
+      * - `Datadog <https://www.datadoghq.com/>`_
         - Sends the alert to a DataDog account. Enter the following:
           :guilabel:`datadogApiKey`: The DataDog 
           `API Key <https://docs.datadoghq.com/api/?lang=python#authentication>`_.
           This key can be found in
-          `your DataDog account <https://app.datadoghq.com/account/settings#api>`_.
+          `your Datadog account <https://app.datadoghq.com/account/settings#api>`_.
  
 .. cond:: cloud
 
