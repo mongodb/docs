@@ -15,3 +15,7 @@
    * - ``googleCloudKms.keyVersionResourceID``
      - string
      - Key Version Resource ID for your Google Cloud KMS.
+
+   * - ``googleCloudKms.valid``
+     - boolean
+     - .. include:: /includes/api-valid-field.rst

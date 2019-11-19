@@ -48,3 +48,7 @@
      - string
      - Unique identifier for an :abbr:`Azure AD (Azure Active Directory)`
        tenant within an Azure subscription.
+
+   * - ``azureKeyVault.valid``
+     - boolean
+     - .. include:: /includes/api-valid-field.rst

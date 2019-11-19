@@ -30,3 +30,7 @@
    * - ``awsKms.region``
      - string
      - The AWS region in which the AWS customer master key exists.
+
+   * - ``awsKms.valid``
+     - boolean
+     - .. include:: /includes/api-valid-field.rst

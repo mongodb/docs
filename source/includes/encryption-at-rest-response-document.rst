@@ -30,7 +30,11 @@
    * - ``awsKms.region``
      - string
      - The AWS region in which the AWS customer master key exists.
-       
+
+   * - ``awsKms.valid``
+     - boolean
+     - .. include:: /includes/api-valid-field.rst
+
    * - ``azureKeyVault``
      - object
      - Specifies Azure Key Vault configuration details and whether
@@ -73,6 +77,10 @@
      - Unique identifier for an :abbr:`Azure AD (Azure Active Directory)`
        tenant within an Azure subscription.
 
+   * - ``azureKeyVault.valid``
+     - boolean
+     - .. include:: /includes/api-valid-field.rst
+
    * - ``googleCloudKms.enabled``
      - boolean
      - Specifies whether Encryption at Rest is enabled for an |service|
@@ -81,4 +89,7 @@
    * - ``googleCloudKms.keyVersionResourceID``
      - string
      - Key Version Resource ID for your Google Cloud KMS.
-   
+
+   * - ``googleCloudKms.valid``
+     - boolean
+     - .. include:: /includes/api-valid-field.rst
