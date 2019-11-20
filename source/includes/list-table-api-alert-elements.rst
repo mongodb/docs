@@ -72,6 +72,10 @@
      - The username of the user who acknowledged the alert. This is not
        present if the alert has never been acknowledged.
 
+   * - ``humanReadable``
+     - string
+     - Notes about the alert in human-readable format.
+
    * - ``hostnameAndPort``
      - string
      - The hostname and port of the host to which the alert applies.
