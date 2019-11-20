@@ -8,6 +8,73 @@ content: |
 
    #. Click :icon-fa5:`plus` :guilabel:`Add New User`.
 ---
+title: "Select an authentication method."
+level: 4
+ref: select-auth-method
+content: |
+  
+  A project can have users with different authentication methods.
+
+  You cannot change a user's authentication method after creating that
+  user. To use an alternative authentication method, you must create a
+  new user.
+
+  .. list-table::
+     :widths: 20 80
+     :header-rows: 1
+
+     * - Method
+
+       - Description
+
+     * - :guilabel:`SCRAM Authentication`
+
+       - :ref:`SCRAM <authentication-scram>` is MongoDB's default
+         authentication method. SCRAM requires a password for each
+         user. Select this authentication method by clicking
+         :guilabel:`PASSWORD`.
+
+     * - :guilabel:`X.509 Certificates`
+
+       - :manual:`X.509 Certificates </core/security-x.509/>` allow for
+         passwordless authentication by using a trusted certificate.
+         Select this authentication method by clicking
+         :guilabel:`CERTIFICATE`. To download the certificate upon
+         saving, you must provide a certificate expiration date and
+         check :guilabel:`Download certificate when user is added`.
+
+         X.509 certificates expire and are invalid after the
+         certificate expiration date you set. A user will not be able 
+         to log in with an expired X.509 certificate and must be issued 
+         a new certificate.
+
+         To help manage this, |service| automatically creates a
+         project-level alert when you create a new user with X.509
+         authentication enabled. This alert sends a notification 30 days
+         before that user's latest certificate expires, repeating every
+         24 hours. You can view and edit this alert from |service|'s
+         :guilabel:`Alert Settings` page. For more information on
+         configuring alerts, see
+         :doc:`Configure Alert Settings </configure-alerts>`.
+
+         .. important::
+
+            If a user loses their certificate, they will need a new
+            certificate to be generated for them before they can log in
+            again.
+
+         .. important::
+            
+            You cannot revoke X.509 certificates. To revoke an X.509
+            certificate-authenticated user's access to your project,
+            you must delete that user.
+
+         .. include:: /includes/fact-atlas-free-tier-limits.rst
+
+         If you prefer to manage your own X.509 certificates, you 
+         can upload a PEM-encoded certificate authority through
+         :ref:`Self-Managed X.509 Certificates <self-managed-x509>`.
+---
 title: "Enter user information."
 level: 4
 ref: enter-user-info
@@ -22,28 +89,29 @@ content: |
 
      * - :guilabel:`User Name`
 
-       - The user's login name. All MongoDB users for |service| are
-         associated with the ``admin`` database; i.e. their
+       - The user's login name.
+
+         SCRAM-authenticated users are associated with the ``admin`` 
+         database; i.e. their
          :ref:`authentication database <user-authentication-database>`
-         is ``admin``. To access MongoDB, a user provides a username
+         is ``admin``.
+
+         X.509-authenticated users are associated with the 
+         ``$external`` database; i.e. their authentication database 
+         is ``$external``.
+         
+         To access MongoDB, a user provides a username
          and the name of the authentication database, as well as a
-         password. The authentication database does not determine the
-         user's roles. You can assign a user different roles in
-         different database namespaces.
+         password or X.509 certificate. The authentication database
+         does not determine the user's roles. You can assign a user
+         different roles in different database namespaces.
 
          .. example::
 
             You can create a user to have the ``readWrite`` role on
             the ``test`` database but only the ``read`` role on the
-            ``production`` database. The authentication database would
-            still be ``admin``.
-
-     * - :guilabel:`Password`
-
-       - The user's password.
-
-         |service| clusters use :ref:`SCRAM
-         <authentication-scram>` to authenticate MongoDB users.
+            ``production`` database. For a SCRAM-authenticated user,
+            the authentication database would still be ``admin``.
 
      * - :guilabel:`User Privileges`
 
@@ -109,6 +177,10 @@ content: |
          |service| deletes the user, any client or application
          attempting to authenticate with the user loses access to
          the database.
+
+         .. note::
+
+            X.509 certificate-authenticated users cannot be made temporary users.
 ---
 title: "Click :guilabel:`Add User`."
 level: 4
