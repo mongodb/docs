@@ -6,7 +6,10 @@
 - Supports :doc:`Private Endpoints with AWS PrivateLink 
   </security-private-endpoint>`.
 
-- Supports "Passwordless" X.509 authentication for database users.
+- Supports "Passwordless" X.509 authentication for database users. You
+  can :doc:`Configure MongoDB Users </security-add-mongodb-users>`
+  to use Atlas-managed X.509 authentication, or you can 
+  :doc:`Set up Self-Managed X.509 </security-self-managed-x509>`.
 
 - Enhancements to index recommendations in 
   :doc:`Performance Advisor </performance-advisor/index-ranking>`.
