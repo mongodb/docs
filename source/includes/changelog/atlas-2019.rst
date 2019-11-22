@@ -33,6 +33,9 @@
 
   - :doc:`/security-ldaps-onelogin`
 
+- :ref:`Billing invoices <view-download-current-invoice>` now show
+  usage by project in the :guilabel:`Summary by Project` section.
+
 .. _atlas-v20191022:
 
 23 October 2019 Release
