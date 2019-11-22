@@ -6,7 +6,7 @@
        table-layout: fixed;
      }
      code.descname, code.docutils.literal > .pre, code.xref.mongodb.mongodb-alert.docutils.literal {
-       font-size: 90%
+       font-size: 90%;
      }
      div.ui-setting dl.setting dt code.descname {
        font-size: 100%;
