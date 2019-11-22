@@ -1,15 +1,15 @@
 .. list-table::
-   :widths: 20 20 60
+   :widths: 25 10 75
    :header-rows: 1
 
    * - Name
      - Type
      - Description
 
-   * - dayOfWeek
+   * - ``dayOfWeek``
      - number
-     - Day of the week when you would like the maintenance window to
-       start as a 1-based integer.
+     - Day of the week that you want the maintenance window to
+       start, as a 1-based integer.
 
        .. list-table::
           :header-rows: 1
@@ -39,20 +39,25 @@
           * - Saturday
             - ``7``
 
-   * - hourOfDay
+   * - ``hourOfDay``
      - number
-     - Hour of the day when you would like the maintenance window to
+     - Hour of the day that you want the maintenance window to
        start. This parameter uses the 24-hour clock, where midnight is
-       ``0``, noon is ``12``.
+       ``0`` and noon is ``12``.
 
-   * - startASAP
+   * - ``startASAP``
      - boolean
-     - Flag indicating that you want the maintenance window to start
-       immediately upon receiving this request.
+     - Flag indicating that you wanted maintenance started immediately
+       upon receiving this request.
 
-       To use ``startASAP : true``, You need to have
+       To use ``startASAP : true``, you need to have
        :ref:`scheduled maintenance and set your own maintenance window <atlas-modify-project-settings>`.
 
        After you set ``startASAP : true``, the project's
        maintenance starts immediately. ``startASAP`` resets to
        ``false`` after |service| completes maintenance.
+
+   * - ``numberOfDeferrals``
+     - number
+     - Number of times the current maintenance event for this project
+       has been deferred.
