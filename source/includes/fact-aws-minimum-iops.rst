@@ -12,9 +12,3 @@ Disk Capacity to RAM:
    A cluster with 50 GB storage requires a value for |iops| of at least
    150. To support 3 TB of disk capacity, you must select a cluster
    tier with at least 32 GB of RAM (M50 or higher).
-
-For example, a cluster with 50 GB storage requires a value for IOPS of at 
-least 150.
-To support 3 TB of disk capacity, you must select a cluster tier with at least 
-32 GB of RAM (M50 or higher).
-
