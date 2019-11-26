@@ -1,3 +1,40 @@
+.. _mongodb-10.7.0.6016:
+
+MongoDB Agent 10.7.0.6016
+-------------------------
+
+*Released* 2019-11-18
+
+- Removes support for MongoDB 3.2.
+
+- MongoDB Agent is now built on Go 1.13.
+
+- Removes the ``shardIdentity`` document during an automated restore if the 
+  replica set member is not part of a sharded cluster. This ensures that a 
+  shard from the sharded cluster is restored as its own replica set.
+
+- When connecting to MongoDB, recognizes "connection reset by peer" as MongoDB 
+  possibly not supporting TLS and connects appropriately.
+
+- Restarts the restore operation if the oplog recovery phase fails. This 
+  improves resilience for MongoDB 4.2 restores.
+
+.. _mongodb-10.6.0.5959-1:
+
+MongoDB Agent 10.6.0.5959-1
+---------------------------
+
+*Released* 2019-10-23
+
+- Adds support for managing deployments using :doc:`externally sourced 
+  configuration file values </reference/mongodb-agent-external-configuration/>`.
+
+- Prefers connecting to MongoDB as the specified user instead of the 
+  system user.
+
+- Includes the inherited roles in the privileges check when importing 
+  MongoDB users.
+
 .. _mongodb-10.4.1.5917:
 
 MongoDB Agent 10.4.1.5917
