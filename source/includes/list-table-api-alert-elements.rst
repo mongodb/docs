@@ -87,9 +87,17 @@
        address. Only displayed for alerts of type ``HOST``,
        ``HOST_METRIC``, and ``REPLICA_SET``.
 
-   * - ``id``
+   * - ``hostId``
      - string
      - Unique identifier for this alert.
+
+   * - ``humanReadable``
+     - string
+     - Notes about the alert in human-readable format.
+
+   * - ``id``
+     - string
+     - Unique identifier for the alert.
 
    * - ``lastNotified``
      - string
