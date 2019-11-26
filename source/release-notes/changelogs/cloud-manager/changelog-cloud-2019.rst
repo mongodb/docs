@@ -9,6 +9,8 @@
   field contains a human-readable description of the alert.
 - Enhancements to index recommendations in :doc:`Performance 
   Advisor </performance-advisor/index-ranking>`.
+- Agent Upgrade:
+  :ref:`mongodb-10.7.0.6016`
 
 .. _cloudmanager-v20191001:
 

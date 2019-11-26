@@ -3,7 +3,7 @@
 MongoDB Agent 10.7.0.6016
 -------------------------
 
-*Released* 2019-11-18
+*Released* :ref:`2019-11-18 <cloudmanager-v20191112>`
 
 - Removes support for MongoDB 3.2.
 
