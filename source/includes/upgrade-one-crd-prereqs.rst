@@ -67,7 +67,7 @@
           content: |
             .. literalinclude:: /reference/k8s/example-replica-set.yaml
                :language: yaml
-               :lines: 1-17, 25
+               :lines: 1-17, 26
                :linenos:
                :emphasize-lines: 3,16
 
@@ -75,7 +75,7 @@
           content: |
             .. literalinclude:: /reference/k8s/example-sharded-cluster.yaml
                :language: yaml
-               :lines: 1-20, 28
+               :lines: 1-20, 29
                :linenos:
                :emphasize-lines: 3,19
 
