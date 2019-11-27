@@ -1,5 +1,3 @@
-.. versionchanged:: 2.6
-
 To back up users and :ref:`user-defined roles <user-defined-roles>` for a
 given database, you must have access to the ``admin`` database. MongoDB
 stores the user data and role definitions for all databases in the
