@@ -2,10 +2,11 @@
 const { MongoClient } = require('mongodb');
 const fs = require('fs');
 
-const client = new MongoClient('mongodb+srv://<cluster-url>?authMechanism=MONGODB-X509&ssl=true', {
-  sslCA: fs.readFileSync('/etc/certs/mongodb/ca.pem'),
-  sslKey: fs.readFileSync('/etc/certs/mongodb/client.pem'),
-  sslCert: fs.readFileSync('/etc/certs/mongodb/client.pem')
+const credentials = fs.readFileSync('/etc/certs/mongodb/client.pem');
+
+const client = new MongoClient('mongodb+srv://<cluster-url>/test?authSource=$external&retryWrites=true&w=majority&authMechanism=MONGODB-X509', {
+  sslKey: credentials,
+  sslCert: credentials
 });
 
 async function run() {
