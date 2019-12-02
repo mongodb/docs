@@ -10,6 +10,23 @@ Client-Side Field Level Encryption Guide
    :depth: 2
    :class: singlecol
 
+Who Is This Guide For?
+----------------------
+
+This use case guide provides an introduction to implementing automatic
+Client-Side Field Level Encryption using supported MongoDB drivers and is
+intended for **full-stack developers**. The guide presents the following
+information in the context of a real-world scenario:
+
+- **How Client-Side Field Level Encryption works** (`Introduction`_)
+- **Reasons to choose this security feature** (`Comparison of Security
+  Features`_)
+- **How to implement Client-Side Field Level Encryption with the MongoDB
+  driver** (`Implementation`_)
+
+For a complete runnable example project, see the `Additional Information`_
+section.
+
 Introduction
 ------------
 
@@ -44,8 +61,8 @@ practical example.
    Automatic Client-Side Field Level Encryption is available starting in
    MongoDB 4.2 Enterprise only.
 
-Problem
-~~~~~~~
+Scenario
+~~~~~~~~
 
 In this scenario, we secure sensitive data on a Medical Care Management
 System which stores patients' personal information, insurance
@@ -88,8 +105,8 @@ of the following methods:
 What can MedcoMD do to balance the functionality and access restrictions
 of their Medical Care Management System?
 
-Solution
-~~~~~~~~
+Comparison of Security Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The MedcoMD engineers review the Medical Care Management System
 specification and research the proper solution for limiting access to
@@ -138,8 +155,15 @@ privacy of their own office.
 Equipped with CSFLE, MedcoMD can keep their sensitive data secure and
 compliant to data privacy regulations with MongoDB.
 
-Procedure
----------
+Implementation
+--------------
+
+This guide is meant for users new to Client-Side Field Level Encryption (CSFLE).
+It covers the why and how at a high level, and is not meant to produce working
+code in a single file.
+
+To view and run minimal end-to-end examples based on this guide, refer to our
+`CSFLE guides <https://github.com/mongodb-university/csfle-guides>`_ repository.
 
 Requirements
 ~~~~~~~~~~~~
@@ -316,51 +340,23 @@ data encryption key:
 Follow the steps below to generate a single data encryption key from the
 locally-managed master key.
 
-.. tabs-drivers::
-   :hidden: true
-
-   .. tab::
-      :tabid: java-sync
-
-      You can also download the `complete runnable Java data key generation
-      code example on GitHub
-      <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-csfle-data-encryption-key/DataEncryptionKeyGenerator.java>`_.
-   .. tab::
-      :tabid: nodejs
-
-      You can also download the `complete runnable Node.js data key generation
-      code example on GitHub
-      <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-csfle-data-encryption-key/DataEncryptionKeyGenerator.js>`_.
-
-      .. note::
-
-         The code linked above includes a dependency on the
-         ``mongo-client-encryption`` npm package. See the `npmjs
-         documentation on the mongodb-client-encryption package
-         <https://www.npmjs.com/package/mongodb-client-encryption>`_ for
-         installation instructions.
-   .. tab::
-      :tabid: python
-
-      You can also download the `complete runnable Python data key generation
-      code example on GitHub
-      <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-csfle-data-encryption-key/data_encryption_key_generator.py>`_.
-
 .. include:: /includes/steps/fle-create-data-encryption-key.rst
 
 .. _fle-define-a-json-schema:
 
-C. Define a JSON Schema
-~~~~~~~~~~~~~~~~~~~~~~~
+C. Specify Encrypted Fields Using JSON Schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, MedcoMD engineers configure the fields that the client
-automatically encrypts and decrypts using JSON Schema.
-`JSON Schema <http://json-schema.org/>`_ is a vocabulary
-that allows you to annotate and validate JSON documents.
-MongoDB drivers use an extended version of the JSON Schema standard to
-configure automatic client-side encryption and decryption of specific fields
-of the documents in a collection. The MongoDB CSFLE extended JSON Schema
-standard requires the following information:
+MongoDB drivers use an extended version of the `JSON Schema
+<http://json-schema.org/>`_ standard to configure automatic client-side
+encryption and decryption of specific fields of the documents in a collection.
+
+.. note::
+
+   Automatic CSFLE requires MongoDB Enterprise or MongoDB Atlas.
+
+The MongoDB CSFLE extended JSON Schema standard requires the following
+information:
 
 - The encryption algorithm to use when encrypting each field
   (:manual:`Deterministic Encryption
@@ -568,9 +564,186 @@ full `JSON Schema for the Medco Medical Management System
 D. Create the MongoDB Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The MedcoMD engineers now have the necessary encyption keys and JSON
-Schema configuration to create a CSFLE-enabled client. They use the
-following procedure to configure and instantiate the MongoDB client:
+The MedcoMD engineers now have the JSON Schema and encryption keys
+necessary to create a CSFLE-enabled MongoDB client.
+
+They build the client to communicate with a MongoDB cluster and perform
+actions such as securely reading and writing documents with encrypted fields.
+
+About the Mongocryptd Application
++++++++++++++++++++++++++++++++++
+
+The MongoDB client communicates with a separate encryption application called
+``mongocryptd`` which automates the client-side field level encryption.
+This application is installed with `MongoDB Enterprise Server (version 4.2
+and later) <https://www.mongodb.com/download-center/enterprise>`_.
+
+When we create a CSFLE-enabled MongoDB client, the ``mongocryptd``
+process is automatically started by default, and handles the following
+responsibilities:
+
+- Validates the encryption instructions defined in the JSON Schema
+  and flags the referenced fields for encryption in read and write
+  operations.
+- Prevents unsupported operations from being executed on encrypted fields.
+
+When the ``mongocryptd`` process is started with the client driver, you
+can provide configurable parameters including:
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: java-sync
+
+      .. list-table::
+         :header-rows: 1
+         :stub-columns: 1
+
+         * - Name
+           - Description
+
+         * - port
+           - | Listening port.
+             | Specify this value in the ``AutoEncryptionSettings`` as follows:
+
+             .. example::
+
+                .. code-block:: java
+                   :emphasize-lines: 2,5,9
+
+                   List<String> spawnArgs = new ArrayList<String>();
+                   spawnArgs.add("--port=30000");
+
+                   Map<String, Object> extraOpts = new HashMap<String, Object>();
+                   extraOpts.put("mongocryptdSpawnArgs", spawnArgs);
+
+                   AutoEncryptionSettings autoEncryptionSettings = AutoEncryptionSettings.builder()
+                       ...
+                       .extraOptions(extraOpts);
+
+             | **Default**: ``27020``
+
+         * - idleShutdownTimeoutSecs
+           - | Number of idle seconds in which the ``mongocryptd`` process should wait before exiting.
+             | Specify this value in the ``AutoEncryptionSettings`` as follows:
+
+             .. example::
+
+                .. code-block:: java
+                   :emphasize-lines: 2-3,6,10
+
+                   List<String> spawnArgs = new ArrayList<String>();
+                   spawnArgs.add("--idleShutdownTimeoutSecs")
+                       .add("60");
+
+                   Map<String, Object> extraOpts = new HashMap<String, Object>();
+                   extraOpts.put("mongocryptdSpawnArgs", spawnArgs);
+
+                   AutoEncryptionSettings autoEncryptionSettings = AutoEncryptionSettings.builder()
+                       ...
+                       .extraOptions(extraOpts);
+
+             | **Default**: ``60``
+   .. tab::
+      :tabid: nodejs
+
+      .. list-table::
+         :header-rows: 1
+         :stub-columns: 1
+
+         * - Name
+           - Description
+
+         * - port
+           - | Listening port.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: javascript
+                   :emphasize-lines: 4-5
+
+                   autoEncryption: {
+                     ...
+                     extraOptions: {
+                       mongocryptdSpawnArgs: ["--port", "30000"],
+                       mongocryptdURI: 'mongodb://localhost:30000',
+                     }
+
+             .. note::
+
+                In the current version (3.3.4) of the NodeJS driver, you
+                must specify the ``mongocryptdURI`` to match the listening
+                port.
+
+             | **Default**: ``27020``
+
+         * - idleShutdownTimeoutSecs
+           - | Number of idle seconds in which the ``mongocryptd`` process should wait before exiting.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: javascript
+                   :emphasize-lines: 4
+
+                   autoEncryption: {
+                     ...
+                     extraOptions: {
+                       mongocryptdSpawnArgs: ["--idleShutdownTimeoutSecs", "75"]
+                     }
+
+             | **Default**: ``60``
+   .. tab::
+      :tabid: python
+
+      .. list-table::
+         :header-rows: 1
+         :stub-columns: 1
+
+         * - Name
+           - Description
+
+         * - port
+           - | Listening port.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: python
+                   :emphasize-lines: 1
+
+                   auto_encryption_opts = AutoEncryptionOpts(mongocryptd_spawn_args=['--port=30000'])
+
+             | **Default**: ``27020``
+
+         * - idleShutdownTimeoutSecs
+           - | Number of idle seconds in which the ``mongocryptd`` process should wait before exiting.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: python
+                   :emphasize-lines: 1
+
+                   auto_encryption_opts = AutoEncryptionOpts(mongocryptd_spawn_args=['--idleShutdownTimeoutSecs=75'])
+
+             | **Default**: ``60``
+
+.. note::
+
+   If a ``mongocryptd`` process is already running on the port specified
+   by the driver, the driver may log a warning and continue to operate
+   without spawning a new process. Any settings specified by the driver
+   only apply once the existing process exits and a new encrypted client
+   attempts to connect.
+
+For additional information on ``mongocryptd``, refer to the
+:manual:`mongocryptd manual page
+</reference/security-client-side-encryption-appendix/#mongocryptd>`.
+
+The MedcoMD engineers use the following procedure to configure and
+instantiate the MongoDB client:
 
 .. include:: /includes/steps/fle-configure-the-mongodb-client.rst
 
@@ -790,6 +963,28 @@ MedcoMD engineers tested their CSFLE implementation by inserting and
 querying documents with encrypted fields. They then validated that
 clients without CSFLE enabled could not read the encrypted data.
 
+Additional Information
+----------------------
+
+To view and download a runnable example, select your driver below:
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: java-sync
+
+      **GitHub:** `Java CSFLE runnable example
+      <https://github.com/mongodb-university/csfle-guides/tree/master/java/>`_
+   .. tab::
+      :tabid: nodejs
+
+      **GitHub:** `NodeJS CSFLE runnable example
+      <https://github.com/mongodb-university/csfle-guides/tree/master/nodejs/>`_
+   .. tab::
+      :tabid: python
+
+      **GitHub:** `PyMongo CSFLE runnable example
+      <https://github.com/mongodb-university/csfle-guides/python/tree/master/>`_
 
 For more information on client-side field level encryption in MongoDB,
 check out the reference docs in the server manual:
@@ -802,8 +997,8 @@ The last step would be to take the application to production. As part of this
 step, the application needs to be modified to use a key management service such as Amazon KMS
 instead of storing the key in the codebase or local file system.
 For a step-by-step guide on using a KMS (recommended) instead of managing your
-master key locally, see our guide on `converting to a KMS. </use-cases/client-side-field-level-encryption-local-key-to-kms>`_
-
+master key locally, see our guide on `converting to a KMS
+</use-cases/client-side-field-level-encryption-local-key-to-kms>`_.
 
 .. tabs-drivers::
    :hidden: true
