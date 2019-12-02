@@ -211,24 +211,25 @@ You can also use operation-specific timeout by setting
 Pending DDL Operations and Transactions
 ---------------------------------------
 
-Multi-document transactions acquire exclusive locks on the collections which
-they access. New DDL operations that require locks on those collections or their
-parent databases must wait until the transaction releases its locks. While these
-pending DDL operations exist, new transactions that access the same
-collection(s) as the pending DDL operations cannot obtain the required locks and
-and will abort after waiting
-:parameter:`maxTransactionLockRequestTimeoutMillis`. In addition, new
-non-transaction operations that access the same collection(s) will block until
-they reach their ``maxTimeMS`` limit.
+If a multi-document transaction is in progress, new DDL operations that
+affect the same database(s) or collection(s) wait behind the
+transaction. While these pending DDL operations exist, new transactions
+that access the same database(s) or collection(s) as the pending DDL
+operations cannot obtain the required locks and and will abort after
+waiting :parameter:`maxTransactionLockRequestTimeoutMillis`. In
+addition, new non-transaction operations that access the same 
+database(s) or collection(s) will block until they reach their 
+``maxTimeMS`` limit.
 
 Consider the following scenarios:
 
 DDL Operation That Requires a Collection Lock
-  While an in-progress transaction is performing various CRUD operations on the
-  ``employees`` collection in the ``hr`` database, an administrator issues the
-  :method:`db.collection.createIndex()` DDL  operation against the
-  ``employees`` collection. :method:`~db.collection.createIndex()` requires an
-  exclusive collection lock on the collection.
+  While an in-progress transaction is performing various CRUD operations
+  on the ``employees`` collection in the ``hr`` database, an
+  administrator issues the :method:`db.collection.createIndex()` DDL
+  operation against the ``employees`` collection.
+  :method:`~db.collection.createIndex()` requires an exclusive
+  collection lock on the collection.
 
   Until the in-progress transaction completes, the
   :method:`~db.collection.createIndex()` operation must wait to obtain
@@ -237,17 +238,18 @@ DDL Operation That Requires a Collection Lock
   is pending must wait until after 
   :method:`~db.collection.createIndex()` completes. 
 
-  The pending :method:`~db.collection.createIndex()` DDL operation does not
-  affect transactions on other collections in the ``hr`` database. For example,
-  a new transaction on the ``contractors`` collection in the ``hr`` database can
-  start and complete as normal.
+  The pending :method:`~db.collection.createIndex()` DDL operation does
+  not affect transactions on other collections in the ``hr`` database.
+  For example, a new transaction on the ``contractors`` collection in
+  the ``hr`` database can start and complete as normal.
 
 DDL Operation That Requires a Database Lock  
-  While an in-progress transaction is performing various CRUD operations on the
-  ``employees`` collection in the ``hr`` database, an administrator issues the
-  :dbcommand:`collMod` DDL  operation against the ``contractors`` collection in
-  the same database. :dbcommand:`collMod` requires a database lock on
-  the parent ``hr`` database.
+  While an in-progress transaction is performing various CRUD operations
+  on the ``employees`` collection in the ``hr`` database, an
+  administrator issues the :dbcommand:`collMod` DDL  operation against
+  the ``contractors`` collection in the same database.
+  :dbcommand:`collMod` requires a database lock on the parent ``hr``
+  database.
 
   Until the in-progress transaction completes, the :dbcommand:`collMod`
   operation must wait to obtain the lock. Any new transaction that
