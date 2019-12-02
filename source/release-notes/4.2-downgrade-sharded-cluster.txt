@@ -377,6 +377,54 @@ Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
 
    .. include:: /includes/extracts/4.2-changes-zstd-network-compression.rst
 
+5. Remove Client-Side Field Level Encryption Document Validation Keywords
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   Remove client-side field level encryption code in applications
+   *prior* to downgrading the server.
+
+MongoDB 4.2 adds support for 
+:ref:`enforcing client-side field level encryption 
+<field-level-encryption-enforce-schema>` as part of a collection's
+:ref:`schema-validation-json` document validation. Specifically, 
+the :query:`$jsonSchema` object supports the
+:autoencryptkeyword:`encrypt` and :autoencryptkeyword:`encryptMetadata`
+keywords. MongoDB 4.0 does **not** support these keywords and fails to 
+start if any collection specifies those keywords as part of its 
+validation :query:`$jsonSchema`.
+
+Use :method:`db.getCollectionInfos()` on each database to identify
+collections specifying automatic field level encryption rules as part of
+the :query:`$jsonSchema` validator. To prepare for downgrade, connect to
+a cluster :binary:`~bin.mongos` and perform either of the following
+operations for each collection using the 4.0-incompatible keywords:
+
+- Use :dbcommand:`collMod` to modify the collection's 
+  :collflag:`validator` and replace the :query:`$jsonSchema` with
+  a schema that contains only 
+  `4.0-compatible document validation syntax 
+  <https://docs.mongodb.com/v4.0/reference/operator/query/jsonSchema#available-keywords>`__:
+
+  .. code-block:: javascript
+
+     db.runCommand({ 
+       "collMod" : "<collection>",
+       "validator" : {
+         "$jsonSchema" : { <4.0-compatible schema object> }
+       }
+     })
+
+  -*or*-
+
+- Use :dbcommand:`collMod` to remove the :collflag:`validator` object
+  entirely:
+
+  .. code-block:: javascript
+
+     db.runComand({ "collMod" : "<collection>", "validator" : {} })
+
 .. |binary| replace:: any :binary:`~bin.mongod`/:binary:`~bin.mongos` instance
 
 Procedure
