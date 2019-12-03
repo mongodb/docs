@@ -50,6 +50,12 @@
      - ``1000``
      - ``1000``
 
+   * - ``max_num_global_tables``
+     - integer
+     - The maximum number of unique SQL tables that ``mongosqld`` will map.
+     - ``4000``
+     - ``4000``
+
    * - ``mongodb_max_connection_size``
      - integer
      - The maximum size of memory in bytes that may be allocated for
