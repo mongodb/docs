@@ -10,7 +10,8 @@ content: |
 
    .. literalinclude:: /reference/k8s/example-opsmgr-minimal.yaml
       :language: yaml
-      :emphasize-lines: 5,7-11,13-14
+      :linenos:
+      :emphasize-lines: 5,7-11,13,15,17-19,21,23-25,27-31,34-35
 
 ---
 title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
@@ -74,6 +75,82 @@ content: |
              resource.
              
         - ``om-admin-secret``
+
+      * - | ``spec``
+          | ``.backup``
+          | ``.``:opsmgrkube:`~spec.backup.enabled`
+        - boolean
+        - | Flag that indicates that Backup is enabled for your |onprem| resource.
+          | You must specify ``spec.backup.enabled: true`` to configure
+            settings for the head database, oplog store, and snapshot
+            store. 
+        - ``true``
+
+      * - | ``spec``
+          | ``.backup``
+          | ``.opLogStores``
+          | ``.``:opsmgrkube:`~spec.backup.opLogStores.name`
+        - string
+        - Name of the oplog store.
+        - ``oplog1``
+
+      * - | ``spec``
+          | ``.backup``
+          | ``.opLogStores``
+          | ``.mongodbRef``
+          | ``.``:opsmgrkube:`~spec.backup.opLogStores.mongodbResourceRef.name`
+        - string
+        - Name of the MongoDB database resource for the oplog store.
+        - ``my-oplog-db``
+
+      * - | ``spec``
+          | ``.backup``
+          | ``.s3Stores``
+          | ``.``:opsmgrkube:`~spec.backup.s3Stores.name`
+        - string
+        - Name of the |s3| snapshot store.
+        - ``s3store1``
+
+      * - | ``spec``
+          | ``.backup``
+          | ``.s3Stores``
+          | ``.mongodbResourceRef``
+          | ``.``:opsmgrkube:`~spec.backup.s3Stores.mongodbResourceRef.name`
+        - string
+        - Name of the MongoDB database resource for the |s3| snapshot
+          store metadata.
+        - ``my-s3-metadata-db``
+
+      * - | ``spec``
+          | ``.backup``
+          | ``.s3Stores``
+          | ``.s3SecretRef``
+          | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3SecretRef.name`
+        - string
+        - Name of the |k8s-secret| that contains the ``accessKey`` and
+          ``secretKey`` fields. The :ref:`backup-daemon` uses the values
+          of these fields as credentials to
+          access the |s3| or |s3|-compatible bucket.
+        - ``my-s3-credentials``
+
+      * - | ``spec``
+          | ``.backup``
+          | ``.s3Stores``
+          | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3BucketEndpoint`
+        - string
+        - |url| of the |s3| or |s3|-compatible bucket that
+          :opsmgr:`stores </tutorial/manage-s3-blockstore-storage>` the
+          database Backup snapshots.
+        - ``s3.us-east-1.amazonaws.com``
+
+      * - | ``spec``
+          | ``.backup``
+          | ``.s3Stores``
+          | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3BucketName`
+        - string
+        - Name of the |s3| or |s3|-compatible bucket that stores the 
+          database Backup snapshots.
+        - my-bucket
 
       * - | ``spec``
           | ``.applicationDatabase`` 
@@ -165,6 +242,12 @@ content: |
   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.nodeAffinity`
   - ``spec.applicationDatabase.passwordSecretKeyRef.``:opsmgrkube:`~spec.applicationDatabase.passwordSecretKeyRef.name`
   - ``spec.applicationDatabase.passwordSecretKeyRef.``:opsmgrkube:`~spec.applicationDatabase.passwordSecretKeyRef.key`
+  - ``spec.backup.``:opsmgrkube:`~spec.backup.headDB` ``.labelSelector``
+  - ``spec.backup.``:opsmgrkube:`~spec.backup.headDB` ``.storage``
+  - ``spec.backup.``:opsmgrkube:`~spec.backup.headDB` ``.storageClass``
+  - ``spec.backup.opLogStores.mongodbUserRef.``:opsmgrkube:`~spec.backup.opLogStores.mongodbUserRef.name`
+  - ``spec.backup.s3Stores.mongodbUserRef.``:opsmgrkube:`~spec.backup.s3Stores.mongodbUserRef.name`
+  - ``spec.backup.s3Stores.``:opsmgrkube:`~spec.backup.s3Stores.pathStyleAccessEnabled`
 
 ---
 title: "Save this file with a ``.yaml`` file extension."
@@ -215,7 +298,7 @@ content: |
        version: ""
       opsManager:
        lastTransition: "2019-11-15T19:48:01Z"
-       message: Ops Manager is still waiting to start
+       message: Ops Manager is still starting
        phase: Reconciling
        version: ""
 
@@ -225,24 +308,29 @@ content: |
   .. code-block:: yaml
      :copyable: false
 
-     status:
-      applicationDatabase:
-       lastTransition: "2019-11-05T17:26:42Z"
-       phase: Running
-       type: ""
-       version: 4.0.7
-      opsManager:
-       lastTransition: "2019-11-05T17:26:34Z"
-       phase: Running
-       replicas: 1
-       url: http://om-test-svc.dev.svc.cluster.local:8080
-       version: 4.2.0
+      status:
+        applicationDatabase:
+          lastTransition: "2019-12-06T18:23:22Z"
+          members: 3
+          phase: Running
+          type: ReplicaSet
+          version: 4.0.7
+        opsManager:
+          lastTransition: "2019-12-06T18:23:26Z"
+          message: The MongoDB object namespace/oplogdbname doesn't exist
+          phase: Pending
+          url: http://om-svc.dev.svc.cluster.local:8080
+          version: ""
 
-  The ``status.opsManager.url`` is the connection URL of the resource,
-  which can be used to reach |onprem| from inside the |k8s|
-  cluster.
-
-  If the deployment fails, see :doc:`/reference/troubleshooting`.
+  The |application| remains in a ``Pending`` state until you configure
+  the Backup databases.
+  
+  .. tip::
+    
+     The ``status.opsManager.url`` field states the resource's
+     connection |url|. Using this |url|, you can reach |onprem| from
+     inside the |k8s| cluster or :ref:`create a project using a
+     ConfigMap <create-k8s-project>`.
 
 ---
 title: "Access your |onprem| instance from a browser."
@@ -254,8 +342,8 @@ content: |
   a. After the resource deploys successfully, find the external port to 
      your |onprem| instance.
      
-     Invoke the following ``kubectl`` command on ``<metadata.name>-svc-external``:
-     ``metadata.name`` :
+     Invoke the following ``kubectl`` command on 
+     ``<metadata.name>-svc-external : <metadata.name>`` :
 
      .. code-block:: sh
 
@@ -277,9 +365,131 @@ content: |
      using the |fqdn| and port number.
 
      .. code-block:: sh
+        :copyable: false
 
         http://ops.example.com:30036
   
   #. Log in to |onprem| using the :ref:`admin user credentials 
      <om-rsrc-prereqs>`.
+
+---
+title: "Create credentials for the Kubernetes Operator."
+stepnum: 9
+level: 4
+ref: create-credentials
+content: |
+
+  To configure credentials, you must create an |onprem| organization,
+  generate programmatic API keys, and create a |k8s-secret|. These
+  activities follow the prerequisites and procedure on the
+  :ref:`create-k8s-credentials` page.
+
+---
+title: "Create a project using a |k8s-configmap|."
+stepnum: 10
+level: 4
+ref: create-project
+content: |
+
+  To create a project, follow the prerequisites and procedure on the
+  :ref:`create-k8s-project` page.
+
+  You must set ``data.baseUrl`` in the ConfigMap to the |application|\'s |url|. To find this |url|, invoke the following command:
+
+  .. code-block:: sh
+
+     kubectl get om -n <namespace> -o yaml -w
+
+  The command returns the URL of the |application| in the
+  ``status.opsManager.url`` field.
+
+  .. code-block:: yaml
+     :copyable: false
+     :emphasize-lines: 12
+
+      status:
+        applicationDatabase:
+          lastTransition: "2019-12-06T18:23:22Z"
+          members: 3
+          phase: Running
+          type: ReplicaSet
+          version: 4.0.7
+        opsManager:
+          lastTransition: "2019-12-06T18:23:26Z"
+          message: The MongoDB object namespace/oplogdbname doesn't exist
+          phase: Pending
+          url: http://om-svc.dev.svc.cluster.local:8080
+          version: ""
+
+---
+title: "Deploy MongoDB database resources to complete the Backup configuration."
+stepnum: 11
+level: 4
+ref: configure-backup
+content: |
+
+  By default, |onprem| enables :ref:`mms-backup-functional-overview`.
+  Create a MongoDB database resource for the oplog and snapshot stores
+  to complete the configuration.
+
+  a. Deploy a :ref:`MongoDB database resource    
+     <deploy-resources>` for the oplog store in the same
+     namespace as the |onprem| resource.
+     
+     .. note:: 
+
+        Create this database as a three-member :ref:`replica set
+        <deploy-replica-set>`.
+
+     Match the ``metadata.name`` of the resource with the
+     :opsmgrkube:`spec.backup.opLogStores.mongodbResourceRef.name` that you specified
+     in your |onprem| resource definition.
+
+  #. Deploy a :ref:`MongoDB database resource    
+     <deploy-resources>` for the |s3| snapshot store in the
+     same namespace as the |onprem| resource.
+
+     .. note::
+        
+        Create the |s3| snapshot store as a replica set.
+
+     Match the ``metadata.name`` of the resource to the
+     :opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.name`
+     that you specified in your |onprem| resource definition. 
+     
+---
+title: "Confirm that the |onprem| resource is running."
+stepnum: 12
+level: 4
+ref: confirm-running
+content: |
+
+  To check the status of your |onprem| resource, invoke the following 
+  command:
+
+  .. code-block:: sh
+
+     kubectl get om -n <namespace> -o yaml -w
+
+  When the |onprem| is running, the command returns the following output
+  under the ``status`` field: 
+  
+  .. code-block:: yaml
+     :copyable: false
+
+     status:
+       applicationDatabase:
+         lastTransition: "2019-12-06T17:46:15Z"
+         members: 3
+         phase: Running
+         type: ReplicaSet
+         version: 4.0.7
+       opsManager:
+         lastTransition: "2019-12-06T17:46:32Z"
+         phase: Running
+         replicas: 1
+         url: http://om-backup-svc.dev.svc.cluster.local:8080
+         version: 4.2.0
+
+  If the deployment fails, see :doc:`/reference/troubleshooting`.
 ...
