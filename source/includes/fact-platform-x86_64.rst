@@ -83,6 +83,13 @@
      - |checkmark|
      - |checkmark|
      -
+
+   * - SLES 15
+     - 4.0.14+
+     -
+     -
+     -
+
    * - Solaris 11 64-bit
      -
      -
