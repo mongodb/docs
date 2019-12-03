@@ -55,6 +55,12 @@
      - |checkmark|
      - |checkmark|
      -
+
+   * - SLES 15
+     - 3.6.16+
+     -
+     -
+
    * - Solaris 11 64-bit
      -
      - Community only
