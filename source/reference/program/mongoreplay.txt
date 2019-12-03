@@ -68,13 +68,31 @@ Options
 
 .. program:: mongoreplay
 
-.. include:: /includes/option/option-mongoreplay-verbosity.rst
+.. option:: --verbosity, -v
 
-.. include:: /includes/option/option-mongoreplay-debug.rst
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+   
 
-.. include:: /includes/option/option-mongoreplay-silent.rst
 
-.. include:: /includes/option/option-mongoreplay-help.rst
+.. option:: --debug, -d
+
+   Increases the amount of detail about :program:`mongoreplay` operations
+   and errors recorded
+   in log files. Increase the debugging detail with the ``-d`` form by
+   including the option multiple times, (e.g. ``-ddd``.)
+
+
+.. option:: --silent, -s
+
+   When set, :program:`mongoreplay` does not produce any log output.
+
+
+.. option:: --help
+
+   Returns information on the options and use of :program:`mongoreplay`.
+
 
 Commands
 --------
@@ -119,17 +137,58 @@ to produce a playback file from an existing pcap file:
 
 .. program:: mongoreplay record
 
-.. include:: /includes/option/option-mongoreplay-record--f.rst
+.. option:: -f <path>
 
-.. include:: /includes/option/option-mongoreplay-record--b.rst
+   Specifies the path to a pcap file that :toolcommand:`record` should read to
+   produce a playback file.
+   
+   Use ``-f`` as an alternative to capturing network traffic using
+   ``-i``. You must specify *either* ``-f`` or ``-i``. If you include
+   both options, :program:`mongoreplay record` produces an error.
 
-.. include:: /includes/option/option-mongoreplay-record-expr.rst
 
-.. include:: /includes/option/option-mongoreplay-record--i.rst
+.. option:: -b <number>
 
-.. include:: /includes/option/option-mongoreplay-record-gzip.rst
+   Size of heap used to merge separate streams together. 
+   
 
-.. include:: /includes/option/option-mongoreplay-record-playback-file.rst
+
+.. option:: --expr <filter expression>, -e <filter expression>
+
+   An expression in `Berkeley Packet Filter (BPF) syntax
+   <http://biot.com/capstats/bpf.html>`_ to apply to incoming traffic to
+   record. Required if you are capturing traffic from a network interface using
+   :option:`-i`.
+   
+   For example, to capture traffic from a MongoDB instance running on
+   port 27017, you would specify ``-e 'port 27017'``.
+   
+
+
+.. option:: -i <interface>
+
+   Specifies the network interface that :toolcommand:`record` should listen on to
+   capture network traffic.
+   
+   Use with :option:`-e`.
+   
+   Use ``-i`` as an alternative to reading an existing pcap file with
+   ``-i``. You must specify *either* ``-f`` or ``-i``. If you include
+   both options, :program:`mongoreplay record` produces an error.
+
+
+.. option:: --gzip <boolean>
+
+   If specified, :toolcommand:`record` compresses the playback file with gzip.
+
+
+.. option:: --playback-file <path>, -p <path>
+
+   Specifies the path to which to write the playback file.
+
+   The produced playback file is a BSON file.
+   
+
 
 .. see::
 
@@ -178,29 +237,158 @@ For example, the following uses :toolcommand:`mongoreplay play <play>` to replay
 
 .. program:: mongoreplay play
 
-.. include:: /includes/option/option-mongoreplay-play-collect.rst
+.. option:: --collect <json|format|none>
 
-.. include:: /includes/option/option-mongoreplay-play-report.rst
+   *Default*: format
 
-.. include:: /includes/option/option-mongoreplay-play-no-truncate.rst
+   Specifies the output format for the collected statistics.
+   
+   - ``json``: outputs stat information as json
+   - ``format``: uses the formatting specified in the ``--format`` option
+     to produce the output file.
+   - ``none``: does not provide any output
+   
 
-.. include:: /includes/option/option-mongoreplay-play-format.rst
 
-.. include:: /includes/option/option-mongoreplay-play-no-colors.rst
+.. option:: --report <path>
 
-.. include:: /includes/option/option-mongoreplay-play-playback-file.rst
+   Specifies the path to which to write an execution report. 
+   Use :option:`--collect` to specify the output format for the report.
+   
+   If you do not specify ``--report``, :toolcommand:`play` writes to STDOUT.
 
-.. include:: /includes/option/option-mongoreplay-play-speed.rst
 
-.. include:: /includes/option/option-mongoreplay-play-host.rst
+.. option:: --no-truncate
 
-.. include:: /includes/option/option-mongoreplay-play-repeat.rst
+   If specified, disables truncation of large reply payload data in the
+   :toolcommand:`play` log output.
 
-.. include:: /includes/option/option-mongoreplay-play-queueTime.rst
 
-.. include:: /includes/option/option-mongoreplay-play-no-preprocess.rst
+.. option:: --format
 
-.. include:: /includes/option/option-mongoreplay-play-gzip.rst
+   *Default*: ``%F{blue}%t%f %F{cyan}(Connection: %o:%i)%f %F{yellow}%l%f
+   %F{red}%T %c%f %F{white}%n%f
+   %F{green}%Q{Request:}%f%q%F{green}%R{Response:}%f%r)``
+
+   Specifies the format for terminal output.
+   You can specify arguments immediately after the format 'verbs' by wrapping
+   them in curly braces, as in ``%Q{<arg>}``.
+   
+   If you specify :option:`--format`, also specify ``format`` as the value for the
+   :option:`--collect` option.
+   
+   :option:`--format` supports the following verbs:
+   
+   - ``%n``: namespace
+   - ``%l``: latency
+   
+   - ``%t``: time. You may optionally specify the date layout using the
+     Go Programming Language's `time formatting`_. Go
+     uses ``Mon Jan 2 15:04:05 MST 2006`` as its reference time. You
+     must specify the time format using the reference time. Thus, if you
+     wanted to print the date in format ``yyyy-mm-dd hh:mm``, you would
+     specify ``%t{2006-01-02 15:04}``. Refer to the Go `time formatting`_
+     documentation for more information.
+   
+   - ``%T``: op time
+   - ``%c``: command
+   - ``%o``: number of connections
+   - ``%i``: request ID
+   - ``%q``: request. You may optinally specified a dot-delimited field
+     within the JSON structure, as in, ``%q{command_args.documents}``.
+   - ``%r``: response. You may optinally specified a dot-delimited field
+     within the JSON structure, as in, ``%q{command_args.documents}``.
+   - ``%Q{<arg>}``: display ``<arg>`` on presence of request data
+   - ``%R{<arg>}``: display ``<arg>`` on presence of response data
+   
+   In addition, :option:`--format` supports the following start/end ANSI escape sequences:
+   
+   - ``%B``/``%b``: bold
+   - ``%U``/``%u``: underline
+   - ``%S``/``%s``: standout
+   - ``%F``/``%f``: text color (required arg -- word or number, 8-color)
+   - ``%K``/``%k``: background color (required arg -- same as %F/%f)
+   
+   .. _time formatting: https://golang.org/pkg/time/
+
+
+.. option:: --no-colors
+
+   When set, removes colors from the :option:`default format <mongoreplay play --format>`.
+
+
+.. option:: --playback-file <path>, -p <path>
+
+   Specifies the path from which to read the playback file.
+
+   If the playback file was created using the :option:`--gzip
+   <mongoreplay record --gzip>` option, you must also specify ``--gzip``
+   when running :toolcommand:`play`.
+
+
+.. option:: --speed number
+
+   *Default*: 1.0
+
+   Specifies a multiplier to adjust playback speed. ``--speed 1.0``
+   processes the playback file in real time; ``--speed 0.5`` at half
+   speed; ``--speed 3.0`` at triple speed.
+   
+   The specified speed is a *target* speed. If :program:`mongoreplay play` encounters
+   a bottleneck, playback may be slower than the specified multiplier.
+
+
+.. option:: --host <uri connection string>
+
+   *Default*: mongodb://localhost:27017
+
+   Specifies a MongoDB :doc:`connection string </reference/connection-string>`
+   for the MongoDB deployment to which to
+   play back the captured network traffic. 
+   
+   By default, :toolcommand:`play`
+   attempts to connect to a :binary:`~bin.mongod` instance running on the localhost on
+   port number ``27017``.
+   
+   .. note::
+   
+      Starting in MongoDB 4.0, :toolcommand:`mongoreplay play <play>` supports a new
+      ``MONGOREPLAY_HOST`` environment variable that specifies the
+      connection string for the MongoDB deployment. The new environment
+      vairable can be used instead of the command-line :option:`--host` option.
+   
+      If :option:`--host` command-line option is
+      specified, the :option:`--host` value overrides
+      the environment variable.
+
+
+.. option:: --repeat number
+
+   *Default*: 1
+
+   Specifies the number of times to play the playback file.
+   
+
+
+.. option:: --queueTime number
+
+   *Default*: 15
+
+   Specifies the maximum time, in seconds, to queue operations in advance
+   of transmitting them.
+   
+
+
+.. option:: --no-preprocess
+
+   When set, :toolcommand:`play` does not preprocess the input file to pre-map
+   data such as MongoDB cursor IDs.
+
+
+.. option:: --gzip <boolean>
+
+   If specified, :toolcommand:`play` decompresses the playback file with gzip.
+
 
 .. see::
 
@@ -228,29 +416,140 @@ JSON report based on the ``playback.bson`` playback file in the ``~/recordings``
 
 .. program:: mongoreplay monitor
 
-.. include:: /includes/option/option-mongoreplay-monitor-collect.rst
+.. option:: --collect <json|format|none>
 
-.. include:: /includes/option/option-mongoreplay-monitor-report.rst
+   *Default*: format
 
-.. include:: /includes/option/option-mongoreplay-monitor-no-truncate.rst
+   Specifies the output format for the collected statistics.
+   
+   - ``json``: outputs stat information as json
+   - ``format``: uses the formatting specified in the ``--format`` option
+     to produce the output file.
+   - ``none``: does not provide any output
+   
 
-.. include:: /includes/option/option-mongoreplay-monitor-format.rst
 
-.. include:: /includes/option/option-mongoreplay-monitor-no-colors.rst
+.. option:: --report <path>
 
-.. include:: /includes/option/option-mongoreplay-monitor--f.rst
+   Specifies the path to which to write an execution report. 
+   Use :option:`--collect` to specify the output format for the report.
+   
+   If you do not specify ``--report``, :toolcommand:`monitor` writes to STDOUT.
 
-.. include:: /includes/option/option-mongoreplay-monitor--b.rst
 
-.. include:: /includes/option/option-mongoreplay-monitor-expr.rst
+.. option:: --no-truncate
 
-.. include:: /includes/option/option-mongoreplay-monitor--i.rst
+   If specified, disables truncation of large reply payload data in the
+   :toolcommand:`monitor` log output.
 
-.. include:: /includes/option/option-mongoreplay-monitor-paired.rst
 
-.. include:: /includes/option/option-mongoreplay-monitor-gzip.rst
+.. option:: --format
 
-.. include:: /includes/option/option-mongoreplay-monitor-playback-file.rst
+   *Default*: ``%F{blue}%t%f %F{cyan}(Connection: %o:%i)%f %F{yellow}%l%f
+   %F{red}%T %c%f %F{white}%n%f
+   %F{green}%Q{Request:}%f%q%F{green}%R{Response:}%f%r)``
+
+   Specifies the format for terminal output.
+   You can specify arguments immediately after the format 'verbs' by wrapping
+   them in curly braces, as in ``%Q{<arg>}``.
+   
+   If you specify :option:`--format`, also specify ``format`` as the value for the
+   :option:`--collect` option.
+   
+   :option:`--format` supports the following verbs:
+   
+   - ``%n``: namespace
+   - ``%l``: latency
+   
+   - ``%t``: time. You may optionally specify the date layout using the
+     Go Programming Language's `time formatting`_. Go
+     uses ``Mon Jan 2 15:04:05 MST 2006`` as its reference time. You
+     must specify the time format using the reference time. Thus, if you
+     wanted to print the date in format ``yyyy-mm-dd hh:mm``, you would
+     specify ``%t{2006-01-02 15:04}``. Refer to the Go `time formatting`_
+     documentation for more information.
+   
+   - ``%T``: op time
+   - ``%c``: command
+   - ``%o``: number of connections
+   - ``%i``: request ID
+   - ``%q``: request. You may optinally specified a dot-delimited field
+     within the JSON structure, as in, ``%q{command_args.documents}``.
+   - ``%r``: response. You may optinally specified a dot-delimited field
+     within the JSON structure, as in, ``%q{command_args.documents}``.
+   - ``%Q{<arg>}``: display ``<arg>`` on presence of request data
+   - ``%R{<arg>}``: display ``<arg>`` on presence of response data
+   
+   In addition, :option:`--format` supports the following start/end ANSI escape sequences:
+   
+   - ``%B``/``%b``: bold
+   - ``%U``/``%u``: underline
+   - ``%S``/``%s``: standout
+   - ``%F``/``%f``: text color (required arg -- word or number, 8-color)
+   - ``%K``/``%k``: background color (required arg -- same as %F/%f)
+   
+   
+
+
+.. option:: --no-colors
+
+   When set, removes colors from the :option:`default format <mongoreplay monitor --format>`.
+
+
+.. option:: -f <path>
+
+   Specifies the path to a pcap file that :toolcommand:`monitor` should read to
+   produce a playback file.
+   
+   Use ``-f`` as an alternative to capturing network traffic using
+   ``-i``. You must specify *either* ``-f`` or ``-i``. If you include
+   both options, :program:`mongoreplay monitor` produces an error.
+
+
+.. option:: -b <number>
+
+   Size of heap used to merge separate streams together. 
+   
+
+
+.. option:: --expr <filter expression>, -e <filter expression>
+
+   An expression in `Berkeley Packet Filter (BPF) syntax
+   <http://biot.com/capstats/bpf.html>`_ to apply to incoming traffic to
+   record. Required if you are capturing traffic from a network interface using
+   :option:`-i`.
+   
+   For example, to capture traffic from a MongoDB instance running on
+   port 27017, you would specify ``-e 'port 27017'``.
+   
+
+
+.. option:: -i <interface>
+
+   Specifies the network interface that :toolcommand:`monitor` should listen on to
+   capture network traffic.
+   
+   Use with :option:`-e`.
+   
+   Use ``-i`` as an alternative to reading an existing pcap file with
+   ``-i``. You must specify *either* ``-f`` or ``-i``. If you include
+   both options, :program:`mongoreplay monitor` produces an error.
+
+
+.. option:: --paired
+
+   When specified, :toolcommand:`monitor` outputs one line for each request/reply pair record.
+
+
+.. option:: --gzip <boolean>
+
+   If specified, :toolcommand:`monitor` decompresses the playback file with gzip.
+
+
+.. option:: --playback-file <path>, -p <path>
+
+   Specifies the path from which to read the playback file.
+
 
 .. see::
 

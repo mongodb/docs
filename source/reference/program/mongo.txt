@@ -101,60 +101,333 @@ Core Options
 
 .. program:: mongo
 
-.. include:: /includes/option/option-mongo-shell.rst
+.. option:: --shell
 
-.. include:: /includes/option/option-mongo-nodb.rst
+   Enables the shell interface. If you invoke the :program:`mongo` command
+   and specify a JavaScript file as an argument, or use :option:`--eval` to
+   specify JavaScript on the command line, the :option:`--shell` option
+   provides the user with a shell prompt after the file finishes executing.
 
-.. include:: /includes/option/option-mongo-norc.rst
 
-.. include:: /includes/option/option-mongo-quiet.rst
+.. option:: --nodb
 
-.. include:: /includes/option/option-mongo-port.rst
+   Prevents the shell from connecting to any database instances. Later, to
+   connect to a database within the shell, see
+   :ref:`mongo-shell-new-connections`.
+   
 
-.. include:: /includes/option/option-mongo-host.rst
 
-.. include:: /includes/option/option-mongo-eval.rst
+.. option:: --norc
 
-.. include:: /includes/option/option-mongo-username.rst
+   Prevents the shell from sourcing and evaluating :file:`~/.mongorc.js` on
+   start up.
+   
 
-.. include:: /includes/option/option-mongo-password.rst
 
-.. include:: /includes/option/option-mongo-help.rst
+.. option:: --quiet
 
-.. include:: /includes/option/option-mongo-version.rst
+   Silences output from the shell during the connection process.
+   
 
-.. include:: /includes/option/option-mongo-verbose.rst
 
-.. include:: /includes/option/option-mongo-networkMessageCompressors.rst
+.. option:: --port <port>
 
-.. include:: /includes/option/option-mongo-ipv6.rst
+   Specifies the port where the :binary:`~bin.mongod` or :binary:`~bin.mongos`
+   instance is listening. If :option:`--port` is not specified,
+   :program:`mongo` attempts to connect to port ``27017``.
 
-.. include:: /includes/option/option-mongo-<db name>.rst
 
-.. include:: /includes/option/option-mongo-enableJavaScriptJIT.rst
+.. option:: --host <hostname>
 
-.. include:: /includes/option/option-mongo-disableJavaScriptJIT.rst
+   Specifies the name of the host machine where the
+   :binary:`~bin.mongod` or :binary:`~bin.mongos` is running. If this is not specified,
+   :program:`mongo` attempts to connect to a MongoDB process running on
+   the localhost.
+   
+   To connect to a replica set,
+      Specify the :setting:`replica set name <~replication.replSetName>`
+      and a seed list of set members. Use the following form:
+   
+      .. code-block:: none
+   
+         <replSetName>/<hostname1><:port>,<hostname2><:port>,<...>
+   
+   For TLS/SSL connections (``--ssl``),
+     .. include:: /includes/extracts/ssl-facts-mongo-ssl-hostname-verification.rst
+   
+   For `DNS seedlist connections <https://docs.mongodb.com/manual/reference/connection-string/#dns-seedlist-connection-format/>`_, 
+      Specify the connection protocol as ``mongodb+srv``, followed by
+      the DNS SRV hostname record and any options. The ``authSource``
+      and ``replicaSet`` options, if included in the connection string,
+      will override any corresponding DNS-configured options set in the
+      TXT record. Use of the ``mongodb+srv:`` connection string
+      implicitly enables TLS/SSL (normally set with ``ssl=true``) for
+      the client connection. The TLS/SSL option can be turned off by
+      setting ``ssl=false`` in the query string.
+   
+      Example:
+   
+      .. code-block:: none
+   
+         mongodb+srv://server.example.com/?connectionTimeout=3000ms
+   
+      .. versionadded:: 3.6
 
-.. include:: /includes/option/option-mongo-disableJavaScriptProtection.rst
+
+.. option:: --eval <javascript>
+
+   Evaluates a JavaScript expression that is specified as an argument.
+   :program:`mongo` does not load its own environment when evaluating code.
+   As a result many options of the shell environment are not available.
+
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--password` and
+   :option:`--authenticationDatabase` options.
+   
+
+
+.. option:: --password <password>, -p <password>
+
+   Specifies a password with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--username`
+   and :option:`--authenticationDatabase` options. To force :program:`mongo` to
+   prompt for a password, enter the :option:`--password` option as the
+   last option and leave out the argument.
+
+
+.. option:: --help, -h
+
+   Returns information on the options and use of :program:`mongo`.
+
+
+.. option:: --version
+
+   Returns the :program:`mongo` release number.
+
+
+.. option:: --verbose
+
+   Increases the verbosity of the output of the shell during the connection
+   process.
+   
+
+
+.. option:: --networkMessageCompressors <string>
+
+   
+   .. versionadded:: 3.4
+   
+   Enables network compression for communication between this
+   :program:`mongo` shell and:
+   
+   - a :binary:`~bin.mongod` instance
+   
+   - a :binary:`~bin.mongos` instance.
+   
+   You can specify the following compressors:	
+   
+   - :term:`snappy`
+   
+   - :term:`zlib` (Available starting in MongoDB 3.6)
+   
+   - :term:`zstd` (Available starting in MongoDB 4.2)
+   
+   .. include:: /includes/fact-networkMessageCompressors.rst
+
+
+.. option:: --ipv6
+
+   Enables IPv6 support. :program:`mongo` disables IPv6 by default.
+   
+   To connect to a MongoDB cluster via IPv6, you must specify
+   both :option:`--ipv6` *and* 
+   :option:`--host \<mongod/mongos IPv6 address\> <mongo --host>`
+   when starting the :program:`mongo` shell.
+   
+   :binary:`~bin.mongod` and :binary:`~bin.mongos` disable IPv6 support
+   by default. Specifying :option:`--ipv6` when connecting to a
+   ``mongod/mongos`` does not enable IPv6 support on the 
+   ``mongod/mongos``. For documentation on enabling IPv6 support
+   on the ``mongod/mongos``, see :setting:`net.ipv6`.
+
+
+.. option:: <db name>
+
+   Specifies the name of the database to connect to. For
+   example:
+   
+   .. code-block:: sh
+   
+      mongo admin
+   
+   The above command will connect the :program:`mongo` shell to the
+   :term:`admin database` of the MongoDB deployment running on the local machine. You may specify a remote
+   database instance, with the resolvable hostname or IP address. Separate
+   the database name from the hostname using a ``/`` character. See the
+   following examples:
+   
+   .. code-block:: none
+   
+      mongo mongodb1.example.net/test
+      mongo mongodb1/admin
+      mongo 10.8.8.10/test
+   
+   This syntax is the *only* way to connect to a specific database.
+   
+   To specify alternate hosts and a database, you must use this syntax and cannot
+   use :option:`--host` or :option:`--port`.
+
+
+.. option:: --enableJavaScriptJIT
+
+   .. versionadded:: 4.0
+   
+   Enable the JavaScript engine's JIT compiler.
+   
+
+
+.. option:: --disableJavaScriptJIT
+
+   .. versionchanged:: 4.0
+   
+      .. include:: /includes/fact-jit-disabled.rst
+   
+   Disables the JavaScript engine's JIT compiler.
+   
+
+
+.. option:: --disableJavaScriptProtection
+
+   .. versionadded:: 3.4
+   
+   Allows fields of type :ref:`javascript<bson-types>` and
+   :ref:`javascriptWithScope<bson-types>` to be automatically
+   marshalled to JavaScript functions in the :binary:`~bin.mongo`
+   shell.
+   
+   With the ``--disableJavaScriptProtection`` flag set, it is possible
+   to immediately execute JavaScript functions contained in documents.
+   The following example demonstrates this behavior within the shell:
+   
+   .. code-block:: javascript
+   
+      > db.test.insert({ _id: 1, jsFunc: function(){ print("hello") } } )
+      WriteResult({ "nInserted" : 1 })
+      > var doc = db.test.findOne({ _id: 1 })
+      > doc
+      { "_id" : 1, "jsFunc" : function (){ print ("hello") } }
+      > typeof doc.jsFunc
+      function
+      > doc.jsFunc()
+      hello
+   
+   The default behavior (when :binary:`~bin.mongo` starts *without* the
+   ``--disableJavaScriptProtection`` flag) is to convert embedded
+   JavaScript functions to the non-executable MongoDB shell type
+   ``Code``. The following example demonstrates the default behavior
+   within the shell:
+   
+   .. code-block:: javascript
+   
+      > db.test.insert({ _id: 1, jsFunc: function(){ print("hello") } } )
+      WriteResult({ "nInserted" : 1 })
+      > var doc = db.test.findOne({ _id: 1 })
+      > doc
+      { "_id" : 1, "jsFunc" : { "code" : "function (){print(\"hello\")}" } }
+      > typeof doc.func
+      object
+      > doc.func instanceof Code
+      true
+      > doc.jsFunc()
+      2016-11-09T12:30:36.808-0800 E QUERY    [thread1] TypeError: doc.jsFunc is
+      not a function :
+      @(shell):1:1
+   
+
 
 .. _mongo-shell-file:
 
-.. include:: /includes/option/option-mongo-<file.js>.rst
+.. option:: <file.js>
+
+   Specifies a JavaScript file to run and then exit. Generally this should
+   be the last option specified.
+   
+   .. optional:: To specify a JavaScript file to execute *and* allow
+      :program:`mongo` to prompt you for a password using
+      :option:`--password`, pass the filename as the first parameter with
+      :option:`--username` and :option:`--password` as the last options, as
+      in the following:
+   
+      .. code-block:: sh
+   
+         mongo file.js --username username --password
+   
+   Use the :option:`--shell` option to return to a shell after the file
+   finishes running.
+
 
 .. _mongo-shell-authentication-options:
 
 Authentication Options
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/option/option-mongo-authenticationDatabase.rst
+.. option:: --authenticationDatabase <dbname>
+
+   
+   Specifies the authentication database where the specified :option:`--username` has been created.
+   See :ref:`user-authentication-database`.
+   
+
+   If you do not specify a value for :option:`--authenticationDatabase`, :program:`mongo` uses the database
+   specified in the connection string.
+
 
 .. _mongo-shell-authentication-mechanisms:
 
-.. include:: /includes/option/option-mongo-authenticationMechanism.rst
+.. option:: --authenticationMechanism <name>
 
-.. include:: /includes/option/option-mongo-gssapiHostName.rst
+   *Default*: SCRAM-SHA-1
 
-.. include:: /includes/option/option-mongo-gssapiServiceName.rst
+   Specifies the authentication mechanism the :program:`mongo` instance uses to
+   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+   
+   .. versionchanged:: 4.0
+   
+      MongoDB removes support for the deprecated MongoDB
+      Challenge-Response (``MONGODB-CR``) authentication mechanism.
+   
+      MongoDB adds support for SCRAM mechanism using the SHA-256 hash
+      function (``SCRAM-SHA-256``).
+   
+   .. include:: /includes/list-table-auth-mechanisms.rst
+
+
+.. option:: --gssapiHostName
+
+   .. versionadded:: 2.6
+   
+   Specify the hostname of a service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. *Only* required if the hostname of a machine does
+   not match the hostname resolved by DNS.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --gssapiServiceName
+
+   .. versionadded:: 2.6
+   
+   Specify the name of the service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. Only required if the service does not use the
+   default name of ``mongodb``.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
 
 .. _mongo-shell-tls:
 
@@ -168,25 +441,177 @@ TLS Options
 .. see:: :doc:`/tutorial/configure-ssl` for full
    documentation of MongoDB's support.
 
-.. include:: /includes/option/option-mongo-tls.rst
+.. option:: --tls
 
-.. include:: /includes/option/option-mongo-tlsCertificateKeyFile.rst
+   
+   .. versionadded:: 4.2
+   
+   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   TLS/SSL support enabled.
+   
+   .. include:: /includes/extracts/ssl-facts-mongo-shell-ca.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
 
-.. include:: /includes/option/option-mongo-tlsCertificateKeyFilePassword.rst
 
-.. include:: /includes/option/option-mongo-tlsCAFile.rst
+.. option:: --tlsCertificateKeyFile <filename>
 
-.. include:: /includes/option/option-mongo-tlsCRLFile.rst
+   
+   .. versionadded:: 4.2
+   
+   Specifies the :file:`.pem` file that contains both the TLS/SSL
+   certificate and key for the :binary:`~bin.mongo` shell. Specify the
+   file name of the :file:`.pem` file using relative or absolute paths.
+   
+   This option is required when using the :option:`--tls <mongo --tls>`
+   option to connect to a :binary:`~bin.mongod` or :binary:`~bin.mongos`
+   instance that requires :ref:`client certificates
+   <mongo-connect-require-client-certificates-tls>`. That is, the
+   :binary:`~bin.mongo` shell present this certificate to the server.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
 
-.. include:: /includes/option/option-mongo-tlsAllowInvalidHostnames.rst
 
-.. include:: /includes/option/option-mongo-tlsAllowInvalidCertificates.rst
+.. option:: --tlsCertificateKeyFilePassword <value>
 
-.. include:: /includes/option/option-mongo-tlsFIPSMode.rst
+   
+   .. versionadded:: 4.2
+   
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--tlsCertificateKeyFile <mongo --tlsCertificateKeyFile>`).
+   
+   Use the :option:`--tlsCertificateKeyFilePassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongo` will
+   redact the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not
+   specify the :option:`--tlsCertificateKeyFilePassword` option, the :program:`mongo` will prompt for a
+   passphrase. See :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
 
-.. include:: /includes/option/option-mongo-tlsCertificateSelector.rst
 
-.. include:: /includes/option/option-mongo-tlsDisabledProtocols.rst
+.. option:: --tlsCAFile <filename>
+
+   .. versionadded:: 4.2
+     
+   Specifies the :file:`.pem` file that contains the root certificate
+   chain from the Certificate Authority. This file is used to validate
+   the certificate presented by the
+   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance.
+   
+   Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-mongo-shell-ca.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --tlsCRLFile <filename>
+
+   
+   .. versionadded:: 4.2
+   
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --tlsAllowInvalidHostnames
+
+   .. versionadded:: 4.2
+   
+   Disables the validation of the hostnames in the certificate presented
+   by the :binary:`~bin.mongod`/:binary:`~bin.mongos` instance. Allows
+   :program:`mongo` to connect to MongoDB instances even if the hostname in
+   the server certificates do not match the server's host.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --tlsAllowInvalidCertificates
+
+   .. versionadded:: 4.2
+   
+   Bypasses the validation checks for the certificates presented by the
+   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance and allows
+   connections to servers that present invalid certificates.
+   
+   .. note::
+      
+      .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+   
+   .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
+   
+   When using the :setting:`~net.ssl.allowInvalidCertificates` setting,
+   MongoDB logs as a warning the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --tlsFIPSMode
+
+   .. versionadded:: 4.2
+   
+   Directs the :program:`mongo` to use the FIPS mode of the TLS/SSL  
+   library. Your system must have a FIPS compliant library to use
+   the :option:`--tlsFIPSMode` option.
+   
+   .. include:: /includes/note-fips-is-enterprise-only.rst
+
+
+.. option:: --tlsCertificateSelector <parameter>=<value>
+
+   
+   .. versionadded:: 4.2
+   
+      Available on Windows and macOS as an alternative to :option:`--tlsCertificateKeyFile`.
+      
+      The :option:`--tlsCertificateKeyFile` and :option:`--tlsCertificateSelector` options are mutually exclusive. You can only
+      specify one.
+   
+   Specifies a certificate property in order to select a matching
+   certificate from the operating system's certificate store.
+   
+   :option:`--tlsCertificateSelector` accepts an argument of the format ``<property>=<value>``
+   where the property can be one of the following:
+   
+   .. include:: /includes/extracts/tls-facts-certificate-selector-properties.rst
+   
+   .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst
+
+
+.. option:: --tlsDisabledProtocols <string>
+
+   
+   .. versionadded:: 4.2
+   
+   Disables the specified TLS protocols. The option recognizes the
+   following protocols: ``TLS1_0``, ``TLS1_1``, ``TLS1_2``, and
+   starting in version 4.0.4 (and 3.6.9), ``TLS1_3``.
+   
+   - On macOS, you cannot disable ``TLS1_1`` and leave both ``TLS1_0`` and
+     ``TLS1_2`` enabled. You must also disable at least one of the other
+     two; for example, ``TLS1_0,TLS1_1``.
+   
+   - To list multiple protocols, specify as a comma separated list of
+     protocols. For example ``TLS1_0,TLS1_1``.
+   
+   - The specified disabled protocols overrides any default disabled
+     protocols.
+   
+   Starting in version 4.0, MongoDB disables the use of TLS 1.0 if TLS
+   1.1+ is available on the system. To enable the
+   disabled TLS 1.0, specify ``none`` to :option:`--tlsDisabledProtocols`.  See :ref:`4.0-disable-tls`.
+
 
 .. _mongo-shell-ssl:
 
@@ -204,43 +629,271 @@ SSL Options (Deprecated)
    .. include:: /includes/fact-tls-1.0.rst
 
 
-.. include:: /includes/option/option-mongo-ssl.rst
+.. option:: --ssl
 
-.. include:: /includes/option/option-mongo-sslPEMKeyFile.rst
+   
+   .. deprecated:: 4.2 Use :option:`--tls <mongo --tls>` instead.
+   
+   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   TLS/SSL support enabled.
+   
+   .. include:: /includes/extracts/ssl-facts-mongo-shell-ca.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
 
-.. include:: /includes/option/option-mongo-sslPEMKeyPassword.rst
 
-.. include:: /includes/option/option-mongo-sslCAFile.rst
+.. option:: --sslPEMKeyFile <filename>
 
-.. include:: /includes/option/option-mongo-sslCertificateSelector.rst
+   
+   .. deprecated:: 4.2 Use :option:`--tlsCertificateKeyFile <mongo --tlsCertificateKeyFile>` instead.
+   
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
+   
+   This option is required when using the ``--ssl`` option to connect
+   to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   :setting:`~net.ssl.CAFile` enabled *without*
+   :setting:`~net.ssl.allowConnectionsWithoutCertificates`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
 
-.. include:: /includes/option/option-mongo-sslCRLFile.rst
 
-.. include:: /includes/option/option-mongo-sslFIPSMode.rst
+.. option:: --sslPEMKeyPassword <value>
 
-.. include:: /includes/option/option-mongo-sslAllowInvalidCertificates.rst
+   
+   .. deprecated:: 4.2 Use :option:`--tlsCertificateKeyFilePassword <mongo --tlsCertificateKeyFilePassword>` instead.
+   
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   ``--sslPEMKeyFile``). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongo` will
+   redact the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not
+   specify the :option:`--sslPEMKeyPassword` option, the :program:`mongo` will prompt for a
+   passphrase. See :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
 
-.. include:: /includes/option/option-mongo-sslAllowInvalidHostnames.rst
 
-.. include:: /includes/option/option-mongo-sslDisabledProtocols.rst
+.. option:: --sslCAFile <filename>
+
+   .. deprecated:: 4.2 Use :option:`--tlsCAFile <mongo --tlsCAFile>` instead.
+   
+   
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-mongo-shell-ca.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCertificateSelector <parameter>=<value>
+
+   
+   .. deprecated:: 4.2 Use :option:`--tlsCertificateSelector <mongo --tlsCertificateSelector>` instead.
+   
+   .. versionadded:: 4.0
+   
+      Available on Windows and macOS as an alternative to :option:`--tlsCertificateKeyFile`.
+      
+      :option:`--tlsCertificateKeyFile` and :option:`--sslCertificateSelector` options are mutually exclusive. You can only
+      specify one.
+   
+   Specifies a certificate property in order to select a matching
+   certificate from the operating system's certificate store.
+   
+   :option:`--sslCertificateSelector` accepts an argument of the format ``<property>=<value>``
+   where the property can be one of the following:
+   
+   .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
+   
+   .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst
+
+
+.. option:: --sslCRLFile <filename>
+
+   
+   .. deprecated:: 4.2 Use :option:`--tlsCRLFile <mongo --tlsCRLFile>` instead.
+   
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslFIPSMode
+
+   .. deprecated:: 4.2 Use :option:`--tlsFIPSMode <mongo --tlsFIPSMode>` instead.
+   
+   Directs the :program:`mongo` to use the FIPS mode of the TLS/SSL  
+   library. Your system must have a FIPS compliant library to use
+   the :option:`--sslFIPSMode` option.
+   
+   .. include:: /includes/note-fips-is-enterprise-only.rst
+
+
+.. option:: --sslAllowInvalidCertificates
+
+   .. deprecated:: 4.2 Use :option:`--tlsAllowInvalidCertificates <mongo --tlsAllowInvalidCertificates>` instead.
+   
+   
+   Bypasses the validation checks for server certificates and allows
+   the use of invalid certificates to connect.
+   
+   .. note::
+      
+      .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+   
+   .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
+   
+   When using the :setting:`~net.ssl.allowInvalidCertificates` setting,
+   MongoDB logs as a warning the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslAllowInvalidHostnames
+
+   .. deprecated:: 4.2 Use :option:`--tlsAllowInvalidHostnames <mongo --tlsAllowInvalidHostnames>` instead.
+   
+   Disables the validation of the hostnames in TLS/SSL certificates. Allows
+   :program:`mongo` to connect to MongoDB instances even if the hostname in their
+   certificates do not match the specified hostname.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslDisabledProtocols <string>
+
+   
+   .. deprecated:: 4.2 Use :option:`--tlsDisabledProtocols <mongo --tlsDisabledProtocols>` instead.
+   
+   Disables the specified TLS protocols. The option recognizes the
+   following protocols: ``TLS1_0``, ``TLS1_1``, ``TLS1_2``, and
+   starting in version 4.0.4 (and 3.6.9), ``TLS1_3``.
+   
+   - On macOS, you cannot disable ``TLS1_1`` and leave both ``TLS1_0`` and
+     ``TLS1_2`` enabled. You must also disable at least one of the other
+     two; for example, ``TLS1_0,TLS1_1``.
+   
+   - To list multiple protocols, specify as a comma separated list of
+     protocols. For example ``TLS1_0,TLS1_1``.
+   
+   - The specified disabled protocols overrides any default disabled
+     protocols.
+   
+   Starting in version 4.0, MongoDB disables the use of TLS 1.0 if TLS
+   1.1+ is available on the system. To enable the
+   disabled TLS 1.0, specify ``none`` to :option:`--sslDisabledProtocols`.  See :ref:`4.0-disable-tls`.
+   
+   .. versionadded:: 3.6.5
+
 
 Sessions
 ~~~~~~~~
 
-.. include:: /includes/option/option-mongo-retryWrites.rst
+.. option:: --retryWrites
+
+   
+   .. versionadded:: 3.6
+   
+   Enables retryable writes as the default for sessions in the
+   :binary:`~bin.mongo` shell.
+   
+   For more information on sessions, see :ref:`sessions`.
+   
+
 
 .. _mongo-client-side-field-level-encryption-options:
 
 Client-Side Field Level Encryption Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/option/option-mongo-awsAccessKeyId.rst
+.. option:: --awsAccessKeyId <string>
 
-.. include:: /includes/option/option-mongo-awsSecretAccessKey.rst
+   
+   An AWS `Access Key <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__
+   associated to an IAM user with ``List`` and ``Read`` permissions for the
+   AWS Key Management Service (KMS). The :program:`mongo` shell uses the specified 
+   :option:`--awsAccessKeyId` to access the KMS. 
+   
+   :option:`--awsAccessKeyId` is required for enabling :doc:`/core/security-client-side-encryption` 
+   for the :program:`mongo` shell session. :option:`--awsAccessKeyId` requires *all* of the following
+   command line options:
+   
+   - :option:`--awsSecretAccessKey` 
+   - :option:`--keyVaultNamespace`
+   
+   If :option:`--awsAccessKeyId` is omitted, use the :method:`Mongo()` constructor within the shell
+   session to enable client-side field level encryption.
+   
+   To mitigate the risk of leaking access keys into logs, consider specifying
+   an environmental variable to :option:`--awsAccessKeyId`. 
 
-.. include:: /includes/option/option-mongo-awsSessionToken.rst
 
-.. include:: /includes/option/option-mongo-keyVaultNamespace.rst
+.. option:: --awsSecretAccessKey <string>
+
+   
+   An AWS `Secret Key <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__
+   associated to the specified :option:`--awsAccessKeyId`.
+   
+   :option:`--awsSecretAccessKey` is required for enabling :doc:`/core/security-client-side-encryption` 
+   for the :program:`mongo` shell session. :option:`--awsSecretAccessKey` requires *all* of the following
+   command line options:
+   
+   - :option:`--awsAccessKeyId` 
+   - :option:`--keyVaultNamespace`
+   
+   If :option:`--awsSecretAccessKey` and its supporting options are omitted, use :method:`Mongo()`
+   within the shell session to enable client-side field level encryption.
+   
+   To mitigate the risk of leaking access keys into logs, consider specifying
+   an environmental variable to :option:`--awsSecretAccessKey`. 
+
+
+.. option:: --awsSessionToken <string>
+
+   
+   An AWS `Session Token <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__
+   associated to the specified :option:`--awsAccessKeyId`.
+   
+   :option:`--awsSessionToken` is required for enabling :doc:`/core/security-client-side-encryption` 
+   for the :program:`mongo` shell session. :option:`--awsSessionToken` requires *all* of the following
+   command line options:
+   
+   - :option:`--awsAccessKeyId` 
+   - :option:`--awsSecretAccessKey`
+   - :option:`--keyVaultNamespace`
+   
+   If :option:`--awsSessionToken` and its supporting options are omitted, use :method:`Mongo()`
+   within the shell session to enable client-side field level encryption.
+   
+   To mitigate the risk of leaking access keys into logs, consider specifying
+   an environmental variable to :option:`--awsSessionToken`. 
+
+
+.. option:: --keyVaultNamespace <string>
+
+   
+   The full namespace (``<database>.<collection>``) of the collection used as a
+   key vault for :doc:`/core/security-client-side-encryption`. :option:`--keyVaultNamespace` is
+   required for enabling client-side field level encryption. for the :program:`mongo`
+   shell session. :program:`mongo` creates the specified namespace if it does not
+   exist.
+   
+   :option:`--keyVaultNamespace` requires *all* of the following command line options:
+   
+   - :option:`--awsAccessKeyId` 
+   - :option:`--awsSecretAccessKey`
+   
+   If :option:`--keyVaultNamespace` and its supporting options are omitted, use the :method:`Mongo()`
+   constructor within the shell session to enable client-side field level
+   encryption.
+
 
 Files
 -----
