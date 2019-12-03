@@ -51,31 +51,35 @@
 
      .. include:: /includes/fact-cannot-change-type.rst
 
-   After you edit each ``.yaml`` file, it should look like the following
-   example:
+   After you edit each ``.yaml`` file, they should look like the
+   following example:
 
    .. tabs-deployments::
 
       tabs:
         - id: standalone
           content: |
-            .. literalinclude:: /reference/k8s/example-standalone-minimal.yaml
+            .. literalinclude:: /includes/code-examples/yaml-files/example-standalone.yaml
                :language: yaml
-               :emphasize-lines: 3,13
+               :start-after: START-regular-standalone
+               :end-before: END-regular-standalone
+               :emphasize-lines: 3,15
 
         - id: repl
           content: |
-            .. literalinclude:: /reference/k8s/example-replica-set.yaml
+            .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
                :language: yaml
-               :lines: 1-17, 26
+               :start-after: START-regular-replset
+               :end-before: END-regular-replset
                :linenos:
                :emphasize-lines: 3,16
 
         - id: shard
           content: |
-            .. literalinclude:: /reference/k8s/example-sharded-cluster.yaml
+            .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
                :language: yaml
-               :lines: 1-20, 29
+               :start-after: START-regular-sharded
+               :end-before: END-regular-sharded
                :linenos:
                :emphasize-lines: 3,19
 
