@@ -16,7 +16,7 @@
       * - SLES 11
         - Support removed in MongoDB 3.6.4+, 3.4.15+, and 3.2.20+.
 
-      * - Ubuntu 12.04 
+      * - Ubuntu 12.04
         - Support removed in MongoDB 3.6.4+, 3.4.15+, and 3.2.20+.
 
    *Upcoming EOL Notice*:
@@ -60,7 +60,7 @@
      -
 
    * - Debian 8
-     - 
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -101,6 +101,12 @@
      - |checkmark|
      - |checkmark|
 
+   * - SLES 15
+     - 4.2.1+
+     -
+     -
+     -
+
    * - Solaris 11 64-bit
      -
      -
@@ -108,7 +114,7 @@
      - Community only
 
    * - Ubuntu 14.04
-     - 
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -146,7 +152,7 @@
 
    * - macOS 10.12 and later
      - |checkmark|
-     - 
+     -
      -
      -
 
