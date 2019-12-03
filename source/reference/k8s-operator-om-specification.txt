@@ -36,6 +36,7 @@ deployment:
 
 .. literalinclude:: /reference/k8s/example-ops-manager.yaml
    :language: yaml
+   :linenos:
 
 Required |onprem| Resource Settings
 -----------------------------------
@@ -139,6 +140,220 @@ Optional |onprem| Resource Settings
 
 |onprem| resources can use the following settings:
 
+.. opsmgrkube:: spec.backup.enabled
+
+   *Type*: boolean
+
+   Flag that enables Backup for your |onprem| resource. When set to ``false``,
+   Backup is disabled.
+
+   Default value is ``true``.
+
+.. opsmgrkube:: spec.backup.headDB
+
+   *Type*: collection
+
+   Configuration settings for the :ref:`head database <backup-daemon>`.
+   |k8s-op-short| creates a |k8s-pvc| with the specified configuration. 
+
+   .. list-table::
+      :widths: 20 20 60
+      :header-rows: 1
+
+      * - Scalar
+        - Data Type
+        - Description
+
+      * - ``labelSelector``
+        - string
+        - `Tag
+          <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector>`__
+          used to bind mounted volumes to directories. 
+
+      * - ``storage``
+        - string
+        - Minimum size of |k8s-pv| that should be mounted. This value is
+          expressed as an integer followed by a unit of storage in
+          |jedec| notation.
+
+          Default value is ``30G``.
+
+          .. seealso::
+
+             :ref:`backup-hardware-requirements`
+
+          .. example::
+
+             If the head database requires 60 gigabytes of storage
+             space, set this value to ``60G``.
+
+      * - ``storageClass``
+        - string
+        - Type of storage specified in a |k8s-pvc|. You may create
+          this storage type as a |k8s-sc| object before using it in this
+          |k8s-obj| specification.
+
+          .. note::
+
+             .. include:: /includes/fact-reclaimpolicy-to-retain.rst
+
+.. opsmgrkube:: spec.backup.opLogStores
+
+   *Type*: collection
+
+   *Required if you enable Backup.*
+
+   Array of :ref:`oplog stores <backup-database-specifications>` used
+   for Backup. Each item in the array references a MongoDB database
+   resource deployed in the |k8s| cluster by the |k8s-op-short|. 
+  
+.. opsmgrkube:: spec.backup.opLogStores.name
+
+   *Type*: string
+
+   *Required if you enable Backup.*
+
+   Name of the oplog store.
+
+   .. important::
+
+      Once specified, do not edit the name of the oplog store. 
+
+.. opsmgrkube:: spec.backup.opLogStores.mongodbResourceRef.name
+
+   *Type*: string
+
+   *Required if you enable Backup.*
+
+   Name of the MongoDB database resource that you create to store oplog
+   slices. You must deploy this database resource in the same namespace
+   as the |onprem| resource.
+
+   .. include:: /includes/fact-backing-db-auth.rst
+
+   If a MongoDB database resource with this name doesn't exist, the
+   |onprem| resource enters a ``Pending`` state. The |k8s-op-short|
+   retries every 10 seconds until a MongoDB database resource with this
+   name is created.
+   
+.. opsmgrkube:: spec.backup.opLogStores.mongodbUserRef.name
+
+   *Type*: string
+
+   *Required if ``SCRAM`` authentication is enabled on the oplog
+   store database.*
+
+   Name of the MongoDB user resource used to connect to the oplog store
+   database. Deploy this user resource in the same
+   namespace as the |onprem| resource and with the
+   :manual:`readWriteAnyDatabase
+   </reference/built-in-roles/#readWriteAnyDatabase>` and
+   :manual:`dbAdminAnyDatabase
+   </reference/built-in-roles/#dbAdminAnyDatabase>` roles.
+
+.. opsmgrkube:: spec.backup.s3Stores.name
+
+   *Type*: string
+
+   *Required if you enable Backup.*
+
+   Name of the |s3| snapshot store.
+
+   .. important::
+
+      Once specified, do not edit the name of the |s3| snapshot store.
+   
+.. opsmgrkube:: spec.backup.s3Stores.mongodbResourceRef.name
+
+   *Type*: string
+
+   *Required if you enable Backup.*
+
+   Name of the MongoDB database resource that you create to store
+   metadata for the |s3| snapshot store. You must deploy this database
+   resource in the same namespace as the |onprem| resource.
+
+   If you enable ``SCRAM`` authentication on this database, you must:
+
+   - Specify a MongoDB version earlier than v4.0 in the database     
+     resource definition.
+   - Create a MongoDB user resource to connect |onprem| to the  
+     database.
+   - Specify the
+     :opsmgrkube:`~spec.backup.s3Stores.mongodbUserRef.name` of the
+     user in the |onprem| resource definition.
+
+.. opsmgrkube:: spec.backup.s3Stores.mongodbUserRef.name
+
+   *Type*: string
+
+   *Required if SCRAM authentication is enabled on the metadata
+   database of the S3 snapshot store.* 
+
+   Name of the MongoDB user resource used to connect to the metadata
+   database of the |s3| snapshot store. Deploy this user resource in the
+   same namespace as the |onprem| resource and with the
+   :manual:`readWriteAnyDatabase
+   </reference/built-in-roles/#readWriteAnyDatabase>` and
+   :manual:`dbAdminAnyDatabase
+   </reference/built-in-roles/#dbAdminAnyDatabase>` roles. 
+
+.. opsmgrkube:: spec.backup.s3Stores.s3SecretRef.name
+
+   *Type*: string
+
+   *Required if you enable Backup.*
+
+   Name of the secret that contains the ``accessKey`` and
+   ``secretKey`` fields. The :ref:`backup-daemon` uses the values
+   of these fields as credentials to access your
+   |aws| |s3| or |s3|-compatible bucket. The |s3|
+   snapshot store can't be configured if the secret is missimg either
+   key. 
+
+.. opsmgrkube:: spec.backup.s3Stores.pathStyleAccessEnabled
+
+   *Type*: boolean
+
+   Indicates the style of the bucket endpoint URL. 
+    
+   .. list-table::
+      :widths: 30 30 30
+      :header-rows: 1
+       
+      * - Value
+        - Description
+        - Example
+
+      * - ``true``
+        - Path-style URL
+        - ``s3.amazonaws.com/<bucket>``
+
+      * - ``false``
+        - Virtual-host-style URL
+        - ``<bucket>.s3.amazonaws.com``
+
+   Default value is ``true``.
+
+.. opsmgrkube:: spec.backup.s3Stores.s3BucketEndpoint
+
+   *Type*: string
+
+   *Required if you enable Backup.*
+
+   URL of the |aws| |s3| bucket or |s3|-compatible bucket that hosts the
+   snapshot store. 
+
+.. opsmgrkube:: spec.backup.s3Stores.s3BucketName
+
+   *Type*: string
+
+   *Required if you enable Backup.*
+
+   Name of the |aws| |s3| bucket or |s3|-compatible bucket that hosts
+   the snapshot store. 
+
+
 .. opsmgrkube:: spec.clusterName
 
    *Type*: string
@@ -154,6 +369,7 @@ Optional |onprem| Resource Settings
    |onprem| configuration properties. 
    See :opsmgr:`Ops Manager Configuration Settings
    </reference/configuration/>` for property names and descriptions.
+   Each property takes a value of type ``string``.
 
 .. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.name
 

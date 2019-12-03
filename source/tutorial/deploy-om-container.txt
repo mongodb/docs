@@ -11,7 +11,7 @@ Deploy an |onprem| Instance
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. include:: /includes/styles/corrections.rst
@@ -44,11 +44,11 @@ To deploy an |onprem| resource you must:
    
    .. code-block:: sh
 
-      kubectl create secret generic <adminusercredentials>
-        --from-literal=Username="<username>"
-        --from-literal=Password="<password>"  
-        --from-literal=FirstName="<firstname>" 
-        --from-literal=LastName="<lastname>"
+      kubectl create secret generic <adminusercredentials> \
+        --from-literal=Username="<username>" \
+        --from-literal=Password="<password>" \ 
+        --from-literal=FirstName="<firstname>" \ 
+        --from-literal=LastName="<lastname>" \
         -n <namespace>
 
 .. _om-db-user-secret:
@@ -63,8 +63,8 @@ To deploy an |onprem| resource you must:
    
    .. code-block:: sh
 
-      kubectl create secret generic <om-db-user-secret-name>
-        --from-literal=password="<om-db-user-password>"
+      kubectl create secret generic <om-db-user-secret-name> \
+        --from-literal=password="<om-db-user-password>" \
         -n <namespace>
 
    .. note::
@@ -82,6 +82,40 @@ To deploy an |onprem| resource you must:
    If you don't create a secret, then the |k8s-op-short| automatically
    generates a password and stores it internally. For more information,
    see :ref:`app-db-auth`.
+
+#. (*Optional*). To configure Backup to an |s3| snapshot store, create
+   a |k8s-secret| in the same namespace as the |onprem| resource.  
+
+   This secret stores your |s3| credentials so that the
+   |k8s-op-short| can connect |onprem| to your |aws| |s3| or
+   |s3|-compatible bucket. The secret must contain the following
+   key-value pairs: 
+
+   .. list-table::
+      :widths: 30 70
+
+      * - Key
+        - Value
+      
+      * - ``accessKey``
+        - The access key ID of the user who owns the |s3| or 
+          |s3|-compatible bucket. 
+      
+      * - ``secretKey``
+        - The secret key of the user who owns the |s3| or 
+          |s3|-compatible bucket. 
+          
+   To create the secret, invoke the following command:
+      
+   .. code-block:: sh
+
+      kubectl create secret generic <my-aws-s3-credentials> \
+        --from-literal=accessKey="<AKIAIOSFODNN7EXAMPLE>" \
+        --from-literal=secretKey="<wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY>" \
+        -n <namespace>
+
+   To learn more about managing |s3| blockstore snapshot storage, see the :opsmgr:`Prerequisites
+   </tutorial/manage-s3-blockstore-storage/#prerequisites>`.
 
 Considerations
 --------------
@@ -148,8 +182,50 @@ that secret. If you don't create a secret, or if you delete a previously
 created secret, then the |k8s-op-short| automatically generates a password and stores it internally.
 
 If you need to authenticate to the Application Database as a
-different user, you must first deploy the |onprem| resource and then
-manually :manual:`add a new user </reference/method/db.createUser/>` to the database.
+different user:
+
+1. Deploy the |onprem| resource 
+2. :manual:`Add a new user </reference/method/db.createUser/>` to
+   the database using the ``mongo`` shell.
+
+Backup
+~~~~~~
+
+|k8s-op-short| enables :ref:`mms-backup-functional-overview` by default.
+The |k8s-op-short| deploys a |k8s-statefulset| comprised of one pod to
+host the :ref:`backup-daemon`, and then creates a |k8s-pvc| and
+|k8s-pv| for the Backup Daemon's :term:`head database` . The
+|k8s-op-short| uses the :opsmgr:`Ops Manager API </reference/api/>` to
+enable the Backup Daemon and configure the head database.
+
+.. important::
+
+   To configure Backup, you must create MongoDB database resources
+   for the :term:`oplog store <oplog store database>` and |s3|
+   :term:`snapshot store <s3 snapshot store>`. The |onprem| resource
+   remains in a ``Pending`` state until these Backup resources are
+   configured.
+
+Oplog Store
++++++++++++
+Deploy a three-member replica set to store your :term:`oplog slices
+<Oplog Slice>`. 
+
+.. include:: /includes/fact-backing-db-auth.rst
+
+S3 Snapshot Store
++++++++++++++++++
+To configure an |s3| :opsmgr:`snapshot store
+</reference/glossary/#term-s3-snapshot-store>`, you must:
+
+- Have an oplog store already configured.
+- Create an |aws| |s3| or |s3|-compatible bucket to store your database
+  Backup :opsmgr:`snapshots </reference/glossary/#term-snapshot>`.
+- Deploy a three-member replica set to store snapshot metadata.
+
+You can update any additional |s3| :opsmgr:`configuration settings
+</tutorial/manage-s3-blockstore-storage/#provide-the-s3-blockstore-details>`
+that are not managed by the |k8s-op-short| through the |application|. 
 
 Procedure
 ---------

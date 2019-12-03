@@ -203,7 +203,8 @@ extlinks = {
     'website': ('https://www.mongodb.com%s?jmp=docs',''),
     'k8sdocs': ('https://kubernetes.io/docs%s', ''),
     'v1.2': ('https://docs.mongodb.com/kubernetes-operator/v1.2%s', ''),
-    'gh' : ('https://github.com%s', '')
+    'gh' : ('https://github.com%s', ''),
+    'aws': ('http://docs.aws.amazon.com%s', '')
 }
 
 intersphinx_mapping = {}
