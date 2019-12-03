@@ -57,53 +57,336 @@ Options
 
 .. program:: mongooplog
 
-.. include:: /includes/option/option-mongooplog-help.rst
+.. option:: --help
 
-.. include:: /includes/option/option-mongooplog-verbose.rst
+   Returns information on the options and use of :program:`mongooplog`.
 
-.. include:: /includes/option/option-mongooplog-quiet.rst
 
-.. include:: /includes/option/option-mongooplog-version.rst
+.. option:: --verbose, -v
 
-.. include:: /includes/option/option-mongooplog-host.rst
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+   
 
-.. include:: /includes/option/option-mongooplog-port.rst
 
-.. include:: /includes/option/option-mongooplog-ipv6.rst
+.. option:: --quiet
 
-.. include:: /includes/option/option-mongooplog-ssl.rst
+   Runs the :program:`mongooplog` in a quiet mode that attempts to limit the amount
+   of output.
 
-.. include:: /includes/option/option-mongooplog-sslCAFile.rst
+   This option suppresses:
+   
+   - connection accepted events
+   
+   - connection closed events
+   
 
-.. include:: /includes/option/option-mongooplog-sslPEMKeyFile.rst
 
-.. include:: /includes/option/option-mongooplog-sslPEMKeyPassword.rst
+.. option:: --version
 
-.. include:: /includes/option/option-mongooplog-sslCRLFile.rst
+   Returns the :program:`mongooplog` release number.
 
-.. include:: /includes/option/option-mongooplog-sslAllowInvalidCertificates.rst
 
-.. include:: /includes/option/option-mongooplog-sslAllowInvalidHostnames.rst
+.. option:: --host <hostname><:port>, -h <hostname><:port>
 
-.. include:: /includes/option/option-mongooplog-sslFIPSMode.rst
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` instance to
+   which :binary:`~bin.mongooplog` will apply :term:`oplog` operations
+   retrieved from the server specified by the :option:`--from <mongooplog
+   --from>` option.
+   
+   By default :program:`mongooplog` attempts to connect to a MongoDB instance running
+   on the localhost on port number ``27017``.
+   
+   To connect to a replica set, specify the :setting:`replica set name
+   <~replication.replSetName>` and a seed list of set members. Use the
+   following form:
+   
+   .. code-block:: none
+   
+      <replSetName>/<hostname1><:port>,<hostname2><:port>,<...>
+   
+   You can always connect directly to a single MongoDB instance by
+   specifying the host and port number directly.
 
-.. include:: /includes/option/option-mongooplog-username.rst
 
-.. include:: /includes/option/option-mongooplog-password.rst
+.. option:: --port
 
-.. include:: /includes/option/option-mongooplog-authenticationDatabase.rst
+   Specifies the port number of the :binary:`~bin.mongod` instance where
+   :binary:`~bin.mongooplog` will apply :term:`oplog` entries. Specify
+   this option only if the MongoDB instance to connect to is not
+   running on the standard port of ``27017``. You may also specify a
+   port number using the :option:`--host <mongooplog --host>` command.
+   
 
-.. include:: /includes/option/option-mongooplog-authenticationMechanism.rst
 
-.. include:: /includes/option/option-mongooplog-gssapiServiceName.rst
+.. option:: --ipv6
 
-.. include:: /includes/option/option-mongooplog-gssapiHostName.rst
+   Enables IPv6 support and allows the :program:`mongooplog` to connect to the
+   MongoDB instance using an IPv6 network. All MongoDB programs and
+   processes disable IPv6 support by default.
 
-.. include:: /includes/option/option-mongooplog-seconds.rst
 
-.. include:: /includes/option/option-mongooplog-from.rst
+.. option:: --ssl
 
-.. include:: /includes/option/option-mongooplog-oplogns.rst
+   .. versionadded:: 2.6
+   
+   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   TLS/SSL support enabled.
+   
+   .. include:: /includes/fact-ssl-supported.rst
+   
+
+
+.. option:: --sslCAFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   .. include:: /includes/fact-ssl-supported.rst
+   
+   .. warning::
+   
+      For SSL connections (``--ssl``) to :binary:`~bin.mongod` and
+      :binary:`~bin.mongos`, if the :program:`mongooplog` runs without the
+      :option:`--sslCAFile`, :program:`mongooplog` will not attempt
+      to validate the server certificates. This creates a vulnerability
+      to expired :binary:`~bin.mongod` and :binary:`~bin.mongos` certificates as
+      well as to foreign processes posing as valid :binary:`~bin.mongod` or
+      :binary:`~bin.mongos` instances. Ensure that you *always* specify the
+      CA file to validate the server certificates in cases where
+      intrusion is a possibility.
+
+
+.. option:: --sslPEMKeyFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
+   
+   This option is required when using the :option:`--ssl` option to connect
+   to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   :setting:`~net.ssl.CAFile` enabled *without*
+   :setting:`~net.ssl.allowConnectionsWithoutCertificates`.
+   
+   .. include:: /includes/fact-ssl-supported.rst
+   
+
+
+.. option:: --sslPEMKeyPassword <value>
+
+   .. versionadded:: 2.6
+   
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongooplog` will
+   redact the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not specify
+   the :option:`--sslPEMKeyPassword` option, the :program:`mongooplog` will prompt for a passphrase. See
+   :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/fact-ssl-supported.rst
+
+
+.. option:: --sslCRLFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/fact-ssl-supported.rst
+   
+
+
+.. option:: --sslAllowInvalidCertificates
+
+   .. versionadded:: 2.6
+   
+   Bypasses the validation checks for server certificates and allows
+   the use of invalid certificates. When using the
+   :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB logs as a
+   warning the use of the invalid certificate.
+   
+   .. include:: /includes/fact-ssl-supported.rst
+   
+
+
+.. option:: --sslAllowInvalidHostnames
+
+   .. versionadded:: 3.0
+   
+   Disables the validation of the hostnames in TLS/SSL certificates. Allows
+   :program:`mongooplog` to connect to MongoDB instances even if the hostname in their
+   certificates do not match the specified hostname.
+   
+   .. include:: /includes/fact-ssl-supported.rst
+
+
+.. option:: --sslFIPSMode
+
+   .. versionadded:: 2.6
+   
+   Directs the :program:`mongooplog` to use the FIPS mode of the installed OpenSSL
+   library. Your system must have a FIPS compliant OpenSSL library to use
+   the :option:`--sslFIPSMode` option.
+   
+   .. include:: /includes/note-fips-is-enterprise-only.rst
+
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the ``--password`` and
+   ``--authenticationDatabase`` options.
+   
+
+
+.. option:: --password <password>, -p <password>
+
+   Specifies a password with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the ``--username`` and
+   ``--authenticationDatabase`` options.
+   
+   .. versionchanged:: 3.0.0
+   
+      If you do not specify an argument for :option:`--password`, :program:`mongooplog` returns
+      an error.
+   
+   .. versionchanged:: 3.0.2
+   
+      If you wish :program:`mongooplog` to prompt the user
+      for the password, pass the :option:`--username` option without
+      :option:`--password` or specify an empty string as the :option:`--password` value,
+      as in ``--password ""`` .
+     
+
+
+.. option:: --authenticationDatabase <dbname>
+
+   .. versionadded:: 2.4
+   
+   Specifies the database in which the user is created.
+   See :ref:`user-authentication-database`.
+   
+
+
+.. option:: --authenticationMechanism <name>
+
+   *Default*: SCRAM-SHA-1
+
+   .. versionadded:: 2.4
+   
+   .. versionchanged:: 2.6
+      Added support for the ``PLAIN`` and ``MONGODB-X509`` authentication
+      mechanisms.
+   
+   .. versionchanged:: 3.0
+      Added support for the ``SCRAM-SHA-1`` authentication mechanism. Changed
+      default mechanism to ``SCRAM-SHA-1``.
+   
+   Specifies the authentication mechanism the :program:`mongooplog` instance uses to
+   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+   
+        - `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_ standard
+          Salted Challenge Response Authentication Mechanism using the SHA1
+          hash function.
+   
+      * - :ref:`MONGODB-CR <authentication-mongodb-cr>`
+   
+        - MongoDB challenge/response authentication.
+   
+      * - :ref:`MONGODB-X509 <security-auth-x509>`
+   
+        - MongoDB TLS/SSL certificate authentication.
+   
+      * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
+   
+        - External authentication using Kerberos. This mechanism is
+          available only in `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
+   
+      * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
+   
+        - External authentication using LDAP. You can also use ``PLAIN``
+          for authenticating in-database users. ``PLAIN`` transmits
+          passwords in plain text. This mechanism is available only in
+          `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
+
+
+.. option:: --gssapiServiceName
+
+   .. versionadded:: 2.6
+   
+   Specify the name of the service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. Only required if the service does not use the
+   default name of ``mongodb``.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --gssapiHostName
+
+   .. versionadded:: 2.6
+   
+   Specify the hostname of a service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. *Only* required if the hostname of a machine does
+   not match the hostname resolved by DNS.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --seconds <number>, -s <number>
+
+   Specify a number of seconds of operations for :binary:`~bin.mongooplog` to
+   pull from the :option:`remote host <mongooplog --from>`. Unless
+   specified the default value is ``86400`` seconds, or 24 hours.
+   
+
+
+.. option:: --from <host[:port]>
+
+   Specify the host for :binary:`~bin.mongooplog` to retrieve :term:`oplog`
+   operations from. :binary:`~bin.mongooplog` *requires* this option.
+   
+   Unless you specify the :option:`--host <mongooplog --host>` option,
+   :binary:`~bin.mongooplog` will apply the operations collected with this
+   option to the oplog of the :binary:`~bin.mongod` instance running on the
+   localhost interface connected to port ``27017``.
+   
+
+
+.. option:: --oplogns <namespace>
+
+   Specify a namespace in the :option:`--from <mongooplog --from>` host
+   where the oplog resides. The default value is ``local.oplog.rs``, which
+   is the where :term:`replica set` members store their operation log.
+   However, if you've copied :term:`oplog` entries into another
+   database or collection or are pulling oplog entries from a
+   :doc:`master-slave </core/master-slave>` deployment, use :option:`--oplogns` to
+   apply oplog entries stored in another location. Namespaces take the
+   form of ``[database].[collection]``.
+
 
 Use
 ---
