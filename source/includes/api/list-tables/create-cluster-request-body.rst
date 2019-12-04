@@ -1,5 +1,6 @@
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
    :widths: 15 10 10 65
 
    * - Body Parameter
@@ -8,7 +9,7 @@
      - Description
 
    * - ``autoScaling``
-     - document
+     - object
      - Optional
      - Configure your cluster to automatically scale its storage and
        cluster tier. For more information on cluster auto-scaling, see
@@ -16,7 +17,7 @@
 
    * - | ``autoScaling``
        | ``.compute``
-     - document
+     - object
      - Optional
      - Specifies whether the cluster automatically scales its cluster
        tier and whether the cluster can scale down.
@@ -90,7 +91,7 @@
           :doc:`/backup/cloud-provider-snapshots`.
 
    * - ``biConnector``
-     - document
+     - object
      - Optional
      - Specifies |bic| configuration on this cluster.
 
@@ -177,7 +178,7 @@
             - Global Cluster
 
    * - ``diskSizeGB``
-     - double
+     - number
      - Conditional
      - Capacity, in gigabytes, of the host's root volume. Increase this
        number to add capacity, up to a maximum possible value of
@@ -254,14 +255,14 @@
                 Specify ``NONE`` to disable Encryption at rest.
 
    * - ``labels``
-     - array of documents
+     - array
      - Optional
      - Array containing key-value pairs that tag and categorize the
        cluster.
 
        Each key and value has a maximum length of 255 characters.
 
-       .. include:: /includes/fact-example-labels.rst    
+       .. include:: /includes/fact-example-labels.rst
 
    * - ``name``
      - string
@@ -290,9 +291,10 @@
        :doc:`modify a cluster </reference/api/clusters-modify-one>`.
 
    * - ``numShards``
-     - integer
+     - number
      - Conditional
-     - Number of shards to deploy in a sharded cluster.
+     - Positive integer that specifies the number of shards to deploy
+       for a sharded cluster.
 
        .. important::
 
@@ -326,17 +328,17 @@
    * - ``pitEnabled``
      - boolean
      - Optional
-     - Indicates if the cluster uses :ref:`Point-in-Time backups
-       <aws-pit-restore>`. If set to ``true``, ``providerBackupEnabled``
-       must also be set to ``true``.
+     - Flag that indicates if the cluster uses :ref:`Point-in-Time
+       backups <aws-pit-restore>`. If set to ``true``,
+       ``providerBackupEnabled`` must also be set to ``true``.
 
    * - ``providerBackupEnabled``
      - boolean
      - Optional
      - .. include:: /includes/fact-only-m10-clusters.rst
 
-       Flag indicating if the cluster uses :ref:`backup-cloud-provider`
-       for backups.
+       Flag that indicates if the cluster uses
+       :ref:`backup-cloud-provider` for backups.
 
        If ``true``, the cluster uses :ref:`backup-cloud-provider` for
        backups. If ``providerBackupEnabled`` *and* ``backupEnabled``
@@ -351,7 +353,7 @@
           You must set this value to ``true`` for NVMe clusters.
 
    * - ``providerSettings``
-     - document
+     - object
      - Required
      - Configuration for the provisioned servers on which MongoDB runs.
        The available options are specific to the cloud service
@@ -359,16 +361,16 @@
 
    * - | ``providerSettings``
        | ``.autoScaling``
-     - document
+     - object
      - Conditional
-     - Contains the ``compute`` field which specifies the range of
-       instance sizes to which your cluster can scale. Required if
-       ``autoScaling.compute.enabled`` is ``true``.
+     - Object that contains the ``minInstanceSize`` and
+       ``maxInstanceSize`` fields which specify the range of instance
+       sizes to which your cluster can scale.
 
    * - | ``providerSettings``
        | ``.autoScaling``
        | ``.compute``
-     - document
+     - object
      - Conditional
      - Contains the ``minInstanceSize`` and ``maxInstanceSize`` fields
        which specify the range of instance sizes to which your cluster
@@ -410,7 +412,7 @@
 
    * - | ``providerSettings``
        | ``.diskIOPS``
-     - integer
+     - number
      - AWS Optional
      -
        .. include:: /includes/providerSettings-diskIOPS.rst
@@ -421,8 +423,8 @@
        | ``.diskTypeName``
      - string
      - Azure Required
-     - Azure disk type of the server's root volume. If omitted,
-       |service| uses the default disk type for the selected
+     - Disk type of the server's root volume for Azure instances. If
+       omitted, |service| uses the default disk type for the selected
        ``providerSettings.instanceSizeName``.
 
        The following table lists the possible values for this field,
@@ -541,7 +543,7 @@
        can affect network latency for clients accessing your databases.
 
        Do *not* specify this field when creating a multi-region cluster
-       using the ``replicationSpec`` document or a
+       using the ``replicationSpec`` object or a
        :doc:`Global Cluster </global-clusters>` with the
        ``replicationSpecs`` array.
 
@@ -576,7 +578,7 @@
        default value is ``3``.
 
        Do *not* specify this field when creating a multi-region cluster
-       using the ``replicationSpec`` document.
+       using the ``replicationSpec`` object.
 
        If your cluster is a sharded cluster, each shard is a replica
        set with the specified replication factor.
@@ -587,10 +589,10 @@
        MongoDB manual.
 
        |service| ignores this value if you pass the ``replicationSpec``
-       document.
+       object.
 
    * - ``replicationSpec``
-     - document
+     - object
      - Optional
      -
 
@@ -600,12 +602,12 @@
           ``replicationSpec`` is deprecated. Use ``replicationSpecs``.
 
        Configuration of each region in a multi-region cluster. Each
-       element in this document represents a region where |service|
+       element in this object represents a region where |service|
        deploys your cluster.
 
        For single-region clusters, you can either specify the
        ``providerSettings.regionName`` and ``replicationFactor``, *or*
-       you can use the ``replicationSpec`` document to define a single
+       you can use the ``replicationSpec`` object to define a single
        region.
 
        For multi-region clusters, omit the
@@ -617,8 +619,8 @@
        .. important::
 
           If you use ``replicationSpec``, you must specify a minimum of
-          one ``replicationSpec.<region>`` document and sort each
-          ``.<region>`` document by ``.<region>.priority`` in
+          one ``replicationSpec.<region>`` object and sort each
+          ``.<region>`` object by ``.<region>.priority`` in
           descending order.
 
        Use the ``replicationSpecs`` parameter to create a
@@ -631,18 +633,18 @@
 
    * - | ``replicationSpec``
        | ``.<region>``
-     - document
+     - object
      - Required
      - Physical location of the region. Replace ``<region>`` with the
-       name of the region. Each ``<region>`` document describes the
+       name of the region. Each ``<region>`` object describes the
        region's priority in elections and the number and type of
        MongoDB nodes |service| deploys to the region.
 
        .. important::
 
           If you use ``replicationSpec``, you must specify a minimum of
-          one ``replicationSpec.<region>`` document and sort each
-          ``.<region>`` document by ``.<region>.priority`` in
+          one ``replicationSpec.<region>`` object and sort each
+          ``.<region>`` object by ``.<region>.priority`` in
           descending order.
 
        Select your cloud provider's tab for example cluster region
@@ -650,7 +652,7 @@
 
        .. include:: /includes/fact-cloud-region-name-examples.rst
 
-       For each ``<region>`` document, you must specify the
+       For each ``<region>`` object, you must specify the
        ``analyticsNodes``, ``electableNodes``, ``priority``, and
        ``readOnlyNodes`` fields. For information on cross-region
        node limits, see :ref:`create-cluster-considerations`.
@@ -660,14 +662,14 @@
    * - | ``replicationSpec``
        | ``.<region>``
        | ``.electableNodes``
-     - integer
+     - number
      - Optional
      - Number of electable nodes for |service| to deploy to the
        region. Electable nodes can become the :term:`primary` and can
        facilitate local reads.
 
        The total number of ``electableNodes`` across all
-       ``replicationSpec.<region>`` document must be ``3``, ``5``, or
+       ``replicationSpec.<region>`` object must be ``3``, ``5``, or
        ``7``.
 
        Specify ``0`` if you do not want any electable nodes in the
@@ -679,7 +681,7 @@
    * - | ``replicationSpec``
        | ``.<region>``
        | ``.priority``
-     - integer
+     - number
      - Optional
      - Election priority of the region. For regions with only
        ``replicationSpec.<region>.readOnlyNodes``, set this value to
@@ -707,7 +709,7 @@
    * - | ``replicationSpec``
        | ``.<region>``
        | ``.readOnlyNodes``
-     - integer
+     - number
      - Optional
      - Number of read-only nodes for |service| to deploy to the
        region. Read-only nodes can never become the :term:`primary`,
@@ -719,12 +721,12 @@
    * - | ``replicationSpec``
        | ``.<region>``
        | ``.analyticsNodes``
-     - integer
+     - number
      - Optional
      - .. include:: /includes/fact-api-analytics-nodes-description.rst
 
    * - ``replicationSpecs``
-     - array of documents
+     - array
      - Conditional
      - Configuration for cluster regions.
 
@@ -742,16 +744,16 @@
              * - You are deploying
                  :doc:`Global Clusters </global-clusters>`.
                - Required
-               - Each document in the array represents a zone where
+               - Each object in the array represents a zone where
                  |service| deploys your cluster's nodes.
 
              * - You are deploying non-Global replica sets and sharded
                  clusters.
                - Optional
-               - This array has one document representing where
+               - This array has one object representing where
                  |service| deploys your cluster's nodes.
 
-       You must specify all parameters in ``replicationSpecs`` document array.
+       You must specify all parameters in ``replicationSpecs`` object array.
 
        .. admonition:: What parameters depend on ``replicationSpecs``?
 
@@ -767,7 +769,7 @@
        | ``.id``
      - string
      - Conditional
-     - Unique identifer of the replication document for a zone in a
+     - Unique identifer of the replication object for a zone in a
        |global-write-cluster|.
 
        .. list-table:: When is this value needed?
@@ -792,25 +794,25 @@
 
    * - | ``replicationSpecs[n]``
        | ``.numShards``
-     - integer
+     - number
      - Required
-     - Number of shards to deploy in the specified zone. The default
+     - Number of shards to deploy in each specified zone. The default
        value is ``1``.
 
    * - | ``replicationSpecs[n]``
        | ``.regionsConfig``
-     - document
+     - object
      - Optional
-     - Physical location of the region. Each ``regionsConfig`` document
+     - Physical location of the region. Each ``regionsConfig`` object
        describes the region's priority in elections and the number and
        type of MongoDB nodes that |service| deploys to the region.
 
        .. important::
 
-          If you use ``replicationSpec``, you must specify a minimum of
-          one ``replicationSpec.<regionsConfigs>`` document and sort each
-          ``.<regionsConfig>`` by ``.<regionsConfig>.priority`` in
-          descending order.
+          If you use ``replicationSpecs``, you must specify a minimum
+          of one ``replicationSpecs.regionsConfig.<regionName>`` object
+          and sort each ``.<regionName>`` by ``.<regionName>.priority``
+          in descending order.
 
        .. include:: /includes/fact-group-region-association.rst
 
@@ -819,41 +821,47 @@
 
        .. include:: /includes/fact-cloud-region-name-examples.rst
 
-   * - | ``replicationSpecs[n]``
-       | ``.regionsConfig``
-       | ``.electableNodes``
-     - integer
-     - Required
-     - Number of electable nodes for |service| to deploy to the region.
-       Electable nodes can become the :term:`primary` and can
-       facilitate local reads.
-
-   * - | ``replicationSpecs[n]``
-       | ``.regionsConfig``
-       | ``.readOnlyNodes``
-     - integer
-     - Required
-     - Number of read-only nodes for |service| to deploy to the region.
-       Read-only nodes can never become the :term:`primary`, but can
-       facilitate local-reads.
-
-       Specify ``0`` if you do not want any read-only nodes in the
-       region.
-
-   * - | ``replicationSpecs[n]``
-       | ``.regionsConfig``
+   * - | ``replicationSpec``
+       | ``.<region>``
        | ``.analyticsNodes``
-     - integer
+     - number
      - Optional
-     - .. include:: /includes/fact-api-analytics-nodes-description.rst
+     - Number of :ref:`analytics nodes <analytics-nodes-overview>`
+       in the region. Analytics nodes are useful for handling analytic
+       data such as reporting queries from |bic|. Analytics nodes are
+       read-only, and can never become the :term:`primary` member.
 
-   * - | ``replicationSpecs[n]``
-       | ``.regionsConfig``
+   * - | ``replicationSpec``
+       | ``.<region>``
+       | ``.electableNodes``
+     - number
+     - Optional
+     - Number of electable nodes in the region. Electable nodes
+       can become the :term:`primary` and can facilitate local reads.
+
+   * - | ``replicationSpec``
+       | ``.<region>``
        | ``.priority``
-     - integer
+     - number
      - Required
-     - Election priority of the region. For regions with only
-       read-only nodes, set this value to ``0``.
+     - Election priority of the region. The highest possible priority
+       is ``7``, which identifies the **Preferred Region** of the
+       cluster. |service| places the :term:`primary` node in the
+       **Preferred Region**. The lowest possible priority is ``0``,
+       which identifies a read-only region.
+
+       You can have any number of priority ``0`` read-only regions.
+       Priorities ``1`` through ``7`` are exclusive: only one
+       region per cluster can be assigned a given priority.
+
+   * - | ``replicationSpec``
+       | ``.<region>``
+       | ``.readOnlyNodes``
+     - number
+     - Optional
+     - Number of read-only nodes in the region. Read-only nodes can
+       never become the :term:`primary`, but can facilitate
+       local reads.
 
    * - | ``replicationSpecs[n]``
        | ``.zoneName``

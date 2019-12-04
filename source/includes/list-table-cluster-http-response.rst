@@ -1,20 +1,21 @@
 .. list-table::
    :widths: 15 10 75
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
      - Description
 
    * - ``autoScaling``
-     - document
+     - object
      - Contains auto-scaling information for the cluster. For more
        information on cluster auto-scaling, see
        :ref:`cluster-autoscaling`.
 
    * - | ``autoScaling``
        | ``.compute``
-     - document
+     - object
      - Specifies whether the cluster automatically scales its cluster
        tier and whether the cluster can scale down.
 
@@ -41,16 +42,17 @@
        for backing up cluster data. 
 
    * - ``biConnector``
-     - document
+     - object
      - Information on whether |bic| is enabled or disabled for the
        cluster.
 
        .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
 
-       The ``biConnector`` document includes the following fields:
+       The ``biConnector`` object includes the following fields:
 
        .. list-table::
           :header-rows: 1
+          :stub-columns: 1
           :widths: 20 80
 
           * - Field
@@ -85,31 +87,45 @@
             - :doc:`Global Cluster </global-clusters>`
 
    * - ``diskSizeGB``
-     - double
-     - **AWS / GCP Only** The size in gigabytes of the server's root
-       volume. You can add capacity by increasing this number, up to a
-       maximum possible value of ``4096`` (i.e., 4 TB).
+     - number
+     - Capacity, in gigabytes, of the host's root volume. Increase this
+       number to add capacity, up to a maximum possible value of
+       ``4096`` (i.e., 4 TB). This value must be a positive integer.
 
-       Each cluster tier has its own default value. To view default
-       values:
+       .. admonition:: When should you use ``diskSizeGB``?
+          :class: note
 
-       1. Open the |service| web interface.
-       #. Click the button to add a new cluster.
-       #. View the available default sizes.
-       #. Close the window without saving changes.
+          This setting:
+
+          - Cannot be used with |nvme-clusters|
+          - Cannot be used with Azure clusters
+          - Must be used when ``replicationSpecs`` is set
+
+       The minimum disk size for dedicated clusters is 10GB for |aws|
+       and |gcp|, and 32GB for Azure. If you specify ``diskSizeGB``
+       with a lower disk size, Atlas defaults to the minimum disk size
+       value.
+
+       .. important::
+
+          |service| calculates storage charges differently
+          depending on whether you choose the default value or a
+          custom value. For details, see :ref:`storage-capacity`.
+
+       .. include:: /includes/fact-storage-limitation.rst
 
    * - ``encryptionAtRestProvider``
      - string
      - :doc:`Encryption at Rest </security-aws-kms>` is enabled or
        disabled.
 
-       For complete documentation on Encryption-at-Rest restrictions,
+       To learn more about Encryption-at-Rest restrictions,
        see :ref:`security-aws-kms-restrictions`.
 
        You must configure encryption at rest for the |service| project
-       before enabling it on any cluster in the project. For
-       complete documentation on configuring Encryption at Rest,
-       see :ref:`security-aws-kms`.
+       before enabling it on any cluster in the project. To learn more
+       about configuring Encryption at Rest, see
+       :ref:`security-aws-kms`.
 
    * - ``groupId``
      - string
@@ -120,9 +136,9 @@
      - Unique identifier of the cluster.
 
    * - ``labels``
-     - array of documents
-     - Array containing key-value pairs that tag and categorize 
-       the cluster.     
+     - array
+     - Array containing key-value pairs that tag and categorize the
+       cluster.
 
    * - ``mongoDBVersion``
      - string
@@ -149,20 +165,15 @@
 
    * - ``mongoURIUpdated``
      - string
-     - Lists when the connection string was last updated. The
-       connection string changes, for example, if you change a replica
-       set to a sharded cluster.
-
-       |service| only displays this field after the cluster is
-       operational, not while it builds the cluster.
+     - |iso8601-time| when the connection string was last updated. The
+       connection string changes if you update any of the other values.
 
    * - ``mongoURIWithOptions``
      - string
-     - :manual:`connection string </reference/connection-string>`
-       for connecting to the |service| cluster. Includes
-       the ``replicaSet``, ``ssl``, and ``authSource`` query parameters
-       in the connection string with values appropriate for the
-       cluster.
+     - :manual:`connection string </reference/connection-string>` for
+       connecting to the |service| cluster. Includes the
+       ``replicaSet``, ``ssl``, and ``authSource`` query parameters in
+       the connection string with values appropriate for the cluster.
 
        To review the connection string format, see the
        :manual:`connection string format documentation </reference/connection-string>`.
@@ -177,8 +188,9 @@
      - Name of the cluster as it appears in |service|.
 
    * - ``numShards``
-     - integer
-     - Specifies the number of shards for a sharded cluster.
+     - number
+     - Positive integer that specifies the number of shards for a
+       sharded cluster.
 
        If this is set to ``1``, the cluster is a replica set.
 
@@ -192,7 +204,7 @@
 
        .. note::
 
-          Not present in the response body for
+          |service| doesn't return this value in the response body for
           :doc:`Global Clusters </global-clusters>`.
 
    * - ``paused``
@@ -201,35 +213,41 @@
 
    * - ``pitEnabled``
      - boolean
-     - Indicates if the cluster uses :ref:`Point-in-Time backups
-       <aws-pit-restore>`. If set to ``true``, ``providerBackupEnabled``
-       must also be set to ``true``.
-       
+     - Flag that indicates if the cluster uses :ref:`Point-in-Time
+       backups <aws-pit-restore>`. If set to ``true``,
+       ``providerBackupEnabled`` must also be set to ``true``.
+
    * - ``providerBackupEnabled``
      - boolean
-     - If ``true``, the cluster uses :ref:`backup-cloud-provider` for
+     - .. include:: /includes/fact-only-m10-clusters.rst
+
+       Flag that indicates if the cluster uses
+       :ref:`backup-cloud-provider` for backups.
+
+       If ``true``, the cluster uses :ref:`backup-cloud-provider` for
        backups. If ``providerBackupEnabled`` *and* ``backupEnabled``
        are ``false``, the cluster does not use |service| backups.
 
    * - ``providerSettings``
-     - document
+     - object
      - Configuration for the provisioned servers on which MongoDB
        runs. The available options are specific to the cloud service
        provider.
 
    * - | ``providerSettings``
        | ``.autoScaling``
-     - document
-     - Contains the ``compute`` field which specifies the range of
-       instance sizes to which your cluster can scale.
+     - object
+     - Object that contains the ``compute`` field which specifies the
+       range of instance sizes to which your cluster can scale.
+       Required if ``autoScaling.compute.enabled`` is ``true``.
 
    * - | ``providerSettings``
        | ``.autoScaling``
        | ``.compute``
-     - document
-     - Contains the ``minInstanceSize`` and ``maxInstanceSize`` fields
-       which specify the range of instance sizes to which your cluster
-       can scale.
+     - object
+     - Object that contains the ``minInstanceSize`` and
+       ``maxInstanceSize`` fields which specify the range of instance
+       sizes to which your cluster can scale.
 
    * - | ``providerSettings``
        | ``.autoScaling``
@@ -315,14 +333,13 @@
 
    * - | ``providerSettings``
        | ``.diskIOPS``
-     - integer
-     - Maximum input/output operations per second (IOPS) the
-       system can perform.
+     - number
+     - Maximum |iops| the system can perform.
 
    * - | ``providerSettings``
        | ``.diskTypeName``
      - string
-     - **Azure Only** The disk type of the server's root volume.
+     - Disk type of the server's root volume for Azure instances.
 
        The following table lists the possible values for this field,
        and their corresponding storage size.
@@ -388,68 +405,70 @@
        The possible values are ``3``, ``5``, or ``7``.
 
    * - ``replicationSpec``
-     - document
+     - object
      - Configuration of each region in the cluster. Each element
-       in this document represents a region where |service| deploys
+       in this object represents a region where |service| deploys
        your cluster.
 
    * - | ``replicationSpec``
        | ``.<region>``
-     - document
+     - object
      - Physical location of the region. The ``<region>`` string
        corresponds to a region where |service| deploys your cluster.
 
-       Each ``<region>`` document describes the region's priority in
+       Each ``<region>`` object describes the region's priority in
        elections and the number and type of MongoDB nodes |service|
        deploys to the region.
 
    * - | ``replicationSpec``
        | ``.<region>``
+       | ``.analyticsNodes``
+     - number
+     - Number of :ref:`analytics nodes <analytics-nodes-overview>`
+       in the region. Analytics nodes are useful for handling analytic
+       data such as reporting queries from |bic|. Analytics nodes are
+       read-only, and can never become the :term:`primary`.
+
+   * - | ``replicationSpec``
+       | ``.<region>``
        | ``.electableNodes``
-     - integer
+     - number
      - Number of electable nodes in the region. Electable nodes
        can become the :term:`primary` and can facilitate local reads.
 
    * - | ``replicationSpec``
        | ``.<region>``
        | ``.priority``
-     - integer
-     - Election priority of the region. The highest possible
-       priority is ``7``, which identifies the **Preferred Region** of
-       the cluster. |service| places the :term:`primary` node in the
+     - number
+     - Election priority of the region. The highest possible priority
+       is ``7``, which identifies the **Preferred Region** of the
+       cluster. |service| places the :term:`primary` node in the
        **Preferred Region**. The lowest possible priority is ``0``,
-       which identifies a read only region.
+       which identifies a read-only region.
 
        You can have any number of priority ``0`` read only regions.
-       Priorities ``1`` through ``7`` are exclusive - no more than one
-       region per cluster can be assigned a given priority.
+       Priorities ``1`` through ``7`` are exclusive: only one region
+       per cluster can be assigned a given priority.
 
    * - | ``replicationSpec``
        | ``.<region>``
        | ``.readOnlyNodes``
-     - integer
-     - Number of read-only nodes in the region. Read-only nodes
-       can never become the :term:`primary`, but can facilitate
-       local-reads.
-
-   * - ``replicationSpec.<region>.analyticsNodes``
-     - integer
-     - The number of :ref:`analytics nodes <analytics-nodes-overview>`
-       in the region. Analytics nodes are useful for handling analytic
-       data such as reporting queries from |bic|. Analytics nodes are
-       read-only, and can never become the :term:`primary`.
+     - number
+     - Number of read-only nodes in the region. Read-only nodes can
+       never become the :term:`primary` member, but can facilitate
+       local reads.
 
    * - ``replicationSpecs``
-     - array of documents
+     - array
      - Configuration for each zone in a
-       :doc:`Global Cluster </global-clusters>`. Each document in this
+       :doc:`Global Cluster </global-clusters>`. Each object in this
        array represents a zone where |service| deploys nodes for your
        Global Cluster.
 
    * - | ``replicationSpecs[n]``
        | ``.id``
      - string
-     - Unique identifier of the replication document.
+     - Unique identifier of the replication object.
 
    * - | ``replicationSpecs[n]``
        | ``.zoneName``
@@ -458,22 +477,63 @@
 
    * - | ``replicationSpecs[n]``
        | ``.numShards``
-     - integer
+     - number
      - Number of shards to deploy in the specified zone.
 
    * - | ``replicationSpecs[n]``
        | ``.regionsConfig``
-     - document
-     - Physical location of the region. Each ``regionsConfig``
-       document describes the region's priority in elections and the
-       number and type of MongoDB nodes |service| deploys to the region.
+     - object
+     - Physical location of the region. Each ``regionsConfig`` object
+       describes the region's priority in elections and the number and
+       type of MongoDB nodes that |service| deploys to the region.
+
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
+       | ``.analyticsNodes``
+     - number
+     - .. include:: /includes/fact-api-analytics-nodes-description.rst
+
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
+       | ``.<regionName>``
+       | ``.electableNodes``
+     - number
+     - Number of electable nodes for |service| to deploy to the region.
+       Electable nodes can become the :term:`primary` and can
+       facilitate local reads.
+
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
+       | ``.<regionName>``
+       | ``.readOnlyNodes``
+     - number
+     - Number of read-only nodes for |service| to deploy to the region.
+       Read-only nodes can never become the :term:`primary`, but can
+       facilitate local-reads.
+
+       Specify ``0`` if you do not want any read-only nodes in the
+       region.
+
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
+       | ``.<regionName>``
+       | ``.priority``
+     - number
+     - Election priority of the region. If you have regions with only
+       read-only nodes, set this value to ``0``.
+
+   * - | ``replicationSpecs[n]``
+       | ``.zoneName``
+     - string
+     - Name for the zone in a |global-write-cluster|. Do not provide
+       this value if ``clusterType`` is not ``GEOSHARDED``.
 
    * - ``srvAddress``
      - string
-     - :manual:`Connection string </reference/connection-string>`
-       for connecting to the |service| cluster. The ``+srv`` modifier
-       forces the connection to use |tls-ssl|. See the ``mongoURI``
-       for additional options.
+     - :manual:`Connection string </reference/connection-string>` for
+       connecting to the |service| cluster. The ``+srv`` modifier
+       forces the connection to use |tls|. The ``mongoURI`` parameter
+       lists additional options.
 
    * - ``stateName``
      - string
