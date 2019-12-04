@@ -304,7 +304,7 @@ increasing RAM may be more effective in increasing I/O throughput.
 MongoDB and NUMA Hardware
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Running MongoDB on a system with Non-Uniform Access Memory (NUMA) can
+Running MongoDB on a system with Non-Uniform Memory Access (NUMA) can
 cause a number of operational problems, including slow performance for
 periods of time and high system process usage.
 
@@ -335,35 +335,135 @@ Consult your system documentation for details.
 Configuring NUMA on Linux
 `````````````````````````
 
-When running MongoDB on Linux, you should disable *zone reclaim* in the
-``sysctl`` settings using one of the following commands:
+On Linux, you must disable *zone reclaim* and also ensure that your
+:binary:`~bin.mongod` and :binary:`~bin.mongos` instances are started by
+``numactl``, which is generally configured through your platform's init
+system. You must perform both of these operations to properly disable
+NUMA for use with MongoDB.
 
-.. code-block:: sh
+#. Disable *zone reclaim* with one of the following commands:
 
-   echo 0 | sudo tee /proc/sys/vm/zone_reclaim_mode
+   .. code-block:: sh
 
-.. code-block:: sh
+      echo 0 | sudo tee /proc/sys/vm/zone_reclaim_mode
 
-   sudo sysctl -w vm.zone_reclaim_mode=0
+   .. code-block:: sh
 
-Then, you should use ``numactl`` to start your
-:binary:`~bin.mongod` instances, including the :doc:`config servers
-</core/sharded-cluster-config-servers>`, :binary:`~bin.mongos` instances, and any clients.
-If you do not have the ``numactl`` command, refer to the documentation for
-your operating system to install the ``numactl`` package.
+      sudo sysctl -w vm.zone_reclaim_mode=0
 
-The following operation demonstrates how to start a MongoDB instance
-using ``numactl``:
+#. Ensure that :binary:`~bin.mongod` and :binary:`~bin.mongos` are
+   started by ``numactl``. This is generally configured through your
+   platform's init system. Run the following command to determine which
+   init system is in use on your platform:
 
-.. code-block:: sh
+   .. code-block:: sh
 
-   numactl --interleave=all <path> <options>
+      ps --no-headers -o comm 1
 
-The ``<path>`` is the path to the program you are starting and the ``<options>``
-are any optional arguments to pass to the program.
+   - If "``systemd``", your platform uses the **systemd** init
+     system, and you *must* follow the steps in the **systemd** tab
+     below to edit your MongoDB service file(s).
 
-To fully disable NUMA behavior, you must perform both operations. For more
-information, see the `Documentation for /proc/sys/vm/*
+   - If "``init``", your platform uses the *SysV Init* system, and you
+     *do not* need to perform this step. The default MongoDB init script
+     for SysV Init includes the necessary steps to start MongoDB
+     instances via ``numactl`` by default.
+
+   - If you manage your own init scripts (i.e. you are not using either
+     of these init systems), you *must* follow the steps in the
+     **Custom init scripts** tab below to edit your custom init
+     script(s).
+
+     |
+
+   .. tabs::
+
+      .. tab:: systemd
+         :tabid: systemd-numa-steps
+
+         You must use ``numactl`` to start each of your
+         :binary:`~bin.mongod` instances, including all
+         :doc:`config servers </core/sharded-cluster-config-servers>`,
+         :binary:`~bin.mongos` instances, and clients. Edit the default
+         **systemd** service file for each as follows:
+
+         #. Copy the default MongoDB service file:
+
+            .. code-block:: sh
+
+               sudo cp /lib/systemd/system/mongod.service /etc/systemd/system/
+
+         #. Edit the ``/etc/systemd/system/mongod.service`` file, and
+            update the ``ExecStart`` statement to begin with:
+
+            .. code-block:: sh
+
+               /usr/bin/numactl --interleave=all
+
+            .. example::
+
+               If your existing ``ExecStart`` statement reads:
+
+               .. code-block:: sh
+                  :copyable: false
+
+                  ExecStart=/usr/bin/mongod --config /etc/mongod.conf
+
+               Update that statement to read:
+
+               .. code-block:: sh
+                  :copyable: false
+
+                  ExecStart=/usr/bin/numactl --interleave=all /usr/bin/mongod --config /etc/mongod.conf
+
+         #. Apply the change to ``systemd``:
+
+            .. code-block:: sh
+
+               sudo systemctl daemon-reload
+
+         #. Restart any running ``mongod`` instances:
+
+            .. code-block:: sh
+
+               sudo systemctl stop mongod
+               sudo systemctl start mongod
+
+         #. If applicable, repeat these steps for any
+            :binary:`~bin.mongos` instances.
+
+      .. tab:: Custom init scripts
+         :tabid: custom-scripts-numa-steps
+
+         You must use ``numactl`` to start each of your
+         :binary:`~bin.mongod` instances, including all
+         :doc:`config servers </core/sharded-cluster-config-servers>`,
+         :binary:`~bin.mongos` instances, and clients.
+
+         #. Install ``numactl`` for your platform if not already
+            installed. Refer to the documentation for your operating
+            system for information on installing the ``numactl``
+            package.
+
+         #. Configure each of your custom init scripts to start each
+            MongoDB instance via ``numactl``:
+
+            .. code-block:: sh
+
+               numactl --interleave=all <path> <options>
+
+            Where ``<path>`` is the path to the program you are starting
+            and ``<options>`` are any optional arguments to pass to that
+            program.
+
+            .. example::
+
+               .. code-block:: sh
+                  :copyable: false
+
+                  numactl --interleave=all /usr/local/bin/mongod -f /etc/mongod.conf
+
+For more information, see the `Documentation for /proc/sys/vm/*
 <http://www.kernel.org/doc/Documentation/sysctl/vm.txt>`_.
 
 Disk and Storage Systems
