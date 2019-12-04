@@ -11,8 +11,8 @@ source:
   ref: click-deployment-select-restore
 ---
 stepnum: 3
-title: "Select the restore point."
 level: 4
+title: "Select the Restore Point."
 ref: select-shard-pit
 content: |
 
@@ -22,7 +22,7 @@ content: |
   b. Click :guilabel:`Next`.
 
 ---
-title: "Click :guilabel:`Download` to restore the files manually."
+title: "Click :guilabel:`Download` to Restore the Files Manually."
 stepnum: 4
 level: 4
 ref: select-restore-method
@@ -35,8 +35,8 @@ source:
   ref: select-restore-destination
 ---
 stepnum: 6
-title: "Retrieve the snapshots."
 level: 4
+title: "Retrieve the Snapshots."
 ref: retrieve
 content: |
 
@@ -60,8 +60,8 @@ content: |
 
 ---
 stepnum: 7
-title: "Restore the snapshot data files to the destination host."
 level: 4
+title: "Restore the Snapshot Data Files to the Destination Host."
 ref: copy
 content: |
   Extract the snapshot archive for the :term:`config server` and for
@@ -69,14 +69,17 @@ content: |
 
   .. example::
 
+     The following commands use </path/to/snapshot/> as a temporary
+     path:
+
      .. code-block:: sh
 
         tar -xvf <backupSnapshot>.tar.gz
-        mv <backupSnapshot> <temp-database-path>
+        mv <backupSnapshot> </path/to/snapshot>
 ---
 stepnum: 8
-title: "Copy the completed snapshots to restore to other hosts."
 level: 4
+title: "Copy the Completed Snapshots to Restore to Other Hosts."
 ref: distribute
 content: |
 
@@ -88,8 +91,8 @@ content: |
 
 ---
 stepnum: 9
-title: "Unmanage the Sharded Cluster."
 level: 4
+title: "Unmanage the Sharded Cluster."
 ref: unmanage
 content: |
 
@@ -99,29 +102,613 @@ content: |
 
 ---
 stepnum: 10
-title: "Restore the Sharded Cluster Manually."
 level: 4
-ref: restore-manually
+title: "Verify Hardware and Software Requirements."
+ref: verify-requirements
 content: |
 
-  Follow the tutorial from the MongoDB Manual to
-  :manual:`restore the sharded cluster </tutorial/restore-sharded-cluster>`.
+  .. list-table::
+     :widths: 30 70
+     :stub-columns: 1
+
+     * - Storage Capacity
+       - The target host hardware needs enough free storage space for
+         the restored data. If you want to keep any existing sharded
+         cluster data on this host, make sure the host has enough free
+         space for both data sets.
+
+     * - MongoDB Version
+       - The target host and source host must run the same MongoDB
+         Server version. To check the MongoDB version, run ``mongod
+         --version`` from a terminal or shell.
+
+  To learn more about installation, see :manual:`/installation`.
 
 ---
 stepnum: 11
-title: "Reimport the Sharded Cluster."
 level: 4
+title: "Shut Down Running MongoDB Processes."
+ref: shutdown-mongod
+content: |
+
+  If restoring to an existing cluster, shut down the |mongod| or
+  |mongos| process on the target host. Using a |mongo| shell, connect
+  to a host running:
+
+  .. list-table::
+     :widths: 20 80
+
+     * - |mongos|
+       - Run :method:`db.shutdownServer()` from the ``admin`` database:
+
+         .. code-block:: javascript
+
+            db.getSiblingDB("admin").shutdownServer()
+
+     * - |mongod|
+       - Run :method:`db.isMaster()`:
+
+         .. list-table::
+            :widths: 20 20 60
+            :header-rows: 1
+
+            * - :data:`~isMaster.ismaster` returns
+              - Member is
+              - To Shut Down
+            * - ``false``
+              - :term:`secondary <Secondary>`
+              - Run :method:`db.shutdownServer()` from the ``admin``
+                database.
+
+                .. code-block:: javascript
+
+                   db.getSiblingDB("admin").shutdownServer()
+
+            * - ``true``
+              - :term:`primary <Primary>`
+              -
+
+                a. Use :method:`rs.status()` to identify the other
+                   members.
+                b. Connect to each secondary and shut down their
+                   |mongod| processes *first*.
+                c. After the primary detects that a majority of members
+                   are offline, it steps down.
+                d. After the primary steps down (:method:`db.isMaster`
+                   returns :data:`ismaster: false
+                   <isMaster.ismaster>`), shut down the primary's
+                   |mongod|.
+
+---
+stepnum: 12
+level: 4
+title: "Prepare Data and Log Directories on the Target Host."
+ref: prepare-directories-csrs
+content: |
+
+  a. Create a directory tree on the target host for the restored
+     database files and logs.
+
+     .. code-block:: sh
+
+        mkdir -p </path/to/datafiles>/log
+
+  b. Grant the user that runs the |mongod| read, write, and execute
+     permissions for everything in that directory.
+
+     .. code-block:: sh
+
+        chown -R mongodb:mongodb </path/to/datafiles>
+        chmod -R 770 </path/to/datafiles>
+
+---
+stepnum: 13
+level: 4
+title: "Create Configuration File."
+ref: create-replset-config-csrs
+content: |
+
+  a. Create a mongod configuration file in your database directory
+     using your preferred text editor.
+
+     .. code-block:: sh
+
+        vi </path/to/datafiles>/mongod.conf
+
+     .. note::
+
+        If you have access to the original configuration file for the
+        |mongod|, you can copy it to your database directory on the
+        target host instead.
+
+  b. Grant the user that runs the |mongod| read and write permissions
+     on your configuration file.
+
+     .. code-block:: sh
+
+        chown mongodb:mongodb </path/to/datafiles>/mongod.conf
+        chmod 644 </path/to/datafiles>/mongod.conf
+
+  c. Modify your configuration as you require for your deployment.
+
+     .. list-table::
+        :widths: 30 70
+        :header-rows: 1
+
+        * - Setting
+          - Required Value
+
+        * - :setting:`storage.dbPath`
+          - Path to your data directory
+
+        * - :setting:`systemLog.path`
+          - Path to your log directory
+
+        * - :setting:`net.bindIp`
+          - IP address of the host machine
+
+        * - :setting:`replication.replSetName`
+          - Same value across each member in any given replica set.
+
+        * - :setting:`sharding.clusterRole`
+          - Same value across each member in any given replica set.
+
+---
+stepnum: 14
+level: 4
+title: "Restore the CSRS Primary |mongod| Data Files."
+ref: restore-backup-files-csrs
+content: |
+
+  a. Copy the |mongod| data files from the backup data location to the
+     data directory you created:
+
+     .. code-block:: sh
+
+        cp -a </path/to/snapshot/> </path/to/datafiles>
+
+     The ``-a`` option recursively copies the contents of the source
+     path to the destination path while preserving folder and file
+     permissions.
+
+  #. Open your replica set configuration file in your preferred text
+     editor.
+
+  #. Comment out or omit the following
+     :ref:`configuration file <configuration-file>` settings:
+
+     .. code-block:: yaml
+
+        #replication
+        #  replSetName: <myCSRSName>
+        #sharding
+        #  clusterRole: configsvr
+
+  #. Start the |mongod|, specifying:
+
+     - The ``--config`` option and the full path to the configuration
+       file, and
+     - The ``disableLogicalSessionCacheRefresh`` server parameter.
+
+       .. code-block:: sh
+
+          ./mongod --config </path/to/datafiles>/mongod.conf \
+                   --setParameter disableLogicalSessionCacheRefresh=true
+
+       If you have |mongod| configured to run as a system service,
+       start it using the recommended process for your platform's
+       service manager.
+
+  #. After the |mongod| starts, connect to it using the |mongo| shell.
+---
+stepnum: 15
+level: 4
+title: "Remove Replica Set-Related Collections from the ``local`` Database."
+ref: remove-replset-config-csrs
+content: |
+
+  Invoke the following commands to remove the previous replica set
+  configuration and other non-oplog, replication-related collections.
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     db.getSiblingDB("local").replset.election.drop()
+     db.getSiblingDB("local").system.replset.remove({})
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     > db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     true
+     > db.getSiblingDB("local").replset.election.drop()
+     true
+     > db.getSiblingDB("local").system.replset.remove({})
+     WriteResult({ "nRemoved" : 1 })
+---
+stepnum: 16
+level: 4
+title: "Add a New Replica Set Configuration."
+ref: add-new-replset-config-csrs
+content: |
+
+  Insert the following document into the ``system.replset`` collection
+  in the ``local`` database. Change
+  ``<replaceMeWithTheReplicaSetName>`` to the name of your Replica Set
+  and ``<port>`` to the port of your Replica Set.
+
+  .. code-block:: javascript
+     :linenos:
+
+     db.getSiblingDB("local").system.replset.insert({
+       "_id" : "<replaceMeWithTheReplicaSetName>",
+       "version" : NumberInt(1),
+       "protocolVersion" : NumberInt(1),
+       "members" : [
+         {
+           "_id" : NumberInt(0),
+           "host" : "localhost:<port>"
+         }
+       ],
+       "settings" : {
+
+       }
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     WriteResult({ "nInserted" : 1 })
+
+---
+stepnum: 17
+level: 4
+title: "Set the Restore Point to the ``Restore Timestamp`` value from the ``restoreInfo`` file."
+ref: set-restore-point-csrs
+content: |
+  Set the ``oplogTruncateAfterPoint`` document to the Restore timestamp
+  given in the :ref:`restoreInfo.txt <com-restore-info-rs>` file.
+
+  .. code-block:: javascript
+
+     truncateAfterPoint = Timestamp(restoreTS.getTime(), restoreTS.getInc())
+     db.getSiblingDB("local").replset.oplogTruncateAfterPoint.insert({
+        "_id": "oplogTruncateAfterPoint",
+        "oplogTruncateAfterPoint": truncateAfterPoint
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     WriteResult({ "nInserted" : 1 })
+
+---
+stepnum: 18
+level: 4
+title: "Restart as a Single-Node Replica Set to Recover the Oplog."
+ref: restart-special-db-csrs
+content: |
+
+  Start the |mongod| with the following ``setParameter`` options set
+  to ``true``:
+
+  - ``recoverFromOplogAsStandalone``
+  - ``takeUnstableCheckpointOnShutdown``
+
+  The |mongod| replays the oplog up to the ``Restore timestamp``.
+
+  .. code-block:: sh
+
+     ./mongod --dbpath </path/to/datafiles> --port <port> \
+              --setParameter recoverFromOplogAsStandalone=true \
+              --setParameter takeUnstableCheckpointOnShutdown=true
+
+---
+stepnum: 19
+level: 4
+title: "Restart the |mongod| as a New Single-node Replica Set."
+ref: restart-as-repl-csrs
+content: |
+
+  a. :ref:`Shut down <terminate-mongod-processes>` the |mongod|.
+
+  b. Open the configuration file in your preferred text editor.
+
+  c. Uncomment or add the following configuration file options:
+
+     .. code-block:: yaml
+
+        replication
+          replSetName: myNewCSRSName
+        sharding
+          clusterRole: configsvr
+
+  d. To change the replica set name, update the
+     :setting:`~replication.replSetName` field with the new name before
+     proceeding.
+
+  e. Start the |mongod| with the updated configuration file:
+
+     .. code-block:: sh
+
+        ./mongod --config </path/to/datafiles>/mongod.conf
+
+     If you have |mongod| configured to run as a system service, start
+     it using the recommended process for your platform's service
+     manager.
+
+  f. After the |mongod| starts, connect to it using the |mongo| shell.
+
+---
+stepnum: 20
+level: 4
+title: "Initiate the New Replica Set."
+ref: initiate-csrs
+content: |
+  Initiate the replica set using :method:`rs.initiate()` with the
+  default settings.
+
+  .. code-block: javascript
+
+     rs.initiate( {
+       _id : <replaceMeWithTheReplicaSetName>,
+       members: [ {
+         _id : 0,
+         host : <host:port>
+       } ]
+     })
+
+  Once the operation completes, use :method:`rs.status()` to check
+  that the member has become the :term:`primary <Primary>`.
+---
+stepnum: 21
+level: 4
+title: "Add Additional Replica Set Members."
+ref: add-members-csrs
+content: |
+
+  a. For each replica set member in the |csrs|, start the |mongod| on
+     its host.
+
+  b. Once you have started up all remaining members of the cluster
+     successfully, connect a |mongo| shell to the primary replica set
+     member.
+
+  c. From the primary, use the :method:`rs.add()` method to add each
+     member of the replica set. Include the replica set name as the
+     prefix, followed by the hostname and port of the member's |mongod|
+     process:
+
+     .. code-block:: javascript
+
+        rs.add("myNewCSRSName/config2.example.net:<port>")
+        rs.add("myNewCSRSName/config3.example.net:<port>")
+
+  d. If you want to add the member with specific replica
+     :rsconf:`member <members[n]>` configuration settings, you can pass
+     a document to :method:`rs.add()` that defines the member hostname
+     and any :rsconf:`members[n]` settings your deployment requires.
+
+     .. code-block:: javascript
+
+        rs.add(
+         {
+           "host" : "myNewCSRSName/config2.example.net:<port>",
+           priority: <int>,
+           votes: <int>,
+           tags: <int>
+         }
+        )
+
+  e. Each new member performs an :ref:`initial sync
+     <replica-set-initial-sync>` to catch up to the primary. Depending
+     on data volume, network, and host performance factors, initial
+     sync might take a while to complete.
+
+  f. The replica set might elect a new primary while you add additional
+     members. You can only run :method:`rs.add()` from the primary. To
+     identify which member is the current primary, use
+     :method:`rs.status()`.
+
+---
+stepnum: 22
+level: 4
+title: "Configure Any Additional Required Replication Settings."
+ref: configure-replication-csrs
+content: |
+
+  The :method:`rs.reconfig()` method updates the replica set
+  configuration based on a configuration document passed in as a
+  parameter.
+
+  a. Run :method:`~rs.reconfig()` against the primary member of the
+     replica set.
+
+  b. Reference the original configuration file output of the replica
+     set and apply settings as needed.
+
+---
+stepnum: 23
+level: 4
+title: "Remove Replica Set-Related Collections from the ``local`` Database."
+ref: remove-replset-config-shard
+content: |
+
+  Invoke the following commands to remove the previous replica set
+  configuration and other non-oplog, replication-related collections.
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     db.getSiblingDB("local").replset.election.drop()
+     db.getSiblingDB("local").system.replset.remove({})
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     > db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     true
+     > db.getSiblingDB("local").replset.election.drop()
+     true
+     > db.getSiblingDB("local").system.replset.remove({})
+     WriteResult({ "nRemoved" : 1 })
+---
+stepnum: 24
+level: 4
+title: "Add a New Replica Set Configuration."
+ref: add-new-replset-config
+content: |
+
+  Insert the following document into the ``system.replset`` collection
+  in the ``local`` database. Change
+  ``<replaceMeWithTheReplicaSetName>`` to the name of your Replica Set
+  and ``<port>`` to the port of your Replica Set.
+
+  .. code-block:: javascript
+     :linenos:
+
+     db.getSiblingDB("local").system.replset.insert({
+       "_id" : "<replaceMeWithTheReplicaSetName>",
+       "version" : NumberInt(1),
+       "protocolVersion" : NumberInt(1),
+       "members" : [
+         {
+           "_id" : NumberInt(0),
+           "host" : "localhost:<port>"
+         }
+       ],
+       "settings" : {
+
+       }
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     WriteResult({ "nInserted" : 1 })
+
+---
+stepnum: 25
+level: 4
+title: "Set the Restore Point to the ``Restore Timestamp`` value from the ``restoreInfo`` file."
+ref: set-restore-point
+content: |
+  Set the ``oplogTruncateAfterPoint`` document to the Restore timestamp
+  given in the :ref:`restoreInfo.txt <com-restore-info-sc>` file.
+
+  .. code-block:: javascript
+
+     truncateAfterPoint = Timestamp(restoreTS.getTime(), restoreTS.getInc())
+     db.getSiblingDB("local").replset.oplogTruncateAfterPoint.insert({
+        "_id": "oplogTruncateAfterPoint",
+        "oplogTruncateAfterPoint": truncateAfterPoint
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     WriteResult({ "nInserted" : 1 })
+
+---
+stepnum: 26
+level: 4
+title: "Restart as a Single-Node Replica Set to Recover the Oplog."
+ref: restart-special-db
+content: |
+
+  Start the |mongod| with the following ``setParameter`` options set
+  to ``true``:
+
+  - ``recoverFromOplogAsStandalone``
+  - ``takeUnstableCheckpointOnShutdown``
+
+  The |mongod| replays the oplog up to the ``Restore timestamp``.
+
+  .. code-block:: sh
+
+     ./mongod --dbpath </path/to/datafiles> --port <port> \
+              --setParameter recoverFromOplogAsStandalone=true \
+              --setParameter takeUnstableCheckpointOnShutdown=true
+
+---
+stepnum: 27
+level: 4
+title: Connect a |mongo| Shell to the ``mongod`` Instance.
+ref: connect-to-instance
+content: |
+
+  From the host running this |mongod| process, start the |mongo| shell.
+  To connect to the |mongod| listening to localhost on port ``<port>``,
+  invoke:
+
+  .. code-block:: sh
+
+     ./mongo --port <port>
+
+  Depending on your path, you may need to specify the path to the
+  |mongo| binary.
+
+  After the |mongod| starts accepting connections, continue.
+---
+stepnum: 28
+level: 4
+title: Initiate the New Replica Set.
+ref: initiate-new-replset
+content: |
+
+  Run :method:`rs.initiate()` on the replica set:
+
+  .. code-block:: javascript
+
+     rs.initiate( {
+       _id : <replaceMeWithTheReplicaSetName>,
+       members: [ {
+         _id : 0,
+         host : <host:port>
+       } ]
+     })
+
+  MongoDB initiates a set that consists of the current member and that
+  uses the default replica set configuration.
+
+---
+stepnum: 29
+level: 4
+title: "Shut Down the New Replica Set."
+ref: shutdown-new-replset
+content: |
+
+  .. code-block:: javascript
+
+     db.shutdownServer({});
+
+---
+stepnum: 30
+level: 4
+title: "Reimport the Sharded Cluster."
 ref: reimport
 content: |
 
-  To manage the sharded cluster with automation again,
+  To manage the sharded cluster with Automation again,
   :doc:`import the sharded cluster </tutorial/add-existing-mongodb-processes>`
   back into |mms|.
 
 ---
-stepnum: 12
-title: "Start the Sharded Cluster Balancer."
+stepnum: 31
 level: 4
+title: "Start the Sharded Cluster Balancer."
 ref: start-balancer
 content: |
 
@@ -138,6 +725,388 @@ content: |
   #. Toggle to :guilabel:`Yes`.
   #. Click :guilabel:`Save`.
   #. Click :guilabel:`Review & Deploy` to save the changes.
+
+stepnum: 32
+level: 4
+title: "Restore the Shard Primary |mongod| Data Files."
+ref: restore-backup-files
+content: |
+
+  a. Copy the |mongod| data files from the backup data location to the
+     data directory you created:
+
+     .. code-block:: sh
+
+        cp -a </path/to/snapshot/> </path/to/datafiles>
+
+     The ``-a`` option recursively copies the contents of the source
+     path to the destination path while preserving folder and file
+     permissions.
+
+  #. Open your replica set configuration file in your preferred text
+     editor.
+
+  #. Comment out or omit the following
+     :ref:`configuration file <configuration-file>` settings:
+
+     .. code-block:: yaml
+
+        #replication
+        #  replSetName: <myShardName>
+        #sharding
+        #  clusterRole: shardsvr
+
+  #. Start the |mongod|, specifying:
+
+     - The ``--config`` option and the full
+       path to the configuration file, and
+     - The ``disableLogicalSessionCacheRefresh`` server parameter.
+
+      .. code-block:: sh
+
+         ./mongod --config </path/to/datafiles>/mongod.conf \
+                  --setParameter disableLogicalSessionCacheRefresh=true
+
+      If you have |mongod| configured to run as a system service, start
+      it using the recommended process for your platform's service
+      manager.
+
+  #. After the |mongod| starts, connect to it using the |mongo| shell.
+---
+stepnum: 33
+level: 4
+title: "Create a Temporary User with the ``__system`` Role."
+ref: create-system-user
+content: |
+
+  .. important::
+
+     Skip this step if the cluster does not enforce authentication.
+
+  Clusters that enforce :ref:`authentication <authentication>` limit
+  who can change the :data:`admin.system.version` collection. Clusters
+  limit permission to users with the :authrole:`__system` role.
+
+  .. warning::
+
+     The ``__system`` role allows a user to take any action
+     against any object in the database.
+
+     **Do not** keep this user active beyond the scope of this
+     procedure. This procedure includes instructions for removing the
+     user created in this step.
+
+     Consider creating this user with the ``clientSource``
+     :ref:`authentication restriction <method-createUser-authentication-restrictions>`
+     configured such that only the specified hosts can
+     authenticate as the privileged user.
+
+  a. Authenticate as a user with either the :authrole:`userAdmin` role
+     on the ``admin`` database or the :authrole:`userAdminAnyDatabase`
+     role:
+
+     .. code-block:: javascript
+        :copyable: false
+
+        db.getSiblingDB("admin").auth("<myUserAdmin>","<replaceMeWithAStrongPassword>")
+
+  #. Create a user with the :authrole:`__system` role:
+
+     .. code-block:: javascript
+
+        db.getSiblingDB("admin").createUser(
+          {
+            user: "<myTempSystemUserWithTotalAccess>",
+            pwd: "<replaceMeWithAStrongPassword>",
+            roles: [ "__system" ]
+          }
+        )
+
+     Make these passwords random, long, and complex. Keep the system
+     secure and prevent or delay malicious access.
+
+  #. Authenticate as the privileged user:
+
+     .. code-block:: javascript
+
+        db.getSiblingDB("admin").auth("<myTempSystemUserWithTotalAccess>","<replaceMeWithAStrongPassword>")
+---
+stepnum: 34
+level: 4
+title: "Remove Replica Set-Related Collections from the ``local`` Database."
+ref: drop-replset-local-shard
+content: |
+
+  Invoke the following commands to remove the previous replica set
+  configuration and other non-oplog, replication-related collections.
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     db.getSiblingDB("local").replset.election.drop()
+     db.getSiblingDB("local").system.replset.remove({})
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     > db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     true
+     > db.getSiblingDB("local").replset.election.drop()
+     true
+     > db.getSiblingDB("local").system.replset.remove({})
+     WriteResult({ "nRemoved" : 1 })
+
+---
+stepnum: 35
+level: 4
+title: "Remove the ``minOpTimeRecovery`` Document from the ``admin.system.versions`` Collection."
+ref: delete-minOpTimeRecovery-shard
+content: |
+
+  Issue the following :method:`~db.collection.deleteOne()` method on
+  the :data:`system.version <admin.system.version>` collection in the
+  ``admin`` database:
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("admin").system.version.deleteOne( { _id: "minOpTimeRecovery" } )
+
+---
+stepnum: 36
+level: 4
+title: "Add a New Replica Set Configuration."
+ref: add-new-replset-config-shard
+content: |
+
+  Insert the following document into the ``system.replset`` collection
+  in the ``local`` database. Change
+  ``<replaceMeWithTheReplicaSetName>`` to the name of your Replica Set
+  and ``<port>`` to the port of your Replica Set.
+
+  .. code-block:: javascript
+     :linenos:
+
+     db.getSiblingDB("local").system.replset.insert({
+       "_id" : "<replaceMeWithTheReplicaSetName>",
+       "version" : NumberInt(1),
+       "protocolVersion" : NumberInt(1),
+       "members" : [
+         {
+           "_id" : NumberInt(0),
+           "host" : "localhost:<port>"
+         }
+       ],
+       "settings" : {
+
+       }
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     WriteResult({ "nInserted" : 1 })
+
+---
+stepnum: 37
+level: 4
+title: "Restart the |mongod| as a New Single-node Replica Set."
+ref: restart-as-repl-shard
+content: |
+
+  a. :ref:`Shut down <terminate-mongod-processes>` the |mongod|.
+
+  b. Open the configuration file in your preferred text editor.
+
+  c. Uncomment or add the following configuration file options:
+
+     .. code-block:: yaml
+
+        replication
+          replSetName: myNewShardName
+        sharding
+          clusterRole: shardsvr
+
+  d. To change the replica set name, update the
+     :setting:`~replication.replSetName` field with the new name before
+     proceeding.
+
+  e. Start the |mongod| with the updated configuration file:
+
+     .. code-block:: sh
+
+        ./mongod --config </path/to/datafiles>/mongod.conf
+
+     If you have |mongod| configured to run as a system service, start
+     it using the recommended process for your platform's service
+     manager.
+
+  f. After the |mongod| starts, connect to it using the |mongo| shell.
+
+---
+stepnum: 38
+level: 4
+title: "Initiate the New Replica Set."
+ref: initiate-shard
+content: |
+  Initiate the replica set using :method:`rs.initiate()` with the
+  default settings.
+
+  .. code-block: javascript
+
+     rs.initiate( {
+       _id : <replaceMeWithTheReplicaSetName>,
+       members: [ {
+         _id : 0,
+         host : <host:port>
+       } ]
+     })
+
+  Once the operation completes, use :method:`rs.status()` to check
+  that the member has become the :term:`primary <Primary>`.
+---
+stepnum: 39
+level: 4
+title: "Add Additional Replica Set Members."
+ref: add-members-shard
+content: |
+
+  a. For each replica set member in the shard replica set, start the
+     |mongod| on its host.
+
+  b. Once you have started up all remaining members of the cluster
+     successfully, connect a |mongo| shell to the primary replica set
+     member.
+
+  c. From the primary, use the :method:`rs.add()` method to add each
+     member of the replica set. Include the replica set name as the
+     prefix, followed by the hostname and port of the member's |mongod|
+     process:
+
+     .. code-block:: javascript
+
+        rs.add("myNewShardName/repl2.example.net:<port>")
+        rs.add("myNewShardName/repl3.example.net:<port>")
+
+  d. If you want to add the member with specific replica
+     :rsconf:`member <members[n]>` configuration settings, you can pass
+     a document to :method:`rs.add()` that defines the member hostname
+     and any :rsconf:`members[n]` settings your deployment requires.
+
+     .. code-block:: javascript
+
+        rs.add(
+         {
+           "host" : "myNewShardName/repl2.example.net:<port>",
+           priority: <int>,
+           votes: <int>,
+           tags: <int>
+         }
+        )
+
+  e. Each new member performs an :ref:`initial sync
+     <replica-set-initial-sync>` to catch up to the primary. Depending
+     on data volume, network, and host performance factors, initial
+     sync might take a while to complete.
+
+  f. The replica set might elect a new primary while you add additional
+     members. You can only run :method:`rs.add()` from the primary. To
+     identify which member is the current primary, use
+     :method:`rs.status()`.
+
+---
+stepnum: 40
+level: 4
+title: "Configure Any Additional Required Replication Settings."
+ref: configure-replication-shard
+content: |
+
+  The :method:`rs.reconfig()` method updates the replica set
+  configuration based on a configuration document passed in as a
+  parameter.
+
+  a. Run :method:`~rs.reconfig()` against the primary member of the
+     replica set.
+
+  b. Reference the original configuration file output of the replica
+     set and apply settings as needed.
+---
+stepnum: 41
+level: 4
+title: "Remove the Temporary Privileged User."
+ref: remove-system-user
+content: |
+
+  For clusters enforcing authentication, remove the privileged user
+  created earlier in this procedure:
+
+  a. Authenticate as a user with the :authrole:`userAdmin` role on the
+     ``admin`` database or :authrole:`userAdminAnyDatabase` role:
+
+     .. code-block:: javascript
+        :copyable: false
+
+        db.getSiblingDB("admin").auth("<myUserAdmin>","<replaceMeWithAStrongPassword>")
+
+  #. Delete the privileged user:
+
+     .. code-block:: javascript
+
+        db.getSiblingDB("admin").removeUser("<myTempSystemUserWithTotalAccess>")
+
+---
+stepnum: 42
+level: 4
+title: "Restart Each |mongos|."
+ref: restart-mongos
+content: |
+
+  Restart each |mongos| in the cluster.
+
+  .. code-block:: shell
+
+     mongos --config </path/to/config/>mongos.conf
+
+  Include all other command line options as required by your
+  deployment.
+
+  If the |csrs| replica set name or any member hostname changed, update
+  the |mongos| configuration file setting :setting:`sharding.configDB`
+  with updated configuration server connection string:
+
+  .. code-block:: yaml
+
+     sharding:
+       configDB: "myNewCSRSName/config1.example.net:<port>,config2.example.net:<port>,config3.example.net:<port>"
+
+---
+stepnum: 43
+level: 4
+title: "Verify that You Can Access the Cluster."
+ref: verify-cluster
+content: |
+
+  a. Connect a |mongo| shell to one of the |mongos| processes for the
+     cluster.
+
+  b. Use :method:`sh.status()` to check the overall cluster status.
+
+     If :method:`sh.status()` indicates that the balancer is not
+     running, use :method:`sh.startBalancer()` to restart the balancer.
+
+  c. To confirm that you can access all shards and they are
+     communicating, insert test data into a temporary sharded
+     collection.
+
+  d. Confirm that data is being split and migrated between each shard
+     in your cluster.
+
+     You can connect a |mongo| shell to each shard primary and use
+     :method:`db.collection.find()` to validate that the data was
+     sharded as expected.
 
 ...
 

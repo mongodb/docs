@@ -11,8 +11,8 @@ source:
   ref: click-deployment-select-restore
 ---
 stepnum: 3
-title: "Select the restore point."
 level: 4
+title: "Select the Restore Point."
 ref: select-shard-pit-manual
 content: |
 
@@ -22,9 +22,9 @@ content: |
   b. Click :guilabel:`Next`.
 
 ---
-title: "Click :guilabel:`Download` to restore the files manually."
 stepnum: 4
 level: 4
+title: "Click :guilabel:`Download` to Restore the Files Manually."
 ref: select-restore-method
 
 ---
@@ -35,8 +35,8 @@ source:
   ref: select-restore-destination
 ---
 stepnum: 6
-title: "Retrieve the snapshots."
 level: 4
+title: "Retrieve the Snapshots."
 ref: retrieve
 content: |
 
@@ -59,9 +59,9 @@ content: |
 
 ---
 stepnum: 7
-title: "Restore the snapshot data files to the destination host."
 level: 4
-ref: copy
+title: "Restore the Snapshot Data Files to the Target Host."
+ref: copy-snapshot-files
 content: |
 
   .. example::
@@ -69,12 +69,12 @@ content: |
      .. code-block:: sh
 
         tar -xvf <backupSnapshot>.tar.gz
-        mv <backupSnapshot> <temp-database-path>
+        mv <backupSnapshot> </path/to/datafiles>
 ---
 stepnum: 8
-title: "Unmanage the Replica Set."
 level: 4
-ref: unmanage
+title: "Unmanage the Replica Set."
+ref: unmanage-replset
 content: |
 
   Before attempting to restore the data manually, :doc:`remove the
@@ -82,19 +82,186 @@ content: |
 
 ---
 stepnum: 9
-title: "Restore the Replica Set Manually."
 level: 4
-ref: restore-manually
+title: "Remove Replica Set-Related Collections from the ``local`` Database."
+ref: remove-replset-config
 content: |
 
-  Follow the tutorial from the MongoDB Manual to
-  :manual:`restore the replica set </tutorial/restore-replica-set-from-backup>`.
+  Invoke the following commands to remove the previous replica set
+  configuration and other non-oplog, replication-related collections.
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     db.getSiblingDB("local").replset.election.drop()
+     db.getSiblingDB("local").system.replset.remove({})
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     > db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     true
+     > db.getSiblingDB("local").replset.election.drop()
+     true
+     > db.getSiblingDB("local").system.replset.remove({})
+     WriteResult({ "nRemoved" : 1 })
 
 ---
 stepnum: 10
-title: "Reimport the Replica Set."
 level: 4
-ref: reimport
+title: "Add a New Replica Set Configuration."
+ref: add-new-replset-config
+content: |
+
+  Insert the following document into the ``system.replset`` collection
+  in the ``local`` database. Change the following variables:
+
+  - ``<replaceMeWithTheReplicaSetName>`` to the name of your Replica Set
+  - ``<host>`` to the |fqdn| of the host serving this Replica Set member
+  - ``<port>`` to the port of your Replica Set instance
+
+  .. code-block:: javascript
+     :linenos:
+
+     db.getSiblingDB("local").system.replset.insert({
+       "_id" : "<replaceMeWithTheReplicaSetName>",
+       "version" : NumberInt(1),
+       "protocolVersion" : NumberInt(1),
+       "members" : [
+         {
+           "_id" : NumberInt(0),
+           "host" : "<host>:<port>"
+         }
+       ],
+       "settings" : {
+
+       }
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     WriteResult({ "nInserted" : 1 })
+
+---
+stepnum: 11
+level: 4
+title: "Set the Restore Point to the ``Restore Timestamp`` Value from the ``restoreInfo`` File."
+ref: set-restore-point
+content: |
+  Set the ``oplogTruncateAfterPoint`` document to the Restore timestamp
+  given in the :ref:`restoreInfo.txt <com-restore-info-rs>` file.
+
+  .. code-block:: javascript
+
+     truncateAfterPoint = Timestamp(restoreTS.getTime(), restoreTS.getInc())
+     db.getSiblingDB("local").system.replset.oplogTruncateAfterPoint.insert({
+        "_id": "oplogTruncateAfterPoint",
+        "oplogTruncateAfterPoint": truncateAfterPoint
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     WriteResult({ "nInserted" : 1 })
+
+---
+stepnum: 12
+level: 4
+title: "Restart as a Single-Node Replica Set to Recover the Oplog."
+ref: restart-special-db
+content: |
+
+  Start the |mongod| with the following ``setParameter`` options set
+  to ``true``:
+
+  - ``recoverFromOplogAsStandalone``
+  - ``takeUnstableCheckpointOnShutdown``
+
+  The |mongod| replays the oplog up to the ``Restore timestamp``.
+
+  .. code-block:: sh
+
+     ./mongod --dbpath </path/to/datafiles> --port <port> \
+              --setParameter recoverFromOplogAsStandalone=true \
+              --setParameter takeUnstableCheckpointOnShutdown=true
+
+  Once the |mongod| has started and accepting connections, you can shut
+  it down via normal mechanisms.
+
+---
+stepnum: 13
+level: 4
+title: "Restart as a Single-Node Replica Set."
+ref: restart-as-single-node
+content: |
+
+  .. code-block:: sh
+
+     ./mongod --dbpath </path/to/datafiles> --port <port>
+
+---
+stepnum: 14
+level: 4
+title: "Connect a |mongo| Shell to the ``mongod`` Instance."
+ref: connect-to-instance
+content: |
+
+  From the host running this |mongod| process, start the |mongo| shell.
+  To connect to the |mongod| listening to localhost on port ``<port>``,
+  invoke:
+
+  .. code-block:: sh
+
+     ./mongo --port <port>
+
+  Depending on your path, you may need to specify the path to the
+  |mongo| binary.
+
+  After the |mongod| starts accepting connections, continue.
+---
+stepnum: 15
+level: 4
+title: "Initiate the New Replica Set."
+ref: initiate-new-replset
+content: |
+
+  Use :method:`rs.initiate()` on the replica set:
+
+  .. code-block:: javascript
+
+     rs.initiate( {
+       _id : <replaceMeWithTheReplicaSetName>,
+       members: [ {
+         _id : 0,
+         host : <host:port>
+       } ]
+     })
+
+  MongoDB initiates a set that consists of the current member and that
+  uses the default replica set configuration.
+
+---
+stepnum: 16
+level: 4
+title: "Shut Down the New Replica Set."
+ref: shutdown-new-replset
+content: |
+
+  .. code-block:: javascript
+
+     db.shutdownServer({});
+---
+stepnum: 17
+level: 4
+title: "Reimport the Replica Set."
+ref: reimport-replica-set
 content: |
 
   To manage the replica set with automation again,
