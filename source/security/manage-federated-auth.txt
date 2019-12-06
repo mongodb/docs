@@ -1,8 +1,8 @@
 .. _atlas-manage-fed-auth:
 
-===============================
-Manage Federated Authentication
-===============================
+=========================
+Manage Identity Providers
+=========================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,245 @@ Manage Federated Authentication
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-.. include:: /includes/fact-atlas-free-tier-limits.rst
+.. include:: /includes/fact-fed-auth-overview.rst
+
+This tutorial walks you through linking an |idp| to |service|.
+
+Federation Management Access
+----------------------------
+
+.. include:: /includes/fact-fed-management-access.rst
+
+Procedure
+---------
+
+.. admonition:: Two-Stage Configuration
+   :class: important
+
+   Depending on your Identity Provider, some circular logic may apply
+   when linking it to a Service Provider like |service|. To
+   link your |idp| to |service|:
+
+   - Your IdP needs values from |service| and
+   - |service| needs values from your IdP.
+
+   To simplify setup, |service| prompts you to enter placeholder values
+   for the IdP and |service| configurations. You will replace these
+   values later in the procedure.
+
+.. _configure-idp-app:
+
+Configure An External Identity Provider Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure Federated Authentication, you must have an external
+|saml| |idp| application. In the |saml| |idp|, you must:
+
+1. Create a new application for |service|.
+
+#. Configure initial |saml| values for the new application:
+
+   a. Set placeholder values for the following fields:
+
+      - :guilabel:`SP Entity ID or Issuer`
+      - :guilabel:`Audience URI`
+      - :guilabel:`Assertion Consumer Service (ACS) URL`
+
+   b. Set valid values for the following fields:
+
+      .. list-table::
+         :header-rows: 1
+         :stub-columns: 1
+         :widths: 40 60
+
+         * - Field
+           - Value
+
+         * - :guilabel:`Signature Algorithm`
+           - The signature algorithm is the algorithm used
+             to encrypt the |idp| signature. |service| supports the
+             following signature algorithm values:
+
+             - ``SHA-1``
+             - ``SHA-256``
+
+         * - :guilabel:`Name ID`
+           - ``Email Address``
+
+         * - :guilabel:`Name ID Format`
+           - ``urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified``
+
+   c. Create attributes with Attribute Names for the following
+      Attribute Values:
+
+      - ``firstName``
+      - ``lastName``
+      - ``email``
+
+   d. Save these values.
+
+Once you have completed the initial setup for your |idp| application,
+you link the |idp| to |service| to federate your users' logins.
+
+Apply Your Identity Provider to Atlas
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. admonition:: Prerequisite
+   :class: note
+
+   This procedure assumes you already have an external |idp|. To learn
+   how to configure an |idp|, see :ref:`configure-idp-app`.
+
+You can configure Federated Authentication in |service| from the
+:guilabel:`Federation Management Console`. Use this console to:
+
+- Configure :guilabel:`Identity Providers` to authenticate users
+  belonging to specified organizations.
+- Connect |service| :guilabel:`Organizations` to your |idp|.
+- Verify and associate :guilabel:`Domains` with your |idp| to force
+  users to authenticate using that IdP.
+
+Open the Management Console
+```````````````````````````
+
+1. Log in to |service|.
+
+#. From the :guilabel:`Context` dropdown in the left navigation,
+   select the organization for which you want to manage federation
+   settings.
+
+#. Click :guilabel:`Settings` in the left navigation.
+
+#. In :guilabel:`Manage Federation Settings`, click
+   :guilabel:`Visit Federation Management App`.
+
+From the Management Console:
+````````````````````````````
+
+1. Click :guilabel:`Add Identity Providers`
+
+#. If you do not have any Identity Providers configured yet, click
+   :guilabel:`Setup Identity Provider`. Otherwise, On the
+   :guilabel:`Identity Providers` screen, click
+   :guilabel:`Add Identity Provider`.
+
+#. Enter or select the following |saml| Protocol Settings. All fields
+   are required:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+
+      * - Field
+        - Description
+
+      * - :guilabel:`Configuration Name`
+        - Name of identify this |idp| configuration.
+
+      * - :guilabel:`Login URL`
+        - URL which serves as the |service| login page. Give this URL
+          to your users to have them bypass the main |service| login
+          page where they enter their username. This URL redirects users
+          to the :guilabel:`IdP Single Sign-On URL`.
+          
+      * - :guilabel:`IdP Issuer URI`
+        - Identifier for the issuer of the
+          `SAML Assertion <http://saml.xml.org/assertions>`__.
+
+          .. note::
+
+             .. include:: /includes/fact-fed-auth-placeholder-values.rst
+
+      * - :guilabel:`IdP Single Sign-On URL`
+        - URL of the receiver of the |saml| AuthNRequest.
+
+          .. note::
+
+             .. include:: /includes/fact-fed-auth-placeholder-values.rst
+
+      * - :guilabel:`IdP Signature Certificate`
+        - |pem|-encoded public key certificate of the |idp|. You can
+          obtain this value from your |idp|.
+
+      * - :guilabel:`Request Binding`
+        - |saml| Authentication Request Protocol binding used to send
+          the AuthNRequest. Can be either:
+
+          - ``HTTP POST``
+          - ``HTTP REDIRECT``
+
+      * - :guilabel:`Response Signature Algorithm`
+        - Response algorithm used to sign the |saml| AuthNRequest. Can
+          be either:
+
+          - ``SHA-256``
+          - ``SHA-1``
+
+      * - :guilabel:`Apply to Organizations`
+        - Organizations to connect to this |idp|. When users
+          authenticate through the |idp| for the first time, |service|
+          grants them membership in the selected organizations.
+          :ref:`Manage organization mapping 
+          <atlas-manage-fed-org-map>` to choose what
+          :ref:`role <organization-roles>` these users have within the
+          selected organizations.
+
+#. Click :guilabel:`Next`.
+
+Configure Your Identity Provider with Atlas Metadata
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Having set up your |idp| in |service|, you can provide the required
+|service| metadata to your |idp|.
+
+1. On the :guilabel:`Identity Provider` screen in |service|, click
+   :guilabel:`Download metadata` to download the metadata required
+   by your |idp|. |service| provides the data as an ``.xml`` file.
+
+   .. figure:: /images/customer-fed-download-metadata-border.png
+      :width: 550px
+      :alt: Image showing how to download metadata
+
+   .. note::
+   
+      |service| provides the :guilabel:`Assertion Consumer Service URL`
+      and :guilabel:`Audience URI` if you wish to manually copy and
+      save these values. These values are included in the metadata
+      download.
+
+#. Upload the metadata to your |idp|.
+
+   You now have the necessary information to replace the
+   placeholder :guilabel:`IdP Issuer URI` and
+   :guilabel:`IdP Single Sign-On URL` values set when you set up the
+   initial |idp| mapping in |service|.
+
+#. In |service|, modify the placeholder values set for
+   :guilabel:`IdP Issuer URI` and :guilabel:`IdP Single Sign-On URL` for
+   the linked |idp| with the proper values from your |idp|.
+
+Test the Link between Atlas and Your IdP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. In a private browser window, go to the :guilabel:`Login URL` for your
+   |idp|.
+
+#. Authenticate through your |idp|.
+
+If the link is configured correctly and you provide working credentials,
+you are redirected to the |service| application.
+
+Next Steps
+----------
+
+After you successfully linked your |idp| to |service|, you must
+:ref:`Map Domains to your Identity Provider
+<atlas-manage-fed-domain-map>` to authenticate users from specified
+domains through your |idp|.
+
+You can also :ref:`Map Organizations to your Identity Provider
+<atlas-manage-fed-org-map>` to give your users a unified login
+experience.
