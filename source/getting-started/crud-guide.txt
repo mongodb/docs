@@ -1,0 +1,156 @@
+==================================
+Create Read Update Delete Concepts
+==================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+These concepts are essential to CRUD (create, read, update, delete)
+operations.
+
+Specify a Query
+~~~~~~~~~~~~~~~
+
+The ``find()`` method allows you to look up items in a collection; the
+query document allows you to make that search more specific.
+Query documents contain one or more field-level expressions that
+determine which documents to include in the result set. You can match
+fields against literal values (e.g. ``{title:'The Room'}``) or
+compose query operators to express more complex queries. MongoDB
+supports multiple types of
+`query operators <https://docs.mongodb.com/manual/reference/operator/query/>`_,
+including:
+
+- `Comparison Operators <https://docs.mongodb.com/manual/reference/operator/query-comparison/>`_
+
+- `Logical Operators <https://docs.mongodb.com/manual/reference/operator/query-logical/>`_
+
+- `Element Operators <https://docs.mongodb.com/manual/reference/operator/query-element/>`_
+
+- `Evaluation Operators <https://docs.mongodb.com/manual/reference/operator/query-evaluation/>`_
+
+Consider a collection containing documents that describe an inventory of
+fruit. To insert this data into a collection, run the following
+operation:
+
+.. code-block:: javascript
+
+   await collection.insertMany([
+     { "_id": 1, "name": "apples", "qty": 5, "rating": 3 },
+     { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 },
+     { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 },
+     { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 },
+   ]);
+
+The following operation will search for documents with a
+quantity value greater than 5 and print them out:
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   // $gt means "greater than"
+   const query = { qty: { $gt : 5 } };
+   const cursor = collection.find(query);
+   await cursor.forEach(console.dir);
+
+This will print out the following results:
+
+.. code-block:: javascript
+
+   { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 }
+   { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 }
+
+Specify a Sort
+~~~~~~~~~~~~~~
+
+Use ``sort()`` with a document to change the order in which ``find()``
+returns documents. Sorts tell MongoDB to order returned documents by
+the values of one or more fields in a certain direction. To
+sort returned documents by a field in ascending (lowest first) order,
+use a value of ``1``. To sort in descending (greatest first) order
+instead, use ``-1``. If you do not specify a sort, the order of
+documents returned is
+`not guaranteed <https://docs.mongodb.com/manual/reference/method/cursor.sort/#result-ordering>`_.
+
+Pass the following sort document to ``find()`` to ensure that the
+operation returns fruit documents with higher ratings before fruit
+documents with lower ratings:
+
+.. code-block:: javascript
+   :emphasize-lines: 4
+
+   // define an empty query document
+   const query = {};
+   // sort in descending (-1) order by rating
+   const sort = { rating: -1 };
+   const cursor = collection.find(query).sort(sort);
+   await cursor.forEach(console.dir);
+
+In this case, the number ``-1`` tells ``find()`` to sort the fruit in
+descending order by rating. ``find()`` returns the following
+documents when this sort is used with an empty query:
+
+.. code-block:: javascript
+
+   { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 }
+   { "_id": 1, "name": "apples", "qty": 5, "rating": 3 }
+   { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 }
+   { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 }
+
+Specify Which Fields to Return
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``project()`` with a document to control which fields appear in the
+documents returned by ``find()``. You can accomplish this in two ways:
+
+- Explicitly include fields with a value of ``1``. This has the
+  side-effect of implicitly excluding all unspecified fields.
+
+- Implicitly exclude fields with a value of ``0``. This has the
+  side-effect of implicitly including all unspecified fields.
+
+These two methods of projection are mutually exclusive: if you
+explicitly include fields, you cannot explicitly exclude fields, and
+vice versa.
+
+Pass the following projection to only return the ``name`` field of each
+document:
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   // return only* the name field
+   const projection = { name: 1 };
+   const cursor = collection.find().project(projection);
+   await cursor.forEach(console.dir);
+
+The projection document specifies a value of ``1`` for ``name`` to
+indicate that ``find()`` should *include* the ``name`` field of each
+returned document. As a result, this projection implicitly excludes the
+``qty`` and ``rating`` fields. Passing this projection to ``find()``
+with an empty query document and no sort document yields the following
+results:
+
+.. code-block:: javascript
+
+   { "_id": 1, "name": "apples" }
+   { "_id": 2, "name": "bananas" }
+   { "_id": 3, "name": "oranges" }
+   { "_id": 4, "name": "avocados" }
+
+Despite the fact that this projection only explicitly included the
+``name`` field, the query returned the ``_id`` field as well!
+
+This happens because the ``_id`` field is a special case: it is always
+included in every query unless explicitly specified otherwise. That's
+because ``_id`` is a unique identifier for each document, a property
+that can be very useful when constructing queries. The ``movies``
+collection is a good example of why this property is useful: because
+remakes and even separate works can sometimes reuse movie titles, you
+need a unique ``_id`` value to refer to any specific movie. ``_id`` is
+the only exception to the mutually exclusive include-exclude behavior in
+projections: you *can* explicitly exclude ``_id`` even when explicitly
+including other fields if you do not want ``_id`` to be present in
+returned documents.
