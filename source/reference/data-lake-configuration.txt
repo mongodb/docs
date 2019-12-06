@@ -415,6 +415,21 @@ computed field values to only those file(s) with a matching file name.
    
      /path/to/files/prefix-{<fieldA> <data-type>}-suffix
 
+- You can specify ``ObjectIds`` in the path to the files to create partitions:
+
+  .. code-block:: none 
+     :copyable: false
+
+     /path/to/files/{objid objectid}
+
+- You can specify a range of ``ObjectIds`` in the path to the files 
+  to create partitions:
+
+  .. code-block:: none 
+     :copyable: false
+
+     /path/to/files/{min(obj) objectid}-{max(obj) objectid}
+
 - You can specify parsing functions along the path to the filename:
 
   .. code-block:: none
@@ -429,6 +444,7 @@ For more information on supported data types, see
 - :ref:`datalake-advanced-definition-parse-multiple`
 - :ref:`datalake-advanced-definition-parse-regex`
 - :ref:`datalake-advanced-definition-parse-range`
+- :ref:`datalake-advanced-definition-objectIds`
 - :ref:`datalake-advanced-definition-create-partition`
 - :ref:`datalake-advanced-definition-generate-collection`
 
@@ -599,7 +615,7 @@ maximum time range as the second segment of the filename:
    }
 
 When {+data-lake-short+} receives a query on the ``"invoiceDate"``
-field, the specified definition allows it to identify which 
+field, it uses the specified definition to identify which 
 files contain the data that matches the query.
 
 Queries on the ``invoiceDate`` field can be targeted to only those
@@ -611,6 +627,76 @@ files whose range captures the specified value.
    every document contained in the file to avoid unexpected or
    undesired behavior. {+data-lake-short+} does *not* perform any
    validation that the underlying data conforms to this constraint.
+
+.. _datalake-advanced-definition-objectIds:
+
+Create Partitions from ObjectIds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify :manual:`ObjectIds </reference/bson-types/#objectid>` in 
+the path to the files. For files that contain ``ObjectId`` in the filename, 
+{+data-lake-short+} creates partitions for each ``ObjectId``. 
+
+Consider the following {+data-lake-store+}, ``accountingArchive``. This data  
+store contains files that include ``ObjectId`` in the filename:
+
+.. code-block:: text 
+   :copyable: false 
+
+   accountingArchive 
+   |--invoices
+      |--507f1f77bcf86cd799439011.json
+      |--507f1f77bcf86cd799439012.json
+      |--507f1f77bcf86cd799439013.json
+      |--507f1f77bcf86cd799439014.json
+      |--507f1f77bcf86cd799439015.json
+     
+The following :ref:`datalake-databases-reference` object creates  
+partitions for the ``ObjectIds``.
+
+.. code-block:: text
+   :copyable: false
+
+   "databases" : {
+      "accounting" : {
+        "invoices" : [
+          "store" : "accountingArchive",
+          "definition" : "/invoices/{objid objectid}"
+        ]
+      }
+   }                                            
+
+Or, suppose the {+data-lake-store+} ``accountingArchive`` contains 
+files that include a range of ``ObjectIds`` in the filename. For 
+example:
+
+.. code-block:: text 
+   :copyable: false 
+
+   accountingArchive 
+   |--invoices
+      |--507f1f77bcf86cd799439011-507f1f77bcf86cd799439020.json
+      |--507f1f77bcf86cd799439021-507f1f77bcf86cd799439030.json
+      |--507f1f77bcf86cd799439031-507f1f77bcf86cd799439040.json
+
+The following :ref:`datalake-databases-reference` object creates 
+partitions for the given range of ``ObjectIds``.
+
+.. code-block:: text
+   :copyable: false
+
+   "databases" : {
+      "accounting" : {
+        "invoices" : [
+          "store" : "accountingArchive",
+          "definition" : "/invoices/{min(obj) objectid}-{max(obj) objectid}"
+        ]
+      }
+   }
+
+When {+data-lake-short+} receives a query on the ``ObjectId``, it uses the 
+specified definition to identify which file contains the data that matches 
+the query.
 
 .. _datalake-advanced-definition-create-partition:
 
