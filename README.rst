@@ -4,24 +4,15 @@ MongoDB Node Driver Documentation
 
 This repository contains documentation regarding MongoDB Node Driver.
 
-Build Locally
--------------
+Build and Stage
+---------------
 
-To build the documentation locally,
-
-- Install `giza <https://pypi.python.org/pypi/giza/>`_, if not already
-  installed.
-
-- Run the following to download and build this documentation locally::
-
-     git clone git@github.com:mongodb/docs-node
-     cd docs-node/
-     make html
-
-The generated HTML will be placed in ``build/master/html/``.
-
-*Note*: The build process invokes Sphinx and expects Sphinx's various
-binaries to be in PATH.
+To build and stage the documentation, use the 
+`snooty autobuilder <https://docs.google.com/document/d/1tAr5kZL0xWhAbfmn9AVsIXbF9quaFFK9nfbUhpKJEBU/edit#heading=h.lwy5m08dmc0i>`_.
+To get the snooty autobuilder running on your fork, add a webhook
+according to the autobuilder setup guide. Feel free to reach out
+on the *snooty-onboarding* Slack channel if you cannot access
+the `how-to guide <https://docs.google.com/document/d/1x6NZExTldbAZCOMdKUVdPeI-ukMM1S6qZhbKjXAZ3uQ/edit>`_.
 
 Changing Active Versions
 ------------------------
