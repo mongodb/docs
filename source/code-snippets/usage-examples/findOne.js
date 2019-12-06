@@ -15,7 +15,16 @@ async function run() {
 
     // Query for a movie that has the title 'The Room'
     const query = { title: "The Room" };
-    const movie = await collection.findOne(query);
+
+    const options = {
+      // sort matched documents in descending order by rating
+      sort: { rating: -1 },
+      // Include only the `title` and `imdb` fields in the returned document
+      projection: { _id: 0, title: 1, imdb: 1 },
+    };
+
+    const movie = await collection.findOne(query, options);
+
     // since this method returns the matched document, not a cursor, print it directly
     console.log(movie);
   } finally {
