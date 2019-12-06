@@ -8,6 +8,8 @@ MongoDB {+version+} Enterprise Edition supports the following
 and Oracle Linux [#oracle-linux]_ on 
 :ref:`x86_64<prod-notes-supported-platforms-x86_64>` architecture:
 
+- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 8
+
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 6
