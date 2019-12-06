@@ -13,7 +13,7 @@ async function run() {
       const database = client.db('sample_mflix');
       const collection = database.collection('movies');
 
-      // create a query document to look up an exact match for a move with this title
+      // Query for a movie that has the title 'The Room'
       const query = { title: 'The Room' };
       const movie = await collection.findOne(query);
       // since this method returns the matched document, not a cursor, print it directly
