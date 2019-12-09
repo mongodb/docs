@@ -100,6 +100,7 @@ extlinks = {
     'atlas' : ('https://docs.atlas.mongodb.com%s','')
 }
 source_constants = {
+    'package-branch': '3.4',
     'version': version,
     'release': release,
     'pgp-version': version,
