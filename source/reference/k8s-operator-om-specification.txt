@@ -371,6 +371,103 @@ Optional |onprem| Resource Settings
    </reference/configuration/>` for property names and descriptions.
    Each property takes a value of type ``string``.
 
+.. opsmgrkube:: spec.externalConnectivity
+
+   *Type*: collection
+
+   Configuration object that enables external connectivity to |onprem|. 
+   If provided, the |k8s-op-short| creates a |k8s| :k8sdocs:`service 
+   </concepts/services-networking/service/>` that allows traffic 
+   originating from outside of the |k8s| cluster to reach the |onprem| 
+   application.
+
+   If not provided, the |k8s-op-short| does not create a |k8s| service. 
+   You must create one manually or use a third-party solution that 
+   enables you to route external traffic to the |onprem| application in 
+   your |k8s| cluster.
+
+.. opsmgrkube:: spec.externalConnectivity.type
+
+   *Type*: string
+
+   The |k8s| service :k8sdocs:`ServiceType 
+   </concepts/services-networking/service/#publishing-services-service-types>` 
+   that exposes |onprem| outside of |k8s|.
+
+   *Required* if :opsmgrkube:`spec.externalConnectivity.type` is 
+   present.
+
+   Accepted values are: ``LoadBalancer`` and ``NodePort``. 
+   ``LoadBalancer`` is recommended if your cloud provider supports it.
+   Use ``NodePort`` for local deployments.
+
+.. opsmgrkube:: spec.externalConnectivity.port
+
+   *Type*: integer
+
+   If :opsmgrkube:`spec.externalConnectivity.type` is ``NodePort``, the
+   port on the |k8s| service from which external traffic is routed to 
+   the |onprem| application.
+
+   .. note::
+   
+      You must configure your network's firewall to allow traffic over 
+      this port.
+
+   If :opsmgrkube:`spec.externalConnectivity.type` is ``LoadBalancer``,
+   the load balancer resource that your cloud provider creates routes 
+   traffic to this port on the |k8s| service. You don't need to provide
+   this value. |k8s| uses an open port within the default range and 
+   handles internal traffic routing appropriately.
+
+   In both cases, if this value is not provided, the |k8s| service 
+   routes traffic from an available port within the following default 
+   range to the |onprem| application: ``30000``-``32767``. 
+
+.. opsmgrkube:: spec.externalConnectivity.loadBalancerIP
+
+   *Type*: string
+
+   The IP address the ``LoadBalancer`` |k8s| service uses when the 
+   |k8s-op-short| creates it.
+
+   This setting can only be used if your cloud provider supports it and
+   :opsmgrkube:`spec.externalConnectivity.type` is ``LoadBalancer``. To
+   learn more about the 
+   :k8sdocs:`Type LoadBalancer 
+   </concepts/services-networking/service/#loadbalancer>`, see the 
+   |k8s| documentation.
+
+.. opsmgrkube:: spec.externalConnectivity.externalTrafficPolicy
+
+   *Type*: string
+
+   Routing policy for external traffic to the |onprem| |k8s| service.
+   The service routes external traffic to node-local or cluster-wide 
+   endpoints depending the value of this setting. 
+   
+   Accepted values are: ``Cluster`` and ``Local``. To learn which of
+   values meet your requirements, see :k8sdocs:`Source IPs in Kubernetes
+   </tutorials/services/source-ip/>` in the |k8s| documentation.
+   
+   .. note:: 
+      If you select ``Cluster``, the ``Source-IP`` of your clients are 
+      lost during the network hops that happen at the |k8s| 
+      network boundary.
+
+.. opsmgrkube:: spec.externalConnectivity.annotations
+
+   *Type*: collection
+
+   Key-value pairs that allow you to provide cloud provider-specific 
+   configuration settings. 
+
+   To learn more about :k8sdocs:`Annotations 
+   </concepts/overview/working-with-objects/annotations/>` and
+   :k8sdocs:`TLS support on AWS
+   </concepts/services-networking/service/#ssl-support-on-aws>`, see the
+   |k8s| documentation.
+
 .. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.name
 
    *Type*: string
@@ -380,7 +477,6 @@ Optional |onprem| Resource Settings
    |onprem| uses this password to :ref:`authenticate to the Application
    Database <app-db-auth>`.
    
-
 .. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.key
 
    *Type*: string
