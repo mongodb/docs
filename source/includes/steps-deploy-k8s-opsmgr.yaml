@@ -214,10 +214,48 @@ content: |
           .. include:: /includes/k8s/k8s-persistent-volumes-om.rst
 
         - ``true``
+---
+title: "Allow external traffic to reach the |onprem| application."
+stepnum: 4
+level: 4
+ref: om-external-connectivity
+content: |
+  
+  By default, the |k8s-op-short| does not create a |k8s| service to 
+  route traffic originating from outside of the |k8s| cluster to the 
+  |onprem| application.
+
+  To access the |onprem| application, you can:
+  
+  - Configure the |k8s-op-short| to create a |k8s| service.
+  - Create a |k8s| service manually. MongoDB recommends using a 
+    ``LoadBalancer`` |k8s| service if your cloud provider supports it.
+  - If you're using OpenShift, use 
+    `Routes <https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/routes.html>`__.
+  - Use a third-party service, such as Istio.
+
+  The simplest method is to configure the |k8s-op-short| to create a 
+  |k8s| service to route external traffic to the |onprem| application:
+
+  a. Add the ``spec.``:opsmgrkube:`~spec.externalConnectivity` setting 
+     to the |k8s-obj| specification.
+
+  #. Add the following settings to the |k8s-obj| specification 
+     to configure the |k8s| service that routes external traffic to the 
+     |onprem| application:
+
+     - ``spec.externalConnectivity.``:opsmgrkube:`~spec.externalConnectivity.type`
+     - (optional) ``spec.externalConnectivity.``:opsmgrkube:`~spec.externalConnectivity.port`
+
+  To learn how to create a |k8s| :k8sdocs:`service </concepts/services-networking/service/>`
+  manually, see the |k8s| documentation.
+
+  To learn how to route external traffic to the |onprem| application 
+  using a different method, refer to the documentation for your solution.
 
 ---
 title: "(Optional) Configure any additional settings for an |onprem| deployment."
-stepnum: 4
+stepnum: 5
 level: 4
 ref: add-k8s-values
 content: |
@@ -251,13 +289,13 @@ content: |
 
 ---
 title: "Save this file with a ``.yaml`` file extension."
-stepnum: 5
+stepnum: 6
 level: 4
 ref: save-object-spec
 
 ---
 title: "Create your |onprem| instance."
-stepnum: 6
+stepnum: 7
 level: 4
 ref: start-k8s-instance
 content: |
@@ -271,7 +309,7 @@ content: |
 
 ---
 title: "Track the status of your |onprem| instance."
-stepnum: 7
+stepnum: 8
 level: 4
 ref: track-k8s-instance
 content: |
@@ -333,45 +371,60 @@ content: |
      ConfigMap <create-k8s-project>`.
 
 ---
-title: "Access your |onprem| instance from a browser."
-stepnum: 8
+title: "Access the |onprem| application."
+stepnum: 9
 level: 4
 ref: access-opsmgr-instance
 content: |
-  
-  a. After the resource deploys successfully, find the external port to 
-     your |onprem| instance.
+
+  The steps you take differ based on how you are routing traffic to the 
+  |onprem| application in |k8s|. If you configured the |k8s-op-short| to 
+  create a |k8s| service for you, or you created a |k8s| service 
+  manually, use one of the following methods to access the |onprem| 
+  application:
+
+  .. tabs::
+
+     .. tab:: External Traffic Routes Using LoadBalancer Service
+        :tabid: om-loadbalancer-svc-access
+
+        a. Query your cloud provider to get the |fqdn| of the load
+           balancer service. See your cloud provider's documentation
+           for details.
+
+        #. Open a browser window and navigate to the |onprem| 
+           application using the |fqdn| and port number of your load 
+           balancer service.
      
-     Invoke the following ``kubectl`` command on 
-     ``<metadata.name>-svc-external : <metadata.name>`` :
-
-     .. code-block:: sh
-
-        kubectl get svc <metadata.name>-svc-external -n <namespace>
-
-     The command returns the external port in the ``PORT(S)`` column. In
-     the following example output, the external port is ``30036``:
-
-     .. code-block:: sh
-        :copyable: false
-
-        NAME                            TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE
-        <metadata.name>-svc-external    NodePort   100.66.92.110    <none>        8080:30036/TCP    1d
+           .. code-block:: sh
+              :copyable: false
+        
+              http://ops.example.com:8080
   
-  #. Set your firewall rules to allow access from the Internet to the
-     external port on the host.
+        #. Log in to |onprem| using the :ref:`admin user credentials 
+           <om-rsrc-prereqs>`. 
 
-  #. Open a browser window and navigate to the |onprem| application
-     using the |fqdn| and port number.
+     .. tab:: External Traffic Routed Using NodePort Service
+        :tabid: om-nodeport-svc-access
 
-     .. code-block:: sh
-        :copyable: false
+        a. Set your firewall rules to allow access from the Internet to 
+           the ``spec.externalConnectivity.``:opsmgrkube:`~spec.externalConnectivity.port` 
+           on the host on which your |k8s| cluster is running.
+    
+        #. Open a browser window and navigate to the |onprem| 
+           application using the |fqdn| and the 
+           ``spec.externalConnectivity.``:opsmgrkube:`~spec.externalConnectivity.port`.
 
-        http://ops.example.com:30036
+           .. code-block:: sh
+              :copyable: false
+
+              http://ops.example.com:30036
+        
+        #. Log in to |onprem| using the :ref:`admin user credentials <om-rsrc-prereqs>`.
+
+    To learn how to access the |onprem| application using a different 
+    traffic routing method, refer to the documentation for your solution.
   
-  #. Log in to |onprem| using the :ref:`admin user credentials 
-     <om-rsrc-prereqs>`.
-
 ---
 title: "Create credentials for the Kubernetes Operator."
 stepnum: 9
