@@ -16,8 +16,14 @@
      - |checkmark|
      - |checkmark|
 
+   * - Ubuntu 18.04
+     - |checkmark|
+     -
+     -
+     -
+
    * - Ubuntu 16.04
-     - 
+     -
      - |checkmark|
      - Removed starting in 3.6.13
      - Removed starting in 3.4.21
