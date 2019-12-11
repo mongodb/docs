@@ -372,12 +372,28 @@ Disk and Storage Systems
 Swap
 ````
 
-Assign swap space for your systems. Allocating swap space can avoid issues
-with memory contention and can prevent the OOM Killer on Linux systems
-from killing :binary:`~bin.mongod`.
+MongoDB performs best where swapping can be avoided or kept to a
+minimum, as retrieving data from swap will always be slower
+than accessing data in RAM. However, if the system hosting MongoDB runs
+out of RAM, swapping can prevent the Linux OOM Killer from terminating
+the :binary:`~bin.mongod` process.
 
-For the WiredTiger storage engine, given sufficient memory pressure,
-WiredTiger may store data in swap space.
+Generally, you should chose one of the following swap strategies:
+
+#. Assign swap space on your system, and configure the kernel to only
+   permit swapping under high memory load, or
+#. Do not assign swap space on your system, and configure the kernel to
+   disable swapping entirely
+
+See :ref:`Set vm.swappiness <set-swappiness>` for instructions on
+configuring swap on your Linux system following these guidelines.
+
+.. note::
+
+   If your MongoDB instance is hosted on a system that also runs other
+   software, such as a webserver, you should chose the first swap
+   strategy. Do *not* disable swap in this case. If possible, it is
+   highly recommended that you run MongoDB on its own dedicated system.
 
 RAID
 ````
@@ -593,41 +609,70 @@ example:
    *on directories*. For example, HGFS and Virtual Box's shared
    folders do *not* support this operation.
 
-Set ``vm.swappiness`` to ``1``
-``````````````````````````````
+.. _set-swappiness:
+
+Set ``vm.swappiness`` to ``1`` or ``0``
+```````````````````````````````````````
 
 “Swappiness” is a Linux kernel setting that influences the behavior of
-the Virtual Memory manager when it needs to allocate a swap, ranging
-from ``0`` to ``100``, inclusive.
+the Virtual Memory manager. The ``vm.swappiness`` setting ranges from
+``0`` to ``100``: the higher the value, the more strongly it prefers
+swapping memory pages to disk over dropping pages from RAM.
 
-- A setting of ``0`` tells the kernel to swap only to avoid
+- A setting of ``0`` disables swapping entirely
+  [#swappiness-kernel-version]_.
+
+- A setting of ``1`` permits the kernel to swap only to avoid
   out-of-memory problems.
 
-- A setting of ``100`` tells it to swap aggressively to disk.
+- A setting of ``60`` tells the kernel to swap to disk often, and is the
+  default value on many Linux distributions.
 
-If your host runs kernel versions ``3.5`` or later, or
-:abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS kernel ``2.6.32-303``
-or later, setting this value to ``0`` could disable swapping. Set this
-to ``1``.
+- A setting of ``100`` tells the kernel to swap aggressively to disk.
 
-To see what the current swappiness level is, run:
+MongoDB performs best where swapping can be avoided or kept to a
+minimum. As such you should set ``vm.swappiness`` to either ``1`` or
+``0`` depending on your application needs and cluster configuration.
 
-.. code-block:: sh
+.. [#swappiness-kernel-version]
 
-   cat /proc/sys/vm/swappiness
+   With Linux kernel versions previous to ``3.5``, or
+   :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS kernel versions
+   previous to ``2.6.32-303``,  a ``vm.swappiness`` setting of ``0``
+   would still allow the kernel to swap in certain emergency situations.
 
-To change swappiness while the system is running, run:
+.. note::
 
-.. code-block:: sh
+   If your MongoDB instance is hosted on a system that also runs other
+   software, such as a webserver, you should set ``vm.swappiness`` to
+   ``1``. If possible, it is highly recommended that you run MongoDB on
+   its own dedicated system.
 
-   sysctl vm.swappiness=1
+- To check the current swappiness setting on your system, run:
 
-To change swappiness permanently, edit the ``/etc/sysctl.conf`` file in
-your preferred text editor and change this value:
+  .. code-block:: sh
 
-.. code-block:: ini
+     cat /proc/sys/vm/swappiness
 
-   vm.swappiness = 1
+- To change swappiness on your system:
+
+  #. Edit the ``/etc/sysctl.conf`` file and add the following line:
+
+     .. code-block:: sh
+
+        vm.swappiness = 1
+
+  #. Run the following command to apply the setting:
+
+     .. code-block:: sh
+
+        sudo sysctl -p
+
+.. note::
+
+   If you are running RHEL / CentOS and using a ``tuned`` performance
+   profile, you must also edit your chosen profile to set
+   ``vm.swappiness`` to ``1`` or ``0``.
 
 .. _linux-recommended-configuration:
 
