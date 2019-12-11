@@ -106,6 +106,7 @@ rst_epilog = [
     '.. |iam| replace:: :abbr:`IAM (Identity and Access Management)`',
     '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`',
     '.. |idp| replace:: :abbr:`IdP (Identity Provider)`',
+    '.. |idps| replace:: :abbr:`IdPs (Identity Providers)`',
     '.. |iops| replace:: :abbr:`IOPS (Input/Output Operations per Second)`',
     '.. |ipaddr| replace:: :abbr:`IP (Internet Protocol)`',
     '.. |ipv4| replace:: :abbr:`IPv4 (Internet Protocol version 4)`',
