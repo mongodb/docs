@@ -1,3 +1,22 @@
+.. _atlas_20191210:
+
+10 December 2019 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports ``M0`` Free Tier and ``M2/M5`` shared starter clusters in the
+  |gcp| Japan (Tokyo) and |azure| Canada Central (Toronto) regions.
+
+- Introduces :doc:`Atlas Triggers integration with Amazon EventBridge
+  </triggers/eventbridge>`.
+
+- Supports higher maximum connection limits for new cluster deployments
+  on select cluster tiers:
+
+  - ``M10`` lifted from 350 to 750
+  - ``M20`` lifted from 700 to 1500
+  - ``M30`` lifted from 2,000 to 3,000
+  - ``M40`` lifted from 4,000 to 6,000
+
 .. _atlas_20191112:
 
 18 November 2019 Release 
