@@ -21,47 +21,52 @@ Definition
 
    Returns a :term:`document` that contains information on in-progress
    operations for the database instance. The :method:`db.currentOp()`
-   method wraps the database command :dbcommand:`currentOp`.
+   method wraps the database command :dbcommand:`currentOp`. 
 
    .. note::
 
       .. include:: /includes/fact-currentop.rst
 
-   :method:`db.currentOp()` has the following form:
+Syntax
+~~~~~~
 
-   .. code-block:: javascript
+:method:`db.currentOp()` has the following form:
 
-      db.currentOp(<operations>)
+.. code-block:: javascript
 
-   :method:`db.currentOp()` can take the following *optional*
-   argument:
+   db.currentOp(<operations>)
 
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
-   
-      * - Parameter
-   
-        - Type
-   
-        - Description
-   
-      * - ``operations``
-   
-        - boolean or document
-   
-        - Optional. Specifies the operations to report on. Can pass either a boolean or a
-          document.
-          
-          Specify ``true`` to include operations on idle
-          connections and system operations. Specify a document with query
-          conditions to report only on
-          operations that match the conditions. See :ref:`currentOp-behavior`
-          for details.
-          
-          
-   
+:method:`db.currentOp()` can take the following *optional*
+argument:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - :ref:`operations <method-currentop-operations>`
+
+     - boolean or document
+
+     - .. _method-currentop-operations:
+     
+       Optional. Specifies the operations to report on. Can pass either
+       a boolean or a document:
+       
+       - Specify ``true`` to include operations on idle connections and
+         system operations.
+       
+       - Specify a document with query conditions to report only on
+         those operations that match the conditions. See
+         :ref:`currentOp-behavior` for details.
+
 
 
 .. _currentOp-behavior:
@@ -127,7 +132,7 @@ basic diagnostic information for all CRUD operations, including the
 following:
 
 .. include:: /includes/fact-diagnostic-info.rst
-
+   
 Access Control
 --------------
 
@@ -135,11 +140,9 @@ On systems running with :setting:`~security.authorization`, the user
 must have access that includes the :authaction:`inprog` privilege
 action. 
 
-.. versionchanged:: 3.2.9
-
-   On :binary:`~bin.mongod` instances, users can run ``db.currentOp( {
-   "$ownOps": true } )`` to view their own operations even without the
-   :authaction:`inprog` privilege action.
+Starting in 3.2.9, users can run ``db.currentOp( { "$ownOps": true }
+)`` on :binary:`~bin.mongod` instances to view their own operations
+even without the :authaction:`inprog` privilege action.
 
 .. seealso::  :ref:`create-role-to-manage-ops`
 
@@ -155,7 +158,79 @@ various query documents to filter the output.
    sure that you also update the examples on currentOp (the equiv. 
    command). Single sourcing is weird due to diffs in code block. - ARM
 
-.. include:: /includes/example-filter-current-op.rst
+Write Operations Waiting for a Lock
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+The following example returns information on all write operations that
+are waiting for a lock:
+
+.. code-block:: javascript
+
+   db.currentOp(
+      {
+        "waitingForLock" : true,
+        $or: [
+           { "op" : { "$in" : [ "insert", "update", "remove" ] } },
+           { "command.findandmodify": { $exists: true } }
+       ]  
+      }
+   )
+
+Active Operations with no Yields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns information on all active running
+operations that have never yielded:
+
+.. code-block:: javascript
+
+   db.currentOp(
+      {
+        "active" : true,
+        "numYields" : 0,
+        "waitingForLock" : false
+      }
+   )
+
+Active Operations on a Specific Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns information on all active operations for
+database ``db1`` that have been running longer than 3 seconds:
+
+.. code-block:: javascript
+
+  db.currentOp(
+     {
+       "active" : true,
+       "secs_running" : { "$gt" : 3 },
+       "ns" : /^db1\./
+     }
+  )
+
+.. _currentOp-index-creation:
+
+Active Indexing Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+The following example returns information on index creation operations:
+
+.. code-block:: javascript
+
+   db.adminCommand(
+       {
+         currentOp: true,
+         $or: [
+           { op: "command", "command.createIndexes": { $exists: true }  },
+           { op: "none", "msg" : /^Index Build/ }
+         ]
+       }
+   )
+
 
 Output Example
 --------------
