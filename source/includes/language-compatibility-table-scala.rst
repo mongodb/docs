@@ -9,6 +9,12 @@
      - Scala 2.12
      - Scala 2.11
 
+   * - 2.8
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+
    * - 2.7
      - |checkmark|
      - |checkmark|

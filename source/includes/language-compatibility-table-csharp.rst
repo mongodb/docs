@@ -17,6 +17,20 @@
      - .NET Core 2.1
      - .NET Core 2.2
 
+   * - Version 2.10
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+
    * - Version 2.9
      -
      -
