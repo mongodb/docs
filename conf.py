@@ -101,6 +101,7 @@ rst_epilog = [
     '.. |global-write-cluster| replace:: Global Cluster',
     '.. |global-write| replace:: Global Writes',
     '.. |https| replace:: :abbr:`HTTPS (Secure HyperText Transport Protocol)`',
+    '.. |html| replace:: :abbr:`HTML (Hypertext Markup Language)`',
     '.. |http| replace:: :abbr:`HTTP (HyperText Transport Protocol)`',
     '.. |iam| replace:: :abbr:`IAM (Identity and Access Management)`',
     '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`',
@@ -183,7 +184,8 @@ extlinks = {
     'aws': ('http://docs.aws.amazon.com%s',''),
     'azure': ('https://docs.microsoft.com/en-us/azure%s',''),
     'gcp': ('https://cloud.google.com%s',''),
-    'hardlink': ('https://docs.atlas.mongodb.com%s', '')
+    'hardlink': ('https://docs.atlas.mongodb.com%s', ''),
+    'wikipedia' : ('https://en.wikipedia.org/wiki%s', '')
 }
 
 # add `extlinks` for each published version.
