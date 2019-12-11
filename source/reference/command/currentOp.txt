@@ -85,15 +85,13 @@ On systems running with :setting:`~security.authorization`, the user
 must have access that includes the :authaction:`inprog` privilege
 action.
 
-.. versionchanged:: 3.2.9
+Starting in 3.2.9, :binary:`~bin.mongod` instances, users can use
+``$ownOps`` on :binary:`~bin.mongod` instances to view their own
+operations without the :authaction:`inprog` privilege action.
 
-   On :binary:`~bin.mongod` instances, users can use ``$ownOps``
-   to view their own operations without the
-   :authaction:`inprog` privilege action.
+.. code-block:: javascript
 
-   .. code-block:: javascript
-
-      db.adminCommand( { currentOp: 1, "$ownOps": 1 } )
+   db.adminCommand( { currentOp: 1, "$ownOps": 1 } )
 
 .. seealso::  :ref:`create-role-to-manage-ops`
 
@@ -127,6 +125,8 @@ Write Operations Waiting for a Lock
 The following example returns information on all write operations that
 are waiting for a lock:
 
+.. versionchanged:: 3.6
+
 .. code-block:: javascript
 
    db.adminCommand(
@@ -135,7 +135,7 @@ are waiting for a lock:
         "waitingForLock" : true,
         $or: [
            { "op" : { "$in" : [ "insert", "update", "remove" ] } },
-           { "query.findandmodify": { $exists: true } }
+           { "command.findandmodify": { $exists: true } }
        ]  
       }
    )
@@ -179,6 +179,8 @@ database ``db1`` that have been running longer than 3 seconds:
 Active Indexing Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. versionchanged:: 3.6
+
 The following example returns information on index creation operations:
 
 .. code-block:: javascript
@@ -187,11 +189,13 @@ The following example returns information on index creation operations:
        {
          currentOp: true,
          $or: [
-           { op: "command", "query.createIndexes": { $exists: true } },
-           { op: "none", ns: /\.system\.indexes\b/ }
+           { op: "command", "command.createIndexes": { $exists: true }  },
+           { op: "none", "msg" : /^Index Build/ }
          ]
        }
    )
+
+
 
 Output Example
 --------------
@@ -727,21 +731,6 @@ Output Fields
    ``"command"`` operations include most 
    :doc:`commands </reference/command>` such as the
    :dbcommand:`createIndexes` and :dbcommand:`findandmodify`.
-
-   .. versionchanged:: 3.0
-
-      Write operations that use the :dbcommand:`insert`,
-      :dbcommand:`update`, and :dbcommand:`delete` commands
-      respectively display ``"insert"``, ``"update"``, and ``"remove"``
-      for :data:`~currentOp.op`. Previous versions include these write
-      commands under ``"query"`` operations.
-
-   .. versionchanged:: 3.2
-
-      Most commands including
-      :dbcommand:`createIndexes` and :dbcommand:`findandmodify` display
-      ``"command"`` for :data:`~currentOp.op`. Previous versions of
-      MongoDB included these commands under ``"query"`` operations.
 
 .. data:: currentOp.ns
 
