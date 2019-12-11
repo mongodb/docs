@@ -5,6 +5,8 @@
 #
 # This file is execfile()d with the current directory set to its containing dir.
 
+from giza.config.helper import fetch_config, get_versions, get_manual_path
+from giza.config.runtime import RuntimeStateConfig
 import sys
 import os.path
 import datetime
@@ -12,14 +14,13 @@ import datetime
 project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(project_root)
 
-from giza.config.runtime import RuntimeStateConfig
-from giza.config.helper import fetch_config, get_versions, get_manual_path
 
 conf = fetch_config(RuntimeStateConfig())
 intersphinx_libs = conf.system.files.data.intersphinx
 sconf = conf.system.files.data.sphinx_local
 
-sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
+sys.path.append(os.path.join(conf.paths.projectroot,
+                             conf.paths.buildsystem, 'sphinxext'))
 
 # -- General configuration ----------------------------------------------------
 
@@ -60,17 +61,17 @@ rst_epilog = '\n'.join([
 ])
 
 extlinks = {
-    'issue': ('https://jira.mongodb.org/browse/%s', '' ),
+    'issue': ('https://jira.mongodb.org/browse/%s', ''),
     'api': ('https://api.mongodb.com/%s', ''),
     'manual': ('https://docs.mongodb.org/manual%s', ''),
     'gettingstarted': ('https://docs.mongodb.org/getting-started%s', ''),
-    'atlas': ('https://docs.atlas.mongodb.com%s',''),
+    'atlas': ('https://docs.atlas.mongodb.com%s', ''),
     'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
     'guides': ('https://docs.mongodb.com/guides%s', ''),
     'java-docs-latest': ('http://mongodb.github.io/mongo-java-driver/3.12/%s', ''),
     'kafka-21-javadoc': ('https://kafka.apache.org/21/javadoc/org/apache/kafka%s', ''),
-    'csharp-docs-latest': ('http://mongodb.github.io/mongo-csharp-driver/2.9%s', ''),
+    'csharp-docs-latest': ('http://mongodb.github.io/mongo-csharp-driver/2.10%s', ''),
     'aws-docs': ('https://docs.aws.amazon.com/%s', ''),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', ''),
     'community-support': ('https://www.mongodb.com/community-support-resources%s', ''),
@@ -80,14 +81,14 @@ intersphinx_mapping = {}
 
 try:
     for i in intersphinx_libs:
-        intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
-                                                              conf.paths.output,
-                                                              i['path']))
+        intersphinx_mapping[i['name']] = (i['url'], os.path.join(conf.paths.projectroot,
+                                                                 conf.paths.output,
+                                                                 i['path']))
 except:
     for i in intersphinx_libs:
-        intersphinx_mapping[i.name] = ( i.url, os.path.join(conf.paths.projectroot,
-                                                              conf.paths.output,
-                                                              i.path))
+        intersphinx_mapping[i.name] = (i.url, os.path.join(conf.paths.projectroot,
+                                                           conf.paths.output,
+                                                           i.path))
 
 
 languages = [
@@ -114,7 +115,7 @@ languages = [
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = sconf.theme.name
-html_theme_path = [ os.path.join(conf.paths.buildsystem, 'themes') ]
+html_theme_path = [os.path.join(conf.paths.buildsystem, 'themes')]
 html_title = conf.project.title
 htmlhelp_basename = 'MongoDBdoc'
 
