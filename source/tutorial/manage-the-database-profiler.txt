@@ -27,6 +27,9 @@ The profiler is ``off`` by default. You can enable the profiler on a
 per-database or per-instance basis at one of several :ref:`profiling
 levels <database-profiling-level>`.
 
+When enabled, profiling has an effect on database performance and
+disk use. See :ref:`Database Profiler Overhead<database-profiling-overhead>` for more information.
+
 This document outlines a number of key administration options for the
 database profiler. For additional related information, consider the
 following resources:
@@ -381,18 +384,33 @@ from the :binary:`~bin.mongo` shell, as follows:
 Profiler Overhead
 -----------------
 
-When enabled, profiling has a minor effect on performance. The
-:data:`system.profile <<database>.system.profile>` collection is a
+When enabled, profiling has an effect on database performance,
+especially when configured with a
+:ref:`profiling level<database-profiling-level>` of 2, or when using a
+low :ref:`threshold<database-profiling-specify-slowms-threshold>` value
+with a profiling level of 1. Profiling also consumes disk space, as it
+logs to both the :data:`system.profile <<database>.system.profile>`
+collection and also the MongoDB :option:`logfile <mongod --logpath>`.
+Carefully consider any performance and security implications before
+configuring and enabling the profiler on a production deployment.
+
+The ``system.profile`` Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :data:`system.profile <<database>.system.profile>` collection is a
 :term:`capped collection` with a default size of 1 megabyte. A
 collection of this size can typically store several thousand profile
 documents, but some applications may use more or less profiling data per
-operation.
+operation. If you need to change the size of the
+:data:`system.profile <<database>.system.profile>` collection, follow
+the steps below.
 
 Change Size of ``system.profile`` Collection on the Primary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To change the size of the :data:`system.profile
-<<database>.system.profile>` collection, you must:
+<<database>.system.profile>` collection on the :term:`primary`, you
+must:
 
 1. Disable profiling.
 
@@ -405,8 +423,9 @@ To change the size of the :data:`system.profile
 #. Re-enable profiling.
 
 For example, to create a new :data:`system.profile
-<<database>.system.profile>` collections that's ``4000000`` bytes, use
-the following sequence of operations in the :binary:`~bin.mongo` shell:
+<<database>.system.profile>` collection that is ``4000000`` bytes
+(4 MB), use the following sequence of operations in the
+:binary:`~bin.mongo` shell:
 
 .. code-block:: javascript
 
