@@ -15,12 +15,12 @@ Replica Set Arbiter
 
 .. start-content
 
-An arbiter does **not** have a copy of data set and **cannot** become
-a primary. Replica sets may have arbiters to add a vote in
-:ref:`elections for primary <replica-set-elections>`. Arbiters
-*always* have exactly ``1`` election vote, and thus
-allow replica sets to have an uneven number of voting members without the
-overhead of an additional member that replicates data.
+In some circumstances (such as you have a primary and a secondary but
+cost constraints prohibit adding another secondary), you may choose to
+add an arbiter to your replica set. An arbiter does **not** have a copy
+of data set and **cannot** become a primary. However, an arbiter
+participates in :ref:`elections for primary <replica-set-elections>`.
+An arbiter has exactly ``1`` election vote.
 
 .. versionchanged:: 3.6
 
@@ -31,9 +31,6 @@ overhead of an additional member that replicates data.
 
 To add an arbiter, see :doc:`/tutorial/add-replica-set-arbiter`.
 
-.. include:: /includes/extracts/arbiters-and-pvs-with-reference.rst
-
-
 .. end-content
 
 Example
@@ -41,12 +38,37 @@ Example
 
 .. start-content-even-votes-example
 
-For example, in the following replica set, an arbiter allows the set
-to have an odd number of votes for elections:
+For example, in the following replica set with a 2 data bearing members
+(the primary and a secondary), an arbiter allows the set to have an odd
+number of votes to break a tie:
 
-.. include:: /images/replica-set-four-members-add-arbiter.rst
+.. include:: /images/replica-set-primary-with-secondary-and-arbiter.rst
 
 .. end-content-even-votes-example
+
+Read Concern ``majority`` and Three-Member PSA
+----------------------------------------------
+
+.. admonition:: For 3-Member Primary-Secondary-Arbiter Architecture*
+   :class: warning
+
+   If you have a three-member replica set with a
+   primary-secondary-arbiter (PSA) architecture or a sharded cluster
+   with a three-member PSA shards, the cache pressure will increase if
+   any data bearing node is down and support for
+   :readconcern:`"majority"` read concern is enabled. 
+
+   To prevent the storage cache pressure from immobilizing a deployment
+   with a three-member primary-secondary-arbiter (PSA) architecture,
+   you can disable read concern "majority" starting in MongoDB 4.0.3
+   (and 3.6.1+). For more information, see
+   :ref:`disable-read-concern-majority`.
+
+Replica Set Protocol Version and Arbiter
+-----------------------------------------
+
+.. include:: /includes/extracts/arbiters-and-pvs-with-reference.rst
+
 
 Security
 --------
@@ -55,8 +77,8 @@ Authentication
 ~~~~~~~~~~~~~~
 
 When running with :setting:`~security.authorization`, arbiters exchange credentials with
-other members of the set to authenticate via :setting:`keyfiles <keyfile>`. MongoDB encrypts the
-authentication process. The MongoDB authentication exchange is
+other members of the set to authenticate. MongoDB encrypts the
+authentication process, and the MongoDB authentication exchange is
 cryptographically secure.
 
 Because arbiters do not store data, they do not possess the internal table of user and role mappings

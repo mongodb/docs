@@ -12,14 +12,24 @@ Three Member Replica Sets
    :depth: 1
    :class: singlecol
 
-The minimum architecture of a replica set has three members. A three
-member replica set can have either three members that hold data, or
-two members that hold data and an arbiter.
+The minimum number of replica set members needed to obtain the benefits
+of a replica set is three members. A three member replica set can have
+either three data-bearing members (Primary-Secondary-Secondary)
+(*Recommended*) or if circumstances (such as cost) prohibit adding a
+third data bearing member, two data-bearing members and an arbiter
+(Primary-Secondary-Arbiter). [#arbiter-drawbacks]_
+
+.. [#arbiter-drawbacks]
+
+   Adding an arbiter instead of another secondary limits the redundancy
+   and fault tolerance of the replica set and some operations, like the
+   use of read concern "majority". See :ref:`rs-architecture-psa` for
+   details.
 
 .. _primary-two-secondary-members:
 
-Primary with Two Secondary Members
-----------------------------------
+Primary with Two Secondary Members (P-S-S)
+------------------------------------------
 
 A replica set with three members that store data has:
 
@@ -40,8 +50,19 @@ operation. The old primary rejoins the set when available.
 
 .. include:: /images/replica-set-trigger-election.rst
 
-Primary with a Secondary and an Arbiter
----------------------------------------
+.. _rs-architecture-psa:
+
+Primary with a Secondary and an Arbiter (PSA)
+---------------------------------------------
+
+.. note::
+
+   - If you have a three-member PSA, the cache pressure will increase
+     if support for "majority" read concern is enabled and any data
+     bearing node is down. For more information, see
+     :ref:`disable-read-concern-majority`.
+
+   - .. include:: /includes/extracts/arbiters-and-pvs-with-reference.rst
 
 A three member replica set with a two members that store data has:
 
@@ -58,12 +79,8 @@ A three member replica set with a two members that store data has:
 
 Since the arbiter does not hold a copy of the data, these deployments
 provides only one complete copy of the data. Arbiters require fewer
-resources, at the expense of more limited redundancy and fault
+resources, but at the expense of more limited redundancy and fault
 tolerance.
-
-.. note::
-
-   .. include:: /includes/extracts/arbiters-and-pvs-with-reference.rst
 
 However, a deployment with a primary, secondary, and an arbiter
 ensures that a replica set remains available if the primary *or* the
