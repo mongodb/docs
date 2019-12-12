@@ -25,6 +25,6 @@ b. Copy the replica set configuration object to a variable (to ``cfg`` in
       The :method:`rs.reconfig()` shell method can force the current
       primary to step down, causing an election. When the primary steps
       down, all clients will disconnect. This is the intended behavior.
-      While most elections complete within a minute, always make sure
-      any replica configuration changes occur during scheduled
-      maintenance periods.
+      While median time to elect a new primary should not typically
+      exceed 12 seconds, always make sure any replica configuration
+      changes occur during scheduled maintenance periods.
