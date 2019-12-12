@@ -20,5 +20,4 @@
    centers. If the cost of the third data center is prohibitive, one
    distribution possibility is to evenly distribute the data bearing
    members across the two data centers and store the remaining member
-   (either a data bearing member or an arbiter to ensure odd number
-   of members) in the cloud if your company policy allows.
+   in the cloud if your company policy allows.
