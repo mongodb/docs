@@ -95,7 +95,7 @@ deploy: build/public
 
 deploy-search-index:
 	@echo "Building search index"
-	mut-index upload build/public -o atlas-${GIT_BRANCH}.json -u ${PRODUCTION_URL} -g -s
+	mut-index upload build/public -o atlas-${GIT_BRANCH}.json -u ${PRODUCTION_URL} -g -s --exclude build/public/tutorial/access-encrypted-snapshot/index.html
 
 
 ##########################################################
