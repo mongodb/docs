@@ -8,7 +8,7 @@ const uri =
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
 });
 
 async function run() {
@@ -25,7 +25,7 @@ async function run() {
       // sort matched documents in descending order by rating
       sort: { rating: -1 },
       // Include only the `title` and `imdb` fields in the returned document
-      projection: { _id: 0, title: 1, imdb: 1 }
+      projection: { _id: 0, title: 1, imdb: 1 },
     };
 
     const movie = await collection.findOne(query, options);
