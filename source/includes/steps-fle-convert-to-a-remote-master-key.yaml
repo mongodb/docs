@@ -1,28 +1,36 @@
 title: Create an AWS IAM User
 ref: create-an-aws-iam-user
 content: |
-  Create a new programmatic IAM user to use in CSFLE-enabled clients.
-  The user will encrypt and decrypt the remote master key and must have
+  Create a new programmatic IAM user in the AWS management console.
+  CSFLE-enabled clients authenticate with AWS KMS using the IAM user to
+  encrypt and decrypt the remote master key. The IAM user must be granted
   full ``List`` and ``Read`` permissions for the KMS service.
 
   .. admonition:: Client IAM User Credentials
      :class: note
 
-     The CSFLE-enabled client takes the IAM User's :guilabel:`Access Key
-     ID` and :guilabel:`Secret Access Key` as configuration values. Note
-     these down for later when we reconfigure the client.
+     The CSFLE-enabled client uses the IAM User's :guilabel:`Access Key
+     ID` and :guilabel:`Secret Access Key` as configuration values. Take
+     note of these and reference them when we update the client.
 ---
 title: Create the Master Key
 ref: create-the-master-key
 content: |
-  In AWS KMS, generate a new master key. The key's name and description
-  don't affect the functionality of CSFLE but should describe that it's
-  for the CSFLE-enabled client.
+
+  The following diagram shows how the **master key** is created and stored
+  when using a KMS provider:
+
+  .. image:: /figures/CSFLE_Master_Key_KMS.png
+     :alt: Diagram that describes creating a master key when using a KMS provider
+
+  In AWS management console, create a new symmetric master key in the KMS
+  section. Choose a name and description that helps you identify it; these
+  fields do not affect the functionality or configuration.
 
   In the :guilabel:`Usage Permissions` step of the key generation
-  process, select the newly created IAM User with full KMS ``List`` and
-  ``Read`` permissions. This allows the user to encrypt and decrypt the
-  new master key.
+  process, add the full KMS ``List`` and ``Read`` permissions to the IAM
+  user you created in the previous step. This authorizes the user to encrypt
+  and decrypt the new master key.
 
   .. important::
 
@@ -32,13 +40,15 @@ content: |
 title: Specify the AWS KMS Provider Credentials
 ref: specify-the-aws-kms-provider-credentials
 content: |
-  Unlike the local KMS provider, the AWS KMS provider does not accept
-  the master key directly from the client configuration code. Instead,
+  Unlike the local key provider, the AWS KMS provider does not read
+  the master key directly from the client application. Instead,
   it accepts the :guilabel:`Access Key ID` and :guilabel:`Secret Access
-  Key` of the IAM user with permission to encrypt and decrypt the master
-  key.
+  Key` configurations that point to the master key. The IAM user must have
+  the permissions set up in the previous step in order for the client to
+  use the KMS to encrypt and decrypt data encryption keys.
 
-  Update the KMS Provider configuration in CSFLE-enabled client creation code:
+  Update the KMS Provider configuration in your CSFLE-enabled client
+  creation code:
 
   .. tabs-drivers::
 
@@ -82,18 +92,26 @@ content: |
                }
            }
 ---
-title: Create a New Data Key
+title: Create a New Data Encryption Key
 ref: create-a-new-data-key
 content: |
-  The development data key was generated from a local master key, so you
-  need to generate a new data key from the remote master key. To
-  generate the key from an AWS KMS master key, you will need to know the
-  key's AWS region and `Amazon Resource Number
+  The following diagram shows how the **customer master key** is created and
+  stored when using a KMS provider:
+
+  .. image:: /figures/CSFLE_Data_Key_KMS.png
+     :alt: Diagram that describes creating a data encryption key when using a KMS provider
+
+  You must generate a new **data encryption key** using the **master key**
+  in the remote KMS. The original data encryption key was encrypted by
+  your locally-managed master key.
+
+  Specify the AWS region and `Amazon Resource Number
   <https://docs.aws.amazon.com/kms/latest/developerguide/viewing-keys.html#find-cmk-id-arn>`_
-  (ARN).
+  (ARN) of the new CMK in the CSFLE-enabled client settings. Use the client
+  to create a new data encryption key as follows:
 
   Once you have the required information, run the following code to
-  generate the new data key:
+  generate the new data encryption key:
 
   .. tabs-drivers::
 
@@ -173,10 +191,9 @@ content: |
            data_key_id = client_encryption.create_data_key("aws")
 
 ---
-title: Update the JSON Schema
+title: Update the Automatic Encryption JSON Schema
 ref: update-the-json-schema
 content: |
-  If you have embedded the key id for your data encryption key in your JSON
-  Schema by hardcoding the string value, you will need to update your
-  :ref:`JSON Schema <fle-define-a-json-schema>` with the new key id of your data
-  encryption key.
+  If you embedded the key id of your data encryption key in your
+  automatic encryption rules, you will need to update the :ref:`JSON
+  Schema <fle-define-a-json-schema>` with the new data encryption key id.
