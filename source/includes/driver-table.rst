@@ -98,6 +98,13 @@
      - `API <https://mongodb.github.io/mongo-scala-driver/>`__
      - :issue:`JIRA <SCALA>`
      -
+
+   * - :doc:`Swift </drivers/swift>`
+     - `Releases <https://github.com/mongodb/mongo-swift-driver/releases>`__
+     - `Source <https://github.com/mongodb/mongo-swift-driver>`__
+     - `API <https://mongodb.github.io/mongo-swift-driver/>`__
+     - :issue:`JIRA <SWIFT>`
+     -
 ..
    * - :doc:`Haskell </drivers/haskell>`
      - `Releases <https://github.com/mongodb/mongodb-haskell/releases>`__
