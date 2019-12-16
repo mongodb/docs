@@ -126,8 +126,7 @@
        acknowledge. Informational alerts like |a-service| user has 
        joined the organization can't use this notification method.
 
-       |service| users can acknowledge PagerDuty alerts only from the
-       PagerDuty dashboard.
+       Acknowledge PagerDuty alerts from the PagerDuty dashboard.
 
    * - Datadog
 
@@ -168,8 +167,7 @@
        acknowledge. Informational alerts like |a-service| user has 
        joined the organization can't use this notification method.
 
-       Users can acknowledge VictorOps alerts only from the VictorOps 
-       dashboard.
+       Acknowledge VictorOps alerts from the VictorOps dashboard.
 
    * - Opsgenie
 
@@ -179,11 +177,12 @@
 
      - Sends the alert to an `Opsgenie <https://www.opsgenie.com/>`_
        account. Enter only the Opsgenie API key. Define escalation
-       rules and alert assignments directly in Opsgenie.
+       rules and alert assignments in Opsgenie.
 
        This option is available only for alerts that you must
        acknowledge. Informational alerts like |a-service| user has 
        joined the organization can't use this notification method.
 
-       Users can acknowledge Opsgenie alerts only from the Opsgenies
-       dashboard.
+       `Acknowledge Opsgenie 
+       alerts <https://docs.opsgenie.com/docs/acknowledge-and-unacknowledge>`_ 
+       from the Opsgenie dashboard.
