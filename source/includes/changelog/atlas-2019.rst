@@ -9,6 +9,9 @@
 - Introduces :doc:`Atlas Triggers integration with Amazon EventBridge
   </triggers/eventbridge>`.
 
+- Introduces
+  :ref:`Identity Federation with SAML <atlas-federated-authentication>`.
+
 - Supports higher maximum connection limits for new cluster deployments
   on select cluster tiers:
 
