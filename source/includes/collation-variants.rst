@@ -6,8 +6,8 @@ syntax:
 
    { "locale" : "<locale code>@collation=<variant>" }
 
-For example, to use the ``pinyin`` variant of the Chinese collation:
+For example, to use the ``unihan`` variant of the Chinese collation:
 
 .. code-block:: javascript
 
-   { "locale" : "zh@collation=pinyin" }
+   { "locale" : "zh@collation=unihan" }
