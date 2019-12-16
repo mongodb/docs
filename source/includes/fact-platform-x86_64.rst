@@ -44,11 +44,6 @@
    * - SLES 12
      - |checkmark|
      -
-
-   * - SLES 15
-     - 3.4.24+
-     -
-
    * - Solaris 11 64-bit
      - Community only
      - Community only
