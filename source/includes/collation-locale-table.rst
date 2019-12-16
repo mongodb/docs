@@ -76,13 +76,12 @@
             - ``zh``
             - | ``big5han``
               | ``gb2312han``
-              | ``pinyin``
               | ``unihan``
               | ``zhuyin``
 
           * - Chinese (Traditional)
             - ``zh_Hant``
-            - ``stroke``
+            - 
 
           * - Croatian
             - ``hr``
@@ -137,7 +136,7 @@
             -
 
           * - Finnish
-            - ``fi_FI``
+            - ``fi``
             - | ``search``
               | ``traditional``
 
@@ -261,7 +260,7 @@
             -
 
           * - Lakota
-            - ``lk``
+            - ``lkt``
             -
 
           * - Lao
@@ -273,7 +272,7 @@
             -
 
           * - Lingala
-            - ``li``
+            - ``ln``
             - ``phonetic``
 
           * - Lithuanian
