@@ -21,7 +21,6 @@ async function run() {
     const docs = [docOne, docTwo, docThree];
     // specify an additional options object
     const options = {};
-    options.bypassDocumentValidation = true; // bypass document validation
     options.ordered = true; // prevent additional documents from being prevented if one fails
     const result = await collection.insertMany(docs, options);
     console.log(`${result.insertedCount} documents were inserted`);
