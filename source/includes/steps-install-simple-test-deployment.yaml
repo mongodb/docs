@@ -17,12 +17,12 @@ content: |
      * - Host OS Permissions
        - ``root``
      * - Host OS
-       - Red Hat Enterprise Linux 7.0
+       - Red Hat Enterprise Linux 8.0
 
   .. admonition:: Using |aws|
      :class: note
 
-     An |aws| EC2 ``m3.xlarge`` instance meets the memory requirements.
+     An |aws| EC2 ``t3a.xlarge`` instance meets the memory requirements.
      Change the size of the instance's root partition to 50 GB. Log
      into the instance and execute ``df -h`` to verify the root
      partition has 50 GB of space.
@@ -31,6 +31,7 @@ content: |
 stepnum: 2
 title: "Configure ``yum`` to install MongoDB."
 ref: config-yum
+level: 4
 content: |
 
   Issue the following command to set up a ``yum`` package management
@@ -40,7 +41,7 @@ content: |
 
      echo "[mongodb-org-4.2]
      name=MongoDB Repository
-     baseurl=https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.2/x86_64/
+     baseurl=https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.2/x86_64/
      gpgcheck=1
      enabled=1
      gpgkey=https://www.mongodb.org/static/pgp/server-4.2.asc" | sudo tee /etc/yum.repos.d/mongodb.repo
@@ -49,6 +50,7 @@ content: |
 stepnum: 3
 title: "Install MongoDB."
 ref: install-mongodb
+level: 4
 content: |
   Issue the following command to install the latest stable release of
   MongoDB:
@@ -56,10 +58,30 @@ content: |
   .. code-block:: sh
 
      sudo yum install -y mongodb-org mongodb-org-shell
+
 ---
 stepnum: 4
+title: "Disable the ``mongod`` service."
+ref: disable-mongodb-service-for-appdb
+level: 4
+content: |
+  
+  By default, a ``mongod`` service starts on port ``27017`` when you
+  start a MongoDB instance. You need this port for the |onprem| 
+  Application Database. Disable the ``mongod`` service to 
+  keep this port free for the Application Database should the host 
+  restart.
+  
+  Invoke the following command to disable the ``mongod`` service:
+
+  .. code-block:: sh
+
+     sudo systemctl disable mongod 
+---
+stepnum: 5
 title: "Create the |onprem| Application Database directory."
 ref: create-data-dir
+level: 4
 content: |
   Issue the following two commands to create the data directory and
   change its ownership:
@@ -69,9 +91,10 @@ content: |
      sudo mkdir -p /data/appdb
      sudo chown -R mongod:mongod /data
 ---
-stepnum: 5
+stepnum: 6
 title: "*(Optional)* Create the |onprem| backup data directory."
 ref: create-backup-dir
+level: 4
 content: |
   To configure the Backup feature as well, issue the following
   additional commands for the backup database:
@@ -81,9 +104,10 @@ content: |
      sudo mkdir -p /data/backup
      sudo chown mongod:mongod /data/backup
 ---
-stepnum: 6
+stepnum: 7
 title: "Start the |onprem| Application Database mongod instance."
 ref: start-mongod-instance
+level: 4
 content: |
 
   Start MongoDB as the ``mongod`` user, specifying:
@@ -121,9 +145,10 @@ content: |
       --logpath /data/appdb/mongodb.log \
       --wiredTigerCacheSizeGB 1 --fork
 ---
-stepnum: 7
+stepnum: 8
 title: "*(Optional)* Start the |onprem| Backup Database mongod instance."
 ref: start-mongod-backup-instance
+level: 4
 content: |
 
   Start MongoDB as the ``mongod`` user, specifying:
@@ -161,18 +186,16 @@ content: |
       --logpath /data/backup/mongodb.log \
       --wiredTigerCacheSizeGB 1 --fork
 ---
-stepnum: 8
+stepnum: 9
 title: "Download the |onprem| package."
 ref: application-package-download
+level: 4
 content: |
-  a. Open your preferred browser to visit the
-     :guilabel:`MongoDB Download Center`.
 
-  #. Click the :guilabel:`Tools` tab and then click
-     :dl:`Ops Manager <ops-manager>`.
+  #. Navigate to the :dl:`Ops Manager Download Center <ops-manager>`.
 
   #. From the :guilabel:`Platforms` drop-down menu, click
-     :guilabel:`Red Hat + CentOS 6, 7 / SUSE 12 / Amazon Linux`.
+     :guilabel:`Red Hat + CentOS 6, 7, 8 / SUSE 12 + 15 / Amazon Linux`.
 
   #. From the :guilabel:`Packages` drop-down menu, click
      :guilabel:`RPM`.
@@ -186,9 +209,25 @@ content: |
      version number.
 
 ---
-stepnum: 9
+stepnum: 10
+title: "*(Optional)* Copy the |onprem| ``.rpm`` package to your host."
+ref: copy-rpm-installer
+level: 4
+content: |
+
+  If you are installing |onprem| on a remote host, such as a cloud 
+  provider compute instance, use ``scp`` to copy the installer to your
+  host:
+
+  .. code-block:: sh
+     
+     scp -i <keyfile> mongodb-mms-<version>.x86_64.rpm ec2-user@<public-ip>:~
+
+---
+stepnum: 11
 title: "Install |onprem|."
 ref: install
+level: 4
 content: |
   Install the ``.rpm`` package by issuing the following command, where
   ``<version>`` is the version of the |onprem| ``.rpm`` package:
@@ -211,7 +250,7 @@ content: |
     ``locahost``, port ``27017``, so no changes are necessary.
 
 ---
-stepnum: 10
+stepnum: 12
 title: "Start |onprem|."
 level: 4
 ref: start-the-application
@@ -222,7 +261,7 @@ content: |
 
      sudo service mongodb-mms start
 ---
-stepnum: 11
+stepnum: 13
 title: "Get your instance hostname."
 level: 4
 ref: public-host-name
@@ -238,7 +277,7 @@ content: |
 
      https://www.google.com/search?q=myip
 ---
-stepnum: 12
+stepnum: 14
 title: "Open the |onprem| home page and register the first user."
 level: 4
 ref: home-page
@@ -257,7 +296,7 @@ content: |
      <global-owner-role>` role.
 
 ---
-stepnum: 13
+stepnum: 15
 title: "Configure |onprem|."
 level: 4
 ref: configure-app
@@ -274,7 +313,7 @@ content: |
      :doc:`/reference/config/ui-settings/`.
 
 ---
-stepnum: 14
+stepnum: 16
 title: "*(Optional)* Configure the backup capabilities."
 level: 4
 ref: configure-backup-feature
@@ -323,7 +362,7 @@ content: |
         mongodb://localhost:27018
 
 ---
-stepnum: 15
+stepnum: 17
 title: "Set up your first deployment."
 level: 4
 ref: deploy
