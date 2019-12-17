@@ -83,6 +83,7 @@ rst_epilog = [
     '.. |certauth| replace:: Certificate Authority',
     '.. |cidr| replace:: :abbr:`CIDR (Classless Inter-Domain Routing)`',
     '.. |cifs| replace:: :abbr:`CIFS (Common Internet File System)`',
+    '.. |cps| replace:: :abbr:`CPS (Cloud Provider Snapshots)`',
     '.. |cmk| replace:: :abbr:`CMK (customer master key)`',
     '.. |compass| replace:: MongoDB Compass',
     '.. |copy| unicode:: U+000A9',
