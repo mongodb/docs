@@ -1,5 +1,5 @@
-- For source clusters running MongoDB version 3.4+ a user must have,
-  at a minimum, both :authrole:`clusterMonitor` and
+- For source clusters running MongoDB version 3.4 or later a user must
+  have, at a minimum, both :authrole:`clusterMonitor` and
   :authrole:`readAnyDatabase` roles. For example:
 
   .. code-block:: javascript

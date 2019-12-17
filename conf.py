@@ -144,6 +144,7 @@ rst_epilog = [
     '.. |service| replace:: Atlas',
     '.. |sms| replace:: :abbr:`SMS (short message service)`',
     '.. |smtp| replace:: :abbr:`SMTP (Simple Mail Transport Protocol)`',
+    '.. |sni| replace:: :abbr:`SNI (Server Name Indication)`',
     '.. |snmp| replace:: :abbr:`SNMP (Simple Network Management Protocol)`',
     '.. |spn| replace:: :abbr:`SPN (Service Principal Name)`',
     '.. |ssd| replace:: :abbr:`SSD (Solid State Disk)`',
