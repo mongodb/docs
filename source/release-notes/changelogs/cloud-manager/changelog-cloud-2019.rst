@@ -1,3 +1,11 @@
+.. _cloudmanager-v20191210:
+
+16 December 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces
+  :ref:`Identity Federation with SAML <mms-federated-authentication>`.
+
 .. _cloudmanager-v20191112:
 
 18 November 2019 Release 
@@ -160,4 +168,3 @@ JIRA use the same credentials.
   :ref:`automation-6.1.0.5603`,
   :ref:`backup-7.3.0.1023`,
   :ref:`monitoring-6.8.0.472`
-
