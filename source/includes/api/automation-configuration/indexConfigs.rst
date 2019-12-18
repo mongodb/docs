@@ -1,10 +1,10 @@
 The ``indexConfigs`` array is optional and defines indexes to be built for specific replica sets.
 
-.. code-block:: cfg
+.. code-block:: json
 
    "indexConfigs" : [
        {
-           "key" : [ 
+           "key" : [
                [ <string> , <val> ],
                ...
            ],
@@ -28,116 +28,167 @@ The ``indexConfigs`` array is optional and defines indexes to be built for speci
    ]
 
 .. list-table::
-   :widths: 30 10 80
+   :widths: 15 10 10 65
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
-   * - indexConfigs
+   * - ``indexConfigs``
      - object array
-     - *Optional*. Objects that define specific indexes to be built for
+     - Optional
+     - Objects that define specific indexes to be built for
        specific replica sets.
 
-   * - indexConfigs.key
+   * - | ``indexConfigs``
+       | ``.key``
      - array of arrays
-     - The index's keys. This "array of arrays" contains a single array if
-       the index has just one key.
+     - Required
+     - Keys in the index. This "array of arrays" contains a single
+       array if the index has just one key.
 
-   * - indexConfigs.rsName
+   * - | ``indexConfigs``
+       | ``.rsName``
      - string
+     - Required
      - The replica set that the index is built on.
 
-   * - indexConfigs.dbName
+   * - | ``indexConfigs``
+       | ``.dbName``
      - string
-     - The database the index applies to.
+     - Required
+     - Database that is indexed.
 
-   * - indexConfigs.collectionName
+   * - | ``indexConfigs``
+       | ``.collectionName``
      - string
-     - The collection the index applies to.
+     - Required
+     - Collection that is indexed.
 
-   * - indexConfigs.collation
+   * - | ``indexConfigs``
+       | ``.collation``
      - object
-     - *Optional*. If the index uses :manual:`collation
-       </reference/collation>` (available beginning with MongoDB 3.4), this
-       specifies the language-specific rules to use when sorting and matching
+     - Optional
+     - If the index uses :manual:`collation </reference/collation>`
+       (available beginning with MongoDB 3.4), this specifies the
+       language-specific rules to use when sorting and matching
        strings.
 
-       If you specify the ``indexConfigs.collation`` object, you must specify
-       the ``indexConfigs.collation.locale`` field. All other fields are optional.
+       If you include the ``indexConfigs.collation`` object, you must
+       include the ``indexConfigs.collation.locale`` field. All other
+       fields are optional.
 
-       If you do not specify the ``indexConfigs.collation`` object, the index
-       will not include collation.
+       If you do not include the ``indexConfigs.collation`` object, the
+       index can't include collation.
 
-   * - indexConfigs.collation.locale
+   * - | ``indexConfigs``
+       | ``.collation``
+       | ``.locale``
      - string
-     - The `ICU <http://site.icu-project.org/>`_ locale. For a list of
-       supported locales, see :manual:`Collation Locales and Default Parameters
-       </reference/collation-locales-defaults>` in the MongoDB manual. To
-       specify simple binary comparison, specify a value of ``simple``.
+     - Conditional
+     - Locale that the `ICU <http://site.icu-project.org/>`_ defines.
+       For a list of supported locales, see
+       :manual:`Collation Locales and Default Parameters </reference/collation-locales-defaults>`
+       in the MongoDB manual. To specify simple binary comparison,
+       specify a value of ``simple``.
 
-   * - indexConfigs.collation.caseLevel
+   * - | ``indexConfigs``
+       | ``.collation``
+       | ``.caseLevel``
      - boolean
-     - *Optional*. If set to ``true``, the index uses case comparison. This
-       field applies only if the ``strength`` level is set to ``1`` or ``2``.
-       See :manual:`Collation </reference/collation>` in the MongoDB manual
-       for details.
+     - Optional
+     - If set to ``true``, the index uses case comparison.
+       This field applies only if the ``strength`` level is set to
+       ``1`` or ``2``. See :manual:`Collation </reference/collation>`
+       in the MongoDB manual for details.
 
-   * - indexConfigs.collation.caseFirst
+   * - | ``indexConfigs``
+       | ``.collation``
+       | ``.caseFirst``
      - string
-     - *Optional*. Determines the sort order of case differences during
-       tertiary level comparisons. For possible values, see :manual:`Collation
-       </reference/collation>` in the MongoDB manual.
+     - Optional
+     - Determines the sort order of case differences during
+       tertiary level comparisons. For possible values, see
+       :manual:`Collation </reference/collation>` in the MongoDB
+       manual.
 
-   * - indexConfigs.collation.strength
+   * - | ``indexConfigs``
+       | ``.collation``
+       | ``.strength``
      - number
-     - *Optional*. The level of comparison to perform. Corresponds to `ICU
-       Comparison Levels
-       <http://userguide.icu-project.org/collation/concepts#TOC-Comparison-Levels>`_.
-       For possible values, see :manual:`Collation </reference/collation>` in
-       the MongoDB manual.
+     - Optional
+     - Level of comparison to perform. Corresponds to
+       `ICU Comparison Levels <http://userguide.icu-project.org/collation/concepts#TOC-Comparison-Levels>`_.
+       For possible values, see
+       :manual:`Collation </reference/collation>` in the MongoDB
+       manual.
 
-   * - indexConfigs.collation.numericOrdering
+   * - | ``indexConfigs``
+       | ``.collation``
+       | ``.numericOrdering``
      - boolean
-     - *Optional*. If set to ``true``, collation compares numeric strings as
-       numbers; i.e. ``10`` is greater than ``2``. If ``false``, collation
-       compares numeric strings as strings; i.e. ``10`` is less than ``2``.
+     - Optional
+     - If set to ``true``, collation compares numeric strings as
+       numbers; i.e. ``10`` is greater than ``2``. If ``false``,
+       collation compares numeric strings as strings; i.e. ``10`` is
+       less than ``2``.
 
-       The default is ``false``. See :manual:`Collation
-       </reference/collation>` in the MongoDB manual for more information.
+       The default is ``false``. To learn more, see
+       :manual:`Collation </reference/collation>` in the MongoDB
+       manual.
 
-   * - indexConfigs.collation.alternate
+   * - | ``indexConfigs``
+       | ``.collation``
+       | ``.alternate``
      - string
-     - *Optional*. Determines whether collation should consider whitespace and
-       punctuation as base characters during comparisons. For possible values,
-       see :manual:`Collation </reference/collation>` in the MongoDB manual.
+     - Optional
+     - Determines whether collation should consider whitespace and
+       punctuation as base characters during comparisons. For possible
+       values, see :manual:`Collation </reference/collation>` in the
+       MongoDB manual.
 
-   * - indexConfigs.collation.maxVariable
+   * - | ``indexConfigs``
+       | ``.collation``
+       | ``.maxVariable``
      - string
-     - *Optional*. Determines which characters are are considered ignorable.
-       This field applies only if ``indexConfigs.collation.alternate`` is set
-       to ``shifted``. For possible values, see :manual:`Collation
-       </reference/collation>` in the MongoDB manual.
+     - Optional
+     - Determines which characters are are considered ignorable. This
+       field applies only if ``indexConfigs.collation.alternate`` is
+       set to ``shifted``. For possible values, see
+       :manual:`Collation </reference/collation>` in the MongoDB
+       manual.
 
-   * - indexConfigs.collation.normalization
+   * - | ``indexConfigs``
+       | ``.collation``
+       | ``.normalization``
      - boolean
-     - *Optional*. If ``true``, collation checks if text requires `normalization
-       <http://userguide.icu-project.org/collation/concepts#TOC-Normalization>`_
+     - Optional
+     - If ``true``, collation checks if text requires
+       `normalization <http://userguide.icu-project.org/collation/concepts#TOC-Normalization>`_
        and performs normalization to compare text.
 
-       The default is ``false``. See :manual:`Collation
-       </reference/collation>` in the MongoDB manual for more information.
+       The default is ``false``. To learn more, see
+       :manual:`Collation </reference/collation>` in the MongoDB
+       manual.
 
-   * - indexConfigs.collation.backwards
+   * - | ``indexConfigs``
+       | ``.collation``
+       | ``.backwards``
      - boolean
-     - *Optional*. If ``true``, strings with diacritics sort from the back to
+     - Optional
+     - If ``true``, strings with diacritics sort from the back to
        the front of the string.
 
-       The default is ``false``. See :manual:`Collation
-       </reference/collation>` in the MongoDB manual for more information.
+       The default is ``false``. To learn more, see
+       :manual:`Collation </reference/collation>` in the MongoDB
+       manual.
 
-   * - indexConfigs.options
+   * - | ``indexConfigs``
+       | ``.options``
      - document
-     - The index options. Currently supports only those options supported by
-       the `mgo driver <http://godoc.org/labix.org/v2/mgo#Index>`_.
+     - Required
+     - Index options that the :driver:`MongoDB Go Driver </go>`
+       supports.
