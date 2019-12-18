@@ -18,27 +18,34 @@ Definition
    .. versionadded:: 3.6
 
    The :dbcommand:`killAllSessions` command kills all sessions for the
-   specified users.
+   specified users. [#exception]_
 
-   .. include:: /includes/note-killSessions.rst
+Syntax
+------
 
-   .. code-block:: javascript
+The command has the following syntax:
 
-      { killAllSessions: [ { user: <user>, db: <dbname> }, ... ]  }
+.. code-block:: javascript
 
-   The command takes an array of documents that specify the user and
-   database name. Specify multiple array entries to kill sessions for
-   multiple users. Specify an empty array to kill all sessions for all
-   users in the system.
+   db.runCommand( { killAllSessions: [ { user: <user>, db: <dbname> }, ... ]  } )
 
-   .. include:: /includes/fact-dbcommand.rst
+The command takes an array of documents where each document specifies
+the user and the user's authentication database. Specify an empty array
+to kill all sessions for all users in the system. [#exception]_
 
-   .. |command| replace:: :dbcommand:`killAllSessions`
+To view existing sessions, see :pipeline:`$listSessions` operation
+or :pipeline:`$listLocalSessions`.
 
-   To view existing sessions, see :pipeline:`$listSessions` operation
-   or :pipeline:`$listLocalSessions`.
+.. seealso:: :dbcommand:`killAllSessionsByPattern`
 
-   .. seealso:: :dbcommand:`killAllSessionsByPattern`
+.. |command| replace:: :dbcommand:`killAllSessions`
+
+.. [#exception]
+
+   The |command| operation ignores sessions that have
+   :doc:`transactions </core/transactions>` in prepared state.
+   See :ref:`killAllSessions-behavior` for details.
+
 
 Access Control
 --------------
@@ -51,6 +58,13 @@ the :authaction:`killAnySession` to run the
 
    Users can kill their own sessions even without
    :authaction:`killAnySession` privilege action.
+
+.. _killAllSessions-behavior:
+
+Behavior
+--------
+
+.. include:: /includes/note-killSessions.rst
 
 Examples
 --------
@@ -68,9 +82,12 @@ Kill All Sessions for Specific Users
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following operation kills all sessions for the user ``appReader``
-in the ``db1`` and ``db2`` databases:
+in the ``db1`` and the user ``reportWriter`` in ``db2`` databases:
 
 
 .. code-block:: javascript
 
-   db.runCommand( { killAllSessions: [ { user: "appReader", db: "db1" }, { user: "appReader", db: "db2" } ] } )
+   db.runCommand( { killAllSessions: [ 
+      { user: "appReader", db: "db1" },
+      { user: "reportWriter", db: "db2" }
+   ] } )
