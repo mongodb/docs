@@ -101,6 +101,7 @@ rst_epilog = [
     '.. |global-write-clusters| replace:: Global Clusters',
     '.. |global-write-cluster| replace:: Global Cluster',
     '.. |global-write| replace:: Global Writes',
+    '.. |hmac| replace:: :abbr:`HMAC (hash-based message authentication code)`',
     '.. |https| replace:: :abbr:`HTTPS (Secure HyperText Transport Protocol)`',
     '.. |html| replace:: :abbr:`HTML (Hypertext Markup Language)`',
     '.. |http| replace:: :abbr:`HTTP (HyperText Transport Protocol)`',
