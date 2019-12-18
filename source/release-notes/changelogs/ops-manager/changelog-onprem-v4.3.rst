@@ -5,7 +5,7 @@
 
 *Released 2019-12-12*
 
-Agent Upgrade: :ref:`mongodb-10.7.1.6018-1`.
+Agent Upgrade: :ref:`mongodb-10.7.1.6018`.
 
 .. _opsmgr-server-4.3.3:
 
