@@ -16,9 +16,9 @@
      - | 10 - 4000 GB
 
    * - MongoDB Version Support
-     - 4.2
-     - 4.2
-     - 3.4, 3.6, 4.0, 4.2
+     - 4.0
+     - 4.0
+     - 3.6, 4.0, 4.2
 
    * - Metrics and Alerts
 
@@ -49,7 +49,7 @@
      - Yes. Specify additional regions for high
        availability or local reads when :doc:`creating </tutorial/create-new-cluster>`
        or :doc:`scaling </scale-cluster>` a cluster.
-     
+
    * - Backups
      - No
      - Yes, :ref:`daily backup snapshots <m2-m5-snapshots>`
