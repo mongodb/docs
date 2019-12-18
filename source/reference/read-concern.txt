@@ -12,6 +12,9 @@ Read Concern
    :depth: 1
    :class: singlecol
 
+.. role:: red(strong)
+   :class: text-danger
+
 The ``readConcern`` option allows you to control the consistency and
 isolation properties of the data read from replica sets and replica set
 shards.
@@ -52,8 +55,9 @@ The following read concern levels are available:
           - reads against secondaries if the reads are
             associated with :ref:`causally consistent sessions <sessions>`.
 
-       Read concern :readconcern:`local` is available for use with
-       causally consistent sessions and transactions.
+       **Availability:** Read concern :readconcern:`local` is available
+       for use with or without causally consistent sessions and
+       transactions.
 
        For more information, see the :readconcern:`"local"` reference
        page.
@@ -64,17 +68,22 @@ The following read concern levels are available:
        that the data has been written to a majority of the replica set
        members (i.e. may be rolled back).
 
-       Default for reads against secondaries if the reads are not
+       **Default for:** reads against secondaries if the reads are :red:`not`
        associated with :ref:`causally consistent sessions <sessions>`.
 
-       For sharded collections, :readconcern:`"available"` read concern
-       provides the lowest latency reads possible among the various
-       read concerns but at the expense of consistency as
-       :readconcern:`"available"` read concern can return :term:`orphaned
-       documents <orphaned document>`.
+       **Availability:** Read concern :readconcern:`available` is
+       :red:`unavailable for use` with causally consistent sessions and
+       transactions.
 
-       Read concern :readconcern:`available` is unavailable for use
-       with causally consistent sessions.
+       For sharded clusters, :readconcern:`"available"` read concern
+       provides the lowest latency reads possible among the various
+       read concerns. However, this comes at the expense of consistency
+       as :readconcern:`"available"` read concern can return
+       :term:`orphaned documents <orphaned document>` when reading from
+       a sharded collection. To avoid the risk of returning orphaned
+       documents when reading from sharded collections, use a different
+       read concern such as read concern
+       :readconcern:`"local"`. 
 
        For more information, see the :readconcern:`"available"`
        reference page.
@@ -87,11 +96,27 @@ The following read concern levels are available:
        majority of the replica set members. The documents returned by
        the read operation are durable, even in the event of failure.
 
-       .. include:: /includes/fact-enable-majority-readConcern.rst
+       To fulfill read concern "majority", the replica set member
+       returns data from its in-memory view of the data at the
+       majority-commit point. As such, read concern
+       :readconcern:`"majority"` is comparable in performance
+       cost to other read concerns.
 
-       Read concern :readconcern:`majority` is available for use with
-       causally consistent sessions and transactions.
+       Availability:
+          - Read concern :readconcern:`"majority"` is available for use
+            with or without causally consistent sessions and transactions.
+            
+          - You can disable read concern :readconcern:`"majority"` for
+            a deployment with a three-member primary-secondary-arbiter
+            (PSA) architecture; however, this has implications for
+            change streams (in MongoDB 4.0 and earlier only) and
+            transactions on sharded clusters. For more information, see
+            :ref:`disable-read-concern-majority`.
        
+       **Requirements:** To use :term:`read concern` level of
+       :readconcern:`"majority"`, replica sets must use
+       :ref:`WiredTiger storage engine <storage-wiredtiger>`.
+ 
        .. note::
 
           For operations in :doc:`multi-document transactions
@@ -119,18 +144,21 @@ The following read concern levels are available:
 
        .. include:: /includes/extracts/no-journaling-rollback.rst
 
-       You can specify linearizable read concern for read operations on
-       the :replstate:`primary <PRIMARY>` only.
 
-       Read concern :readconcern:`linearizable` is unavailable for use
-       with causally consistent sessions.
+       Availability:
+          - Read concern :readconcern:`"linearizable"` is
+            :red:`unavailable for use` with causally consistent
+            sessions and transactions.
+            
+          - You can specify linearizable read concern for read
+            operations on the :replstate:`primary <PRIMARY>` only.
 
        .. include:: /includes/extracts/4.2-changes-linearizable-agg.rst
 
-       Linearizable read concern guarantees only apply if read
-       operations specify a query filter that uniquely identifies a
-       single document.
-
+       
+       **Requirements:** Linearizable read concern guarantees only
+       apply if read operations specify a query filter that uniquely
+       identifies a single document.
 
        .. tip::
 
@@ -145,20 +173,33 @@ The following read concern levels are available:
 
    * - :readconcern:`"snapshot"`
 
-     -  Only available for operations within multi-document transactions.
+     - | If the transaction is not part of a :ref:`causally consistent
+         session <sessions>`, upon transaction commit with write
+         concern :writeconcern:`"majority"`, the transaction operations
+         are guaranteed to have read from a snapshot of
+         majority-committed data.
 
-        - If the transaction is not part of a :ref:`causally consistent
-          session <sessions>`, upon transaction commit with write
-          concern :writeconcern:`"majority"`, the transaction
-          operations are guaranteed to have read from a snapshot of
-          majority-committed data.
+       | If the transaction is part of a :ref:`causally consistent
+         session <sessions>`, upon transaction commit with write
+         concern :writeconcern:`"majority"`, the transaction operations
+         are guaranteed to have read from a snapshot of
+         majority-committed data that provides causal consistency with
+         the operation immediately preceding the transaction start.
 
-        - If the transaction is part of a :ref:`causally consistent
-          session <sessions>`, upon transaction commit with write
-          concern :writeconcern:`"majority"`, the transaction
-          operations are guaranteed to have read from a snapshot of
-          majority-committed data that provides causal consistency with
-          the operation immediately preceding the transaction start.
+       Availability:
+           - Read concern :readconcern:`"snapshot"` is only available
+             for use with multi-document transactions.
+             
+           - For transactions on a sharded cluster, if any operation in
+             the transaction involves a shard that has :ref:`disabled
+             read concern "majority" <disable-read-concern-majority>`,
+             you cannot use read concern :readconcern:`"snapshot"` for
+             the transaction. You can only use read concern
+             :readconcern:`"local"` or :readconcern:`"majority"` for the
+             transaction.
+
+         
+        
 
 .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
 
