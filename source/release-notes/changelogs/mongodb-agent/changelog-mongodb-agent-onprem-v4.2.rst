@@ -1,3 +1,12 @@
+.. _mongodb-10.2.10.5921:
+
+MongoDB Agent 10.2.10.5921
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.5 on 2019-12-12 <opsmgr-server-4.2.5>`
+
+- MongoDB Agent is now built using Go 1.13.
+
 .. _mongodb-10.2.9.5909:
 
 MongoDB Agent 10.2.9.5909

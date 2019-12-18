@@ -1,3 +1,16 @@
+.. _opsmgr-server-4.2.5:
+
+|onprem| Server 4.2.5
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2019-12-12*
+
+- Supports backup of MongoDB 4.2 sharded clusters.
+
+- |onprem| is now supported on RHEL8 and Debian 10.
+
+- Upgrades Agent: :ref:`mongodb-10.2.10.5921`.
+
 .. _opsmgr-server-4.2.4:
 
 |onprem| Server 4.2.4
