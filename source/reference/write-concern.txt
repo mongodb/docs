@@ -15,6 +15,7 @@ Write Concern
    :depth: 1
    :class: singlecol
 
+
 Write concern describes the level of acknowledgement requested from
 MongoDB for write operations to a standalone :binary:`~bin.mongod` or to
 :doc:`replica sets </replication>` or to
@@ -98,20 +99,39 @@ available:
    * - .. writeconcern:: "majority"
 
      - Requests acknowledgment that write operations have propagated to
-       the majority of voting nodes [#majority-definition]_, including
-       the primary.
+       the :ref:`calculated majority <calculating-majority-count>` of the
+       data-bearing voting members (i.e. primary and secondaries with
+       :rsconf:`members[n].votes` greater than ``0``).
 
-       .. versionchanged:: 3.2.6
+       For example, consider a replica set with 3 voting members,
+       Primary-Secondary-Secondary (P-S-S). For this replica set,
+       :ref:`calculated majority <calculating-majority-count>` is two, and
+       the write must propagate to the primary and one secondary to
+       acknowledge the write concern to the client.
 
+       .. note:: 
+
+          :ref:`Hidden <replica-set-hidden-members>`,
+          :ref:`delayed <replica-set-delayed-members>`,
+          and :ref:`priority 0 <replica-set-secondary-only-members>`
+          members with :rsconf:`members[n].votes` greater than ``0``
+          can acknowledge :writeconcern:`"majority"` write operations.
+
+          Delayed secondaries can return write acknowledgment no earlier
+          than the configured :rsconf:`~members[n].slaveDelay`. 
+
+       Starting in version 3.2.6
           For replica sets using :rsconf:`protocolVersion: 1
           <protocolVersion>`, :writeconcern:`w: "majority"
           <"majority">` may imply :ref:`j: true <wc-j>` if journaling
           is enabled. See :rsconf:`writeConcernMajorityJournalDefault`.
 
-       In earlier 3.2 versions, :writeconcern:`w: "majority"
-       <"majority">` implies :ref:`j: true <wc-j>` if journaling is
-       enabled. With earlier versions of MongoDB, :writeconcern:`w:
-       "majority" <"majority">` does not imply journaling.
+
+       In earlier 3.2 versions, 
+          :writeconcern:`w: "majority" <"majority">` implies :ref:`j:
+          true <wc-j>` if journaling is enabled. With earlier versions
+          of MongoDB, :writeconcern:`w: "majority" <"majority">` does
+          not imply journaling.
 
        After the write operation returns with a :writeconcern:`w:
        "majority" <"majority">` acknowledgement to the client, the
@@ -193,11 +213,58 @@ Acknowlegement Behavior
      enabled. With earlier versions of MongoDB, :writeconcern:`w:
      "majority" <"majority">` does not imply journaling.
 
-.. [#majority-definition]
+.. _calculating-majority-count:
 
-   .. versionchanged:: 3.0
+Calculating Majority for Write Concern
+---------------------------------------
 
-      Prior to MongoDB 3.0, ``w: "majority"`` refers to the
-      majority of the replica set's members.
+The majority for write concern :writeconcern:`"majority"` is calculated
+as the smaller of the following values:
 
-   .. include:: /includes/fact-master-slave-majority.rst
+- the majority of *all* voting members (including arbiters) vs.
+
+- the number of all **data-bearing** voting members.
+
+.. warning::
+
+   In cases where the calculated majority number is equal to the number
+   of all **data-bearing** voting members (such as with a 3-member
+   Primary-Secondary-Arbiter deployment), write concern
+   :writeconcern:`"majority"` may time out or never be acknowledged if
+   a data bearing voting member is down or unreachable. If possible,
+   use a data-bearing voting member instead of an arbiter.
+
+For example, consider:
+
+- A replica set with 3 voting members, Primary-Secondary-Secondary
+  (P-S-S):
+
+  - The majority of all voting members is 2.
+
+  - The number of all data-bearing voting members is 3.
+
+  | The calculated majority is 2, the minimum of 2 and 3. The write
+    must propagate to the primary and one of the secondaries to
+    acknowledge the write concern :writeconcern:`"majority"` to the
+    client.
+
+- A replica set with 3 voting members, Primary-Secondary-Arbiter (P-S-A)
+  
+  - The majority of all voting members is 2.
+
+  - The number of all data-bearing voting members is 2.
+
+  | The calculated majority is 2, the minimum of 2 and 2. Since the
+    write can only be applied to data-bearing members, the write must
+    propagate to the primary and the secondary to acknowledge the write
+    concern :writeconcern:`"majority"` to the client.
+
+  .. tip::
+
+     Avoid using a :writeconcern:`"majority"` write concern with a
+     (P-S-A) or other topologies that require all data-bearing voting
+     members to be available to acknowledge the writes. Customers who
+     want the durability guarantees of using a
+     :writeconcern:`"majority"` write concern should instead deploy a
+     topology that does not require all data bearing voting members to be
+     available (e.g. P-S-S).
