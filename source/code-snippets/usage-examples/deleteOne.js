@@ -21,11 +21,11 @@ async function run() {
     // Query for a movie that has a title of type string
     const query = { title: { $type: "string" } };
 
-    collection.deleteOne(query, options, function(error, result) {
+    collection.deleteOne(query, function(error, result) {
       if (error) {
         console.log("Error: " + error.errmsg);
       } else {
-        if (result.deletedCount == 1) {
+        if (result.deletedCount === 1) {
           console.dir("Successfully deleted one document.");
         } else {
           console.log("No documents matched the query.");
