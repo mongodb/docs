@@ -1,3 +1,13 @@
+.. _mongodb-10.2.11.5927:
+
+MongoDB Agent 10.2.11.5927
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.6 on 2019-12-19 <opsmgr-server-4.2.6>`
+
+- Resolves memory leak in MongoDB Agent when performing snapshots for
+  MongoDB 4.2 clusters.
+
 .. _mongodb-10.2.10.5921:
 
 MongoDB Agent 10.2.10.5921
