@@ -6,12 +6,12 @@
    a restart only for the specified changes:
 
 
-   - ``security.clusterAuthMode``: Changing the value from ``keyfile``
+   - :setting:`security.clusterAuthMode`: Changing the value from ``keyfile``
      to ``sendKeyFile`` triggers a restart. All other changes to this
      option do not.
 
-   - ``net.ssl.mode``: Changing the value from ``disabled`` to
-     ``allowSSL`` triggers a restart. All other changes to this option
+   - :setting:`net.tls.mode`: Changing the value from ``disabled`` to
+     ``allowTLS`` triggers a restart. All other changes to this option
      do not.
 
    A restarted node triggers an election if the node was the primary.
