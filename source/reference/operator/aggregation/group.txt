@@ -86,6 +86,38 @@ temporary files. For more information, see the
 :method:`db.collection.aggregate()` method and the
 :dbcommand:`aggregate` command.
 
+.. _group-pipeline-optimization:
+
+Optimization to Return the First Document of Each Group
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a pipeline :pipeline:`sorts <$sort>` and :pipeline:`groups <$group>`
+by the same field and the :pipeline:`$group` stage only uses the
+:group:`$first` accumulator operator, consider adding an :ref:`index
+<indexes>` on the grouped field which matches the sort order. In some
+cases, the :pipeline:`$group` stage can use the index to quickly find
+the first document of each group.
+
+.. example::
+
+   If a collection named ``foo`` contains an index ``{ x: 1, y: 1 }``,
+   the following pipeline can use that index to find the first document
+   of each group:
+
+   .. code-block:: js
+
+      db.foo.aggregate([
+        {
+          $sort:{ x : 1, y : 1 } 
+        },
+        {
+          $group: {
+            _id: { x : "$x" }, 
+            y: { $first : "$y" }
+          }
+        }
+      ])
+
 Examples
 --------
 

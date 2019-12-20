@@ -121,14 +121,46 @@ the following strategies to avoid scanning the entire collection.
 Pipeline Operators and Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :pipeline:`$match` and :pipeline:`$sort` pipeline operators can
-take advantage of an index when they occur at the **beginning** of the
-pipeline.
+MongoDB's :ref:`query planner <query-plans-query-optimization>` analyzes
+an aggregation pipeline to determine whether :ref:`indexes <indexes>`
+can be used to improve pipeline performance. For example, the following
+pipeline stages can take advantage of indexes:
 
-The :pipeline:`$geoNear` pipeline operator takes advantage of a
-geospatial index. When using :pipeline:`$geoNear`, the
-:pipeline:`$geoNear` pipeline operation must appear as the first stage
-in an aggregation pipeline.
+.. note::
+
+   The following pipeline stages do not represent a complete list of all
+   stages which can use an index.
+
+``$match``
+  The :pipeline:`$match` stage can use
+  an index to filter documents if it occurs at the beginning of
+  a pipeline.
+
+``$sort``
+  The :pipeline:`$sort` stage can use an index as long as it is not
+  preceded by a :pipeline:`$project`, :pipeline:`$unwind`, or
+  :pipeline:`$group` stage.
+
+``$group``
+  The :pipeline:`$group` stage can sometimes use an index to find the
+  first document in each group if all of the following criteria are met:
+  
+  - The :pipeline:`$group` stage is preceded by a :pipeline:`$sort`
+    stage that sorts the field to group by,
+
+  - There is an index on the grouped field which matches the sort order
+    and
+
+  - The only accumulator used in the :pipeline:`$group` stage is
+    :group:`$first`.
+
+  See :ref:`group-pipeline-optimization` for an example.
+
+``$geoNear``
+  The :pipeline:`$geoNear` pipeline operator takes advantage of a
+  geospatial index. When using :pipeline:`$geoNear`, the
+  :pipeline:`$geoNear` pipeline operation must appear as the first
+  stage in an aggregation pipeline.
 
 .. versionchanged:: 3.2
 
