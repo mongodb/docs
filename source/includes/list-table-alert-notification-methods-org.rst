@@ -122,11 +122,13 @@
        account. Enter only the PagerDuty service key. Define
        escalation rules and alert assignments directly in PagerDuty.
 
-       This option is available only for alerts that you must
-       acknowledge. Informational alerts like |a-service| user has 
-       joined the organization can't use this notification method.
+       This option is available only for alerts that require
+       acknowledegment. Informational alerts, such as the alert that a
+       |service| user has joined a project, cannot use this
+       notification method.
 
-       Acknowledge PagerDuty alerts from the PagerDuty dashboard.
+       |service| users can acknowledge PagerDuty alerts only from the
+       PagerDuty dashboard.
 
    * - Datadog
 
@@ -163,11 +165,8 @@
        :guilabel:`Post Test Alert` to test VictorOps configuration. 
        Define escalation and routing rules directly in VictorOps.
 
-       This option is available only for alerts that you must
-       acknowledge. Informational alerts like |a-service| user has 
-       joined the organization can't use this notification method.
-
-       Acknowledge VictorOps alerts from the VictorOps dashboard.
+       Users can acknowledge VictorOps alerts only from the VictorOps 
+       dashboard.
 
    * - Opsgenie
 
@@ -177,12 +176,7 @@
 
      - Sends the alert to an `Opsgenie <https://www.opsgenie.com/>`_
        account. Enter only the Opsgenie API key. Define escalation
-       rules and alert assignments in Opsgenie.
+       rules and alert assignments directly in Opsgenie.
 
-       This option is available only for alerts that you must
-       acknowledge. Informational alerts like |a-service| user has 
-       joined the organization can't use this notification method.
-
-       `Acknowledge Opsgenie 
-       alerts <https://docs.opsgenie.com/docs/acknowledge-and-unacknowledge>`_ 
-       from the Opsgenie dashboard.
+       Users can acknowledge Opsgenie alerts only from the Opsgenies
+       dashboard.
