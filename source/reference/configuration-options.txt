@@ -1680,19 +1680,30 @@ Core Options
    
    .. deprecated:: 4.2 Use :setting:`net.tls.certificateKeyFile` instead.
    
-   .. note::
-   
-    Starting in 4.0, on macOS or Windows, you can use a certificate from
-    the operating system's secure store instead of a PEM file. See
-    :setting:`net.ssl.certificateSelector`.
-   
    The :file:`.pem` file that contains both the TLS/SSL certificate
    and key.
+
+   Starting with MongoDB 4.0 on macOS or Windows, you can use the
+   :setting:`net.ssl.certificateSelector` setting to specify a 
+   certificate from the operating system's secure certificate store
+   instead of a PEM key file. :setting:`~net.ssl.PEMKeyFile` and
+   :setting:`net.ssl.certificateSelector` are mutually exclusive.
+   You can only specify one.
    
-   - On Linux/BSD, you must specify :setting:`net.ssl.PEMKeyFile` when TLS/SSL is enabled.
+   - On Linux/BSD, you must specify :setting:`net.ssl.PEMKeyFile` when
+     TLS/SSL is enabled.
    
-   - On Windows or macOS, you must specify either :setting:`net.ssl.PEMKeyFile` or
+   - On Windows or macOS, you must specify either
+     :setting:`net.ssl.PEMKeyFile` or
      :setting:`net.ssl.certificateSelector` when TLS/SSL is enabled.
+
+     .. important::
+
+        For Windows **only**, MongoDB 4.0 and later do not support
+        encrypted PEM files. The :binary:`~bin.mongod` fails to start if
+        it encounters an encrypted PEM file. To securely store and
+        access a certificate for use with TLS/SSL on Windows,
+        use :setting:`net.ssl.certificateSelector`.
    
    .. include:: /includes/extracts/ssl-facts-see-more.rst
 
@@ -1704,21 +1715,28 @@ Core Options
    .. deprecated:: 4.2 Use :setting:`net.tls.certificateKeyFilePassword` instead.
    
    The password to de-crypt the certificate-key file (i.e.
-   :setting:`~net.ssl.PEMKeyFile`). Use the :setting:`net.ssl.PEMKeyPassword` option only if the
-   certificate-key file is encrypted. In all cases, the :binary:`~bin.mongos` or :binary:`~bin.mongod` will
-   redact the password from all logging and reporting output.
+   :setting:`~net.ssl.PEMKeyFile`). Use the
+   :setting:`net.ssl.PEMKeyPassword` option only if the certificate-key
+   file is encrypted. In all cases, the :binary:`~bin.mongos` or
+   :binary:`~bin.mongod` will redact the password from all logging and
+   reporting output.
    
    Starting in MongoDB 4.0:
    
    - On Linux/BSD, if the private key in the PEM file is encrypted and
-     you do not specify the :setting:`net.ssl.PEMKeyPassword` option, MongoDB will prompt for a
-     passphrase. See :ref:`ssl-certificate-password`.
+     you do not specify the :setting:`net.ssl.PEMKeyPassword` option,
+     MongoDB will prompt for a passphrase. See
+     :ref:`ssl-certificate-password`.
    
-   - On macOS or Windows, if the private key in the PEM file is
-     encrypted, you must explicitly specify the :setting:`net.ssl.PEMKeyPassword` option.
+   - On macOS, if the private key in the PEM file is encrypted, you must
+     explicitly specify the :setting:`net.ssl.PEMKeyPassword` option.
      Alternatively, you can use a certificate from the secure system
-     store (see :setting:`net.ssl.certificateSelector`) instead of a PEM key file or use an
-     unencrypted PEM file.
+     store (see :setting:`net.ssl.certificateSelector`) instead of a PEM
+     key file or use an unencrypted PEM file.
+
+   - On Windows, MongoDB does not support encrypted certificates. 
+     The :binary:`~bin.mongod` fails if it encounters an encrypted
+     PEM file. Use :setting:`net.ssl.certificateSelector` instead.
    
    .. include:: /includes/extracts/ssl-facts-see-more.rst
 
@@ -1732,47 +1750,80 @@ Core Options
    
    .. versionadded:: 4.0
    
-      Available on Windows and macOS as an alternative to :setting:`net.ssl.PEMKeyFile`.
+      Available on Windows and macOS as an alternative to
+      :setting:`net.ssl.PEMKeyFile`.
       
-      :setting:`net.ssl.PEMKeyFile` and :setting:`net.ssl.certificateSelector` options are mutually exclusive. You can only
-      specify one.
+      Specifies a certificate property in order to select a matching
+      certificate from the operating system's certificate store to use
+      for TLS/SSL.
+
+      :setting:`net.ssl.PEMKeyFile` and
+      :setting:`net.ssl.certificateSelector` options are mutually
+      exclusive. You can only specify one.
    
-   Specifies a certificate property in order to select a matching
-   certificate from the operating system's certificate store.
-   
-   :setting:`net.ssl.certificateSelector` accepts an argument of the format ``<property>=<value>``
-   where the property can be one of the following:
+   :setting:`net.ssl.certificateSelector` accepts an argument of the
+   format ``<property>=<value>`` where the property can be one of the
+   following:
    
    .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
    
    .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst
 
+   The :binary:`~bin.mongod` searches the operating system's secure
+   certificate store for the CA certificates required to validate the
+   full certificate chain of the specified TLS/SSL certificate.
+   Specifically, the secure certificate store must contain the root CA
+   and any intermediate CA certificates required to build the full
+   certificate chain to the TLS/SSL certificate. Do **not** use
+   :setting:`net.ssl.CAFile` or :setting:`net.ssl.clusterFile` to
+   specify the root and intermediate CA certificate
+   
+   For example, if the TLS/SSL certificate was signed with a single root
+   CA certificate, the secure certificate store must contain that root
+   CA certificate. If the TLS/SSL certificate was signed with an
+   intermediate CA certificate, the secure certificate store must
+   contain the intermedia CA certificate *and* the root CA certificate.
 
 .. setting:: net.ssl.clusterCertificateSelector
 
    *Type*: string
-
    
    .. deprecated:: 4.2 Use :setting:`net.tls.clusterCertificateSelector` instead.
    
    .. versionadded:: 4.0
    
       Available on Windows and macOS as an alternative to
-      :setting:`net.ssl.clusterFile`.      
+      :setting:`net.ssl.clusterFile`.
+
+      Specifies a certificate property to select a matching certificate
+      from the operating system's secure certificate store to use for
+      :ref:`internal x.509 membership authentication
+      <internal-auth-x509>`. 
       
-      :setting:`net.ssl.clusterFile` and :setting:`net.ssl.clusterCertificateSelector` options are mutually exclusive. You can only
-      specify one.
+      :setting:`net.ssl.clusterFile` and
+      :setting:`net.ssl.clusterCertificateSelector` options are mutually
+      exclusive. You can only specify one.
    
-   
-   Specifies a certificate property in order to select a matching
-   certificate from the operating system's certificate store to use for
-   internal authentication.
-   
-   :setting:`net.ssl.clusterCertificateSelector` accepts an argument of the format ``<property>=<value>``
-   where the property can be one of the following:
+   :setting:`net.ssl.clusterCertificateSelector` accepts an argument of
+   the format ``<property>=<value>`` where the property can be one of
+   the following:
    
    .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
 
+   The :binary:`~bin.mongod` searches the operating system's secure
+   certificate store for the CA certificates required to validate the
+   full certificate chain of the specified cluster certificate.
+   Specifically, the secure certificate store must contain the root CA
+   and any intermediate CA certificates required to build the full
+   certificate chain to the cluster certificate. Do **not** use
+   :setting:`net.ssl.CAFile` or :setting:`net.ssl.clusterFile` to
+   specify the root and intermediate CA certificate.
+   
+   For example, if the cluster certificate was signed with a single root
+   CA certificate, the secure certificate store must contain that root
+   CA certificate. If the cluster certificate was signed with an
+   intermediate CA certificate, the secure certificate store must
+   contain the intermedia CA certificate *and* the root CA certificate.
 
 .. setting:: net.ssl.clusterFile
 
@@ -1780,27 +1831,35 @@ Core Options
 
    .. deprecated:: 4.2 Use :setting:`net.tls.clusterFile` instead.
    
-   .. note::
-   
-      Starting in 4.0, on macOS or Windows, you can use a certificate
-      from the operating system's secure store instead of a PEM key
-      file. See :setting:`net.ssl.clusterCertificateSelector`.
-   
    The :file:`.pem` file that contains the x.509 certificate-key
    file for :ref:`membership authentication <x509-internal-authentication>`
    for the cluster or replica set.
+
+   Starting with MongoDB 4.0 on macOS or Windows, you can use the
+   :setting:`net.ssl.clusterCertificateSelector` option to specify a
+   certificate from the operating system's secure certificate store
+   instead of a PEM key file. :setting:`net.ssl.clusterFile` and
+   :setting:`net.ssl.clusterCertificateSelector` options are mutually
+   exclusive. You can only specify one.   
    
-   
-   If :setting:`net.ssl.clusterFile` does not specify the ``.pem`` file for internal cluster
-   authentication or the alternative
+   If :setting:`net.ssl.clusterFile` does not specify the ``.pem`` file
+   for internal cluster authentication or the alternative
    :setting:`net.ssl.clusterCertificateSelector`, the cluster uses the
-   ``.pem`` file specified in the :setting:`~net.ssl.PEMKeyFile` setting or
-   the certificate returned by the :setting:`net.ssl.certificateSelector`.
+   ``.pem`` file specified in the :setting:`~net.ssl.PEMKeyFile` setting
+   or the certificate returned by the
+   :setting:`net.ssl.certificateSelector`.
    
    .. include:: /includes/extracts/ssl-facts-x509-ca-file.rst
    
    .. include:: /includes/extracts/ssl-facts-see-more.rst
 
+   .. important::
+
+      For Windows **only**, MongoDB 4.0 and later do not support
+      encrypted PEM files. The :binary:`~bin.mongod` fails to start if
+      it encounters an encrypted PEM file. To securely store and
+      access a certificate for use with membership authentication on
+      Windows, use :setting:`net.ssl.clusterCertificateSelector`.
 
 .. setting:: net.ssl.clusterPassword
 
@@ -1808,23 +1867,29 @@ Core Options
 
    .. deprecated:: 4.2 Use :setting:`net.tls.clusterPassword` instead.
 
-   The password to de-crypt the x.509 certificate-key file
-   specified with ``--sslClusterFile``. Use the :setting:`net.ssl.clusterPassword` option only
-   if the certificate-key file is encrypted. In all cases, the :binary:`~bin.mongos` or :binary:`~bin.mongod`
-   will redact the password from all logging and reporting output.
+   The password to de-crypt the x.509 certificate-key file specified
+   with ``--sslClusterFile``. Use the :setting:`net.ssl.clusterPassword`
+   option only if the certificate-key file is encrypted. In all cases,
+   the :binary:`~bin.mongos` or :binary:`~bin.mongod` will redact the
+   password from all logging and reporting output.
    
    Starting in MongoDB 4.0:
    
    - On Linux/BSD, if the private key in the x.509 file is encrypted and
-     you do not specify the :setting:`net.ssl.clusterPassword` option, MongoDB will prompt for a
-     passphrase. See :ref:`ssl-certificate-password`.
+     you do not specify the :setting:`net.ssl.clusterPassword` option,
+     MongoDB will prompt for a passphrase. See
+     :ref:`ssl-certificate-password`.
    
-   - On macOS or Windows, if the private key in the x.509 file is
-     encrypted, you must explicitly specify the :setting:`net.ssl.clusterPassword` option.
-     Alternatively, you can either use a certificate from the secure
-     system store (see :setting:`net.ssl.clusterCertificateSelector`) instead of a cluster PEM file or
-     use an unencrypted PEM file.
-   
+   - On macOS, if the private key in the x.509 file is encrypted, you
+     must explicitly specify the :setting:`net.ssl.clusterPassword`
+     option. Alternatively, you can either use a certificate from the
+     secure system store (see
+     :setting:`net.ssl.clusterCertificateSelector`) instead of a cluster
+     PEM file or use an unencrypted PEM file.
+
+   - On Windows, MongoDB does not support encrypted certificates. The 
+     :binary:`~bin.mongod` fails if it encounters an encrypted PEM file.
+     Use :setting:`net.ssl.clusterCertificateSelector`.
    
    .. include:: /includes/extracts/ssl-facts-see-more.rst
 
@@ -1840,13 +1905,16 @@ Core Options
    from the Certificate Authority. Specify the file name of the
    :file:`.pem` file using relative or absolute paths.
    
-   Starting in 4.0, on macOS or Windows, you can use a certificate from
-   the operating system's secure store instead of a PEM key file. See
-   :setting:`net.ssl.certificateSelector`. When using the secure store, you
-   do not need to, but can, also specify the :setting:`net.ssl.CAFile`.
+   Windows/macOS Only
+     If using :setting:`net.ssl.certificateSelector` and/or
+     :setting:`net.ssl.clusterCertificateSelector`, do **not** use
+     :setting:`net.ssl.CAFile` to specify the root and intermediate CA
+     certificates. Store all CA certificates required to validate the
+     full trust chain of the :setting:`net.ssl.certificateSelector`
+     and/or :setting:`net.ssl.clusterCertificateSelector` certificates
+     in the secure certificate store.
    
    .. include:: /includes/extracts/ssl-facts-see-more.rst
-
 
 .. setting:: net.ssl.clusterCAFile
 
@@ -1855,24 +1923,37 @@ Core Options
    
    .. deprecated:: 4.2 Use :setting:`net.tls.clusterCAFile` instead.
    
-   The :file:`.pem` file that contains the root certificate chain
-   from the Certificate Authority used to validate the certificate
-   presented by a client establishing a connection. Specify the file
-   name of the :file:`.pem` file using relative or absolute paths.
+   The :file:`.pem` file that contains the root certificate chain from
+   the Certificate Authority used to validate the certificate presented
+   by a client establishing a connection. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   :setting:`net.ssl.clusterCAFile` requires that
+   :setting:`net.ssl.CAFile` is set.
    
-   If :setting:`net.ssl.clusterCAFile` does not specify the :file:`.pem` file for validating the
-   certificate from a client establishing a connection, the cluster uses
-   the :file:`.pem` file specified in the :setting:`net.ssl.CAFile` option.
+   If :setting:`net.ssl.clusterCAFile` does not specify the :file:`.pem`
+   file for validating the certificate from a client establishing a
+   connection, the cluster uses the :file:`.pem` file specified in the
+   :setting:`net.ssl.CAFile` option.
    
-   :setting:`net.ssl.clusterCAFile` lets you use separate Certificate Authorities to verify the
-   client to server and server to client portions of the TLS handshake.
+   :setting:`net.ssl.clusterCAFile` lets you use separate Certificate
+   Authorities to verify the client to server and server to client
+   portions of the TLS handshake.
    
    Starting in 4.0, on macOS or Windows, you can use a certificate from
    the operating system's secure store instead of a PEM key file. See
-   :setting:`net.ssl.clusterCertificateSelector`. When using the secure store, you
-   do not need to, but can, also specify the :setting:`net.ssl.clusterCAFile`.
-   
-   Requires that :setting:`net.ssl.CAFile` is set.
+   :setting:`net.ssl.clusterCertificateSelector`. When using the secure
+   store, you do not need to, but can, also specify the
+   :setting:`net.ssl.clusterCAFile`.
+
+   Windows/macOS Only
+     If using :setting:`net.ssl.certificateSelector` and/or
+     :setting:`net.ssl.clusterCertificateSelector`, do **not** use
+     :setting:`net.ssl.clusterCAFile` to specify the root and
+     intermediate CA certificates. Store all CA certificates required to
+     validate the full trust chain of the
+     :setting:`net.ssl.certificateSelector` and/or
+     :setting:`net.ssl.clusterCertificateSelector` certificates in the
+     secure certificate store.
    
    .. include:: /includes/extracts/ssl-facts-see-more.rst
 
