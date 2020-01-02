@@ -1,5 +1,5 @@
 :doc:`Backup </tutorial/nav/backup-deployments/>` support for MongoDB
-4.2 with ``"featureCompatibilityVersion" : 4.2`` is currently extremely
+4.2 with ``"featureCompatibilityVersion" : 4.2`` is currently
 limited. Support will be extended in future releases of |mms|.
 
 Backup Features Supported at Present
@@ -28,7 +28,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Backs up Sharded Clusters
-        -
+        - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Can Filter using Namespaces
@@ -128,10 +128,6 @@ If you are running MongoDB 4.2 with
 .. cond:: onprem
 
    - Must run MongoDB Enterprise.
-
-   - Cannot back up sharded clusters. Do not upgrade sharded clusters
-     to ``"featureCompatibilityVersion" : 4.2`` if you need to back up
-     your sharded cluster.
 
    - Cannot restore to a specific a
      :doc:`point in time </tutorial/nav/restore-overview>` or use a
