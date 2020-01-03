@@ -1,5 +1,5 @@
-MongoDB Enterprise {+version+} supports the following :red:`64-bit`
-versions of Windows on 
+MongoDB {+version+} Enterprise Edition supports the following
+:red:`64-bit` versions of Windows on 
 :ref:`x86_64<prod-notes-supported-platforms-x86_64>` architecture:
 
 - Windows 8 / Windows Server 2012 R2 and later
