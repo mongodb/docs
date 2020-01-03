@@ -1,10 +1,10 @@
 .. topic:: EOL Notice
 
-   - MongoDB Enterprise 4.2 removes support for Debian 8 ("Jessie")
-     on :ref:`x86_64<prod-notes-supported-platforms-x86_64>`
+   - MongoDB 4.2 Enterprise Edition removes support for Debian 8
+     ("Jessie") on :ref:`x86_64<prod-notes-supported-platforms-x86_64>`
 
-MongoDB Enterprise {+version+} supports the following :red:`64-bit`
-Debian releases on 
+MongoDB {+version+} Enterprise Edition supports the following
+:red:`64-bit` Debian releases on 
 :ref:`x86_64<prod-notes-supported-platforms-x86_64>` architecture:
 
 - Debian 10 "Buster" (Starting in MongoDB 4.2.1)

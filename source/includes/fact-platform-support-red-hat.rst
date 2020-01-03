@@ -1,10 +1,10 @@
-MongoDB Community {+version+} supports the following :red:`64-bit`
-versions of Red Hat Enterprise Linux (RHEL), CentOS Linux, and Oracle
-Linux [#oracle-linux]_ on 
+MongoDB {+version+} Community Edition supports the following
+:red:`64-bit` versions of Red Hat Enterprise Linux (RHEL), CentOS Linux,
+and Oracle Linux [#oracle-linux]_ on 
 :ref:`x86_64<prod-notes-supported-platforms-x86_64>` architecture:
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 8
-  (Starting in MongoDB 4.2.1)
+  (Starting in MongoDB Community 4.2.1)
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7
 
@@ -12,9 +12,9 @@ Linux [#oracle-linux]_ on
 
 MongoDB only supports the 64-bit versions of these platforms.
 
-MongoDB Community {+version+} on :abbr:`RHEL (Red Hat Enterprise Linux)`
-/ CentOS / Oracle also supports the
-:ref:`s390x<prod-notes-supported-platforms-s390x>` architecture on
+MongoDB {+version+} Community Edition on
+:abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle also supports
+the :ref:`s390x<prod-notes-supported-platforms-s390x>` architecture on
 select platforms.
 
 See :ref:`prod-notes-supported-platforms` for more information.
