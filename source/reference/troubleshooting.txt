@@ -14,17 +14,33 @@ Troubleshooting the |k8s-op-short|
 
 .. _get-resource-status:
 
-Get Status of MongoDB Resource
-------------------------------
+Get Status of a Deployed Resource
+---------------------------------
 
-To find the status of a MongoDB Resource (replica set, sharded cluster, or standalone), invoke this command:
+To find the status of a resource deployed with the |k8s-op-short|, 
+invoke one of the following commands:
 
-.. code-block:: sh
+- For |onprem| resource deployments:
 
-   kubectl get mdb <resourcename> -n <namespace> -o yaml -w
+  .. code-block:: sh
 
-The command's response describes the status of the resource using the
-following key-value pairs:
+     kubectl get <resource-name> -n <namespace> -o yaml
+
+  The ``status.applicationDatabase.phase`` field displays the 
+  Application Database resource deployment status. The 
+  ``status.opsManager.phase`` field displays the |onprem| resource 
+  deployment status.
+
+- For MongoDB resource deployments:
+
+  .. code-block:: sh
+
+     kubectl get mdb <resource-name> -n <namespace> -o yaml
+
+  The ``status.phase`` field displays the MongoDB resource deployment 
+  status.
+
+The following key-value pairs describe the resource deployment statuses:
 
 .. list-table::
    :header-rows: 1
@@ -33,9 +49,10 @@ following key-value pairs:
    * - Key
      - Value
 
-   * - message
-     - Error message explaining why the resource is in a failed state.
-   * - phase
+   * - ``message``
+     - Message explaining why the resource is in a ``Pending`` 
+       or ``Failed`` state.
+   * - ``phase``
      -
        .. list-table::
           :header-rows: 1
@@ -44,17 +61,42 @@ following key-value pairs:
           * - Status
             - Meaning
 
-          * - Pending
-            - Resource is transitioning between two states.
-          * - Running
-            - Resource has completed reconciliation successfully.
-          * - Failed
-            - Resource had failures.
+          * - ``Pending``
+            - The |k8s-op-short| is unable to reconcile the resource 
+              deployment state. This happens when a reconciliation times 
+              out or if the |k8s-op-short| requires you to take action 
+              for the resource to enter a running state.
 
-   * - lastTransition
+              If a resource is pending because a reconciliation timed 
+              out, the |k8s-op-short| attempts to reconcile the resource
+              state in 10 seconds.
+
+          * - ``Reconciling``
+            - The |k8s-op-short| is reconciling the resource state.
+
+              Resources enter this state after you create or update them 
+              or if the |k8s-op-short| is attempting to reconcile a 
+              resource previously in a ``Pending`` or ``Failed`` state.
+
+              The |k8s-op-short| attempts to reconcile the resource 
+              state in 10 seconds.
+
+          * - ``Running``
+            - The resource is running properly.
+
+          * - ``Failed``
+            - The resource is not running properly. The ``message`` 
+              field provides additional details.
+
+              The |k8s-op-short| attempts to reconcile the resource 
+              state in 10 seconds.
+
+   * - ``lastTransition``
      - |iso8601-time| when the last reconciliation happened.
-   * - link
+
+   * - ``link``
      - Deployment |url| in |mms|.
+
    * - Resource specific fields
      - For descriptions of these fields, see
        :doc:`/reference/k8s-operator-specification`.
@@ -66,7 +108,7 @@ following key-value pairs:
 
    .. code-block:: sh
 
-      kubectl get mdb my-replica-set -n developer -o yaml -w
+      kubectl get mdb my-replica-set -n developer -o yaml
 
    If ``my-replica-set`` is running, you should see:
 

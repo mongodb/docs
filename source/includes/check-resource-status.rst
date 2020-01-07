@@ -9,4 +9,5 @@ The ``-w`` flag means "watch". With the "watch" flag set, the output
 refreshes immediately when something changes until the status phase
 achieves the ``Running`` state.
 
-If the deployment fails, see :doc:`/reference/troubleshooting`.
+See :doc:`/reference/troubleshooting` for information about the resource
+deployment statuses.
