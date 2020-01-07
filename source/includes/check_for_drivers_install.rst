@@ -9,8 +9,9 @@ You will need to ensure that your MongoDB instance is running and accessible.
        content: |
          
          Check that you have an Atlas account and have deployed a MongoDB database
-         cluster. See :doc:`/cloud/atlas` for information on how to
-         login and create a cluster in Atlas.
+         cluster. See `Get Started with Atlas 
+         <https://docs.atlas.mongodb.com/getting-started/>`__ for information 
+         on how to login and create a cluster in Atlas.
 
      - id: local
        content: |

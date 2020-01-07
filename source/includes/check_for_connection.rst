@@ -8,9 +8,11 @@ Ensure that your MongoDB instance -- whether standalone or on Atlas (cloud) --  
      - id: cloud
        content: |
          
-         Check that you have an Atlas account and have deployed a MongoDB database
-         cluster. See :doc:`/cloud/atlas` for information on how to
-         login and create a cluster in Atlas.
+         Check that you have an Atlas account and have deployed a MongoDB 
+         database cluster. See :doc:`/cloud/account` for information on how 
+         to create an Atlas account and see `Create a New 
+         Cluster <https://docs.atlas.mongodb.com/tutorial/create-new-cluster/>`__ 
+         to create a cluster in Atlas.
 
      - id: local
        content: |
