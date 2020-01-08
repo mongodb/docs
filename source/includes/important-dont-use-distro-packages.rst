@@ -1,15 +1,13 @@
+To install MongoDB |edition| on your |distro-name| system, these
+instructions will use the official |package-name| package, which is
+maintained and supported by MongoDB Inc. The official |package-name|
+package always contains the latest version of MongoDB, and is available
+from its own dedicated repo.
+
 .. important::
 
-   The ``mongodb`` package provided by |distro-name| is
-   **not** maintained by MongoDB Inc. The |package-name| package
-   is officially maintained and supported by MongoDB Inc. and
-   kept up-to-date with the most recent MongoDB releases. This 
-   installation procedure uses the |package-name| package.
-
-   The |distro-name| ``mongodb`` package conflicts with the 
-   MongoDB Inc. |package-name| package. Run 
-   ``sudo apt list --installed | grep mongodb`` to check if the
-   ``mongodb`` package is already installed on the system.
-   Use ``sudo apt remove mongodb`` and ``sudo apt purge mongodb``
-   to completely remove and purge the ``mongodb`` package before 
-   attempting this procedure.
+   The ``mongodb`` package provided by |distro-name| is **not**
+   maintained by MongoDB Inc. and conflicts with the official
+   |package-name| package. If you have already installed the ``mongodb``
+   package on your |distro-name| system, you **must** first uninstall
+   the ``mongodb`` package before proceeding with these instructions.
