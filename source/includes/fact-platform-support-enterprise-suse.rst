@@ -1,0 +1,22 @@
+.. topic:: EOL Notice
+
+   - MongoDB 3.6.4 Enterprise Edition removes support for SLES 11 on
+     :ref:`x86_64<prod-notes-supported-platforms-x86_64>` and
+     :ref:`s390x<prod-notes-supported-platforms-s390x>`
+
+MongoDB {+version+} Enterprise Edition supports the following
+:red:`64-bit` SUSE Linux Enterprise Server (SLES) release on 
+:ref:`x86_64<prod-notes-supported-platforms-x86_64>` architecture:
+
+- :abbr:`SLES (SUSE Linux Enterprise Server)` 12
+
+MongoDB only supports the 64-bit version of this platform.
+
+MongoDB {+version+} Enterprise Edition on
+:abbr:`SLES (SUSE Linux Enterprise Server)` also supports the
+:ref:`s390x<prod-notes-supported-platforms-s390x>` architecture on
+select platforms.
+
+See :ref:`prod-notes-supported-platforms` for more information.
+
+.. include:: /includes/admonition-wsl.rst
