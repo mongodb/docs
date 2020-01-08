@@ -1,2 +1,2 @@
-MongoDB ``.tar.gz`` tarballs require installing the following
-dependencies:
+Use the following command to install the dependencies required for the
+MongoDB |edition| ``.tgz`` tarball:
