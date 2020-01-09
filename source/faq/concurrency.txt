@@ -251,9 +251,11 @@ The following administrative operations require an exclusive
 lock at the database level for extended periods:
 
 .. list-table::
+   :header-rows: 1
+   :widths: 40 60
 
-   * - Commands
-     - Methods
+   * - Operation
+     - 
 
    * - :dbcommand:`cloneCollectionAsCapped`
      -
@@ -264,64 +266,67 @@ lock at the database level for extended periods:
    * - :dbcommand:`convertToCapped`
      -
 
-   * - :dbcommand:`copydb`. This operation may lock all databases. See
-       :ref:`faq-concurrency-lock-multiple-dbs`.
+   * - | :dbcommand:`create`
+       | :method:`db.createCollection()`
+       | :method:`db.createView()`
+     - 
 
-     - :method:`db.copyDatabase()`. This operation may lock all
-       databases. See :ref:`faq-concurrency-lock-multiple-dbs`.
+   * - | :dbcommand:`createIndexes`
+       | :method:`db.collection.createIndex()`
+       | :method:`db.collection.createIndexes()`
 
-   * - :dbcommand:`create` when creating a very large (i.e. many
-       gigabytes) capped collection
-     - :method:`db.createCollection()` when creating a very large (i.e.
-       many gigabytes) capped collection
+     -  These operations obtain an exclusive (W) database lock during
+        foreground index builds. 
 
-   * - :dbcommand:`createIndexes` for indexes *without* ``background``
-       set to ``true``
-
-     - :method:`db.collection.createIndex()` and
-       :method:`db.collection.createIndexes()` issued *without*
-       ``background`` set to ``true``
-
-   * - :dbcommand:`repairDatabase`
-     - :method:`db.repairDatabase()`
-
+   * - | :dbcommand:`repairDatabase`
+       | :method:`db.repairDatabase()`
+     -
 
 The following administrative operations lock the database but only hold
 the lock for a very short time:
 
 .. list-table::
+   :header-rows: 1
+   :widths: 40 60
 
-   * - Commands
-     - Methods
+   * - Operation
+     - 
 
-   * - :dbcommand:`authenticate`
+   * - | :dbcommand:`authenticate`
+       | :method:`db.auth()`
+     - 
 
-     - :method:`db.auth()`
 
-
-   * - :dbcommand:`createUser`
-     - :method:`db.createUser()`
+   * - | :dbcommand:`createUser`
+       | :method:`db.createUser()`
+     - 
    
+   * - | :dbcommand:`dropIndexes`
+       | :method:`db.collection.dropIndex()`
+     -
 
-   * - :dbcommand:`dropIndexes`
-     - :method:`db.collection.dropIndex()`
+   * - | :dbcommand:`getLastError`
+       | :method:`db.getLastError()`
+     -
 
-   * - :dbcommand:`getLastError`
-     - :method:`db.getLastError()`
+   * - | :dbcommand:`isMaster`
+       | :method:`db.isMaster()`
+     - 
 
-   * - :dbcommand:`isMaster`
-     - :method:`db.isMaster()`
+   * - | :dbcommand:`renameCollection`
+       | :method:`db.collection.renameCollection()`
+     - (:dbcommand:`renameCollection` *only*) If renaming a 
+       collection between databases, :dbcommand:`renameCollection`
+       obtains a global exclusive (W) lock. See
+       :ref:`faq-concurrency-lock-multiple-dbs`.
 
-   * - :dbcommand:`replSetGetStatus`
-     - :method:`rs.status()`
+   * - | :dbcommand:`replSetGetStatus`
+       | :method:`rs.status()`
+     - 
 
-
-   * - :dbcommand:`renameCollection`
-     - :method:`db.collection.renameCollection()`
-
-   * - :dbcommand:`serverStatus`
-
-     - :method:`db.serverStatus()`
+   * - | :dbcommand:`serverStatus`
+       | :method:`db.serverStatus()`
+     - 
 
 .. seealso:: :ref:`faq-concurrency-lock-multiple-dbs`
 
@@ -330,33 +335,42 @@ the lock for a very short time:
 Does a MongoDB operation ever lock more than one database?
 ----------------------------------------------------------
 
-The following MongoDB operations take a global exclusive lock:
+The following MongoDB operations may obtain and hold a lock on more 
+than one database:
 
-- :method:`db.copyDatabase()` obtains a :serverstatus:`global exclusive
-  (W) lock <locks>` and will block other operations until it finishes.
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
 
-- :method:`db.repairDatabase()` obtains a :serverstatus:`global
-  exclusive (W) lock <locks>` and will block other operations until it
-  finishes.
+   * - Operation
+     -
 
-- Starting in MongoDB 4.0, :method:`db.collection.reIndex()` takes a
-  :serverstatus:`global exclusive (W) lock <locks>` and will block
-  other operations until it finishes.
+   * - :method:`db.repairDatabase()` 
+     - This operation obtains a global exclusive (W) lock and blocks
+       other operations until it finishes.
 
-- :doc:`User authentication </core/authentication>` requires a read
-  lock on the ``admin`` database for deployments using :ref:`2.6 user
-  credentials <admin-system-users-collection>`. For deployments using
-  the 2.4 schema for user credentials, authentication locks the
-  ``admin`` database as well as the database the user is accessing.
+   * - :method:`db.copyDatabase()`
+     - This operation obtains a global (W) exclusive lock and blocks
+       other operations until it finishes.
 
-- All writes to a replica set's :term:`primary` lock both the database
-  receiving the writes and then the ``local`` database for a short
-  time. The lock for the ``local`` database allows the
-  :binary:`~bin.mongod` to write to the primary's :term:`oplog` and
-  accounts for a small portion of the total time of the operation.
+   * - | :dbcommand:`reIndex`
+       | :method:`db.collection.reIndex()` 
+     - .. versionchanged:: 4.0
+     
+       Starting in MongoDB 4.0, these operations take a global
+       exclusive (W) lock and block other operations until finished.
+       
+       Prior to MongoDB 4.0, these operations obtained an exclusive
+       (W) database lock.
 
-- Replica set member :doc:`state transitions
-  </reference/replica-states>` take global exlusive lock.
+   * - :dbcommand:`renameCollection`
+     - This operation obtains a global exclusive (W) lock when renaming
+       a collection between databases and blocks other operations until
+       finished.
+
+   * - | :dbcommand:`replSetResizeOplog`
+     - This operation obtains a global exclusive (W) lock and blocks
+       other operations until finished.
 
 How does sharding affect concurrency?
 -------------------------------------
