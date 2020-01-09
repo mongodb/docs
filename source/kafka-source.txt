@@ -182,6 +182,24 @@ an example source connector configuration file, see
        | **Default**: ""
        | **Accepted Values**: A string
 
+   * - copy.existing
+     - boolean
+     - | Copy existing data from all the collections being used as the source then add any changes after. It should be noted that the reading of all the data during the copy and then the subsequent change stream events may produce duplicated events. During the copy, clients can make changes to the data in MongoDB, which may be represented both by the copying process and the change stream. However, as the change stream events are idempotent the changes can be applied so that the data is eventually consistent. Renaming a collection during the copying process is not supported.
+       | **Default**: false
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - copy.existing.max.threads
+     - int
+     - | The number of threads to use when performing the data copy. Defaults to the number of processors.
+       | **Default**: defaults to the number of processors
+       | **Accepted Values**: An integer
+
+   * - copy.existing.queue.size
+     - int
+       | The max size of the queue to use when copying data.
+       | **Default**: 16000
+       | **Accepted Values**: An integer
+
 .. note::
 
    The default maximum size for Kafka messages is 1MB. Update the
@@ -220,6 +238,7 @@ an example source connector configuration file, see
         - Per referenced topic, the maximum size of an uncompressed message that can be appended to a
           topic.
 
+      * -
 .. _custom-pipeline-example:
 
 Custom Pipeline Example
@@ -260,3 +279,28 @@ name will be prepended with the specified value. For example:
 
 Once set, any data changes to the ``data`` collection in the ``test`` database
 are published to a topic named ``mongo.test.data``.
+
+Existing Data Copy Example
+--------------------------
+
+The MongoDB Kafka Source connector can be configured to copy existing data
+from collections in a database to their associated topic as insert events
+prior to broadcasting change stream events. The connector **does not** support
+renaming a collection during the copy process.
+
+.. admonition:: Data Copy Can Produce Duplicate Events
+
+   If clients make changes to the data in the database while the source
+   connector is converting existing data, the subsequent change stream events
+   may contain duplicates. Since change stream events are idempotent, the
+   data is eventually consistent.
+
+The following configuration example instructs the connector to copy all
+collections in the ``example`` database, convert the data to change stream
+events, and broadcast changes after any collection data is updated.
+
+.. code-block:: properties
+
+   database=example
+   copy.existing=true
+
