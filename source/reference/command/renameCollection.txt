@@ -104,22 +104,45 @@ Performance
 on the target :term:`namespace`.
 
 If the target database is the same as the source database,
-:dbcommand:`renameCollection` simply changes the namespace. This is a quick
-operation.
+:dbcommand:`renameCollection` simply changes the namespace. This is a
+quick operation.
 
 If the target database differs from the source database,
-:dbcommand:`renameCollection` copies all documents from the source collection
-to the target collection. Depending on the size of the collection, this
-may take longer to complete. Other operations which require exclusive
-access to the affected collections will be blocked until the rename 
-completes.
+:dbcommand:`renameCollection` copies all documents from the source
+collection to the target collection. Depending on the size of the
+collection, this may take longer to complete.
 
 Resource Locking
 ~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 4.2
 
-.. include:: /includes/extracts/renameCollection-resource-lock.rst
+If renaming a collection within the same database, 
+:dbcommand:`renameCollection` obtains an exclusive lock on the
+source and target collections for the duration of the operation. 
+All subsequent operations on the collections must wait until
+:dbcommand:`renameCollection` completes. 
+
+Prior to MongoDB 4.2, renaming a collection within the same database
+with :dbcommand:`renameCollection` required an exclusive database lock.
+
+If renaming a collection between different databases, 
+:dbcommand:`renameCollection` locking behavior depends on the MongoDB
+version:
+
+- For MongoDB 4.2.2 and later, :dbcommand:`renameCollection` obtains an
+  exclusive (W) lock on the target database, an intent shared (r) lock
+  on the source database, and a shared (S) lock on the 
+  source collection. Subsequent operations on the target database
+  must wait until :dbcommand:`renameCollection` releases the 
+  exclusive database lock.
+
+- For MongoDB 4.2.1 and earlier, :dbcommand:`renameCollection` obtains
+  an exclusive (W) global lock. Subsequent operations on the
+  :binary:`~bin.mongod` must wait until :dbcommand:`renameCollection`
+  releases the global lock.
+
+For more information on locking in MongoDB, see :doc:`/faq/concurrency`.
 
 ``local`` Database
 ~~~~~~~~~~~~~~~~~~
