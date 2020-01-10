@@ -16,21 +16,19 @@
 
    * - Platform
      - 4.2 Community & Enterprise
-
      - 4.0 Community & Enterprise
-
      - 3.6 Community & Enterprise
      - 3.4 Community & Enterprise
 
    * - Ubuntu 18.04
-     - |checkmark|
+     - Community only
      -
      -
      -
 
    * - Ubuntu 16.04
-     - 
+     - Enterprise only
      - |checkmark|
-     - Enterprise
-     - Enterprise
+     - |checkmark|
+     - |checkmark|
 

@@ -6,15 +6,14 @@
 
    * - Platform
      - 4.2 Community & Enterprise
-   
-     - 4.0 Community & Enterprise
+     - 4.0 Enterprise
      - 3.6 Enterprise
      - 3.4 Enterprise
 
    * - RHEL/CentOS 7
      - |checkmark|
      - 4.0.6+
-     - 
+     - Removed starting in 3.6.17
      - 
 
    * - RHEL/CentOS 6
@@ -26,11 +25,11 @@
    * - SLES12
      - |checkmark|
      - 4.0.6+
-     - 
+     - Removed starting in 3.6.17
      - 
 
    * - Ubuntu 18.04
-     - |checkmark|
+     - 4.2.1+
      - 4.0.6+
      - 
      - 
