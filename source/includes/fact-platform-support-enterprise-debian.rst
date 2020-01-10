@@ -7,7 +7,7 @@ MongoDB {+version+} Enterprise Edition supports the following
 :red:`64-bit` Debian releases on 
 :ref:`x86_64<prod-notes-supported-platforms-x86_64>` architecture:
 
-- Debian 10 "Buster" (Starting in MongoDB 4.2.1)
+- Debian 10 "Buster" (Starting in MongoDB Enterprise 4.2.1)
 
 - Debian 9 "Stretch"
 
