@@ -42,20 +42,108 @@ following advantages over other network access management options:
 Considerations
 --------------
 
+High Availability
+~~~~~~~~~~~~~~~~~
+
 To ensure {+aws-pl+} connections to |service| can withstand an 
 availability zone outage, you should deploy |vpc| subnets to multiple 
 availability zones in a region.
 
-When Private Endpoints are enabled, you can still connect to your 
+.. _private-endpoint-connection-strings:
+
+Private Endpoint-Aware Connection Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you enable {+aws-pl+}, |service| generates an SRV record for your 
+VPC. This SRV record resolves to the network load balancer provisioned 
+in the |service| VPC, and assigns a unique port to each |service| 
+cluster node in the region for which you enabled {+aws-pl+}.
+
+Clients connecting to |service| clusters using {+aws-pl+} use private 
+endpoint-aware connection strings containing SRV records:
+
+.. code-block:: sh
+   :copyable: false
+
+   mongodb+srv://cluster0-pl-0-k45tj.mongodb-dev.net/test
+
+.. note::
+   Only clients that use your VPC's DNS can retrieve an SRV record from
+   a private endpoint-aware connection string.    
+
+The SRV record used in a private endpoint-aware connection string contains a configuration that maps a unique port for each member in a
+cluster's replica set to that hostname. The ports listed correspond to ports on the load balancer provisioned in the |service| VPC. When
+you connect using {+aws-pl+}, all nodes in an |service| cluster are accessible via the same hostname, with the load balancer resolving individual nodes by their port.
+
+The following example shows a DNS lookup of the SRV record for a 
+{+aws-pl+}-enabled single-region cluster, showing three unique ports defined for the ``cluster0-pl-0-k45tj.mongodb-dev.net`` hostname:
+
+.. code-block:: sh
+   :copyable: false
+
+   $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net
+
+   Server: 127.0.0.53
+   Address: 127.0.0.53#53
+
+   Non-authoritative answer:
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net service = 0 0 3 pl-0-us-east-1-k45tj.mongodb-dev.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net service = 0 0 1 pl-0-us-east-1-k45tj.mongodb-dev.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net service = 0 0 2 pl-0-us-east-1-k45tj.mongodb-dev.net.
+
+The hostname the SRV record contains is a CNAME record that resolves to 
+the endpoint-specific regional DNS name that AWS generates for the 
+interface endpoint. An alias record exists for each subnet you deployed 
+the interface endpoint to. Each alias record contains the private IP 
+address of the 
+:aws:`interface endpoint ENI </vpc/latest/userguide/vpce-interface.html>` 
+for that subnet.
+
+The following example shows the DNS lookup for the hostname in the SRV
+record, including the endpoint-specific regional DNS name for the
+interface endpoint and its alias records:
+
+.. code-block:: sh
+   :copyable: false
+
+   $ nslookup pl-0-us-east-1-k45tj.mongodb-dev.net
+   Server: 127.0.0.53
+   Address: 127.0.0.53#53
+
+   Non-authoritative answer:
+   pl-0-us-east-1-k45tj.mongodb-dev.net	
+   canonical name = vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com.
+   
+   Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
+   Address: 10.0.30.194
+   Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
+   Address: 10.0.20.54
+
+When a client in your VPC connects to an |service| cluster using a 
+private endpoint-aware connection string, the client attempts to 
+establish a connection to the load balancer in the |service| VPC through 
+one of the :aws:`interface endpoint ENIs </vpc/latest/userguide/vpce-interface.html>`. 
+Your client's DNS resolution mechanism handles which of the interface 
+endpoint ENIs the hostname resolves to. If one ENI is unavailable the 
+next is used. This is opaque to the driver or other connection mechanism. 
+The driver is only aware of the hostname in the SRV record, listening on 
+one port for each node in the cluster’s replica set.
+
+See :ref:`Connect to Atlas using a Private Endpoint <connect-private-endpoint>`
+to learn how to connect to |service| clusters using private 
+endpoint-aware connection strings.
+
+IP Whitelists and VPC Peering with Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When Private Endpoints are enabled, you can still enable access to your 
 |service| clusters using other methods, such as public 
 :doc:`IP whitelisting </security-whitelist>`
-and :doc:`VPC peering </security-vpc-peering>`. 
+and :doc:`VPC peering </security-vpc-peering>`.
 
-Clients connecting to |service| clusters using {+aws-pl+} use 
-:ref:`private endpoint-aware connection strings <connect-private-endpoint>`. 
-Clients connecting to |service| clusters using other methods use the 
+Clients connecting to |service| clusters using other methods use 
 standard connection strings. Your clients might have to identify when to 
-use PrivateLink-aware connection strings and standard connection 
+use private endpoint-aware connection strings and standard connection 
 strings.
 
 Limitations
@@ -138,14 +226,13 @@ You use a private endpoint-aware connection string when you connect to
 .. code-block:: sh
    :copyable: false
 
-   mongodb+srv://cluster0-pl-0-5aeio.mongodb-dev.net/test
+   mongodb+srv://cluster0-pl-0-k45tj.mongodb-dev.net/test
 
-The hostname in this connection string is a ``CNAME`` record that 
-resolves to the private endpoint's regional DNS name. Clients deployed 
-to the same |VPC| as the private endpoint properly resolve the hostname 
-in the connection string to the private endpoint. Clients deployed 
-outside of the VPC can't resolve the hostname and can't connect to the 
-private endpoint.
+.. note::
+   
+   See :ref:`Private Endpoint-Aware Connection Strings <private-endpoint-connection-strings>`
+   for important considerations about private endpoint-aware connection 
+   strings.
 
 Use a private endpoint-aware connection string to connect to an 
 |service| cluster with the following procedure:
