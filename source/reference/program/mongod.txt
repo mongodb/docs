@@ -1944,19 +1944,30 @@ TLS Options
 
    .. versionadded:: 4.2
    
-   .. note::
+      Specifies the :file:`.pem` file that contains both the TLS
+      certificate and key.
+
+   Starting with MongoDB 4.0 on macOS or Windows, you can use the
+   :option:`--tlsCertificateSelector` option to specify a 
+   certificate from the operating system's secure certificate store
+   instead of a PEM key file. :option:`--tlsCertificateKeyFile` and
+   :option:`--tlsCertificateSelector` options are mutually exclusive.
+   You can only specify one.
    
-    Starting in 4.0, on macOS or Windows, you can use a certificate from
-    the operating system's secure store instead of specifying a PEM file. See
-    :option:`--tlsCertificateSelector`.
+   - On Linux/BSD, you must specify :option:`--tlsCertificateKeyFile`
+     when TLS/SSL is enabled.
    
-   Specifies the :file:`.pem` file that contains both the TLS certificate
-   and key.
-   
-   - On Linux/BSD, you must specify :option:`--tlsCertificateKeyFile` when TLS is enabled.
-   
-   - On Windows or macOS, you must specify either :option:`--tlsCertificateKeyFile` or
-     :option:`--tlsCertificateSelector` when TLS is enabled.
+   - On Windows or macOS, you must specify either
+     :option:`--tlsCertificateKeyFile` or
+     :option:`--tlsCertificateSelector` when TLS/SSL is enabled.
+
+     .. important::
+
+        For Windows **only**, MongoDB 4.0 and later do not support
+        encrypted PEM files. The :binary:`~bin.mongod` fails to start if
+        it encounters an encrypted PEM file. To securely store and
+        access a certificate for use with TLS on Windows,
+        use :option:`--tlsCertificateSelector`.
    
    .. include:: /includes/extracts/tls-facts-see-more.rst
 
@@ -1966,9 +1977,11 @@ TLS Options
    .. versionadded:: 4.2
    
    Specifies the password to de-crypt the certificate-key file (i.e.
-   :option:`--tlsCertificateKeyFile`). Use the :option:`--tlsCertificateKeyFilePassword` option only if the
-   certificate-key file is encrypted. In all cases, the :program:`mongod` will
-   redact the password from all logging and reporting output.
+   :option:`--tlsCertificateKeyFile`). Use the
+   :option:`--tlsCertificateKeyFilePassword` option only if the
+   certificate-key file is encrypted. In all cases, the
+   :program:`mongod` will redact the password from all logging and
+   reporting output.
    
    Starting in MongoDB 4.0:
    
@@ -1976,11 +1989,16 @@ TLS Options
      you do not specify the :option:`--tlsCertificateKeyFilePassword` option, MongoDB will prompt for a
      passphrase. See :ref:`ssl-certificate-password`.
    
-   - On macOS or Windows, if the private key in the PEM file is
-     encrypted, you must explicitly specify the :option:`--tlsCertificateKeyFilePassword` option.
-     Alternatively, you can use a certificate from the secure system
-     store (see :option:`--tlsCertificateSelector`) instead of a PEM file or use an
+   - On macOS, if the private key in the PEM file is
+     encrypted, you must explicitly specify the
+     :option:`--tlsCertificateKeyFilePassword` option. Alternatively,
+     you can use a certificate from the secure system store (see
+     :option:`--tlsCertificateSelector`) instead of a PEM file or use an
      unencrypted PEM file.
+
+   - On Windows, MongoDB does not support encrypted certificates.
+     The :binary:`~bin.mongod` fails if it encounters an encrypted
+     PEM file. Use :option:`--tlsCertificateSelector` instead. 
    
    .. include:: /includes/extracts/tls-facts-see-more.rst
 
@@ -2035,91 +2053,139 @@ TLS Options
 
    .. versionadded:: 4.2
    
-   .. note::
+      Specifies the :file:`.pem` file that contains the x.509
+      certificate-key file for :ref:`membership authentication
+      <x509-internal-authentication>` for the cluster or replica set.
    
-      Starting in 4.0, on macOS or Windows, you can use a certificate
-      from the operating system's secure store instead of a PEM
-      file. See :option:`--tlsClusterCertificateSelector`.
+   Starting with MongoDB 4.0 on macOS or Windows, you can use the
+   :option:`--tlsClusterCertificateSelector` option to specify a
+   certificate from the operating system's secure certificate store
+   instead of a PEM key file. :option:`--tlsClusterFile` and
+   :option:`--tlsClusterCertificateSelector` options are mutually
+   exclusive. You can only specify one.
    
-   Specifies the :file:`.pem` file that contains the x.509 certificate-key
-   file for :ref:`membership authentication <x509-internal-authentication>`
-   for the cluster or replica set.
-   
-   
-   If :option:`--tlsClusterFile` does not specify the ``.pem`` file for internal cluster
-   authentication or the alternative
+   If :option:`--tlsClusterFile` does not specify the ``.pem`` file for
+   internal cluster authentication or the alternative
    :option:`--tlsClusterCertificateSelector`, the cluster uses the
-   ``.pem`` file specified in the :option:`--tlsCertificateKeyFile` option or
-   the certificate returned by the :option:`--tlsCertificateSelector`.
+   ``.pem`` file specified in the :option:`--tlsCertificateKeyFile`
+   option or the certificate returned by the
+   :option:`--tlsCertificateSelector`.
    
    .. include:: /includes/extracts/tls-facts-x509-ca-file.rst
    
    .. include:: /includes/extracts/tls-facts-see-more.rst
 
+   .. important::
+
+      For Windows **only**, MongoDB 4.0 and later do not support
+      encrypted PEM files. The :binary:`~bin.mongod` fails to start if
+      it encounters an encrypted PEM file. To securely store and
+      access a certificate for use with membership authentication on
+      Windows, use :option:`--tlsClusterCertificateSelector`.
 
 .. option:: --tlsCertificateSelector <parameter>=<value>
 
    
    .. versionadded:: 4.2
    
-      Available on Windows and macOS as an alternative to :option:`--tlsCertificateKeyFile`.
+      Available on Windows and macOS as an alternative to
+      :option:`--tlsCertificateKeyFile`.
+
+      Specifies a certificate property in order to select a matching
+      certificate from the operating system's certificate store to use
+      for TLS.
       
-      The :option:`--tlsCertificateKeyFile` and :option:`--tlsCertificateSelector` options are mutually exclusive. You can only
-      specify one.
+      The :option:`--tlsCertificateKeyFile` and
+      :option:`--tlsCertificateSelector` options are mutually exclusive.
+      You can only specify one.
    
-   Specifies a certificate property in order to select a matching
-   certificate from the operating system's certificate store.
-   
-   :option:`--tlsCertificateSelector` accepts an argument of the format ``<property>=<value>``
-   where the property can be one of the following:
+   :option:`--tlsCertificateSelector` accepts an argument of the format
+   ``<property>=<value>`` where the property can be one of the
+   following:
    
    .. include:: /includes/extracts/tls-facts-certificate-selector-properties.rst
    
    .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst
 
+   The :binary:`~bin.mongod` searches the operating system's secure
+   certificate store for the CA certificates required to validate the
+   full certificate chain of the specified TLS certificate.
+   Specifically, the secure certificate store must contain the root CA
+   and any intermediate CA certificates required to build the full
+   certificate chain to the TLS certificate. Do **not** use
+   :option:`--tlsCAFile` or :option:`--tlsClusterCAFile` to specify the
+   root and intermediate CA certificate
+   
+   For example, if the TLS/SSL certificate was signed with a single root
+   CA certificate, the secure certificate store must contain that root
+   CA certificate. If the TLS/SSL certificate was signed with an
+   intermediate CA certificate, the secure certificate store must
+   contain the intermedia CA certificate *and* the root CA certificate.
 
 .. option:: --tlsClusterCertificateSelector <parameter>=<value>
-
    
    .. versionadded:: 4.2
    
       Available on Windows and macOS as an alternative to
       :option:`--tlsClusterFile`.      
+   
+      Specifies a certificate property in order to select a matching
+      certificate from the operating system's certificate store to use
+      for :ref:`internal x.509 membership authentication
+      <internal-auth-x509>`.
       
-      :option:`--tlsClusterFile` and :option:`--tlsClusterCertificateSelector` options are mutually exclusive. You can only
-      specify one.
+      :option:`--tlsClusterFile` and
+      :option:`--tlsClusterCertificateSelector` options are mutually
+      exclusive. You can only specify one.
    
-   
-   Specifies a certificate property in order to select a matching
-   certificate from the operating system's certificate store to use for
-   internal authentication.
-   
-   :option:`--tlsClusterCertificateSelector` accepts an argument of the format ``<property>=<value>``
-   where the property can be one of the following:
+   :option:`--tlsClusterCertificateSelector` accepts an argument of the
+   format ``<property>=<value>`` where the property can be one of the
+   following:
    
    .. include:: /includes/extracts/tls-facts-certificate-selector-properties.rst
 
+   The :binary:`~bin.mongod` searches the operating system's secure
+   certificate store for the CA certificates required to validate the
+   full certificate chain of the specified cluster certificate.
+   Specifically, the secure certificate store must contain the root CA
+   and any intermediate CA certificates required to build the full
+   certificate chain to the cluster certificate. Do **not** use
+   :option:`--tlsCAFile` or :option:`--tlsClusterCAFile` to specify the
+   root and intermediate CA certificate.
+   
+   For example, if the cluster certificate was signed with a single root
+   CA certificate, the secure certificate store must contain that root
+   CA certificate. If the cluster certificate was signed with an
+   intermediate CA certificate, the secure certificate store must
+   contain the intermedia CA certificate *and* the root CA certificate.
 
 .. option:: --tlsClusterPassword <value>
 
    .. versionadded:: 4.2
    
-   Specifies the password to de-crypt the x.509 certificate-key file
-   specified with ``--tlsClusterFile``. Use the :option:`--tlsClusterPassword` option only
-   if the certificate-key file is encrypted. In all cases, the :program:`mongod`
-   will redact the password from all logging and reporting output.
+      Specifies the password to de-crypt the x.509 certificate-key file
+      specified with :option:`--tlsClusterFile`. Use the
+      :option:`--tlsClusterPassword` option only if the certificate-key
+      file is encrypted. In all cases, the :program:`mongod` will redact
+      the password from all logging and reporting output.
    
    Starting in MongoDB 4.0:
    
    - On Linux/BSD, if the private key in the x.509 file is encrypted and
-     you do not specify the :option:`--tlsClusterPassword` option, MongoDB will prompt for a
-     passphrase. See :ref:`ssl-certificate-password`.
+     you do not specify the :option:`--tlsClusterPassword` option,
+     MongoDB will prompt for a passphrase. See
+     :ref:`ssl-certificate-password`.
    
-   - On macOS or Windows, if the private key in the x.509 file is
-     encrypted, you must explicitly specify the :option:`--tlsClusterPassword` option.
-     Alternatively, you can either use a certificate from the secure
-     system store (see :option:`--tlsClusterCertificateSelector`) instead of a cluster PEM file or
-     use an unencrypted PEM file.
+   - On macOS, if the private key in the x.509 file is
+     encrypted, you must explicitly specify the
+     :option:`--tlsClusterPassword` option. Alternatively, you can
+     either use a certificate from the secure system store (see
+     :option:`--tlsClusterCertificateSelector`) instead of a cluster PEM
+     file or use an unencrypted PEM file.
+
+   - On Windows, MongoDB does not support encrypted certificates.
+     The :binary:`~bin.mongod` fails if it encounters an encrypted
+     PEM file. Use :option:`--tlsClusterCertificateSelector` instead.
    
    
    .. include:: /includes/extracts/tls-facts-see-more.rst
@@ -2129,40 +2195,50 @@ TLS Options
 
    .. versionadded:: 4.2
    
-   Specifies the :file:`.pem` file that contains the root certificate chain
-   from the Certificate Authority. Specify the file name of the
+   Specifies the :file:`.pem` file that contains the root certificate
+   chain from the Certificate Authority. Specify the file name of the
    :file:`.pem` file using relative or absolute paths.
    
-   Starting in 4.0, on macOS or Windows, you can use a certificate from
-   the operating system's secure store instead of a PEM key file. See
-   :option:`--tlsCertificateSelector`. When using the secure store, you
-   do not need to, but can, also specify the :option:`--tlsCAFile`.
+   Windows/macOS Only
+     If using :option:`--tlsCertificateSelector` and/or
+     :option:`--tlsClusterCertificateSelector`, do **not** use
+     :option:`--tlsCAFile` to specify the root and intermediate CA
+     certificates. Store all CA certificates required to validate the
+     full trust chain of the :option:`--tlsCertificateSelector` and/or
+     :option:`--tlsClusterCertificateSelector` certificates in the
+     secure certificate store.
    
    .. include:: /includes/extracts/tls-facts-see-more.rst
-
 
 .. option:: --tlsClusterCAFile <filename>
 
    .. versionadded:: 4.2
    
-   Specifies the :file:`.pem` file that contains the root certificate chain
-   from the Certificate Authority used to validate the certificate
+   Specifies the :file:`.pem` file that contains the root certificate
+   chain from the Certificate Authority used to validate the certificate
    presented by a client establishing a connection. Specify the file
-   name of the :file:`.pem` file using relative or absolute paths.
+   name of the :file:`.pem` file using relative or absolute paths. 
+   :option:`--tlsClusterCAFile` requires that 
+   :option:`--tlsCAFile` is set.
    
-   If :option:`--tlsClusterCAFile` does not specify the :file:`.pem` file for validating the
-   certificate from a client establishing a connection, the cluster uses
-   the :file:`.pem` file specified in the :option:`--tlsCAFile` option.
+   If :option:`--tlsClusterCAFile` does not specify the :file:`.pem`
+   file for validating the certificate from a client establishing a
+   connection, the cluster uses the :file:`.pem` file specified in the
+   :option:`--tlsCAFile` option.
    
-   :option:`--tlsClusterCAFile` lets you use separate Certificate Authorities to verify the
-   client to server and server to client portions of the TLS handshake.
-   
-   Starting in 4.0, on macOS or Windows, you can use a certificate from
-   the operating system's secure store instead of a PEM key file. See
-   :option:`--tlsClusterCertificateSelector`. When using the secure store, you
-   do not need to, but can, also specify the :option:`--tlsClusterCAFile`.
-   
-   Requires that :option:`--tlsCAFile` is set.
+   :option:`--tlsClusterCAFile` lets you use separate Certificate
+   Authorities to verify the client to server and server to client
+   portions of the TLS handshake.
+
+   Windows/macOS Only
+     If using :option:`--tlsCertificateSelector` and/or
+     :option:`--tlsClusterCertificateSelector`, do **not** use
+     :option:`--tlsClusterCAFile` to specify the root and
+     intermediate CA certificates. Store all CA certificates required to
+     validate the full trust chain of the
+     :option:`--tlsCertificateSelector` and/or
+     :option:`--tlsClusterCertificateSelector` certificates in the
+     secure certificate store.
    
    .. include:: /includes/extracts/tls-facts-see-more.rst
 
