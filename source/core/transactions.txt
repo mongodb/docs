@@ -36,301 +36,251 @@ The following example highlights the key components
 of the transactions API:
 
 
-.. tabs::
+.. tabs-pillstrip:: languages
 
-   tabs:
+.. tabs-drivers::
+   
+   .. tab::
+      :tabid: python
 
-     - id: pythontxn
-       name: Python
-
-       content: |
-
-          The example uses the new callback API for working with
-          transactions, which starts a transaction, executes the
-          specified operations, and commits (or aborts on error). The
-          new callback API also incorporates retry logic for
-          ``TransientTransactionError`` or
-          ``UnknownTransactionCommitResult`` commit errors.
-
-          .. important::
-          
-             - For transactions on MongoDB 4.2 deployments (replica
-               sets and sharded clusters), clients :red:`must` use
-               MongoDB drivers updated for MongoDB 4.2.
-
-             - When using the drivers, each operation in the
-               transaction must be associated with the session (i.e.
-               pass in the session to each operation).
-
-          .. literalinclude:: /driver-examples/test_examples.py
-             :language: python
-             :dedent: 8
-             :start-after: Start Transactions withTxn API Example 1
-             :end-before: End Transactions withTxn API Example 1
-
-     - id: javatxn
-       name: Java
-
-       content: |
-
-          The example uses the new callback API for working with
-          transactions, which starts a transaction, executes the
-          specified operations, and commits (or aborts on error). The
-          new callback API also incorporates retry logic for
-          ``TransientTransactionError`` or
-          ``UnknownTransactionCommitResult`` commit errors.
-
-          .. important::
-          
-             - For transactions on MongoDB 4.2 deployments (replica
-               sets and sharded clusters), clients :red:`must` use
-               MongoDB drivers updated for MongoDB 4.2.
-
-             - When using the drivers, each operation in the
-               transaction must be associated with the session (i.e.
-               pass in the session to each operation).
-
-          .. code-block:: java
-
-             /*
-               For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
-               String uri = "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl";
-               For a sharded cluster, connect to the mongos instances; e.g.
-               String uri = "mongodb://mongos0.example.com:27017,mongos1.example.com:27017:27017/admin";
-              */
-
-             final MongoClient client = MongoClients.create(uri);
-
-             /*
-                 Prereq: Create collections. CRUD operations in transactions must be on existing collections.
-              */
-
-             client.getDatabase("mydb1").getCollection("foo")
-                     .withWriteConcern(WriteConcern.MAJORITY).insertOne(new Document("abc", 0));
-             client.getDatabase("mydb2").getCollection("bar")
-                     .withWriteConcern(WriteConcern.MAJORITY).insertOne(new Document("xyz", 0));
-
-             /* Step 1: Start a client session. */
-
-             final ClientSession clientSession = client.startSession();
-
-             /* Step 2: Optional. Define options to use for the transaction. */
-
-             TransactionOptions txnOptions = TransactionOptions.builder()
-                     .readPreference(ReadPreference.primary())
-                     .readConcern(ReadConcern.LOCAL)
-                     .writeConcern(WriteConcern.MAJORITY)
-                     .build();
-
-             /* Step 3: Define the sequence of operations to perform inside the transactions. */
-
-             TransactionBody txnBody = new TransactionBody<String>() {
-                 public String execute() {
-                     MongoCollection<Document> coll1 = client.getDatabase("mydb1").getCollection("foo");
-                     MongoCollection<Document> coll2 = client.getDatabase("mydb2").getCollection("bar");
-
-                     /*
-                        Important:: You must pass the session to the operations.
-                      */
-                     coll1.insertOne(clientSession, new Document("abc", 1));
-                     coll2.insertOne(clientSession, new Document("xyz", 999));
-                     return "Inserted into collections in different databases";
-                 }
-             };
-             try {
-                 /* 
-                    Step 4: Use .withTransaction() to start a transaction, 
-                    execute the callback, and commit (or abort on error).
-                 */
-
-                 clientSession.withTransaction(txnBody, txnOptions);
-             } catch (RuntimeException e) {
-                 // some error handling
-             } finally {
-                 clientSession.close();
-             }
-
-     - id: nodetxn
-       name: Node.js
-       content: |
-
-          The example uses the new callback API for working with
-          transactions, which starts a transaction, executes the
-          specified operations, and commits (or aborts on error). The
-          new callback API also incorporates retry logic for
-          ``TransientTransactionError`` or
-          ``UnknownTransactionCommitResult`` commit errors.
-
-          .. important::
-          
-             - For transactions on MongoDB 4.2 deployments (replica
-               sets and sharded clusters), clients :red:`must` use
-               MongoDB drivers updated for MongoDB 4.2.
-
-             - When using the drivers, each operation in the
-               transaction must be associated with the session (i.e.
-               pass in the session to each operation).
-
-          .. literalinclude:: /driver-examples/node_transactions.js
-             :language: javascript
-             :dedent: 4
-             :start-after: Start Transactions withTxn API Example 1
-             :end-before: End Transactions withTxn API Example 1
-
-     - id: phptxn
-       name: PHP
-       content: |
-
-          The example uses the new callback API for working with
-          transactions, which starts a transaction, executes the
-          specified operations, and commits (or aborts on error). The
-          new callback API also incorporates retry logic for
-          ``TransientTransactionError`` or
-          ``UnknownTransactionCommitResult`` commit errors.
-
-          .. important::
-          
-             - For transactions on MongoDB 4.2 deployments (replica
-               sets and sharded clusters), clients :red:`must` use
-               MongoDB drivers updated for MongoDB 4.2.
-
-             - When using the drivers, each operation in the
-               transaction must be associated with the session (i.e.
-               pass in the session to each operation).
-
-          .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
-             :language: php
-             :dedent: 8
-             :start-after: Start Transactions withTxn API Example 1
-             :end-before: End Transactions withTxn API Example 1
-
-     - id: csharp
-       name: C#
-       content: |
-
-          The example uses the new callback API for working with
-          transactions, which starts a transaction, executes the
-          specified operations, and commits (or aborts on error). The
-          new callback API also incorporates retry logic for
-          ``TransientTransactionError`` or
-          ``UnknownTransactionCommitResult`` commit errors.
-
-          .. important::
-          
-             - For transactions on MongoDB 4.2 deployments (replica
-               sets and sharded clusters), clients :red:`must` use
-               MongoDB drivers updated for MongoDB 4.2.
-
-             - When using the drivers, each operation in the
-               transaction must be associated with the session (i.e.
-               pass in the session to each operation).
-
-
-          .. literalinclude:: /driver-examples/withTxnExample1.cs
-             :language: c#
-             :dedent: 12
-             :start-after: Start Transactions withTxn API Example 1
-             :end-before: End Transactions withTxn API Example 1
-
-     - id: c
-       name: C
-       content: |
-
-          The example uses the new callback API for working with
-          transactions, which starts a transaction, executes the
-          specified operations, and commits (or aborts on error). The
-          new callback API also incorporates retry logic for
-          ``TransientTransactionError`` or
-          ``UnknownTransactionCommitResult`` commit errors.
-
-          .. important::
-          
-             - For transactions on MongoDB 4.2 deployments (replica
-               sets and sharded clusters), clients :red:`must` use
-               MongoDB drivers updated for MongoDB 4.2.
-
-             - When using the drivers, each operation in the
-               transaction must be associated with the session (i.e.
-               pass in the session to each operation).
-
-
-          .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
-             :language: c
-             :start-after: Start Transactions withTxn API Example 1
-             :end-before: End Transactions withTxn API Example 1
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API also incorporates retry logic for
+      ``TransientTransactionError`` or
+      ``UnknownTransactionCommitResult`` commit errors.
              
-     - id: mongoshell
-       name: mongo Shell
+      .. important::
+      
+         - For transactions on MongoDB 4.2 deployments (replica
+           sets and sharded clusters), clients :red:`must` use
+           MongoDB drivers updated for MongoDB 4.2.
+             
+         - When using the drivers, each operation in the
+           transaction must be associated with the session (i.e.
+           pass in the session to each operation).
+             
+      .. literalinclude:: /driver-examples/test_examples.py
+         :language: python
+         :dedent: 8
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
 
-       content: |
+   .. tab::
+      :tabid: java-sync
 
-           .. note::
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API also incorporates retry logic for
+      ``TransientTransactionError`` or
+      ``UnknownTransactionCommitResult`` commit errors.
+          
+      .. important::
+      
+         - For transactions on MongoDB 4.2 deployments (replica
+           sets and sharded clusters), clients :red:`must` use
+           MongoDB drivers updated for MongoDB 4.2.
+          
+         - When using the drivers, each operation in the
+           transaction must be associated with the session (i.e.
+           pass in the session to each operation).
+          
+      .. code-block:: java
+          
+         /*
+           For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
+           String uri = "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl";
+           For a sharded cluster, connect to the mongos instances; e.g.
+           String uri = "mongodb://mongos0.example.com:27017,mongos1.example.com:27017:27017/admin";
+          */
+          
+         final MongoClient client = MongoClients.create(uri);
+          
+         /*
+             Prereq: Create collections. CRUD operations in transactions must be on existing collections.
+          */
+          
+         client.getDatabase("mydb1").getCollection("foo")
+                 .withWriteConcern(WriteConcern.MAJORITY).insertOne(new Document("abc", 0));
+         client.getDatabase("mydb2").getCollection("bar")
+                 .withWriteConcern(WriteConcern.MAJORITY).insertOne(new Document("xyz", 0));
+          
+         /* Step 1: Start a client session. */
+          
+         final ClientSession clientSession = client.startSession();
+          
+         /* Step 2: Optional. Define options to use for the transaction. */
+          
+         TransactionOptions txnOptions = TransactionOptions.builder()
+                 .readPreference(ReadPreference.primary())
+                 .readConcern(ReadConcern.LOCAL)
+                 .writeConcern(WriteConcern.MAJORITY)
+                 .build();
+          
+         /* Step 3: Define the sequence of operations to perform inside the transactions. */
+          
+         TransactionBody txnBody = new TransactionBody<String>() {
+             public String execute() {
+                 MongoCollection<Document> coll1 = client.getDatabase("mydb1").getCollection("foo");
+                 MongoCollection<Document> coll2 = client.getDatabase("mydb2").getCollection("bar");
+          
+                 /*
+                    Important:: You must pass the session to the operations.
+                  */
+                 coll1.insertOne(clientSession, new Document("abc", 1));
+                 coll2.insertOne(clientSession, new Document("xyz", 999));
+                 return "Inserted into collections in different databases";
+             }
+         };
+         try {
+             /* 
+                Step 4: Use .withTransaction() to start a transaction, 
+                execute the callback, and commit (or abort on error).
+             */
+          
+             clientSession.withTransaction(txnBody, txnOptions);
+         } catch (RuntimeException e) {
+             // some error handling
+         } finally {
+             clientSession.close();
+         }
 
-              The :binary:`~bin.mongo` shell example omits retry logic
-              and robust error handling for simplicity's sake. For a
-              more practical example of incorporating transactions in
-              applications, see :ref:`transactions-retry` instead.
+   .. tab::
+      :tabid: nodejs
 
-           .. code-block:: javascript
-              :copyable: false
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API also incorporates retry logic for
+      ``TransientTransactionError`` or
+      ``UnknownTransactionCommitResult`` commit errors.
 
-              // Prereq: Create collections. CRUD operations in transactions must be on existing collections.
-              db.getSiblingDB("mydb1").foo.insert( {abc: 0}, { writeConcern: { w: "majority", wtimeout: 2000 } } );
-              db.getSiblingDB("mydb2").bar.insert( {xyz: 0}, { writeConcern: { w: "majority", wtimeout: 2000 } } );
-              
-              // Start a session.
-              session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
+      .. important::
+      
+         - For transactions on MongoDB 4.2 deployments (replica
+           sets and sharded clusters), clients :red:`must` use
+           MongoDB drivers updated for MongoDB 4.2.
 
-              coll1 = session.getDatabase("mydb1").foo;
-              coll2 = session.getDatabase("mydb2").bar;
+         - When using the drivers, each operation in the
+           transaction must be associated with the session (i.e.
+           pass in the session to each operation).
 
-              // Start a transaction
-              session.startTransaction( { readConcern: { level: "local" }, writeConcern: { w: "majority" } } );
+      .. literalinclude:: /driver-examples/node_transactions.js
+         :language: javascript
+         :dedent: 4
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
 
-              // Operations inside the transaction
-              try {
-                 coll1.insertOne( { abc: 1 } );
-                 coll2.insertOne( { xyz: 999 } );
-              } catch (error) {
-                 // Abort transaction on error
-                 session.abortTransaction();
-                 throw error;
-              }
+   .. tab::
+      :tabid: php
 
-              // Commit the transaction using write concern set at transaction start
-              session.commitTransaction();
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API also incorporates retry logic for
+      ``TransientTransactionError`` or
+      ``UnknownTransactionCommitResult`` commit errors.
 
-              session.endSession();
+      .. important::
+      
+         - For transactions on MongoDB 4.2 deployments (replica
+           sets and sharded clusters), clients :red:`must` use
+           MongoDB drivers updated for MongoDB 4.2.
 
-     - id: motor
-       name: Motor
-       content: |
+         - When using the drivers, each operation in the
+           transaction must be associated with the session (i.e.
+           pass in the session to each operation).
+
+      .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+         :language: php
+         :dedent: 8
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. tab::
+      :tabid: csharp
+
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API also incorporates retry logic for
+      ``TransientTransactionError`` or
+      ``UnknownTransactionCommitResult`` commit errors.
+
+      .. important::
+      
+         - For transactions on MongoDB 4.2 deployments (replica
+           sets and sharded clusters), clients :red:`must` use
+           MongoDB drivers updated for MongoDB 4.2.
+
+         - When using the drivers, each operation in the
+           transaction must be associated with the session (i.e.
+           pass in the session to each operation).
+
+
+      .. literalinclude:: /driver-examples/withTxnExample1.cs
+         :language: c#
+         :dedent: 12
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. tab::
+      :tabid: c
+
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API also incorporates retry logic for
+      ``TransientTransactionError`` or
+      ``UnknownTransactionCommitResult`` commit errors.
+
+      .. important::
+      
+         - For transactions on MongoDB 4.2 deployments (replica
+           sets and sharded clusters), clients :red:`must` use
+           MongoDB drivers updated for MongoDB 4.2.
+
+         - When using the drivers, each operation in the
+           transaction must be associated with the session (i.e.
+           pass in the session to each operation).
+
+
+      .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+         :language: c
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. tab::
+      :tabid: motor
        
-         .. important::
+      .. important::
 
-            - For transactions on MongoDB 4.2 deployments (replica
-              sets and sharded clusters), clients :red:`must` use
-              MongoDB drivers updated for MongoDB 4.2.
-         
-            - When using the drivers, each operation in the
-              transaction must be associated with the session (i.e.
-              pass in the session to each operation).
+         - For transactions on MongoDB 4.2 deployments (replica
+           sets and sharded clusters), clients :red:`must` use
+           MongoDB drivers updated for MongoDB 4.2.
+      
+         - When using the drivers, each operation in the
+           transaction must be associated with the session (i.e.
+           pass in the session to each operation).
 
-         The example uses the new callback API for working with
-         transactions, which starts a transaction, executes the
-         specified operations, and commits (or aborts on error). The
-         new callback API incorporates retry logic for
-         :ref:`transient-transaction-error` or
-         :ref:`unknown-transaction-commit-result` commit errors.
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
 
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/test_examples_motor.py
-            :language: python
-            :dedent: 8
-            :start-after: Start Transactions withTxn API Example 1
-            :end-before: End Transactions withTxn API Example 1
+      .. class:: copyable-code
+      .. literalinclude:: /driver-examples/test_examples_motor.py
+         :language: python
+         :dedent: 8
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
 
+.. seealso::
 
+   For an example in :binary:`~bin.mongo` shell, see :ref:`txn-mongo-shell-example`.
 
 .. _transactions-atomicity:
 

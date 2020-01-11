@@ -429,6 +429,11 @@ clusters)*, use the MongoDB drivers updated for MongoDB 4.2
 Additional Information
 ----------------------
 
+.. _txn-mongo-shell-example:
+
+``mongo`` Shell Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
 The following :binary:`~bin.mongo` shell methods are available for
 transactions:
 
@@ -437,3 +442,42 @@ transactions:
 - :method:`Session.commitTransaction()`
 
 - :method:`Session.abortTransaction()`
+
+.. note::
+
+   The :binary:`~bin.mongo` shell example omits retry logic
+   and robust error handling for simplicity's sake. For a
+   more practical example of incorporating transactions in
+   applications, see :ref:`transactions-retry` instead.
+
+.. code-block:: javascript
+   :copyable: false
+
+   // Prereq: Create collections. CRUD operations in transactions must be on existing collections.
+   db.getSiblingDB("mydb1").foo.insert( {abc: 0}, { writeConcern: { w: "majority", wtimeout: 2000 } } );
+   db.getSiblingDB("mydb2").bar.insert( {xyz: 0}, { writeConcern: { w: "majority", wtimeout: 2000 } } );
+   
+   // Start a session.
+   session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
+
+   coll1 = session.getDatabase("mydb1").foo;
+   coll2 = session.getDatabase("mydb2").bar;
+
+   // Start a transaction
+   session.startTransaction( { readConcern: { level: "local" }, writeConcern: { w: "majority" } } );
+
+   // Operations inside the transaction
+   try {
+      coll1.insertOne( { abc: 1 } );
+      coll2.insertOne( { xyz: 999 } );
+   } catch (error) {
+      // Abort transaction on error
+      session.abortTransaction();
+      throw error;
+   }
+
+   // Commit the transaction using write concern set at transaction start
+   session.commitTransaction();
+
+   session.endSession();
+
