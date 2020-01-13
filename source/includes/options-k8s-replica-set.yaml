@@ -364,5 +364,62 @@ inherit:
   name: spec.security.authentication.internalCluster
   program: _shared
   file: options-k8s-shared.yaml
+---
+program: k8sRsConf
+name: spec.connectivity.replicaSetHorizons
+type: collection
+directive: setting
+optional: true
+description: |
+  Allows you to provide different |dns| settings for client
+  applications and the {+mdbagent+}s. The |k8s-op-short| uses split
+  horizon |dns| for replica set members horizons to allow the:
 
+  - {+mdbagent+}s to communicate with each other on the internal
+    horizon within |k8s|
+  - clients to communicate with the replica set using the external
+    horizon outside |k8s|
+
+  .. admonition:: Split Horizon Requirements
+     :class: note
+
+     - Make sure each value in this array must be unique.
+
+     - Make sure that the number of entries in this array matches the
+       value given in :setting:`spec.members`.
+
+     - Set the :setting:`spec.security.tls.enabled` to ``true`` to enable |tls|. This method to use split horizons requires the Server Name Indication extension of the |tls| protocol.
+
+  .. example::
+
+     In this example, the example replica set communicates between
+     members on the ``example-localhost`` horizon. Clients communicate
+     with the replica set using the ``example-website`` horizon.
+
+     .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
+        :language: yaml
+        :start-after: START-horizon-addcert-replset-upper
+        :end-before: END-horizon-addcert-replset-upper
+        :linenos:
+        :lineno-start: 1
+        :copyable: false
+
+     .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
+        :language: yaml
+        :start-after: START-horizon-addcert-replset-lower
+        :end-before: END-horizon-addcert-replset-lower
+        :linenos:
+        :lineno-start: 15
+        :emphasize-lines: 1-13
+
+---
+program: k8sRsConf
+name: spec.security.tls.additionalCertificateDomains
+type: boolean
+directive: setting
+optional: true
+inherit:
+  name: spec.security.tls.additionalCertificateDomains
+  program: _shared
+  file: options-k8s-shared.yaml
 ...
