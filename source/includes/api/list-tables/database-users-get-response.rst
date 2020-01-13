@@ -53,6 +53,38 @@
               group. To learn more about |ldap| security, see
               :doc:`/security-ldaps`.
 
+   * - ``x509Type``
+     - string
+     - X.509 method by which the provided ``username`` is
+       authenticated. If no value is given, |service| uses the default 
+       value of ``NONE``.
+       
+       The possible types are:
+       
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
+
+          * - ``NONE``
+            - The user does not use X.509 authentication.
+
+          * - ``MANAGED``
+            - The user is being created for use with |service|-managed 
+              X.509. 
+              
+              Externally authenticated users can only be created on the 
+              ``$external`` database.
+
+          * - ``CUSTOMER``
+            - The user is being created for use with 
+              :ref:`Self-Managed X.509 <self-managed-x509>`. Users 
+              created with this ``x509Type`` require a 
+              Common Name (CN) in the ``username`` field. To learn more,
+              see `RFC 2253 <https://tools.ietf.org/html/rfc2253>`_.
+              
+              Externally authenticated users can only be created on the 
+              ``$external`` database.
+
    * - ``links``
      - document array
      - One or more :ref:`links <api-linking>` to sub-resources and/or
