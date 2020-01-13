@@ -22,22 +22,6 @@
 
      - ``myconfigmap``
 
-   * - ``metadata.namespace``
-     - string
-     - Scope of object names. Used to limit what can be managed to
-       a subset of all |k8s-objs|. The default value is ``mongodb``.
-
-       .. important::
-          The |k8s-op-short|, |k8s-secret|, and |k8s-mdbrsc|\s
-          *must* be created in the same |k8s-ns|.
-
-       .. seealso::
-
-          - :setting:`metadata.namespace`
-          - |k8s| documentation on |k8s-nss|
-
-     - ``mongodb``
-
    * - ``data.projectName``
      - string
      - Label for your |mms|

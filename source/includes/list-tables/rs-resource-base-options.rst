@@ -19,22 +19,6 @@
 
      - ``myproject``
 
-   * - :setting:`metadata.namespace`
-     - string
-     - Scope of object names. |k8s| |k8s-ns| where this
-       |k8s-mdbrsc| and other |k8s-objs| are created.
-
-       Using two different namespaces allows you to delete your
-       standalone or all of the resources in the namespace without
-       affecting your |k8s-op-short|.
-
-       .. seealso::
-
-          - :setting:`metadata.namespace`
-          - |k8s| documentation on |k8s-nss|
-
-     - ``mongodb``
-
    * - :setting:`spec.members`
      - integer
      - Number of members of the :term:`replica set`.
@@ -61,18 +45,7 @@
        :setting:`spec.cloudManager.configMapRef.name` setting is an
        alias for this setting and can be used in its place.
 
-       .. admonition:: Value must match namespace and name of ConfigMap
-          :class: note
-
-          This value *must* match the value you provided for
-          :setting:`metadata.name` in your |onprem|
-          :ref:`project ConfigMap <create-k8s-project>`.
-
-          If this |k8s-mdbrsc| is in a different |k8s-ns| than the
-          :ref:`project ConfigMap <create-k8s-project>`, you should
-          set this value to the namespace *and* name of the
-          ConfigMap in this format:
-          ``<metadata.namespace>/<metadata.name>``
+       .. include:: /includes/admonitions/note-namespace-match-configmap.rst
 
        .. include:: /includes/k8s/fact-k8s-operator-manages-configmap.rst
 
@@ -86,17 +59,7 @@
        authentication credentials for the |k8s-op-short| to
        communicate with |onprem|.
 
-       .. admonition:: Value must use namespace and name of Secret
-          :class: note
-
-          This value *must* match the value you provided for
-          :setting:`namespace` and `name` for your |mms| |k8s|
-          :ref:`Secret <create-k8s-credentials>`.
-
-          If this |k8s-obj| is in a different |k8s-ns| than the
-          Secret, you should set this value to the namespace *and*
-          name of the Secret in this format:
-          ``<namespace>/<name>``
+       .. include:: /includes/admonitions/note-namespace-match-secret.rst
 
        .. include:: /includes/k8s/fact-k8s-operator-manages-secret.rst
 

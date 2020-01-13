@@ -69,7 +69,7 @@
 
    .. code-block:: sh
 
-      kubectl get mdb <resource-name> -n <namespace> -o yaml -w
+      kubectl get mdb <resource-name> -o yaml -w
 
    For an example of this command's output, see
    :ref:`get-resource-status`.
