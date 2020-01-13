@@ -1,0 +1,114 @@
+====================================
+Enterprise Authentication Mechanisms
+====================================
+
+In this section, you can find sample code for connection to MongoDB with each
+authentication mechanism available in the MongoDB Enterprise Edition:
+``Kerberos (GSSAPI/SSPI)`` and  ``LDAP (PLAIN)``.
+
+``Kerberos (GSSAPI/SSPI)``
+--------------------------
+
+.. note::
+   The Node.js driver supports Kerberos on UNIX using the MIT Kerberos library
+   and on Windows using the SSPI API.
+
+The ``GSSAPI`` authentication mechanism uses your user principal to
+authenticate to a Kerberos service.
+
+You can specify this authentication mechanism by setting the following
+parameters of the
+:manual:`URI ConnectionString </manual/reference/connection-string/>`:
+
+- Set the ``authMechanism`` parameter to ``GSSAPI``
+- Set the ``gssapiServiceName`` if using a value other than ``mongodb``
+- Specify a ``SERVICE_REALM`` value in the ``authMechanismProperties``
+  parameter if a custom service realm is required.
+
+The following code sample authenticates to Kerberos for UNIX using ``GSSAPI``.
+
+.. code-block:: js
+
+   const { MongoClient } = require("mongodb");
+
+   // specify the placeholder values for your environment in the following lines
+   const clusterUrl = "<MongoDB cluster URL>";
+   const principal = encodeURIComponent("<Kerberos principal and realm>");
+   const serviceRealm = "<Kerberos service realm>";
+   const authMechanismProperties = `SERVICE_REALM:${serviceRealm}`;
+
+   const authMechanism = "GSSAPI";
+
+   // Connection URI
+   const uri = `mongodb+srv://${principal}@${clusterUrl}/?authMechanism=${authMechanism}&authMechanismProperties=${authMechanismProperties}`;
+
+   const client = new MongoClient(uri);
+
+   // Function to connect to the server
+   async function run() {
+     try {
+       // Connect the client to the server
+       await client.connect();
+
+       // Establish and verify connection
+       await client.db("admin").command({ ping: 1 });
+       console.log("Connected successfully to server");
+     } finally {
+       // Ensures that the client will close when you finish/error
+       await client.close();
+     }
+   }
+   run().catch(console.dir);
+
+.. note::
+   The method refers to the ``GSSAPI`` authentication mechanism instead
+   of ``Kerberos`` because the driver authenticates via
+   `GSSAPI RFC-4652 <https://tools.ietf.org/html/rfc4752>`_ the SASL
+   mechanism.
+
+``LDAP (PLAIN)``
+----------------
+
+The ``PLAIN`` authentication mechanism uses your username and password to
+authenticate to a Lightweight Directory Access Protocol (LDAP) server.
+
+You can specify this authentication mechanism by setting the ``authMechanism``
+parameter to ``PLAIN`` and including your LDAP username and password in the
+:manual:`URI ConnectionString </reference/connection-string/>` as shown
+in the following sample code.
+
+.. code-block:: js
+
+   const { MongoClient } = require("mongodb");
+
+   // specify the placeholder values for your environment in the following lines
+   const clusterUrl = "<MongoDB cluster URL>";
+   const ldapUsername = "<LDAP username>";
+   const ldapPassword = "<LDAP password>";
+   const authMechanism = "PLAIN";
+
+   // Connection URI
+   const uri = `mongodb+srv://${ldapUsername}:${ldapPassword}@${clusterUrl}/?authMechanism=${authMechanism}`;
+
+   const client = new MongoClient(uri);
+
+   // Function to connect to the server
+   async function run() {
+     try {
+       // Connect the client to the server
+       await client.connect();
+
+       // Establish and verify connection
+       await client.db("admin").command({ ping: 1 });
+       console.log("Connected successfully to server");
+     } finally {
+       // Ensures that the client will close when you finish/error
+       await client.close();
+     }
+   }
+   run().catch(console.dir);
+
+.. note::
+   The authentication mechanism is named ``PLAIN`` instead of ``LDAP`` since it
+   authenticates using the `PLAIN Simple Authentication and Security Layer
+   (SASL) defined in RFC-4616 <https://tools.ietf.org/html/rfc4616>`_.
