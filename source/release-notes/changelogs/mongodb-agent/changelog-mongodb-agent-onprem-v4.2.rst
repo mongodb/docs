@@ -1,3 +1,14 @@
+.. _mongodb-10.2.12.5930:
+
+MongoDB Agent 10.2.12.5930
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.7 on 2020-01-09 <opsmgr-server-4.2.7>`
+
+- Improves the behavior when a rollback occurs on a source cluster
+  using replication protocol v0 when backing up clusters running
+  MongoDB 4.0 and earlier.
+
 .. _mongodb-10.2.11.5927:
 
 MongoDB Agent 10.2.11.5927

@@ -1,3 +1,14 @@
+.. _opsmgr-server-4.2.7:
+
+|onprem| Server 4.2.7
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-01-09*
+
+- Optimizes snapshots of MongoDB 4.2 and later clusters. This increases
+  parallelism when sending bytes to the snapshot store for large files.
+- Upgrades Agent: :ref:`mongodb-10.2.12.5930`.
+
 .. _opsmgr-server-4.2.6:
 
 |onprem| Server 4.2.6
