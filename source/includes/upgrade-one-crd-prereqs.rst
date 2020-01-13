@@ -1,4 +1,11 @@
-1. Verify you have the ``.yaml`` configuration file for each MongoDB
+1. If you have not already, run the following command to execute all 
+   ``kubectl`` commands in the namespace you :ref:`created <k8s-prerequisites>`:
+
+   .. code-block:: sh
+
+      kubectl config set-context $(kubectl config current-context) --namespace=<namespace>
+
+#. Verify you have the ``.yaml`` configuration file for each MongoDB
    resource you have deployed.
 
    .. Formating hack, need whitespace below too
@@ -13,7 +20,7 @@
 
    .. code-block:: sh
 
-      kubectl mst <standalone-name> -n <namespace> -o yaml > <standalone-conf-name>.yaml
+      kubectl mst <standalone-name> -o yaml > <standalone-conf-name>.yaml
 
    .. Formating hack, need whitespace below too
 
@@ -27,7 +34,7 @@
 
    .. code-block:: sh
 
-      kubectl get mrs <replicaset-name> -n <namespace> -o yaml > <replicaset-conf-name>.yaml
+      kubectl get mrs <replicaset-name> -o yaml > <replicaset-conf-name>.yaml
 
    .. Formating hack, need whitespace below too
 
@@ -41,7 +48,7 @@
 
    .. code-block:: sh
 
-      kubectl get msc <shardedcluster-name> -n <namespace> -o yaml > <shardedcluster-conf-name>.yaml
+      kubectl get msc <shardedcluster-name> -o yaml > <shardedcluster-conf-name>.yaml
 
 #. Edit each ``.yaml`` configuration file match the new |k8s-crd|:
 
@@ -63,7 +70,7 @@
                :language: yaml
                :start-after: START-regular-standalone
                :end-before: END-regular-standalone
-               :emphasize-lines: 3,15
+               :emphasize-lines: 3,13
 
         - id: repl
           content: |
@@ -72,7 +79,7 @@
                :start-after: START-regular-replset
                :end-before: END-regular-replset
                :linenos:
-               :emphasize-lines: 3,16
+               :emphasize-lines: 3,14
 
         - id: shard
           content: |
@@ -81,7 +88,7 @@
                :start-after: START-regular-sharded
                :end-before: END-regular-sharded
                :linenos:
-               :emphasize-lines: 3,19
+               :emphasize-lines: 3,17
 
    .. warning::
 
