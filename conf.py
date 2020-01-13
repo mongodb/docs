@@ -73,6 +73,7 @@ rst_epilog = [
     '.. |api| replace:: :abbr:`API (Application Programming Interface)`',
     '.. |arn| replace:: :abbr:`ARN (Amazon Resource Name)`',
     '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`',
+    '.. |aws-eni| replace:: :abbr:`ENI (Elastic Network Interface)`',
     '.. |azure| replace:: :abbr:`Azure (Microsoft Azure)`',
     '.. |bic-full| replace:: :bic:`MongoDB Connector for BI </>`',
     '.. |bic-official| replace:: MongoDB Connector for Business Intelligence for Atlas',
@@ -188,6 +189,7 @@ pygments_style = 'sphinx'
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', ''),
+    'dl': ('https://www.mongodb.com/download-center/%s?jmp=docs', ''),
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'cloudmgr': ('https://docs.cloudmanager.mongodb.com%s', ''),
     'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
@@ -198,6 +200,7 @@ extlinks = {
     'website': ('https://www.mongodb.com%s?tck=docs_atlas', ''),
     'aws': ('http://docs.aws.amazon.com%s',''),
     'azure': ('https://docs.microsoft.com/en-us/azure%s',''),
+    'gh' : ('https://github.com%s',''),
     'gcp': ('https://cloud.google.com%s',''),
     'dochub': ('https://dochub.mongodb.org/core/%s', ''),
     'hardlink': ('https://docs.atlas.mongodb.com%s', ''),
