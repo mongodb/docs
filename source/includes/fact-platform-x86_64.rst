@@ -4,12 +4,14 @@
       :widths: 20 80
       :class: border-table
 
-      * - SLES 11
-        - Support removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
-      * - Ubuntu 12.04 
-        - Support removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
       * - Debian 7
-        - Support removed in MongoDB 3.2.21+, 3.4.16+, 3.6.6+, and 4.0+.
+        - Support removed in MongoDB 4.0+.
+
+      * - Ubuntu 12.04
+        - Support removed in MongoDB 4.0+.
+
+      * - macOS 10.10
+        - Support removed in MongoDB 4.0+.
 
    *Upcoming EOL Notice*:
 
@@ -17,13 +19,13 @@
       :widths: 20 80
       :class: border-table
 
-      * - Windows 7/2008R2
+      * - Windows 8.1/2012R2
         - MongoDB will end support in future releases.
 
       * - Windows 8/2012
         - MongoDB will end support in future releases.
 
-      * - Windows 8.1/2012R2
+      * - Windows 7/2008R2
         - MongoDB will end support in future releases.
 
       * - Ubuntu 14.04
@@ -40,22 +42,13 @@
      - 4.0 Community & Enterprise
      - 3.6 Community & Enterprise
      - 3.4 Community & Enterprise
-     - 3.2 Community & Enterprise
-
-   * - Amazon Linux 2013.03 and later
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
 
    * - Amazon Linux 2
      - |checkmark|
      -
      -
-     -
 
-   * - Debian 8
-     - |checkmark|
+   * - Amazon Linux 2013.03 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -64,74 +57,93 @@
      - |checkmark|
      - 3.6.5+
      -
-     -
 
-   * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 6.2 and later
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-
-   * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 7.0 and later
-     - |checkmark|
+   * - Debian 8
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
    * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 8.0 and later
      - 4.0.14+
+     - 3.6.17+
      -
-     -
-     -
-     
+
+   * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 7.0 and later
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 6.2 and later
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
    * - SLES 12
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     -
+
    * - Solaris 11 64-bit
      -
      -
      - Community only
-     - Community only
+
+   * - Ubuntu 18.04
+     - 4.0.1+
+     - 
+     -
+
+   * - Ubuntu 16.04
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
    * - Ubuntu 14.04
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     - |checkmark|
-   * - Ubuntu 16.04
-     - |checkmark|
-     - |checkmark|
+
+   * - Windows 10 / Server 2016
      - |checkmark|
      - |checkmark|
-   * - Ubuntu 18.04
      - |checkmark|
-     -
-     -
-     -
+
+   * - Windows 8.1 / Server 2012 R2
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - Windows 8 / Server 2012
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - Windows 7 / Server 2008 R2
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
    * - Windows Vista
      -
      -
      - |checkmark|
-     - |checkmark|
 
-   * - Windows 7/Server 2008 R2
+   * - macOS 10.13 and later
      - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     -
+     -
 
-   * - Windows 8/2012 R2 and later
-     - |checkmark|
+   * - macOS 10.11 and 10.12
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
-   * - macOS 10.11 and later
-     - |checkmark|
-     - |checkmark|
+   * - macOS 10.10
+     -
      - |checkmark|
      - |checkmark|
 
+   * - macOS 10.8 and 10.9
+     -
+     -
+     - |checkmark|
