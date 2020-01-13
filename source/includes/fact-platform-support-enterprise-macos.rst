@@ -1,4 +1,4 @@
-MongoDB {+version+} Enterprise Edition supports macOS 10.7 or later.
+MongoDB {+version+} Enterprise Edition supports macOS 10.10 or later.
 
 .. note::
 

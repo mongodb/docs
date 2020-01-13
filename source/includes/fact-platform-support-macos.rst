@@ -1,4 +1,4 @@
-MongoDB {+version+} Community Edition supports macOS 10.7 or later.
+MongoDB {+version+} Community Edition supports macOS 10.10 or later.
 
 .. note::
 
