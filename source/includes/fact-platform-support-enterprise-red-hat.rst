@@ -1,5 +1,8 @@
 .. topic:: EOL Notice
 
+   - MongoDB 3.6.17 Enterprise Edition removes support for RHEL / CentOS
+     / Oracle 7 on :ref:`s390x<prod-notes-supported-platforms-s390x>`
+
    - MongoDB 3.6.14 Enterprise Edition removes support for RHEL / CentOS
      / Oracle 6 on :ref:`s390x<prod-notes-supported-platforms-s390x>`
 
@@ -9,6 +12,7 @@ and Oracle Linux [#oracle-linux]_ on
 :ref:`x86_64<prod-notes-supported-platforms-x86_64>` architecture:
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 8
+  (Starting in MongoDB Enterprise 3.6.17)
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7
 
@@ -18,9 +22,8 @@ MongoDB only supports the 64-bit versions of these platforms.
 
 MongoDB {+version+} Enterprise Edition on
 :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle also supports
-the :ref:`PPC64LE<prod-notes-supported-platforms-PPC64LE>` and
-:ref:`s390x<prod-notes-supported-platforms-s390x>` architectures on
-select platforms.
+the :ref:`PPC64LE<prod-notes-supported-platforms-PPC64LE>` architecture
+on select platforms.
 
 See :ref:`prod-notes-supported-platforms` for more information.
 

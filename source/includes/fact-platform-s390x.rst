@@ -1,8 +1,8 @@
-.. admonition:: Platform Support EOL Notice
+.. topic:: Platform Support EOL Notice
 
-   - Support for SLES 11 has been removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
-   - Support for RHEL/CentOS 6 has been removed in MongoDB 3.4.22+, 3.6.14+.
-   - Support for Ubuntu 16.04 has been removed in MongoDB 3.6.16+.
+   - MongoDB 3.6 and 3.4 are no longer supported on the s390x platform.
+     Please upgrade to MongoDB 4.0+ for Enterprise support or MongoDB
+     4.2+ for Community support on the s390x platform.
 
 .. list-table::
    :header-rows: 1
@@ -12,18 +12,23 @@
    * - Platform
      - 3.6 Enterprise
      - 3.4 Enterprise
+
+   * - RHEL/CentOS 7
+     - Removed starting in 3.6.17
+     - Removed starting in 3.4.14
+
    * - RHEL/CentOS 6
      - Removed starting in 3.6.14
      - Removed starting in 3.4.22
-   * - RHEL/CentOS 7
-     - |checkmark|
-     - |checkmark|
+
+   * - SLES 12
+     - Removed starting in 3.6.17
+     - Removed starting in 3.4.13
+
    * - SLES 11
      - Removed starting in 3.6.4
      - Removed starting in 3.4.15
-   * - SLES 12
-     - |checkmark|
-     - |checkmark|
+
    * - Ubuntu 16.04
      - Removed starting in 3.6.16
-     - |checkmark|
+     - Removed starting in 3.4.14
