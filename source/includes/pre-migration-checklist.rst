@@ -17,8 +17,8 @@ Before starting the import process:
      representative client machine, if you don't already have it.
 
   #. Connect to your destination cluster using the connection string
-     from the |service| UI. For more information, see :ref:`Connect 
-     via mongo Shell <connect-mongo-shell>`.
+     from the |service| UI. For more information, see
+     :ref:`connect-mongo-shell`.
 
   Once you have verified your connectivity to your target cluster,
   start the import procedure.

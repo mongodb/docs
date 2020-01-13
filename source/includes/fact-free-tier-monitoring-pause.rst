@@ -2,5 +2,5 @@
 had no connection activity for 7 days. Monitoring resumes once a
 successful connection occurs through the |service| |api|,
 :doc:`Driver </driver-connection>`,
-:manual:`Mongo Shell </mongo>`, or
+:binary:`~bin.mongo` shell, or
 :doc:`Data Explorer </data-explorer>`.

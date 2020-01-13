@@ -38,7 +38,7 @@
        content: |
 
          a. Run the following command in your terminal to extract
-            the Mongo shell:
+            the :binary:`~bin.mongo` shell:
 
             .. code-block:: shell
 
