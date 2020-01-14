@@ -169,7 +169,8 @@ source_constants = {
     'data-lake-store': 'data store',
     'data-lake-stores': 'data stores',
     'data-lake' : 'Atlas Data Lake',
-    'data-lake-short' : 'Data Lake'
+    'data-lake-short' : 'Data Lake',
+    'latest-mongodb-eol': '3.2'
 }
 
 pygments_style = 'sphinx'
