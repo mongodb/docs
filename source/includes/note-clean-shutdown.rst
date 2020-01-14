@@ -9,6 +9,6 @@
    that the :binary:`~bin.mongod` process is restarted.
 
    Invoking ``sudo service mongod stop`` does not guarantee a 
-   clean shutdown. This ``service`` script forceably stops the
+   clean shutdown. This ``service`` script forcibly stops the
    :binary:`~bin.mongod` process if it takes longer than five
    minutes to shut down.
