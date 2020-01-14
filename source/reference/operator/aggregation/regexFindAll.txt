@@ -85,8 +85,8 @@ The operator returns an array:
     <regexFindAll-input>`, and
 
   - An array of the strings that corresponds to the groups captured by
-    the matching string. Capturing groups are specified with parenthesis
-    ``()`` in the :ref:`regex <regexFindAll-regex>` pattern.
+    the matching string. Capturing groups are specified with unescaped
+    parenthesis ``()`` in the :ref:`regex <regexFindAll-regex>` pattern.
 
   .. code-block:: javascript
      :copyable: false
@@ -165,6 +165,100 @@ To perform a case-insensitive regex pattern matching, use the
 :ref:`regexFindAll-example-i-options` instead. See
 :ref:`regexFindAll-example-i-options` for an example.
 
+.. _regexFindAll-captures-behavior:
+
+``captures`` Output Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your :ref:`regex <regexFindAll-regex>` pattern contains capture
+groups and the pattern finds a match in the
+:ref:`input <regexFindAll-input>`, the ``captures`` array in the results
+corresponds to the groups captured by the matching string. Capture
+groups are specified with unescaped parentheses ``()`` in the
+:ref:`regex <regexFindAll-regex>` pattern. The length of the
+``captures`` array equals the number of capture groups in the pattern
+and the order of the array matches the order in which the capture groups
+appear.
+
+Create a sample collection named ``contacts`` with the following
+documents:
+
+.. code-block:: javascript
+
+   db.contacts.insertMany([
+     { "_id": 1, "fname": "Carol", "lname": "Smith", "phone": "718-555-0113" },
+     { "_id": 2, "fname": "Daryl", "lname": "Doe", "phone": "212-555-8832" },
+     { "_id": 3, "fname": "Polly", "lname": "Andrews", "phone": "208-555-1932" },
+     { "_id": 4, "fname": "Colleen", "lname": "Duncan", "phone": "775-555-0187" },
+     { "_id": 5, "fname": "Luna", "lname": "Clarke", "phone": "917-555-4414" }
+   ])
+
+The following pipeline applies the :ref:`regex <regexFindAll-regex>`
+pattern ``/(C(ar)*)ol/`` to the ``fname`` field:
+
+.. code-block:: javascript
+
+   db.contacts.aggregate([
+     {
+       $project: {
+         returnObject: {
+           $regexFindAll: { input: "$fname", regex: /(C(ar)*)ol/ }
+         }
+       }
+     }
+   ])
+
+The :ref:`regex <regexFindAll-regex>` pattern finds a match with ``fname``
+values ``Carol`` and ``Colleen``:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 1,4
+
+   { "_id" : 1, "returnObject" : [ { "match" : "Carol", "idx" : 0, "captures" : [ "Car", "ar" ] } ] }
+   { "_id" : 2, "returnObject" : [ ] }
+   { "_id" : 3, "returnObject" : [ ] }
+   { "_id" : 4, "returnObject" : [ { "match" : "Col", "idx" : 0, "captures" : [ "C", null ] } ] }
+   { "_id" : 5, "returnObject" : [ ] }
+
+The pattern contains the capture group ``(C(ar)*)`` which contains the
+nested group ``(ar)``. The elements in the ``captures`` array correspond
+to the two capture groups. If a matching document is not captured by a
+group (e.g. ``Colleen`` and the group ``(ar)``),
+:expression:`$regexFindAll` replaces the group with a null placeholder.
+
+As shown in the previous example, the ``captures`` array contains an
+element for each capture group (using ``null`` for non-captures).
+Consider the following example which searches for phone numbers with
+New York City area codes by applying a logical ``or`` of capture
+groups to the ``phone`` field. Each group represents a New York City
+area code:
+
+.. code-block:: javascript
+
+   db.contacts.aggregate([
+     {
+       $project: {
+         nycContacts: {
+           $regexFindAll: { input: "$phone", regex: /^(718).*|^(212).*|^(917).*/ }
+         }
+       }
+     }
+   ])
+
+For documents which are matched by the :ref:`regex <regexFindAll-regex>`
+pattern, the ``captures`` array includes the matching capture group
+and replaces any non-capturing groups with ``null``:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "nycContacts" : [ { "match" : "718-555-0113", "idx" : 0, "captures" : [ "718", null, null ] } ] }
+   { "_id" : 2, "nycContacts" : [ { "match" : "212-555-8832", "idx" : 0, "captures" : [ null, "212", null ] } ] }
+   { "_id" : 3, "nycContacts" : [ ] }
+   { "_id" : 4, "nycContacts" : [ ] }
+   { "_id" : 5, "nycContacts" : [ { "match" : "917-555-4414", "idx" : 0, "captures" : [ null, null, "917" ] } ] }
+
 Examples
 --------
 
@@ -199,7 +293,7 @@ pattern ``/line/`` does not specify any grouping:
          { $addFields: { returnObject: { $regexFindAll: { input: "$description", regex: /line/ } } } }
       ])
 
-   The operationr returns the following:
+   The operation returns the following:
 
    .. code-block:: javascript
       :copyable: false
@@ -700,3 +794,9 @@ Second Stage
          "comment" : "It's just me. I'm testing.  fred@MongoDB.com",
          "names" : [ "fred" ]
       }
+
+.. seealso::
+
+   For more information on the behavior of the ``captures`` array and
+   additional examples, see
+   :ref:`regexFindAll-captures-behavior`.
