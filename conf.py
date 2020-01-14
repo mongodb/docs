@@ -199,6 +199,7 @@ extlinks = {
     'aws': ('http://docs.aws.amazon.com%s',''),
     'azure': ('https://docs.microsoft.com/en-us/azure%s',''),
     'gcp': ('https://cloud.google.com%s',''),
+    'dochub': ('https://dochub.mongodb.org/core/%s', ''),
     'hardlink': ('https://docs.atlas.mongodb.com%s', ''),
     'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
     'ruby': ('https://docs.mongodb.com/ruby-driver/current%s', ''),
