@@ -201,6 +201,7 @@ extlinks = {
     'gcp': ('https://cloud.google.com%s',''),
     'dochub': ('https://dochub.mongodb.org/core/%s', ''),
     'hardlink': ('https://docs.atlas.mongodb.com%s', ''),
+    'dochub': ('https://dochub.mongodb.org/core/%s', ''),
     'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
     'ruby': ('https://docs.mongodb.com/ruby-driver/current%s', ''),
     'mdbacct': ('https://account.mongodb.com/account%s',''),
