@@ -48,7 +48,7 @@
      - Set to true to enable the cluster tier to scale down. This
        option is only available if ``autoScaling.compute.enabled``
        is ``true``.
-       
+
        If this option is enabled, you must specify a value for
        ``providerSettings.autoScaling.compute.minInstanceSize``.
 
@@ -264,7 +264,7 @@
 
        Each key and value has a maximum length of 255 characters.
 
-       .. include:: /includes/fact-example-labels.rst    
+       .. include:: /includes/fact-example-labels.rst
 
    * - ``name``
      - string
@@ -289,7 +289,7 @@
 
        |service| always deploys the cluster with the latest stable
        release of the specified version. You can upgrade to a newer
-       version of MongoDB when you 
+       version of MongoDB when you
        :doc:`modify a cluster </reference/api/clusters-modify-one>`
 
    * - ``numShards``
@@ -304,7 +304,7 @@
 
        The possible values are ``1`` through ``50``, inclusive. The
        default value is 1.
-       
+
        - If you specify a ``numShards`` value of ``1`` and a
          ``clusterType`` of ``SHARDED``, |service| deploys a
          single-shard :term:`sharded cluster`.
@@ -518,7 +518,7 @@
    * - | ``providerSettings``
        | ``.providerName``
      - string
-     - Optional
+     - Conditional
      - Cloud service provider on which the servers are provisioned.
 
        .. include:: /includes/fact-cloud-service-providers.rst
@@ -529,6 +529,11 @@
 
        .. include:: /includes/fact-m2-m5-multi-tenant.rst
 
+       If you modify any ``providerSettings`` or ``replicationSpec``
+       values, you *must* specify this value. For ``M2`` and ``M5``
+       clusters, you must also specify the
+       ``providerSettings.backingProviderName``.
+
    * - | ``providerSettings``
        | ``.regionName``
      - string
@@ -537,7 +542,7 @@
        .. admonition:: Required if setting ``replicationSpecs`` array to empty
           :class: note
 
-          This field is *required* if you have not set any values in 
+          This field is *required* if you have not set any values in
           the  ``replicationSpecs`` array.
 
        Physical location of your MongoDB cluster. The region you choose
