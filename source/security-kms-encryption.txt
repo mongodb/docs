@@ -9,6 +9,12 @@ Encryption at Rest using Customer Key Management
 .. meta::
    :keywords: encryption
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 |service| encrypts all cluster storage and snapshot volumes, securing
 all cluster data on disk: a concept known as encryption at rest.
 
@@ -40,6 +46,99 @@ key management provider’s documentation for guidance on key rotation.
 When you set customer key management in a project, Atlas creates a
 :ref:`365-day key rotation alert <alert-conditions-encryption-at-rest>`.
 
+.. _atlas-configure-kms:
+
+Configure |service| with Customer Key Management
+------------------------------------------------
+
+Encryption at Rest using Key Management requires valid key management 
+provider credentials and an encryption key. To provide these details 
+and enable Customer Key Management:
+
+1. Select your project from the |service| context menu.
+
+#. Under the :guilabel:`Security` section of the left navigation bar, 
+   click :guilabel:`Advanced`.
+
+#. Toggle :guilabel:`Encryption at Rest using your Key Management` on.
+
+#. Enter your key management provider account credentials and 
+   provide an encryption key.
+
+#. Click :guilabel:`Save`.
+
+.. figure:: /images/encryptionatrest-settings-ui.png
+   :alt: Key Management settings are under the Advanced Security tab in your Atlas project
+   :figwidth: 100%
+
+Validate your KMS Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| validates your |kms| configuration:
+
+- When you add or update credentials.
+
+- Every 15 minutes.
+
+- On-demand with the :doc:`Encryption at Rest API endpoint </reference/api/get-configuration-encryptionatrest>`.
+
+If your key management provider credentials become invalid or if your 
+encryption key is disabled or deleted, |service| shuts down all 
+``mongod`` and ``mongos`` processes on the next scheduled validity 
+check. |service| sends an email to the :authrole:`Project Owner` 
+listing all affected clusters. The |service| :guilabel:`Clusters` page 
+reflects that your clusters are disabled due to invalid Encryption at 
+Rest settings.
+
+You can't read or write data on disabled clusters. You *can* submit 
+updates to disabled clusters, such as disk and instance size changes, 
+that are processed when your encryption key is restored. |service| will 
+continue to perform maintenance and apply security patches. Disabled 
+clusters retain all your data, so billing continues.
+
+.. admonition:: Virtual Machine Power
+   :class: note
+
+   While a cluster is disabled, |service| does not stop the Virtual 
+   Machine (VM) the cluster is running on. |service| may perform 
+   patches that reboot the server, but VM power is not cycled.
+
+To regain access to your data:
+
+- :ref:`Update your credentials <atlas-configure-kms>` if they have 
+  changed since configuring |service| with Customer Key Management.
+
+- :ref:`Restore your key <atlas-restore-deleted-kms-key>` if it has 
+  been disabled or deleted.
+
+.. figure:: /images/encryptionatrest-try-again.png
+   :alt: The Try Again button is to the right of the Customer Master Key ID field in Atlas Advanced Security settings
+   :figwidth: 50%
+
+After updating your configuration, click :guilabel:`Try Again` to 
+validate it. If you don't, |service| validates on its next scheduled 
+check. All ``mongod`` and ``mongos`` processes restart after |service| 
+determines your configuration to be valid.
+
+.. warning::
+   If your key was deleted, restore that key to regain access to your 
+   clusters. You cannot change a key or disable Encryption at Rest 
+   using Customer Key Management without a valid key.
+
+.. _atlas-restore-deleted-kms-key:
+
+Restore a Deleted Key
+~~~~~~~~~~~~~~~~~~~~~
+
+To restore a deleted key, see your key management provider's 
+documentation:
+
+- **AWS KMS:** :aws:`Deleting Customer Master Keys </kms/latest/developerguide/deleting-keys.html>`
+
+- **Azure Key Vault:** `Recover Deleted Key <https://docs.microsoft.com/en-us/rest/api/keyvault/recoverdeletedkey/recoverdeletedkey>`_
+
+- **GCP KMS:** :gcp:`Destroying and restoring key versions </kms/docs/destroy-restore>`
+
 Encrypted Backups
 -----------------
 
@@ -48,8 +147,11 @@ disk. Using your cloud provider's |kms|, you can:
 
 - Encrypt your snapshot storage volumes where you store your backups.
 - Encrypt the data files in your snapshots.
-- Restore any snapshot encrypted using any encryption key your KMS can
-  access.
+- Restore snapshots with the key that was active at the time the 
+  snapshot was taken.
+
+You cannot restore snapshots encrypted with keys that have become 
+invalid.
 
 You cannot enable :ref:`backup-continuous` on clusters encrypted with
 keys that you manage. You *can* specify a
