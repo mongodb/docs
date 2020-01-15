@@ -1,0 +1,187 @@
+=================
+Change a Document
+=================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+You can alter documents in a MongoDB collection with two distinct
+operation types: update and replace. Update operations mutate specified
+fields in altered documents, but leave other fields and values
+unchanged. Replace operations remove all existing fields in altered
+documents and substitute the specified fields and values instead.
+
+.. _updateDocuments:
+
+Update
+------
+
+Create an **update document** using :manual:`update operators
+</reference/operator/update/>` to
+describe the changes you would like to make via an **update** operation.
+Update documents use the following form:
+
+.. code-block:: javascript
+
+   {
+      <update operator>: {
+         <field> : {
+            ...
+         },
+         <field> : {
+         }
+      },
+      <update operator>: {
+         ...
+      }
+   }
+
+The top level of an update document contains exclusively update
+operators. Update operators allow you to
+:manual:`set the value of a field to a literal value
+</reference/operator/update/set/#up._S_set>`,
+:manual:`increment or decrement field values
+</reference/operator/update/inc/#up._S_inc>`,
+:manual:`rename fields
+</reference/operator/update/rename/#up._S_rename>`,
+:manual:`remove fields
+</reference/operator/update/unset/#up._S_unset>`,
+and :manual:`multiply a field value
+</reference/operator/update/mul/#up._S_mul>`,
+:manual:`among others </reference/operator/update/#id1>`.
+
+Update operators alter only the fields specified in your update
+document.
+
+Example
+~~~~~~~
+
+Consider a document containing fields containing the english
+alphabet of lowercase letters ``a`` through ``z``:
+
+.. code-block:: javascript
+
+   {
+      _id: 465,
+      a: 1,
+      b: 2,
+      c: 3,
+      ...
+      y: 25,
+      z: 26,
+   }
+
+Updating this document with the following code snippet only alters
+the ``z`` field, leaving all other fields in place:
+
+.. code-block:: javascript
+
+   // match only documents containing a field named 'a' with value 1
+   const filter = { 'a': 1 };
+   // update the value of the 'z' field to 42
+   const updateDocument = {
+      $set: {
+         z: 42,
+      },
+   };
+   const result = await collection.updateOne(filter, updateDocument);
+
+This operation produces the following altered document, with an updated
+``z`` field value and all other fields left unchanged:
+
+.. code-block:: javascript
+
+   {
+      _id: 465,
+      a: 1,
+      b: 2,
+      c: 3,
+      ...
+      y: 25,
+      z: 42,
+   }
+
+If an update operation fails to match any documents in a collection, it
+will do nothing by default. However, update operations can be configured
+to :doc:`upsert </crud/write-operations/upsert>`, or "update or insert",
+which changes this behavior to instead insert a new document if no
+matching document is found. Update operations cannot change the ``_id``
+field of a document. Update operations fail if the updated document
+violates a :manual:`unique index </core/index-unique/>`.
+
+.. _replacementDocument:
+
+Replace
+-------
+
+Create a **replacement document** using literal values to describe the
+new document you would like to insert via a **replace** operation.
+Replacement documents use the following form:
+
+.. code-block:: javascript
+
+   {
+      <field>: {
+         <value>
+      },
+      <field>: {
+         ...
+      }
+   }
+
+Replacement documents contain field names and the values you would like
+to assign to those fields. The altered document contains only the
+fields listed in the replacement document after a replacement operation.
+
+Example
+~~~~~~~
+
+Consider a document containing fields containing the english
+alphabet of lowercase letters ``a`` through ``z``:
+
+.. code-block:: javascript
+
+   {
+      _id: 465,
+      a: 1,
+      b: 2,
+      c: 3,
+      ...
+      y: 25,
+      z: 26,
+   }
+
+Replacing this document with the following code snippet removes all
+fields besides the ``z`` field, including the ``a`` field matched by
+the filter:
+
+.. code-block:: javascript
+
+   // match only documents containing a field named 'a' with value 1
+   const filter = { 'a': 1 };
+   // replace the matched document with a document containing only
+   // the field 'z' with value 42
+   const replacementDocument = {
+      z: 42,
+   };
+   const result = await collection.replaceOne(filter, replacementDocument);
+
+This produces the following document. Note that only the ``z`` field,
+which was present in the replacement document, and the immutable ``_id``
+field, which cannot be changed by any operation, remain:
+
+.. code-block:: javascript
+
+   {
+      _id: 465,
+      z: 42,
+   }
+
+If a replace operation fails to match any documents in a collection, it
+will do nothing by default. However, replace operations can be configured
+to :doc:`upsert </crud/write-operations/upsert>`, or "update or insert",
+which changes this behavior to instead insert a new document if no
+matching document is found. Replace operations fail if the updated
+document violates a :manual:`unique index </core/index-unique/>`.

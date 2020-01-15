@@ -1,0 +1,189 @@
+===========
+Search Text
+===========
+
+.. default-domain:: mongodb
+
+Use the :manual:`$text
+</reference/operator/query/text/>`
+operator to perform text searches on fields which have a
+:manual:`text index </core/index-text/>`.
+
+Overview
+--------
+
+Text searches let you search a collection of string-valued fields for
+words or phrases, instead of matching substrings like
+:mdn:`regular expresssions
+</Web/JavaScript/Guide/Regular_Expressions>`,
+also known as RegEx. While regex is very powerful, and MongoDB even
+offers a `$regex <>` operator, text searches work particularly well when
+applied to unstructured text, like transcripts, essays, or even web
+pages. Because MongoDB's text indexes are aware of concepts like
+plurality, case sensitivity, stop words, whitespace, and punctuation in
+multiple languages, all you have to do is query with a search term to
+find documents that contain your term.
+
+
+.. admonition::
+
+   You can only create *one* text index per collection, so every text
+   search queries all fields used by the index for term matches.
+
+Examples
+--------
+
+The following examples use the ``movies`` collection in the
+``sample_mflix`` sample database and assume that you have created a text
+index on the ``title`` field.
+
+.. note::
+
+  Text searches require a text index. To create a text index on the
+  ``title`` field of the ``movies`` collection of the ``sample_mflix``
+  database, use the following command on the sample_mflix database:
+
+  .. code-block:: javascript
+
+     db.movies.createIndex({title: "text"})
+
+Query for Words
+~~~~~~~~~~~~~~~
+
+This example queries for Star Trek movies by searching for titles
+containing the word "trek". If you want to query using multiple words,
+separate your words with spaces to query for documents that match any of
+the search terms (logical ``OR``).
+
+.. literalinclude:: /code-snippets/crud/startrek.js
+   :language: javascript
+   :start-after: start word text example
+   :end-before: end word text example
+   :dedent: 4
+
+This operation returns the following documents:
+
+.. code-block:: javascript
+
+   { title: 'Trek Nation' }
+   { title: 'Star Trek' }
+   { title: 'Star Trek Into Darkness' }
+   { title: 'Star Trek: Nemesis' }
+   { title: 'Star Trek: Insurrection' }
+   { title: 'Star Trek: Generations' }
+   { title: 'Star Trek: First Contact' }
+   { title: 'Star Trek: The Motion Picture' }
+   { title: 'Star Trek VI: The Undiscovered Country' }
+   { title: 'Star Trek V: The Final Frontier' }
+   { title: 'Star Trek IV: The Voyage Home' }
+   { title: 'Star Trek III: The Search for Spock' }
+   { title: 'Star Trek II: The Wrath of Khan' }
+
+Success! The query found every document in the ``movies`` collection
+with a title including the word "trek". Unfortunately, it looks like the
+search included one unintended item: "Trek Nation," which is a movie
+about Star Trek and not a Star Trek movie. To solve this, we can query
+with a more specific **phrase**.
+
+Query By Phrase
+~~~~~~~~~~~~~~~
+
+To make your query more specific, try using the phrase "star trek"
+instead of just the word "trek". To search by phrase, surround your
+multi-word phrase with escaped quotes (``\"<term>\"``):
+
+.. literalinclude:: /code-snippets/crud/startrek.js
+   :language: javascript
+   :start-after: start phrase text example
+   :end-before: end phrase text example
+   :dedent: 4
+
+Querying by the phrase "star trek" instead of just the term "trek"
+matches the following documents:
+
+.. code-block:: javascript
+
+   { title: 'Star Trek' }
+   { title: 'Star Trek Into Darkness' }
+   { title: 'Star Trek: Nemesis' }
+   { title: 'Star Trek: Insurrection' }
+   { title: 'Star Trek: Generations' }
+   { title: 'Star Trek: First Contact' }
+   { title: 'Star Trek: The Motion Picture' }
+   { title: 'Star Trek VI: The Undiscovered Country' }
+   { title: 'Star Trek V: The Final Frontier' }
+   { title: 'Star Trek IV: The Voyage Home' }
+   { title: 'Star Trek III: The Search for Spock' }
+   { title: 'Star Trek II: The Wrath of Khan' }
+
+These results include all movies in the database that contain the phrase
+"star trek", which in this case results in only fictional Star Trek
+movies. Unfortunately, though, this query returned "Star Trek Into
+Darkness", a movie that nobody liked much. To solve this, we can omit
+that document with a **negation**.
+
+Query with Negations
+~~~~~~~~~~~~~~~~~~~~
+
+Because you probably don't want to be associated with such an unpopular
+movie, you can choose to exclude it from the results set using a negated
+term. To use a negated term, place a negative sign (``-``) in front of
+the term you'd like to omit from the result set. Any documents that
+contain this term will not show up in your results. Since this query
+includes two terms, separate the terms with spaces.
+
+.. literalinclude:: /code-snippets/crud/startrek.js
+   :language: javascript
+   :start-after: start negation text example
+   :end-before: end negation text example
+   :dedent: 4
+
+Querying with the negated term yields the following documents:
+
+.. code-block:: javascript
+
+   { title: 'Star Trek' }
+   { title: 'Star Trek: Nemesis' }
+   { title: 'Star Trek: Insurrection' }
+   { title: 'Star Trek: Generations' }
+   { title: 'Star Trek: First Contact' }
+   { title: 'Star Trek: The Motion Picture' }
+   { title: 'Star Trek VI: The Undiscovered Country' }
+   { title: 'Star Trek V: The Final Frontier' }
+   { title: 'Star Trek IV: The Voyage Home' }
+   { title: 'Star Trek III: The Search for Spock' }
+   { title: 'Star Trek II: The Wrath of Khan' }
+
+Sort by Relevance
+~~~~~~~~~~~~~~~~~
+
+Now that the result set reflects the desired results, you can use the
+text search ``textScore``, accessed using the ``$meta`` operator in the
+query projection, to order the results by relevance:
+
+.. literalinclude:: /code-snippets/crud/startrek.js
+   :language: javascript
+   :start-after: start relevance text example
+   :end-before: end relevance text example
+   :dedent: 4
+
+Querying in this way returns the following documents in the following
+order. In general, text relevance increases as a string matches more
+terms and decreases as the unmatched portion of the string lengthens.
+
+.. code-block:: javascript
+
+   { title: 'Star Trek', score: 1.5 }
+   { title: 'Star Trek: Generations', score: 1.3333333333333333 }
+   { title: 'Star Trek: Insurrection', score: 1.3333333333333333 }
+   { title: 'Star Trek: Nemesis', score: 1.3333333333333333 }
+   { title: 'Star Trek: The Motion Picture', score: 1.25 }
+   { title: 'Star Trek: First Contact', score: 1.25 }
+   { title: 'Star Trek II: The Wrath of Khan', score: 1.2 }
+   { title: 'Star Trek III: The Search for Spock', score: 1.2 }
+   { title: 'Star Trek IV: The Voyage Home', score: 1.2 }
+   { title: 'Star Trek V: The Final Frontier', score: 1.2 }
+   { title: 'Star Trek VI: The Undiscovered Country', score: 1.2 }
+
+For more information about the $text operator and its options, see the
+:manual:`manual entry </reference/operator/query/text/>`.

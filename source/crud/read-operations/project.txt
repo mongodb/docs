@@ -1,0 +1,97 @@
+==============================
+Specify Which Fields to Return
+==============================
+
+.. default-domain:: mongodb
+
+Use a projection to control which fields appear in the documents
+returned by read operations. Many requests only require certain fields,
+so projections can help you limit unnecessary network bandwidth usage.
+Projections work in two ways:
+
+- Explicitly include fields with a value of ``1``. This has the
+  side-effect of implicitly excluding all unspecified fields.
+
+- Implicitly exclude fields with a value of ``0``. This has the
+  side-effect of implicitly including all unspecified fields.
+
+These two methods of projection are mutually exclusive: if you
+explicitly include fields, you cannot explicitly exclude fields, and
+vice versa.
+
+Follow the instructions in the examples below to insert data into
+a collection and use a projection to return only specific fields.
+Consider a collection containing documents that describe varieties of
+fruit. To insert this data into a collection, run the following
+operation:
+
+.. code-block:: javascript
+
+   await fruits.insertMany([
+      { "_id": 1, "name": "apples", "qty": 5, "rating": 3 },
+      { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 },
+      { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 },
+      { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 },
+   ]);
+
+Pass the following projection to only return the ``name`` field of each
+document:
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   // return only* the name field
+   const projection = { name: 1 };
+   const cursor = collection.find().project(projection);
+   await cursor.forEach(console.dir);
+
+The projection document specifies a value of ``1`` for ``name`` to
+indicate that the read operation result should *include* the ``name``
+field of each returned document. As a result, this projection implicitly
+excludes the ``qty`` and ``rating`` fields. Passing this projection to
+``find()`` with an empty query document and no sort document yields
+the following results:
+
+.. code-block:: javascript
+
+   { "_id": 1, "name": "apples" }
+   { "_id": 2, "name": "bananas" }
+   { "_id": 3, "name": "oranges" }
+   { "_id": 4, "name": "avocados" }
+
+Despite the fact that this projection only explicitly included the
+``name`` field, the query returned the ``_id`` field as well!
+
+This happens because the ``_id`` field is a special case: it is always
+included in every query unless explicitly specified otherwise. That's
+because ``_id`` is a unique identifier for each document, a property
+that can be very useful when constructing queries. The ``movies``
+collection is a good example of why this property is useful: because
+remakes and even separate works can sometimes reuse movie titles, you
+need a unique ``_id`` value to refer to any specific movie. ``_id`` is
+the only exception to the mutually exclusive include-exclude behavior in
+projections: you *can* explicitly exclude ``_id`` even when explicitly
+including other fields if you do not want ``_id`` to be present in
+returned documents.
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   // return only the name field
+   const projection = { _id: 0, name: 1 };
+   const cursor = collection.find().project(projection);
+   await cursor.forEach(console.dir);
+
+The projection document specifies a value of ``1`` for ``name`` to
+indicate that the read operation result should *include* the ``name``
+field of each returned document. As a result, this projection implicitly
+excludes the ``qty`` and ``rating`` fields. Passing this projection to
+``find()`` with an empty query document and no sort document yields
+the following results:
+
+.. code-block:: javascript
+
+   { "name": "apples" }
+   { "name": "bananas" }
+   { "name": "oranges" }
+   { "name": "avocados" }

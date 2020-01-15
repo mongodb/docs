@@ -1,0 +1,193 @@
+===============
+Specify a Query
+===============
+
+.. default-domain:: mongodb
+
+Overview
+~~~~~~~~
+
+Most CRUD operations apply to a set of matched documents in a
+collection. By default, these operations match **all** documents in a
+collection. Sometimes, however, you want to match only certain items in
+a collection; the query document allows you to make your searches more
+specific. Query documents contain one or more field-level expressions
+that determine which documents to include in the result set. You can
+match fields against literal values (e.g. ``{title:'The Room'}``) or
+compose :manual:`query operators </reference/operator/query/>` to
+express more complex queries. MongoDB
+supports multiple types of query operator, including:
+
+- :manual:`Comparison Operators </reference/operator/query-comparison/>`
+
+- :manual:`Logical Operators </reference/operator/query-logical/>`
+
+- :manual:`Element Operators </reference/operator/query-element/>`
+
+- :manual:`Evaluation Operators </reference/operator/query-evaluation/>`
+
+Consider a collection containing documents that describe an inventory of
+fruit. To insert this data into a collection, run the following
+operation:
+
+.. code-block:: javascript
+
+   await collection.insertMany([
+     { "_id": 1, "name": "apples", "qty": 5, "rating": 3 },
+     { "_id": 2, "name": "bananas", "qty": 7, "rating": 1, "microsieverts": 0.1 },
+     { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 },
+     { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 },
+   ]);
+
+Literal Value Queries
+---------------------
+
+Literal value queries allow you to query for data that exactly matches
+a value you provide in the query document. A literal value query has two
+parts: a field name and a value. Documents returned from such a query
+must contain a field that has exactly the same name as the provided name
+and a value for that field that is exactly the same as the provided
+value. The following operation uses a literal query to search for
+documents containing a field called "name" that has a value of "apples":
+
+.. code-block:: javascript
+
+   const query = { "name": "apples" };
+   const cursor = collection.find(query);
+   await cursor.forEach(console.dir);
+
+This will print out the following results:
+
+.. code-block:: javascript
+
+   { "_id": 1, "name": "apples", "qty": 5, "rating": 3 }
+
+.. note::
+
+  Literal value queries are equivalent to the ``$eq`` comparison
+  operator. As a result, the following two queries are equivalent:
+
+  .. code-block:: javascript
+
+      collection.find({
+         rating: { $eq: 5 }
+      }
+
+  .. code-block:: javascript
+
+      collection.find({
+         rating: 5 
+      }
+
+Comparison Operators
+--------------------
+
+Comparison operators allow you to query for data based on comparisons
+with values in a collection. Common comparison operators include
+``$gt`` for "greater than" comparisons, ``$lt`` for "less than or equal
+to" comparisons, and ``$ne`` for "not equal to " comparisons. The
+following operation uses the comparison operator ``$gt`` to search for
+documents with a quantity value greater than 5 and prints them out:
+
+.. code-block:: javascript
+
+   // $gt means "greater than"
+   const query = { qty: { $gt : 5 } };
+   const cursor = collection.find(query);
+   await cursor.forEach(console.dir);
+
+This will print out the following results:
+
+.. code-block:: javascript
+
+   { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 }
+   { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 }
+
+Logical Operators
+-----------------
+
+Logical operators allow you to query for data using logic applied to the
+results of field-level operators. For instance, you can use the ``$or``
+method to query for documents that match either a ``$gt`` comparison
+operators or a literal value query. The following operation uses the
+logical operator ``$not`` to search for documents with a quantity value
+that is not greater than 5 and prints them out:
+
+.. code-block:: javascript
+
+   const query = { qty: { $not { { $gt : 5 } } };
+   const cursor = collection.find(query);
+   await cursor.forEach(console.dir);
+
+This will print out the following results:
+
+.. code-block:: javascript
+
+   { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 }
+   { "_id": 1, "name": "apples", "qty": 5, "rating": 3 }
+
+.. note::
+
+  Whenever a query document contains multiple elements, those elements
+  are combined together with an implicit ``$and`` logical operator to
+  figure out which documents match the query. As a result, the following
+  two queries are equivalent:
+
+  .. code-block:: javascript
+
+    collection.find({
+      rating: { $eq: 5 },
+      qty: { $gt: 4 }
+    }
+
+  .. code-block:: javascript
+
+    collection.find({
+      $and : [
+         rating: { $eq: 5 },
+         qty: { $gt: 4 }
+      ]
+    }
+
+Element Operators
+-----------------
+
+Element operators allow you to query based on the presence, absence, or
+type of a field. The following operation uses the element operator
+``$exists`` to search for documents containing the ``microsieverts``
+field:
+
+.. code-block:: javascript
+
+   const query = { microsieverts: { $exists : true } };
+   const cursor = collection.find(query);
+   await cursor.forEach(console.dir);
+
+This will print out the following results:
+
+.. code-block:: javascript
+
+   { "_id": 2, "name": "bananas", "qty": 7, "rating": 1, "microsieverts": 0.1 }
+
+Evaluation Operators
+--------------------
+
+Evaluation operators allow you to execute higher level logic, like
+regex and text searches, when querying for documents in a collection.
+Common evaluation operators include ``$regex`` and ``$text``.
+The following operation uses the evaluation operator ``$mod`` to search
+for documents with a quantity value that is divisible by 3:
+
+.. code-block:: javascript
+
+   // $mod means "modulo" and returns the remainder after division
+   const query = { microsieverts: { $mod : 3, 0 } };
+   const cursor = collection.find(query);
+   await cursor.forEach(console.dir);
+
+This will print out the following results:
+
+.. code-block:: javascript
+
+   { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 }
+   { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 }

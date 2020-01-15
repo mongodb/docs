@@ -1,0 +1,124 @@
+===================
+Search Geospatially
+===================
+
+.. default-domain:: mongodb
+
+You can query data based on geographical location using
+:manual:`geospatial query operators </geospatial-queries/index.html>`.
+Geospatial queries require a :manual:`geospatial index
+</geospatial-queries/#geospatial-indexes>`.
+
+Overview
+--------
+
+Geospatial queries work with two different formats depending on your use
+case.
+
+Coordinates on an Earth-like Sphere
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For geospatial queries using longitude and latitude coordinates
+on an Earth-like sphere, use the :manual:`GeoJSON
+</geospatial-queries/index.html#geospatial-geojson>`
+format. While GeoJSON has :manual:`multiple types
+</reference/geojson/>`_, all GeoJSON data
+types use some form of the following structure:
+
+.. code-block:: javascript
+
+   <field> : {
+      type: <GeoJSON type>,
+      coordinates: [
+         [longitude1, latitude1],
+         ...
+         [longitudeN, latitudeN]
+      ]
+   }
+
+The object type determines the number of coordinates. For instance, a
+Point requires only one coordinate: a longitude and a latitude. A Line
+uses two coordinates: a longitude and a latitude for each end.
+Polygons consist of a list of coordinates in which the first and last
+coordinate are the same, effectively closing the polygon. To learn more
+about the GeoJSON shapes you can use in MongoDB, consult the
+:manual:`GeoJSON manual entry </reference/geojson/>`. To geospatially
+query GeoJSON data, you must first add your GeoJSON data to a
+``2dsphere`` index. You can create a ``2dsphere`` index by passing the
+value ``2dsphere`` for a field in the ``createIndex()`` method.
+
+Coordinates on a 2D Plane
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Geospatial queries can also use x and y coordinates in a two dimensional
+Euclidean plane. To express data in this way, use the
+:manual:`legacy coordinate pair
+</geospatial-queries/index.html#legacy-coordinate-pairs>`
+format. Legacy coordinate pairs use some form of the following
+structure:
+
+.. code-block:: javascript
+
+   <field> : [ x, y ]
+
+The indexed field should contain an array in which the first value
+represents an ``x`` axis value and the second value represents a ``y``
+coordinate value. You can create a ``2d`` index by passing the value
+``2d`` for a field in the ``createIndex()`` method.
+
+.. note::
+
+   Spherical (``2dsphere``) and flat (``2d``) indexes support some, but
+   not all, of the same query operators. For a full list of operators
+   and their index compatibility, consult the
+   :manual:`manual entry for geospatial queries
+   </geospatial-queries/index.html#geospatial-models>`.
+
+Examples
+--------
+
+The following examples use the ``theaters`` collection of the
+``sample_mflix`` sample database available in MongoDB Atlas, with a
+``2dsphere`` index on the ``location.geo`` field.
+
+.. note::
+
+  Geo searches require a geospatial index. To create a ``2dsphere``
+  index on the ``location.geo`` field of the ``theaters`` collection of
+  the ``sample_mflix`` database, use the following command on the
+  sample_mflix database:
+
+  .. code-block:: javascript
+
+     db.movies.createIndex({location.geo: "2dsphere"})
+
+Query by Proximity
+~~~~~~~~~~~~~~~~~~
+
+The :manual:`$near </reference/operator/query/near/#op._S_near>`
+operator accepts a set of longitude-latitude coordinates and returns
+documents ordered from nearest to farthest. To limit the results to a
+maximum distance in meters, use the ``$maxDistance`` option. For a
+complete list of options, see the reference documentation for ``$near``.
+The following example queries for theaters within ``10,000`` meters of
+``[ -73.9667, 40.78 ]``.
+
+.. literalinclude:: /code-snippets/crud/theaters.js
+   :language: javascript
+   :start-after: start proximity geo example
+   :end-before: end proximity geo example
+   :dedent: 4
+
+Query Within a Range
+~~~~~~~~~~~~~~~~~~~~
+
+The :manual:`$geoWithin </reference/operator/query/geoWithin/>` operator
+selects documents with geospatial data that exist within a specified
+shape. The following example searches for movie theaters in the New
+England area:
+
+.. literalinclude:: /code-snippets/crud/theaters.js
+   :language: javascript
+   :start-after: start range geo example
+   :end-before: end range geo example
+   :dedent: 4

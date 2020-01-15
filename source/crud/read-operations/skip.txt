@@ -1,0 +1,61 @@
+=====================
+Skip Returned Results
+=====================
+
+.. default-domain:: mongodb
+
+
+Use ``skip`` to omit documents from the beginning of the list of
+returned documents for a read operation. You can combine ``skip`` with
+:doc:`sort </crud/read-operations/sort>` to omit the top (for descending
+order) or bottom (for ascending order) results for a given query. Since
+the :manual:`order of documents returned
+</reference/method/cursor.sort/#result-ordering>` is not guaranteed in
+the absence of a sort, using ``skip`` without using ``sort`` omits
+arbitrary documents.
+
+If the value of ``skip`` exceeds the number of matched documents for
+a query, that query returns no documents.
+
+Follow the instructions in the examples below to insert data into
+a collection and perform a sort and skip on the results of a query.
+Consider a collection containing documents that describe varieties of
+fruit. To insert this data into a collection, run the following
+operation:
+
+.. code-block:: javascript
+
+   await collection.insertMany([
+      { "_id": 1, "name": "apples", "qty": 5, "rating": 3 },
+      { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 },
+      { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 },
+      { "_id": 4, "name": "avocados", "qty": 3, "rating": 5 },
+   ]);
+
+Pass the following sort document to a read operation to ensure that the
+operation returns fruit documents with higher ratings before fruit
+documents with lower ratings:
+
+.. code-block:: javascript
+
+   // define an empty query document
+   const query = {};
+   const options = {
+      // sort in descending (-1) order by rating
+      sort : { rating: -1 },
+      // omit the first two documents
+      skip : 2,
+   }
+
+   const cursor = collection.find(query, options);
+   await cursor.forEach(console.dir);
+
+In this case, the number ``-1`` tells the read operation to sort the
+fruit in descending order by rating. ``skip`` omits the first two
+matched documents in the sorted order. ``find()`` returns the following
+documents when this sort is used with an empty query:
+
+.. code-block:: javascript
+
+   { "_id": 3, "name": "oranges", "qty": 6, "rating": 2 }
+   { "_id": 2, "name": "bananas", "qty": 7, "rating": 1 }

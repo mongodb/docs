@@ -1,0 +1,173 @@
+=========================
+Access Data From a Cursor
+=========================
+
+.. default-domain:: mongodb
+
+Read operations that return multiple documents do not immediately return
+all values matching the query. Because a query can potentially match
+very large sets of documents, these operations rely upon an
+object called a :node-docs:`cursor <api/Cursor.html>`
+that fetches documents in batches to reduce both memory consumption and
+network bandwidth usage. Cursors are highly configurable and offer
+multiple interaction paradigms for different use cases.
+
+The following functions directly return cursors:
+
+- ``Collection.find()``
+
+- ``Collection.aggregate()``
+
+- ``Collection.listIndexes()``
+
+- ``Db.aggregate()``
+
+- ``Db.listCollections()``
+
+Other methods, like ``Collection.findOne()`` and ``Collection.watch()``,
+use cursors to return results but do not directly expose those
+cursors to the method caller.
+
+Cursor Paradigms
+----------------
+
+You can work with cursors using a number of **cursor paradigms**.
+Most cursor paradigms allow you to access query results one document at
+a time, abstracting away network and caching logic. However, since use
+cases differ, other paradigms offer different access patterns, like
+pulling all matching documents into a collection in process memory.
+
+.. warning::
+
+   Do not combine different cursor paradigms on a single cursor.
+   Operations such as ``hasNext()``, ``forEach()``, and ``toArray()``
+   each predictably modify the original cursor. If you mix these calls
+   on a single cursor, you may receive unexpected results.
+
+.. warning::
+
+   Because asynchronous calls directly modify the cursor, executing
+   asynchronous calls on a single cursor simultaneously can also cause
+   undefined behaviour. Always wait for the previous
+   asynchronous operation to complete before running another.
+
+For Each Functional Iteration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can pass a function to the :node-docs:`forEach()
+<api/Cursor.html#forEach>` method of any cursor to iterate through
+results in a functional style:
+
+.. literalinclude:: /code-snippets/crud/cursor.js
+   :language: javascript
+   :start-after: start foreach cursor example
+   :end-before: end foreach cursor example
+   :dedent: 4
+
+Asynchronous Iteration
+~~~~~~~~~~~~~~~~~~~~~~
+
+Cursors implement the :mdn:`AsyncIterator
+</Web/JavaScript/Reference/Statements/for-await...of>` interface, which
+allows you to use cursors in ``for``...``await`` loops:
+
+.. literalinclude:: /code-snippets/crud/cursor.js
+   :language: javascript
+   :start-after: start async cursor example
+   :end-before: end async cursor example
+   :dedent: 4
+
+Manual Iteration
+~~~~~~~~~~~~~~~~
+
+You can use the :node-docs:`hasNext() <api/Cursor.html#hasNext>`
+method to check if a cursor can provide additional data, and then use
+the :node-docs:`next() <api/Cursor.html#next>`
+method to retrieve the subsequent element of the cursor:
+
+.. literalinclude:: /code-snippets/crud/cursor.js
+   :language: javascript
+   :start-after: start manual cursor example
+   :end-before: end manual cursor example
+   :dedent: 4
+
+Stream API
+~~~~~~~~~~
+
+All cursors are Node Readable Streams operating in Object Mode. Cursors
+will work with most Node stream APIs:
+
+.. literalinclude:: /code-snippets/crud/cursor.js
+   :language: javascript
+   :start-after: start stream cursor example
+   :end-before: end stream cursor example
+   :dedent: 4
+
+Event API
+~~~~~~~~~
+
+As Readable Streams, cursors also support the Event API's
+``close``, ``data``, ``end`` and ``readable`` events:
+
+.. literalinclude:: /code-snippets/crud/cursor.js
+   :language: javascript
+   :start-after: start event cursor example
+   :end-before: end event cursor example
+   :dedent: 4
+
+Fetch All Documents At Once
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For use cases that require all documents matched by a query to be held
+in memory at the same time, use :node-docs:`toArray()
+<api/Cursor.html#toArray>`. Note that large sets of
+matched documents can cause performance issues or even failures due to
+exceeding memory constraints.
+
+.. literalinclude:: /code-snippets/crud/cursor.js
+   :language: javascript
+   :start-after: start fetchAll cursor example
+   :end-before: end fetchAll cursor example
+   :dedent: 4
+
+Cursor Utility Methods
+----------------------
+
+Count
+~~~~~
+
+For an estimated count of the number of documents referenced by the
+cursor, use :node-docs:`count() <api/Cursor.html#count>`:
+
+.. literalinclude:: /code-snippets/crud/cursor.js
+   :language: javascript
+   :start-after: start count cursor example
+   :end-before: end count cursor example
+   :dedent: 4
+
+Rewind
+~~~~~~
+
+To reset a cursor to its initial position in the set of returned
+documents, use :node-docs:`rewind() <api/Cursor.html#rewind>`.
+
+.. literalinclude:: /code-snippets/crud/cursor.js
+   :language: javascript
+   :start-after: start rewind cursor example
+   :end-before: end rewind cursor example
+   :dedent: 4
+
+Close
+~~~~~
+
+Cursors consume memory and network resources both in the client
+application and in the connected instance of MongoDB. Use
+:node-docs:`close() <api/Cursor.html#close>`
+to free up a cursor's resources in both the client application
+and the MongoDB server:
+
+.. literalinclude:: /code-snippets/crud/cursor.js
+   :language: javascript
+   :start-after: start close cursor example
+   :end-before: end close cursor example
+   :dedent: 4
