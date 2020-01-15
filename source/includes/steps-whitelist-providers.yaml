@@ -1,0 +1,164 @@
+---
+title: "Create a whitelist |json| file."
+stepnum: 1
+level: 4
+ref: create-whitelist-json
+content: |
+
+  The whitelist is a |json| object that contains a key for each
+  cloud service provider. Each cloud service provider key
+  takes an array of corresponding instance sizes as its value. To view a
+  list of available instance sizes, see the
+  ``providerSettings.instanceSizeName`` parameter in the |service|
+  :atlas:`Create a Cluster <reference/api/clusters-create-one/>` API.
+
+  a. Open your preferred text editor and create a |json| file using the
+     following key-value pairs:
+
+     .. list-table::
+        :widths: 10 20 70
+        :header-rows: 1
+
+        * - Key
+          - Type
+          - Description
+
+        * - ``TENANT``
+          - string array
+          - Array of allowed instance sizes on shared |service| tenants.
+            Supported values are:
+
+            - ``M2``
+            - ``M5``
+            
+            .. note::
+          
+               The value you specify for the ``spec.regionName`` setting 
+               when you deploy a cluster determines which cloud provider 
+               the cluster is deployed to.  
+
+        * - ``AWS``
+          - string array
+          - Array of allowed Amazon Web Services instance sizes.
+
+        * - ``GCP``
+          - string array
+          - Array of allowed Google Cloud Platform instance sizes.
+
+        * - ``AZURE``
+          - string array
+          - Array of allowed Microsoft Azure instance sizes.
+
+     .. example::
+        
+        This example JSON file whitelists the following cloud service
+        providers and instance sizes:
+
+        - Shared |service| tenants: ``M2`` and ``M5``  
+        - Google Cloud Platform: ``M10``, ``M20``, and ``M200``
+        - Amazon Web Services: ``M10``, ``M20``, ``M100``, and ``M140``
+        - Microsoft Azure: ``M10``, ``M20``, and  ``M200``
+
+        .. literalinclude:: /reference/k8s/example-providers-whitelist.json
+           :language: json
+
+  #. Save this file as ``providers-whitelist.json``.
+---
+title: "Create a |k8s-configmap| object from your JSON file."
+stepnum: 2
+level: 4
+ref: create-whitelist-configmap
+content: |
+
+  You use a ``configMap`` resource to add the whitelist data
+  into your deployment.
+
+  Invoke the following command to create a  ``configMap`` resource named
+  ``providers-whitelist`` from the ``providers-whitelist.json`` file:
+
+  .. code-block:: sh
+
+     kubectl create configmap providers-whitelist --from-file=providers-whitelist.json -n <NAMESPACE>
+  
+---
+title: "Edit your ``Deployment`` resource definition."
+stepnum: 3
+level: 4
+ref: edit-deployment-whitelist
+content: |
+
+  a. Open your ``Deployment`` resource definition |yaml| file in your
+     preferred text editor. 
+
+     .. tip::
+
+        If you followed the :doc:`Installation </installation>`
+        tutorial, this resource is defined in
+        ``deployment-and-service.yaml``.
+
+  #. Copy the highlighted parameters and paste them into to the
+     ``kind: Deployment`` resource definition.
+
+     These parameters direct |k8s| to mount the |k8s-configmap| to this
+     deployment as a :k8sdocs:`volume
+     </concepts/storage/volumes/#configmap>` at the specified path.
+
+     .. literalinclude:: /includes/k8s/example-deployment-whitelist-minimal.yaml
+        :language: yaml
+        :emphasize-lines: 12-20
+
+  #. Configure the required settings.
+
+     .. list-table::
+        :widths: 33 33 33
+        :header-rows: 1
+
+        * - Key
+          - Description
+          - Example
+
+        * - | ``spec.template.spec``
+            | ``.containers.env.value``
+          - Absolute path to the whitelist JSON file.
+          - ``/etc/config/providers-whitelist.json``
+
+        * - | ``spec.template.spec``
+            | ``.containers.volumeMounts.name``
+          - | Name of the volume that contains the whitelist data. 
+            | This value must match 
+            | ``spec.template.spec.volumes.name``.
+          - ``config-volume``
+
+        * - | ``spec.template.spec``
+            | ``.containers.mountPath.value``
+          - Absolute path to mount the volume to in this deployment.
+          - ``/etc/config``
+
+        * - | ``spec.template.spec``
+            | ``.volumes.name``
+          - | Name of the volume that contains the whitelist data. 
+            | This value must match
+            | ``spec.template.spec``
+            | ``.containers.volumeMounts.name``.
+          - ``config-volume``
+
+        * - | ``spec.template.spec``
+            | ``.volumes.configMap.name``
+          - Name of the ``configMap`` that corresponds to the whitelist.
+          - ``providers-whitelist``
+
+  #. Save the ``Deployment`` resource definition.
+
+---
+title: "Redeploy the {+osb+}."
+stepnum: 4
+level: 4
+ref: deploy-osb
+content: |
+
+  Invoke the following |kubectl| command:
+
+  .. code-block:: sh
+
+     kubectl apply -f <DEPLOYMENT_RESOURCE_DEFINITION>.yaml -n <NAMESPACE>
+...
