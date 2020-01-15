@@ -61,7 +61,9 @@ source_constants = {
     'k8s-op-short': 'Kubernetes Operator',
     'aagent': 'MongoDB Agent or legacy Automation Agent',
     'aagents': 'MongoDB Agents or legacy Automation Agents',
-    'osb': 'Atlas Open Service Broker'
+    'osb': 'Atlas Open Service Broker',
+    'mcli': 'MCLI',
+    'mcli-long': 'MongoDB Cloud Management Command Line Interface (MCLI)'
 }
 
 rst_epilog = '\n'.join([
@@ -285,7 +287,7 @@ epub_tocdup = True
 epub_tocdepth = 3
 epub_language = 'en'
 epub_scheme = 'url'
-epub_identifier = 'http://docs.mongodb.org/atlas-open-service-broker/'
+epub_identifier = 'http://docs.mongodb.org/mcli/'
 epub_exclude_files = []
 epub_pre_files = []
 epub_post_files = []
