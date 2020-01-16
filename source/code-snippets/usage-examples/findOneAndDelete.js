@@ -28,18 +28,14 @@ async function run() {
       projection: { _id: 0, title: 1, fullplot: 1 },
     };
 
-    collection.findOneAndDelete(query, options, function(error, result) {
-      if (error) {
-        console.log("Error: " + error.errmsg);
-      } else {
-        if (result.lastErrorObject.n == 1) {
-          console.log("Deleted document:");
-          console.dir(result.value);
-        } else {
-          console.log("No documents matched the query.");
-        }
-      }
-    });
+    const result = await collection.findOneAndDelete(query, options);
+
+    if (result.lastErrorObject.n == 1) {
+      console.log("Deleted document:");
+      console.dir(result.value);
+    } else {
+      console.log("No documents matched the query. Deleted 0 documents.");
+    }
   } finally {
     await client.close();
   }

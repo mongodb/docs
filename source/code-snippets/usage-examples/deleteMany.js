@@ -20,13 +20,8 @@ async function run() {
     // Query for all movies with the title "Santa Claus"
     const query = { title: "Santa Claus" };
 
-    collection.deleteMany(query, options, function(err, r) {
-      if (err) {
-        console.log("Error: " + err.errmsg);
-      } else {
-        console.log("Deleted " + r.deletedCount + " documents");
-      }
-    });
+    const result = await collection.deleteMany(query);
+    console.log("Deleted " + result.deletedCount + " documents");
   } finally {
     await client.close();
   }
