@@ -1,3 +1,10 @@
+.. _mongodb-10.8.0.6052:
+
+MongoDB Agent 10.8.0.6052
+-------------------------
+
+:ref:`Released with Ops Manager 4.3.5 on 2020-01-16 <opsmgr-server-4.3.5>`
+
 .. _mongodb-10.7.1.6018:
 
 MongoDB Agent 10.7.1.6018
