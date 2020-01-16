@@ -26,7 +26,7 @@ async function word(movies) {
   // end word text example
 
   // print a message if no documents were found
-  if ((await cursor.count()) == 0) {
+  if ((await cursor.count()) === 0) {
     console.log("No documents found!");
   }
   await cursor.forEach(console.dir);
@@ -95,7 +95,7 @@ async function relevance(movies) {
   // end relevance text example
 
   // print a message if no documents were found
-  if ((await cursor.count()) == 0) {
+  if ((await cursor.count()) === 0) {
     console.log("No documents found!");
   }
   await cursor.forEach(console.dir);

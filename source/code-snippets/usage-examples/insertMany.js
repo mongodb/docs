@@ -21,7 +21,7 @@ async function run() {
     const docs = [docOne, docTwo, docThree];
     // specify an additional options object
     const options = {};
-    options.ordered = true; // prevent additional documents from being prevented if one fails
+    options.ordered = true; // prevent additional documents from being inserted if one fails
     const result = await collection.insertMany(docs, options);
     console.log(`${result.insertedCount} documents were inserted`);
   } finally {
