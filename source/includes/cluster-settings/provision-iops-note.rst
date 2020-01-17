@@ -1,7 +1,9 @@
-|service| clusters on |aws| of size M30 and greater allow you to
-customize the maximum |iops| rate of your cluster. To provision the
-|iops| rate of your cluster, select :guilabel:`Provision IOPS` and
-either:
+|service| clusters on |aws| of size ``M30`` and greater allow you to
+customize the maximum |iops| rate of your cluster. Low-CPU or
+general class clusters of ``M30`` or greater tiers have a minimum of
+ratio of |iops| to storage of 3:1. You can't change the |iops| of a
+local |nvme| |ssd| class cluster. To set a greater |iops| rate for your
+cluster, select :guilabel:`Provision IOPS` and either:
 
 - Specify the exact |iops| rate in the text box, *or*
 

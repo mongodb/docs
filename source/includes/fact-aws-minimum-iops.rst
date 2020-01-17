@@ -1,14 +1,22 @@
-|service| enforces the following minimum ratios by cluster tier
-to facilitate consistent network performance with large datasets.
+|service| enforces the following minimum ratios for given cluster tiers. This keeps network performance consistent with large datasets.
 
-Disk Capacity to RAM:
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
 
-* < ``M40``: 3:1
-* ``M40``: 50:1
-* => ``M50``: 100 to 1
+   * - Tier
+     - Ratio of Disk Capacity : System Memory
+
+   * - ``M10`` - ``M40``
+     - 60:1
+   * - => ``M50``
+     - 120:1
 
 .. example::
 
-   A cluster with 50 GB storage requires a value for |iops| of at least
-   150. To support 3 TB of disk capacity, you must select a cluster
-   tier with at least 32 GB of RAM (M50 or higher).
+   To support 3 TB (or 3,072 GB) of disk capacity, select a cluster
+   tier with a minimum of 32 GB of RAM. This would be ``M50`` or greater.
+
+
+
+

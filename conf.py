@@ -126,6 +126,7 @@ rst_epilog = [
     '.. |mms-full| replace:: MongoDB Cloud Manager',
     '.. |mms| replace:: Cloud Manager',
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
+    '.. |nvme| replace:: :abbr:`NVMe (non-volatile memory express)`',
     '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`',
     '.. |pa| replace:: Performance Advisor',
     '.. |pem| replace:: :abbr:`PEM (Privacy Enhanced Mail)`',
