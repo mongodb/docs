@@ -47,7 +47,7 @@
 
        .. include:: /includes/admonitions/note-namespace-match-configmap.rst
 
-       .. include:: /includes/k8s/fact-k8s-operator-manages-configmap.rst
+       .. include:: /includes/admonitions/fact-k8s-operator-manages-configmap.rst
 
      - ``<myconfigmap>`` or
        ``<namespace>/<myconfigmap>``
@@ -61,7 +61,7 @@
 
        .. include:: /includes/admonitions/note-namespace-match-secret.rst
 
-       .. include:: /includes/k8s/fact-k8s-operator-manages-secret.rst
+       .. include:: /includes/admonitions/fact-k8s-operator-manages-secret.rst
 
      - ``<mycredentials>`` or
        ``<namespace>/<mycredentials>``
@@ -98,6 +98,6 @@
          - :setting:`spec.podSpec.persistence.multiple.journal`
          - :setting:`spec.podSpec.persistence.multiple.logs`
 
-       .. include:: /includes/k8s/k8s-persistent-volumes.rst
+       .. include:: /includes/admonitions/k8s-persistent-volumes.rst
 
      - ``true``
