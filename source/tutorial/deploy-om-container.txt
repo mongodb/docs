@@ -1,9 +1,9 @@
-.. _deploy-om-container:
-
 :noprevnext:
 
+.. _deploy-om-container:
+
 ===========================
-Deploy an |onprem| Instance
+Deploy an |onprem| Resource
 ===========================
 
 .. default-domain:: mongodb
@@ -16,245 +16,18 @@ Deploy an |onprem| Instance
 
 .. include:: /includes/styles/corrections.rst
 
-.. include:: /includes/admonition-om-resource-alpha.rst
+.. include:: /includes/admonitions/om-resource-alpha.rst
 
 You can deploy |onprem| in a container with the |k8s-op-short|.
 
-.. _om-rsrc-prereqs:
+Prerequisites and Considerations
+--------------------------------
 
-Prerequisites
--------------
+Before you deploy an |onprem| resource, make sure you :ref:`plan for
+your Ops Manager resource <plan-om-resource>`:
 
-To deploy an |onprem| resource you must:
-
-1. If you have not already, run the following command to execute all 
-   ``kubectl`` commands in the namespace you :ref:`created <k8s-prerequisites>`:
-
-   .. code-block:: sh
-
-      kubectl config set-context $(kubectl config current-context) --namespace=<namespace>
-
-2. :doc:`Install </tutorial/install-k8s-operator>` the |k8s-op| 1.4.1
-   or newer.   
-
-#. Ensure that the host on which you want to deploy |onprem| has a
-   minimum of five gigabytes of memory.
-
-#. Create a |k8s| |k8s-secret| for an admin user in the same |k8s-ns| as
-   the |onprem| resource.
-
-   When you deploy the |onprem| resource, |onprem| creates a user with
-   these credentials and grants it the :authrole:`Global Owner`
-   role. Use these credentials to log in to |onprem|
-   for the first time. Once |onprem| is deployed, you should change the
-   password or remove this secret.
-   
-   .. code-block:: sh
-
-      kubectl create secret generic <adminusercredentials> \
-        --from-literal=Username="<username>" \
-        --from-literal=Password="<password>" \ 
-        --from-literal=FirstName="<firstname>" \ 
-        --from-literal=LastName="<lastname>"
-
-.. _om-db-user-secret:
-
-4. (*Optional*) To set the password for the |onprem| database user, 
-   create a |k8s-secret| in the same |k8s-ns| as the |onprem| resource. 
-   
-   The |k8s-op-short| creates the database user that |onprem| uses to
-   connect to the :ref:`mms-application-database`. You can set the
-   password for this database user by invoking the following command to
-   create a secret:
-   
-   .. code-block:: sh
-
-      kubectl create secret generic <om-db-user-secret-name> \
-        --from-literal=password="<om-db-user-password>"
-
-   .. note::
-      
-      If you choose to create a secret for the |onprem| database user,
-      you must specify the secret's
-      :opsmgrkube:`~spec.applicationDatabase.passwordSecretKeyRef.name`
-      in the |onprem| resource definition. By default, the
-      |k8s-op-short| looks for the password value in the ``password``
-      key. If you stored the password value in a different key, you
-      must also specify that
-      :opsmgrkube:`~spec.applicationDatabase.passwordSecretKeyRef.key`
-      name in the |onprem| resource definition.
-
-   If you don't create a secret, then the |k8s-op-short| automatically
-   generates a password and stores it internally. For more information,
-   see :ref:`app-db-auth`.
-
-#. (*Optional*). To configure Backup to an |s3| snapshot store, create
-   a |k8s-secret| in the same namespace as the |onprem| resource.  
-
-   This secret stores your |s3| credentials so that the
-   |k8s-op-short| can connect |onprem| to your |aws| |s3| or
-   |s3|-compatible bucket. The secret must contain the following
-   key-value pairs: 
-
-   .. list-table::
-      :widths: 30 70
-
-      * - Key
-        - Value
-      
-      * - ``accessKey``
-        - The access key ID of the user who owns the |s3| or 
-          |s3|-compatible bucket. 
-      
-      * - ``secretKey``
-        - The secret key of the user who owns the |s3| or 
-          |s3|-compatible bucket. 
-          
-   To create the secret, invoke the following command:
-      
-   .. code-block:: sh
-
-      kubectl create secret generic <my-aws-s3-credentials> \
-        --from-literal=accessKey="<AKIAIOSFODNN7EXAMPLE>" \
-        --from-literal=secretKey="<wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY>"
-
-   To learn more about managing |s3| blockstore snapshot storage, see the :opsmgr:`Prerequisites
-   </tutorial/manage-s3-blockstore-storage/#prerequisites>`.
-
-Considerations
---------------
-
-Encryption Key
-~~~~~~~~~~~~~~
-
-The |k8s-op-short| generates an encryption key to protect
-sensitive information in the :ref:`mms-application-database`. The
-|k8s-op-short| saves this key in a |k8s-secret| in the same namespace as
-the |onprem| resource. The |k8s-op-short| names the secret
-``<om-resource-name>-gen-key``. 
-
-If you remove the |onprem| resource, the key remains stored in the
-secret on |k8s| cluster. If you stored the Application Database in a
-|k8s-pv| and you create another |onprem| resource with the same name,
-the |k8s-op-short| reuses the secret. If you create an |onprem| resource
-with a different name, then |k8s-op-short| creates a new secret and
-Application Database, and the old secret isn't reused. 
-
-Application Database Topology
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-When you create an instance of |onprem| through the |k8s-op-short|, the
-:ref:`mms-application-database` is deployed as a :term:`replica set`.
-You can't configure the Application Database as a :term:`standalone`
-database or :term:`sharded cluster`. If you
-have concerns about performance or size requirements for the Application
-Database, contact `MongoDB Support
-<https://support.mongodb.com/welcome>`__.  
-
-.. _app-db-auth:
-
-Application Database Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The |k8s-op-short| enforces ``SCRAM-SHA-1``
-:manual:`authentication </core/security-scram/#scram-mechanisms>` on the
-Application Database. 
-
-The |k8s-op-short| creates the database user which |onprem| uses to
-connect to the Application Database. This database user has the
-following attributes:
-
-.. list-table::
-   :widths: 30 70
-   :stub-columns: 1
-
-   * - Username
-     - ``mongodb-ops-manager``
-
-   * - Authentication Database
-     - ``admin``
-  
-   * - Roles
-     - | :authrole:`readWriteAnyDatabase`
-       | :authrole:`dbAdminAnyDatabase`
-       | :authrole:`clusterMonitor`
-
-The |onprem| database user's name and roles cannot be modified. However,
-you can set the database user's password by :ref:`creating a
-secret <om-db-user-secret>` and can later update the password by editing
-that secret. If you don't create a secret, or if you delete a previously
-created secret, then the |k8s-op-short| automatically generates a password and stores it internally.
-
-If you need to authenticate to the Application Database as a
-different user:
-
-1. Deploy the |onprem| resource 
-2. :manual:`Add a new user </reference/method/db.createUser/>` to
-   the database using the ``mongo`` shell.
-
-Backup
-~~~~~~
-
-|k8s-op-short| enables :ref:`mms-backup-functional-overview` by default.
-The |k8s-op-short| deploys a |k8s-statefulset| comprised of one pod to
-host the :ref:`backup-daemon`, and then creates a |k8s-pvc| and
-|k8s-pv| for the Backup Daemon's :term:`head database` . The
-|k8s-op-short| uses the :opsmgr:`Ops Manager API </reference/api/>` to
-enable the Backup Daemon and configure the head database.
-
-.. important::
-
-   To configure Backup, you must create MongoDB database resources
-   for the :term:`oplog store <oplog store database>` and |s3|
-   :term:`snapshot store <s3 snapshot store>`. The |onprem| resource
-   remains in a ``Pending`` state until these Backup resources are
-   configured.
-
-Oplog Store
-+++++++++++
-Deploy a three-member replica set to store your :term:`oplog slices
-<Oplog Slice>`. 
-
-.. include:: /includes/fact-backing-db-auth.rst
-
-S3 Snapshot Store
-+++++++++++++++++
-To configure an |s3| :opsmgr:`snapshot store
-</reference/glossary/#term-s3-snapshot-store>`, you must:
-
-- Have an oplog store already configured.
-- Create an |aws| |s3| or |s3|-compatible bucket to store your database
-  Backup :opsmgr:`snapshots </reference/glossary/#term-snapshot>`.
-- Deploy a three-member replica set to store snapshot metadata.
-
-You can update any additional |s3| :opsmgr:`configuration settings
-</tutorial/manage-s3-blockstore-storage/#provide-the-s3-blockstore-details>`
-that are not managed by the |k8s-op-short| through the |application|.
-
-Ops Manager Application Access
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-By default, the |k8s-op-short| does not create a |k8s| service to route 
-traffic originating from outside of the |k8s| cluster to the |onprem| 
-application.
-
-To access the |onprem| application, you can:
-
-- Configure the |k8s-op-short| to create a |k8s| service.
-- Create a |k8s| service manually. MongoDB recommends using a 
-  ``LoadBalancer`` |k8s| service if your cloud provider supports it.
-- If you're using OpenShift, use 
-  `routes <https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/routes.html>`__.
-- Use a third-party service, such as Istio.
-
-The simplest method is configuring the |k8s-op-short| to create a |k8s| 
-service that routes external traffic to the |onprem| application. The 
-|onprem| deployment procedure instructs you to add the following 
-settings to the |k8s-obj| specification that configures the |k8s-op-short| 
-to create a service:
-
-- ``spec.``:opsmgrkube:`~spec.externalConnectivity`
-- ``spec.externalConnectivity.``:opsmgrkube:`~spec.externalConnectivity.type`
+- Complete the :ref:`Prerequisites <om-rsrc-prereqs>`
+- Read the :ref:`Considerations <om-rsrc-considerations>`. 
 
 Procedure
 ---------

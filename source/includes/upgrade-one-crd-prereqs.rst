@@ -56,7 +56,7 @@
    - Add the ``spec.type`` field and set it to ``Standalone``,
      ``ReplicaSet``, or ``ShardedCluster`` depending on your resource.
 
-     .. include:: /includes/fact-cannot-change-type.rst
+     .. include:: /includes/admonitions/fact-cannot-change-type.rst
 
    After you edit each ``.yaml`` file, they should look like the
    following example:

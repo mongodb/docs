@@ -34,7 +34,7 @@
             #. You may need to add one or more of the following
                options:
 
-               .. include:: /includes/list-table-k8s-kubectl-install-options.rst
+               .. include:: /includes/list-tables/k8s-kubectl-install-options.rst
 
                .. note::
 
@@ -52,7 +52,7 @@
          To troubleshoot your |k8s-op-short|, see
          :ref:`review-k8s-op-logs`.
 
-         .. include:: /includes/fact-remove-k8s-resources-first.rst
+         .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
 
      - id: helmonline
        name: Online using Helm
@@ -72,12 +72,12 @@
             the ``--set`` option. For this Chart, you may need to add
             one or more of the following options:
 
-            .. include:: /includes/list-table-k8s-helm-install-options-online.rst
+            .. include:: /includes/list-tables/k8s-helm-install-options-online.rst
 
          To troubleshoot your |k8s-op-short|, see
          :ref:`review-k8s-op-logs`.
 
-         .. include:: /includes/fact-remove-k8s-resources-first.rst
+         .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
 
      - id: helmoffline
        name: Offline using Helm and Docker
@@ -109,12 +109,12 @@
                      this Chart, you may need to add one or more of the
                      following options:
 
-                     .. include:: /includes/list-table-k8s-helm-install-options-offline.rst
+                     .. include:: /includes/list-tables/k8s-helm-install-options-offline.rst
 
                   To troubleshoot your |k8s-op-short|, see
                   :ref:`review-k8s-op-logs`.
 
-                  .. include:: /includes/fact-remove-k8s-resources-first.rst
+                  .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
 
               - id: host
                 name: Another Host
@@ -135,4 +135,4 @@
                      this Chart, you may need to add one or more of the
                      following options:
 
-                     .. include:: /includes/list-table-k8s-helm-install-options-offline.rst
+                     .. include:: /includes/list-tables/k8s-helm-install-options-offline.rst
