@@ -3,7 +3,7 @@
 limited. Support will be extended in future releases of |mms|.
 
 Backup Features Supported at Present
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````````
 
 .. cond:: onprem
 
@@ -119,10 +119,10 @@ Backup Features Supported at Present
         -
         -
 
-FCV 4.2 Considerations
-~~~~~~~~~~~~~~~~~~~~~~
+Requirements and Limitations
+````````````````````````````
 
-If you are running MongoDB 4.2 with
+To run backups and restores if you are running MongoDB 4.2 with
 ``"featureCompatibilityVersion" : 4.2``, you:
 
 .. cond:: onprem
