@@ -1,165 +1,246 @@
-The ``processes`` array determines the configuration of your MongoDB instances.
-You can also use the array to restore an instance.
+The ``processes`` array determines the configuration of your MongoDB
+instances. You can restore an instance using this array.
 
-.. code-block:: cfg
+.. code-block:: yaml
 
-   "processes" : [
-       {
-           "name" : <string>,
-           "processType" : <string>,
-           "version" : <string>,
-           "<args>" : <object>,
-           "disabled" : <Boolean>,
-           "manualMode" : <Boolean>,
-           "hostname" : <string>,
-           "authSchemaVersion" : <integer>,
-           "featureCompatibilityVersion" : <string>,
-           "cluster": <string>,
-           "numCores": <integer>,
-           "logRotate" : {
-               "sizeThresholdMB" : <number>,
-               "timeThresholdHrs" : <integer>,
-               "numUncompressed": <integer>,
-               "percentOfDiskspace" : <number>,
-               "numTotal" : <integer>
-           },
-           "alias": <string>,
-           "backupRestoreUrl" : <string>
-       },
-       ...
-   ]
+   "processes": [{
+     "<args>": "<object>",
+     "alias": "<string>",
+     "backupRestoreUrl": "<string>",
+     "authSchemaVersion": "<integer>",
+     "cluster": "<string>",
+     "disabled": "<Boolean>",
+     "featureCompatibilityVersion": "<string>",
+     "hostname": "<string>",
+     "lastCompact" : "<dateInIso8601Format>",
+     "logRotate": {
+       "sizeThresholdMB": "<number>",
+       "timeThresholdHrs": "<integer>",
+       "numUncompressed": "<integer>",
+       "percentOfDiskspace": "<number>",
+       "numTotal": "<integer>"
+     },
+     "manualMode": "<Boolean>",
+     "name": "<string>",
+     "numCores": "<integer>",
+     "processType": "<string>",
+     "version": "<string>"
+   }]
 
 .. list-table::
-   :widths: 30 10 80
+   :widths: 15 10 10 65
    :header-rows: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
-   * - processes
-     - object array
-     - The ``processes`` array contains objects that define the
-       :program:`mongos` and :program:`mongod` instances that |mms|
-       monitors. Each object defines a different instance.
+   * - ``processes``
+     - array of objects
+     - Required
+     - Contains objects that define the |mongos| and |mongod| instances
+       that |mms| monitors. Each object defines a different instance.
 
-   * - processes.name
-     - string
-     - A unique name to identify the instance.
-
-   * - processes.processType
-     - string
-     - Either ``mongod`` or ``mongos``.
-
-   * - processes.version
-     - string
-     - The name of the ``mongoDbVersions`` specification used with
-       this instance.
-
-   * - ``processes.args2_6``
+   * - | ``processes``
+       | ``.args2_6``
      - object
-     - The MongoDB configuration object for MongoDB versions 2.6 and
-       higher. 
-       For information on format and supported MongoDB options, see
-       :doc:`supported configuration options
-       </reference/cluster-configuration-process-options>`.
+     - Required
+     - MongoDB configuration object for MongoDB versions 2.6 and later.
 
-   * - processes.disabled
-     - Boolean
-     - *Optional*. Set to ``true`` to shut down the process.
+       .. seealso::
 
-   * - processes.manualMode
-     - Boolean
-     - *Optional*. Set to ``true`` to operate this process in manual mode.
-       The {+aagent+} will take no actions on the process.
+          :doc:`Supported configuration options </reference/cluster-configuration-process-options>`.
 
-   * - processes.hostname
+   * - | ``processes``
+       | ``.alias``
      - string
-     - The name of the host this process should run on. This defaults to
-       ``localhost``.
-       
-   * - processes.authSchemaVersion
+     - Optional
+     - Hostname alias (often a |dns| CNAME) for the host on which the
+       process runs. If an alias is specified, the {+mdbagent+} prefers
+       this alias over the hostname specified in ``processes.hostname``
+       when connecting to the host. You can also specify this alias in
+       ``replicaSets.host`` and ``sharding.configServer``.
+
+   * - | ``processes``
+       | ``.authSchemaVersion``
      - integer
-     - The schema version of the user credentials for MongoDB database
+     - Required
+     - Schema version of the user credentials for MongoDB database
        users. This should match all other elements of the ``processes``
-       array that belong to the same cluster. The possible values are 
-       ``3`` and ``5``. The default is ``5`` for MongodDB 3.x
-       clusters and ``3`` for MongoDB 2.6 clusters. See `Upgrade to
-       SCRAM-SHA-1 <https://docs.mongodb.com/manual/release-notes/3.0-scram/>`_
-       in the MongoDB 3.0 release notes for more information.
+       array that belong to the same cluster.
 
-   * - processes.featureCompatibilityVersion
+       - |mms| accepts ``3`` and ``5`` for this parameter.
+       - MongoDB 3.x clusters default to ``5``.
+       - MongoDB 2.6 clusters default to  ``3``.
+
+       .. seealso::
+
+          :manual:`Upgrade to SCRAM-SHA-1 </release-notes/3.0-scram/>`
+          in the MongoDB 3.0 release notes.
+
+   * - | ``processes``
+       | ``.backupRestoreUrl``
      - string
-     - Enables MongoDB 3.4 features that are not backwards compatible with
-       MongDB 3.2. Valid values are "3.2" and "3.4". New deployments of MongoDB 3.4 automatically set
-       the value of this field to "3.4". However, upgrading a host from
-       3.2 to 3.4 does not automatically add the field with a value of
-       3.4. See the
-       `setFeatureCompatibilityVersion <https://docs.mongodb.com/manual/reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>`_
-       reference for more information about behavior and affected features.
+     - Optional
+     - Delivery |url| for the restore. |mms| sets this when creating a
+       restore.
 
-   * - processes.cluster
+       .. seealso::
+
+          :doc:`/tutorial/automate-backup-restoration-with-api`.
+
+   * - | ``processes``
+       | ``.cluster``
      - string
-     - *Optional*. Required for a :program:`mongos`. The name of the
-       cluster. This must correspond to the ``sharding.name`` field
-       in the ``sharding`` array for the :program:`mongos`.
+     - Conditional
+     - Name of the sharded cluster. Set this value to the same value in
+       the ``sharding.name`` parameter in the ``sharding`` array for
+       the |mongos|.
 
-   * - processes.numCores
-     - integer
-     - *Optional*. The number of cores the process should be bound to. The
-       {+aagent+} will spread processes out across the cores as
-       evenly as possible.
+       - *Required* for a |mongos|.
+       - *Not needed* for a |mongod|.
 
-   * - processes.logRotate
+   * - | ``processes``
+       | ``.disabled``
+     - Boolean
+     - Optional
+     - Flag that indicates if this process should be shut down. Set to
+       ``true`` to shut down the process.
+
+   * - | ``processes``
+       | ``.featureCompatibilityVersion``
+     - string
+     - Required
+     - Version of MongoDB with which this process has feature
+       compatibility. Changing this value can enable MongoDB
+       {+fcv-current+} features that aren't backwards compatible with
+       MongoDB {+fcv-previous+}.
+
+       - |mms| accepts ``{+fcv-previous+}`` and ``{+fcv-current+}`` as
+         parameter values.
+       - |mms| sets this parameter to ``{+fcv-current+}`` in new
+         deployments of MongoDB {+fcv-current+}.
+       - |mms| doesn't add this parameter set to ``{+fcv-current+}``
+         when upgrading a host from {+fcv-previous+} to {+fcv-current+}.
+
+       .. seealso::
+
+          :manual:`setFeatureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>`
+
+   * - | ``processes``
+       | ``.hostname``
+     - string
+     - Required
+     - Name of the host that serves this process. This defaults to
+       ``localhost``.
+
+   * - | ``processes``
+       | ``.lastCompact``
+     - string
+     - Optional
+     - |iso8601-time| when |mms| last reclaimed free space on a
+       cluster's disks. When |mms| rebalances a sharded cluster across
+       added shards, it creates unused space. To reclaim this space,
+       set this value to an |iso8601| timestamp. |mms| reclaims the
+       disk space in a rolling fashion across members of the shards.
+
+   * - | ``processes``
+       | ``.logRotate``
      - object
-     - *Optional*. Enables log rotation for the MongoDB logs for a
+     - Optional
+     - MongoDB configuration object for rotating the MongoDB logs of a
        process.
 
-   * - processes.logRotate.sizeThresholdMB
+   * - | ``processes``
+       | ``.logRotate``
+       | ``.numTotal``
+     - integer
+     - Optional
+     - Total number of log files that |mms| retains. If you don't set
+       this value, the total number of log files defaults to ``0``.
+       |mms| bases rotation on your other ``processes.logRotate``
+       settings.
+
+   * - | ``processes``
+       | ``.logRotate``
+       | ``.numUncompressed``
+     - integer
+     - Optional
+     - Maximum number of total log files to leave uncompressed,
+       including the current log file. The default is ``5``.
+
+   * - | ``processes``
+       | ``.logRotate``
+       | ``.percentOfDiskspace``
      - number
-     - The maximum size in MB for an individual log file before
-       rotation. The file rotates immediately if the file meets either
-       this ``sizeThresholdMB`` or the
+     - Optional
+     - Maximum percentage of total disk space that |mms| can use to
+       store the log files expressed as decimal. If this limit is
+       exceeded, |mms| deletes compressed log files until it meets this
+       limit. |mms| deletes the oldest log files first.
+
+       The default is ``0.02``.
+
+   * - | ``processes``
+       | ``.logRotate``
+       | ``.sizeThresholdMB``
+     - number
+     - Required
+     - Maximum size in MB for an individual log file before |mms|
+       rotates it. |mms| rotates the log file immediately if it meets
+       the value given in either this ``sizeThresholdMB`` or the
        ``processes.logRotate.timeThresholdHrs`` limit.
 
-   * - processes.logRotate.timeThresholdHrs
+   * - | ``processes``
+       | ``.logRotate``
+       | ``.timeThresholdHrs``
      - integer
-     - The maximum time in hours for an individual log file before the
+     - Required
+     - Maximum duration in hours for an individual log file before the
        next rotation. The time is since the last rotation.
 
-       The log file rotates immediately if the file meets either this
+       |mms| rotates the log file once the file meets either this
        ``timeThresholdHrs`` or the
        ``processes.logRotate.sizeThresholdMB`` limit.
 
-   * - processes.logRotate.numUncompressed
-     - integer
-     - *Optional*. The maximum number of total log files to leave
-       uncompressed, including the current log file. The default is ``5``.
+   * - | ``processes``
+       | ``.manualMode``
+     - Boolean
+     - Optional
+     - Flag that indicates if {+mdbagent+} automates this process.
 
-   * - processes.logRotate.percentOfDiskspace
-     - number
-     - *Optional*. The maximum percentage of total disk space that can
-       be used to store the log files. If this limit is exceeded, the
-       compressed log files are deleted to meet this limit, starting
-       with the oldest log files first.
+       - This defaults to ``false``.
+       - Set to ``true`` to disable Automation on this process. The
+         {+mdbagent+} takes no further actions on this process.
+       - Set to ``false`` to enable Automation on this process. The
+         {+mdbagent+} automates actions on this process.
 
-       The default is ``.02``.
-
-   * - processes.logRotate.numTotal
-     - integer
-     - *Optional*. If a number is not specified, the total number of log files defaults to ``0`` and 
-       is determined by other ``processes.logRotate`` settings.
-
-   * - processes.alias
+   * - | ``processes``
+       | ``.name``
      - string
-     - *Optional*. A hostname alias (often a DNS CNAME) for the server on
-       which the process runs. If an alias is specified, the {+aagent+} prefers the alias over the host specified in
-       ``processes.hostname`` when connecting to the server. You can
-       also specify this alias in ``replicaSets.host`` and
-       ``sharding.configServer``.
+     - Required
+     - Unique name to identify the instance.
 
-   * - processes.backupRestoreUrl
+   * - | ``processes``
+       | ``.numCores``
+     - integer
+     - Optional
+     - Number of cores that |mms| should bind to this process. The
+       {+mdbagent+} distributes processes across the cores as evenly as
+       possible.
+
+   * - | ``processes``
+       | ``.processType``
      - string
-     - *Optional*. This is used only when creating a restore and specifies the
-       delivery url for the restore. See
-       :doc:`/tutorial/automate-backup-restoration-with-api`.
+     - Required
+     - Type of MongoDB process being run. |mms| accepts |mongod| or
+       |mongos| for this parameter.
+
+   * - | ``processes``
+       | ``.version``
+     - string
+     - Required
+     - Name of the ``mongoDbVersions`` specification used with this
+       instance.
+

@@ -126,7 +126,9 @@ source_constants = {
     'agent-dl-tar-rhel-7-x64': 'RHEL/CentOS (7.X/8.X), SUSE12, Amazon Linux 2 - TAR',
     'agent-dl-tar-ubuntu-16-ppc': 'Ubuntu 16.X Power (ppc64le) - TAR',
     'opsmgr-example-url': '<OpsManagerHost>:<Port>',
-    'onprem': 'Ops Manager'
+    'onprem': 'Ops Manager',
+    'fcv-current' : '4.2',
+    'fcv-previous' : '4.0'
 }
 
 languages = [
