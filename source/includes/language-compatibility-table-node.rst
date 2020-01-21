@@ -13,6 +13,16 @@
      - Node.js v0.10.X
      - Node.js v0.8.X
 
+   * - 3.5
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     -
+
    * - 3.4
      - |checkmark|
      - |checkmark|
