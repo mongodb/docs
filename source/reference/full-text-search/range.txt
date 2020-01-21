@@ -1,0 +1,306 @@
+.. _range-ref:
+
+================
+range (Operator)
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Description
+-----------
+
+The ``range`` operator supports querying and scoring numeric 
+and date values. This operator can be used to perform a search over:
+
+- Number fields of BSON ``int32``, ``int64``, and ``double`` data types.
+- Date fields of BSON ``date`` data type in 
+  :manual:`ISODate </reference/glossary/#term-isodate>` format.
+
+You can use the ``range`` operator to find results that are within a given 
+numeric or date range. 
+
+``range`` has the following syntax:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+       "$searchBeta": {
+          "range": {
+             "path": "<field-to-search>",
+             "gt | gte": <value-to-search>,
+             "lt | lte": <value-to-search>,
+             "score": <score-options>
+          }
+       }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10 
+   
+   * - Field
+     - Type
+     - Description
+     - Required?
+
+   * - ``gt`` or ``gte``
+     - BSON date or number
+     - Find values greater than (i.e. ``>``) or greater than or equal 
+       to (i.e. ``>=``) the given value.
+
+       - For number fields, the value can be an ``int32``, ``int64``, 
+         or ``double`` data type.
+       - For date fields, the value must be an 
+         :manual:`ISODate </reference/glossary/#term-isodate>` formatted 
+         date. 
+
+     - no
+
+   * - ``lt`` or ``lte``
+     - BSON date or number
+     - Find values less than (i.e. ``<``) or less than or equal 
+       to (i.e. ``<=``) the given value.
+
+       - For number fields, the value can be an ``int32``, ``int64``, or 
+         ``double`` data type.
+       - For date fields, the value must be an 
+         :manual:`ISODate </reference/glossary/#term-isodate>` formatted 
+         date. 
+
+     - no
+
+   * - ``path``
+     - string or array of strings
+     - The indexed field or fields to search. See :ref:`Path
+       Construction <ref-path>` for more information.
+     - yes
+
+   * - ``score``
+     - object
+     - Modify the score assigned to matching search results. Options 
+       are:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+
+       For information on using ``score`` in your query, see 
+       :ref:`scoring-ref`.
+     - no
+
+Examples
+--------
+
+The following examples use the ``movies`` collection in the ``sample_mflix`` 
+database. If you loaded the :ref:`sample dataset <available-sample-datasets>` 
+on your cluster, you can create the static indexes using the index 
+defintions in the examples below and run the queries on your cluster. The :ref:`fts-tutorial-ref` contains instructions for loading the :ref:`sample 
+dataset <available-sample-datasets>`, creating an :ref:`index defintion 
+<ref-index-definitions>`, and running |fts| queries.
+
+Number Example 
+~~~~~~~~~~~~~~
+
+The following examples uses the ``range`` operator to query a number field. 
+
+**Example 1:** The following example uses ``gte`` and ``lte`` fields to define 
+the numeric range to search.
+
+.. example::
+
+   The following index definition named ``runtimes`` indexes the 
+   ``runtime`` field in the ``movies`` collection.
+
+   .. code-block:: json
+
+      {
+         "mappings": {
+            "dynamic": false,
+            "fields": {
+               "runtime": {
+                  "type": "number"
+               }
+            }
+         }
+      }
+
+   The following query searches for movies with a runtime greater 
+   than or equal to 2 and less than equal to 3. It includes a 
+   :manual:`$limit </reference/operator/aggregation/limit>` stage 
+   to limit the output to 5 results and a :manual:`$project
+   </reference/operator/aggregation/project>` stage to exclude all
+   fields except ``title`` and ``runtime``.
+
+   .. code-block:: json
+
+      db.movies.aggregate([
+         {
+            $searchBeta: {
+               "index": "runtimes",
+               "range": {
+                  "path": "runtime",
+                  "gte": 2,
+                  "lte": 3
+               }
+            }
+         },
+         {
+            $limit: 5
+         },
+         {
+            $project: {
+               "_id": 0,
+               "title": 1,
+               "runtime": 1
+            }
+         }
+      ])
+
+   The above query returns the following search results:
+
+   .. code-block:: json
+      :copyable: false
+
+      { "runtime" : 3, "title" : "Dots" }
+      { "runtime" : 3, "title" : "Sisyphus" }
+      { "runtime" : 3, "title" : "The Fly" }
+      { "runtime" : 2, "title" : "Andrè and Wally B." }
+      { "runtime" : 2, "title" : "Luxo Jr." }
+
+**Example 2:** The following example uses the ``lte`` field to search 
+for all values less than or equal to the given value.
+
+.. example::
+
+   The following index definition named ``runtimes`` indexes the 
+   ``runtime`` field in the ``movies`` collection.
+
+   .. code-block:: json
+
+      {
+         "mappings": {
+            "dynamic": false,
+            "fields": {
+               "runtime": {
+                  "type": "number"
+               }
+            }
+         }
+      }
+
+   The following query searches for all movies with a runtime less 
+   than or equal to 2. It includes a :manual:`$limit
+   </reference/operator/aggregation/limit>` stage to limit the output
+   to 5 results and a :manual:`$project
+   </reference/operator/aggregation/project>` stage to:
+   
+   - Exclude all fields except ``title`` and ``runtime``
+   - Add a field named ``score``
+
+   .. code-block:: json
+
+      db.movies.aggregate([
+         {
+            $searchBeta: {
+               "index": "runtimes",
+               "range": {
+                  "path": "runtime",
+                  "lte": 2
+               }
+            }
+         },
+         {
+            $limit: 5
+         },
+         {
+            $project: {
+               "_id": 0,
+               "title": 1,
+               "runtime": 1,
+               score: { $meta: "searchScore" }
+            }
+         }
+      ])
+
+   The above query returns the following search results:
+
+   .. code-block:: json
+      :copyable: false
+
+      { "runtime" : 1, "title" : "Blacksmith Scene", "score" : 1 }
+      { "runtime" : 2, "title" : "Andrè and Wally B.", "score" : 1 }
+      { "runtime" : 2, "title" : "Luxo Jr.", "score" : 1 }
+      { "runtime" : 1, "title" : "The Kiss", "score" : 1 }
+      { "runtime" : 1, "title" : "Dickson Experimental Sound Film", "score" : 1 }
+
+Date Example 
+~~~~~~~~~~~~
+
+The following example uses the ``range`` operator to query a date field. 
+
+.. example::
+
+   The following index definition named ``releaseddate`` indexes the 
+   ``released`` field in the ``movies`` collection:
+
+   .. code-block:: json
+
+      {
+         "mappings": {
+            "dynamic": false,
+            "fields": {
+               "released": {
+                  "type": "date"
+               }
+            }
+         }
+      }
+
+   The following query searches for movies released between January 1, 
+   2010 and January 1, 2015. It includes a :manual:`$limit
+   </reference/operator/aggregation/limit>` stage to limit the output
+   to 5 results and a :manual:`$project
+   </reference/operator/aggregation/project>` stage to exclude all
+   fields except ``title`` and ``released``.
+
+   .. code-block:: json
+
+      db.movies.aggregate([
+         {
+            $searchBeta: {
+               "index": "releaseddate",
+               "range": {
+                  "path": "released",
+                  "gt": ISODate("2010-01-01T00:00:00.000Z"),
+                  "lt": ISODate("2015-01-01T00:00:00.000Z")
+               }
+            }
+         },
+         {
+            $limit: 5
+         },
+         {
+            $project: {
+               "_id": 0,
+               "title": 1,
+               "released": 1
+            }
+         }
+      ])
+
+   The above query returns the following search results:
+
+   .. code-block:: json
+      :copyable: false
+
+      { "title" : "The Fall of the House of Usher", "released" : ISODate("2011-09-20T00:00:00Z") }
+      { "title" : "The Blood of a Poet", "released" : ISODate("2010-05-20T00:00:00Z") }
+      { "title" : "Too Much Johnson", "released" : ISODate("2014-08-30T00:00:00Z") }
+      { "title" : "Stolen Desire", "released" : ISODate("2012-07-01T00:00:00Z") }
+      { "title" : "The Monkey King", "released" : ISODate("2012-01-12T00:00:00Z") }

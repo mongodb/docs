@@ -1,0 +1,303 @@
+.. _near-ref:
+
+===============
+near (Operator)
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Description
+-----------
+
+The ``near`` operator supports querying and scoring 
+numeric and date values. This operator can be used to 
+perform a search over:
+
+- Number fields of BSON ``int32``, ``int64``, and ``double`` data types. 
+- Date fields of BSON ``date`` type in 
+  :manual:`ISODate </reference/glossary/#term-isodate>` format.
+
+You can use the ``near`` operator to find results that are near a 
+number or a date. The ``near`` operator scores the |fts| results by 
+proximity to the number or date.
+
+``near`` has the following syntax:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      $searchBeta: {
+         "near": {
+            "path": "<field-to-search>",
+            "origin": <date-or-number>,
+            "pivot": <pivot-distance>,
+            "score": <score-options>
+         }
+      }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10 
+   
+   * - Field
+     - Type
+     - Description
+     - Required?
+
+   * - ``origin``
+     - date or number
+     - The number or date to search near. This is the origin from which the 
+       proximity of the results is measured.
+
+       - For number fields, the value must be of BSON ``int32``, ``int64``, 
+         or ``double`` data types.
+       - For date fields, the value must be an 
+         :manual:`ISODate </reference/glossary/#term-isodate>` formatted 
+         date.
+
+     - yes
+
+   * - ``path``
+     - string or array of strings
+     - The indexed field or fields to search. See :ref:`Path
+       Construction <ref-path>` for more information.
+     - yes
+
+   * - ``pivot``
+     - number
+     - The value to use to calculate scores of |fts| result documents. 
+       Score is calculated using the following formula:
+
+       .. code-block:: text
+          :copyable: false
+
+                        pivot
+          score = ------------------
+                   pivot + distance 
+
+       where ``distance`` is the difference between ``origin`` and the 
+       indexed field value.
+
+       Results have a score equal to ``1/2`` (or ``0.5``) when their 
+       indexed field value is ``pivot`` units away from ``origin``.  The 
+       value of ``pivot`` must be greater than (i.e. ``>``) ``0``.
+       
+       If ``origin`` is a:
+
+       - Number, ``pivot`` can be specified as an integer or floating 
+         point number.
+       - Date, ``pivot`` must be specified in milliseconds and can be 
+         specified as a 32 or 64 bit integer. For example:
+
+         - 1 minute is equal to ``60,000 ms`` 
+         - 1 hour is equal to ``3,600,000 ms``
+         - 1 day is equal to ``86,400,000 ms``
+         - 1 month (or 30 days) is equal to ``2,592,000,000 ms``
+
+     - yes
+
+   * - ``score``
+     - object
+     - A measure of the proximity of the |fts| results to ``origin``. The 
+       ``score`` is scaled between ``0`` and ``1`` with ``1`` being an exact 
+       match and ``0`` being a distant match. Score is equal to ``0.5`` when 
+       the distance of the |fts| result from ``origin`` is equal to the 
+       distance away from origin as calculated using ``pivot``.
+
+       Score is calculated using the following formula:
+
+       .. code-block:: text
+          :copyable: false
+
+                        pivot
+          score = ------------------
+                   pivot + distance 
+
+       where ``distance`` is the difference between ``origin`` and the 
+       indexed field value.
+     
+       You can modify the score of the matching search results using 
+       the following options:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+
+       For more information on using ``score`` in your query, see 
+       :ref:`scoring-ref`.
+
+     - no
+
+Examples
+--------
+
+The following examples use the ``movies`` collection in the ``sample_mflix`` 
+database. If you loaded the :ref:`sample dataset <available-sample-datasets>` 
+on your cluster, you can create the static indexes using the index 
+defintions in the examples below and run the queries on your cluster. The :ref:`fts-tutorial-ref` contains instructions for loading the :ref:`sample 
+dataset <available-sample-datasets>`, creating an :ref:`index defintion 
+<ref-index-definitions>`, and running |fts| queries.
+
+Number Example 
+~~~~~~~~~~~~~~
+
+The following example uses the ``near`` operator to query a number field. 
+
+.. example::
+
+   The following index definition named ``runtimes`` indexes the 
+   ``runtime`` field values in the ``movies`` collection:
+
+   .. code-block:: json
+
+      {
+         "mappings": {
+            "dynamic": false,
+            "fields": {
+               "runtime": {
+                  "type": "number"
+               }
+            }
+         }
+      }
+
+   The following query searches for documents in the ``movies`` collection 
+   with a ``runtime`` field value that is near 279. It includes a 
+   :manual:`$limit </reference/operator/aggregation/limit>` stage to limit 
+   the output to 7 results and a :manual:`$project 
+   </reference/operator/aggregation/project>` stage to:
+   
+   - Exclude all fields except ``title`` and ``runtime``
+   - Add a field named ``score``
+
+   The ``score`` is calculated using ``pivot``. 
+
+   .. code-block:: json
+
+      db.movies.aggregate([
+         {
+            $searchBeta: {
+               "index": "runtimes",
+               "near": {
+                  "path": "runtime",
+                  "origin": 279,
+                  "pivot": 2
+               }
+            }
+         },
+         {
+            $limit: 7
+         },
+         {
+            $project: {
+               "_id": 0,
+               "title": 1,
+               "runtime": 1,
+               score: { $meta: "searchScore" }
+            }
+         }
+      ])
+
+   The above query returns the following results:
+
+   .. code-block:: json 
+      :copyable: false
+
+      { "runtime" : 279, "title" : "The Kingdom", "score" : 1 }
+      { "runtime" : 279, "title" : "The Jinx: The Life and Deaths of Robert Durst", "score" : 1 }
+      { "runtime" : 280, "title" : "Shoah", "score" : 0.6666666865348816 }
+      { "runtime" : 281, "title" : "Les Misèrables", "score" : 0.5 }
+      { "runtime" : 277, "title" : "Tokyo Trial", "score" : 0.5 }
+      { "runtime" : 276, "title" : "Warriors of the Rainbow: Seediq Bale", "score" : 0.4000000059604645 }
+      { "runtime" : 283, "title" : "Scenes from a Marriage", "score" : 0.3333333432674408 }
+
+   In the above |fts| results, the movies ``The Kingdom`` and ``The 
+   Jinx: The Life and Deaths of Robert Durst`` receive a score of ``1.0`` 
+   because their ``runtime`` field value of ``279`` is an exact match. 
+   The movies ``Les Misèrables`` and ``Tokyo Trial`` receive a score of 
+   ``0.5`` because their ``runtime`` field value is ``2`` units away from 
+   ``279``. 
+
+Date Example
+~~~~~~~~~~~~
+
+The following uses the ``near`` operator to query a date field. 
+
+.. example::
+
+   The following index definition named ``releaseddate`` indexes 
+   the ``released`` field values in the ``movies`` collection:
+
+   .. code-block:: json
+
+      {
+         "mappings": {
+            "dynamic": false,
+            "fields": {
+               "released": {
+                  "type": "date"
+               }
+            }
+         }
+      }
+
+   The following query searches for movies released near September 13, 1915. 
+   It includes a :manual:`$limit </reference/operator/aggregation/limit>` stage 
+   to limit the output to 3 results and a :manual:`$project 
+   </reference/operator/aggregation/project>` stage to:
+   
+   - Exclude all fields except ``title`` and ``released``
+   - Add a field named ``score``
+
+   The ``score`` of results is calculated using ``pivot``. Note that ``pivot`` 
+   is measured here in milliseconds, and ``7,776,000,000 ms`` is equal to 
+   approximately three months. 
+
+   .. code-block:: json
+
+      db.movies.aggregate([
+         {
+            $searchBeta: {
+               "index": "releaseddate",
+               "near": {
+                  "path": "released",
+                  "origin": ISODate("1915-09-13T00:00:00.000+00:00"),
+                  "pivot": 7776000000 
+               }
+            }
+         },
+         {
+            $limit: 3
+         },
+         {
+            $project: {
+               "_id": 0,
+               "title": 1,
+               "released": 1,
+               score: { $meta: "searchScore" }
+            }
+         }
+      ])
+
+   The above query returns the following search results:
+
+   .. code-block:: json
+      :copyable: false
+
+      { "title" : "Regeneration", "released" : ISODate("1915-09-13T00:00:00Z"), "score" : 1 }
+      { "title" : "The Cheat", "released" : ISODate("1915-12-13T00:00:00Z"), "score" : 0.49723756313323975 }
+      { "title" : "Hell's Hinges", "released" : ISODate("1916-03-05T00:00:00Z"), "score" : 0.34090909361839294 }
+
+   In the above |fts| results, the movie ``Regeneration`` receives a score of 
+   ``1`` because the ``released`` field value of ``1915-09-13`` is an exact 
+   match. The movie ``The Cheat``, which was released on ``1915-12-13``, 
+   receives a score of approximately ``0.5`` because the ``released`` field 
+   value distance from ``origin`` is approximately ``7,776,000,000`` milliseconds 
+   from ``1915-09-13``.
