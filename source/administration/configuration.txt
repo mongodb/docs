@@ -44,8 +44,7 @@ control the configuration of your database instance.
 Configure the Database
 ----------------------
 
-Consider the following basic configuration which uses the :doc:`YAML
-format </reference/configuration-options>`:
+Consider the following basic configuration:
 
 .. code-block:: yaml
 
@@ -55,7 +54,7 @@ format </reference/configuration-options>`:
       bindIp: localhost
       port: 27017
    storage:
-      dbPath: /srv/mongodb
+      dbPath: /var/lib/mongo
    systemLog:
       destination: file
       path: "/var/log/mongodb/mongod.log"
@@ -63,19 +62,6 @@ format </reference/configuration-options>`:
    storage:
       journal:
          enabled: true
-
-Or, if using the older ``.ini`` configuration file format:
-
-.. code-block:: ini
-
-   fork = true
-   bind_ip = localhost
-   port = 27017
-   quiet = true
-   dbpath = /srv/mongodb
-   logpath = /var/log/mongodb/mongod.log
-   logappend = true
-   journal = true
 
 For most standalone servers, this is a sufficient base
 configuration. It makes several assumptions, but consider the
@@ -94,8 +80,6 @@ following explanation:
 
   .. |mongodb-package| replace:: :binary:`~bin.mongod`
 
-  .. include:: /includes/note-deb-and-rpm-default-to-localhost.rst
-
 - :setting:`~net.port` is ``27017``, which is the default
   MongoDB port for database instances. MongoDB can bind to any
   port. You can also filter access based on port using network
@@ -112,11 +96,41 @@ following explanation:
   can use :dbcommand:`setParameter` to modify this setting during
   run time.
 
-- :setting:`~storage.dbPath` is ``/srv/mongodb``, which
-  specifies where MongoDB will store its data files. ``/srv/mongodb``
-  and ``/var/lib/mongodb`` are popular locations. The user account
-  that :binary:`~bin.mongod` runs under will need read and write access to this
-  directory.
+- :setting:`~storage.dbPath` is ``/var/lib/mongo``, which
+  specifies where MongoDB will store its data files.
+  
+  If you installed MongoDB on Linux using a package manager,
+  such as ``yum`` or ``apt``, the ``/etc/mongod.conf`` file provided
+  with your MongoDB installation sets the following default ``dbPath``,
+  depending on your Linux distro:
+
+  .. list-table::
+      :header-rows: 1
+      :widths: 35 30 35
+
+      * - Platform
+        - Package Manager
+        - Default ``dbPath``
+
+      * - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS and Amazon
+        - ``yum``
+        - ``/var/lib/mongo``
+
+      * - SUSE
+        - ``zypper``
+        - ``/var/lib/mongo``
+
+      * - Ubuntu and Debian
+        - ``apt``
+        - ``/var/lib/mongodb``
+
+      * - macOS
+        - ``brew``
+        - ``/usr/local/var/mongodb``
+  
+  The user account that
+  :binary:`~bin.mongod` runs under will need read and write access to
+  this directory.
 
 - :setting:`systemLog.path` is ``/var/log/mongodb/mongod.log``
   which is where :binary:`~bin.mongod` will write its output. If you do not set
@@ -187,19 +201,10 @@ Replication Configuration
 requires that the :setting:`~replication.replSetName` have a value that is consistent
 among all members of the set. Consider the following:
 
-In :doc:`YAML format </reference/configuration-options>`
-
 .. code-block:: yaml
 
    replication:
       replSetName: set0
-
-Or, if using the :v2.4:`older configuration file format
-</reference/configuration-options>`:
-
-.. code-block:: ini
-
-   replSet = set0
 
 Use descriptive names for sets. Once configured, use the
 :binary:`~bin.mongo` shell to add hosts to the replica set.
@@ -212,19 +217,10 @@ To enable authentication for the :term:`replica set` using
 :ref:`keyfiles <internal-auth-keyfile>` , add the following
 :setting:`~security.keyFile` option [#x509]_:
 
-In :doc:`YAML format </reference/configuration-options>`
-
 .. code-block:: yaml
 
    security:
       keyFile: /srv/mongodb/keyfile
-
-Or, if using the :v2.4:`older configuration file format
-</reference/configuration-options>`:
-
-.. code-block:: ini
-
-   keyFile = /srv/mongodb/keyfile
 
 Setting :setting:`~security.keyFile` enables authentication and
 specifies a keyfile for the replica set member to use when
@@ -317,22 +313,12 @@ one :binary:`~bin.mongod` on a single system.
 In these cases, use a :ref:`base configuration <base-config>` for each
 instance, but consider the following configuration values:
 
-In :doc:`YAML format </reference/configuration-options>`:
-
 .. code-block:: yaml
 
    storage:
-      dbPath: /srv/mongodb/db0/
+      dbPath: /var/lib/mongo/db0/
    processManagement:
-      pidFilePath: /srv/mongodb/db0.pid
-
-Or, if using the :v2.4:`older configuration file format
-</reference/configuration-options>`:
-
-.. code-block:: cfg
-
-   dbpath = /srv/mongodb/db0/
-   pidfilepath = /srv/mongodb/db0.pid
+      pidFilePath: /var/lib/mongo/db0.pid
 
 The :setting:`~storage.dbPath` value controls the location of the
 :binary:`~bin.mongod` instance's data directory. Ensure that each database
