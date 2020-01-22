@@ -158,6 +158,7 @@ rst_epilog = '\n'.join([
     '.. |onprem| replace:: Ops Manager',
     '.. |onprem-link| replace:: :opsmgr:`Ops Manager </>`',
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
+    '.. |ntp| replace:: :abbr:`NTP (Network Time Protocol)`',
     '.. |nvme-clusters| replace:: clusters with local NVMe SSDs',
     '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
     '.. |piv| replace:: :abbr:`PIV (Personal Identity Verification)`',
