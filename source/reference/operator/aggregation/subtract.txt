@@ -40,8 +40,10 @@ Consider a ``sales`` collection with the following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "abc", "price" : 10, "fee" : 2, "discount" : 5, "date" : ISODate("2014-03-01T08:00:00Z") }
-   { "_id" : 2, "item" : "jkl", "price" : 20, "fee" : 1, "discount" : 2, "date" : ISODate("2014-03-01T09:00:00Z") }
+   db.sales.insertMany([
+      { "_id" : 1, "item" : "abc", "price" : 10, "fee" : 2, "discount" : 5, "date" : ISODate("2014-03-01T08:00:00Z") },
+      { "_id" : 2, "item" : "jkl", "price" : 20, "fee" : 1, "discount" : 2, "date" : ISODate("2014-03-01T09:00:00Z") }
+   ])
 
 Subtract Numbers
 ~~~~~~~~~~~~~~~~
@@ -65,19 +67,26 @@ Subtract Two Dates
 ~~~~~~~~~~~~~~~~~~
 
 The following aggregation uses the :expression:`$subtract` expression
-to subtract ``$date`` from the current date and returns the difference 
-in milliseconds:
+to subtract ``$date`` from the current date, using the system
+:variable:`NOW` (available starting in 4.2) and returns the difference in
+milliseconds:
+
+.. code-block:: javascript
+
+    db.sales.aggregate( [ { $project: { item: 1, dateDifference: { $subtract: [ "$$NOW", "$date" ] } } } ] )
+
+Alternatively, you can use the :method:`Date()` for the current date:s
 
 .. code-block:: javascript
 
     db.sales.aggregate( [ { $project: { item: 1, dateDifference: { $subtract: [ new Date(), "$date" ] } } } ] )
 
-The operation returns the following results:
+Both operations return documents that resemble the following:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "abc", "dateDifference" : NumberLong("11713985194") }
-   { "_id" : 2, "item" : "jkl", "dateDifference" : NumberLong("11710385194") }
+   { "_id" : 1, "item" : "abc", "dateDifference" : NumberLong("186136746187") }
+   { "_id" : 2, "item" : "jkl", "dateDifference" : NumberLong("186133146187") }
 
 Subtract Milliseconds from a Date
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -81,14 +81,22 @@ specifies an ``_id`` field, MongoDB adds the ``_id`` field:
 Insert for ``Bulk.find.updateOne()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :method:`Bulk.find.updateOne()` method accepts, as its parameter,
-an update document that contains only field and value pairs or
-only :ref:`update operator <update-operators>` expressions.
+The :method:`Bulk.find.updateOne()` method accepts as its
+:ref:`parameter <bulk-find-updateOne-parameter>` either:
+
+- a replacement document that contains only field and value pairs (same
+  as :method:`Bulk.find.replaceOne()`),
+
+- an update document that contains only :ref:`update operator
+  <update-operators>` expressions, or
+
+- an aggregation pipeline (Starting in MongoDB 4.2).
 
 Field and Value Pairs
 `````````````````````
 
-If the update document contains only field and value pairs:
+If the :ref:`parameter <bulk-find-updateOne-parameter>` is a
+replacement document that contains only field and value pairs:
 
 .. code-block:: javascript
 
@@ -104,8 +112,8 @@ If the update document contains only field and value pairs:
    bulk.execute();
 
 Then, if the update operation with the :method:`Bulk.find.upsert()`
-option performs an insert, the inserted document is the update
-document. If neither the update document nor the query document
+option performs an insert, the inserted document is the replacement
+document. If neither the replacement document nor the query document
 specifies an ``_id`` field, MongoDB adds the ``_id`` field:
 
 .. code-block:: javascript
@@ -121,17 +129,17 @@ specifies an ``_id`` field, MongoDB adds the ``_id`` field:
 Update Operator Expressions
 ```````````````````````````
 
-If the update document contains contains only :ref:`update
-operator <update-operators>` expressions:
+If the :ref:`parameter <bulk-find-updateOne-parameter>` is an update
+document that contains only :ref:`update operator <update-operators>`
+expressions:
 
 .. code-block:: javascript
 
    var bulk = db.items.initializeUnorderedBulkOp();
    bulk.find( { status: "P", item: null } ).upsert().updateOne(
       {
-        $setOnInsert: { defaultQty: 0, inStock: true },
-        $currentDate: { lastModified: true },
-        $set: { points: "0" }
+        $setOnInsert: { qty: 0, inStock: true },
+        $set: { points: 0 }
       }
    );
    bulk.execute();
@@ -139,20 +147,70 @@ operator <update-operators>` expressions:
 Then, if the update operation with the :method:`Bulk.find.upsert()`
 option performs an insert, the update operation inserts a document with
 field and values from the query document of the
-:method:`Bulk.find()` method and then applies the specified update from
+:method:`Bulk.find()` method and then applies the specified updates from
 the update document. If neither the update document nor the query document
 specifies an ``_id`` field, MongoDB adds the ``_id`` field:
 
 .. code-block:: javascript
 
    {
-      "_id" : ObjectId("52ded68c98ca567f5c97aca0"),
+      "_id" : ObjectId("5e28d1a1500153bc2872dadd"),
       "item" : null,
       "status" : "P",
-      "defaultQty" : 0,
       "inStock" : true,
-      "lastModified" : ISODate("2014-01-21T20:20:28.786Z"),
-      "points" : "0"
+      "points" : 0,
+      "qty" : 0
+   }
+
+.. _bulk-find-upsert-updateOne-agg-example:
+
+Aggregation Pipeline
+````````````````````
+
+**Starting in version 4.2**, :ref:`update methods
+<4.2-update-using-aggregation>` can accept an aggregation pipeline. For
+example, the following uses:
+
+- the :pipeline:`$replaceRoot` stage which can provide
+  somewhat similar behavior to a :update:`$setOnInsert`
+  update operator expression,
+
+- the :pipeline:`$set` stage which can provide similar
+  behavior to the :update:`$set` update operator expression,
+
+- the aggregation variable :variable:`NOW`, which resolves to
+  the current datetime and can provide similar behavior to a
+  :update:`$currentDate` update operator expression.
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( { item: "Not Found", status: "P" } ).upsert().updateOne(
+      [  
+         { $replaceRoot: { newRoot: { $mergeObjects: [ { qty: 0, inStock: true }, "$$ROOT"  ] } } },
+         { $set: { points: 0, lastModified: "$$NOW" } }
+      ]
+   );
+   bulk.execute();
+
+Then, if the update operation with the :method:`Bulk.find.upsert()`
+option performs an insert, the update operation inserts a document with
+field and values from the query document of the :method:`Bulk.find()`
+method and then applies the specified aggregation pipeline. If neither
+the update document nor the query document specifies an ``_id`` field,
+MongoDB adds the ``_id`` field:
+
+.. code-block:: javascript
+   :copyable: false
+   
+   {
+      "_id" : ObjectId("5e28cf1e500153bc2872d49f"),
+      "qty" : 0,
+      "inStock" : true,
+      "item" : "Not Found",
+      "status" : "P",
+      "points" : 0,
+      "lastModified" : ISODate("2020-01-22T22:39:26.789Z")
    }
 
 Insert for ``Bulk.find.update()``
@@ -162,17 +220,27 @@ When using :method:`~Bulk.find.upsert()` with the multiple document
 update method :method:`Bulk.find.update()`, if no documents match the
 query condition, the update operation inserts a *single* document.
 
-The :method:`Bulk.find.update()` method accepts, as its parameter, an
-update document that contains *only* :ref:`update operator
-<update-operators>` expressions:
+The :method:`Bulk.find.update()` method accepts as its parameter either:
+
+- an update document that contains only :ref:`update operator
+  <update-operators>` expressions, or
+
+- an aggregation pipeline (Starting in MongoDB 4.2).
+
+
+Update Operator Expressions
+```````````````````````````
+
+If the :ref:`parameter <bulk-find-update-parameter>` is an update
+document that contains only :ref:`update operator <update-operators>`
+expressions: 
 
 .. code-block:: javascript
 
    var bulk = db.items.initializeUnorderedBulkOp();
    bulk.find( { status: "P" } ).upsert().update(
       {
-        $setOnInsert: { defaultQty: 0, inStock: true },
-        $currentDate: { lastModified: true },
+        $setOnInsert: { qty: 0, inStock: true },
         $set: { status: "I", points: "0" }
       }
    );
@@ -191,10 +259,63 @@ the ``_id`` field:
    {
       "_id": ObjectId("52ded81a98ca567f5c97aca1"),
       "status": "I",
-      "defaultQty": 0,
+      "qty": 0,
       "inStock": true,
-      "lastModified": ISODate("2014-01-21T20:27:06.691Z"),
       "points": "0"
+   }
+
+.. _bulk-find-upsert-update-agg-example:
+
+Aggregation Pipeline
+````````````````````
+
+**Starting in version 4.2**, :ref:`update methods
+<4.2-update-using-aggregation>` can accept an aggregation pipeline. For
+example, the following uses:
+
+- the :pipeline:`$replaceRoot` stage which can provide
+  somewhat similar behavior to a :update:`$setOnInsert`
+  update operator expression,
+
+- the :pipeline:`$set` stage which can provide similar
+  behavior to the :update:`$set` update operator expression,
+
+- the aggregation variable :variable:`NOW`, which resolves to the
+  current datetime and can provide similar behavior to the
+  :update:`$currentDate` update operator expression. The value of
+  :variable:`NOW` remains the same throughout the pipeline. To access
+  aggregation variables, prefix the variable with double dollar signs
+  ``$$`` and enclose in quotes.
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( { item: "New Item", status: "P" } ).upsert().update(
+      [  
+         { $replaceRoot: { newRoot: { $mergeObjects: [ { qty: 0, inStock: true }, "$$ROOT"  ] } } },
+         { $set: { points: 0, lastModified: "$$NOW" } }
+      ]
+   );
+   bulk.execute();
+
+Then, if the update operation with the :method:`Bulk.find.upsert()`
+option performs an insert, the update operation inserts a single
+document with the fields and values from the query document of the
+:method:`Bulk.find()` method and then applies the aggregation pipeline.
+If neither the update document nor the query document specifies an
+``_id`` field, MongoDB adds the ``_id`` field:
+
+.. code-block:: javascript
+   :copyable: false
+   
+   {
+      "_id" : ObjectId("5e2920a5b4c550aad59d18a1"),
+      "qty" : 0,
+      "inStock" : true,
+      "item" : "New Item",
+      "status" : "P",
+      "points" : 0,
+      "lastModified" : ISODate("2020-01-23T04:27:17.780Z")
    }
 
 .. seealso::

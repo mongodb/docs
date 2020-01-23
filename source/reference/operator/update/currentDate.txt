@@ -15,6 +15,13 @@ Definition
 
 .. update:: $currentDate
 
+   .. admonition:: Deprecated since version 4.4
+      :class: tip
+   
+      .. include:: /includes/extracts/4.4-currentDate-deprecation.rst
+
+      See :ref:`currentDate-example-agg` for an example.
+      
    The :update:`$currentDate` operator sets the value of a field to
    the current date, either as a :ref:`Date <document-bson-type-date>`
    or a :ref:`timestamp <document-bson-type-timestamp>`. The default
@@ -49,11 +56,13 @@ Example
 
 .. TODO may want to break this into two separate examples
 
-Consider the following document in the ``users`` collection:
+Create a sample collection ``customers`` with the following document:
 
 .. code-block:: javascript
 
-   { _id: 1, status: "a", lastModified: ISODate("2013-10-02T01:11:18.965Z") }
+   db.customers.insertOne( 
+      { _id: 1, status: "a", lastModified: ISODate("2013-10-02T01:11:18.965Z") }
+   )
 
 The following operation updates the ``lastModified`` field to the
 current date, the ``"cancellation.date"`` field to the current timestamp
@@ -62,7 +71,7 @@ as well as updating the ``status`` field to ``"D"`` and the
 
 .. code-block:: javascript
 
-   db.users.update(
+   db.customers.updateOne(
       { _id: 1 },
       {
         $currentDate: {
@@ -70,25 +79,92 @@ as well as updating the ``status`` field to ``"D"`` and the
            "cancellation.date": { $type: "timestamp" }
         },
         $set: {
-           status: "D",
-           "cancellation.reason": "user request"
+           "cancellation.reason": "user request",
+           status: "D"
         }
       }
    )
 
+After the operation, you can query the collection to verify the update:
+
+.. code-block:: javascript
+
+   db.customers.find().pretty()
+
 The updated document would resemble:
 
 .. code-block:: javascript
+   :copyable: false
 
    {
       "_id" : 1,
       "status" : "D",
-      "lastModified" : ISODate("2014-09-17T23:25:56.314Z"),
+      "lastModified" : ISODate("2020-01-22T21:21:41.052Z"),
       "cancellation" : {
-         "date" : Timestamp(1410996356, 1),
+         "date" : Timestamp(1579728101, 1),
          "reason" : "user request"
       }
    }
 
-.. seealso:: :method:`db.collection.update()`,
-   :method:`db.collection.findAndModify()`
+.. _currentDate-example-agg:
+
+Aggregation Alternative to ``$currentDate``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.4 deprecates the use of the :update:`$currentDate` operator.
+      
+**Starting in version 4.2**, :ref:`update methods
+<4.2-update-using-aggregation>` can accept an aggregation pipeline. As
+such, the previous example can be rewritten as the following using the
+aggregation stage :pipeline:`$set` and the aggregation variables
+:variable:`NOW` (for the current datetime) and :variable:`CLUSTER_TIME`
+(for the current timestamp):
+
+.. tip::
+
+   - To access aggregation variables, prefix the variable with double
+     dollar signs ``$$`` and enclose in quotes.
+     
+   - :variable:`CLUSTER_TIME` is available only on replica sets and
+     sharded clusters.
+     
+   - The :variable:`NOW` and :variable:`CLUSTER_TIME` values remain the
+     same throughout the pipeline.
+
+.. code-block:: javascript
+
+   db.customers.updateOne(
+     { _id: 1 },
+     [
+      { $set: { lastModified: "$$NOW", cancellation: {date: "$$CLUSTER_TIME", reason: "user request"}, status: "D" } }
+     ]
+   )
+
+After the operation, you can query the collection to verify the update:
+
+.. code-block:: javascript
+
+   db.customers.find().pretty()
+
+The query should return the following document:
+
+.. code-block:: javascript
+   :copyable: false
+   
+   {
+      "_id" : 1,
+      "status" : "D",
+      "lastModified" : ISODate("2020-01-22T21:02:18.994Z"),
+      "cancellation" : {
+         "date" : Timestamp(1579726934, 2),
+         "reason" : "user request"
+      }
+   }
+
+.. seealso:: 
+
+   - :method:`db.collection.updateOne()`,
+   - :method:`db.collection.updateMany()`,
+   - :method:`db.collection.update()`,
+   - :method:`db.collection.findAndModify()`,
+   - :method:`db.collection.findOneAndUpdate()`

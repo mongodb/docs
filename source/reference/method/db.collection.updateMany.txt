@@ -72,26 +72,40 @@ parameters:
        Specify an empty document ``{ }`` to update all documents in 
        the collection.
 
-   * - ``update``
+   * - :ref:`update <update-many-update>`
 
-     - document
+     - document or pipeline
 
-     - The modifications to apply.
+     - .. _update-many-update:
+     
+       The modifications to apply. Can be one of the following:
+
+       .. list-table::
+          :widths: 40 80
+          :class: border-table
+
+          * - :ref:`Update document <update-many-method-update-document>`
+
+            - .. _update-many-method-update-document:
+
+              Contains only :ref:`update operator expressions
+              <update-operators>`.
+              
+              For more information, see
+              :ref:`updateMany-behavior-update-expressions`
+
+          * - :ref:`Aggregation pipeline <update-many-method-agg-pipeline>`
+              (*Starting in MongoDB 4.2*)
+
+            - .. _update-many-method-agg-pipeline:
+
+              Contains only the following aggregation stages:
+
+              .. include:: /includes/list-update-agg-stages.rst
        
-       The value can be either:
-       
-       - A document that contains :ref:`update operator expressions
-         <update-operators>`, or
-       
-       - Starting in MongoDB 4.2, an aggregation pipeline. The pipeline can
-         consist of the following stages:
-       
-         .. include:: /includes/list-update-agg-stages.rst
-       
-       For more information on the update modification parameter, see
-       :ref:`updateMany-behavior-update-expressions` and
-       :ref:`updateMany-behavior-aggregation-pipeline`.
-       
+              For more information, see
+              :ref:`updateMany-behavior-aggregation-pipeline`.
+
        To update with a replacement document, see
        :method:`db.collection.replaceOne()`.
 
@@ -385,22 +399,25 @@ Create a ``members`` collection with the following documents:
 .. code-block:: javascript
 
    db.members.insertMany([
-      { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 2, "misc1" : "note to self: confirm status", "misc2" : "Need to activate" },
-      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+      { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 2, "misc1" : "note to self: confirm status", "misc2" : "Need to activate", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
    ])
 
 Assume that instead of separate ``misc1`` and ``misc2`` fields, you
 want to gather these into a new ``comments`` field. The following
-update operation uses an aggregation pipeline to add the new
-``comments`` field and remove the ``misc1`` and ``misc2`` fields for
-all documents in the collection.
+update operation uses an aggregation pipeline to:
+   
+- add the new ``comments`` field and set the ``lastUpdate`` field.
+
+- remove the ``misc1`` and ``misc2`` fields for all documents in the
+  collection.
 
 .. code-block:: javascript
 
    db.members.updateMany(
       { },
       [
-         { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ] } },
+         { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ], lastUpdate: "$$NOW" } },
          { $unset: [ "misc1", "misc2" ] }
       ]
    )
@@ -412,9 +429,17 @@ all documents in the collection.
    respectively, and not the update operators :update:`$set` and :update:`$unset`.
 
 First Stage
-   The :pipeline:`$set` stage creates a new array field ``comments``
-   whose elements are the current content of the ``misc1`` and
-   ``misc2`` fields.
+   The :pipeline:`$set` stage:
+
+   - creates a new array field ``comments`` whose elements are the current
+     content of the ``misc1`` and ``misc2`` fields and 
+
+   - sets the field ``lastUpdate`` to the value of the aggregation
+     variable :variable:`NOW`. The aggregation variable
+     :variable:`NOW` resolves to the current datetime value and remains
+     the same throughout the pipeline. To access aggregation
+     variables, prefix the variable with double dollar signs ``$$``
+     and enclose in quotes.
 
 Second Stage
    The :pipeline:`$unset` stage removes the ``misc1`` and ``misc2`` fields.
@@ -423,9 +448,9 @@ After the command, the collection contains the following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "member" : "abc123", "status" : "Modified", "points" : 2, "comments" : [ "note to self: confirm status", "Need to activate" ] }
-   { "_id" : 2, "member" : "xyz123", "status" : "Modified", "points" : 60, "comments" : [ "reminder: ping me at 100pts", "Some random comment" ] }
-
+   { "_id" : 1, "member" : "abc123", "status" : "Modified", "points" : 2, "lastUpdate" : ISODate("2020-01-23T05:50:49.247Z"), "comments" : [ "note to self: confirm status", "Need to activate" ] }
+   { "_id" : 2, "member" : "xyz123", "status" : "Modified", "points" : 60, "lastUpdate" : ISODate("2020-01-23T05:50:49.247Z"), "comments" : [ "reminder: ping me at 100pts", "Some random comment" ] }
+   
 Example 2
 `````````
 
@@ -438,9 +463,9 @@ For example, create a ``students3`` collection with the following documents:
 .. code-block:: javascript
 
    db.students3.insert([
-      { "_id" : 1, "tests" : [ 95, 92, 90 ] },
-      { "_id" : 2, "tests" : [ 94, 88, 90 ] },
-      { "_id" : 3, "tests" : [ 70, 75, 82 ] }
+      { "_id" : 1, "tests" : [ 95, 92, 90 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 2, "tests" : [ 94, 88, 90 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 3, "tests" : [ 70, 75, 82 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
    ]);
 
 Using an aggregation pipeline, you can update the documents with the
@@ -451,7 +476,7 @@ calculated grade average and letter grade.
    db.students3.updateMany(
       { },
       [
-        { $set: { average : { $avg: "$tests" } } },
+        { $set: { average : { $trunc: [ { $avg: "$tests" }, 0 ] } , lastUpdate: "$$NOW" } },
         { $set: { grade: { $switch: {
                               branches: [
                                   { case: { $gte: [ "$average", 90 ] }, then: "A" },
@@ -470,9 +495,20 @@ calculated grade average and letter grade.
    :pipeline:`$set`, and not the update operators :update:`$set`.
 
 First Stage
-   The :pipeline:`$set` stage calculates a new field ``average`` based
-   on the average of the ``tests`` field. See :group:`$avg` for
-   more information on the ``$avg`` aggregation operator.
+   The :pipeline:`$set` stage:
+
+   - calculates a new field ``average`` based on the average of the
+     ``tests`` field. See :group:`$avg` for more information on the
+     ``$avg`` aggregation operator and :expression:`$trunc` for more
+     information on the ``$trunc`` truncate aggregation operator.
+     
+   - sets the field ``lastUpdate`` to the value of the aggregation
+     variable :variable:`NOW`. The aggregation variable
+     :variable:`NOW` resolves to the current datetime value and remains
+     the same throughout the pipeline. To access aggregation
+     variables, prefix the variable with double dollar signs ``$$``
+     and enclose in quotes.
+   
 
 Second Stage
    The :pipeline:`$set` stage calculates a new field ``grade`` based on
@@ -484,10 +520,10 @@ After the command, the collection contains the following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "tests" : [ 95, 92, 90 ], "average" : 92.33333333333333, "grade" : "A" }
-   { "_id" : 2, "tests" : [ 94, 88, 90 ], "average" : 90.66666666666667, "grade" : "A" }
-   { "_id" : 3, "tests" : [ 70, 75, 82 ], "average" : 75.66666666666667, "grade" : "C" }
-
+   { "_id" : 1, "tests" : [ 95, 92, 90 ], "lastUpdate" : ISODate("2020-01-24T17:31:01.670Z"), "average" : 92, "grade" : "A" }
+   { "_id" : 2, "tests" : [ 94, 88, 90 ], "lastUpdate" : ISODate("2020-01-24T17:31:01.670Z"), "average" : 90, "grade" : "A" }
+   { "_id" : 3, "tests" : [ 70, 75, 82 ], "lastUpdate" : ISODate("2020-01-24T17:31:01.670Z"), "average" : 75, "grade" : "C" }
+      
 
 .. _updateMany-example-update-multiple-documents-with-upsert:
 
