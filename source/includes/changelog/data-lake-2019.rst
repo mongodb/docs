@@ -1,3 +1,25 @@
+.. _data-lake-v20191210:
+
+10 December 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Includes several performance and stability improvements.
+
+- Supports partition definition for the following:
+
+  - ``epoch_secs``, which is seconds since the Unix Epoch
+  - ``epoch_millis``, which is milliseconds since the Unix Epoch
+  - ``UUID``, which is binary subtype 4
+
+.. _data-lake-v20191111:
+
+11 November 2019 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Includes several performance and stability improvements.
+
+- Adds support for reading Apache ORC files.
+
 .. _data-lake-v20191029:
 
 29 October 2019 Release
