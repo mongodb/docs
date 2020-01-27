@@ -140,10 +140,11 @@ instances. You can restore an instance using this array.
      - string
      - Optional
      - |iso8601-time| when |mms| last reclaimed free space on a
-       cluster's disks. When |mms| rebalances a sharded cluster across
-       added shards, it creates unused space. To reclaim this space,
-       set this value to an |iso8601| timestamp. |mms| reclaims the
-       disk space in a rolling fashion across members of the shards.
+       cluster's disks. During certain operations, MongoDB might move
+       or delete data but does not free the now unused space. To
+       reclaim this space, set this value to an |iso8601| timestamp.
+       |mms| reclaims the disk space in a rolling fashion across
+       members of the replica set or shards.
 
    * - | ``processes``
        | ``.logRotate``
