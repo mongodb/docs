@@ -8,7 +8,8 @@
    :method:`db.stats()` as well as lengthen startup time the next time 
    that the :binary:`~bin.mongod` process is restarted.
 
-   Invoking ``sudo service mongod stop`` does not guarantee a 
-   clean shutdown. This ``service`` script forcibly stops the
-   :binary:`~bin.mongod` process if it takes longer than five
-   minutes to shut down.
+   This applies whether you attempt to terminate the
+   :binary:`~bin.mongod` process from the command line via ``kill`` or
+   similar, or whether you use your platform's initialization system to
+   issue a ``stop`` command, like ``sudo systemctl stop mongod`` or
+   ``sudo service mongod stop``.
