@@ -6,11 +6,17 @@
 
    * - :dbcommand:`findAndModify`
 
-     - | :method:`db.collection.findAndModify()`
-       | :method:`db.collection.findOneAndUpdate()`
+     - | :ref:`db.collection.findOneAndUpdate() <findOneAndUpdate-agg-pipeline>`
+       | :ref:`db.collection.findAndModify() <findAndModify-agg-pipeline>`
 
    * - :dbcommand:`update` 
 
-     - | :method:`db.collection.updateOne()`
-       | :method:`db.collection.updateMany()`
-       | :method:`db.collection.update()`
+     - | :ref:`db.collection.updateOne() <updateOne-example-agg>`
+       | :ref:`db.collection.updateMany() <updateMany-example-agg>`
+       | :ref:`db.collection.update() <update-example-agg>`
+
+       | :ref:`Bulk.find.update() <example-bulk-find-update-agg>`
+       | :ref:`Bulk.find.updateOne() <example-bulk-find-update-one-agg>`
+       | :ref:`Bulk.find.upsert() <bulk-find-upsert-update-agg-example>`
+
+  
