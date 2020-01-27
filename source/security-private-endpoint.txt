@@ -60,9 +60,13 @@ Private Endpoint-Aware Connection Strings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you enable {+aws-pl+}, |service| generates an SRV record for your 
-VPC. This SRV record resolves to the network load balancer provisioned 
-in the |service| VPC, and assigns a unique port to each |service| 
-cluster node in the region for which you enabled {+aws-pl+}.
+VPC. This SRV record resolves to the 
+:aws:`interface endpoint ENIs </vpc/latest/userguide/vpce-interface.html>`
+deployed in the VPC subnets you specified when you created the 
+{+aws-pl+} connection. The interface endpoint ENIs connect to the 
+network load balancer provisioned in the |service| VPC. The network load 
+balancer assigns a unique port to each |service| cluster node in the 
+region for which you enabled {+aws-pl+}.
 
 Clients connecting to |service| clusters using {+aws-pl+} use private 
 endpoint-aware connection strings containing SRV records:
@@ -70,39 +74,40 @@ endpoint-aware connection strings containing SRV records:
 .. code-block:: sh
    :copyable: false
 
-   mongodb+srv://cluster0-pl-0-k45tj.mongodb-dev.net/test
+   mongodb+srv://cluster0-pl-0-k45tj.mongodb.net/test
 
-.. note::
-   Only clients that use your VPC's DNS can retrieve an SRV record from
-   a private endpoint-aware connection string.    
-
-The SRV record used in a private endpoint-aware connection string contains a configuration that maps a unique port for each member in a
-cluster's replica set to that hostname. The ports listed correspond to ports on the load balancer provisioned in the |service| VPC. When
-you connect using {+aws-pl+}, all nodes in an |service| cluster are accessible via the same hostname, with the load balancer resolving individual nodes by their port.
+The SRV record used in a private endpoint-aware connection string 
+contains a configuration that maps a unique port for each member in a
+cluster's replica set to that hostname. The ports listed correspond to 
+ports on the load balancer provisioned in the |service| VPC. When
+you connect using {+aws-pl+}, all nodes in an |service| cluster are 
+accessible via the same hostname, with the load balancer resolving 
+individual nodes by their port.
 
 The following example shows a DNS lookup of the SRV record for a 
-{+aws-pl+}-enabled single-region cluster, showing three unique ports defined for the ``cluster0-pl-0-k45tj.mongodb-dev.net`` hostname:
+{+aws-pl+}-enabled single-region cluster, showing three unique ports 
+defined for the ``cluster0-pl-0-k45tj.mongodb.net`` hostname:
 
 .. code-block:: sh
    :copyable: false
 
-   $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net
+   $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net
 
    Server: 127.0.0.53
    Address: 127.0.0.53#53
 
    Non-authoritative answer:
-   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net service = 0 0 3 pl-0-us-east-1-k45tj.mongodb-dev.net.
-   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net service = 0 0 1 pl-0-us-east-1-k45tj.mongodb-dev.net.
-   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net service = 0 0 2 pl-0-us-east-1-k45tj.mongodb-dev.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 3 pl-0-us-east-1-k45tj.mongodb.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1 pl-0-us-east-1-k45tj.mongodb.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 2 pl-0-us-east-1-k45tj.mongodb.net.
 
-The hostname the SRV record contains is a CNAME record that resolves to 
-the endpoint-specific regional DNS name that AWS generates for the 
-interface endpoint. An alias record exists for each subnet you deployed 
-the interface endpoint to. Each alias record contains the private IP 
-address of the 
+The hostname that the SRV record contains is a CNAME record that 
+resolves to the endpoint-specific regional DNS name |aws| generates 
+for the interface endpoint in your VPC. An alias record exists for each 
+subnet in your VPC that you deployed the interface endpoint to. Each 
+alias record contains the private IP address of the 
 :aws:`interface endpoint ENI </vpc/latest/userguide/vpce-interface.html>` 
-for that subnet.
+for that subnet in your VPC.
 
 The following example shows the DNS lookup for the hostname in the SRV
 record, including the endpoint-specific regional DNS name for the
@@ -111,12 +116,12 @@ interface endpoint and its alias records:
 .. code-block:: sh
    :copyable: false
 
-   $ nslookup pl-0-us-east-1-k45tj.mongodb-dev.net
+   $ nslookup pl-0-us-east-1-k45tj.mongodb.net
    Server: 127.0.0.53
    Address: 127.0.0.53#53
 
    Non-authoritative answer:
-   pl-0-us-east-1-k45tj.mongodb-dev.net	
+   pl-0-us-east-1-k45tj.mongodb.net	
    canonical name = vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com.
    
    Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
@@ -231,7 +236,7 @@ You use a private endpoint-aware connection string when you connect to
 .. code-block:: sh
    :copyable: false
 
-   mongodb+srv://cluster0-pl-0-k45tj.mongodb-dev.net/test
+   mongodb+srv://cluster0-pl-0-k45tj.mongodb.net/test
 
 .. note::
    
