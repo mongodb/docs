@@ -14,4 +14,5 @@
 
      Until support is added in the query language, the use of ``$`` and
      ``.`` in field names is not recommended and is not supported by
-     the official MongoDB drivers.
+     the official MongoDB drivers or services implementing the drivers
+     such as the [MongoDB Kafka Connector](https://docs.mongodb.com/kafka-connector/current/).
