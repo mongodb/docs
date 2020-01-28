@@ -51,7 +51,7 @@
      - `Course <https://university.mongodb.com/courses/M220JS/about>`__
 
    * - :doc:`Perl </drivers/perl>`
-     - `Releases <https://metacpan.org/release/MongoDB>`__
+     - `Releases <https://metacpan.org/pod/MongoDB>`__
      - `Source <https://github.com/mongodb/mongo-perl-driver>`__
      - `API <https://metacpan.org/pod/MongoDB>`__
      - :issue:`JIRA <PERL>`
@@ -74,7 +74,9 @@
    * - :ref:`Motor (Python async)<python-async-driver>`
      - `Releases <https://pypi.python.org/pypi/motor/>`__
      - `Source <https://github.com/mongodb/motor>`__
-     - `API <http://motor.readthedocs.org/en/stable/api/index.html>`__
+     - `Tornado API <https://motor.readthedocs.io/en/stable/api-tornado/index.html>`__
+
+       `asyncio API <https://motor.readthedocs.io/en/stable/api-asyncio/index.html>`__
      - :issue:`JIRA <MOTOR>`
      -
 
