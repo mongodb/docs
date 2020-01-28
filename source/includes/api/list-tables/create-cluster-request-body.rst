@@ -70,25 +70,34 @@
      - Optional
      - .. include:: /includes/fact-only-m10-clusters.rst
 
+       .. important::
+
+          Sharded clusters running MongoDB 4.2 and new |aws| clusters
+          of any type don't support this parameter. These clusters must
+          use :doc:`/backup/cloud-provider-snapshots`:
+          ``providerBackupEnabled``
+
+          If you create a new |aws| cluster and set
+          ``"backupEnabled" : true``, the |api| responds with an error.
+
+          This change doesn't affect existing |aws| clusters that use
+          continuous backups.
+
        Set to ``true`` to enable |service|
        :doc:`continuous backups </backup/continuous-backups>` for the
        cluster.
 
        Set to ``false`` to disable continuous backups for the cluster.
-       |service| deletes any stored snapshots. See the continuous
-       backup :ref:`retention-policy` for more information.
+       |service| deletes any stored snapshots.
 
-       You cannot enable continuous backups if you have an
+       To learn more about snapshot storage, see the continuous
+       backup :ref:`retention-policy`.
+
+       You can't enable continuous backups if you have an
        existing cluster in the project with
        :doc:`/backup/cloud-provider-snapshots` enabled.
 
        The default value is ``false``.
-
-       .. note::
-
-          This option is not supported on sharded clusters running
-          MongoDB 4.2. Sharded clusters running MongoDB 4.2 must use
-          :doc:`/backup/cloud-provider-snapshots`.
 
    * - ``biConnector``
      - object
@@ -328,9 +337,15 @@
    * - ``pitEnabled``
      - boolean
      - Optional
-     - Flag that indicates if the cluster uses :ref:`Point-in-Time
-       backups <aws-pit-restore>`. If set to ``true``,
-       ``providerBackupEnabled`` must also be set to ``true``.
+     - Flag that indicates the cluster uses
+       :ref:`Point-in-Time backups <aws-pit-restore>`.
+
+       - Set to ``true`` to enable
+         :ref:`Point-in-Time backups <aws-pit-restore>`. Requires that
+         you set ``providerBackupEnabled`` to ``true``.
+
+       - Set to ``false`` to disable
+         :ref:`Point-in-Time backups <aws-pit-restore>`.
 
    * - ``providerBackupEnabled``
      - boolean

@@ -38,8 +38,25 @@
 
    * - ``backupEnabled``
      - boolean
-     - If ``true``, the cluster uses |service| :ref:`backup-continuous`
-       for backing up cluster data. 
+     - .. important::
+
+          Sharded clusters running MongoDB 4.2 and new |aws| clusters
+          of any type don't support this parameter. These clusters must
+          use :doc:`/backup/cloud-provider-snapshots`:
+          ``providerBackupEnabled``
+
+          If you created a new |aws| cluster and set
+          ``"backupEnabled" : true``, the |api| responds with an error.
+
+          This change doesn't affect existing |aws| clusters that use
+          continuous backups.
+
+       If set to ``true``, |service| enabled
+       :doc:`continuous backups </backup/continuous-backups>` for the
+       cluster.
+
+       If set to ``false``, |service| disabled continuous backups for
+       the cluster. |service| deleted any stored snapshots.
 
    * - ``biConnector``
      - object

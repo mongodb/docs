@@ -27,7 +27,8 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
            },
            "zoneName": "Zone 1"
          }],
-         "backupEnabled": true,
+         "backupEnabled": false,
+         "providerBackupEnabled" : true,
          "autoScaling": {
            "diskGBEnabled": true
          }
