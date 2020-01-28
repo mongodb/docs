@@ -71,7 +71,7 @@ instances. You can restore an instance using this array.
        array that belong to the same cluster.
 
        - |mms| accepts ``3`` and ``5`` for this parameter.
-       - MongoDB 3.x clusters default to ``5``.
+       - MongoDB 3.x and 4.x clusters default to ``5``.
        - MongoDB 2.6 clusters default to  ``3``.
 
        .. seealso::
@@ -141,10 +141,32 @@ instances. You can restore an instance using this array.
      - Optional
      - |iso8601-time| when |mms| last reclaimed free space on a
        cluster's disks. During certain operations, MongoDB might move
-       or delete data but does not free the now unused space. To
-       reclaim this space, set this value to an |iso8601| timestamp.
-       |mms| reclaims the disk space in a rolling fashion across
-       members of the replica set or shards.
+       or delete data but it doesn't free the now unused space. |mms|
+       reclaims the disk space in a rolling fashion across members of
+       the replica set or shards.
+
+       To reclaim this space:
+
+       - Immediately, set this value to the current time as an
+         |iso8601| timestamp.
+       - Later, set this value to a future |iso8601| timestamp. |mms|
+         reclaims the space after the current time passes the provided
+         timestamp.
+
+       .. note::
+
+          Make sure to specify a time zone with your |iso8601|
+          timestamp. This removes any ambiguity as to when you intend
+          to compact the cluster.
+
+          .. example::
+
+             To set ``processes.lastCompact`` to 28 January 2020 at
+             2:43:52 PM US Central Standard Time, you would write:
+
+             .. code-block:: json
+
+                "processes.lastCompact" : "2020-01-28T14:43:52-06:00"
 
    * - | ``processes``
        | ``.logRotate``
