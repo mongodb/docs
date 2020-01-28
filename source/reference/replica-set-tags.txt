@@ -93,8 +93,8 @@ for each.
    return :term:`orphaned documents <orphaned document>`. You do not
    need to specify this option when connecting to non-sharded replica sets.
 
-Utilize Analytics Nodes to Isolate Workloads
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use Analytics Nodes to Isolate Workloads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If an application performs complex or long-running operations, such as
 :abbr:`ETL (Extract Transform Load)` or reporting, you may want to
@@ -109,10 +109,17 @@ your application to only connect to analytic nodes:
 
    mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=nodeType:ANALYTICS&readConcernLevel=local
 
+The connection string options appear in the following order:
+
+- ``readPreference=secondary``
+- ``readPreferenceTags=nodeType:ANALYTICS``
+- ``readConcernLevel=local``
+
 The :manual:`readPreference </reference/read-preference>` option of
 ``secondary`` and :manual:`readPreferenceTag
-</core/read-preference/#tag-sets>` option of ``{ nodeType:ANALYTICS }``
-limit the application connections to analytic nodes.
+</core/read-preference/#tag-sets>` option of
+``{ nodeType : ANALYTICS }`` limit the application connections to
+analytic nodes.
 
 Isolate Normal Application Secondary Reads from Analytics Nodes
 ```````````````````````````````````````````````````````````````
@@ -129,13 +136,21 @@ nodes:
 
    mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=nodeType:ELECTABLE&readPreferenceTags=nodeType:READ_ONLY&readConcernLevel=local
 
-The :manual:`readPreference </reference/read-preference>` option of
-``secondary`` limits the application connections to
-:term:`secondary` nodes. This option together with the
-:manual:`read preference tags </core/read-preference/#tag-sets>` of
-``{ nodeType:ELECTABLE }`` and ``{ nodeType:READ_ONLY }`` results in
-the application reading from electable secondary nodes, as indicated
-in the :ref:`Read Preferences Table <bic-read-preferences>`.
+The connection string options appear in the following order:
+
+- ``readPreference=secondary``
+- ``readPreferenceTags=nodeType:ELECTABLE``
+- ``readPreferenceTags=nodeType:READ_ONLY``
+- ``readConcernLevel=local``
+
+Order matters when using multiple ``readPreferenceTags``. The
+``readPreferenceTags`` are tried in order until a match is found. Once
+found, that specification is used to find all eligible matching members
+and any remaining ``readPreferenceTags`` are ignored.
+
+In this example, the application first tries to connect to an
+``ELECTABLE`` node. If there are no ``ELECTABLE`` nodes available, the
+application tries to connect to a ``READ_ONLY`` node.
 
 Target Local Reads for Geographically-Distributed Applications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,18 +165,31 @@ geographic :manual:`tags </core/read-preference/#tag-sets>` in
 combination with a read preference mode of ``nearest`` provides more
 consistent behavior.
 
-The following connection string limits the application to connecting to
-|aws| regions ``US_EAST_1`` and ``US_EAST_2``:
+The following connection string prioritizes connections to the
+|aws| ``US_EAST_1`` region, followed by the ``US_EAST_2`` region:
 
 .. code-block:: none
 
-   mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=nearest&readPreferenceTags=provider:AWS,region:US_EAST_1&readPreferenceTags=provider:AWS,region:US_EAST_2&readConcernLevel=local
+   mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=nearest&readPreferenceTags=provider:AWS,region:US_EAST_1&readPreferenceTags=provider:AWS,region:US_EAST_2&readPreferenceTags=&readConcernLevel=local
+
+The connection string options appear in the following order:
+
+- ``readPreference=nearest``
+- ``readPreferenceTags=provider:AWS,region:US_EAST_1``
+- ``readPreferenceTags=provider:AWS,region:US_EAST_2``
+- ``readPreferenceTags=``
+- ``readConcernLevel=local``
 
 The :manual:`read preference tags </core/read-preference/#tag-sets>` of
-``{ provider:AWS }`` and corresponding ``region`` tags dictate the specific
-regions within :ref:`AWS <amazon-aws>` to which the application can
-connect. These options help ensure that the application connects to the
-closest geographic region for reduced latency and improved performance.
+``{ provider : AWS }`` and corresponding ``region`` tags dictate the
+specific regions within :ref:`AWS <amazon-aws>` that the connection
+prioritizes. The final (empty) ``readPreferenceTags=`` option allows the
+application to connect to any eligible member regardless of provider or
+region, thus ensuring a fallback option if the specified |aws| regions
+are unavailable.
+
+These options help ensure that the application connects to the closest
+geographic region for reduced latency and improved performance.
 
 .. seealso::
 
