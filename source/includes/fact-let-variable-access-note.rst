@@ -8,9 +8,9 @@
    additional :pipeline:`$lookup` stages nested in the ``pipeline``.
    
    - A :pipeline:`$match` stage requires the use of an
-     :query:`$expr` query expression to access the variables.
-     :query:`$expr` operator allows the use of aggregation expressions
-     inside of the :pipeline:`$match` query syntax.
+     :query:`$expr` operator to access the variables.
+     :query:`$expr` allows the use of aggregation expressions
+     inside of the :pipeline:`$match` syntax.
 
      Without the use of the :query:`$expr` operator, :pipeline:`$match`
      can refer to fields in a document but cannot access variables
