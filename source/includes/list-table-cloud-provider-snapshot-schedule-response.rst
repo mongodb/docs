@@ -25,10 +25,47 @@
        formatted point in time when |service| will take the next
        snapshot.
 
-   * - ``numOfSnapshotsToRetain``
+   * - ``policies``
+     - array of objects
+     - A list of policy definitions for the cluster.
+
+   * - ``policies.id``
+     - string
+     - Unique identifier of the backup policy.
+
+   * - ``policies.policyitems``
+     - array of objects
+     - A list of specifications for a policy.
+
+   * - ``policies.policyitems.frequencyInterval``
      - number
-     - Number of snapshots |service| retains for the
-       cluster.
+     - The frequency interval for a set of snapshots.
+
+   * - ``policies.policyitems.frequencyType``
+     - string
+     - A type of frequency. Possible values are:
+       
+       - hourly
+       - daily
+       - weekly
+       - monthly
+
+   * - ``id``
+     - string
+     - Unique identifier for this policy item.
+
+   * - ``policies.policyitems.retentionUnit``
+     - string
+     - The unit of time in which snapshot retention is measured. Possible
+       values are:
+
+       - days
+       - weeks
+       - months
+
+   * - ``policies.policyitems.retentionValue``
+     - number
+     - The number of days, weeks, or months the snapshot is retained.
 
    * - ``restoreWindowDays``
      - number
