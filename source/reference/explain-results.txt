@@ -769,12 +769,23 @@ In previous versions of MongoDB, ``cursor.explain()`` returned the
 .. _explain-output-sort:
 
 Sort Stage
-``````````
+~~~~~~~~~~
 
-If MongoDB can use an index scan to obtain the requested sort order,
-the result will **not** include a ``SORT`` stage. Otherwise, if MongoDB
-cannot use the index to sort, the ``explain`` result will include a
-``SORT`` stage.
+If MongoDB cannot use an index or indexes to obtain the sort order, the
+results include a ``SORT`` stage indicating a blocking sort operation.
+Blocking sorts do not block concurrent operations on the
+collection or database. The name refers to the requirement that the
+``SORT`` stage reads all input documents before returning any output
+documents, blocking the flow of data for that specific query.
+
+If MongoDB requires using more than 100 megabytes of system memory for
+the blocking sort operation, MongoDB returns an error *unless* the query
+specifies :method:`cursor.allowDiskUse()` (*New in MongoDB 4.4*).
+:method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files
+on disk to store data exceeding the 100 megabyte system memory limit
+while processing a blocking sort operation. If the explain plan does not
+contain an explicit ``SORT`` stage, then MongoDB can use an index to
+obtain the sort order.
 
 Prior to MongoDB 3.0, ``cursor.explain()`` returned the
 ``scanAndOrder`` field to specify whether MongoDB could use the index

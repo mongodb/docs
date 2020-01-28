@@ -270,6 +270,72 @@ parameter for controlling certificate expiration warning threshold. Set
 the parameter to ``0`` to disable the warning. For complete
 documentation, see :parameter:`tlsX509ExpirationWarningThresholdDays`.
 
+General Improvements
+--------------------
+
+.. _4.4-rel-notes-sort-memory-limit:
+
+Blocking Sort Limit Increased
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If MongoDB cannot use an index or indexes to obtain the sort order for a
+given :method:`cursor.sort()` operation, MongoDB must perform a blocking
+sort on the data. A blocking sort indicates that MongoDB must consume
+and process all input documents to the sort before returning results.
+Blocking sorts do not block concurrent operations on the
+collection or database.
+
+Prior to MongoDB 4.4, MongoDB returned an error if a blocking sort
+operations required more than 32 megabytes of system memory. Starting in
+MongoDB 4.4, blocking sort operations increase the limit on system
+memory to use for the sort operation to 100 megabytes. For blocking sort
+operations which require more than 100 megabytes of system memory,
+MongoDB returns an error *unless* the query specifies
+:method:`cursor.allowDiskUse()` (*New in MongoDB 4.4*).
+
+For more information on sorting and index use, see
+:ref:`sort-index-use`.
+
+.. seealso:: 
+
+   | :method:`cursor.allowDiskUse()`
+   | :limit:`Memory Limits on Sort Operations <Sort Operations>`
+
+``allowDiskUse()`` Support for Queries with Large In-Memory Sorts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If MongoDB cannot use an index or indexes to obtain the sort order,
+MongoDB must perform a blocking sort operation on the data. A blocking
+sort indicates that MongoDB must consume and process all input documents
+to the sort before returning results. Blocking sorts do not block
+concurrent operations on the collection or database.
+
+.. versionadded:: 4.4
+
+If MongoDB requires using more than 100 megabytes of system memory for
+the blocking sort operation, MongoDB returns an error *unless* the query
+specifies :method:`cursor.allowDiskUse()` (*New in MongoDB 4.4*).
+:method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files
+on disk to store data exceeding the 100 megabyte system memory limit
+while processing a blocking sort operation.
+:method:`cursor.allowDiskUse()` has no effect on sort operations
+resolved using an index *or* blocking sort operations which require less
+than 100 megabytes of system memory.
+
+If using the :dbcommand:`find` database command, specify the optional
+parameter ``allowDiskUse: true`` to allow MongoDB to use temporary files
+on disk to store data exceeding the 100 megabyte system memory limit
+while processing a blocking sort operation
+
+For instructions on enabling :method:`~cursor.allowDiskUse` for queries
+issued through a MongoDB driver, defer to the documentation for your
+preferred :ecosystem:`MongoDB 4.4-compatible driver </drivers>`. 
+
+.. seealso:: 
+
+   | :limit:`Memory Limits On Sort Operations <Sort Operations>`
+   | :ref:`sort-index-use`
+
 Changes Affecting Compatibility
 -------------------------------
 

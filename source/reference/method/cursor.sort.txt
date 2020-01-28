@@ -108,28 +108,52 @@ The specified metadata determines the sort order. For example, the
 ``"textScore"`` metadata sorts in descending order. See
 :projection:`$meta` for details.
 
-Restrictions
-~~~~~~~~~~~~
-
-When unable to obtain the sort order from an index, MongoDB will sort
-the results in memory, which requires that the result set being sorted
-is less than 32 megabytes.
-
-When the sort operation consumes more than 32 megabytes, MongoDB
-returns an error. To avoid this error, either create an index
-supporting the sort operation (see :ref:`sort-index-use`) or use
-:method:`~cursor.sort()` in conjunction with :method:`~cursor.limit()`
-(see :ref:`sort-limit-results`).
-
 .. _sort-index-use:
 
 Sort and Index Use
 ~~~~~~~~~~~~~~~~~~
 
-The sort can sometimes be satisfied by scanning an index in order. If
-the query plan uses an index to provide the requested sort order,
-MongoDB does not perform an in-memory sorting of the result set. For
-more information, see :doc:`/tutorial/sort-results-with-indexes`.
+MongoDB can obtain the results of a sort operation from an index which
+includes the sort fields. MongoDB *may* use multiple indexes to support
+a sort operation *if* the sort uses the same indexes as the query
+predicate.
+
+If MongoDB cannot use an index or indexes to obtain the sort
+order, MongoDB must perform a blocking sort operation on the data.
+A blocking sort indicates that MongoDB must consume and process all 
+input documents to the sort before returning results. Blocking sorts do
+not block concurrent operations on the collection or database.
+
+Sort operations that use an index often have better performance than
+blocking sorts. For more information on creating indexes to support
+sort operations, see :ref:`sorting-with-indexes`.
+
+If MongoDB requires using more than 100 megabytes of system memory for
+the blocking sort operation, MongoDB returns an error *unless* the query
+specifies :method:`cursor.allowDiskUse()` (*New in MongoDB 4.4*).
+:method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files
+on disk to store data exceeding the 100 megabyte system memory limit
+while processing a blocking sort operation.
+
+To check if MongoDB must perform a blocking sort, append
+:method:`cursor.explain()` to the query and check the 
+:doc:`explain results </reference/explain-results>`. If the query plan 
+contains a ``SORT`` stage, then MongoDB must perform a
+blocking sort operation subject to the 100 megabyte memory limit.
+
+To prevent blocking sorts from consuming too much memory:
+
+- Create an index to support the sort operation. See
+  :doc:`/tutorial/sort-results-with-indexes` for more information and 
+  examples. 
+
+- Limit the amount of data to sort by using :method:`cursor.limit()`
+  with :method:`cursor.sort()`. See :ref:`sort-limit-results` for more
+  information and examples.
+
+.. seealso:: 
+   
+   - :limit:`Memory Limits on Sort Operations <Sort Operations>`
 
 .. _sort-limit-results:
 
@@ -144,8 +168,11 @@ If MongoDB cannot obtain the sort order via an index scan, then MongoDB
 uses a top-k sort algorithm. This algorithm buffers the first ``k``
 results (or last, depending on the sort order) seen so far by the
 underlying index or collection access. If at any point the memory
-footprint of these ``k`` results exceeds 32 megabytes, the query will
-fail.
+footprint of these ``k`` results exceeds 100 megabytes, the query will
+fail *unless* the query specifies :method:`cursor.allowDiskUse()`
+(*New in MongoDB 4.4*).
+
+.. seealso:: :limit:`Memory Limits on Sort Operations <Sort Operations>`
 
 .. _sort-with-projection:
 
