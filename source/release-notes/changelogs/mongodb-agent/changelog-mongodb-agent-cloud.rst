@@ -1,3 +1,27 @@
+.. _10.10.0.6122-1:
+
+MongoDB Agent 10.10.0.6122-1
+----------------------------
+
+*Released* :ref:`2020-01-28 <cloudmanager-v20200128>`
+
+- Upgrades to MongoDB Go Driver 1.1.4.
+
+- Reduces memory allocations for buffers used for HTTPS communication with
+  cloud services, increasing the operational efficiency of the :doc:`Real Time
+  Performance Panel </tutorial/view-diagnostics>`.
+
+- Adds a timezone to MongoDB Agent :doc:`log lines </tutorial/view-logs>`.
+
+- Supports concurrent :manual:`draining </manual/tutorial/remove-shards-from-cluster>`
+  of multiple shards for MongoDB 4.2.1+.
+
+- Allows automated restores to proceed if the target processes are corrupt
+  before the restore begins.
+
+- Fix: during a rolling index build for an unsharded collection on a sharded
+  collection, only index the collection on the shard on which it already exists.
+
 .. _mongodb-10.7.0.6016:
 
 MongoDB Agent 10.7.0.6016
