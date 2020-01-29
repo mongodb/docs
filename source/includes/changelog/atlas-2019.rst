@@ -233,7 +233,7 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Supports Microsoft Azure VNet :doc:`peering </security-vpc-peering>`.
-- Can load :doc:`sample data </sample-data/load-sample-data>` into an
+- Can load :ref:`sample data <load-sample-data>` into an
   |service| cluster.
 - Supports the :ref:`Microsoft Azure <microsoft-azure>` South Africa
   North region.
