@@ -1,3 +1,16 @@
+.. _atlas_20200128:
+
+28 January 2020 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- :ref:`Continuous Backup <backup-continuous>` is no longer an option for new
+  AWS-backed clusters. Newly deployed AWS-backed clusters will use
+  :ref:`Cloud Provider Snapshots <backup-cloud-provider>` for backup. 
+
+- Customers with :ref:`project-level maintenance windows
+  <atlas-modify-project-settings>` enabled can now receive the 72-hour alert
+  notification in their configured alerts destination.
+
 .. _atlas_20200107:
 
 07 January 2020 Release 
