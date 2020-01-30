@@ -66,14 +66,14 @@
 
        Default value is: ``<metadata.namespace>``.
 
-       .. include:: /includes/admonitions/fact-create-service-account-namespaces.rst       
-
        .. admonition:: One Namespace or All Namespaces
           :class: note
 
           If you need to watch more than one namespace, set the value
           of ``WATCH_NAMESPACE`` to ``*`` (all). This environment
           variable can watch one namespace or all namespaces.
+
+       .. include:: /includes/admonitions/fact-create-service-account-namespaces.rst
 
        You can set the following pair of values:
        
@@ -90,9 +90,9 @@
              spec:
                template:
                  spec:
-                   serviceAccountName: mongodb-enterprise-operator
+                   serviceAccountName: enterprise-operator
                    containers:
-                   - name: mongodb-enterprise-operator
+                   - name: enterprise-operator
                      image: <operatorVersionUrl>
                      imagePullPolicy: <policyChoice>
                      env:
@@ -104,14 +104,14 @@
        Manager resource </tutorial/deploy-om-container>` is downloaded.
 
        Default value is:
-       ``quay.io/mongodb/mongodb-enterprise-ops-manager``
+       ``registry.connect.redhat.com/mongodb/mongodb-enterprise-ops-manager``
 
        .. code-block:: yaml
 
           spec.template.spec.containers.name.env.name: 
           OPS_MANAGER_IMAGE_REPOSITORY
           spec.template.spec.containers.name.env.value:
-          quay.io/mongodb/mongodb-enterprise-ops-manager
+          registry.connect.redhat.com/mongodb/mongodb-enterprise-ops-manager
       
        .. example::
 
@@ -122,14 +122,14 @@
              spec:
                template:
                  spec:
-                   serviceAccountName: mongodb-enterprise-operator
+                   serviceAccountName: enterprise-operator
                    containers:
-                   - name: mongodb-enterprise-operator
+                   - name: enterprise-operator
                      image: <operatorVersionUrl>
                      imagePullPolicy: <policyChoice>
                      env:
                      - name: OPS_MANAGER_IMAGE_REPOSITORY
-                       value: quay.io/mongodb/mongodb-enterprise-ops-manager
+                       value: registry.connect.redhat.com/mongodb/mongodb-enterprise-ops-manager
                      - name: OPS_MANAGER_IMAGE_PULL_POLICY
                        value: Always
        
@@ -159,13 +159,13 @@
              spec:
                template:
                  spec:
-                   serviceAccountName: mongodb-enterprise-operator
+                   serviceAccountName: enterprise-operator
                    containers:
-                   - name: mongodb-enterprise-operator
+                   - name: enterprise-operator
                      image: <operatorVersionUrl>
                      imagePullPolicy: <policyChoice>
                      env:
                      - name: OPS_MANAGER_IMAGE_REPOSITORY
-                       value: quay.io/mongodb/mongodb-enterprise-ops-manager
+                       value: registry.connect.redhat.com/mongodb/mongodb-enterprise-ops-manager
                      - name: OPS_MANAGER_IMAGE_PULL_POLICY
                        value: Always

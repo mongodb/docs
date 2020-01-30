@@ -46,7 +46,7 @@ To install the MongoDB |k8s-op-short|, you must:
 1. Have a |k8s| solution available to use.
 
    If you need a |k8s| solution, see the |k8s|
-   :k8sdocs:`documentation on picking the right solution </setup/pick-right-solution/>`.
+   :k8sdocs:`documentation on picking the right solution </setup>`.
 
 #. Have a running |onprem-link|.
 
@@ -90,6 +90,78 @@ To install the MongoDB |k8s-op-short|, you must:
 
       kubectl create namespace <namespaceName>
 
+#. (**For OpenShift only**): Create a |k8s-secret| that contains 
+   credentials authorized to pull images from the 
+   ``registry.connect.redhat.com`` repository:
+
+   a. If you have not already, obtain a Red Hat subscription.
+
+   #. Create a `Registry Service Account <https://access.redhat.com/terms-based-registry/>`__.
+
+   #. Click on your Registry Service Account, then click the 
+      :guilabel:`Docker Configuration` tab.
+
+   #. Download the ``<account-name>-auth.json`` file and open it in a 
+      text editor.
+
+   #. Copy the ``registry.redhat.io`` object, and paste another instance
+      of this object into the file. Remember to add a comma after the 
+      first object. Rename the second object 
+      ``registry.connect.redhat.com``, then save the file:
+
+      .. code-block:: json
+         :emphasize-lines: 5-9
+
+         {
+           "auths": {
+            "registry.redhat.io": {
+             "auth": "<encoded-string>"
+            },
+           "auths": {
+            "registry.connect.redhat.com": {
+             "auth": "<encoded-string>"
+            }            
+           }
+         }
+
+   #. Create a ``openshift-pull-secret.yaml`` file with the contents of 
+      the modified ``<account-name>-auth.json`` file as ``stringData`` 
+      named ``.dockerconfigjson``:
+
+      .. code-block:: yaml
+         :emphasize-lines: 4-16
+
+         apiVersion: v1
+         kind: Secret
+         metadata:
+           name: openshift-pull-secret
+         stringData:
+           .dockerconfigjson: |
+               {
+                 "auths": {
+                   "registry.redhat.io": {
+                     "auth": "<encoded-string>"
+                   },
+                   "registry.connect.redhat.com": {
+                     "auth": "<encoded-string>"
+                   }
+                 }
+               }
+         type: kubernetes.io/dockerconfigjson
+
+      The value you provide in the ``metadata.name`` field contains
+      the secret name. Provide this value when asked for the 
+      ``<openshift-pull-secret>``.
+
+   #. Create a |k8s-secret| from the ``openshift-pull-secret.yaml`` 
+      file:
+
+      .. code-block:: sh
+
+         oc apply -f openshift-pull-secret.yaml -n <namespace>
+
+         
+
 Considerations
 --------------
 
@@ -117,7 +189,7 @@ following operating systems:
        or :gh:`GitHub </mongodb/mongodb-enterprise-kubernetes>`
      - `Ubuntu 16.04 <https://www.ubuntu.com/containers>`__
 
-   * - OpenShift
+   * - `OpenShift <https://access.redhat.com/containers/?tab=tags#/registry.connect.redhat.com/mongodb/enterprise-operator>`__
      - `Red Hat Enterprise Linux 7 <https://www.redhat.com/en/topics/containers>`__
 
 MongoDB, Inc. updates all packages on these images before releasing
@@ -146,220 +218,55 @@ Install the |k8s-op-full|
 .. tabs::
 
    tabs:
-     - id: kubectl
-       name: Online using kubectl
+     - id: vank8s
+       name: Vanilla Kubernetes
        content: |
 
-         .. _install-k8s-operator-kubectl:
+          .. tabs::
 
-         .. admonition:: Use the same namespace throughout
-            :class: note
+                tabs:
+                  - id: kubectl
+                    name: Online using kubectl
+                    content: |
 
-            The following examples assume that you created a |k8s-ns|
-            using the default |k8s-op-short| namespace of ``mongodb``.
-            If you specified a different label for your namespace when
-            you :ref:`created it <k8s-prerequisites>`, change all
-            values for ``metadata.namespace`` to that namespace.
+                      .. include:: /includes/install-operator-vanilla-k8s-kubectl.rst
 
-            To change the label for the namespace for the following
-            deployment to ``production``, edit all values for
-            ``metadata.namespace`` in ``mongodb-enterprise.yaml``:
+                  - id: helmonline
+                    name: Online using Helm
+                    content: |
 
-            .. code-block:: yaml
-               :emphasize-lines: 8, 16
+                      .. include:: /includes/install-vanilla-k8s-online-helm.rst
 
-               ##---
-               # Source: mongodb-enterprise-operator/templates/serviceaccount.yaml
-               ---
-               apiVersion: v1
-               kind: ServiceAccount
-               metadata:
-                 name: mongodb-enterprise-operator
-                 namespace: production
-               ##---
-               # Source: mongodb-enterprise-operator/templates/operator.yaml
-               ---
-               apiVersion: apps/v1
-               kind: Deployment
-               metadata:
-                 name: mongodb-enterprise-operator
-                 namespace: production
+                  - id: helmoffline
+                    name: Offline using Helm and Docker
+                    content: |
 
-               ---
-               # Example truncated
-               ---
-               ...
+                      .. include:: /includes/install-vanilla-k8s-offline-helm.rst
 
-         1. Change to the directory in which you cloned the repository.
-
-         #. Install the |k8s-crds| for MongoDB deployments using the
-            following |kubectl| command:
-
-            .. code-block:: sh
-
-               kubectl apply -f crds.yaml
-
-         #. If you use `OpenShift <https://www.openshift.com/>`__ as
-            your |k8s| orchestrator, you need to allow OpenShift to
-            manage the Security Context for the |k8s-op-short|.
-
-            Change the ``MANAGED_SECURITY_CONTEXT`` value as described
-            in the next step.
-
-         #. You can edit the Operator |yaml| file to further customize
-            your Operator before installing it.
-
-            a. Open your ``mongodb-enterprise.yaml`` in your preferred
-               text editor.
-
-            #. You may need to add one or more of the following
-               options:
-
-               .. include:: /includes/list-tables/k8s-kubectl-install-options.rst
-
-         #. Install the |k8s-op-short| using the following
-            |kubectl| command:
-
-            .. code-block:: sh
-
-               kubectl apply -f mongodb-enterprise.yaml
-
-         To troubleshoot your |k8s-op-short|, see
-         :ref:`review-k8s-op-logs`.
-
-         .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
-
-     - id: helmonline
-       name: Online using Helm
+     - id: openshift
+       name: OpenShift
        content: |
 
-         .. _install-k8s-operator-helm:
+          .. tabs::
 
-         If you have not already installed Helm, follow the
-         instructions on :gh:`GitHub </kubernetes/helm>` to install it.
+                tabs:
+                  - id: os
+                    name: Online using oc
+                    content: |
+                      
+                      .. include:: /includes/install-operator-openshift-oc.rst
 
-         1. Change to the directory in which you cloned the repository.
+                  - id: os-helm-online
+                    name: Online using Helm
+                    content: |
+                      
+                      .. include:: /includes/install-os-online-helm.rst
 
-         #. Install the |k8s-op-short| using the following
-            ``helm`` command:
-
-            .. code-block:: sh
-
-               helm template helm_chart > operator.yaml
-               kubectl apply -f operator.yaml
-
-            You can customize your Chart before installing it by using
-            the ``--set`` option. For this Chart, you may need to add
-            one or more of the following options:
-
-            .. include:: /includes/list-tables/k8s-helm-install-options-online.rst
-
-         To troubleshoot your |k8s-op-short|, see
-         :ref:`review-k8s-op-logs`.
-
-         .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
-
-     - id: helmoffline
-       name: Offline using Helm and Docker
-       content: |
-
-         Before continuing, install Helm following the instructions on
-         :gh:`GitHub </kubernetes/helm>`.
-
-         To install the |k8s-op-short| on a host not connected to the
-         Internet, you have two options, you can download the
-         |k8s-op-short| files from either:
-
-         .. tabs::
-
-            tabs:
-              - id: internet
-                name: The Internet
-                content: |
-
-                  1. Connect to the Internet.
-
-                  #. Use ``docker`` to request the files.
-
-                     .. code-block:: sh
-
-                        docker pull quay.io/mongodb/mongodb-enterprise-operator:0.1; \
-                        docker pull quay.io/mongodb/mongodb-enterprise-database:0.1
-
-                  #. Disconnect from the Internet.
-
-                  #. Install the |k8s-op-short| with modified pull
-                     policy values using the following ``helm``
-                     command:
-
-                     .. code-block:: sh
-
-                        helm template --set registry.pullPolicy=IfNotPresent \
-                          helm_chart > operator.yaml
-                        kubectl apply -f operator.yaml
-
-                     You can further customize your Chart before
-                     installing it by using the ``--set`` option. For
-                     this Chart, you may need to add one or more of the
-                     following options:
-
-                     .. include:: /includes/list-tables/k8s-helm-install-options-offline.rst
-
-                  To troubleshoot your |k8s-op-short|, see
-                  :ref:`review-k8s-op-logs`.
-
-                  .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
-
-              - id: host
-                name: Another Host
-                content: |
-
-                  #. Use ``docker`` to request the files on a host
-                     connected to the Internet.
-
-                     .. code-block:: sh
-
-                        docker pull quay.io/mongodb/mongodb-enterprise-operator:0.1; \
-                        docker pull quay.io/mongodb/mongodb-enterprise-database:0.1
-
-                  #. Save the Operator files to transferrable files.
-
-                     .. code-block:: sh
-
-                        docker save quay.io/mongodb/mongodb-enterprise-operator:0.1 -o mongodb-enterprise-operator.tar; \
-                        docker save quay.io/mongodb/mongodb-enterprise-database:0.1 -o mongodb-enterprise-database.tar
-
-                  #. Copy these ``.tar`` files to the host running the
-                     |k8s| ``docker`` daemon.
-
-                  #. Import the ``.tar`` files into ``docker``.
-
-                     .. code-block:: sh
-
-                        docker import mongodb-enterprise-operator.tar quay.io/mongodb/mongodb-enterprise-operator:0.1; \
-                        docker import mongodb-enterprise-database.tar quay.io/mongodb/mongodb-enterprise-database:0.1
-
-                  #. Install the |k8s-op-short| with modified pull
-                     policy values using the following ``helm``
-                     command:
-
-                     .. code-block:: sh
-
-                        helm template --set registry.pullPolicy=IfNotPresent \
-                          helm_chart > operator.yaml
-                        kubectl apply -f operator.yaml
-
-                     You can further customize your Chart before
-                     installing it by using the ``--set`` option. For
-                     this Chart, you may need to add one or more of the
-                     following options:
-
-                     .. include:: /includes/list-tables/k8s-helm-install-options-offline.rst
-
-                  To troubleshoot your |k8s-op-short|, see
-                  :ref:`review-k8s-op-logs`.
-
-                  .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
+                  - id: os-helm-offline
+                    name: Offline using Helm
+                    content: |
+                      
+                      .. include:: /includes/install-os-offline-helm.rst
 
 Next Steps
 ----------
