@@ -3,7 +3,7 @@
 MongoDB Agent 10.10.0.6122-1
 ----------------------------
 
-*Released* :ref:`2020-01-28 <cloudmanager-v20200128>`
+*Released* 2020-01-28
 
 - Upgrades to MongoDB Go Driver 1.1.4.
 
