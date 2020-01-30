@@ -1,6 +1,14 @@
 # docs-commandline-tools
 Storing documentation for the command line tools
 
+This project is currently under construction. Please pardon our dust!
+
+Report Issues
+-------------
+
+To file issues or requests regarding the documentation, go to the
+`Documentation Jira Project <https://jira.mongodb.org/browse/DOCS>`_.
+
 License
 -------
 
