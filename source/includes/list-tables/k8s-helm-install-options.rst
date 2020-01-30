@@ -2,7 +2,7 @@
    :widths: 20 80
    :header-rows: 1
 
-   * - ``--set`` option
+   * - Setting
      - When to Use
 
    * - ``namespace``
@@ -14,13 +14,10 @@
        .. example::
 
           .. code-block:: sh
-             :emphasize-lines: 2-3
+             :emphasize-lines: 2
 
-             helm template \
-               --set registry.pullPolicy=IfNotPresent \
-               --set namespace=<testNamespace> \
-               helm_chart > operator.yaml
-             kubectl apply -f operator.yaml
+             # Name of the Namespace to use
+             namespace: mongodb
 
    * - ``operator.env``
      - Label for the Operator's deployment environment. The ``env``
@@ -48,13 +45,11 @@
        .. example::
 
           .. code-block:: sh
-             :emphasize-lines: 2-3
+             :emphasize-lines: 3
 
-             helm template \
-               --set registry.pullPolicy=IfNotPresent \
-               --set operator.env=dev \
-               helm_chart > operator.yaml
-             kubectl apply -f operator.yaml
+             operator:
+              # Execution environment for the operator, dev or prod. Use dev for more verbose logging
+              env: prod
 
    * - ``operator.watchNamespace``
      - Namespace that the Operator watches for |k8s-mdbrsc| changes.
@@ -70,33 +65,13 @@
 
        Default value is: ``<metadata.namespace>``.
 
-       .. example::
-
-          .. code-block:: sh
-             :emphasize-lines: 2-3
-
-             helm template \
-               --set registry.pullPolicy=IfNotPresent \
-               --set operator.watchNamespace=<testNamespace> \
-               helm_chart > operator.yaml
-             kubectl apply -f operator.yaml
-
-   * - ``managedSecurityContext``
-     - If you use `OpenShift <https://www.openshift.com/>`__ as your
-       |k8s| orchestrator, set this to ``true`` to allow OpenShift to
-       manage the Security Context for the |k8s-op-short|.
-
-       Accepted values are: ``true``, ``false``.
-
-       Default value is: ``false``.
+       .. include:: /includes/admonitions/fact-create-service-account-namespaces.rst
 
        .. example::
 
           .. code-block:: sh
-             :emphasize-lines: 2-3
+             :emphasize-lines: 2
 
-             helm template \
-               --set registry.pullPolicy=IfNotPresent \
-               --set managedSecurityContext=false \
-               helm_chart > operator.yaml
-             kubectl apply -f operator.yaml
+             operator:
+               watchNamespace: *
+

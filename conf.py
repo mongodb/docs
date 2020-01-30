@@ -158,6 +158,7 @@ rst_epilog = '\n'.join([
     '.. |mongod| replace:: :binary:`~bin.mongod`',
     '.. |mongos| replace:: :binary:`~bin.mongos`',
     '.. |mongo| replace:: :binary:`~bin.mongo`',
+    '.. |oc| replace:: :xml:`<mono><link target="https://docs.openshift.com/container-platform/3.11/cli_reference/index.html">oc</link></mono>`',
     '.. |onprem| replace:: Ops Manager',
     '.. |onprem-link| replace:: :opsmgr:`Ops Manager </>`',
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
