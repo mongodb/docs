@@ -13,92 +13,135 @@ db.collection.validate()
 Description
 -----------
 
-.. method:: db.collection.validate(<option>)
-
+.. method:: db.collection.validate(<documents>)
 
    .. include:: /includes/fact-mongo-shell-method.rst
-
 
    Validates a collection. The method scans a collection data and
    indexes for correctness and returns the result. For details of the
    output, see :ref:`validate-output`.
 
-   The :method:`db.collection.validate()` method has the following syntax:
+   The :method:`db.collection.validate()` method is a wrapper around
+   the :dbcommand:`validate` command.
 
-   .. code-block:: javascript
+Syntax
+------
 
-      db.collection.validate( { 
-         full: <boolean>         // Optional
-      } )
+.. admonition:: Changed in version 4.4
+   :class: note
 
-   To specify only the ``full`` option, you can also use:
+   :method:`db.collection.validate()` no longer accepts just a boolean
+   parameter. See :ref:`4.4-validate-method-signature`.
 
-   .. code-block:: javascript
 
-      db.collection.validate( <boolean> ) // full option
+The :method:`db.collection.validate()` method has the following syntax:
 
-   The :method:`db.collection.validate()` method can take the
-   following optional document parameter with the fields:
+.. code-block:: javascript
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 10 10 50
-   
-      * - Field
-        - Type
-        - Description
+   db.collection.validate( { 
+      full: <boolean>,         // Optional
+      background: <boolean>    // Optional.  New in 4.4
+   } )
 
-      * - ``full``
-        - boolean
+Parameters
+~~~~~~~~~~
 
-        - *Optional*. A flag that determines whether the command
-          performs a slower but more thorough check or a faster but less thorough check.
+The :method:`db.collection.validate()` method can take the
+following optional document parameter with the fields:
 
-          - If ``true``, performs a more thorough check.
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 50
 
-          - If ``false``, omits some checks for a faster but less
-            thorough check.
+   * - Field
+     - Type
+     - Description
 
-          The default is ``false``.
+   * - :ref:`full <method-validate-full>`
+     - boolean
 
-          .. include:: /includes/fact-validate-wiredtiger-full-option.rst
+     - .. _method-validate-full:
+     
+       *Optional*. A flag that determines whether the command performs
+       a slower but more thorough check or a faster but less thorough
+       check.
 
-   The :method:`db.collection.validate()` method is a wrapper
-   around the :dbcommand:`validate` :term:`database
-   command`.
+       - If ``true``, performs a more thorough check. You cannot run
+         the more thorough validation with :ref:`background: true
+         <method-validate-background>`.
+
+       - If ``false``, omits some checks for a faster but less
+         thorough check.
+
+       The default is ``false``.
+
+       .. include:: /includes/fact-validate-wiredtiger-full-option.rst
+
+   * - :ref:`background <method-validate-background>`
+     - boolean
+
+     - .. _method-validate-background:
+
+       *Optional*. A flag that determines whether the command runs in
+       the background.
+       
+       - If ``true``, runs in the background. Background validation
+         does not block reads and writes but also does not update
+         collection count and size metrics. You cannot run background
+         validation with :ref:`full: true <method-validate-full>`.
+
+       - If ``false``, runs in the foreground. Foreground validation
+         blocks reads and writes but does update the collection count
+         and size metrics. When run on a secondary, the operation can
+         block all other operations on that secondary until it finishes.
+
+       The default is ``false``.
+       
+       .. versionadded:: 4.4
 
 Behavior
 --------
 
-The :method:`db.collection.validate()` method is potentially resource
-intensive and may impact the performance of your MongoDB instance.
-
-The :method:`db.collection.validate()` method obtains an exclusive lock
-on the collection. This will block all reads and writes on the
-collection until the operation finishes. When run on a secondary, the
-operation can block all other operations on that secondary until it
-finishes.
-
 The :method:`db.collection.validate()` method can be slow, particularly
 on larger data sets.
 
+The :method:`db.collection.validate()` method is potentially resource
+intensive and may impact the performance of your MongoDB instance.
+
+Locks
+~~~~~
+
+.. include:: /includes/extracts/4.4-validate-options.rst
+
+
+.. |foreground| replace:: :ref:`foreground <method-validate-background>`
+
+.. |background| replace:: :ref:`background <method-validate-background>`
 
 Examples
 --------
 
 - To validate a collection ``myCollection`` using the default settings
-  (i.e. ``full: false`` )
+  (i.e. ``{ full: false, background: false }`` )
 
   .. code-block:: javascript
 
      db.myCollection.validate()
 
-- To perform a full validation of collection ``myCollection``
+     db.myCollection.validate({ })
 
-  .. code-block:: javascript
+     db.myCollection.validate( { full: false, background: false } )
 
-    db.myCollection.validate( { full: true } )
+- To perform a full validation of collection ``myCollection``, specify
+  :ref:`full: true <method-validate-full>`. If you specify the
+  :ref:`background <method-validate-background>` option, you must set
+  it to ``false``.
 
-    db.myCollection.validate(true)
+ .. code-block:: javascript
+
+     db.myCollection.validate( { full: true } )
+
+     db.myCollection.validate( { full: true, background: false } )
+
 
 For details of the output, see :ref:`validate-output`.

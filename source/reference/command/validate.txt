@@ -23,50 +23,81 @@ Definition
       The :dbcommand:`validate` command does not support :doc:`views
       </core/views>` and raises an error when run against a view.
 
-   The command has the following syntax:
+Syntax
+------
 
-   .. code-block:: javascript
+.. versionchanged:: 4.4
 
-      db.runCommand( { 
-         validate: <string>,          // Collection name
-         full: <boolean>             // Optional
-      } )
+The command has the following syntax:
 
-   The command takes the following fields:
+.. code-block:: javascript
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 10 10 50
+   db.runCommand( { 
+      validate: <string>,          // Collection name
+      full: <boolean>              // Optional.
+      background: <boolean>        // Optional.  New in 4.4
+   } )
 
-      * - Field
-        - Type
-        - Description
+The :binary:`~bin.mongo` shell also provides a wrapper
+:method:`db.collection.validate()`.
 
-      * - ``validate``
-        - string
-        - The name of the collection to validate.
-        
-      * - ``full``
-        - boolean
+Command Fields
+~~~~~~~~~~~~~~
 
-        - *Optional*. A flag that determines whether the command
-          performs a slower but more thorough check or a faster but less thorough check.
+The command takes the following fields:
 
-          - If ``true``, performs a more thorough check.
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 50
 
-          - If ``false``, omits some checks for a fater but less
-            thorough check.
+   * - Field
+     - Type
+     - Description
 
-          The default is ``false``.
+   * - ``validate``
+     - string
+     - The name of the collection to validate.
+     
+   * - :ref:`full <cmd-validate-full>`
+     - boolean
 
-          .. include:: /includes/fact-validate-wiredtiger-full-option.rst
+     - .. _cmd-validate-full:
+     
+       *Optional*. A flag that determines whether the command
+       performs a slower but more thorough check or a faster but less thorough check.
 
-   The :binary:`~bin.mongo` shell also provides a wrapper
-   :method:`db.collection.validate()`:
+       - If ``true``, performs a more thorough check. You cannot run
+         the more thorough validation with :ref:`background: true
+         <cmd-validate-background>`.
 
-   .. code-block:: javascript
+       - If ``false``, omits some checks for a fater but less
+         thorough check.
 
-      db.collection.validate();
+       The default is ``false``.
+
+       .. include:: /includes/fact-validate-wiredtiger-full-option.rst
+
+   * - :ref:`background <cmd-validate-background>`
+     - boolean
+
+     - .. _cmd-validate-background:
+
+       *Optional*. A flag that determines whether the command runs in
+       the background.
+       
+       - If ``true``, runs in the background. Background validation
+         does not block reads and writes but also does not update
+         collection count and size metrics. You cannot run background
+         validation with :ref:`full: true <cmd-validate-full>`.
+
+       - If ``false``, runs in the foreground. Foreground validation
+         blocks reads and writes but does update the collection count
+         and size metrics. When run on a secondary, the operation can
+         block all other operations on that secondary until it finishes.
+
+       The default is ``false``.
+       
+       .. versionadded:: 4.4
 
 Behavior
 --------
@@ -79,6 +110,18 @@ the collection. This will block all reads and writes on the collection
 until the operation finishes. When run on a secondary, the
 :dbcommand:`validate` operation can block all other operations on that
 secondary until it finishes.
+
+Locks
+~~~~~
+
+.. include:: /includes/extracts/4.4-validate-options.rst
+
+
+.. |foreground| replace:: :ref:`foreground <cmd-validate-background>`
+
+.. |background| replace:: :ref:`background <cmd-validate-background>`
+
+
 
 Restrictions
 ~~~~~~~~~~~~~
@@ -94,7 +137,7 @@ Examples
 --------
 
 - To validate a collection ``myCollection`` using the default settings
-  (i.e. ``full: false``)
+  (i.e. ``full: false, background: false``)
 
   .. code-block:: javascript
 
@@ -105,6 +148,10 @@ Examples
   .. code-block:: javascript
 
     db.runCommand( { validate: "myCollection", full: true } )
+    
+    db.runCommand( { validate: "myCollection", full: true, background: false} )
+ 
+    
 
 .. _validate-output:
 
@@ -113,14 +160,7 @@ Validate Output
 
 .. include:: /includes/note-output-may-vary.rst
 
-Specify ``{ full: true }`` for more detailed output.
-
-
-.. data:: validate.ns
-
-   The full namespace name of the collection. Namespaces include the
-   database name and the collection name in the form
-   ``database.collection``.
+Specify :ref:`full: true <cmd-validate-full>` for more detailed output.
 
 .. data:: validate.nInvalidDocuments
 
@@ -180,12 +220,31 @@ Specify ``{ full: true }`` for more detailed output.
    - :data:`~validate.indexDetails` identifies the index by its name
      only. Earlier versions of MongoDB displayed the full namespace of
      the index; i.e. ``<db>.<collection>.$<index_name>``.
-   
+
+.. data:: validate.ns
+
+   The full namespace name of the collection. Namespaces include the
+   database name and the collection name in the form
+   ``database.collection``.
+
 .. data:: validate.valid
 
    A boolean that is ``true`` if :dbcommand:`validate` determines that
    all aspects of the collection are valid. When ``false``, see the
    :data:`~validate.errors` field for more information.
+
+.. data:: validate.warnings
+
+   An array that contains warning messages, if any, regarding the
+   validate operation itself. The warning messages do not indicate that
+   the collection is itself invalid. For example:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      "warnings" : [
+         "Could not complete validation of table:collection-28-6471619540207520785. This is a transient issue as the collection was actively in use by other operations."
+      ],
 
 .. data:: validate.errors
 
