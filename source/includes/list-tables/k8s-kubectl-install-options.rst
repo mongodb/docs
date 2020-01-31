@@ -56,7 +56,7 @@
      - Namespace that the Operator watches for |k8s-mdbrsc| changes.
        If this |k8s-ns| differs from the default, ensure that the
        Operator's ServiceAccount
-       `can access <https://kubernetes.io/docs/reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding>`__
+       :k8sdocs:`can access </reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding>`
        that different namespace.
 
        ``*`` means *all namespaces* and requires the
