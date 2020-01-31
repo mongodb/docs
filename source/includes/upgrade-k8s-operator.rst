@@ -50,11 +50,6 @@
 
                                 kubectl apply -f mongodb-enterprise.yaml
 
-                          To troubleshoot your |k8s-op-short|, see
-                          :ref:`review-k8s-op-logs`.
-
-                          .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
-
                       - id: helmonlinek8sup
                         name: Online using Helm
                         content: |
@@ -71,27 +66,18 @@
                                 -- values helm_chart/values.yaml
                                 kubectl apply -f operator.yaml
 
-                             You can customize your Chart before installing it by modifying 
-                             the ``values.yaml`` file. For this Chart, you may need to add
-                             one or more of the following options:
-
-                             .. include:: /includes/list-tables/k8s-helm-install-options.rst
+                             .. include:: /includes/helm-install-k8s-options.rst
 
                              .. note:: 
 
                                 You can also pass these values as options 
-                                when you apply the helm chart:
+                                when you apply the Helm Chart:
 
                                 .. code-block:: sh
                                     
                                    helm template --set namespace=<testNamespace> \
                                    helm_chart > operator.yaml
                                    kubectl apply -f operator.yaml
-
-                             To troubleshoot your |k8s-op-short|, see
-                             :ref:`review-k8s-op-logs`.
-
-                             .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
 
                       - id: helmofflinek8sup
                         name: Offline using Helm and Docker
@@ -119,27 +105,20 @@
                                           -- values helm_chart/values.yaml
                                           kubectl apply -f operator.yaml 
 
-                                       You can customize your Chart before installing it by
-                                       modifying the ``values.yaml`` file. For this
-                                       Chart, you may need to add one or more of the following
-                                       options:
+                                       .. include:: /includes/helm-install-k8s-options.rst
 
-                                       .. include:: /includes/list-tables/k8s-helm-install-options.rst
+                                       .. note::
+                                       
+                                          You can also pass these values as options when you apply the Helm
+                                          Chart:
 
-                                       You can also pass these values as options when you apply the helm
-                                       chart:
+                                          .. code-block:: sh
 
-                                       .. code-block:: sh
-
-                                          helm template --set namespace=<testNamespace> \
-                                          helm_chart > operator.yaml \
-                                          -- values helm_chart/values.yaml
-                                          kubectl apply -f operator.yaml
-
-                                    To troubleshoot your |k8s-op-short|, see
-                                    :ref:`review-k8s-op-logs`.
-
-                                    .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
+                                             helm template --set registry.pullPolicy=IfNotPresent \
+                                             --set namespace=<testNamespace> \
+                                             helm_chart > operator.yaml \
+                                             -- values helm_chart/values.yaml
+                                             kubectl apply -f operator.yaml
 
                                 - id: hostk8sup
                                   name: Another Host
@@ -156,27 +135,20 @@
                                           -- values helm_chart/values.yaml
                                           kubectl apply -f operator.yaml 
 
-                                       You can customize your Chart before installing it by
-                                       modifying the ``values.yaml`` file. For this
-                                       Chart, you may need to add one or more of the following
-                                       options:
+                                       .. include:: /includes/helm-install-k8s-options.rst
 
-                                       .. include:: /includes/list-tables/k8s-helm-install-options.rst
+                                       .. note::
+                                       
+                                          You can also pass these values as options when you apply the Helm
+                                          Chart:
 
-                                       You can also pass these values as options when you apply the helm
-                                       chart:
+                                          .. code-block:: sh
 
-                                       .. code-block:: sh
-
-                                          helm template --set namespace=<testNamespace> \
-                                          helm_chart > operator.yaml \
-                                          -- values helm_chart/values.yaml
-                                          kubectl apply -f operator.yaml
-
-                                    To troubleshoot your |k8s-op-short|, see
-                                    :ref:`review-k8s-op-logs`.
-
-                                    .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
+                                             helm template --set registry.pullPolicy=IfNotPresent \
+                                             --set namespace=<testNamespace> \
+                                             helm_chart > operator.yaml \
+                                             -- values helm_chart/values.yaml
+                                             kubectl apply -f operator.yaml
 
         - id: osup
           name: OpenShift
@@ -223,10 +195,6 @@
 
                                 oc apply -f mongodb-enterprise-openshift.yaml
 
-                          To troubleshoot your |k8s-op-short|, see
-                          :ref:`review-k8s-op-logs`.
-
-                          .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
 
                       - id: helmonlineosup
                         name: Online using Helm
@@ -244,16 +212,12 @@
                                 -- values helm_chart/values-openshift.yaml
                                 kubectl apply -f operator.yaml
 
-                             You can customize your Chart before installing it by modifying 
-                             the ``values-openshift.yaml`` file. For this Chart, you may need to add
-                             one or more of the following options:
-
-                             .. include:: /includes/list-tables/os-helm-install-options.rst
+                             .. include:: /includes/helm-install-os-options.rst
 
                              .. note:: 
 
                                 You can also pass these values as options 
-                                when you apply the helm chart:
+                                when you apply the Helm Chart:
 
                                 .. code-block:: sh
                                     
@@ -261,11 +225,6 @@
                                    helm_chart > operator.yaml \
                                    -- values helm_chart/values-openshift.yaml
                                    kubectl apply -f operator.yaml
-
-                             To troubleshoot your |k8s-op-short|, see
-                             :ref:`review-k8s-op-logs`.
-
-                             .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
 
                       - id: helmofflineosup
                         name: Offline using Helm and Docker
@@ -293,27 +252,20 @@
                                           -- values helm_chart/values-openshift.yaml
                                           kubectl apply -f operator.yaml 
 
-                                       You can customize your Chart before installing it by
-                                       modifying the ``values-openshift.yaml`` file. For this
-                                       Chart, you may need to add one or more of the following
-                                       options:
+                                       .. include:: /includes/helm-install-os-options.rst
 
-                                       .. include:: /includes/list-tables/os-helm-install-options.rst
+                                       .. note::
+                                       
+                                          You can also pass these values as options when you apply the Helm
+                                          Chart:
 
-                                       You can also pass these values as options when you apply the helm
-                                       chart:
+                                          .. code-block:: sh
 
-                                       .. code-block:: sh
-
-                                          helm template --set namespace=<testNamespace> \
-                                          helm_chart > operator.yaml \
-                                          -- values helm_chart/values-openshift.yaml
-                                          kubectl apply -f operator.yaml
-
-                                    To troubleshoot your |k8s-op-short|, see
-                                    :ref:`review-k8s-op-logs`.
-
-                                    .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
+                                             helm template --set registry.pullPolicy=IfNotPresent \
+                                             --set namespace=<testNamespace> \
+                                             helm_chart > operator.yaml \
+                                             -- values helm_chart/values-openshift.yaml
+                                             kubectl apply -f operator.yaml
 
                                 - id: hostosup
                                   name: Another Host
@@ -330,24 +282,19 @@
                                           -- values helm_chart/values-openshift.yaml
                                           kubectl apply -f operator.yaml 
 
-                                       You can customize your Chart before installing it by
-                                       modifying the ``values.yaml`` file. For this
-                                       Chart, you may need to add one or more of the following
-                                       options:
+                                       .. include:: /includes/helm-install-os-options.rst
 
-                                       .. include:: /includes/list-tables/k8s-helm-install-options.rst
+                                       .. note::
+                                           
+                                          You can also pass these values as options when you apply the Helm
+                                          Chart:
 
-                                       You can also pass these values as options when you apply the helm
-                                       chart:
+                                          .. code-block:: sh
 
-                                       .. code-block:: sh
+                                             helm template --set registry.pullPolicy=IfNotPresent \
+                                             --set namespace=<testNamespace> \
+                                             helm_chart > operator.yaml \
+                                             -- values helm_chart/values-openshift.yaml
+                                             kubectl apply -f operator.yaml
 
-                                          helm template --set namespace=<testNamespace> \
-                                          helm_chart > operator.yaml \
-                                          -- values helm_chart/values-openshift.yaml
-                                          kubectl apply -f operator.yaml
-
-                                    To troubleshoot your |k8s-op-short|, see
-                                    :ref:`review-k8s-op-logs`.
-
-                                    .. include:: /includes/admonitions/fact-remove-k8s-resources-first.rst
+.. include:: /includes/troubleshoot-k8s.rst
