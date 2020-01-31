@@ -140,7 +140,7 @@
 
    * - missingShards.groupId
      - objectId
-     - ID of the group that owns the missing :term:`shard`.
+     - ID of the project that owns the missing :term:`shard`.
 
    * - missingShards.typeName
      - string
