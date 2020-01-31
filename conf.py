@@ -61,7 +61,10 @@ source_constants = {
     'k8s-op-short': 'Kubernetes Operator',
     'aagent': 'MongoDB Agent or legacy Automation Agent',
     'aagents': 'MongoDB Agents or legacy Automation Agents',
-    'mdbagent': 'MongoDB Agent'
+    'mdbagent': 'MongoDB Agent',
+    'bndl-version': '4.2.2',
+    'bndl-version-val': '``4.2.2-ent``'
+
 }
 
 rst_epilog = '\n'.join([
