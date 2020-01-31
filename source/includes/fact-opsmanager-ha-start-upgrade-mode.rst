@@ -1,9 +1,9 @@
-.. note::
+.. admonition:: Upgrade Mode for Highly Available |application|\s
+   :class: note
 
-   If you have multiple |onprem| hosts using a single Application
-   Database, you are running your |onprem| deployment with high
-   availability. After you upgrade one |onprem| host of a highly
-   available |onprem| deployment, that deployment enters **Upgrade
-   Mode**. You should not upgrade more than one |onprem| host at a
-   time.
+   If you have an |onprem| 4.2 installation with more than one |onprem|
+   host pointing to the same Application Database, this |onprem|
+   deployment runs with high availability. After you upgrade one
+   |onprem| host of a highly available |onprem| deployment, that
+   deployment enters **Upgrade Mode**.
 

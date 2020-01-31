@@ -31,17 +31,17 @@ builds has been retained.
 Network
 ~~~~~~~
 
-- When using |onprem| in |ipv6|-only environments, any connections to
-  the internet must support dual-stack |ipv4|/|ipv6|. Further, IP
-  whitelisting supports |ipv4|-style addresses only. This will be
-  resolved in a future release in the |onprem| 4.2 series.
+When using |onprem| in |ipv6|-only environments, any connections to the
+internet must support dual-stack |ipv4|/|ipv6|. Further, IP
+whitelisting supports |ipv4|-style addresses only. This will be
+resolved in a future release in the |onprem| 4.2 series.
 
 Kubernetes
 ~~~~~~~~~~
 
-The containerization of |onprem| has been included as an alpha
-release. This alpha release is unsupported for production use. The
-Backup Daemon is not containerized.
+The containerization of |onprem| has been included as a beta release.
+This beta release is unsupported for production use. The Backup Daemon
+is not containerized.
 
 When you use the |k8s-op-short| and upgrade |onprem|, upgrade to
 |onprem| 4.2.1. If you must remain on 4.2.0, change to your Kubernetes
