@@ -53,7 +53,7 @@
 
    * - groupId
      - objectId
-     - ID of the :term:`group` that owns the :term:`snapshot`.
+     - ID of the :term:`project` that owns the :term:`snapshot`.
 
    * - id
      - objectId
