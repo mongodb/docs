@@ -153,7 +153,7 @@ rst_epilog = '\n'.join([
     '.. |ldaps| replace:: :abbr:`LDAPS (Secure Lightweight Directory Access Protocol)`',
     '.. |ldap| replace:: :abbr:`LDAP (Lightweight Directory Access Protocol)`',
     '.. |mms-full| replace:: :opsmgr:`MongoDB Ops Manager </>`',
-    '.. |mms| replace:: :opsmgr:`Ops Manager </>`',
+    '.. |mms| replace:: `Ops Manager`',
     '.. |mongod| replace:: :binary:`~bin.mongod`',
     '.. |mongos| replace:: :binary:`~bin.mongos`',
     '.. |mongo| replace:: :binary:`~bin.mongo`',
