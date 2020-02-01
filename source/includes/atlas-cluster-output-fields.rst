@@ -7,6 +7,9 @@
 
    * - ``autoScaling``
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
      - Configuration for :atlas:`automatically scaling 
        <cluster-autoscaling/#cluster-autoscaling>` cluster storage 
        and tier.
@@ -14,6 +17,7 @@
    * - ``autoscaling.diskGBEnabled``
      - Specifies whether or not disk :atlas:`auto-scaling 
        <cluster-autoscaling/#cluster-autoscaling>` is enabled. 
+<<<<<<< HEAD
 =======
      - Configuration for automatically scaling cluster storage 
        and tier.
@@ -21,6 +25,8 @@
    * - ``autoscaling.diskGBEnabled``
      - Specifies whether or not disk auto-scaling is enabled. 
 >>>>>>> DOCSP-8221 Doc for atlas cluster describe command
+=======
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
        Value can be:
 
        - ``true`` if enabled
@@ -49,7 +55,11 @@
        The default value is false.
 
    * - ``biConnector.readPreference``
+<<<<<<< HEAD
      - Specifies the read preference for |bic| on the 
+=======
+     - Specifies the read preference for |bic-short| on the 
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
        cluster. Value can be:
 
        - ``primary`` to allow |bic-short| to read from 
@@ -98,12 +108,15 @@
      - Specifies the major version of MongoDB that is deployed.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    * - ``mongoURI``
      - Specifies the base :manual:`connection string 
        </manual/reference/connection-string/>` for the cluster.
 
 >>>>>>> DOCSP-8221 Doc for atlas cluster describe command
+=======
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
    * - ``MongoURIUpdated``
      - Specifies the timestamp in |iso8601-time| when the connection 
        string was last updated. 
@@ -183,12 +196,28 @@
        - :atlas:`GCP <reference/google-gcp/#google-gcp>` 
        - :atlas:`Azure <reference/microsoft-azure/#microsoft-azure>`
 
+<<<<<<< HEAD
+<<<<<<< HEAD
    * - ``replicationFactor``
+=======
+   * - replicationFactor
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
+=======
+   * - ``replicationFactor``
+>>>>>>> DOCSP-8224 minor fix
      - Specifies the number of :atlas:`replica set members 
        <reference/glossary/#term-replica-set>` in the cluster. The 
        possible values are ``3``, ``5``, ``7``.
 
+<<<<<<< HEAD
+<<<<<<< HEAD
    * - ``replicationSpec``
+=======
+   * - replicationSpec
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
+=======
+   * - ``replicationSpec``
+>>>>>>> DOCSP-8224 minor fix
      - Configuration for each region in the cluster. Each 
        element in this object represents a region where 
        your cluster is deployed. 
@@ -251,6 +280,7 @@
        elections and the number and type of MongoDB nodes that 
        |service| deploys to the region.
 
+<<<<<<< HEAD
    * - | ``replicationSpecs[n].regionsConfig``
        | ``.<regionName>.analyticsNodes``
      - Specifies the number of analytics nodes to deploy in the 
@@ -258,10 +288,24 @@
 
    * - | ``replicationSpecs[n].regionsConfig``
        | ``.<regionName>.electableNodes``
+=======
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
+       | ``.<regionName>``
+       | ``.analyticsNodes``
+     - Specifies the number of analytics nodes to deploy in the 
+       region.
+
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
+       | ``.<regionName>``
+       | ``.electableNodes``
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
      - Number of electable nodes for |service| to deploy to the region.
        Electable nodes can become the :term:`primary` and can
        facilitate local reads.
 
+<<<<<<< HEAD
    * - | ``replicationSpecs[n].regionsConfig``
        | ``.<regionName>.priority``
      - Election priority of the region. If you have regions with only
@@ -269,6 +313,19 @@
 
    * - | ``replicationSpecs[n].regionsConfig``
        | ``.<regionName>.readOnlyNodes``
+=======
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
+       | ``.<regionName>``
+       | ``.priority``
+     - Election priority of the region. If you have regions with only
+       read-only nodes, set this value to ``0``.
+
+   * - | ``replicationSpecs[n]``
+       | ``.regionsConfig``
+       | ``.<regionName>``
+       | ``.readOnlyNodes``
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
      - Number of read-only nodes for |service| to deploy to the region.
        Read-only nodes can never become the :term:`primary`, but can
        facilitate local-reads.
@@ -276,6 +333,7 @@
        Specify ``0`` if you do not want any read-only nodes in the
        region.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
    * - ``srvAddress``
@@ -285,6 +343,8 @@
        lists additional options.
 
 >>>>>>> DOCSP-8221 Doc for atlas cluster describe command
+=======
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
    * - ``stateName``
      - The current status of the cluster. Value can be:
 
@@ -294,4 +354,8 @@
        - ``DELETING``
        - ``DELETED``
        - ``REPAIRING``
+<<<<<<< HEAD
+=======
+
+>>>>>>> DOCSP-8224 Doc for atlas cluster list command
        
