@@ -6,6 +6,7 @@
      - Description
 
    * - ``autoScaling``
+<<<<<<< HEAD
      - Configuration for :atlas:`automatically scaling 
        <cluster-autoscaling/#cluster-autoscaling>` cluster storage 
        and tier.
@@ -13,6 +14,13 @@
    * - ``autoscaling.diskGBEnabled``
      - Specifies whether or not disk :atlas:`auto-scaling 
        <cluster-autoscaling/#cluster-autoscaling>` is enabled. 
+=======
+     - Configuration for automatically scaling cluster storage 
+       and tier.
+
+   * - ``autoscaling.diskGBEnabled``
+     - Specifies whether or not disk auto-scaling is enabled. 
+>>>>>>> DOCSP-8221 Doc for atlas cluster describe command
        Value can be:
 
        - ``true`` if enabled
@@ -89,6 +97,13 @@
    * - ``mongoDBMajorVersion``
      - Specifies the major version of MongoDB that is deployed.
 
+<<<<<<< HEAD
+=======
+   * - ``mongoURI``
+     - Specifies the base :manual:`connection string 
+       </manual/reference/connection-string/>` for the cluster.
+
+>>>>>>> DOCSP-8221 Doc for atlas cluster describe command
    * - ``MongoURIUpdated``
      - Specifies the timestamp in |iso8601-time| when the connection 
        string was last updated. 
@@ -261,6 +276,15 @@
        Specify ``0`` if you do not want any read-only nodes in the
        region.
 
+<<<<<<< HEAD
+=======
+   * - ``srvAddress``
+     - The :manual:`connection string </reference/connection-string/>` 
+       for connecting to the |service| cluster. The ``+srv`` modifier 
+       forces the connection to use |tls|. The ``mongoURI`` parameter 
+       lists additional options.
+
+>>>>>>> DOCSP-8221 Doc for atlas cluster describe command
    * - ``stateName``
      - The current status of the cluster. Value can be:
 
