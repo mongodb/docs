@@ -51,7 +51,8 @@ KeyVault.createKey()
           retrieving the Customer Master Key (CMK).
 
           Specify ``aws`` for :ref:`Amazon Web Service KMS
-          <field-level-encryption-aws-kms>`.
+          <field-level-encryption-aws-kms>`. Requires specifying a
+          Customer Master Key (CMK) to ``customerMasterKey``.
 
           Specify ``local`` for a 
           :ref:`locally managed key <field-level-encryption-local-kms>`.
@@ -63,25 +64,25 @@ KeyVault.createKey()
         
         - string
 
-        - *Required* 
-        
-          The identifier for the Customer Master Key (CMK) to use for
-          encrypting the data encryption key. 
+        - The identifier for the Customer Master Key (CMK) to use for
+          encrypting the data encryption key. Required if 
+          ``keyManagementService`` is ``aws``.
+          
+          Specify the full `Amazon Resource Name (ARN)
+          <https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html>`__
+          of the master key. :method:`~KeyVault.createKey()` requests
+          the AWS KMS encrypt the data encryption key material with the
+          specified CMK. If the CMK does not exist *or* if the KMS
+          configuration does not provide access to that CMK,
+          :method:`~KeyVault.createKey()` returns an error.
 
-          - For ``keyManagementService.aws``, specify the full
-            `Amazon Resource Name (ARN) <https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html>`__
-            of the master key. :method:`~KeyVault.createKey()`
-            requests the AWS KMS encrypt the data encryption key 
-            material with the specified CMK.
-            
-            If the CMK does not exist *or* if the KMS configuration does
-            not provide access to that CMK,
-            :method:`~KeyVault.createKey()` returns an error.
+          .. versionchanged:: 4.2.3
 
-          - For ``keyManagementService.local``, specify an empty string
-            ``""``.  The local KMS uses *only* the local
-            key specified as part of the database connection
-            for encrypting data encryption keys.
+             This parameter has no effect if ``keyManagementService`` is
+             ``local`` and can be safely omitted. Prior to MongoDB
+             4.2.3, if ``keyManagementService`` is ``local`` this
+             parameter *must* be an empty string ``"``.
+             
 
       * - ``keyAltName``
         - array of strings
@@ -127,10 +128,10 @@ create a new data encryption key using the locally managed key:
 .. code-block:: javascript
 
    keyVault = encryptedClient.getKeyVault()
-   keyVault.createKey("local", "", ["data-encryption-key"]
+   keyVault.createKey("local", ["data-encryption-key"])
 
-If successfull, :method:`~KeyVault.createKey()` returns the ``UUID`` of
-the created data encryption key. To retrieve the created data encryption
+If successful, :method:`~KeyVault.createKey()` returns the ``UUID`` of
+the new data encryption key. To retrieve the new data encryption
 key document from the key vault, either:
 
 - Use :method:`~KeyVault.getKey()` to retrieve the created key by
