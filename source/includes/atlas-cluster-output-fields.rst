@@ -14,13 +14,10 @@
      - Specifies whether or not disk :atlas:`auto-scaling 
        <cluster-autoscaling/#cluster-autoscaling>` is enabled. 
 
-   * - ``autoscaling.diskGBEnabled``
-     - Specifies whether or not disk auto-scaling is enabled. 
-
        Value can be:
 
        - ``true`` if enabled
-       - ``false`` if diskGBEnabled
+       - ``false`` if disabled
 
        By default, disk auto-scaling is disabled.
 
