@@ -283,5 +283,4 @@
        - ``UPDATING``
        - ``DELETING``
        - ``DELETED``
-       - ``REPAIRING``
-       
+       - ``REPAIRING``       
