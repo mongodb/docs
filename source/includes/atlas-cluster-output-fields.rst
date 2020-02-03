@@ -279,5 +279,5 @@
        - ``CREATING``
        - ``UPDATING``
        - ``DELETING``
-       - ``DELETED``
-       - ``REPAIRING``       
+       - ``DELETED``      
+       - ``REPAIRING``    
