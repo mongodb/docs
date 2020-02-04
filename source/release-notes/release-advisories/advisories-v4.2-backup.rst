@@ -40,7 +40,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Can Restore Data to Specific Point in Time
-        -
+        - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Supports Encrypted Snapshots
@@ -129,12 +129,6 @@ To run backups and restores if you are running MongoDB 4.2 with
 
    - Must run MongoDB Enterprise.
 
-   - Cannot restore to a specific a
-     :doc:`point in time </tutorial/nav/restore-overview>` or use a
-     :doc:`queryable restores </tutorial/query-backup>`. Do not
-     upgrade to ``"featureCompatibilityVersion" : 4.2`` if you require
-     point in time or queryable restores.
-
    - Cannot use namespace filter lists to define the
      :term:`namespaces <namespace>` included in a backup. Snapshots
      using FCV 4.2 always include all namespaces.
@@ -156,12 +150,6 @@ To run backups and restores if you are running MongoDB 4.2 with
    - Must run MongoDB Enterprise. MongoDB, Inc. grants a
      :doc:`special license </reference/legal/cloud-manager-backup-license>`
      to use MongoDB Enterprise for |mms| backups.
-
-   - Cannot restore to a specific a
-     :doc:`point in time </tutorial/nav/restore-overview>` or use
-     :doc:`queryable restores </tutorial/query-backup>`. Do not upgrade
-     to ``"featureCompatibilityVersion" : 4.2`` if you require point
-     in time or queryable restores.
 
    - Cannot use namespace filter lists to define the
      :term:`namespaces <namespace>` included in a backup. Snapshots

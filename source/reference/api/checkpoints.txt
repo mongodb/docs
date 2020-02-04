@@ -12,12 +12,15 @@ Checkpoints
 
 .. include:: /includes/fact-groups-projects-synonyms.rst
 
-Overview
---------
+This resource allows you to view :ref:`checkpoint` metadata. You can
+use checkpoints to create custom snapshots of a cluster at points in
+time between regular snapshots.
 
-This resource allows you to view :ref:`checkpoint` metadata. You can use
-checkpoints to create custom snapshots of a cluster at points in time
-between regular snapshots.
+.. important::
+
+   You may use checkpoints with clusters running MongoDB with
+   |fcv-link| of 4.0 or earlier. Checkpoints have been removed from
+   MongoDB instances running with |fcv| of 4.2 or later.
 
 Endpoints
 ---------
@@ -43,13 +46,14 @@ Get a single checkpoint.
 Sample Entity
 -------------
 
-.. code-block:: javascript
+.. code-block:: json
+   :linenos:
 
    {
-     "clusterId" : "348938fbdbca74718cba",
+     "clusterId" : "{CLUSTER-ID}",
      "completed" : "2015-07-31T23:19:51Z",
-     "groupId" : "2847387cd717dabc348a",
-     "id" : "5875f665da588548965b",
+     "groupId" : "{GROUP-ID}",
+     "id" : "{CHECKPOINT-ID}",
      "parts" : [ {
        "replicaSetName" : "shard_1",
        "shardName" : "shard_1",
@@ -69,7 +73,7 @@ Sample Entity
        },
        "typeName" : "REPLICA_SET"
      }, {
-       "hostId" : "11d9c414d292453725d2232e25c02525",
+       "hostId" : "{HOST-ID}",
        "tokenDiscovered" : true,
        "tokenTimestamp" : {
          "date" : "2015-07-31T23:19:51Z",
@@ -94,67 +98,76 @@ Entity Fields
      - Type
      - Description
 
-   * - clusterId
+   * - ``clusterId``
      - string
-     - The Unique identifier of the cluster represented by the checkpoint.
+     - Unique identifier of the cluster represented by the checkpoint.
 
-   * - completed
-     - BSON timestamp
-     - The point-in-time the checkpoint completed and the balancer restarted.
-
-   * - groupId
+   * - ``completed``
      - string
-     - The Unique identifier of the project that owns the checkpoint.
+     - |iso8601-time| for the point-in-time when the checkpoint
+       completed and the balancer restarted.
 
-   * - id
+   * - ``groupId``
      - string
-     - The checkpoint ID.
+     - Unique identifier of the group that owns the checkpoint.
 
-   * - parts
-     - array of parts
-     - The individual parts that comprise the complete checkpoint. There
-       will be one element for each shard plus one element for the config
-       servers.
+   * - ``id``
+     - string
+     - Unique identifier of the checkpoint.
 
-   * - parts.replicaSetName
+   * - ``parts``
+     - array of objects
+     - Individual parts that comprise the complete checkpoint. There
+       will be one element for each shard plus one element for the
+       config servers.
+
+   * - | ``parts``
+       | ``.replicaSetName``
      - string
      - Name of the replica set. Not present for a config server.
 
-   * - parts.shardName
+   * - | ``parts``
+       | ``.shardName``
      - string
-     - The name of the shard.
+     - Name of the shard.
 
-   * - parts.tokenDiscovered
+   * - | ``parts``
+       | ``.tokenDiscovered``
      - Boolean
-     - Indicates whether the token exists.
+     - Flag that indicates whether the token exists.
 
-   * - parts.tokenTimestamp
-     - document
-     - The timestamp of an entry in the :term:`oplog`, as specified by the
+   * - | ``parts``
+       | ``.tokenTimestamp``
+     - object
+     - Timestamp of an entry in the :term:`oplog`, as specified by the
        entry’s ``ts`` field. The ``ts`` field is a :manual:`BSON
        </reference/bson-types>` timestamp and has two components: the
-       timestamp, which is the value in seconds since the Unix epoch, and
-       the increment, which is an incrementing ordinal for operations
-       within a given second.
+       timestamp, which is the value in seconds since the Unix epoch,
+       and the increment, which is an incrementing ordinal for
+       operations within a given second.
 
-   * - parts.typeName
+   * - | ``parts``
+       | ``.typeName``
      - string
-     - The type of server represented by the part. Possible values are:
+     - Type of server represented by the part. Possible values are:
 
        - ``REPLICA_SET``, which indicates the part is a shard.
        - ``CONFIG_SERVER``
 
-   * - restorable
+   * - ``restorable``
      - Boolean
-     - Indicates whether the checkpoint can be used for a restore.
+     - Flag that indicates whether the checkpoint can be used for a
+       restore.
 
-   * - started
-     - BSON timestamp
-     - The point-in-time |mms| stopped the :term:`balancer` and began the checkpoint.
+   * - ``started``
+     - string
+     - |iso8601-time| for the point-in-time when |mms| stopped the
+       :term:`balancer` and began the checkpoint.
 
-   * - timestamp
-     - BSON timestamp
-     - The point-in-time the checkpoint restores to.
+   * - ``timestamp``
+     - string
+     - |iso8601-time| for the point-in-time to which the checkpoint
+       restores data.
 
 
 Links
@@ -165,12 +178,12 @@ Links
 
    * - Relation
      - Description
-   * - self
-     - The checkpoint
+   * - ``self``
+     - Checkpoint
    * - ``http://mms.mongodb.com/cluster``
-     - The cluster the checkpoint belongs to.
+     - Cluster the checkpoint belongs to.
    * - ``http://mms.mongodb.com/group``
-     - The project that owns the checkpoint.
+     - Project that owns the checkpoint.
 
 Examples
 --------
@@ -181,23 +194,23 @@ Get All Checkpoints
 Request
 ```````
 
-.. only:: cloud
+.. cond:: cloud
 
    .. code-block:: sh
 
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/2847387cd717dabc348a/clusters/55bbd551e4b07f5222418262/checkpoints"
+           --header "Accept: application/json" \
+           --include \
+           --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/checkpoints"
 
-.. only:: onprem
+.. cond:: onprem
 
    .. code-block:: sh
 
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://<ops-manager-host>/api/public/v1.0/groups/2847387cd717dabc348a/clusters/55bbd551e4b07f5222418262/checkpoints"
+           --header "Accept: application/json" \
+           --include \
+           --request GET "https://<ops-manager-host>/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/checkpoints"
 
 Response
 ````````
@@ -213,13 +226,14 @@ Response Body
 ~~~~~~~~~~~~~
 
 .. code-block:: json
+   :linenos:
 
    {
      "links" : [],
      "results" : [ {
-       "clusterId" : "55bbd551e4b07f5222418262",
+       "clusterId" : "{CLUSTER-ID}",
        "completed" : "2015-07-31T23:35:52Z",
-       "groupId" : "2847387cd717dabc348a",
+       "groupId" : "{GROUP-ID}",
        "id" : "55bc0658e4b097a3efe06f1f",
        "links" : [],
        "parts" : [ {
@@ -241,7 +255,7 @@ Response Body
          },
          "typeName" : "REPLICA_SET"
        }, {
-         "hostId" : "11d9c414d292453725d2232e25c02525",
+         "hostId" : "{HOST-ID}",
          "tokenDiscovered" : true,
          "tokenTimestamp" : {
            "date" : "2015-07-31T23:35:52Z",
@@ -252,7 +266,7 @@ Response Body
        "restorable" : true,
        "started" : "2015-07-31T23:35:52Z",
        "timestamp" : "2015-07-31T23:34:47Z"
-     }, 
+     },
      ...
      ],
      "totalCount" : 6
@@ -264,23 +278,23 @@ Get One Checkpoint
 Request
 ```````
 
-.. only:: cloud
+.. cond:: cloud
 
    .. code-block:: sh
 
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/2847387cd717dabc348a/clusters/55bbd551e4b07f5222418262/checkpoints/55bc0297e4b00759dc7b8b8c"
+           --header "Accept: application/json" \
+           --include \
+           --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/checkpoints/{CHECKPOINT-ID}"
 
-.. only:: onprem
+.. cond:: onprem
 
    .. code-block:: sh
 
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://<ops-manager-host>/api/public/v1.0/groups/2847387cd717dabc348a/clusters/55bbd551e4b07f5222418262/checkpoints/55bc0297e4b00759dc7b8b8c"
+           --header "Accept: application/json" \
+           --include \
+           --request GET "https://<ops-manager-host>/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/checkpoints/{CHECKPOINT-ID}"
 
 Response
 ````````
@@ -296,12 +310,13 @@ Response Body
 ~~~~~~~~~~~~~
 
 .. code-block:: json
+   :linenos:
 
    {
-     "clusterId" : "55bbd551e4b07f5222418262",
+     "clusterId" : "{CLUSTER-ID}",
      "completed" : "2015-07-31T23:19:51Z",
-     "groupId" : "2847387cd717dabc348a",
-     "id" : "55bc0297e4b00759dc7b8b8c",
+     "groupId" : "{GROUP-ID}",
+     "id" : "{CHECKPOINT-ID}",
      "links" : [],
      "parts" : [ {
        "replicaSetName" : "shard_1",
@@ -322,7 +337,7 @@ Response Body
        },
        "typeName" : "REPLICA_SET"
      }, {
-       "hostId" : "11d9c414d292453725d2232e25c02525",
+       "hostId" : "{HOST-ID}",
        "tokenDiscovered" : true,
        "tokenTimestamp" : {
          "date" : "2015-07-31T23:19:51Z",
