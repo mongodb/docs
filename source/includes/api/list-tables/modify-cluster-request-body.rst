@@ -208,6 +208,8 @@
 
        .. include:: /includes/fact-storage-limitation.rst
 
+       .. include:: /includes/autoscale-oplog.rst
+
    * - ``encryptionAtRestProvider``
      - string
      - Optional
