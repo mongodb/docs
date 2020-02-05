@@ -1,6 +1,6 @@
 .. note::
 
-   `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?jmp=docs>`_ is a
+   `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?tck=docs_server>`_ is a
    cloud-hosted database-as-a-service. |mms-home|, a hosted service,
    and `Ops Manager
    <https://www.mongodb.com/products/mongodb-enterprise-advanced?jmp=docs>`_, 
