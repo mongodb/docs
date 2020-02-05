@@ -1,4 +1,4 @@
-.. include:: /includes/install-helm-gh.rst
+.. include:: /includes/install/install-helm-gh.rst
 
 To install the |k8s-op-short| on a host not connected to the Internet,
 choose to download its files from:
