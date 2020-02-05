@@ -1,4 +1,4 @@
-5. (**For OpenShift only**): Create a |k8s-secret| that contains 
+5. Create a |k8s-secret| that contains 
    credentials authorized to pull images from the 
    ``registry.connect.redhat.com`` repository:
 
