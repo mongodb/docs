@@ -5,6 +5,8 @@ choose to download its files from:
 
 .. tabs::
 
+    hidden: true
+
     tabs:
       - id: internetos
         name: The Internet

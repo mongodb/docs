@@ -2,10 +2,16 @@
 ref: helm-k8s-offline-docker-request-host
 inherit:
   file: steps-helm-master.yaml
-  ref: helm-master-docker-request-k8s
+  ref: helm-master-docker-request
 title: "Use ``docker`` to request the files on a host
              connected to the Internet."
 stepnum: 1
+content: |
+
+  {{quaypull}}
+
+  {{versions}}
+
 ---
 ref: helm-k8s-offline-host-archive-files
 inherit:
@@ -14,13 +20,10 @@ inherit:
 stepnum: 2
 content: |
 
-  .. code-block:: sh
+  {{quayarchive}}
 
-     docker save quay.io/mongodb/mongodb-enterprise-operator:<op-version> -o mongodb-enterprise-operator.tar; \
-     docker save quay.io/mongodb/mongodb-enterprise-database:<op-version> -o mongodb-enterprise-database.tar; \
-     docker save quay.io/mongodb/mongodb-enterprise-ops-manager:<om-version>-operator<op-version> -o mongodb-enterprise-ops-manager.tar
+  {{versions}}
 
-  .. include:: /includes/replace-op-and-om-versions.rst
 ---
 ref: helm-k8s-offline-copy-tar
 inherit:
@@ -35,41 +38,20 @@ inherit:
 stepnum: 4
 content: |
 
-  .. code-block:: sh
+  {{quayimport}}
 
-     docker import mongodb-enterprise-operator.tar quay.io/mongodb/mongodb-enterprise-operator:<op-version>; \
-     docker import mongodb-enterprise-database.tar quay.io/mongodb/mongodb-enterprise-database:<op-version>; \
-     docker import mongodb-enterprise-ops-manager.tar quay.io/mongodb/mongodb-enterprise-ops-manager:<om-version>-operator<op-version>
-
-  .. include:: /includes/replace-op-and-om-versions.rst
+  {{versions}}
 
 ---
 ref: helm-k8s-offline-install-host
 inherit:
   file: steps-helm-master.yaml
-  ref: helm-master-install-pullpolicy
+  ref: helm-master-install
 stepnum: 5
+replacement:
+  method: "Install the |k8s-op-short| with modified pull policy values using the following ``helm`` command:"
 content: |
 
-  .. code-block:: sh
-
-     helm template --set registry.pullPolicy=IfNotPresent \
-     helm_chart > operator.yaml \
-     -- values helm_chart/values.yaml
-     kubectl apply -f operator.yaml
-
-  .. include:: /includes/helm-install-k8s-options.rst
-
-  .. note:: 
-
-     You can also pass these values as options when you apply the helm
-     chart:
-
-     .. code-block:: sh
-
-        helm template --set namespace=<testNamespace> \
-        helm_chart > operator.yaml \
-        -- values helm_chart/values.yaml
-        kubectl apply -f operator.yaml
+  {{osoffline}}
 
 ...

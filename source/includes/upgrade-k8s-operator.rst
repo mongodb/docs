@@ -1,8 +1,6 @@
-1. Change to the directory in which you cloned the |k8s-op-short|
-   repository. The following steps depend on how your environment is
-   configured:
+The following steps depend on how your environment is configured:
 
-   .. tabs::
+.. tabs::
 
       tabs: 
         - id: vank8sup
@@ -15,40 +13,10 @@
                       - id: kubectlup
                         name: Online using kubectl
                         content: |
-
+ 
                           .. _upgrade-k8s-operator-kubectl:
 
-                          2. Upgrade the |k8s-crds| for MongoDB deployments 
-                             using the following |kubectl| command:
-
-                             .. code-block:: sh
-
-                                kubectl apply -f crds.yaml
-
-                          #. You can edit the Operator |yaml| file to 
-                             further customize
-                             your Operator before upgrading it.
-
-                             a. Open your ``mongodb-enterprise.yaml`` in your preferred
-                                text editor.
-
-                             #. You may need to add one or more of the following
-                                options:
-
-                                .. include:: /includes/list-tables/k8s-kubectl-install-options.rst
-
-                                .. note::
-
-                                   Any values enclosed in single or double quotes
-                                   *require* those quotes. Include the quotes when
-                                   setting these values.
-
-                          #. Upgrade the |k8s-op-short| using the following
-                             |kubectl| command:
-
-                             .. code-block:: sh
-
-                                kubectl apply -f mongodb-enterprise.yaml
+                          .. include:: /includes/steps/upgrade-kubectl.rst
 
                       - id: helmonlinek8sup
                         name: Online using Helm
@@ -56,28 +24,7 @@
 
                           .. _upgrade-k8s-operator-helm:
 
-                          2. Upgrade the latest version of the 
-                             |k8s-op-short| using the
-                             following ``helm`` command:
-
-                             .. code-block:: sh
-
-                                helm template helm_chart > operator.yaml \
-                                -- values helm_chart/values.yaml
-                                kubectl apply -f operator.yaml
-
-                             .. include:: /includes/helm-install-k8s-options.rst
-
-                             .. note:: 
-
-                                You can also pass these values as options 
-                                when you apply the Helm Chart:
-
-                                .. code-block:: sh
-                                    
-                                   helm template --set namespace=<testNamespace> \
-                                   helm_chart > operator.yaml
-                                   kubectl apply -f operator.yaml
+                          .. include:: /includes/steps/upgrade-k8s-online-helm.rst
 
                       - id: helmofflinek8sup
                         name: Offline using Helm and Docker
@@ -87,6 +34,8 @@
                           Internet, you have two options, you can download the
                           |k8s-op-short| files from either:
 
+                          .. note that these tabs contain the same content but I don't think that's intended. separated the includes out to prepare for corrections.
+
                           .. tabs::
 
                               tabs:
@@ -94,61 +43,14 @@
                                   name: The Internet
                                   content: |
 
-                                    2. Upgrade the latest version of the |k8s-op-short|
-                                       with modified pull policy values using the
-                                       following ``helm`` command:
+                                    .. include:: /includes/steps/upgrade-k8s-offline-helm-internet.rst
 
-                                       .. code-block:: sh
-
-                                          helm template --set registry.pullPolicy=IfNotPresent \
-                                          helm_chart > operator.yaml \
-                                          -- values helm_chart/values.yaml
-                                          kubectl apply -f operator.yaml 
-
-                                       .. include:: /includes/helm-install-k8s-options.rst
-
-                                       .. note::
-                                       
-                                          You can also pass these values as options when you apply the Helm
-                                          Chart:
-
-                                          .. code-block:: sh
-
-                                             helm template --set registry.pullPolicy=IfNotPresent \
-                                             --set namespace=<testNamespace> \
-                                             helm_chart > operator.yaml \
-                                             -- values helm_chart/values.yaml
-                                             kubectl apply -f operator.yaml
 
                                 - id: hostk8sup
                                   name: Another Host
                                   content: |
 
-                                    2. Upgrade the latest version of the |k8s-op-short|
-                                       with modified pull policy values using the
-                                       following ``helm`` command:
-
-                                       .. code-block:: sh
-
-                                          helm template --set registry.pullPolicy=IfNotPresent \
-                                          helm_chart > operator.yaml \
-                                          -- values helm_chart/values.yaml
-                                          kubectl apply -f operator.yaml 
-
-                                       .. include:: /includes/helm-install-k8s-options.rst
-
-                                       .. note::
-                                       
-                                          You can also pass these values as options when you apply the Helm
-                                          Chart:
-
-                                          .. code-block:: sh
-
-                                             helm template --set registry.pullPolicy=IfNotPresent \
-                                             --set namespace=<testNamespace> \
-                                             helm_chart > operator.yaml \
-                                             -- values helm_chart/values.yaml
-                                             kubectl apply -f operator.yaml
+                                    .. include:: /includes/steps/upgrade-k8s-offline-helm-host.rst
 
         - id: osup
           name: OpenShift
@@ -163,37 +65,7 @@
 
                           .. _upgrade-k8s-operator-oc:
 
-                          2. Upgrade the |k8s-crds| for MongoDB deployments 
-                             using the following |kubectl| command:
-
-                             .. code-block:: sh
-
-                                oc apply -f crds.yaml
-
-                          #. You can edit the Operator |yaml| file to 
-                             further customize
-                             your Operator before upgrading it.
-
-                             a. Open your ``mongodb-enterprise-openshift.yaml`` in   
-                                your preferred text editor.
-
-                             #. You may need to add one or more of the following
-                                options:
-
-                                .. include:: /includes/list-tables/k8s-oc-install-options.rst
-
-                                .. note::
-
-                                   Any values enclosed in single or double quotes
-                                   *require* those quotes. Include the quotes when
-                                   setting these values.
-
-                          #. Upgrade the |k8s-op-short| using the following
-                             |oc| command:
-
-                             .. code-block:: sh
-
-                                oc apply -f mongodb-enterprise-openshift.yaml
+                          .. include:: /includes/steps/upgrade-oc.rst
 
 
                       - id: helmonlineosup
@@ -202,33 +74,13 @@
 
                           .. _upgrade-operator-helm-oc:
 
-                          2. Upgrade the latest version of the 
-                             |k8s-op-short| using the
-                             following ``helm`` command:
-
-                             .. code-block:: sh
-
-                                helm template helm_chart > operator.yaml \
-                                -- values helm_chart/values-openshift.yaml
-                                kubectl apply -f operator.yaml
-
-                             .. include:: /includes/helm-install-os-options.rst
-
-                             .. note:: 
-
-                                You can also pass these values as options 
-                                when you apply the Helm Chart:
-
-                                .. code-block:: sh
-                                    
-                                   helm template --set namespace=<testNamespace> \
-                                   helm_chart > operator.yaml \
-                                   -- values helm_chart/values-openshift.yaml
-                                   kubectl apply -f operator.yaml
+                          .. include:: /includes/steps/upgrade-os-online-helm.rst
 
                       - id: helmofflineosup
                         name: Offline using Helm and Docker
                         content: |
+
+                          .. note that these tabs contain the same content but I don't think that's intended. separated the includes out to prepare for corrections.
 
                           To upgrade the |k8s-op-short| on a host not connected to the
                           Internet, you have two options, you can download the
@@ -241,60 +93,12 @@
                                   name: The Internet
                                   content: |
 
-                                    2. Upgrade the latest version of the |k8s-op-short|
-                                       with modified pull policy values using the
-                                       following ``helm`` command:
-
-                                       .. code-block:: sh
-
-                                          helm template --set registry.pullPolicy=IfNotPresent \
-                                          helm_chart > operator.yaml \
-                                          -- values helm_chart/values-openshift.yaml
-                                          kubectl apply -f operator.yaml 
-
-                                       .. include:: /includes/helm-install-os-options.rst
-
-                                       .. note::
-                                       
-                                          You can also pass these values as options when you apply the Helm
-                                          Chart:
-
-                                          .. code-block:: sh
-
-                                             helm template --set registry.pullPolicy=IfNotPresent \
-                                             --set namespace=<testNamespace> \
-                                             helm_chart > operator.yaml \
-                                             -- values helm_chart/values-openshift.yaml
-                                             kubectl apply -f operator.yaml
+                                    .. include:: /includes/steps/upgrade-os-offline-helm-internet.rst
 
                                 - id: hostosup
                                   name: Another Host
                                   content: |
 
-                                    2. Upgrade the latest version of the |k8s-op-short|
-                                       with modified pull policy values using the
-                                       following ``helm`` command:
-
-                                       .. code-block:: sh
-
-                                          helm template --set registry.pullPolicy=IfNotPresent \
-                                          helm_chart > operator.yaml \
-                                          -- values helm_chart/values-openshift.yaml
-                                          kubectl apply -f operator.yaml 
-
-                                       .. include:: /includes/helm-install-os-options.rst
-
-                                       .. note::
-                                           
-                                          You can also pass these values as options when you apply the Helm
-                                          Chart:
-
-                                          .. code-block:: sh
-
-                                             helm template --set registry.pullPolicy=IfNotPresent \
-                                             --set namespace=<testNamespace> \
-                                             helm_chart > operator.yaml \
-                                             -- values helm_chart/values-openshift.yaml
-                                             kubectl apply -f operator.yaml
+                                    .. include:: /includes/steps/upgrade-os-offline-helm-host.rst
 
 .. include:: /includes/troubleshoot-k8s.rst
