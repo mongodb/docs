@@ -5,3 +5,209 @@ FAQ
 .. default-domain:: mongodb
 
 Frequently Asked Questions
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+What Is the Difference Between "connectTimeoutMS", "socketTimeoutMS" and "maxTimeMS" ?
+--------------------------------------------------------------------------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Setting
+     - Default Value
+     - Description
+   * - connectTimeoutMS
+     - 30000
+     - ``connectTimeoutMS`` is a `connection-setting <https://mongodb.github.io/node-mongodb-native/3.5/reference/connecting/connection-settings/>`_ option that sets the time in milliseconds to establish a connection to the MongoDB server before timing out. 
+   * - socketTimeoutMS
+     - 360000
+     - ``socketTimeoutMS`` is a ``connection-settings`` option that sets the number of milliseconds a socket stays inactive after the driver has successfully connected before closing the connection.
+   * - maxTimeMS
+     - N/A
+     - :node-api:`maxTimeMS() </Cursor.html#maxTimeMS>` is a :manual:`cursor method </reference/method/js-cursor>` that specifies the max time limit for processing an operation on a cursor. If an operation runs over the time allotted it will return a timeout error.  
+
+How Can I Prevent the Driver From Hanging During Connection or From Spending Too Long Trying to Reach Unreachable Replica Sets?
+-------------------------------------------------------------------------------------------------------------------------------
+
+To prevent the driver from hanging during connection or to prevent the
+driver from spending too long trying to reach unreachable replica sets,
+you can set the ``connectTimeoutMS`` option of your
+``connection-settings``. Generally, you should ensure that the
+``connectTimeoutMS`` setting is not lower than the longest network
+latency you have to a member of the set. If one of the secondary members
+is on the other side of the planet and has a latency of 10000
+milliseconds, setting the ``connectTimeoutMS`` to anything lower will
+prevent the driver from ever connecting to that member.
+
+Should I Use "socketTimeoutMS" as a Way of Preventing Long-Running Operations From Slowing Down the Server?
+-------------------------------------------------------------------------------------------------------------
+
+No, you should **not** use ``socketTimeoutMS`` to end operations that
+may run for too long and slow down the application. Attempting to do so
+may not achieve the intended result.
+
+Closing the socket causes a reconnect of the driver's connection pool,
+introducing latency to any other queued up operations. Chronically slow
+operations will, therefore, cause a large number of reconnect requests,
+negatively impacting throughput and performance.
+
+Also, closing the socket does not terminate the operation; it will
+continue to run on the MongoDB server, which could cause data
+inconsistencies if the application retries the operation on failure.
+
+However, there are important use cases for ``socketTimeoutMS`` -
+consider the following cases: 
+
+- A MongoDB process erroring out 
+- A misconfigured firewall causing a socket connection without sending a ``FIN`` packet 
+
+In those cases, there is no way to detect that the connection has died.
+Setting the ``socketTimeoutMS`` is essential to ensure that the sockets
+are closed correctly. A good rule of thumb is to set ``socketTimeoutMS``
+to two to three times the length of the slowest operation that runs
+through the driver.
+
+How Can I Prevent Sockets From Timing out Before They Become Active?
+--------------------------------------------------------------------
+Having a large connection pool does not always reduce reconnection
+requests.  Consider the following example: 
+
+An application has a connection pool size of 5 sockets and has the
+``socketTimeoutMS`` option set to 5000 milliseconds. Operations occur,
+on average, every 3000 milliseconds, and reconnection requests are
+frequent. Each socket times out after 5000 milliseconds, which means
+that all sockets must do something during those 5000 milliseconds to
+avoid closing. 
+
+One message every 3000 milliseconds is not enough to keep the sockets
+active, so several of the sockets will time out after 5000 milliseconds.
+Reduce the ``poolSize`` in the connection settings to fix the problem. 
+
+What Does a Value of "0" mean for "connectTimeoutMS" and "socketTimeoutMS"?
+---------------------------------------------------------------------------
+
+Setting ``connectTimeoutMS`` and ``socketTimeoutMS`` to the value ``0`` has
+causes the application to use the operating system's default socket timeout value.
+
+How Can I Prevent Long-Running Operations From Slowing Down the Server?
+-----------------------------------------------------------------------
+
+By using ``maxTimeMS()`` you can prevent long-running operations from
+slowing down the server. This method allows the MongoDB server to cancel
+operations that run for more than the set value of ``maxTimeMS``.  
+
+The following example demonstrates how to use MaxTimeMS with a find
+operation:
+
+.. literalinclude:: /code-snippets/faq/maxTimeMS-example.js
+  :language: javascript
+  :linenos:
+
+What Does the "keepAlive" Setting Do?
+---------------------------------------
+
+``keepAlive`` is a ``connection-setting`` that sets the number of
+milliseconds to wait before initiating a :wikipedia:`TLS keepAlive
+<Keepalive#TCP_keepalive>` on a TCP Socket. The ``keepAlive`` option
+will keep a socket alive by sending periodic probes to MongoDB. However,
+this only works if the operating system supports ``SO_KEEPALIVE``\ .
+
+.. warning::
+    If a firewall ignores or drops the ``keepAlive`` packets this may not work
+
+What Can I Do If I'm Experiencing Unexpected Network Behavior?
+--------------------------------------------------------------
+Internal firewalls that exist between application servers and MongoDB
+are often misconfigured and are overly aggressive in their removal of
+socket connections. 
+
+If you experience unexpected network behavior, here
+are some things to check:
+
+#. The firewall should send a ``FIN packet`` when closing a socket,allowing the driver to detect that the socket is closed. 
+#. The firewall should allow ``keepAlive`` probes.
+
+What Can I Do If I'm Getting "ECONNRESET" When Calling "client.connect()"?
+------------------------------------------------------------------------------
+
+In most operating systems, each connection is associated with a `file
+descriptor
+<https://www.computerhope.com/jargon/f/file-descriptor.htm>`_. There is
+typically a limit set by the operating system on the number of file
+descriptors used by a single process. An ``ECONNRESET`` error can occur
+if the connection pool size surpasses the limit of ``file descriptors``.
+
+Consider the following operation:
+
+.. literalinclude:: /code-snippets/faq/econnresetWithClientConnect-example.js
+  :language: javascript
+  :linenos:
+
+If this operation causes an ``ECONNRESET`` error, you may have run into
+the ``file descriptor`` limit for your Node.js process. In that case you
+must increase the number of ``file descriptors`` for the Node.js process. On
+MacOS and Linux you do this with the `ulimit
+<https://ss64.com/bash/ulimit.html>`_ shell command. 
+
+.. code-block:: sh
+
+   ulimit -n 6000
+
+This sets the maximum number of ``file descriptors`` for the process to
+6000, allowing Node.js to connect with a pool size of 5000 sockets.
+
+How Can I Prevent a Slow Operation From Delaying Other Operations?
+------------------------------------------------------------------
+
+A slow operation may delay your other operations that occur after it, if
+the ``poolSize`` has not been set in the `connection settings
+<https://mongodb.github.io/node-mongodb-native/3.5/reference/connecting/connection-settings/>`_.
+MongoDB is synchronous and uses a single execution thread per socket,
+meaning that MongoDB will execute one single operation per socket at any
+point in time. Any other operation sent to that socket will have to wait
+until the current operation is finished. If you have a slow-running
+operation that holds up other operations, the best solution is to create
+a separate connection pool for the slow operation, isolating it from
+other, faster operations.
+
+.. note::
+    If the number of operations is greater than the set ``poolSize`` and
+    a slow operation occurs, subsequent operations will be delayed. 
+
+How Can I Ensure My Connection String Is Valid for a Replica Set?
+-----------------------------------------------------------------
+
+The connection string passed to the driver must use exact hostnames for
+the servers as set in the :manual:`Replica Set Config </reference/replica-configuration/>`. 
+Given the following configuration settings for your `Replica Set`, in
+order for the `Replica Set` discovery and :manual:`failover
+</reference/glossary/#term-failover>` to work the driver should be able
+to reach ``server1``, ``server2``, and ``server3``. 
+
+  .. code-block:: JSON
+
+    {
+      "_id": "testSet",
+      "version": 1,
+      "protocolVersion": 1,
+      "members": [
+        {
+          "_id": 1,
+          "host": "server1:31000"
+        },
+        {
+          "_id": 2,
+          "host": "server2:31001"
+        },
+        {
+          "_id": 3,
+          "host": "server3:31002"
+        }
+      ]
+    }
