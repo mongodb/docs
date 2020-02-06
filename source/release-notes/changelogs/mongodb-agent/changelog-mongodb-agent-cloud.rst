@@ -22,6 +22,22 @@ MongoDB Agent 10.10.0.6122-1
 - Fix: during a rolling index build for an unsharded collection on a sharded
   collection, only index the collection on the shard on which it already exists.
 
+.. _10.9.0.6088-1:
+
+MongoDB Agent 10.9.0.6088-1
+---------------------------
+
+*Released* 2020-01-07
+
+- Improves performance when applying changes to sharded clusters with many
+  shards.
+
+- Significant memory management improvements for sharded clusters with very
+  large tag sets for :manual:`zoned sharding </core/zone-sharding>`.
+
+- Fix: Automated restores can proceed successfully if the target process is
+  unresponsive before the restore begins.
+
 .. _mongodb-10.7.0.6016:
 
 MongoDB Agent 10.7.0.6016
