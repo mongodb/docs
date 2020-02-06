@@ -427,6 +427,64 @@ Sessions
 
    .. include:: /includes/extracts/sessions-external-username-limit.rst
 
+.. limit:: Session Idle Timeout
+
+   Sessions that receive no read or write operations for 30 minutes *or*
+   that are not refreshed using :dbcommand:`refreshSessions` within this
+   threshold are marked as expired and can be closed by the MongoDB
+   server at any time. Closing a session kills any in-progress
+   operations and open cursors associated with the session. This
+   includes cursors configured with :method:`~cursor.noCursorTimeout` or
+   a :method:`~cursor.maxTimeMS` greater than 30 minutes.
+
+   Consider an application that issues a :method:`db.collection.find()`.
+   The server returns a cursor along with a batch of documents defined
+   by the :method:`cursor.batchSize()` of the
+   :method:`~db.collection.find()`. The session refreshes each time the
+   application requests a new batch of documents from the server.
+   However, if the application takes longer than 30 minutes to process
+   the current batch of documents, the session is marked as expired and
+   closed. When the application requests the next batch of documents,
+   the server returns an error as the cursor was killed when the session
+   was closed.
+
+   For operations that return a cursor, if the cursor may be idle for
+   longer than 30 minutes, issue the operation within an explicit
+   session using :method:`Session.startSession()` and periodically
+   refresh the session using the :dbcommand:`refreshSessions` command.
+   For example:
+
+   .. code-block:: shell
+
+     var session = db.getMongo().startSession()
+     var sessionId = session.getSessionId().id
+
+     var cursor = session.getDatabase("examples").getCollection("data").find().noCursorTimeout()
+     var refreshTimestamp = new Date() // take note of time at operation start
+    
+     while (cursor.hasNext()) {
+      
+       // Check if more than 5 minutes have passed since the last refresh
+       if ( (new Date()-refreshTimestamp)/1000 > 300 ) { 
+         print("refreshing session")
+         db.adminCommand({"refreshSessions" : [sessionId]})
+         refreshTimestamp = new Date()
+       }
+
+       // process cursor normally
+      
+     }
+
+   In the example operation, the :method:`db.collection.find()` method
+   is associated with an explicit session. The cursor is configured with
+   :method:`~cursor.noCursorTimeout()` to prevent the server from
+   closing the cursor if idle. The ``while`` loop includes a block that
+   uses :dbcommand:`refreshSessions` to refresh the session every 5
+   minutes. Since the session will never exceed the 30 minute idle
+   timeout, the cursor can remain open indefinitely.
+
+   For MongoDB drivers, defer to the :ecosystem:`driver documentation
+   </drivers>` for instructions and syntax for creating sessions. 
 
 Shell
 -----
