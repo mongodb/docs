@@ -1,3 +1,5 @@
+.. _db-auth-method:
+
 =========
 db.auth()
 =========
@@ -22,55 +24,113 @@ Definition
 
       .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
 
-   The :method:`db.auth()` method can accept either:
+      .. include:: /includes/extracts/4.4-changes-passwordPrompt.rst
 
-   - the username and password.
+Syntax
+------
 
-     .. code-block:: javascript
+The :method:`db.auth()` has the following syntax forms:
 
-        db.auth( <username>, passwordPrompt() )
+.. _db-auth-syntax-username-password:
 
-        // Or
+``db.auth(<username>, <password>)``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        db.auth( <username>, <password> )
-   
-   - a user document that contains the username and password, and
-     optionally, the authentication mechanism and a digest password
-     flag.
+.. container::
 
+   .. tabs::
 
-     .. code-block:: javascript
+      .. tab:: MongoDB 4.4
+         :tabid: mdb-4-4
 
-        db.auth( {
-           user: <username>,
-           pwd: passwordPrompt(),   // Or "<cleartext password>"
-           mechanism: <authentication mechanism>,
-           digestPassword: <boolean>
-        } )
+         Starting in MongoDB 4.4, you can either:
+         
+         - Omit the password to prompt the user to enter a password:
+
+           .. code-block:: javascript
+
+              db.auth( <username> )
+
+         - Use :method:`passwordPrompt()` to prompt the user to enter
+           a password:
+           
+           .. code-block:: javascript
+
+              db.auth( <username>, passwordPrompt() )
+
+         - Specify a cleartext password.
+
+           .. code-block:: javascript
+
+              db.auth( <username>, <password> )
+
+      .. tab:: MongoDB 4.2
+         :tabid: mdb-4-2
+
+         Starting in MongoDB 4.2, you can either:
+         
+         - Use :method:`passwordPrompt()` to prompt the user to enter
+           a password:
+
+           .. code-block:: javascript
+
+              db.auth( <username>, passwordPrompt() )
+
+         - Specify a cleartext password:
+         
+           .. code-block:: javascript
+
+              db.auth( <username>, <password> )
+
+      .. tab:: MongoDB 4.0 and Earlier
+         :tabid: mdb-4-0-earlier:
+
+         In MongoDB 4.0 and earlier, you must specify a cleartext
+         password:
+
+         .. code-block:: javascript
+
+            db.auth( <username>, <password> )
+
+.. _db-auth-syntax-user-document:
+
+``db.auth(<user document>)``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   .. code-block:: javascript
+
+      db.auth( {
+         user: <username>,
+         pwd: passwordPrompt(),   // Or "<cleartext password>"
+         mechanism: <authentication mechanism>,
+         digestPassword: <boolean>
+      } )
 
 
    .. list-table::
       :header-rows: 1
       :widths: 20 20 80
-   
+
       * - Parameter
-   
+
         - Type
-   
+
         - Description
-   
-      * - ``username``
-   
+
+      * - ``user``
+
         - string
-   
+
         - The name of the user with access privileges for this database.
           
           
-   
-      * - ``password``
-   
+
+      * - ``pwd``
+
         - string
-   
+
         - The user's password. The value can be either:
           
           - the user's password in cleartext string, or
@@ -80,13 +140,16 @@ Definition
           .. tip::
           
              .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+             When using the user document syntax, you cannot omit the
+             ``pwd``.
           
           
-   
+
       * - ``mechanism``
-   
+
         - string
-   
+
         - Optional. The :ref:`authentication mechanism
           <mongo-shell-authentication-mechanisms>` to use. 
           
@@ -98,11 +161,11 @@ Definition
           :data:`~isMaster.saslSupportedMechs`.
           
           
-   
+
       * - ``digestPassword``
-   
+
         - boolean
-   
+
         - Optional. Determines whether or not the supplied password should be pre-hashed
           before being used with the specified authentication mechanism. 
           
@@ -115,18 +178,13 @@ Definition
             failure since those methods do not understand MongoDB pre-hashing.
           
           The default value is ``false``.
-          
-          
-   
-
 
    .. |operation-name| replace:: :method:`db.auth()`
    .. include:: /includes/note-auth-methods-excluded-from-shell-history.rst
 
-   :returns:
-
-      :method:`db.auth()` returns ``0`` when authentication is
-      **not** successful, and ``1`` when the operation is successful.
+Returns
+  :method:`db.auth()` returns ``0`` when authentication is
+  **not** successful, and ``1`` when the operation is successful.
 
 Behavior
 --------
@@ -145,6 +203,11 @@ Example
 
    .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
 
+   .. include:: /includes/extracts/4.4-changes-passwordPrompt.rst
+
+Authenticate after Connecting to the Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 To authenticate after connecting the :binary:`~bin.mongo` shell, issue
 :method:`db.auth()` in the user's :ref:`authentication database
 <authentication-database>`:
@@ -154,6 +217,16 @@ To authenticate after connecting the :binary:`~bin.mongo` shell, issue
    use test
    db.auth( "myTestDBUser", passwordPrompt() )
 
+Starting in MongoDB 4.4, you can omit the ``password`` value entirely to
+prompt the user to enter their password:
+
+.. code-block:: javascript
+
+   use test
+   db.auth( "myTestDBUser" )
+
+Authenticate when Connecting to the Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Alternatively, you can use the :binary:`~bin.mongo` shell's
 command-line options :option:`--username <mongo --username>`,
