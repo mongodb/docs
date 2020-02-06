@@ -65,9 +65,16 @@ Request Body Parameters
      - Required
      - The user's :ref:`authentication database
        <authentication-database>`. A user must provide both a username
-       and authentication database to log into MongoDB. In |service|
-       deployments of MongoDB, the authentication database is always
-       the ``admin`` database.
+       and authentication database to log into MongoDB. 
+       
+       Accepted values include:
+
+       - ``admin`` if ``ldapAuthType`` and ``x509Type`` are omitted or
+         ``NONE``.
+       - ``$external`` if:
+
+         - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
+         - ``x509Type`` is ``MANAGED`` or ``CUSTOMER``.
 
    * - ``deleteAfterDate``
      - string
@@ -110,11 +117,18 @@ Request Body Parameters
           * - ``USER``
             - |ldap| server authenticates this user through the user's
               |ldap| user.
+              
+              ``username`` must also be a fully qualified distinguished 
+              name, as defined in :rfc:`2253`.
+
           * - ``GROUP``
             - |ldap| server authenticates this user using their
               |ldap| user and authorizes this user using their |ldap|
               group. To learn more about |ldap| security, see
               :doc:`/security-ldaps`.
+
+              ``username`` must also be a fully qualified distinguished 
+              name, as defined in :rfc:`2253`.
    
    * - ``x509Type``
      - string
@@ -241,13 +255,20 @@ Request Body Parameters
    * - ``password``
      - string
      - Conditional
-     - The user's password. Required if ``x509Type`` is ``NONE``. This 
-       field is *not* included in the entity returned from the server.
+     - The user's password. Required if ``x509Type`` and 
+       ``ldapAuthType`` are ``NONE``. This field is *not* included in 
+       the server response.
 
    * - ``username``
      - string
      - Required
-     - Username for authenticating to MongoDB.
+     - Username for authenticating to MongoDB. 
+     
+       Must be a fully qualified distinguished name, as defined in 
+       :rfc:`2253`, if:
+
+       - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
+       - ``x509Type`` is ``CUSTOMER``.
 
 Response Elements
 ~~~~~~~~~~~~~~~~~
@@ -260,31 +281,35 @@ wrapped by the ``content`` object.
 Example Request
 ---------------
 
-Request
-~~~~~~~
+.. tabs::
 
-.. include:: /includes/extracts/fact-api-requirements-modify.rst
+   tabs:
+     - id: scram
+       name: SCRAM-SHA
+       content: |
 
-.. code-block:: sh
+         Create a database user that |service| authenticates using
+         :manual:`SCRAM-SHA </core/security-scram>` and the ``admin`` 
+         database.
 
-   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-     --header "Accept: application/json" \
-     --header "Content-Type: application/json" \
-     --include \
-     --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers" \
-     --data '
-       {
-        "databaseName": "admin",
-        "password": "changeme123",
-        "roles": [{
-          "databaseName": "sales",
-          "roleName": "readWrite"
-        }, {
-          "databaseName": "marketing",
-          "roleName": "read"
-        }],
-        "username": "david"
-       }'
+         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+
+         .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-scram.sh
+            :language: sh
+
+     - id: ldap
+       name: LDAP
+       content: |
+
+         Create a database user that |service| authenticates using
+         :doc:`LDAP </security-ldaps>` and the ``$external`` 
+         database.
+
+         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+
+         .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-ldap.sh
+            :language: sh
+       
 
 Response
 ~~~~~~~~
@@ -299,21 +324,21 @@ Response Header
 Response Body
 ~~~~~~~~~~~~~
 
-.. code-block:: json
+.. tabs::
 
-   {
-     "databaseName" : "admin",
-     "groupId" : "5356823b3794dee37132bb7b",
-     "labels" : [],
-     "links" : [ ... ],
-     "roles" : [ {
-       "databaseName" : "sales",
-       "roleName" : "readWrite"
-     }, {
-       "databaseName" : "marketing",
-       "roleName" : "read"
-     } ],
-     "username" : "david",
-     "ldapAuthType" : "NONE",
-     "x509Type" : "NONE"
-   }
+   hidden: true
+
+   tabs:
+     - id: scram
+       name: SCRAM-SHA
+       content: |
+
+         .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-scram.json
+            :language: json
+
+     - id: ldap
+       name: LDAP
+       content: |
+
+         .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-ldap.json
+            :language: json
