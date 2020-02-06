@@ -1,3 +1,28 @@
+.. _mongodb-10.2.13.5943:
+
+MongoDB Agent 10.2.13.5943
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.8 on 2020-02-06 <opsmgr-server-4.2.8>`
+
+- Adds support for management of MongoDB deployments on Debian 10.
+
+- Fixes the following issues:
+
+  - During a rolling index build for an unsharded collection on a
+    sharded collection, only index the collection on the shard on which
+    it already exists.
+
+  - When the MongoDB Agent authenticates to MongoDB clusters using
+    |gssapi| authentication, ensure that |mms| falls back to other
+    authentication methods if the ``kinit`` call fails.
+
+- Can perform a restore to a cluster that is unhealthy before the
+  restore is requested.
+
+- Redacts sensitive configuration data in MongoDB Agent log files to
+  improve security.
+
 .. _mongodb-10.2.12.5930:
 
 MongoDB Agent 10.2.12.5930

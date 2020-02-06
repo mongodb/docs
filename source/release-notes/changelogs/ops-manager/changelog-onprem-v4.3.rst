@@ -1,3 +1,12 @@
+.. _opsmgr-server-4.3.6:
+
+|onprem| Server 4.3.6
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-02-06*
+
+Upgrades Agent: :ref:`mongodb-10.9.0.6088`.
+
 .. _opsmgr-server-4.3.5:
 
 |onprem| Server 4.3.5
@@ -5,7 +14,7 @@
 
 *Released 2020-01-16*
 
-Agent Upgrade: :ref:`mongodb-10.8.0.6052`.
+Upgrades Agent: :ref:`mongodb-10.8.0.6052`.
 
 .. _opsmgr-server-4.3.4:
 
@@ -14,7 +23,7 @@ Agent Upgrade: :ref:`mongodb-10.8.0.6052`.
 
 *Released 2019-12-12*
 
-Agent Upgrade: :ref:`mongodb-10.7.1.6018`.
+Upgrades Agent: :ref:`mongodb-10.7.1.6018`.
 
 .. _opsmgr-server-4.3.3:
 
@@ -23,7 +32,7 @@ Agent Upgrade: :ref:`mongodb-10.7.1.6018`.
 
 *Released 2019-11-22*
 
-Agent Upgrade: :ref:`mongodb-10.6.3.5969`.
+Upgrades Agent: :ref:`mongodb-10.6.3.5969`.
 
 .. _opsmgr-server-4.3.2:
 
@@ -35,7 +44,7 @@ Agent Upgrade: :ref:`mongodb-10.6.3.5969`.
 - Includes enhancements to the integrations interface for third-party
   services.
 
-Agent Upgrade: :ref:`mongodb-10.5.2.5949`.
+Upgrades Agent: :ref:`mongodb-10.5.2.5949`.
 
 .. _opsmgr-server-4.3.1:
 
@@ -49,7 +58,7 @@ Agent Upgrade: :ref:`mongodb-10.5.2.5949`.
   :ref:`Programmatic API Keys <mms-prog-api-key>` to access the |onprem|
   API.
 
-Agent Upgrade: :ref:`mongodb-10.4.1.5917`.
+Upgrades Agent: :ref:`mongodb-10.4.1.5917`.
 
 .. _opsmgr-server-4.3.0:
 
@@ -58,4 +67,4 @@ Agent Upgrade: :ref:`mongodb-10.4.1.5917`.
 
 *Released 2019-09-12*
 
-Agent Upgrade: :ref:`mongodb-10.3.3.5885`.
+Upgrades Agent: :ref:`mongodb-10.3.3.5885`.

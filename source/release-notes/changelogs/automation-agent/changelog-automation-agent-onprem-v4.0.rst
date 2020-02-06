@@ -1,3 +1,13 @@
+.. _automation-5.4.24.5565:
+
+Automation Agent 5.4.24.5565
+----------------------------
+
+:ref:`Released with Ops Manager 4.0.17 on 2020-02-06 <opsmgr-server-4.0.17>`
+
+- Redacts sensitive configuration data in MongoDB Agent log files to
+  improve security.
+
 .. _automation-5.4.23.5559:
 
 Automation Agent 5.4.23.5559

@@ -1,3 +1,21 @@
+.. _opsmgr-server-4.2.8:
+
+|onprem| Server 4.2.8
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-02-06*
+
+- Allows you to manage the |ldap| and |saml| configuration for the
+  :authrole:`Organization Project Creator` and
+  :authrole:`Project User Admin` roles via the |onprem| user interface.
+
+- Fixes a bug that prevented the Backup Daemon from correctly working
+  on RHEL8 when using a MongoDB 4.2 database.
+
+- Updates JDK to AdoptOpenJDK 11.0.6+10.
+
+- **Upgrades Agent:** :ref:`mongodb-10.2.13.5943`
+
 .. _opsmgr-server-4.2.7:
 
 |onprem| Server 4.2.7

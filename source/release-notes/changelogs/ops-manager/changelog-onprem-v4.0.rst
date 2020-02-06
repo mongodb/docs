@@ -1,3 +1,14 @@
+.. _opsmgr-server-4.0.17:
+
+|onprem| Server 4.0.17
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2020-02-06*
+
+- Updates JDK to AdoptOpenJDK 1.8.0-242.
+
+- **Upgrades Agent:** :ref:`automation-5.4.24.5565`
+
 .. _opsmgr-server-4.0.16:
 
 |onprem| Server 4.0.16
