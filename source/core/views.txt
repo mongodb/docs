@@ -6,61 +6,80 @@ Views
 
 .. default-domain:: mongodb
 
-.. versionadded:: 3.4
-
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 1
    :class: singlecol
 
-MongoDB supports creating read-only views from existing collections
-or other views. For example, you can:
+A MongoDB view is a queryable object whose contents are defined by an
+:ref:`aggregation pipeline <aggregation-pipeline>` on other collections
+or views. MongoDB does not persist the view contents to disk. A view's
+content is computed on-demand when a client :ref:`queries
+<views-supported-operations>` the view. MongoDB can require clients to
+:ref:`have permission <authorization>` to query the view. MongoDB does
+not support write operations against views.
 
-- Create a view that :pipeline:`excludes <$project>` private or 
-  confidential data from a collection of employee data.
+For example, you can:
 
-- Create a view that :pipeline:`adds <$addFields>` computed fields
-  from a collection of metrics.
+- Create a view on a collection of employee data to 
+  :pipeline:`exclude <$project>` any private or personal
+  information (PII). Applications can query the view for employee
+  data that does not contain any PII.
 
-- Create a view that :pipeline:`joins <$lookup>` data from two
-  different related collections.
+- Create a view on a collection of collected sensor data to 
+  :pipeline:`add <$addFields>` computed fields and metrics. Applications
+  can use simple find operations to query the data.
 
-Each view has an associated 
-:ref:`aggregation pipeline <aggregation-pipeline>` against the source
-data. MongoDB computes the view contents by executing the aggregation 
-on-demand during read operations. MongoDB executes read operations
-on views as part of the underlying aggregation pipeline.
+- Create a view that :pipeline:`joins <$lookup>` two collections
+  containing inventory and order history respectively. Applications can
+  query the joined data without managing or understanding the underlying
+  complex pipeline.
+
+When clients :ref:`query a view <views-supported-operations>`, MongoDB
+appends the client query to the underlying pipeline and returns the
+results of that combined pipeline to the client. MongoDB may apply
+:doc:`aggregation pipeline optimizations
+</core/aggregation-pipeline-optimization>` to the combined pipeline.
 
 .. note::
 
-   The following page discusses views. For discussion of on-demand
-   materialized views, see :doc:`/core/materialized-views` instead.
+   The following page discusses views. For discussion of
+   on-demand materialized views, see :doc:`/core/materialized-views`
+   instead.
 
 
 Create View
 -----------
 
-To create or define a view, MongoDB 3.4 introduces:
+To create or define a view:
 
-- the ``viewOn`` and ``pipeline`` options to the existing
-  :dbcommand:`create` command (and :method:`db.createCollection` helper):
-
-  .. code-block:: javascript
-
-     db.runCommand( { create: <view>, viewOn: <source>, pipeline: <pipeline> } )
-
-  or if specifying a default :ref:`collation <3.4-relnotes-collation>` for the view:
-  
-  .. code-block:: javascript
-
-     db.runCommand( { create: <view>, viewOn: <source>, pipeline: <pipeline>, collation: <collation> } )
-
-- a new :binary:`~bin.mongo` shell helper :method:`db.createView()`:
+- Use the :method:`db.createCollection()` method or the 
+  :dbcommand:`create` command:
 
   .. code-block:: javascript
 
-     db.createView(<view>, <source>, <pipeline>, <collation> )
+     db.createCollection( 
+       "<viewName>", 
+       {
+         "viewOn" : "<source>", 
+         "pipeline" : [<pipeline>],
+         "collation" : { <collation> }
+       }
+     )
+
+- Use the :method:`db.createView()` method:
+
+  .. code-block:: javascript
+
+     db.createView(
+       "<viewName>",
+       "<source>",
+       [<pipeline>],
+       {
+         "collation" : { <collation> }
+       }
+     )
 
 .. note::
    - You must create views in the same database as the source collection.
@@ -96,6 +115,8 @@ Modify a View
 
 You can modify a view either by dropping and recreating the view or
 using the :dbcommand:`collMod` command.
+
+.. _views-supported-operations:
 
 Supported Operations
 --------------------
