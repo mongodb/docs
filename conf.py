@@ -95,6 +95,7 @@ rst_epilog = [
     '.. |epoch-time-ms| replace:: timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |Epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |fcv| replace:: :abbr:`FCV (Feature Compatibility Version)`',
     '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
     '.. |fts| replace:: Full Text Search',
     '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
@@ -172,7 +173,8 @@ source_constants = {
     'data-lake-stores': 'data stores',
     'data-lake' : 'Atlas Data Lake',
     'data-lake-short' : 'Data Lake',
-    'latest-mongodb-eol': '3.2'
+    'latest-mongodb-eol': '3.2',
+    'service-api-v1-base-uri' : 'https://cloud.mongodb.com/api/atlas/v1.0'
 }
 
 pygments_style = 'sphinx'

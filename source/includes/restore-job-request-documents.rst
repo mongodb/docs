@@ -25,10 +25,6 @@
        to this checkpoint to the database you specify in the
        ``delivery`` object.
 
-       .. important::
-          MongoDB 4.2 does not support point-in-time restores at this
-          time.
-
    * - ``delivery``
      - object
      - Required
@@ -129,7 +125,6 @@
      - string
      - | Conditional:
        | ``"delivery.methodName" : "AUTOMATED_RESTORE"``
-       | *for Replica Sets Only*
      - Oplog :manual:`timestamp </reference/bson-types>` given as a
        |epoch-time|. When paired with ``oplogInc``, they represent the
        point in time to which your data will be restored.
@@ -145,10 +140,6 @@
           - Cannot set ``checkpointId``, ``snapshotId``, or
             ``pointInTimeUTCMillis``.
 
-       .. important::
-          MongoDB 4.2 does not support point-in-time restores at this
-          time.
-
        If you provide this setting, this endpoint restores all data up
        to *and including* this Oplog timestamp to the database you
        specified in the ``delivery`` object.
@@ -157,7 +148,6 @@
      - string
      - | Conditional:
        | ``"delivery.methodName" : "AUTOMATED_RESTORE"``
-       | *for Replica Sets Only.*
      - 32-bit incrementing ordinal that represents operations within a
        given second. When paired with ``oplogTs``, they represent the
        point in time to which your data will be restored.
@@ -178,7 +168,6 @@
      - long
      - | Conditional:
        | ``"delivery.methodName" : "AUTOMATED_RESTORE"``
-       | *for Replica Sets Only*
      - |epoch-time-ms| that represents the point in time to which your
        data will be restored. This timestamp must be within last 24
        hours of the current time.
@@ -192,10 +181,6 @@
           If you set ``pointInTimeUTCMillis``, you cannot set
           ``oplogInc``, ``oplogTs``, ``snapshotId``, or
           ``checkpointId``.
-
-       .. important::
-          MongoDB 4.2 does not support point-in-time restores at this
-          time.
 
    * - ``snapshotId``
      - string
