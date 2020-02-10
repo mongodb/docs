@@ -504,7 +504,7 @@ Options
    or :term:`tsv` imports.
 
 
-.. option:: --mode=<insert|upsert|merge>
+.. option:: --mode=<insert|upsert|merge|delete>
 
    *Default*: insert
 
@@ -516,7 +516,7 @@ Options
    By default, :program:`mongoimport` uses the ``_id`` field to match documents in
    the collection with documents in the import file.
    To specify the fields against which to match existing
-   documents for the ``upsert`` and ``merge`` modes,
+   documents for the ``upsert``, ``merge``, and ``delete`` modes,
    use :option:`--upsertFields`.
    
    .. list-table::
@@ -547,6 +547,16 @@ Options
           the new document. :program:`mongoimport` will insert all other documents.
           :ref:`ex-mongoimport-merge` describes how to use :option:`--mode`
           ``merge``.
+
+      * - ``delete``
+   
+        - Delete existing documents in the database that match a
+          document in the import file. :program:`mongoimport` takes
+          *no action* on non-matching documents.
+          :ref:`ex-mongoimport-delete` describes how to use
+          :option:`--mode` ``delete``.
+
+          .. versionadded:: 50.0
 
 
 .. option:: --upsertFields=<field1[,field2]>
@@ -955,6 +965,70 @@ the value from the imported document, as in the following:
          "software development"
       ]
    }
+
+.. _ex-mongoimport-delete:
+
+Delete Matching Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 50.0
+
+With :option:`--mode <mongoimport --mode>` ``delete``,
+:binary:`~bin.mongoimport` deletes existing documents in the database
+that match a document in the import file. Documents that do not match an
+existing document in the database are ignored. By default
+:binary:`~bin.mongoimport` matches documents based on the ``_id`` field.
+Use :option:`--upsertFields <mongoimport --upsertFields>` to specify
+the fields to match against.
+
+.. note::
+
+   With :option:`--mode <mongoimport --mode>` ``delete``,
+   :binary:`~bin.mongoimport` will only delete one existing document per
+   match. Ensure that documents from the import file match a single
+   existing document from the database.
+
+The ``people`` collection in the ``example`` database contains the
+following document:
+
+.. code-block:: javascript
+
+ {
+    "_id" : ObjectId("580100f4da893943d393e909"),
+    "name" : "Crystal Duncan",
+    "region" : "United States",
+    "email" : "crystal@example.com",
+    "employee_id" : "5463789356"
+ }
+
+The following document exists in a ``people-20160927.json`` JSON file.
+The ``_id`` field of the JSON object matches the ``_id`` field of the
+document in the ``people`` collection.
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "username" : "crystal",
+      "email": "crystal.duncan@example.com",
+      "likes" : [ "running", "pandas", "software development" ],
+      "employee_id" : "5463789356"
+   }
+
+To delete the documents in the database that match a document in the
+``people-20160927.json`` file, specify
+:option:`--mode <mongoimport --mode>` ``delete``, as in the following:
+
+.. code-block:: sh
+
+   mongoimport -c=people -d=example --mode=delete --file=people-20160927.json
+
+Because the ``_id`` fields match between the database and the input
+file, :binary:`~bin.mongoimport` deletes the matching document from the
+``people`` collection. The same results could also have been achieved
+by using :option:`--upsertFields <mongoimport --upsertFields>` to
+specify the ``employee_id`` field, which also matches between the
+database and the input file.
 
 Import ``JSON`` to Remote Host Running with Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
