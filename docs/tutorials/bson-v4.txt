@@ -14,12 +14,12 @@ BSON 4.x Tutorial
    :depth: 1
    :class: twocols
 
-This tutorial discusses using the core Ruby BSON gem.
+This tutorial discusses using the Ruby BSON library.
 
 Installation
 ------------
 
-The BSON gem is hosted on `Rubygems <http://rubygems.org>`_ and can be installed
+The BSON library can be installed from `Rubygems <http://rubygems.org>`_
 manually or with bundler.
 
 To install the gem manually:
@@ -28,13 +28,13 @@ To install the gem manually:
 
     gem install bson -v '~> 4.0'
 
-To install the gem with bundler, include the following in your Gemfile:
+To install the gem with bundler, include the following in your ``Gemfile``:
 
 .. code-block:: ruby
 
     gem 'bson', '~> 4.0'
 
-The BSON gem is compatible with MRI >= 2.3 and JRuby >= 9.2.
+The BSON library is compatible with MRI >= 2.3 and JRuby >= 9.2.
 
 Use With ActiveSupport
 ----------------------
@@ -468,6 +468,53 @@ decimal rounding with exact precision.
   # Instantiate with a BigDecimal
   d = BigDecimal(1.28, 3)
   BSON::Decimal128.new(d)
+
+``Symbol``
+``````````
+
+The BSON specification defines a symbol type which allows round-tripping
+Ruby ``Symbol`` values (i.e., a Ruby ``Symbol``is encoded into a BSON symbol
+and a BSON symbol is decoded into a Ruby ``Symbol``). However, since most
+programming langauges do not have a native symbol type, to promote
+interoperabilty, MongoDB deprecated the BSON symbol type and encourages
+strings to be used instead.
+
+.. note::
+
+  In BSON, hash *keys* are always strings. Non-string values will be
+  stringified when used as hash keys:
+
+  .. code-block:: ruby
+  
+  Hash.from_bson({foo: 'bar'}.to_bson)
+  # => {"foo"=>"bar"}
+  
+  Hash.from_bson({1 => 2}.to_bson)
+  # => {"1"=>2}
+
+By default, the BSON library encodes ``Symbol`` hash values as strings and
+decodes BSON symbols into Ruby ``Symbol`` values:
+
+  .. code-block:: ruby
+
+  {foo: :bar}.to_bson.to_s
+  # => "\x12\x00\x00\x00\x02foo\x00\x04\x00\x00\x00bar\x00\x00"
+
+  # 0x02 is the string type
+  Hash.from_bson(BSON::ByteBuffer.new("\x12\x00\x00\x00\x02foo\x00\x04\x00\x00\x00bar\x00\x00".force_encoding('BINARY')))
+  # => {"foo"=>"bar"}
+
+  # 0x0E is the symbol type
+  Hash.from_bson(BSON::ByteBuffer.new("\x12\x00\x00\x00\x0Efoo\x00\x04\x00\x00\x00bar\x00\x00".force_encoding('BINARY')))
+  # => {"foo"=>:bar}
+
+To force encoding of Ruby symbols to BSON symbols, wrap the Ruby symbols in
+``BSON::Symbol::Raw``:
+
+  .. code-block:: ruby
+
+  {foo: BSON::Symbol::Raw.new(:bar)}.to_bson.to_s
+  # => "\x12\x00\x00\x00\x0Efoo\x00\x04\x00\x00\x00bar\x00\x00"
 
 JSON Serialization
 ------------------
