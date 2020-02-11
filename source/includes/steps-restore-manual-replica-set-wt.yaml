@@ -16,8 +16,9 @@ title: "Select the Restore Point."
 ref: select-shard-pit-manual
 content: |
 
-  a. Choose the :guilabel:`Snapshot` from which you want to restore
-     your backup.
+  a. Choose the point from which you want to restore your backup.
+
+     .. include:: /includes/backup/select-restore-point.rst
 
   b. Click :guilabel:`Next`.
 
@@ -83,6 +84,31 @@ content: |
 ---
 stepnum: 9
 level: 4
+title: "Verify Hardware and Software Requirements."
+ref: verify-requirements
+content: |
+
+  .. list-table::
+     :widths: 30 70
+     :stub-columns: 1
+
+     * - Storage Capacity
+       - The target host hardware needs enough free storage space for
+         the restored data. If you want to keep any existing sharded
+         cluster data on this host, make sure the host has enough free
+         space for both data sets.
+
+     * - MongoDB Version
+       - The target host and source host must run the same MongoDB
+         Server version. To check the MongoDB version, run ``mongod
+         --version`` from a terminal or shell.
+
+  To learn more about installation, see :manual:`/installation`.
+
+
+---
+stepnum: 10
+level: 4
 title: "Remove Replica Set-Related Collections from the ``local`` Database."
 ref: remove-replset-config
 content: |
@@ -92,6 +118,7 @@ content: |
 
   .. code-block:: javascript
 
+     db.getSiblingDB("local").replset.minvalid.drop()
      db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
      db.getSiblingDB("local").replset.election.drop()
      db.getSiblingDB("local").system.replset.remove({})
@@ -101,6 +128,8 @@ content: |
   .. code-block:: javascript
      :copyable: false
 
+     > db.getSiblingDB("local").replset.minvalid.drop()
+     true
      > db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
      true
      > db.getSiblingDB("local").replset.election.drop()
@@ -109,7 +138,7 @@ content: |
      WriteResult({ "nRemoved" : 1 })
 
 ---
-stepnum: 10
+stepnum: 11
 level: 4
 title: "Add a New Replica Set Configuration."
 ref: add-new-replset-config
@@ -148,7 +177,24 @@ content: |
      WriteResult({ "nInserted" : 1 })
 
 ---
-stepnum: 11
+stepnum: 12
+level: 4
+title: "Insert the Minimum Valid Timestamp."
+ref: set-minvalid-timestamp
+content: |
+
+  Issue the following command:
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("local").replset.minvalid.insert({
+       "_id" : ObjectId(),
+       "t" : NumberLong(-1),
+       "ts" : Timestamp(0,1)
+     });
+
+---
+stepnum: 13
 level: 4
 title: "Set the Restore Point to the ``Restore Timestamp`` Value from the ``restoreInfo`` File."
 ref: set-restore-point
@@ -159,7 +205,7 @@ content: |
   .. code-block:: javascript
 
      truncateAfterPoint = Timestamp(restoreTS.getTime(), restoreTS.getInc())
-     db.getSiblingDB("local").system.replset.oplogTruncateAfterPoint.insert({
+     db.getSiblingDB("local").replset.oplogTruncateAfterPoint.insert({
         "_id": "oplogTruncateAfterPoint",
         "oplogTruncateAfterPoint": truncateAfterPoint
      })
@@ -172,49 +218,107 @@ content: |
      WriteResult({ "nInserted" : 1 })
 
 ---
-stepnum: 12
+stepnum: 14
 level: 4
 title: "Restart as a Single-Node Replica Set to Recover the Oplog."
 ref: restart-special-db
 content: |
 
-  Start the |mongod| with the following ``setParameter`` options set
-  to ``true``:
-
-  - ``recoverFromOplogAsStandalone``
-  - ``takeUnstableCheckpointOnShutdown``
-
-  The |mongod| replays the oplog up to the ``Restore timestamp``.
+  Start the |mongod|. The |mongod| replays the oplog up to the
+  ``Restore timestamp``.
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> --port <port> \
-              --setParameter recoverFromOplogAsStandalone=true \
-              --setParameter takeUnstableCheckpointOnShutdown=true
+     ./mongod --dbpath </path/to/datafiles> \
+              --port <ephemeralPort> \
+              --replSet <replaceMeWithTheReplicaSetName>
+
+  .. important::
+
+     You must not set ``<ephemeralPort>`` in this command to the same
+     ``<port>`` you set in **Step 10**.
 
   Once the |mongod| has started and accepting connections, you can shut
   it down via normal mechanisms.
 
 ---
-stepnum: 13
+stepnum: 15
 level: 4
-title: "Restart as a Single-Node Replica Set."
-ref: restart-as-single-node
+title: "Stop the Temporary Single-Node Replica Set."
+ref: stop-temp-replset
 content: |
+
+  Issue the following command:
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> --port <port>
+     ./mongod --dbpath </path/to/datafiles> \
+              --port <ephemeralPort> \
+              --shutdown
 
 ---
-stepnum: 14
+stepnum: 16
+title: "Run the MongoDB Backup Restore Utility (Point-in-Time Restore Only)."
+level: 4
+ref: mbru-binary
+content: |
+
+  a. Download the MongoDB Backup Restore Utility to your host.
+
+     .. note::
+
+        If you closed the restore panel, click :guilabel:`Backup`, then
+        :guilabel:`More` and then :guilabel:`Download MongoDB Backup
+        Restore Utility`.
+
+  #. Start a :binary:`~bin.mongod` instance without authentication
+     enabled using the extracted snapshot directory as the data
+     directory.
+
+     .. example::
+
+        .. code-block:: sh
+
+           mongod --port <port number> \
+                  --dbpath <temp-database-path> \
+                  --setParameter ttlMonitorEnabled=false
+
+     .. warning::
+        The MongoDB Backup Restore Utility doesn't support
+        authentication, so you can't start this temporary database with
+        authentication.
+
+  #. Run the MongoDB Backup Restore Utility on your destination host.
+     Run it once for the replica set.
+
+     .. include:: /includes/fact-pre-configured-mbru-command.rst
+
+     The ``mongodb-backup-restore-util`` command uses the following
+     options:
+
+     .. cond:: cloud
+
+        .. include:: /includes/fact-restore-manual-replica-set-cloud.rst
+
+     .. cond:: onprem
+
+        .. include:: /includes/fact-restore-manual-replica-set-onprem.rst
+
+     :icon:`check-circle` means that if you copied the
+     ``mongodb-backup-restore-util`` command provided in
+     |application|, this field is pre-configured.
+
+
+
+---
+stepnum: 17
 level: 4
 title: "Connect a ``mongo`` Shell to the ``mongod`` Instance."
 ref: connect-to-instance
 content: |
 
-  From the host running this |mongod| process, start the 
-  |mongo| shell. To connect to the |mongod| listening to 
+  From the host running this |mongod| process, start the
+  |mongo| shell. To connect to the |mongod| listening to
   localhost on port ``<port>``, invoke:
 
   .. code-block:: sh
@@ -226,7 +330,7 @@ content: |
 
   After the |mongod| starts accepting connections, continue.
 ---
-stepnum: 15
+stepnum: 18
 level: 4
 title: "Initiate the New Replica Set."
 ref: initiate-new-replset
@@ -248,7 +352,14 @@ content: |
   uses the default replica set configuration.
 
 ---
-stepnum: 16
+stepnum: 19
+level: 4
+title: "Repeat Steps 7 to 17 for each node in the Replica Set."
+ref: repeat-rs
+content: |
+
+---
+stepnum: 20
 level: 4
 title: "Shut Down the New Replica Set."
 ref: shutdown-new-replset
@@ -258,7 +369,7 @@ content: |
 
      db.shutdownServer({});
 ---
-stepnum: 17
+stepnum: 21
 level: 4
 title: "Reimport the Replica Set."
 ref: reimport-replica-set
