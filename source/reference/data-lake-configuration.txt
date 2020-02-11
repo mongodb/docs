@@ -437,6 +437,13 @@ computed field values to only those file(s) with a matching file name.
    
      /path/to/files/prefix-{<fieldA> <data-type>}-suffix
 
+- You can specify dot (i.e. ``.``) along the path to the filename:
+
+  .. code-block:: none 
+     :copyable: false 
+
+     /path/to/files/{<fieldA>.<fieldB> <data-type>}
+
 - You can specify ``ObjectIds`` in the path to the files to create partitions:
 
   .. code-block:: none 
@@ -475,6 +482,7 @@ information on all supported data types, see
 - :ref:`datalake-advanced-definition-parse-multiple`
 - :ref:`datalake-advanced-definition-parse-regex`
 - :ref:`datalake-advanced-definition-parse-range`
+- :ref:`datalake-advanced-parse-nested-fields`
 - :ref:`datalake-advanced-definition-objectIds`
 - :ref:`datalake-advanced-definition-create-partition`
 - :ref:`datalake-advanced-definition-generate-collection`
@@ -659,6 +667,68 @@ and ``max`` date.
    every document contained in the file to avoid unexpected or
    undesired behavior. {+data-lake-short+} does *not* perform any
    validation that the underlying data conforms to this constraint.
+
+.. _datalake-advanced-parse-nested-fields:
+
+Identify Nested Fields from Filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+data-lake-short+} supports querying nested data when the nested data 
+value is also the filename. You can use the dot operator (i.e. ``.``) in your 
+:datalakeconf:`~databases.<database>.<collection>.[n].definition` to map the 
+partitions attributes in your storage configuration to nested fields in your 
+documents. 
+
+Consider a {+data-lake-store+} ``accountingArchive``. The {+data-lake-store+} 
+contains files with names that match values of nested fields in the documents. 
+For example:
+
+.. code-block:: text 
+   :copyable: false 
+
+   accountingArchive 
+   |--invoices
+      |--January.json
+      |--February.json
+      ...
+
+Suppose the ``January.json`` file contains a document with the following 
+fields: 
+
+.. code-block:: text 
+   :copyable: false 
+
+   {
+     "invoice": {
+        "invoiceNumber" : "MONGODB12345",
+        "year" : 2019, 
+        "month": "January", //value matches filename
+        "date": 02
+     }, 
+     "vendor": "MONGODB",
+     ...
+   }
+
+The following :ref:`datalake-databases-reference` object identifies 
+``month`` as a nested field inside a document. The 
+:ref:`datalake-databases-reference` object also identifies the value of 
+``month`` as the name of the file that contains the document.
+
+.. code-block:: text 
+   :copyable: false 
+
+   "databases" : {
+      "accounting" : {
+        "invoices" : [
+          "store" : "accountingArchive",
+          "definition" : "/invoices/{invoice.month string}"
+        ]
+      }
+   }
+
+When {+data-lake-short+} receives a query on a specific month such as 
+``January``, it uses the specified definition to identify which file 
+contains the data that matches the query.
 
 .. _datalake-advanced-definition-objectIds:
 
