@@ -87,6 +87,15 @@
           MongoDB 4.2. Sharded clusters running MongoDB 4.2 must use
           :doc:`/backup/cloud-provider-snapshots`.
 
+       .. important::
+
+          If you have :doc:`continuous backups </backup/continuous-backups>`
+          enabled on your cluster and you upgrade from MongoDB server version
+          ``4.0`` to ``4.2``, you must set ``backupEnabled`` to ``false`` and set
+          ``providerBackupEnabled`` to ``true`` as part of the API request.
+          Continuous backups are no longer supported in MongoDB version ``4.2``.
+          Instead, use :doc:`/backup/cloud-provider-snapshots`.
+
    * - ``biConnector``
      - document
      - Optional
@@ -292,6 +301,15 @@
        release of the specified version. You can upgrade to a newer
        version of MongoDB when you
        :doc:`modify a cluster </reference/api/clusters-modify-one>`
+
+       .. note::
+
+          If you are upgrading from version ``4.0`` to ``4.2`` and you
+          have :doc:`continuous backups </backup/continuous-backups>`
+          enabled, you must set ``backupEnabled`` to ``false`` and set
+          ``providerBackupEnabled`` to ``true`` as part of the API request.
+          Continuous backups are no longer supported in MongoDB version ``4.2``.
+          Instead, use :doc:`/backup/cloud-provider-snapshots`. 
 
    * - ``numShards``
      - integer
