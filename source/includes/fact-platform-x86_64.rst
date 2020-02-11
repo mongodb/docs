@@ -1,32 +1,17 @@
 .. topic:: Platform Support EOL Notice
 
    .. list-table::
-      :widths: 20 80
+      :widths: 40 60
       :class: border-table
 
-      * - Ubuntu 14.04
-        - Support removed in MongoDB 4.2+.
+      * - Windows 8.1 / Server 2012 R2
+        - Support removed in MongoDB 4.4+.
 
-      * - Debian 8
-        - Support removed in MongoDB 4.2+.
+      * - Windows 8 / Server 2012
+        - Support removed in MongoDB 4.4+.
 
-      * - macOS 10.11
-        - Support removed in MongoDB 4.2+.
-
-   *Upcoming EOL Notice*:
-
-   .. list-table::
-      :widths: 20 80
-      :class: border-table
-
-      * - Windows 8.1/2012R2
-        - MongoDB will end support in future releases.
-
-      * - Windows 8/2012
-        - MongoDB will end support in future releases.
-
-      * - Windows 7/2008R2
-        - MongoDB will end support in future releases.
+      * - Windows 7 / Server 2008 R2
+        - Support removed in MongoDB 4.4+.
 
    |
 
@@ -132,19 +117,19 @@
      - |checkmark|
 
    * - Windows 8.1 / Server 2012 R2
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
    * - Windows 8 / Server 2012
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
    * - Windows 7 / Server 2008 R2
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
