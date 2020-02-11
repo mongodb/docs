@@ -1,9 +1,16 @@
 .. list-table::
    :header-rows: 1
-   :widths: 38 62
+   :widths: 38 72
 
    * - Deployments
      - ``featureCompatibilityVersion``
+
+   * - For new 4.4 deployments
+     - ``"4.4"``
+
+   * - For 4.4 deployments :ref:`upgraded from 4.2 <4.4-upgrade>`
+
+     - ``"4.2"`` until you :dbcommand:`setFeatureCompatibilityVersion` to ``"4.4"``.
 
    * - For new 4.2 deployments
      - ``"4.2"``
