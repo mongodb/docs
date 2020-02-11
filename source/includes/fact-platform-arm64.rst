@@ -15,20 +15,20 @@
    :class: compatibility
 
    * - Platform
+     - 4.4 Community & Enterprise
      - 4.2 Community & Enterprise
      - 4.0 Community & Enterprise
      - 3.6 Community & Enterprise
-     - 3.4 Community & Enterprise
 
    * - Ubuntu 18.04
      - Community only
-     -
+     - Community only
      -
      -
 
    * - Ubuntu 16.04
      - Enterprise only
-     - |checkmark|
+     - Enterprise only
      - |checkmark|
      - |checkmark|
 
