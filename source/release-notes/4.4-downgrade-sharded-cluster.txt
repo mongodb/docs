@@ -154,6 +154,43 @@ include but are not limited to:
 
 .. |binary| replace:: any :binary:`~bin.mongod`/:binary:`~bin.mongos` instance
 
+4. Update Missing Shard Keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   In MongoDB 4.4, shard key fields can be :ref:`missing from documents
+   <shard-key-missing>` in a sharded collection. 
+   
+   If you downgrade to 4.2 and a sharded collection contains documents
+   missing shard key fields, 4.2 :binary:`~bin.mongos` instances do not
+   return documents that are missing the shard key fields. To avoid
+   this situation, update the documents to includes the missing shard
+   key fields before you downgrade.
+
+   To find documents that are missing any part of the shard key, use the
+   :query:`$exists` operator. 
+
+   For example, if the collection ``contacts`` has the shard key ``{
+   zipcode: 1 }``, to find documents without the ``zipcode`` field:
+
+   .. code-block:: javascript
+
+      db.contacts.find( { zipcode: { $exists: false } } )
+
+   To set the missing shard key field to ``null`` for these documents,
+   you can use the :method:`db.collection.updateMany()` method:
+
+   .. code-block:: javascript
+
+      db.contacts.updateMany( { zipcode: { $exists: false } }, { $set: { zipcode: null } } )
+
+   If setting the missing shard key field to a non-``null`` value, you
+   cannot use the :method:`db.collection.updateMany()` method and you
+   must perform the update within a transaction or as a retryable
+   write. For details, see :ref:`shard-key-missing-set`.
+
+
 Procedure
 ---------
 

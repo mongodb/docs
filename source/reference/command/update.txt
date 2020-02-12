@@ -399,27 +399,24 @@ Document Validation
 Sharded Collections
 ~~~~~~~~~~~~~~~~~~~
 
+.. _cmd-update-sharded-upsert:
+
+``upsert`` on a Sharded Collection
+``````````````````````````````````
+
 To use :dbcommand:`update` with ``multi: false`` on a sharded
 collection,
 
 - If you do not specify :ref:`upsert: true <update-command-upsert>`,
-  you must include an equality match on the ``_id`` field or target a
-  single shard (such as by including the shard key).
+  the filter :ref:`q <update-command-q>` must either include an
+  equality match on the ``_id`` field or target a single shard (such as
+  by including the shard key).
 
 - If you specify :ref:`upsert: true <update-command-upsert>`, the
   filter :ref:`q <update-command-q>` must include an equality match on the
   shard key.
 
-Shard Key Modification
-``````````````````````
-
-.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
-
-To use :dbcommand:`update` to update the shard key:
-
-- You must specify ``multi: false``.
-
-.. include:: /includes/shard-key-modification-requirements.rst
+  .. include:: /includes/extracts/missing-shard-key-equality-condition-update.rst
 
 Replace Document
 ````````````````
@@ -431,6 +428,136 @@ by the replacement document.
 
 In earlier versions, the operation attempts to target using the
 replacement document.
+
+.. _command-update-shard-key-modification:
+
+Shard Key Modification
+``````````````````````
+
+.. container::
+
+   .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+   To modify the **existing** shard key value with
+   :dbcommand:`update`:
+
+   - You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
+     issue the operation directly on the shard.
+
+   - You :red:`must` run either in a :doc:`transaction
+     </core/transactions>` or as a :doc:`retryable write
+     </core/retryable-writes>`.
+
+   - You :red:`must` specify ``multi: false``.
+
+   In addition, the following requirements also apply:
+
+   .. tabs::
+
+      .. tab:: Updates (with operators/aggregation pipeline)
+         :tabid: modification
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 30 70
+
+            * - For MongoDB Version
+
+              - Filter Requirements
+
+            * - v4.4+
+
+              - Requires equality filter on the full shard key if
+                ``upsert: true`` is specified.
+
+            * - v4.2
+
+              - Requires equality filter on the full shard key.
+
+      .. tab:: For replacements
+         :tabid: replace
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 15 60
+
+            * - For MongoDB Version
+
+              - Filter Requirements
+
+            * - v4.4+
+
+              - Requires equality filter on the full shard key if either:
+
+                - ``upsert: true``, or 
+
+                - The new shard key value belongs to a different shard.
+
+            * - v4.2
+
+              - Requires equality filter on the full shard key.
+
+   .. tip::
+
+      .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+
+   See also :ref:`cmd-update-sharded-upsert`.
+
+.. _cmd-update-missing-shard-key:
+
+Missing Shard Key
+`````````````````
+
+.. container::
+
+   Starting in version 4.4, documents in a sharded collection can be
+   :ref:`missing the shard key fields <shard-key-missing>`. To use
+   :dbcommand:`update` to set the document's
+   **missing** shard key, you :red:`must` run on a
+   :binary:`~bin.mongos`. Do :red:`not` issue the operation directly on
+   the shard.
+
+   In addition, the following requirements also apply:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - 
+
+        - Requirements
+
+      * - To set to ``null``
+
+        - - Can specify ``multi: true``.
+
+          - Requires equality filter on the full shard key if ``upsert:
+            true`` is specified.
+
+      * - To set to a non-``null`` value:
+
+        - - :red:`Must` be performed either inside a :doc:`transaction
+            </core/transactions>` or as a :doc:`retryable write
+            </core/retryable-writes>`.
+
+          - :red:`Must` specify ``multi: false``.
+
+          - Requires equality filter on the full shard key if either:
+
+            - ``upsert: true``, or
+
+            - if using a replacement document and the new shard key
+              value belongs to a different shard.
+
+   .. tip::
+
+      .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+
+   See also:
+
+   - :ref:`method-update-sharded-upsert`
+
+   - :ref:`shard-key-missing`
 
 Transactions
 ~~~~~~~~~~~~

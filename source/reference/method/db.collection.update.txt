@@ -262,6 +262,7 @@ by the replacement document.
 In earlier versions, the operation attempts to target using the
 replacement document.
 
+.. _method-update-sharded-upsert:
 
 ``upsert`` on a Sharded Collection
 ``````````````````````````````````
@@ -274,17 +275,137 @@ must include the full shard key in the ``filter``:
 
 - For a replace document operation (starting in MongoDB 4.2).
 
+.. include:: /includes/extracts/missing-shard-key-equality-condition-update.rst
+
+.. _method-update-shard-key-modification:
 
 Shard Key Modification
 ``````````````````````
 
-.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+.. container::
 
-To use :method:`db.collection.update()` to update the shard key:
+   .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
 
-- You must specify ``multi: false``.
+   To modify the **existing** shard key value with
+   :method:`db.collection.update()`:
 
-.. include:: /includes/shard-key-modification-requirements.rst
+   - You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
+     issue the operation directly on the shard.
+
+   - You :red:`must` run either in a :doc:`transaction
+     </core/transactions>` or as a :doc:`retryable write
+     </core/retryable-writes>`.
+
+   - You :red:`must` specify ``multi: false``.
+
+   In addition, the following requirements also apply:
+
+   .. tabs::
+
+      .. tab:: Updates (with operators/aggregation pipeline)
+         :tabid: modification
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 30 70
+
+            * - For MongoDB Version
+
+              - Filter Requirements
+
+            * - v4.4+
+
+              - Requires equality filter on the full shard key if
+                ``upsert: true`` is specified.
+
+            * - v4.2
+
+              - Requires equality filter on the full shard key.
+
+      .. tab:: For replacements
+         :tabid: replace
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 15 60
+
+            * - For MongoDB Version
+
+              - Filter Requirements
+
+            * - v4.4+
+
+              - Requires equality filter on the full shard key if either:
+
+                - ``upsert: true``, or 
+
+                - The new shard key value belongs to a different shard.
+
+            * - v4.2
+
+              - Requires equality filter on the full shard key.
+
+   .. tip::
+
+      .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+
+   See also :ref:`method-update-sharded-upsert`.
+
+.. _method-update-missing-shard-key:
+
+Missing Shard Key
+`````````````````
+
+.. container::
+
+   Starting in version 4.4, documents in a sharded collection can be
+   :ref:`missing the shard key fields <shard-key-missing>`. To use
+   :method:`db.collection.update()` to set the document's
+   **missing** shard key, you :red:`must` run on a
+   :binary:`~bin.mongos`. Do :red:`not` issue the operation directly on
+   the shard.
+
+   In addition, the following requirements also apply:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - 
+
+        - Requirements
+
+      * - To set to ``null``
+
+        - - Can specify ``multi: true``.
+
+          - Requires equality filter on the full shard key if ``upsert:
+            true``.
+
+      * - To set to a non-``null`` value
+
+        - - :red:`Must` be performed either inside a :doc:`transaction
+            </core/transactions>` or as a :doc:`retryable write
+            </core/retryable-writes>`.
+
+          - :red:`Must` specify ``multi: false``.
+
+          - Requires equality filter on the full shard key if either:
+
+            - ``upsert: true``, or
+
+            - if using a replacement document and the new shard key
+              value belongs to a different shard.
+
+   .. tip::
+
+      .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+
+   See also:
+
+   - :ref:`method-update-sharded-upsert`
+
+   - :ref:`shard-key-missing`
 
 Transactions
 ~~~~~~~~~~~~
@@ -1074,9 +1195,9 @@ Modify a Field Using the Values of the Other Fields in the Document
    Assume that instead of separate ``misc1`` and ``misc2`` fields, you
    want to gather these into a new ``comments`` field. The following
    update operation uses an aggregation pipeline to:
-   
+
    - add the new ``comments`` field and set the ``lastUpdate`` field.
-   
+
    - remove the ``misc1`` and ``misc2`` fields for all documents in the
      collection.
 
@@ -1102,7 +1223,7 @@ Modify a Field Using the Values of the Other Fields in the Document
       The :pipeline:`$set` stage:
 
       - creates a new array field ``comments`` whose elements are the current
-        content of the ``misc1`` and ``misc2`` fields and 
+        content of the ``misc1`` and ``misc2`` fields and
 
       - sets the field ``lastUpdate`` to the value of the aggregation
         variable :variable:`NOW`. The aggregation variable
@@ -1167,12 +1288,12 @@ Perform Conditional Updates Based on Current Field Values
 
    First Stage
       The :pipeline:`$set` stage:
-      
+
       - calculates a new field ``average`` based on the average of the
         ``tests`` field. See :group:`$avg` for more information on the
         ``$avg`` aggregation operator and :expression:`$trunc` for more
         information on the  ``$trunc`` truncate aggregation operator.
-      
+
       - sets the field ``lastUpdate`` to the value of the aggregation
         variable :variable:`NOW`. The aggregation variable
         :variable:`NOW` resolves to the current datetime value and remains

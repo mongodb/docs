@@ -80,8 +80,7 @@ A MongoDB :term:`sharded cluster` consists of the following components:
   sharded cluster.
 
 * :doc:`config servers </core/sharded-cluster-config-servers>`: Config
-  servers store metadata and configuration settings for the cluster. As
-  of MongoDB 3.4, config servers must be deployed as a replica set (CSRS).
+  servers store metadata and configuration settings for the cluster.
 
 The following graphic describes the interaction of components within a
 sharded cluster:
@@ -94,18 +93,38 @@ collection data across the shards in the cluster.
 Shard Keys
 ----------
 
-MongoDB uses the :term:`shard key` to distribute the collection's
-documents across shards. The :term:`shard key` consists of a field or
-fields that exist in every document in the target collection.
+MongoDB uses the :doc:`shard key </core/sharding-shard-key>` to
+distribute the collection's documents across shards. The shard key
+consists of a field or multiple fields in the documents:
 
-You choose the shard key when sharding a collection. The choice of shard key
-cannot be changed after sharding. A sharded collection can have only *one*
-shard key. See :ref:`sharding-shard-key-creation`.
+- Starting in version 4.4, documents in sharded collections can be
+  missing the shard key fields. Missing shard key fields are treated as
+  having null values when distributing the documents across shards but
+  not when routing queries. For more information, see :ref:`shard-key-missing`.
 
-To shard a non-empty collection, the collection must have an :term:`index`
+- In version 4.2 and earlier, shard key fields must exist in every
+  document for a sharded collection.
+
+You choose the shard key when sharding a collection. A sharded
+collection can have only *one* shard key. See
+:ref:`sharding-shard-key-creation`.
+
+The choice of shard key cannot be changed after sharding. However,
+starting in MongoDB 4.2, you can update a document's shard key value
+unless your shard key field is the immutable ``_id`` field. Before
+MongoDB 4.2, a document's shard key field value is immutable. See
+:ref:`update-shard-key` for more information.
+
+Shard Key Index
+~~~~~~~~~~~~~~~
+
+To shard a populated collection, the collection must have an :term:`index`
 that starts with the shard key. For empty collections, MongoDB creates the
 index if the collection does not already have an appropriate index for the
 specified shard key. See :ref:`sharding-shard-key-indexes`.
+
+Shard Key Strategy
+~~~~~~~~~~~~~~~~~~
 
 The choice of shard key affects the performance, efficiency, and scalability
 of a sharded cluster. A cluster with the best possible hardware and
@@ -113,16 +132,9 @@ infrastructure can be bottlenecked by the choice of shard key. The choice of
 shard key and its backing index can also affect the :ref:`sharding strategy
 <sharding-strategy>` that your cluster can use.
 
-.. topic:: New in MongoDB 4.2
 
-   Although you cannot change which field or fields act as the shard key,
-   starting in MongoDB 4.2, you can update a document's shard key value
-   unless your shard key field is the immutable ``_id`` field. Before
-   MongoDB 4.2, a document's shard key field value is immutable. See
-   :ref:`update-shard-key` for more information.
-
-See the :doc:`shard key</core/sharding-shard-key>`
-documentation for more information.
+See the See :ref:`sharding-shard-key-selection` documentation for more
+information.
 
 Chunks
 ------
@@ -173,22 +185,13 @@ cluster.
 High Availability
 ~~~~~~~~~~~~~~~~~
 
-A :term:`sharded cluster` can continue to perform partial read / write
-operations even if one or more shards are unavailable. While the subset of
-data on the unavailable shards cannot be accessed during the downtime, reads
-or writes directed at the available shards can still succeed.
+The deployment of config servers and shards as replica sets provide
+increased availability.
 
-Starting in MongoDB 3.2, you can deploy :term:`config servers <config
-server>` as :term:`replica sets <replica set>`. A sharded cluster with
-a Config Server Replica Set (CSRS) can continue to process reads and
-writes as long as a majority of the replica set is available.
-
-In version 3.4, MongoDB :ref:`removes support for SCCC config servers
-<3.4-compat-remove-sccc>`.
-
-In production environments, individual shards should be deployed as
-:term:`replica sets <replica set>`, providing increased redundancy and
-availability.
+Even if one or more shard replica sets become completely unavailable,
+the sharded cluster can continue to perform partial reads and writes.
+That is, while data on the unavailable shard(s) cannot be accessed,
+reads or writes directed at the available shards can still succeed.
 
 Considerations Before Sharding
 ------------------------------
