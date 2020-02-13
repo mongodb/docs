@@ -16,7 +16,7 @@
        deployment.
 
        By default, |k8s-op-short| requires hosts to use and accept
-       |tls| encrypted connections.
+       |tls| encrypted connections. This value defaults to ``true``.
      - ``true``
 
    * - | ``spec.security.tls``
@@ -24,11 +24,10 @@
        | :setting:`CertificateDomains<spec.security.tls.additionalCertificateDomains>`
      - collection
      - Conditional
-     - Add any additional domains that should be added to |tls|
-       certificates for this deployment. When you set this parameter,
-       every |csr| that the |k8s-op-short| transforms into a |tls|
-       certificate includes a |san-dns| in the form
-       ``<pod name>.<additional cert domain>``.
+     - Add any domains that should be added to |tls| certificates for
+       this deployment. When you set this parameter, every |csr| that
+       the |k8s-op-short| transforms into a |tls| certificate includes
+       a |san-dns| in the form ``<pod name>.<additional cert domain>``.
 
        .. example::
 
@@ -59,7 +58,7 @@
        .. admonition:: Split Horizon Requirements
           :class: note
 
-          - Make sure each value in this array must be unique.
+          - Make sure that each value in this array is unique.
 
           - Make sure that the number of entries in this array matches
             the value given in :setting:`spec.members`.
