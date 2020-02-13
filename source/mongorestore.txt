@@ -19,8 +19,7 @@ Synopsis
 
 The :binary:`~bin.mongorestore` program loads data from either a binary
 database dump created by :binary:`~bin.mongodump` or the standard input
-(starting in version 3.0.0) into a :binary:`~bin.mongod` or
-:binary:`~bin.mongos` instance.
+into a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance.
 
 Availability
 ------------
@@ -130,11 +129,10 @@ Rebuild Indexes
 
 .. note::
 
-   For MongoDB 2.6 through MongoDB versions with
-   ``featureCompatibilityVersion`` (fCV) set to ``"4.0"`` or earlier,
-   creating indexes will :limit:`error if an
-   index key in an existing document exceeds the limit
-   <Index Key Limit>`. 
+   For MongoDB installations with ``featureCompatibilityVersion`` (fCV)
+   set to ``"4.0"`` or earlier, creating indexes will
+   :limit:`error if an index key in an existing document exceeds the
+   limit <Index Key Limit>`. 
 
    To avoid this issue, consider using hashed indexes or indexing a
    computed value instead. If you want to resolve the index issue after
@@ -145,7 +143,10 @@ Rebuild Indexes
 Version Compatibility
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/warning-mongodump-compatibility-2.2.rst
+In general, use corresponding versions of :binary:`~bin.mongodump`
+and :binary:`~bin.mongorestore`. That is, to restore data files
+created with a specific version of :binary:`~bin.mongodump`, use the
+corresponding version of :binary:`~bin.mongorestore`.
 
 Exclude ``system.profile`` Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,18 +157,18 @@ Exclude ``system.profile`` Collection
 FIPS
 ~~~~
 
-.. include:: /includes/extracts/4.2-changes-fips-program.rst
+:binary:`~bin.mongorestore` automatically creates FIPS-compliant
+connections to a :binary:`~bin.mongod`/:binary:`~bin.mongos` that is
+:manual:`configured to use FIPS mode </tutorial/configure-fips>`.
 
 Write Concern
 ~~~~~~~~~~~~~
 
-Starting in version 4.2, if you specify write concern in both the
+If you specify write concern in both the
 :option:`--writeConcern <mongorestore --writeConcern>` option and the
 :option:`--uri <mongorestore --uri>` connection string option, the
 :option:`--writeConcern <mongorestore --writeConcern>` value overrides
 the write concern specified in the URI string.
-
-In earlier versions, the two options are incompatible.
 
 .. _mongorestore-required-access:
 
@@ -181,7 +182,45 @@ not include :data:`system.profile <<database>.system.profile>`
 collection data and you run :binary:`~bin.mongorestore` without the
 :option:`--oplogReplay <mongorestore --oplogReplay>` option.
 
-.. include:: /includes/access-mongorestore-collections.rst
+If the backup data includes :data:`system.profile
+<<database>.system.profile>` collection data or you run
+:binary:`~bin.mongorestore` with the
+:option:`--oplogReplay <mongorestore --oplogReplay>` option, you need
+additional privileges:
+
+.. container::
+
+   .. list-table::
+      :widths: 20 80
+
+      * - ``system.profile``
+
+        - If the backup data includes :data:`system.profile
+          <<database>.system.profile>` collection data and the target
+          database does not contain the :data:`system.profile
+          <<database>.system.profile>` collection,
+          :binary:`~bin.mongorestore` attempts to create the collection
+          even though the program does not actually restore
+          ``system.profile`` documents. As such, the user requires
+          additional privileges to perform
+          :authaction:`createCollection` and
+          :authaction:`convertToCapped` actions on the
+          :data:`system.profile <<database>.system.profile>`
+          collection for a database.
+
+          Both the built-in roles :authrole:`dbAdmin` and
+          :authrole:`dbAdminAnyDatabase` provide the additional
+          privileges.
+
+      * - ``--oplogReplay``
+
+        - To run with :option:`--oplogReplay <mongorestore
+          --oplogReplay>`, create a :ref:`user-defined role
+          <create-user-defined-role>` that has :authaction:`anyAction`
+          on :ref:`resource-anyresource`.
+
+          Grant only to users who must run :binary:`~bin.mongorestore`
+          with :option:`--oplogReplay <mongorestore --oplogReplay>`.
 
 .. _mongorestore-options:
 
@@ -227,8 +266,6 @@ Options
 
 
 .. option:: --uri=<connectionString>
-
-   .. versionadded:: 3.4.6
    
    Specify a resolvable :manual:`URI </reference/connection-string/>`
    connection string (enclose in quotes) to connect to the MongoDB deployment.
@@ -328,20 +365,6 @@ Options
    from the Certificate Authority. Specify the file name of the
    :file:`.pem` file using relative or absolute paths.
    
-   .. include:: /includes/extracts/ssl-facts-ca-file.rst
-   
-   .. warning::
-   
-      **Version 3.2 and earlier:** For TLS/SSL connections (``--ssl``) to
-      :binary:`~bin.mongod` and :binary:`~bin.mongos`, if the :program:`mongorestore` runs without the
-      :option:`--sslCAFile`, :program:`mongorestore` will not attempt
-      to validate the server certificates. This creates a vulnerability
-      to expired :binary:`~bin.mongod` and :binary:`~bin.mongos` certificates as
-      well as to foreign processes posing as valid :binary:`~bin.mongod` or
-      :binary:`~bin.mongos` instances. Ensure that you *always* specify the
-      CA file to validate the server certificates in cases where
-      intrusion is a possibility.
-   
    .. include:: /includes/extracts/ssl-facts-see-more.rst
 
 
@@ -390,8 +413,6 @@ Options
    the use of invalid certificates. When using the
    :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB logs as a
    warning the use of the invalid certificate.
-   
-   .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
    
    .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
    
@@ -450,14 +471,6 @@ Options
 
    Specifies the authentication mechanism the :program:`mongorestore` instance uses to
    authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
-   
-   .. versionchanged:: 4.0
-   
-      MongoDB removes support for the deprecated MongoDB
-      Challenge-Response (``MONGODB-CR``) authentication mechanism.
-   
-      MongoDB adds support for SCRAM mechanism using the SHA-256 hash
-      function (``SCRAM-SHA-256``).
    
    .. include:: /includes/list-table-auth-mechanisms.rst
    
@@ -534,10 +547,6 @@ Options
 
 
 .. option:: --nsExclude=<namespace pattern>
-
-   .. versionadded:: 3.4
-   
-
    
    Specifies a :term:`namespace` pattern (e.g. ``"test.myCollection"``,
    ``"reporting.*"``, ``"dept*.bar"``) to *exclude* the matching
@@ -551,10 +560,6 @@ Options
 
 .. option:: --nsInclude=<namespace pattern>
 
-   .. versionadded:: 3.4
-   
-
-   
    Specifies a :term:`namespace` pattern (e.g. ``"test.myCollection"``,
    ``"reporting.*"``, ``"dept*.bar"``) to restore only the namespaces
    that match the pattern. In the pattern, you can use asterisks ``*``
@@ -568,13 +573,17 @@ Options
    are restoring the data) does not contain data files that match the
    namespace pattern, no data will be restored.
    
-   .. include:: /includes/mongorestore-nsInclude.rst
+   For collection names that contain non-ascii characters,
+   :binary:`~bin.mongodump` outputs the corresponding filenames with
+   percent-encoded names. However, to restore these collections, do not
+   use the encoded names. Instead, use the namespace with the non-ascii
+   characters.
+  
+   For example, if the dump directory contains
+   ``dump/test/caf%C3%A9s.bson``, specify ``--nsInclude "test.cafés"``.
 
 
 .. option:: --nsFrom=<namespace pattern>
-
-   .. versionadded:: 3.4
-   
 
    Use with :option:`--nsTo` to rename a :term:`namespace` during the
    restore operation. :option:`--nsFrom` specifies the collection in the
@@ -586,9 +595,6 @@ Options
 
 
 .. option:: --nsTo=<namespace pattern>
-
-   .. versionadded:: 3.4
-   
 
    Use with :option:`--nsFrom` to rename a :term:`namespace` during the
    restore operation. :option:`--nsTo` specifies the new collection
@@ -629,8 +635,6 @@ Options
    
 .. option:: --preserveUUID
 
-   .. versionadded:: 4.0
-
    Restored collections use the UUID from the restore data instead of
    creating a new UUID for collections that are dropped and recreated
    as part of the restore.
@@ -639,9 +643,6 @@ Options
    must also include the :option:`--drop <mongorestore --drop>` option.
 
 .. option:: --dryRun
-
-   .. versionadded:: 3.4
-   
 
    Runs :program:`mongorestore` without actually importing any data, returning the
    :program:`mongorestore` summary information. Use with ``--verbose`` to produce
@@ -719,9 +720,6 @@ Options
 
 .. option:: --oplogFile=<path>
 
-   .. versionadded:: 3.4
-   
-
    Specifies the path to the oplog file containing oplog data for the
    restore. Use with :option:`--oplogReplay`. 
    
@@ -732,7 +730,7 @@ Options
 
 .. option:: --convertLegacyIndexes
 
-   .. versionadded:: 50.0
+   .. versionadded:: 100.0
 
    Removes any invalid index options specified in the corresponding
    :binary:`~bin.mongodump` output, and rewrites any legacy index key
@@ -814,26 +812,19 @@ Options
 .. option:: --maintainInsertionOrder
 
    *Default*: false
-
+  
+   If specified, :program:`mongorestore` inserts the documents in the
+   order of their appearance in the input source. That is, both the
+   bulk write batch order and document order within the batches are
+   maintained.
    
-   If specified,
-   
-   - Starting in version 4.2, :program:`mongorestore` inserts the documents in the
-     order of their appearance in the input source. That is, both the
-     bulk write batch order and document order within the batches are
-     maintained.
-   
-   - In earlier versions, only the batch order is maintained; document
-     order within batches are not maintained.
-   
-   Starting in MongoDB 4.2,
-   specifying :option:`--maintainInsertionOrder` also enables :option:`--stopOnError
-   <mongorestore --stopOnError>` and sets
+   Specifying :option:`--maintainInsertionOrder` also enables
+   :option:`--stopOnError <mongorestore --stopOnError>` and sets
    :option:`numInsertionWorkersPerCollection 
    <mongorestore --numInsertionWorkersPerCollection>` to 1.
    
-   If unspecified, :program:`mongorestore` may perform the insertions in an
-   arbitrary order.
+   If unspecified, :program:`mongorestore` may perform the insertions in
+   an arbitrary order.
 
 
 .. option:: --numParallelCollections=<int>, -j=<int>
@@ -865,9 +856,10 @@ Options
    Forces :program:`mongorestore` to halt the restore when it encounters an
    error.
 
-   Starting in version 4.2, :binary:`~bin.mongorestore`, by default,
-   continues when it encounters duplicate key and document
-   validation errors.  To ensure that the program stops on these errors, specify :option:`--stopOnError <mongorestore --stopOnError>`.
+   By default, :binary:`~bin.mongorestore` continues when it encounters
+   duplicate key and document validation errors. To ensure that the
+   program stops on these errors, specify
+   :option:`--stopOnError <mongorestore --stopOnError>`.
 
 
 .. option:: --bypassDocumentValidation
@@ -875,16 +867,11 @@ Options
    Enables :program:`mongorestore` to bypass :manual:`document validation </core/schema-validation>`
    during the operation. This lets you insert documents that do not
    meet the validation requirements.
-   
-   .. versionadded:: 3.2.1
-
 
 .. _mongorestore-path-option:
 
 .. option:: --gzip
 
-   .. versionadded:: 3.2
-   
    Restores from compressed files or data stream created by
    :binary:`~bin.mongodump --gzip <mongodump>`
    
@@ -898,8 +885,6 @@ Options
 
 .. option:: --archive=<file>
 
-   .. versionadded:: 3.2
-   
    Restores from the specified archive file or, if the file is
    unspecified, from the standard input (``stdin``):
 
@@ -973,8 +958,6 @@ authentication database using :option:`--host <mongorestore --host>`,
 Restore a Collection
 ~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 3.4
-
 To restore a specific collection, use :option:`--nsInclude
 <mongorestore --nsInclude>`, passing in the full namespace
 (``<database>.<collection>``) of the collection.
@@ -1032,8 +1015,6 @@ Alternatively, you can restore a specific collection using the
 Restore Collections Using Wild Cards
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 3.4
-
 :option:`--nsInclude <mongorestore --nsInclude>` and
 :option:`--nsExclude <mongorestore --nsExclude>` support specifying the
 :term:`namespaces <namespace>` you wish to include or exclude from a
@@ -1058,11 +1039,9 @@ on port ``27017``.
 Change Collections' Namespaces during Restore
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 3.4
-
-MongoDB 3.4 added the :option:`--nsFrom <mongorestore --nsFrom>` and
-:option:`--nsTo <mongorestore --nsTo>` options, which enable you to
-change the namespace of a collection that you are restoring.
+You can use the :option:`--nsFrom <mongorestore --nsFrom>` and
+:option:`--nsTo <mongorestore --nsTo>` options to change the namespace
+of the collection that you are restoring.
 :option:`--nsFrom <mongorestore --nsFrom>` and :option:`--nsTo
 <mongorestore --nsTo>` support using asterisks as wild cards *and*
 support using dollar signs to delimit "wild card" variables to use in
@@ -1126,8 +1105,6 @@ To restore from an archive file, run :binary:`~bin.restore` with the new
 Restore a Database from an Archive File
 ````````````````````````````````````````
 
-.. versionadded:: 3.2
-
 To restore from an archive file, run :binary:`~bin.restore` with the new
 ``--archive`` option and the archive filename. For example, the
 following operation restores the ``test`` database from the file
@@ -1143,9 +1120,8 @@ following operation restores the ``test`` database from the file
 Restore from Compressed Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 3.2
-   With the ``--gzip`` option, :binary:`~bin.mongorestore` can restore from
-   compressed files or data stream created by :binary:`~bin.mongodump`.
+:binary:`~bin.mongorestore` can restore from compressed files or
+compressed archive files created by :binary:`~bin.mongodump`.
 
 To restore from a dump directory that contains compressed files, run
 :binary:`~bin.mongorestore` with the :option:`--gzip <mongorestore
@@ -1171,8 +1147,6 @@ database from the archive file ``test.20150715.gz``.
 
 Restore a Database from Standard Input
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 3.2
 
 To restore from the standard input, run :binary:`~bin.mongorestore`
 with the :option:`--archive <mongorestore --archive>` option but *omit*

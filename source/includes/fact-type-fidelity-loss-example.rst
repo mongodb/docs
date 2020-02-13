@@ -17,8 +17,8 @@ Use :binary:`~bin.mongoexport` to export the data:
 
    mongoexport --db=test --collection=traffic --out=traffic.json
 
-In version 4.2+, the exported data is in :manual:`Extended JSON v2.0
-(Relaxed mode)</reference/mongodb-extended-json>`.
+The exported data is in :manual:`Extended JSON v2.0
+(Relaxed mode)</reference/mongodb-extended-json>`:
 
 .. code-block:: javascript
 
@@ -38,11 +38,3 @@ mode)</reference/mongodb-extended-json>`:
 .. code-block:: javascript
 
    {"_id":{"$numberDouble":"1.0"},"volume":{"$numberLong":"2980000"},"date":{"$date":{"$numberLong":"1565363188675"}}}
-
-In version 4.0 and earlier, the exported data is in :manual:`Extended JSON v1.0 (Strict mode)
-</reference/mongodb-extended-json-v1>`
-
-.. code-block:: javascript
-
-   {"_id":1.0,"volume":{"$numberLong":"2980000"},"date":{"$date":"2019-08-05T16:18:29.559Z"}}
-

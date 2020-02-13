@@ -68,8 +68,8 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'utils': 'MongoDB Database Tools',
-    'utils-pkg': '``mongo-cli-tools``',
+    'dbtools': 'MongoDB Database Tools',
+    'dbtools-pkg': '``mongodb-database-tools``',
     'package-name-org': 'mongodb-org',
     'package-name-enterprise': 'mongodb-enterprise',
     'version': version,

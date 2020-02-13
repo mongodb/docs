@@ -40,14 +40,11 @@ Behavior
 JSON Format
 ~~~~~~~~~~~
 
-Starting in MongoDB 4.2, :binary:`~bin.mongoimport` expects import data
-to be in Extended JSON v2.0 (either Relaxed or Canonical mode)
-by default. To recognize data that is in Extended JSON v1.0 format, see
-:option:`--legacy <mongoimport --legacy>`.
-
-In earlier versions, :binary:`~bin.mongoimport` expects data in
-:manual:`MongoDB Extended JSON (v1)
-</reference/mongodb-extended-json-v1>` format.
+:binary:`~bin.mongoimport` requires import data to be in
+:manual:`Extended JSON v2.0 (Canonical or Relaxed mode)
+</reference/mongodb-extended-json>` format by default. For import data
+formatted using Extended JSON v1.0, specify the
+:option:`--legacy <mongoimport --legacy>` option.
 
 .. tip::
 
@@ -65,24 +62,24 @@ Using other encodings will produce errors.
 FIPS
 ~~~~
 
-.. include:: /includes/extracts/4.2-changes-fips-program.rst
+:binary:`~bin.mongoimport` automatically creates FIPS-compliant
+connections to a :binary:`~bin.mongod`/:binary:`~bin.mongos` that is
+:manual:`configured to use FIPS mode </tutorial/configure-fips>`.
 
 Write Concern
 ~~~~~~~~~~~~~
 
-Starting in version 4.2, if you specify write concern in both the
+If you specify write concern in both the
 :option:`--writeConcern <mongoimport --writeConcern>` option and the
 :option:`--uri connection string <mongoimport --uri>` option, the
 :option:`--writeConcern <mongoimport --writeConcern>` value overrides
 the write concern specified in the URI string.
 
-In earlier versions, the two options are incompatible.
-
 Batches
 ~~~~~~~
 
-Starting in MongoDB 4.2, :binary:`~bin.mongoimport` uses maximum batch
-size of 100,000 to perform bulk insert/upsert operations.
+:binary:`~bin.mongoimport` uses a maximum batch size of 100,000 to
+perform bulk insert/upsert operations.
 
 Required Access
 ---------------
@@ -136,8 +133,6 @@ Options
 
 
 .. option:: --uri=<connectionString>
-
-   .. versionadded:: 3.4.6
    
    Specify a resolvable :manual:`URI </reference/connection-string/>`
    connection string (enclose in quotes) to connect to the MongoDB deployment.
@@ -222,15 +217,6 @@ Options
       You cannot specify both :option:`--port` and :option:`--uri`.
 
 
-.. option:: --ipv6
-
-   *Removed in version 3.0.*
-   
-   Enables IPv6 support and allows :program:`mongoimport` to connect to the
-   MongoDB instance using an IPv6 network. Prior to MongoDB 3.0, you
-   had to specify :option:`--ipv6` to use IPv6. In MongoDB 3.0 and later, IPv6
-   is always enabled.
-
 
 .. option:: --ssl
 
@@ -246,20 +232,6 @@ Options
    Specifies the :file:`.pem` file that contains the root certificate chain
    from the Certificate Authority. Specify the file name of the
    :file:`.pem` file using relative or absolute paths.
-   
-   .. include:: /includes/extracts/ssl-facts-ca-file.rst
-   
-   .. warning::
-   
-      **Version 3.2 and earlier:** For TLS/SSL connections (``--ssl``) to
-      :binary:`~bin.mongod` and :binary:`~bin.mongos`, if the :program:`mongoimport` runs without the
-      :option:`--sslCAFile`, :program:`mongoimport` will not attempt
-      to validate the server certificates. This creates a vulnerability
-      to expired :binary:`~bin.mongod` and :binary:`~bin.mongos` certificates as
-      well as to foreign processes posing as valid :binary:`~bin.mongod` or
-      :binary:`~bin.mongos` instances. Ensure that you *always* specify the
-      CA file to validate the server certificates in cases where
-      intrusion is a possibility.
    
    .. include:: /includes/extracts/ssl-facts-see-more.rst
 
@@ -309,8 +281,6 @@ Options
    the use of invalid certificates. When using the
    :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB logs as a
    warning the use of the invalid certificate.
-   
-   .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
    
    .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
    
@@ -369,14 +339,6 @@ Options
 
    Specifies the authentication mechanism the :program:`mongoimport` instance uses to
    authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
-   
-   .. versionchanged:: 4.0
-   
-      MongoDB removes support for the deprecated MongoDB
-      Challenge-Response (``MONGODB-CR``) authentication mechanism.
-   
-      MongoDB adds support for SCRAM mechanism using the SHA-256 hash
-      function (``SCRAM-SHA-256``).
    
    .. include:: /includes/list-table-auth-mechanisms.rst
    
@@ -507,8 +469,6 @@ Options
 .. option:: --mode=<insert|upsert|merge|delete>
 
    *Default*: insert
-
-   .. versionadded:: 3.4
    
    Specifies how the import process should handle existing documents
    in the database that match documents in the import file.
@@ -556,29 +516,25 @@ Options
           :ref:`ex-mongoimport-delete` describes how to use
           :option:`--mode` ``delete``.
 
-          .. versionadded:: 50.0
+          .. versionadded:: 100.0
 
 
 .. option:: --upsertFields=<field1[,field2]>
 
    Specifies a list of fields for the query portion of the
-   :term:`upsert`.
+   import process. :option:`--upsertFields` can be used with
+   :option:`--mode` ``upsert``, ``merge``, and ``delete``.
+
    Use this option if the ``_id`` fields in the
    existing documents don't match the field in the document, but
    another field or field combination can uniquely identify
    documents as a basis for performing upsert operations.
-   
-   .. versionchanged:: 3.4
-      Modifies the import process to update existing objects in the
-      database if they match based on the specified fields, while
-      inserting all other objects. You do not need to use :option:`--mode
-      upsert <--mode>` with :option:`--upsertFields`.
-   
-      If you do not specify a field, :option:`--upsertFields` will upsert on the basis of
-      the ``_id`` field.
-   
-   To ensure adequate performance, indexes should exist for this
-   field or fields.
+
+   If you do not specify a field, :option:`--upsertFields` will upsert
+   on the basis of the ``_id`` field.
+
+   To ensure adequate performance, indexes should exist for the
+   field or fields you specify with :option:`--upsertFields`.
 
 
 .. option:: --stopOnError
@@ -586,9 +542,10 @@ Options
    Forces :program:`mongoimport` to halt the insert operation at the
    first error rather than continuing the operation despite errors.
    
-   Starting in version 4.2, :binary:`~bin.mongoimport`, by default,
-   continues when it encounters duplicate key and document
-   validation errors.  To ensure that the program stops on these errors, specify :option:`--stopOnError <mongoimport --stopOnError>`.
+   By default, :binary:`~bin.mongoimport` continues an operation
+   when it encounters duplicate key and document validation errors. 
+   To ensure that the program stops on these errors, specify
+   :option:`--stopOnError <mongoimport --stopOnError>`.
 
 
 .. option:: --jsonArray
@@ -633,30 +590,22 @@ Options
 
       { "_id" : 1, "myregfield" : { "$regularExpression" : { "pattern" : "foo", "options" : "i" } } }
 
-   .. versionadded:: 4.2
-
 .. option:: --maintainInsertionOrder
 
    *Default*: false
-
    
-   If specified,
-    
-   - Starting in version 4.2, :program:`mongoimport` inserts the
-     documents in the order of their appearance in the input source. That
-     is, both the bulk write batch order and document order within the
-     batches are maintained. 
+   If specified, :program:`mongoimport` inserts the documents in the
+   order of their appearance in the input source. That is, both the
+   bulk write batch order and document order within the batches are
+   maintained. 
    
-   - In earlier versions, only the batch order is maintained; document
-     order within batches are not maintained.
+   Specifying :option:`--maintainInsertionOrder` also enables
+   :option:`--stopOnError <mongoimport --stopOnError>` and sets
+   :option:`numInsertionWorkers <mongoimport --numInsertionWorkers>` to
+   1.
    
-   Starting in MongoDB 4.2, specifying
-   :option:`--maintainInsertionOrder` also enables :option:`--stopOnError <mongoimport
-   --stopOnError>` and sets :option:`numInsertionWorkers <mongoimport
-   --numInsertionWorkers>` to 1.
-   
-   If unspecified, :program:`mongoimport` may perform the insertions in an
-   arbitrary order.
+   If unspecified, :program:`mongoimport` may perform the insertions in
+   an arbitrary order.
 
 
 .. option:: --numInsertionWorkers=<int>
@@ -695,14 +644,9 @@ Options
    Enables :program:`mongoimport` to bypass :manual:`document validation </core/schema-validation>`
    during the operation. This lets you insert documents that do not
    meet the validation requirements.
-   
-   .. versionadded:: 3.2.1
 
 
 .. option:: --columnsHaveTypes
-
-   .. versionadded:: 3.4
-   
 
    Instructs :program:`mongoimport` that the
    field list specified in :option:`--fields`, :option:`--fieldFile`,
@@ -786,9 +730,6 @@ Options
 
    *Default*: stop
 
-   .. versionadded:: 3.4
-   
-
    Specifies how :program:`mongoimport` handles type coercion failures when importing
    CSV or TSV files with :option:`--columnsHaveTypes`.
    
@@ -841,10 +782,6 @@ the :term:`JSON` data from the ``contacts.json`` file into the collection
 
 Replace Matching Documents during Import
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 3.4
-   In MongoDB 3.4, :option:`--mode upsert <mongoimport --mode>` replaces the
-   deprecated ``--upsert`` option.
 
 With :option:`--mode <mongoimport --mode>` ``upsert``, :binary:`~bin.mongoimport` replaces
 existing documents in the database that match a document in the
@@ -901,8 +838,6 @@ the fields from the imported document, as in the following:
 
 Merge Matching Documents during Import
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 3.4
 
 With :option:`--mode <mongoimport --mode>` ``merge``, :binary:`~bin.mongoimport` enables you to
 merge fields from a new record with an existing document in the
@@ -971,7 +906,7 @@ the value from the imported document, as in the following:
 Delete Matching Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 50.0
+.. versionadded:: 100.0
 
 With :option:`--mode <mongoimport --mode>` ``delete``,
 :binary:`~bin.mongoimport` deletes existing documents in the database
@@ -1080,10 +1015,8 @@ unspecified. The following example is therefore equivalent:
 Import CSV with Specified Field Types
 `````````````````````````````````````
 
-.. versionadded:: 3.4
-
-Starting in MongoDB 3.4, when you specify the field name, you can also
-specify the data type. To specify field names and type, include
+When specifying the field name, you can also specify the data type. To
+specify field names and type, include
 :option:`--columnsHaveTypes <mongoimport --columnsHaveTypes>` with
 either: :option:`--fields <mongoimport --fields>`, :option:`--fieldFile
 <mongoimport --fieldFile>`, or :option:`--headerline <mongoimport
