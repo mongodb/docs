@@ -164,6 +164,7 @@ rst_epilog = '\n'.join([
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
     '.. |ntp| replace:: :abbr:`NTP (Network Time Protocol)`',
     '.. |nvme-clusters| replace:: clusters with local NVMe SSDs',
+    '.. |pem| replace:: :abbr:`PEM (Privacy-Enhanced Mail)`',
     '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
     '.. |piv| replace:: :abbr:`PIV (Personal Identity Verification)`',
     '.. |rdp| replace:: :abbr:`RDP (Remote Desktop Protocol)`',

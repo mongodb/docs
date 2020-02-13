@@ -13,4 +13,7 @@
      div.button-code-block {
         margin: 0px 0px 0px 0px
      }
+     div.sequence-block {
+        margin-top: 10px
+     }
    </style>
