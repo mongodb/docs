@@ -32,7 +32,9 @@ Hashing Function
 Hashed indexes use a hashing function to compute the hash of the value
 of the index field. [#hashvalue]_ The hashing function collapses
 embedded documents and computes the hash for the entire value but does
-not support multi-key (i.e. arrays) indexes.
+not support multi-key (i.e. arrays) indexes. Specifically, creating a
+hashed index on a field that contains an array *or* attempting to insert
+an array into a hashed indexed field returns an error.
 
 .. include:: /includes/tip-applications-do-not-need-to-compute-hashes.rst
 
@@ -53,20 +55,46 @@ example:
 
    db.collection.createIndex( { _id: "hashed" } )
 
+.. _index-type-compound-hashed:
+
+Create a Compound Hashed Index
+------------------------------
+
+.. versionadded:: 4.4
+
+Starting with MongoDB 4.4, MongoDB supports creating compound indexes
+that include a single hashed field. To create a compound hashed index,
+specify ``hashed`` as the value of any single index key when creating
+the index:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "fieldA" : 1, "fieldB" : "hashed", "fieldC" : -1 } )
+
+Compound hashed indexes require :ref:`featureCompatibilityVersion
+<view-fcv>` set to ``4.4``. 
+
+.. seealso:: :ref:`sharding-hashed-sharding`
 
 Considerations
 --------------
 
-MongoDB supports ``hashed`` indexes of any single field. The hashing
-function collapses embedded documents and computes the hash for the entire
-value, but does not support multi-key (i.e. arrays) indexes.
+Embedded Documents
+~~~~~~~~~~~~~~~~~~
 
-You may not create compound indexes that have ``hashed`` index fields
-or specify a unique constraint on a ``hashed`` index; however, you can
-create both a ``hashed`` index and an ascending/descending (i.e.
-non-hashed) index on the same field: MongoDB will use the scalar index
-for range queries.
+The hashing function collapses embedded documents and computes the hash
+for the entire value, but does not support multi-key (i.e. arrays)
+indexes. Specifically, creating a hashed index on a field that contains
+an array *or* attempting to insert an array to a hashed indexed field
+returns an error.
 
+Unique Constraint
+~~~~~~~~~~~~~~~~~
+
+MongoDB does not support specifying a unique constraint on a ``hashed``
+index. You can instead create an additional non-hashed index with the
+unique constraint on that field. MongoDB can use that non-hashed index
+for enforcing uniqueness on the field.
 
 .. _hashed-index-warning:
 

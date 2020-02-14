@@ -75,15 +75,14 @@ Definition
    
         - boolean
    
-        - Optional. When ``true``, the ``unique`` option ensures that the underlying index
-          enforces a unique constraint. Hashed shard keys do not support unique
-          constraints. Defaults to ``false``. If specifying the
-          ``options`` document, ``unique`` is **required**.
-          Omitting a value for ``unique`` while specifying a value for
-          the ``options`` document may result in an incorrectly sharded
-          collection.
-          
-          
+        - Optional. Specify ``true`` to ensure that the underlying index
+          enforces a unique constraint. Defaults to ``false``. 
+
+          You cannot specify ``true`` when using :ref:`hashed shard keys 
+          <sharding-hashed>`.
+
+          If specifying the ``options`` document, you must explicitly
+          specify the value for ``unique``.
    
       * - ``options``
    
@@ -113,24 +112,34 @@ Definition
    
         - integer
    
-        - Optional. Specifies the number of chunks to create
-          initially when sharding an *empty* collection with a :ref:`hashed
-          shard key <sharding-hashed-sharding>`. MongoDB will then create and
-          balance chunks across the cluster. The ``numInitialChunks`` must be
-          less than ``8192`` per shard.
-          
-          .. versionchanged:: 4.0.3
-          
-             The option has no effect if zones and zone ranges have been
-             defined for the empty collection. See :ref:`shardCollection-zones`.
-          
-          .. versionchanged:: 3.4
-          
-             If the collection is not empty or the shard key is not a hashed
-             key, the operation returns an error.
-          
-          
-   
+        - Optional. Specifies the minimum number of chunks to create
+          initially when sharding an *empty* collection with a
+          :ref:`hashed shard key <sharding-hashed-sharding>`. MongoDB
+          then creates and balances chunks across the cluster. The
+          ``numInitialChunks`` must be less than ``8192`` per shard.
+          Defaults to ``2``.
+
+          If the collection is not empty or the shard key does not
+          contain a hashed field, the operation returns an error.
+
+          - If sharding with :ref:`presplitHashedZones: true
+            <method-shard-collection-presplitHashedZones>`,
+            MongoDB attempts to evenly distribute the specified
+            number of chunks across the zones in the cluster.
+
+          - If sharding with :ref:`presplitHashedZones: false
+            <method-shard-collection-presplitHashedZones>` or omitted and
+            no zones and zone ranges are defined for the empty
+            collection, MongoDB attempts to evenly distributed the
+            specified number of chunks across the shards in the cluster.
+
+          - If sharding with :ref:`presplitHashedZones: false
+            <method-shard-collection-presplitHashedZones>` or omitted and
+            zones and zone ranges have been defined for the empty
+            collection, ``numInitChunks`` has no effect.
+
+          .. versionchanged:: 4.4
+
       * - ``collation``
    
         - document
@@ -142,10 +151,35 @@ Definition
           the ``shardCollection`` command fails. At least one of the indexes
           whose fields support the shard key pattern must have the simple
           collation.
-          
-          
-   
 
+      * - :ref:`presplitHashedZones 
+          <method-shard-collection-presplitHashedZones>`
+
+        - boolean
+
+        - .. _method-shard-collection-presplitHashedZones:
+        
+          Optional. Specify ``true`` to perform initial chunk creation
+          and distribution for an empty or non-existing collection based
+          on the defined zones and zone ranges for the collection. For
+          :ref:`hashed sharding <sharding-hashed>` only.
+
+          ``shardCollection()`` with ``presplitHashedZones: true`` returns
+          an error if any of the following are true:
+
+          - The shard key does not contain a hashed field 
+            (i.e. is not a :ref:`single field hashed index 
+            <index-hashed-index>` or :ref:`compound hashed index
+            <index-type-compound-hashed>`).
+
+          - The collection has no defined zones or zone ranges.
+
+          - The defined zone ranges do not meet the 
+            :ref:`requirements 
+            <updateZoneKeyRange-method-init-chunk-distribution>`.
+
+          .. versionadded:: 4.4
+          
 
 Considerations
 --------------
@@ -170,10 +204,11 @@ Hashed Shard Keys
 ~~~~~~~~~~~~~~~~~
 
 :ref:`Hashed shard keys <sharding-hashed-sharding>` use a
-hashed index of a single field as the shard key.
+:doc:`hashed index </core/index-hashed>` or  a
+:ref:`compound hashed index <index-type-compound-hashed>`
+as the shard key.
 
-Use the form ``{field: "hashed"}`` to specify a hashed shard key.
-Hashed shard keys may not be compound indexes.
+Use the form ``field: "hashed"`` to specify a hashed shard key field.
 
 .. include:: /includes/note-hashed-shard-key-during-chunk-migration.rst
 
@@ -184,14 +219,30 @@ Hashed shard keys may not be compound indexes.
 Zone Sharding and Initial Chunk Distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 4.0.3
-
 .. include:: /includes/extracts/zoned-sharding-shard-operation-chunk-distribution-with-links.rst
 
-The ``numInitialChunks`` option has no effect if zones and zone
-ranges have been defined for the empty collection.
+See :ref:`pre-define-zone-range-example` for an example. If sharding a
+collection using a ranged or single-field hashed shard key, the
+``numInitialChunks`` option has no effect if zones and zone ranges have
+been defined for the empty collection.
 
-See :ref:`pre-define-zone-range-example` for an example.
+To shard a collection using a :ref:`compound hashed index
+<index-type-compound-hashed>`, see
+:ref:`sh.shardCollection-zones-compound-hashed`.
+
+.. _sh.shardCollection-zones-compound-hashed:
+
+Initial Chunk Distribution with Compound Hashed Indexes
+```````````````````````````````````````````````````````
+
+.. include:: /includes/extracts/zoned-sharding-shard-operation-chunk-distribution-hashed-short.rst
+
+The ``numInitialChunks`` option has no effect if zones and zone ranges
+have been defined for the empty collection *and*
+:ref:`presplitHashedZones <method-shard-collection-presplitHashedZones>`
+is ``false``.
+
+See :ref:`pre-define-zone-range-hashed-example` for an example.
 
 .. seealso:: :ref:`initial-chunks`
  

@@ -602,6 +602,44 @@ cluster's routing table as needed when run. Manually issuing the
 described under
 :ref:`flushRouterConfig Considerations<flushrouterconfig-considerations>`.
 
+.. _4.4-rel-notes-sharding-compound-hashed:
+
+Compound Hashed Shard Keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, you can shard a collection using a compound
+shard key with a single hashed field. Prior to 4.4, MongoDB did not
+support compound shard keys with a hashed field.
+
+Compound hashed sharding supports features like :ref:`zone sharding
+<zone-sharding>`, where the prefix (i.e. first) non-hashed field or
+fields support zone ranges while the hashed field supports more even
+distribution of the sharded data. For example, the following operation
+shards a collection on a compound hashed shard key that supports zoned
+sharding:
+
+.. code-block:: javascript
+
+   sh.shardCollection(
+     "examples.compoundHashedCollection",
+     { "fieldA" : 1, "fieldB" : 1, "fieldC" : "hashed" }
+   )
+
+Compound hashed sharding also supports shard keys with a hashed prefix
+for resolving data distribution issues related to :ref:`monotonically
+increasing fields <shard-key-monotonic>` For example, the
+following operation shards a collection on a compound hashed shard key
+where the hashed field is the shard key prefix:
+
+.. code-block:: javascript
+
+   sh.shardCollection(
+     "examples.compoundHashedCollection",
+     { "_id" : "hashed", "fieldA" : 1}
+   )
+
+.. seealso:: :ref:`sharding-hashed-sharding` , :ref:`4.4-rel-notes-compound-hashed-index`
+
 General Sharded Clusters Improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -781,7 +819,6 @@ officially supported by MongoDB.
 - :v4.2:`mongoreplay 4.2 </reference/program/mongoreplay>`
 - :v4.0:`mongoreplay 4.0 </reference/program/mongoreplay>`
 - :v3.6:`mongoreplay 3.6 </reference/program/mongoreplay>`
-
 
 General Improvements
 --------------------
@@ -1127,8 +1164,29 @@ clusters, issue the command from a :binary:`~bin.mongos`.
 To retrieve the global default read or write concern settings, MongoDB
 adds the :dbcommand:`getDefaultRWConcern` administrative command.
 
-:doc:`Changes Affecting Compatibility </release-notes/4.4-compatibility>`
--------------------------------------------------------------------------
+.. _4.4-rel-notes-compound-hashed-index:
+
+Compound Hashed Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.4 adds support for creating compound indexes with a single
+:ref:`hashed field <index-type-hashed>`. MongoDB 4.2 and earlier
+only supported single field hashed indexes.
+
+The following operation creates a compound hashed index on ``country``
+and ``_id``:
+
+.. code-block:: javascript
+
+   db.examples.createIndex( { "country" : 1, "_id" : "hashed" } )
+
+Compound hashed indexes require :ref:`featureCompatibilityVersion
+<view-fcv>` set to ``4.4``.
+
+.. seealso:: :ref:`4.4-rel-notes-sharding-compound-hashed`
+
+Changes Affecting Compatibility
+-------------------------------
 
 Some changes can affect compatibility and may require user actions. For
 a detailed list of compatibility changes, see

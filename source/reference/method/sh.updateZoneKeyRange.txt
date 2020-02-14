@@ -94,16 +94,52 @@ can at most be associated with a single zone.
 See the :ref:`zone <zone-sharding>` manual page for more information on zones
 in sharded clusters.
 
-Initial Chunk Distribution
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _updateZoneKeyRange-method-init-chunk-distribution:
 
-.. include:: /includes/extracts/zoned-sharding-updateZoneKeyRange-change.rst
+Initial Chunk Distribution for Empty or Non-Existing Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. tip::
+If you are considering performing :ref:`zone sharding <zone-sharding>`
+on an empty or non-existent collection, use
+:method:`sh.updateZoneKeyRange()` to create the zones and zone ranges
+*before* sharding the collection (*since 4.0.2*). Starting in version
+4.0.3, creating zones and zone ranges on empty or non-existing
+collections allows MongoDB to optimize the initial chunk creation and
+distribution process when sharding the collection. This optimized
+process supports faster setup of zoned sharding with less balancer
+overhead than creating zones after sharding. The :ref:`balancer
+<sharding-balancing>` performs all chunk management after the optimized
+initial chunk creation and distribution.
 
-   .. versionchanged:: 4.0.3
+For an example of defining zones and zone ranges for initial chunk
+distribution, see :ref:`pre-define-zone-range-example`.
 
-      .. include:: /includes/extracts/zoned-sharding-pre-define-zone.rst
+.. _updateZoneKeyRange-method-init-chunk-distribution-compound-hashed:
+
+Initial Chunk Distribution with Compound Hashed Shard Keys
+``````````````````````````````````````````````````````````
+
+Starting in version 4.4, MongoDB supports sharding collections on
+:ref:`compound hashed indexes <index-type-compound-hashed>`. MongoDB can
+perform optimized initial chunk creation and distribution when sharding
+the empty or non-existing collection on a compound hashed shard key.
+
+.. tabs::
+
+   .. tab:: Hashed Field Is Prefix
+      :tabid: hash-prefix
+
+      .. include:: /includes/extracts/zoned-sharding-chunk-distribution-compound-hashed-prefix.rst
+
+
+   .. tab:: Hashed Field is Not Prefix
+      :tabid: hash-not-prefix
+
+      .. include:: /includes/extracts/zoned-sharding-chunk-distribution-compound-hashed-not-prefix.rst
+
+For a more complete example of defining zones and zone ranges for
+initial chunk distribution on a compound hashed shard key, see
+:ref:`pre-define-zone-range-hashed-example`.
 
 .. seealso:: :method:`sh.balancerCollectionStatus()`
 
@@ -254,110 +290,99 @@ value. Using these special values for the lower and upper bounds of the range
 captures the entire possible value space of ``a``.
 
 .. _pre-define-zone-range-example:
+.. _pre-define-zone-range-hashed-example:
 
 Pre-Define Zones and Zone Ranges for an Empty or Non-Existing Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/extracts/zoned-sharding-updateZoneKeyRange-change.rst
+Starting in version 4.2, creating zones and zone ranges on empty or
+non-existing collections allows MongoDB to optimize the initial chunk
+creation and distribution process when sharding the collection. This
+optimized process supports faster setup of zoned sharding with less
+balancer overhead than creating zones after sharding. The :ref:`balancer
+<sharding-balancing>` performs all chunk management after the optimized
+initial chunk creation and distribution. See 
+:ref:`updateZoneKeyRange-method-init-chunk-distribution-compound-hashed`
+for more information.
 
-.. include:: /includes/extracts/zoned-sharding-pre-define-zone-without-example-link.rst
+Each of the following tabs contains an example specific to the 
+described shard key type:
 
-First, use :method:`sh.addShardToZone()` to create the zones:
+.. tabs::
 
-.. code-block:: javascript
+   .. tab:: Single or Compound Shard Keys
+      :tabid: single-or-compound
 
-   sh.addShardToZone("shardA", "DC1")
-   sh.addShardToZone("shardB", "DC2")
+      .. note:: 
+     
+         The content in this tab only applies to single-field or 
+         compound shard keys *without* a hashed field. 
+         
+         For example, ``{ "zip" : 1 }`` or  
+         ``{ "zip" : 1, "account" : 1}``
 
-Then, use :method:`sh.updateZoneKeyRange()` to create the ranges:
+      .. include:: /includes/steps/zones-initial-chunk-distribution-single-compound.rst
 
-.. code-block:: javascript
+   .. tab:: Compound Hashed Shard Key with Hashed Prefix
+      :tabid: compound-hashed
 
-   sh.updateZoneKeyRange( 
-      "exampledb.contacts",
-      { zip: 10001 },
-      { zip: 10090 },
-      "DC1"
-   );
+      .. note:: 
+     
+         The content in this tab only applies to compound hashed shard
+         keys where the hashed field is the prefix of the shard key (i.e.
+         the first field in the shard key is hashed).
+        
+         For example, ``{ "_id" : "hashed", "facility" : 1 }``
 
-   sh.updateZoneKeyRange( 
-      "exampledb.contacts",
-      { zip: 90001 },
-      { zip: 96054 },
-      "DC2"
-   );
+      Starting in version 4.4, MongoDB supports sharding collections on
+      :ref:`compound hashed indexes <index-type-compound-hashed>`. When
+      sharding on a compound hashed shard key, MongoDB can perform
+      optimized initial chunk creation and distribution on the empty or
+      non-existing collection *only if* the defined zone ranges meet
+      :ref:`additional requirements
+      <updateZoneKeyRange-method-init-chunk-distribution>`.
 
-If you haven't enabled sharding for ``exampledb``, use
-:method:`sh.enableSharding()` to enable sharding for the database:
+      Consider an empty collection ``examples.metrics`` which will store
+      analytics from one of two manufacturing facilities. The 
+      planned shard key is ``{ "_id" : "hashed", "facility" : 1}``,
+      where the hashed field is the shard key *prefix*.
+ 
+      .. include:: /includes/steps/zones-initial-chunk-distribution-compound-hashed-prefix.rst
 
-.. code-block:: javascript
+   .. tab:: Compound Hashed Shard Key with Non-Prefix Hashed Field
+      :tabid: compound-hashed-no-prefix
 
-   sh.enableSharding("exampledb");
+      .. note:: 
+     
+         The content in this tab only applies to compound hashed shard
+         keys where the hashed field is *not* the prefix of the shard key
+         (i.e. the first field in the shard key is not hashed).
+        
+         For example, ``{ "facility" : 1, "_id" : "hashed" }``
 
-Finally, use :method:`sh.shardCollection()` to shard the collection ``contacts``:
+      Starting in version 4.4, MongoDB supports sharding collections on
+      :ref:`compound hashed indexes <index-type-compound-hashed>`. When
+      sharding on a compound hashed shard key, MongoDB can perform
+      optimized initial chunk creation and distribution on the empty or
+      non-existing collection *only if* the defined zone ranges meet
+      :ref:`additional requirements
+      <updateZoneKeyRange-method-init-chunk-distribution>`.
 
-.. note:: If the collection does not exist, the sharding operation creates the collection.
+      Consider an empty collection ``examples.metrics`` which will store
+      analytics from one of two manufacturing facilities. The planned
+      shard key is ``{ "facility" : 1, "_id" : "hashed" }``, where 
+      the hashed field is *not* the shard key prefix.
 
-.. code-block:: javascript
+      - The ``facility`` field stores the name of the facility: 
+        ``"FacilityAlpha"`` or ``"FacilityBaker"``.  The 
+        collection requires zone ranges on ``facility`` to help isolate 
+        data for each facility to specific shards. 
 
-   sh.shardCollection("exampledb.contacts",  { zip: 1 } );
+      - The ``_id`` field compensates for the low-cardinality of the 
+        ``facility`` field. Hashing compensates for the
+        monotonically-increasing nature of the ``_id`` field.
+       
+      .. include:: /includes/steps/zones-initial-chunk-distribution-compound-hashed-non-prefix.rst
 
-To see the created chunks and distribution, run the
-:method:`sh.status()` operation:
 
-.. code-block:: javascript
-
-   sh.status()
-
-The method returns:
-
-.. code-block:: javascript
-   :emphasize-lines: 19-20, 28-30, 32,34,36-37
-
-   --- Sharding Status --- 
-     sharding version: {
-     	"_id" : 1,
-     	"minCompatibleVersion" : 5,
-     	"currentVersion" : 6,
-     	"clusterId" : ObjectId("5b80c06d35a961fd0ae1986d")
-     }
-     shards:
-           {  "_id" : "shardA",  "host" : "shardA/mongodb0.example.net:27018,mongodb1.example.net:27018,mongodb2.example.net:27018",  "state" : 1,  "tags" : [ "DC1" ] }
-           {  "_id" : "shardB",  "host" : "shardB/mongodb3.example.net:27018,mongodb4.example.net:27018,mongodb5.example.net:27018",  "state" : 1,  "tags" : [ "DC2" ] }
-     active mongoses:
-           "4.2.0" : 2
-     autosplit:
-           Currently enabled: yes
-     balancer:
-           Currently enabled:  yes
-           Currently running:  no
-           Failed balancer rounds in last 5 attempts:  0
-           Migration Results for the last 24 hours: 
-                   No recent migrations
-     databases:
-           {  "_id" : "config",  "primary" : "config",  "partitioned" : true }
-           {  "_id" : "exampledb",  "primary" : "shardA",  "partitioned" : true,  "version" : {  "uuid" : UUID("6c351bcf-acd2-4fd9-82d8-9f6bd7321558"),  "lastMod" : 1 } }
-                   exampledb.contacts
-                           shard key: { "zip" : 1 }
-                           unique: false
-                           balancing: true
-                           chunks:
-                                   shardA   3
-                                   shardB   2
-                           { "zip" : { "$minKey" : 1 } } -->> { "zip" : 10001 } on : shardA Timestamp(1, 0) 
-                           { "zip" : 10001 } -->> { "zip" : 10090 } on : shardA Timestamp(1, 1) 
-                           { "zip" : 10090 } -->> { "zip" : 90001 } on : shardB Timestamp(1, 2) 
-                           { "zip" : 90001 } -->> { "zip" : 96054 } on : shardB Timestamp(1, 3) 
-                           { "zip" : 96054 } -->> { "zip" : { "$maxKey" : 1 } } on : shardA Timestamp(1, 4) 
-                            tag: DC1  { "zip" : 10001 } -->> { "zip" : 10090 }
-                            tag: DC2  { "zip" : 90001 } -->> { "zip" : 96054 }
-
-For the collection, sharding operation created 5 chunks (two chunks
-that correspond to the zone ranges and the other three to cover all
-other values) across shardA and shardB.
-
-.. seealso:: 
-
-   - :method:`sh.addShardToZone()`
-   - :method:`sh.removeRangeFromZone()`
-   - :method:`sh.balancerCollectionStatus()`
+.. seealso:: :method:`sh.addShardToZone()`, :method:`sh.removeRangeFromZone()`
