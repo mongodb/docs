@@ -5,10 +5,9 @@ else
 	USER=$(STAGING_USERNAME)
 endif
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
-PRODUCTION_URL="https://docs.mongodb.com"
+PRODUCTION_URL="https://docs.mongodb.com/database-tools"
 STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-commandline-tools
-PROJECT=docs-commandline-tools
 
 # "PROJECT" currently exists to support having multiple projects
 # within one bucket. For the manual it is empty.
@@ -41,8 +40,6 @@ test: html ## Runs test framework over the corpus
 
 html: examples ## Builds this branch's HTML under build/<branch>/html
 	giza make html
-	# TEMP copy of video file. Remove once video infrastructure in place.
-	if [ -f source/images/agg-pipeline.mp4 ]; then cp source/images/agg-pipeline.mp4 build/${GIT_BRANCH}/html/_images/; fi 
 	
 
 publish: examples ## Builds this branch's publishable HTML and other artifacts under build/public
@@ -72,7 +69,7 @@ stage: ## Host online for review
 # The recursive behavior would CHANGE if --all-subdirectories were
 # given: ALL contents of build/public/<branch> would be upload
 deploy: build/public ## Deploy to the production bucket
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --all-subdirectories ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/index.html"
 
@@ -80,11 +77,7 @@ deploy: build/public ## Deploy to the production bucket
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
-	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o manual-current.json --aliases manual-${GIT_BRANCH} -u ${PRODUCTION_URL}/manual -g -s; \
-	else \
-		mut-index upload build/public/${GIT_BRANCH} -o manual-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${GIT_BRANCH} -s; \
-	fi
+	mut-index upload build/public/${GIT_BRANCH} -o docs-database-tools.json -u ${PRODUCTION_URL}/manual -g -s;
 
 redirects:
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi

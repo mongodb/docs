@@ -68,7 +68,7 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'utils': 'MongoDB Commandline Tools',
+    'utils': 'MongoDB Database Tools',
     'utils-pkg': '``mongo-cli-tools``',
     'package-name-org': 'mongodb-org',
     'package-name-enterprise': 'mongodb-enterprise',
@@ -140,7 +140,7 @@ languages = [
 html_theme = sconf.theme.name
 html_theme_path = [ os.path.join(conf.paths.buildsystem, 'themes') ]
 html_title = conf.project.title
-htmlhelp_basename = 'MongoDBdoc'
+htmlhelp_basename = 'MongoDB'
 
 html_logo = ".static/logo-mongodb.png"
 html_static_path = ['source/.static']
