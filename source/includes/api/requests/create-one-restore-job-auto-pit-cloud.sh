@@ -1,8 +1,8 @@
-curl --user "{USERNAME}:{APIKEY}" --digest \
+curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
   --header "Accept: application/json" \
   --header "Content-Type: application/json" \
   --include \
-  --request POST "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/clusters/{CLUSTER-ID}/restoreJobs?pretty=true" \
+  --request POST "https://{+cloudmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/clusters/{CLUSTER-ID}/restoreJobs?pretty=true" \
   --data '
    {
      "delivery" : {
