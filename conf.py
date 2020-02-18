@@ -168,7 +168,7 @@ html_theme_options = {
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
     'banner': True,
-    'banner_msg': 'This is an upcoming (i.e. in progress) version of the documentation',
+    'banner_msg': 'This is an upcoming (i.e. in progress) version of the 4.4 MongoDB Database Tools Documentation. For the 4.2 Database Tools, see https://docs.mongodb.com/v4.2/program',
 }
 
 # -- Options for manual page output --------------------------------------------
