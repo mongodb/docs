@@ -60,7 +60,7 @@ The second most common problem is that there are firewall rules in
 place that prohibit access to the host from the agent.
 
 To test the connection, login to the host running the agent and try
-to connect using the ``mongo`` shell:
+to connect using the |mongo| shell:
 
 .. code-block:: sh
 

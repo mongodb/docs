@@ -85,8 +85,9 @@ using :manual:`LDAP authorization </core/security-ldap-external>`.
          To discover the appropriate roles for the {+mdbagent+}, see
          :doc:`/reference/required-access-mongodb-agent`.
 
-      From a |mongo| shell connected to your MongoDB deployment,
-      issue the following commands to create the MongoDB user:
+      From a |mongo| shell connected to your MongoDB 
+      deployment, issue the following commands to create the MongoDB 
+      user:
 
       .. literalinclude:: /includes/code-examples/create-user.js
          :language: javascript

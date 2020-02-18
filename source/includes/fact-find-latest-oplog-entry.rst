@@ -1,7 +1,7 @@
 .. topic:: Finding the latest Oplog Entry
 
    To find the latest Oplog entry, run the following query
-   in a :binary:`~bin.mongo` shell:
+   in a |mongo| shell:
 
    .. code-block:: javascript
 
