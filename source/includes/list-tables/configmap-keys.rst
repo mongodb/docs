@@ -86,8 +86,11 @@
      - |url| to your |application| including the |fqdn| and port
        number.
 
+       .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
+
        .. note::
 
-          You may use |cloud-short| for the ``data.baseUrl`` value.
+          If you're using |cloud-short|, set the ``data.baseUrl`` value
+          to ``https://cloud.mongodb.com``.
 
      - ``https://ops.example.com:8443``
