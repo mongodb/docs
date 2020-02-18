@@ -10,7 +10,7 @@
        Application Database.
 
    * - ``name``
-     - The name of the cluster.
+     - Name of the cluster.
 
    * - ``processes``
      - Configuration information for 
@@ -18,7 +18,7 @@
        on the cluster. 
 
    * - ``processes.arbiterOnly``
-     - The flag that indicates whether or not the replica 
+     - Flag that indicates whether or not the replica 
        set member is an :manual:`arbiter </core/replica-set-arbiter/>` 
        node. Value can be: 
 
@@ -26,7 +26,7 @@
        - ``false`` if the member is a non-arbiter node
 
    * - ``processes.buildIndexes``
-     - The flag that indicates whether to direct 
+     - Flag that indicates whether to direct 
        :manual:`mongod </reference/program/mongod/#bin.mongod>` to 
        build :manual:`indexes </indexes/>`. This setting corresponds 
        to the :manual:`buildIndexes 
@@ -38,7 +38,7 @@
      - The location and name of the MongoDB log files.
 
    * - ``processes.disabled``
-     - The flag that indicates whether or not the process is 
+     - Flag that indicates whether or not the process is 
        disabled. Value can be: 
 
        - ``true`` if disabled 
@@ -49,7 +49,7 @@
        Version </reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>` of the deployment.
 
    * - ``processes.hidden``
-     - The flag that indicates whether or not the replica set 
+     - Flag that indicates whether or not the replica set 
        member is :manual:`hidden </core/replica-set-hidden-member/>`. 
        Value can be: 
 
@@ -76,11 +76,11 @@
      - The priority of the member during elections.
 
    * - ``processes.processType``
-     - The type of process. Value will be 
+     - Type of process. Value will be 
        :manual:`mongod </reference/program/mongod/#bin.mongod>`.
 
    * - ``processes.slaveDelay``
-     - The number of seconds behind the primary that the replica set 
+     - Number of seconds behind the primary that the replica set 
        member should lag. 
 
    * - ``processes.version``
@@ -88,6 +88,6 @@
        :manual:`mongod </reference/program/mongod/#bin.mongod>` process.
 
    * - ``processes.votes``
-     - The number of votes that the replica set member 
+     - Number of votes that the replica set member 
        has during elections.
        
