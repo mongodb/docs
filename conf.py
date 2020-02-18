@@ -167,6 +167,8 @@ html_theme_options = {
     'version': version,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
+    'banner': True,
+    'banner_msg': 'This is an upcoming (i.e. in progress) version of the documentation',
 }
 
 # -- Options for manual page output --------------------------------------------

@@ -11,7 +11,7 @@ PRODUCTION_BUCKET=docs-commandline-tools
 
 # "PROJECT" currently exists to support having multiple projects
 # within one bucket. For the manual it is empty.
-PROJECT=
+PROJECT=database-tools
 
 DRIVERS_PATH=source/driver-examples
 
