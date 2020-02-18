@@ -18,6 +18,9 @@ help: ## Show this help message
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
+html:
+	giza make html
+
 publish: ## Build docs locally
 # !!! DOES NOT PUT STUFF ONTO THE INTERNET !!!
 # Builds the artifacts that you will deploy with other targets.
