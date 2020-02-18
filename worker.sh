@@ -1,2 +1,2 @@
 #!/bin/sh
-make html
+make publish

@@ -12,9 +12,6 @@ STABLE_BRANCH=`grep 'manual' build/docs-tools/data/${PROJECT}-published-branches
 
 .PHONY: help publish stage deploy deploy-search-index
 
-html:
-	giza make html
-
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo
