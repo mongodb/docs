@@ -2,10 +2,10 @@ MongoDB Community
 ~~~~~~~~~~~~~~~~~
 
 For questions, discussions, or general technical support, visit the
-`MongoDB Community Support Forum <https://groups.google.com/forum/#!forum/mongodb-user?jmp=docs>`_.
-The MongoDB Community Support forum is a community forum where experienced 
-MongoDB users and MongoDB Community Support Engineers participate in
-discussions.
+`MongoDB Community Forums
+<https://community.mongodb.com/>`_.
+The MongoDB Community Forums are a centralized place to connect with
+other MongoDB users, ask questions, and get answers.
 
 MongoDB Enterprise or Ops Manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
