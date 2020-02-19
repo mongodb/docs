@@ -39,27 +39,111 @@ Procedure
 How you connect to a MongoDB resource that the |k8s-op-short| deployed
 from outside of the |k8s| cluster depends on the resource.
 
-- For standalone or sharded cluster deployments, set the resource's
-  :setting:`spec.exposedExternally` flag to ``true``.
+.. tabs-deployments::
 
-  When this flag is set to ``true``, the |k8s-op-short| creates a
-  :k8sdocs:`NodePort service </concepts/services-networking/service/>`.
-  The NodePort service exposes the deployment as a network service,
-  thereby enabling access from outside of the |k8s| cluster.
+   .. tab::
+      :tabid: standalone
 
-- For replica sets, set the resource's:
+      Set the following values on your resource:
 
-  - :setting:`spec.security.tls.enabled` to ``true``.
-  - :setting:`spec.security.tls.additionalCertificateDomains` to the
-    collection of one or more domains for the other horizons that this
-    replica set uses.
-  - :setting:`spec.connectivity.replicaSetHorizons` to the collection
-    of horizons and |uri|\s of the replica set.
+      - :setting:`spec.exposedExternally` flag to ``true``.
+      - :setting:`spec.security.tls.additionalCertificateDomains` to
+        the collection of one or more domains for the other horizons
+        that this resource uses if it uses |tls|.
+
+      When you set :setting:`spec.exposedExternally` to ``true``, the
+      |k8s-op-short| creates a
+      :k8sdocs:`NodePort service </concepts/services-networking/service/>`.
+      The NodePort service exposes the deployment as a network service,
+      thereby enabling access from outside of the |k8s| cluster.
+
+   .. tab::
+      :tabid: repl
+
+      This procedure uses the following example:
+
+      .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
+         :language: yaml
+         :start-after: START-horizon-addcert-replset
+         :end-before: END-horizon-addcert-replset
+         :linenos:
+         :lineno-start: 1
+         :copyable: false
+
+      1. Set the following values on your resource:
+
+         - :setting:`spec.security.tls.enabled` to ``true``.
+         - :setting:`spec.connectivity.replicaSetHorizons` to the
+           collection of horizons and |uri|\s of the replica set.
+
+      2. Create a NodePort for each |k8s-pod|:
+
+         .. code-block:: sh
+
+            kubectl expose pod/<my-replica-set>-0 --type="NodePort" --port 27017
+            kubectl expose pod/<my-replica-set>-1 --type="NodePort" --port 27017
+            kubectl expose pod/<my-replica-set>-2 --type="NodePort" --port 27017
+
+      3. Discover the dynamically assigned NodePorts:
+
+         .. code-block:: sh
+
+            $ kubectl get svc | grep <my-replica-set>
+            <my-replica-set>-0                      NodePort    172.30.39.228    <none>        27017:30907/TCP              16m
+            <my-replica-set>-1                      NodePort    172.30.185.136   <none>        27017:32350/TCP              16m
+            <my-replica-set>-2                      NodePort    172.30.84.192    <none>        27017:31185/TCP              17m
+            <my-replica-set>-svc                    ClusterIP   None             <none>        27017/TCP                    38m
+
+      4. Update the ports that you set for the ``example-website``
+         connectivity setting. These ports must match the external
+         NodePorts that you discovered.
+
+         .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
+            :language: yaml
+            :start-after: START-horizon-addcert-replset-lower-nodeports
+            :end-before: END-horizon-addcert-replset-lower-nodeports
+            :linenos:
+            :lineno-start: 15
+            :emphasize-lines: 6-8
+
+         .. note::
+
+            You may need to delete each |k8s-pod| and have the |k8s-op-short| reconfigure the horizons.
+
+      5. Test the connection to the replica set.
+
+         .. code-block:: sh
+
+            mongo --host <my-replica-set>/web1.example.com:30907,web2.example.com:32350,web3.example.com:31185 --ssl --sslAllowInvalidCertificates
+
+         If the connection succeeds, you should see:
+
+         .. code-block:: javascript
+
+            MongoDB Enterprise <my-replica-set>:PRIMARY>
+
+   .. tab::
+      :tabid: shard
+
+      Set the following values on your resource:
+
+      - :setting:`spec.exposedExternally` flag to ``true``.
+      - :setting:`spec.security.tls.additionalCertificateDomains` to
+        the collection of one or more domains for the other horizons
+        that this resource uses if it uses |tls|.
+
+      When you set :setting:`spec.exposedExternally` to ``true``, the
+      |k8s-op-short| creates a
+      :k8sdocs:`NodePort service </concepts/services-networking/service/>`.
+      The NodePort service exposes the deployment as a network service,
+      thereby enabling access from outside of the |k8s| cluster.
+
 
 Example Deployment Configurations
 ---------------------------------
 
 .. tabs-deployments::
+   :hidden:
 
    .. tab::
       :tabid: standalone
@@ -125,8 +209,8 @@ Example Deployment Configurations
 
       .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
          :language: yaml
-         :start-after: START-horizon-addcert-replset-lower
-         :end-before: END-horizon-addcert-replset-lower
+         :start-after: START-horizon-addcert-replset-lower-nodeports
+         :end-before: END-horizon-addcert-replset-lower-nodeports
          :linenos:
          :lineno-start: 15
          :emphasize-lines: 1-8
