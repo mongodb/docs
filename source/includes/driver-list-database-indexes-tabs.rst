@@ -43,7 +43,7 @@
                     let idxValues = Object.values(Object.assign({}, idx.key));
 
                     if (idxValues.includes("hashed")) {
-                      print("Hashed index: " + idx.name + " on " + idx.ns);
+                      print("Hashed index: " + idx.name + " on " + d.name + "." + c.name);
                       printjson(idx);
                     };
                   }); 
