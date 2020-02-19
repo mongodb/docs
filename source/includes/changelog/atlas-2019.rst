@@ -29,7 +29,7 @@
   </security-private-endpoint>`.
 
 - Supports "Passwordless" X.509 authentication for database users. You
-  can :doc:`Configure MongoDB Users </security-add-mongodb-users>`
+  can :doc:`Configure Database Users </security-add-mongodb-users>`
   to use Atlas-managed X.509 authentication, or you can 
   :doc:`Set up Self-Managed X.509 </security-self-managed-x509>`.
 
