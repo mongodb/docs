@@ -64,6 +64,7 @@ extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', ''),
     'api': ('https://api.mongodb.com/%s', ''),
     'manual': ('https://docs.mongodb.org/manual%s', ''),
+    'spec': ('https://github.com/mongodb/specifications/blob/master/source%s', ''),
     'gettingstarted': ('https://docs.mongodb.org/getting-started%s', ''),
     'atlas': ('https://docs.atlas.mongodb.com%s', ''),
     'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
