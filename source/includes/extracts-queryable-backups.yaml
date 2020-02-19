@@ -4,7 +4,7 @@ content: |
 
    |mms| provisions these queryable snapshots as *read-only* MongoDB
    instances.
-  
+
    .. important::
 
       These instances are available for up to 24 hours.
@@ -21,7 +21,7 @@ content: |
    .. important::
 
       By default, these instances are available for up to 24 hours. You
-      can configure the duration using 
+      can configure the duration using
       :setting:`Expiration (Hours) <Expiration>`.
       For other queryable backup settings, see
       :ref:`queryable-snapshot-settings`.
@@ -98,8 +98,75 @@ content: |
         - 3.4.2 Enterprise or later
         - Linux or macOS
 
+   Authentication and Authorization
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. important::
+
+      .. include:: /includes/fact-out-of-scope-ssl-certs.rst
+
+   |onprem| needs a separate |pem| file to authenticate and authorize
+   use of Queryable Backup. This |pem| file:
+
+   - Must belong to the same platform user and group that owns the
+     |onprem| process. On Linux, the ``mongodb-mms:mongodb-mms`` user
+     and group owns this PEM file. On Windows, use the ``SYSTEM`` user.
+
+   - Must be readable by the platform user only.
+
+   - Must be saved in the same location on every |onprem| host if your
+     deployment :doc:`uses high availability </tutorial/configure-application-high-availability>`.
+
+   - Must be different than the one used for |https| connections to
+     |onprem| (:setting:`HTTPS PEM Key File`).
+
+   - Should use a key length greater than 512-bit. Using a 2048-bit RSA
+     key is recommended.
+
+   - Should use a message digest stronger than ``sha1``, such as
+     ``sha256``.
+
+   At minimum, the |pem| file consists of:
+
+   - A server certificate / key pair and
+   - A |certauth| certificate / key pair
+
+   These pairs are merged to create a |pem| file that Queryable Backup
+   can use. The pairs have the following requirements:
+
+   Certificate Authority Certificate / Key Pair
+   ````````````````````````````````````````````
+
+   The |certauth| must sign any other certs and keys to be used in the
+   PEM file. The |certauth| can be one of the following:
+
+   - A private |certauth| (self signed; recommended for test purposes).
+
+   - An intermediate |certauth| certificate/key pair from a
+     :wikipedia:`certificate provider
+     </Certificate_authority#Providers>`.
+
+   - A |certauth| that your company security team issued.
+
+   Server Certificate / Key Pair
+   `````````````````````````````
+
+   The |certauth| that you selected must sign this server certificate.
+
+   The Common Name setting of the server certificate/key pair depends
+   on how many hosts your |onprem| deployment uses:
+
+   a. For a single |onprem| host, the Common Name in the pair must
+      match the |fqdn| of the |onprem| host.
+
+   b. For high availability, the Common Name in the pair must match the
+      |fqdn| of the load balancer |url|.
+
+   Concatenate the server certificate / key pair and the certificate
+   chain to create the Proxy Server PEM Key.
+
    PEM File Location
-   ~~~~~~~~~~~~~~~~~
+   `````````````````
 
    For the queryable backup host, you must specify the location of the
    PEM file (which contains both a public key certificate and its
@@ -107,7 +174,7 @@ content: |
    setting. If you have not already set up the queryable backup
    settings:
 
-   #. Click on :guilabel:`Admin` on the upper-right hand corner. From 
+   #. Click on :guilabel:`Admin` on the upper-right hand corner. From
       the :guilabel:`Admin` screen, click on :guilabel:`General`
       :icon:`arrow-right` :guilabel:`Ops Manager Config`
       :icon:`arrow-right` :guilabel:`Backup`.
@@ -117,9 +184,10 @@ content: |
       clients can use to connect to the queryable :program:`mongod`
       instance.
 
-      If the file is encrypted, specify the :setting:`Proxy Server PEM File Password`.
+      If the file is encrypted, specify the
+      :setting:`Proxy Server PEM File Password`.
 
-   #. Optional. Update other queryable snapshot settings as
+   #. *Optional.* Update other queryable snapshot settings as
       appropriate. For description of the settings, see
       :ref:`queryable-snapshot-settings`.
 
@@ -130,6 +198,9 @@ content: |
 
    The app server requires that ports 27700-27719 be open for
    communication with queryable backup snapshots.
+
+   If you use a load balancer, it must pass the |tcp| connection
+   through the value in the :setting:`Proxy Port`.
 
    To learn more about port requirements, see
    :doc:`Firewall Configuration </reference/firewall-configuration>`.
@@ -151,9 +222,9 @@ content: |
    Queryable Backup Requires Enterprise Downloads
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   If |onprem| can connect to the internet, set 
-   :guilabel:`Backup Versions Auto Download Enterprise Builds` to 
-   **TRUE**. Queryable Backups require MongoDB Enterprise. 
+   If |onprem| can connect to the internet, set
+   :guilabel:`Backup Versions Auto Download Enterprise Builds` to
+   **TRUE**. Queryable Backups require MongoDB Enterprise.
 ---
 ref: queryable-backup-prerequisites
 edition: cloud
@@ -247,33 +318,33 @@ edition: cloud
 content: ""
 ---
 ref: queryable-backup-proxy-port
-edition: onprem  
+edition: onprem
 content: |
    After updating :setting:`Proxy Server Port`, restart the Web
-   Server for the change to take effect. 
----  
-ref: queryable-backup-proxy-port 
-edition: cloud 
-content: ""  
----  
-ref: queryable-backup-proxy-pem-file 
-edition: onprem  
+   Server for the change to take effect.
+---
+ref: queryable-backup-proxy-port
+edition: cloud
+content: ""
+---
+ref: queryable-backup-proxy-pem-file
+edition: onprem
 content: |
    After updating :setting:`Proxy Server PEM File`, restart the Web
    Server for the change to take effect.
----  
-ref: queryable-backup-proxy-pem-file 
-edition: cloud 
-content: ""  
----  
-ref: queryable-backup-proxy-pem-password 
-edition: onprem  
+---
+ref: queryable-backup-proxy-pem-file
+edition: cloud
+content: ""
+---
+ref: queryable-backup-proxy-pem-password
+edition: onprem
 content: |
    After updating :setting:`Proxy Server PEM File Password`, restart
    the Web Server for the change to take effect.
----  
-ref: queryable-backup-proxy-pem-password 
-edition: cloud 
+---
+ref: queryable-backup-proxy-pem-password
+edition: cloud
 content: ""
 
 ...
