@@ -1,3 +1,15 @@
+.. _10.11.0.6161:
+
+MongoDB Agent 10.11.0.6161
+--------------------------
+
+*Released* 2020-02-18
+
+- Fixes log rotation issue. Ensures that an error rotating one category
+  of log file does not interfere with rotations for another category of
+  log file.
+- Improves logging.
+
 .. _10.10.0.6122-1:
 
 MongoDB Agent 10.10.0.6122-1
@@ -7,20 +19,23 @@ MongoDB Agent 10.10.0.6122-1
 
 - Upgrades to MongoDB Go Driver 1.1.4.
 
-- Reduces memory allocations for buffers used for HTTPS communication with
-  cloud services, increasing the operational efficiency of the :doc:`Real Time
-  Performance Panel </tutorial/view-diagnostics>`.
+- Reduces memory allocations for buffers used for HTTPS communication
+  with cloud services, increasing the operational efficiency of the
+  :doc:`Real Time Performance Panel </tutorial/view-diagnostics>`.
 
-- Adds a timezone to MongoDB Agent :doc:`log lines </tutorial/view-logs>`.
+- Adds a timezone to MongoDB Agent
+  :doc:`log lines </tutorial/view-logs>`.
 
-- Supports concurrent :manual:`draining </manual/tutorial/remove-shards-from-cluster>`
+- Supports concurrent
+  :manual:`draining </tutorial/remove-shards-from-cluster>`
   of multiple shards for MongoDB 4.2.1+.
 
-- Allows automated restores to proceed if the target processes are corrupt
-  before the restore begins.
+- Allows automated restores to proceed if the target processes are
+  corrupt before the restore begins.
 
-- Fix: during a rolling index build for an unsharded collection on a sharded
-  collection, only index the collection on the shard on which it already exists.
+- Fixes indexing issue. During a rolling index build for an unsharded
+  collection on a sharded collection, only index the collection on the
+  shard on which it already exists.
 
 .. _10.9.0.6088-1:
 
@@ -29,14 +44,15 @@ MongoDB Agent 10.9.0.6088-1
 
 *Released* 2020-01-07
 
-- Improves performance when applying changes to sharded clusters with many
-  shards.
+- Improves performance when applying changes to sharded clusters with
+  many shards.
 
-- Significant memory management improvements for sharded clusters with very
-  large tag sets for :manual:`zoned sharding </core/zone-sharding>`.
+- Significant memory management improvements for sharded clusters with
+  very large tag sets for
+  :manual:`zoned sharding </core/zone-sharding>`.
 
-- Fix: Automated restores can proceed successfully if the target process is
-  unresponsive before the restore begins.
+- Fixes issue with automated restores. They can proceed successfully if
+  the target process is unresponsive before the restore begins.
 
 .. _mongodb-10.7.0.6016:
 

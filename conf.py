@@ -85,7 +85,8 @@ extlinks = {
     'cc' : ('http://creativecommons.org/licenses%s', ''),
     'tldrl' : ('https://www.tldrlegal.com%s', ''),
     'contact': ('https://www.mongodb.com/lp/contact%s?jmp=docs',''),
-    'uservoice' : ('https://feedback.mongodb.com/forums/%s?jmp=docs','')
+    'uservoice' : ('https://feedback.mongodb.com/forums/%s?jmp=docs',''),
+    'mdbacct': ('https://account.mongodb.com/account%s',''),
 }
 
 source_constants = {
