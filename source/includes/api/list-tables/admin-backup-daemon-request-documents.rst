@@ -8,31 +8,31 @@
      - Necessity
      - Description
 
-   * - assignmentEnabled
+   * - ``assignmentEnabled``
      - boolean
      - Optional
      - Flag indicating whether this :term:`Backup Daemon` can be
        assigned backup jobs.
 
-   * - backupJobsEnabled
+   * - ``backupJobsEnabled``
      - boolean
      - Optional
      - Flag indicating whether this :term:`Backup Daemon` can be used
        to backup databases.
 
-   * - configured
+   * - ``configured``
      - boolean
      - Optional
      - Flag indicating whether this :term:`Backup Daemon` is ready to
        use.
 
-   * - garbageCollectionEnabled
+   * - ``garbageCollectionEnabled``
      - boolean
      - Optional
      - Flag indicating whether this :term:`Backup Daemon` has garbage
        collection set.
 
-   * - headDiskType
+   * - ``headDiskType``
      - string
      - Optional
      - Type of disk used to store the :term:`head directory`.
@@ -42,7 +42,7 @@
        - ``HDD``
        - ``SSD``
 
-   * - labels
+   * - ``labels``
      - array of strings
      - Optional
      - Array of tags to manage which
@@ -54,36 +54,38 @@
        backup jobs for projects that do not use labels to filter their
        jobs.
 
-   * - machine
+   * - ``machine``
      - object
      - Required
      - :term:`Backup Daemon` host and its
        :term:`head directories <head directory>`.
 
-   * - machine.headRootDirectory
+   * - ``machine.headRootDirectory``
      - string
      - Optional
      - Root-relative path of the :term:`head directory` on this
-       :term:`Backup Daemon` host.
+       :term:`Backup Daemon` host. This directory must end with a slash
+       (``/``). If you omit the slash, the Backup Daemon generates a
+       Java Exception error.
 
-   * - machine.machine
+   * - ``machine.machine``
      - string
      - Required
      - Hostname or IP address of the :term:`Backup Daemon` host.
 
-   * - numWorkers
+   * - ``numWorkers``
      - number
      - Optional
      - Number of worker processes that can perform tasks
        (i.e. backup, restore, or groom) for the :term:`Backup Daemon`.
 
-   * - resourceUsageEnabled
+   * - ``resourceUsageEnabled``
      - boolean
      - Optional
      - Flag indicating whether this :term:`Backup Daemon` has its
        resource usage monitored.
 
-   * - restoreQueryableJobsEnabled
+   * - ``restoreQueryableJobsEnabled``
      - boolean
      - Optional
      - Flag indicating whether this :term:`Backup Daemon` can perform
