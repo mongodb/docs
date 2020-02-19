@@ -194,7 +194,8 @@ extlinks = {
     'gcp': ('https://cloud.google.com%s',''),
     'hardlink': ('https://docs.atlas.mongodb.com%s', ''),
     'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
-    'ruby': ('https://docs.mongodb.com/ruby-driver/current%s', '')
+    'ruby': ('https://docs.mongodb.com/ruby-driver/current%s', ''),
+    'mdbacct': ('https://account.mongodb.com/account%s',''),
 }
 
 # add `extlinks` for each published version.
