@@ -30,8 +30,8 @@
      - Conditional
      - Add this parameter and values if you need your database to be
        accessed outside of |k8s|. This setting allows you to provide
-       different |dns| settings for client applications and the
-       {+mdbagent+}s. The |k8s-op-short| uses split horizon |dns| for
+       different |dns| settings within the |k8s| cluster and to the
+       |k8s| cluster. The |k8s-op-short| uses split horizon |dns| for
        replica set members. This feature allows communication both
        within the |k8s| cluster and from outside |k8s|.
 
