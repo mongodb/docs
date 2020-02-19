@@ -1,0 +1,150 @@
+---
+title: "Create a ConfigMap for the Certificate Authority certificate."
+stepnum: 1
+level: 4
+ref: create-configmap-ca
+content: |
+  The |k8s-op-short| requires the root |certauth| certificate of the
+  Certificate Authority that issued the |mms| host's certificate. Run
+  the following command to create a |k8s-configmap| containing the root
+  CA certificate in the same namespace of your database pods:
+
+  .. code-block:: sh
+
+     kubectl -n <namespace> create configmap <root-ca-configmap-name> \
+       --from-file=mms-ca.crt
+
+  .. important::
+
+     The |k8s-op-short| requires that the certificate is named
+     ``mms-ca.crt`` in the ConfigMap.
+---
+title: "Copy the following example ConfigMap."
+stepnum: 0
+level: 4
+ref: copy-k8s-configmap
+content: |
+
+  .. literalinclude:: /reference/k8s/example-configmap.yaml
+     :language: yaml
+     :emphasize-lines: 5-6, 8-10
+---
+title: "Add the highlighted section to your project's ConfigMap."
+stepnum: 0
+level: 4
+ref: paste-k8s-configmap
+content: |
+  a. Open your project's ConfigMap in your preferred text editor.
+
+  b. Paste the highlighted section in the example |k8s-configmap| at
+     the end of the project ConfigMap.
+---
+title: "Save this file with a ``.yaml`` file extension."
+stepnum: 0
+level: 4
+ref: save-k8s-configmap
+---
+title: "Invoke the |k8s| command to create your |k8s-configmap|."
+stepnum: 0
+level: 4
+ref: create-k8s-configmap
+content: |
+  .. code-block:: sh
+
+      kubectl apply -f <myconfigmap.yaml>
+
+  .. important::
+
+     All subsequent ``kubectl`` commands you invoke must add the
+     ``-n`` option with the :setting:`metadata.namespace` you
+     specified in your |k8s-configmap|.
+---
+title: "Reapply your |k8s-configmap|."
+stepnum: 0
+level: 4
+ref: reapply-k8s-configmap
+content: |
+
+  Invoke the |k8s| command to update your |k8s-configmap|.
+
+  .. code-block:: sh
+
+      kubectl apply -f <myconfigmap.yaml>
+
+  .. important::
+
+     All subsequent ``kubectl`` commands you invoke must add the
+     ``-n`` option with the :setting:`metadata.namespace` you
+     specified in your |k8s-configmap|.
+---
+title: "Invoke the |k8s| command to verify your |k8s-configmap|."
+stepnum: 0
+level: 4
+ref: verify-k8s-configmap
+content: |
+  .. code-block:: sh
+
+     kubectl describe configmaps <myconfigmap> -n <metadata.namespace>
+
+  .. admonition:: *Always include the namespace option with* ``kubectl``
+     :class: important
+
+     |kubectl| defaults to an empty namespace if you do not specify the
+     ``-n`` option, resulting in deployment failures. You must specify
+     the value of the ``<metadata.namespace>`` field. The
+     |k8s-op-short|, |k8s-secret|, and |k8s-mdbrsc|\s should run in the
+     same unique namespace.
+
+  This command returns a ConfigMap description in the shell:
+
+  .. code-block:: sh
+
+     Name:           <myconfigmap>
+     Namespace:      <metadata.namespace>
+     Labels:         <none>
+     Annotations:    <none>
+---
+title: "Approve the X.509 client certificates for the agents."
+stepnum: 0
+level: 4
+ref: approve-agent-certificates
+content: |
+  .. note::
+
+     If X.509 client authentication was *not* enabled in step 4, skip
+     this step.
+
+  Run the following command to verify the agent certificate signing
+  requests are pending:
+
+  .. code-block:: sh
+
+     kubectl get csr
+
+  The command returns the following output:
+
+  .. code-block:: sh
+     :copyable: false
+
+     NAME                           AGE       REQUESTOR                                                   CONDITION
+     mms-automation-agent.mongodb   4s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     mms-backup-agent.mongodb       0s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+     mms-monitoring-agent.mongodb   3s        system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
+
+  Approve the certificate for each agent using the ``NAME`` field
+  above in the following command:
+
+  .. code-block:: sh
+
+     kubectl certificate approve <NAME>
+
+  .. example::
+
+     The following commands approve the agent |csrs|:
+
+     .. code-block:: sh
+
+        kubectl certificate approve mms-automation-agent.mongodb
+        kubectl certificate approve mms-backup-agent.mongodb
+        kubectl certificate approve mms-monitoring-agent.mongodb
+...

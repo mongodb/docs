@@ -85,7 +85,7 @@ rst_epilog = '\n'.join([
     '.. |bic-short| replace:: :bic:`BI Connector </>`',
     '.. |bic| replace:: BI Connector for Atlas',
     '.. |bson| replace:: :abbr:`BSON (Binary Javascript Object Notation)`',
-    '.. |certauth| replace:: Certificate Authority',
+    '.. |certauth| replace:: :abbr:`CA (Certificate Authority)`',
     '.. |cidr| replace:: :abbr:`CIDR (Classless Inter-Domain Routing)`',
     '.. |cifs| replace:: :abbr:`CIFS (Common Internet File System)`',
     '.. |com| replace:: Cloud Manager or Ops Manager',
