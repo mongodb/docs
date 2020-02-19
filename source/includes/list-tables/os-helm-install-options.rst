@@ -5,6 +5,24 @@
    * - Setting
      - When to Use
 
+   * - ``registry.imagePullSecrets``
+     - |k8s-secret| that contains the credentials required to pull imagePullSecrets
+       from the repository.
+
+       .. important::
+
+          This setting is mandatory for OpenShift installs. You must 
+          either define it in this file or pass it when you install the 
+          |k8s-op-short| using Helm.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               imagePullSecrets: <openshift-pull-secret>
+
    * - ``namespace``
      - To use a different namespace, you need to specify that
        ``namespace``.
@@ -74,15 +92,3 @@
 
              operator:
                watchNamespace: *
-
-   * - ``registry.imagePullSecrets``
-     - |k8s-secret| that contains the credentials required to pull imagePullSecrets
-       from the repository.
-
-       .. example::
-
-          .. code-block:: sh
-             :emphasize-lines: 2
-
-             registry:
-               imagePullSecrets: <openshift-pull-secret>
