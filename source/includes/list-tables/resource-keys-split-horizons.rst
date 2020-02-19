@@ -16,29 +16,13 @@
        deployment.
 
        By default, |k8s-op-short| requires hosts to use and accept
-       |tls| encrypted connections. This value defaults to ``true``.
+       |tls| encrypted connections.
+
+       .. note::
+
+          To connect to a replica set from outside |k8s|, set this
+          value to ``true``.
      - ``true``
-
-   * - | ``spec.security.tls``
-       | :setting:`.additional<spec.security.tls.additionalCertificateDomains>`
-       | :setting:`CertificateDomains<spec.security.tls.additionalCertificateDomains>`
-     - collection
-     - Conditional
-     - Add any domains that should be added to |tls| certificates for
-       this deployment. When you set this parameter, every |csr| that
-       the |k8s-op-short| transforms into a |tls| certificate includes
-       a |san-dns| in the form ``<pod name>.<additional cert domain>``.
-
-       .. example::
-
-          In this example, this would result in three certificates, one
-          for each member of the replica set, with |san-dns|\s of:
-
-          - ``my-replica-set-0.web.example.com``
-          - ``my-replica-set-1.web.example.com``
-          - ``my-replica-set-2.web.example.com``
-
-     - :setting:`See Setting<spec.security.tls.additionalCertificateDomains>`
 
    * - | ``spec.connectivity``
        | ``.replicaSetHorizons``
@@ -48,12 +32,10 @@
        accessed outside of |k8s|. This setting allows you to provide
        different |dns| settings for client applications and the
        {+mdbagent+}s. The |k8s-op-short| uses split horizon |dns| for
-       replica set members horizons to allow the:
+       replica set members. This feature allows communication both
+       within the |k8s| cluster and from outside |k8s|.
 
-       - {+mdbagent+}s to communicate with each other on the internal
-         horizon within |k8s|
-       - clients to communicate with the replica set using the external
-         horizon outside |k8s|
+       You may add multiple external mappings per host.
 
        .. admonition:: Split Horizon Requirements
           :class: note
