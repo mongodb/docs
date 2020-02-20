@@ -12,7 +12,7 @@
        | :setting:`.tls.enabled<spec.security.tls.enabled>`
      - boolean
      - Optional
-     - If this value is ``true``, |tls| is enabled on the MongoDB
+     - Set this value to ``true`` to enable |tls| on the MongoDB
        deployment.
 
        By default, |k8s-op-short| requires hosts to use and
