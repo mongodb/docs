@@ -1,0 +1,162 @@
+---
+title: "Open your sharded cluster resource |yaml| file."
+level: 4
+stepnum: 1
+ref: open-sc-resource
+content: |
+
+---
+stepnum: 2
+ref: copy-k8s-example-sc
+source:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: copy-k8s-example-resource
+replacement:
+  k8sResource: :term:`sharded cluster`
+  k8sExampleFileName: example-sharded-cluster.yaml
+  k8sResourceType: sharded-cluster
+  k8sExample: |
+
+    .. tabs::
+
+       .. tab:: Without TLS
+          :tabid: k8s-without-tls
+
+          .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+             :language: yaml
+             :start-after: START-exposed-sharded-upper
+             :end-before: END-exposed-sharded-upper
+             :linenos:
+             :lineno-start: 1
+             :copyable: false
+
+          .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+             :language: yaml
+             :start-after: START-exposed-sharded-lower
+             :end-before: END-exposed-sharded-lower
+             :linenos:
+             :lineno-start: 19
+             :emphasize-lines: 1
+
+       .. tab:: With TLS
+          :tabid: k8s-with-tls
+
+          .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+             :language: yaml
+             :start-after: START-exposed-sharded-upper
+             :end-before: END-exposed-sharded-upper
+             :linenos:
+             :lineno-start: 1
+             :copyable: false
+
+          .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+             :language: yaml
+             :start-after: START-exposed-sharded-tls-lower
+             :end-before: END-exposed-sharded-tls-lower
+             :linenos:
+             :lineno-start: 19
+             :emphasize-lines: 1-6
+---
+level: 4
+stepnum: 3
+ref: paste-k8s-example-sc
+source:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: paste-k8s-example-resource-section
+replacement:
+  k8sResource: :term:`sharded cluster`
+
+---
+title: "Change the highlighted settings to your preferred values."
+level: 4
+stepnum: 4
+ref: change-replset-resource
+content: |
+
+    .. tabs::
+
+       .. tab:: Without TLS
+          :tabid: k8s-without-tls
+
+          .. include:: /includes/list-tables/resource-keys-external-access-standalone.rst
+
+
+       .. tab:: With TLS
+          :tabid: k8s-with-tls
+
+          .. include:: /includes/list-tables/resource-keys-external-access-sharded.rst
+
+---
+level: 4
+stepnum: 5
+ref: save-object-spec-sc
+source:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: save-object-spec-update
+replacement:
+  k8sResource: :term:`sharded cluster`
+---
+level: 4
+stepnum: 6
+ref: start-k8s-deployment-sc
+source:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: restart-k8s-deployment
+replacement:
+  k8sResource: :term:`sharded cluster`
+  k8sResourceType: sharded-cluster
+
+---
+title: Discover the dynamically assigned NodePorts.
+level: 4
+stepnum: 7
+ref: k8s-ext-sc-discover-nodeports
+content: |
+
+  Discover the dynamically assigned NodePort:
+
+  .. code-block:: sh
+
+     kubectl get services -n <namespace>
+
+  The list output should contain an entry similar to the following:
+
+  .. code-block:: sh
+     :copyable: false
+
+     NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+
+     <my-sharded cluster>      NodePort    10.106.44.30    <none>        27017:30078/TCP   10s
+
+  - |k8s| exposes |mongod| on port ``27017`` within the |k8s|
+    container.
+
+  - The NodePort service exposes the ``mongod`` via port ``30078``.
+    NodePorts range from 30000 to 32767, inclusive.
+
+---
+title: Test the connection to the sharded cluster.
+level: 4
+stepnum: 8
+ref: k8s-ext-sc-test-conn
+content: |
+
+  To connect to your deployment from outside of the |k8s| cluster, run
+  the |mongod| command with the external |fqdn| of a |k8s-node| as the
+  ``--host`` flag.
+
+  .. example::
+
+     If a node in the |k8s| cluster has an external |fqdn| of
+     ``ec2-54-212-23-143.us-west-2.compute.amazonaws.com``, you can
+     connect to this sharded cluster instance from outside of the |k8s|
+     cluster using the following command:
+
+     .. code-block:: sh
+        :copyable: false
+
+        mongo --host ec2-54-212-23-143.us-west-2.compute.amazonaws.com --port 30078
+
+  .. include:: /includes/admonitions/fact-get-external-dns.rst
+
+...

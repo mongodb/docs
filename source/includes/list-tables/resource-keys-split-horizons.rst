@@ -25,7 +25,7 @@
      - ``true``
 
    * - | ``spec.connectivity``
-       | ``.replicaSetHorizons``
+       | :setting:`.replicaSetHorizons<spec.connectivity.replicaSetHorizons>`
      - collection
      - Conditional
      - Add this parameter and values if you need your database to be

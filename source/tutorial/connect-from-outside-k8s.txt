@@ -44,18 +44,17 @@ from outside of the |k8s| cluster depends on the resource.
    .. tab::
       :tabid: standalone
 
-      Set the following values on your resource:
+      This procedure uses the following example:
 
-      - :setting:`spec.exposedExternally` flag to ``true``.
-      - :setting:`spec.security.tls.additionalCertificateDomains` to
-        the collection of one or more domains for the other horizons
-        that this resource uses if it uses |tls|.
+      .. literalinclude:: /includes/code-examples/yaml-files/example-standalone.yaml
+        :language: yaml
+        :start-after: START-standalone-exposed-full
+        :end-before: END-standalone-exposed-full
+        :linenos:
+        :lineno-start: 1
+        :emphasize-lines: 15
 
-      When you set :setting:`spec.exposedExternally` to ``true``, the
-      |k8s-op-short| creates a
-      :k8sdocs:`NodePort service </concepts/services-networking/service/>`.
-      The NodePort service exposes the deployment as a network service,
-      thereby enabling access from outside of the |k8s| cluster.
+      .. include:: /includes/steps/enable-external-standalone.rst
 
    .. tab::
       :tabid: repl
@@ -75,144 +74,51 @@ from outside of the |k8s| cluster depends on the resource.
          :linenos:
          :lineno-start: 1
          :copyable: false
+         :emphasize-lines: 16-22
 
       .. include:: /includes/steps/enable-split-horizon.rst
 
    .. tab::
       :tabid: shard
 
-      Set the following values on your resource:
+      .. tabs::
 
-      - :setting:`spec.exposedExternally` flag to ``true``.
-      - :setting:`spec.security.tls.additionalCertificateDomains` to
-        the collection of one or more domains for the other horizons
-        that this resource uses if it uses |tls|.
+         .. tab:: Without TLS
+            :tabid: k8s-without-tls
 
-      When you set :setting:`spec.exposedExternally` to ``true``, the
-      |k8s-op-short| creates a
-      :k8sdocs:`NodePort service </concepts/services-networking/service/>`.
-      The NodePort service exposes the deployment as a network service,
-      thereby enabling access from outside of the |k8s| cluster.
+            .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+               :language: yaml
+               :start-after: START-exposed-sharded-upper
+               :end-before: END-exposed-sharded-upper
+               :linenos:
+               :lineno-start: 1
+               :copyable: false
 
+            .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+               :language: yaml
+               :start-after: START-exposed-sharded-lower
+               :end-before: END-exposed-sharded-lower
+               :linenos:
+               :lineno-start: 19
+               :emphasize-lines: 1
 
-Example Deployment Configurations
----------------------------------
+         .. tab:: With TLS
+            :tabid: k8s-with-tls
 
-.. tabs-deployments::
-   :hidden:
+            .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+               :language: yaml
+               :start-after: START-exposed-sharded-upper
+               :end-before: END-exposed-sharded-upper
+               :linenos:
+               :lineno-start: 1
+               :copyable: false
 
-   .. tab::
-      :tabid: standalone
+            .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+               :language: yaml
+               :start-after: START-exposed-sharded-tls-lower
+               :end-before: END-exposed-sharded-tls-lower
+               :linenos:
+               :lineno-start: 19
+               :emphasize-lines: 1-6
 
-      In the following example, set ``spec.exposedExternally`` to
-      ``true`` in the standlone configuration object. This
-      exposes the deployment outside of the |k8s| cluster:
-
-      .. literalinclude:: /reference/k8s/example-exposed-standalone.yaml
-         :language: yaml
-         :emphasize-lines: 15
-
-      Once your standalone instance is deployed in |com|, run the
-      following command to get information on the NodePort service
-      created by the Operator:
-
-      .. code-block:: sh
-
-         kubectl get services -n <namespace>
-
-      The list output by this command should contain an entry similar
-      to the following:
-
-      .. code-block:: sh
-         :copyable: false
-
-         NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
-
-         standalone-svc-external   NodePort    10.102.27.116   <none>        27017:30994/TCP   8m30s
-
-      In this case, the |mongod| is exposed on port ``27017`` in the
-      |k8s| container, and the NodePort service exposes the ``mongod``
-      via port ``30994``.
-
-      When you connect to your deployment from outside of the k8s
-      cluster, you must specify the external |fqdn| of a node in the
-      |k8s| cluster as the ``--host`` option in your |mongo| command. If
-      a node in the |k8s| cluster has an external |fqdn| of
-      ``ec2-54-212-23-143.us-west-2.compute.amazonaws.com``, you can
-      connect to this standalone instance from outside of the |k8s|
-      cluster using the following command:
-
-      .. code-block:: sh
-
-         mongo --host ec2-54-212-23-143.us-west-2.compute.amazonaws.com --port 30994
-
-      .. include:: /includes/admonitions/fact-get-external-dns.rst
-
-   .. tab::
-      :tabid: repl
-
-      In the following example, set the highlighted parameter and value
-      pairs in the replica set configuration object. This exposes the
-      deployment outside of the |k8s| cluster:
-
-      .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
-         :language: yaml
-         :start-after: START-horizon-addcert-replset-upper
-         :end-before: END-horizon-addcert-replset-upper
-         :linenos:
-         :lineno-start: 1
-         :copyable: false
-
-      .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
-         :language: yaml
-         :start-after: START-horizon-addcert-replset-lower-nodeports
-         :end-before: END-horizon-addcert-replset-lower-nodeports
-         :linenos:
-         :lineno-start: 15
-         :emphasize-lines: 1-8
-
-   .. tab::
-      :tabid: shard
-
-      In the following example, set ``spec.exposedExternally`` to
-      ``true`` in the sharded cluster configuration object. This exposes
-      the deployment outside of the |k8s| cluster:
-
-      .. literalinclude:: /reference/k8s/example-exposed-sharded.yaml
-         :language: yaml
-         :emphasize-lines: 19
-
-      Once your sharded cluster is deployed in |com|, run the
-      following command to get information on the NodePort service
-      created by the Operator:
-
-      .. code-block:: sh
-
-         kubectl get services -n <namespace>
-
-      The list output by this command should contain an entry
-      similar to the following:
-
-      .. code-block:: sh
-         :copyable: false
-
-         NAME                          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
-
-         shardedcluster-svc-external   NodePort    10.106.44.30    <none>        27017:30078/TCP   10s
-
-      In this case, the |mongos| is exposed on port ``27017`` in the
-      |k8s| container, and the NodePort service exposes the |mongos|
-      via port ``30078``.
-
-      When you connect to your deployment, you must specify the external
-      |fqdn| of a node in the |k8s| cluster as the ``--host`` option in
-      your |mongo| command. If a node in the |k8s| cluster has an
-      external |fqdn| of ``ec2-54-212-23-143.us-west-2.compute.amazonaws.com``,
-      you can connect to this standalone instance from outside of |k8s|
-      using the following command:
-
-      .. code-block:: sh
-
-         mongo --host ec2-54-212-23-143.us-west-2.compute.amazonaws.com --port 30078
-
-      .. include:: /includes/admonitions/fact-get-external-dns.rst
+      .. include:: /includes/steps/enable-external-sharded.rst
