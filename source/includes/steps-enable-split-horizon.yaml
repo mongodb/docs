@@ -1,11 +1,43 @@
-title: "Open your replica set resource |yaml| file."
+title: Create a NodePort for each |k8s-pod|.
 level: 4
 stepnum: 1
+ref: k8s-ext-rs-create-nodeports
+content: |
+
+  Invoke the following commands to create the NodePorts:
+
+  .. code-block:: sh
+
+     kubectl expose pod/<my-replica-set>-0 --type="NodePort" --port 27017
+     kubectl expose pod/<my-replica-set>-1 --type="NodePort" --port 27017
+     kubectl expose pod/<my-replica-set>-2 --type="NodePort" --port 27017
+
+---
+title: Discover the dynamically assigned NodePorts.
+level: 4
+stepnum: 2
+ref: k8s-ext-rs-discover-nodeports
+content: |
+
+  Discover the dynamically assigned NodePorts:
+
+  .. code-block:: sh
+
+     $ kubectl get svc | grep <my-replica-set>
+     <my-replica-set>-0                      NodePort    172.30.39.228    <none>        27017:30907/TCP              16m
+     <my-replica-set>-1                      NodePort    172.30.185.136   <none>        27017:32350/TCP              16m
+     <my-replica-set>-2                      NodePort    172.30.84.192    <none>        27017:31185/TCP              17m
+     <my-replica-set>-svc                    ClusterIP   None             <none>        27017/TCP                    38m
+
+---
+title: "Open your replica set resource |yaml| file."
+level: 4
+stepnum: 3
 ref: open-replset-resource
 content: |
 
 ---
-stepnum: 2
+stepnum: 4
 ref: copy-k8s-example-rs
 source:
   file: steps-source-deploy-k8s-resource.yaml
@@ -34,7 +66,7 @@ replacement:
 
 ---
 level: 4
-stepnum: 3
+stepnum: 5
 ref: paste-k8s-example-rs
 source:
   file: steps-source-deploy-k8s-resource.yaml
@@ -45,15 +77,44 @@ replacement:
 ---
 title: "Change the highlighted settings to your preferred values."
 level: 4
-stepnum: 4
+stepnum: 6
 ref: change-replset-resource
 content: |
 
   .. include:: /includes/list-tables/resource-keys-split-horizons.rst
 
 ---
+title: Add the ports for external connectivity.
 level: 4
-stepnum: 5
+stepnum: 7
+ref: k8s-ext-rs-update-ports
+content: |
+
+  Set the ports to the NodePort values that you set for the
+  ``example-website`` connectivity setting.
+
+  External hostnames should match the |dns| names of |k8s| worker
+  nodes. These can be *any* nodes in the |k8s| cluster. |k8s-nodes| do
+  internal routing if the pod is run on another node.
+
+  .. example::
+
+     .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
+        :language: yaml
+        :start-after: START-horizon-addcert-replset-lower-nodeports
+        :end-before: END-horizon-addcert-replset-lower-nodeports
+        :linenos:
+        :lineno-start: 15
+        :emphasize-lines: 6-8
+
+  .. note::
+
+     You may need to delete each |k8s-pod| and have the |k8s-op-short|
+     reconfigure the horizons.
+
+---
+level: 4
+stepnum: 8
 ref: save-object-spec-rs
 source:
   file: steps-source-deploy-k8s-resource.yaml
@@ -62,7 +123,7 @@ replacement:
   k8sResource: :term:`replica set`
 ---
 level: 4
-stepnum: 6
+stepnum: 9
 ref: start-k8s-deployment-rs
 source:
   file: steps-source-deploy-k8s-resource.yaml
@@ -72,12 +133,35 @@ replacement:
   k8sResourceType: replica-set
 ---
 level: 4
-stepnum: 7
+stepnum: 10
 ref: track-k8s-deployment-rs
 source:
   file: steps-source-deploy-k8s-resource.yaml
   ref: track-k8s-deployment-basic
 replacement:
   k8sResource: :term:`replica set`
+
+---
+title: Test the connection to the replica set.
+level: 4
+stepnum: 11
+ref: k8s-ext-rs-test-conn
+content: |
+
+  .. code-block:: sh
+
+     mongo --host <my-replica-set>/web1.example.com:30907,web2.example.com:32350,web3.example.com:31185 --ssl --sslAllowInvalidCertificates
+
+  .. warning::
+
+     Don't use the --sslAllowInvalidCertificates flag in production. In
+     production, share the Kubernetes CA files with client tools or
+     applications.
+
+  If the connection succeeds, you should see:
+
+  .. code-block:: javascript
+
+     MongoDB Enterprise <my-replica-set>:PRIMARY>
 
 ...

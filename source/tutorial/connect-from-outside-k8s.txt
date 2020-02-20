@@ -60,6 +60,12 @@ from outside of the |k8s| cluster depends on the resource.
    .. tab::
       :tabid: repl
 
+      .. important::
+
+         This procedure explains the least complicated way to enable
+         external connectivity. Other utilities can be used in
+         production.
+
       This procedure uses the following example:
 
       .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
@@ -70,57 +76,7 @@ from outside of the |k8s| cluster depends on the resource.
          :lineno-start: 1
          :copyable: false
 
-      1. Set the following values on your resource:
-
-         - :setting:`spec.security.tls.enabled` to ``true``.
-         - :setting:`spec.connectivity.replicaSetHorizons` to the
-           collection of horizons and |uri|\s of the replica set.
-
-      2. Create a NodePort for each |k8s-pod|:
-
-         .. code-block:: sh
-
-            kubectl expose pod/<my-replica-set>-0 --type="NodePort" --port 27017
-            kubectl expose pod/<my-replica-set>-1 --type="NodePort" --port 27017
-            kubectl expose pod/<my-replica-set>-2 --type="NodePort" --port 27017
-
-      3. Discover the dynamically assigned NodePorts:
-
-         .. code-block:: sh
-
-            $ kubectl get svc | grep <my-replica-set>
-            <my-replica-set>-0                      NodePort    172.30.39.228    <none>        27017:30907/TCP              16m
-            <my-replica-set>-1                      NodePort    172.30.185.136   <none>        27017:32350/TCP              16m
-            <my-replica-set>-2                      NodePort    172.30.84.192    <none>        27017:31185/TCP              17m
-            <my-replica-set>-svc                    ClusterIP   None             <none>        27017/TCP                    38m
-
-      4. Update the ports that you set for the ``example-website``
-         connectivity setting. These ports must match the external
-         NodePorts that you discovered.
-
-         .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
-            :language: yaml
-            :start-after: START-horizon-addcert-replset-lower-nodeports
-            :end-before: END-horizon-addcert-replset-lower-nodeports
-            :linenos:
-            :lineno-start: 15
-            :emphasize-lines: 6-8
-
-         .. note::
-
-            You may need to delete each |k8s-pod| and have the |k8s-op-short| reconfigure the horizons.
-
-      5. Test the connection to the replica set.
-
-         .. code-block:: sh
-
-            mongo --host <my-replica-set>/web1.example.com:30907,web2.example.com:32350,web3.example.com:31185 --ssl --sslAllowInvalidCertificates
-
-         If the connection succeeds, you should see:
-
-         .. code-block:: javascript
-
-            MongoDB Enterprise <my-replica-set>:PRIMARY>
+      .. include:: /includes/steps/enable-split-horizon.rst
 
    .. tab::
       :tabid: shard
@@ -164,8 +120,8 @@ Example Deployment Configurations
 
          kubectl get services -n <namespace>
 
-      The list output by this command should contain an entry similar to
-      the following:
+      The list output by this command should contain an entry similar
+      to the following:
 
       .. code-block:: sh
          :copyable: false
