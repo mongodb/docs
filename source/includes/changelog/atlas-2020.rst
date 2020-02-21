@@ -26,6 +26,23 @@
        - 100:1
        - 120:1
 
+- Increases number of connections to M10 and M20 tiers.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 40 30 30
+
+     * - Cluster Tiers
+       - Old Connections
+       - New Connections
+
+     * - M10
+       - 750
+       - 1,500
+     * - M20
+       - 1,500
+       - 3,000
+
 - Starts port numbers from 1024 instead of 1 on Atlas Private Endpoints
   on |aws| cluster nodes.
 
