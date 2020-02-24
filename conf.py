@@ -62,9 +62,14 @@ source_constants = {
     'aagent': 'MongoDB Agent or legacy Automation Agent',
     'aagents': 'MongoDB Agents or legacy Automation Agents',
     'mdbagent': 'MongoDB Agent',
+    'om-version': '4.2.6',
+    'om-version-val': '``4.2.6``',
     'bndl-version': '4.2.2',
-    'bndl-version-val': '``4.2.2-ent``'
-
+    'bndl-version-val': '``4.2.2-ent``',
+    'bndl-version-example': '4.2.2-ent',
+    'old-version': '4.0.14',
+    'old-version-val': '``4.0.14-ent``',
+    'old-version-example': '4.0.14-ent',
 }
 
 rst_epilog = '\n'.join([
@@ -202,7 +207,7 @@ extlinks = {
     'manual': ('http://docs.mongodb.com/manual%s', ''),
     'opsmgr': ('http://docs.opsmanager.mongodb.com/current%s', ''),
     'opsmgr-rapid': ('http://docs.opsmanager.mongodb.com/rapid%s', ''),
-    'cloudmgr': ('http://docs.cloudmanager.mongodb.com/%s', ''),
+    'cloudmgr': ('http://docs.cloudmanager.mongodb.com%s', ''),
     'atlas': ('http://docs.atlas.mongodb.com/%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
     'compass': ('https://docs.mongodb.com/compass/current%s',''),
