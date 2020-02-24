@@ -37,7 +37,7 @@ deployment:
 .. literalinclude:: /reference/k8s/example-ops-manager.yaml
    :language: yaml
    :linenos:
-
+ 
 Required |onprem| Resource Settings
 -----------------------------------
 
@@ -123,9 +123,9 @@ Optional |onprem| Resource Settings
    - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.memory`
    - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.memoryRequests`
    - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.persistence.single`
-   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.persistence.multiple.data`
-   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.persistence.multiple.journal`
-   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.persistence.multiple.logs`
+   - ``spec.applicationDatabase.podSpec.persistence.multiple.``:setting:`~spec.podSpec.persistence.multiple.data`
+   - ``spec.applicationDatabase.podSpec.persistence.multiple.``:setting:`~spec.podSpec.persistence.multiple.journal`
+   - ``spec.applicationDatabase.podSpec.persistence.multiple.``:setting:`~spec.podSpec.persistence.multiple.logs`
    - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.podAffinity`
    - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.podAntiAffinityTopologyKey`
    - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.nodeAffinity`
@@ -139,6 +139,26 @@ Optional |onprem| Resource Settings
    - :setting:`spec.security.tls.enabled`
    - :setting:`spec.opsManager.configMapRef.name` 
    - :setting:`spec.credentials`
+
+.. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.name
+
+   *Type*: string
+
+   Name of the :ref:`secret <om-db-user-secret>` that contains the
+   password for the |onprem| database user ``mongodb-ops-manager``.
+   |onprem| uses this password to :ref:`authenticate to the Application
+   Database <app-db-auth>`.
+   
+.. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.key
+
+   *Type*: string
+
+   Name of the field in the :ref:`secret <om-db-user-secret>` that
+   contains the password for the |onprem| database user
+   ``mongodb-ops-manager``. |onprem| uses this password to
+   :ref:`authenticate to the Application Database <app-db-auth>`.
+
+   The default value is ``password``.   
 
 .. opsmgrkube:: spec.applicationDatabase.version
 
@@ -268,6 +288,136 @@ Optional |onprem| Resource Settings
    </reference/built-in-roles/#readWriteAnyDatabase>` and
    :manual:`dbAdminAnyDatabase
    </reference/built-in-roles/#dbAdminAnyDatabase>` roles.
+
+.. opsmgrkube:: spec.backup.podSpec.cpu
+ 
+   *Type*: string
+
+   Maximum CPU capacity that must be available on a |k8s|
+   |k8s-node| to host the :ref:`backup-daemon`.
+
+   This value maps to the
+   :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+   for CPU for the created pod.
+
+.. opsmgrkube:: spec.backup.podSpec.cpuRequests
+
+   *Type*: string
+
+   Minimum CPU capacity for the |k8s-node| being created to host
+   the :ref:`backup-daemon`. If omitted, this value is set to
+   :opsmgrkube:`spec.backup.podSpec.cpu`.
+
+   This value maps to the
+   :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.11/#resourcerequirements-v1-core>`
+   for CPU for the created pod.
+
+   The requested value must be less than or equal to 
+   :opsmgrkube:`spec.backup.podSpec.cpu`.
+
+.. opsmgrkube:: spec.backup.podSpec.memory
+
+   *Type*: string
+
+   Maximum memory capacity that must be available on a
+   |k8s| |k8s-node| to host the :ref:`backup-daemon` on |k8s|. This 
+   value is expressed as an integer followed by a unit of memory in
+   |jedec| notation.
+
+   This value maps to the
+   :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+   for memory for the created pod.
+
+.. opsmgrkube:: spec.backup.podSpec.memoryRequests
+
+   *Type*: string
+
+   Minimum memory capacity for the |k8s-node| being created to host
+   the :ref:`backup-daemon`. If omitted, this value is set to
+   :opsmgrkube:`spec.backup.podSpec.memory`.
+
+   This value maps to the
+   :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+   for memory for the created pod.
+
+   The requested value must be less than or equal to 
+   :opsmgrkube:`spec.backup.podSpec.memory`.
+
+   .. note::
+
+      Set this value to at least ``4.5G``. Values of less than ``4.5G``
+      might result in an error.
+
+.. opsmgrkube:: spec.backup.podSpec.nodeAffinity
+
+   *Type*: collection
+
+   |k8s| |k8s-rule| to place the :ref:`backup-daemon` |k8s-pods| on a
+   specific range of |k8s-nodes|.
+
+   .. example::
+
+      A user can isolate "dev" and "testing" environments to ensure
+      |k8s-pods| go to |k8s-nodes| with appropriate labels.
+
+.. opsmgrkube:: spec.backup.podSpec.podAffinity
+
+   *Type*: collection
+
+   |k8s| |k8s-rule| to determine if multiple
+   :ref:`backup-daemon` |k8s-pods| must be co-located with other |k8s-pods|.
+
+   .. seealso::
+
+      The |k8s| documentation for use cases on
+      `affinity and anti-affinity <https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#more-practical-use-cases>`__
+
+.. opsmgrkube:: spec.backup.podSpec.podTemplate
+
+   *Type*: collection
+
+   :k8sdocs:`Template </concepts/workloads/pods/pod-overview/#pod-templates>` 
+   for the |k8s| pods that the |k8s-op| creates for the the 
+   :ref:`backup-daemon`. 
+
+   Template values take precedence over values specified in
+   ``spec.backup.podSpec``.
+
+   .. note::
+     
+      The |k8s-op-short| doesn't validate the fields you provide
+      in :opsmgrkube:`spec.backup.podSpec.podTemplate`.
+
+.. opsmgrkube:: spec.backup.podSpec.podTemplate.metadata
+
+   *Type*: collection
+
+   Metadata for the |k8s| pods that the |k8s-op| creates for the
+   :ref:`backup-daemon`.
+
+   To review which fields you can add to 
+   :opsmgrkube:`spec.backup.podSpec.podTemplate.metadata`, see 
+   the :k8sdocs:`Kubernetes documentation 
+   </reference/generated/kubernetes-api/v1.11/#objectmeta-v1-meta>`.
+
+.. opsmgrkube:: spec.backup.podSpec.podTemplate.spec
+
+   *Type*: collection
+
+   Specifications of the |k8s| pods that the |k8s-op| creates for 
+   the :ref:`backup-daemon`.
+
+   To review which fields you can add to 
+   :opsmgrkube:`spec.backup.podSpec.podTemplate.spec`, see the 
+   :k8sdocs:`Kubernetes documentation 
+   </reference/generated/kubernetes-api/v1.11/#podspec-v1-core>`.
+
+   .. note::
+     
+      When you add containers to 
+      ``spec.backup.podSpec.podTemplate.spec.containers``, 
+      the |k8s-op-short| adds them to the |k8s| pod. These containers are
+      appended to the :ref:`backup-daemon` containers in the pod.
 
 .. opsmgrkube:: spec.backup.s3Stores.name
 
@@ -500,22 +650,148 @@ Optional |onprem| Resource Settings
    </concepts/services-networking/service/#ssl-support-on-aws>`, see the
    |k8s| documentation.
 
-.. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.name
+.. opsmgrkube:: spec.podSpec.cpu
 
    *Type*: string
 
-   Name of the :ref:`secret <om-db-user-secret>` that contains the
-   password for the |onprem| database user ``mongodb-ops-manager``.
-   |onprem| uses this password to :ref:`authenticate to the Application
-   Database <app-db-auth>`.
-   
-.. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.key
+   Maximum CPU capacity that must be available on a |k8s|
+   |k8s-node| to host |onprem| on |k8s|.
+
+   This value maps to the
+   :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+   for CPU for the created pod.
+
+.. opsmgrkube:: spec.podSpec.cpuRequests
 
    *Type*: string
 
-   Name of the field in the :ref:`secret <om-db-user-secret>` that
-   contains the password for the |onprem| database user
-   ``mongodb-ops-manager``. |onprem| uses this password to
-   :ref:`authenticate to the Application Database <app-db-auth>`.
+   Minimum CPU capacity for the |k8s-node| being created to host
+   |onprem| on |k8s|. If omitted, this value is set to
+   :opsmgrkube:`spec.podSpec.cpu`.
 
-   The default value is ``password``.
+   This value maps to the
+   :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.11/#resourcerequirements-v1-core>`
+   for CPU for the created pod.
+
+   The requested value must be less than or equal to 
+   :opsmgrkube:`spec.podSpec.cpu`.
+
+.. opsmgrkube:: spec.podSpec.memory
+
+   *Type*: string
+
+   Maximum memory capacity that must be available on a
+   |k8s| |k8s-node| to host |onprem| on |k8s|. This value is
+   expressed as an integer followed by a unit of memory in
+   |jedec| notation.
+
+   .. example::
+
+      If |onprem| on |k8s| requires 6 gigabytes of memory, set
+      this value to ``6G``.
+
+   This value maps to the
+   :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+   for memory for the created pod.
+
+.. opsmgrkube:: spec.podSpec.memoryRequests
+
+   *Type*: string
+
+   Minimum memory capacity for the |k8s-node| being created to host
+   |onprem| on |k8s|. If omitted, this value is set to
+   :opsmgrkube:`spec.podSpec.memory`.
+
+   This value maps to the
+   :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
+   for memory for the created pod.
+
+   The requested value must be less than or equal to 
+   :opsmgrkube:`spec.podSpec.memory`.
+
+   .. note::
+
+      MongoDB recommends setting this value to at least ``5G``.
+
+.. opsmgrkube:: spec.podSpec.podAntiAffinityTopologyKey
+
+   *Type*: string
+
+   Sets a |k8s-rule| to spread |onprem| |k8s-pods|
+   to different locations. A location can be a single node, rack, or
+   region. This key defines which node
+   `label <https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/>`__
+   is used to `determine equal location <https://kubernetes.io/docs/concepts/configuration/assign-pod-node/>`__
+   for nodes. By default, |k8s-op-short| tries to spread pods across
+   different hosts.
+
+.. opsmgrkube:: spec.podSpec.nodeAffinity
+
+   *Type*: collection
+
+   |k8s| |k8s-rule| to place |onprem| |k8s-pods| on a
+   specific range of |k8s-nodes|.
+
+   .. example::
+
+      A user can isolate "dev" and "testing" environments to ensure
+      |k8s-pods| go to |k8s-nodes| with appropriate labels.
+
+.. opsmgrkube:: spec.podSpec.podAffinity
+
+   *Type*: collection
+
+   |k8s| |k8s-rule| to determine if multiple
+   |onprem| |k8s-pods| must be co-located with other |k8s-pods|.
+
+   .. seealso::
+
+      The |k8s| documentation for use cases on
+      `affinity and anti-affinity <https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#more-practical-use-cases>`__
+
+.. opsmgrkube:: spec.podSpec.podTemplate
+
+   *Type*: collection
+
+   :k8sdocs:`Template </concepts/workloads/pods/pod-overview/#pod-templates>` 
+   for the |k8s| pods that the |k8s-op| creates for |onprem| on |k8s|. 
+
+   Template values take precedence over values specified in 
+   ``spec.podSpec``.
+
+   .. note::
+     
+      The |k8s-op-short| doesn't validate the fields you provide
+      in :opsmgrkube:`spec.podSpec.podTemplate`.
+
+.. opsmgrkube:: spec.podSpec.podTemplate.metadata
+
+   *Type*: collection
+
+   Metadata for the |k8s| pods that the |k8s-op| creates for |onprem| on 
+   |k8s|.
+
+   To review which fields you can add to 
+   :opsmgrkube:`spec.podSpec.podTemplate.metadata`, see the 
+   :k8sdocs:`Kubernetes documentation 
+   </reference/generated/kubernetes-api/v1.11/#objectmeta-v1-meta>`.
+
+.. opsmgrkube:: spec.podSpec.podTemplate.spec
+
+   *Type*: collection
+
+   Specifications of the |k8s| pods that the |k8s-op| creates for 
+   |onprem| on |k8s|.
+
+   To review which fields you can add to 
+   :opsmgrkube:`spec.podSpec.podTemplate.spec`, see the 
+   :k8sdocs:`Kubernetes documentation 
+   </reference/generated/kubernetes-api/v1.11/#podspec-v1-core>`.
+
+   .. note::
+     
+      When you add containers to 
+      ``spec.podSpec.podTemplate.spec.containers``, 
+      the |k8s-op-short| adds them to the |k8s| pod. These containers are
+      appended to the |onprem| containers in the pod.
+
