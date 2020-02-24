@@ -52,7 +52,7 @@ publish: examples ## Builds this branch's publishable HTML and other artifacts u
 #   * Upload each to the S3 bucket under <project>/<username>/<basename>/<filename>
 stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
+	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 # - Enter build/public/<branch>, as well as any symbolic links pointing
 #   to it, and recurse over each file <basename>/<filename>.
