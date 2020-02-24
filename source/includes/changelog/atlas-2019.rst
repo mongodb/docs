@@ -15,8 +15,8 @@
 - Supports higher maximum connection limits for new cluster deployments
   on select cluster tiers:
 
-  - ``M10`` lifted from 350 to 750
-  - ``M20`` lifted from 700 to 1500
+  - ``M10`` lifted from 350 to 1,500
+  - ``M20`` lifted from 700 to 3,000
   - ``M30`` lifted from 2,000 to 3,000
   - ``M40`` lifted from 4,000 to 6,000
 
