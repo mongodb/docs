@@ -1,0 +1,148 @@
+.. _security-ldaps-azure:
+
+=============================================================================
+Configure User Authentication and Authorization with Azure AD Domain Services
+=============================================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: connect
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+.. |ldap-provider-link| replace:: `Azure AD Domain Services <https://azure.microsoft.com/en-us/services/active-directory-ds/>`__
+.. |ldap-provider| replace:: Azure AD Domain Services
+.. |skip-ldap-link| replace:: :ref:`Skip this section <skip-okta-authz>`
+
+.. include:: /includes/ldap-provider-intro.rst
+
+|service| supports authenticating and authorizing database users from 
+|ldap-provider|.
+
+Limitations
+-----------
+
+- You must deploy ``M10`` or larger |service| clusters to enable |ldap| 
+  integration. |ldap| integration is an |service| Enterprise feature.
+- |service| does not support single sign-on integration for database 
+  users. To learn about single-sign on integration for the |service| 
+  administrative web interface, see 
+  :ref:`atlas-federated-authentication`.
+
+Prerequisites
+-------------
+
+To integrate |ldap-provider| |ldap| with |service|, you must have:
+
+- An |azure| subscription. To obtain a subscription, visit the 
+  `Microsoft Azure portal <https://azure.microsoft.com/en-us/free/>`__.
+- ``Contributor`` privileges or greater for your |azure| subscription to 
+  create the resources the |ldap| integration requires.
+- An :abbr:`Azure AD (Azure Active Directory)` tenant associated with 
+  your subscription. For information about setting up an 
+  :abbr:`Azure AD (Azure Active Directory)` tenant, see the 
+  :azure:`Azure AD Documentation </active-directory/develop/quickstart-create-new-tenant>`.
+- ``Global Administrator`` privileges in your Azure AD tenant to enable
+  |ldap-provider|.
+- A custom, routable domain name.
+
+Procedures
+----------
+
+Configure |ldap-provider| for Your Domain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/ldap-configure-azure.rst
+
+Configure |service| for LDAP Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following procedure enables |service| to authenticate database users from 
+|ldap-provider| |ldap|:
+
+.. include:: /includes/steps/configure-authentication-ldaps-azure.rst
+
+.. _configure-azure-authz:
+
+Add the Database Access |ldap| Groups to |service|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-skip-if-ldap-authz-disabled.rst
+
+.. include:: /includes/fact-ldap-authz-intro.rst
+
+|service| |ldap| authorization uses |ldap| groups to determine if 
+users are authorized to perform database actions.
+
+Create separate :abbr:`Azure AD (Azure Active Directory)` groups for 
+each level of access that you want to grant to users. For example, 
+you create one group for read access to one database, another for read 
+and write access, and so on. Assign users to groups based on the level 
+of access each user requires.
+
+To create :abbr:`Azure AD (Azure Active Directory)` database access 
+groups and assign users, see the :azure:`Azure documentation 
+</active-directory/fundamentals/active-directory-groups-create-azure-portal>`.
+
+Configure |service| for LDAP Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-skip-if-ldap-authz-disabled.rst
+
+The following procedure adds the |ldap-provider| database access 
+groups to |service| and enables database user authorization in 
+|service|: 
+
+.. include:: /includes/steps/configure-authorization-ldaps-azure.rst
+
+.. _skip-azure-authz:
+
+Connect to your Cluster Using the ``mongo`` Shell
+-------------------------------------------------
+
+The following procedure verifies that |ldap| authentication (and |ldap|
+authorization, if enabled) is configured correctly:
+
+.. include:: /includes/fact-ldap-auth-connect-params.rst
+.. include:: /includes/steps/ldap-auth-connect-mongo-shell-azure.rst
+
+.. _ldaps-azure-troubleshooting:
+
+Troubleshoot LDAP Connection Issues
+-----------------------------------
+
+.. note::
+
+   In |ldap-provider|, the bind user the ``AAD DC Administrators`` group 
+   to perform LDAP searches. `Make sure that your bind user has these privileges 
+   <#add-the-bind-user-to-the-aad-dc-administrators-group>`__ 
+   before running ``ldapsearch``.
+
+.. include:: /includes/ldap-troubleshooting-intro.rst
+
+.. code-block:: sh
+
+   ldapsearch -H 'ldaps://ldap.<managed-domain>.com' -b 'DC=<managed>,DC=<domain>,DC=com' -s sub -D 'CN=<bind-user-dn>,OU=AADDC Users,DC=<managed>,DC=<domain>,DC=com' -w '<REDACTED>' '(&(objectCategory=user)(memberOf=CN=<group-name>,OU=AADDC Users,DC=<managed-domain>,DC=com))'
+
+.. include:: /includes/fact-azure-managed-domain-ldap.rst   
+
+For example, if your ``bind-user-dn`` is 
+``CN=LDAP Bind User,OU=AADDC Users,DC=aadds,DC=example,DC=com``,
+your ``<managed-domain>`` is ``aadds.example.com``, and your 
+``group-name`` is ``Atlas read only``, use the following command:
+
+.. code-block:: sh
+   :copyable: false
+
+   ldapsearch -H 'ldaps://ldap.aadds.example.com' -b 'DC=aadds,DC=example,DC=com' -s sub -D 'CN=LDAP Bind User,OU=AADDC Users,DC=aadds,DC=example,DC=com' -w '<REDACTED>' '(&(objectCategory=user)(memberOf=CN=Atlas read only,OU=AADDC Users,DC=aadds,DC=example,DC=com))'
+
+.. note::
+    
+    Other query templates may also work.
