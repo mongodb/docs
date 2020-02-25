@@ -1,10 +1,6 @@
 .. important::
 
-  You must create a service account 
-  ``mongodb-enterprise-database-pods`` in each namespace the 
-  |k8s-op-short| watches other than the default to create 
-  |k8s-mdbrsc| in these namespaces:
-
-  .. code-block:: sh
-      
-      kubectl create serviceaccount mongodb-enterprise-database-pods -n <namespace>
+   To watch |onprem| and |k8s-mdbrscs| in a different |k8s-ns| to which 
+   you deploy the |k8s-op-short|, see :ref:`k8s-deployment-scopes` for 
+   values you must use and additional steps you might have to perform.
+   

@@ -1,0 +1,150 @@
+.. _plan-k8s-operator-install:
+
+====================================
+Plan your |k8s-op-full| Installation 
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+Use the |k8s-op-full| to deploy:
+
+- Ops Manager resources
+- MongoDB standalone, replica set, and sharded cluster resources
+
+.. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
+
+To deploy MongoDB resources with the |k8s-op-short|, you need an
+|onprem| instance. Deploy this instance to |k8s| using the Operator or
+outside |k8s| using
+:opsmgr:`traditional installation methods </installation>`. The
+Operator uses |onprem| |api| methods to deploy then manage MongoDB
+resources.
+
+.. _k8s-considerations:
+
+Considerations
+--------------
+
+|k8s| Compatibility
+~~~~~~~~~~~~~~~~~~~
+
+|k8s-op-full| is compatible with |k8s| v1.13 or later.
+
+Docker Container Details
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB builds the container images from the latest builds of the
+following operating systems:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - If you get your |k8s-op-short| from...
+     - ...the Container uses
+
+   * - `quay.io <https://quay.io/repository/mongodb/mongodb-enterprise-operator?tag=latest&tab=tags>`__
+       or :gh:`GitHub </mongodb/mongodb-enterprise-kubernetes>`
+     - `Ubuntu 16.04 <https://www.ubuntu.com/containers>`__
+
+   * - `OpenShift <https://access.redhat.com/containers/?tab=tags#/registry.connect.redhat.com/mongodb/enterprise-operator>`__
+     - `Red Hat Enterprise Linux 7 <https://www.redhat.com/en/topics/containers>`__
+
+MongoDB, Inc. updates all packages on these images before releasing
+them every three weeks.
+
+.. _k8s-deployment-scopes:
+
+|k8s-op-short| Deployment Scopes
+--------------------------------
+
+You can deploy the |k8s-op-short| with different scopes based on where
+you want to deploy |onprem| and |k8s-mdbrscs| resources:
+
+- :ref:`ns-scope-same-ns` *(Default)*
+- :ref:`ns-scope-different-ns`
+- :ref:`cluster-wide-scope`
+
+.. _ns-scope-same-ns:
+
+Operator in Same Namespace as Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You scope the |k8s-op-short| to a namespace. The |k8s-op-short| watches 
+|onprem| and |k8s-mdbrscs| in that same |k8s-ns|.
+
+This is the default scope when you install the |k8s-op-short| using the 
+:ref:`installation instructions <install-k8s-operator>`.
+
+.. _ns-scope-different-ns:
+
+Operator in Different Namespace Than Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You scope the |k8s-op-short| to a namespace. The |k8s-op-short| watches 
+|onprem| and |k8s-mdbrscs| in the |k8s-ns| you specify.
+
+You must use ``helm`` to install the |k8s-op-short| with this scope. 
+Follow the relevant ``helm`` :ref:`installation instructions <install-k8s-operator>`,
+but use the following command to set the namespace for the 
+|k8s-op-short| to watch:
+
+.. code-block:: sh
+
+   helm template --set operator.watchNamespace=<namespace> \ 
+   helm_chart | kubectl apply -f -
+
+Setting the namespace ensures that: 
+
+- The namespace you want the |k8s-op-short| to watch has the correct 
+  roles and role bindings.
+- The |k8s-op-short| can watch and create resources in the namespace.
+
+.. _cluster-wide-scope:
+
+Cluster-Wide Scope
+~~~~~~~~~~~~~~~~~~
+
+You scope the |k8s-op-short| to a cluster. The |k8s-op-short| watches 
+|onprem| and |k8s-mdbrscs| in all |k8s-nss| in the |k8s| cluster.
+
+.. important::
+
+   You can deploy only one Operator with a cluster-wide scope per |k8s| 
+   cluster.
+
+You must use ``helm`` to install the |k8s-op-short| with this scope. 
+Follow the relevant ``helm`` :ref:`installation instructions <install-k8s-operator>`,
+but make the following adjustments:
+
+1. Use the following command to set the |k8s-op-short| to watch all 
+   namespaces:
+
+   .. code-block:: sh
+
+      helm template --set operator.watchNamespace=* \ 
+      helm_chart | kubectl apply -f -
+
+2. Create the required service accounts for each namespace where you 
+   want to deploy |onprem| and |k8s-mdbrscs|:
+
+   .. code-block:: sh
+      
+      helm template --set namespace=<namespace> \
+      helm_chart -x templates/database-roles.yaml | kubectl apply -f -
+
+.. _k8s-prerequisites:
+
+Prerequisites
+-------------
+
+.. include:: /includes/install/install-prereqs.rst
+
+
