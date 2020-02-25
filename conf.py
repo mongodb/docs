@@ -97,7 +97,7 @@ rst_epilog = [
     '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |fcv| replace:: :abbr:`FCV (Feature Compatibility Version)`',
     '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
-    '.. |fts| replace:: Full Text Search',
+    '.. |fts| replace:: Atlas Search',
     '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
     '.. |global-write-clusters| replace:: Global Clusters',
     '.. |global-write-cluster| replace:: Global Cluster',
