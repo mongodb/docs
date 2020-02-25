@@ -56,7 +56,7 @@
 17 September 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Allows nested fields in partition :ref:`definitions <datalake-definition-syntax>`.
+- Allows nested fields in partition :ref:`definitions <datalake-path-syntax>`.
 
 - No longer enumerates directories on S3 when a single subdirectory containing 
   all the partitions matching the query is identified.
