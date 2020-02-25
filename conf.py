@@ -162,6 +162,7 @@ rst_epilog = [
     '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`',
     '.. |vpc| replace:: :abbr:`VPC (Virtual Private Cloud)`',
     '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`',
+    '.. |times| unicode:: U+000D7',
 ]
 
 rst_epilog.extend(get_replacements(conf))
