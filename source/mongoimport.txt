@@ -466,6 +466,52 @@ Options
    or :term:`tsv` imports.
 
 
+.. option:: --useArrayIndexFields
+
+   .. versionadded:: 100.00
+
+   Interpret natural numbers in fields as array indexes when importing
+   :term:`csv` or :term:`tsv` files.
+
+   Field names must be in the form ``<colName>.<arrayIndex>`` where 
+   ``arrayIndex`` is a natural number beginning with ``0`` and
+   increasing sequentially by ``1`` for each member of the array.
+
+   For example, with the following :term:`csv` file:
+   
+   .. code-block:: javascript
+
+      a.0,a.1,a.2,a.3
+      red,yellow,green,blue
+
+   An import with the :option:`--useArrayIndexFields` option would
+   result in the following document:
+
+   .. code-block:: javascript
+
+      "a" : [ "red", "yellow", "green", "blue" ]
+
+   If using the :option:`--columnsHaveTypes` option as well, use the
+   form ``<colName>.<arrayIndex>.<type>(<arg>)`` to specify both the
+   array index and type for each field. See :option:`--columnsHaveTypes`
+   for more information.
+   
+   Numerical keys with leading zeros (e.g. ``a.000,a.001``) are not
+   interpreted as array indexes.
+
+   If the first part of a key is a natural number (e.g. ``0.a,1.a``), it
+   is interpreted as a document key, and not an array index.
+
+   If using the :option:`--ignoreBlanks` option with
+   :option:`--useArrayIndexFields`, :program:`mongoimport` will log an
+   error if you attempt to import a document that contains a
+   blank value (e.g. ``""``) for an array index field.
+
+   The :option:`--useArrayIndexFields` option has no effect when
+   importing :term:`JSON` data, as arrays are already encoded in
+   :term:`JSON` format.
+
+
 .. option:: --mode=<insert|upsert|merge|delete>
 
    *Default*: insert
@@ -1059,4 +1105,3 @@ any blank fields:
 .. code-block:: sh
 
    mongoimport --db=users --collection=contacts --type=csv --file=/example/data.csv --ignoreBlanks
-
