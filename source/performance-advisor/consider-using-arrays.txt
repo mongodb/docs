@@ -1,0 +1,143 @@
+.. _lookup-anti-pattern:
+
+=====================
+Consider Using Arrays
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Arrays take advantage of MongoDB’s flexible document data 
+model by grouping related data together. Using arrays in your documents 
+can improve read performance compared to keeping related data across 
+multiple collections because only one read operation is required to 
+fetch that information.
+
+If you don't use arrays in your schema, you may need to use 
+:pipeline:`$lookup` operations to join related data together. 
+``$lookup`` operations can be slow and resource-intensive 
+because they need to read and perform logic on two collections instead 
+of a single collection. You should consider using arrays in your schema 
+to hold related, frequently-accessed data.
+
+Example
+-------
+
+Consider the following example where documents in a company's 
+``employees`` collection reference documents in an  ``organizations`` 
+collection:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 4
+   
+   // employees collection
+
+   {
+      "org_id": "sales", // reference to organization document
+      "name": "James Potter",
+      "title": "Sales Representative"
+      ...
+   }
+   
+   {
+      "org_id": "sales",
+      "name": "Severus Snape",
+      "title": "Project Manager"
+      ...
+   }
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 4
+
+   // organizations collection
+
+   {
+      "_id": "sales",
+      "name": "Sales Team"
+      ...
+   }
+
+If an application frequently requests a list of employees for an 
+organization, this schema structure forces you to do a 
+:pipeline:`$lookup` of the ``employees`` collection and find 
+employees that match an ``org_id`` every time.
+
+Instead, you can list ``employees`` in an array on the 
+organization document itself:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 4
+
+   {
+       "_id": "sales",
+       "name": "Sales Team",
+       "employees": [
+          {
+             "name": "James Potter",
+             "title": "Sales Representative"
+             ...
+          },
+          {
+             "name": "Severus Snape",
+             "title": "Project Manager"
+             ...  
+          }
+       ]
+   }
+
+By using arrays to hold related data, your application can retrieve the 
+complete organization information, including associated employees, 
+without :pipeline:`$lookup` operations. In this case, using arrays is 
+more performant than storing the information in separate collections.
+
+Considerations
+~~~~~~~~~~~~~~
+
+The performance cost of reading and writing to large arrays can
+outweigh the benefit gained by avoiding :pipeline:`$lookup`
+operations. If your arrays are unbounded or exceedingly large, those 
+arrays may degrade read and write performance.
+
+If you create an index on an array, each element in the array is 
+indexed. If you write to that array frequently, the performance cost of 
+indexing or re-indexing a potentially large array field may be 
+significant.
+
+Learn More
+----------
+
+- To learn more about Data Modeling in MongoDB and the flexible schema
+  model, see :manual:`Data Modeling Introduction
+  </core/data-modeling-introduction/>`.
+
+- To learn more about how to query arrays in MongoDB, see
+  :manual:`Query an Array </tutorial/query-arrays/>`.
+
+- To read about other situations in which arrays work well, see the 
+  following design patterns and their use cases from the 
+  *Building with Patterns* blog series:
+  
+  - `The Attribute Pattern <https://www.mongodb.com/blog/post/building-with-patterns-the-attribute-pattern>`__ for handling data with unique combinations of attributes, such as movie data where each movie is released in a subset of countries.
+
+  - `The Bucket Pattern <https://www.mongodb.com/blog/post/building-with-patterns-the-bucket-pattern>`__ for handling tightly grouped or sequential data, such as time span data.
+
+  - `The Polymorphic Pattern <https://www.mongodb.com/blog/post/building-with-patterns-the-polymorphic-pattern>`__ for handling differently shaped documents in the same collection, such as athlete records across several sports.
+
+- To learn more about the tradeoffs between embedded and normalized
+  data models, see
+  :manual:`Data Model Design </core/data-model-design/>`.
+
+- MongoDB also offers a free MongoDB University Course on Data Modeling:
+  `M320: Data Modeling
+  <https://university.mongodb.com/courses/M320/about>`__.
