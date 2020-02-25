@@ -66,13 +66,6 @@
 
        Default value is: ``<metadata.namespace>``.
 
-       .. admonition:: One Namespace or All Namespaces
-          :class: note
-
-          If you need to watch more than one namespace, set the value
-          of ``WATCH_NAMESPACE`` to ``*`` (all). This environment
-          variable can watch one namespace or all namespaces.
-
        .. include:: /includes/admonitions/fact-create-service-account-namespaces.rst
 
        You can set the following pair of values:
