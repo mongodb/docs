@@ -388,3 +388,128 @@ To remove the |k8s-crds|:
 
       kubectl delete crd --all
 
+.. _k8s-disable-feature-controls:
+
+Disable |onprem| Feature Controls
+---------------------------------
+
+When you manage an |onprem| project through the |k8s-op-short|, the
+|k8s-op-short| places the ``EXTERNALLY_MANAGED_LOCK`` :opsmgr:`feature
+control policy
+</reference/api/controlled-features/get-all-feature-control-policies/#response>`
+on the project. This policy disables certain features in the |onprem|
+application that might compromise your |k8s-op-short| configuration. If
+you need to use these blocked features, you can remove the policy
+through the :opsmgr:`feature controls API
+</reference/api/controlled-features/update-controlled-features-for-one-project/>`,
+make changes in the |onprem| application, and then restore the original
+policy through the :opsmgr:`API
+</reference/api/controlled-features/update-controlled-features-for-one-project/>`.
+
+.. warning::
+
+   The following procedure enables you to use features in the |onprem|
+   application that are otherwise blocked by the |k8s-op-short|.
+
+1. :opsmgr:`Retrieve the feature control policies
+   </reference/api/controlled-features/get-controlled-features-for-one-project/>`
+   for your |onprem| project.
+
+   .. code-block:: sh
+
+      curl --user "{USERNAME}:{APIKEY}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include \
+           --request GET "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true"      
+   
+   .. important::
+
+      Save the response that the API returns. After you make changes in
+      the |onprem| application, you must add these policies back to
+      the project. 
+
+   Your response should be similar to:
+
+   .. code-block:: json
+
+      {
+       "created": "2020-02-25T04:09:42Z",
+       "externalManagementSystem": {
+         "name": "mongodb-enterprise-operator",
+         "systemId": "6d6c139ae5528707b6e8e3b2",
+         "version": "1.4.2"
+       },
+       "policies": [
+         {
+           "disabledParams": [],
+           "policy": "EXTERNALLY_MANAGED_LOCK"
+         },
+         {
+           "disabledParams": [],
+           "policy": "DISABLE_AUTHENTICATION_MECHANISMS"
+         }
+       ],
+       "updated": "2020-02-25T04:10:12Z"
+     }
+
+#. :opsmgr:`Update
+   </reference/api/controlled-features/update-controlled-features-for-one-project/>`
+   the ``policies`` array with an empty list: 
+
+   .. code-block:: sh
+
+      curl --user "{USERNAME}:{APIKEY}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include \
+           --request PUT "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true" \
+           --data 
+             '{
+               "externalManagementSystem": {
+                 "name": "mongodb-enterprise-operator",
+                 "systemId": "6d6c139ae5528707b6e8e3b2",
+                 "version": "1.4.2"
+               },
+               "policies": []
+             }'
+
+   The previously blocked features are now available in the
+   |onprem| application.
+
+#. Make your changes in the |onprem| application.
+
+#. :opsmgr:`Update
+   </reference/api/controlled-features/update-controlled-features-for-one-project/>`
+   the ``policies`` array with the original feature control policies: 
+
+   .. code-block:: sh
+
+      curl --user "{USERNAME}:{APIKEY}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include \
+           --request PUT "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true" \
+           --data 
+             '{
+               "externalManagementSystem": {
+                 "name": "mongodb-enterprise-operator",
+                 "systemId": "6d6c139ae5528707b6e8e3b2",
+                 "version": "1.4.2"
+               },
+               "policies": [
+                 {
+                   "disabledParams": [],
+                   "policy": "EXTERNALLY_MANAGED_LOCK"
+                 },
+                 {
+                   "disabledParams": [],
+                   "policy": "DISABLE_AUTHENTICATION_MECHANISMS"
+                 }
+               ]
+             }'
+
+   The features are now blocked again, preventing you from making
+   furher changes through the |onprem| application. However, the
+   |k8s-op-short| retains any changes you made in the |onprem|
+   application while features were available.
