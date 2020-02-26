@@ -10,7 +10,7 @@
    * - ``accepterRegionName``
      - string
      - Required
-     - Specifies the region where the peer |vpc| resides. 
+     - Specifies the region where the peer |vpc| resides.
        For complete lists of supported regions, see :doc:`Amazon Web Services </reference/amazon-aws/>`.
 
    * - ``awsAccountId``
@@ -24,12 +24,12 @@
      - Unique identifier of the |service| |vpc| container for the
        region.
 
-       You can create an |service| |vpc| container using the
+       You can create an |service| network peering container using the
        :doc:`Create Container </reference/api/vpc-create-container>`
        endpoint. You cannot create more than one container per region.
 
-       To retrieve a list of container IDs, use the 
-       :doc:`Get list of VPC containers </reference/api/vpc-get-containers-list>` 
+       To retrieve a list of container IDs, use the
+       :doc:`Get list of VPC containers </reference/api/vpc-get-containers-list>`
        endpoint.
 
    * - ``providerName``
