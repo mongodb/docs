@@ -58,12 +58,8 @@ pygments_style = 'sphinx'
 
 source_constants = {
     'version': version,
-    'k8s-op-short': 'Kubernetes Operator',
-    'aagent': 'MongoDB Agent or legacy Automation Agent',
-    'aagents': 'MongoDB Agents or legacy Automation Agents',
-    'osb': 'Atlas Open Service Broker',
-    'mcli': 'MCLI',
-    'mcli-long': 'MongoDB Cloud Management Command Line Interface (MCLI)'
+    'mcli': 'MongoDB CLI',
+    'mcli-long': 'MongoDB Command Line Interface (``mongocli``)'
 }
 
 rst_epilog = '\n'.join([
@@ -270,6 +266,7 @@ html_theme_options = {
     'nav_excluded': sconf.theme.nav_excluded,
     'version_selector': get_versions(conf),
     'is_upcoming': False,
+    'is_alpha': True,
 }
 
 html_sidebars = sconf.sidebars
@@ -287,7 +284,7 @@ epub_tocdup = True
 epub_tocdepth = 3
 epub_language = 'en'
 epub_scheme = 'url'
-epub_identifier = 'http://docs.mongodb.org/mcli/'
+epub_identifier = 'http://docs.mongodb.org/mongocli/'
 epub_exclude_files = []
 epub_pre_files = []
 epub_post_files = []

@@ -1,9 +1,9 @@
-==================
-MCLI Documentation
-==================
+=========================
+MongoDB CLI Documentation
+=========================
 
 This repository contains documentation regarding components of the
-the MCLI.
+the MongoDB CLI.
 
 Building
 --------
@@ -13,8 +13,8 @@ First install `mut <https://github.com/mongodb/mut>`_.
 Then you can download and build this documentation locally with
 the following command:
 
-    git clone https://github.com/10gen/cloud-mcli.git
-    cd cloud-mcli/
+    git clone https://github.com/mongodb/mongocli.git
+    cd mongocli/
     make build
 
 View ``build/master/html/index.html`` to view your current build of the

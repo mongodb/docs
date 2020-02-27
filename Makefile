@@ -5,10 +5,10 @@ else
 	USER=$(STAGING_USERNAME)
 endif
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
-PRODUCTION_URL="https://docs.mongodb.com"
+PRODUCTION_URL="https://docs.mongodb.com/mongocli"
 STAGING_BUCKET=docs-mongodb-org-staging
-PRODUCTION_BUCKET=docs-mcli-prod
-PROJECT=mcli
+PRODUCTION_BUCKET=docs-mongocli-prod
+PROJECT=mongocli
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
