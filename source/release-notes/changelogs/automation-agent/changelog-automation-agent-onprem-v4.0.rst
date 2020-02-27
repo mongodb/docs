@@ -37,8 +37,13 @@ Automation Agent 5.4.21.5544
 :ref:`Released with Ops Manager 4.0.14 on 2019-07-31 <opsmgr-server-4.0.14>`
 
 - **Fix:** Restore downloads performed by Automation Agent now respect
-  the configured :asetting:`sslTrustedMMSServerCertificate` |onprem|
+  the configured ``sslTrustedMMSServerCertificate`` |onprem|
   parameter.
+
+.. note::
+
+   ``sslTrustedMMSServerCertificate`` has been deprecated. Use 
+   :asetting:`httpsCAFile` instead.
 
 .. _automation-5.4.20.5541:
 

@@ -135,7 +135,7 @@
           "configOverrides": {
             "sslRequireValidServerCertificates" : true
           }
-   * - :msetting:`sslTrustedMMSServerCertificate`
+   * - :msetting:`httpsCAFile`
      - string
      -
        .. code-block:: json
