@@ -1,0 +1,73 @@
+.. _charts-agg-pipeline:
+
+======================================
+Run Aggregation Pipelines on Your Data
+======================================
+
+.. default-domain:: mongodb
+
+:manual:`Aggregation pipelines </core/aggregation-pipeline/>` transform
+your documents into an aggregated set of results. In |charts|,
+aggregation pipelines are commonly used to visualize new fields created
+from calculated results of pre-existing fields, but also have many other
+applications.
+
+To create an aggregation pipeline:
+
+1. In the :guilabel:`Query` bar, input an aggregation pipeline. Your
+   pipeline must be in square brackets.
+   
+#. Click :guilabel:`Apply` to execute your pipeline.
+
+Example
+~~~~~~~
+
+The following chart shows total sale amounts from an office supply
+company, categorized by store location. The chart uses the
+following aggregation pipeline in the :guilabel:`Query` bar:
+
+.. code-block:: javascript
+
+   [
+     {
+       $unwind: "$items"
+     },
+     {
+       $addFields: {
+         saleAmount: {
+           $multiply: [ "$items.price", "$items.quantity" ]
+         }
+       }
+     }
+   ]
+
+This aggregation pipeline processes the collection data using
+the following order:
+
+1. The :pipeline:`$unwind` stage unwinds the ``items`` array and
+   outputs a new document for each item in the array. Each element
+   in the ``items`` array contains a single item sold during a
+   transaction.
+
+#. The :pipeline:`$addFields` stage adds a new field to the
+   documents called ``saleAmount``. The :expression:`$multiply`
+   expression sets the value of ``saleAmount`` to the product of
+   ``items.price`` and ``items.quantity``. You can see this
+   new field highlighted in the following screenshot:
+
+.. figure:: /images/charts/query-bar-agg-example.png
+   :figwidth: 720px
+   :alt: Example Aggregation Pipeline
+
+Once the data has been processed using the pipeline, the
+chart displays the :guilabel:`Sum` of all
+``saleAmounts`` categorized by store location.
+
+Limitations
+~~~~~~~~~~~
+
+The :pipeline:`$lookup` operator is not supported in aggregation queries
+defined in the Chart Builder. However, you can use this operator
+in Data Source pipelines. To learn more about how to use pipelines 
+to pre-process data before it reaches the Chart Builder, see
+:ref:`data-sources-pipeline`.
