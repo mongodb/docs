@@ -77,7 +77,7 @@ deploy: build/public ## Deploy to the production bucket
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
-	mut-index upload build/public/${GIT_BRANCH} -o docs-database-tools.json -u ${PRODUCTION_URL}/manual -g -s;
+	mut-index upload build/public/ -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL} -g -s;
 
 redirects:
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
