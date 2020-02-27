@@ -11,6 +11,8 @@
      - string
      - Label for a |k8s| |k8s-obj|.
 
+       .. include:: /includes/fact-resource-name-char-limit.rst
+
        .. seealso::
 
           - :setting:`metadata.name`
