@@ -2,7 +2,7 @@
 
 If the backup data includes :data:`system.profile
 <<database>.system.profile>` collection data or you run with
-:option:`--oplogReplay <mongorestore --oplogReplay>`, you need
+:option:`--oplogReplay <mongorestore.--oplogReplay>`, you need
 additional privileges:
 
 .. container::
@@ -19,13 +19,13 @@ additional privileges:
 
       * - ``--oplogReplay``
 
-        - To run with :option:`--oplogReplay <mongorestore
-          --oplogReplay>`, create a :ref:`user-defined role
-          <create-user-defined-role>` that has :authaction:`anyAction` on
-          :ref:`resource-anyresource`.
+        - To run with :option:`--oplogReplay
+          <mongorestore.--oplogReplay>`, create a 
+          :ref:`user-defined role <create-user-defined-role>` that has
+          :authaction:`anyAction` on :ref:`resource-anyresource`.
 
           Grant only to users who must run :binary:`~bin.mongorestore`
-          with :option:`--oplogReplay <mongorestore --oplogReplay>`.
+          with :option:`--oplogReplay <mongorestore.--oplogReplay>`.
 
 .. COMMENT per the following commit, choosing the anyAction/anyResource
    over the __system role.
