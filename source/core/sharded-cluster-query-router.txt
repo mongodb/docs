@@ -30,7 +30,7 @@ state and consumes minimal system resources.
 The most common practice is to run :binary:`~bin.mongos` instances on the
 same systems as your application servers, but you can maintain
 :binary:`~bin.mongos` instances on the shards or on other dedicated
-resources.
+resources.  See also :ref:`sharded-cluster-components-distribution`.
 
 Routing And Results Process
 ---------------------------
@@ -97,6 +97,10 @@ selectivity of the query.
 See :ref:`sharding-query-isolation` for more on targeted and
 broadcast operations.
 
+Starting in MongoDB 4.4, :binary:`~bin.mongos` can support :ref:`hedge
+reads <mongos-hedged-reads>` to minimize latencies. See :ref:`hedge
+reads <mongos-hedged-reads>` for more information.
+
 How ``mongos`` Handles Query Modifiers
 --------------------------------------
 
@@ -130,6 +134,75 @@ When used in conjunction with a :method:`~cursor.limit()`, the
 :binary:`~bin.mongos` will pass the *limit* plus the value of the
 :method:`~cursor.skip()` to the shards to improve the efficiency of these
 operations.
+
+.. _sharding-mongos-read-preference:
+
+Read Preference and Shards
+--------------------------
+
+For sharded clusters, :binary:`~bin.mongos` applies the :doc:`read
+preference </core/read-preference>` when reading from the shards. The
+member selected is governed by both the :doc:`read preference
+</core/read-preference>` and
+:setting:`replication.localPingThresholdMs` settings, and is
+re-evaluated for each operation. 
+
+For details on read preference and sharded clusters, see
+:ref:`read-preference-mechanics-sharded-cluster`.
+
+.. _mongos-hedged-reads:
+
+Hedged Reads
+~~~~~~~~~~~~
+
+Starting in version 4.4, :binary:`~bin.mongos` instances can hedge
+reads that use non-``primary`` :doc:`read preferences
+</core/read-preference>`. With hedged reads, the :binary:`~bin.mongos`
+instances route read operations to two replica set members per each
+queried shard and return results from the first respondent per shard.
+The additional read sent to hedge the read operation uses the
+``maxTimeMS`` value of :parameter:`maxTimeMSForHedgedReads`.
+
+Hedged Reads and Read Preference
+````````````````````````````````
+
+.. container::
+
+   Hedged reads are specified per operation as part of the read
+   preference. Non-``primary`` :doc:`read preferences
+   </core/read-preference>` support hedged reads.
+
+   - To specify hedged read for a non-``primary`` :doc:`read
+     preferences </core/read-preference>`, see
+     :ref:`connections-read-preference`.
+
+   - Read preference :readmode:`nearest` enables the hedged read option
+     by default.
+
+   For details on read preference and sharded clusters as well as member
+   selection, see :ref:`read-preference-mechanics-sharded-cluster`.
+   
+
+Enable/Disable Support for Hedged Reads
+```````````````````````````````````````
+
+.. container::
+
+   By default, :binary:`~bin.mongos` instances support using hedged
+   reads. To turn off a :binary:`~bin.mongos` instance's support for
+   hedged reads, see the :parameter:`readHedgingMode` parameter. If the
+   hedged read support is ``off``, :binary:`~bin.mongos` does not use
+   hedged reads regardless of the ``hedge`` option specified for the
+   read preference.
+
+Hedged Reads Diagnostics
+````````````````````````
+
+.. container::
+
+   The command :dbcommand:`serverStatus` and its corresponding
+   :binary:`~bin.mongo` shell method :method:`db.serverStatus()` return
+   :serverstatus:`hedgingMetrics`.
 
 Confirm Connection to ``mongos`` Instances
 ------------------------------------------

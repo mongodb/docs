@@ -1,7 +1,7 @@
-.. versionadded:: 3.4
-   MongoDB 3.4 adds the ``maxStalenessSeconds`` read preference option
-   ``maxStalenessSeconds`` specifies the maximum replication lag, or
-   "staleness", that a :term:`secondary` can suffer and still be eligible
-   for read operations.
-   
-.. include:: /includes/fact-important-maxStalenessSeconds-intended-use.rst
+Starting in version 3.4, MongoDB adds the :doc:`maxStalenessSeconds
+</core/read-preference-staleness>` read preference option. The
+``maxStalenessSeconds`` option lets you specify a maximum replication
+lag, or "staleness", that :term:`secondaries <secondary>` can have and
+still be eligible for read operations. When a secondary's estimated
+staleness exceeds ``maxStalenessSeconds``, the secondary becomes
+ineligible for read operations.

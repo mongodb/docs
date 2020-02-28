@@ -20,14 +20,36 @@ Read Preference
 .. include:: /includes/introduction-read-preference.rst
 
 Read preference consists of the :ref:`read preference mode
-<read-pref-modes-summary>`, and optionally, a :ref:`tag set
-<replica-set-read-preference-tag-sets>` and
-:ref:`replica-set-read-preference-max-staleness`.
+<read-pref-modes-summary>` and optionally, a :ref:`tag set
+<replica-set-read-preference-tag-sets>`, the :ref:`maxStalenessSeconds
+<replica-set-read-preference-max-staleness>` option, and the
+:ref:`hedged read <mongos-hedged-reads>` option. :ref:`Hedged read
+<mongos-hedged-reads>` option is available for MongoDB 4.4+ sharded
+clusters for reads that use non-``primary`` read preference.
 
 .. _read-pref-summary:
 .. _read-pref-modes-summary:
 
+The following table lists a brief summary of the read preference modes:
+
+.. note::
+
+   Starting in version 4.4, non-``primary`` read preference modes
+   support :ref:`hedged read <mongos-hedged-reads>` on sharded
+   clusters.
+
 .. include:: /includes/read-preference-modes-table.rst
+
+For detailed description of the read preference modes, see
+:ref:`replica-set-read-preference-modes`.
+
+.. seealso::
+
+   - :ref:`replica-set-read-preference-tag-sets`,
+   
+   - :ref:`replica-set-read-preference-max-staleness`
+
+   - :ref:`mongos-hedged-reads`
 
 Behavior
 --------
@@ -89,7 +111,12 @@ Read Preference Modes
    .. include:: /includes/extracts/maxStaleness-and-tagSets-general.rst
 
    .. include:: /includes/extracts/secondary-reads-stale-data-primaryPreferred.rst
-   
+
+   .. note::
+
+      Starting in version 4.4, :readmode:`primaryPreferred` supports
+      :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters.
+
 .. readmode:: secondary
 
    Operations read *only* from the :term:`secondary` members of the set.
@@ -110,6 +137,11 @@ Read Preference Modes
    
    .. include:: /includes/extracts/secondary-reads-stale-data-secondary.rst
 
+   .. note::
+
+      Starting in version 4.4, :readmode:`secondary` supports
+      :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters.
+
 .. readmode:: secondaryPreferred
 
    In most situations, operations read from :term:`secondary` members,
@@ -125,19 +157,22 @@ Read Preference Modes
 
    .. include:: /includes/extracts/secondary-reads-stale-data-secondaryPreferred.rst
 
+   .. note::
+
+      Starting in version 4.4, :readmode:`secondaryPreferred` supports
+      :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters.
+
 .. readmode:: nearest
 
    The driver reads from a member whose network latency falls within
    the acceptable latency window. Reads in the :readmode:`nearest` mode
-   do not consider whether a member is a primary or secondary when
-   routing read operations: primaries and secondaries are treated
-   equivalently. The read preference :ref:`member selection
-   <replica-set-read-preference-behavior-nearest>` documentation
-   describes the process in detail.
+   do not consider whether a member is a :term:`primary` or
+   :term:`secondary` when routing read operations: primaries and
+   secondaries are treated equivalently.
 
    Set this mode to minimize the effect of network latency
    on read operations without preference for current or stale data.
-
+    
    When the read preference includes a :ref:`maxStalenessSeconds value
    <replica-set-read-preference-max-staleness>`, the client estimates
    how stale each secondary is by comparing the secondary's last write
@@ -161,18 +196,9 @@ Read Preference Modes
 
    .. note::
 
-      All operations read from a member of the nearest group of the
-      replica set that matches the specified read preference mode. The
-      :readmode:`nearest` mode differs in that it prefers low latency
-      reads over a member's :term:`primary` or :term:`secondary` status.
-
-      For :readmode:`nearest`, the client assembles a list of
-      acceptable hosts based on ``maxStalenessSeconds`` and tag sets
-      and then narrows that list to the host with the shortest ping
-      time and all other members of the set that are within the "local
-      threshold," or acceptable latency. See
-      :ref:`replica-set-read-preference-behavior-nearest` for more
-      information.
+      Starting in version 4.4, read preference :readmode:`nearest`, by
+      default, specifies the use of :ref:`hedged reads
+      <mongos-hedged-reads>` for reads on a sharded cluster.
 
 .. seealso::
 
