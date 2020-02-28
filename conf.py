@@ -69,6 +69,7 @@ rst_epilog = '\n'.join([
 
 source_constants = {
     'dbtools': 'MongoDB Database Tools',
+    'dbtools-short' : 'Database Tools',
     'dbtools-pkg': '``mongodb-database-tools``',
     'package-name-org': 'mongodb-org',
     'package-name-enterprise': 'mongodb-enterprise',
