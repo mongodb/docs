@@ -8,11 +8,11 @@
 
    * - ``id``
      - :ref:`ObjectId <document-bson-type-object-id>`
-     - Unique identifier for the team.
+     - Unique identifier for the organization.
 
    * - ``name``
      - string
-     - Name of the team.
+     - Name of the organization.
 
    * - ``links``
      - document array
