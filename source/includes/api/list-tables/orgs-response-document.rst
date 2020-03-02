@@ -12,7 +12,7 @@
 
    * - name
      - string
-     - Name of the team.
+     - Name of the organization.
 
    * - links
      - object array
