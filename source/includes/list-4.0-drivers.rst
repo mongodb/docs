@@ -17,6 +17,6 @@
 
    - Perl 2.0.0
 
-   - PHPC 1.5.0
+   - PHP (PHPC) 1.5.0
 
    - Scala 2.4.0
