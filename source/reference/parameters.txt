@@ -2379,7 +2379,7 @@ Sharding Parameters
 
    Default: 1
 
-   |mongos-only|
+   |both|
 
    Minimum number of outbound connections each TaskExecutor connection
    pool can open to any given :binary:`~bin.mongod` instance.
@@ -2389,6 +2389,19 @@ Sharding Parameters
    While the pool is idle, the pool maintains this number of
    connections until :parameter:`ShardingTaskExecutorPoolHostTimeoutMS`
    milliseconds pass without any application using that pool.
+
+   For a :binary:`~bin.mongos` using the
+   :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartup`
+   parameter, the ``ShardingTaskExecutorPoolMinSize`` parameter also
+   controls how many connections to each shard host are established on
+   startup of the :binary:`~bin.mongos` instance before it begins
+   accepting incoming client connections.
+
+   .. note::
+
+      In MongoDB 4.4, the
+      :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartup`
+      parameter is enabled by default for the :binary:`~bin.mongos`.
 
    You can only set this parameter during start-up and cannot change
    this setting using the :dbcommand:`setParameter` database command.
@@ -2401,7 +2414,8 @@ Sharding Parameters
    pools, where ``n`` is the number of cores. See
    :parameter:`taskExecutorPoolSize`.
 
-   .. seealso:: :parameter:`ShardingTaskExecutorPoolMaxSize`
+   .. seealso:: - :parameter:`ShardingTaskExecutorPoolMaxSize`
+                - :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartup`
 
 .. parameter:: ShardingTaskExecutorPoolRefreshRequirementMS
 
@@ -2574,6 +2588,99 @@ Sharding Parameters
 
       - :parameter:`ShardingTaskExecutorPoolMinSize`
 
+.. parameter:: loadRoutingTableOnStartup
+
+   .. versionadded:: 4.4
+
+   Type: boolean
+
+   *Default*: true
+
+   |mongos-only|
+
+   Configures a :binary:`~bin.mongos` instance to preload the routing
+   table for a sharded cluster on startup. With this setting
+   enabled, the :binary:`~bin.mongos` caches the cluster-wide routing
+   table for each sharded collection as part of its startup procedure,
+   before it begins accepting client connections.
+
+   Without this setting enabled, the :binary:`~bin.mongos` only loads
+   a routing table as needed for incoming client connections, and only
+   loads the specific routing table for the namespace of a given
+   request.
+
+   A :binary:`~bin.mongos` instance with the
+   :parameter:`loadRoutingTableOnStartup` parameter enabled may
+   experience longer startup times, but will result in faster servicing
+   of initial client connections once started.
+
+   :parameter:`loadRoutingTableOnStartup` is enabled by default.
+   
+   You can only set this parameter on startup, using either the
+   :setting:`setParameter` configuration file setting or the
+   :option:`--setParameter <mongos --setParameter>` command line option.
+
+.. parameter:: warmMinConnectionsInShardingTaskExecutorPoolOnStartup
+
+   .. versionadded:: 4.4
+
+   Type: boolean
+
+   *Default*: true
+
+   |mongos-only|
+
+   Configures a :binary:`~bin.mongos` instance to prewarm its connection
+   pool on startup. With this parameter enabled, the
+   :binary:`~bin.mongos` attempts to establish
+   :parameter:`ShardingTaskExecutorPoolMinSize` network
+   connections to each shard server as part of its startup procedure,
+   before it begins accepting client connections.
+
+   A timeout for this behavior can be configured with the
+   :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartupWaitMS`
+   parameter. If this timeout is reached, the :binary:`~bin.mongos` will
+   begin accepting client connections regardless of the size of its
+   connection pool.
+
+   A :binary:`~bin.mongos` instance with this parameter enabled may
+   experience longer startup times, but will result in faster servicing
+   of initial client connections once started.
+
+   :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartup` is
+   enabled by default.
+
+   You can only set this parameter on startup, using either the
+   :setting:`setParameter` configuration file setting or the
+   :option:`--setParameter <mongos --setParameter>` command line option.
+
+   .. seealso:: - :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartupWaitMS`
+                - :parameter:`ShardingTaskExecutorPoolMinSize`
+
+.. parameter:: warmMinConnectionsInShardingTaskExecutorPoolOnStartupWaitMS
+
+   .. versionadded:: 4.4
+
+   Type: integer
+
+   *Default*: 2000 (i.e. 2 seconds)
+
+   |mongos-only|
+
+   Sets the timeout threshold in milliseconds for a
+   :binary:`~bin.mongos` to wait for :parameter:`ShardingTaskExecutorPoolMinSize`
+   connections to be established per shard host when using the
+   :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartup`
+   parameter. If this timeout is reached, the :binary:`~bin.mongos` will
+   begin accepting client connections regardless of the size of its
+   connection pool.
+
+   You can only set this parameter on startup, using either the
+   :setting:`setParameter` configuration file setting or the
+   :option:`--setParameter <mongos --setParameter>` command line option.
+
+   .. seealso:: - :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartup`
+                - :parameter:`ShardingTaskExecutorPoolMinSize`
 
 .. parameter:: migrateCloneInsertionBatchDelayMS
 

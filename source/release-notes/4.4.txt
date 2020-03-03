@@ -390,6 +390,51 @@ need to be moved) as of the time the command is run or need to be
 moved. With the command, users can verify that initial chunk creation
 and migration has finished.
 
+Improved ``mongos`` Startup Procedure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting with MongoDB 4.4, :binary:`~bin.mongos` adds the following new
+default startup behavior:
+
+- :binary:`~bin.mongos` will now preload a sharded cluster's routing
+  table on startup, rather than doing so on-demand for the first
+  incoming client connection.
+
+- :binary:`~bin.mongos` will now prewarm its connection pool to shard
+  hosts on startup, rather than doing so on-demand for incoming
+  client connections.
+
+This behavior results in faster servicing of initial client
+connections after a :binary:`~bin.mongos` instance is started or
+restarted. In particular, this allows sites that employ multiple
+:binary:`~bin.mongos` instances to restart them as necessary, or add new
+ones, without initial client requests to those instances needing to wait
+on connection establishment.
+
+Both routing table preloading and connection pool prewarming are enabled
+by default.
+
+MongoDB 4.4 adds the following parameters for controlling this behavior:
+
+- :parameter:`loadRoutingTableOnStartup` 
+
+  - *Default*: ``true`` (Enabled)
+  - Enables or disables support for preloading the routing table on
+    startup for the :binary:`~bin.mongos`.
+
+- :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartup`
+
+  - *Default*: ``true`` (Enabled) 
+  - Enables or disables support for prewarming the connection pool on
+    startup for the :binary:`~bin.mongos`.
+
+- :parameter:`warmMinConnectionsInShardingTaskExecutorPoolOnStartupWaitMS`
+
+  - *Default*: ``2000`` (2 seconds)
+  - Sets the timeout in milliseconds before client connections
+    to the :binary:`~bin.mongos` are allowed regardless of established
+    connection pool size.
+
 Platform Support
 ----------------
 
