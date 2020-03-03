@@ -1,36 +1,34 @@
-You must have administrative access on the machines to which you install.
+You must have administrative access on the hosts to which you install.
 
 Before you install |onprem|, you must:
 
-.. |nbsp| unicode:: 0xA0
-   :trim:
-
 1. Plan your configuration. See :doc:`/core/installation-checklist`.
 
-   |nbsp|
+2. Deploy hosts that meet the :doc:`/core/requirements`.
 
-2. Deploy servers that meet the :doc:`/core/requirements`.
+   .. include:: /includes/admonitions/warning-follow-requirements.rst
 
-   .. warning::
+3. :doc:`Install the Ops Manager Application Database and optional
+   Backup Database </tutorial/prepare-backing-mongodb-instances>`. The
+   databases require *dedicated* MongoDB instances. *Don't* use
+   MongoDB installations that store other data. |onprem| requires the
+   Backup Database if you use the Backup feature.
 
-      Failure to configure servers according to the
-      :doc:`/core/requirements`, including the requirement to read the
-      :manual:`MongoDB Production Notes
-      </administration/production-notes>`, can lead to production failure.
+   The |application| must authenticate to the backing databases as a
+   MongoDB user with appropriate access.
 
-3. :doc:`Install the Ops Manager Application Database and optional Backup
-   Database </tutorial/prepare-backing-mongodb-instances>`. The databases
-   require dedicated MongoDB instances. Do **not** use MongoDB
-   installations that store other data. The Backup Database is required
-   only if you will use the Backup feature.
+   .. seealso::
 
-   |nbsp|
-
-   The |application| and Backup Daemon must authenticate to the backing
-   databases as a MongoDB user with appropriate access. See
-   :setting:`mongo.mongoUri` for more information.
+      To learn more about connecting to your backing database with
+      authentication, see :setting:`mongo.mongoUri`.
 
    .. note::
 
-      |mms| cannot deploy its own backing databases. You must deploy those
-      databases manually.
+      |mms| cannot deploy its own backing databases. You must deploy
+      those databases manually.
+
+4. Install and verify an Email Server. |onprem| needs an email server
+   to :ref:`send alerts <create-alert-configuration>` and recover
+   :ref:`user accounts <profile-page>`. You may use an SMTP Server or
+   an |aws| |ses| server. To configure your Email Server, see
+   :setting:`Email Delivery Method Configuration`.
