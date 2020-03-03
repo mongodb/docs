@@ -5,6 +5,9 @@
 
 *Released 2020-02-27*
 
+- Adds support for fetching MongoDB binaries from a custom HTTP(S) 
+  endpoint. To learn more, see :hardlink:`Configure Deployment to Have Limited Internet Access </tutorial/configure-local-mode>`.
+
 Upgrades Agent: :ref:`mongodb-10.9.2.6097`.
 
 .. _opsmgr-server-4.3.6:
