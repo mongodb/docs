@@ -555,12 +555,46 @@ them.
      - ``{ "$regex" : "[abc]", "$options" : "i" }``
 
 
-Special Ruby Date Classes
--------------------------
+Time Instances
+--------------
 
-Ruby's ``Date`` and ``DateTime`` are able to be serialized, but when they are
-deserialized, they will always be returned as a ``Time`` since the BSON
-specification only has a ``Time`` type and knows nothing about Ruby.
+Times in Ruby can have nanosecond precision. Times in BSON (and MongoDB)
+can only have microsecond precision. When Ruby ``Time`` instances are
+serialized to BSON or Extended JSON, the times are floored to the nearest
+millisecond.
+
+.. note::
+
+  The time as always rounded down. If the time precedes the Unix epoch
+  (January 1, 1970 00:00:00 UTC), the absolute value of the time would
+  increase:
+
+  .. code-block:: ruby
+
+  time = Time.utc(1960, 1, 1, 0, 0, 0, 999_999)
+  time.to_f
+  # => -315619199.000001
+  time.floor(3).to_f
+  # => -315619199.001
+
+.. note::
+
+  JRuby as of version 9.2.11.0 `rounds pre-Unix epoch times up rather than
+  down <https://github.com/jruby/jruby/issues/6104>`_. bson-ruby works around
+  this and correctly floors the times when serializing on JRuby.
+
+Because of this flooring, applications are strongly recommended to perform
+all time calculations using integer math, as inexactness of floating point
+calculations may produce unexpected results.
+
+
+Date And DateTime Instances
+---------------------------
+
+BSON only supports storing the time as the number of seconds since the
+Unix epoch. Ruby's ``Date`` and ``DateTime`` instances can be serialized
+to BSON, but when the BSON is deserialized the times will be returned as
+``Time`` instances.
 
 
 Regular Expressions
