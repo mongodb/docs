@@ -42,7 +42,7 @@ The standard URI connection scheme has the form:
 
 .. code-block:: none
 
-   mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[database][?options]]
+   mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
 
 Examples
 ````````
@@ -61,14 +61,14 @@ Examples
 
                 .. code-block:: sh
 
-                   mongodb://mongodb0.example.com:27017/admin
+                   mongodb://mongodb0.example.com:27017
 
               - For a standalone that :doc:`enforces access control
                 </tutorial/enable-authentication>`:
 
                 .. code-block:: sh
 
-                   mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017/admin
+                   mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
                 .. include:: /includes/fact-pct-encode-uri.rst
 
@@ -87,7 +87,7 @@ Examples
 
                 .. code-block:: sh
 
-                   mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/admin?replicaSet=myRepl
+                   mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myRepl
                
               - For a replica set that :doc:`enforces access control
                 </tutorial/enable-authentication>`, include
@@ -95,7 +95,7 @@ Examples
 
                 .. code-block:: sh
 
-                   mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/admin?replicaSet=myRepl
+                   mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?authSource=admin&replicaSet=myRepl
 
                 .. include:: /includes/fact-pct-encode-uri.rst
 
@@ -112,7 +112,7 @@ Examples
 
                 .. code-block:: sh
 
-                   mongodb://mongos0.example.com:27017,mongos1.example.com:27017,mongos2.example.com:27017/admin
+                   mongodb://mongos0.example.com:27017,mongos1.example.com:27017,mongos2.example.com:27017
 
               - For a sharded cluster that :doc:`enforces access
                 control </tutorial/enable-authentication>`, include
@@ -120,7 +120,7 @@ Examples
 
                 .. code-block:: sh
 
-                   mongodb://myDBReader:D1fficultP%40ssw0rd@mongos0.example.com:27017,mongos1.example.com:27017,mongos2.example.com:27017/admin
+                   mongodb://myDBReader:D1fficultP%40ssw0rd@mongos0.example.com:27017,mongos1.example.com:27017,mongos2.example.com:27017/?authSource=admin
 
                 .. include:: /includes/fact-pct-encode-uri.rst
 
@@ -147,9 +147,14 @@ Components
 
       * - ``username:password@``
 
-        - Optional. Authentication credentials. If specified, the client
-          will attempt to log in to the specific database using these
-          credentials after connecting.
+        - Optional. Authentication credentials. 
+        
+          If specified, the client will attempt to authenticate the
+          user to the :urioption:`authSource`. If
+          :urioption:`authSource` is unspecified, the client will
+          attempt to authenticate the user to the ``defaultAuthDB``.
+          And if the ``defaultAuthDB`` is unspecified, to the ``admin``
+          database.
 
           .. include:: /includes/fact-pct-encode-uri.rst
 
@@ -174,14 +179,17 @@ Components
           If the port number is not specified, the default port ``27017``
           is used.
 
-      * - ``/database``
 
-        - Optional. The name of the database to authenticate if the
-          connection string includes authentication credentials in the
-          form of ``username:password@``. If ``/database`` is not
-          specified and the connection string includes credentials, the
-          driver will authenticate to the ``admin`` database. See also
-          :urioption:`authSource`.
+      * - ``/defaultauthdb``
+        
+        - Optional. The authentication database to use if the
+          connection string includes ``username:password@``
+          authentication credentials but the :urioption:`authSource` option
+          is unspecified.
+
+          If both :urioption:`authSource` and ``defaultauthdb`` are
+          unspecified, the client will attempt to authenticate the
+          specified user to the ``admin`` database.
 
       * - ``?<options>``
 
@@ -193,7 +201,7 @@ Components
           If the connection string does not specify a database/ you must
           specify a slash (``/``) between the last ``host`` and the
           question mark (``?``) that begins the string of options.
-
+   
 .. index:: connections; dns-seedlist
 .. _connections-dns-seedlist:
 
@@ -350,7 +358,7 @@ members running on the specified hosts:
 
 .. code-block:: sh
 
-   mongodb://db0.example.com:27017,db1.example.com:27017,db2.example.com:27017/admin?replicaSet=myRepl
+   mongodb://db0.example.com:27017,db1.example.com:27017,db2.example.com:27017/?replicaSet=myRepl
 
 .. list-table::
    :header-rows: 1
@@ -951,7 +959,7 @@ credentials are authenticated to the ``admin`` database.
 
 .. code-block:: sh
 
-   mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/test?replicaSet=myRepl&authSource=admin
+   mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myRepl&authSource=admin
 
 If the username or password includes the at sign ``@``, colon ``:``,
 slash ``/``, or the percent sign ``%`` characters, use `percent
@@ -967,8 +975,10 @@ encoding <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
    * - .. urioption:: authSource
 
      - Specify the database name associated with the user's
-       credentials. :urioption:`authSource`
-       defaults to the database specified in the connection string.
+       credentials. If :urioption:`authSource` is unspecified,
+       :urioption:`authSource` defaults to the ``defaultauthdb``
+       specified in the connection string. If ``defaultauthdb`` is
+       unspecified, then :urioption:`authSource` defaults to ``admin``.
 
        For authentication mechanisms that delegate credential storage
        to other services, the :urioption:`authSource` value should be
