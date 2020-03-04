@@ -36,7 +36,7 @@ extensions = [
 ]
 
 source_constants = {
-  'download-page': '`downloads page <https://www.mongodb.com/download-center/compass?jmp=docs>`__',
+  'download-page': '`downloads page <https://www.mongodb.com/download-center/compass?tck=docs_compass>`__',
   'current-version': '1.20.4'
 }
 
@@ -138,8 +138,8 @@ extlinks = {
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'manual-next': ('http://docs.mongodb.org/master%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
-    'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
-    'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
+    'product': ('http://www.mongodb.com/products/%s?tck=docs_compass',''),
+    'dl': ('http://www.mongodb.com/download-center/%s?tck=docs_compass',''),
     'atlas': ('http://docs.atlas.mongodb.com%s', ''),
     'guides': ('https://docs.mongodb.com/guides%s', '')
 }
