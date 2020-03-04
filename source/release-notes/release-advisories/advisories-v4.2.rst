@@ -56,3 +56,26 @@ When you use the |k8s-op-short| and upgrade |onprem|, upgrade to
 |k8s-statefulset| to restart your MongoDB Agents and trigger a
 rolling restart of all the database pods. This issue doesn't exist in
 |onprem| 4.2.1 or later.
+
+Upgrade to Version with Later Release Date
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you upgrade to another version, make sure the new version has a
+``release_date`` that occurred after the date of the version you want
+to upgrade. You might have this issue from the current version
+({+manifest-version+}) to rapid release ({+rr-version+}) version. In
+this case, the version numbers don't reveal release dates.
+
+.. example::
+
+   - MongoDB released |onprem| 4.3.5 on 16 Jan 2020, but released
+     |onprem| 4.2.8 on 06 Feb 2020. You *can't* upgrade |onprem| from
+     4.2.8 to 4.3.5.
+
+   - MongoDB released |onprem| 4.3.7 on 27 Feb 2020. You *can* upgrade
+     |onprem| from 4.2.8 to 4.3.7.
+
+To find the release dates, download the
+`ops_manager_release_archive JSON file <https://info-mongodb-com.s3.amazonaws.com/com-download-center/ops_manager_release_archive.json>`__.
+Search for ``version`` to find the |onprem| versions to and from which
+you are upgrading.

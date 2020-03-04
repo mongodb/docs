@@ -54,6 +54,8 @@ release = conf.version.release
 pygments_style = 'sphinx'
 
 manifest_version = '4.2'
+rr_version = '4.3'
+# rr_version = str(float(manifest_version) + 0.1)
 
 extlinks = {
     'hardlink' : ( 'https://docs.opsmanager.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
@@ -92,6 +94,8 @@ extlinks = {
 source_constants = {
     'version': version,
     'release': release,
+    'manifest-version': manifest_version,
+    'rr-version': rr_version,
     'opsmgr-url': '<OpsManagerHost>:<Port>',
     'cloudmgr-url': 'cloud.mongodb.com',
     'autoagent-version': '6.5.1.5691-1',
