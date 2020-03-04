@@ -21,7 +21,7 @@ Syntax
 
 .. code-block:: none
 
-   GET /api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers/admin/{USERNAME}
+   GET /api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers/{databaseName}/{USERNAME}
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,11 +39,31 @@ Request Path Parameters
 
      - Unique identifier for the :ref:`project <group-id>`.
 
+   * - ``databaseName``
+     - Required.
+     - The user's :ref:`authentication database
+       <authentication-database>`.
+       
+       Accepted values include:
+
+       - ``$external`` if the user is authenticated using X.509 
+         certificates or |ldap|.
+       - ``admin`` users authenticated using
+         :manual:`SCRAM-SHA </core/security-scram>`.
+
+         This is the default authentication scheme in |service|.
+
    * - ``USERNAME``
 
      - Required.
 
-     - Username to retrieve
+     - Username to retrieve.
+
+       Must be a fully qualified distinguished name, as defined in 
+       :rfc:`2253`, if:
+
+       - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
+       - ``x509Type`` is ``CUSTOMER``.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,35 +89,97 @@ Examples
 Request
 ~~~~~~~
 
-.. include:: /includes/extracts/fact-api-requirements-modify.rst
+.. tabs::
 
-.. class:: copyable-code
+   tabs:
+     - id: scram
+       name: SCRAM-SHA
+       content: |
 
-.. code-block:: none
+         Retrieve one database user that |service| authenticates using
+         :manual:`SCRAM-SHA </core/security-scram>` and the ``admin`` 
+         database.
 
-   curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/ellen"
+         .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-Response
-~~~~~~~~
+         .. code-block:: none
 
-.. code-block:: none
+            curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/ellen"
 
-   HTTP/1.1 200 OK
+     - id: ldap
+       name: X.509 and LDAP
+       content: |
 
-   {
-     "databaseName" : "admin",
-     "groupId" : "5356823b3794dee37132bb7b",
-     "links" : [ ... ],
-     "labels": [],
-     "roles" : [ {
-       "databaseName" : "admin",
-       "roleName" : "readAnyDatabase"
-     }, {
-       "databaseName" : "marketing",
-       "roleName" : "readWrite"
-     }, {
-       "databaseName" : "marketing",
-       "roleName" : "backup"
-     } ],
-     "username" : "ellen"
-   }
+         Retrieve one database user that |service| authenticates using
+         X.509 or |ldap| and the ``$external`` database.
+
+         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+
+         .. code-block:: none
+
+            curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/$external/CN=ellen@example.com,OU=users,DC=example,DC=com"
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. tabs::
+
+   hidden: true
+
+   tabs:
+     - id: scram
+       name: SCRAM-SHA
+       content: |
+
+         .. code-block:: json
+            :copyable: false
+
+            {
+              "databaseName" : "admin",
+              "groupId" : "5356823b3794dee37132bb7b",
+              "links" : [ ... ],
+              "labels": [],
+              "roles" : [ {
+                "databaseName" : "admin",
+                "roleName" : "readAnyDatabase"
+              }, {
+                "databaseName" : "marketing",
+                "roleName" : "readWrite"
+              }, {
+                "databaseName" : "marketing",
+                "roleName" : "backup"
+              } ],
+              "username" : "ellen"
+            }
+
+     - id: ldap
+       name: X.509 and LDAP
+       content: |
+
+         .. code-block:: json
+            :copyable: false
+
+            {
+              "databaseName" : "$external",
+              "groupId" : "5356823b3794dee37132bb7b",
+              "links" : [ ... ],
+              "labels": [],
+              "roles" : [ {
+                "databaseName" : "admin",
+                "roleName" : "readAnyDatabase"
+              }, {
+                "databaseName" : "marketing",
+                "roleName" : "readWrite"
+              }, {
+                "databaseName" : "marketing",
+                "roleName" : "backup"
+              } ],
+              "username" : "CN=ellen@example.com,OU=users,DC=example,DC=com"
+            }

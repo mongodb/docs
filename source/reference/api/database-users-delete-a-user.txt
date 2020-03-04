@@ -21,7 +21,7 @@ Syntax
 
 .. code-block:: none
 
-   DELETE /api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers/admin/{USERNAME}
+   DELETE /api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers/{databaseName}/{USERNAME}
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,11 +39,31 @@ Request Path Parameters
 
      - Unique identifier for the :ref:`project <group-id>`.
 
+   * - ``databaseName``
+     - Required.
+     - The user's :ref:`authentication database
+       <authentication-database>`.
+       
+       Accepted values include:
+
+       - ``$external`` if the user is authenticated using X.509 
+         certificates or |ldap|.
+       - ``admin`` users authenticated using
+         :manual:`SCRAM-SHA </core/security-scram>`.
+
+         This is the default authentication scheme in |service|.     
+
    * - ``USERNAME``
 
      - Required.
 
      - Username to delete.
+
+       Must be a fully qualified distinguished name, as defined in 
+       :rfc:`2253`, if:
+
+       - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
+       - ``x509Type`` is ``CUSTOMER``.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -60,21 +80,50 @@ Response Elements
 
 .. include:: /includes/no-response-elements.rst
 
-Example Request
----------------
+Examples
+--------
 
 Request
 ~~~~~~~
 
-.. include:: /includes/extracts/fact-api-requirements-modify.rst
+.. tabs::
 
-.. class:: copyable-code
+   tabs:
+     - id: scram
+       name: SCRAM-SHA
+       content: |
 
-.. code-block:: none
+         Delete one database user that |service| authenticates using
+         :manual:`SCRAM-SHA </core/security-scram>` and the ``admin`` 
+         database.
 
-   curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest -X DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/elsa"
+         .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-Response
-~~~~~~~~
+         .. code-block:: none
+
+            curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest -X DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/ellen"
+
+     - id: ldap
+       name: X.509 and LDAP
+       content: |
+
+         Delete one database user that |service| authenticates using
+         X.509 or |ldap| and the ``$external`` database.
+
+         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+
+         .. code-block:: none
+
+            curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest -X DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/$external/CN=ellen@example.com,OU=users,DC=example,DC=com"
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/204.rst
+
+Response Body
+~~~~~~~~~~~~~
 
 .. include:: /includes/api/no-response-body.rst

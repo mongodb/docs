@@ -10,9 +10,16 @@
      - string
      - The user's :ref:`authentication database
        <authentication-database>`. A user must provide both a username
-       and authentication database to log into MongoDB. In |service|
-       deployments of MongoDB, the authentication database is always
-       the ``admin`` database.
+       and authentication database to log into MongoDB. 
+
+       Returned values include:
+
+       - ``$external`` if the user is authenticated using X.509 
+         certificates or |ldap|.
+       - ``admin`` users authenticated using
+         :manual:`SCRAM-SHA </core/security-scram>`.
+
+         This is the default authentication scheme in |service|. 
 
    * - ``deleteAfterDate``
      - string
@@ -35,7 +42,7 @@
      - Method by which the specified ``username`` is authenticated. If
        no value is given, |service| uses the default value of ``NONE``.
 
-       Accepted values include:
+       Returned values include:
 
        .. list-table::
           :stub-columns: 1
@@ -132,3 +139,9 @@
    * - ``username``
      - string
      - Username for authenticating to MongoDB.
+
+       A fully qualified distinguished name, as defined in 
+       :rfc:`2253`, is returned if:
+
+       - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
+       - ``x509Type`` is ``CUSTOMER``.
