@@ -29,33 +29,44 @@ interleaving read and write operations.
 
 The build process is summarized as follows:
 
-1. **Initialization**
+.. list-table:: 
+   :widths: 35 65
+   :stub-columns: 1
 
-   The :binary:`~bin.mongod` takes an exclusive lock against the
-   collection being indexed. This blocks all read and write operations
-   to the collection until the :binary:`~bin.mongod` releases the lock.
-   Applications cannot access the collection during
-   this time.
+   * - 1. Initialization
 
-2. **Data Ingestion and Processing**
+     - The :binary:`~bin.mongod` takes an exclusive lock against the
+       collection being indexed. This blocks all read and write
+       operations to the collection until the :binary:`~bin.mongod`
+       releases the lock. Applications cannot access the collection
+       during this time.
+   
+   * - 2. Data Ingestion and Processing
 
-   The :binary:`~bin.mongod` releases all locks taken by the index build
-   process before taking a series of intent locks against the collection
-   being indexed.  Applications can issue read and write operations
-   against the collection during this time.
+     - The :binary:`~bin.mongod` releases all locks taken by the index
+       build process before taking a series of intent locks against the
+       collection being indexed.  Applications can issue read and write
+       operations against the collection during this time.
 
-3. **Cleanup**
+   * - 3. Cleanup
 
-   The :binary:`~bin.mongod` releases all locks taken by the index build
-   process before taking an exclusive lock against the the collection
-   being indexed. This blocks all read and write operations to the
-   collection until the :binary:`~bin.mongod` releases the lock.
-   Applications cannot access the collection during this time.
+     - The :binary:`~bin.mongod` releases all locks taken by the index
+       build process before taking an exclusive lock against the the
+       collection being indexed. This blocks all read and write
+       operations to the collection until the :binary:`~bin.mongod`
+       releases the lock. Applications cannot access the collection
+       during this time.
 
-4. **Completion**
+   * - 4. Completion
+     - The :binary:`~bin.mongod` marks the index as ready to use and
+       releases all locks taken by the index build process. 
+   
+       For replica set :term:`secondaries <secondary>`, the
+       :binary:`~bin.mongod` only marks the index as ready to use after
+       receiving a commit oplog entry from the primary (i.e. the
+       :term:`primary` has built and marked the index as ready). See
+       :ref:`index-operations-replicated-build` for more information.
 
-   The :binary:`~bin.mongod` marks the index as ready to use
-   and releases all locks taken by the index build process.
 
 For a detailed description of index build locking behavior, see
 :ref:`index-build-process`. For more information on MongoDB locking
@@ -222,13 +233,28 @@ Secondary Index Builds May Stall Read and Write Operations
   write operations that depends on the secondary stall until the
   build releases that lock.
 
-Secondaries Process Index Drops After Index Build Completes
-  Dropping the index on the primary before secondaries
-  complete the replicated index build does not kill the secondary index
-  builds. When the secondary replicates the index drop, it must wait
-  until *after* the index build completes to apply the drop.
-  Furthermore, since index drops are a metadata operation on the
-  collection, the index drop stalls replication on that secondary.
+Secondaries Process Index Drops After Index Build Completes 
+  Dropping the index on the primary before secondaries complete the
+  replicated index build does not kill the secondary index builds. When
+  the secondary replicates the index drop, it must wait until after the
+  index build completes to apply the drop. Furthermore, since index
+  drops are a metadata operation on the collection, the index drop
+  stalls replication on that secondary.
+
+Secondaries Process Aborted Index Builds After Primary Aborts Those Builds
+  The :dbcommand:`dropIndexes` command and its shell helpers can attempt
+  to abort in-progress index builds (*New in MongoDB 4.4*). Aborting an
+  index build has the same effect as dropping the ready index. Aborting
+  an index build on the primary does not simultaneously abort secondary
+  index builds. :dbcommand:`dropIndexes` aborts the in-progress builds
+  for the specified indexes on the primary and creates an associated
+  "abort" oplog entry. Secondary members with replicated in-progress
+  builds wait for a commit or abort oplog entry from the primary before
+  either committing or aborting the index build.
+
+  See :ref:`dropIndexes-cmd-index-builds` for more information on
+  aborting in-progress index builds when dropping indexes.
+
 
 Build Failure and Recovery
 --------------------------
