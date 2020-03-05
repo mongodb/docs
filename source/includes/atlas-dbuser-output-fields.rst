@@ -8,8 +8,9 @@
    * - ``databaseName``
      - User's :manual:`authentication database 
        </core/security-users/#authentication-database>`. For MongoDB 
-       deployment in |service|, the authentication database 
-       is always the ``admin`` database.
+       deployment in |service|, the :manual:`authentication database 
+       </core/security-users/#authentication-database>` is always the 
+       ``admin`` database.
 
    * - ``groupId``
      - Unique identifier of the |service| project to which the user 
@@ -49,3 +50,4 @@
 
    * - ``username``
      - Username for authentication.
+     
