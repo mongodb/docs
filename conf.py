@@ -61,9 +61,9 @@ release = conf.version.release
 
 rst_epilog = [
     '.. include:: {0}/hash.rst'.format(conf.paths.includes[len(conf.paths.source):]),
-    '.. _service-fullname: https://www.mongodb.com/cloud/atlas?jmp=docs',
-    '.. _service-pricing: https://www.mongodb.com/cloud/atlas/pricing?jmp=docs',
-    '.. _service:  https://www.mongodb.com/cloud/atlas?jmp=docs',
+    '.. _service-fullname: https://www.mongodb.com/cloud/atlas?tck=docs_atlas',
+    '.. _service-pricing: https://www.mongodb.com/cloud/atlas/pricing?tck=docs_atlas',
+    '.. _service:  https://www.mongodb.com/cloud/atlas?tck=docs_atlas',
     '.. _stitch-docs: https://docs.mongodb.com/stitch',
     '.. |2fa| replace:: :abbr:`2FA (Two Factor Authentication)`',
     '.. |a-service| replace:: an Atlas',
@@ -192,7 +192,7 @@ extlinks = {
     'stitch': ('https://docs.mongodb.com/stitch%s', ''),
     'charts': ('https://docs.mongodb.com/charts/saas%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
-    'website': ('https://www.mongodb.com%s?jmp=docs', ''),
+    'website': ('https://www.mongodb.com%s?tck=docs_atlas', ''),
     'aws': ('http://docs.aws.amazon.com%s',''),
     'azure': ('https://docs.microsoft.com/en-us/azure%s',''),
     'gcp': ('https://cloud.google.com%s',''),
