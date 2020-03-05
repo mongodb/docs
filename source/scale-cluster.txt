@@ -27,7 +27,7 @@ You can modify the following properties of your |service| cluster:
 
        .. important::
 
-          You cannot disable |global-write| for a cluster once deployed.
+          You can't disable |global-write| for a cluster once deployed.
 
    * - :ref:`Cloud Provider & Region <scale-cluster-cloud-provider>`
 
@@ -40,6 +40,10 @@ You can modify the following properties of your |service| cluster:
        For dedicated clusters with a :guilabel:`Cluster Tier` of
        ``M10`` or larger, you can modify cluster's region.
 
+       .. note::
+          Adding or moving a node to a region without the primary will require each newly migrated 
+          replica set member to perform an :manual:`initial sync </core/replica-set-sync/>`.
+
    * - :ref:`Deploy or Configure a multi-region cluster <scale-cluster-region>`
      - You can deploy or modify a multi-region cluster.
 
@@ -49,6 +53,13 @@ You can modify the following properties of your |service| cluster:
    * - :ref:`Cluster Tier <scale-cluster-instance>`
 
      - You can modify the cluster tier.
+
+       .. note::
+          Modifying clusters that use :ref:`NVMe storage <nvme-storage>` requires
+          an :manual:`initial sync </core/replica-set-sync/>`.
+       
+       .. important:
+          You can't downgrade from a dedicated cluster (``M10+``)  to a shared cluster 
 
    * - :ref:`Cluster Storage Options <create-cluster-storage>`
 
@@ -74,7 +85,8 @@ You can modify the following properties of your |service| cluster:
        Only available for cluster with a :guilabel:`Cluster Tier`
        of ``M10`` or larger.
 
-       You cannot downgrade the MongoDB version of a cluster.
+       .. note::
+          You can't downgrade the MongoDB version of a cluster.
 
    * - :ref:`Deploy a Sharded Cluster <scale-cluster-sharding>`
 
@@ -84,11 +96,18 @@ You can modify the following properties of your |service| cluster:
        Only available for clusters with a :guilabel:`Cluster Tier` of
        ``M30`` or larger.
 
+       .. important::
+          You can't reverse the conversion of a replica set to a sharded cluster.
+
    * - :ref:`Modify the Number of Shards <scale-cluster-shardNum>`
 
      - You can configure the number of shards in the sharded cluster.
 
        Only available for sharded cluster deployments.
+
+       .. important::
+          Removing a shard takes some time. Any MongoDB configuration changes 
+          requested afterwards begin only after |service| removes the shard.
 
    * - :ref:`Enable or Disable Backup <scale-cluster-backups>`
 
@@ -102,9 +121,9 @@ You can modify the following properties of your |service| cluster:
 
        .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
 
-   * - :ref:`Confirm and Deploy <scale-cluster-payment>`
+   * - :ref:`Review and Apply Your Changes <scale-cluster-payment>`
 
-     - Confirm and deploy your cluster with the selected changes.
+     - Review and apply the selected changes made to your cluster.
 
 Considerations
 --------------
@@ -194,7 +213,7 @@ Modify the :guilabel:`Global Cluster Configuration`
 
 .. important::
 
-   You cannot disable |global-write| for a cluster once deployed.
+   You can't disable |global-write| for a cluster once deployed.
 
 You can enable global writes for your cluster or modify
 existing global cluster configurations.
@@ -246,7 +265,7 @@ and |iops| (speed) specifications for the selected cluster.
 .. admonition:: Free and Shared-Tier Cluster Considerations
    :class: note
 
-   - You cannot downgrade an ``M10+`` cluster to an
+   - You can't downgrade an ``M10+`` cluster to an
      ``M0`` Free Tier or ``M2/M5`` Shared-Tier Starter instance size.
 
    - Changing the cluster tier from an ``M0`` Free Tier or ``M2/M5``
@@ -257,11 +276,6 @@ Select your preferred cluster tier. The selected instance
 size dictates the  memory, storage, and IOPS specification for each
 data-bearing server [#data-bearing]_ in the cluster.
 
-.. note::
-
-   Clusters which utilize :ref:`NVMe storage <nvme-storage>` must perform
-   an :manual:`initial sync </core/replica-set-sync/>` when upgrading
-   to a higher cluster tier.
 
 For more information on cluster tiers, see
 :ref:`create-cluster-instance`.
@@ -314,7 +328,7 @@ Upgrade the MongoDB Version of the Cluster
       If you have enabled backup for your cluster and want to upgrade
       to MongoDB 4.2, you:
 
-      - Cannot upgrade a sharded cluster
+      - Can't upgrade a sharded cluster
 
         Sharded clusters running MongoDB 4.2 must use
         :doc:`/backup/cloud-provider-snapshots`.
@@ -352,7 +366,7 @@ Enable or Disable Backup for the Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Backups are automatically enabled for ``M2`` and ``M5`` shared-tier
-clusters and cannot be disabled. For more information, see
+clusters and can't be disabled. For more information, see
 :doc:`/backup/m2-m5-snapshots`.
 
 To enable backups for an ``M10+`` |service| cluster, toggle
@@ -389,6 +403,11 @@ to :guilabel:`Yes`.
 For more information on |service| Encryption at Rest, see
 :ref:`create-cluster-enable-encryption`.
 
+.. note::
+
+   All changes to :manual:`customer KMS </security-kms-encryption>` require an
+   :manual:`initial sync </core/replica-set-sync/>`.
+
 .. _scale-cluster-more-configuration-options:
 
 Configure Additional Configuration Options
@@ -401,14 +420,35 @@ For details on these options, see
 
 .. _scale-cluster-payment:
 
-Confirm and Deploy Your Changes
+Review and Apply Your Changes
 -------------------------------
 
-Click :guilabel:`Confirm & Deploy` deploy your changes.
+Click :guilabel:`Review Changes` to review the changes you have made.
+
+The :guilabel:`Review Changes` page displays a complete side-by-side summary of the
+modified attributes with any warnings or notes pertaining to the
+changes. The original attribute settings are listed on the left and the
+corresponding new settings with changes in pricing are listed on the
+right.
+
+.. figure:: /images/review-changes.png
+   :figwidth: 720px
+   :alt: Example review changes
+
+|service| displays all warnings and notes related to the change at the
+top. These include changes that:
+
+- Can't be rolled back
+- Require an :manual:`initial sync </core/replica-set-sync/>`
+- Result in expected delays in execution, increase in workload, or
+  downtime.  
+
+Once you have reviewed the changes, click :guilabel:`Apply Changes` to apply them to your cluster. 
 
 If you are upgrading from an ``M0`` Free Tier cluster, |service|
-prompts you to enter payment information before deploying your
+prompts you to enter payment information before applying your
 changes.
+
 
 .. include:: /includes/footnote-databearing.rst
 
