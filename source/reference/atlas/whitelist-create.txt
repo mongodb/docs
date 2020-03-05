@@ -14,8 +14,9 @@ mongocli atlas whitelist create
 
 The ``whitelist create`` command creates a whitelist for the 
 specified |service| project. The whitelist can contain one or more 
-trusted IP addresses or entries in Classless Inter-Domain Routing (CIDR) 
-notation. You can create one whitelist per project.
+trusted IP addresses, |aws| security group IDs, or entries in Classless
+Inter-Domain Routing (CIDR) notation. You can create one whitelist per
+project.
 
 .. note:: 
 
@@ -24,10 +25,8 @@ notation. You can create one whitelist per project.
    entries.
 
 You can also create a whitelist using the |service| 
-:atlas:`UI Connection IP Address 
-<https://docs.atlas.mongodb.com/tutorial/whitelist-connection-ip-address/>` 
-or :atlas:`API 
-<https://docs.atlas.mongodb.com/reference/api/whitelist-add-one/?searchProperty=current&query=awsSecurityGroup>`.
+:atlas:`UI <tutorial/whitelist-connection-ip-address/>`
+or :atlas:`API <reference/api/whitelist-add-one/>`.
 
 .. _whitelist-create-command-syntax:
 
@@ -41,11 +40,11 @@ Syntax
         --comment "<description-of-value>"
         [ --profile|-p <name-of-profile> ]
         --projectId <id-of-project>
-        [ --type cidrBlock|ipAddress ]
+        [ --type cidrBlock|ipAddress|awsSecurityGroup ]
 
 .. include:: /includes/fact-command-line-help.rst
 
-.. _whitelist-create-command-options:
+.. _mcli-atlas-whitelist-create-command-options:
 
 Options 
 -------
@@ -58,6 +57,15 @@ Options
      - Type 
      - Description 
      - Required?
+
+   * - ``<whitelist-entry>``
+     - string
+     - Entry for the whitelist. Value can be: 
+
+       - An IP address
+       - A CIDR block
+       - An |aws| security group ID
+     - yes
 
    * - ``--comment``
      - string
@@ -82,95 +90,83 @@ Options
      - string
      - Type of whitelist entry. Valid values are:
 
-       - ``cidrBlock`` - for a whitelist entry in Classless Inter-Domain 
-         Routing (CIDR) notation
-       - ``ipAddress`` - for an IP address entry. You can connect to a 
-         cluster from only the trusted IP addresses in the whitelist.
+       .. list-table::
+          :widths: 30 70
+
+          * - ``cidrBlock``
+            - Whitelist entry in Classless Inter-Domain 
+              Routing (CIDR) notation. Mutually exclusive with
+              ``awsSecurityGroup`` and ``ipAddress``.
+
+          * - ``ipAddress``
+            - IP address. You can connect to a 
+              cluster from only the trusted IP addresses in the 
+              whitelist. Mutually exclusive with ``awsSecurityGroup``
+              and ``ciderBlock``.
+
+          * - ``awsSecurityGroup``
+            - ID of an |aws| security group. Mutually exclusive with
+              ``cidrBlock`` and ``ipAddress``.
+
+              .. note::
+
+                 You must :atlas:`configure VPC peering
+                 <security-vpc-peering/#vpc-peering>` for your project
+                 before you can whitelist an |aws| security group.
 
        If omitted, defaults to ``ipAddress``.
 
      - no
 
-   * - ``<whitelist-entry>``
-     - string
-     - Entry for the whitelist. Value can be: 
-
-       - An IP address
-       - A CIDR block
-     - yes
-
-.. _whitelist-create-command-output:
+.. _mcli-atlas-whitelist-create-command-output:
 
 Output 
 ------
 
 .. include:: /includes/command-output-intro.rst
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
+.. include:: /includes/atlas-whitelist-output-fields.rst
 
-   * - Field 
-     - Description 
-
-   * - ``comment``
-     - Description of the whitelist entry.
-
-   * - ``groupId``
-     - Unique identifier of the project. 
-
-       .. note:
-
-          Groups and projects are synonymous terms. Your {GROUP-ID} 
-          is the same as your project ID.
-
-   * - ``cidrBlock``
-     - Whitelist entry in Classless Inter-Domain Routing (CIDR) 
-       notation.
-
-   * - ``ipAddress``
-     - Whitelisted IP address.
-
-.. _whitelist-create-command-examples:
+.. _mcli-atlas-whitelist-create-command-examples:
 
 Examples 
 --------
 
-The following examples use the ``mongocli atlas whitelist create`` command 
-to create a whitelist with an IP address and a whitelist entry 
-in CIDR notation. 
+The following examples use the ``mongocli atlas whitelist create``
+command to create a whitelist with an IP address, a whitelist entry
+in CIDR notation, and a whitelist entry with an |aws| security group. 
 
 Example 1
 ~~~~~~~~~
 
 The following sample command creates a whitelist entry for an 
-IP address using the saved profile, ``egAtlasProfile``.
+IP address using the ``default`` profile.
 
 .. code-block:: text
    :copyable: false
 
-   ~ mongocli atlas whitelist create 192.0.2.15 --type ipAddress --projectId 5e2211c17a3e5a48f5497de3 --profile egAtlasProfile --comment "IP address for app server 2"
+   mongocli atlas whitelist create 192.0.2.15 --type ipAddress --projectId 5e2211c17a3e5a48f5497de3 --comment "IP address for app server 2"
 
 The previous command prints the following fields to the terminal. To 
 learn more about these fields, see :ref:`Output 
-<whitelist-create-command-output>`.
+<mcli-atlas-whitelist-create-command-output>`.
 
 .. code-block:: json
    :copyable: false
 
    [
-	  {
-		"comment": "IP address for app server 2",
-		"groupId": "5e2211c17a3e5a48f5497de3",
-		"cidrBlock": "192.0.2.15/32",
-		"ipAddress": "192.0.2.15"
-	  },
-	  {
-		"comment": "IP address for app server 1",
-		"groupId": "5e2211c17a3e5a48f5497de3",
-		"cidrBlock": "10.201.30.114/32",
-		"ipAddress": "10.201.30.114"
-	  }
+     {
+       "comment": "IP address for app server 2",
+       "groupId": "5e2211c17a3e5a48f5497de3",
+       "cidrBlock": "192.0.2.15/32",
+       "ipAddress": "192.0.2.15"
+     },
+     {
+       "comment": "IP address for app server 1",
+       "groupId": "5e2211c17a3e5a48f5497de3",
+       "cidrBlock": "10.201.30.114/32",
+       "ipAddress": "10.201.30.114"
+     }
    ]
 
 Example 2
@@ -182,32 +178,77 @@ the ``default`` profile.
 .. code-block:: text
    :copyable: false
 
-   ~ mongocli atlas whitelist create 73.231.201.205/24 --type cidrBlock --projectId 5e2211c17a3e5a48f5497de3 --comment "CIDR block for servers C - F"
+   mongocli atlas whitelist create 73.231.201.205/24 --type cidrBlock --projectId 5e2211c17a3e5a48f5497de3 --comment "CIDR block for servers C - F"
 
 The previous command prints the following 
 fields to the terminal. To learn more about these fields, 
-see :ref:`Output <whitelist-create-command-output>`.
+see :ref:`Output <mcli-atlas-whitelist-create-command-output>`.
 
 .. code-block:: json
    :copyable: false
 
    [
-	  {
-		"comment": "CIDR block for servers C - F",
-		"groupId": "5e2211c17a3e5a48f5497de3",
-		"cidrBlock": "73.231.201.205/24",
-		"ipAddress": "73.231.201.205"
-	  },
-      {
-		"comment": "IP address for app server 2",
-		"groupId": "5e2211c17a3e5a48f5497de3",
-		"cidrBlock": "192.0.2.15/32",
-		"ipAddress": "192.0.2.15"
-	  },
-	  {
-		"comment": "IP address for app server 1",
-		"groupId": "5e2211c17a3e5a48f5497de3",
-		"cidrBlock": "10.201.30.114/32",
-		"ipAddress": "10.201.30.114"
-	  }
+     {
+       "comment": "CIDR block for servers C - F",
+       "groupId": "5e2211c17a3e5a48f5497de3",
+       "cidrBlock": "73.231.201.205/24",
+       "ipAddress": "73.231.201.205"
+     },
+     {
+       "comment": "IP address for app server 2",
+       "groupId": "5e2211c17a3e5a48f5497de3",
+       "cidrBlock": "192.0.2.15/32",
+       "ipAddress": "192.0.2.15"
+     },
+     {
+       "comment": "IP address for app server 1",
+       "groupId": "5e2211c17a3e5a48f5497de3",
+       "cidrBlock": "10.201.30.114/32",
+       "ipAddress": "10.201.30.114"
+     }
+   ]
+
+Example 3
+~~~~~~~~~
+
+The following command creates a whitelist entry for an |aws| security
+group using the ``default`` profile.
+
+.. code-block:: text
+   :copyable: false
+
+   mongocli atlas whitelist create sg-903004f8 --type awsSecurityGroup
+   --projectId 5e2211c17a3e5a48f5497de3 --comment "AWS Security Group"
+
+The previous command prints the following 
+fields to the terminal. To learn more about these fields, 
+see :ref:`Output <mcli-atlas-whitelist-create-command-output>`.
+
+.. code-block:: json
+   :copyable: false
+
+   [
+     {
+       "comment": "AWS Securty Group",
+       "groupId": "5e2211c17a3e5a48f5497de3",
+       "awsSecurityGroup": "sg-903004f8"
+     },
+     {
+       "comment": "CIDR block for servers C - F",
+       "groupId": "5e2211c17a3e5a48f5497de3",
+       "cidrBlock": "73.231.201.205/24",
+       "ipAddress": "73.231.201.205"
+     },
+     {
+       "comment": "IP address for app server 2",
+       "groupId": "5e2211c17a3e5a48f5497de3",
+       "cidrBlock": "192.0.2.15/32",
+       "ipAddress": "192.0.2.15"
+     },
+     {
+       "comment": "IP address for app server 1",
+       "groupId": "5e2211c17a3e5a48f5497de3",
+       "cidrBlock": "10.201.30.114/32",
+       "ipAddress": "10.201.30.114"
+     }
    ]
