@@ -3,13 +3,19 @@ upgrade path you must take to upgrade to Ops Manager 4.2 or later.
 
 .. important::
 
-   - You must follow the upgrade path for your existing version to
-     perform necessary database migrations.
+   - To ensure a successful upgrade, you *must*:
 
-   - To protect your data, Ops Manager refuses to start direct upgrades
+     - Follow the upgrade path for your existing version to perform
+       necessary database migrations.
+
+     - Upgrade versions in chronological order. Your new release
+       :ref:`must have been released after <om-upgrade-con-release-date>`
+       the version you are upgrading.
+
+   - To protect your data, |onprem| refuses to start direct upgrades
      from versions 1.8.x and 2.0.x to version 3.4 or later.
 
-   - In :doc:`high availability environments </tutorial/configure-application-high-availability>`,
+   - To upgrade :doc:`high availability environments </tutorial/configure-application-high-availability>`,
      you must shut down every |onprem| application server before
      starting any |onprem| application servers upgraded to the new
      version.
@@ -23,6 +29,17 @@ The following table lists upgrade paths for all versions:
    * - Existing Version
 
      - Upgrade Path
+
+   * - 4.3.x
+     - Use this tutorial to upgrade from |onprem| 4.2.x to the latest
+       patch version of 4.3.x.
+
+       .. note::
+
+          Upgrades must be made in chronological order. The 4.3 release
+          you choose must have been released after the 4.2 release you
+          want to upgrade. To learn more, see this
+          :ref:`section on chronological order <om-upgrade-con-release-date>`.
 
    * - 4.2.x
      - Use this tutorial to upgrade from |onprem| 4.2.x to a more

@@ -1,10 +1,14 @@
 Before upgrading |onprem| from 4.0 to 4.2, review the following
 considerations:
 
+.. _om-upgrade-con-backup:
+
 Backup
 ~~~~~~
 
 .. include:: /release-notes/release-advisories/advisories-v4.2-backup.rst
+
+.. _om-upgrade-con-backingdb:
 
 Backing Databases
 ~~~~~~~~~~~~~~~~~
@@ -13,6 +17,8 @@ Consider converting your backing databases to use the
 :manual:`WiredTiger storage engine </core/wiredtiger>`. |onprem|
 supports :ref:`MongoDB 4.0.x and 4.2.x <requirements-backing-db-replica-sets>`. MongoDB 4.2
 :manual:`removed the MMAPv1 storage engine </release-notes/4.2-compatibility#removal-of-mmapv1-storage-engine>`.
+
+.. _om-upgrade-con-agent:
 
 MongoDB Agent
 ~~~~~~~~~~~~~
@@ -28,6 +34,8 @@ MongoDB Agent
   longer use the workaround of manually managed Monitoring and Backup
   Agents.
 
+.. _om-upgrade-con-auto:
+
 Automation
 ~~~~~~~~~~
 
@@ -36,6 +44,8 @@ The Version Manager has been removed. All versions now can be used and
 to have available in its configuration. The ability to configure custom
 builds has been retained.
 
+.. _om-upgrade-con-net:
+
 Network
 ~~~~~~~
 
@@ -43,6 +53,8 @@ When using |onprem| in |ipv6|-only environments, any connections to the
 internet must support dual-stack |ipv4|/|ipv6|. Further, IP
 whitelisting supports |ipv4|-style addresses only. This will be
 resolved in a future release in the |onprem| 4.2 series.
+
+.. _om-upgrade-con-k8s:
 
 Kubernetes
 ~~~~~~~~~~
@@ -57,14 +69,17 @@ When you use the |k8s-op-short| and upgrade |onprem|, upgrade to
 rolling restart of all the database pods. This issue doesn't exist in
 |onprem| 4.2.1 or later.
 
-Upgrade to Version with Later Release Date
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _om-upgrade-con-release-date:
+
+Upgrade Versions in Chronological Order
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you upgrade to another version, make sure the new version has a
-``release_date`` that occurred after the date of the version you want
-to upgrade. You might have this issue from the current version
-({+manifest-version+}) to rapid release ({+rr-version+}) version. In
-this case, the version numbers don't reveal release dates.
+``release_date`` that was released after the date of the version you
+want to upgrade. You might have this issue when upgrading from the
+current version ({+manifest-version+}) to rapid release
+({+rr-version+}) version. In this case, the version numbers don't
+correspond to release dates.
 
 .. example::
 
