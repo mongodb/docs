@@ -23,6 +23,8 @@
      - string
      - Type of event that will trigger an alert.
 
+       .. include:: /includes/possibleValues-eventTypeName.rst
+
    * - ``created``
      - string
      - |iso8601-time| when this alert configuration was created.
@@ -38,7 +40,7 @@
    * - ``metricThreshold``
      - object
      - The threshold that causes an alert to be triggered.
-       Populated if ``"eventTypeName" :
+       Populated if ``"eventTypeName" is
        "OUTSIDE_METRIC_THRESHOLD"``.
 
    * - ``metricThreshold.metricName``
@@ -69,7 +71,7 @@
           byte measurement, while a metric that measures time would
           have a time unit.
 
-       Accepted values are:
+       Thresholds may use the following units:
 
        .. include:: /includes/possibleValues-api-units.rst
 
