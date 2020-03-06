@@ -14,12 +14,14 @@ If MongoDB cannot split a chunk that exceeds the :ref:`specified chunk
 size <sharding-chunk-size>`, MongoDB labels the chunk as 
 :ref:`jumbo <jumbo-chunks>`.
 
-If the chunk size no longer exceeds the :ref:`specified chunk size 
-<sharding-chunk-size>`, MongoDB clears the ``jumbo`` flag for the chunk
-when the :binary:`~bin.mongos` rewrites the chunk metadata.
+If the chunk size no longer exceeds the :ref:`specified chunk size
+<sharding-chunk-size>`, MongoDB automatically clears the ``jumbo`` flag
+for the chunk when the :binary:`~bin.mongos` rewrites the chunk
+metadata.
 
-In cases where you need to clear the flag manually, the following
-procedures outline the steps to manually clear the ``jumbo`` flag.
+In cases where you need to clear the flag manually, however, the
+following procedures outline the steps to manually clear the ``jumbo``
+flag.
 
 Procedures
 ----------
@@ -29,7 +31,7 @@ Procedures
 Divisible Chunks
 ~~~~~~~~~~~~~~~~
 
-The preferred way to clear the ``jumbo`` flag from a chunk is to
+The preferred manual way to clear the ``jumbo`` flag from a chunk is to
 attempt to split the chunk. If the chunk is divisible, MongoDB removes
 the flag upon successful split of the chunk.
 
@@ -41,9 +43,36 @@ Indivisible Chunks
 ~~~~~~~~~~~~~~~~~~
 
 In some instances, MongoDB cannot split the no-longer ``jumbo`` chunk,
-such as a chunk with a range of single shard key value, and the
-preferred method to clear the flag is not applicable. In such cases,
-you can clear the flag using the following steps.
+such as a chunk with a range of single shard key value. As such, you
+cannot split the chunk to clear the flag.
+
+In such cases, you can either refine the shard key so that the chunk
+can become divisible or manually clear the flag.
+
+Refine the Shard Key
+````````````````````
+
+Starting in 4.4, MongoDB provides the
+:dbcommand:`refineCollectionShardKey` command. Using the
+:dbcommand:`refineCollectionShardKey` command, you can refine a
+collection's shard key by adding a suffix field or fields to the
+existing key. By adding new field(s) to the shard key, indivisible
+jumbo chunks can become divisible.
+
+.. container::
+
+   .. include:: /includes/steps/clear-jumbo-flag-refine-key.rst
+
+Manually Clear the ``jumbo`` Flag for an Indivisible Chunk
+``````````````````````````````````````````````````````````
+
+You can manually clear the flag using the following steps. 
+
+.. important::
+
+   If you clear the ``jumbo`` flag for a chunk that still exceeds the
+   chunk size, MongoDB will re-label the chunk as ``jumbo`` when
+   MongoDB tries to move the chunk.
 
 .. container::
 
@@ -77,7 +106,5 @@ you can clear the flag using the following steps.
             </reference/config-database>`, *always* back up the config database.
 
          .. include:: /includes/steps/clear-jumbo-flag.rst
-      
-   If you clear the ``jumbo`` flag for a chunk that still exceeds the
-   chunk size, MongoDB will re-label the chunk as ``jumbo`` when MongoDB
-   tries to move the chunk.
+
+   .. seealso:: :dbcommand:`refineCollectionShardKey`

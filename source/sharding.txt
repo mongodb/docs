@@ -96,33 +96,45 @@ Shard Keys
 
 MongoDB uses the :doc:`shard key </core/sharding-shard-key>` to
 distribute the collection's documents across shards. The shard key
-consists of a field or multiple fields in the documents:
+consists of a field or multiple fields in the documents. 
 
 - Starting in version 4.4, documents in sharded collections can be
   missing the shard key fields. Missing shard key fields are treated as
   having null values when distributing the documents across shards but
-  not when routing queries. For more information, see :ref:`shard-key-missing`.
+  not when routing queries. For more information, see
+  :ref:`shard-key-missing`.
 
 - In version 4.2 and earlier, shard key fields must exist in every
   document for a sharded collection.
 
-You choose the shard key when sharding a collection. A sharded
-collection can have only *one* shard key. See
-:ref:`sharding-shard-key-creation`.
+You select the shard key when :ref:`sharding a collection
+<sharding-shard-key-creation>`.
 
-The choice of shard key cannot be changed after sharding. However,
-starting in MongoDB 4.2, you can update a document's shard key value
-unless your shard key field is the immutable ``_id`` field. Before
-MongoDB 4.2, a document's shard key field value is immutable. See
-:ref:`update-shard-key` for more information.
+- Starting in MongoDB 4.4, you can refine a collection's shard key by
+  adding a suffix field or fields to the existing key. See
+  :dbcommand:`refineCollectionShardKey` for details.
+
+- In MongoDB 4.2 and earlier, the choice of shard key cannot
+  be changed after sharding.
+
+A document's shard key value determines its distribution across the
+shards.
+
+- Starting in MongoDB 4.2, you can update a document's shard key value
+  unless your shard key field is the immutable ``_id`` field. See
+  :ref:`update-shard-key` for more information.
+
+- In MongoDB 4.0 and earlier, a document's shard key field value is
+  immutable.
 
 Shard Key Index
 ~~~~~~~~~~~~~~~
 
-To shard a populated collection, the collection must have an :term:`index`
-that starts with the shard key. For empty collections, MongoDB creates the
-index if the collection does not already have an appropriate index for the
-specified shard key. See :ref:`sharding-shard-key-indexes`.
+To shard a populated collection, the collection must have an
+:term:`index` that starts with the shard key. When sharding an empty
+collection, MongoDB creates the supporting index if the collection does
+not already have an appropriate index for the specified shard key. See
+:ref:`sharding-shard-key-indexes`.
 
 Shard Key Strategy
 ~~~~~~~~~~~~~~~~~~
@@ -133,8 +145,7 @@ infrastructure can be bottlenecked by the choice of shard key. The choice of
 shard key and its backing index can also affect the :ref:`sharding strategy
 <sharding-strategy>` that your cluster can use.
 
-
-See the See :ref:`sharding-shard-key-selection` documentation for more
+See :ref:`sharding-shard-key-selection` documentation for more
 information.
 
 Chunks
@@ -203,10 +214,11 @@ Considerations Before Sharding
 Sharded cluster infrastructure requirements and complexity require
 careful planning, execution, and maintenance.
 
+.. include:: /includes/fact-cannot-unshard-collection.rst
+
 Careful consideration in choosing the shard key is necessary for
-ensuring cluster performance and efficiency. You cannot change the
-shard key after sharding, nor can you unshard a sharded collection. See
-:ref:`sharding-internals-operations-and-reliability`.
+ensuring cluster performance and efficiency. See
+:ref:`sharding-shard-key-selection`.
 
 Sharding has certain :ref:`operational requirements and
 restrictions <sharding-operational-restrictions>`. See
@@ -296,8 +308,8 @@ operations to only the shards that contain the required data.
 
 The efficiency of ranged sharding depends on the shard key chosen. Poorly
 considered shard keys can result in uneven distribution of data, which can
-negate some benefits of sharding or can cause performance bottlenecks. See
-:ref:`shard key selection<sharding-ranged-shard-key>` for ranged sharding.
+negate some benefits of sharding or can cause performance bottlenecks. See 
+:ref:`shard key selection for range-based sharding<sharding-ranged-shard-key>`.
 
 See :doc:`/core/ranged-sharding` for more information.
 
@@ -305,6 +317,9 @@ See :doc:`/core/ranged-sharding` for more information.
 
 Zones in Sharded Clusters
 -------------------------
+
+Zones can help improve the locality of data for sharded clusters that
+span multiple data centers.
 
 .. include:: /includes/intro-zone-sharding.rst
 
@@ -319,12 +334,8 @@ range for a zone to cover. If using a :term:`compound <compound index>` shard
 key, the range must include the prefix of the shard key. See :ref:`shard keys
 in zones <zone-sharding-shard-key>` for more information.
 
-When choosing a shard key, carefully consider the possibility of using zone
-sharding in the future, as you cannot change the shard key after
-sharding the collection.
-
-Most commonly, zones serve to improve the locality of data for
-sharded clusters that span multiple data centers.
+The possible use of zones in the future should be taken into
+consideration when choosing a shard key.
 
 .. tip::
 
