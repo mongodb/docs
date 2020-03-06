@@ -33,8 +33,8 @@
 
      - Members either perform startup self-checks, or transition from
        completing a :doc:`rollback </core/replica-set-rollbacks>` or
-       :doc:`resync </tutorial/resync-replica-set-member>`. Eligible to
-       vote.
+       :doc:`resync </tutorial/resync-replica-set-member>`. Data is not
+       available for reads from this member. Eligible to vote.
 
    * - 5
      - :replstate:`STARTUP2`
