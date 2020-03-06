@@ -16,11 +16,19 @@ The :term:`oplog` (operations log) is a special :term:`capped
 collection` that keeps a rolling record of all operations that modify
 the data stored in your databases. 
 
-.. note::
+.. versionchanged:: 4.0
 
    Starting in MongoDB 4.0, unlike other capped collections, the oplog
    can grow past its configured size limit to avoid deleting the
    :data:`majority commit point <replSetGetStatus.optimes.lastCommittedOpTime>`.
+
+.. versionadded:: 4.4
+
+   MongoDB 4.4 supports specifying a minimum oplog retention
+   period in hours, where MongoDB only removes an oplog entry if:
+
+   - The oplog has reached the maximum configured size, *and*
+   - The oplog entry is older than the configured number of hours.
 
 MongoDB applies database operations
 on the :term:`primary` and then records the operations on the
@@ -91,9 +99,9 @@ For 64-bit macOS systems
 
 
 In most cases, the default oplog size is sufficient. For example, if an
-oplog is 5% of free disk space and fills up in 24 hours of operations, then
-secondaries can stop copying entries from the oplog for up to 24 hours
-without becoming too stale to continue replicating. However, most
+oplog is 5% of free disk space and fills up in 24 hours of operations,
+then secondaries can stop copying entries from the oplog for up to 24
+hours without becoming too stale to continue replicating. However, most
 replica sets have much lower operation volumes, and their oplogs can
 hold much higher numbers of operations.
 
@@ -104,9 +112,48 @@ replica set member for the first time, use the
 oplog size. :dbcommand:`replSetResizeOplog` enables you to resize the 
 oplog dynamically without restarting the :binary:`~bin.mongod` process.
 
+.. versionadded:: 4.4
+
+   .. include:: /includes/extracts/4.4-changes-minimum-oplog-retention-period-nolinks.rst
+   
+   See :ref:`replica-set-minimum-oplog-size` for more information.
+
 .. [#oplog]
 
    .. include:: /includes/fact-oplog-size.rst
+
+.. _replica-set-minimum-oplog-size:
+
+Minimum Oplog Retention Period
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+   .. include:: /includes/extracts/4.4-changes-minimum-oplog-retention-period.rst
+
+By default MongoDB does not set a minimum oplog retention period and
+automatically truncates the oplog starting with the oldest entries
+to maintain the configured maximum oplog size. 
+
+To configure the minimum oplog retention period when starting the
+:binary:`~bin.mongod`, either:
+
+- Add the :setting:`storage.oplogMinRetentionHours` setting to the 
+  :binary:`~bin.mongod` :ref:`configuration
+  file <configuration-options>`.
+
+  *-or-*
+
+- Add the :option:`--oplogMinRetentionHours 
+  <mongod --oplogMinRetentionHours>` command line option.
+
+To configure the minimum oplog retention period on a running
+:binary:`~bin.mongod`, use :dbcommand:`replSetResizeOplog`. Setting
+the minimum oplog retention period while the :binary:`~bin.mongod`
+is running overrides any values set on startup. You must update
+the value of the corresponding configuration file setting or
+command line option to persist those changes through a server
+restart.
 
 Workloads that Might Require a Larger Oplog Size
 ------------------------------------------------

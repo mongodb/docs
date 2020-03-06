@@ -1759,15 +1759,68 @@ Replication Options
    is typically 5% of available disk space.
    
    Once the :program:`mongod` has created the oplog for the first time,
-   changing the :option:`--oplogSize` option will not affect the size of the oplog.
-   
-   To change the oplog size of a running replica set member, use the
-   :dbcommand:`replSetResizeOplog` administrative command.
-   :dbcommand:`replSetResizeOplog` enables you to resize the oplog
-   dynamically without restarting the :binary:`~bin.mongod` process.
+   changing the :option:`--oplogSize` option will not affect the size of
+   the oplog. To change the minimum oplog retention period after
+   starting the :binary:`~bin.mongod`, use
+   :dbcommand:`replSetResizeOplog`. :dbcommand:`replSetResizeOplog`
+   enables you to resize the oplog dynamically without restarting the
+   :binary:`~bin.mongod` process. To persist the changes made using
+   :dbcommand:`replSetResizeOplog` through a restart, update the value
+   of :option:`--oplogSize`.
    
    See :ref:`replica-set-oplog-sizing` for more information.
 
+.. option:: --oplogMinRetentionHours <value>
+
+   .. versionadded:: 4.4
+
+      Specifies the minimum number of hours to preserve an oplog entry,
+      where the decimal values represent the fractions of an hour. For
+      example, a value of ``1.5`` represents one hour and thirty
+      minutes.
+
+      The value must be greater than or equal to ``0``. A value of ``0``
+      indicates that the :binary:`~bin.mongod` should truncate the oplog
+      starting with the oldest entries to maintain the configured
+      maximum oplog size.
+
+   Defaults to ``0``.
+   
+   A :binary:`~bin.mongod` started with ``--oplogMinRetentionHours``
+   only removes an oplog entry *if*:
+
+   - The oplog has reached the maximum configured oplog size *and*
+
+   - The oplog entry is older than the configured number of hours based
+     on the host system clock.
+
+   The :binary:`~bin.mongod` has the following behavior when configured
+   with a minimum oplog retention period:
+
+   - The oplog can grow without constraint so as to retain oplog entries
+     for the configured number of hours. This may result in reduction or
+     exhaustion of system disk space due to a combination of high write
+     volume and large retention period.
+
+   - If the oplog grows beyond its maximum size, the
+     :binary:`~bin.mongod` may continue to hold that disk space even if
+     the oplog returns to its maximum size *or* is configured for a
+     smaller maximum size. See :ref:`replSetResizeOplog-cmd-compact`.
+
+   - The :binary:`~bin.mongod` compares the system wall clock to an 
+     oplog entries creation wall clock time when enforcing oplog entry
+     retention. Clock drift between cluster components may result in
+     unexpected oplog retention behavior. See
+     :ref:`production-notes-clock-synchronization` for more information on
+     clock synchronization across cluster members.
+
+   To change the minimum oplog retention period after starting the
+   :binary:`~bin.mongod`, use :dbcommand:`replSetResizeOplog`.
+   :dbcommand:`replSetResizeOplog` enables you to resize the oplog
+   dynamically without restarting the :binary:`~bin.mongod` process. To
+   persist the changes made using :dbcommand:`replSetResizeOplog`
+   through a restart, update the value of 
+   :option:`--oplogMinRetentionHours`.
 
 .. option:: --enableMajorityReadConcern
 
