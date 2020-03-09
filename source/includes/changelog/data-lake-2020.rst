@@ -1,3 +1,16 @@
+.. _data-lake-v202020309:
+
+09 March 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Adds incremental :ref:`store <manage-stores-cli>`, :ref:`database
+  <dl-manage-db-cli>`, :ref:`collection <manage-collections-cli>`, and
+  :manual:`view </reference/method/db.createView/#db.createView>` 
+  commands for storage configuration management.
+- Limits collections returned for wildcard collections to 1,000.
+- Updates the :ref:`storage configuration format
+  <datalake-configuration-format>`. 
+
 .. _data-lake-v20200211:
 
 11 February 2020 Release
