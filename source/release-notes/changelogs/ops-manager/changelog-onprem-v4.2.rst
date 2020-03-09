@@ -1,3 +1,24 @@
+.. _opsmgr-server-4.2.9:
+
+|onprem| Server 4.2.9
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-03-05*
+
+- Fixes an issue which arose when toggling the authentication mechanism
+  for a MongoDB user in the :guilabel:`Deployment: Security: Users` tab
+  between ``SCRAM-SHA-256`` and ``SCRAM-SHA-1``.
+
+- Adds the new version (2.13.4) for the :bic:`MongoDB Business Intelligence
+  Connector </>`.
+
+- Removes all uses of the MMAPv1 ``noPadding`` option for Ops Manager backing
+  databases. This resolves issues encountered when upgrading Ops Manager backing
+  databases from MongoDB version 4.0 to 4.2.
+
+- Shows progress of backup snapshots for MongoDB version 4.2+ on the backup
+  dashboard.
+
 .. _opsmgr-server-4.2.8:
 
 |onprem| Server 4.2.8
