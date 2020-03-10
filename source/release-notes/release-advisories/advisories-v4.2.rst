@@ -50,9 +50,7 @@ Network
 ~~~~~~~
 
 When using |onprem| in |ipv6|-only environments, any connections to the
-internet must support dual-stack |ipv4|/|ipv6|. Further, IP
-whitelisting supports |ipv4|-style addresses only. This will be
-resolved in a future release in the |onprem| 4.2 series.
+internet must support dual-stack |ipv4|/|ipv6|. 
 
 .. _om-upgrade-con-k8s:
 
