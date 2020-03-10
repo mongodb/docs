@@ -107,19 +107,16 @@
           `<https://www.flowdock.com/account/tokens>`_ page of your
           Flowdock account.
 
-   * - PagerDuty
-
-     - Sends the alert to a `PagerDuty
-       <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`__
-       account. Enter only the PagerDuty service key. Define
-       escalation rules and alert assignments directly in PagerDuty.
-
-       This option is available only for alerts that require 
-       acknowledegment. Informational alerts, such as the alert that a 
-       user has joined a project, cannot use this notification method.
-
-       Users can acknowledge PagerDuty alerts only from the PagerDuty
-       dashboard.
+   * - Webhook
+     - Sends an |http| POST
+       request to an endpoint for programmatic processing. The 
+       request body contains a |json| document that uses the same
+       format as the |service| |api|
+       :doc:`Alerts resource </reference/api/alerts>`. 
+        
+       This option is available only if you have configured Webhook 
+       settings on the :doc:`Integrations 
+       </tutorial/third-party-service-integrations>` page.          
 
    * - Datadog
 
@@ -135,34 +132,3 @@
        :guilabel:`API Key` and click
        :guilabel:`Validate Datadog API Key`.
 
-   * - VictorOps
-
-     - Sends the alert to a `VictorOps <https://victorops.com/>`_ 
-       account. Enter a VictorOps
-       `API key <https://help.victorops.com/knowledge-base/rest-endpoint-integration-guide/>`_ 
-       to integrate the VictorOps endpoint for alerts and an optional 
-       `routing key <https://help.victorops.com/knowledge-base/routing-keys/>`_
-       to route alerts to a specific VictorOps group. Click 
-       :guilabel:`Post test issue to VictorOps` to test VictorOps
-       configuration. Define escalation and routing rules directly in
-       VictorOps.
-
-       This option is available only for alerts that require 
-       acknowledgement. Informational alerts, such as the alert that a 
-       user has joined a project, cannot use this notification method.
-
-       Users can acknowledge VictorOps alerts only from the VictorOps 
-       dashboard.
-
-   * - Opsgenie
-
-     - Sends the alert to an `Opsgenie <https://www.opsgenie.com/>`_
-       account. Enter only the Opsgenie |api| key. Define escalation
-       rules and alert assignments directly in Opsgenie.
-
-       This option is available only for alerts that require 
-       acknowledgement. Informational alerts, such as the alert that a 
-       user has joined a project, cannot use this notification method.
-
-       Users can acknowledge Opsgenie alerts only from the Opsgenie
-       dashboard.
