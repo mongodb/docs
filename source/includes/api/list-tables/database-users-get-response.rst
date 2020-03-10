@@ -134,7 +134,7 @@
 
        - ``read``
        - ``readWrite``
-       - A name of a :ref:`custom MongoDB role <mongodb-roles>`
+       - A name of a :ref:`custom role <mongodb-roles>`
 
    * - ``username``
      - string

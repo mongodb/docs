@@ -8,7 +8,7 @@ By having multiple projects within an organization, you can:
 
 - Maintain separate cluster security configurations. For example:
 
-  - Create/manage different sets of MongoDB user credentials for
+  - Create/manage different sets of database user credentials for
     each project.
 
   - Isolate networks in different VPCs.

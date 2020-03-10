@@ -193,7 +193,7 @@
 
        To review the connection string format, see the
        :manual:`connection string format documentation </reference/connection-string>`.
-       To add MongoDB database users to a |service| project, see
+       To add database users to a |service| project, see
        :ref:`mongodb-users`.
 
        |service| only displays this field after the cluster is

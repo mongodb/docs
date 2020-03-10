@@ -7,7 +7,7 @@
   :ref:`maintenance <atlas-modify-project-settings>`.
 - Support :ref:`NVMe storage <scale-cluster-instance>`.
 - Create and manage :doc:`custom roles </security-add-mongodb-roles>`
-  for MongoDB database users.
+  for database users.
 - Can peer across regions.
 - Improved speed of backup restores for Continuous Backup.
 
