@@ -31,6 +31,7 @@ Syntax
 
    mongocli atlas cluster(s) update <cluster-name> 
         [ --diskSizeGB <size-of-disk> ]
+        [ --file|-f <path-to-cluster-config-file> ]
         [ --instanceSize <cluster-tier> ]
         [ --mdbVersion <mongodb-version> ]
         [ --profile|-p <profile-name> ]
@@ -62,6 +63,17 @@ Options
      - int
      - Size of the server’s root volume in GB. You can add 
        capacity by increasing this number.
+     - no
+
+   * - ``--file``, ``-f``
+     - string
+     - Path to a |json| configuration file that defines cluster
+       settings. Any settings specified in the configuration file take
+       precedence over settings specified by a command option. 
+       
+       For a list of settings you can define, see the
+       :atlas:`Create One Cluster API
+       <reference/api/clusters-create-one/#request-body-parameters>`.
      - no
 
    * - ``--instanceSize``
@@ -100,8 +112,8 @@ Options
 Output 
 ------ 
 
-The command prints the following fields in |json| format to the terminal 
-if the command succeeds. If the command returns errors, see 
+The command prints the following fields in |json| format to the terminal
+if the command succeeds. If the command returns errors, see
 :ref:`Troubleshooting <troubleshooting>` for recommended solutions.
 
 .. list-table::
@@ -414,14 +426,17 @@ if the command succeeds. If the command returns errors, see
 Examples 
 --------
 
-The following ``mongocli atlas cluster update`` command migrates the cluster 
-named ``sbxCluster`` in the specified project from ``M10`` to ``M20``. It 
-uses the ``default`` profile for accessing the project. 
+Example 1
+~~~~~~~~~
+
+The following ``mongocli atlas cluster update`` command migrates the
+cluster named ``sbxCluster`` in the specified project from ``M10`` to
+``M20``. It uses the ``default`` profile for accessing the project.
 
 .. code-block:: text 
    :copyable: false 
 
-   ~ mongocli atlas cluster update sbxCluster --projectId 5e2211c17a3e5a48f5497de3 --instanceSize M20
+   mongocli atlas cluster update sbxCluster --projectId 5e2211c17a3e5a48f5497de3 --instanceSize M20
 
 The command prints the following fields to the terminal:
 
@@ -485,4 +500,101 @@ The command prints the following fields to the terminal:
 	],
 	  "srvAddress": "mongodb+srv://sbxcluster-7hgjn.mongodb-dev.net",
 	  "stateName": "UPDATING"
+   }
+
+Example 2
+~~~~~~~~~
+
+The following ``mongocli atlas cluster update`` command uses a
+configuration file to:
+
+- Increase the cluster tier from ``M10`` to ``M20`` and 
+- Increase the server's root volume to ``200 GB``.
+
+The command uses the profile named ``egAtlasProfile``, which
+contains the public and private keys for accessing |service|.
+
+.. code-block:: text
+   :copyable: false
+
+   mongocli atlas cluster update myCluster --file cluster-config.json --projectId 5e2211c17a3e5a48f5497de3 --profile egAtlasProfile
+   
+The cluster configuration file contains the updated settings:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+    "diskSizeGB": 200,
+    "providerSettings": {
+        "providerName": "AWS",
+        "diskIOPS": 100,
+        "instanceSizeName": "M20"
+    },
+    "replicationFactor": 3
+   }
+
+The command prints the following to the terminal. To learn more about 
+these fields, see :ref:`Output <atlas-cluster-create-output-fields>`.
+
+.. code-block:: json
+   :copyable: false
+   
+   {
+    "autoScaling": {
+     "diskGBEnabled": true
+    },
+    "backupEnabled": false,
+    "biConnector": {
+     "enabled": false,
+     "readPreference": "secondary"
+    },
+    "clusterType": "REPLICASET",
+    "diskSizeGB": 120,
+    "encryptionAtRestProvider": "NONE",
+    "id": "5e66718ec4121d0a54021794",
+    "groupId": "5e2f04ecf10fab66c7d4072e",
+    "mongoDBVersion": "4.2.3",
+    "mongoDBMajorVersion": "4.2",
+    "mongoURI": "mongodb://cluster0-shard-00-00-xgwul.mongodb-dev.net:27017,cluster0-shard-00-01-xgwul.mongodb-dev.net:27017,cluster0-shard-00-02-xgwul.mongodb-dev.net:27017",
+    "mongoURIUpdated": "2020-03-09T16:47:50Z",
+    "mongoURIWithOptions": "mongodb://cluster0-shard-00-00-xgwul.mongodb-dev.net:27017,cluster0-shard-00-01-xgwul.mongodb-dev.net:27017,cluster0-shard-00-02-xgwul.mongodb-dev.net:27017/?ssl=true\u0026authSource=admin\u0026replicaSet=Cluster0-shard-0",
+    "name": "Cluster0",
+    "numShards": 1,
+    "paused": false,
+    "providerBackupEnabled": true,
+    "providerSettings": {
+     "diskIOPS": 360,
+     "encryptEBSVolume": true,
+     "instanceSizeName": "M10",
+     "providerName": "AWS",
+     "regionName": "US_EAST_1",
+     "volumeType": "STANDARD"
+    },
+    "replicationFactor": 3,
+    "replicationSpec": {
+     "US_EAST_1": {
+      "analyticsNodes": 0,
+      "electableNodes": 3,
+      "priority": 7,
+      "readOnlyNodes": 0
+     }
+    },
+    "replicationSpecs": [
+     {
+      "id": "5e667185746809055da6b383",
+      "numShards": 1,
+      "zoneName": "Zone 1",
+      "regionsConfig": {
+       "US_EAST_1": {
+        "analyticsNodes": 0,
+        "electableNodes": 3,
+        "priority": 7,
+        "readOnlyNodes": 0
+       }
+      }
+     }
+    ],
+    "srvAddress": "mongodb+srv://cluster0-xgwul.mongodb-dev.net",
+    "stateName": "UPDATING"
    }
