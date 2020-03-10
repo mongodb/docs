@@ -9,15 +9,15 @@
   for a MongoDB user in the :guilabel:`Deployment: Security: Users` tab
   between ``SCRAM-SHA-256`` and ``SCRAM-SHA-1``.
 
-- Adds the new version (2.13.4) for the :bic:`MongoDB Business Intelligence
-  Connector </>`.
+- Adds the new version (2.13.4) for the
+  :bic:`MongoDB Business Intelligence Connector </>`.
 
-- Removes all uses of the MMAPv1 ``noPadding`` option for Ops Manager backing
-  databases. This resolves issues encountered when upgrading Ops Manager backing
-  databases from MongoDB version 4.0 to 4.2.
+- Removes all uses of the MMAPv1 ``noPadding`` option for Ops Manager
+  backing databases. This resolves issues encountered when upgrading
+  Ops Manager backing databases from MongoDB version 4.0 to 4.2.
 
-- Shows progress of backup snapshots for MongoDB version 4.2+ on the backup
-  dashboard.
+- Shows progress of backup snapshots for MongoDB version 4.2+ on the
+  backup dashboard.
 
 .. _opsmgr-server-4.2.8:
 
@@ -179,6 +179,8 @@ Upgrades Agent: :ref:`mongodb-10.2.11.5927`.
 - Supports :doc:`SAML authentication </tutorial/configure-for-saml-authentication>`.
 
 - Removes the Version Manager.
+
+- Disables weak |tls| ciphers.
 
 Platform Support
 ````````````````
