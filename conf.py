@@ -177,6 +177,7 @@ source_constants = {
     'data-lake-stores': 'data stores',
     'data-lake' : 'Atlas Data Lake',
     'data-lake-short' : 'Data Lake',
+    'fts' : 'Atlas Search',
     'latest-mongodb-eol': '3.4',
     'service-api-v1-base-uri' : 'https://cloud.mongodb.com/api/atlas/v1.0'
 }
