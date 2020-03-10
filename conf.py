@@ -81,6 +81,8 @@ rst_epilog = [
     '.. |bic| replace:: BI Connector for Atlas',
     '.. |bson| replace:: :abbr:`BSON (Binary Javascript Object Notation)`',
     '.. |certauth| replace:: Certificate Authority',
+    '.. |charts| replace:: MongoDB Charts',
+    '.. |charts-short| replace:: Charts',
     '.. |cidr| replace:: :abbr:`CIDR (Classless Inter-Domain Routing)`',
     '.. |cifs| replace:: :abbr:`CIFS (Common Internet File System)`',
     '.. |cps| replace:: :abbr:`CPS (Cloud Provider Snapshots)`',
