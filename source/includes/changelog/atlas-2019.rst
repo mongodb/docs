@@ -88,7 +88,7 @@
 - Supports the
   `MongoDB Atlas Open Service Broker <https://docs.mongodb.com/atlas-open-service-broker/current/>`__
   for Kubernetes.
-- Introduces :ref:`Point-in-Time Restore (PITR) <aws-pit-restore>`
+- Introduces :ref:`Point-in-Time Restore (PITR) <pit-restore>`
   available for clusters using |aws|
   :ref:`Cloud Provider Snapshots <backup-cloud-provider>`.
 - Increases throughput for M2 & M5 cluster tiers.

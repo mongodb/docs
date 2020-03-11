@@ -35,7 +35,7 @@
          files, see :ref:`restore-cloud-provider-snapshot-download`.
 
        ``pointInTime``
-         Perform a :ref:`Point-in-Time restore <aws-pit-restore>`.
+         Perform a :ref:`Point-in-Time restore <pit-restore>`.
 
    * - ``deliveryUrl``
      - array
@@ -70,13 +70,13 @@
 
    * - ``oplogTs``
      - timestamp
-     - If you performed a :ref:`Point-in-Time restores <aws-pit-restore>` at
+     - If you performed a :ref:`Point-in-Time restores <pit-restore>` at
        a time specified by a timestamp from the :ref:`oplog
        <ref-atlas-oplog>`, ``oplogTs`` indicates the timestamp used.
 
    * - ``pointInTimeUTCSeconds``
      - integer
-     - If you performed a :ref:`Point-in-Time restores <aws-pit-restore>` at
+     - If you performed a :ref:`Point-in-Time restores <pit-restore>` at
        a time specified by a Unix time in seconds since epoch,
        ``pointInTimeUTCSeconds`` indicates the Unix time used.
 

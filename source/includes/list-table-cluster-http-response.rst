@@ -230,7 +230,7 @@
    * - ``pitEnabled``
      - boolean
      - Flag that indicates if the cluster uses :ref:`Point-in-Time
-       backups <aws-pit-restore>`. If set to ``true``,
+       backups <pit-restore>`. If set to ``true``,
        ``providerBackupEnabled`` must also be set to ``true``.
 
    * - ``providerBackupEnabled``

@@ -358,7 +358,7 @@
      - boolean
      - Optional
      - Indicates if the cluster uses :ref:`Point-in-Time backups
-       <aws-pit-restore>`. If set to ``true``, ``providerBackupEnabled``
+       <pit-restore>`. If set to ``true``, ``providerBackupEnabled``
        must also be set to ``true``.
 
    * - ``providerBackupEnabled``

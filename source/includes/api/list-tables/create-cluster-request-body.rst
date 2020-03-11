@@ -337,14 +337,14 @@
      - boolean
      - Optional
      - Flag that indicates the cluster uses
-       :ref:`Point-in-Time backups <aws-pit-restore>`.
+       :ref:`Point-in-Time backups <pit-restore>`.
 
        - Set to ``true`` to enable
-         :ref:`Point-in-Time backups <aws-pit-restore>`. Requires that
+         :ref:`Point-in-Time backups <pit-restore>`. Requires that
          you set ``providerBackupEnabled`` to ``true``.
 
        - Set to ``false`` to disable
-         :ref:`Point-in-Time backups <aws-pit-restore>`.
+         :ref:`Point-in-Time backups <pit-restore>`.
 
    * - ``providerBackupEnabled``
      - boolean
