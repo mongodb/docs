@@ -1,3 +1,23 @@
+.. _atlas_20200310:
+
+10 March 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports the |gcp| Seoul region.
+
+- Supports the following |azure| regions:
+
+  - Azure Norway East
+  - Azure Switzerland West: this is a non-standard Azure region for use
+    as a secondary DR region in conjunction with UAE Switzerland North.
+  - Azure UAE Central: this is a non-standard Azure region for use as a
+    secondary DR region in conjunction with UAE North.
+
+- Supports :ref:`Point-in-Time Restores <pit-restore>` for GCP and Azure
+  backups.
+- New clusters default to MongoDB 4.2.
+- Users are asked to review changes after making edits to a cluster.
+
 .. _atlas_20200218:
 
 18 February 2020 Release

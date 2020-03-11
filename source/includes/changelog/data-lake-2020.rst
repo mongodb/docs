@@ -3,11 +3,17 @@
 09 March 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
+- Supports optionally granting {+data-lake+} write access to S3 buckets,
+  enabling use of :pipeline:`$out` semantics to write directly to those
+  buckets.
+
 - Adds incremental :ref:`store <manage-stores-cli>`, :ref:`database
   <dl-manage-db-cli>`, :ref:`collection <manage-collections-cli>`, and
   :manual:`view </reference/method/db.createView/#db.createView>` 
   commands for storage configuration management.
+
 - Limits collections returned for wildcard collections to 1,000.
+
 - Updates the :ref:`storage configuration format
   <datalake-configuration-format>`. 
 
