@@ -1,0 +1,100 @@
+.. _kafka-configure-ssl:
+
+=================================================
+Configure SSL/TLS for the MongoDB Kafka Connector
+=================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+This guide shows you how to configure your MongoDB Kafka Source or Sink
+Connector worker to use SSL/TLS certificates to connect to a MongoDB
+cluster. An SSL/TLS-secured connection encrypts your network communications
+between your Kafka Connector and your MongoDB cluster. To enable the
+secure connection, create certificates, store them on the worker host machine,
+and supply credentials to access the certificates to the connector.
+
+.. note::
+
+   If your MongoDB cluster is hosted by :atlas:`MongoDB Atlas </>` or does
+   not require SSL/TLS certificates for connection explicitly, you can already
+   connect securely and do not need to follow the steps in this guide.
+
+Set up your Trust Store and Key Store
+-------------------------------------
+
+Each server you run your Kafka Connector worker instance on needs a
+**key store** and **trust store** to secure your SSL/TLS credentials.
+
+The key store is a password-protected database that contains a private key and
+a Certificate Authority (CA) signed certificate that is used to verify the
+client's identity to external hosts.
+
+The trust store is a password-protected database that contains certificates
+identifying parties that the client trusts such as CA root or intermediate
+certificates and your MongoDB cluster's end entity certificate.
+
+Key Store
+~~~~~~~~~
+
+If your SSL/TLS configuration requires a client certificate to connect,
+generate a secure private key and provide the client certificate bundled
+with the intermediate authority certificate. You can use ``openssl`` to
+generate a :wikipedia:`pkcs12 </PKCS_12>` file to store this information
+in your key store using the following command:
+
+.. code-block:: none
+
+    openssl pkcs12 -export -inkey <private key> -in <bundled certificate> -out <output pkcs12 file>
+
+Trust Store
+~~~~~~~~~~~
+
+Use the `keytool <https://docs.oracle.com/en/java/javase/12/tools/keytool.html>`_
+application packaged in your J2SE installation to import certificates of
+parties that you trust into the trust store with the following command:
+
+.. code-block:: none
+
+   keytool -import -trustcacerts -import -file <root or intermediate CA certificate>
+
+If your SSL/TLS configuration requires the end entity certificate for your
+MongoDB cluster, you can import it into the trust store with the following
+command:
+
+.. code-block:: none
+
+   keytool -import -file <server bundled certificate> -keystore <keystore name>
+
+For more information on how to set up a client key store and trust store for
+testing purposes, see
+:manual:`OpenSSL Client Certificates for Testing </appendix/security/appendixC-openssl-client/#appendix-c-openssl-client-certificates-for-testing>`.
+
+Configure Your JVM Options
+--------------------------
+
+The MongoDB Kafka Connector worker processes read JVM options from the
+environment variable ``KAFKA_OPTS``.
+
+Export the following JVM options in the ``KAFKA_OPTS`` variable, substituting
+the values for the placeholders before launching your worker instance.
+
+.. code-block:: none
+
+   export KAFKA_OPTS="\
+   -Djavax.net.ssl.trustStore=<path to truststore> \
+   -Djavax.net.ssl.trustStorePassword=<truststore password> \
+   -Djavax.net.ssl.keyStore=<path to keystore> \
+   -Djavax.net.ssl.keyStorePassword=<keystore password>"
+
+After you configure the ``KAFKA_OPTS`` variable, the Connector should attempt
+to connect using the SSL/TLS protocol and certificates in your key store
+and trust store when run.

@@ -64,6 +64,8 @@ extlinks = {
     'manual': ('http://docs.mongodb.com/manual%s', ''),
     'community-support': ('https://www.mongodb.com/community-support-resources%s', ''),
     'kafka-21-javadoc': ('https://kafka.apache.org/21/javadoc/org/apache/kafka%s', ''),
+    'atlas': ('https://docs.atlas.mongodb.com%s', ''),
+    'wikipedia': ('https://en.wikipedia.org/wiki/%s', ''),
     'java-docs-latest': ('http://mongodb.github.io/mongo-java-driver/3.12/%s', ''),
 }
 
