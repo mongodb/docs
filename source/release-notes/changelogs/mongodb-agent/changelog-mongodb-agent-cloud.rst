@@ -3,7 +3,7 @@
 MongoDB Agent 10.13.0.6247
 --------------------------
 
-*Released* 2020-03-31
+*Released* :ref:`2020-03-31 <cloudmanager_20200331>`
 
 - Support for upcoming MongoDB 4.4 release.
 - Fixes an issue that caused monitoring module discovery to stall if 
@@ -14,6 +14,17 @@ MongoDB Agent 10.13.0.6247
 - Ensures that the MongoDB Agent never interprets network errors as 
   authentication errors, leading to spurious attempts to rotate the 
   keyfile.
+
+.. _10.12.0.6196-1:
+
+MongoDB Agent 10.12.0.6196-1
+----------------------------
+
+*Released* 2020-03-10
+
+- If a cluster has unhealthy nodes prior to initiating a
+  storage-affecting rolling change, the {+mdbagent+} ensures that a
+  majority of healthy nodes remain up at all times.
 
 .. _10.11.0.6161:
 
