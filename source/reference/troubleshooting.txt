@@ -220,7 +220,7 @@ To view all |k8s-mdbrsc| specifications in the provided
       metadata:
         annotations:
           kubectl.kubernetes.io/last-applied-configuration: |
-            {"apiVersion":"mongodb.com/v1","kind":"MongoDB","metadata":{"annotations":{},"name":"dublin","namespace":"mongodb"},"spec":{"credentials":"alis-credentials","persistent":false,"podSpec":{"memory":"1G"},"project":"my-om-config","type":"Standalone","version":"4.0.0-ent"}}
+            {"apiVersion":"mongodb.com/v1","kind":"MongoDB","metadata":{"annotations":{},"name":"dublin","namespace":"mongodb"},"spec":{"credentials":"credentials","persistent":false,"podSpec":{"memory":"1G"},"project":"my-om-config","type":"Standalone","version":"4.0.0-ent"}}
         clusterDomain: ""
         creationTimestamp: 2018-09-12T17:15:32Z
         generation: 1
@@ -526,6 +526,81 @@ policy through the :opsmgr:`API
              }'
 
    The features are now blocked again, preventing you from making
-   furher changes through the |onprem| application. However, the
+   further changes through the |onprem| application. However, the
    |k8s-op-short| retains any changes you made in the |onprem|
    application while features were available.
+
+Tune MongoDB |k8s| Resource Docker Images
+-----------------------------------------
+
+|k8s-mdbrsc| Docker images run on Ubuntu and use Ubuntu's default
+system configuration. Using the :setting:`spec.podSpec.podTemplate` 
+setting, add a privileged sidecar :k8sdocs:`init container 
+</concepts/workloads/pods/init-containers/>` to the |k8s-mdbrsc| 
+definition to tune the underlying Ubuntu system configuration in the 
+|k8s-mdbrsc| containers.
+
+.. example:: 
+
+   |k8s-mdbrsc| Docker images use the Ubuntu default ``keepalive`` time
+   of ``7200``. MongoDB recommends a shorter ``keepalive`` time of ``120``
+   for database deployments.
+
+   You can tune the ``keepalive`` time in the |k8s-mdbrscs| Docker images
+   if you experience network timeouts or socket errors in communication
+   between clients and |k8s-mdbrscs|.
+
+To tune |k8s-mdbrsc| Docker images:
+
+1. Update the |k8s-mdbrsc| definition to append a privileged sidecar 
+   container to |k8s-mdbrsc| pods the |k8s-op-short| creates. 
+   
+   The following sample :setting:`spec.podSpec.podTemplate` changes the 
+   ``keepalive`` value to the recommended value of ``120``:
+
+   .. code-block:: yaml
+
+      spec:
+        podSpec:
+          podTemplate:
+            spec:
+              initContainers:
+              - name: "apply-sysctl-test"
+                image: "busybox:latest"
+                securityContext:
+                  privileged: true
+                command: ["sysctl", "-w", "net.ipv4.tcp_keepalive_time=120"]
+
+#. Apply the updated resource definition:
+
+   .. code-block:: none
+
+      kubectl apply -f <database-resource-conf>.yaml -n <namespace>
+
+A privileged sidecar container is added to each |k8s-pod| the 
+|k8s-op-short| created using the |k8s-mdbrsc| definition.
+
+To verify your changes:
+
+1. Get a shell to a running container in your database resource 
+   |k8s-pod|:
+
+   .. code-block:: none
+      
+      kubectl exec -n <namespace> -it <pod-name> -- /bin/bash
+
+#. Verify your changes are present. Following the example, verify that
+   the ``keepalive`` time is changed:
+
+   .. code-block:: none
+
+      cat /proc/sys/net/ipv4/tcp_keepalive_time
+
+   Returns:
+
+   .. code-block:: none
+      :copyable: false
+
+      120
+
+.. seealso:: :manual:`Operating System Configuration </administration/production-checklist-operations/#linux>` in the MongoDB Manual.
