@@ -1,34 +1,34 @@
-.. warning::
+For MongoDB 4.2 and previous, when executing the
+:dbcommand:`dropDatabase` command, you must perform the following
+additional steps if you intend to create a new database with the same
+name as the dropped database.
 
-   Starting in MongoDB 4.2:
-      If you drop a database and create a new database with the same name, you
-      must either:
-      
-      - Restart all :binary:`~bin.mongos` instances and all
-        :binary:`~bin.mongod` shard members (including the secondary
-        members);
-      
-      - Use the :dbcommand:`flushRouterConfig` command on all
-        :binary:`~bin.mongos` instances and all :binary:`~bin.mongod`
-        shard members (including the secondary members) before reading
-        or writing to that database.
-      
-      This ensures that the :binary:`~bin.mongos` and shard instances
-      refresh their metadata cache, including the location of the
-      :ref:`primary shard <primary-shard>` for the new database.
-      
-      Otherwise, the you may miss data on reads, and may not write data to
-      the correct shard. To recover, you must manually intervene.
-      
-   In MongoDB 4.0 and earlier:      
-      If you drop a database and create a new database with the same name, you
-      must either restart all :binary:`~bin.mongos` instances, or use the
-      :dbcommand:`flushRouterConfig` command on all :binary:`~bin.mongos`
-      instances before reading or writing to that database. This 
-      ensures that the :binary:`~bin.mongos` instances refresh their
-      metadata cache, including the location of the :ref:`primary shard
-      <primary-shard>` for the new database. 
-      
-      Otherwise, the you may miss data on reads, and may not write data to
-      the correct shard. To recover, you must manually intervene.
-      
+.. note::
+
+   MongoDB 4.4 does not require these additional steps when dropping and
+   recreating a database with the same name.
+
+- For **MongoDB 4.2**, you must either:
+
+  - Restart all :binary:`~bin.mongos` instances and all
+    :binary:`~bin.mongod` shard members (including the secondary
+    members);
+
+  - Use the :dbcommand:`flushRouterConfig` command on all
+    :binary:`~bin.mongos` instances and all :binary:`~bin.mongod`
+    shard members (including the secondary members) before reading
+    or writing to that database.
+
+- For **MongoDB 4.0 and earlier**, you must either:
+
+  - Restart all :binary:`~bin.mongos` instances;
+
+  - Use the :dbcommand:`flushRouterConfig` command on all
+    :binary:`~bin.mongos` instances before reading or writing to that
+    database.
+
+These steps ensure that all cluster nodes refresh their metadata cache,
+which includes the location of the :ref:`primary shard<primary-shard>`
+for the new database. Otherwise, you may miss data on reads, and may not
+write data to the correct shard. To recover, you must manually
+intervene.
