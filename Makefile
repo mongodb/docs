@@ -115,7 +115,7 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_array_of_documents.js              -o ${DRIVERS_PATH}/node_query_array_of_documents.js
 	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_for_null_fields.js                 -o ${DRIVERS_PATH}/node_query_for_null_fields.js
 	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/remove_documents.js                      -o ${DRIVERS_PATH}/node_remove.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/next/test/examples/transactions.js                            -o ${DRIVERS_PATH}/node_transactions.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/transactions.js                            -o ${DRIVERS_PATH}/node_transactions.js
 	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/update_documents.js                      -o ${DRIVERS_PATH}/node_update.js
 
 # ruby
