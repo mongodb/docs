@@ -40,7 +40,8 @@ Definition
         bypassDocumentValidation: <boolean>,
         writeConcern: <document>, 
         collation: <document>,
-        arrayFilters: <array>
+        arrayFilters: <array>,
+        hint: <document|string>                     // Available in MongoDB 4.2, changed in MongoDB 4.4
       }
 
    The :dbcommand:`findAndModify` command takes the following
@@ -222,11 +223,29 @@ Definition
           
              
           .. versionadded:: 3.6
-          
-          
-          
-   
 
+      * - ``hint``
+
+        - document or string
+
+        - *New in version 4.2. Changed in version 4.4*
+        
+          Optional. A document or string that specifies the
+          :doc:`index </indexes>` to use to support the ``query``.
+          
+          The option can take an index specification document or the
+          index name string.
+
+          If you specify an index that does not exist, the operation
+          errors.
+
+          In MongoDB 4.2, you can only specify a ``hint`` for
+          :dbcommand:`findAndModify` commands where ``remove`` is
+          ``false``. Starting in MongoDB 4.4, you can specify a
+          ``hint`` for :dbcommand:`findAndModify` commands where
+          ``remove`` is either ``true`` or ``false``.
+
+          For an example, see :ref:`ex-findAndModify-hint`.
 
 Output
 ------
@@ -950,5 +969,65 @@ After the operation, the collection has the following documents:
       "_id" : 2,
       "grades" : [ { "grade" : 90, "mean" : 75, "std" : 6 }, { "grade" : 87, "mean" : 90, "std" : 3 }, { "grade" : 85, "mean" : 85,"std" : 4 } ]
    }
+
+.. _ex-findAndModify-hint:
+
+Specify ``hint`` for Delete Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+From the :binary:`~bin.mongo` shell, create a ``members`` collection
+with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insertMany([
+      { "_id" : 1, "member" : "abc123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" },
+      { "_id" : 3, "member" : "lmn123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 4, "member" : "pqr123", "status" : "D", "points" : 20,  "misc1" : "Deactivated", "misc2" : null },
+      { "_id" : 5, "member" : "ijk123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 6, "member" : "cde123", "status" : "A", "points" : 86,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+   ])
+
+Create the following indexes on the collection:
+
+.. code-block:: javascript
+
+   db.members.createIndex( { status: 1 } )
+   db.members.createIndex( { points: 1 } )
+
+The following delete operation explicitly hints to use the index
+``{ status: 1 }``:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      findAndModify: "members",
+      query: { "points": { $lte: 20 }, "status": "P" },
+      remove: true,
+      hint: { status: 1 }
+   })
+
+.. note::
+   
+   If you specify an index that does not exist, the operation errors.
+
+To see the index used, run :dbcommand:`explain` on the operation:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        explain: {
+          findAndModify: "members",
+          query: { "points": { $lte: 20 }, "status": "P" },
+          remove: true,
+          hint: { status: 1 }
+        },
+        verbosity: "queryPlanner"
+      }
+   )
 
 .. seealso:: :ref:`perform-findAndModify-linearizable-reads`
