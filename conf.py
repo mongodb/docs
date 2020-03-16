@@ -77,6 +77,8 @@ extlinks = {
     'aws-docs': ('https://docs.aws.amazon.com/%s', ''),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', ''),
     'community-support': ('https://www.mongodb.com/community-support-resources%s', ''),
+    'technical-support': ('https://docs.mongodb.com/manual/support%s', ''),
+    'community-forum': ('https://community.mongodb.com/%s', ''),
 }
 
 intersphinx_mapping = {}
