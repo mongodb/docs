@@ -80,21 +80,56 @@ content: |
 ---
 ref: transactions-operations-restrictions
 content: |
+
+   .. versionchanged:: 4.4
  
    The following operations are not allowed in transactions:
 
-   - Operations that affect the database catalog, such as creating or
-     dropping a collection or an index. For example, a
-     transaction cannot include an insert operation that would result
-     in the creation of a new collection.
-
-     The :dbcommand:`listCollections` and :dbcommand:`listIndexes`
-     commands and their helper methods are also excluded.
+   - Operations that affect the database catalog,
+     such as creating or dropping a collection or an index, unless
+     using :ref:`feature compatibility version (fcv) <view-fcv>`
+     ``"4.4"`` or greater. With fcv ``"4.4"`` or greater you can create
+     collections and indexes in transactions. For details, see
+     :ref:`transactions-create-collections-indexes`.
  
-   - Non-CRUD and non-informational operations, such as
+   - Creating new collections in cross-shard write transactions. For
+     example, if you write to an existing collection in one shard and
+     implicitly create a collection in a different shard, MongoDB cannot
+     perform both operations in the same transaction.
+
+   - The :dbcommand:`listCollections` and :dbcommand:`listIndexes`
+     commands and their helper methods.
+
+   - Other non-CRUD and non-informational operations, such as
      :dbcommand:`createUser`, :dbcommand:`getParameter`,
      :dbcommand:`count`, etc. and their helpers.
 
+---
+ref: transactions-4.4-allowed-operations
+content: |
+
+   - Create a collection in a transaction.
+
+     - Explicitly create a collection in a transaction using
+       :method:`db.createCollection()`.
+
+     - Implicitly create a collection in a transaction by running an
+       insert operation or update operation with ``upsert: true``
+       against a non-existing collection.
+
+     .. note::
+
+        .. include:: /includes/extracts/transactions-cross-shard-collection-restriction.rst
+
+   - Create an index using :dbcommand:`createIndexes` on:
+
+     - A non-existing collection. In this case, the collection is
+       created implicitly.
+
+     - An empty collection which was created earlier in the same
+       multi-document transaction.
+
+   
 ---
 ref: transactions-operations-restrictions-info
 content: |
@@ -109,8 +144,20 @@ ref: transactions-operations-crud
 content: |
 
    - You can specify read/write (CRUD) operations on **existing**
-     collections. The collections can be in different databases. For a
-     list of CRUD operations, see :ref:`transactions-operations-crud`.
+     collections. For a list of CRUD operations, see
+     :ref:`transactions-operations-crud`.
+  
+   - When using :ref:`feature compatibility version (fcv) <view-fcv>`
+     ``"4.4"`` or greater, you can create collections and indexes
+     in transactions. For details, see
+     :ref:`transactions-create-collections-indexes`
+   
+   - The collections used in a transaction can be in different
+     databases.
+
+     .. note::
+      
+        .. include:: /includes/extracts/transactions-cross-shard-collection-restriction.rst
 
    - You cannot write to :doc:`capped </core/capped-collections>`
      collections. (Starting in MongoDB 4.2)
@@ -126,6 +173,14 @@ content: |
 
    - .. include:: /includes/extracts/transactions-killop-change.rst
 
+---
+ref: transactions-cross-shard-collection-restriction
+content: |
+
+   You cannot create new collections in cross-shard write transactions.
+   For example, if you write to an existing collection in one shard and
+   implicitly create a collection in a different shard, MongoDB cannot
+   perform both operations in the same transaction.
 ---
 ref: transactions-operations-catalog-tip
 content: |
@@ -502,4 +557,3 @@ content: |
    sharded cluster transaction includes some parts that use ``{w:
    "majority", j: true}`` write concern.
 ...
-
