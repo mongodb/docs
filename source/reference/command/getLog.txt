@@ -19,40 +19,75 @@ getLog
    :dbcommand:`getLog`, use the :method:`db.runCommand( { command } )
    <db.runCommand()>` method on the ``admin`` database.
 
-   The :dbcommand:`getLog` command has the following syntax:
+Syntax
+------
 
-   .. code-block:: javascript
+The :dbcommand:`getLog` command has the following syntax:
 
-      { getLog: <value> }
+.. code-block:: javascript
+
+   db.adminCommand( { getLog: <value> } )
+
+Command Fields
+~~~~~~~~~~~~~~
+
+.. container::
 
    The possible values for :dbcommand:`getLog` are:
 
-   - ``global`` - returns the combined output of all recent log
-     entries.
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+   
+      * - Value
+        - Description
 
-   - ``rs`` - if the :binary:`~bin.mongod` is part of a :term:`replica
-     set`, :dbcommand:`getLog` returns recent notices related to
-     replica set activity.
+      * - ``*``
 
-   - ``startupWarnings`` - returns logs that *may* contain errors
-     or warnings from MongoDB's log from when the current process
-     started. If :binary:`~bin.mongod` started without warnings, this
-     filter may return an empty array.
+        - Returns a list of the available values to the
+          :dbcommand:`getLog` command.
 
-   :return:
+      * - ``global`` 
+   
+        - Returns the combined output of all recent log entries.
 
-      A document that contains an array of log events as ``log`` and the number
-      of log events as ``totalLinesWritten``.
+      * - ``rs`` 
+   
+        - Returns recent log entries related to replica set activity if
+          the :binary:`~bin.mongod` is part of a :term:`replica set`.
+
+      * - ``startupWarnings`` 
+   
+        - Returns log entries that *may* contain errors or warnings
+          from MongoDB's log from when the current process started. If
+          :binary:`~bin.mongod` started without warnings, this filter
+          may return an empty array.
+
+Output
+~~~~~~
+
+.. container::
+
+   If specified ``*``, then the command returns a document with the names
+   of the other acceptable values.
+
+   Otherwise, the command returns document that includes the following fields:
+
+   - ``log`` field that contains an array of log events, and
+
+   - ``totalLinesWritten`` field that contains the number of log events.
 
 Behavior
 --------
 
-Specify ``*`` to :dbcommand:`getLog` to return a list of available log filters
-for the :binary:`~bin.mongod`.
+Line Truncation
+~~~~~~~~~~~~~~~
 
-Starting in MongoDB 4.2, :dbcommand:`getLog` truncates any event that
-contains more than 1024 characters. In earlier versions,
-:dbcommand:`getLog` truncates after 512 characters.
+.. container::
+
+   Starting in MongoDB 4.2, :dbcommand:`getLog` truncates any event
+   that contains more than 1024 characters. In earlier versions,
+   :dbcommand:`getLog` truncates after 512 characters.
 
 Examples
 --------
@@ -85,45 +120,40 @@ The following operation retrieves the most recent ``global`` events for the
 
 The operation returns a document similar to the following:
 
-.. code-block:: shell
-   :emphasize-lines: 22-29
+.. tabs::
 
-   {
-      "totalLinesWritten" : <num>,
-      "log" : [
-         "2018-12-05T12:00:51.651-0500 I CONTROL  [initandlisten] MongoDB starting : pid=51825 port=27019 dbpath=/data/Reporting Cluster Data/ShardA/Member00000-000000-1 64-bit host=kays-mac-mini.local",
-         "2018-12-05T12:00:51.652-0500 I CONTROL  [initandlisten] db version v4.2.0",
-         "2018-12-05T12:00:51.653-0500 I CONTROL  [initandlisten] git version: 322fcf0ee10ea6e27360cf6699e9ff98fb907ef6",
-         "2018-12-05T12:00:51.654-0500 I CONTROL  [initandlisten] allocator: system",
-         "2018-12-05T12:00:51.654-0500 I CONTROL  [initandlisten] modules: enterprise ",
-         "2018-12-05T12:00:51.655-0500 I CONTROL  [initandlisten] build environment:",
-         "2018-12-05T12:00:51.656-0500 I CONTROL  [initandlisten]     distarch: x86_64",
-         "2018-12-05T12:00:51.657-0500 I CONTROL  [initandlisten]     target_arch: x86_64",
+   tabs:
 
-         ...
+      - id: 4.2-log-format
+        name: MongoDB 4.2
+        content: |
 
-         "2018-12-05T12:00:57.151-0500 I INITSYNC [replication-0] CollectionCloner ns:test.hugeindex finished cloning with status: OK",
-         "2018-12-05T12:00:57.198-0500 I INITSYNC [replication-0] Finished cloning data: OK. Beginning oplog replay.",
-         "2018-12-05T12:00:57.200-0500 I INITSYNC [replication-1] No need to apply operations. (currently at { : Timestamp(1544029250, 1) })",
-         "2018-12-05T12:00:57.201-0500 I SHARDING [replication-0] Marking collection local.temp_oplog_buffer as collection version: <unsharded>",
-         "2018-12-05T12:00:57.203-0500 I SHARDING [replication-0] Marking collection local.replset.oplogTruncateAfterPoint as collection version: <unsharded>",
-         "2018-12-05T12:00:57.204-0500 I INITSYNC [replication-0] Finished fetching oplog during initial sync: CallbackCanceled: error in fetcher batch callback: oplog fetcher is shutting down. Last fetched optime and hash: { ts: Timestamp(0, 0), t: -1 }[0]",
-         "2018-12-05T12:00:57.205-0500 I INITSYNC [replication-0] Initial sync attempt finishing up.",
-         "2018-12-05T12:00:57.206-0500 I INITSYNC [replication-0] Initial Sync Attempt Statistics: { failedInitialSyncAttempts: 0, maxFailedInitialSyncAttempts: 10, 
-   initialSyncStart: new Date(1544029253464), initialSyncAttempts: [], fetchedMissingDocs: 0, appliedOps: 0, initialSyncOplogStart: Timestamp(1544029250, 1), 
-   initialSyncOplogEnd: Timestamp(1544029250, 1), databases: { databasesCloned: 5, admin: { collections: 4, clonedCollections: 4, start: new Date(1544029253838), 
-   end: new Date(1544029255537), elapsedMillis: 1699, admin.system.roles: { documentsToCopy: 4, documentsCopied: 4, indexes: 2, fetchedBatches: 1, 
-   start: new Date(1544029253840), end: new Date(1544029254110), elapsedMillis: 270, receivedBatches: 1 }, 
-   admin.system.users: { documentsToCopy: 13, documentsCopied: 13, indexes: 2, fetchedBatches: 1, start: new Date(1544029254110), 
-   end: new Date(1544029254305), elapsedMillis: 195, receivedBatches: 1 }, admin.system.version: { documentsToCopy: 2, documentsCopied: 2, indexes: 1, 
-   fetchedBatches: 1, start: new D",
-         "2018-12-05T12:00:57.208-0500 I STORAGE  [replication-0] Finishing collection drop for local.temp_oplog_buffer (d547b85d-67cf-4721-86b1-1da5ee23845d).",
-         "2018-12-05T12:00:57.244-0500 I STORAGE  [replication-0] Triggering the first stable checkpoint. Initial Data: Timestamp(1544029250, 1) PrevStable: Timestamp(0, 0) CurrStable: Timestamp(1544029250, 1)",
-         "2018-12-05T12:00:57.246-0500 I INITSYNC [replication-0] initial sync done; took 3s.",
-
-      ],
-      "ok" : 1
-   }
-
-The highlighted line was truncated as it exceeded 1024 characters.
+           .. code-block:: javascript
+           
+              {
+                 "totalLinesWritten" : <num>,
+                 "log" : [
+                    "2020-03-15T19:31:05.644-0400 I  CONTROL  [main] Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'",
+                    "2020-03-15T19:31:05.715-0400 I  CONTROL  [initandlisten] MongoDB starting : pid=15902 port=27017 dbpath=/var/lib/mongodb 64-bit host=myreplset1.example.net",
+                    "2020-03-15T19:31:06.578-0400 I  CONTROL  [initandlisten] db version v4.2.3",
+                    "2020-03-15T19:31:06.578-0400 I  CONTROL  [initandlisten] git version: 6874650b362138df74be53d366bbefc321ea32d4",
+                    ...
+                    "2020-03-15T20:14:11.800-0400 I  REPL     [replexec-38] Scheduling remote command request for vote request: RemoteCommand 4658 -- target:myreplset1.example.net:27017 db:admin cmd:{ replSetRequestVotes: 1, setName: \"shardA\", dryRun: true, term: 6, candidateIndex: 1, configVersion: 1, lastCommittedOp: { ts: Timestamp(1584317639, 1), t: 6 } }",
+                    "2020-03-15T20:14:11.801-0400 I  REPL     [replexec-38] Scheduling remote command request for vote request: RemoteCommand 4659 -- target:myreplset3.example.net:27017 db:admin cmd:{ replSetRequestVotes: 1, setName: \"shardA\", dryRun: true, term: 6, candidateIndex: 1, configVersion: 1, lastCommittedOp: { ts: Timestamp(1584317639, 1), t: 6 } }",
+                    "2020-03-15T20:14:11.802-0400 I  REPL     [replication-0] Restarting oplog query due to error: NetworkInterfaceExceededTimeLimit: error in fetcher batch callback :: caused by :: Request 4654 timed out, deadline was 2020-03-15T20:14:09.543-0400, op was RemoteCommand 4654 -- target:[myreplset1.example.net:27017] db:local expDate:2020-03-15T20:14:09.543-0400 cmd:{ getMore: 2378871356916183748, collection: \"oplog.rs\", batchSize: 13981010, maxTimeMS: 5000, term: 6, lastKnownCommittedOpTime: { ts: Timestamp(1584317639, 1), t: 6 } }. Last fetched optime: { ts: Timestamp(1584317639, 1), t: 6 }. Restarts remaining: 1",
+                    "2020-03-15T20:14:11.802-0400 I  CONNPOOL [Replication] Connecting to myreplset3.example.net:27017",
+                    "2020-03-15T20:14:11.804-0400 I  REPL     [replication-0] Scheduled new oplog query Fetcher source: myreplset1.example.net:27017 database: local query: { find: \"oplog.rs\", filter: { ts: { $gte: Timestamp(1584317639, 1) } }, tailable: true, oplogReplay: true, awaitData: true, maxTimeMS: 2000, batchSize: 13981010, term: 6, readConcern: { afterClusterTime: Timestamp(0, 1) } } query metadata: { $replData: 1, $oplogQueryData: 1, $readPreference: { mode: \"secondaryPreferred\" } } active: 1 findNetworkTimeout: 7000ms getMoreNetworkTimeout: 10000ms shutting down?: 0 first: 1 firstCommandScheduler: RemoteCommandRetryScheduler request: RemoteCommand 4662 -- target:myreplset1.example.net:27017 db:local cmd:{ find: \"oplog.rs\", filter: { ts: { $gte: Timestamp(1584317639, 1) } }, tailable: true, oplogReplay: true, awaitData: true, maxTimeMS: 2000, batchSize: 13981010, term: 6, readConcern: { afterClusterTime: Timestamp(0, 1) } } active: 1 callbackHandle.valid: 1 callbackHandle.cancelled: 0 attempt: 1 retryPolicy: {type: \"No",
+                    "2020-03-15T20:14:11.805-0400 I  ELECTION [replexec-41] VoteRequester(term 6 dry run) received a yes vote from myreplset1.example.net:27017; response message: { term: 6, voteGranted: true, reason: \"\", ok: 1.0, $clusterTime: { clusterTime: Timestamp(1584317639, 1), signature: { hash: BinData(0, 0000000000000000000000000000000000000000), keyId: 0 } }, operationTime: Timestamp(1584317639, 1) }",
+                    ...
+                 ],
+                 "ok" : 1,
+                 "$clusterTime" : {
+                    "clusterTime" : Timestamp(1584318241, 1),
+                    "signature" : {
+                       "hash" : BinData(0,"5t4v8ZtiInmxBwGLxdPoOAe2TPg="),
+                       "keyId" : NumberLong("6804581450864656386")
+                    }
+                 },
+                 "operationTime" : Timestamp(1584318241, 1)
+              }
 
