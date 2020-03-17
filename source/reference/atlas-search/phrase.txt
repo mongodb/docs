@@ -1,0 +1,254 @@
+.. _phrase-ref:
+
+=================
+phrase (Operator)
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+The ``phrase`` operator performs search for documents containing an ordered 
+sequence of terms using the :ref:`analyzer <analyzers-ref>` specified in the 
+:ref:`index configuration <index-config-example>`. If no analyzer is specified, 
+the default :ref:`standard <ref-standard-analyzer>` analyzer is used.
+
+``phrase`` has the following syntax:
+
+.. code-block:: json 
+
+   { 
+     $searchBeta: {  
+        "index": <index name>, // optional, defaults to "default"
+        "phrase": {
+          "query": "<search-string>",
+          "path": "<field-to-search>",
+          "score": <options>,
+          "slop": <distance-number>
+        }
+     }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10 
+   
+   * - Field
+     - Type
+     - Description
+     - Required?
+   
+   * - ``query``
+     - string or array of strings
+     - The string or strings to search for.
+     - yes
+   
+   * - ``path``
+     - string or array of strings
+     - The indexed field or fields to search. See :ref:`path
+       construction <ref-path>` for more information.
+     - yes
+
+   * - ``slop``
+     - integer 
+     - The allowable distance between words in the ``query`` phrase. 
+       Lower value allows less positional distance between the words and 
+       greater value allows more reorganization of the words and more 
+       distance between the words to satisfy the query. The default is 
+       ``0``, meaning that words must be exactly in the same position as 
+       the query in order to be considered a match. Exact matches are 
+       scored higher.
+     - no
+
+   * - ``score``
+     - object
+     - The score assigned to matching search results. You can modify 
+       the score using the following options:
+
+       - ``boost``: multiply the result score by the given number.        
+       - ``constant``: replace the result score with the given number.
+
+     - no
+
+Examples 
+--------
+
+The following examples use the ``movies`` collection in the ``sample_mflix`` 
+database. If you have the :ref:`sample dataset <available-sample-datasets>` 
+on your cluster, you can create the index on the ``title`` field and 
+run the queries on your cluster. The :ref:`fts-tutorial-ref` contains 
+instructions for loading the :ref:`sample dataset <available-sample-datasets>`, 
+creating an :ref:`index defintion <ref-index-definitions>`, and running |fts| 
+queries.
+
+Basic Example 
+~~~~~~~~~~~~~ 
+
+.. tabs:: 
+
+   tabs:   
+     - id: single 
+       name: Single Phrase 
+       content: |
+
+         The following |fts| example performs a basic search of the ``title`` 
+         field for the query string ``new york``. There is no ``slop`` in the 
+         query and so the ``slop`` value defaults to ``0``, which means the 
+         position of the words must exactly match the query string to be included 
+         in the results. The query also includes a:
+
+         - :manual:`$limit </reference/operator/aggregation/limit>` stage to limit 
+           the output to 10 results.
+         - :manual:`$project </reference/operator/aggregation/project>` stage to 
+           exclude all fields except ``title`` and add a field named ``score``.
+
+         .. example:: 
+
+            .. code-block:: json 
+
+               db.movies.aggregate([
+                { 
+                 "$searchBeta": {
+                   "phrase": {
+                     "path": "title",
+                     "query": "new york"
+                   }
+                 }
+                },
+                {
+                 $limit: 10
+                },
+                {
+                 $project: {
+                   "_id": 0,
+                   "title": 1,
+                   score: { $meta: "searchScore" }
+                 }
+                }
+               ])
+
+         The above query returns the following results: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { "title" : "New York, New York", "score" : 6.75715970993042 }
+            { "title" : "New York", "score" : 6.231321334838867 }
+            { "title" : "New York Stories", "score" : 5.358973026275635 }
+            { "title" : "New York Minute", "score" : 5.358973026275635 }
+            { "title" : "Synecdoche, New York", "score" : 5.358973026275635 }
+            { "title" : "New York Doll", "score" : 5.358973026275635 }
+            { "title" : "Little New York", "score" : 5.358973026275635 }
+            { "title" : "Escape from New York", "score" : 4.700878143310547 }
+            { "title" : "King of New York", "score" : 4.700878143310547 }
+            { "title" : "Naked in New York", "score" : 4.700878143310547 }
+
+     - id: multi 
+       name: Multiple Phrases 
+       content: |
+
+         The following |fts| example performs a basic search of the ``title`` 
+         field for the query strings ``the man`` and ``the moon``. There is no 
+         ``slop`` in the query and so the ``slop`` value defaults to ``0``, which 
+         means the position of the words must exactly match the query string to be 
+         included in the results. The query also includes a:
+         
+         - :manual:`$limit </reference/operator/aggregation/limit>` stage to limit 
+           the output to 10.
+         - :manual:`$project </reference/operator/aggregation/project>` stage to 
+           exclude all fields except ``title`` and add a field named ``score``.
+
+         .. code-block:: json 
+
+            db.movies.aggregate([
+             {
+              "$searchBeta": {
+                "phrase": {
+                  "path": "title",
+                  "query": ["the man", "the moon"]
+                }
+              }
+             },
+             {
+              $limit: 10
+             },
+             {
+              $project: {
+                "_id": 0,
+                "title": 1,
+                score: { $meta: "searchScore" }
+              }
+             }
+            ])
+
+         The above query returns the following results: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { "title" : "The Man in the Moon", "score" : 4.500046730041504 }
+            { "title" : "Shoot the Moon", "score" : 3.278003215789795 }
+            { "title" : "Kick the Moon", "score" : 3.278003215789795 }
+            { "title" : "The Man", "score" : 2.8860299587249756 }
+            { "title" : "The Moon and Sixpence", "score" : 2.8754563331604004 }
+            { "title" : "The Moon Is Blue", "score" : 2.8754563331604004 }
+            { "title" : "Racing with the Moon", "score" : 2.8754563331604004 }
+            { "title" : "Mountains of the Moon", "score" : 2.8754563331604004 }
+            { "title" : "Man on the Moon", "score" : 2.8754563331604004 }
+            { "title" : "Castaway on the Moon", "score" : 2.8754563331604004 }
+
+Slop Example 
+~~~~~~~~~~~~
+
+The following |fts| example performs a search of the ``title`` field 
+for the query string ``men women``. The ``slop`` value of ``5`` in the 
+``query`` allows greater movement of the words and distance between 
+the words ``men`` and ``women``. The query includes a :manual:`$project 
+</reference/operator/aggregation/project>` stage to:
+
+- Exclude all fields except ``title``
+- Add a field named ``score``
+
+.. example:: 
+
+   .. code-block:: json 
+
+      db.movies.aggregate([
+        {
+          "$searchBeta": {
+            "phrase": {
+              "path": "title",
+              "query": "men women",
+              "slop": 5
+            }
+          }
+        },
+        {
+          $project: {
+            "_id": 0,
+            "title": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+     ])
+
+The above query returns the following results:
+
+.. example:: 
+
+   .. code-block:: json 
+      :copyable: false 
+
+      { "title" : "Men Without Women", "score" : 3.39743709564209 }
+      { "title" : "Men Vs Women", "score" : 3.39743709564209 }
+      { "title" : "Good Men, Good Women", "score" : 2.878715753555298 }
+      { "title" : "The War Between Men and Women", "score" : 2.205303192138672 }
+      { "title" : "Women Without Men", "score" : 1.983487844467163 }
+      { "title" : "Women Vs Men", "score" : 1.983487844467163 }

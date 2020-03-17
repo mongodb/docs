@@ -1,0 +1,365 @@
+.. _text-ref:
+
+===============
+text (Operator)
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+The ``text`` operator performs a full-text search using the
+:ref:`analyzer <analyzers-ref>` specified in the :ref:`index
+configuration <index-config-example>`. If you do not specify an 
+analyzer, the default :ref:`standard <ref-standard-analyzer>` 
+analyzer is used.
+
+.. _text-ref-syntax:
+
+Syntax 
+------
+
+``text`` has the following syntax: 
+
+.. code-block:: json 
+
+   { 
+     $searchBeta: {  
+       "index": <index name>, // optional, defaults to "default"
+       "text": {
+         "query": "<search-string>",
+         "path": "<field-to-search>",
+         "fuzzy": <options>,
+         "score": <options>
+       }
+     }
+   }
+
+.. _text-ref-fields:
+
+Fields 
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10 
+   
+   * - Field
+     - Type
+     - Description
+     - Required?
+   
+   * - ``query``
+     - string or array of strings
+     - The string or strings to search for. If there are multiple 
+       terms in a string, |fts| also looks for a match for each term 
+       in the string separately.
+     - yes
+   
+   * - ``path``
+     - string or array of strings
+     - The indexed field or fields to search. See :ref:`path
+       construction <ref-path>` for more information.
+     - yes
+
+   * - ``fuzzy``
+     - object
+     - Enable fuzzy search. Find strings which are similar to the
+       search term or terms.
+     - no
+
+   * - ``fuzzy.maxEdits``
+     - integer
+     - Maximum number of single-character edits required to match the
+       specified search term. Value can be ``1`` or ``2``. The default 
+       value is ``2``.
+     - no
+  
+   * - ``fuzzy.prefixLength``
+     - integer
+     - Number of characters at the beginning of each term in the result 
+       that must exactly match. The default value is ``0``.
+     - no
+
+   * - ``fuzzy.maxExpansions``
+     - integer
+     - The maximum number of variations to generate and search for. This 
+       limit applies on a per-token basis. The default value is ``50``.
+     - no
+
+   * - ``score``
+     - object
+     - The score assigned to matching search term results. Use one of 
+       the following options to modify the score:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+
+     - no
+
+.. _text-ref-examples:
+
+Examples 
+--------
+
+The following examples use the ``movies`` collection in the ``sample_mflix`` 
+database. If you have the :ref:`sample dataset <available-sample-datasets>` 
+on your cluster, you can create the |fts| index on the ``title`` field and 
+run the queries on your cluster. The :ref:`fts-tutorial-ref` contains 
+instructions for loading the :ref:`sample dataset <available-sample-datasets>`, 
+creating an :ref:`index defintion <ref-index-definitions>`, and running |fts| 
+queries.
+
+Basic Example 
+~~~~~~~~~~~~~
+
+The following |fts| example uses the ``text`` operator to search the ``title`` 
+field in the ``movies`` collection for the term ``surfer``. 
+
+.. example:: 
+   
+   The following query searches the ``title`` field for the term ``surfer``. 
+   It includes a :manual:`$project </reference/operator/aggregation/project>` 
+   stage to: 
+
+   - Exclude all fields except ``title``
+   - Add a field named ``score``
+
+   .. code-block:: json 
+
+      db.movies.aggregate([
+        {
+          $searchBeta: {
+            "text": {
+              "path": "title",
+              "query": "surfer"
+            }
+          }
+        },
+        {
+          $project: {
+            "_id": 0,
+            "title": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   The above query returns the following results:
+
+   .. code-block:: json 
+      :copyable: false 
+
+      { "title" : "Soul Surfer", "score" : 4.572484970092773 }
+      { "title" : "Little Surfer Girl", "score" : 3.9323642253875732 }
+      { "title" : "Fantastic 4: Rise of the Silver Surfer", "score" : 2.520784616470337 }
+
+Fuzzy Examples 
+~~~~~~~~~~~~~~
+
+The following examples use the ``text`` operator to search the ``title`` 
+field in the ``movies`` collection for terms that are within one 
+character variation of each term in the ``query`` phrase ``naw yark``.
+
+.. tabs:: 
+
+   tabs:
+   - id: maxexpansions
+     name: maxExpansions Option
+     content: |
+
+         .. example:: 
+   
+            The following query searches the ``title`` field for terms that are 
+            within one character of each term in the string ``naw yark``. It uses: 
+
+            - The ``maxEdits`` field to indicate that only one character variation 
+              is allowed for each term to match the query to a document.
+            - The ``maxExpansions`` field to indicate that up to one hundred similar 
+              terms for ``naw`` and one hundred similar terms to ``yark`` must be 
+              considered when matching the query to a document.
+
+            The query also includes a :manual:`$limit 
+            </reference/operator/aggregation/limit>` stage to limit the output
+            to 10 results and a :manual:`$project 
+            </reference/operator/aggregation/project>` stage to: 
+
+            - Exclude all fields except ``title``
+            - Add a field named ``score``
+
+            .. code-block:: json 
+
+               db.movies.aggregate([
+                 {
+                   $searchBeta: {
+                     "text": {
+                       "path": "title",
+                       "query": "naw yark",
+                       "fuzzy": {
+                         "maxEdits": 1,
+                         "maxExpansions": 100,
+                       }  
+                     }
+                   }
+                 },
+                 {
+                   $limit: 10
+                 },
+                 {
+                   $project: {
+                     "_id": 0,
+                     "title": 1,
+                     score: { $meta: "searchScore" }
+                   }
+                 }
+               ])
+
+            The above query returns the following results:
+
+            .. code-block:: json 
+               :copyable: false 
+
+               { "title" : "New York, New York", "score" : 4.392756462097168 }
+               { "title" : "New York", "score" : 4.050914287567139 }
+               { "title" : "New York Stories", "score" : 3.4838104248046875 }
+               { "title" : "New York Minute", "score" : 3.4838104248046875 }
+               { "title" : "Synecdoche, New York", "score" : 3.4838104248046875 }
+               { "title" : "New York Doll", "score" : 3.4838104248046875 }
+               { "title" : "Little New York", "score" : 3.4838104248046875 }
+               { "title" : "Escape from New York", "score" : 3.0559897422790527 }
+               { "title" : "King of New York", "score" : 3.0559897422790527 }
+               { "title" : "Naked in New York", "score" : 3.0559897422790527 }
+
+   - id: prefixlength
+     name: prefixLength Option
+     content: |
+
+         .. example:: 
+
+            The following query searches the ``title`` field for terms that are 
+            within one character of each term in the string ``naw yark``. It uses: 
+
+            - The ``maxEdits`` field to indicate that only one character variation 
+              is allowed to match the query to a document.
+            - The ``prefixLength`` field to indicate that the first two characters 
+              of each term in the string ``naw yark`` may not be changed to match the 
+              query to a document.
+
+            The query also includes a :manual:`$limit 
+            </reference/operator/aggregation/limit>` stage to limit the output
+            to 8 results and a :manual:`$project 
+            </reference/operator/aggregation/project>` stage to: 
+
+            - Exclude all fields except ``_id`` and ``title``
+            - Add a field named ``score``
+
+            .. code-block:: json 
+
+               db.movies.aggregate([
+                 {
+                   $searchBeta: {
+                     "text": {
+                       "path": "title",
+                       "query": "naw yark",
+                       "fuzzy": {
+                         "maxEdits": 1,
+                         "prefixLength": 2,
+                       }  
+                     }
+                   }
+                 },
+                 {
+                   $limit: 8
+                 },
+                 {
+                   $project: {
+                     "_id": 1,
+                     "title": 1,
+                     score: { $meta: "searchScore" }
+                   }
+                 }
+               ])
+
+            The above query returns the following results:
+
+            .. code-block:: json 
+               :copyable: false 
+
+               { "_id" : ObjectId("573a1396f29313caabce5646", "title" : "The Longest Yard", "score" : 2.949273109436035 }
+               { "_id" : ObjectId("573a13aff29313caabd31ed8", "title" : "The Longest Yard", "score" : 2.949273109436035 }
+               { "_id" : ObjectId("573a13b7f29313caabd4ad8b", "title" : "Stomp the Yard", "score" : 2.949273109436035 }
+               { "_id" : ObjectId("573a13eaf29313caabdcf410", "title" : "Naz & Maalik", "score" : 2.581432342529297 }
+               { "_id" : ObjectId("573a1393f29313caabcddbed", "title" : "La nao capitana", "score" : 2.2200469970703125 }
+               { "_id" : ObjectId("573a1399f29313caabcee781", "title" : "Kabhi Haan Kabhi Naa", "score" : 1.9474197626113892 }
+               { "_id" : ObjectId("573a13a2f29313caabd0b815", "title" : "Kaho Naa... Pyaar Hai", "score" : 1.9474197626113892 }
+               { "_id" : ObjectId("573a13a7f29313caabd1b5c0", "title" : "Oysters at Nam Kee's", "score" : 1.9474197626113892 }
+
+   - id: default
+     name: Default Options
+     content: |
+
+         .. example:: 
+   
+            The following query searches the ``title`` field for the phrase 
+            ``naw yark``. It uses the ``fuzzy`` default options where: 
+
+            - ``maxEdits`` allows up to two character variation of each term in the 
+              given phrase to match the query to a document.
+            - ``maxExpansions`` considers up to fifty similar terms for each term in 
+              ``naw yark`` to find matches.
+            - ``prefixLength`` is disabled. 
+
+            The query also includes a :manual:`$limit 
+            </reference/operator/aggregation/limit>` stage to limit the output
+            to 10 results and a :manual:`$project 
+            </reference/operator/aggregation/project>` stage to: 
+
+            - Exclude all fields except ``title``
+            - Add a field named ``score``
+
+            .. code-block:: json 
+
+               db.movies.aggregate([
+                 {
+                   $searchBeta: {
+                     "text": {
+                       "path": "title",
+                       "query": "naw yark",
+                       "fuzzy": {}  
+                     }
+                   }
+                 },
+                 {
+                   $limit: 10
+                 },
+                 {
+                   $project: {
+                     "_id": 0,
+                     "title": 1,
+                     score: { $meta: "searchScore" }
+                   }
+                 }
+               ])
+
+            The above query returns the following results:
+
+            .. code-block:: json 
+               :copyable: false 
+
+               { "title" : "New York, New York", "score" : 4.392756462097168 }
+               { "title" : "New York", "score" : 4.050914287567139 }
+               { "title" : "New York Stories", "score" : 3.4838104248046875 }
+               { "title" : "New York Minute", "score" : 3.4838104248046875 }
+               { "title" : "Synecdoche, New York", "score" : 3.4838104248046875 }
+               { "title" : "New York Doll", "score" : 3.4838104248046875 }
+               { "title" : "Little New York", "score" : 3.4838104248046875 }
+               { "title" : "Escape from New York", "score" : 3.0559897422790527 }
+               { "title" : "King of New York", "score" : 3.0559897422790527 }
+               { "title" : "Naked in New York", "score" : 3.0559897422790527 }
