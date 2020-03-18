@@ -148,7 +148,7 @@
    * - | ``connectionStrings``
        | ``.awsPrivateLink``
      - object
-     - :ref:`Private endpoint-aware <private-endpoint-connection-strings>` 
+     - :ref:`Private-endpoint-aware <private-endpoint-connection-strings>` 
        ``mongodb://``:manual:`connection strings 
        </reference/connection-string>` for each interface VPC endpoint 
        you configured to connect to this cluster. Returned only if you 
@@ -157,7 +157,7 @@
    * - | ``connectionStrings``
        | ``.awsPrivateLinkSrv``
      - object
-     - :ref:`Private endpoint-aware <private-endpoint-connection-strings>` 
+     - :ref:`Private-endpoint-aware <private-endpoint-connection-strings>` 
        ``mongodb+srv://`` :manual:`connection strings 
        </reference/connection-string>` for each interface VPC endpoint 
        you configured to connect to this cluster. Returned only if you 

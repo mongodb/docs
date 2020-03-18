@@ -59,33 +59,27 @@ availability zones in a region.
 Private Endpoint-Aware Connection Strings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you enable {+aws-pl+}, |service| generates an SRV record for your
-VPC. This SRV record resolves to the :term:`interface endpoints 
-<interface endpoint>` deployed in the VPC subnets you specified when you 
-created the {+aws-pl+} connection. The interface endpoints connect to 
-the network load balancer provisioned in the |service| VPC. The network
-load balancer assigns a unique port to each |service| cluster node in
-the region for which you enabled {+aws-pl+}.
+When you enable {+aws-pl+}, |service| generates DNS seedlist and 
+standard private-endpoint-aware connection strings. Your clients can use 
+these strings to connect to |service| clusters through
+a private endpoint.
 
-Clients connecting to |service| clusters using {+aws-pl+} use private 
-endpoint-aware connection strings containing SRV records:
+The hostname in the connection strings resolves to the 
+:term:`interface endpoints <interface endpoint>` deployed in the VPC 
+subnets you specified when you created the {+aws-pl+} connection. The 
+interface endpoints connect to the network load balancer provisioned in 
+the |service| VPC. The network load balancer assigns a unique port to 
+each |service| cluster node in the region for which you enabled 
+{+aws-pl+}.
 
-.. code-block:: sh
-   :copyable: false
-
-   mongodb+srv://cluster0-pl-0-k45tj.mongodb.net/test
-
-The SRV record used in a private endpoint-aware connection string
-contains a configuration that maps a unique port for each member in a
-cluster's replica set to that hostname. The ports listed correspond to
-ports on the load balancer provisioned in the |service| VPC. When you
-connect using {+aws-pl+}, all nodes in an |service| cluster are
+When you connect using {+aws-pl+}, all nodes in an |service| cluster are
 accessible via the same hostname, with the load balancer resolving
 individual nodes by their port.
 
-The following example shows a DNS lookup of the SRV record for a
-{+aws-pl+}-enabled single-region cluster, showing three unique ports
-defined for the ``cluster0-pl-0-k45tj.mongodb.net`` hostname:
+The following example shows a DNS lookup of the hostname in a connection 
+string for an {+aws-pl+}-enabled single-region cluster, showing three 
+unique ports defined for the ``cluster0-pl-0-k45tj.mongodb.net`` 
+hostname:
 
 .. code-block:: sh
    :copyable: false
@@ -100,16 +94,16 @@ defined for the ``cluster0-pl-0-k45tj.mongodb.net`` hostname:
    _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1024 pl-0-us-east-1-k45tj.mongodb.net.
    _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1025 pl-0-us-east-1-k45tj.mongodb.net.
 
-The hostname that the SRV record contains is a CNAME record that
+The hostname in the connection string is a CNAME record that
 resolves to the endpoint-specific regional DNS name |aws| generates for
 the interface endpoint in your VPC. An alias record exists for each
 subnet in your VPC that you deployed the interface endpoint to. Each
 alias record contains the private IP address of the
 :term:`interface endpoint` for that subnet in your VPC.
 
-The following example shows the DNS lookup for the hostname in the SRV
-record, including the endpoint-specific regional DNS name for the
-interface endpoint and its alias records:
+The following example shows the DNS lookup for the hostname in the 
+connection string, including the endpoint-specific regional DNS name for 
+the interface endpoint and its alias records:
 
 .. code-block:: sh
    :copyable: false
@@ -128,14 +122,14 @@ interface endpoint and its alias records:
    Address: 10.0.20.54
 
 When a client in your VPC connects to an |service| cluster using a
-private endpoint-aware connection string, the client attempts to
+private-endpoint-aware connection string, the client attempts to
 establish a connection to the load balancer in the |service| VPC
 through one of the :term:`interface endpoints <interface endpoint>`.
 Your client's DNS resolution mechanism handles which of the interface
 endpoints the hostname resolves to. If one ENI is unavailable the
 next is used. This is opaque to the driver or other connection
-mechanism. The driver is only aware of the hostname in the SRV record,
-listening on one port for each node in the cluster’s replica set.
+mechanism. The driver is only aware of the hostname in the 
+connection string, listening on one port for each node in the cluster.
 
 See :ref:`Connect to Atlas using a Private Endpoint <connect-private-endpoint>`
 to learn how to connect to |service| clusters using private 
@@ -151,7 +145,7 @@ and :doc:`VPC peering </security-vpc-peering>`.
 
 Clients connecting to |service| clusters using other methods use
 standard connection strings. Your clients might have to identify when
-to use private endpoint-aware connection strings and standard
+to use private-endpoint-aware connection strings and standard
 connection strings.
 
 Limitations
@@ -228,21 +222,13 @@ with the following procedure:
 Connect to |service| using a Private Endpoint
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You use a private endpoint-aware connection string when you connect to
-|service| clusters using a private endpoint:
-
-.. code-block:: sh
-   :copyable: false
-
-   mongodb+srv://cluster0-pl-0-k45tj.mongodb.net/test
-
 .. note::
 
-   For important considerations about private endpoint-aware connection
+   For important considerations about private-endpoint-aware connection
    strings, see
    :ref:`Private Endpoint-Aware Connection Strings <private-endpoint-connection-strings>`.
 
-Use a private endpoint-aware connection string to connect to an
+Use a private-endpoint-aware connection string to connect to an
 |service| cluster with the following procedure:
 
 .. include:: /includes/steps/connect-to-cluster-privatelink.rst
