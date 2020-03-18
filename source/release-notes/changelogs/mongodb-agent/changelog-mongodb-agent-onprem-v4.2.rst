@@ -1,4 +1,28 @@
-.. _mongodb-10.2.14.5953:
+.. _mongodb-10.2.14.5953-4.2.10:
+
+MongoDB Agent 10.2.14.5953
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.10 on 2020-03-16 <opsmgr-server-4.2.10>`
+
+- Ensures that an error when rotating one type of log file does not interfere
+  with log rotation of other log files.
+
+- Ensures that the MongoDB Agent always respects the optionality of keyfiles
+  for MongoDB deployments using X-509 cluster authentication.
+
+- Ensures that a majority of healthy nodes remains up at all times if a cluster
+  has unhealthy nodes prior to the initiation of a storage-affecting rolling
+  change.
+
+- Ensures that when importing a new sharded cluster for monitoring, the
+  algorithm for auto-discovering all processes in the sharded cluster
+  will also consider the fully qualified domain names.
+
+- Upgrades the backup module of the MongoDB Agent to use the MongoDB Go Driver
+  version 1.1.4.
+
+.. _mongodb-10.2.14.5953-4.2.9:
 
 MongoDB Agent 10.2.14.5953
 --------------------------
@@ -128,4 +152,3 @@ MongoDB Agent 10.2.6.5879-1
 - Improves logging in the MongoDB Agent such that when a connection to
   a MongoDB process is deliberately canceled, it does not appear as an
   error.
-

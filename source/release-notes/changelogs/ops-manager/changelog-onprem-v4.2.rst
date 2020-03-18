@@ -1,3 +1,13 @@
+.. _opsmgr-server-4.2.10:
+
+|onprem| Server 4.2.10
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-03-16*
+
+- No longer requires that JavaScript be enabled on the Ops Manager
+  Application Database.
+
 .. _opsmgr-server-4.2.9:
 
 |onprem| Server 4.2.9
@@ -199,4 +209,3 @@ Platform Support
   not be supported in a future |onprem| release:
 
   - Windows Server 2012
-
