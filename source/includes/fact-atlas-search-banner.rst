@@ -1,9 +1,8 @@
 .. admonition:: MongoDB Atlas Search
    :class: note
 
-   `MongoDB Atlas
-   <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__  provides
-   fast, relevance-based search capabilities for your data in the cloud
-   with :atlas:`Atlas Search </atlas-search>`. Learn more about
-   :atlas:`Atlas Search </atlas-search>` and other features when signing
-   up for Atlas, MongoDB's fully managed database as a service.
+   :atlas:`Atlas Search </atlas-search>` makes it easy to build fast,
+   relevance-based search capabilities on top of your MongoDB data. Try
+   it today on `MongoDB Atlas
+   <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__, our fully
+   managed database as a service.
