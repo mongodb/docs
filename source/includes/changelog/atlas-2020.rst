@@ -9,7 +9,7 @@
 
   - Azure Norway East
   - Azure Switzerland West: this is a non-standard Azure region for use
-    as a secondary DR region in conjunction with UAE Switzerland North.
+    as a secondary DR region in conjunction with Switzerland North.
   - Azure UAE Central: this is a non-standard Azure region for use as a
     secondary DR region in conjunction with UAE North.
 
