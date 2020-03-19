@@ -102,17 +102,6 @@ Definition
           **To drop multiple indexes** (Available starting in MongoDB
           4.2), specify an array of the index names.
 
-          .. versionadded:: 4.4
-
-             If an index specified to
-             :method:`db.collection.dropIndexes()` is still building,
-             :method:`~db.collection.dropIndexes()` attempts to abort
-             the in-progress build. Aborting an index build has the same
-             effect as dropping the built index. Prior to MongoDB 4.4,
-             :method:`~db.collection.dropIndexes()` returned an error if
-             any of the specified indexes were still building. See
-             :ref:`dropIndexes-method-index-builds` for more complete
-             documentation.
 
    The :method:`db.collection.dropIndexes()` is a wrapper around the
    :dbcommand:`dropIndexes` command.
@@ -164,12 +153,19 @@ Aborts In-Progress Index Builds
    :method:`~db.collection.dropIndexes()` would return an error if the
    collection had any in-progress index builds.
 
+For replica sets, run :method:`~db.collection.dropIndexes()` on the
+:term:`primary`. The primary aborts the index build and creates an
+associated "abortIndexBuild" oplog entry. Secondaries which replicate
+the "abortIndexBuild" oplog entry abort the in-progress index build and
+discard the build job. See :ref:`index-build-process` for detailed
+documentation on the index build process and the specific timing for
+terminating an in-progress index build.
+
 The indexes specified to :method:`~db.collection.dropIndexes()` must be
-the entire set of in-progress builds associated to a given index
-builder, i.e. the indexes built by a single :dbcommand:`createIndexes`
-or :method:`db.collection.createIndexes()` operation.  To drop a
-specific index out of a set of related in-progress builds, wait until
-the index builds complete and specify that index to
+the entire set of in-progress builds associated to a single
+:dbcommand:`createIndexes` or :method:`db.collection.createIndexes()`
+operation. To drop a specific index out of a set of related in-progress
+builds, wait until the index builds complete and specify that index to
 :method:`~db.collection.dropIndexes()`
 
 For example, a :dbcommand:`createIndexes` /
@@ -182,12 +178,4 @@ Use :dbcommand:`currentOp` to identify the index builds associated to a
 :dbcommand:`createIndexes` / :method:`~db.collection.createIndexes()`
 operation. See :ref:`currentOp-cmd-index-creation` for an example.
 
-For replica sets or shard replica sets, aborting an index on the primary
-does not simultaneously abort secondary index builds.
-:method:`~db.collection.dropIndexes()` attempts to abort the in-progress
-builds for the specified indexes on the :term:`primary` and if
-successful creates an associated "abort" oplog entry. :term:`Secondary
-<secondary>` members with replicated in-progress builds wait for a
-commit or abort oplog entry from the primary before either committing or
-aborting the index build.
 

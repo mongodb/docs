@@ -39,7 +39,8 @@ Definition
               { ... },
               { ... }
           ],
-          writeConcern: { <write concern> }
+          writeConcern: { <write concern> },
+          commitQuorum: <int|string>
         }
       )
 
@@ -81,8 +82,44 @@ Definition
           </reference/write-concern>`. Omit to use the default write concern.
           
           .. versionadded:: 3.4
+
+      * - :ref:`commitQuorum <createIndexes-cmd-commitQuorum>`
+
+        - integer or string
+
+        - .. _createIndexes-cmd-commitQuorum:
+        
+          Optional. The minimum number of data-bearing voting replica
+          set members (i.e. commit quorum), including the primary, that
+          must report a successful :ref:`index build
+          <index-operations-replicated-build>` before the primary
+          marks the ``indexes`` as ready. A "voting" member is any
+          replica set member where :rsconf:`members[n].votes` is greater
+          than ``0``.
           
-          
+          Supports the following values:
+
+          - ``"votingMembers"`` - all data-bearing voting replica set
+            members (*Default*).
+
+          - ``"majority"`` - a simple majority of data-bearing voting
+            replica set members.
+
+          - ``<int>`` - a specific number of data-bearing voting 
+            replica set members.
+
+          - ``0`` - Disables quorum-voting behavior. Members 
+            start the index build simultaneously but do *not* 
+            vote or wait for quorum before completing the 
+            index build. If you start an index build with 
+            a commit quorum of ``0``, you cannot later modify the 
+            commit quorum using :dbcommand:`setIndexCommitQuorum`.
+
+          - A replica set :doc:`tag name
+            </tutorial/configure-replica-set-tag-sets>`.
+
+          .. versionadded:: 4.4
+
    
    .. _createIndexes-options:
 
@@ -490,6 +527,22 @@ that implied that the index was not recreated. For example:
 Replica Sets and Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. include:: /includes/extracts/4.4-changes-index-builds-simultaneous-fcv.rst
+
+.. include:: /includes/extracts/4.4-changes-index-builds-simultaneous.rst
+
+To start an index build with a non-default commit quorum, specify the
+:ref:`commitQuorum <createIndexes-cmd-commitQuorum>`.
+
+MongoDB 4.4 adds the :dbcommand:`setIndexCommitQuorum` command for 
+modifying the commit quorum of an in-progress index build. 
+
+In MongoDB 4.2 and earlier, index builds on a replica set or sharded
+cluster build on the primary *first* before replicating to the
+secondaries. See :v4.2:`Index Builds In Replicated Environments (4.2)
+</core/index-creation>` for the MongoDB 4.2 index build behavior.
+
+
 To minimize the impact of building an index on replica sets and sharded
 clusters, use a rolling index build procedure
 as described on :doc:`/tutorial/build-indexes-on-replica-sets`.
@@ -830,6 +883,44 @@ those excluded by ``wildcardProjection``:
 .. note::
 
    .. include:: /includes/extracts/wildcard-index-inclusion-exclusion.rst
+
+Create Index With Commit Quorum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-index-builds-simultaneous-fcv.rst
+
+.. include:: /includes/extracts/4.4-changes-index-builds-simultaneous.rst
+
+Specify the :ref:`commitQuorum <createIndexes-cmd-commitQuorum>` option
+to the :dbcommand:`createIndexes` operation to set the the minimum
+number of data-bearing voting members (i.e commit quorum), including the
+primary, which must complete the index build before the
+primary marks the indexes as ready. The default commit quorum is
+``votingMembers``, or all data-bearing voting replica set members.
+
+The following operation creates an index with a :ref:`commit quorum
+<createIndexes-cmd-commitQuorum>` of ``"majority"``, or a 
+simple majority of data-bearing voting members:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("examples").runCommand(
+     { 
+       createIndexes: "invoices",
+       indexes: [
+         { 
+           key: { "invoices" : 1 },
+           "name" : "invoiceIndex"
+         }
+       ],
+       "commitQuorum" : "majority"
+     }
+   )
+
+The :term:`primary` marks index build as ready only after a simple
+majority of data-bearing voting members "vote" to commit the index
+build. For more information on index builds and the voting process, see
+:ref:`index-operations-replicated-build`.
 
 Output
 ------

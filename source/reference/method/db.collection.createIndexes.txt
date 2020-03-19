@@ -13,16 +13,16 @@ db.collection.createIndexes()
 Definition
 ----------
 
-.. method:: db.collection.createIndexes( [ keyPatterns ], options )
+.. method:: db.collection.createIndexes( [ keyPatterns ], options, commitQuorum )
 
 
    .. include:: /includes/fact-mongo-shell-method.rst
 
 
-   .. versionadded:: 3.2
-
    Creates one or more indexes on a collection.
 
+   :method:`db.collection.createIndexes()` takes the following
+   parameters:
 
    .. list-table::
       :header-rows: 1
@@ -105,8 +105,42 @@ Definition
         - Optional. A document that contains a set of options that controls the creation
           of the indexes. See :ref:`createIndexes-method-options` for details.
           
+      * - :ref:`commitQuorum <createIndexes-method-commitQuorum>`
+
+        - integer or string
+
+        - .. _createIndexes-method-commitQuorum:
+        
+          Optional. The minimum number of data-bearing voting replica
+          set members (i.e. commit quorum), including the primary, that
+          must report a successful :ref:`index build
+          <index-operations-replicated-build>` before the primary
+          marks the ``indexes`` as ready. A "voting" member is any
+          replica set member where :rsconf:`members[n].votes` is greater
+          than ``0``.
           
-   
+          Supports the following values:
+
+          - ``"votingMembers"`` - all data-bearing voting replica set
+            members (*Default*).
+
+          - ``"majority"`` - a simple majority of data-bearing voting
+            replica set members.
+
+          - ``<int>`` - a specific number of data-bearing voting 
+            replica set members.
+
+          - ``0`` - Disables quorum-voting behavior. Members 
+            start the index build simultaneously but do *not* 
+            vote or wait for quorum before completing the 
+            index build. If you start an index build with 
+            a commit quorum of ``0``, you cannot later modify the 
+            commit quorum using :dbcommand:`setIndexCommitQuorum`.
+
+          - A replica set :doc:`tag name
+            </tutorial/configure-replica-set-tag-sets>`.
+
+          .. versionadded:: 4.4
 
 
    The :method:`db.collection.createIndexes()` is a wrapper around the
@@ -872,6 +906,36 @@ those excluded by ``wildcardProjection``:
 .. note::
 
    .. include:: /includes/extracts/wildcard-index-inclusion-exclusion.rst
+
+Create Indexes With Commit Quorum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-index-builds-simultaneous-fcv.rst
+
+.. include:: /includes/extracts/4.4-changes-index-builds-simultaneous.rst
+
+Specify the :ref:`commitQuorum <createIndexes-method-commitQuorum>`
+parameter to the :method:`~db.collection.createIndexes` operation to set
+the the minimum number of data-bearing voting members (i.e commit
+quorum), including the primary, which must complete the index build
+before the primary marks the indexes as ready. The default commit quorum
+is ``votingMembers``, or all data-bearing voting replica set members.
+
+The following operation creates an index with a :ref:`commit quorum
+<createIndexes-method-commitQuorum>` of ``"majority"``:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("examples").invoices.createIndexes(
+     { "invoices" : 1 },
+     { },
+     "majority"
+   )
+
+The :term:`primary` marks index build as ready only after a simple
+majority of data-bearing voting members "vote" to commit the index
+build. For more information on index builds and the voting process, see
+:ref:`index-operations-replicated-build`.
 
 Additional Information
 ----------------------

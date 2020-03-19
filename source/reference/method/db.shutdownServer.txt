@@ -13,10 +13,129 @@ db.shutdownServer()
 .. method:: db.shutdownServer()
 
    Shuts down the current :binary:`~bin.mongod` or :binary:`~bin.mongos`
-   process cleanly and safely.
+   process cleanly and safely. You must issue the
+   :method:`db.shutdownServer()` operation against the :term:`admin
+   database` in the form:
 
-   This operation fails when the current database *is not* the
-   :term:`admin database`.
+   :method:`db.shutdownServer()` has the following syntax:
 
-   This command provides a wrapper around the :dbcommand:`shutdown`
-   command.
+   .. code-block:: javascript
+
+      db.shutdownServer({ 
+        force: <boolean>,
+        timeoutSecs: <int> 
+      })
+
+   The method takes the following optional field:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - :ref:`force <shutdownServer-method-force>`
+
+        - .. _shutdownServer-method-force:
+        
+          Optional. Specify ``true`` to force the :binary:`~bin.mongod`
+          to shut down. Force shutdown interrupts any ongoing 
+          operations on the :binary:`~bin.mongod` and may result in
+          unexpected behavior.
+
+      * - :ref:`timeoutSecs <shutdownServer-method-timeoutSecs>`
+
+        - .. _shutdownServer-method-timeoutSecs:
+        
+          Optional. The number of seconds the :term:`primary` should 
+          wait for a secondary to catch up. Defaults to ``10``.
+
+          If no secondaries catch up within the specified time, the 
+          command fails. 
+
+This operation provides a wrapper around the :dbcommand:`shutdown`
+command.
+
+Behavior
+--------
+
+For a :binary:`~bin.mongod` started *with* :ref:`authentication`, you
+must run :method:`db.shutdownServer()` over an authenticated connection.
+See :ref:`method-shutdown-access-control` for more information.
+
+For a :binary:`~bin.mongod` started *without* :ref:`authentication`, you
+must run :method:`db.shutdownServer()` from a client connected to the
+localhost interface. For example, run a :binary:`~bin.mongo` with the
+:option:`--host "127.0.0.1" <mongo --host>` option on the same host
+machine as the :binary:`~bin.mongod`.
+
+``db.shutdownServer()`` on Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If running :method:`db.shutdownServer()` against a replica set member,
+the behavior depends on whether the member is a :term:`primary` or
+:term:`secondary`:
+
+Shutdown on a ``primary``
+  :method:`db.shutdownServer()` only succeeds if another secondary
+  exists which can catch up to the primary within 10 seconds. Specify
+  :ref:`timeoutSecs <shutdownServer-method-timeoutSecs>` to modify the
+  time period the operation waits, *or* specify :ref:`force: true
+  <shutdownServer-method-force>` to force the primary to shut down.
+  Consider the following before performing a force shutdown on a
+  primary:
+  
+  - Shutting down the primary triggers a :ref:`replica set election
+    <replica-set-elections>`. 
+    
+  - If the primary :binary:`~bin.mongod` received write operations which
+    were not yet replicated to a secondary at the time of forced
+    shutdown, those writes :ref:`roll back <replica-set-rollback>` when
+    the :binary:`~bin.mongod` next starts.
+
+Shutdown on a ``secondary``
+  For a :term:`secondary` :binary:`~bin.mongod`,
+  :method:`db.shutdownServer()`  fails if the secondary is running
+  certain operations such as in-progress :ref:`index build
+  <index-operations-replicated-build>`. Specify :ref:`force: true
+  <shutdown-cmd-force>` to force the secondary to shut down.
+
+  If a secondary shuts down during an index build, the index build job
+  is persisted. Restarting the :binary:`~bin.mongod` automatically
+  recovers the index build and restarts it from the beginning.
+  For more information, see :ref:`index-operations-build-failure`.
+
+.. _method-shutdown-access-control:
+
+Access Control
+--------------
+
+To run :method:`db.shutdownServer()` on a :binary:`~bin.mongod`
+enforcing :ref:`authentication`, the authenticated user *must* have the
+:method:`db.shutdownServer()` privilege. For example, a user with the
+built-in role :authrole:`hostManager` has the appropriate permissions.
+
+Examples
+--------
+
+Shut down a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").shutdownServer()
+
+Force Shut Down a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").shutdownServer({ "force" : true })
+
+Shut Down a Primary ``mongod`` With Longer Timeout
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").shutdownServer({ "timeoutSecs": 60 })

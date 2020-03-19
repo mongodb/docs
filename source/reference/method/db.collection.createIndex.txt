@@ -15,7 +15,7 @@ db.collection.createIndex()
 Definition
 ----------
 
-.. method:: db.collection.createIndex(keys, options)
+.. method:: db.collection.createIndex(keys, options, commitQuorum)
 
 
    .. include:: /includes/fact-mongo-shell-method.rst
@@ -23,12 +23,7 @@ Definition
 
    Creates indexes on collections.
 
-   .. versionchanged:: 3.2
-
-      MongoDB disallows the creation of :ref:`version 0
-      <3.2-version-0-indexes>` indexes. To upgrade existing version 0
-      indexes, see :ref:`3.2-version-0-indexes`.
-
+   :method:`db.collection.createIndex()` takes the following parameters:
 
    .. list-table::
       :header-rows: 1
@@ -44,14 +39,11 @@ Definition
    
         - document
    
-        - 
-          A document that contains the field and value pairs where the field is
+        - A document that contains the field and value pairs where the field is
           the index key and the value describes the type of index for that
           field. For an ascending index on a field, specify a value of ``1``; for
           descending index, specify a value of ``-1``. Starting in 3.6, you 
           cannot specify ``*`` as the index name.
-          
-          
           
           MongoDB supports several different index types including
           :ref:`text <index-feature-text>`, :ref:`geospatial
@@ -112,8 +104,42 @@ Definition
         - Optional. A document that contains a set of options that controls the creation
           of the index. See :ref:`ensureIndex-options` for details.
           
+      * - :ref:`commitQuorum <createIndex-method-commitQuorum>`
+
+        - integer or string
+
+        - .. _createIndex-method-commitQuorum:
+        
+          Optional. The minimum number of data-bearing voting replica
+          set members (i.e. commit quorum), including the primary, that
+          must report a successful :ref:`index build
+          <index-operations-replicated-build>` before the primary
+          marks the ``indexes`` as ready. A "voting" member is any
+          replica set member where :rsconf:`members[n].votes` is greater
+          than ``0``.
           
-   
+          Supports the following values:
+
+          - ``"votingMembers"`` - all data-bearing voting replica set
+            members (*Default*).
+
+          - ``"majority"`` - a simple majority of data-bearing voting
+            replica set members.
+
+          - ``<int>`` - a specific number of data-bearing voting 
+            replica set members.
+
+          - ``0`` - Disables quorum-voting behavior. Members 
+            start the index build simultaneously but do *not* 
+            vote or wait for quorum before completing the 
+            index build. If you start an index build with 
+            a commit quorum of ``0``, you cannot later modify the 
+            commit quorum using :dbcommand:`setIndexCommitQuorum`.
+
+          - A replica set :doc:`tag name
+            </tutorial/configure-replica-set-tag-sets>`.
+
+          .. versionadded:: 4.4
 
 
    The :method:`db.collection.createIndex()` is a wrapper around the
@@ -898,6 +924,38 @@ those excluded by ``wildcardProjection``:
 .. note::
 
    .. include:: /includes/extracts/wildcard-index-inclusion-exclusion.rst
+
+Create Index With Commit Quorum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-index-builds-simultaneous-fcv.rst
+
+.. include:: /includes/extracts/4.4-changes-index-builds-simultaneous.rst
+
+Specify the :ref:`commitQuorum <createIndex-method-commitQuorum>`
+parameter to the :method:`~db.collection.createIndex()` operation to set
+the the minimum number of data-bearing voting members (i.e commit
+quorum), including the primary, which must complete the
+index build before the primary marks the indexes as ready. The default
+commit quorum is ``votingMembers``, or all data-bearing voting replica
+set members.
+
+The following operation creates an index with a :ref:`commit quorum
+<createIndex-method-commitQuorum>` of ``"majority"``, or a 
+simple majority of data-bearing voting members:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("examples").invoices.createIndex(
+     { "invoices" : 1 },
+     { },
+     "majority"
+   )
+
+The :term:`primary` marks index build as ready only after a simple
+majority of data-bearing voting members "vote" to commit the index
+build. For more information on index builds and the voting process, see
+:ref:`index-operations-replicated-build`.
 
 Additional Information
 ----------------------

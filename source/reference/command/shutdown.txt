@@ -17,35 +17,129 @@ shutdown
    the :dbcommand:`shutdown` command against the :term:`admin database`
    in the form:
 
-   .. code-block:: javascript
-
-      db.adminCommand({ shutdown: 1 })
-
-   .. note::
-
-      Run the :dbcommand:`shutdown` against the :term:`admin database`. When
-      using :dbcommand:`shutdown`, the connection must originate from
-      localhost **or** use an authenticated connection.
-
-   If the node you're trying to shut down is a :doc:`replica set </replication>`
-   primary, then the command will succeed only if there exists a secondary node
-   whose oplog data is within 10 seconds of the primary. You can override this protection
-   using the ``force`` option:
+   The command has the following syntax:
 
    .. code-block:: javascript
 
-      db.adminCommand({ shutdown: 1, force: true })
+      db.adminCommand({ 
+        shutdown: 1,
+        force: <boolean>
+        timeoutSecs: <int> 
+      })
 
-   Alternatively, the :dbcommand:`shutdown` command also supports a ``timeoutSecs`` argument
-   which allows you to specify a number of seconds to wait for other
-   members of the replica set to catch up:
+   The command takes the following optional field:
 
-   .. code-block:: javascript
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
 
-      db.adminCommand({ shutdown: 1, timeoutSecs: 60 })
+      * - Field
+        - Description
 
-   The equivalent :binary:`~bin.mongo` shell helper syntax looks like this:
+      * - :ref:`shutdown <shutdown-cmd-shutdown>`
 
-   .. code-block:: javascript
+        - .. _shutdown-cmd-shutdown:
+          
+          Specify ``1``.
 
-      db.shutdownServer({timeoutSecs: 60});
+      * - :ref:`force <shutdown-cmd-force>`
+
+        - .. _shutdown-cmd-force:
+        
+          Optional. Specify ``true`` to force the :binary:`~bin.mongod`
+          to shut down. Force shutdown interrupts any ongoing operations
+          on the :binary:`~bin.mongod` and may result in unexpected
+          behavior.
+
+      * - :ref:`timeoutSecs <shutdown-cmd-timeoutSecs>`
+
+        - .. _shutdown-cmd-timeoutSecs:
+        
+          Optional. The number of seconds the :term:`primary` should 
+          wait for a secondary to catch up. Defaults to ``10``.
+
+          If no secondaries catch up within the specified time, the 
+          command fails. 
+
+.. seealso:: :method:`db.shutdownServer()`
+
+Behavior
+--------
+
+For a :binary:`~bin.mongod` started *with* :ref:`authentication`, 
+you must run :dbcommand:`shutdown` over an authenticated connection. 
+See :ref:`cmd-shutdown-access-control` for more information.
+
+For a :binary:`~bin.mongod` started *without* :ref:`authentication`,
+you must run :dbcommand:`shutdown` from a client connected to the 
+localhost interface. For example, run a :binary:`~bin.mongo` with 
+the :option:`--host "127.0.0.1" <mongo --host>` option on the
+same host machine as the :binary:`~bin.mongod`.
+
+``shutdown`` on Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If running :dbcommand:`shutdown` against a replica set member, the 
+behavior depends on whether the member is a :term:`primary` 
+or :term:`secondary`:
+
+Shutdown on a ``primary``
+  :dbcommand:`shutdown` only succeeds if another secondary exists which
+  can catch up to the primary within 10 seconds. Specify
+  :ref:`timeoutSecs <shutdown-cmd-timeoutSecs>` to modify the time period the command
+  waits, *or* specify :ref:`force: true <shutdown-cmd-force>` to force
+  the primary to shut down. Consider the following before performing a
+  force shutdown on a primary:
+  
+  - Shutting down the primary triggers a :ref:`replica set election
+    <replica-set-elections>`. 
+    
+  - If the primary :binary:`~bin.mongod` received write operations which
+    were not yet replicated to a secondary at the time of forced
+    shutdown, those writes :ref:`roll back <replica-set-rollback>` when
+    the :binary:`~bin.mongod` next starts.
+
+Shutdown on a ``secondary``
+  :dbcommand:`shutdown` fails if the secondary is running certain
+  operations such as in-progress :ref:`index builds
+  <index-operations-replicated-build>`. Specify :ref:`force: true
+  <shutdown-cmd-force>` to force the secondary to shut down.
+
+  If a secondary shuts down during an index build, the index build job
+  is persisted. Restarting the :binary:`~bin.mongod` automatically
+  recovers the index build and restarts it from the beginning.
+  For more information, see :ref:`index-operations-build-failure`.
+
+.. _cmd-shutdown-access-control:
+
+Access Control
+--------------
+
+To run :dbcommand:`shutdown` on a :binary:`~bin.mongod` enforcing 
+:ref:`authentication`, the authenticated user *must* have the 
+:authaction:`shutdown` privilege. For example, a user with the 
+built-in role :authrole:`hostManager` has the appropriate permissions.
+
+Examples
+--------
+
+Shut down a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.adminCommand({ "shutdown" : 1 })
+
+Force Shut Down a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.adminCommand({ "shutdown" : 1, "force" : true })
+
+Shut Down a Primary ``mongod`` With Longer Timeout
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.adminCommand({ "shutdown" : 1, timeoutSecs: 60 })

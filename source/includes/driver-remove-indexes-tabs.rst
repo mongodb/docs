@@ -43,6 +43,11 @@
             :method:`db.collection.dropIndexes()` can accept an array
             of index names.
 
+            Starting in MongoDB 4.4,
+            :method:`db.collection.dropIndexes()` can stop
+            in-progress index builds. See
+            :ref:`dropIndexes-method-index-builds` for more information.
+
          Remove All Indexes
          ~~~~~~~~~~~~~~~~~~
 
