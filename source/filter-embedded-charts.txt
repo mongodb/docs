@@ -1,0 +1,244 @@
+.. filter-embedded-charts:
+
+======================
+Filter Embedded Charts
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can customize your embedded charts by appending various
+query parameters to their iframe URLs or using the ``filter`` option 
+with the |charts-short| Embedding SDK.
+
+.. note::
+
+   To embed charts from your dashboards, you must configure embedding
+   options on your data sources. For instructions, see:
+   
+   - :ref:`embedding-charts` for iframes.
+   - :ref:`embed-chart-procedure` for the |charts-short| Embedding SDK.
+
+.. _specify-filter-fields:
+
+Specify Filterable Fields
+-------------------------
+
+A chart :ref:`Author <dashboard-roles>` specifies the fields that can be
+included in filters set by the embedding application code or added by
+chart viewers. Use these fields to restrict the data that viewers can
+access. By default, no fields are whitelisted, meaning the chart cannot
+be filtered until you explicitly whitelist at least one field.
+
+To define filterable fields:
+
+1. Navigate to the :ref:`dashboard <dashboards>` that contains the chart
+   where you wish to define filterable fields.
+
+#. For the desired chart, click the :icon-fa5:`ellipsis-h` button and
+   select :guilabel:`Embed Chart` from the dropdown.
+
+#. In the :guilabel:`User Specified Filters` section, use the
+   dropdown to select which fields chart viewers can use filter data
+   in the chart. You can also manually type values to add fields not
+   listed in the dropdown.
+
+   .. note::
+
+      This option only appears if you already have **Unauthenticated** 
+      or **Authenticated** embedding access enabled.
+
+#. When you have selected all desired fields, click :guilabel:`Save`
+   below the dropdown.
+
+Chart :ref:`viewers <dashboard-roles>` and applications which render
+the chart can now specify filters based on the whitelisted fields to
+display subsets of the original chart data. If a viewer attempts to
+specify a filter using a field not in the whitelist, an
+:ref:`error <embedded-errors>` is returned.
+
+Filters for Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you whitelist a field whose value is an embedded document, you
+must specify each individual sub-field you wish to add to the
+whitelist.
+
+.. example::
+
+  Consider the following document:
+
+  .. code-block:: json
+
+      {
+        "name": "Alice",
+        "favorites" : 
+        {
+          "color": "green",
+          "animal": "turtle",
+          "season": "autumn"
+        } 
+      }
+
+If you only add the ``favorites`` field to the whitelist, it does
+*not* grant viewers permission to filter upon any of the sub-fields
+of ``favorites``. Instead, you may add one or more of the sub-fields
+individually to the whitelist by specifying ``favorites.color``,
+``favorites.animal``, or ``favorites.season``.
+
+.. _embed-options-filter:
+
+Filter Data on Charts Embedded in an iframe
+-------------------------------------------
+
+Use the ``filter`` query parameter to only display data that matches a 
+specified :abbr:`MQL (MongoDB Query Language)` filter in your
+chart embedded in an iframe. 
+
+You can use the ``filter`` query parameter on both Unauthenticated
+charts and charts which require a Verified Signature. The filtering
+behavior differs with each authentication setting:
+
+- With Unauthenticated charts, the chart
+  :ref:`Author <dashboard-roles>` specifies the fields that can be
+  included in filters set by the embedding application code or added by
+  chart viewers. To learn how to specify filterable fields, see
+  :ref:`Specify Filterable Fields <specify-filter-fields>`.
+
+- With charts which require a Verified Signature, all document
+  fields can be filtered upon, however you must generate
+  the filter in the server-side code and include the filter as part of
+  your signed payload.
+
+Filter Syntax
+~~~~~~~~~~~~~
+
+Select the appropriate tab to see an example of how to filter data in
+an Unauthenticated chart and a Verified Signature chart:
+
+.. tabs::
+
+   tabs:
+     - id: unauthenticated
+       name: Unauthenticated External Sharing
+       content: |
+
+         You can specify an MQL document as your ``filter`` query
+         parameter provided that the fields used in your filter are in
+         the
+         :ref:`whitelist of filterable fields <specify-filter-fields>`.
+
+         .. include:: /includes/fact-embedded-filter-examples-unauth.rst
+
+         .. note::
+
+            You must URL-encode special characters of the filter
+            parameter.
+
+         Example
+         ```````
+
+         The following iframe ``src`` URL renders a chart which only
+         displays documents with an ``imdb.rating`` greater than or
+         equal to ``8``:
+
+         .. code-block:: none
+            :emphasize-lines: 4
+
+            https://charts.mongodb.com/charts-atlasproject1-piocy/embed/charts?
+            id=93584ddb-1115-4a12-afd9-5129e47bbb0d&
+            filter={"imdb.rating":%20{$gte:%208}}&
+            autorefresh=30
+
+         The URL uses an encoded ``filter`` parameter of
+         ``{"imdb.rating":%20{$gte:%208}}``. Decoded,
+         this filter is:
+
+         .. code-block:: json
+
+            {"imdb.rating": {$gte: 8}}
+
+     - id: verified-signature
+       name: Verified Signature Required
+       content: |
+
+         Specify an MQL document as your ``filter`` query parameter.
+
+         .. include:: /includes/fact-embedded-filter-examples-verified.rst
+
+         When using filters in a Verified Signature, MQL queries contain
+         characters that must be URL-encoded before your server-side
+         code calculates the signature. When |charts-short| verifies the
+         signature, it URL-encodes the filter again using the JavaScript
+         `encodeURIComponent
+         <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent>`__
+         function. You must use the same encoding algorithm to encode
+         your filter.
+
+         .. important::
+
+            You must encode spaces in your filter as ``%20``, rather than ``+``
+            or a raw space.
+
+         To see how correctly encode an MQL filter using different server-side
+         programming languages, see `MongoDB Charts Embedding Examples
+         <https://github.com/mongodb/charts-embedding-examples>`__ on GitHub.
+
+         Example
+         ```````
+
+         The following iframe ``src`` URL renders a chart which only
+         displays documents with an ``imdb.rating`` greater than or
+         equal to ``8``:
+
+         .. code-block:: none
+            :emphasize-lines: 6
+
+            https://charts.mongodb.com/charts-atlasproject1-piocy/embed/charts?
+            id=93584ddb-1115-4a12-afd9-5129e47bbb0d&
+            timestamp=1564156636&
+            expires-in=300&
+            filter=%7B%22imdb.rating%22%3A%20%7B%24gte%3A%208%7D%7D&
+            autorefresh=30&
+            signature=8e0d92b33934c928f6c6974e2f0102ace77f56d851cb0d33893e84c359ab1043
+
+         The URL uses an encoded ``filter`` parameter of
+         ``%7B%22imdb.rating%22%3A%20%7B%24gte%3A%208%7D%7D``. Decoded,
+         this filter is:
+
+         .. code-block:: json
+
+            {"imdb.rating": {$gte: 8}}
+
+.. _filter-embedded-sdk:
+
+Filter Data on Charts Embedded with the SDK
+-------------------------------------------
+
+You can add a :ref:`filter <embed-options-filter>` to an embedded chart
+with the ``filter`` option. Filtering allows the chart author to only display
+data in the embedded chart which matches a specified :abbr:`MQL (MongoDB
+Query Language)` filter.
+
+Any fields included in the filter must be specified in the Embed Chart modal.
+The Embed Chart modal contains a dropdown menu of fields on
+which to allow filtering.
+
+The following uses the ``filter`` option to represent only documents in
+which the ``total`` field is greater than ``100``:
+
+.. code-block:: javascript
+
+   createChart({
+     baseUrl: '<your-base-url>',
+     chartId: '<your-chart-id>',
+     width: 500,
+     height: 500,
+     filter: { "total": { "$gt": 100 } }
+   })
+
