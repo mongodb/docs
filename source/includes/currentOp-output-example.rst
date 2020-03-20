@@ -62,6 +62,10 @@
                          },
                          "killPending" : <boolean>,
                          "numYields" : <number>,
+                         "waitingForLatch" : {                   // Starting in MongoDB 4.2.2
+                             "timestamp" : <ISODate()>,
+                             "captureName" : <string>
+                         },
                          "locks" : {
                              "ParallelBatchWriterMode" : <string>,
                              "ReplicationStateTransition" : <string>,
@@ -195,6 +199,10 @@
                         },
                         "killPending" : <boolean>,
                         "numYields" : <number>,
+                         "waitingForLatch" : {                   // Starting in MongoDB 4.2.2
+                             "timestamp" : <ISODate()>,
+                             "captureName" : <string>
+                         },
                         "locks" : {
                             "ParallelBatchWriterMode" : <string>,
                             "ReplicationStateTransition" : <string>,
@@ -353,6 +361,10 @@
                          },
                          "killPending" : <boolean>,
                          "numYields" : <number>,
+                         "waitingForLatch" : {                   // Starting in MongoDB 4.2.2
+                             "timestamp" : <ISODate()>,
+                             "captureName" : <string>
+                         },
                          "locks" : {
                              "ParallelBatchWriterMode" : <string>,
                              "ReplicationStateTransition" : <string>,
