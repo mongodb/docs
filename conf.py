@@ -121,7 +121,7 @@ rst_epilog = [
     '.. |iso8601-duration| replace:: Duration in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=851138376#Durations>`__ notation',
     '.. |iso8601-time| replace:: Timestamp in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`__ date and time format in |utc|',
     '.. |iso8601| replace:: `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`__',
-    '.. |jira| replace:: `Jira <https://jira.mongodb.org>`__"',
+    '.. |jira| replace:: `Jira <https://jira.mongodb.org>`__',
     '.. |json| replace:: :abbr:`JSON (Javascript Object Notation)`',
     '.. |kdc| replace:: :abbr:`KDC (Key Distribution Center)`',
     '.. |kmip| replace:: :abbr:`KMIP (Key Management Interoperability)`',
