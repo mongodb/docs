@@ -121,14 +121,14 @@
        | ``.standard``
      - string
      - Public
-       ``mongodb://`` :manual:`connection string 
+       ``mongodb://`` :manual:`connection string
        </reference/connection-string>` for this cluster.
 
    * - | ``connectionStrings``
        | ``.standardSrv``
      - string
      - Public
-       ``mongodb+srv://`` :manual:`connection string 
+       ``mongodb+srv://`` :manual:`connection string
        </reference/connection-string>` for this cluster.
 
        The ``mongodb+srv`` protocol tells the driver to look up the
@@ -146,22 +146,54 @@
        :manual:`MongoDB Server Manual </reference/connection-string/#dns-seedlist-connection-format>`
 
    * - | ``connectionStrings``
+       | ``.private``
+     - string
+     - :ref:`Network-peering-endpoint-aware <vpc-peering>`
+       ``mongodb://``:manual:`connection strings </reference/connection-string>`
+       for each interface |vpc| endpoint you configured to connect to
+       this cluster. Returned only if you created a network peering
+       connection to this cluster.
+
+   * - | ``connectionStrings``
+       | ``.privateSrv``
+     - string
+     - :ref:`Network-peering-endpoint-aware <vpc-peering>`
+       ``mongodb+srv://`` :manual:`connection strings </reference/connection-string>`
+       for each interface |vpc| endpoint you configured to connect to
+       this cluster. Returned only if you created a network peering
+       connection to this cluster.
+
+       The ``mongodb+srv`` protocol tells the driver to look up the
+       :ref:`seed list <connections-dns-seedlist>` of hosts in |dns|.
+       |service| synchronizes this list with the nodes in a cluster. If
+       the connection string uses this |uri| format, you don't need to:
+
+       - Append the seed list or
+       - Change the |uri| if the nodes change.
+
+       Use this |uri| format if your driver supports it. If it doesn't,
+       use ``connectionStrings.private``.
+
+       To learn more about this connection string format, see the
+       :manual:`MongoDB Server Manual </reference/connection-string/#dns-seedlist-connection-format>`
+
+   * - | ``connectionStrings``
        | ``.awsPrivateLink``
-     - object
-     - :ref:`Private-endpoint-aware <private-endpoint-connection-strings>` 
-       ``mongodb://``:manual:`connection strings 
-       </reference/connection-string>` for each interface VPC endpoint 
-       you configured to connect to this cluster. Returned only if you 
-       created a {+aws-pl+} connection to this cluster.
+     - string
+     - :ref:`Private-endpoint-aware <private-endpoint-connection-strings>`
+       ``mongodb://``:manual:`connection strings </reference/connection-string>`
+       for each interface |vpc| endpoint you configured to connect to
+       this cluster. Returned only if you created a {+aws-pl+}
+       connection to this cluster.
 
    * - | ``connectionStrings``
        | ``.awsPrivateLinkSrv``
-     - object
-     - :ref:`Private-endpoint-aware <private-endpoint-connection-strings>` 
-       ``mongodb+srv://`` :manual:`connection strings 
-       </reference/connection-string>` for each interface VPC endpoint 
-       you configured to connect to this cluster. Returned only if you 
-       created a {+aws-pl+} connection to this cluster.
+     - string
+     - :ref:`Private-endpoint-aware <private-endpoint-connection-strings>`
+       ``mongodb+srv://`` :manual:`connection strings </reference/connection-string>`
+       for each interface |vpc| endpoint you configured to connect to
+       this cluster. Returned only if you created a {+aws-pl+}
+       connection to this cluster.
 
        The ``mongodb+srv`` protocol tells the driver to look up the
        :ref:`seed list <connections-dns-seedlist>` of hosts in |dns|.
