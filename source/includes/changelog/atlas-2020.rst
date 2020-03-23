@@ -1,3 +1,12 @@
+.. _atlas_20200319:
+
+19 March 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- ``M10`` and ``M20`` cluster tiers now support :ref:`Atlas Search
+  <fts-top-ref>`. All cluster tiers running MongoDB version 4.2 and
+  higher can use Atlas Search.
+
 .. _atlas_20200310:
 
 10 March 2020 Release
