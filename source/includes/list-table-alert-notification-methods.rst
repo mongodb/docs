@@ -298,11 +298,6 @@
 
              For New Zealand enter ``01164`` before the phone number. 
    
-      * - `HipChat <https://www.atlassian.com/software/hipchat/enterprise/data-center>`_
-   
-        - Sends the alert to a HipChat room message stream. Enter the
-          HipChat room name and |api| token.
-   
       * - `Slack <https://slack.com/>`_
    
         - Sends the alert to a Slack channel. Enter the channel name
