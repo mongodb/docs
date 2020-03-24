@@ -60,7 +60,7 @@ async function run() {
         },
       },
     ]);
-    changeStream.on("change", function(change) {
+    changeStream.on("change", change => {
       const { name, address } = change.fullDocument;
       console.log(`New order for ${name} at ${address}.`);
     });
