@@ -40,7 +40,7 @@ async function run() {
       }
       if (result.upsertedCount === 1) {
         console.log(
-          "Inserted one new document with an _id of " + result.upsertedId._id,
+          "Inserted one new document with an _id of " + result.upsertedId._id
         );
       }
     }
