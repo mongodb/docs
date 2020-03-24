@@ -293,7 +293,7 @@
        - ``4.0``
        - ``4.2``
 
-       You must set this value to ``4.0`` if
+       You must set this value to ``4.2`` if
        ``providerSettings.instanceSizeName``
        is either ``M2`` or ``M5``.
 
