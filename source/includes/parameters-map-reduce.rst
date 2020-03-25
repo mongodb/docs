@@ -24,16 +24,19 @@ The ``map`` function has the following requirements:
 - The ``map`` function should be pure, or have *no* impact outside of
   the function (i.e. side effects.)
 
-- A single emit can only hold half of MongoDB's :ref:`maximum BSON
-  document size <limit-bson-document-size>`.
-
 - The ``map`` function may optionally call ``emit(key,value)`` any number of
   times to create an output document associating ``key`` with ``value``.
-  
+
+- In MongoDB 4.2 and earlier, a single emit can only hold half of
+  MongoDB's :ref:`maximum BSON document size
+  <limit-bson-document-size>`. MongoDB removes this restriction
+  starting in version 4.4.
+
 - Starting in version 4.2.1, MongoDB deprecates the use of JavaScript
   with scope (i.e. :doc:`BSON type 15 </reference/bson-types/>`) for
   the ``map`` function. To scope variables, use the ``scope`` parameter
   instead.
+
 
 The following ``map`` function will call ``emit(key,value)`` either
 0 or 1 times depending on the value of the input document's
