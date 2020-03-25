@@ -12,7 +12,8 @@
        period that specifies the interval between measurement data points. For
        example, ``PT1M`` specifies 1-minute granularity.
 
-       The supported values for this parameter are:
+       The following subset of ISO-8601_-formatted time periods are 
+       supported:
 
        - ``PT1M``
        - ``PT5M``
