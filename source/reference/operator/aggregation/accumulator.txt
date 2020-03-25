@@ -17,21 +17,21 @@ Definition
 
    .. versionadded:: 4.4
 
-   Returns the result of a user-defined :ref:`accumulator operator
+   Defines a custom :ref:`accumulator operator
    <agg-operators-group-accumulators>`. Accumulators are operators that
    maintain their state (e.g. totals, maximums, minimums, and related
    data) as documents progress through the pipeline. Use the
    :group:`$accumulator` operator to execute your own JavaScript
    functions to implement behavior not supported by the MongoDB Query
-   Language.
+   Language. See also :expression:`$function`.
 
    .. important::
 
       Executing JavaScript inside of an aggregation operator may
       decrease performance. Only use the :group:`$accumulator` operator
-      if none of the existing :doc:`pipeline operators
-      </reference/operator/aggregation>` fulfill your application's
-      needs.
+      if the provided :doc:`pipeline operators
+      </reference/operator/aggregation>` cannot fulfill your
+      application's needs.
 
 
    :group:`$accumulator` is available in the following pipeline
@@ -69,17 +69,19 @@ Syntax
       :widths: 20 40 10
 
       * - Field
+        - Type
         - Description
-        - Necessity
 
       * - :ref:`init <accumulator-init>`
+
+        - String or Code
 
         - .. _accumulator-init:
           
           Function used to initialize the state. The ``init`` function
           receives its arguments from the :ref:`initArgs
-          <accumulator-initArgs>` array expression. ``init`` can be
-          either a String or Code BSON type.
+          <accumulator-initArgs>` array expression. You can specify the
+          function definition as either BSON type Code or String.
 
           The ``init`` function has the following form:
 
@@ -91,14 +93,13 @@ Syntax
                return <initialState>
              }
 
-        - Required
-
       * - :ref:`initArgs <accumulator-initArgs>`
+
+        - Array
 
         - .. _accumulator-initArgs:
         
-          Arguments passed to the ``init`` function. ``initArgs`` must
-          be an expression that evaluates to an array.
+          Optional. Arguments passed to the ``init`` function.
 
           ``initArgs`` has the following form:
 
@@ -114,20 +115,19 @@ Syntax
              ``$<fieldName>`` syntax). Instead, in a
              :pipeline:`$bucketAuto` stage, you can only specify
              constant values in ``initArgs``.
-             
-
-        - Optional
 
       * - :ref:`accumulate <accumulator-accumulate>`
+
+        - String or Code
 
         - .. _accumulator-accumulate:
         
           Function used to accumulate documents. The ``accumulate``
           function receives its arguments from the current state and
           :ref:`accumulateArgs <accumulator-accumulateArgs>` array
-          expression. ``accumulate`` can be either a String or Code BSON
-          type. The result of the ``accumulate`` function becomes the
-          new state.
+          expression. The result of the ``accumulate`` function becomes
+          the new state. You can specify the function definition as
+          either BSON type Code or String.
 
           The ``accumulate`` function has the following form:
 
@@ -139,16 +139,15 @@ Syntax
                return <newState>
              }
 
-        - Required
-
       * - :ref:`accumulateArgs <accumulator-accumulateArgs>`
+
+        - Array
 
         - .. _accumulator-accumulateArgs:
         
           Arguments passed to the ``accumulate`` function. You can use
           ``accumulateArgs`` to specify what field value(s) to pass to
-          the ``accumulate`` function. ``accumulateArgs`` must be an
-          expression that evaluates to an array.
+          the ``accumulate`` function.
 
           ``accumulateArgs`` has the following form:
 
@@ -157,9 +156,9 @@ Syntax
 
              [ <accumArg1>, <accumArg2>, ... ]
 
-        - Required
-
       * - :ref:`merge <accumulator-merge>`
+
+        - String or Code
 
         - .. _accumulator-merge:
         
@@ -179,13 +178,13 @@ Syntax
                return <newState>
              }
 
-        - Required
-
       * - :ref:`finalize <accumulator-finalize>`
+
+        - String or Code
 
         - .. _accumulator-finalize:
         
-          Function used to update the result of the accumulation.
+          Optional. Function used to update the result of the accumulation.
 
           The ``finalize`` function has the following form:
 
@@ -196,20 +195,18 @@ Syntax
                ...
                return <finalState>
              }
-        - Optional
 
       * - :ref:`lang <accumulator-lang>`
 
+        - String
+
         - .. _accumulator-lang:
-        
-          String which specifies specify the language used in the
-          :group:`$accumulator` code.
+
+          The language used in the :group:`$accumulator` code.
 
           .. important::
 
              Currently, the only supported value for ``lang`` is ``js``.
-
-        - Required
 
 Behavior
 --------
@@ -270,6 +267,17 @@ For example, :group:`$accumulator` may need to combine two states when:
    states at a time. In the event that more than two states must be
    merged, the resulting merge of two states is merged with a single
    state. This process repeats until all states are merged.
+
+Javascript Enabled
+~~~~~~~~~~~~~~~~~~
+
+To use :expression:`$accumulator`, you must have server-side scripting
+enabled.
+
+See :setting:`security.javascriptEnabled` configuration option or
+:option:`--noscripting <mongod --noscripting>` command line option.
+
+See also :ref:`security-checklist-javascript`.
 
 Examples
 --------

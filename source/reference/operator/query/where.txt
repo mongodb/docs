@@ -23,13 +23,27 @@ Definition
    collection. Reference the document in the JavaScript expression or
    function using either ``this`` or ``obj`` .
 
-.. important::
-   .. versionchanged:: 3.6
-      The :query:`$expr` operator allows the
-      use of :ref:`aggregation expressions <aggregation-framework>`
-      within the query language. :query:`$expr` is faster than
-      :query:`$where` because it does not execute JavaScript and should
-      be preferred where possible.
+.. admonition:: Aggregation Alternatives Preferred
+   :class: note
+
+   Starting in MongoDB 3.6, the :query:`$expr` operator allows the use
+   of :ref:`aggregation expressions <aggregation-framework>` within the
+   query language. And, starting in MongoDB 4.4, the
+   :expression:`$function` and :group:`$accumulator` allows users to
+   define custom aggregation expressions in JavaScript if the provided
+   :doc:`pipeline operators </reference/operator/aggregation>` cannot
+   fulfill your application's needs.
+   
+   Given the available aggregation operators:
+
+   - The use of :query:`$expr` with aggregation operators that do not
+     use JavaScript (i.e. non-:expression:`$function` and
+     non-:group:`$accumulator` operators) is faster than
+     :query:`$where` because it does not execute JavaScript and should
+     be preferred if possible.
+
+   - However, if you must create custom expressions,
+     :expression:`$function` is preferred over :query:`$where`.
 
 Behavior
 --------
@@ -57,7 +71,7 @@ Considerations
   operators (e.g., :query:`$gt`, :query:`$in`).
 
 - In general, you should use :query:`$where` only when you
-  can't express your query using another operator. If you must
+  cannot express your query using another operator. If you must
   use :query:`$where`, try to include at least one other
   standard query operator to filter the result set. Using
   :query:`$where` alone requires a collection scan.
@@ -73,6 +87,20 @@ following performance advantages:
 - The non\-:query:`$where` query statements may use an
   :term:`index`.
 
+JavaScript Enablement
+~~~~~~~~~~~~~~~~~~~~~
+
+To use :query:`$where` (or :expression:`$function`,
+:group:`$accumulator`, or :dbcommand:`mapReduce`), you must have
+server-side scripting enabled (default).
+
+However, if you do not use these operations, disable server-side
+scripting. See :setting:`security.javascriptEnabled` configuration
+option or :option:`--noscripting <mongod --noscripting>` command line
+option.
+
+See also :ref:`security-checklist-javascript`.
+
 Example
 -------
 
@@ -80,18 +108,11 @@ Consider the following documents in the ``players`` collection:
 
 .. code-block:: javascript
 
-   {  
-      _id: 12378,
-      name: "Steve", 
-      username: "steveisawesome",
-      first_login: "2017-01-01"
-   }
-   {
-      _id: 2,
-      name: "Anya",
-      username: "anya",
-      first_login: "2001-02-02"
-   }
+   db.players.insertMany([
+      { _id: 12378, name: "Steve", username: "steveisawesome", first_login: "2017-01-01" },
+      { _id: 2, name: "Anya", username: "anya", first_login: "2001-02-02" }
+   ])
+
 
 The following example uses :query:`$where` and the ``hex_md5()``
 JavaScript function to compare the value of the ``name`` field to an
@@ -113,3 +134,26 @@ The operation returns the following result:
       "username" : "anya",
       "first_login" : "2001-02-02"
    }
+
+As an alternative, the previous example can be rewritten using
+:query:`$expr` and :expression:`$function`. Starting in MongoDB 4.4,
+you can define custom aggregation expression in JavaScript with the
+aggregation operator :expression:`$function`. To
+access :expression:`$function` and other aggregation operators in
+:method:`db.collection.find()`, use with :query:`$expr`:
+
+.. code-block:: javascript
+
+   db.players.find( {$expr: { $function: {
+         body: function(userFn, doc) { return userFn.call(doc); },
+         args: [
+            function() { return hex_md5(this.name) == "15b0a220baa16331e8d80e15367677ad" ; },
+            "$$CURRENT"
+         ],
+         lang: "js"
+   } } } )
+
+If you must create custom expressions, :expression:`$function` is
+preferred over :query:`$where`.
+
+.. seealso:: :variable:`CURRENT`
