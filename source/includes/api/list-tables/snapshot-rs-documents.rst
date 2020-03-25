@@ -96,7 +96,7 @@
      - .. include:: /includes/api/links-explanation.rst
 
    * - namespaceFilterList
-     - object array
+     - object
      - The :term:`namespaces <namespace>` that are included or excluded
        from this :term:`snapshot`.
 
