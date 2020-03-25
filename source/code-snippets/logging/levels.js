@@ -4,7 +4,7 @@ const { MongoClient, Logger } = require("mongodb");
 // Replace the following with your MongoDB deployment's connection
 // string.
 const uri =
-  "mongodb+srv://<clusterUrl>/?replicaSet=rs&retryWrites=true&w=majority";
+  "mongodb+srv://<clusterUrl>/?replicaSet=rs&w=majority";
 
 const client = new MongoClient(uri);
 
