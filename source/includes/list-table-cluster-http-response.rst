@@ -154,6 +154,12 @@
        this cluster. Returned only if you created a network peering
        connection to this cluster.
 
+       .. note::
+
+          If the cluster is deployed to |aws|, this field is not 
+          returned unless you :doc:`enable custom DNS 
+          </reference/api/aws-custom-dns-update>`.
+
    * - | ``connectionStrings``
        | ``.privateSrv``
      - string
@@ -176,6 +182,12 @@
 
        To learn more about this connection string format, see the
        :manual:`MongoDB Server Manual </reference/connection-string/#dns-seedlist-connection-format>`
+
+       .. note::
+
+          If the cluster is deployed to |aws|, this field is not 
+          returned unless you :doc:`enable custom DNS 
+          </reference/api/aws-custom-dns-update>`.
 
    * - | ``connectionStrings``
        | ``.awsPrivateLink``
