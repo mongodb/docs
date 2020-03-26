@@ -59,7 +59,8 @@ pygments_style = 'sphinx'
 source_constants = {
     'version': version,
     'mcli': 'MongoDB CLI',
-    'mcli-long': 'MongoDB Command Line Interface (``mongocli``)'
+    'mcli-long': 'MongoDB Command Line Interface (``mongocli``)',
+    'mdbagent': 'MongoDB Agent'
 }
 
 rst_epilog = '\n'.join([
