@@ -114,6 +114,9 @@
 
                   unitPriceDollars * quantity * 100
 
+          * - ``unit``
+            - Unit of measure (e.g. GB, hours, etc.)
+
           * - ``unitPriceDollars``
             - Cost of the item, in dollars.
        
