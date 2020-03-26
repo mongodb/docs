@@ -1,16 +1,13 @@
 // ignored first line
 const { MongoClient } = require("mongodb");
-const fs = require("fs");
 
-// specify the placeholder values for your environment in the following lines
+// Replace the following with values for your environment.
 const username = encodeURIComponent("<username>");
 const password = encodeURIComponent("<password>");
 const clusterUrl = "<MongoDB cluster url>";
 
-
-// Replace the following with your MongoDB deployment's connection
-// string.
-const uri = 
+// Replace the following with your MongoDB deployment's connection string.
+const uri =
   `mongodb+srv://${username}:${password}@${clusterUrl}/?authMechanism=${authMechanism}&tls=true&tlsCertificateKeyFile=${clientPEMFile}`;
 
 // Create a new MongoClient

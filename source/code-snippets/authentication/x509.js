@@ -1,17 +1,15 @@
 // ignored first line
 const { MongoClient } = require("mongodb");
-const fs = require("fs");
 
+// Replace the following with values for your environment.
 const username = encodeURIComponent("<client certificate distinguished name>");
 const clusterUrl = "<MongoDB cluster url>";
-const clientPEMFile = encodeURIComponent(
-  "<path to the client pem certificate file>",
-);
+const clientPEMFile = encodeURIComponent("<path to the client pem certificate file>");
+
 const authMechanism = "MONGODB-X509";
 
-// Replace the following with your MongoDB deployment's connection
-// string.
-const uri = 
+// Replace the following with your MongoDB deployment's connection string.
+const uri =
   `mongodb+srv://${username}@${clusterUrl}/?authMechanism=${authMechanism}&tls=true&tlsCertificateKeyFile=${clientPEMFile}`;
 
 // Create a new MongoClient
