@@ -67,26 +67,34 @@ Validation Webhook
 ~~~~~~~~~~~~~~~~~~
 
 The |k8s-op-short| uses a webhook to prevent users from applying invalid
-resource definitions. The webhook rejects creating and updating replica
-sets in the following scenarios:
-
-- :setting:`spec.connectivity.replicaSetHorizons` is set, but
-  :setting:`spec.security.tls.enabled` is ``false`` or not set
-- :setting:`spec.connectivity.replicaSetHorizons` has a number of
-  horizons configured that is not equal to the number of members set in
-  :setting:`spec.members` 
-  
-The webhook rejects these requests immediately and the |k8s-op-short|
-doesn't create or update the resource.
+resource definitions. The webhook rejects these requests immediately and
+the |k8s-op-short| doesn't create or update the resource.
 
 The ``ClusterRole`` and ``ClusterRoleBinding`` for the webhook are
 included in the default configuration files that you apply during
 installation. To create the role and binding, you must have
 :k8sdocs:`cluster-admin privileges
-</reference/access-authn-authz/rbac/#user-facing-roles>` . If you have
-insufficient privileges or if you choose to remove the role and binding
-from the default configuration, the |k8s-op-short| produces error logs
-and continues to function normally, but without validation rejections.
+</reference/access-authn-authz/rbac/#user-facing-roles>`.
+
+If you apply an invalid resource definition, the webhook returns 
+a message that describes the error to the shell:
+
+.. code-block:: none
+
+   Error from server (shardPodSpec field is not configurable for
+   application databases as it is for sharded clusters and appdbs are
+   replica sets): error when creating "my-ops-manager.yaml":
+   admission webhook "ompolicy.mongodb.com" denied the request:
+   shardPodSpec field is not configurable for application databases as
+   it is for sharded clusters and appdbs are replica sets
+
+The validation webhook is not required to create or update resources. If 
+you omit the validation webhook, remove its role and binding from the
+default configuration, or have insufficient privileges to run it, the 
+|k8s-op-short| performs the same validations when it reconciles each 
+resource. The |k8s-op-short| marks resources as ``Failed`` if validation
+encounters a critical error. For non-critical errors, the |k8s-op-short|
+issues warnings.
 
 .. _k8s-deployment-scopes:
 
