@@ -24,12 +24,6 @@ Testing has shown that |compass| has minimal impact in prototype
 deployments, though additional performance testing and monitoring is in
 progress.
 
-For best results, use MongoDB 3.2 or higher, which includes the
-:manual:`$sample </reference/operator/aggregation/sample/>` operator for
-efficient sampling on a collection. On older versions of MongoDB,
-|compass| falls back on a
-:ref:`less efficient sampling method <compass_fallback_sampling>`.
-
 You should only execute queries that are indexed appropriately in the
 database to avoid scanning the entire collection.
 
@@ -64,63 +58,6 @@ Why am I seeing a warning about a non-genuine MongoDB server?
 
 .. include:: /includes/fact-non-genuine-warning.rst
 
-.. _compass-faq-sampling:
-
-What is sampling and why is it used?
-------------------------------------
-
-Sampling in |compass| is the selection a subset of data
-from a particular collection and analyzing the documents within the
-sample set.
-
-Sampling is a common technique in statistical analysis because analyzing
-a subset of the data gives similar results to analyzing all of it. In
-addition, sampling allows results to be generated quickly rather than
-performing a computationally-expensive collection scan.
-
-How does sampling work?
------------------------
-
-|compass| employs two distinct sampling mechanisms.
-
-In MongoDB 3.2, collections are sampled with the
-:manual:`$sample </reference/operator/aggregation/sample/>` operator via
-the :manual:`aggregation pipeline </core/aggregation-pipeline>`. This
-provides efficient random sampling without replacement over the entire
-collection, or over the subset of documents specified by a query.
-
-.. _compass_fallback_sampling:
-
-In MongoDB 3.0, collections are sampled via a
-backwards-compatible algorithm executed entirely within |compass|. It
-takes place in three stages:
-
-1. |compass| opens a :term:`cursor` on the desired collection, limited
-   to at most 10,000 documents sorted in descending order of the ``_id``
-   field.
-2. ``sampleSize`` documents are randomly selected from the stream. To
-   do this efficiently, |compass| employs `reservoir sampling
-   <http://en.wikipedia.org/wiki/Reservoir_sampling>`_.
-3. |compass| performs a query to select the chosen documents directly
-   via ``_id``.
-
-``sampleSize`` is set to 1000 documents.
-
-.. note::
-  The choice of sampling method is done transparently in the
-  background, with no changes required by the user.
-
-Won't sampling miss documents?
-------------------------------
-
-Sampling is chosen for its efficiency: the amount of time required to
-perform a sample is minimal, on the order of a few seconds. Increasing
-the sample confidence will demand more processing power and time.
-Furthermore, sophisticated outlier detection requires an inspection of
-every document in a MongoDB deployment, which would be unfeasible for
-large data sets. The MongoDB team is in the process of conducting user
-tests on large data sets to find a reasonable balance.
-
 What happens to long running queries?
 -------------------------------------
 
@@ -133,9 +70,9 @@ Slow Sampling
 All queries that Compass sends to your MongoDB instance have a timeout
 flag set which automatically aborts a request if it takes longer than
 the specified timeout. This timeout is currently set to 10 seconds. If
-sampling on the database takes longer, Compass will notify you about
-the timeout and give you the options of (a) retrying with a longer
-timeout (60 seconds) or (b) running a different query.
+:ref:`sampling <sampling>` on the database takes longer, Compass will 
+notify you about the timeout and give you the options of (a) retrying 
+with a longer timeout (60 seconds) or (b) running a different query.
 
 .. note::
 
