@@ -40,15 +40,16 @@
      - boolean
      - .. important::
 
-          Sharded clusters running MongoDB 4.2 and new |aws| clusters
-          of any type don't support this parameter. These clusters must
-          use :doc:`/backup/cloud-provider-snapshots`:
+          Clusters running MongoDB 4.2 and any net new |service|
+          clusters of any type do not support this parameter.
+          These clusters must use
+          :doc:`/backup/cloud-provider-snapshots`:
           ``providerBackupEnabled``
 
-          If you created a new |aws| cluster and set
+          If you create a new |service| cluster and set
           ``"backupEnabled" : true``, the |api| responds with an error.
 
-          This change doesn't affect existing |aws| clusters that use
+          This change doesn't affect existing |service| clusters that use
           continuous backups.
 
        If set to ``true``, |service| enabled

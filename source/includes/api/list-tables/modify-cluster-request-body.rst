@@ -83,8 +83,8 @@
 
        .. note::
 
-          This option is not supported on sharded clusters running
-          MongoDB 4.2. Sharded clusters running MongoDB 4.2 must use
+          This option is not supported on clusters running
+          MongoDB 4.2. Clusters running MongoDB 4.2 must use
           :doc:`/backup/cloud-provider-snapshots`.
 
        .. important::
