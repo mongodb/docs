@@ -1,3 +1,13 @@
+.. _data-lake-v202020326:
+
+26 March 2020 Release 
+~~~~~~~~~~~~~~~~~~~~~
+
+- Includes various performance and stability improvements.
+- Supports filename field references for :pipeline:`$out`. 
+- Supports :manual:`$toString </reference/operator/aggregation/toString/>` 
+  in :pipeline:`$out` to |s3|.
+
 .. _data-lake-v202020309:
 
 09 March 2020 Release
