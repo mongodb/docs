@@ -60,7 +60,8 @@ source_constants = {
     'version': version,
     'mcli': 'MongoDB CLI',
     'mcli-long': 'MongoDB Command Line Interface (``mongocli``)',
-    'mdbagent': 'MongoDB Agent'
+    'mdbagent': 'MongoDB Agent',
+    'aagent': 'Automation Agent'
 }
 
 rst_epilog = '\n'.join([
