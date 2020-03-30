@@ -2,7 +2,7 @@
 
   .. list-table::
      :header-rows: 1
-     :widths: 60 40
+     :widths: 30 70
 
      * - PEM file purpose
        - Save File As...
@@ -10,5 +10,7 @@
        - ``ca-pem``
      * - Each member of your replica set
        - ``<metadata.name>-<X>-pem``
+
+  .. include:: /includes/prereqs/pem-file-description.rst
 
   .. include:: /includes/prereqs/custom-ca-prereqs-naming-conventions.rst
