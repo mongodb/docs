@@ -33,7 +33,7 @@ async function run() {
     // to improve write performance.
     mflix
       .collection("users")
-      .bulkWrite(usersToInsert, { ordered: false }, function(error, result) {
+      .bulkWrite(usersToInsert, { ordered: false }, (error, result) => {
         // The bulk write operation may successfully insert documents
         // and also return an error, so both cases must be handled.
         if (result.nInserted > 0) {
