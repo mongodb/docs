@@ -6,7 +6,7 @@
    - MongoDB 3.6.13 Enterprise Edition removes support for Ubuntu 16.04
      ("Xenial") on :ref:`PPC64LE<prod-notes-supported-platforms-PPC64LE>`
 
-   - MongoDB 3.6.16 Enterprise Edition removes support for Ubuntu 16.04
+   - MongoDB 3.6.5 Enterprise Edition removes support for Ubuntu 16.04
      ("Xenial") on
      :ref:`s390x<prod-notes-supported-platforms-s390x>`
 

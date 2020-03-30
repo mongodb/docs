@@ -1,8 +1,8 @@
 .. topic:: Platform Support EOL Notice
 
    - MongoDB 3.6 and 3.4 are no longer supported on the s390x platform.
-     Please upgrade to MongoDB 4.0+ for Enterprise support or MongoDB
-     4.2+ for Community support on the s390x platform.
+     Please upgrade to MongoDB 4.0 or later for Enterprise support or
+     MongoDB 4.2 or later for Community support on the s390x platform.
 
 .. list-table::
    :header-rows: 1
