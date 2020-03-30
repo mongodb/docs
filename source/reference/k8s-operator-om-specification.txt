@@ -4,6 +4,8 @@
 Ops Manager Resource Specification
 ==================================
 
+.. include:: /includes/styles/corrections.rst
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -18,15 +20,14 @@ The :gh:`MongoDB Enterprise Kubernetes Operator </mongodb/mongodb-enterprise-kub
 creates a containerized |onprem| deployment from specification files
 that you write.
 
-After you create or update an |onprem| resource
-specification, you direct |k8s-op-full| to apply this specification to
-your |k8s| environment. |k8s-op-short| creates the services and custom
-|k8s| resources that |onprem| requires, then deploys |onprem| and its
-backing application database in containers in your |k8s| environment.
+After you create or update an |onprem| resource specification, you
+direct |k8s-op-full| to apply this specification to your |k8s|
+environment. |k8s-op-short| creates the services and custom |k8s|
+resources that |onprem| requires, then deploys |onprem| and its backing
+application database in containers in your |k8s| environment.
 
-Each |onprem| resource uses an |k8s-obj| specification in
-:abbr:`YAML (Yet Another Markup Language)` to define the characteristics
-and settings of the deployment.
+Each |onprem| resource uses an |k8s-obj| specification in |yaml| to
+define the characteristics and settings of the deployment.
 
 Example
 -------
@@ -229,6 +230,28 @@ Optional |onprem| Resource Settings
 
              .. include:: /includes/admonitions/fact-reclaimpolicy-to-retain.rst
 
+.. opsmgrkube:: spec.backup.jvmParameters
+
+   *Type*: array of strings
+
+   *Optional*. |jvm| parameters passed to the |onprem| backup service
+   in the container.
+
+   This |k8s-op-short| parameter defaults to an empty list.
+
+   .. code-block:: yaml
+
+      spec:
+        backup:
+          jvmParameters: ["-XX:+UseStringCache"]
+
+   .. admonition:: Change the JVM Memory Heap values at your own risk
+      :class: warning
+
+      |k8s-op-short| calculates the |jvm| memory heap values of the
+      backup service based on the container's memory. Changing the
+      ``-Xms`` and ``-Xmx`` values can cause issues with |onprem|.
+
 .. opsmgrkube:: spec.backup.opLogStores
 
    *Type*: collection
@@ -313,14 +336,23 @@ Optional |onprem| Resource Settings
 
    *Type*: string
 
-   Maximum memory capacity that must be available on a
-   |k8s| |k8s-node| to host the :ref:`backup-daemon` on |k8s|. This
-   value is expressed as an integer followed by a unit of memory in
-   |jedec| notation.
+   Maximum memory capacity that must be available on a |k8s| |k8s-node|
+   to host the :ref:`backup-daemon` on |k8s|. This value is expressed as
+   an integer followed by a unit of memory in |jedec| notation.
 
    This value maps to the
    :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
    for memory for the created pod.
+
+   The |k8s-op-short| calculates and sets parameters for Java heap size
+   based on the container's memory.
+
+   .. admonition:: Limit this value to less than 32 GB
+      :class: warning
+
+      Setting this value to a value greater than 32 GB (``32G``) can
+      cause issues with the backup service. Excessive heaps can cause
+      unpredictable results in |onprem|.
 
 .. opsmgrkube:: spec.backup.podSpec.memoryRequests
 
@@ -559,8 +591,8 @@ Optional |onprem| Resource Settings
 
    If not provided, the |k8s-op-short| does not create a |k8s| service.
    You must create one manually or use a third-party solution that
-   enables you to route external traffic to the |onprem| application in
-   your |k8s| cluster.
+   enables you to route external traffic to the |application| in your
+   |k8s| cluster.
 
 .. opsmgrkube:: spec.externalConnectivity.type
 
@@ -583,7 +615,7 @@ Optional |onprem| Resource Settings
 
    If :opsmgrkube:`spec.externalConnectivity.type` is ``NodePort``, the
    port on the |k8s| service from which external traffic is routed to
-   the |onprem| application.
+   the |application|.
 
    .. note::
 
@@ -598,7 +630,7 @@ Optional |onprem| Resource Settings
 
    In both cases, if this value is not provided, the |k8s| service
    routes traffic from an available port within the following default
-   range to the |onprem| application: ``30000``-``32767``.
+   range to the |application|: ``30000``-``32767``.
 
 .. opsmgrkube:: spec.externalConnectivity.loadBalancerIP
 
@@ -638,11 +670,33 @@ Optional |onprem| Resource Settings
    Key-value pairs that allow you to provide cloud provider-specific
    configuration settings.
 
-   To learn more about :k8sdocs:`Annotations
-   </concepts/overview/working-with-objects/annotations/>` and
-   :k8sdocs:`TLS support on AWS
-   </concepts/services-networking/service/#ssl-support-on-aws>`, see the
-   |k8s| documentation.
+   To learn more about
+   :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>`
+   and
+   :k8sdocs:`TLS support on AWS </concepts/services-networking/service/#ssl-support-on-aws>`,
+   see the |k8s| documentation.
+
+.. opsmgrkube:: spec.jvmParameters
+
+   *Type*: array of strings
+
+   *Optional*. |jvm| parameters passed to the |application| in the
+   container. Any parameters given replace the default |jvm| parameters
+   for the |application|.
+
+   This |k8s-op-short| parameter defaults to an empty list.
+
+   .. code-block:: yaml
+
+      spec:
+        jvmParameters: ["-XX:+HeapDumpOnOutOfMemoryError","-XX:HeapDumpPath=/tmp"]
+
+   .. admonition:: Change the JVM Memory Heap values at your own risk
+      :class: warning
+
+      |k8s-op-short| calculates its |jvm| memory heap values of the
+      |application| based on the container's memory. Changing the
+      ``-Xms`` and ``-Xmx`` values can cause issues with |onprem|.
 
 .. opsmgrkube:: spec.podSpec.cpu
 
@@ -687,6 +741,16 @@ Optional |onprem| Resource Settings
    This value maps to the
    :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
    for memory for the created pod.
+
+   The |k8s-op-short| calculates and sets parameters for Java heap size
+   based on the container's memory.
+
+   .. admonition:: Limit this value to less than 32 GB
+      :class: warning
+
+      Setting this value to a value greater than 32 GB (``32G``) can
+      cause issues with the |application|. Excessive heaps can cause
+      unpredictable results in |onprem|.
 
 .. opsmgrkube:: spec.podSpec.memoryRequests
 
