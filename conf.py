@@ -123,6 +123,7 @@ rst_epilog = '\n'.join([
     '.. |jira| replace:: `Jira <https://jira.mongodb.org>`__"',
     '.. |json| replace:: :abbr:`JSON (Javascript Object Notation)`',
     '.. |jedec| replace:: :abbr:`JEDEC (Joint Electron Device Engineering Council Solid State Technology Association)`',
+    '.. |jvm| replace:: :abbr:`JVM (Java Virtual Machine)`',
     '.. |k8s-configmaps| replace:: `ConfigMaps <https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/>`__',
     '.. |k8s-configmap| replace:: `ConfigMap <https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/>`__',
     '.. |k8s-custom-resource| replace:: `Custom Resource <https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/>`__',
