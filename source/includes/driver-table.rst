@@ -107,6 +107,13 @@
      - `API <https://mongodb.github.io/mongo-swift-driver/>`__
      - :issue:`JIRA <SWIFT>`
      -
+
+   * - :doc:`Rust </drivers/rust>`
+     - `Releases <https://github.com/mongodb/mongo-rust-driver/releases>`__
+     - `Source <https://github.com/mongodb/mongo-rust-driver>`__
+     - `API <https://docs.rs/mongodb/latest/mongodb/>`__
+     - :issue:`JIRA <RUST>`
+     -
 ..
    * - :doc:`Haskell </drivers/haskell>`
      - `Releases <https://github.com/mongodb/mongodb-haskell/releases>`__
