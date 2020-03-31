@@ -124,6 +124,13 @@ my-secure-rs-1.mongodb                      31s       system:serviceaccount:mong
 my-secure-rs-2.mongodb                      24s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Pending
 END-output-k8s-rs-tls-csrs
 
+START-output-k8s-rs-tls-csrs-approved
+NAME                                        AGE       REQUESTOR                                                   CONDITION
+my-secure-rs-0.mongodb                      33s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved, Issued
+my-secure-rs-1.mongodb                      31s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved, Issued
+my-secure-rs-2.mongodb                      24s       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved, Issued
+END-output-k8s-rs-tls-csrs-approved
+
 START-output-k8s-rs-x509-csrs
 NAME                                        AGE       REQUESTOR                                                   CONDITION
 mms-automation-agent.mongodb                15m       system:serviceaccount:mongodb:mongodb-enterprise-operator   Approved,Issued
