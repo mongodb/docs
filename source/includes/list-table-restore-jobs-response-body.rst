@@ -42,6 +42,14 @@
      - One or more URLs for the compressed snapshot files for manual
        download. Only visible if ``deliveryType`` is ``download``.
 
+       .. note::
+
+          If ``deliveryUrl`` is empty, the restore job is still processing.
+          Use the
+          :doc:`/reference/api/cloud-provider-snapshot-restore-jobs-get-all/`
+          endpoint periodically check for a ``deliveryUrl`` download value
+          for the restore job.
+
    * - ``expired``
      - boolean
      - Indicates whether the restore job expired.
