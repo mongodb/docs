@@ -155,3 +155,5 @@
      -
      -
      - ✓
+
+.. [*] The 2.14 driver does not support all MongoDB 3.2 features (e.g. read concern); however, if you are currently on a version 2.x driver and would like to run against MongoDB 3.2 but cannot upgrade to driver version 3.2, use the 2.14 driver.
