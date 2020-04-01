@@ -1,3 +1,31 @@
+.. _atlas_20200331:
+
+31 March 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports deploying a multi-region |service| cluster on |azure| and 
+  connecting to it using VNet peering.
+
+- Supports using |stitch-docs| to connect to an |service| cluster that 
+  uses |vpc| peering on |gcp| or VNet peering on Azure.
+
+- Supports using |charts| to connect to an |service| cluster that 
+  uses VPC peering on GCP or VNet peering on Azure.
+
+- Supports using Live Migration to migrate to an |service| 
+  cluster that uses VPC peering on GCP or VNet peering on Azure.
+
+- Supports connecting from public IP using a special connection string 
+  to an |service| cluster on GCP or Azure that is using peering.
+
+- Supports connecting to an |service| cluster over an |aws| VPC peering 
+  connection where a custom |dns| provider is used (and AWS’s built in 
+  split horizon DNS cannot be taken advantage of), by using a special 
+  connection string for private IP.
+
+- Supports M0 Free Tier and M2/M5 shared starter clusters in the GCP
+  Mumbai region.
+
 .. _atlas_20200319:
 
 19 March 2020 Release
