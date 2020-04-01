@@ -1,3 +1,10 @@
+.. _cloudmanager_20200331:
+
+31 March 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports queryable backups for MongoDB 4.2.
+
 .. _cloudmanager_20200218:
 
 18 February 2020 Release
