@@ -129,9 +129,20 @@ improve concurrency. MongoDB groups batches by document id (:ref:`WiredTiger
 operations using a different thread. MongoDB always applies write
 operations to a given document in their original write order.
 
-While applying a batch, MongoDB blocks all read operations. As a
-result, secondary read queries can never return data that reflect a
-state that never existed on the primary.
+.. versionchanged:: 4.0
+
+Starting in MongoDB 4.0, read operations that
+:ref:`target secondaries <replica-set-read-preference>` and are
+configured with a :ref:`read concern<read-concern>` level of
+:readconcern:`"local"` or  :readconcern:`"majority"` will now read from
+a :ref:`WiredTiger<storage-wiredtiger>` snapshot of the data if the read
+takes place on a secondary where replication batches are being applied. 
+Reading from a snapshot guarantees a consistent view of the
+data, and allows the read to occur simultaneously with the ongoing
+replication without the need for a lock. As a result, secondary reads
+requiring these read concern levels no longer need to wait for
+replication batches to be applied, and can be handled as they are
+received.
 
 Flow Control
 ~~~~~~~~~~~~
