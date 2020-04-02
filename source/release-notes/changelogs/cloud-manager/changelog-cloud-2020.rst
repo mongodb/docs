@@ -4,6 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Supports queryable backups for MongoDB 4.2.
+- Updates {+mdbagent+} to :ref:`10.13.0.6247 <10.13.0.6247>`.
 
 .. _cloudmanager_20200218:
 

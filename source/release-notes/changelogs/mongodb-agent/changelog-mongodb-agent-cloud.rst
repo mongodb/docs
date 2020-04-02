@@ -1,3 +1,20 @@
+.. _10.13.0.6247:
+
+MongoDB Agent 10.13.0.6247
+--------------------------
+
+*Released* 2020-03-31
+
+- Support for upcoming MongoDB 4.4 release.
+- Fixes an issue that caused monitoring module discovery to stall if 
+  the first contact with an unauthenticated ``mongod`` resulted in an 
+  error.
+- Ensures that integer values for ``setParameter`` are always correctly 
+  formatted as integers.
+- Ensures that the MongoDB Agent never interprets network errors as 
+  authentication errors, leading to spurious attempts to rotate the 
+  keyfile.
+
 .. _10.11.0.6161:
 
 MongoDB Agent 10.11.0.6161
