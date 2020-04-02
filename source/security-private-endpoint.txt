@@ -16,11 +16,16 @@ Set up a Private Endpoint
 
 MongoDB |service| supports private endpoints on |aws| using the
 `{+aws-pl+} <https://aws.amazon.com/privatelink/>`__ feature. When you
-enable this feature, |service| creates its own |vpc| and places
-clusters within a region behind a network load balancer in the
-|service| |vpc|. You create resources that establish a one-way
-connection from your |vpc| to the network load balancer in the
-|service| |vpc| using a private endpoint.
+enable this feature, |service| creates its own |vpc| and places clusters
+within a region behind a network load balancer in the |service| |vpc|.
+Then you create resources that establish a one-way connection from your
+|vpc| to the network load balancer in the |service| |vpc| using a
+private endpoint.
+
+.. figure:: /images/atlas-aws-privatelink.svg
+   :width: 720px
+   :alt: Image showing how {+aws-pl+} establishes connections from your
+         application VPC to resources in the |service| VPC.
 
 Connections to |service| clusters using private endpoints offer the
 following advantages over other network access management options:
@@ -35,9 +40,9 @@ following advantages over other network access management options:
   - Another |vpc| peered to the private endpoint-connected |vpc|.
   - An on-premises data center connected with
     :aws:`DirectConnect </whitepapers/latest/aws-vpc-connectivity-options/aws-direct-connect-network-to-amazon.html>`
-    to the private endpoint-connected |vpc|. This enables you to
-    connect to |service| directly from your on-premises data center
-    without whitelisting public IP addresses.
+    to the private endpoint-connected |vpc|. This enables you to connect
+    to |service| directly from your on-premises data center without
+    whitelisting public IP addresses.
 
 Considerations
 --------------
@@ -54,98 +59,82 @@ availability zones in a region.
 Private Endpoint-Aware Connection Strings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you enable {+aws-pl+}, |service|:
+When you enable {+aws-pl+}, |service| generates DNS seedlist and 
+standard private-endpoint-aware connection strings. Your clients can use 
+these strings to connect to |service| clusters through
+a private endpoint.
 
-1. Generates a |dns| Service (``SRV``) record for your |vpc|. This
-   ``SRV`` record resolves to the network load balancer provisioned in
-   the |service| |vpc|.
+The hostname in the connection strings resolves to the 
+:term:`interface endpoints <interface endpoint>` deployed in the VPC 
+subnets you specified when you created the {+aws-pl+} connection. The 
+interface endpoints connect to the network load balancer provisioned in 
+the |service| VPC. The network load balancer assigns a unique port to 
+each |service| replica set node in the region for which you enabled 
+{+aws-pl+}.
 
-2. Assigns a unique port to each |service| cluster node in the region
-   for which you enabled {+aws-pl+}.
-
-Clients connecting to |service| clusters using {+aws-pl+} use private
-endpoint-aware connection strings containing ``SRV`` records:
-
-.. code-block:: sh
-   :copyable: false
-
-   mongodb+srv://cluster0-pl-0-k45tj.mongodb-dev.net/test
-
-.. note::
-
-   Only clients that use your |vpc|'s |dns| can retrieve an ``SRV``
-   record from a private endpoint-aware connection string.
-
-The ``SRV`` record used in a private endpoint-aware connection string
-contains a configuration that maps a unique port for each member in a
-cluster's replica set to that hostname. The listed ports correspond to
-ports on the load balancer provisioned in the |service| |vpc|. When you
-connect using {+aws-pl+}, all nodes in an |service| cluster are
-accessible through the same hostname, with the load balancer resolving
+When you connect using {+aws-pl+}, all nodes in an |service| replica set 
+are accessible via the same hostname, with the load balancer resolving
 individual nodes by their port.
 
-The following example shows a |dns| lookup of the ``SRV`` record for a
-{+aws-pl+}-enabled single-region cluster. It shows three unique ports
-defined for the ``cluster0-pl-0-k45tj.mongodb-dev.net`` hostname:
+The following example shows a |dns| lookup of the hostname in a connection 
+string for an {+aws-pl+}-enabled single-region cluster, showing three 
+unique ports defined for the ``cluster0-pl-0-k45tj.mongodb.net`` 
+hostname:
 
 .. code-block:: sh
    :copyable: false
 
-   $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net
+   $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net
 
    Server: 127.0.0.53
    Address: 127.0.0.53#53
 
    Non-authoritative answer:
-   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net service = 0 0 3 pl-0-us-east-1-k45tj.mongodb-dev.net.
-   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net service = 0 0 1 pl-0-us-east-1-k45tj.mongodb-dev.net.
-   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb-dev.net service = 0 0 2 pl-0-us-east-1-k45tj.mongodb-dev.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1026 pl-0-us-east-1-k45tj.mongodb.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1024 pl-0-us-east-1-k45tj.mongodb.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1025 pl-0-us-east-1-k45tj.mongodb.net.
 
-The hostname in the ``SRV`` record contains is a |dns| Canonical Name
-(``CNAME``) record that resolves to the endpoint-specific regional
-|dns| name that |aws| generates for the interface endpoint. An |dns|
-``ALIAS`` record exists for each subnet you deployed the interface
-endpoint to. Each ``ALIAS`` record contains the private IP address of
-the :aws:`interface endpoint ENI </vpc/latest/userguide/vpce-interface.html>`
-for that subnet.
+The hostname in the connection string is a |dns| Canonical Name 
+(``CNAME``) record that resolves to the endpoint-specific regional |dns| 
+name that |aws| generates for the interface endpoint. A |dns| ``ALIAS`` 
+record exists for each subnet in your VPC that you deployed the 
+interface endpoint to. Each ``ALIAS`` record contains the private IP 
+address of the :term:`interface endpoint` for that subnet.
 
-.. example::
+The following example shows the |dns| lookup for the hostname in the 
+connection string, including the endpoint-specific regional |dns| name 
+for the interface endpoint and its |dns| ``ALIAS`` records:
 
-   This example shows the |dns| lookup for the hostname in the ``SRV``
-   record, including the endpoint-specific regional |dns| name for the
-   interface endpoint and its |dns| ``ALIAS`` records:
+.. code-block:: sh
+   :copyable: false
 
-   .. code-block:: sh
-      :copyable: false
+   $ nslookup pl-0-us-east-1-k45tj.mongodb.net
+   Server: 127.0.0.53
+   Address: 127.0.0.53#53
 
-      $ nslookup pl-0-us-east-1-k45tj.mongodb-dev.net
-      Server: 127.0.0.53
-      Address: 127.0.0.53#53
-
-      Non-authoritative answer:
-      pl-0-us-east-1-k45tj.mongodb-dev.net
-      canonical name = vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com.
-
-      Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
-      Address: 10.0.30.194
-      Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
-      Address: 10.0.20.54
+   Non-authoritative answer:
+   pl-0-us-east-1-k45tj.mongodb.net
+   canonical name = vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com.
+   
+   Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
+   Address: 10.0.30.194
+   Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
+   Address: 10.0.20.54
 
 When a client in your |vpc| connects to an |service| cluster using a
-private endpoint-aware connection string, the client attempts to
+private-endpoint-aware connection string, the client attempts to
 establish a connection to the load balancer in the |service| |vpc|
-through one of the
-:aws:`interface VPC endpoints </vpc/latest/userguide/vpce-interface.html>`.
+through one of the :term:`interface endpoints <interface endpoint>`.
 Your client's |dns| resolution mechanism handles which of the interface
-endpoint interface |vpc| endpoints the hostname resolves to. If one
-interface |vpc| endpoint is unavailable the next is used. This is
-opaque to the driver or other connection mechanism. The driver is only
-aware of the hostname in the ``SRV`` record, listening on one port for
-each node in the cluster’s replica set.
+endpoints the hostname resolves to. If one interface endpoint is 
+unavailable the next is used. This is opaque to the driver or other 
+connection mechanism. The driver is only aware of the hostname in the 
+connection string, listening on one port for each node in the cluster's 
+replica set.
 
-To learn how to connect to |service| clusters using private
-endpoint-aware connection strings, see
-:ref:`Connect to Atlas using a Private Endpoint <connect-private-endpoint>`.
+See :ref:`Connect to Atlas using a Private Endpoint <connect-private-endpoint>`
+to learn how to connect to |service| clusters using private 
+endpoint-aware connection strings.
 
 IP Whitelists and VPC Peering with Private Endpoints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,14 +146,14 @@ and :doc:`VPC peering </security-vpc-peering>`.
 
 Clients connecting to |service| clusters using other methods use
 standard connection strings. Your clients might have to identify when
-to use private endpoint-aware connection strings and standard
-connection
+to use private-endpoint-aware connection strings and standard
+connection strings.
 
 Limitations
 -----------
 
-- You can't use {+aws-pl+} to connect to |service| clusters running
-  MongoDB version 3.4 or earlier.
+- You can use {+aws-pl+} to connect to |service| clusters running
+  MongoDB version 3.6 or later.
 
 - {+aws-pl+} must be active in all regions into which you deploy a
   multi-region cluster. You receive an error if {+aws-pl+} is active in
@@ -175,7 +164,7 @@ Limitations
   more than one private endpoint in a single region, you can't create
   private endpoints in other regions.
 
-- You can use {+aws-pl+} in |service| projects with up to 100
+- You can use {+aws-pl+} in |service| projects with up to 50
   addressable targets **per region**. Use additional projects or
   regions to connect to addressable targets beyond this limit in the
   same region.
@@ -189,7 +178,7 @@ Limitations
 
   .. note::
 
-     To request a one-time increase to use {+aws-pl+} with up to 500
+     To request a one-time increase to use {+aws-pl+} with up to 100
      addressable targets per |service| project, contact
      :ref:`MongoDB Support <request-support>`.
 
@@ -209,7 +198,7 @@ To enable connections to |service| using private endpoints, you must:
 
 #. Have an |aws| user account with an |iam| user policy that grants
    permissions to create, modify, describe, and delete endpoints. For
-   more information on controlling the use of |vpc| endpoints, see the
+   more information on controlling the use of interface endpoints, see the
    :aws:`AWS Documentation </vpc/latest/userguide/vpc-endpoints.html>`.
 
 #. **(Recommended)**:
@@ -237,21 +226,13 @@ with the following procedure:
 Connect to |service| using a Private Endpoint
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You use a private endpoint-aware connection string when you connect to
-|service| clusters using a private endpoint:
-
-.. code-block:: sh
-   :copyable: false
-
-   mongodb+srv://cluster0-pl-0-k45tj.mongodb-dev.net/test
-
 .. note::
 
-   To review important considerations about private endpoint-aware
-   connection strings, see :ref:`Private Endpoint-Aware Connection
-   Strings <private-endpoint-connection-strings>`.
+   For important considerations about private-endpoint-aware connection
+   strings, see
+   :ref:`Private Endpoint-Aware Connection Strings <private-endpoint-connection-strings>`.
 
-Use a private endpoint-aware connection string to connect to an
+Use a private-endpoint-aware connection string to connect to an
 |service| cluster with the following procedure:
 
 .. include:: /includes/steps/connect-to-cluster-privatelink.rst
