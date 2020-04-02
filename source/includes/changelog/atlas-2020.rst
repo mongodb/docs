@@ -3,27 +3,30 @@
 31 March 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- Supports deploying a multi-region |service| cluster on |azure| and 
-  connecting to it using VNet peering.
+- Supports :doc:`multiple connection strings </reference/faq/connection-changes>` to the same cluster:
 
-- Supports using |stitch-docs| to connect to an |service| cluster that 
-  uses |vpc| peering on |gcp| or VNet peering on Azure.
+  - Supports deploying a multi-region |service| cluster on |azure| and
+    connecting to it using VNet peering.
 
-- Supports using |charts| to connect to an |service| cluster that 
-  uses VPC peering on GCP or VNet peering on Azure.
+  - Supports using |stitch-docs| to connect to an |service| cluster
+    that uses |vpc| peering on |gcp| or VNet peering on Azure.
 
-- Supports using Live Migration to migrate to an |service| 
-  cluster that uses VPC peering on GCP or VNet peering on Azure.
+  - Supports using |charts| to connect to an |service| cluster that
+    uses |vpc| peering on |gcp| or VNet peering on Azure.
 
-- Supports connecting from public IP using a special connection string 
-  to an |service| cluster on GCP or Azure that is using peering.
+  - Supports using Live Migration to migrate to an |service| cluster
+    that uses |vpc| peering on |gcp| or VNet peering on Azure.
 
-- Supports connecting to an |service| cluster over an |aws| VPC peering 
-  connection where a custom |dns| provider is used (and AWS’s built in 
-  split horizon DNS cannot be taken advantage of), by using a special 
-  connection string for private IP.
+  - Supports connecting from public IP using a special connection
+    string to an |service| cluster on |gcp| or Azure that is using
+    peering.
 
-- Supports M0 Free Tier and M2/M5 shared starter clusters in the GCP
+  - Supports connecting to an |service| cluster over an |aws| |vpc|
+    peering connection where you use a custom |dns| provider (and
+    |aws|\'s built in split horizon |dns| cannot be used) and a special
+    connection string for private IP.
+
+- Supports M0 Free Tier and M2/M5 shared starter clusters in the |gcp|
   Mumbai region.
 
 .. _atlas_20200319:
@@ -45,15 +48,16 @@
 - Supports the following |azure| regions:
 
   - Azure Norway East
-  - Azure Switzerland West: this is a non-standard Azure region for use
-    as a secondary DR region in conjunction with Switzerland North.
-  - Azure UAE Central: this is a non-standard Azure region for use as a
-    secondary DR region in conjunction with UAE North.
+  - Azure Switzerland West: This non-standard Azure region should be
+    used as a secondary disaster recovery region for Switzerland North.
+  - Azure UAE Central: This non-standard Azure region should be used
+    secondary disaster recovery region for UAE North.
 
-- Supports :ref:`Point-in-Time Restores <pit-restore>` for GCP and Azure
-  backups.
-- New clusters default to MongoDB 4.2.
-- Users are asked to review changes after making edits to a cluster.
+- Supports :ref:`Point-in-Time Restores <pit-restore>` for |gcp| and
+  Azure backups.
+- Defaults new clusters to MongoDB 4.2.
+- Displays a review change modal to users after making edits to a
+  cluster.
 
 .. _atlas_20200218:
 
