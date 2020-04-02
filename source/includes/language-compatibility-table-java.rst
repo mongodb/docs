@@ -80,11 +80,4 @@
      - ✓
      - ✓
 
-   * - Versions >= 2.7
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-.. [*] Java versions 8 and above are all supported thanks to the JVM backwards compatibility promise. Only LTS versions will be explicitly listed in future.
+.. [*] In the future, only LTS Java versions will be explicitly listed.
