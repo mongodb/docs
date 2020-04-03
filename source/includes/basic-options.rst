@@ -1,8 +1,7 @@
 .. list-table::
-   :header-rows: 1
    :widths: 20 10 60 10
 
-   * - ``--profile``, ``-p``
+   * - ``--profile``, ``-P``
      - string
      - Name of the profile where the public and private 
        keys for the project are saved. If omitted, uses the 
