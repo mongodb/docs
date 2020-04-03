@@ -1,0 +1,17 @@
+.. list-table::
+   :widths: 20 10 60 10
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the public and private 
+       keys for the project are saved. If omitted, uses the 
+       ``default`` profile. To learn more about creating a 
+       profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project that contains the 
+       cluster. If omitted, uses the project ID in the profile or 
+       :ref:`environment variable <mcli-env-var>`.
+     - no
