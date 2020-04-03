@@ -956,18 +956,20 @@ For details, see :ref:`read-preference-tag-order-matching`.
 
 For more information, see :doc:`Read preferences </core/read-preference>`.
 
+.. _connection-string-auth-options:
+
 Authentication Options
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The following connection string to a replica set specifies the
-:urioption:`authSource` to the ``admin`` database. That is the user
-credentials are authenticated to the ``admin`` database.
+:urioption:`authSource` to the ``admin`` database. That is, the user
+credentials are authenticated against the ``admin`` database.
 
 .. code-block:: sh
 
    mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myRepl&authSource=admin
 
-If the username or password includes the at sign ``@``, colon ``:``,
+If the username or password includes the 'at' sign ``@``, colon ``:``,
 slash ``/``, or the percent sign ``%`` characters, use `percent
 encoding <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
 
@@ -986,13 +988,14 @@ encoding <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
        specified in the connection string. If ``defaultauthdb`` is
        unspecified, then :urioption:`authSource` defaults to ``admin``.
 
-       For authentication mechanisms that delegate credential storage
-       to other services, the :urioption:`authSource` value should be
-       ``$external`` as with the ``PLAIN`` (LDAP) and ``GSSAPI``
-       (Kerberos) authentication mechanisms.
+       The ``PLAIN`` (LDAP), ``GSSAPI`` (Kerberos), and ``MONGODB-AWS``
+       (IAM) authentication mechanisms require that
+       :urioption:`authSource` be set to ``$external``, as these
+       mechanisms delegate credential storage to external services.
 
-       MongoDB will ignore :urioption:`authSource` values if the
-       connection string specifies no username.
+       MongoDB will ignore :urioption:`authSource` values if no username
+       is provided, either in the connection string or via the
+       ``--username`` parameter.
 
    * - .. urioption:: authMechanism
 
@@ -1003,9 +1006,9 @@ encoding <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
 
        - :ref:`SCRAM-SHA-256 <authentication-scram-sha-256>` (*Added in MongoDB 4.0*)
 
-       - ``MONGODB-CR`` (*Removed in MongoDB 4.0*)
-
        - :ref:`MONGODB-X509 <security-auth-x509>`
+
+       - ``MONGODB-AWS`` (*Added in MongoDB 4.4*)
 
        - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
 
@@ -1016,10 +1019,49 @@ encoding <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
        the authentication mechanism when connecting to MongoDB 4.0+
        deployments.
 
-       Only MongoDB Enterprise :binary:`~bin.mongod` and :binary:`~bin.mongos`
-       instances provide ``GSSAPI`` (Kerberos) and ``PLAIN`` (LDAP)
-       mechanisms. To use ``MONGODB-X509``, you must have TLS/SSL
-       Enabled.
+       Only MongoDB Enterprise :binary:`~bin.mongod` and
+       :binary:`~bin.mongos` instances provide ``GSSAPI`` (Kerberos) and
+       ``PLAIN`` (LDAP) mechanisms.
+       
+       To use ``MONGODB-X509``, you must have TLS/SSL Enabled.
+
+       To use ``MONGODB-AWS``, you must be connecting to a
+       `MongoDB Atlas
+       <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__ cluster
+       which has been configured to support authentication via
+       `AWS IAM credentials
+       <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__
+       (i.e. an AWS access key ID and a secret access key, and
+       optionally an `AWS session token
+       <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__).
+       The ``MONGODB-AWS`` authentication mechanism requires that the
+       :urioption:`authSource` be set to ``$external``.
+
+       When using ``MONGODB-AWS``, provide your AWS access key ID as the
+       username and the secret access key as the password. If using an
+       `AWS session token
+       <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__
+       as well, provide it with the ``AWS_SESSION_TOKEN``
+       :urioption:`authMechanismProperties` value.
+
+       If the AWS access key ID, secret access key, or the session
+       token include the 'at' sign ``@``, colon ``:``, slash
+       ``/``, or the percent sign ``%`` characters, those characters
+       must be converted using `percent encoding
+       <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
+
+       Alternatively, if the AWS access key ID, secret access key, or
+       session token are defined on your platform using their respective
+       `AWS IAM environment variables
+       <https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list>`__
+       the :binary:`~bin.mongo` shell will use these environment
+       variable values to authenticate; you do not need to specify them
+       in the connection string.
+
+       See :ref:`Connect to an Atlas Cluster
+       <connections-string-example-mongodb-aws>` for example usage of
+       the ``MONGODB-AWS`` authentication mechanism using both a
+       connection string and the environment variables method.
 
        See :doc:`/core/authentication` for more information about the
        authentication system in MongoDB. Also consider
@@ -1036,29 +1078,42 @@ encoding <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
        ``SERVICE_NAME:<string>``
          Set the Kerberos service name when connecting to Kerberized
          MongoDB instances. This value must match the service name set
-         on MongoDB instances to which you are connecting.
+         on MongoDB instances to which you are connecting. Only valid
+         when using the :ref:`GSSAPI<security-auth-kerberos>`
+         authentication mechanism.
 
          ``SERVICE_NAME`` defaults to ``mongodb`` for all clients and
          MongoDB instances. If you change the
          :parameter:`saslServiceName` setting on a MongoDB instance, you
-         must set ``SERVICE_NAME`` to match that setting.
+         must set ``SERVICE_NAME`` to match that setting. Only valid
+         when using the :ref:`GSSAPI<security-auth-kerberos>`
+         authentication mechanism.
 
        ``CANONICALIZE_HOST_NAME:true|false``
          Canonicalize the hostname of the client host machine when
          connecting to the Kerberos server. This may be required when
          hosts report different hostnames than what is in the Kerberos
-         database. Defaults to ``false``.
+         database. Defaults to ``false``. Only valid when using the
+         :ref:`GSSAPI<security-auth-kerberos>` authentication
+         mechanism.
 
        ``SERVICE_REALM:<string>``
          Set the Kerberos realm for the MongoDB service. This may be
          necessary to support cross-realm authentication where the user
-         exists in one realm and the service in another.
+         exists in one realm and the service in another. Only valid when
+         using the :ref:`GSSAPI<security-auth-kerberos>` authentication
+         mechanism.
 
-       .. note::
-
-          The :urioption:`authMechanismProperties` option is only
-          supported when :urioption:`authMechanism` is :ref:`GSSAPI
-          <security-auth-kerberos>`.
+       ``AWS_SESSION_TOKEN:<security_token>``
+         Set the AWS session token for authentication with temporary
+         credentials when using an `AssumeRole
+         <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html>`__
+         request, or when working with AWS resources that specify this
+         value such as Lambda. Only valid when using the ``MONGODB-AWS``
+         authentication mechanism. You must have an AWS access key ID
+         and a secret access key as well. See
+         :ref:`Connect to an Atlas Cluster
+         <connections-string-example-mongodb-aws>` for example usage.
 
    * - .. urioption:: gssapiServiceName
 
@@ -1330,3 +1385,78 @@ The following connects to a sharded cluster with three :binary:`~bin.mongos` ins
 .. code-block:: none
 
    mongodb://router1.example.com:27017,router2.example2.com:27017,router3.example3.com:27017/
+
+.. _connections-string-example-mongodb-aws:
+
+MongoDB Atlas Cluster
+~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+The following connects to a `MongoDB Atlas
+<https://www.mongodb.com/cloud/atlas?tck=docs_server>`_ cluster which
+has been configured to support authentication via `AWS IAM credentials
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__:
+
+.. code-block:: none
+
+   mongo 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS'
+
+Connecting to Atlas using AWS IAM credentials in this manner uses the
+``MONGODB-AWS`` :urioption:`<authentication mechanism <authMechanism>`
+and the ``$external`` :urioption:`authSource`, as shown in this example.
+
+If using an `AWS session token
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__,
+as well, provide it with the ``AWS_SESSION_TOKEN``
+:urioption:`authMechanismProperties` value, as follows:
+
+.. code-block:: none
+
+   mongo 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<aws session token>'
+
+If the AWS access key ID, the secret access key, or the session token
+include the 'at' sign ``@``, colon ``:``, slash ``/``, or the percent
+sign ``%`` characters, those characters must be converted using
+`percent encoding <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
+
+You may also set these credentials on your platform using standard
+`AWS IAM environment variables
+<https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list>`__.
+The :binary:`~bin.mongo` shell checks for the following environment
+variables when you use the ``MONGODB-AWS``
+:urioption:`authentication mechanism <authMechanism>`:
+
+- ``AWS_ACCESS_KEY_ID``
+- ``AWS_SECRET_ACCESS_KEY``
+- ``AWS_SESSION_TOKEN``
+
+If set, these credentials do not need to be specified in the connection
+string.
+
+The following example sets these environment variables in the ``bash``
+shell:
+
+.. code-block:: none
+
+   export AWS_ACCESS_KEY_ID='<aws access key id>'
+   export AWS_SECRET_ACCESS_KEY='<aws secret access key>'
+   export AWS_SESSION_TOKEN='<aws session token>'
+
+Syntax for setting environment variables in other shells will be
+different. Consult the documentation for your platform for more
+information.
+
+You can verify that these environment variables have been set with the
+following command:
+
+.. code-block:: none
+
+   env | grep AWS
+
+Once set, the following example connects to a MongoDB Atlas cluster
+using these environment variables:
+
+.. code-block:: none
+
+   mongo 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS'

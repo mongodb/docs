@@ -187,6 +187,14 @@ Core Options
    that uses authentication. Use in conjunction with the :option:`--password` and
    :option:`--authenticationDatabase` options.
    
+   If connecting to a `MongoDB Atlas
+   <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__ cluster
+   using the ``MONGODB-AWS`` :option:`authentication mechanism
+   <--authenticationMechanism>`, specify your AWS access key ID in this
+   field, or in the :ref:`connection string
+   <connection-string-auth-options>`. Alternatively, this value may
+   also be supplied as the environment variable ``AWS_ACCESS_KEY_ID``.
+   See :ref:`example-connect-mongo-using-aws-iam`.
 
 
 .. option:: --password <password>, -p <password>
@@ -196,6 +204,33 @@ Core Options
    and :option:`--authenticationDatabase` options. To force :program:`mongo` to
    prompt for a password, enter the :option:`--password` option as the
    last option and leave out the argument.
+
+   If connecting to a `MongoDB Atlas
+   <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__ cluster
+   using the ``MONGODB-AWS`` :option:`authentication mechanism
+   <--authenticationMechanism>`, specify your AWS secret access key in
+   this field, or in the :ref:`connection string
+   <connection-string-auth-options>`.  Alternatively, this value may
+   also be supplied as the environment variable
+   ``AWS_SECRET_ACCESS_KEY``. See
+   :ref:`example-connect-mongo-using-aws-iam`.
+
+
+.. option:: --awsIamSessionToken <aws session token>
+
+   If connecting to a `MongoDB Atlas
+   <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__ cluster
+   using the ``MONGODB-AWS`` :option:`authentication mechanism
+   <--authenticationMechanism>` and using session tokens in addition to
+   your AWS access key ID and secret access key, specify your AWS
+   session token in this field, or in the :ref:`connection string
+   <connection-string-auth-options>`.  Alternatively, this value may
+   also be supplied as the environment variable
+   ``AWS_SESSION_TOKEN``. See
+   :ref:`example-connect-mongo-using-aws-iam`.
+
+   Only valid when using the ``MONGODB-AWS``
+   :option:`authentication mechanism <--authenticationMechanism>`.
 
 
 .. option:: --help, -h
@@ -379,11 +414,14 @@ Authentication Options
    
    Specifies the authentication database where the specified :option:`--username` has been created.
    See :ref:`user-authentication-database`.
-   
 
    If you do not specify a value for :option:`--authenticationDatabase`, :program:`mongo` uses the database
    specified in the connection string.
 
+   If using the :ref:`GSSAPI <security-auth-kerberos>` (Kerberos),
+   :ref:`PLAIN <security-auth-ldap>` (LDAP SASL), or ``MONGODB-AWS``
+   :option:`authentication mechanisms <--authenticationMechanism>`, you
+   must set :option:`--authenticationDatabase` to ``$external``.
 
 .. _mongo-shell-authentication-mechanisms:
 
@@ -394,15 +432,14 @@ Authentication Options
    Specifies the authentication mechanism the :program:`mongo` instance uses to
    authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
    
-   .. versionchanged:: 4.0
+   .. versionchanged:: 4.4
    
-      MongoDB removes support for the deprecated MongoDB
-      Challenge-Response (``MONGODB-CR``) authentication mechanism.
+      With MongoDB 4.4, the :program:`mongo` shell adds support for the
+      new ``MONGODB-AWS`` authentication mechanism when connecting to a
+      `MongoDB Atlas
+      <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__ cluster.
    
-      MongoDB adds support for SCRAM mechanism using the SHA-256 hash
-      function (``SCRAM-SHA-256``).
-   
-   .. include:: /includes/list-table-auth-mechanisms.rst
+   .. include:: /includes/list-table-auth-mechanisms-shell-only.rst
 
 
 .. option:: --gssapiHostName
@@ -1210,6 +1247,98 @@ the replica set:
 
 The :binary:`~bin.mongo` shell will automatically prompt you to provide
 the password for the user specified in the ``username`` option.
+
+.. _example-connect-mongo-using-aws-iam:
+
+Connect to a MongoDB Atlas Cluster using AWS IAM Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+To connect to a `MongoDB Atlas
+<https://www.mongodb.com/cloud/atlas?tck=docs_server>`__ cluster which
+has been configured to support authentication via `AWS IAM credentials
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__,
+provide a :ref:`connection string <connection-string-auth-options>` to
+the :binary:`~bin.mongo` shell similar to the following:
+
+.. code-block:: none
+
+   mongo 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS'
+
+Connecting to Atlas using AWS IAM credentials in this manner uses the
+``MONGODB-AWS`` :urioption:`authentication mechanism <authMechanism>`
+and the ``$external`` :urioption:`authSource`, as shown in this example.
+
+If using an `AWS session token
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__
+as well, provide it with the ``AWS_SESSION_TOKEN``
+:urioption:`authMechanismProperties` value in your
+:ref:`connection string <connection-string-auth-options>`, as follows:
+
+.. code-block:: none
+
+   mongo 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<aws session token>'
+
+If the AWS access key ID, secret access key, or session token include
+the 'at' sign ``@``, colon ``:``, slash ``/``, or the percent sign ``%``
+characters, those characters must be converted using `percent encoding
+<https://tools.ietf.org/html/rfc3986#section-2.1>`__.
+
+Alternatively, the AWS access key ID, and secret access key, and
+optionally session token can each be provided outside of the connection
+string using the :option:`--username`, :option:`--password`, and
+:option:`--awsIamSessionToken` options instead, like so:
+
+.. code-block:: none
+
+   mongo 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS' --username <aws access key id> --password <aws secret access key> --awsIamSessionToken <aws session token>
+
+When provided as command line parameters, these three options do not
+require percent encoding.
+
+You may also set these credentials on your platform using standard
+`AWS IAM environment variables
+<https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list>`__.
+The :binary:`~bin.mongo` shell checks for the following environment
+variables when you use the ``MONGODB-AWS``
+:urioption:`authentication mechanism <authMechanism>`:
+
+- ``AWS_ACCESS_KEY_ID``
+- ``AWS_SECRET_ACCESS_KEY``
+- ``AWS_SESSION_TOKEN``
+
+If set, these credentials do not need to be specified in the connection
+string or via the explicit options to the :binary:`~bin.mongo` shell
+(i.e. :option:`--username` and :option:`--password`).
+
+The following example sets these environment variables in the ``bash``
+shell:
+
+.. code-block:: none
+
+   export AWS_ACCESS_KEY_ID='<aws access key id>'
+   export AWS_SECRET_ACCESS_KEY='<aws secret access key>'
+   export AWS_SESSION_TOKEN='<aws session token>'
+
+Syntax for setting environment variables in other shells will be
+different. Consult the documentation for your platform for more
+information.
+
+You can verify that these environment variables have been set with the
+following command:
+
+.. code-block:: none
+
+   env | grep AWS
+
+Once set, the following example connects to a MongoDB Atlas cluster
+using these environment variables:
+
+.. code-block:: none
+
+   mongo 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS'
+
 
 Execute JavaScript Against the :binary:`~bin.mongo` Shell
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
