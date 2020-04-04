@@ -191,7 +191,7 @@ rst_epilog = '\n'.join([
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'manual': ('http://docs.mongodb.com/manual%s', ''),
+    'manual': ('https://docs.mongodb.com/manual%s', ''),
     'opsmgr': ('http://docs.opsmanager.mongodb.com/current%s', ''),
     'opsmgr-rapid': ('http://docs.opsmanager.mongodb.com/rapid%s', ''),
     'cloudmgr': ('http://docs.cloudmanager.mongodb.com/%s', ''),
