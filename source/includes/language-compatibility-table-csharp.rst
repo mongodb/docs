@@ -2,7 +2,7 @@
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
-   :class: compatibility-large
+   :class: compatibility-large no-padding
 
    * - Driver Version
      - .NET 3.5
