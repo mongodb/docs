@@ -17,7 +17,7 @@ content: |
    .. literalinclude:: /reference/k8s/example-opsmgr-minimal.yaml
       :language: yaml
       :linenos:
-      :emphasize-lines: 5,7-11,13,15,17-19,21,23-25,27-31,34,38-39
+      :emphasize-lines: 5,7-11,13,15,17-18
 
 ---
 title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
@@ -83,81 +83,6 @@ content: |
              |onprem| resource.
 
         - ``om-admin-secret``
-
-      * - | ``spec``
-          | ``.backup``
-          | ``.``:opsmgrkube:`~spec.backup.enabled`
-        - boolean
-        - Flag that indicates that Backup is enabled for your You must
-          specify ``spec.backup.enabled: true`` to configure settings
-          for the head database, oplog store, and snapshot store.
-        - ``true``
-
-      * - | ``spec``
-          | ``.backup``
-          | ``.opLogStores``
-          | ``.``:opsmgrkube:`~spec.backup.opLogStores.name`
-        - string
-        - Name of the oplog store.
-        - ``oplog1``
-
-      * - | ``spec``
-          | ``.backup``
-          | ``.opLogStores``
-          | ``.mongodbRef``
-          | ``.``:opsmgrkube:`~spec.backup.opLogStores.mongodbResourceRef.name`
-        - string
-        - Name of the MongoDB database resource for the oplog store.
-        - ``my-oplog-db``
-
-      * - | ``spec``
-          | ``.backup``
-          | ``.s3Stores``
-          | ``.``:opsmgrkube:`~spec.backup.s3Stores.name`
-        - string
-        - Name of the |s3| snapshot store.
-        - ``s3store1``
-
-      * - | ``spec``
-          | ``.backup``
-          | ``.s3Stores``
-          | ``.mongodbResourceRef``
-          | ``.``:opsmgrkube:`~spec.backup.s3Stores.mongodbResourceRef.name`
-        - string
-        - Name of the MongoDB database resource for the |s3| snapshot
-          store metadata.
-        - ``my-s3-metadata-db``
-
-      * - | ``spec``
-          | ``.backup``
-          | ``.s3Stores``
-          | ``.s3SecretRef``
-          | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3SecretRef.name`
-        - string
-        - Name of the |k8s-secret| that contains the ``accessKey`` and
-          ``secretKey`` fields. The :ref:`backup-daemon` uses the
-          values of these fields as credentials to access the |s3| or
-          |s3|-compatible bucket.
-        - ``my-s3-credentials``
-
-      * - | ``spec``
-          | ``.backup``
-          | ``.s3Stores``
-          | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3BucketEndpoint`
-        - string
-        - |url| of the |s3| or |s3|-compatible bucket that
-          :opsmgr:`stores </tutorial/manage-s3-blockstore-storage>` the
-          database Backup snapshots.
-        - ``s3.us-east-1.amazonaws.com``
-
-      * - | ``spec``
-          | ``.backup``
-          | ``.s3Stores``
-          | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3BucketName`
-        - string
-        - Name of the |s3| or |s3|-compatible bucket that stores the
-          database Backup snapshots.
-        - my-bucket
 
       * - | ``spec``
           | ``.externalConnectivity``
@@ -248,9 +173,145 @@ content: |
         - ``true``
 
 ---
-title: "(Optional) Configure any additional settings for an |onprem| deployment."
+title: "Configure Backup settings."
 stepnum: 5
 level: 4
+optional: true
+ref: configure-backup-settings
+content: |
+
+  If you want to enable backup, you must configure all of the following 
+  settings:
+
+  .. list-table::
+    :widths: 20 20 40 20
+    :header-rows: 1
+
+    * - Key
+      - Type
+      - Description
+      - Example
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.``:opsmgrkube:`~spec.backup.enabled`
+      - boolean
+      - Flag that indicates that Backup is enabled. You must specify 
+        ``spec.backup.enabled: true`` to configure settings
+        for the head database, oplog store, and snapshot store.
+      - ``true``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.opLogStores``
+        | ``.``:opsmgrkube:`~spec.backup.opLogStores.name`
+      - string
+      - Name of the oplog store.
+      - ``oplog1``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.opLogStores``
+        | ``.mongodbRef``
+        | ``.``:opsmgrkube:`~spec.backup.opLogStores.mongodbResourceRef.name`
+      - string
+      - Name of the MongoDB database resource for the oplog store.
+      - ``my-oplog-db``
+
+  You must also configure an :term:` S3 snapshot store <s3 snapshot store>` 
+  or a :term:`blockstore <Backup Blockstore Database>`.
+
+  .. note::
+
+     If you deploy both an |s3| :term:`snapshot store <s3 snapshot store>`
+     and a :term:`blockstore <Backup Blockstore Database>`, |onprem| 
+     randomly choses one to use for Backup.
+
+  To configure a snapshot store, configure the following settings:
+
+  .. list-table::
+    :widths: 20 20 40 20
+    :header-rows: 1
+
+    * - Key
+      - Type
+      - Description
+      - Example
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.s3Stores``
+        | ``.``:opsmgrkube:`~spec.backup.s3Stores.name`
+      - string
+      - Name of the |s3| snapshot store.
+      - ``s3store1``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.s3Stores``
+        | ``.s3SecretRef``
+        | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3SecretRef.name`
+      - string
+      - Name of the |k8s-secret| that contains the ``accessKey`` and
+        ``secretKey`` fields. The :ref:`backup-daemon` uses the
+        values of these fields as credentials to access the |s3| or
+        |s3|-compatible bucket.
+      - ``my-s3-credentials``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.s3Stores``
+        | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3BucketEndpoint`
+      - string
+      - |url| of the |s3| or |s3|-compatible bucket that
+        :opsmgr:`stores </tutorial/manage-s3-blockstore-storage>` the
+        database Backup snapshots.
+      - ``s3.us-east-1.amazonaws.com``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.s3Stores``
+        | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3BucketName`
+      - string
+      - Name of the |s3| or |s3|-compatible bucket that stores the
+        database Backup snapshots.
+      - my-bucket
+
+  To configure a blockstore, configure the following settings:
+
+  .. list-table::
+    :widths: 20 20 40 20
+    :header-rows: 1
+
+    * - Key
+      - Type
+      - Description
+      - Example
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.blockStores``
+        | ``.``:opsmgrkube:`~spec.backup.blockStores.name`
+      - string
+      - Name of the blockstore.
+      - ``blockStore1``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.blockStores``
+        | ``.mongodbResourceRef``
+        | ``.``:opsmgrkube:`~spec.backup.blockStores.mongodbResourceRef.name`
+      - string
+      - Name of the MongoDB database resource that you create for the 
+        blockstore. You must deploy this database resource in the same 
+        namespace as the |onprem| resource.
+      - ``my-mongodb-blockstore``
+
+---
+title: "Configure any additional settings for an |onprem| deployment."
+stepnum: 6
+level: 4
+optional: true
 ref: add-k8s-values
 content: |
 
@@ -258,13 +319,13 @@ content: |
   want to apply to your deployment to the |k8s-obj| specification file.
 ---
 title: "Save this file with a ``.yaml`` file extension."
-stepnum: 6
+stepnum: 7
 level: 4
 ref: save-object-spec
 
 ---
 title: "Create your |onprem| instance."
-stepnum: 7
+stepnum: 8
 level: 4
 ref: start-k8s-instance
 content: |
@@ -278,7 +339,7 @@ content: |
 
 ---
 title: "Track the status of your |onprem| instance."
-stepnum: 8
+stepnum: 9
 level: 4
 ref: track-k8s-instance
 content: |
@@ -355,7 +416,7 @@ content: |
 
 ---
 title: "Access the |onprem| application."
-stepnum: 9
+stepnum: 10
 level: 4
 ref: access-opsmgr-instance
 content: |
@@ -410,25 +471,27 @@ content: |
 
 ---
 title: "Create credentials for the Kubernetes Operator."
-stepnum: 10
+stepnum: 11
 level: 4
+optional: true
 ref: create-credentials
 content: |
 
-  To configure credentials, you must create an |onprem| organization,
+  If you enabled Backup, you must create an |onprem| organization,
   generate programmatic API keys, and create a |k8s-secret|. These
   activities follow the prerequisites and procedure on the
   :ref:`create-k8s-credentials` page.
 
 ---
 title: "Create a project using a |k8s-configmap|."
-stepnum: 11
+stepnum: 12
 level: 4
+optional: true
 ref: create-project
 content: |
 
-  To create a project, follow the prerequisites and procedure on the
-  :ref:`create-k8s-project` page.
+  If you enabled Backup, create a project by following the prerequisites 
+  and procedure on the :ref:`create-k8s-project` page.
 
   You must set ``data.baseUrl`` in the ConfigMap to the |application|\'s |url|. To find this |url|, invoke the following command:
 
@@ -466,13 +529,14 @@ content: |
 
 ---
 title: "Deploy MongoDB database resources to complete the Backup configuration."
-stepnum: 12
+stepnum: 13
 level: 4
+optional: true
 ref: configure-backup
 content: |
 
-  By default, |onprem| enables :ref:`mms-backup-functional-overview`.
-  Create a MongoDB database resource for the oplog and snapshot stores
+  If you enabled :ref:`mms-backup-functional-overview`,
+  create a MongoDB database resource for the oplog and snapshot stores
   to complete the configuration.
 
   a. Deploy a :ref:`MongoDB database resource
@@ -481,34 +545,38 @@ content: |
 
      .. note::
 
-        Create this database as a three-member :ref:`replica set
+        Create this database as a :ref:`replica set
         <deploy-replica-set>`.
 
      Match the ``metadata.name`` of the resource with the
      :opsmgrkube:`spec.backup.opLogStores.mongodbResourceRef.name` that you specified
      in your |onprem| resource definition.
 
-  #. Deploy a :ref:`MongoDB database resource
-     <k8s-deploy-mdb-resources>` for the |s3| snapshot store in the
-     same namespace as the |onprem| resource.
+  #. Choose one of the following:
 
-     .. note::
+     i. Deploy a :ref:`MongoDB database resource
+        <k8s-deploy-mdb-resources>` for the blockstore in the
+        same namespace as the |onprem| resource.
 
-        Create the |s3| snapshot store as a replica set.
+        Match the ``metadata.name`` of the resource to the
+        :opsmgrkube:`spec.backup.blockStores.mongodbResourceRef.name`
+        that you specified in your |onprem| resource definition.
 
-     Match the ``metadata.name`` of the resource to the
-     :opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.name`
-     that you specified in your |onprem| resource definition.
+     #. Configure an |s3| bucket to use as the |s3| snapshot store. 
+
+        Ensure that you can access the |s3| bucket using the details
+        that you specified in your |onprem| resource definition.
 
 ---
 title: "Confirm that the |onprem| resource is running."
-stepnum: 13
+stepnum: 14
 level: 4
+optional: true
 ref: confirm-running
 content: |
 
-  To check the status of your |onprem| resource, invoke the following
-  command:
+  If you enabled backup, check the status of your |onprem| resource by 
+  invoking the following command:
 
   .. code-block:: sh
 

@@ -295,10 +295,63 @@ Optional |onprem| Resource Settings
 
    *Type*: string
 
-   *Required if ``SCRAM`` authentication is enabled on the oplog
+   *Required if SCRAM authentication is enabled on the oplog
    store database.*
 
    Name of the MongoDB user resource used to connect to the oplog store
+   database. Deploy this user resource in the same
+   namespace as the |onprem| resource and with the
+   :manual:`readWriteAnyDatabase
+   </reference/built-in-roles/#readWriteAnyDatabase>` and
+   :manual:`dbAdminAnyDatabase
+   </reference/built-in-roles/#dbAdminAnyDatabase>` roles.
+
+.. opsmgrkube:: spec.backup.blockStores
+
+   *Type*: collection
+
+   *Required if you enable Backup using a blockstore.*
+
+   Array of :ref:`blockstores <backup-database-specifications>` used
+   for Backup. Each item in the array references a MongoDB database
+   resource deployed in the |k8s| cluster by the |k8s-op-short|.
+
+.. opsmgrkube:: spec.backup.blockStores.name
+
+   *Type*: string
+
+   *Required if you enable Backup using a blockstore.*
+
+   Name of the blockstore.
+
+   .. important::
+
+      Once specified, do not edit the name of the blockstore.
+
+.. opsmgrkube:: spec.backup.blockStores.mongodbResourceRef.name
+
+   *Type*: string
+
+   *Required if you enable Backup using a blockstore.*
+
+   Name of the MongoDB database resource that you create for the 
+   blockstore. You must deploy this database resource in the same 
+   namespace as the |onprem| resource.
+
+   .. include:: /includes/admonitions/fact-backing-db-auth.rst
+
+   If a MongoDB database resource with this name doesn't exist, the
+   |onprem| resource enters a ``Pending`` state. The |k8s-op-short|
+   retries every 10 seconds until a MongoDB database resource with this
+   name is created.
+
+.. opsmgrkube:: spec.backup.blockStores.mongodbUserRef.name
+
+   *Type*: string
+
+   *Required if SCRAM authentication is enabled on the blockstore database.*
+
+   Name of the MongoDB user resource used to connect to the blockstore
    database. Deploy this user resource in the same
    namespace as the |onprem| resource and with the
    :manual:`readWriteAnyDatabase
@@ -449,23 +502,33 @@ Optional |onprem| Resource Settings
 
    *Type*: string
 
-   *Required if you enable Backup.*
+   *Required if you enable Backup using an S3 store.*
 
    Name of the |s3| snapshot store.
 
    .. important::
 
-      Once specified, do not edit the name of the |s3| snapshot store.
+      Once specified, do not edit the name of the |s3| snapshot store. This change will likely fail if
+      backups use the old name. The consequences of 
+      a successful change are unpredictable.
 
 .. opsmgrkube:: spec.backup.s3Stores.mongodbResourceRef.name
 
    *Type*: string
 
-   *Required if you enable Backup.*
-
    Name of the MongoDB database resource that you create to store
-   metadata for the |s3| snapshot store. You must deploy this database
+   metadata for the |s3| snapshot store. You must deploy this database 
    resource in the same namespace as the |onprem| resource.
+
+   .. note::
+
+      Omit this setting to use the application database to store 
+      metadata for the |s3| snapshot store.
+
+      If you omit this setting, you must also omit the 
+      :opsmgrkube:`spec.backup.s3Stores.mongodbUserRef.name` setting.
+      The |k8s-op-short| handles ``SCRAM`` user authentication 
+      internally.
 
    If you enable ``SCRAM`` authentication on this database, you must:
 
@@ -477,12 +540,18 @@ Optional |onprem| Resource Settings
      :opsmgrkube:`~spec.backup.s3Stores.mongodbUserRef.name` of the
      user in the |onprem| resource definition.
 
+   .. important::
+
+      Once specified, do not edit the name of the |s3| snapshot store. This change will likely fail if
+      backups use the old name. The consequences of 
+      a successful change are unpredictable.
+
 .. opsmgrkube:: spec.backup.s3Stores.mongodbUserRef.name
 
    *Type*: string
 
-   *Required if SCRAM authentication is enabled on the metadata
-   database of the S3 snapshot store.*
+   *Required if you created a MongoDB database resource to store
+   |s3| snapshot metadata and SCRAM is enabled on this database.*
 
    Name of the MongoDB user resource used to connect to the metadata
    database of the |s3| snapshot store. Deploy this user resource in the
@@ -492,11 +561,16 @@ Optional |onprem| Resource Settings
    :manual:`dbAdminAnyDatabase
    </reference/built-in-roles/#dbAdminAnyDatabase>` roles.
 
+   .. important:: 
+  
+      Once specified, do not edit the name of the |s3| metadata snapshot 
+      store username.
+
 .. opsmgrkube:: spec.backup.s3Stores.s3SecretRef.name
 
    *Type*: string
 
-   *Required if you enable Backup.*
+   *Required if you enable Backup using an S3 store.*
 
    Name of the secret that contains the ``accessKey`` and
    ``secretKey`` fields. The :ref:`backup-daemon` uses the values
@@ -533,7 +607,7 @@ Optional |onprem| Resource Settings
 
    *Type*: string
 
-   *Required if you enable Backup.*
+   *Required if you enable Backup using an S3 store.*
 
    URL of the |aws| |s3| bucket or |s3|-compatible bucket that hosts the
    snapshot store.
@@ -542,7 +616,7 @@ Optional |onprem| Resource Settings
 
    *Type*: string
 
-   *Required if you enable Backup.*
+   *Required if you enable Backup using an S3 store.*
 
    Name of the |aws| |s3| bucket or |s3|-compatible bucket that hosts
    the snapshot store.
