@@ -1,6 +1,11 @@
 .. list-table::
    :widths: 20 10 60 10
 
+   * - Option 
+     - Type
+     - Description
+     - Required?
+
    * - ``--profile``, ``-P``
      - string
      - Name of the profile where the public and private 
@@ -12,6 +17,6 @@
    * - ``--projectId``
      - string
      - Unique identifier of the project that contains the 
-       cluster. If omitted, uses the project ID in the profile or 
-       :ref:`environment variable <mcli-env-var>`.
+       cluster to update. If omitted, uses the project ID in 
+       the profile or :ref:`environment variable <mcli-env-var>`.
      - no
