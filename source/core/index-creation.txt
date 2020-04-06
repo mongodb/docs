@@ -146,6 +146,29 @@ violations:
 - Stop all writes to the collection from applications that cannot
   guarantee violation-free write operations.
 
+.. _index-build-constraint-violation-sharded:
+
+Sharded Collections
+````````````````````
+
+For a sharded collection distributed across multiple shards, one or
+more shards may contain a chunk with duplicate documents. As such, the
+create index operation may succeed on some of the shards (i.e. the ones
+without duplicates) but not on others (i.e. the ones with duplicates).
+To avoid leaving inconsistent indexes across shards, you can issue the
+:method:`db.collection.dropIndex()` from a :binary:`~bin.mongos` to
+drop the index from the collection.
+
+To mitigate the risk of this occurrence, before creating the index:
+
+- Validate that no documents in the collection violate the index
+  constraints.
+
+- Stop all writes to the collection from applications that cannot
+  guarantee violation-free write operations.
+
+.. seealso:: :ref:`index-creation-index-consistency`
+
 Index Build Impact on Database Performance
 ------------------------------------------
 
@@ -287,8 +310,27 @@ Starting in version 4.0, MongoDB waits for any in-progress index builds
 to finish before starting a 
 :doc:`rollback </core/replica-set-rollbacks>`.
 
+.. _index-creation-index-consistency:
+
 Index Consistency Checks for Sharded Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A sharded collection has an inconsistent index if the collection does
+not have the exact same indexes (including the index options) on each
+shard that contains chunks for the collection. Although inconsistent
+indexes should not occur during normal operations, inconsistent indexes
+can occur, such as:
+
+- When a user is creating an index with a ``unique`` key constraint and
+  one shard contains a chunk with duplicate documents. In such cases,
+  the create index operation may succeed on the shards without
+  duplicates but not on the shard with duplicates.
+
+- When a user is creating an index across the shards in a :doc:`rolling
+  manner (i.e. manually building the index one by one across the
+  shards) </tutorial/build-indexes-on-sharded-clusters>` but either
+  fails to build the index for an associated shard or incorrectly
+  builds an index with different specification.
 
 Starting in MongoDB 4.2.6, the :doc:`config server
 </core/sharded-cluster-config-servers>` primary periodically checks for
@@ -300,6 +342,9 @@ configure these periodic checks, see
 The command :dbcommand:`serverStatus` returns the field
 :serverstatus:`shardedIndexConsistency` to report on index
 inconsistencies when run on the config server primary.
+
+To check if a sharded collection has inconsistent indexes, see
+:ref:`manage-indexes-find-inconsistent-indexes`.
 
 Monitor In Progress Index Builds
 --------------------------------
