@@ -166,17 +166,25 @@ Backup
 |k8s-op-short| enables :ref:`mms-backup-functional-overview` by
 default. The |k8s-op-short| deploys a |k8s-statefulset| comprised of
 one pod to host the :ref:`backup-daemon`, and then creates a |k8s-pvc|
-and |k8s-pv| for the Backup Daemon's :term:`head database` . The
+and |k8s-pv| for the Backup Daemon's :term:`head database`. The
 |k8s-op-short| uses the :opsmgr:`Ops Manager API </reference/api/>` to
 enable the Backup Daemon and configure the head database.
 
 .. important::
 
    To configure Backup, you must create MongoDB database resources
-   for the :term:`oplog store <oplog store database>` and |s3|
-   :term:`snapshot store <s3 snapshot store>`. The |onprem| resource
-   remains in a ``Pending`` state until these Backup resources are
-   configured.
+   for the :term:`oplog store <oplog store database>` and for one of the 
+   following: 
+   
+   - |s3| :term:`snapshot store <s3 snapshot store>`.
+   - :term:`blockstore <Backup Blockstore Database>`.
+
+   If you deploy both an |s3| :term:`snapshot store <s3 snapshot store>`
+   and a :term:`blockstore <Backup Blockstore Database>`, |onprem| 
+   randomly choses one to use for Backup.
+
+   The |onprem| resource remains in a ``Pending`` state until these 
+   Backup resources are configured.
 
 Oplog Store
 +++++++++++
@@ -185,15 +193,25 @@ slices <Oplog Slice>`.
 
 .. include:: /includes/admonitions/fact-backing-db-auth.rst
 
+Blockstore
+++++++++++
+
+To configure a :term:`blockstore <Backup Blockstore Database>`, you 
+must deploy a replica set to store snapshots.
+
 S3 Snapshot Store
 +++++++++++++++++
 To configure an |s3| :opsmgr:`snapshot store
-</reference/glossary/#term-s3-snapshot-store>`, you must:
+</reference/glossary/#term-s3-snapshot-store>`, you must create an |aws| 
+|s3| or |s3|-compatible bucket to store your database
+Backup :opsmgr:`snapshots </reference/glossary/#term-snapshot>`.
 
-- Have an oplog store already configured.
-- Create an |aws| |s3| or |s3|-compatible bucket to store your database
-  Backup :opsmgr:`snapshots </reference/glossary/#term-snapshot>`.
-- Deploy a three-member replica set to store snapshot metadata.
+The default configuration stores snapshot metadata in the Application 
+Database. You can also deploy a replica set to store snapshot metadata, 
+then configure it using the 
+:opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.name` and 
+:opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.user` settings in 
+the |onprem| resource definition.
 
 You can update any additional |s3| :opsmgr:`configuration settings
 </tutorial/manage-s3-blockstore-storage/#provide-the-s3-blockstore-details>`
