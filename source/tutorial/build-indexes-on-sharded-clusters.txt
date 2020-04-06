@@ -39,7 +39,7 @@ If you cannot stop all writes to the collection during this procedure,
 do not use the procedure on this page. Instead, build your unique index
 on the collection by issuing :method:`db.collection.createIndex()` on
 the :binary:`~bin.mongos` for a sharded cluster.
-
+ 
 Oplog Size
 ~~~~~~~~~~
 
@@ -52,16 +52,26 @@ Prerequisites
 -------------
 
 For building unique indexes
-   To create :ref:`unique indexes <index-type-unique>` using the following
-   procedure, you must stop all writes to the collection during the index
-   build. Otherwise, you may end up with inconsistent data across the
-   replica set members. If you cannot stop all writes to the collection,
-   do not use the following procedure to create unique indexes.
+   #. To create :ref:`unique indexes <index-type-unique>` using the following
+      procedure, you must stop all writes to the collection during the index
+      build. Otherwise, you may end up with inconsistent data across the
+      replica set members. If you cannot stop all writes to the collection,
+      do not use the following procedure to create unique indexes.
 
-   .. warning::
+      .. warning::
 
-      If you cannot stop all writes to the collection, do not use the
-      following procedure to create unique indexes.
+         If you cannot stop all writes to the collection, do not use the
+         following procedure to create unique indexes.
+
+   #. Before creating the index, validate that no documents in the
+      collection violate the index constraints. If a collection is
+      distributed across shards and a shard contains a chunk with
+      duplicate documents, the create index operation may succeed on the
+      shards without duplicates but not on the shard with duplicates.
+      To avoid leaving inconsistent indexes across shards, you can issue the
+      :method:`db.collection.dropIndex()` from a :binary:`~bin.mongos` to
+      drop the index from the collection.
+
 
 Procedure
 ---------
@@ -429,6 +439,21 @@ instance in the sharded cluster, and run :method:`sh.startBalancer()`: [#autospl
 Additional Information
 ----------------------
 
+A sharded collection has an inconsistent index if the collection does
+not have the exact same indexes (including the index options) on each
+shard that contains chunks for the collection. Although inconsistent
+indexes should not occur during normal operations, inconsistent indexes
+can occur, such as:
+
+- When a user is creating an index with a ``unique`` key constraint and
+  one shard contains a chunk with duplicate documents. In such cases,
+  the create index operation may succeed on the shards without
+  duplicates but not on the shard with duplicates.
+
+- When a user is creating an index across the shards in a rolling
+  manner but either fails to build the index for an associated shard or
+  incorrectly builds an index with different specification.
+
 Starting in MongoDB 4.4 (and 4.2.6), the :doc:`config server
 </core/sharded-cluster-config-servers>` primary periodically checks for
 index inconsistencies across the shards for sharded collections. To
@@ -439,3 +464,6 @@ configure these periodic checks, see
 The command :dbcommand:`serverStatus` returns the field
 :serverstatus:`shardedIndexConsistency` to report on index
 inconsistencies when run on the config server primary.
+
+To check if a sharded collection has inconsistent indexes, see
+:ref:`manage-indexes-find-inconsistent-indexes`.
