@@ -1,4 +1,3 @@
-.. note:: MongoDB 4.2 Feature Availability
 
 .. include:: /includes/extracts/python-driver-compatibility-matrix-mongodb.rst
 
