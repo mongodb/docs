@@ -12,15 +12,15 @@ Verify an LDAP Configuration
 
 Requests a verification of an |ldap| configuration over |tls| for an
 |service| project. Pass the ``requestId`` in the response object to the
-:doc:`/groups/{GROUP-ID}/userSecurity/ldap/verify/{REQUEST-ID} </reference/api/ldaps-configuration-verification-status>`
+:doc:`Verify LDAP Configuration </reference/api/ldaps-configuration-verification-status>`
 endpoint to get the status of a verification request. |service|
 retains only the most recent request for each project.
 
 .. note::
 
-   - Explaining :rfc:`RFC 4515 <4515>` and :rfc:`RFC 4516 <4516>` is
-     out of scope for the MongoDB documentation. Please review the RFCs
-     or refer to your preferred |ldap| server documentation.
+   - .. include:: /includes/facts/explain-ldap.rst
+
+   - .. include:: /includes/facts/projects-groups-synonyms.rst
 
    - This endpoint does not verify the ``ldap.userToDNMapping``
      document array. To verify that users can authenticate with this
@@ -29,8 +29,6 @@ retains only the most recent request for each project.
      component bundled with MongoDB Enterprise 3.6 or later with a
      config file that includes the same |ldap| parameters that you
      specify for |service|.
-
-.. include:: /includes/fact-projects-groups-synonyms.rst
 
 .. include:: /includes/api-base-url.rst
 
@@ -45,16 +43,19 @@ Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
+   :widths: 15 10 10 65
    :header-rows: 1
 
    * - Parameter
-     - Required/Optional
+     - Type
+     - Necessity
      - Description
 
    * - ``GROUP-ID``
+     - string
      - Required
-     - Identifier for the |service| project associated with the request
-       to verify an LDAP over TLS/SSL configuration.
+     - Unique identifier for the |service| project associated with the
+       |ldap| over |tls| configuration.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,19 +77,23 @@ Example Request
 
 The following example requests verification of an LDAP configuration.
 
-.. class:: copyable-code
-
 .. code-block:: shell
+   :linenos:
+   :emphasize-lines: 6-13
 
-   curl -X POST -i -u "fred@example.com:457026b5-07a6-40a9-9706-ae0b374e775g" /
-      -H "Content-Type: application/json" --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/6b8df67087d9d615da86401c/userSecurity/ldap/verify?pretty=true" --data '
-      {
-        "hostname":"atlas-ldaps-01.ldap.myteam.com",
-        "port": 636,
-        "bindUsername":"N=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com",
-        "bindPassword":"MyldapPassWord",
-        "authzQueryTemplate": "{USER}?memberOfGroup?base"
-      }'
+   curl --include --user "{PUBLIC-KEY}:{PRIVATE-KEY}" \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --digest \
+        --request POST "{+service-api-v1-base-uri+}/groups/{PROJECT-ID}/userSecurity/ldap/verify?pretty=true" \
+        --data '
+          {
+            "hostname":"atlas-ldaps-01.ldap.myteam.com",
+            "port": 636,
+            "bindUsername":"N=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com",
+            "bindPassword":"MyldapPassWord",
+            "authzQueryTemplate": "{USER}?memberOfGroup?base"
+          }'
 
 Example Response
 ----------------
@@ -97,19 +102,22 @@ The following response indicates that the request for verification for
 the LDAP configuration is pending.
 
 .. code-block:: json
+   :copyable: false
+   :linenos:
+   :emphasize-lines: 8-10
 
    {
-     "groupId" : "6b8df67087d9d615da86401c",
+     "groupId" : "{PROJECT-ID}",
      "links" : [ {
-        "href" : "https://cloud.mongodb.com/api/atlas/v1.0/groups/6b8df67087d9d615da86401c/userSecurity/ldap/verify/6bc01f8e87d9d61d96c1b635",
+        "href" : "{+service-api-v1-base-uri+}/groups/{PROJECT-ID}/userSecurity/ldap/verify/{REQUEST-ID}",
         "rel" : "self"
      } ],
      "request" : {
-     "bindUsername" : "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com",
-     "hostname" : "atlas-ldaps-01.ldap.myteam.com",
-     "port" : 636
+       "bindUsername" : "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com",
+       "hostname" : "atlas-ldaps-01.ldap.myteam.com",
+       "port" : 636
      },
-     "requestId" : "6bc01f8e87d9d61d96c1b635",
+     "requestId" : "{REQUEST-ID}",
      "status" : "PENDING",
      "validations" : [ ],
    }
