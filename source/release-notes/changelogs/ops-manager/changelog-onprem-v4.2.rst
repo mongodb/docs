@@ -1,3 +1,18 @@
+.. _opsmgr-server-4.2.11:
+
+|onprem| Server 4.2.11
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-04-06*
+
+- Bootstrapping a Backup
+  :term:`initial sync <initial sync>` using
+  :manual:`rsync </core/backups/index.html#back-up-with-cp-or-rsync>` 
+  can now complete when syncing from a hidden secondary.
+- Logs are viewable in the |onprem| Admin panel.
+- Ensures initial sync can complete after FCV downgrades.
+- Upgrades Agent: :ref:`mongodb-10.2.15.5958`.
+
 .. _opsmgr-server-4.2.10:
 
 |onprem| Server 4.2.10

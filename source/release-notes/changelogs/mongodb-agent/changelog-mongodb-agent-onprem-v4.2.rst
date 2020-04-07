@@ -1,3 +1,14 @@
+.. _mongodb-10.2.15.5958:
+
+MongoDB Agent 10.2.15.5958
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.11 on 2020-04-06 <opsmgr-server-4.2.11>`
+
+- Ensures that the MongoDB Agent never interprets network errors as 
+  authentication configuration errors, leading to illegitimate attempts 
+  to rotate the keyfile.
+
 .. _mongodb-10.2.14.5953-4.2.10:
 
 MongoDB Agent 10.2.14.5953
