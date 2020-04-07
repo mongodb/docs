@@ -6,6 +6,12 @@
      - Description
      - Required?
 
+   * - ``--authDB``
+     - string
+     - Name of the authentication database for this user. Defaults to
+       ``admin``.
+     - no
+
    * - ``--profile``, ``-P``
      - string
      - Name of the profile where the public and private 
