@@ -219,6 +219,12 @@ extlinks = {
     'k8sdocs': ('https://kubernetes.io/docs%s', ''),
     'v1.2': ('https://docs.mongodb.com/kubernetes-operator/v1.2%s', ''),
     'gh' : ('https://github.com%s', ''),
+    'gopkg' : ('https://godoc.org%s',''),
+    'npmjs' : ('https://www.npmjs.com/package%s',''),
+    'osi' : ('https://opensource.org%s', ''),
+    'osil' : ('https://opensource.org/licenses/%s', ''),
+    'cc' : ('http://creativecommons.org/licenses%s', ''),
+    'tldrl' : ('https://www.tldrlegal.com/l/%s', ''),
     'aws': ('http://docs.aws.amazon.com%s', '')
 }
 
