@@ -33,7 +33,11 @@ public class FindOne
         .sort(Sorts.descending("rating"))
         .first();
 
-    System.out.println(doc.toJson());
+    if (doc == null) {
+      System.out.println("No results found.");
+    } else {
+      System.out.println(doc.toJson());
+    }
 
     mongoClient.close();
   }
