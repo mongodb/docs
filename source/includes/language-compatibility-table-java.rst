@@ -10,6 +10,13 @@
      - Java 8
      - Java 11 [*]_
 
+   * - Version 4.0
+     -
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+
    * - Version 3.12
      -
      - |checkmark|
