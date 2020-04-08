@@ -20,6 +20,12 @@ Definition
    Executes a query and returns the first batch of results and the
    cursor id, from which the client can construct a cursor.
 
+   .. tip::
+
+      Rather than run the :dbcommand:`find` command directly, you can
+      use the :method:`db.collection.find()` helper provided in the
+      :binary:`~bin.mongo` shell or the equivalent helper in the
+      drivers.
 
 Syntax
 ------
@@ -34,7 +40,6 @@ The :dbcommand:`find` command has the following syntax:
 .. code-block:: javascript
 
    db.runCommand(
-
       {
          "find": <string>,
          "filter": <document>,
@@ -312,15 +317,16 @@ The command accepts the following fields:
        
        
 
-   * - ``allowPartialResults``
+   * - :ref:`allowPartialResults <cmd-find-allowPartialResults>`
 
      - boolean
 
-     - Optional. For queries against a sharded collection, returns partial results from
-       the :binary:`~bin.mongos` if some shards are unavailable instead of
-       throwing an error.
-       
-       
+     - .. _cmd-find-allowPartialResults:
+     
+       Optional. For queries against a sharded collection, allows the
+       command (or subsequent :dbcommand:`getMore` commands) to return
+       partial results, rather than an error, if one or more queried
+       shards are unavailable.
 
    * - ``collation``
 
@@ -329,10 +335,73 @@ The command accepts the following fields:
      - Optional. 
        
        .. include:: /includes/extracts/collation-option.rst
-       
-       
 
+.. _cmd-find-output:
 
+Output
+~~~~~~
+
+The command returns a document that contains the cursor information,
+including the cursor id and the first batch of documents. For example,
+the following document is returned when run against a sharded
+collection:
+
+.. code-block:: javascript
+
+   {
+      "cursor" : {
+         "firstBatch" : [
+            {
+               "_id" : ObjectId("5e8e2ca217b5324fa9847435"),
+               "zipcode" : "20001",
+               "x" : 1
+            },
+            {
+               "_id" : ObjectId("5e8e2ca517b5324fa9847436"),
+               "zipcode" : "30001",
+               "x" : 1
+            }
+         ],
+         "id" : NumberLong("668860441858272439"),
+         "ns" : "test.contacts"
+      },
+      "ok" : 1,
+      "operationTime" : Timestamp(1586380205, 1),
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1586380225, 2),
+         "signature" : {
+            "hash" : BinData(0,"aI/jWsUVUSkMw8id+A+AVVTQh9Y="),
+            "keyId" : NumberLong("6813364731999420435")
+         }
+      }
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   
+   * - Field
+     - Description
+
+   * - ``cursor``
+     
+     - Contains the cursor information, including the
+       cursor ``id`` and the ``firstBatch`` of documents.
+
+   * - ``"ok"``
+   
+     - Indicates whether the command has succeeded (``1``) or failed
+       (``0``).
+
+In addition to the aforementioned :dbcommand:`find`-specific fields,
+the :method:`db.runCommand()` includes the following information for
+replica sets and sharded clusters:
+
+- ``$clusterTime``
+  
+- ``operationTime``
+
+See :ref:`db.runCommand() Results <command-response>` for details.
 
 Behavior
 --------
