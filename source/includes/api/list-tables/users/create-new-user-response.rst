@@ -9,7 +9,7 @@
 
    * - ``apiKey``
      - string
-     - Personal |API| Key of the |mms| user.
+     - Personal |API| Key of the new |mms| user.
 
    * - ``programmaticApiKey``
      - object
@@ -33,19 +33,19 @@
    * - | ``programmaticApiKey``
        | ``.privateKey``
      - string
-     - Six alphanumeric characters that serve as the username of the
-       first programmatic |api| key.
+     - Six alphanumeric characters that serve as the new |mms| username
+       of the first programmatic |api| key.
 
    * - | ``programmaticApiKey``
        | ``.publicKey``
      - string
-     - Six alphanumeric characters that serve as the username of the
-       first programmatic |api| key.
+     - Six alphanumeric characters that serve as the new |mms| username
+       of the first programmatic |api| key.
 
    * - | ``programmaticApiKey``
        | ``.roles``
      - array of objects
-     - :doc:`Roles </reference/user-roles>` assigned to this
+     - :doc:`Roles </reference/user-roles>` assigned to the first
        programmatic |api| key.
 
    * - | ``programmaticApiKey``
@@ -57,34 +57,34 @@
 
           .. note::
 
-             The ``users`` resource returns all the roles the user
-             has in both |mms| and |service|.
+             The ``users`` resource returns all the roles the new |mms|
+             user has in both |mms| and |service|.
 
        .. include:: /includes/list-tables/api-user-roles-onprem.rst
 
    * - ``user``
      - object
-     - Details of the |mms| user.
+     - Details of the new |mms| user.
 
    * - | ``user``
        | ``.emailAddress``
      - string
-     - Email address of the |mms| user.
+     - Email address of the new |mms| user.
 
    * - | ``user``
        | ``.firstName``
      - string
-     - First name of the |mms| user.
+     - First name of the new |mms| user.
 
    * - | ``user``
        | ``.id``
      - string
-     - Unique identifier of the |mms| user.
+     - Unique identifier of the new |mms| user.
 
    * - | ``user``
        | ``.lastName``
      - string
-     - Last name of the |mms| user.
+     - Last name of the new |mms| user.
 
    * - | ``user``
        | ``.links``
@@ -94,18 +94,19 @@
    * - | ``user``
        | ``.mobileNumber``
      - string
-     - Mobile number of the |mms| user.
+     - Mobile number of the new |mms| user.
 
    * - | ``user``
        | ``.roles``
      - array of objects
-     - :doc:`Roles </reference/user-roles>` assigned to this new user.
+     - :doc:`Roles </reference/user-roles>` assigned to the new |mms|
+       user.
 
    * - | ``user``
        | ``.roles.groupId``
      - string
-     - Unique identifier for the project in which the user has the
-       specified role.
+     - Unique identifier for the project in which the new |mms| user
+       has the specified role.
 
        .. cond:: onprem
 
@@ -116,8 +117,8 @@
    * - | ``user``
        | ``.roles.orgId``
      - string
-     - Unique identifier for the organization in which the user has
-       the specified role.
+     - Unique identifier for the organization in which the new |mms|
+       user has the specified role.
 
    * - | ``user``
        | ``.roles.roleName``
@@ -128,18 +129,18 @@
 
           .. note::
 
-             The ``users`` resource returns all the roles the user
-             has in both |mms| and |service|.
+             The ``users`` resource returns all the roles the new |mms|
+             user has in both |mms| and |service|.
 
        .. include:: /includes/list-tables/api-user-roles-onprem.rst
 
    * - | ``user``
        | ``.teamIds``
      - array of strings
-     - List of unique identifiers for the teams to which the user
-       belongs.
+     - List of unique identifiers for the teams to which the new |mms|
+       user belongs.
 
    * - | ``user``
        | ``.username``
      - string
-     - Username of the |mms| user.
+     - Username of the new |mms| user.
