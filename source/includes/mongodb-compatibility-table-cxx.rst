@@ -14,7 +14,7 @@
      - MongoDB 2.6
      - MongoDB 2.4
 
-   * - `*` mongocxx 3.5
+   * - mongocxx 3.5
      - |checkmark|
      - |checkmark|
      - |checkmark|
