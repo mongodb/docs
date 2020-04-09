@@ -6,5 +6,5 @@ causing MongoDB to transparently retry that operation.
 
 Some global operations, typically short lived operations involving
 multiple databases, still require a global "instance-wide" lock.
-Some other operations, such as dropping a collection, still require
+Some other operations, such as :dbcommand:`collMod`, still require
 an exclusive database lock.
