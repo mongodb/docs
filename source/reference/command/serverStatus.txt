@@ -1850,21 +1850,127 @@ security
 .. code-block:: javascript
 
    "security" : {
-      "SSLServerSubjectName": <string>,
-      "SSLServerHasCertificateAuthority": <boolean>,
-      "SSLServerCertificateExpirationDate": <date>
+      "authentication" : {
+         "mechanisms" : {
+            "MONGODB-X509" : {
+               "speculativeAuthenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               },
+               "authenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               }
+            },
+            "SCRAM-SHA-1" : {
+               "speculativeAuthenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               },
+               "authenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               }
+            },
+            "SCRAM-SHA-256" : {
+               "speculativeAuthenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               },
+               "authenticate" : {
+                  "received" : <num>,
+                  "successful" : <num>
+               }
+             }
+          }
+        },
+        "SSLServerSubjectName": <string>,
+        "SSLServerHasCertificateAuthority": <boolean>,
+        "SSLServerCertificateExpirationDate": <date>
    },
 
 .. serverstatus:: security
 
-   A document that reports on security configuration and details;
-   specifically, this section reports on the
-   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
-   certificate.
+   A document that reports on:
    
-   The :serverstatus:`security` information only appears for
-   :binary:`~bin.mongod` instances and :binary:`~bin.mongos` instances
-   with support for TLS/SSL.
+   - The number of times a given authentication mechanism has been used
+     to authenticate against the
+     :binary:`~bin.mongod` / :binary:`~bin.mongos` instance. (New in MongoDB 4.4)
+
+   - The :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+     certificate. (Only appears for :binary:`~bin.mongod` /
+     :binary:`~bin.mongos` instance with support for TLS)
+
+   .. serverstatus:: security.authentication.mechanisms
+
+      A document that reports on the number of times a given
+      authentication mechanism has been used to authenticate against the
+      :binary:`~bin.mongod`/:binary:`~bin.mongos` instance. The values
+      in the document distinguish standard authentication and
+      speculative authentication. [#speculative-auth]_
+
+      .. versionadded:: 4.4
+
+      .. note::
+
+         The fields in the ``mechanisms`` document depend on the
+         configuration of the :parameter:`authenticationMechanisms`
+         parameter. The ``mechanisms`` document includes a field for
+         each authentication mechanism supported by your
+         :binary:`~bin.mongod` / :binary:`~bin.mongos` instance.
+         
+         The following example shows the shape of the ``mechanisms``
+         document for a deployment that only supports :doc:`x.509
+         </core/security-x.509/>` authentication.
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509
+
+      A document that reports on the number of times
+      :doc:`x.509 </core/security-x.509/>` has been used to
+      authenticate against the
+      :binary:`~bin.mongod` / :binary:`~bin.mongos` instance.
+
+      Includes total number of ``x.509`` authentication attempts and the
+      subset of those attempts which were speculative.
+      [#speculative-auth]_
+
+      .. versionadded:: 4.4
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.speculativeAuthenticate.received
+
+      Number of speculative authentication attempts received using
+      :doc:`x.509 </core/security-x.509/>`. Includes both successful and
+      failed speculative authentication attempts. [#speculative-auth]_
+
+      .. versionadded:: 4.4
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.speculativeAuthenticate.successful
+
+      Number of successful speculative authentication attempts received
+      using :doc:`x.509 </core/security-x.509/>`. [#speculative-auth]_
+
+      .. versionadded:: 4.4
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.authenticate.received
+
+      Number of successful and failed authentication attempts
+      received using :doc:`x.509 </core/security-x.509/>`. This value
+      includes speculative authentication attempts received using x.509.
+
+      .. versionadded:: 4.4
+
+   .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.authenticate.successful
+
+      Number of successful authentication attempts received using
+      :doc:`x.509 </core/security-x.509/>`. This value includes
+      successful speculative authentication attempts which used x.509.
+
+      .. versionadded:: 4.4
+
+   .. [#speculative-auth]
+
+      Speculative authentication minimizes the number of network round
+      trips during the authentication process to optimize performance.
 
    .. serverstatus:: security.SSLServerSubjectName
 
