@@ -12,14 +12,13 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.MongoCollection;
 
-public class FindOne 
+public class FindOne
 {
     public static void main( String[] args )
     {
         // Replace the uri string with your MongoDB deployment's connection string
-        MongoClientURI uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
-        MongoClientURI connectionString = new MongoClientURI("mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority");
-        
+        MongoClientURI uri = new MongoClientURI("mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority");
+
         MongoClient mongoClient = new MongoClient(uri);
 
         MongoDatabase database = mongoClient.getDatabase("sample_mflix");
