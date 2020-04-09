@@ -10,30 +10,33 @@ Create the First User
    :depth: 2
    :class: singlecol
 
-Create the first |mms| user. This endpoint is the only API call you can 
-make without first having an API key.
+Create the first |mms| user. You *can* call this endpoint without
+having an |api| key.
 
 .. admonition:: Exceptions
    :class: important
 
-   - This endpoint cannot be used if |onprem| uses 
-     :doc:`LDAP for authentication </tutorial/configure-for-ldap-authentication>`. 
-   - This endpoint can create the first user only if |onprem| runs in 
+   - This endpoint cannot be used if |onprem| uses
+     :doc:`LDAP for authentication </tutorial/configure-for-ldap-authentication>`.
+   - This endpoint can create the first user only if |onprem| runs in
      :setting:`Invitation Only Mode`.
 
-The user created through this endpoint is automatically granted the
-:ref:`GLOBAL_OWNER <global-owner-role>` role. The returned document 
-includes the new user's Public API key and and other details, which 
-you can use to make further API calls.
+|mms| grants the first |mms| user and programmatic |api| key created
+through this endpoint the :ref:`GLOBAL_OWNER <global-owner-role>` role.
+The returned |json| document includes the first |mms| user's personal
+|api| key and the first programmatic |api| key. With either |api| key,
+you can make further |api| calls.
 
-The endpoint does not create a project, but you can use the new user and
-API key to create a project through the :doc:`/reference/api/groups`
-resource in the API. You cannot login to |mms| until after you have
-created a project.
+This endpoint doesn't create projects or organizations. With the new
+|api| keys that it created, you can call the
+:doc:`Create a Project </reference/api/groups/create-one-group>`
+endpoint. That endpoint can create a project and organization in one
+|api| call. You can't login to |mms| until after you have created a
+project.
 
-You *can* use this endpoint to create additional users. Users created 
-after the first are not granted the 
-:ref:`GLOBAL_OWNER <global-owner-role>` role automatically.
+You *can* use this endpoint to create additional users. |mms| doesn't
+grant the :ref:`GLOBAL_OWNER <global-owner-role>` role to subsequent
+users unless you add the role to the |api| call.
 
 .. include:: /includes/api/base-api-uri.rst
 
@@ -53,7 +56,7 @@ Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 10 75
    :header-rows: 1
    :stub-columns: 1
 
@@ -63,31 +66,34 @@ Request Query Parameters
 
    * - whitelist
      - string
-     - The IP address that you want to add to the new user's
-       whitelist.
+     - IP address that you want to add to the whitelist for the first
+       |mms| user.
 
-       .. note:: 
+       .. note::
+
           You can add more than one **whitelist** parameter and value.
 
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 10 10 65
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
-   * - username
+   * - ``username``
      - string
-     - Username of the |mms| user. Validated depending on the 
+     - Required
+     - Username of the first |mms| user. Validated depending on the
        value of the :setting:`mms.email.validation` property:
 
        .. include:: /includes/list-table-api-email-validation-options.rst
-       
+
        See :setting:`mms.email.validation` for details.
 
        .. note::
@@ -96,48 +102,51 @@ Request Body Parameters
           value to an email address, you do not need to set the
           ``emailAddress`` value explicitly.
 
-   * - password
+   * - ``password``
      - string
-     - Password of the new |mms| user. This field is *not included* in
-       the |http| response body. It can only be sent in the |http|
-       request when creating a new user.
+     - Required
+     - Password of the first |mms| user. This field is *not included*
+       in the |http| response body. |mms| sends this in the |http|
+       request only when creating the first |mms| user.
 
-   * - emailAddress
+   * - ``emailAddress``
      - string
-     - *(Optional.)* Email address of the new |mms| user.
+     - Optional
+     - Email address of the first |mms| user.
 
-   * - firstName
+   * - ``firstName``
      - string
-     - First name of the new |mms| user.
+     - Required
+     - First name of the first |mms| user.
 
-   * - lastName
+   * - ``lastName``
      - string
-     - Last name of the new |mms| user.
+     - Required
+     - Last name of the first |mms| user.
 
 Response
 --------
 
-.. include:: /includes/extracts/api-first-user-response-elements.rst
+.. include:: /includes/api/list-tables/users/create-new-first-user-response.rst
 
 Example Request
 ---------------
 
-.. class:: copyable-code
 .. code-block:: sh
    :emphasize-lines: 8-12
 
    curl --digest \
-     --header "Accept: application/json" \
-     --header "Content-Type: application/json" \
-     --include \
-     --request POST "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/unauth/users?pretty=true&whitelist=1.2.3.4&whitelist=2.3.4.5" \
-     --data '
-       {
-         "username": "jane.doe@example.com",
-         "password": "Passw0rd.",
-         "firstName": "Jane",
-         "lastName": "Doe"
-       }'
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request POST "https://{+opsmgr-url+}/api/public/v1.0/unauth/users?pretty=true&whitelist=1.2.3.4&whitelist=2.3.4.5" \
+        --data '
+          {
+            "username": "jane.doe@example.com",
+            "password": "Passw0rd.",
+            "firstName": "Jane",
+            "lastName": "Doe"
+          }'
 
 Example Response
 ----------------
@@ -152,20 +161,32 @@ Response Header
 Response Body
 ~~~~~~~~~~~~~
 
-.. cssclass:: copyable-code
 .. code-block:: json
    :emphasize-lines: 4-5,7
 
    {
-     "apiKey": "1234abcd-ab12-cd34-ef56-1234abcd1234",
+     "apiKey": "Personal API Key string",
+     "programmaticApiKey": {
+       "desc": "Automatically generated Global API key",
+       "id": "{API-KEY}",
+       "links": [{
+         "href": "http://{+opsmgr-url+}/api/public/v1.0/orgs/null/apiKeys/{API-KEY}",
+         "rel": "self"
+       }],
+       "privateKey": "private key string",
+       "publicKey": "public key string",
+       "roles": [{
+         "roleName": "GLOBAL_OWNER"
+       }]
+     },
      "user": {
        "emailAddress": "jane.doe@example.com",
        "firstName": "Jane",
        "id": "{USER-ID}",
        "lastName": "Doe",
-       "links": [ 
+       "links": [
          {
-          "href" : "https://cloud.mongodb.com/api/public/v1.0/users/{USER-ID}",
+          "href" : "https://{+opsmgr-url+}/api/public/v1.0/users/{USER-ID}",
           "rel" : "self"
          }
        ],

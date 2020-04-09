@@ -1,3 +1,4 @@
-One or more links to sub-resources and/or related resources. The
-relations between URLs are explained in the `Web Linking Specification
-<http://tools.ietf.org/html/rfc5988>`_
+One or more links to sub-resources and/or related resources. All
+``links`` arrays in responses include at least one link called
+``self``. The relationships between |url|\s are explained in the
+:rfc:`Web Linking Specification <5988>`.
