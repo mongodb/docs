@@ -1,10 +1,10 @@
 Set up a Free Tier Cluster in Atlas
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After setting up your Java project dependencies, create a MongoDB instance
+After setting up your Java project dependencies, create a MongoDB cluster
 where you can store and manage your data. Complete the
 :atlas:`Get Started with Atlas <getting-started>` guide to set up a new
-Atlas account, free tier cluster (MongoDB instance), load datasets, and
+Atlas account, free tier MongoDB cluster, load datasets, and
 interact with the data.
 
 After completing the steps in the Atlas guide, you should have a new MongoDB
@@ -15,16 +15,16 @@ Connect to your Cluster
 -----------------------
 
 In this step, we create and run an application that uses the Java MongoDB
-driver to connect to your instance of MongoDB and run a query on the sample
+driver to connect to your MongoDB cluster and run a query on the sample
 data.
 
 We pass instructions to the driver on where and how to connect to your
-MongoDB instance in a string called the *connection string*. This string
+MongoDB cluster in a string called the *connection string*. This string
 includes information on the hostname or IP address and port of your
-instance, authentication mechanism, user credentials when applicable, and
+cluster, authentication mechanism, user credentials when applicable, and
 other connection options.
 
-To retrieve your connection string for the instance and user you created in
+To retrieve your connection string for the cluster and user you created in
 the previous step, log into your Atlas account and navigate to the
 **Clusters** section and click the **Connect** button for the cluster that you
 want to connect to as shown below.
