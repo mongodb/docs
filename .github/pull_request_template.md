@@ -3,5 +3,5 @@
 ### Issue JIRA link:
 https://jira.mongodb.org/browse/DOCSP-NNNN
 
-### Docs staging link:
+### Docs staging link (requires sign-in on MongoDB Corp SSO):
 https://docs-mongodborg-staging.corp.mongodb.com/ecosystem/docsworker/NNNN/index.html
