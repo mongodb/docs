@@ -43,6 +43,10 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
+      * - Can Perform Incremental Backups [*]_
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
       * - Supports Encrypted Snapshots
         -
         - :icon:`check-circle`
@@ -106,6 +110,10 @@ Backup Features Supported at Present
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
+      * - Can Perform Incremental Backups [*]_
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
       * - Supports Databases running MongoDB Enterprise
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -118,6 +126,12 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         -
         -
+
+.. [*] |mms| requires a full backup for your first backup, after a
+       snapshot has been deleted, and if the blockstore block size has
+       been changed. Incremental backups reduce network transfer and
+       storage costs.
+
 
 Requirements and Limitations
 ````````````````````````````
