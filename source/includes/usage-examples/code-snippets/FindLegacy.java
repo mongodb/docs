@@ -1,6 +1,6 @@
 package usage_examples;
 
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.lt;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -29,20 +29,18 @@ public class Find
          Projections.include("title", "imdb"),
          Projections.excludeId());
 
-     Document query = new Document()
-         .append("runtime", new Document().append("$lt", 15));
-
-     MongoCursor<Document> cursor = collection.find(query)
+     MongoCursor<Document> cursor = collection
+         .find(lt("runtime", 15))
          .projection(projectionFields)
          .sort(Sorts.descending("title")).iterator();
 
-       try {
-           while(cursor.hasNext()) {
-               System.out.println(cursor.next().toJson());
-           }
-       } finally {
-           cursor.close();
-       }
+     try {
+         while(cursor.hasNext()) {
+             System.out.println(cursor.next().toJson());
+         }
+     } finally {
+         cursor.close();
+     }
 
     mongoClient.close();
   }
