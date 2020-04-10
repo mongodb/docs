@@ -73,7 +73,7 @@ source_constants = {
 }
 
 extlinks = {
-    'hardlink' : ( 'http://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
+    'hardlink' : ( 'https://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'api': ('https://api.mongodb.com/%s', ''),
     'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
@@ -180,7 +180,7 @@ latex_elements = {
     'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
     'papersize': 'letterpaper',
-    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2015 } This work is licensed under a \href{http://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
+    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2015 } This work is licensed under a \href{https://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
 }
 
 latex_paper_size = 'letter'
