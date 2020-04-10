@@ -77,7 +77,7 @@ source_constants = {
 pygments_style = 'sphinx'
 
 extlinks = {
-    'hardlink' : ( 'http://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
+    'hardlink' : ( 'https://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'api': ('https://api.mongodb.com/%s', ''),
     'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
@@ -87,16 +87,16 @@ extlinks = {
     'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
     'products': ('https://www.mongodb.com/products%s', ''),
-    'wtdocs': ('http://source.wiredtiger.com/mongodb-3.4%s', ''),
+    'wtdocs': ('https://source.wiredtiger.com/mongodb-3.4%s', ''),
     'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
-    'node-docs': ('http://mongodb.github.io/node-mongodb-native/2.2/%s', ''),
-    'node-api': ('http://mongodb.github.io/node-mongodb-native/2.2/api/%s', ''),
-    'ruby-api': ('http://api.mongodb.com/ruby/current/Mongo/%s', ''),
-    'scala-api': ('http://mongodb.github.io/mongo-scala-driver/2.0/scaladoc/org/mongodb/scala/MongoCollection.html#%s', ''),
+    'node-docs': ('https://mongodb.github.io/node-mongodb-native/2.2/%s', ''),
+    'node-api': ('https://mongodb.github.io/node-mongodb-native/2.2/api/%s', ''),
+    'ruby-api': ('https://api.mongodb.com/ruby/current/Mongo/%s', ''),
+    'scala-api': ('https://mongodb.github.io/mongo-scala-driver/2.0/scaladoc/org/mongodb/scala/MongoCollection.html#%s', ''),
     'csharp-api': ('https://api.mongodb.com/csharp/current/html/%s.htm', ''),
     'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
-    'java-async-docs': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
-    'java-async-api': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', ''),
+    'java-async-docs': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
+    'java-async-api': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', ''),
     'atlas' : ('https://docs.atlas.mongodb.com%s','')
 }
 source_constants = {
@@ -201,7 +201,7 @@ latex_elements = {
     'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
     'papersize': 'letterpaper',
-    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2016 } This work is licensed under a \href{http://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
+    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2016 } This work is licensed under a \href{https://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
 }
 
 latex_paper_size = 'letter'
