@@ -140,15 +140,57 @@ For many distributions of Linux you can change values by substituting
 the ``-n`` option for any possible value in the output of ``ulimit
 -a``.
 
-After changing the ``ulimit`` settings, you *must* restart the
-process to take advantage of the modified settings. On Linux, you can
-use the ``proc`` file system to see the current limitations on a
-running process.
+When ``ulimit`` is used to change resource limits in a shell, the changes
+affect only the processes subsequently launched by that shell process.
+This means:
 
-Depending on your system's configuration, and default settings, any
-change to system limits made using ``ulimit`` may revert following
-a system restart. Check your distribution and operating
-system documentation for more information.
+- If you launch :binary:`~bin.mongod` or :binary:`~bin.mongos` manually from
+  a shell, you must start new :binary:`~bin.mongod` or :binary:`~bin.mongos`
+  processes after changing resource limits via ``ulimit``.
+
+- If :binary:`~bin.mongod` or :binary:`~bin.mongos` are launched using
+  startup scripts, the ``ulimit`` invocation must generally be placed in those
+  startup scripts prior to :binary:`~bin.mongod` or :binary:`~bin.mongos`
+  invocations.
+
+  .. note::
+
+    On Linux distributions using Upstart, systemd or a similar process
+    manager to start :binary:`~bin.mongod` or :binary:`~bin.mongos` processes,
+    the resource limits must be configured in the process manager
+    as described below.
+
+The per-process limits in effect for a particular process can be obtained
+via the ``proc`` file system by examining the file located at
+``/proc/<pid>/limits``, where ``<pid>`` is the process's :term:`PID` or
+process identifier. For example, if :binary:`~bin.mongod` is running as
+PID 1234, the limits in effect for this process can be viewed as follows:
+
+.. code-block:: sh
+
+  % cat /proc/1234/limits
+  Limit                     Soft Limit           Hard Limit           Units     
+  Max cpu time              unlimited            unlimited            seconds   
+  Max file size             unlimited            unlimited            bytes     
+  Max data size             unlimited            unlimited            bytes     
+  Max stack size            8388608              unlimited            bytes     
+  Max core file size        0                    unlimited            bytes     
+  Max resident set          unlimited            unlimited            bytes     
+  Max processes             62913                62913                processes 
+  Max open files            20000                20000                files     
+  Max locked memory         16777216             16777216             bytes     
+  Max address space         unlimited            unlimited            bytes     
+  Max file locks            unlimited            unlimited            locks     
+  Max pending signals       62913                62913                signals   
+  Max msgqueue size         819200               819200               bytes     
+  Max nice priority         0                    0                    
+  Max realtime priority     0                    0                    
+  Max realtime timeout      unlimited            unlimited            us        
+
+.. note::
+
+  The default resource limits vary between Linux distributions. Your output
+  may be different.
 
 macOS
 `````
