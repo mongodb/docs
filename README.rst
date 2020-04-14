@@ -12,10 +12,7 @@ the documentation locally if you have `giza
      cd docs/
      make html
 
-Visit ``docs/mongodb/build/html/index.html`` to view the current state
-of the documentation. See `MongoDB Documentation Buildsystem
-<http://docs.mongodb.org/manual/meta/build/>`_ for complete
-instructions on building the MongoDB documentation.
+If successful, the built HTML files will be located in ``build/<branch>/html/`` (for example ``build/master/html/`` when on the git ``master`` branch).
 
 The MongoDB Documentation Project is governed by the terms of the
 `MongoDB Contributor Agreement
