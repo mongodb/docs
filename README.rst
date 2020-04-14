@@ -17,7 +17,8 @@ The MongoDB Documentation Project is governed by the terms of the
 `MongoDB Contributor Agreement
 <http://www.mongodb.com/legal/contributor-agreement>`_.
 
-To contribute to the documentation, 
+To contribute to the documentation,
+
 - If you have not done so already, please sign the `MongoDB Contributor Agreement <https://www.mongodb.com/legal/contributor-agreement>`_.
 
 - Fork this repository on GitHub and issue a pull request. 
