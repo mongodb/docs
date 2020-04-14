@@ -31,17 +31,6 @@ Report Issues
 To file issues or requests regarding the documentation, go to the
 `Documentation Jira Project <https://jira.mongodb.org/browse/DOCS>`_.
 
-Additional Information
-----------------------
-
-For an overview of the documentation style, process, and overall
-organization, see the following pages:
-
-- `Style Guide <https://docs.mongodb.com/meta/style-guide>`_
-- `Documentation Practices <http://docs.mongodb.com/meta/practices>`_
-- `Documentation Organization <https://docs.mongodb.com/meta/organization>`_
-- `Build Instructions <https://docs.mongodb.com/meta/build>`_
-
 License
 -------
 
