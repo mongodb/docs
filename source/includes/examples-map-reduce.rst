@@ -9,9 +9,7 @@ Map-Reduce Examples
 
    :doc:`Aggregation pipeline </core/aggregation-pipeline>`
    provides better performance and a more coherent interface than
-   map-reduce.
-
-   Various map-reduce expressions can be
+   map-reduce, and various map-reduce expressions can be
    rewritten using :doc:`aggregation pipeline operators
    </meta/aggregation-quick-reference>`, such as :pipeline:`$group`,
    :pipeline:`$merge`, etc. 
