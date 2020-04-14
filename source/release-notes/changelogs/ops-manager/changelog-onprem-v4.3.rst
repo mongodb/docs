@@ -1,3 +1,18 @@
+.. _opsmgr-server-4.3.9:
+
+|onprem| Server 4.3.9
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-04-09*
+
+- Includes the ability to bootstrap a backup initial sync using :doc:`rsync 
+  </tutorial/resync-backup/>` when synchronizing from a hidden secondary.
+- Fixes an issue where the initial sync failed to complete after 
+  :ref:`FCV <4.2-backup-considerations>` downgrade.
+- Includes :doc:`MongoDB Business Intelligence Connector v2.13.4 
+  </tutorial/deploy-bi-connector>`.
+- Updates Agent: :ref:`mongodb-10.12.2.6205`.
+
 .. _opsmgr-server-4.3.8:
 
 |onprem| Server 4.3.8
