@@ -12,6 +12,8 @@ the documentation locally if you have `giza
      cd docs/
      make html
 
+If successful, the built HTML files will be located in ``build/<branch>/html/`` (for example ``build/master/html/`` when on the git ``master`` branch).
+
 The MongoDB Documentation Project is governed by the terms of the
 `MongoDB Contributor Agreement
 <http://www.mongodb.com/legal/contributor-agreement>`_.
