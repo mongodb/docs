@@ -29,14 +29,6 @@ please sign the `MongoDB Contributor Agreement
 To file issues or requests regarding the documentation, go to the
 `Documentation Jira Project <https://jira.mongodb.org/browse/DOCS>`_.
 
-For an overview of the documentation style, process, and overall
-organization, see the following pages:
-
-- `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
-- `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
-- `Documentation Organization <http://docs.mongodb.org/manual/meta/organization>`_
-- `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
-
 All documentation is available under the terms of a `Creative Commons
 License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
 
