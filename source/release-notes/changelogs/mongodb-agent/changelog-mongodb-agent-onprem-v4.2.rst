@@ -1,3 +1,13 @@
+.. _mongodb-10.2.16.5960:
+
+MongoDB Agent 10.2.16.5960
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.12 on 2020-04-09 <opsmgr-server-4.2.12>`
+
+- Fixes an issue that resulted in failures creating snapshots when 
+  handling sessions between the MongoDB Agent and MongoDB 4.2 clusters.
+
 .. _mongodb-10.2.15.5958:
 
 MongoDB Agent 10.2.15.5958

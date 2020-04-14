@@ -1,3 +1,12 @@
+.. _opsmgr-server-4.2.12:
+
+|onprem| Server 4.2.12
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-04-09*
+
+Upgrades Agent: :ref:`mongodb-10.2.16.5960`.
+
 .. _opsmgr-server-4.2.11:
 
 |onprem| Server 4.2.11
