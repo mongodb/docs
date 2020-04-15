@@ -36,7 +36,7 @@
        
    * - ``clusterId``
      - string
-     - ID of the cluster containing the checkpoint.
+     - The ID of the cluster containing the checkpoint.
        
    * - ``completed``
      - BSON timestamp
@@ -53,7 +53,7 @@
        
    * - ``links``
      - array of objects
-     - This array includes one or more links to sub-resources
+     - An array of links to sub-resources
        and/or related resources. The relations between URLs are
        explained in the `Web Linking Specification
        <http://tools.ietf.org/html/rfc5988>`_.
@@ -66,7 +66,7 @@
 
    * - ``parts[i].replicaSetName``
      - string
-     - Name of the replica set. Not present for config servers.
+     - The name of the replica set. Not present for config servers.
 
    * - ``parts[i].shardName``
      - string

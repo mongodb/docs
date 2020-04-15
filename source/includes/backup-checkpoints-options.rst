@@ -9,7 +9,7 @@
 
    * - ``<cluster-id>``
      - string 
-     - The ID of the cluster. 
+     - ID of the cluster. 
      - yes 
 
    * - ``--profile``, ``-p``
