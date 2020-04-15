@@ -1,3 +1,18 @@
+.. _data-lake-v20200414:
+
+14 April 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance.
+- Supports the :manual:`$currentOp 
+  </reference/operator/aggregation/currentOp/>` stage so that you can
+  monitor query progress on long-running queries.
+- Updates the :ref:`isodate <datalake-path-attribute-types>` attribute
+  to accept additional formats.
+- Refreshes the metadata catalog when you use :ref:`Storage
+  Configuration <config-datalake>` commands.
+
+
 .. _data-lake-v202020326:
 
 26 March 2020 Release 
