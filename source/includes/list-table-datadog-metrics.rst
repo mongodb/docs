@@ -15,6 +15,12 @@
      - Total database storage size and data size on the cluster in
        bytes.
 
+   * - ``DISK_PARTITION_UTILIZATION`` (mongodb.atlas.system.disk.iops.percentutilization)
+     - Disk
+     - Percentage of time during which requests are being issued
+       to and serviced by the disk partition. Includes requests from all
+       processes, not just MongoDB processes.
+
    * - | ``DOCUMENT_METRICS_RETURNED`` (mongodb.atlas.metrics.document.returned)
        | ``DOCUMENT_METRICS_INSERTED`` (mongodb.atlas.metrics.document.inserted)
        | ``DOCUMENT_METRICS_UPDATED`` (mongodb.atlas.metrics.document.updated)
