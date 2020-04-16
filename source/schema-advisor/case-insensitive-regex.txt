@@ -1,0 +1,129 @@
+.. _case-insensitive-regex-anti-pattern:
+
+======================================
+Improve Case-Insensitive Regex Queries
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If you frequently run case-insensitive regex queries (utilizing the
+``i`` option), you should create a
+:manual:`case-insensitive index </core/index-case-insensitive/>` to
+support your queries. You can specify a
+:manual:`collation </reference/collation/>` on an index to define
+language-specific rules for string comparison, such as rules for
+lettercase and accent marks. A case-insensitive index greatly improves
+performance for case-insensitive queries.
+
+Example
+-------
+
+Consider an ``employees`` collection with the following documents. This
+collection has no indexes besides the default ``_id`` index:
+
+.. code-block:: javascript
+
+   // employees collection
+
+   {
+     "_id": 1,
+     "first_name": "Hannah",
+     "last_name": "Simmons",
+     "dept": "Engineering"
+   },
+   {
+     "_id": 2,
+     "first_name": "Michael",
+     "last_name": "Hughes",
+     "dept": "Security"
+   },
+   {
+     "_id": 3,
+     "first_name": "Wendy",
+     "last_name": "Crawford",
+     "dept": "Human Resources"
+   },
+   {
+     "_id": 4,
+     "first_name": "MICHAEL",
+     "last_name": "FLORES",
+     "dept": "Sales"
+   }
+
+If your application frequently queries the ``first_name`` field, you may
+want to run case-insensitive regex queries to more easily find matching
+names. Case-insensitive regex also helps match against differing data
+formats, as in the example above where you have ``first_names`` of both
+"Michael" and "MICHAEL".
+
+If a user searches for the string "michael", the application may run
+the following query:
+
+.. code-block:: javascript
+
+   db.employees.find( { first_name: { $regex: /michael/i } } )
+
+Since this query specifies the
+:manual:`$regex </reference/operator/query/regex/>` option ``i``, it is
+case-insensitive. The query returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 2, "first_name" : "Michael", "last_name" : "Hughes", "dept" : "Security" }
+   { "_id" : 4, "first_name" : "MICHAEL", "last_name" : "FLORES", "dept" : "Sales" }
+
+Although this query does return the expected documents, case-insensitive
+regex queries with no index support are not very performant. To improve
+performance, you can create a
+:manual:`case-insensitive index </core/index-case-insensitive/>` on the
+``first_name`` field:
+
+.. code-block:: javascript
+
+   db.employees.createIndex(
+     { first_name: 1 }, 
+     { collation: { locale: 'en', strength: 2 } }
+   )
+
+When the ``strength`` field of an index's ``collation`` document is
+``1`` or ``2``, the index is case-insensitive. For a detailed
+description of the collation document and the different ``strength``
+values, see :manual:`Collation Document
+</reference/collation/#collation-document>`.
+
+For the application to use this index, you must also specify the *same*
+collation document from the index in the query. You can remove the
+``$regex`` operator from the previous :method:`~db.collection.find()`
+method and instead utilize the newly created index:
+
+.. code-block:: javascript
+
+   db.employees.find( { first_name: "michael" } ).collation( { locale: 'en', strength: 2 } )
+
+.. note::
+
+   Do not use the :manual:`$regex </reference/operator/query/regex/>`
+   operator when using a case-insensitive index for your query. The
+   ``$regex`` implementation is not collation-aware and cannot utilize
+   case-insensitive indexes.
+
+Learn More
+----------
+
+- To learn more about case-insensitive indexes with illustrative
+  examples, see
+  :manual:`Case Insensitive Indexes </core/index-case-insensitive/>`.
+
+- To learn more about regex queries in MongoDB, see
+  :manual:`$regex </reference/operator/query/regex/>`.
+
+- MongoDB University offers a free course on optimizing MongoDB
+  Performance. To learn more, see
+  `M201: MongoDB Performance <https://university.mongodb.com/courses/M201/about>`__.
