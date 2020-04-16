@@ -129,11 +129,15 @@ rst_epilog = [
     '.. |kms| replace:: :abbr:`KMS (Key Management Service)`',
     '.. |ldaps| replace:: :abbr:`LDAPS (Secure Lightweight Directory Access Protocol)`',
     '.. |ldap| replace:: :abbr:`LDAP (Lightweight Directory Access Protocol)`',
+    '.. |mdb-support| replace:: `MongoDB Support <https://support.mongodb.com/welcome>`__',
     '.. |mms-full| replace:: MongoDB Cloud Manager',
     '.. |mms| replace:: Cloud Manager',
     '.. |mongo| replace:: :binary:`~bin.mongo`',
     '.. |mongod| replace:: :binary:`~bin.mongod`',
     '.. |mongos| replace:: :binary:`~bin.mongos`',
+    '.. |mongodump| replace:: :binary:`~bin.mongodump`',
+    '.. |mongomirror| replace:: :binary:`~bin.mongomirror`',
+    '.. |mongorestore| replace:: :binary:`~bin.mongorestore`',
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
     '.. |nvme| replace:: :abbr:`NVMe (non-volatile memory express)`',
     '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`',
@@ -173,6 +177,7 @@ rst_epilog = [
     '.. |vpc| replace:: :abbr:`VPC (Virtual Private Cloud)`',
     '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`',
     '.. |times| unicode:: U+000D7',
+    '.. |ui-org-menu| replace:: :icon-mms:`office` :guilabel:`Organizations` menu',
 ]
 
 rst_epilog.extend(get_replacements(conf))
@@ -186,7 +191,11 @@ source_constants = {
     'data-lake-short' : 'Data Lake',
     'fts' : 'Atlas Search',
     'latest-mongodb-eol': '3.4',
-    'service-api-v1-base-uri' : 'https://cloud.mongodb.com/api/atlas/v1.0'
+    'service-api-v1-base-uri' : 'https://cloud.mongodb.com/api/atlas/v1.0',
+    'Cloud-Backup' : 'Cloud Provider Snapshot',
+    'Old-Backup' : 'Continuous Backup',
+    'cloud-backup' : 'cloud provider snapshot',
+    'old-backup' : 'continuous backup',
 }
 
 pygments_style = 'sphinx'
@@ -212,6 +221,7 @@ extlinks = {
     'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
     'ruby': ('https://docs.mongodb.com/ruby-driver/current%s', ''),
     'mdbacct': ('https://account.mongodb.com/account%s',''),
+    'contact': ('https://www.mongodb.com/contact%s',''),
 }
 
 # add `extlinks` for each published version.
