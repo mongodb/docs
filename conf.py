@@ -90,6 +90,7 @@ rst_epilog = [
     '.. |cmk| replace:: :abbr:`CMK (customer master key)`',
     '.. |compass| replace:: MongoDB Compass',
     '.. |copy| unicode:: U+000A9',
+    '.. |csv| replace:: :abbr:`CSV (Comma-Separated Values)`',
     '.. |cvc| replace:: :abbr:`CVC (Card Verification Code)`',
     '.. |data-lakes| replace:: Data Lakes',
     '.. |data-lake| replace:: Data Lake',
