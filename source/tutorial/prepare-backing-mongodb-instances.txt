@@ -10,29 +10,53 @@ Install the |application| Database and Backup Database
    :depth: 1
    :class: twocols
 
-Before you install |onprem|, you must deploy the supporting databases
-first. These are called :term:`backing databases`. |mms| cannot deploy
-or manage these databases. These databases include the
+Before you install |onprem|, you must deploy its supporting databases.
+These are called :term:`backing databases`. These databases include the
 :ref:`mms-application-database` and the
-:term:`backup database <Backup Database>`. You must deploy an
-application database. It holds |onprem| operational data. You may
-deploy a :term:`backup database <Backup Database>` if you want to use
-the |onprem| :doc:`backup feature </core/backup-overview>`. This
-database stores :term:`oplog` data, temporary sync data, and,
-depending on your configuration, your :term:`snapshots <snapshot>`.
+:term:`backup database <Backup Database>`. The following table
+compares the |onprem| Application Database and the Backup Database:
 
-These databases run on dedicated MongoDB
-:term:`replica sets <replica set>`. If you use
-:doc:`multiple backup databases </tutorial/configure-backup-high-availability>`,
-you must configure one replica set for each backup database. The
-replica set for each database must be dedicated to that database only
-and *must store no other data*.
+.. list-table::
+   :widths: 40 30 30
+   :header-rows: 1
+   :stub-columns: 1
 
-The :term:`backing databases` must run on independent
-:term:`replica sets <replica set>` on independent storage volumes.
-Running regular backups, a backup database could fill a volume. If the
-application database cannot write to a volume, |onprem| stops. Proper
-storage setup reduces the risk of |onprem| failures.
+   * - Database
+     - Application Database
+     - :term:`Backup Database`
+
+   * - What does the database store?
+     - |onprem| operational data
+     - :term:`Oplog <oplog>` data, temporary sync data, and, depending
+       on your configuration, your :term:`snapshots <snapshot>`
+
+   * - Is the database necessary?
+     - Yes
+     - No, unless you use |onprem| to
+       :doc:`backup </core/backup-overview>` the databases that
+       |onprem| manages.
+
+   * - How should the database store the data?
+     - Dedicated :term:`replica set` on independent storage volume
+     - Dedicated :term:`replica set` per backup database on independent
+       storage volumes
+
+   * - Can the database use more than one deployment?
+     - No
+     - :doc:`Yes </tutorial/configure-backup-high-availability>`
+
+   * - Can |onprem| manage the database?
+     - No
+     - Yes
+
+.. note::
+
+   Each backing database must use a dedicated replica set. *The replica
+   set can't store other data*.
+
+   Running regular backups, a backup database could fill a volume. If
+   the application database cannot write to a volume, |onprem| stops.
+   Proper storage setup reduces the risk of |onprem| failures.
 
 Considerations
 --------------
@@ -84,7 +108,6 @@ To monitor your application database:
    To follow the full procedure, see
    :doc:`/tutorial/enable-appdb-monitoring`.
 
-
 .. _requirements-backing-db-replica-sets:
 
 Prerequisites
@@ -93,7 +116,8 @@ Prerequisites
 Replica Set Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :term:`replica sets <replica set>` that host the |onprem| :term:`backing databases` must:
+The :term:`replica sets <replica set>` that host the |onprem|
+:term:`backing databases` must:
 
 Use Dedicated Databases
   The :term:`replica sets <replica set>` must store data to support
@@ -124,7 +148,7 @@ Secure the Connection to the :term:`Backing Databases <backing databases>`
   Ensure that connections from |onprem| to your
   :term:`backing databases` are secure. Configure these databases to
   accept connections from |onprem| that
-  :ref:`only use SSL <configure-ssl-backing>`.
+  :ref:`only use TLS <configure-ssl-backing>`.
 
 Configure an :term:`Authentication Mechanism <authentication mechanism>` for the :term:`Backing Databases <backing databases>`
   Limit access to your backing databases to specific MongoDB users
@@ -132,10 +156,10 @@ Configure an :term:`Authentication Mechanism <authentication mechanism>` for the
   databases to use authentication, see :ref:`configure-auth-backing`.
 
 Configure the |mms| User that Accesses the :term:`Backing Databases <backing databases>` with Only Needed Roles
-  Set these users to have the :authrole:`readWriteAnyDatabase`,
-  :authrole:`dbAdminAnyDatabase`, and :authrole:`clusterMonitor` roles.
-  If a backing database is a sharded cluster, add
-  :authrole:`clusterAdmin`.
+  Set these users to have the :authrole:`readWriteAnyDatabase` and
+  :authrole:`dbAdminAnyDatabase` roles. If a backing database is a
+  sharded cluster, add :authrole:`clusterAdmin`, otherwise add
+  :authrole:`clusterMonitor`.
 
 .. _backing-instances-prerequisites:
 
@@ -153,10 +177,11 @@ Hardware
   each component to determine the requirements for the host.
 
 System Configuration
-  The hosts must be configured according to the requirements given in the :manual:`MongoDB Production Notes </administration/production-notes>`
-  except where explicitly contradicted in this tutorial. The
-  Production Notes include information on ulimits, NUMA, and other
-  configuration options.
+  The hosts must be configured according to the requirements given in
+  the :manual:`MongoDB Production Notes </administration/production-notes>`
+  except where explicitly contradicted in this tutorial. The Production
+  Notes include information on ulimits, NUMA, and other configuration
+  options.
 
 Networking
   Host network security must allow the needed ports described in
@@ -164,10 +189,10 @@ Networking
   and outbound firewall rules for each host must allow
   access to the required ports.
 
-:abbr:`RHEL (Red Hat Enterprise Linux)` and CentOS 6 hosts only
+|rhel| and CentOS 6 hosts only
   .. include:: /includes/rhel-ulimit-conf-file.rst
 
-:abbr:`RHEL (Red Hat Enterprise Linux)` and CentOS hosts running SELinux in ``enforcing`` mode
+|rhel| and CentOS hosts running SELinux in ``enforcing`` mode
   If the hosts are not configured to use the default MongoDB
   :option:`data <mongod.--dbpath>` or :option:`log <mongod.--logpath>`
   paths or :manual:`ports </reference/default-mongodb-port>` and are
@@ -183,7 +208,6 @@ Networking
     :ref:`Configure SELinux <install-enterprise-rhel-configure-selinux>`
 
 .. _storage-engine-considerations-for-backing-dbs:
-.. _install-deploy-backing-database:
 
 Deploy Backing Databases
 ------------------------
@@ -205,7 +229,8 @@ Next Steps
   use the replica set that you created for the backup database in this
   tutorial. If you *also* choose to use a :term:`blockstore` or
   :term:`S3 snapshot store <S3 Snapshot Store>` to store your
-  :term:`snapshots <snapshot>`, you must :manual:`deploy one Replica
-  Set </tutorial/deploy-replica-set>` for each :doc:`blockstore
-  </tutorial/manage-blockstore-storage>` or :doc:`S3 blockstore
-  </tutorial/manage-s3-blockstore-storage>` metadata database.
+  :term:`snapshots <snapshot>`, you must
+  :manual:`deploy one Replica Set </tutorial/deploy-replica-set>` for
+  each :doc:`blockstore </tutorial/manage-blockstore-storage>` or
+  :doc:`S3 blockstore </tutorial/manage-s3-blockstore-storage>`
+  metadata database.
