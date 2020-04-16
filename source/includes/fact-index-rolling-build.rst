@@ -9,6 +9,13 @@ building indexes on :term:`replica sets <replica set>` and
 availability, |mms| removes one node from the cluster at a time
 starting with a :term:`secondary <secondary>`.
 
+After you build an index in a rolling fashion, if your MongoDB database
+runs with an
+:manual:`FCV </reference/command/setFeatureCompatibilityVersion>`
+less than ``4.2``,
+:doc:`resync the head database </tutorial/resync-backup>` to ensure that
+the head database takes the new index into account.
+
 To learn more about rebuilding indexes, see :manual:`Build Indexes on
 Replica Sets </tutorial/build-indexes-on-replica-sets>`.
 
