@@ -1,47 +1,47 @@
-title: "Create a database user in the source replica set."
-level: 4
 ref: mongorestore-user-source
+title: "Create a database user in the source replica set."
+stepnum: 1
+level: 4
 optional: true
 content: |
 
    .. admonition:: Optional
-      :class: note
+      :class: important
 
       If your source cluster does *not* enforce authentication,
       you can skip this step.
 
-   If the source deployment enforces authentication, you must
-   provide a database user with privileges to read any database
-   as part of this procedure. See 
-   :manual:`MongoDB Role-Based Access Control </core/authorization>` 
-   for more information on database user privileges.
+   If the source deployment enforces authentication, you must provide a
+   database user with privileges to read any database as part of this
+   procedure. To learn more about database user privileges, see
+   :manual:`MongoDB Role-Based Access Control </core/authorization>`.
 
-   If no such user exists, create a user in your source MongoDB 
-   replica set with the 
-   :manual:`backup </reference/built-in-roles/#backup>` role on the 
-   ``admin`` database.
+   If no such user exists, create a user in your source MongoDB replica
+   set with the :manual:`backup </reference/built-in-roles/#backup>`
+   role on the ``admin`` database.
 
-   For example, run the following command in the
-   :binary:`mongo <bin.mongo>` shell to create the ``mySourceUser`` 
-   on the ``admin`` database and assign it the ``backup`` role. 
-   For replica sets, you must run this command against the 
-   :term:`primary`.
+   .. example::
 
-   .. class:: copyable-code
-   .. code-block:: javascript
+      Run the following command in the |mongo| shell to create the
+      ``mySourceUser`` on the ``admin`` database and assign it the
+      ``backup`` role. For replica sets, you must run this command
+      against the :term:`primary`.
 
-       use admin
-       db.createUser( 
-         { 
-            user: "mySourceUser", 
-            pwd: "mySourcePassword", 
-            roles: [ "backup" ] 
-         } 
-       )
+      .. code-block:: javascript
+
+          use admin
+          db.createUser(
+            {
+               user: "<mySourceUser>",
+               pwd: "<mySourcePassword>",
+               roles: [ "backup" ]
+            }
+          )
 ---
-title: "Assemble the ``mongodump`` command."
-level: 4
 ref: mongorestore-source-connection
+title: "Assemble the ``mongodump`` command."
+stepnum: 2
+level: 4
 content: |
 
    Copy the following template to into your preferred text editor:
@@ -49,22 +49,22 @@ content: |
    .. code-block:: shell
 
       mongodump --host '<ReplicaSetName>/<HostList>' \
-        --username 'mySourceUser'
-        --password 'mySourcePassword'
-        --authenticationDatabase 'admin'
-        --archive
+                --username '<mySourceUser>' \
+                --password '<mySourcePassword>' \
+                --authenticationDatabase 'admin' \
+                --archive
 
    Replace ``<ReplicaSetName>`` with the name of the source replica
    set. Replace ``<HostList>`` with a comma-separated list of
-   hostnames of the replica set members. You must specify 
-   at least *one* member of the replica set. 
+   hostnames of the replica set members. You must specify
+   at least *one* member of the replica set.
 
    For standalone deployments, exclude ``<ReplicaSetName>/`` and
    specify the hostname of the standalone deployment only. For
    example, ``--host 'standalone-mongod.example.net:27017'``
 
    Add any additional command line options as required for your
-   cluster. If your source cluster does not enforce 
+   cluster. If your source cluster does not enforce
    authentication, exclude the following options:
 
    - :option:`--username <mongodump.--username>`
@@ -75,130 +75,131 @@ content: |
    modified the template.
 
 ---
-title: "Set up database user in the target |service| cluster."
-level: 4
 ref: mongorestore-user-target
-content: |
-
-   To run :binary:`mongorestore` against an |service| cluster, you
-   must specify a database user in the |service| cluster 
-   that has the :atlasrole:`Atlas admin` role.
-
-   If no such user exists, create the user:
-
-   #. In the :guilabel:`Security` section of the left navigation, click
-      :guilabel:`Database Access`. The :guilabel:`Database Users` tab
-      displays.
-
-   #. Click :icon-fa5:`plus` :guilabel:`Add New Database User`.
-
-   #. Add an :guilabel:`Atlas admin` user.
-
-   See :ref:`mongodb-users` for complete documentation on 
-   database user management.
-
----
-title: "Open the :guilabel:`Command Line Tools` tab."
-ref: mongorestore-connect
+title: "Set up database user in the target |service| cluster."
+stepnum: 3
 level: 4
 content: |
-  To access the |service| :guilabel:`Command Line Tools` tab:
 
-  #. From the |service| UI, use the :guilabel:`Context` picker in the 
-     top-left hand corner to select the |service| 
-     :ref:`project <projects>` associated to the cluster you want to
-     connect to.
+  To run :binary:`mongorestore` against an |service| cluster, you
+  must specify a database user in the |service| cluster
+  that has the :atlasrole:`Atlas admin` role.
 
-  #. Click on the :guilabel:`...` button for the cluster. 
-     From the picker menu,  click :guilabel:`Command Line Tools`.
+  If no such user exists, create the user:
 
-  You can also click on the cluster in the 
-  |service| UI and select the :guilabel:`Command Line Tools` tab from
-  the cluster view.  
+  a. If it is not already displayed, select your desired organization
+     from the :icon-mms:`office` :guilabel:`Organizations` menu in the
+     navigation bar.
+
+  #. Click :guilabel:`Access Manager` in the sidebar, or click
+     :guilabel:`Access Manager` in the navigation bar, then click
+     your organization.
+
+  #. Click :icon-fa5:`plus` :guilabel:`Add New Database User`.
+
+  #. Add an :guilabel:`Atlas admin` user.
+
+  To learn more about user management, see :ref:`mongodb-users`.
+
 ---
-title: "Retrieve and modify the ``mongorestore`` connection template."
+ref: view-project-nav-clusters-page
+stepnum: 4
 level: 4
+inherit:
+  file: steps-source-project-nav.yaml
+  ref: project-nav-clusters-page
+
+---
+ref: select-command-line
+title: "Choose :guilabel:`Command Line Tools` for your desired cluster."
+stepnum: 5
+level: 4
+content: |
+  From the :icon-fa5:`ellipsis-h` menu for the cluster, click
+  :guilabel:`Command Line Tools`.
+---
 ref: mongorestore-whitelist
+title: "Retrieve and modify the ``mongorestore`` connection template."
+stepnum: 6
+level: 4
 content: |
-  The :guilabel:`Binary Import and Export Tools` section of the 
-  :guilabel:`Command Line Tools` tab displays a copyable template with 
-  the minimum required options for connecting 
-  :binary:`mongorestore <bin.mongorestore>` to your |service| cluster. 
-  
+  The :guilabel:`Binary Import and Export Tools` section of the
+  :guilabel:`Command Line Tools` tab displays a copyable template with
+  the minimum required options for connecting |mongorestore| to your
+  |service| cluster.
+
   The template includes placeholder values for certain options. Copy
   and paste the template into your preferred text editor and make the
   following modifications:
-  
-  - ``<PASSWORD>`` - replace this with the password for the user 
+
+  - ``<atlasPassword>``: replace this with the password for the user
     specified in ``--username``. The template includes a database user
-    for the project as the ``--username``. If you want to authenticate 
-    as a different user, replace the value of ``--username`` and 
+    for the project as the ``--username``. If you want to authenticate
+    as a different user, replace the value of ``--username`` and
     specify the password for that user in ``--password``.
 
   - Add :option:`--nsExclude <mongorestore.--nsExclude>` and set its value to ``"admin.system.*"``.
 
   - Add :option:`--archive <mongorestore.--archive>`.
 
-  Your template should resemble the following
-  command:
+  Your template should resemble the following command:
 
   .. code-block:: shell
      :copyable: false
 
-     mongorestore --host myAtlasCluster/00.foo.mongodb.net:27017,01.foo.mongodb.net:27017,02.foo.mongodb.net:27017
-       --ssl
-       --username myAtlasUser --password 'atlasPassword'
-       --authenticationDatabase admin
-       --archive
-       --nsExclude 'admin.system.*'
+     mongorestore --host myAtlasCluster/00.foo.mongodb.net:27017,01.foo.mongodb.net:27017,02.foo.mongodb.net:27017 \
+                  --ssl \
+                  --username '<myAtlasUser>' \
+                  --password '<atlasPassword>' \
+                  --authenticationDatabase admin \
+                  --archive \
+                  --nsExclude 'admin.system.*'
 
 ---
-title: "Run mongodump and mongorestore."
+title: "Run |mongodump| and |mongorestore|."
+stepnum: 7
 level: 4
 ref: mongorestore-run
-pre: |
+content: |
 
-   .. important::
+  .. important::
 
-      Ensure that the host where you are running 
-      :binary:`mongodump <bin.mongodump>` and 
-      :binary:`mongorestore <bin.mongorestore>`
-      is in the project :ref:`IP whitelist <security-ip-whitelist>`.
- 
-      To review your project whitelist, click :guilabel:`Network
-      Access` in the :guilabel:`Security` section of the left
-      navigation. The :guilabel:`IP Whitelist` tab displays. For
-      complete documentation on managing your project whitelist, see
-      :ref:`security-ip-whitelist`.
+     Ensure that the host where you are running |mongodump| and
+     |mongorestore| is in the project :ref:`IP whitelist
+     <security-ip-whitelist>`.
 
-   In your preferred text editor, use the pipe ``|`` operator
-   to separate the :binary:`mongodump <bin.mongodump>` and
-   :binary:`mongorestore <bin.mongorestore>` commands. The final
-   command should resemble the following:
+     To review your project whitelist, click :guilabel:`Network
+     Access` in the :guilabel:`Security` section of the sidebar. The
+     :guilabel:`IP Whitelist` tab displays. For complete documentation
+     on managing your project whitelist, see :ref:`security-ip-whitelist`.
 
-   .. class:: copyable-code
-   .. code-block:: none
-   
-      mongodump --host 'sourceRS/source-host1:27017,source-host2:27017,source-host3:27017' \
-        --archive --ssl \
-        -username 'mySourceUser' -password 'sourcePassword' --authenticationDatabase admin \ 
-      | \
-      mongorestore --host myAtlasRS/atlas-host1:27017,atlas-host2:27017,atlas-host3:27017 \
-        --archive --ssl \
-        -username myAtlasAdminUser -password 'atlasPassword' --authenticationDatabase admin \
-        --nsExclude 'admin.system.*'
+  In your preferred text editor, use the pipe ``|`` operator to
+  separate the |mongodump| and |mongorestore| commands. The final
+  command should resemble the following:
 
-   Run the completed command from a terminal or shell connected to a 
-   host machine on your source cluster. 
+  .. code-block:: sh
 
-post: |
-   Upon successful completion of the procedure, connect to your
-   |service| cluster using the :binary:`mongo <bin.mongo>` shell
-   and verify the result of the procedure. See 
-   :ref:`connect-mongo-shell` for complete instructions.
+     mongodump --host 'sourceRS/source-host1:27017,source-host2:27017,source-host3:27017' \
+               --archive --ssl \
+               --username '<mySourceUser>' \
+               --password '<sourcePassword>' \
+               --authenticationDatabase admin \
+     | \
+     mongorestore --host myAtlasRS/atlas-host1:27017,atlas-host2:27017,atlas-host3:27017 \
+                  --archive --ssl \
+                  --username '<myAtlasAdminUser>' \
+                  --password '<atlasPassword>' \
+                  --authenticationDatabase admin \
+                  --nsExclude 'admin.system.*'
 
-   You must update your applications to point to the 
-   |service| cluster before resuming write operations. 
-   See :doc:`/driver-connection` for complete instructions on
-   connecting applications to |service|.
+  Run the completed command from a terminal or shell connected to a
+  host machine on your source cluster.
+
+  Upon successful completion of the procedure, connect to your
+  |service| cluster using the |mongo| shell and verify the result of
+  the procedure. To learn how, see :ref:`connect-mongo-shell`.
+
+  You must update your applications to point to the |service| cluster
+  before resuming write operations. To learn how to connect
+  applications to |service|, see :doc:`/driver-connection`.
 ...
