@@ -1,0 +1,170 @@
+.. _dl-create-store-cmd:
+
+===============
+``createStore``
+===============
+
+.. default-domain:: mongodb
+
+.. include:: /includes/fact-data-lake-beta.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``createStore`` command creates a store in the 
+{+data-lake+} storage configuration.
+
+.. _dl-create-store-cmd-syntax:
+
+Syntax 
+------
+
+.. code-block:: json 
+
+   db.runCommand({ createStore: <store-name>, provider: <storage-provider>, region: <region-name>, bucket: <bucket-name>, delimiter: <delimiter>, prefix: <prefix> })
+
+.. _dl-create-store-cmd-params:
+
+Parameters 
+----------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 70 10 
+
+   * - Parameter 
+     - Type 
+     - Description 
+     - Required?
+
+   * - ``createStore``
+     - string
+     - | Name of the new {+data-lake-store+}. 
+       | The {+data-lake-store+} name must be unique.
+     - yes
+
+   * - ``provider``
+     - string
+     - | Name of the storage provider where the data is stored. 
+       | Value must be ``s3`` for an |aws| |s3| bucket as a data store.
+     - yes
+
+   * - ``region``
+     - string
+     - | Region in which the ``bucket`` is hosted. 
+       | For a list of valid region names, see :atlas:`Amazon Web 
+         Services (AWS) </reference/amazon-aws/#amazon-aws>`.
+     - yes
+
+   * - ``bucket`` 
+     - string 
+     - | Name of the bucket in which data is stored. 
+       | Must exactly match the name of an |s3| bucket which
+       | {+data-lake-short+} can access given the configured |aws| |iam|
+       | credentials.
+     - yes
+
+   * - ``delimiter`` 
+     - string 
+     - | The character used to define seperations of elements in the
+       | ``prefix``.  
+       | If ommitted, defaults to ``"/"``.
+     - no
+
+   * - ``prefix`` 
+     - string 
+     - | Value prepended to the ``path``.
+       | If ommitted, defaults to ``""``.
+     - no
+
+.. _dl-create-store-cmd-output:
+
+Output 
+------
+
+The command prints the following output if it succeeds. If the command
+fails, see :ref:`dl-create-store-cmd-errors` for recommended solutions.
+
+.. code-block:: json 
+
+   {
+     "ok": 1,
+     "store": {
+       "name": "<store-name>",
+       "region": "<region-name>",
+       "bucket": "<bucket-name>",
+       "delimiter": "<delimiter>",
+       "prefix": "<prefix>",
+       "provider": "<storage-provider>"
+     }
+   }
+
+
+.. _dl-create-store-cmd-egs:
+
+Example
+-------
+
+The following example uses the ``createStore`` command to create a new
+{+data-lake-store+} called ``myStore``.
+
+.. code-block:: json 
+
+   use sample
+   db.runCommand({ createStore: "myStore", provider: "s3", region: "us-east-1", bucket: "my-data-lake", prefix: "/sample" })
+
+The previous command prints the following: 
+
+.. code-block:: json 
+   :copyable: false
+
+   {
+     "ok": 1,
+     "store": {
+       "name": "myStore",
+       "region": "us-east-1",
+       "bucket": "my-data-lake",
+       "delimiter": "/",
+       "prefix": "/sample",
+       "provider": "s3"
+     }
+   }
+
+.. _dl-create-store-cmd-errors:
+
+Troubleshoot Errors 
+-------------------
+
+If the command fails, it returns one of the following errors.
+
+**Reason:**  A {+data-lake-store+} with the name specified in
+``createStore`` already exists.
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+     "ok": 0,
+     "errmsg": "store <store-name> already exists",
+     "code": 2,
+     "codeName": "BadValue"
+   }
+
+**Solution:** Specify a unique name for the {+data-lake-store+}.
+
+**Reason:** The specified ``provider`` isn't recognized.
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+     "ok": 0,
+     "errmsg": "unrecognized store provider <storage-provider>",
+     "code": 2,
+     "codeName": "BadValue"
+   }
+
+**Solution:** Ensure that you specify a valid storage provider.

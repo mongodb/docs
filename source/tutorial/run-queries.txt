@@ -1,0 +1,107 @@
+:noprevnext:
+
+============================================
+Run Queries Against Your {+data-lake-short+}
+============================================
+
+.. default-domain:: mongodb
+
+.. include:: /includes/fact-data-lake-beta.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+*Estimated completion time: 5 minutes*
+
+You can run operations using the MongoDB Query Language (MQL) which
+includes most, but not all standard server commands. In particular,
+the {+data-lake+} is currently a read-only service. MQL operations
+can run in parallel to enhance performance even for large and complex
+queries. However, {+data-lake-short+} is designed for analytics-type
+workloads and is not intended for day-to-day operational workloads.
+To learn which MQL operations are supported, see the
+:ref:`MQL Support <data-lake-mql-support>` documentation.
+
+Prerequisites
+-------------
+
+To complete this part of the tutorial, you will need to have completed:
+
+- **Part 1:** :doc:`Upload sample data to your S3 bucket </tutorial/load-sample-data>`
+- **Part 2:** :doc:`/tutorial/deploy`
+- **Part 3:** :doc:`/tutorial/connect`
+- **Part 4:** :doc:`/tutorial/configure-database-collections`
+
+You must be connected to your {+data-lake-short+} with the
+:binary:`~bin.mongo` shell before running the following queries.
+
+Queries
+-------
+
+.. _adl-sample-query1:
+
+Find instances in the ``weather`` collection where pressure is higher than 900
+millibars. Sort by timestamp and limit the number of documents returned: 
+
+.. code-block:: sh
+
+   db.weather.find({"pressure": {$gt: 900}}).limit(5).sort({ "ts": 1})
+
+.. _adl-sample-query2:
+
+Find AirBnB offerings in Porto with a high review score:
+
+.. code-block:: sh
+
+   db.airbnb.find( { "address.market" : "Porto", "review_scores.review_scores_rating": {$gt: 79}})
+
+.. _adl-sample-query3:
+
+Find properties in New York for less than $200 per night, and sort the
+returned documents by customer review rating:
+
+.. code-block:: sh
+
+   db.airbnb.find({ "address.market" : "New York", "price": {$lt: NumberDecimal("200.00")} } ).sort({review_scores_rating: -1})
+
+.. _adl-sample-query4:
+
+Find the average cost of accommodation in Porto by accommodation type:
+
+.. code-block:: sh
+
+   db.airbnb.aggregate([{ $match: { "address.market" : "Porto" } },{ $group : {"_id" : "$property_type", avgPrice: {$avg: "$price"}}}])
+
+.. _adl-sample-query5:
+
+Find the average price per night of an apartment in Sydney:
+
+.. code-block:: sh
+
+   db.airbnb.aggregate([{ $match: { "address.market" : "Sydney", "property_type" : "Apartment" } }, { $group : {"_id" : "$property_type", avgPrice: {$avg: "$price"}}}])
+
+.. _adl-sample-query6:
+
+Find the number of apartments available to rent in Barcelona.
+
+.. code-block:: sh
+
+   db.airbnb.aggregate([{ $match: { "address.market" : "Barcelona" , "property_type": "Apartment"} },{ $count: "numApartments"}])
+
+Summary
+-------
+
+Congratulations! You just set up an {+data-lake+}, created a database
+and collections from data stored in an S3 bucket, and queried
+the data using MQL commands.
+
+For more information on {+data-lake+}, see :ref:`|service| |data-lake| <atlas-data-lake>`.  
+
+.. figure:: /images/data-lake-getting-started.png
+   :figwidth: 775px
+   :alt: Screenshot of the {+dl+} after running queries.
+
+.. include:: /includes/fact-data-lake-dynamic-collections.rst

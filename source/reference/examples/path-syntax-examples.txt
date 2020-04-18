@@ -1,0 +1,560 @@
+.. _datalake-path-syntax:
+
+====================
+Path Syntax Examples
+====================
+
+.. default-domain:: mongodb
+
+.. include:: /includes/fact-data-lake-beta.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview 
+--------
+
+:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path`
+supports parsing filenames into computed fields. {+data-lake-short+}
+can add the computed fields to each document generated from the
+parsed file. {+data-lake-short+} can target queries on those
+computed field values to only those file(s) with a matching file name.
+
+- You can specify a single parsing function on the filename:
+
+  .. code-block:: none
+     :copyable: false
+
+     /path/to/files/{<fieldA> <data-type>}
+
+- You can specify multiple parsing functions on the filename:
+
+  .. code-block:: none
+     :copyable: false
+
+     /path/to/files/{<fieldA> <data-type>}-{<fieldB> <data-type>}
+
+- You can specify parsing functions alongside static strings
+  in the filename:
+
+  .. code-block:: none
+     :copyable: false
+   
+     /path/to/files/prefix-{<fieldA> <data-type>}-suffix
+
+- You can specify dot (i.e. ``.``) along the path to the filename:
+
+  .. code-block:: none 
+     :copyable: false 
+
+     /path/to/files/{<fieldA>.<fieldB> <data-type>}
+
+- You can specify ``ObjectIds`` in the path to the files to create 
+  partitions:
+
+  .. code-block:: none 
+     :copyable: false
+
+     /path/to/files/{objid objectid}
+
+- You can specify a range of ``ObjectIds`` in the path to the files 
+  to create partitions:
+
+  .. code-block:: none 
+     :copyable: false
+
+     /path/to/files/{min(obj) objectid}-{max(obj) objectid}
+
+- You can specify parsing functions along the path to the filename:
+
+  .. code-block:: none
+     :copyable: false 
+
+     /path/{<fieldA> <data-type>}/{<fieldB> <data-type>}/{<fieldC> <data-type>}/*
+
+The default data type for partition attributes in the 
+:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` is string. 
+If you omit the data type, defaults to string. For example, suppose a path similar 
+to the following:
+
+.. code-block:: none 
+   :copyable: false 
+
+   /employees/{startDate}
+
+In the above example, ``startDate`` is interpreted as a string. For more 
+information on all supported data types, see :ref:`datalake-path-attribute-types`. 
+
+Examples 
+--------
+
+The following examples demonstrate how to parse filenames into 
+computed fields:
+
+- :ref:`datalake-advanced-path-parse-single`
+- :ref:`datalake-advanced-path-parse-multiple`
+- :ref:`datalake-advanced-path-parse-regex`
+- :ref:`datalake-advanced-path-parse-range`
+- :ref:`datalake-advanced-parse-nested-fields`
+- :ref:`datalake-advanced-path-objectIds`
+- :ref:`datalake-advanced-path-create-partition`
+- :ref:`datalake-advanced-path-generate-collection`
+
+.. _datalake-advanced-path-parse-single:
+
+Parse Single Field from Filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a {+data-lake-store+} ``accountingArchive`` containing files
+where the filename describes an invoice date. For  example, the filename
+``/invoices/1564671291998.json`` contains the invoices for the UNIX
+timestamp ``1564671291998``. 
+
+The following :ref:`datalake-databases-reference` object generates a field 
+``invoiceDate`` by parsing the filename as a UNIX timestamp:
+
+.. code-block:: none
+   :copyable: false
+
+   "databases" : [
+     {
+       "name" : "accounting",
+       "collections" : [
+         {
+           "name" : "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{invoiceDate date}"
+             }
+           ]
+         }
+       ]
+     }
+   ]
+
+{+data-lake-short+} adds the computed field and value to each
+document generated from the filename. Documents generated from the
+example filename includes a field 
+``invoiceDate: ISODate("2019-08-01T14:54:51Z")``. Queries on the
+``invoiceDate`` field can be targeted to only those files
+that match the specified value.
+
+.. _datalake-advanced-path-parse-multiple:
+
+Parse Multiple Fields from Filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a {+data-lake-store+} ``accountingArchive`` containing files
+where the filename describes an invoice number and invoice date. For
+example, the filename ``/invoices/MONGO12345-1564671291998.json``
+contains the invoice ``MONGODB12345`` for the UNIX timestamp
+``1564671291998``.
+
+The following :ref:`datalake-databases-reference` object
+generates:
+
+- A field ``invoiceNumber`` by parsing the first segment of the filename
+  as a string.
+
+- A field ``invoiceDate`` by parsing the second segment of the filename
+  as a UNIX timestamp.
+
+.. code-block:: none
+   :copyable: false
+
+   "databases" : [
+     {
+       "name": "accounting",
+       "collections" : [
+         {
+           "name" : "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{invoiceNumber string}-{invoiceDate date}"
+             }
+           ]
+         }
+       ]
+     }
+   ]
+
+{+data-lake-short+} adds the computed fields and values to each
+document generated from the filename. Documents generated from the
+example filename include the following fields:
+
+- ``invoiceNumber : "MONGODB12345"``
+- ``invoiceDate : ISODate("2019-08-01T14:54:51Z")``
+
+Queries that include *both* the ``invoiceNumber`` and ``invoiceDate`` 
+fields can be targeted to only those files that match the
+specified values.
+
+.. _datalake-advanced-path-parse-regex:
+
+Use Regular Expression to Parse Fields from Filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a {+data-lake-store+} ``accountingArchive`` containing files
+where the filename describes an invoice number and invoice date. For 
+example, the filename ``/invoices/MONGODB12345-20190102.json`` contains
+the invoice ``MONGODB12345`` for the date ``20190102``. 
+
+The following :ref:`datalake-databases-reference` object
+generates:
+
+- A field ``invoiceNumber`` by parsing the first segment of the filename
+  as a string
+
+- A field ``year`` by using a regular expression to parse only the
+  first 4 digits of the second segment of the filename as an int.
+
+- A field ``month`` by using a regular expression to parse only the
+  next 2 digits of the second segment of the filename as an int.
+
+- A field ``day`` by using a regular expression to parse only the
+  next 2 digits of the second segment of the filename as an int.
+
+.. code-block:: none
+   :copyable: false
+
+   "databases" : [
+     {
+       "name" : "accounting",
+       "collections" : [
+         {
+           "name" : "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{invoiceNumber string}-{year int:\\d{4}}{month int:\\d{2}}{day int:\\d{2}}"
+             }
+           ]
+         }
+       ]
+     }
+   }
+
+{+data-lake-short+} adds the computed fields and values to each
+document generated from the filename. Documents generated from the
+example filename include the following fields:
+
+- ``invoiceNumber : "MONGODB12345"``
+- ``year : 2019``
+- ``month: 01``
+- ``day: 02``
+
+.. important::
+
+   You must escape the regex string specified in the ``path``. For
+   example, if the regex string includes double quotes, you must 
+   escape those values.
+
+Queries that include *all* generated fields can be targeted to only
+those files that match the specified values.
+
+.. _datalake-advanced-path-parse-range:
+
+Identify Ranges of Queryable Data from Filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a {+data-lake-store+} ``accountingArchive``  containing files
+where the filename describes the range of data contained in the file.
+For example, the filename
+``/invoices/1546367712000-1549046112000.json`` contains invoices for
+the time period between 2019-01-01 and 2019-01-02 using UNIX timestamp
+representation for those dates.
+
+The following  :ref:`datalake-databases-reference` object identifies
+the minimum time range as the first segment of the filename and the
+maximum time range as the second segment of the filename:
+
+.. code-block:: none
+   :copyable: false
+
+   "databases" : [
+     {
+       "name: "accounting",
+       "collections" : [
+         {
+           "name: "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{min(invoiceDate) date}-{max(invoiceDate) date}"
+             }
+           ]
+         }
+       ]
+     }
+   ]
+
+When {+data-lake-short+} receives a query on the ``"invoiceDate"``
+field, it uses the specified path to identify which 
+files contain the data that matches the query.
+
+Queries on the ``invoiceDate`` field can be targeted to only those
+files whose range captures the specified value, including the ``min`` 
+and ``max`` date.
+
+.. important::
+
+   The field specified for the min and max ranges *must* exist in
+   every document contained in the file to avoid unexpected or
+   undesired behavior. {+data-lake-short+} does *not* perform any
+   validation that the underlying data conforms to this constraint.
+
+.. _datalake-advanced-parse-nested-fields:
+
+Identify Nested Fields from Filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+data-lake-short+} supports querying nested data when the nested data 
+value is also the filename. You can use the dot operator (i.e. ``.``) in your 
+:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` to map the 
+partitions attributes in your storage configuration to nested fields in your 
+documents. 
+
+Consider a {+data-lake-store+} ``accountingArchive``. The {+data-lake-store+} 
+contains files with names that match values of nested fields in the documents. 
+For example:
+
+.. code-block:: text 
+   :copyable: false 
+
+   accountingArchive 
+   |--invoices
+      |--January.json
+      |--February.json
+      ...
+
+Suppose the ``January.json`` file contains a document with the following 
+fields: 
+
+.. code-block:: text 
+   :copyable: false 
+
+   {
+     "invoice": {
+        "invoiceNumber" : "MONGODB12345",
+        "year" : 2019, 
+        "month": "January", //value matches filename
+        "date": 02
+     }, 
+     "vendor": "MONGODB",
+     ...
+   }
+
+The following :ref:`datalake-databases-reference` object identifies 
+``month`` as a nested field inside a document. The 
+:ref:`datalake-databases-reference` object also identifies the value of 
+``month`` as the name of the file that contains the document.
+
+.. code-block:: text 
+   :copyable: false 
+
+   "databases" : [
+     {
+       "name" : "accounting",
+       "collections" : [
+         {
+           "name" : "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{invoice.month string}"
+             }
+           ]
+         }
+       ]
+     }
+   ]
+
+When {+data-lake-short+} receives a query on a specific month such as 
+``January``, it uses the specified path to identify which file 
+contains the data that matches the query.
+
+.. _datalake-advanced-path-objectIds:
+
+Create Partitions from ObjectIds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify :manual:`ObjectIds </reference/bson-types/#objectid>` in 
+the path to the files. For files that contain ``ObjectId`` in the filename, 
+{+data-lake-short+} creates partitions for each ``ObjectId``. 
+
+Consider the following {+data-lake-store+}, ``accountingArchive``. This data  
+store contains files that include ``ObjectId`` in the filename:
+
+.. code-block:: text 
+   :copyable: false 
+
+   accountingArchive 
+   |--invoices
+      |--507f1f77bcf86cd799439011.json
+      |--507f1f77bcf86cd799439012.json
+      |--507f1f77bcf86cd799439013.json
+      |--507f1f77bcf86cd799439014.json
+      |--507f1f77bcf86cd799439015.json
+     
+The following :ref:`datalake-databases-reference` object creates  
+partitions for the ``ObjectIds``.
+
+.. code-block:: text
+   :copyable: false
+
+   "databases" : [
+     {
+       "name" : "accounting",
+       "collections" : [
+         {
+           "name" : "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{objid objectid}"
+             }
+           ]
+         }
+       ]
+     }
+   ]                                            
+
+Or, suppose the {+data-lake-store+} ``accountingArchive`` contains 
+files that include a range of ``ObjectIds`` in the filename. For 
+example:
+
+.. code-block:: text 
+   :copyable: false 
+
+   accountingArchive 
+   |--invoices
+      |--507f1f77bcf86cd799439011-507f1f77bcf86cd799439020.json
+      |--507f1f77bcf86cd799439021-507f1f77bcf86cd799439030.json
+      |--507f1f77bcf86cd799439031-507f1f77bcf86cd799439040.json
+
+The following :ref:`datalake-databases-reference` object creates 
+partitions for the given range of ``ObjectIds``.
+
+.. code-block:: text
+   :copyable: false
+
+   "databases" : [
+     {
+       "name" : "accounting",
+       "collections" : [
+         {
+           "name" : "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{min(obj) objectid}-{max(obj) objectid}"
+             }
+           ]
+         }
+       ]
+     }
+   ]
+
+When {+data-lake-short+} receives a query on the ``ObjectId``, it uses the 
+specified path to identify which file contains the data that matches 
+the query.
+
+.. _datalake-advanced-path-create-partition:
+
+Create Partitions from File Path
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify parsing functions on any path leading up to the 
+filename. Each computed field is based on a parsing function along the path. 
+When querying the data, {+data-lake-short+} converts each computed field to 
+a partition. Partitions, which are synonymous with subdirectories, are then 
+used to filter files with increasing precision. 
+
+Consider a {+data-lake-store+} ``accountingArchive`` with the following 
+directory structure:
+
+.. code-block:: text
+   :copyable: false
+
+   invoices
+   |--MONGO12345
+      |--2019
+         |--01
+            |--02
+
+The following :ref:`datalake-databases-reference` object creates the 
+``invoiceNumber``, ``year``, ``month``, and ``day`` partitions with 
+a small set of filtered files:
+
+.. code-block:: text 
+   :copyable: false 
+
+   "databases" : [
+     {
+       "name" : "accounting",
+       "collections" : [
+         {
+           "name" : "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{invoiceNumber string}/{year int}/{month int}/{day int}/*"
+             }
+           ]
+         }
+       ]
+     }
+   }
+
+.. _datalake-advanced-path-generate-collection:
+
+Generate Dynamic Collection Names from File Path
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a {+data-lake-store+} ``accountingArchive``  with the
+following directory structure:
+
+.. code-block:: text
+   :copyable: false
+
+   invoices
+   |--SuperSoftware
+   |--UltraSoftware
+   |--MegaSoftware
+
+The following :ref:`datalake-databases-reference` object 
+generates a dynamic collection name from the file path:
+
+.. code-block:: json
+   :copyable: false
+
+   "databases" : [
+     {
+       "name" : "invoices",
+       "collections" : [
+         {
+           "name" : "*", 
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{collectionName()}/"
+             }
+           ]
+         }
+       ]
+     }
+   ]
+
+When applied to the example directory structure, the path 
+results in the following collections:
+
+- SuperSoftware
+- UltraSoftware
+- MegaSoftware
+
+.. include:: /includes/fact-data-lake-dynamic-collections.rst

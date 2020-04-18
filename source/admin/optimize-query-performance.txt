@@ -1,0 +1,121 @@
+======================================
+Optimize |data-lake| Query Performance
+======================================
+
+.. default-domain:: mongodb
+
+.. include:: /includes/fact-data-lake-beta.rst
+
+.. meta::
+   :keywords: |data-lake|
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The performance of your {+data-lake+} is affected by the
+following factors:
+
+- The structure of your data in |s3| and how you represent it in your
+  {+data-lake+} :doc:`configuration file </reference/config-files/data-lake-configuration>`.
+- The size of your data files.
+- The format and structure of your data files.
+
+Data Structure in |s3|
+----------------------
+
+For easier management, make sure that your data is
+logically grouped into partitions. You can leverage partitions to
+improve {+data-lake-short+} performance by mapping them to partition
+attributes in your :doc:`configuration file
+</reference/config-files/data-lake-configuration>`.
+
+You can improve your {+data-lake-short+}\'s performance by ensuring that
+your partition structure maps to your query patterns and that it is
+defined in your :doc:`configuration file
+</reference/config-files/data-lake-configuration>`. By mapping your *partition
+attributes* (the parts of your |s3| prefix that looks like a folder) to
+a query attribute, {+data-lake-short+} can selectively open the files
+that contain data related to your query. This both reduces the amount of
+time a query takes and decreases cost, since {+data-lake-short+} reads
+and downloads less files from |aws|.
+
+.. example::
+
+   Consider an |s3| bucket ``metrics`` with the following structure:
+
+   .. code-block:: text
+
+      metrics
+      |--hardware
+      |--software
+         |--computer
+         |--phone
+   
+   You can set a partition attribute for "metric type" by defining
+   ``/metrics/{metric_type string}/*`` in your configuration file. If
+   you issue a query that contains ``{metric_type: software}``,
+   {+data-lake-short+} only scans the files with the prefix
+   ``/software`` and ignores files with the prefix ``/hardware``. 
+   
+   You can then set a partition attribute for "software type" by
+   defining ``/metrics/{metric_type string}/{software_type string}`` in
+   your configuration file. If you issue a query that contains
+   ``{metric_type: software, software_type: computer}``,
+   {+data-lake-short+} ignores files with the prefix ``/phone``.
+   
+For more information on mapping partition attributes to a collection
+:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path`, see
+:ref:`datalake-path-syntax`.
+
+Data File Size
+--------------
+
+Each file that {+data-lake-short+} handles requires a certain amount of
+compute resources. If your {+data-lake-store+} contains many small data
+files, the resources required compound and can reduce performance.
+Alternatively, many large data files are problematic as
+{+data-lake-short+} then downloads and scans unnecessary data.
+
+For most use cases, a performant file size is **100 to 200 MB**.
+
+Data File Format
+----------------
+
+{+data-lake+} supports several :ref:`data file formats
+<data-lake-data-formats>`. You can improve performance by compressing
+certain file formats or by optimizing file contents for your queries.
+
+Compression
+~~~~~~~~~~~
+
+When you compress data files, they take less time to download. Reduced
+download time has a greater performance benefit than parsing
+uncompressed data.
+
+You can compress the following file formats using `gzip
+<https://www.gnu.org/software/gzip/manual/gzip.html>`__:
+
+- |json|
+- |bson|
+- :ref:`CSV <data-lake-csv-tsv-data>` 
+- :ref:`TSV <data-lake-csv-tsv-data>` 
+
+File Structure
+~~~~~~~~~~~~~~
+
+`Parquet <https://parquet.apache.org/documentation/latest/>`_, `Avro
+<https://avro.apache.org/docs/current/>`_, and `ORC
+<https://orc.apache.org/docs/>`_ files contain metadata about the file
+itself so that an application can traverse the file contents in
+different ways. If you structure your data file to align with the
+queries you want to run, {+data-lake+} can leverage this metadata to
+quickly jump to the right data. 
+
+Of these formats, `Parquet
+<https://parquet.apache.org/documentation/latest/>`_ files provide the
+best performance and space efficiency for {+data-lake+}, as it is
+optimized to parse row and column groups for `Parquet
+<https://parquet.apache.org/documentation/latest/>`_. 

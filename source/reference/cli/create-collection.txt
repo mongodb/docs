@@ -1,0 +1,449 @@
+.. _dl-create-collection-cmd:
+
+==========
+``create``
+==========
+
+.. default-domain:: mongodb
+
+.. include:: /includes/fact-data-lake-beta.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``create`` command creates a collection for existing 
+:datalakeconf:`stores` in the {+data-lake+} storage configuration. 
+
+The wildcard ``"*"`` can be used with the ``create`` command in two ways:
+
+- As the name of the collection to dynamically create collections that maps 
+  to files and folders in the specified file path on the :datalakeconf:`stores` 
+  {+data-lake-store+}.
+- In the ``path`` parameter to create a collection that maps to multiple 
+  files and folders in the specified file path on the :datalakeconf:`stores` 
+  {+data-lake-store+}.
+
+.. _dl-manage-collections-create-cmd-syntax:
+
+Syntax 
+------
+
+.. code-block:: json 
+
+   db.runCommand({ "create" : "<collection-name>|*", "dataSources" : [{ "storeName" : "<store-name>", "path" : "<path-to-files-or-folders>", "defaultFormat" :  "<file-extension>" }]})
+
+.. _dl-manage-collections-create-cmd-params:
+
+Parameters  
+----------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 70 10 
+
+   * - Parameter 
+     - Type 
+     - Description 
+     - Required?
+
+   * - ``<collection-name>|*``
+     - string 
+     - The name of the collection to which {+data-lake-short+} maps the data 
+       contained in the {+data-lake-store+} or the wildcard ``"*"`` to 
+       dynamically create collections using the :ref:`wildcard collection 
+       function <datalake-advanced-path-generate-collection>` 
+       (``collectionName()``).
+     - yes
+
+   * - ``dataSources``
+     - object 
+     - Array of objects where each object represents a {+data-lake-store+} in 
+       the :datalakeconf:`stores` array to map with the collection.
+     - yes
+
+   * - ``dataSources.storeName``
+     - string
+     - The name of a {+data-lake-store+} to map to the ``<collection>``. 
+       Value must match the :datalakeconf:`~stores.[n].name` in the 
+       :datalakeconf:`stores` array.
+     - yes
+
+   * - ``dataSources.path``
+     - string
+     - The path to the files and folders. Specify ``/`` to capture all files 
+       and folders from the ``prefix`` path. See :ref:`datalake-path-syntax` 
+       for more information.
+     - yes
+
+   * - ``dataSources.defaultFormat`` 
+     - string 
+     - The format that {+data-lake-short+} defaults to if it encounters 
+       a file without an extension while querying the {+data-lake-store+}. If 
+       omitted, {+data-lake-short+} attempts to detect the file type by 
+       scanning a few bytes of the file. The following values are valid:
+
+       ``.json, .json.gz, .bson, .bson.gz, .avro, .avro.gz, .tsv, .tsv.gz, 
+       .csv, .csv.gz, .parquet``
+     - no
+
+.. _dl-manage-collections-create-cmd-output:
+
+Output 
+~~~~~~
+
+The command returns the following output if it succeeds. You can verify 
+the results by running the commands in 
+:ref:`dl-manage-collections-create-cmd-verify`. If it fails, see :ref:`dl-manage-collections-create-cmd-errors` below for recommended 
+solutions.
+
+.. code-block:: shell 
+   :copyable: false
+
+   { ok: 1 }
+
+.. _dl-manage-collections-create-cmd-egs:
+
+Examples 
+--------
+
+The following examples use the sample dataset, 
+`airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__ 
+and 
+`weather <https://atlas-data-lake.s3.amazonaws.com/json/sample_weatherdata/data.json>`__, 
+on |aws| |s3| stores with the following settings: 
+
+.. list-table:: 
+   :stub-columns: 1
+   :widths: 20 40 40
+
+   * - **Store Name** 
+     - ``egS3Store``
+     - ``sampleS3Store``
+
+   * - **Region**
+     - ``us-east-2``
+     - ``us-east-1``
+
+   * - **Bucket**
+     - ``sbx-data-lake``
+     - ``sbx-yadl-store``
+
+   * - **Prefix**
+     - ``json``
+     - ``egData``
+
+   * - **Delimiter**
+     - ``/``
+     - ``/``
+
+   * - **Sample Dataset**
+     - ``airbnb``
+     - ``weather``
+
+The :doc:`Getting Started with Atlas Data Lake tutorial 
+</tutorial/load-sample-data/>` contains instructions for 
+preparing your |s3| bucket and uploading the sample dataset.
+
+Basic Example 
+~~~~~~~~~~~~~
+
+The following command creates a collection named ``airbnb`` in the 
+``sampleDB`` database in the storage configuration. The ``airbnb`` collection 
+maps to the ``airbnb`` sample dataset in the ``json`` folder in the |s3| store 
+named ``egS3Store``.
+
+.. example::
+
+   .. code-block:: json 
+
+      use sampleDB
+      db.runCommand({ "create" : "airbnb", "dataSources" : [{ "storeName" : "egS3Store", "path" : "/json/airbnb", "defaultFormat" : ".json" }]})
+
+The previous command returns the following output:
+
+.. example::
+
+   .. code-block:: json 
+      :copyable: false 
+
+      { "ok" : 1 }
+
+The following commands show that the collection was successfully 
+created: 
+
+.. code-block:: json
+   :copyable: false 
+
+   > show collections
+   airbnb
+   > db.runCommand({"storageGetConfig" : 1 })
+   {
+	   "ok" : 1,
+	   "storage" : {
+		   "stores" : [{
+				 "name" : "egS3Store",
+				 "provider" : "s3",
+				 "region" : "us-east-2",
+				 "bucket" : "sbx-data-lake",
+				 "delimiter" : "/",
+				 "prefix" : ""
+			 }],
+		   "databases" : [{
+			   "name" : "sample",
+				 "collections" : [{
+				   "name" : "airbnb",
+					 "dataSources" : [{
+					   "storeName" : "egS3Store",
+					   "path" : "/json/airbnb",
+					   "defaultFormat" : ".json"
+					 }]
+			   }]
+		   }]
+	   }
+   }
+
+Multiple Data Sources Example 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command creates a collection named ``egCollection`` in the 
+``sampleDB`` database in the storage configuration. The ``egCollection`` collection 
+maps to the following sample datasets: 
+
+- ``airbnb`` dataset in the ``json`` folder in the |s3| store 
+  named ``egS3Store``
+- ``weather`` dataset in the ``egData`` folder in the |s3| store 
+  named ``sampleS3Store``
+
+.. code-block:: json 
+
+   use sampleDB
+   db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egS3Store", "path" : "/json/airbnb" }],[{ "storeName" : "sampleS3Store", "path" : "/egData/weather" }]}})
+
+The previous command returns the following output:
+
+.. code-block:: json 
+   :copyable: false 
+
+   { "ok" : 1 }
+
+The following commands show that the collection was successfully 
+created: 
+
+.. code-block:: json
+   :copyable: false 
+
+   > show collections
+   egCollection
+   > db.runCommand({"storageGetConfig":1})
+   {
+	   "ok" : 1,
+	   "storage" : {
+		   "stores" : [{
+				 "name" : "egS3Store",
+				 "provider" : "s3",
+				 "region" : "us-east-2",
+				 "bucket" : "sbx-data-lake",
+				 "delimiter" : "/",
+				 "prefix" : ""
+			 },
+			 {
+				 "name" : "sampleS3Store",
+				 "provider" : "s3",
+				 "region" : "us-east-1",
+				 "bucket" : "sbx-yadl-store",
+				 "delimiter" : "/",
+				 "prefix" : ""
+			 }],
+		   "databases" : [{
+			   "name" : "egS3Store",
+				 "collections" : [{
+				   "name" : "egCollection",
+				   "dataSources" : [
+					   {
+					     "storeName" : "sampleS3Store",
+					     "path" : "egData/weather/*"
+					   },
+					   {
+					     "storeName" : "egS3Store",
+					     "path" : "json/airbnb/*"
+					   }
+				   ]
+			   }]
+		   }]
+	   }
+   }
+
+Wildcard Usage Examples 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows the two ways in which the wildcard ``"*"`` can be 
+specified with the ``create`` command. The following commands create a 
+collection that maps to a {+data-lake-short+} store named ``egS3Store`` in the 
+storage configuration. The ``egS3Store`` contains the sample dataset, 
+`airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__, 
+in a folder named ``json``.
+
+.. tabs::
+
+   tabs:
+     - id: paramEg
+       name: Collection Name Example
+       content: |
+
+         The following example uses the ``create`` command to dynamically 
+         create collections for the files in the path ``/json/`` in the 
+         ``egS3Store`` {+data-lake-store+}. It uses the ``collectionName()`` 
+         function to name the collections after the filenames in the specified 
+         path.
+
+         .. code-block:: json 
+         
+            use sampleDB 
+            db.runCommand({ "create" : "*", "dataSources" : [{ "storeName" : "egS3Store", "path": "/json/{collectionName()}"}]})
+
+         The previous command returns the following output:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { "ok" : 1 }
+            
+         The following commands show that the collection was successfully 
+         created:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            > show collections
+            airbnb
+            > db.runCommand({"storageGetConfig" : 1 })
+            {
+              "ok" : 1,
+              "storage" : {
+                "stores" : [{
+                  "name" : "egS3Store",
+                  "provider" : "s3",
+                  "region" : "us-east-2",
+                  "bucket" : "sbx-data-lake",
+                  "delimiter" : "/",
+                  "prefix" : ""
+                }],
+                "databases" : [{
+                  "name" : "sample",
+                  "collections" : [{
+                    "name" : "*",
+                    "dataSources" : [{
+                      "storeName" : "egS3Store",
+                      "path" : "/json/{collectionName()}"
+                    }]
+                  }]
+                }]
+              }
+            }
+
+     - id: pathEg
+       name: Path Glob Example
+       content: |
+
+         The following example uses the ``create`` command to create a collection 
+         named ``egCollection`` that maps to a {+data-lake-short+} store named 
+         ``egS3Store``. The ``egS3Store`` contains the sample dataset, 
+         `airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__, 
+         in a folder named ``json``. 
+
+         .. code-block:: json 
+      
+            use sampleDB
+            db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egS3Store", "path": "/json/*"}]}})
+
+         The previous command returns the following output:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { "ok" : 1 }
+
+         The following commands show that the collection was successfully 
+         created: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            > show collections
+            egCollection
+            > db.runCommand({"storageGetConfig" : 1 })
+            {
+	            "ok" : 1,
+	            "storage" : {
+		            "stores" : [{
+				          "name" : "egS3Store",
+				          "provider" : "s3",
+				          "region" : "us-east-2",
+				          "bucket" : "sbx-data-lake",
+				          "delimiter" : "/",
+				          "prefix" : ""
+			          }],
+		            "databases" : [{
+			            "name" : "sample",
+				          "collections" : [{
+				            "name" : "egCollection",
+				            "dataSources" : [{
+					            "storeName" : "egS3Store",
+					            "path" : "/json/*"
+				            }]
+			            }]
+		            }]
+	            }
+            }
+
+.. _dl-manage-collections-create-cmd-verify:
+
+Verify Collection 
+-----------------
+
+You can verify that the command successfully created the 
+collection by running any of the following commands: 
+
+.. code-block:: shell
+   :copyable: false 
+
+   show collections 
+   db.runCommand({ "storageGetConfig" : 1 })
+
+.. _dl-manage-collections-create-cmd-errors:
+
+Troubleshoot Errors 
+-------------------
+
+If the command fails, it returns one of the following errors:
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+	   "ok" : 0,
+	   "errmsg" : "store name does not exist",
+	   "code" : 9,
+	   "codeName" : "FailedToParse"
+   }
+
+**Solution:** Ensure that the specified ``storeName`` matches the name of 
+a store in the :datalakeconf:`stores` array. You can run the ``listStores`` 
+command to retrieve the list of stores in your {+data-lake-short+} storage 
+configuration.
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+	   "ok" : 0,
+	   "errmsg" : "collection name already exists in the database",
+	   "code" : 9,
+	   "codeName" : "FailedToParse"
+   }
+
+**Solution:** Ensure that the collection ``name`` is unique. You can run 
+the ``show collections`` command to retrieve the list of existing collections.

@@ -1,0 +1,414 @@
+
+.. _datalake-configuration-file:
+
+======================================
+{+data-lake-short+} Configuration File
+======================================
+
+.. default-domain:: mongodb
+
+.. include:: /includes/fact-data-lake-beta.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _datalake-configuration-file-overview:
+
+Overview 
+--------
+
+The {+data-lake-short+} configuration file uses the |json| format. It 
+defines mappings between your {+data-lake-stores+} and 
+{+data-lake-short+}. For example, consider an S3 bucket ``datacenter-alpha`` 
+containing data collected from a datacenter:
+
+.. code-block:: none
+   :copyable: false
+
+   |--metrics
+      |--hardware
+
+The ``/metrics/hardware`` path stores JSON files with metrics derived
+from the datacenter hardware, where each filename is the UNIX timestamp
+in milliseconds of the 24 hour period covered by that file:
+
+.. code-block:: none
+   :copyable: false
+
+   /hardware/1564671291998.json
+
+The following configuration file does the following:
+
+- Defines a {+data-lake-store+} on the ``datacenter-alpha`` S3 bucket
+  in the ``us-east-1`` AWS region. The {+data-lake-store+}
+  is specifically restricted to only datafiles in the ``metrics``
+  folder path.
+
+- Maps files from the ``hardware`` folder to a MongoDB database
+  ``datacenter-alpha-metrics`` and collection ``hardware``. The
+  configuration mapping includes parsing logic for capturing the
+  timestamp implied in the filename.
+
+.. code-block:: json
+
+   {
+     "stores" : [
+       {
+         "name" : "datacenter-alpha",
+         "provider" : "s3",
+         "region" : "us-east-1",
+         "bucket" : "datacenter-alpha",
+         "prefix" : "/metrics",
+         "delimiter" : "/"
+       }
+     ],
+     "databases" : [ 
+       {
+         "name" : "datacenter-alpha-metrics", 
+         "collections" : [
+           {
+             "name" : "hardware",
+             "dataSources" : [
+               {
+                 "storeName" : "datacenter-alpha",
+                 "path" : "/hardware/{date date}"
+               }
+             ]
+           }
+         ]
+       }
+     ]
+   }
+
+{+data-lake+} parses the S3 bucket ``datacenter-alpha`` and scans all
+files under ``/metrics/hardware/``. The ``collections`` uses the 
+:ref:`path parsing syntax <datalake-path-syntax>` to map the filename to 
+the ``date`` field, which is an ISO-8601 date, in each document. If a 
+matching ``date`` field does not exist in a document, it will be added.
+
+Users connected to the {+data-lake-short+} can use the MongoDB
+Query Language and supported aggregations to analyze data in the
+S3 bucket through the ``datacenter-metrics.hardware`` collection.
+
+.. _datalake-configuration-format:
+
+Configuration File Format
+-------------------------
+
+The {+data-lake-short+} configuration file has the following format:
+
+.. code-block:: json
+
+   {
+     "stores" : [
+       {
+         "name" : "<string>",
+         "provider": "<string>",
+         "region" : "<string>", 
+         "bucket" : "<string>",
+         "prefix" : "<string>", 
+         "includeTags": <boolean>, 
+         "delimiter": "<string>"
+       }
+     ],
+     "databases" : [
+       {
+         "name" : "<string>",
+         "collections" : [
+           {
+             "name" : "<string>",
+             "dataSources" : [
+               {
+                 "storeName" : "<string>",
+                 "path" : "<string>",
+                 "defaultFormat" : <string> 
+               }
+             ]
+           }
+         ],
+         "views" : [ 
+            {
+              "name" : "<string>", 
+              "source" : "<string>", 
+              "pipeline" : "<string>" 
+            }
+         ] 
+       }
+     ]
+   }
+
+:ref:`datalake-stores-reference`
+  The ``stores`` object defines each {+data-lake-store+} associated
+  to the {+data-lake-short+}. {+data-lake-short+} can only access
+  {+data-lake-stores+} defined in the ``stores`` object.
+
+:ref:`datalake-databases-reference`
+  The ``databases`` object defines the mapping between each
+  {+data-lake-store+} defined in ``stores`` and a MongoDB database
+  and collection. 
+
+.. _datalake-stores-reference:
+
+``stores``
+~~~~~~~~~~
+
+.. code-block:: json
+
+   "stores" : [
+     {
+       "name" : "<string>",
+       "provider" : "<string>",
+       "region" : "<string>",
+       "bucket" : "<string>",
+       "prefix" : "<string>",
+       "delimiter" : "<string>",
+       "includeTags": <boolean>
+     }
+   ]
+
+.. datalakeconf:: stores
+
+   The ``stores`` object defines an array of {+data-lake-stores+} associated 
+   with a {+data-lake-short+}. Currently, a {+data-lake-store+} represents 
+   files in an S3 bucket. A {+data-lake-short+} can only access 
+   {+data-lake-stores+} defined in the ``stores`` object.
+
+.. datalakeconf:: stores.[n].name
+
+   Name of the {+data-lake-store+}. The
+   :datalakeconf:`databases.[n].collections.[n].dataSources.[n].storeName`
+   field references this value as part of mapping configuration.
+
+.. datalakeconf:: stores.[n].provider
+
+   Defines the Cloud Provider where the data is stored. Value must be ``s3`` 
+   for an |aws| S3 bucket as a {+data-lake-store+}.
+
+.. datalakeconf:: stores.[n].region
+
+   Name of the |aws| region in which the S3 bucket is hosted. For
+   a list of valid region names, see :atlas:`Amazon Web Services 
+   (AWS) </reference/amazon-aws/#amazon-aws>`. 
+
+.. datalakeconf:: stores.[n].bucket
+
+   Name of the |aws| S3 bucket. Must exactly match the name of an S3
+   bucket which {+data-lake-short+} can access given the
+   configured |aws| IAM credentials. 
+
+.. datalakeconf:: stores.[n].prefix
+
+   *Optional* {+data-lake-short+} applies this prefix when searching for 
+   files in the S3 bucket. 
+
+   For example, consider an S3 bucket ``metrics`` with the following 
+   structure:
+
+   .. code-block:: text
+      :copyable: false
+
+      metrics
+      |--hardware
+      |--software
+         |--computed
+
+   The {+data-lake-store+} prepends the value of ``prefix`` to the
+   :datalakeconf:`databases.<database>.<collection>.[n].definition`
+   to create the full path for files to ingest. Setting the ``prefix``
+   to ``/software`` restricts any :datalakeconf:`databases` 
+   objects using the {+data-lake-store+} to only subpaths 
+   ``/software``.
+
+   If omitted, {+data-lake-short+} searches all files from the
+   root of the S3 bucket.
+
+.. datalakeconf:: stores.[n].delimiter
+   
+   *Optional* The delimiter that defines seperations of elements in the
+   :datalakeconf:`~stores.[n].prefix`
+
+   If omitted, defaults to ``"/"``.
+
+.. datalakeconf:: stores.[n].includeTags
+
+   *Optional* Determines whether or not to use |s3| tags on the files in 
+   the given path as additional partition attributes. Valid values are 
+   ``true`` and ``false``.
+
+   If omitted, defaults to ``false``.
+
+   If set to ``true``, {+data-lake-short+} does the following:
+
+   - Adds the |s3| tags as additional partition attributes. 
+
+   - Adds new top level BSON elements that associates each tag to each document 
+     for the tagged files.
+
+   .. warning::
+
+      If set to ``true``, {+data-lake-short+} scans the files for 
+      additional partition attributes by making extra calls to |s3| to get the 
+      tags. This behavior might impact performance.
+
+.. _datalake-databases-reference:
+
+``databases``
+~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   "databases" : [
+     {
+       "name" : "<string>",
+       "collections" : [
+         {
+           "name" : "<string>",
+           "dataSources" : [
+             {
+               "storeName" : "<string>",
+               "defaultFormat" : "<string>",
+               "path" : "<string>"
+             }
+           ]
+         }
+       ], 
+       "views" : [
+         {
+           "name" : "<string>",
+           "source" : "<string>",
+           "pipeline" : "<string>"
+         }
+       ]
+     }
+   ]
+
+.. datalakeconf:: databases
+
+   Array of objects where each object represents a database, its collections, 
+   and, optionally, any :manual:`views </core/views/>` on the collections. Each 
+   database can have multiple ``collections`` and ``views`` objects.
+
+.. datalakeconf:: databases.[n].name
+
+   The name of the database to which {+data-lake-short+} maps the
+   data contained in the {+data-lake-store+}.  
+
+.. datalakeconf:: databases.[n].collections
+
+   Array of objects where each object represents a collection and data 
+   sources that map to a :datalakeconf:`stores` {+data-lake-store+}.
+
+.. datalakeconf:: databases.[n].collections.name
+
+   The name of the collection to which {+data-lake-short+} maps the
+   data contained in each
+   :datalakeconf:`databases.[n].collections.[n].dataSources.[n].storeName`. 
+   Each object in the array represents the mapping between the collection 
+   and an object in the :datalakeconf:`stores` array. 
+
+   You can generate collection names dynamically from file paths by
+   specifying ``*`` for the collection name and the ``collectionName()``
+   function in the 
+   :datalakeconf:`~database.[n].collections.[n].dataSources.[n].path`
+   field. See :ref:`datalake-advanced-path-generate-collection`
+   for examples.
+
+.. datalakeconf:: databases.[n].collections.[n].dataSources 
+
+   Array of objects where each object represents a :datalakeconf:`stores` 
+   {+data-lake-store+} to map with the collection.
+
+.. datalakeconf:: databases.[n].collections.[n].dataSources.[n].storeName
+
+   Name of a {+data-lake-store+} to map to the ``<collection>``. 
+   Must match the :datalakeconf:`~stores.[n].name` of an object in the 
+   :datalakeconf:`stores` array. 
+
+.. datalakeconf:: databases.[n].collections.[n].dataSources.[n].path
+
+   Controls how {+data-lake+} searches for and parses files in the
+   :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].storeName` 
+   before mapping them to the ``<collection>``. {+data-lake-short+} prepends 
+   the :datalakeconf:`stores.[n].prefix` to the ``path`` to build the full 
+   path to search within. Specify ``/`` to capture all files and folders from 
+   the ``prefix`` path.
+
+   For example, consider an S3 bucket ``metrics`` with the following 
+   structure:
+
+   .. code-block:: text
+      :copyable: false
+
+      metrics
+      |--hardware
+      |--software
+         |--computed
+
+   A ``path`` of ``/`` directs {+data-lake-short+} to search
+   all files and folders in the ``metrics`` bucket.
+
+   A ``path`` of ``/hardware`` directs {+data-lake-short+} to
+   search only that path for files to ingest.
+
+   If the :datalakeconf:`~stores.[n].prefix` is ``software``,
+   {+data-lake-short+} searches for files only in the path
+   ``/software/computed``.
+
+   Appending the ``*`` wildcard character to the path 
+   directs {+data-lake-short+} to include all files and folders from 
+   that point in the path. For example, ``/software/computed*``
+   would match files like ``/software/computed-detailed``,
+   ``/software/computedArchive``, and ``/software/computed/errors``.
+
+   :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path`
+   supports additional syntax for parsing filenames, including:
+
+   - Generating document fields from filenames.
+   - Using regular expressions to control field generation.
+   - Setting boundaries for bucketing filenames by timestamp.
+   
+   See :ref:`datalake-path-syntax` for more information.
+
+.. datalakeconf:: databases.[n].collections.[n].dataSources.[n].defaultFormat
+
+   *Optional* Specifies the default format {+data-lake-short+} assumes
+   if it encounters a file without an extension while searching the
+   :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].storeName`.
+
+   If omitted, {+data-lake-short+} attempts to detect the file type
+   by scanning a few bytes of the file.
+
+   .. note::
+
+      If your file format is ``CSV`` or ``TSV``, you must include a
+      header row in your data. See :ref:`data-lake-csv-tsv-data` 
+      for more information.
+
+   The following values are valid for the ``defaultFormat`` field:
+
+   ``.json, .json.gz, .bson, .bson.gz, .avro, .avro.gz,
+   .tsv, .tsv.gz, .csv, .csv.gz, .parquet``
+
+.. datalakeconf:: databases.[n].views 
+
+   Array of objects where each object represents an :manual:`aggregation 
+   pipeline </core/aggregation-pipeline/#id1>` on a collection. To learn 
+   more about views, see :manual:`Views </core/views/>`.
+
+.. datalakeconf:: databases.[n].views.[n].name 
+
+   The name of the view. 
+
+.. datalakeconf:: databases.[n].views.[n].source 
+
+   The name of the source collection for the view.
+
+.. datalakeconf:: databases.[n].views.[n].pipeline 
+
+   The 
+   :manual:`aggregation pipeline stage(s) </core/aggregation-pipeline/#id1>` 
+   to apply to the 
+   :datalakeconf:`~databases.[n].views.[n].source` collection.

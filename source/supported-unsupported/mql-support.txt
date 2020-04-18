@@ -1,0 +1,400 @@
+.. _data-lake-mql-support:
+
+==========================
+Supported MongoDB Commands
+==========================
+
+.. default-domain:: mongodb
+
+.. include:: /includes/fact-data-lake-beta.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+The following MongoDB query operations are supported by |data-lake|.
+
+.. important::
+
+   Some commands have special behavior in |data-lake| that differs from
+   standard MongoDB functionality.
+
+To run a command against your |data-lake|, use :manual:`db.runCommand()
+</reference/method/db.runCommand>`:
+
+.. code-block:: javascript
+
+   db.runCommand( { <command> } )
+
+Aggregation Commands
+--------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Command
+     - Description
+
+   * - :manual:`aggregate </reference/command/aggregate>`
+
+     - The following limitations apply:
+
+       * Only the ``explain`` and ``cursor`` options are supported.
+       * The ``$collStats``, ``$geoNear``, ``$graphLookup``,
+         ``$indexStats``, ``$listLocalSessions``, ``$listSessions``,
+         and ``$out`` :manual:`aggregation pipeline stages
+         </reference/operator/aggregation-pipeline>` are not supported.
+
+   * - :manual:`count </reference/command/count>`
+
+     - The following limitations apply:
+
+       * ``count()`` is converted to an aggregation pipeline internal
+         to |data-lake|.
+       * Only the ``query`` option is supported.
+
+Diagnostic Commands
+-------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Command
+     - Description
+
+   * - :manual:`buildInfo </reference/command/buildInfo>`
+
+     - The response returns the following fields:
+
+       **ok**
+         Returns ``1`` for success or ``0`` for failure.
+
+       **version**
+         The MongoDB client compatibility version. This is
+         the earliest version of the MongoDB client with which the
+         |data-lake| service is compatible.
+
+       **versionArray**
+         The MongoDB client compatibility version in array format.
+
+       **dataLake.version**
+         The version number of |data-lake|.
+
+       **dataLake.gitVersion**
+         The git version the |data-lake| service.
+
+       **dataLake.date**
+         The build timestamp of the |data-lake| service.
+
+       .. example::
+
+          .. code-block:: json
+
+             {
+               "ok" : <return>,
+               "version" : "<version-number>",
+               "versionArray" : [
+                 <number>,
+                 <number>,
+                 <number>,
+                 <number>
+               ],
+               "dataLake" : {
+                 "version" : "<version-number>",
+                 "gitVersion" : "<version-number>",
+                 "date" : "<timestamp>"
+               }
+             }
+
+   * - :manual:`collStats </reference/command/collStats>`
+
+     - The following fields are omitted from the response:
+
+       * ``count``
+       * ``avgObjSize``
+       * ``capped``
+       * ``max``
+       * ``maxSize``
+       * ``wiredTiger``
+       * ``nindexes``
+       * ``totalIndexSize``
+       * ``indexSizes``
+
+       The following fields are added to the response. You can use
+       these fields to verify what S3 partitions are being used to
+       populate a collection.
+
+       **partitions.format**
+         The file format of the S3 partition.
+
+       **partitions.attributes**
+         The filtering attributes of the S3 partition.
+
+       **partitions.url**
+         The URL of the backing data of the partition.
+
+       **partitions.size**
+         The size, in bytes, of the partition.
+
+       **partitionCount**
+         The number of partitions.
+
+       **avgPartitionSize**
+         The average size of all paritions.
+
+       .. example::
+
+          .. code-block:: json
+
+             {
+               ...
+                "partitions": [{
+    	           "format": <file format>,
+    	            "attributes": <filtering attributes>,
+    	            "url": <url to the backing data of the partition>,
+    	            "size": <size, in bytes, of the partition>
+    	           }, ...],
+    	          "partitionCount": <number of partitions>,
+    	          "avgPartitionSize": <average size of all partitions>
+              ...
+             }
+
+   * - :manual:`connectionStatus </reference/command/connectionStatus>`
+
+     - Returns information about the current connection, specifically
+       the state of authenticated users and their available
+       :atlas:`roles </reference/user-roles>`.
+
+   * - :manual:`dbStats </reference/command/dbStats>`
+
+     - The following fields are omitted from the response: 
+
+       * ``object``
+       * ``avgObjSize``
+       * ``fsUsedSize``
+       * ``fsTotalSize``
+
+   * - :manual:`explain </reference/command/explain>`
+
+     - The data returned by ``explain`` documents the |data-lake| query
+       plan, and differs from MongoDB in that it provides
+       information about the data partitions used to satisfy the query.
+
+       The following commands are explainable in |data-lake|: 
+
+       * ``aggregate()``
+       * ``count()``
+       * ``find()``
+
+       The ``verbosity`` option is not supported.
+
+   * - :manual:`getLog </reference/command/getlog>`
+
+     - The response returns successfully, but includes no log data.
+
+   * - :manual:`getMore </reference/command/getMore>`
+
+     - The ``MaxTimeMS`` option is not supported.
+
+   * - :manual:`hostInfo </reference/command/hostinfo>`
+
+     - The reponse returns the following subset of fields from the
+       standard MongoDB response:
+
+       .. code-block:: json
+
+          {
+             "ok" : <return>,
+             "system" : {
+                    "currentTime" : ISODate("<timestamp>"),
+                    "hostname" : "<hostname>",
+                    "cpuAddrSize" : <number>,
+                    "memSizeMB" : <number>,
+                    "numCores" : <number>,
+                    "cpuArch" : "<identifier>",
+             },
+             "os" : {
+                    "type" : "<string>",
+                    "name" : "<string>",
+             },
+             "extra" : {
+             },
+          }
+
+   * - :manual:`ping </reference/command/ping>`
+
+     - Tests whether a server is responding to commands.
+
+   * - :manual:`whatsmyuri </reference/command/whatsmyuri>`
+
+     - Returns the client IP address.
+
+Query and Write Operation Commands
+----------------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Command
+     - Description
+
+   * - :manual:`find </reference/command/find>`
+
+     - The following options are supported:
+
+       * ``batchSize``
+       * ``singleBatch``
+       * ``filter``
+       * ``limit``
+       * ``projection``
+       * ``skip``
+       * ``sort``
+
+       ``find()`` is converted to an aggregation pipeline internal to
+       the |data-lake|.
+
+Authentication Commands
+-----------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Command
+     - Description
+
+   * - :manual:`authentication </reference/command/authenticate>`
+
+     - |data-lake| uses SCRAM-SHA authentication.
+
+
+Replication Commands
+--------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Command
+     - Description
+
+   * - :manual:`isMaster </reference/command/isMaster>`
+
+     - The response always returns a document in which
+       ``isMaster: true``. It also returns operational parameters.
+
+       The optional saslSupportedMechs field set to the <db.user> is
+       supported.
+
+Administration Commands
+-----------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+
+   * - Command
+     - Description
+
+   * - :manual:`killCursors </reference/command/killCursors>`
+
+     - Kills the specified cursor or cursors for a collection.
+
+   * - :manual:`listCollections </reference/command/listCollections>`
+
+     - Retrieves information about the collections in a database, such
+       as collection names and options. The response contains
+       information that can be used to create a cursor to the
+       collection information.
+
+       The following options are supported:
+
+       * ``filter`` (Exact match only.)
+       * ``nameOnly``
+       * ``authorizedCollections``
+
+   * - :manual:`listDatabases </reference/command/listDatabses>`
+
+     - Provides a list of all existing databases. You must use the
+       ``admin`` database to run the ``listDatabases`` command.
+
+       The following options are supported:
+
+       * ``filter`` (Exact match only.)
+       * ``nameOnly``
+       * ``authorizedDatabases``
+
+       ``listDatabases`` always returns ``sizeOnDisk: 0`` and ``empty:
+       false`` so it can return quickly, without scanning all the
+       files in the |data-lake|.
+
+Role Management Commands
+------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Command
+     - Description
+
+   * - :manual:`rolesInfo </reference/command/rolesInfo>`
+
+     - Returns inheritance and privilege information for specified
+       roles.
+
+User Management Commands
+------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Command
+     - Description
+
+   * - :manual:`usersInfo </reference/command/usersInfo>`
+
+     - Returns information about one or more users.
+
+       The ``forAllDBs`` argument is not supported.
+
+
+|data-lake| Commands
+--------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Command
+     - Description
+
+   * - ``storageGetConfig``
+
+     - Returns the current Data Lake configuration. For complete
+       documentation on the configuration document format, see
+       :ref:`Configuration Document Format
+       <datalake-configuration-format>`.
+
+       .. code-block:: javascript
+
+          db.runCommand( { "storageGetConfig" : 1 } )
+
+   * - ``storageSetConfig``
+
+     - Replaces the current Data Lake configuration with a JSON
+       document. For complete documentation on the configuration
+       document format, see :ref:`Configuration Document Format
+       <datalake-configuration-format>`.
+
+       .. code-block:: javascript
+
+          db.runCommand( { "storageSetConfig" : <config> } )

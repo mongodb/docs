@@ -1,0 +1,1 @@
+This endpoint does not use HTTP request body parameters.
