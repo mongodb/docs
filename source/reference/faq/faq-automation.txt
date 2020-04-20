@@ -71,6 +71,50 @@ of other steps.
    reaches goal state when the replica set is active and has a healthy
    majority.
 
+.. _rolling-restart-faq:
+
+How does |mms| perform maintenance on cluster nodes?
+----------------------------------------------------
+
+|mms| performs a :term:`rolling restart` when you perform maintenance
+on nodes in a cluster. {+aagent+} updates nodes in a cluster one-by-one,
+always maintaining a primary node, until all nodes are updated to 
+maintain cluster availability during a maintenance period.
+
+For each secondary node in the cluster, {+aagent+}:
+
+1. Restarts the |mongod| process running on the node in ``standalone`` 
+   mode.
+#. Performs the maintenance task.
+#. Restarts the |mongod| process running on the node in ``replSet`` 
+   mode.
+
+After the secondary nodes are updated, {+aagent+}:
+
+1. Steps the primary down using the :manual:`rs.stepDown() 
+   </reference/method/rs.stepDown/>` command.
+#. Triggers an election for a new primary node.
+#. Performs the maintenance task on the former primary node.
+#. Restarts the |mongod| process running on the former primary node in   
+   ``replSet`` mode to join the cluster as a secondary node.
+
+In |mms|, {+aagent+} performs rolling restarts on cluster nodes for 
+maintenance tasks, including the following:
+
+- Rotating |kmip| keys.
+- Rotating keyfiles.
+- Changing |mongod| configuration arguments.
+- Upgrading or downgrading |tls|, ``auth``, or ``clusterAuth`` mode.
+- Changing the MongoDB version.
+- Changing the oplog size.
+- Changing the name of a replica set.
+- Removing a process from a replica set.
+- Cancelling a restore from backup.
+- Enabling the Profiler
+- Shutting down an agent if it is still bound to a server pool.
+
+.. seealso:: :doc:`/tutorial/prepare-for-maintenance/`
+
 How many {+aagent+}s do I need?
 -------------------------------------
 

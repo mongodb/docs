@@ -64,8 +64,8 @@ is not containerized.
 When you use the |k8s-op-short| and upgrade |onprem|, upgrade to
 |onprem| 4.2.1. If you must remain on 4.2.0, change to your Kubernetes
 |k8s-statefulset| to restart your MongoDB Agents and trigger a
-rolling restart of all the database pods. This issue doesn't exist in
-|onprem| 4.2.1 or later.
+:term:`rolling restart` of all the database pods. This issue doesn't 
+exist in |onprem| 4.2.1 or later.
 
 .. _om-upgrade-con-release-date:
 
