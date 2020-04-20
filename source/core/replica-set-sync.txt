@@ -25,7 +25,13 @@ Initial Sync
 ------------
 
 Initial sync copies all the data from one member of the replica set to
-another member.
+another member. See :ref:`replica-set-initial-sync-source-selection` for
+more information on initial sync source selection criteria.
+
+Starting in MongoDB 4.2.7, you can specify the preferred initial sync
+source using the :parameter:`initialSyncSourceReadPreference` parameter.
+This parameter can only be specified when starting the
+:binary:`~bin.mongod`.
 
 Process
 ~~~~~~~
@@ -72,6 +78,111 @@ has built-in retry logic.
    intermittent failures on the network.
 
 
+.. _replica-set-initial-sync-source-selection:
+
+Initial Sync Source Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Initial sync source selection depends on the value of the
+:binary:`~bin.mongod` startup parameter
+:parameter:`initialSyncSourceReadPreference` (*new in 4.2.7*):
+
+- For :parameter:`initialSyncSourceReadPreference` set to
+  :readmode:`primary` (default if :rsconf:`chaining
+  <settings.chainingAllowed>` is disabled), select the :term:`primary`
+  as the sync source. If the primary is unavailable or unreachable, log
+  an error and periodically check for primary availability.
+
+- For :parameter:`initialSyncSourceReadPreference` set to
+  :readmode:`primaryPreferred`, attempt to select the :term:`primary` as
+  the sync source. If the primary is unavailable or unreachable, perform
+  sync source selection from the remaining replica set members.
+
+- For :parameter:`initialSyncSourceReadPreference` set to 
+  :readmode:`nearest` (default if :rsconf:`chaining
+  <setting.chainingAllowed>` is enabled), perform sync source selection
+  from the replica set members.
+
+- For all remaining supported read preference modes, perform sync 
+  source selection from the replica set members.
+
+Members performing initial sync source selection make two passes through 
+the list of all replica set members:
+
+.. tabs::
+
+   .. tab:: Sync Source Selection (First Pass)
+      :tabid: firstpass
+
+      The member applies the following criteria to each replica 
+      set member when making the first pass for selecting a
+      initial sync source:
+
+      - The sync source *must* be in the :replstate:`PRIMARY` or
+        :replstate:`SECONDARY` replication state.
+
+      - The sync source *must* be online and reachable.
+
+      - If :parameter:`initialSyncSourceReadPreference` is
+        :readmode:`secondary` or :readmode:`secondaryPreferred`, 
+        the sync source *must* be a :term:`secondary`.
+
+      - The sync source *must* be :rsconf:`visible <members[n].hidden>`.
+
+      - The sync source *must* be within ``30`` seconds of the newest 
+        oplog entry on the primary.
+
+      - If the member :rsconf:`builds indexes
+        <members[n].buildIndexes>`, the sync source *must*
+        build indexes.
+
+      - If the member :rsconf:`votes <members[n].votes>` in 
+        replica set elections, the sync source *must* also vote.
+
+      - If the member is *not* a :rsconf:`delayed member
+        <members[n].slaveDelay>`, the sync source *must not* be delayed.
+
+      - If the member *is* a :rsconf:`delayed member
+        <members[n].slaveDelay>`, the sync source must have a shorter 
+        configured delay.
+
+      - The sync source *must* be faster (i.e. lower latency) than 
+        the current best sync source.
+
+      If no candidate sync sources remain after the first pass, 
+      the member performs a second pass with relaxed criteria. 
+      See :guilabel:`Sync Source Selection (Second Pass)`.
+
+   .. tab:: Sync Source Selection (Second Pass)
+      :tabid: second pass
+
+      The member applies the following criteria to each replica 
+      set member when making the second pass for selecting a
+      initial sync source:
+
+      - The sync source *must* be in the 
+        :replstate:`PRIMARY` or :replstate:`SECONDARY` replication 
+        state.
+
+      - The sync source *must* be online and reachable.
+
+      - If :parameter:`initialSyncSourceReadPreference` is
+        :readmode:`secondary`, the sync source *must* be a
+        :term:`secondary`.
+
+      - If the member :rsconf:`builds indexes
+        <members[n].buildIndexes>`, the sync source must
+        build indexes.
+
+      - The sync source *must* be faster (i.e. lower latency) than 
+        the current best sync source.
+       
+If the member cannot select an initial sync source after two passes, it
+logs an error and waits ``1`` second before restarting the selection
+process. The secondary :binary:`~bin.mongod` can restart the initial
+sync source selection process up to ``10`` times before exiting with an
+error.
+
 .. _replica-set-replication:
 
 Replication
@@ -84,21 +195,8 @@ process. [#slow-oplogs]_
 
 Secondaries may automatically change their *sync from* source as needed
 based on changes in the ping time and state of other members'
-replication.
-
-.. versionchanged:: 3.2
-
-   .. include:: /includes/fact-voting-node-sync-incompatibility.rst
-
-Secondaries avoid syncing from
-:ref:`delayed members <replica-set-delayed-members>` and :ref:`hidden
-members <replica-set-hidden-members>`.
-
-If a secondary member has :rsconf:`members[n].buildIndexes` set to ``true``,
-it can only sync from other members where :rsconf:`~members[n].buildIndexes`
-is ``true``. Members where :rsconf:`~members[n].buildIndexes` is ``false`` can
-sync from any other member, barring other sync restrictions.
-:rsconf:`~members[n].buildIndexes` is ``true`` by default.
+replication. See :ref:`replica-set-replication-sync-source-selection`
+for more information on sync source selection criteria.
 
 .. [#slow-oplogs]
 
@@ -136,3 +234,100 @@ Flow Control
 .. include:: /includes/extracts/4.2-changes-flow-control-general-desc.rst
 
 For more information, see :ref:`flow-control`.
+
+.. _replica-set-replication-sync-source-selection:
+
+Replication Sync Source Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Replication sync source selection depends on the replica set 
+:rsconf:`chaining <settings.chainingAllowed>` setting:
+
+- With chaining enabled (default), perform sync source selection from
+  the replica set members.
+
+- With chaining disabled, select the :term:`primary` as the sync 
+  source. If the primary is unavailable or unreachable, log an 
+  error and periodically check for primary availability.
+
+Members performing replication sync source selection make two passes
+through the list of all replica set members:
+
+.. tabs::
+
+   .. tab:: Sync Source Selection (First Pass)
+      :tabid: firstpass
+
+      The member applies the following criteria to each replica 
+      set member when making the first pass for selecting a
+      replication sync source:
+
+      - The sync source *must* be in the :replstate:`PRIMARY` or
+        :replstate:`SECONDARY` replication state.
+
+      - The sync source *must* be online and reachable.
+
+      - The sync source *must* have newer oplog entries than the member
+        (i.e. the sync source is *ahead* of the member).
+
+      - The sync source *must* be :rsconf:`visible <members[n].hidden>`.
+
+      - The sync source *must* be within ``30`` seconds of the newest 
+        oplog entry on the primary.
+
+      - If the member :rsconf:`builds indexes
+        <members[n].buildIndexes>`, the sync source *must*
+        build indexes.
+
+      - If the member :rsconf:`votes <members[n].votes>` in 
+        replica set elections, the sync source *must* also vote.
+
+      - If the member is *not* a :rsconf:`delayed member
+        <members[n].slaveDelay>`, the sync source *must not* be delayed.
+
+      - If the member *is* a :rsconf:`delayed member
+        <members[n].slaveDelay>`, the sync source must have a shorter 
+        configured delay.
+
+      - The sync source *must* be faster (i.e. lower latency) than 
+        the current best sync source.
+
+      If no candidate sync sources remain after the first pass, 
+      the member performs a second pass with relaxed criteria. 
+      See the :guilabel:`Sync Source Selection (Second Pass)`.
+
+   .. tab:: Sync Source Selection (Second Pass)
+      :tabid: second pass
+     
+      The member applies the following criteria to each replica 
+      set member when making the second pass for selecting a
+      replication sync source:
+
+      - The sync source *must* be in the 
+        :replstate:`PRIMARY` or :replstate:`SECONDARY` replication 
+        state.
+
+      - The sync source *must* be online and reachable.
+
+      - If the member :rsconf:`builds indexes
+        <members[n].buildIndexes>`, the sync source must
+        build indexes.
+       
+      - The sync source *must* be faster (i.e. lower latency) than 
+        the current best sync source.
+
+If the member cannot select a sync source after two passes, it logs an
+error and waits ``1`` second before restarting the selection process. 
+
+.. note::
+
+   Starting in MongoDB 4.2.7, the startup parameter
+   :parameter:`initialSyncSourceReadPreference` takes precedence over
+   the replica set's :rsconf:`settings.chainingAllowed` setting when
+   selecting an initial sync source. After a replica set member
+   successfully performs initial sync, it defers to the value of
+   :rsconf:`~settings.chainingAllowed` when selecting a replication sync
+   source.
+
+   See :ref:`replica-set-initial-sync-source-selection` for more
+   information on initial sync source selection.
