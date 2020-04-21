@@ -9,8 +9,7 @@
 - 500 per organization, which includes the combined membership of all
   projects in the organization.
 
-|service| raises an error if an operation would exceed any of the
-stated limits.
+|service| raises an error if an operation exceeds these limits.
 
 .. example::
 
