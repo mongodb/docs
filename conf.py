@@ -99,6 +99,7 @@ rst_epilog = [
     '.. |Epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |fcv| replace:: :abbr:`FCV (Feature Compatibility Version)`',
+    '.. |fmc| replace:: :abbr:`FMC (Federation Management Console)`',
     '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
     '.. |fts| replace:: Atlas Search',
     '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
