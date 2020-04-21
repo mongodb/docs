@@ -13,6 +13,9 @@
       * - Windows 7 / Server 2008 R2
         - Support removed in MongoDB 4.4+.
 
+      * - macOS 10.12
+        - Support removed in MongoDB 4.4+.
+
    |
 
 .. list-table::
@@ -141,7 +144,7 @@
      -
 
    * - macOS 10.12
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
