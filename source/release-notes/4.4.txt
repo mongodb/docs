@@ -157,6 +157,198 @@ Starting in MongoDB 4.4 (also available starting in 4.2.4),
 
 .. include:: /includes/extracts/4.4-changes-planCache-changes.rst
 
+.. _4.4-background-validation:
+
+Background Validation
+---------------------
+
+Support for Background Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-validate-options.rst
+
+.. |background| replace:: background
+
+.. |foreground| replace:: foreground
+
+For details, see the :dbcommand:`validate` command and the
+:method:`db.collection.validate()` helper.
+
+``maxValidateMBperSec`` Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.4 adds the :parameter:`maxValidateMBperSec` parameter to
+limit the I/O and CPU usage when running background validation. See
+:parameter:`maxValidateMBperSec` for details.
+
+.. seealso:: :ref:`4.4-validate-method-signature`
+
+.. _4.4-removed-commands:
+
+Removed Commands
+----------------
+
+.. include:: /includes/extracts/4.4-changes-removed-commands.rst
+
+.. _4.4-rel-notes-networking:
+
+Networking
+----------
+
+.. _4.4-rel-notes-tcp-fast-open:
+
+Support for TCP Fast Open
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting with MongoDB 4.4, :binary:`~bin.mongod` and
+:binary:`~bin.mongos` support TCP Fast Open (TFO) connections by
+default. TFO requires both the client and the ``mongod/mongos``
+host machines support and enable TFO:
+
+Windows
+  The following Windows operating systems support TFO:
+
+  - Microsoft Windows Server 2016 or later.
+  - Microsoft Windows 10 Update 1607 or later.
+
+macOS
+  macOS 10.11 (El Capitan) and later support TFO
+
+Linux
+  Linux operating systems running Linux Kernel 3.7 or later can
+  support inbound TFO connections.
+
+  Linux operating systems running Linux Kernel 4.11 or later can
+  support both inbound and outbound TFO connections.
+
+  Set the value of ``/proc/sys/net/ipv4/tcp_fastopen`` to enable 
+  support for inbound and/or outbound TFO connections:
+
+  - Set to ``1`` to enable only outbound TFO connections
+  - Set to ``2`` to enable only inbound TFO connections
+  - Set to ``3`` to enable inbound and outbound TFO connections.
+
+MongoDB 4.4 adds the following parameters for controlling 
+TFO:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Parameter
+     - Description
+
+   * - :parameter:`tcpFastOpenServer` 
+     - *Default*: ``true`` (Enabled)
+     
+       Enables or disables support for inbound TFO connections to the
+       ``mongod/mongos``
+
+   * - :parameter:`tcpFastOpenClient`
+     - *Default*: ``true`` (Enabled)
+
+       *Linux Operating System Only* 
+       
+       Enables or disables support for outbound TFO connections
+       from the ``mongod/mongos``.
+
+   * - :parameter:`tcpFastOpenQueueSize`
+     - *Default*: ``1024``
+
+       Control the size of the queue of pending TFO connections.
+
+MongoDB 4.4 adds the following counters to the output of 
+:dbcommand:`serverStatus` and :method:`db.serverStatus()`:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Counter
+     - Description
+
+   * - :serverstatus:`network.tcpFastOpen.kernelSetting` 
+     - *Linux only* 
+     
+       Indicates kernel support for TFO.
+
+   * - :serverstatus:`network.tcpFastOpen.serverSupported` 
+     - Indicates operating system support for incoming TFO connections.
+
+   * - :serverstatus:`network.tcpFastOpen.clientSupported` 
+     - Indicates operating system support for outgoing TFO connections.
+
+   * - :serverstatus:`network.tcpFastOpen.accepted` 
+     - Indicates the total number of accepted incoming TFO connections 
+       to the :binary:`~bin.mongod`/:binary:`~bin.mongos` since the
+       ``mongod/mongos`` last started.
+
+A complete discussion of TFO is outside the scope of this documentation.
+For more information on TFO, start with the following external 
+resources:
+
+- `RFC7413 TCP Fast Open <https://tools.ietf.org/html/rfc7413>`__
+- `TCP Fast Open (en.wikipedia.org) <https://en.wikipedia.org/w/index.php?title=TCP_Fast_Open&oldid=922380898>`__
+
+Security Improvements
+---------------------
+
+.. _4.4-rel-notes-certificate-expiration-warning:
+
+x.509 Certificates Nearing Expiry Trigger Warnings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, :binary:`~bin.mongod`/:binary:`~bin.mongos`
+logs a warning on connection if the presented x.509 certificate
+expires within ``30`` days of the ``mongod/mongos`` system clock.
+Specifically, the following connections to a ``mongod`` or ``mongos`` 
+can trigger x.509 certificate expiry warnings:
+
+- A :binary:`~bin.mongo` shell or an application using a 
+  :ecosystem:`MongoDB driver </drivers>` establishing a 
+  :ref:`TLS connection <ssl-clients>` *or* performing 
+  :ref:`x.509 client authentication <x509-client-authentication>` with
+  a certificate expiring in less than 30 days. (i.e. 
+  the certificate specified to :option:`mongo --tlsCertificateKeyFile 
+  <mongo --tlsCertificateKeyFile>` or 
+  :urioption:`tlsCertificateKeyFile`).
+
+- A :binary:`~bin.mongod` cluster member performing 
+  :ref:`x.509 membership authentication <x509-internal-authentication>`
+  with a certificate expiring in less than 30 days. (i.e. the 
+  certificate specified to 
+  :setting:`net.tls.clusterFile`,
+  :setting:`net.tls.clusterCertificateSelector`,
+  :option:`mongod --tlsClusterFile <mongod --tlsClusterFile>` or
+  :option:`mongod --tlsClusterCertificateSelector 
+  <mongod --tlsClusterCertificateSelector>`).
+
+- A :binary:`~bin.mongos` cluster member performing
+  :ref:`x.509 membership authentication <x509-internal-authentication>`
+  with a certificate expiring within 30 days. (i.e. the certificate 
+  specified to
+  (i.e. the 
+  certificate specified to 
+  :setting:`net.tls.clusterFile`,
+  :setting:`net.tls.clusterCertificateSelector`,
+  :option:`mongos --tlsClusterFile <mongos --tlsClusterFile>` or
+  :option:`mongos --tlsClusterCertificateSelector`).
+
+The warning log message resembles the following:
+
+.. code-block:: text
+   :copyable: false
+
+   <Timestamp> W NETWORK [connection] Peer certificate <Certificate Subject Name> expires...
+
+Consider proactively renewing client x.509 certificates nearing
+expiration to ensure continued connectivity to the cluster.
+
+MongoDB 4.4 adds the :parameter:`tlsX509ExpirationWarningThresholdDays`
+parameter for controlling certificate expiration warning threshold. Set
+the parameter to ``0`` to disable the warning. For complete
+documentation, see :parameter:`tlsX509ExpirationWarningThresholdDays`.
+
 Replica Sets
 ------------
 
@@ -1206,10 +1398,61 @@ Support for ``$natural`` Sort on Views
 
 .. include:: /includes/extracts/4.4-changes-natural-sort-views.rst
 
-Validation Changes for ``$meta``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _4.4-rel-notes-projection-meta-keyword:
 
-.. include:: /includes/extracts/4.4-changes-projection-sort-meta.rst
+.. _4.4-rel-notes-agg-meta-keyword:
+
+
+``$meta`` Operator
+~~~~~~~~~~~~~~~~~~
+
+``$meta`` Keyword Support
+`````````````````````````
+
+.. container::
+
+   Starting in MongoDB 4.4, the :expression:`$meta` operator adds
+   support for retrieving the ``indexKey`` metadata. The ``indexKey``
+   metadata is for debugging purposes only and not for application
+   logic. See :expression:`$meta` for more information.
+
+``{ $meta: "textScore" }`` Usage with ``find()``
+````````````````````````````````````````````````
+
+.. container::
+
+   Starting in version 4.4, MongoDB makes the following
+   :expression:`{ $meta: "textScore" } <$meta>` changes when used
+   with :method:`db.collection.find()`:
+
+   - You must specify the :query:`$text` operator in the query
+     predicate to use :expression:`{ $meta: "textScore" } <$meta>`.
+
+   - You can sort the resulting documents by their search relevance,
+     i.e. :expression:`{ $meta: "textScore" } <$meta>`, without also
+     having to project the ``textScore``.
+
+     | In earlier versions, to include :expression:`{ $meta: "textScore"
+       } <$meta>` expression in the :method:`~cursor.sort()`, you must
+       also include the same expression in the projection.
+     |
+
+   - If you include the :expression:`{ $meta: "textScore" } <$meta>`
+     expression in both the projection and sort, i.e.
+     ``db.collection.find(<$text search>, <projection>).sort(<sort>)``,
+     the projection and sort documents can have different field names
+     for the expression.
+
+     | In previous versions of MongoDB, if you include the :expression:`{
+       $meta: "textScore" } <$meta>` in both the projection and sort, you
+       must specify the same field name to the expression.
+
+   For more information, see :ref:`project-meta-textscore-sort`. For
+   examples of ``"textScore"`` projections and sorts, see
+   :ref:`ex-text-search-score`.
+
+.. seealso:: :ref:`4.4-compatibility-meta-textscore`
+
 
 Support for Diagnostic Backtrace Generation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

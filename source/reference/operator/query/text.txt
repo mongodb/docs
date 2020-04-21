@@ -731,13 +731,19 @@ The query matches the following document:
    :ref:`text-operator-diacritic-sensitivity`,
    :ref:`text-operator-case-sensitivity`
 
+.. _ex-text-search-score:
+
+Text Search Score Examples
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _ex-return-text-search-score:
 
 Return the Text Search Score
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````
 
-The following query searches for the term ``cake`` and returns the
-score assigned to each matching document:
+The following query performs a text search for the term ``cake`` and
+uses the :projection:`$meta` operator in the projection document to
+append the relevance score to each matching document:
 
 .. code-block:: javascript
 
@@ -747,36 +753,44 @@ score assigned to each matching document:
    )
 
 The returned document includes an *additional* field ``score`` that
-contains the document's score associated with the text search.
-[#meta-aggregation]_
+contains the document's relevance score:
 
-.. seealso:: :ref:`text-operator-text-score`
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 3, "subject" : "Baking a cake", "author" : "abc", "views" : 90, "score" : 0.75 }
+
+.. seealso:: :projection:`$meta`
 
 .. _ex-sort-text-search-score:
 
 Sort by Text Search Score
-~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````
 
-To sort by the text score, include the **same** :projection:`$meta`
-expression in **both** the projection document and the sort expression.
-[#meta-aggregation]_ The following query searches for the term ``coffee``
-and sorts the results by the descending score:
+.. include:: /includes/extracts/4.4-changes-projection-sort-meta-list.rst
 
-.. code-block:: javascript
 
-   db.articles.find(
-      { $text: { $search: "coffee" } },
-      { score: { $meta: "textScore" } }
-   ).sort( { score: { $meta: "textScore" } } )
+- In MongoDB 4.2 and earlier, to sort by the text score, include the
+  **same** :projection:`$meta` expression in **both** the projection
+  document and the sort expression. The following
+  query searches for the term ``coffee`` and sorts the results by the
+  descending score:
 
-The query returns the matching documents sorted by descending score.
+  .. code-block:: javascript
 
-.. seealso:: :ref:`text-operator-text-score`
+     db.articles.find(
+        { $text: { $search: "coffee" } },
+        { score: { $meta: "textScore" } }
+     ).sort( { score: { $meta: "textScore" } } )
+
+   The query returns the matching documents sorted by descending score.
+
+.. seealso:: :projection:`$meta`
 
 .. _ex-sort-limit-two:
 
 Return Top 2 Matching Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```````````````````````````````
 
 Use the :method:`~cursor.limit()` method in conjunction with a
 :method:`~cursor.sort()` to return the top ``n`` matching documents.
@@ -792,12 +806,12 @@ matching documents:
       { score: { $meta: "textScore" } }
    ).sort( { score: { $meta: "textScore" } } ).limit(2)
 
-.. seealso:: :ref:`text-operator-text-score`
+.. seealso:: :projection:`$meta`
 
 .. _text-operator-example-compound-sort:
 
 Text Search with Additional Query and Sort Expressions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``````````````````````````````````````````````````````
 
 The following query searches for documents where the ``author`` equals
 ``"xyz"`` and the indexed field ``subject`` contains the terms
@@ -808,11 +822,7 @@ ascending ``date``, then descending text search score:
 
    db.articles.find(
       { author: "xyz", $text: { $search: "coffee bake" } },
-      { score: { $meta: "textScore" } }
+      { score: { $meta: "textScore" } } 
    ).sort( { date: 1, score: { $meta: "textScore" } } )
 
 .. seealso:: :doc:`/tutorial/text-search-in-aggregation`
-
-.. [#meta-aggregation]
-
-   .. include:: /includes/fact-meta-operator-disambiguation.rst

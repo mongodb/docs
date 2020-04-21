@@ -152,101 +152,93 @@ content: |
    An example of ``ctime`` formatted date is: ``Wed Dec 31
    18:17:54.811``.
 ---
-ref: 4.4-changes-projection-sort-meta
+ref: 4.4-changes-meta-convergence
 content: |
 
-   Starting in MongoDB 4.4:
+   As of MongoDB 4.4, there is no distinction between
+   the :expression:`$meta` aggregation operator and the
+   :projection:`$meta` projection operator.
+      
+---
+ref: 4.4-changes-projection-sort-meta-list
+content: |
 
-   - You can specify :projection:`$meta` in the projection document
-     of a :dbcommand:`find` command without specifying the
-     :projection:`$meta` expression as part of a
-     :method:`~cursor.sort()` document:
-     
+   - Starting in MongoDB 4.4, you can specify the :projection:`{ $meta:
+     "textScore" } <$meta>` expression in the :method:`~cursor.sort()`
+     without also specifying the expression in the projection. For example,
+
      .. code-block:: javascript 
 
-       db.collection.find(
-           <query>,
+        db.articles.find( 
+           { $text: { $search: "cake" } } 
+        ).sort( { score: { $meta: "textScore" } } )
+
+     As a result, you can sort the resulting documents by their search
+     relevance without projecting the ``textScore``.
+
+     | In earlier versions, to include :projection:`{ $meta: "textScore" }
+       <$meta>` expression in the :method:`~cursor.sort()`, you must also
+       include the same expression in the projection.
+
+   - Starting in MongoDB 4.4, if you include the :projection:`{ $meta:
+     "textScore" } <$meta>` expression in both the :ref:`projection
+     <find-projection>` and :method:`~cursor.sort()`, the projection and
+     sort documents can have different field names for the expression.
+
+     | For example, in the following operation, the projection uses a
+      field named  ``score`` for the expression and the :method:`~cursor.sort()`
+      uses the field named ``ignoredName``.
+
+     .. code-block:: javascript 
+
+        db.articles.find(
+           { $text: { $search: "cake" } } , 
            { score: { $meta: "textScore" } }
-       )
-
-     As a result, you can project the
-     :ref:`textScore <text-operator-text-score>` metadata without
-     sorting the results by their search relevance.
-
-   - You can specify the :projection:`$meta` expression as part of
-     a :method:`~cursor.sort()` document without specifying
-     :projection:`$meta` in the projection document of a 
-     :dbcommand:`find` command:
-
-     .. code-block:: javascript 
-
-       db.collection.find(
-           <query>
-       ).sort( { score: { $meta: "textScore" } } )
-
-     As a result, you can sort the resulting documents by their
-     search relevance without projecting the ``textScore``. 
-
-   - If you specify the :projection:`$meta` expression as part of a
-     :method:`~cursor.sort()` document and the :term:`projection`
-     document of a :dbcommand:`find` command, you can specify different
-     field names for the :method:`~cursor.sort()` document and the
-     :term:`projection` document.
-
-     In the following example, the ``score`` field associated with the
-     :projection:`$meta` expression in the projection document contains
-     the document's :ref:`textScore <text-operator-text-score>`
-     metadata. In contrast, the ``ignoredName`` field in the
-     :method:`~cursor.sort()` document has an arbitrary name which
-     does not affect the query.
-
-     .. code-block:: javascript 
-
-        db.collection.find(
-          <query>, 
-          { score: { $meta: "textScore" } }
         ).sort( { ignoredName: { $meta: "textScore" } } )
 
-   In previous versions of MongoDB, the *same* :projection:`$meta`
-   expression, including the ``<projectedFieldName>``, must appear in
-   the :method:`~cursor.sort()` document and the :dbcommand:`find`
-   command's projection document.
+     In previous versions of MongoDB, if ``{ $meta: "textScore" }`` is
+     included in both the projection and sort, you must specify the
+     same field name for the expression.
+
 ---
 ref: 4.4-changes-textscore-predicate
 content: |
 
    Starting in MongoDB 4.4, you must specify the :query:`$text` operator
-   in the query predicate to use ``{ $meta: "textScore" }`` in either
-   the :term:`projection` document or a :method:`~cursor.sort()`
-   document.
+   in the query predicate of the :method:`db.collection.find()` operations
+   to use :projection:`{ $meta: "textScore" } <$meta>` expression in the
+   projection or sort. For example:
+
+   .. code-block:: javascript
+
+      db.articles.find(
+         { $text: { $search: "cake" } },
+         { score: { $meta: "textScore" } }
+      );
+
+      db.articles.find(
+         { $text: { $search: "cake" } },
+         { score: { $meta: "textScore" } }
+      ).sort( { score: {  $meta: "textScore" } } );
+   
 
    If you do not specify the :query:`$text` operator in the query
-   predicate, the operation fails.
+   predicate, the operation fails. For example, the following operations are
+   invalid starting in MongoDB 4.4:
 
-   .. example::
+   .. code-block:: javascript
+      :copyable: false
 
-      The following :dbcommand:`find` command fails because it specifies
-      ``{ $meta: "textScore" }`` in the :term:`projection` document, but
-      does not specify :query:`$text` operator in the query predicate:
+      db.articles.find(
+         { },
+         { score: { $meta: "textScore" } } 
+      )
 
-      .. code-block:: javascript
-         :copyable: false
-
-         // This command fails:
-
-         db.articles.find( { }, { score: { $meta: "textScore" } } )
-
-      To successfully execute the command, include the :query:`$text`
-      operator in the query predicate:
-
-      .. code-block:: javascript
-
-         // This command succeeds:
-
-         db.articles.find(
-            { $text: { $search: "coffee" } },
-            { score: { $meta: "textScore" } }
-         )
+      db.articles.find(
+         { },
+         { score: { $meta: "textScore" } }
+      ).sort( { score: {  $meta: "textScore" } } );
+   
 ---
 ref: 4.4-changes-natural-sort-views
 content: |

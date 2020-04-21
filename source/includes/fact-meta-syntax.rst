@@ -6,33 +6,41 @@ A |meta-object| expression has the following syntax:
 
    { $meta: <metaDataKeyword> }
 
-The |meta-object| expression can specify the following keyword
-as the ``<metaDataKeyword>``:
-
-.. only:: latex
-
-   .. tabularcolumns:: |L|p{10cm}|L|
+The |meta-object| expression can specify the following values as the
+``<metaDataKeyword>``:
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 50 25
+   :widths: 20 70
 
    * - Keyword
 
      - Description
-
-     - Sort Order
+     
 
    * - ``"textScore"``
 
      - Returns the score associated with the corresponding
        :query:`$text` query for each matching document. The text score
        signifies how well the document matched the :ref:`search term or
-       terms <match-operation-stemmed-words>`. If not used in
-       conjunction with a :query:`$text` query, returns a score of
-       |empty-value|.
+       terms <match-operation-stemmed-words>`. 
 
-     - Descending
+       Starting in MongoDB 4.4, must be used in conjunction with a
+       :query:`$text` query.
+
+       In earlier versions, if not used in conjunction with a
+       :query:`$text` query, returns a score of |empty-value|.
+
+   * - ``"indexKey"``
+
+     - Returns an index key for the document if a non-:doc:`text
+       </core/index-text>` index is used. The ``{ $meta: "indexKey" }``
+       expression is for debugging purposes only, and not for
+       application logic, and is preferred over
+       :method:`cursor.returnKey()`.
+
+       .. versionadded:: 4.4
+
 
 :atlas:`MongoDB Atlas Search </full-text-search>` provides
 additional ``$meta`` keywords, such as:

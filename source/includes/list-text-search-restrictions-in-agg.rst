@@ -7,5 +7,6 @@
   :expression:`$or` or :expression:`$not` expressions.
 
 - The text search, by default, does not return the matching documents
-  in order of matching scores. Use the :expression:`$meta` aggregation
-  expression in the :pipeline:`$sort` stage.
+  in order of matching scores. To sort by descending score, use the
+  :expression:`$meta` aggregation expression in the :pipeline:`$sort`
+  stage.
