@@ -19,7 +19,7 @@ public class InsertOne {
         MongoClient mongoClient = MongoClients.create(uri);
 
         MongoDatabase database = mongoClient.getDatabase("sample_mflix");
-        MongoCollection<Document> collection = database.getCollection("movies2");
+        MongoCollection<Document> collection = database.getCollection("movies");
 
         try {
             InsertOneResult result = collection.insertOne(new Document()
