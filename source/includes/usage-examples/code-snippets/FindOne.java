@@ -1,5 +1,5 @@
 // ignored first line
-package usage_examples;
+package usage.examples;
 
 import static com.mongodb.client.model.Filters.eq;
 
