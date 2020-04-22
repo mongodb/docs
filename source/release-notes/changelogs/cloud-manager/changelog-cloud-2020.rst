@@ -6,6 +6,7 @@
 - Redesigns the MongoDB Cloud navigation.
 - Introduces schema suggestions in :ref:`performance-advisor` and 
   :ref:`data-explorer` for |cloud| Premium.
+- Updates {+mdbagent+} to :ref:`10.14.0.6306-1 <10.14.0.6306-1>`.
 
 .. _cloudmanager_20200331:
 

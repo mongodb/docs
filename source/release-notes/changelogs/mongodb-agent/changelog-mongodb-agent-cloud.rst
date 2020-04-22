@@ -1,3 +1,14 @@
+.. _10.14.0.6306-1:
+
+MongoDB Agent 10.14.0.6306-1
+----------------------------
+
+*Released* :ref:`2020-04-21 <cloudmanager_20200421>`
+
+- Supports the upcoming release of MongoDB 4.4.
+- Includes optimizations to reduce the number of simultaneous connections
+  from the {+mdbagent+} to |mongos|.
+
 .. _10.13.0.6247:
 
 MongoDB Agent 10.13.0.6247
