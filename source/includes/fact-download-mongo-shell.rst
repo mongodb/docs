@@ -1,7 +1,11 @@
-The :binary:`~bin.mongo` shell is included as part of the :doc:`MongoDB Server
-</installation>` installation. MongoDB also provides the :binary:`~bin.mongo`
-shell as a standalone package. To download the standalone :binary:`~bin.mongo`
-shell package:
+The :binary:`~bin.mongo` shell is included as part of the :doc:`MongoDB
+server installation </installation>`. If you have already installed the
+server, the :binary:`~bin.mongo` shell is installed to the same location
+as the server binary.
+
+Alternatively, if you would like to download the :binary:`~bin.mongo`
+shell separately from the MongoDB Server, you can install the shell as 
+a standalone package by following these steps:
 
 1. Access the Download Center for your Edition of MongoDB:
 
@@ -38,5 +42,8 @@ shell package:
 
         * - *Linux*
 
-          - Select the ``shell`` package to download the
+          - Select the ``tgz`` package to download the
             :binary:`~bin.mongo` shell.
+
+4. Copy the :binary:`~bin.mongo` shell from the archive to a location on
+   your filesystem.
