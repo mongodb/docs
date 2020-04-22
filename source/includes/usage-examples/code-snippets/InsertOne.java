@@ -1,5 +1,4 @@
 // ignored first line
-
 package usage.examples;
 
 import java.util.Arrays;
