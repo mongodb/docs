@@ -1,3 +1,12 @@
+.. _cloudmanager_20200421:
+
+21 April 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Redesigns the MongoDB Cloud navigation.
+- Introduces schema suggestions in :ref:`performance-advisor` and 
+  :ref:`data-explorer` for |cloud| Premium.
+
 .. _cloudmanager_20200331:
 
 31 March 2020 Release
