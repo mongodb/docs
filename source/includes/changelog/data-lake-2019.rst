@@ -30,7 +30,7 @@
 
 - Supports :manual:`ObjectIds </reference/method/ObjectId/>` in the 
   path when specifying partition 
-  :datalakeconf:`~databases.<database>.<collection>.[n].definition`.
+  ``databases.<database>.<collection>.[n].definition``.
 
 .. _data-lake-v20191008:
 
@@ -62,8 +62,8 @@
   all the partitions matching the query is identified.
 
 - Fixes an issue where the new storage configuration did not appear 
-  on the issuing connection after running 
-  :xml:`<mono><ref target="datalake-setstorageconfig">setStorageConfig</ref></mono>`.
+  on the issuing connection after running :ref:`setStorageConfig 
+  <datalake-setstorageconfig>`.
 
 .. _data-lake-v20190821:
 
@@ -115,8 +115,8 @@
 
 - Provides a descriptive error message when the file format is unknown.
 
-- Provides additional validation on 
-  :xml:`<mono><ref target="datalake-setstorageconfig">setStorageConfig</ref></mono>`.
+- Provides additional validation on :ref:`setStorageConfig 
+  <datalake-setstorageconfig>`.
 
 .. _data-lake-v201900618:
 

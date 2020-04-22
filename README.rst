@@ -1,6 +1,6 @@
-=========================
-MongoDB CLI Documentation
-=========================
+=====================================
+MongoDB Atlas Data Lake Documentation
+=====================================
 
 This repository contains documentation for the MongoDB Atlas Data Lake.
 

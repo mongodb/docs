@@ -1,10 +1,8 @@
-.. raw:: html
+Base URL
+--------
 
-   <!--- font-size and line-height taken from div.body h2 -->
+.. code-block:: sh
+   :copyable: false 
 
-   <div class="section" style="font-size:24px; line-height:24px;font-weight: 200">
-
-    <p>Base URL: 
-       <span style="font-family: 'Source Code Pro',monospace">https://cloud.mongodb.com/api/atlas/v1.0</span> 
-    <p>
-   </div>
+   https://cloud.mongodb.com/api/atlas/v1.0
+   
