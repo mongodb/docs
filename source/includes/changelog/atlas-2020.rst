@@ -1,3 +1,25 @@
+.. _atlas_20200422:
+
+22 April 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Redesigns the MongoDB Cloud navigation.
+- Introduces :doc:`schema suggestions </performance-advisor/schema-advisor>` 
+  in Performance Advisor and Data Explorer.
+- Reduces the price of |nvme| storage for |aws| clusters.
+- Supports the following :ref:`advanced federation options
+  <fed-auth-advanced>` for customers who use |saml|\-based single 
+  sign-on:
+
+  - Restrict organization membership
+  - Restrict access by domain
+  - Bypass single sign-on
+
+- Removes legacy Continuous Backup as an option for new |gcp|\- and
+  |azure|\-backed clusters. New |gcp|\- and |azure|\-backed clusters
+  use :doc:`Cloud Provider Snapshots 
+  </backup/cloud-provider-snapshots/>` for backup.
+
 .. _atlas_20200331:
 
 31 March 2020 Release
