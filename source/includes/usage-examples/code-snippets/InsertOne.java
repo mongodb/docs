@@ -27,7 +27,7 @@ public class InsertOne {
                     .append("title", "Ski Bloopers")
                     .append("genres", Arrays.asList("Documentary", "Comedy")));
 
-            System.out.println("Success! Inserted document id: " + result.getInsertedId());
+            System.out.println("Inserted document id: " + result.getInsertedId());
 
         } catch (MongoException me) {
             System.err.println("Unable to insert due to an error: " + me);
