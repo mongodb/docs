@@ -188,3 +188,11 @@
             :language: go
             :start-after: Start Transactions Retry Example 3
             :end-before: End Transactions Retry Example 3
+
+     - id: motor
+       content: |
+
+          .. note::
+          
+             For Motor, see the :ref:`txn-callback-api` instead.
+
