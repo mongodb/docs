@@ -32,11 +32,16 @@ The ``map`` function has the following requirements:
   <limit-bson-document-size>`. MongoDB removes this restriction
   starting in version 4.4.
 
-- Starting in version 4.2.1, MongoDB deprecates the use of JavaScript
-  with scope (i.e. :doc:`BSON type 15 </reference/bson-types/>`) for
-  the ``map`` function. To scope variables, use the ``scope`` parameter
-  instead.
+- Starting in MongoDB 4.4, :dbcommand:`mapReduce` no longer supports
+  the deprecated JavaScript with scope (i.e. :doc:`BSON type 15
+  </reference/bson-types/>`) for its functions. The ``map``
+  function must be either BSON type String (i.e. :doc:`BSON type 2
+  </reference/bson-types/>`) or BSON type JavaScript (i.e. :doc:`BSON
+  type 13 </reference/bson-types/>`). To scope variables, use the
+  ``scope`` parameter.
 
+  | The use of JavaScript with scope has been deprecated for the
+    ``map`` function since version 4.2.1.
 
 The following ``map`` function will call ``emit(key,value)`` either
 0 or 1 times depending on the value of the input document's
@@ -101,11 +106,17 @@ The ``reduce`` function exhibits the following behaviors:
   requirement may be violated when large documents are returned and then
   joined together in subsequent ``reduce`` steps.
 
-- Starting in version 4.2.1, MongoDB deprecates the use of JavaScript
-  with scope (i.e. :doc:`BSON type 15 </reference/bson-types/>`) for
-  the ``reduce`` function. To scope variables, use the ``scope``
-  parameter instead.
-  
+- Starting in MongoDB 4.4, :dbcommand:`mapReduce` no longer supports
+  the deprecated JavaScript with scope (i.e. :doc:`BSON type 15
+  </reference/bson-types/>`) for its functions. The ``reduce``
+  function must be either BSON type String (i.e. :doc:`BSON type 2
+  </reference/bson-types/>`) or BSON type JavaScript (i.e. :doc:`BSON
+  type 13 </reference/bson-types/>`). To scope variables, use the
+  ``scope`` parameter.
+
+  | The use of JavaScript with scope has been deprecated for the
+    ``reduce`` function since version 4.2.1.
+
 Because it is possible to invoke the ``reduce`` function
 more than once for the same key, the following
 properties need to be true:
@@ -279,9 +290,15 @@ aware that:
 - The ``finalize`` function can access the variables defined in
   the ``scope`` parameter.
 
-- Starting in version 4.2.1, MongoDB deprecates the use of JavaScript
-  with scope (i.e. :doc:`BSON type 15 </reference/bson-types/>`) for
-  the ``finalize`` function. To scope variables, use the ``scope``
-  parameter instead.
+- Starting in MongoDB 4.4, :dbcommand:`mapReduce` no longer supports
+  the deprecated JavaScript with scope (i.e. :doc:`BSON type 15
+  </reference/bson-types/>`) for its functions. The ``finalize``
+  function must be either BSON type String (i.e. :doc:`BSON type 2
+  </reference/bson-types/>`) or BSON type JavaScript (i.e. :doc:`BSON
+  type 13 </reference/bson-types/>`). To scope variables, use the
+  ``scope`` parameter.
+
+  | The use of JavaScript with scope has been deprecated for the
+    ``finalize`` function since version 4.2.1.
 
 .. end-finalize
