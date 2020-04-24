@@ -185,7 +185,7 @@
 
   - Requires MongoDB 4.2.
 
-- Introduces :doc:`{+data-lake+} </data-lake>` on-demand query service.
+- Introduces `{+data-lake+} <https://docs.mongodb.com/datalake/>`__ on-demand query service.
 
 - Supports :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>`
   for 4.2 replica sets.
