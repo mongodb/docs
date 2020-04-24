@@ -7,10 +7,11 @@
      - Description
      - Required?
 
-   * - ``<processID>``
+   * - ``<hostID>``
      - String
-     - The process ID of the MongoDB process for which to retrieve
-       measurements.
+     - The host ID of the server running the |service| MongoDB process
+       for which to retrieve measurements. You can obtain the host ID string
+       with the :ref:`process list <mcli-cm-process-list-cmd>` command.
      - yes
 
    * - ``granularity``
