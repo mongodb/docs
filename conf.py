@@ -66,7 +66,6 @@ rst_epilog = [
     '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`',
     '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
     '.. |html| replace:: :abbr:`HTML (HyperText Markup Language)`',
-    '.. |css| replace:: :abbr:`CSS (Cascading Style Sheets)`',
 ]
 
 rst_epilog.extend(get_replacements(conf))
