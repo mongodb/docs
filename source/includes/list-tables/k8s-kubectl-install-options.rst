@@ -92,12 +92,82 @@
                      - name: WATCH_NAMESPACE
                        value: "<testNamespace>"
 
+   * - ``MONGODB_ENTERPRISE_DATABASE_IMAGE``
+     - |url| of the MongoDB Enterprise Database image the |k8s-op-short|
+       deploys.
+
+       Default value is
+       ``quay.io/mongodb/mongodb-enterprise-database``.
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          MONGODB_ENTERPRISE_DATABASE_IMAGE
+          spec.template.spec.containers.name.env.value:
+          quay.io/mongodb/mongodb-enterprise-database
+      
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 10-13
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: MONGODB_ENTERPRISE_DATABASE_IMAGE
+                       value: quay.io/mongodb/mongodb-enterprise-database
+                     - name: IMAGE_PULL_POLICY
+                       value: Always
+
+   * - ``IMAGE_PULL_POLICY``
+     - :k8sdocs:`Pull policy
+       </concepts/configuration/overview/#container-images>` for the
+       MongoDB Enterprise database image the |k8s-op-short| deploys.
+       
+       Accepted values are ``Always``, ``IfNotPresent``, ``Never``.
+
+       Default value is ``Always``.
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          IMAGE_PULL_POLICY
+          spec.template.spec.containers.name.env.value: 
+          <policy>
+
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 10-13
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: MONGODB_ENTERPRISE_DATABASE_IMAGE
+                       value: quay.io/mongodb/mongodb-enterprise-database
+                     - name: IMAGE_PULL_POLICY
+                       value: Always
+
    * - ``OPS_MANAGER_IMAGE_REPOSITORY``
      - |url| of the repository from which the image for an :doc:`Ops
        Manager resource </tutorial/deploy-om-container>` is downloaded.
 
-       Default value is:
-       ``quay.io/mongodb/mongodb-enterprise-ops-manager``
+       Default value is
+       ``quay.io/mongodb/mongodb-enterprise-ops-manager``.
 
        .. code-block:: yaml
 
@@ -129,12 +199,11 @@
    * - ``OPS_MANAGER_IMAGE_PULL_POLICY``
      - :k8sdocs:`Pull policy
        </concepts/configuration/overview/#container-images>` for the
-       image deployed to an :doc:`Ops Manager resource
-       </tutorial/deploy-om-container>`.
+       |onprem| images the |k8s-op-short| deploys.
        
-       Accepted values are: ``Always``, ``IfNotPresent``, ``Never``
+       Accepted values are: ``Always``, ``IfNotPresent``, ``Never``.
 
-       Default value is: ``Always``
+       Default value is ``Always``.
 
        .. code-block:: yaml
 
@@ -162,3 +231,163 @@
                        value: quay.io/mongodb/mongodb-enterprise-ops-manager
                      - name: OPS_MANAGER_IMAGE_PULL_POLICY
                        value: Always
+
+   * - ``INIT_OPS_MANAGER_IMAGE_REPOSITORY``
+     - |url| of the repository from which the initContainer image that
+       contains |onprem| start-up scripts and the readiness probe is 
+       downloaded.
+
+       Default value is
+       ``quay.io/mongodb/mongodb-enterprise-ops-manager-init``.
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          INIT_OPS_MANAGER_IMAGE_REPOSITORY
+          spec.template.spec.containers.name.env.value: 
+          quay.io/mongodb/mongodb-enterprise-ops-manager-init
+
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 9-11
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: INIT_OPS_MANAGER_IMAGE_REPOSITORY
+                       value: quay.io/mongodb/mongodb-enterprise-ops-manager-init
+
+   * - ``INIT_OPS_MANAGER_VERSION``
+     - Version of the initContainer image that contains |onprem| 
+       start-up scripts and the readiness probe.
+
+       Default value is ``latest``.
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          INIT_OPS_MANAGER_VERSION
+          spec.template.spec.containers.name.env.value: 
+          latest
+
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 9-11
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: INIT_APPDB_VERSION
+                       value: latest
+
+   * - ``APPDB_IMAGE_REPOSITORY``
+     - |url| of the repository from which the Application Database image 
+       is downloaded.
+
+       Default value is
+       ``quay.io/mongodb/mongodb-enterprise-appdb``.
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          APPDB_IMAGE_REPOSITORY
+          spec.template.spec.containers.name.env.value: 
+          quay.io/mongodb/mongodb-enterprise-appdb
+
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 9-11
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: APPDB_IMAGE_REPOSITORY
+                       value: quay.io/mongodb/mongodb-enterprise-appdb
+
+   * - ``INIT_APPDB_IMAGE_REPOSITORY``
+     - |url| of the repository from which the initContainer image that
+       contains Application Database start-up scripts and the readiness 
+       probe is downloaded.
+
+       Default value is
+       ``quay.io/mongodb/mongodb-enterprise-appdb-init``.
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          INIT_APPDB_IMAGE_REPOSITORY
+          spec.template.spec.containers.name.env.value: 
+          quay.io/mongodb/mongodb-enterprise-init-appdb
+
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 9-11
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: INIT_APPDB_IMAGE_REPOSITORY
+                       value: quay.io/mongodb/mongodb-enterprise-init-appdb
+
+   * - ``INIT_APPDB_VERSION``
+     - Version of the initContainer image that contains |onprem| 
+       start-up scripts and the readiness probe.
+
+       Default value is ``latest``.
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          INIT_APPDB_VERSION
+          spec.template.spec.containers.name.env.value: 
+          latest
+
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 9-11
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: INIT_APPDB_VERSION
+                       value: latest
