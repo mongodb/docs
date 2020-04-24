@@ -8,9 +8,10 @@ The backup process:
    In :term:`sharded clusters <sharded cluster>`, this occurs on each
    shard and on the config servers.
 
+   .. include:: /includes/backup/legacy-causes-of-initial-sync-restart.rst
+
 #. Takes snapshots of the ``data`` directory in a deployment as often
-   as your
-   :ref:`snapshot schedule <snapshot-frequency-and-retention>`
+   as your :ref:`snapshot schedule <snapshot-frequency-and-retention>`
    specifies and then transfers the snapshots to a storage system.
 
    .. note::
