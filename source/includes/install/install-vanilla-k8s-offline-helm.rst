@@ -5,15 +5,12 @@ choose to download its files from:
 
 .. tabs::
 
-    tabs:
-      - id: internet
-        name: The Internet
-        content: |
+   .. tab:: The Internet
+      :tabid: internet
 
-          .. include:: /includes/steps/install-k8s-offline-helm-internet.rst
+      .. include:: /includes/steps/install-k8s-offline-helm-internet.rst
 
-      - id: host
-        name: Another Host
-        content: |
+   .. tab:: Another Host
+      :tabid: host
 
-          .. include:: /includes/steps/install-k8s-offline-helm-host.rst
+      .. include:: /includes/steps/install-k8s-offline-helm-host.rst
