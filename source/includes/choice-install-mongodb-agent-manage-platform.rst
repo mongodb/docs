@@ -1,187 +1,163 @@
 .. tabs-platforms::
 
-   tabs:
-     - id: macos
-       content: |
+   .. tab::
+      :tabid: macos
 
-         Use this procedure to install the {+mdbagent+} on x86_64
-         architecture running macOS 10.8 or later:
+      Use this procedure to install the {+mdbagent+} on x86_64
+      architecture running macOS 10.8 or later:
 
-         .. include:: /includes/steps/install-mongodb-agent-manage-macos-x86-64-tar.rst
+      .. include:: /includes/steps/install-mongodb-agent-manage-macos-x86-64-tar.rst
 
-     - id: windows
-       content: |
+   .. tab::
+      :tabid: windows
 
-         Use this procedure to install the {+mdbagent+} on x86_64
-         architecture running Microsoft Windows:
+      Use this procedure to install the {+mdbagent+} on x86_64
+      architecture running Microsoft Windows:
 
-         .. include:: /includes/steps/install-mongodb-agent-manage-on-windows.rst
+      .. include:: /includes/steps/install-mongodb-agent-manage-on-windows.rst
 
-     - id: debian
-       content: |
+   .. tab::
+      :tabid: debian
 
-         Use this procedure to install the {+mdbagent+}:
+      Use this procedure to install the {+mdbagent+}:
 
-         .. tabs::
+      .. tabs::
 
-            tabs:
-              - id: x86
-                name: Intel/AMD
-                content: |
+         .. tab:: Intel/AMD
+            :tabid: x86
 
-                  On x86_64 architecture running, Debian 8, Debian 9,
-                  Ubuntu 16.04, or Ubuntu 18.04:
+            On x86_64 architecture running, Debian 8, Debian 9,
+            Ubuntu 16.04, or Ubuntu 18.04:
 
-                  .. include:: /includes/steps/install-mongodb-agent-manage-amd64.ubuntu1604-deb.rst
+            .. include:: /includes/steps/install-mongodb-agent-manage-amd64.ubuntu1604-deb.rst
 
-              - id: ppc
-                name: PowerPC
-                content: |
+         .. tab:: PowerPC
+            :tabid: ppc
 
-                  On PowerPC architecture running Ubuntu 16.x
-                  (managing MongoDB 3.4 or later deployments only):
+            On PowerPC architecture running Ubuntu 16.x
+            (managing MongoDB 3.4 or later deployments only):
 
-                  .. tabs::
+            .. tabs::
 
-                     tabs:
-                       - id: deb
-                         name: DEB package
-                         content: |
+               .. tab:: DEB package
+                  :tabid: deb
 
-                           Using a ``deb`` package:
+                  Using a ``deb`` package:
 
-                           .. include:: /includes/steps/install-mongodb-agent-manage-ppc64e1.ubuntu1604-deb.rst
+                  .. include:: /includes/steps/install-mongodb-agent-manage-ppc64e1.ubuntu1604-deb.rst
 
-                       - id: tar
-                         name: TAR archive
-                         content: |
+               .. tab:: TAR archive
+                  :tabid: tar
 
-                           Using a ``tar`` archive:
+                  Using a ``tar`` archive:
 
-                           .. include:: /includes/steps/install-mongodb-agent-manage-ubuntu1604-ppc64le-tar.rst
+                  .. include:: /includes/steps/install-mongodb-agent-manage-ubuntu1604-ppc64le-tar.rst
 
-              - id: s390x
-                name: IBM ZSeries
-                content: |
+         .. tab:: IBM ZSeries
+            :tabid: s390x
 
-                  On zSeries architecture running Ubuntu 16.x using a
-                  ``deb`` package:
+            On zSeries architecture running Ubuntu 16.x using a
+            ``deb`` package:
 
-                  .. include:: /includes/steps/install-mongodb-agent-manage-s390x.ubuntu1804-deb.rst
+            .. include:: /includes/steps/install-mongodb-agent-manage-s390x.ubuntu1804-deb.rst
 
-     - id: rhel
-       content: |
+   .. tab::
+      :tabid: rhel
 
-         Use this procedure to install the {+mdbagent+}:
+      Use this procedure to install the {+mdbagent+}:
 
-         .. tabs::
+      .. tabs::
 
-            tabs:
-              - id: x86
-                name: Intel/AMD
-                content: |
+         .. tab:: Intel/AMD
+            :tabid: x86
 
-                  On x86_64 architecture:
+            On x86_64 architecture:
 
-                  .. tabs::
+            .. tabs::
 
-                     tabs:
-                       - id: v6
-                         name: 6.x
-                         content: |
+               .. tab:: RHEL/CentOS 6.x, Amazon Linux
+                  :tabid: v6
 
-                           Running RHEL / CentOS 6.x or Amazon Linux 1
-                           using an ``rpm`` package:
+                  Running RHEL / CentOS 6.x or Amazon Linux 1
+                  using an ``rpm`` package:
 
-                           .. include:: /includes/steps/install-mongodb-agent-manage-x86-64-rpm.rst
+                  .. include:: /includes/steps/install-mongodb-agent-manage-x86-64-rpm.rst
 
-                       - id: v7
-                         name: 7.x/8.x
-                         content: |
+               .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
+                  :tabid: v7
 
-                           Running RHEL / CentOS 7.x, SUSE 12, or
-                           Amazon Linux 2:
-
-                           .. tabs::
-
-                              tabs:
-                                - id: rpm
-                                  name: RPM package
-                                  content: |
-
-                                    Using an ``rpm`` package:
-
-                                    .. include:: /includes/steps/install-mongodb-agent-manage-x86-64.rhel7-rpm.rst
-
-                                - id: tar
-                                  name: TAR archive
-                                  content: |
-
-                                    Using a ``tar`` archive:
-
-                                    .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-x86-64-tar.rst
-
-              - id: ppc
-                name: PowerPC
-                content: |
-
-                  On RHEL / CentOS (7.x) on PowerPC architecture
-                  (managing MongoDB 3.4 or later deployments):
+                  Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
+                  Amazon Linux 2:
 
                   .. tabs::
 
-                     tabs:
-                       - id: rpm
-                         name: RPM package
-                         content: |
+                     .. tab:: RPM package
+                        :tabid: rpm
 
-                           Using an ``rpm`` package:
+                        Using an ``rpm`` package:
 
-                           .. include:: /includes/steps/install-mongodb-agent-manage-ppc641e.rhel7-rpm.rst
+                        .. include:: /includes/steps/install-mongodb-agent-manage-x86-64.rhel7-rpm.rst
 
-                       - id: tar
-                         name: TAR archive
-                         content: |
+                     .. tab:: TAR archive
+                        :tabid: tar
 
-                           Using a ``tar`` archive:
+                        Using a ``tar`` archive:
 
-                           .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-ppc64le-tar.rst
+                        .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-x86-64-tar.rst
 
-              - id: s390x
-                name: IBM ZSeries
-                content: |
+         .. tab:: PowerPC
+            :tabid: ppc
 
-                  On zSeries architecture (managing MongoDB 3.4 or
-                  later deployments):
+            On RHEL / CentOS (7.x) on PowerPC architecture
+            (managing MongoDB 3.4 or later deployments):
 
-                  .. tabs::
+            .. tabs::
 
-                     tabs:
-                       - id: v6
-                         name: 6.x
-                         content: |
+               .. tab:: RPM package
+                  :tabid: rpm
 
-                           Running RHEL / CentOS 6.x using the
-                           ``rpm`` package manager:
+                  Using an ``rpm`` package:
 
-                           .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel6-rpm.rst
+                  .. include:: /includes/steps/install-mongodb-agent-manage-ppc641e.rhel7-rpm.rst
 
-                       - id: v7
-                         name: 7.x
-                         content: |
+               .. tab:: TAR archive
+                  :tabid: tar
 
-                           Running RHEL / CentOS 7.x using the
-                           ``rpm`` package manager:
+                  Using a ``tar`` archive:
 
-                           .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
+                  .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-ppc64le-tar.rst
 
-     - id: linux
-       content: |
+         .. tab:: IBM ZSeries
+            :tabid: s390x
 
-         Use this procedure to install Linux systems that do not use
-         ``deb`` or ``rpm`` packages.
+            On zSeries architecture (managing MongoDB 3.4 or
+            later deployments):
 
-         .. include:: /includes/steps/install-mongodb-agent-manage-linux-x86-64-tar.rst
+            .. tabs::
+
+               .. tab:: 6.x
+                  :tabid: v6
+
+                  Running RHEL / CentOS 6.x using the
+                  ``rpm`` package manager:
+
+                  .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel6-rpm.rst
+
+               .. tab:: 7.x
+                  :tabid: v7
+
+                        Running RHEL / CentOS 7.x using the
+                        ``rpm`` package manager:
+
+                        .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
+
+   .. tab::
+      :tabid: linux
+
+      Use this procedure to install Linux systems that do not use
+      ``deb`` or ``rpm`` packages.
+
+      .. include:: /includes/steps/install-mongodb-agent-manage-linux-x86-64-tar.rst
 
 
 

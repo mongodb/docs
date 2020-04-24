@@ -3,8 +3,8 @@
    .. tab::
       :tabid: windows
 
-      Use this procedure to enable monitoring on an application database
-      on x86_64 architecture running Microsoft Windows:
+      Use this procedure to enable monitoring on an application
+      database on x86_64 architecture running Microsoft Windows:
 
       .. include:: /includes/steps/monitor-appdb-on-windows.rst
 
@@ -69,7 +69,7 @@
 
             .. tabs::
 
-               .. tab:: 6.0+
+               .. tab:: RHEL/CentOS 6.x, Amazon Linux
                   :tabid: v6
 
                   Running RHEL / CentOS 6.x or Amazon Linux 1 using an
@@ -77,10 +77,11 @@
 
                   .. include:: /includes/steps/monitor-appdb-on-x86-64-rpm.rst
 
-               .. tab:: 7.0+
+               .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
                   :tabid: v7
 
-                  Running RHEL / CentOS 7.x, SUSE 12, or Amazon Linux 2:
+                  RHEL / CentOS 7.x, SUSE12, SUSE15 or
+                  Amazon Linux 2:
 
                   .. tabs::
 
