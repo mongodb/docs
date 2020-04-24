@@ -1,6 +1,5 @@
+// ignored first line
 package usage.examples;
-
-import static com.mongodb.client.model.Filters.eq;
 
 import java.util.Arrays;
 import java.util.List;
@@ -11,7 +10,6 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.InsertManyResult;
 
@@ -31,18 +29,11 @@ public class InsertMany {
 
         try {
             InsertManyResult result = collection.insertMany(movieList);
-            System.out.println("Success! Inserted: " + result.getInsertedIds());
-            
-            MongoCursor<Document> cursor = collection.find(eq("title", "Short Circuit 3")).iterator();
 
-            while (cursor.hasNext()) {
-                System.out.println(cursor.next());
-            };
-
+            System.out.println("Inserted document ids: " + result.getInsertedIds());
         } catch (MongoException me) {
             System.err.println("Unable to insert due to an error: " + me);
         }
         mongoClient.close();
     }
-
 }
