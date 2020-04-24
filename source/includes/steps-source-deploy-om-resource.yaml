@@ -1,0 +1,69 @@
+---
+stepnum: 0
+level: 4
+ref: verify-om-appdb-tls-certs
+title: "Verify your new |tls| certificates."
+content: |
+
+  Verify that each member of the Replica Set has one |tls| certificate named with the following format:
+
+  ``<resource-name>db<index>-pem``
+
+  Where ``<index>`` is a 0-based index number to the total amount of
+  members minus one. (``0`` to ``n-1``)
+
+---
+stepnum: 0
+level: 4
+ref: create-om-appdb-secret
+title: "Create a Secret with your new |tls| certificates."
+content: |
+
+  Create a new Secret from these files:
+
+  .. code-block:: sh
+
+     kubectl create secret generic appdb-certs \
+             --from-file=om-appdb-0-pem \
+             --from-file=om-appdb-1-pem \
+             --from-file=om-appdb-2-pem
+
+  ``kubectl`` creates one Secret containing the three certificates.
+
+---
+stepnum: 0
+level: 4
+ref: create-om-appdb-configmap
+title: "Create a ConfigMap containing the Certificate Authority."
+content: |
+
+  If you had the certificates signed with an internal authority (like
+  ``cert-manager`` or Vault), you must create a |k8s-configmap|
+  containing the |certauth|\'s Certificate file.
+
+  If you saved the certificate as a file, name this file ``ca-pem``.
+  This simplifies creating the |k8s-configmap|.
+
+  .. code-block:: sh
+
+     kubectl create configmap appdb-ca --from-file=ca-pem
+
+  This creates a |k8s-configmap| named ``appdb-ca``. This
+  |k8s-configmap| contains one entry called ``ca-pem`` with the
+  contents of the |certauth| file.
+
+---
+stepnum: 0
+level: 4
+ref: create-om-appdb-set-secret
+title: "Specify the Secret with certs to the |onprem| yaml definition."
+content: |
+
+   .. literalinclude:: /includes/code-examples/yaml-files/example-opsmgr.yaml
+      :language: yaml
+      :linenos:
+      :copyable: false
+      :start-after: START-secure-appdb-full
+      :end-before: END-secure-appdb-full
+
+...
