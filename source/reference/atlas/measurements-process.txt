@@ -1,0 +1,193 @@
+.. _mcli-atlas-measurements-process-cmd:
+
+===================================
+mongocli atlas measurements process
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+The ``measurements process`` command lists measurements for
+MongoDB processes running on a specified |service| host.
+A MongoDB process can be either a
+:manual:`mongod </reference/program/mongod/#bin.mongod>` or
+:manual:`mongos </reference/program/mongos/#bin.mongos>`.
+
+You can get the hostnames associated with a particular |service| project
+with the :ref:`process list <mcli-atlas-process-list-cmd>` command.
+
+Syntax 
+------
+
+.. code-block:: text 
+
+   mongocli atlas measurements process <hostname>:<port> 
+        --granularity <granularity> --period <period> 
+        --start <start> --end <end>
+        [--type <type>]
+        [ --profile|-p <profile-name> ]
+        [ --projectId <project-ID> ]
+
+.. include:: /includes/fact-command-line-help.rst
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Option
+     - Type
+     - Description
+     - Required?
+
+   * - ``<hostname>:<port>``
+     - String
+     - The hostname of the server running the |service| MongoDB process
+       and the port to which the process listens.
+     - yes
+
+   * - ``granularity``
+     - String
+     - An ISO-8601-formatted time period that specifies the interval
+       between measurement data points. For example, ``PT1M`` specifies
+       1-minute granularity.
+   
+       The following subset of ISO-8601-formatted time periods are 
+       supported:
+   
+       - ``PT1M``
+       - ``PT5M``
+       - ``PT1H``
+       - ``P1D``
+   
+       When you specify ``granularity``, you must specify either ``period``
+       *or* ``start`` and ``end``.
+     - yes
+   
+   * - ``period``
+     - String
+     - An ISO-8601-formatted time period that specifies the length of time in
+       the past to query. For example, to request the last 36 hours, specify:
+       ``period=P1DT12H``. Mutually exclusive with ``start`` and ``end``.
+     - yes
+   
+   * - ``start``
+     - String
+     - The time at which to start retrieving measurements, as specified by an
+       ISO-8601 timestamp string. If you specify ``start`` you must also
+       specify ``end``. Mutually exclusive with ``period``.
+     - yes
+   
+   * - ``end``
+     - String
+     - The time at which to stop retrieving measurements, as specified by an
+       ISO-8601 timestamp string. If you specify ``end`` you must also
+       specify ``start``. Mutually exclusive with ``period``.
+     - yes
+   
+   * - ``type``
+     - String
+     - Specifies which measurement to return. If ``type`` is not specified, all
+       measurements are returned.
+   
+       You must specify measurements that are valid for the host. |service|
+       returns an error if any specified measurements are invalid.
+   
+       The following measurement values are valid:
+   
+       .. list-table::
+   
+          * - - ``DISK_PARTITION_IOPS_READ``
+              - ``DISK_PARTITION_IOPS_WRITE``
+              - ``DISK_PARTITION_IOPS_TOTAL``
+          
+            - Measures throughput of I/O operations for the disk partition used for
+              MongoDB.
+          
+          * - - ``DISK_PARTITION_UTILIZATION``
+          
+            - The percentage of time during which requests are being issued to and
+              serviced by the partition. This includes requests from any process, not
+              just MongoDB processes.
+          
+          * - - ``DISK_PARTITION_LATENCY_READ``
+              - ``DISK_PARTITION_LATENCY_WRITE``
+          
+            - Measures latency per operation type of the disk partition used by
+              MongoDB.
+          
+          * - - ``DISK_PARTITION_SPACE_FREE``
+              - ``DISK_PARTITION_SPACE_USED``
+              - ``DISK_PARTITION_SPACE_PERCENT_FREE``
+              - ``DISK_PARTITION_SPACE_PERCENT_USED``
+          
+            - Measures the free disk space and used disk space on the disk partition
+              used by MongoDB.
+     - no
+   
+
+.. _mcli-atlas-measurements-process-output:
+
+.. include:: /includes/measurements-process-output.rst
+
+Example
+-------
+
+The following example uses the ``mongocli atlas measurements process`` command 
+to retrieve the ``CONNECTIONS`` process measurement for a host with ID
+``atlas-ap6k8a-shard-00-02.qmljy.mongodb.net``, listening on port ``27017``. The
+granularity is set to one minute, with a period of one minute. The
+command uses a profile named ``egAtlasProfile`` where the project ID and the
+|svc-api-key|\s are stored.
+
+.. code-block:: json
+
+   mongocli atlas measurements process \
+     atlas-ap6k8a-shard-00-02.qmljy.mongodb.net:27017 \
+     --granularity PT1M --period PT1M --type CONNECTIONS \
+     --profile egAtlasProfile
+
+The previous command produces the following output.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+    	"end": "2020-04-22T17:27:27Z",
+    	"granularity": "PT1M",
+    	"groupId": "5dd5a6b6f10fab1d71a58495",
+    	"hostId": "atlas-ap6k8a-shard-00-02.qmljy.mongodb.net:27017",
+    	"links": [
+    		{
+    			"rel": "self",
+    			"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5dd5a6b6f10fab1d71a58495/processes/atlas-ap6k8a-shard-00-02.qmljy.mongodb.net:27017/measurements?granularity=PT1M\u0026m=CONNECTIONS\u0026period=PT1M"
+    		},
+    		{
+    			"rel": "http://mms.mongodb.com/host",
+    			"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5dd5a6b6f10fab1d71a58495/processes/atlas-ap6k8a-shard-00-02.qmljy.mongodb.net:27017"
+    		}
+    	],
+    	"measurements": [
+    		{
+    			"dataPoints": [
+    				{
+    					"timestamp": "2020-04-22T17:27:27Z",
+    					"value": 7
+    				}
+    			],
+    			"name": "CONNECTIONS",
+    			"units": "SCALAR"
+    		}
+    	],
+    	"processId": "atlas-ap6k8a-shard-00-02.qmljy.mongodb.net:27017",
+    	"start": "2020-04-22T17:27:27Z"
+   }
