@@ -75,3 +75,73 @@
              operator:
                watchNamespace: *
 
+   * - ``registry.operator``
+     - Repository from which the |k8s-op-short| image is pulled. Specify 
+       this value if you want to pull the |k8s-op-short| image from a 
+       private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               operator: quay.io/mongodb
+
+   * - ``registry.opsManager``
+     - Repository from which the |onprem| image is pulled. Specify 
+       this value if you want to pull the |onprem| image from a 
+       private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               opsManager: quay.io/mongodb
+
+   * - ``registry.initOpsManager``
+     - Repository from which the |onprem| initContainer image is pulled.
+       This image contains the start-up scripts and readiness probe
+       for |onprem|.
+
+       Specify this value if you want to pull the |onprem| initContainer
+       image from a private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               initOpsManager: quay.io/mongodb
+
+   * - ``registry.appDb``
+     - Repository from which the Application Database image is pulled. 
+       Specify this value if you want to pull the |onprem| image from a 
+       private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               appDb: quay.io/mongodb
+
+   * - ``registry.initAppDb``
+     - Repository from which the Application Database initContainer 
+       image is pulled. This image contains the start-up scripts and 
+       readiness probe for the Application Database.
+
+       Specify this value if you want to pull the Application Database 
+       initContainer image from a private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               initAppDb: quay.io/mongodb

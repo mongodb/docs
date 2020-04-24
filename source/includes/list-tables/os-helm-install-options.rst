@@ -23,6 +23,77 @@
              registry:
                imagePullSecrets: <openshift-pull-secret>
 
+   * - ``registry.operator``
+     - Repository from which the |k8s-op-short| image is pulled. Specify 
+       this value if you want to pull the |k8s-op-short| image from a 
+       private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               operator: registry.connect.redhat.com/mongodb
+
+   * - ``registry.opsManager``
+     - Repository from which the |onprem| image is pulled. Specify 
+       this value if you want to pull the |onprem| image from a 
+       private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               opsManager: registry.connect.redhat.com/mongodb
+
+   * - ``registry.initOpsManager``
+     - Repository from which the |onprem| initContainer image is pulled.
+       This image contains the start-up scripts and readiness probe
+       for |onprem|.
+
+       Specify this value if you want to pull the |onprem| initContainer
+       image from a private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               initOpsManager: registry.connect.redhat.com/mongodb
+
+   * - ``registry.appDb``
+     - Repository from which the Application Database image is pulled. 
+       Specify this value if you want to pull the |onprem| image from a 
+       private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               appDb: registry.connect.redhat.com/mongodb
+
+   * - ``registry.initAppDb``
+     - Repository from which the Application Database initContainer 
+       image is pulled. This image contains the start-up scripts and 
+       readiness probe for the Application Database.
+
+       Specify this value if you want to pull the Application Database 
+       initContainer image from a private repository.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             registry:
+               initAppDb: registry.connect.redhat.com/mongodb
+
    * - ``namespace``
      - To use a different namespace, you need to specify that
        ``namespace``.
