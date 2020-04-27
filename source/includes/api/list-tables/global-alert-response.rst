@@ -102,7 +102,7 @@
 
    * - ``id``
      - string
-     - Unique identifier of the maintenance window.
+     - Unique identifier of the alert.
 
    * - ``lastNotified``
      - string
