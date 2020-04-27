@@ -20,7 +20,7 @@
  
       * - ``id``
         - string
-        - Hostname and port of the process in ``hostname``:``port`` format.
+        - Host ID of the machine running the process.
  
       * - ``lastPing``
         - DateTime
