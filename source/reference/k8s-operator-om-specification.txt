@@ -359,43 +359,146 @@ Optional |onprem| Resource Settings
    :manual:`dbAdminAnyDatabase
    </reference/built-in-roles/#dbAdminAnyDatabase>` roles.
 
-.. opsmgrkube:: spec.backup.podSpec.cpu
+.. opsmgrkube:: spec.backup.statefulSet.spec
+
+   *Type*: collection
+
+   Specification for the |k8s-statefulset| that the |k8s-op| creates
+   for the :ref:`backup-daemon`.
+
+   To review which fields you can add to
+   :opsmgrkube:`spec.backup.statefulSet.spec`, see the 
+   :k8sdocs:`Kubernetes documentation
+   </reference/generated/kubernetes-api/v1.16/#statefulsetspec-v1-apps>`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template
+
+   *Type*: collection
+
+   :k8sdocs:`Template </concepts/workloads/pods/pod-overview/#pod-templates>`
+   for the |k8s| pods in the |k8s-statefulset| that the |k8s-op| creates
+   for the :ref:`backup-daemon`.
+
+   .. note::
+
+      The |k8s-op-short| doesn't validate the fields you provide
+      in :opsmgrkube:`spec.backup.statefulSet.spec.template`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.metadata
+
+   *Type*: collection
+
+   Metadata for the |k8s| pods in the |k8s-statefulset| that the 
+   |k8s-op| creates for the :ref:`backup-daemon`.
+
+   To review which fields you can add to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.metadata`, see
+   the :k8sdocs:`Kubernetes documentation
+   </reference/generated/kubernetes-api/v1.16/#objectmeta-v1-meta>`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec
+
+   *Type*: collection
+
+   Specifications of the |k8s| pods in the |k8s-statefulset| that the 
+   |k8s-op| creates for the :ref:`backup-daemon`.
+
+   To review the complete list of fields you can add to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec`, see the
+   :k8sdocs:`Kubernetes documentation
+   </reference/generated/kubernetes-api/v1.16/#podspec-v1-core>`.
+
+   The following example ``spec.backup.statefulSet.spec.template.spec`` 
+   defines minimum and maximum CPU and memory capacity for one 
+   :ref:`backup-daemon` container the |k8s-op| deploys:
+
+   .. code-block:: yaml
+
+      statefulSet:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: mongodb-backup-daemon
+                resources:
+                  requests:
+                    cpu: '0.50'
+                    memory: '4500M'
+                  limits:
+                    cpu: '1'
+                    memory: '6000M'
+
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers
+
+   *Type*: collection
+
+   List of containers that belong to the |k8s| pods in the 
+   |k8s-statefulset| that the |k8s-op| creates for the 
+   :ref:`backup-daemon`.
+
+   To modify the specifications of the :ref:`backup-daemon` container, 
+   you must provide the exact name of the container using the ``name`` 
+   field, as shown in the following example:
+
+   .. code-block:: yaml
+
+         backup:
+          statefulSet:
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: mongodb-backup-daemon
+
+   .. note::
+
+      When you add containers to
+      ``spec.backup.statefulSet.spec.template.spec.containers``,
+      the |k8s-op-short| adds them to the |k8s| pod. These containers 
+      are appended to the :ref:`backup-daemon` containers in the pod.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.requests.cpu
 
    *Type*: string
 
-   Maximum CPU capacity that must be available on a |k8s|
-   |k8s-node| to host the :ref:`backup-daemon`.
-
-   This value maps to the
-   :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
-   for CPU for the created pod.
-
-.. opsmgrkube:: spec.backup.podSpec.cpuRequests
-
-   *Type*: string
-
-   Minimum CPU capacity for the |k8s-node| being created to host
-   the :ref:`backup-daemon`. If omitted, this value is set to
-   :opsmgrkube:`spec.backup.podSpec.cpu`.
-
-   This value maps to the
-   :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.11/#resourcerequirements-v1-core>`
-   for CPU for the created pod.
+   Minimum CPU capacity that must be available on a |k8s| |k8s-node| to 
+   host the :ref:`backup-daemon`.
 
    The requested value must be less than or equal to
-   :opsmgrkube:`spec.backup.podSpec.cpu`.
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.limits.cpu`.
 
-.. opsmgrkube:: spec.backup.podSpec.memory
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.limits.cpu
 
    *Type*: string
 
-   Maximum memory capacity that must be available on a |k8s| |k8s-node|
+   Maximum CPU capacity for the |k8s-node| being created to host
+   the :ref:`backup-daemon`. If omitted, this value is set to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.requests.cpu`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.requests.memory
+
+   *Type*: string
+
+   Minimum memory capacity that must be available on a |k8s| |k8s-node|
    to host the :ref:`backup-daemon` on |k8s|. This value is expressed as
    an integer followed by a unit of memory in |jedec| notation.
 
-   This value maps to the
-   :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
-   for memory for the created pod.
+   .. note::
+
+      Set this value to at least ``4.5G``. Values of less than ``4.5G``
+      might result in an error.
+
+   The requested value must be less than or equal to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.limits.memory`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.limits.memory
+
+   *Type*: string
+
+   Maximum memory capacity for the |k8s-node| being created to host
+   the :ref:`backup-daemon`. If omitted, this value is set to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.requests.memory`.
 
    The |k8s-op-short| calculates and sets parameters for Java heap size
    based on the container's memory.
@@ -406,97 +509,6 @@ Optional |onprem| Resource Settings
       Setting this value to a value greater than 32 GB (``32G``) can
       cause issues with the backup service. Excessive heaps can cause
       unpredictable results in |onprem|.
-
-.. opsmgrkube:: spec.backup.podSpec.memoryRequests
-
-   *Type*: string
-
-   Minimum memory capacity for the |k8s-node| being created to host
-   the :ref:`backup-daemon`. If omitted, this value is set to
-   :opsmgrkube:`spec.backup.podSpec.memory`.
-
-   This value maps to the
-   :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
-   for memory for the created pod.
-
-   The requested value must be less than or equal to
-   :opsmgrkube:`spec.backup.podSpec.memory`.
-
-   .. note::
-
-      Set this value to at least ``4.5G``. Values of less than ``4.5G``
-      might result in an error.
-
-.. opsmgrkube:: spec.backup.podSpec.nodeAffinity
-
-   *Type*: collection
-
-   |k8s| |k8s-rule| to place the :ref:`backup-daemon` |k8s-pods| on a
-   specific range of |k8s-nodes|.
-
-   .. example::
-
-      A user can isolate "dev" and "testing" environments to ensure
-      |k8s-pods| go to |k8s-nodes| with appropriate labels.
-
-.. opsmgrkube:: spec.backup.podSpec.podAffinity
-
-   *Type*: collection
-
-   |k8s| |k8s-rule| to determine if multiple
-   :ref:`backup-daemon` |k8s-pods| must be co-located with other |k8s-pods|.
-
-   .. seealso::
-
-      The |k8s| documentation for use cases on
-      `affinity and anti-affinity <https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#more-practical-use-cases>`__
-
-.. opsmgrkube:: spec.backup.podSpec.podTemplate
-
-   *Type*: collection
-
-   :k8sdocs:`Template </concepts/workloads/pods/pod-overview/#pod-templates>`
-   for the |k8s| pods that the |k8s-op| creates for the the
-   :ref:`backup-daemon`.
-
-   Template values take precedence over values specified in
-   ``spec.backup.podSpec``.
-
-   .. note::
-
-      The |k8s-op-short| doesn't validate the fields you provide
-      in :opsmgrkube:`spec.backup.podSpec.podTemplate`.
-
-.. opsmgrkube:: spec.backup.podSpec.podTemplate.metadata
-
-   *Type*: collection
-
-   Metadata for the |k8s| pods that the |k8s-op| creates for the
-   :ref:`backup-daemon`.
-
-   To review which fields you can add to
-   :opsmgrkube:`spec.backup.podSpec.podTemplate.metadata`, see
-   the :k8sdocs:`Kubernetes documentation
-   </reference/generated/kubernetes-api/v1.11/#objectmeta-v1-meta>`.
-
-.. opsmgrkube:: spec.backup.podSpec.podTemplate.spec
-
-   *Type*: collection
-
-   Specifications of the |k8s| pods that the |k8s-op| creates for
-   the :ref:`backup-daemon`.
-
-   To review which fields you can add to
-   :opsmgrkube:`spec.backup.podSpec.podTemplate.spec`, see the
-   :k8sdocs:`Kubernetes documentation
-   </reference/generated/kubernetes-api/v1.11/#podspec-v1-core>`.
-
-   .. note::
-
-      When you add containers to
-      ``spec.backup.podSpec.podTemplate.spec.containers``,
-      the |k8s-op-short| adds them to the |k8s| pod. These containers are
-      appended to the :ref:`backup-daemon` containers in the pod.
 
 .. opsmgrkube:: spec.backup.s3Stores.name
 
@@ -772,49 +784,149 @@ Optional |onprem| Resource Settings
       |application| based on the container's memory. Changing the
       ``-Xms`` and ``-Xmx`` values can cause issues with |onprem|.
 
-.. opsmgrkube:: spec.podSpec.cpu
+.. opsmgrkube:: spec.statefulSet.spec
+
+   *Type*: collection
+
+   Specification for the |k8s-statefulset| that the |k8s-op| creates
+   for |onprem|.
+
+   To review which fields you can add to
+   :opsmgrkube:`spec.statefulSet.spec`, see the 
+   :k8sdocs:`Kubernetes documentation
+   </reference/generated/kubernetes-api/v1.16/#statefulsetspec-v1-apps>`.
+
+.. opsmgrkube:: spec.statefulSet.spec.template
+
+   *Type*: collection
+
+   :k8sdocs:`Template </concepts/workloads/pods/pod-overview/#pod-templates>`
+   for the |k8s| pods in the |k8s-statefulset| that the |k8s-op| creates
+   for the |onprem|.
+
+   .. note::
+
+      The |k8s-op-short| doesn't validate the fields you provide
+      in :opsmgrkube:`spec.statefulSet.spec.template`.
+
+.. opsmgrkube:: spec.statefulSet.spec.template.metadata
+
+   *Type*: collection
+
+   Metadata for the |k8s| pods in the |k8s-statefulset| that the 
+   |k8s-op| creates for the |onprem|.
+
+   To review which fields you can add to
+   :opsmgrkube:`spec.statefulSet.spec.template.metadata`, see
+   the :k8sdocs:`Kubernetes documentation
+   </reference/generated/kubernetes-api/v1.16/#objectmeta-v1-meta>`.
+
+.. opsmgrkube:: spec.statefulSet.spec.template.spec
+
+   *Type*: collection
+
+   Specifications of the |k8s| pods in the |k8s-statefulset| that the 
+   |k8s-op| creates for the |onprem|.
+
+   To review the complete list of fields you can add to
+   :opsmgrkube:`spec.statefulSet.spec.template.spec`, see the
+   :k8sdocs:`Kubernetes documentation
+   </reference/generated/kubernetes-api/v1.16/#podspec-v1-core>`.
+
+   The following example ``spec.statefulSet.spec.template.spec`` defines
+   minimum and maximum CPU and memory capacity for one |onprem| 
+   container the |k8s-op| deploys:
+
+   .. code-block:: yaml
+
+      statefulSet:
+        spec:
+          template:
+            spec:
+              containers:
+                - name: mongodb-ops-manager
+                  resources:
+                    requests:
+                      cpu: '0.70'
+                      memory: '6G'
+                    limits:
+                      cpu: '1'
+                      memory: '7000M'
+
+.. opsmgrkube:: spec.statefulSet.spec.template.spec.containers
+
+   *Type*: collection
+
+   List of containers that belong to the |k8s| pods in the 
+   |k8s-statefulset| that the |k8s-op| creates for the 
+   |onprem|.
+
+   To modify the specifications of the |onprem| container, 
+   you must provide the exact name of the container using the ``name`` 
+   field, as shown in the following example:
+
+   .. code-block:: yaml
+
+         backup:
+          statefulSet:
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: mongodb-ops-manager
+
+   .. note::
+
+      When you add containers to
+      ``spec.statefulSet.spec.template.spec.containers``,
+      the |k8s-op-short| adds them to the |k8s| pod. These containers 
+      are appended to the |onprem| containers in the pod.
+
+.. opsmgrkube:: spec.statefulSet.spec.template.spec.containers.resources.requests.cpu
 
    *Type*: string
 
-   Maximum CPU capacity that must be available on a |k8s|
-   |k8s-node| to host |onprem| on |k8s|.
-
-   This value maps to the
-   :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
-   for CPU for the created pod.
-
-.. opsmgrkube:: spec.podSpec.cpuRequests
-
-   *Type*: string
-
-   Minimum CPU capacity for the |k8s-node| being created to host
-   |onprem| on |k8s|. If omitted, this value is set to
-   :opsmgrkube:`spec.podSpec.cpu`.
-
-   This value maps to the
-   :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.11/#resourcerequirements-v1-core>`
-   for CPU for the created pod.
+   Minimum CPU capacity that must be available on a |k8s| |k8s-node| to 
+   host the |onprem|.
 
    The requested value must be less than or equal to
-   :opsmgrkube:`spec.podSpec.cpu`.
+   :opsmgrkube:`spec.statefulSet.spec.template.spec.containers.resources.limits.cpu`.
 
-.. opsmgrkube:: spec.podSpec.memory
+.. opsmgrkube:: spec.statefulSet.spec.template.spec.containers.resources.limits.cpu
 
    *Type*: string
 
-   Maximum memory capacity that must be available on a
-   |k8s| |k8s-node| to host |onprem| on |k8s|. This value is
-   expressed as an integer followed by a unit of memory in
-   |jedec| notation.
+   Maximum CPU capacity for the |k8s-node| being created to host
+   the |onprem|. If omitted, this value is set to
+   :opsmgrkube:`spec.statefulSet.spec.template.spec.containers.resources.requests.cpu`.
+
+.. opsmgrkube:: spec.statefulSet.spec.template.spec.containers.resources.requests.memory
+
+   *Type*: string
+
+   Minimum memory capacity that must be available on a |k8s| |k8s-node|
+   to host the |onprem| on |k8s|. This value is expressed as
+   an integer followed by a unit of memory in |jedec| notation.
 
    .. example::
 
       If |onprem| on |k8s| requires 6 gigabytes of memory, set
       this value to ``6G``.
 
-   This value maps to the
-   :k8sdocs:`limits field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
-   for memory for the created pod.
+   .. note::
+
+      MongoDB recommends setting this value to at least ``5G``.
+
+   The requested value must be less than or equal to
+   :opsmgrkube:`spec.statefulSet.spec.template.spec.containers.resources.limits.memory`.
+
+.. opsmgrkube:: spec.statefulSet.spec.template.spec.containers.resources.limits.memory
+
+   *Type*: string
+
+   Maximum memory capacity for the |k8s-node| being created to host
+   the |onprem|. If omitted, this value is set to
+   :opsmgrkube:`spec.statefulSet.spec.template.spec.containers.resources.requests.memory`.
 
    The |k8s-op-short| calculates and sets parameters for Java heap size
    based on the container's memory.
@@ -823,107 +935,5 @@ Optional |onprem| Resource Settings
       :class: warning
 
       Setting this value to a value greater than 32 GB (``32G``) can
-      cause issues with the |application|. Excessive heaps can cause
+      cause issues with the backup service. Excessive heaps can cause
       unpredictable results in |onprem|.
-
-.. opsmgrkube:: spec.podSpec.memoryRequests
-
-   *Type*: string
-
-   Minimum memory capacity for the |k8s-node| being created to host
-   |onprem| on |k8s|. If omitted, this value is set to
-   :opsmgrkube:`spec.podSpec.memory`.
-
-   This value maps to the
-   :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.10/#resourcerequirements-v1-core>`
-   for memory for the created pod.
-
-   The requested value must be less than or equal to
-   :opsmgrkube:`spec.podSpec.memory`.
-
-   .. note::
-
-      MongoDB recommends setting this value to at least ``5G``.
-
-.. opsmgrkube:: spec.podSpec.podAntiAffinityTopologyKey
-
-   *Type*: string
-
-   Sets a |k8s-rule| to spread |onprem| |k8s-pods|
-   to different locations. A location can be a single node, rack, or
-   region. This key defines which node
-   `label <https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/>`__
-   is used to `determine equal location <https://kubernetes.io/docs/concepts/configuration/assign-pod-node/>`__
-   for nodes. By default, |k8s-op-short| tries to spread pods across
-   different hosts.
-
-.. opsmgrkube:: spec.podSpec.nodeAffinity
-
-   *Type*: collection
-
-   |k8s| |k8s-rule| to place |onprem| |k8s-pods| on a
-   specific range of |k8s-nodes|.
-
-   .. example::
-
-      A user can isolate "dev" and "testing" environments to ensure
-      |k8s-pods| go to |k8s-nodes| with appropriate labels.
-
-.. opsmgrkube:: spec.podSpec.podAffinity
-
-   *Type*: collection
-
-   |k8s| |k8s-rule| to determine if multiple
-   |onprem| |k8s-pods| must be co-located with other |k8s-pods|.
-
-   .. seealso::
-
-      The |k8s| documentation for use cases on
-      `affinity and anti-affinity <https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#more-practical-use-cases>`__
-
-.. opsmgrkube:: spec.podSpec.podTemplate
-
-   *Type*: collection
-
-   :k8sdocs:`Template </concepts/workloads/pods/pod-overview/#pod-templates>`
-   for the |k8s| pods that the |k8s-op| creates for |onprem| on |k8s|.
-
-   Template values take precedence over values specified in
-   ``spec.podSpec``.
-
-   .. note::
-
-      The |k8s-op-short| doesn't validate the fields you provide
-      in :opsmgrkube:`spec.podSpec.podTemplate`.
-
-.. opsmgrkube:: spec.podSpec.podTemplate.metadata
-
-   *Type*: collection
-
-   Metadata for the |k8s| pods that the |k8s-op| creates for |onprem| on
-   |k8s|.
-
-   To review which fields you can add to
-   :opsmgrkube:`spec.podSpec.podTemplate.metadata`, see the
-   :k8sdocs:`Kubernetes documentation
-   </reference/generated/kubernetes-api/v1.11/#objectmeta-v1-meta>`.
-
-.. opsmgrkube:: spec.podSpec.podTemplate.spec
-
-   *Type*: collection
-
-   Specifications of the |k8s| pods that the |k8s-op| creates for
-   |onprem| on |k8s|.
-
-   To review which fields you can add to
-   :opsmgrkube:`spec.podSpec.podTemplate.spec`, see the
-   :k8sdocs:`Kubernetes documentation
-   </reference/generated/kubernetes-api/v1.11/#podspec-v1-core>`.
-
-   .. note::
-
-      When you add containers to
-      ``spec.podSpec.podTemplate.spec.containers``,
-      the |k8s-op-short| adds them to the |k8s| pod. These containers are
-      appended to the |onprem| containers in the pod.
-

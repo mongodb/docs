@@ -13,31 +13,34 @@ Modify |onprem| or MongoDB Kubernetes Resource Containers
    :class: singlecol
 
 You can modify the containers in the |k8s-pods| in which |onprem| and 
-|k8s-mdbrscs| run using the ``podTemplate`` setting that applies to your 
-deployment:
+MongoDB database resources run using the ``template`` or ``podTemplate``
+setting that applies to your deployment:
 
-- |onprem|: :opsmgrkube:`spec.podSpec.podTemplate`
 - MongoDB database: :setting:`spec.podSpec.podTemplate`
+- |onprem|: :opsmgrkube:`spec.statefulSet.spec.template`
+- :ref:`backup-daemon`: :opsmgrkube:`spec.backup.statefulSet.spec.template`
 
-To review which fields you can add to a ``podTemplate``, see the 
-:k8sdocs:`Kubernetes documentation 
-</reference/generated/kubernetes-api/v1.11/#podspec-v1-core>`.
+To review which fields you can add to a ``template`` or a 
+``podTemplate``, see the :k8sdocs:`Kubernetes documentation 
+</reference/generated/kubernetes-api/v1.16/#podspec-v1-core>`.
 
-When you create containers using a ``podTemplate``, the |k8s-op-short| 
-handles container creation differently based on the ``name`` you provide 
-for each container in the ``containers`` array:
+When you create containers with a ``template`` or ``podTemplate``, 
+the |k8s-op-short| handles container creation differently based on the 
+``name`` you provide for each container in the ``containers`` array:
 
 - If the ``name`` field *matches* the name of the applicable resource 
   image, the |k8s-op-short| updates the |onprem| or MongoDB database 
-  container in the |k8s-pod| to which the ``podTemplate`` applies:
+  container in the |k8s-pod| to which the ``template`` or 
+  ``podTemplate`` applies:
 
   - |onprem|: ``mongodb-enterprise-ops-manager``
+  - :ref:`backup-daemon`: ``mongodb-backup-daemon``
   - MongoDB database: ``mongodb-enterprise-database``
   - Application Database: ``mongodb-enterprise-appdb``
 
 - If the ``name`` field *does not match* the name of the applicable 
-  resource image, the |k8s-op-short| creates an InitContainer in each 
-  |k8s-pod| to which the ``podTemplate`` applies.
+  resource image, the |k8s-op-short| creates a new container in each 
+  |k8s-pod| to which the ``template`` or ``podTemplate`` applies.
 
 Define a Volume Mount for a MongoDB Kubernetes Resource
 -------------------------------------------------------
@@ -45,13 +48,14 @@ Define a Volume Mount for a MongoDB Kubernetes Resource
 On-disk files in containers in |k8s-pods| don't survive container 
 crashes or restarts. Using the :setting:`spec.podSpec.podTemplate` 
 setting, you can add a :k8sdocs:`volume mount 
-</concepts/storage/volumes/>` to persist data for the life of the 
-|k8s-pod|.
+</concepts/storage/volumes/>` to persist data in a MongoDB database 
+resource for the life of the |k8s-pod|.
 
-To create a volume mount:
+To create a volume mount for a MongoDB database resource:
 
-1. Update the |k8s-mdbrsc| definition to include a volume mount for
-   containers in the |k8s-mdbrsc| pods the |k8s-op-short| creates. 
+1. Update the MongoDB database resource definition to include a volume 
+   mount for containers in the database pods that the |k8s-op-short| 
+   creates. 
    
    The following sample :setting:`spec.podSpec.podTemplate` defines
    a volume mount:
@@ -76,32 +80,38 @@ To create a volume mount:
 
       kubectl apply -f <database-resource-conf>.yaml -n <namespace>
 
-Tune MongoDB MongoDB Kubernetes Resource Docker Images with an InitContainer
-----------------------------------------------------------------------------
+Tune MongoDB Kubernetes Resource Docker Images with an InitContainer
+--------------------------------------------------------------------
 
 |k8s-mdbrsc| Docker images run on Ubuntu and use Ubuntu's default
 system configuration. To tune the underlying Ubuntu system configuration 
-in the |k8s-mdbrsc| containers, use the :setting:`spec.podSpec.podTemplate` 
-setting to add a privileged InitContainer :k8sdocs:`init container 
-</concepts/workloads/pods/init-containers/>` to the |k8s-mdbrsc| 
-definition.
+in the |k8s-mdbrsc| containers, add a privileged InitContainer 
+:k8sdocs:`init container </concepts/workloads/pods/init-containers/>`
+using one of the following settings:
+
+- :setting:`spec.podSpec.podTemplate`: add a privileged InitContainer to
+  a MongoDB database resource container.
+
+- :opsmgrkube:`spec.statefulSet.spec.template`: add a privileged 
+  InitContainer to an |onprem| resource container.
 
 .. example:: 
 
-   |k8s-mdbrsc| Docker images use the Ubuntu default ``keepalive`` time
-   of ``7200``. MongoDB recommends a shorter ``keepalive`` time of ``120``
-   for database deployments.
+   MongoDB database resource Docker images use the Ubuntu default 
+   ``keepalive`` time of ``7200``. MongoDB recommends a shorter 
+   ``keepalive`` time of ``120`` for database deployments.
 
-   You can tune the ``keepalive`` time in the |k8s-mdbrscs| Docker images
-   if you experience network timeouts or socket errors in communication
-   between clients and |k8s-mdbrscs|.
+   You can tune the ``keepalive`` time in the database resource Docker 
+   images if you experience network timeouts or socket errors in 
+   communication between clients and the database resources.
 
    .. seealso:: :manual:`Does TCP keepalive time affect MongoDB Deployments? </faq/diagnostics/#does-tcp-keepalive-time-affect-mongodb-deployments>` in the MongoDB Manual
 
-To tune |k8s-mdbrsc| Docker images:
+To tune Docker images for a MongoDB database resource container:
 
-1. Update the |k8s-mdbrsc| definition to append a privileged 
-   InitContainer to |k8s-mdbrsc| pods the |k8s-op-short| creates. 
+1. Update the MongoDB database resource definition to append a 
+   privileged InitContainer to the database pods that the |k8s-op-short|
+   creates. 
    
    The following sample :setting:`spec.podSpec.podTemplate` changes the 
    ``keepalive`` value to the recommended value of ``120``:
@@ -126,7 +136,7 @@ To tune |k8s-mdbrsc| Docker images:
       kubectl apply -f <database-resource-conf>.yaml -n <namespace>
 
 A privileged InitContainer is added to each |k8s-pod| the |k8s-op-short| 
-creates using the |k8s-mdbrsc| definition.
+creates using the MongoDB database resource definition.
 
 Open a shell session to a running container in your database resource 
 |k8s-pod| and verify your changes. For the ``keepalive`` example above, 
@@ -134,7 +144,7 @@ use the following command to get the current ``keepalive`` value:
 
 .. code-block:: none
       
-    kubectl exec -n <namespace> -it <pod-name> -- cat /proc/sys/net/ipv4/tcp_keepalive_time
+   kubectl exec -n <namespace> -it <pod-name> -- cat /proc/sys/net/ipv4/tcp_keepalive_time
 
 Returns:
 
