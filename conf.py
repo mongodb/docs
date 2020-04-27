@@ -74,6 +74,7 @@ extlinks = {
     'atlas': ('https://docs.atlas.mongodb.com%s',''),
     'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
     'website': ('https://www.mongodb.com%s?jmp=docs',''),
+    'legal': ('https://www.mongodb.com/legal%s?tck=docs', ''),
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
     'aws': ('http://docs.aws.amazon.com%s',''),
     'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
@@ -89,6 +90,7 @@ extlinks = {
     'contact': ('https://www.mongodb.com/lp/contact%s?jmp=docs',''),
     'uservoice' : ('https://feedback.mongodb.com/forums/%s?jmp=docs',''),
     'mdbacct': ('https://account.mongodb.com/account%s',''),
+    'contact': ('https://www.mongodb.com/contact%s',''),
 }
 
 source_constants = {
