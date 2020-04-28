@@ -66,7 +66,8 @@ Backup
 
 |mms| Backup provides scheduled
 :doc:`snapshots </tutorial/nav/backup-use-operations>` and
-point-in-time :doc:`recovery </tutorial/nav/backup-restore-deployments>`
+point-in-time
+:doc:`recovery </tutorial/nav/backup-restore-deployments>`
 of your MongoDB :term:`replica sets <replica set>` and
 :term:`sharded clusters <sharded cluster>`.
 
@@ -85,56 +86,110 @@ snapshots of data from the MongoDB processes you have specified.
 Backup Workflow
 ~~~~~~~~~~~~~~~
 
-When you start backing up a MongoDB deployment, Backup performs an
-:term:`initial sync` of the deployment's data as if it were creating a
-new, "invisible" member of a :term:`replica set`. For a sharded
-cluster, the Agent syncs each shard's :term:`primary` member and each
-:term:`config server`. The Agent sends the initial sync and
-:term:`oplog` data over |https| back to |mms|.
+Backups rely upon the
+:manual:`MongoDB version compatibility</reference/command/setFeatureCompatibilityVersion>`
+of your database.
+This Feature Compatibility Version ranges from the current version to
+one version earlier. For MongoDB 4.2, the FCV can be ``4.0`` or
+``4.2``.
 
-.. include:: /includes/extracts/functional-overview-data-backup.rst
+.. tabs::
 
-{+bagent+} executes the initial sync and the tailing of the oplog
-using standard MongoDB queries. The cluster being backed up is unaware
-of the additional copy of the backup data.
+   .. tab:: FCV of 4.0 or earlier
+      :tabid: fcv40
 
-{+bagent+} uses a MongoDB instance version equal to or
-greater than the version of the replica set it backs up.
+      Once backup has started, |mms| backs up the data as an ongoing
+      and continuous process. This process continues creating snapshots
+      as long as the head database remains synchronized with the
+      database.
 
-{+bagent+} takes and stores snapshots based on a user-defined
+      .. include:: /includes/backup/legacy-process-overview-main-om.rst
+
+      .. cond:: onprem
+
+         The {+mdbagent+} then tails each replica set's :term:`oplog`
+         to maintain on disk a standalone database, called a
+         :term:`head database <head database>`. |mms| maintains one
+         head database for each backed-up replica set. The head
+         database stays consistent with the original :term:`primary` up
+         to the last oplog that the {+mdbagent+} supplies.
+
+      .. cond:: cloud
+
+         The {+mdbagent+} then tails each replica set's :term:`oplog`
+         to update the backup when performing a point-in-time restore.
+         The backup is consistent with the original primary up to the
+         last oplog that the {+mdbagent+} supplies.
+
+   .. tab:: FCV of 4.2 or later
+      :tabid: fcv42
+
+      .. include:: /includes/backup/wtchk-process-overview-main-om.rst
+
+      The {+mdbagent+} uses WiredTiger's incremental backup cursor to
+      capture the incremental changes.
+
+The backup process works in this manner regardless of how snapshots are
+stored.
+
+Backup uses a MongoDB instance version equal to or greater than the
+version of the replica set it backs up.
+
+Backup takes and stores snapshots based on a user-defined
 :ref:`snapshot retention policy <snapshot-frequency-and-retention>`.
-Sharded cluster snapshots temporarily stop the balancer so that they
-can insert a marker token into all shards and config servers in the
-cluster. |mms| takes a :term:`snapshot` when the marker tokens appear
-in the snapshot data.
+Sharded cluster snapshots temporarily stop the balancer. The snapshots
+then can insert a marker token into all shards and config servers in
+the cluster. |mms| takes a :term:`snapshot` when the marker tokens
+appear in the snapshot data.
 
 .. cond:: onprem
 
-   The procedures used to reduce the storage space required to store a
-   :term:`snapshot` depend on where it is stored:
+   .. tabs::
+      :hidden:
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 25 75
+      .. tab:: FCV of 4.0 or earlier
+         :tabid: fcv40
 
-      * - Snapshot Store
-        - Description
+         How much storage capacity you need depends on both the number
+         of snapshots and the type of snapshot storage you choose. The
+         following table outlines the differences in snapshot stores:
 
-      * - MongoDB blockstore
-        - Only the differences of each successive :term:`snapshot` are
-          stored. Compression and block-level :term:`deduplication`
-          reduce the size of snapshot data.
+         .. list-table::
+            :header-rows: 1
+            :widths: 25 75
 
-      * - |aws| |s3| bucket
-        - Only the differences of each successive :term:`snapshot` are
-          stored. Compression and block-level :term:`deduplication`
-          reduce the size of snapshot data.
+            * - Snapshot Store
+              - Description
 
-      * - File system store
-        - Depending on the configuration, compression reduces the size
-          of the :term:`snapshot` data.
+            * - MongoDB blockstore
+              - Only the differences between each successive
+                :term:`snapshot` are stored. Compression and
+                block-level :term:`deduplication` reduce the size of
+                snapshot data.
 
-All snapshots represent a full backup.
+            * - |aws| |s3| bucket
+              - Only the differences between each successive
+                :term:`snapshot` are stored. Compression and
+                block-level :term:`deduplication` reduce the size of
+                snapshot data.
+
+            * - File system store
+              - Depending on the configuration, compression reduces the
+                size of the :term:`snapshot` data.
+
+         All snapshots represent a full backup.
+
+      .. tab:: FCV of 4.2 or later
+         :tabid: fcv42
+
+         |mms| can back up data as a full or incremental backup. |mms|
+         requires a full backup:
+
+         - For your first backup,
+         - After a snapshot has been deleted, and
+         - If the blockstore block size has been changed.
+
+         Incremental backups reduce network transfer and storage costs.
 
 To learn more about how to configure backups, see
 :doc:`Backup Configuration Options </core/backup-preparations>`.
@@ -150,30 +205,66 @@ To learn more about how to configure backups, see
 Restore Data
 ~~~~~~~~~~~~
 
-{+bagent+} can restore data from a complete scheduled snapshot or from
+Backup can restore data from a complete scheduled snapshot or from
 a selected point between snapshots.
 
-- For :term:`sharded clusters <sharded cluster>` you can restore from
-  :ref:`checkpoints <checkpoint>` between snapshots.
-- For :term:`replica sets <replica set>`, you can restore from selected
-  points in time.
+.. tabs::
+   :hidden:
+
+   .. tab:: FCV of 4.0 or earlier
+      :tabid: fcv40
+
+      - For :term:`sharded clusters <sharded cluster>`, you can restore
+        from :ref:`checkpoints <checkpoint>` between snapshots.
+
+      - For :term:`replica sets <replica set>`, you can restore from
+        selected points in time.
+
+   .. tab:: FCV of 4.2 or later
+      :tabid: fcv42
+
+      You can restore :term:`sharded clusters <sharded cluster>` and
+      :term:`replica sets <replica set>` from selected points in time.
 
 When you restore from a :term:`snapshot`, |mms| reads directly from
-the snapshot storage and you can download the snapshot files from an
-|https| link.
+the snapshot storage. You can restore the snapshot:
 
-When you restore from a checkpoint or point in time, |mms| first
-restores a full snapshot from the snapshot storage and then applies
-stored :term:`oplogs <oplog>` until the specified point is reached.
-|mms| delivers the snapshot and oplog updates using the same |https|
-mechanisms. To enable checkpoints, see
-:ref:`enable-cluster-checkpoints`.
+- To another cluster or
+- Download the snapshot files from an |https| link.
 
-.. cond:: onprem
+.. tabs::
+   :hidden:
 
-   You can configure how much of the oplog you want to keep per backup.
-   This affects how much time a checkpoint and point-in-time restore
-   can cover.
+   .. tab:: FCV of 4.0 or earlier
+      :tabid: fcv40
+
+      When you restore from a checkpoint or point in time, |mms|
+      restores a full snapshot from the snapshot storage. |mms| then
+      applies stored :term:`oplogs <oplog>` until it reaches the
+      specified point. |mms| delivers the snapshot and oplog updates
+      using the same |https| mechanisms. To enable checkpoints, see
+      :ref:`enable-cluster-checkpoints`.
+
+      .. cond:: onprem
+
+         You can configure how much of the oplog you want to keep per
+         backup. This affects how much time a checkpoint and
+         point-in-time restore can cover.
+
+   .. tab:: FCV of 4.2 or later
+      :tabid: fcv42
+
+      When you restore from a point in time, |mms| restores a full
+      snapshot from the snapshot storage. |mms| then applies stored
+      :term:`oplogs <oplog>` until it reaches the specified point.
+      |mms| delivers the snapshot and oplog updates using the same
+      |https| mechanisms.
+
+      .. cond:: onprem
+
+         You can configure how much of the oplog you want to keep per
+         backup. This affects how much time a point-in-time restore can
+         cover.
 
 .. include:: /includes/extracts/server-pool-intro.rst
 
