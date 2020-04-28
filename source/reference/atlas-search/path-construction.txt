@@ -12,6 +12,11 @@ Path Construction
    :depth: 2
    :class: singlecol
 
+.. _ref-path-intro:
+
+Overview 
+--------
+
 The ``path`` parameter is used by the |fts| 
 :ref:`operators <query-syntax-ref>` to specify the field or fields
 to be searched. It may contain:
@@ -21,6 +26,11 @@ to be searched. It may contain:
 - A :ref:`multi analyzer <ref-multi-analyzer>` specification
 - An array containing a combination of strings and multi analyzer
   specifications
+
+.. _ref-path-usage:
+
+Usage 
+-----
 
 To search only a single indexed field, use a quoted string in the
 ``path`` parameter. The following example searches a field named
@@ -108,8 +118,12 @@ analyzers, use an array. The following example searches the
 
    "path": [ "names", "notes", { "value": "comments", "multi": "mySecondaryAnalyzer" } ]
 
+.. _ref-path-egs:
+
 Examples
 --------
+
+.. _ref-path-static-egs:
 
 Static Mapping Examples
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -123,7 +137,8 @@ following documents:
      "_id" : 1,
      "type" : "sedan",
      "make" : "Toyota",
-     "description" : "Blue four-door sedan, lots of trunk space."
+     "description" : "Blue four-door sedan, lots of trunk space. Three to four 
+     passengers."
    }
    { 
      "_id" : 2,
@@ -177,6 +192,8 @@ default, but it can also use the :ref:`simple analyzer
 <ref-simple-analyzer>` by specifying ``simpleAnalyzer`` with the
 ``multi`` parameter.
 
+.. _ref-path-single-field-egs:
+
 Single Field Search
 ~~~~~~~~~~~~~~~~~~~
 
@@ -197,6 +214,8 @@ The following example searches for the string ``Ford`` in the
    ])
 
 The preceding example returns the document with ``_id: 3``.
+
+.. _ref-path-multi-field-egs:
 
 Multiple Field Search
 ~~~~~~~~~~~~~~~~~~~~~
@@ -227,16 +246,23 @@ The preceding query returns the following result:
      "_id" : 1,
      "type" : "sedan",
      "make" : "Toyota",
-     "description" : "Blue four-door sedan, lots of trunk space."
+     "description" : "Blue four-door sedan, lots of trunk space. Three to four 
+     passengers."
    }
+
+.. _ref-path-alt-analyzer-egs:
 
 Alternate Analyzer Search
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Simple analyzer Example 
+#######################
+
 The following example uses the ``multi`` named ``simpleAnalyzer``
 in the index definition, which uses the :ref:`simple analyzer
-<ref-simple-analyzer>`. The query searches the ``description``
-field for the string ``driver``.
+<ref-simple-analyzer>`. 
+
+The query searches the ``description`` field for the string ``driver``.
 
 .. code-block:: javascript
 
@@ -264,13 +290,124 @@ The preceding query returns the following result:
    }
 
 The :ref:`simple analyzer <ref-simple-analyzer>` indexes ``driver's
-side airbag`` as ``[driver s side airbag``], so it matches on
-``driver``.
+side airbag`` as ``[driver s side airbag``], so it matches on ``driver``.
 
-By contrast, the default :ref:`standard analyzer
-<ref-standard-analyzer>` indexes ``driver's side airbag`` as ``[driver's
-side airbag``], so it would match on ``driver's`` or ``side`` but not
-``driver``.
+By contrast, the default :ref:`standard analyzer <ref-standard-analyzer>` 
+indexes ``driver's side airbag`` as ``[driver's side airbag``], so it would 
+match on ``driver's`` or ``side`` but not ``driver``.
+
+Whitespace Analyzer Example 
+###########################
+
+Suppose the ``multi`` object in the index definition for the ``cars`` 
+collection is the following:
+
+.. code-block:: json 
+
+   "multi": {
+     "simpleAnalyzer": {
+       "analyzer": "lucene.whitespace",
+       "type": "string"
+     }
+   }
+
+The following example uses the ``multi`` named ``simpleAnalyzer``
+in the index definition, which uses the :ref:`whitespace analyzer
+<ref-whitespace-analyzer>`. 
+
+.. code-block:: json 
+
+   db.cars.aggregate([
+     {
+       $searchBeta: {
+         "text": {
+           "query": "Three",
+           "path": { "value": "description", "multi": "simpleAnalyzer" }
+         }
+       }
+     }
+   ])
+
+The preceding query returns the following result:
+
+.. code-block:: json
+   :copyable: false
+
+   { 
+     "_id" : 1, 
+     "type" : "sedan", 
+     "make" : "Toyota", 
+     "description" : "Blue four-door sedan, lots of trunk space. Three to 
+     four passengers." 
+   }
+
+For the above query on the term ``Three``, |fts| only returns documents 
+matching the term ``Three`` and not ``three`` becuase the 
+:ref:`whitespace analyzer <ref-simple-analyzer>` is case-sensitive. By 
+contrast, the default :ref:`standard analyzer <ref-standard-analyzer>` is 
+not case-sensitive and returns all documents matching the term in the 
+query in the order that they are listed in the collection. 
+
+Now, consider the following query:
+
+.. code-block:: json 
+
+   db.cars.aggregate([
+     {
+       $searchBeta: {
+         "compound": {
+           "should": [
+             { 
+               "text": { 
+                 "path": "description", 
+                 "query": "Three" 
+               }
+             },
+             {
+               "text": {
+                 "query": "Three",
+                 "path": {"value" : "description", "multi" : "simpleAnalyzer"},
+                 score: { boost: { value: 2 }}
+               }
+             }
+           ]
+         }
+       }
+     },
+     {
+       $project: {
+         "_id": 0,
+         "type": 1,
+         "description": 1,
+         "score": { "$meta": "searchScore" }
+       }
+     }
+   ])
+
+The preceding query returns the following results:
+
+.. code-block:: json
+   :copyable: false
+
+   { 
+     "type" : "sedan", 
+     "description" : "Blue four-door sedan, lots of trunk space. Three to four passengers seats.", 
+     "score" : 1.1092689037322998 
+   }
+   { 
+     "type" : "SUV", 
+     "description" : "Black four-door SUV, three rows of seats.", 
+     "score" : 0.17812025547027588 
+   }
+
+For the above query, |fts| returns documents with both ``Three`` and 
+``three``. However, the score of the result with ``Three`` is higher 
+because while the document with ``three`` was matched using the default 
+:ref:`standard analyzer <ref-standard-analyzer>`, the document with 
+``Three`` was matched by both the specified ``simpleAnalyzer`` and the 
+default :ref:`standard analyzer <ref-standard-analyzer>`.
+
+.. _ref-path-dynamic-egs:
 
 Dynamic Mappings Example
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -313,6 +450,8 @@ The index definition for the ``posts`` collection is as follows:
        "dynamic": true
      }
    }
+
+.. _ref-path-nested-field-egs:
 
 Nested Field Example
 ~~~~~~~~~~~~~~~~~~~~
