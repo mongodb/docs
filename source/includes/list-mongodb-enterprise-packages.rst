@@ -5,14 +5,14 @@ repository, and contains the following officially-supported packages:
 
    .. list-table::
      :header-rows: 1
-     :widths: 30 75
+     :widths: 35 65
 
      * - Package Name
        - Description
 
      * - ``{+package-name-enterprise+}``
-       - A ``metapackage`` that will automatically install
-         the four component packages listed below.
+       - A ``metapackage`` that automatically installs the component
+         packages listed below.
 
      * - ``{+package-name-enterprise+}-server``
        - Contains the :binary:`~bin.mongod` daemon and associated
@@ -24,9 +24,21 @@ repository, and contains the following officially-supported packages:
      * - ``{+package-name-enterprise+}-shell``
        - Contains the :binary:`~bin.mongo` shell.
 
+     * - ``{+package-name-enterprise+}-cryptd``
+       - Contains the :ref:`mongocryptd <csfle-encryption-components>`
+         binary
+
      * - ``{+package-name-enterprise+}-tools``
-       - Contains the following MongoDB tools: :binary:`~bin.mongoimport`
-         :binary:`~bin.bsondump`, :binary:`~bin.mongodump`, :binary:`~bin.mongoexport`,
-         :binary:`~bin.mongofiles`,
-         :binary:`~bin.mongorestore`, :binary:`~bin.mongostat`,
-         and :binary:`~bin.mongotop`.
+       - Contains the following MongoDB tools:
+
+         - :binary:`~bin.mongodump`
+         - :binary:`~bin.mongorestore`
+         - :binary:`~bin.bsondump`
+         - :binary:`~bin.mongoimport`
+         - :binary:`~bin.mongoexport`
+         - :binary:`~bin.mongostat`
+         - :binary:`~bin.mongotop`
+         - :binary:`~bin.mongofiles`
+         - :binary:`~bin.mongoldap`
+         - :ref:`install-compass` script
+         - ``mongodecrypt`` binary

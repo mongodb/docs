@@ -14,8 +14,8 @@ repository, and contains the following officially-supported packages:
        - Description
 
      * - ``{+package-name-org+}``
-       - A ``metapackage`` that will automatically install
-         the four component packages listed below.
+       - A ``metapackage`` that automatically installs the component
+         packages listed below.
 
      * - ``{+package-name-org+}-server``
 
@@ -33,8 +33,14 @@ repository, and contains the following officially-supported packages:
        - Contains the :binary:`~bin.mongo` shell.
 
      * - ``{+package-name-org+}-tools``
-       - Contains the following MongoDB tools: :binary:`~bin.mongoimport`
-         :binary:`~bin.bsondump`, :binary:`~bin.mongodump`, :binary:`~bin.mongoexport`,
-         :binary:`~bin.mongofiles`,
-         :binary:`~bin.mongorestore`, :binary:`~bin.mongostat`,
-         and :binary:`~bin.mongotop`.
+       - Contains the following MongoDB tools:
+
+         - :binary:`~bin.mongodump`
+         - :binary:`~bin.mongorestore`
+         - :binary:`~bin.bsondump`
+         - :binary:`~bin.mongoimport`
+         - :binary:`~bin.mongoexport`
+         - :binary:`~bin.mongostat`
+         - :binary:`~bin.mongotop`
+         - :binary:`~bin.mongofiles`
+         - :ref:`install-compass` script
