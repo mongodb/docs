@@ -76,6 +76,7 @@ extlinks = {
     'website': ('https://www.mongodb.com%s?jmp=docs',''),
     'legal': ('https://www.mongodb.com/legal%s?tck=docs', ''),
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs',''),
+    'filedl': ('http://downloads.mongodb.com%s?jmp=docs',''),
     'aws': ('http://docs.aws.amazon.com%s',''),
     'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
     'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
