@@ -248,7 +248,7 @@
 - encoding\@0.1.12
 - errno\@0.1.7
 - error-ex\@1.3.2
-- es-check\@5.0.0
+- es-check\@5.1.0
 - escape-string-regexp\@1.0.5
 - event-stream\@4.0.1
 - eventemitter3\@1.2.0
