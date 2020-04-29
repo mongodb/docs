@@ -1,6 +1,7 @@
 .. list-table::
+   :widths: 15 10 75
    :header-rows: 1
-   :widths: 25 25 70
+   :stub-columns: 1
 
    * - Name
      - Type
@@ -25,10 +26,11 @@
 
    * - ``publicKey``
      - string
-     - Public key for this Organization |api| key assigned to this Project.
+     - Public key for this Organization |api| key assigned to this
+       Project.
 
    * - ``roles``
-     - object array
+     - array of objects
      - Roles that this Organization |api| key assigned to this Project
        has. This array returns all the Organization and Project roles
        the user has in |service|.

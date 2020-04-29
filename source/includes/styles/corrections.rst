@@ -8,7 +8,7 @@
      table.docutils td {
        white-space: normal;
        overflow: auto;
-       text-overflow: ellipsis;
+       text-overflow: clip;
        scrollbar-width: thin;
      }
      th.head {
