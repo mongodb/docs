@@ -720,7 +720,7 @@ New Features
 Improvements
 ````````````
 
-- The |onprem|'s :doc:`Administration </core/administration-interface>`
+- The |onprem|'s :doc:`Administration </admin-console>`
   interface provides more information to make it easier to monitor the
   health of the |onprem| installation.
 
