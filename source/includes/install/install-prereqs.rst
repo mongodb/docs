@@ -5,20 +5,6 @@ To install the MongoDB |k8s-op-short|, you must:
    If you need a |k8s| solution, see the |k8s|
    :k8sdocs:`documentation on picking the right solution </setup>`.
 
-#. Have a running |onprem-link|.
-
-   .. important::
-
-      Your |onprem| installation must run an active |ntp| service. If
-      the |onprem| host's clock falls out of sync, that host can't
-      communicate with the |k8s-op-short|.
-
-      To learn how to check your |ntp| service for your Ops Manager
-      host, see the documentation for
-      `Ubuntu <https://help.ubuntu.com/lts/serverguide/NTP.html>`__ or
-      `RHEL <https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/s1-checking_the_status_of_ntp>`__.
-
-
 #. Clone the :gh:`MongoDB Enterprise Kubernetes Operator repository </mongodb/mongodb-enterprise-kubernetes>`.
 
    .. code-block:: sh
@@ -46,6 +32,24 @@ To install the MongoDB |k8s-op-short|, you must:
    .. code-block:: sh
 
       kubectl create namespace <namespaceName>
+
+#. (Optional) Have a running |onprem-link|.
+
+   If you don't deploy an |onprem| resource with the
+   |k8s-op-short|, you must have an |onprem| running outside of your
+   |k8s| cluster. If you will deploy an |onprem| resource in |k8s| with the |k8s-op-short|, skip this prerequisite.
+
+   .. important::
+
+      Your |onprem| installation must run an active |ntp| service. If
+      the |onprem| host's clock falls out of sync, that host can't
+      communicate with the |k8s-op-short|. 
+
+      To learn how to check your |ntp| service for your Ops Manager
+      host, see the documentation for
+      `Ubuntu <https://help.ubuntu.com/lts/serverguide/NTP.html>`__ or
+      `RHEL
+      <https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/s1-checking_the_status_of_ntp>`__.
 
 #. (**Required for OpenShift Installs**) Create a |k8s-secret| that 
    contains credentials authorized to pull images from the 
