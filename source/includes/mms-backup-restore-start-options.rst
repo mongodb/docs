@@ -80,7 +80,7 @@
           ``oplogInc``, ``oplogTs``, or ``checkpointId``.
      - no
 
-   * - ``--profile``, ``-p``
+   * - ``--profile``, ``-P``
      - string
      - Name of the profile where the project ID and the |svc-api-key|\s 
        for the project are saved. If omitted, uses the ``default`` profile. 
