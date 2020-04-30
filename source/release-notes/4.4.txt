@@ -843,6 +843,81 @@ resources:
 - `RFC7413 TCP Fast Open <https://tools.ietf.org/html/rfc7413>`__
 - `TCP Fast Open (en.wikipedia.org) <https://en.wikipedia.org/w/index.php?title=TCP_Fast_Open&oldid=922380898>`__
 
+Indexes
+-------
+
+.. _4.4-rel-notes-compound-hashed-index:
+
+Compound Hashed Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.4 adds support for creating compound indexes with a single
+:ref:`hashed field <index-type-hashed>`. MongoDB 4.2 and earlier
+only supported single field hashed indexes.
+
+The following operation creates a compound hashed index on ``country``
+and ``_id``:
+
+.. code-block:: javascript
+
+   db.examples.createIndex( { "country" : 1, "_id" : "hashed" } )
+
+Compound hashed indexes require :ref:`featureCompatibilityVersion
+<view-fcv>` set to ``4.4``.
+
+.. seealso:: :ref:`4.4-rel-notes-sharding-compound-hashed`
+
+``dropIndexes`` Can Abort In-Progress Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an index specified to :dbcommand:`dropIndexes` is still building,
+:dbcommand:`dropIndexes` attempts to abort the in-progress build.
+Aborting an index build has the same effect as dropping the built index.
+Prior to MongoDB 4.4, :dbcommand:`dropIndexes` would return an error if
+the collection had any in-progress index builds. This behavior also
+applies to the shell helpers :method:`db.collection.dropIndex()` and
+:method:`db.collection.dropIndexes()`.
+
+- The indexes specified to :dbcommand:`dropIndexes` /
+  :method:`~db.collection.dropIndexes()` must be the entire set of
+  in-progress builds associated to a given index builder, i.e. the
+  indexes built by a single :dbcommand:`createIndexes` or
+  :method:`db.collection.createIndexes()` operation.
+
+- The index specified to :method:`~db.collection.dropIndex()` must be
+  the only index associated to the index builder, i.e. the indexes built
+  by a single :dbcommand:`createIndexes` or
+  :method:`db.collection.createIndexes()` operation.
+
+To drop a specific index out of a set of related in-progress builds,
+wait until the index builds complete and specify that index to
+:dbcommand:`dropIndexes` or its shell helpers.
+
+For more complete documentation, see:
+
+- :ref:`dropIndexes-cmd-index-builds` for the :dbcommand:`dropIndexes` command.
+- :ref:`dropIndexes-method-index-builds` for the :method:`~db.collection.dropIndexes()` method.
+- :ref:`dropIndex-method-index-builds` for the :method:`~db.collection.dropIndex()` method.
+
+``drop()`` Can Abort In-Progress Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-drop-in-progress-indexes.rst
+
+.. include:: /includes/fact-abort-index-build-replica-sets.rst
+
+``dropDatabase`` Can Abort In-Progress Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-drop-database-in-progress-indexes.rst
+
+.. seealso:: :ref:`index-operations`.
+
+Deprecation of ``geoHaystack`` Index and ``geoSearch`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-geo-deprecation.rst
+
 General Improvements
 --------------------
 
@@ -1044,6 +1119,7 @@ architecture. For more information on using this feature, see
 
 Container-aware FTDC Reporting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Starting in MongoDB 4.4, :ref:`FTDC <ftdc-stub>` now reports utilization
 data for a :binary:`~bin.mongod` running in a container from the
 perspective of the container, as opposed to the host operating system.
@@ -1067,7 +1143,6 @@ field to
 and :doc:`diagnostic log messages </reference/log-messages>`. The
 ``replanReason`` field contains the reason the query system evicted a
 :ref:`cached plan <query-plans-query-optimization>`.
-
 
 ``dbStats`` and ``collStats`` Output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1108,52 +1183,6 @@ See:
 - :method:`db.collection.deleteMany()`
 - :dbcommand:`findAndModify`
 
-``dropIndexes`` Can Abort In-Progress Index Builds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If an index specified to :dbcommand:`dropIndexes` is still building,
-:dbcommand:`dropIndexes` attempts to abort the in-progress build.
-Aborting an index build has the same effect as dropping the built index.
-Prior to MongoDB 4.4, :dbcommand:`dropIndexes` would return an error if
-the collection had any in-progress index builds. This behavior also
-applies to the shell helpers :method:`db.collection.dropIndex()` and
-:method:`db.collection.dropIndexes()`.
-
-- The indexes specified to :dbcommand:`dropIndexes` /
-  :method:`~db.collection.dropIndexes()` must be the entire set of
-  in-progress builds associated to a given index builder, i.e. the
-  indexes built by a single :dbcommand:`createIndexes` or
-  :method:`db.collection.createIndexes()` operation.
-
-- The index specified to :method:`~db.collection.dropIndex()` must be
-  the only index associated to the index builder, i.e. the indexes built
-  by a single :dbcommand:`createIndexes` or
-  :method:`db.collection.createIndexes()` operation.
-
-To drop a specific index out of a set of related in-progress builds,
-wait until the index builds complete and specify that index to
-:dbcommand:`dropIndexes` or its shell helpers.
-
-For more complete documentation, see:
-
-- :ref:`dropIndexes-cmd-index-builds` for the :dbcommand:`dropIndexes` command.
-- :ref:`dropIndexes-method-index-builds` for the :method:`~db.collection.dropIndexes()` method.
-- :ref:`dropIndex-method-index-builds` for the :method:`~db.collection.dropIndex()` method.
-
-``drop()`` Can Abort In-Progress Index Builds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/extracts/4.4-changes-drop-in-progress-indexes.rst
-
-.. include:: /includes/fact-abort-index-build-replica-sets.rst
-
-``dropDatabase`` Can Abort In-Progress Index Builds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/extracts/4.4-changes-drop-database-in-progress-indexes.rst
-
-.. seealso:: :ref:`index-operations`.
-
 JavaScript Execution on ``mongos``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1169,11 +1198,6 @@ Starting in MongoDB 4.4, MongoDB allows JavaScript execution on
 
 Earlier versions of MongoDB do not allow JavaScript execution on
 :binary:`~bin.mongos` instances.
-
-Deprecation of ``geoHaystack`` Index and ``geoSearch`` Command
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/extracts/4.4-changes-geo-deprecation.rst
 
 Global Default Read and Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1197,31 +1221,6 @@ clusters, issue the command from a :binary:`~bin.mongos`.
 
 To retrieve the global default read or write concern settings, MongoDB
 adds the :dbcommand:`getDefaultRWConcern` administrative command.
-
-.. _4.4-rel-notes-compound-hashed-index:
-
-Compound Hashed Indexes
-~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 4.4 adds support for creating compound indexes with a single
-:ref:`hashed field <index-type-hashed>`. MongoDB 4.2 and earlier
-only supported single field hashed indexes.
-
-The following operation creates a compound hashed index on ``country``
-and ``_id``:
-
-.. code-block:: javascript
-
-   db.examples.createIndex( { "country" : 1, "_id" : "hashed" } )
-
-Compound hashed indexes require :ref:`featureCompatibilityVersion
-<view-fcv>` set to ``4.4``.
-
-.. seealso:: :ref:`4.4-rel-notes-sharding-compound-hashed`
-
-Changes Affecting Compatibility
--------------------------------
-
 
 :doc:`Changes Affecting Compatibility </release-notes/4.4-compatibility>`
 -------------------------------------------------------------------------
