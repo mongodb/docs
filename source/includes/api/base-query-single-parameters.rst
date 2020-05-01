@@ -19,12 +19,12 @@
    * - ``envelope``
      - boolean
      - Optional
-     - Flag indicating whether or not to wrap the response in a |json|
+     - Flag indicating if |mms| should wrap the response in a |json|
        envelope.
 
-       Some |api| clients cannot access the |http| response headers or
-       status code. To remediate this, add ``envelope=true`` to the
-       query.
+       This option may be needed for some |api| clients. These clients
+       cannot access the |http| response headers or status code. To
+       remediate this, set ``envelope=true`` in the query.
 
        For endpoints that return one result, the response body
        includes:

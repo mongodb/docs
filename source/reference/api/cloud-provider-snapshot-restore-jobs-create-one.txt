@@ -2,6 +2,8 @@
 Create a Cloud Provider Snapshot Restore Job
 ============================================
 
+.. include:: /includes/styles/corrections.rst
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -14,10 +16,10 @@ Create a Cloud Provider Snapshot Restore Job
 
 .. important::
 
-   If you create an automated restore job by specifying
-   ``deliveryType`` of ``automated`` in your
-   request body, |service| **removes all existing data** on the target
-   cluster prior to the restore.
+   If you specify ``"deliveryType" : "automated"`` or
+   ``"deliveryType" : "pointInTime"`` in your request body to create an
+   automated restore job, |service| **removes all existing data** on
+   the target cluster prior to the restore.
 
 .. include:: /includes/api-requirements.rst
 
@@ -28,160 +30,153 @@ Create a Cloud Provider Snapshot Restore Job
 Syntax
 ------
 
-.. code-block:: none
+.. code-block:: http
 
-   POST /groups/{GROUP-ID}/clusters/{CLUSTER-NAME}/backup/restoreJobs/
+   POST /groups/{PROJECT-ID}/clusters/{CLUSTER-NAME}/backup/restoreJobs/
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
+   :widths: 15 10 10 65
    :header-rows: 1
-   :widths: 25 75
+   :stub-columns: 1
 
-   * - Path Element
+   * - Path Parameter
+     - Type
+     - Necessity
      - Description
 
-   * - ``GROUP-ID``
-     - The unique identifier of the :ref:`project <group-id>` for the
+   * - ``PROJECT-ID``
+     - string
+     - Required
+     - Unique identifier of the :ref:`project <group-id>` for the
        |service| cluster whose snapshot you want to restore.
 
-   * - ``CLUSTER-NAME``
-     - The name of the |service| cluster whose snapshot you want to
+   * - ``SOURCE-CLUSTER-NAME``
+     - string
+     - Required
+     - Name of the |service| cluster whose snapshot you want to
        restore.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/no-query-parameters.rst
+.. include:: /includes/api/no-query-single-parameters.rst
+
+The request body, response body, and examples depend on the type of
+restore:
+
+.. tabs::
+
+   .. tab:: Automated
+      :tabid: automated
+
+   .. tab:: Point-in-Time
+      :tabid: pit
+
+   .. tab:: Downloaded
+      :tabid: downloaded
 
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-All listed fields are required unless specified otherwise.
+.. tabs::
+   :hidden:
 
-.. list-table::
-   :widths: 10 10 80
-   :header-rows: 1
-   :stub-columns: 1
+   .. tab:: Automated
+      :tabid: automated
 
-   * - Name
-     - Type
-     - Description
+      .. include:: /includes/api/list-tables/cloud-backup-restore/requests/automated.rst
 
-   * - ``snapshotId``
-     - string
-     - Unique identifier of the snapshot to restore.
+   .. tab:: Point-in-Time
+      :tabid: pit
 
-   * - ``deliveryType``
-     - string
-     - Type of restore job to create. Possible values are:
+      .. include:: /includes/api/list-tables/cloud-backup-restore/requests/pit.rst
 
-       ``automated``
-         |service| automatically restores the snapshot with
-         ``snapshotId`` to the |service| cluster with name
-         ``targetClusterName`` in the |service| project with 
-         ``targetGroupId``.
+   .. tab:: Downloaded
+      :tabid: downloaded
 
-       ``download``
-         |service| provides a URL to download a ``.tar.gz`` of the
-         snapshot with ``snapshotId``. The contents of the ``tar.gz``
-         archive contain the data files for your |service| cluster. 
-         To learn more about manually restoring the downloaded data 
-         files, see :ref:`restore-cloud-provider-snapshot-download`.
-
-         .. admonition:: Download Limitations
-            :class: note
-
-            Each cloud provider snapshot can have one download at a time,
-            and each :doc:`project </tutorial/manage-projects/>` can have a
-            maximum of 20 downloads at a time.
-
-       ``pointInTime``
-         Perform a :ref:`Point-in-Time restore <pit-restore>`.
-
-   * - ``oplogTs``
-     - timestamp
-     - If your cluster has :ref:`Point-in-Time restores <pit-restore>`
-       enabled, you can specify a timestamp from the :ref:`oplog
-       <ref-atlas-oplog>` from which to restore a backup. If you are
-       performing a Point-in-Time restore, you must specify either
-       ``oplogTs`` or ``pointInTimeUTCSeconds``, but not both.
-
-   * - ``pointInTimeUTCSeconds``
-     - integer
-     - If your cluster has :ref:`Point-in-Time restores <pit-restore>`
-       enabled, you can specify a Unix time in seconds since epoch from which
-       to restore a backup. If you are performing a Point-in-Time restore, you 
-       must specify either ``pointInTimeUTCSeconds`` or ``oplogTs``, but not both.
-
-   * - ``targetClusterName``
-     - string
-     - Name of the target |service| cluster to which the restore
-       job restores the snapshot. Only required if
-       ``deliveryType`` is ``automated``.
-
-   * - ``targetGroupId``
-     - string
-     - Unique ID of the target |service| project for the
-       specified ``targetClusterName``. Only required if
-       ``deliveryType`` is ``automated``. 
-
+      .. include:: /includes/api/list-tables/cloud-backup-restore/requests/download.rst
 
 Response
 --------
 
-.. include:: /includes/list-table-restore-jobs-response-body.rst
+.. tabs::
+   :hidden:
+
+   .. tab:: Automated
+      :tabid: automated
+
+      .. include:: /includes/api/list-tables/cloud-backup-restore/responses/automated.rst
+
+   .. tab:: Point-in-Time
+      :tabid: pit
+
+      .. include:: /includes/api/list-tables/cloud-backup-restore/responses/pit.rst
+
+   .. tab:: Downloaded
+      :tabid: downloaded
+
+      .. include:: /includes/api/list-tables/cloud-backup-restore/responses/download.rst
 
 Example Request
 ---------------
 
-.. code-block:: sh
+.. tabs::
+   :hidden:
 
-   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest --include \
-     --header "Accept: application/json" \
-     --header "Content-Type: application/json" \
-     --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5b6212af90dc76637950a2c6/clusters/MyCluster/backup/restoreJobs" \
-     --data '
-       {
-         "snapshotId" : "5b6211ff87d9d663c59d3feg",
-         "deliveryType" : "automated",
-         "targetClusterName" : "MyOtherCluster",
-         "targetGroupId" : "5b6212af90dc76637950a2c6"
-       }
-     '
+   .. tab:: Automated
+      :tabid: automated
+
+      .. literalinclude:: /includes/api/requests/cloud-backup-restores/automated-restore.sh
+         :language: json
+         :linenos:
+         :emphasize-lines: 5-10
+
+   .. tab:: Point-in-Time
+      :tabid: pit
+
+      .. literalinclude:: /includes/api/requests/cloud-backup-restores/pit-restore.sh
+         :language: json
+         :linenos:
+         :emphasize-lines: 5-10
+
+   .. tab:: Downloaded
+      :tabid: downloaded
+
+      .. literalinclude:: /includes/api/requests/cloud-backup-restores/download-restore.sh
+         :language: json
+         :linenos:
+         :emphasize-lines: 5-8
 
 Example Response
 ----------------
 
-.. code-block:: json
+.. tabs::
+   :hidden:
 
-  {
-      "cancelled": false,
-      "deliveryType": "automated",
-      "expired": false,
-      "expiresAt": "2018-08-02T02:08:48Z",
-      "id": "5b622f7087d9d6039fafe03f",
-      "links": [
-          {
-              "href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5b6212af90dc76637950a2c6/clusters/Cluster0/backup/restoreJobs/5b622f7087d9d6039fafe03f",
-              "rel": "self"
-          },
-          {
-              "href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5b6212af90dc76637950a2c6/clusters/Cluster0/backup/snapshots/5b6211ff87d9d663c59d3dee",
-              "rel": "http://mms.mongodb.com/snapshot"
-          },
-          {
-              "href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5b6212af90dc76637950a2c6/clusters/Cluster0",
-              "rel": "http://mms.mongodb.com/cluster"
-          },
-          {
-              "href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5b6212af90dc76637950a2c6",
-              "rel": "http://mms.mongodb.com/group"
-          }
-      ],
-      "snapshotId": "5b6211ff87d9d663c59d3feg",
-      "targetClusterName": "MyOtherCluster",
-      "targetGroupId": "5b6212af90dc76637950a2c6",
-      "timestamp": "2018-08-01T20:02:07Z"
-  }
+   .. tab:: Automated
+      :tabid: automated
+
+      .. literalinclude:: /includes/api/responses/cloud-backup-restores/automated-restore.json
+         :language: json
+         :linenos:
+         :emphasize-lines: 3, 25-27
+
+   .. tab:: Point-in-Time
+      :tabid: pit
+
+      .. literalinclude:: /includes/api/responses/cloud-backup-restores/pit-restore.json
+         :language: json
+         :linenos:
+         :emphasize-lines: 3, 25-28
+
+   .. tab:: Downloaded
+      :tabid: downloaded
+
+      .. literalinclude:: /includes/api/responses/cloud-backup-restores/download-restore.json
+         :language: json
+         :linenos:
+         :emphasize-lines: 3, 25
+
