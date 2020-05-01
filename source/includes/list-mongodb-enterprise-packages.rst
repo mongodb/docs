@@ -55,7 +55,7 @@ repository, and contains the following officially-supported packages:
               - Contains the following MongoDB support tools:
 
                 - :binary:`~bin.mongoldap`
-                - ``mongokerberos``
+                - :binary:`~bin.mongokerberos`
                 - :ref:`install-compass` script
                 - ``mongodecrypt`` binary
 
