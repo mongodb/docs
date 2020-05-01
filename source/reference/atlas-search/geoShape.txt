@@ -1,0 +1,442 @@
+.. _geoshape-ref:
+
+===================
+geoShape (Operator)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Description
+-----------
+
+The ``geoShape`` operator supports querying shapes with a relation to 
+a given geometry if ``indexShapes`` is set to ``true`` in the :ref:`index 
+definition <bson-data-types-geo>`. 
+
+.. include:: /includes/fact-atlas-search-geo-coordinates.rst
+
+.. _geoshape-syntax: 
+
+Syntax 
+------
+
+.. code-block:: json 
+
+   {
+       "$searchBeta": {
+          "geoShape": {
+             "path": "<field-to-search>",
+             "relation": "contains | disjoint | intersects | within",
+             "geometry": <GeoJSON-object>,
+             "score": <score-options>
+          }
+       }
+   }
+
+.. _geoshape-options: 
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10 
+   
+   * - Field
+     - Type
+     - Description
+     - Required?
+
+   * - ``geometry`` 
+     - GeoJSON object
+     - The :manual:`GeoJSON </reference/geojson/>` object that specifies 
+       the :manual:`Polygon </reference/geojson/#polygon>`, 
+       :manual:`MultiPolygon </reference/geojson/#multipolygon>`, or 
+       :manual:`LineString </reference/geojson/#linestring>` shape or point to 
+       search. The polygon must be specified as a closed loop where the last 
+       position is the same as the first position. 
+     - yes
+
+   * - ``path``
+     - string or array of strings
+     - The indexed :ref:`geo <bson-data-types-geo>` type field or fields to 
+       search. See :ref:`Path Construction <ref-path>` for more information.
+     - yes
+
+   * - ``relation`` 
+     - enum
+     - The relation of the query shape geometry to the indexed field geometry. 
+       Value can be one of the following:
+
+       - ``contains`` - Indicates that the indexed geometry contains the query  
+         geometry. 
+       - ``disjoint`` - Indicates that both the query and indexed geometries have 
+         nothing in common.
+       - ``intersects`` - Indicates that both the query and indexed geometries 
+         intersect.
+       - ``within`` - Indicates that the indexed geometry is within the query 
+         geometry. ``within`` cannot be used with ``LineString`` or ``Point``.
+
+     - yes
+
+   * - ``score``
+     - object
+     - The score assigned to matching search results. The :ref:`score 
+       <scoring-ref>` in the results is always ``1``. You can modify the score 
+       using the following options:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+
+       For information on using ``score`` in your query, see 
+       :ref:`scoring-ref`. 
+     - no
+
+.. _geoshape-egs: 
+
+Examples 
+--------
+
+The following examples use the ``listingsAndReviews`` collection in the 
+``sample_airbnb`` database. If you have the :ref:`sample dataset 
+<available-sample-datasets>` on your cluster, you can create a custom |fts| 
+index for :ref:`geo <bson-data-types-geo>` type and run the queries on your 
+cluster. The following is a sample index definition for indexing the 
+``address.location`` field in the ``listingsAndReviews`` collection: 
+
+.. code-block:: json 
+
+   {
+     "mappings": {
+       "fields": {
+         "address": {
+           "fields": {
+             "location": {
+               "indexShapes": true,
+               "type": "geo"
+             }
+           },
+           "type": "document"
+         }
+       },
+       "type": "document"
+     }
+   }
+
+The :ref:`fts-tutorial-ref` contains instructions for loading the 
+:ref:`sample dataset <available-sample-datasets>`, creating an :ref:`index 
+definition <ref-index-definitions>`, and running |fts| queries.
+
+.. note:: 
+
+   For the following sample queries, make sure that ``indexShapes`` in the 
+   index definition is set to ``true``.
+
+Disjoint Example 
+~~~~~~~~~~~~~~~~
+
+The following example uses the ``geoShape`` operator to search for properties 
+that have nothing in common with the specified longitude and latitude 
+coordinates in Hawaii. The query includes a :manual:`$limit 
+</reference/operator/aggregation/limit>` stage to limit the output to 3 results 
+and a :manual:`$project </reference/operator/aggregation/project>` stage to 
+exclude all fields except ``name`` and ``address``.
+
+.. code-block:: json 
+
+   db.listingsAndReviews.aggregate([
+     {
+       "$searchBeta": {
+         "geoShape": {
+           "relation": "disjoint",
+           "geometry": {
+             "type": "Polygon",
+             "coordinates": [[[-161.323242,22.512557], 
+                            [-152.446289,22.065278],
+                            [-156.09375,17.811456],
+                            [-161.323242,22.512557]]]
+           },
+           "path": "address.location"
+         }
+       }
+     },
+     {
+       $limit: 3
+     },
+     {
+       $project: {
+         "_id": 0,
+         "name": 1,
+         "address": 1,
+         score: { $meta: "searchScore" }
+       }
+     }
+   ])
+
+The query returns the following search results: 
+
+.. code-block:: json 
+   :copyable: false 
+
+   { 
+     "name" : "Ribeira Charming Duplex", 
+     "address" : { 
+       "street" : "Porto, Porto, Portugal", 
+       "suburb" : "", 
+       "government_area" : "Cedofeita, Ildefonso, Sé, Miragaia, Nicolau, Vitória", 
+       "market" : "Porto", 
+       "country" : "Portugal", 
+       "country_code" : "PT", 
+       "location" : { 
+         "type" : "Point", 
+         "coordinates" : [ -8.61308, 41.1413 ], 
+         "is_location_exact" : false 
+       } 
+     }
+   }
+   { 
+     "name" : "Horto flat with small garden", 
+     "address" : { 
+       "street" : "Rio de Janeiro, Rio de Janeiro, Brazil", 
+       "suburb" : "Jardim Botânico", 
+       "government_area" : "Jardim Botânico", 
+       "market" : "Rio De Janeiro", 
+       "country" : "Brazil", 
+       "country_code" : "BR", 
+       "location" : { 
+         "type" : "Point", 
+         "coordinates" : [ -43.23074991429229, -22.966253551739655 ], 
+         "is_location_exact" : true 
+       } 
+     }
+   }
+   { 
+     "name" : "Private Room in Bushwick", 
+     "address" : { 
+       "street" : "Brooklyn, NY, United States", 
+       "suburb" : "Brooklyn", 
+       "government_area" : "Bushwick", 
+       "market" : "New York", 
+       "country" : "United States", 
+       "country_code" : "US", 
+       "location" : { 
+         "type" : "Point", 
+         "coordinates" : [ -73.93615, 40.69791 ], 
+         "is_location_exact" : true 
+       } 
+     }
+   }
+
+Intersects Example
+~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``geoShape`` operator to search for properties 
+that intersect with the specified longitude and latitude coordinates in Spain. 
+The query includes a :manual:`$limit </reference/operator/aggregation/limit>` 
+stage to limit the output to 3 results and a :manual:`$project 
+</reference/operator/aggregation/project>` stage to exclude all fields except 
+``name`` and ``address``.
+
+.. code-block:: json 
+
+   db.listingsAndReviews.aggregate([
+     {
+       "$searchBeta": {
+         "geoShape": {
+           "relation": "intersects",
+           "geometry": {
+             "type": "MultiPolygon",
+             "coordinates": [
+                          [[[2.16942,41.40082],
+                          [2.17963,41.40087],
+                          [2.18146,41.39716],
+                          [2.15533,41.40686],
+                          [2.14596,41.38475],
+                          [2.17519,41.41035],
+                          [2.16942,41.40082]]],
+                          [[[2.16365,41.39416],
+                          [2.16963,41.39726],
+                          [2.15395,41.38005],
+                          [2.17935,41.43038],
+                          [2.16365,41.39416]]]
+             ] 
+           },
+           "path": "address.location"
+         }
+       }
+     },
+     {
+       $limit: 3
+     },
+     {
+       $project: {
+         "_id": 0,
+         "name": 1,
+         "address": 1,
+         score: { $meta: "searchScore" }
+       }
+     }
+   ])
+
+The query returns the following search results:
+
+.. code-block:: json 
+   :copyable: false 
+
+   { 
+     "name" : "Cozy bedroom Sagrada Familia", 
+     "address" : { 
+       "street" : "Barcelona, Catalunya, Spain", 
+       "suburb" : "Eixample", 
+       "government_area" : "el Fort Pienc", 
+       "market" : "Barcelona", 
+       "country" : "Spain", 
+       "country_code" : "ES", 
+       "location" : { 
+         "type" : "Point", 
+         "coordinates" : [ 2.17963, 41.40087 ], 
+         "is_location_exact" : true 
+       } 
+     }
+   }
+   { 
+     "name" : "", 
+     "address" : { 
+       "street" : "Barcelona, Catalunya, Spain", 
+       "suburb" : "Vila de Gràcia", 
+       "government_area" : "la Vila de Gràcia", 
+       "market" : "Barcelona", 
+       "country" : "Spain", 
+       "country_code" : "ES", 
+       "location" : { 
+         "type" : "Point", 
+         "coordinates" : [ 2.15759, 41.40349 ], 
+         "is_location_exact" : true 
+       } 
+     } 
+   }
+   { 
+     "name" : "SPACIOUS RAMBLA CATALUÑA", 
+     "address" : { 
+       "street" : "Barcelona, Catalunya, Spain", 
+       "suburb" : "L'Antiga Esquerra de l'Eixample", 
+       "government_area" : "l'Antiga Esquerra de l'Eixample", 
+       "market" : "Barcelona", 
+       "country" : "Spain", 
+       "country_code" : "ES", 
+       "location" : { 
+         "type" : "Point", 
+         "coordinates" : [ 2.15255, 41.39193 ], 
+         "is_location_exact" : true 
+       } 
+     }
+   }
+
+.. _geoshape-within-egs:
+
+Within Example
+~~~~~~~~~~~~~~
+
+The following example uses the ``geoShape`` operator to search for properties 
+in New York that are within the specified longitude and latitude coordinates. 
+The queries searches the ``address.location`` field in the ``listingsAndReviews`` 
+collection in the ``sample_airbnb`` database. The query includes a :manual:`$limit 
+</reference/operator/aggregation/limit>` stage to limit the output to 3 results 
+and a :manual:`$project </reference/operator/aggregation/project>` stage to 
+exclude all fields except ``name`` and ``address``.
+
+.. code-block:: json 
+
+   db.listingsAndReviews.aggregate([
+     {
+       "$searchBeta": {
+         "geoShape": {
+           "relation": "within",
+           "geometry": {
+             "type": "Polygon",
+             "coordinates": [[[-74.3994140625,40.5305017757],
+                            [-74.7290039063,40.5805846641],
+                            [-74.7729492188,40.9467136651],
+                            [-74.0698242188,41.1290213475],
+                            [-73.65234375,40.9964840144],
+                            [-72.6416015625,40.9467136651],
+                            [-72.3559570313,40.7971774152],
+                            [-74.3994140625,40.5305017757]]]
+           },
+           "path": "address.location"
+         }
+       }
+     },
+     {
+       $limit: 3
+     },
+     {
+       $project: {
+         "_id": 0,
+         "name": 1,
+         "address": 1,
+         score: { $meta: "searchScore" }
+       }
+     }
+   ])
+
+The query returns the following search results:
+
+.. code-block:: json 
+   :copyable: false 
+
+   { 
+     "name" : "Private Room in Bushwick", 
+     "address" : { 
+       "street" : "Brooklyn, NY, United States", 
+       "suburb" : "Brooklyn", 
+       "government_area" : "Bushwick", 
+       "market" : "New York", 
+       "country" : "United States", 
+       "country_code" : "US", 
+       "location" : { 
+         "type" : "Point", 
+         "coordinates" : [ -73.93615, 40.69791 ], 
+         "is_location_exact" : true 
+       } 
+     }, 
+     { 
+       "name" : "New York City - Upper West Side Apt", 
+       "address" : { 
+         "street" : "New York, NY, United States", 
+         "suburb" : "Manhattan", 
+         "government_area" : "Upper West Side", 
+         "market" : "New York", 
+         "country" : "United States", 
+         "country_code" : "US", 
+         "location" : { 
+           "type" : "Point", 
+           "coordinates" : [ -73.96523, 40.79962 ], 
+           "is_location_exact" : false 
+         } 
+       }, 
+       "score" : 1 
+     }
+     { 
+       "name" : "Deluxe Loft Suite", 
+       "address" : { 
+         "street" : "Brooklyn, NY, United States", 
+         "suburb" : "Greenpoint", 
+         "government_area" : "Greenpoint", 
+         "market" : "New York", 
+         "country" : "United States", 
+         "country_code" : "US", 
+         "location" : { 
+           "type" : "Point", 
+           "coordinates" : [ -73.94472, 40.72778 ], 
+           "is_location_exact" : true 
+         } 
+       }, 
+       "score" : 1 
+     }

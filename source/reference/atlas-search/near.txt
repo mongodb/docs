@@ -22,10 +22,17 @@ perform a search over:
 - Number fields of BSON ``int32``, ``int64``, and ``double`` data types. 
 - Date fields of BSON ``date`` type in 
   :manual:`ISODate </reference/glossary/#term-isodate>` format.
+- Geographic location fields defined using latitude and longitude 
+  coordinates.
 
 You can use the ``near`` operator to find results that are near a 
 number or a date. The ``near`` operator scores the |fts| results by 
 proximity to the number or date.
+
+.. _near-syntax:
+
+Syntax 
+------
 
 ``near`` has the following syntax:
 
@@ -43,6 +50,11 @@ proximity to the number or date.
       }
    }
 
+.. _near-options:
+
+Options 
+-------
+
 .. list-table::
    :header-rows: 1
    :widths: 10 20 60 10 
@@ -53,15 +65,18 @@ proximity to the number or date.
      - Required?
 
    * - ``origin``
-     - date or number
-     - The number or date to search near. This is the origin from which the 
-       proximity of the results is measured.
+     - date, number, or geo
+     - The number, date, or geographic :manual:`point </reference/geojson/#point>` 
+       to search near. This is the origin from which the proximity of the results 
+       is measured.
 
        - For number fields, the value must be of BSON ``int32``, ``int64``, 
          or ``double`` data types.
        - For date fields, the value must be an 
          :manual:`ISODate </reference/glossary/#term-isodate>` formatted 
          date.
+       - For :ref:`geo <bson-data-types-geo>` fields. the value must be a 
+         :manual:`GeoJSON point </reference/geojson/#point>`.
 
      - yes
 
@@ -101,6 +116,9 @@ proximity to the number or date.
          - 1 hour is equal to ``3,600,000 ms``
          - 1 day is equal to ``86,400,000 ms``
          - 1 month (or 30 days) is equal to ``2,592,000,000 ms``
+
+       - GeoJSON point, ``pivot`` is measured in meters and must be specified 
+         as an integer or floating point number. 
 
      - yes
 
@@ -142,16 +160,22 @@ You cannot use the ``near`` operator to query numeric or date values
 stored in an array. |fts| cannot index numeric or date values if they
 are part of an array.
 
+.. _near-ref-egs:
+
 Examples
 --------
 
-The following examples use the ``movies`` collection in the ``sample_mflix`` 
-database. If you loaded the :ref:`sample dataset <available-sample-datasets>` 
-on your cluster, you can create the static indexes using the index 
-definitions in the examples below and run the queries on your cluster.
-The :ref:`fts-tutorial-ref` contains instructions for loading the :ref:`sample 
-dataset <available-sample-datasets>`, creating an :ref:`index definition 
-<ref-index-definitions>`, and running |fts| queries.
+The :ref:`number <near-number-eg>` and :ref:`date <near-date-eg>` examples use 
+the ``movies`` collection in the ``sample_mflix`` database. The :ref:`GeoJSON 
+point <near-geo-point-eg>` example uses the ``listingsAndReviews`` collection 
+in the ``sample_airbnb`` database. If you loaded the :ref:`sample dataset 
+<available-sample-datasets>` on your cluster, you can create the static indexes 
+using the index definitions in the examples below or the default index and run 
+the queries on your cluster. The :ref:`fts-tutorial-ref` contains instructions 
+for loading the :ref:`sample dataset <available-sample-datasets>`, creating an 
+:ref:`index definition <ref-index-definitions>`, and running |fts| queries.
+
+.. _near-number-eg:
 
 Number Example 
 ~~~~~~~~~~~~~~
@@ -233,10 +257,12 @@ The following example uses the ``near`` operator to query a number field.
    ``0.5`` because their ``runtime`` field value is ``2`` units away from 
    ``279``. 
 
+.. _near-date-eg:
+
 Date Example
 ~~~~~~~~~~~~
 
-The following uses the ``near`` operator to query a date field. 
+The following example uses the ``near`` operator to query a date field. 
 
 .. example::
 
@@ -309,3 +335,134 @@ The following uses the ``near`` operator to query a date field.
    receives a score of approximately ``0.5`` because the ``released`` field 
    value distance from ``origin`` is approximately ``7,776,000,000`` milliseconds 
    from ``1915-09-13``.
+
+.. _near-geo-point-eg:
+
+GeoJSON Point Example 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses a GeoJSON point object to query the 
+``address.location`` field in the ``listingsAndReviews`` collection in the 
+``sample_airbnb`` database. 
+
+.. example::
+
+   The following index definition indexes the ``address.location`` field 
+   in the ``listingsAndReviews`` collection.
+
+   .. code-block:: json
+
+      {
+        "mappings": {
+          "fields": {
+            "address": {
+              "fields": {
+                "location": {
+                  "type": "geo"
+                }
+              },
+              "type": "document"
+            }
+          }
+          "type": "document"
+        }
+      }
+
+   The following query searches for properties in Portugal. It includes a 
+   :manual:`$limit </reference/operator/aggregation/limit>` stage to limit 
+   the output to 3 results and a :manual:`$project 
+   </reference/operator/aggregation/project>` stage to:
+   
+   - Exclude all fields except ``name`` and ``address``
+   - Add a field named ``score``
+
+   The ``score`` of results is calculated using ``pivot``. Note that ``pivot`` 
+   is measured here in meters and 1000 meters is equal to 1 kilometer.
+
+   .. code-block:: json
+
+      db.listingsAndReviews.aggregate([
+        {
+          "$searchBeta": {
+            "near": {
+              "origin": {
+                "type": "Point",
+                "coordinates": [-8.61308, 41.1413]
+              },
+              "pivot": 1000,
+              "path": "address.location"
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "name": 1,
+            "address": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   The above query returns the following search results:
+
+   .. code-block:: json
+      :copyable: false
+
+      { 
+        "name" : "Ribeira Charming Duplex", 
+        "address" : { 
+          "street" : "Porto, Porto, Portugal", 
+          "suburb" : "", 
+          "government_area" : "Cedofeita, Ildefonso, Sé, Miragaia, Nicolau, Vitória", 
+          "market" : "Porto", 
+          "country" : "Portugal", 
+          "country_code" : "PT", 
+          "location" : { 
+            "type" : "Point", 
+            "coordinates" : [ -8.61308, 41.1413 ], 
+            "is_location_exact" : false 
+          } 
+        }, 
+        "score" : 1 
+      }
+      { 
+        "name" : "DB RIBEIRA - Grey Apartment", 
+        "address" : { 
+          "street" : "Porto, Porto, Portugal", 
+          "suburb" : "", 
+          "government_area" : "Cedofeita, Ildefonso, Sé, Miragaia, Nicolau, Vitória", 
+          "market" : "Porto", 
+          "country" : "Portugal", 
+          "country_code" : "PT", 
+          "location" : { 
+            "type" : "Point", 
+            "coordinates" : [ -8.61294, 41.14126 ], 
+            "is_location_exact" : true 
+          } 
+        }, 
+        "score" : 0.9876177310943604 
+      }
+      { 
+        "name" : "Ribeira 24 (4)", 
+        "address" : { 
+          "street" : "Porto, Porto, Portugal", 
+          "suburb" : "", 
+          "government_area" : "Cedofeita, Ildefonso, Sé, Miragaia, Nicolau, Vitória", 
+          "market" : "Porto", 
+          "country" : "Portugal", 
+          "country_code" : "PT", 
+          "location" : { 
+            "type" : "Point", 
+            "coordinates" : [ -8.61318, 41.14107 ], 
+            "is_location_exact" : false 
+          } 
+        }, 
+        "score" : 0.973789632320404 
+      }
+
+   The results show that properties that are farther away from the 
+   specified coordinates have a lower score.
