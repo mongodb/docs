@@ -1,0 +1,199 @@
+---
+stepnum: 1
+ref: embed-chart-sdk-jwt-get-token
+level: 4
+title: "In your application server code, generate and return a |jwt|. The implementation varies based on your authentication provider."
+content: | 
+
+  .. warning::
+
+     Generate |jwt|\s server-side to protect your signing keys from 
+     exposure.
+
+  The ``app.js`` file in the sample application uses a simple web 
+  service and the ``jsonwebtoken`` package to generate and return a 
+  |jwt| signed using the ``HS256`` algorithm when a user logs in to the 
+  application with these credentials:
+
+  - User name: ``admin``
+  - Password: ``password``
+
+  .. code-block:: js
+     :linenos:
+  
+     const express = require("express");
+     const bodyParser = require("body-parser");
+     const cors = require("cors");
+     const jwt = require("jsonwebtoken");
+     const config = require("./config.js");
+
+     const app = express();
+     const port = 8000;
+
+     // Configuring body parser middleware
+     app.use(bodyParser.urlencoded({ extended: false }));
+     app.use(bodyParser.json());
+     app.use(cors());
+
+     app.post("/login", (req, res) => {
+       const loginDetails = req.body;
+       // mock a check against the database
+       let mockedUsername = "admin";
+       let mockedPassword = "password";
+
+       if (
+         loginDetails &&
+         loginDetails.username === mockedUsername &&
+         loginDetails.password === mockedPassword
+       ) {
+         let token = jwt.sign({ username: loginDetails.username }, config.secret, {
+           expiresIn: "24h" // expires in 24 hours
+         });
+         res.json({ bearerToken: token });
+       } else {
+         res.status(401).send(false);
+       }
+     });
+
+     app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+
+  .. note:: 
+
+      Your application must handle refreshing or issuing new tokens 
+      before they expire.
+
+  In the sample application, the signing key ``topsecret`` is defined in a file 
+  in your application named ``config.js``:
+
+  .. code-block:: js
+  
+     module.exports = {
+       secret: "topsecret"
+     };
+
+---
+stepnum: 2
+ref: embed-chart-sdk-jwt-embed-chart
+level: 4
+title: "Embed a chart."
+content: |
+
+  a. Create a new object from the ``ChartsEmbedSDK`` class. Provide:
+
+     - The value of the ``baseUrl`` property with the URL that points to 
+       your |charts-short| instance. To embed one of your charts in the
+       sample application, replace this value with the 
+       :guilabel:``Base URL`` from your Embed Chart dialog.
+
+     - The ``chartId`` property to specify the unique identifier of the
+       chart you want to embed. To embed one of your charts in the
+       sample application, replace this value with the 
+       :guilabel:``Chart ID`` from your Embed Chart dialog.
+
+     - The ``getUserToken`` property to specify the function that 
+       generates and returns a |jwt| from your authentication provider.
+
+     - Any optional properties you want to provide. For a list of all 
+       properties you can use when you embed charts using the SDK, see 
+       :ref:`sdk-option-reference`.
+
+     In the ``src/index.js`` file in the sample application, the 
+     ``login`` function in the ``getUserToken`` property calls the web 
+     service you created to generate a |jwt|. If login is successful, 
+     that function returns a valid |jwt| to the ``getUserToken`` 
+     property.
+
+     .. code-block:: js
+        :emphasize-lines: 23-32,38-42
+        :linenos:
+
+        import ChartsEmbedSDK from "@mongodb-js/charts-embed-dom";
+        import "regenerator-runtime/runtime";
+
+        document
+          .getElementById("loginButton")
+          .addEventListener("click", async () => await tryLogin());
+
+        function getUser() {
+        return document.getElementById("username").value;
+        }
+        
+        function getPass() {
+        return document.getElementById("password").value;
+        }
+        
+        async function tryLogin() {
+        if (await login(getUser(), getPass())) {
+          document.body.classList.toggle("logged-in", true);
+          await renderChart();
+        }
+        }
+        
+        async function login(username, password) {
+        const rawResponse = await fetch("http://localhost:8000/login", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ username: username, password: password })
+        });
+        const content = await rawResponse.json();
+        
+        return content.bearerToken;
+        }
+        
+        async function renderChart() {
+        const sdk = new ChartsEmbedSDK({
+          baseUrl: "https://localhost/mongodb-charts-iwfxn", // ~REPLACE~ with the Base URL from your Embed Chart dialog
+          chartId: "d98f67cf-374b-4823-a2a8-f86e9d480065", // ~REPLACE~ with the Chart ID from your Embed Chart dialog
+          getUserToken: async function() {
+            return await login(getUser(), getPass());
+          }
+        });
+
+  b. For each chart that you want to embed, invoke the ``CreateChart``
+     method of the object you just created. To embed one of your charts 
+     in the sample application, replace the value of the ``id`` property
+     with the :guilabel:``Chart ID`` from your Embed Chart dialog.
+
+     The following example shows an invocation of the ``CreateChart``
+     method in the ``src/index.js`` file in the sample application.
+
+     .. code-block:: js
+
+        const chart = sdk.createChart({ id: "d98f67cf-374b-4823-a2a8-f86e9d480065" }); // ~REPLACE~ with the Chart ID from your Embed Chart dialog
+
+---
+stepnum: 3
+ref: embed-chart-sdk-jwt-render-chart
+level: 4
+title: "Render the chart."
+content: |
+
+  Use the ``render`` method of your chart object to render it in your 
+  application.
+
+  The following example shows an invocation of the ``render``
+  method in the ``src/index.js`` file in the sample application.
+
+  .. code-block:: json
+
+     chart.render(document.getElementById("chart"));
+
+---
+stepnum: 4
+ref: embed-chart-sdk-jwt-deploy-test
+level: 4
+title: "Deploy and test your application."
+content: |
+
+  |charts-short| renders the chart if it can validate the token it 
+  received with the request to render the chart. If the token isn't 
+  valid, |charts-short| doesn't render the chart and displays an error 
+  code.
+
+  For more information on the |charts-short| embedding error codes, see
+  :ref:`embedded-errors`.
+
+...
