@@ -25,7 +25,7 @@ repository, and contains the following officially-supported packages:
        - Contains the :binary:`~bin.mongo` shell.
 
      * - ``{+package-name-enterprise+}-cryptd``
-       - Contains the :ref:`csfle-encryption-components <mongocryptd>`
+       - Contains the :ref:`mongocryptd <csfle-encryption-components>`
          binary
 
      * - ``{+package-name-enterprise+}-tools``
