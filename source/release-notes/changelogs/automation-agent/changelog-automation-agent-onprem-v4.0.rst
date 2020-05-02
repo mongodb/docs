@@ -66,7 +66,7 @@ Automation Agent 5.4.19.5537
   "short" or "long" hostnames.
 
 - **Fix:** Fix failure in the
-  :doc:`make-init-scripts </tutorial/stop-using-automation>` tool.
+  :doc:`make-init-scripts </tutorial/suspend-automation>` tool.
 
 - **Fix:** Lower the default |http| Header time out in the Automation
   Agent from 15 minutes to 30 seconds. This ensures faster failures
