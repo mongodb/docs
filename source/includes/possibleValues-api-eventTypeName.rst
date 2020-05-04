@@ -18,6 +18,7 @@
 
      - | ``NO_PRIMARY``
        | ``TOO_MANY_ELECTIONS``
+       | ``PRIMARY_ELECTED``
 
    * - Sharded cluster
 
