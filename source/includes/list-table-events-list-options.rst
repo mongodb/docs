@@ -17,12 +17,12 @@
    * - ``--projectId``
      - string
      - Unique identifier of the project for which to retrieve events.
-     - either ``--orgId`` or ``--projectId`` required
+     - yes
 
    * - ``--orgId``
      - string
      - Unique identifier of the organization for which to retrieve events.
-     - either ``--orgId`` or ``--projectId`` required
+     - yes
 
    * - ``--limit``
      - integer
