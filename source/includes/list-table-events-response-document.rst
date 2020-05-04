@@ -84,8 +84,8 @@
 
    * - ``isGlobalAdmin``
      - boolean
-     - Indicates whether the user who triggered the event is a
-       MongoDB employee.
+     - Flag indicating whether the user who triggered this event
+       has the Global Monitoring Administrator role.
 
    * - ``links``
      - array
