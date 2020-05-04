@@ -1,7 +1,20 @@
 # docs-commandline-tools
-This repository contains documentation for the MongoDB commandline tools (v4.4+)
+This repository contains documentation for the MongoDB Database Tools
+(`mongoimport`, `mongoexport`, etc.). Beginning with MongoDB 4.4, the
+Database Tools are released separately from the core server package.
+Consequently, the MongoDB Database Tools documentation has also been
+moved to its own repository, maintained here, and is no longer part of
+the core Server Manual from version 4.4 onwards.
 
-This project is currently under construction. Please pardon our dust!
+The documentation for previous versions of the Database Tools can be
+found in the Server Manual repository:
+
+- https://github.com/mongodb/docs
+
+The live documentation for the Database Tools can be found at the
+following URL:
+
+- https://docs.mongodb.com/database-tools/
 
 Report Issues
 -------------
