@@ -15,25 +15,24 @@ the skip.
 
 Follow the instructions in the examples below to insert data into
 a collection and return only certain results from a query using a sort,
-a skip, and a limit. Consider a collection containing documents that
-describe books. To insert this data into a collection, run the following
-operation:
+a skip, and a limit. Consider the following collection of documents that
+describe books:
 
 .. code-block:: javascript
 
-   await books.insertMany([
+   [
      { "_id": 1, "name": "The Brothers Karamazov", "author": "Dostoyevsky", "length": 824 },
      { "_id": 2, "name": "Les Misérables", "author": "Hugo", "length": 1462 },
      { "_id": 3, "name": "Atlas Shrugged", "author": "Rand", "length": 1088 },
      { "_id": 4, "name": "Infinite Jest", "author": "Wallace", "length": 1104 },
      { "_id": 5, "name": "Cryptonomicon", "author": "Stephenson", "length": 918 },
      { "_id": 6, "name": "A Dance With Dragons", "author": "Tolkein", "length": 1104 },
-   ]);
+   ]
 
-Pass the following sort document to a read operation to ensure that the
-operation returns books with longer lengths before books with shorter
-lengths. Apply a limit of ``3`` causes this operation to return only the
-``3`` longest books:
+The following example queries the collection to return the top three
+longest books. It matches all the documents with the query, applies
+a ``sort`` on the ``length`` field to return books with longer lengths before
+books, and applies a ``limit`` to return only ``3`` results:
 
 .. code-block:: javascript
    :emphasize-lines: 4
@@ -46,8 +45,8 @@ lengths. Apply a limit of ``3`` causes this operation to return only the
    const cursor = collection.find(query).sort(sort).limit(limit);
    await cursor.forEach(console.dir);
 
-``find()`` returns the following documents sorted from longest length
-to shortest length:
+The code example above outputs the following three documents, sorted by
+length:
 
 .. code-block:: javascript
 
@@ -55,8 +54,33 @@ to shortest length:
    { "_id": 6, "title": "A Dance With Dragons", "author": "Martin", "length": 1104 }
    { "_id": 4, "title": "Infinite Jest", "author": "Wallace", "length": 1104 }
 
-To see the next three longest books, combine the previous operation with
-a skip of ``3``:
+.. note::
+
+   The order in which you call ``limit`` and ``sort`` does not matter
+   because the driver reorders the calls to apply the sort first and the
+   limit after it. The following two calls are equivalent:
+
+   .. code-block:: javascript
+
+      collection.find(query).sort({ length: -1 }).limit(3);
+      collection.find(query).limit(3).sort({ length: -1 });
+
+You can also apply ``sort`` and ``limit`` by specifying them in an
+``options`` object in your call to the ``find()`` method. The following two
+calls are equivalent:
+
+.. code-block:: javascript
+
+   collection.find(query).sort({ length: -1 }).limit(3);
+   collection.find(query, { sort: { length: -1 }, limit: 3 });
+
+For more information on the ``options`` settings for the ``find()``
+method, see the
+:node-api:`API documentation on find() <Collection.html#find>`.
+
+To see the next three longest books, append the ``skip()`` method, passing
+the number of documents to skim over to the previous code snippet's call to
+``find()``:
 
 .. code-block:: javascript
    :emphasize-lines: 4
@@ -64,13 +88,14 @@ a skip of ``3``:
    // define an empty query document
    const query = {};
    // sort in ascending (1) order by length
-   const sort = { length: 1, author: 1 };
+   const sort = { length: 1 };
    const limit = 3;
    const skip = 3;
    const cursor = collection.find(query).sort(sort).limit(limit).skip(skip);
    await cursor.forEach(console.dir);
 
-This operation returns the following documents:
+This operation returns the documents that describe the fourth through sixth
+longest books:
 
 .. code-block:: javascript
 
@@ -79,5 +104,4 @@ This operation returns the following documents:
    { "_id": 1, "title": "The Brothers Karamazov", "author": "Dostoyevsky", "length": 824 }
 
 You can combine skip and limit in this way to implement paging for your
-collection, allowing users to view only small "slices" of the
-collection at once.
+collection, returning only small "slices" of the collection at once.
