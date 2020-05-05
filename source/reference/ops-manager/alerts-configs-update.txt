@@ -1,0 +1,341 @@
+.. _mcli-om-update-alerts-config-command:
+
+==========================================
+mongocli ops-manager alerts configs update
+==========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+The ``alerts configs update`` command updates one alert configuration
+in the specified |onprem| project. You can also update one alert
+configuration in a project through the |onprem| :opsmgr:`API
+<reference/api/alert-configurations-update-config/>`.
+
+.. _om-update-alerts-configs-syntax:
+
+Syntax 
+------
+
+.. code-block:: text 
+
+   mongocli ops-manager|om alert|alerts config|configs update|updates <alert-config-id>
+        [ --event <event> ]
+        [ --enabled ]
+        [ --matcherField <fieldName> ]
+        [ --matcherOperator <operator> ]
+        [ --matcherValue <value> ]
+        [ --notification* (notification flags) ]
+        [ --projectId <id-of-project> ]
+        [ --profile|-P <profile-name> ]
+
+.. _om-update-alerts-configs-options:
+
+Options 
+-------
+
+.. note::
+
+   When you update an alert configuration, you must include all options
+   that are currently applied to the configuration.
+
+.. list-table:: 
+   :header-rows: 1 
+   :widths: 20 10 60 10
+
+   * - Option 
+     - Type 
+     - Description 
+     - Required?
+
+   * - <alert-config-id>
+     - string
+     - Unique identifier of the alert configuration you want to update.
+     - yes
+
+   * - ``--apiKey``
+     - string
+     - DataDog, OpsGenie or VictorOps API key. 
+     - only if ``notificationType`` is ``DATADOG``, ``OPS_GENIE``, or 
+       ``VICTOR_OPS``.  
+
+   * - ``--enabled``
+     - boolean
+     - Flag that determines whether the alert configuration is enabled.
+       If present, the alert configuration is enabled. If omitted, the 
+       configuration is disabled.
+     - no
+
+   * - ``--event``
+     - string
+     - Type of event that triggers an alert.
+        
+       For a complete list of alert events, see :opsmgr:`Alert Conditions
+       </reference/alerts/>`.
+     - yes
+
+   * - ``--matcherFieldName``
+     - string
+     - Name of the field in the target object to match on.
+        
+       Use the :ref:`List alert configuration matcher fields 
+       <mcli-om-alert-config-fields-type-command>` to return the 
+       accepted values.
+     - no
+
+   * - ``--matcherOperator``
+     - string
+     - Operator to test the field's value. Accepted values are:
+        
+       .. include:: /includes/possibleValues-api-matchers.operator.rst
+     - no
+
+   * - ``--matcherValue``
+     - string
+     - Value to test with the specified operator.
+        
+       .. include:: /includes/possibleValues-api-matchers.value.rst
+     - no
+
+   * - ``--metricMode``
+     - string
+     - Set to ``AVERAGE`` to compute the average of this metric.
+     - no
+
+   * - ``--metricName``
+     - string
+     - The name of the metric whose value went outside the threshold. Only
+       applicable if ``--event`` is ``OUTSIDE_METRIC_THRESHOLD``. Accepted
+       values are:
+
+       .. include:: /includes/metricName-list.rst
+
+     - only if ``--event`` is ``OUTSIDE_METRIC_THRESHOLD``.
+
+   * - ``--metricOperator``
+     - string
+     - Operator to apply when checking the current metric value
+       against the threshold value. Accepted values are:
+
+       - ``GREATER_THAN``
+
+       - ``LESS_THAN``
+     - no
+
+   * - ``--metricThreshold``
+     - float
+     - Threshold value outside of which an alert is triggered.
+     - no
+
+   * - ``--metricUnits``
+     - string
+     - Units for the threshold value. Depends on the type of 
+       metric. 
+        
+       .. example:: 
+
+          A metric that measures memory consumption would have a 
+          byte measurement, while a metric that measures time would 
+          have a time unit.
+        
+       Accepted values are:
+        
+       .. include:: /includes/possibleValues-api-units.rst
+     - no
+
+   * - ``--notificationToken``
+     - string
+     - Slack API or Bot token or Flowdock personal API token.
+       If the token later becomes invalid, |mms| sends an email to 
+       the Project owner and eventually removes the token.
+     - only if ``notificationType`` is ``SLACK`` or ``FLOWDOCK``.
+
+   * - ``--notificationChannelName``
+     - string
+     - Slack channel name. 
+     - only if ``notificationType`` is ``SLACK``.
+
+   * - ``--notificationdelayMin``
+     - int
+     - Minutes to wait after an alert condition is detected before 
+       sending out the first notification.
+     - no
+
+   * - ``--notificationEmailAddress``
+     - string
+     - Email address to which |onprem| sends notifications.
+     - only if ``notificationType`` is ``EMAIL``.
+
+   * - ``--notificationEmailEnabled``
+     - boolean
+     - Flag determining if |onprem| sends email notifications. 
+       If present, |onprem| sends email notifications. If absent, 
+       |onprem| doesn't send email notifications.
+       Configurable for ``GROUP`` and ``USER`` notifications types.
+     - no
+
+   * - ``--notificationsFlowName``
+     - string
+     - Flow name, in lower-case letters. The flow name appears
+       after the organization name in the URL string:
+       ``www.flowdock.com/app/<organization-name>/<flow-name>``.
+     - only if ``notificationType is ``FLOWDOCK``.
+
+   * - ``--notificationIntervalMin``
+     - int
+     - Minutes to wait between successive notifications 
+       for unacknowledged alerts that are not resolved.
+     - no
+
+   * - ``--notificationMobileNumber``
+     - string
+     - Mobile number to send SMS messages to.
+     - only if ``notificationType`` is ``SMS``.
+
+   * - ``--notificationOrgName``
+     - string
+     - Flowdock organization name in lower-case letters. This is 
+       the name that appears after ``www.flowdock.com/app/`` in the 
+       URL string.
+     - only if ``notificationType`` is ``FLOWDOCK``.
+
+   * - ``--notificationRole``
+     - string
+     - One or more :ref:`project roles <project-roles>` that receive
+       the configured alert. Accepted values include:
+
+       .. include:: /includes/project-roles-om.rst
+
+       If you include this field, |onprem| sends alerts only to 
+       users assigned the roles you specify in the array. If you 
+       omit this field, |onprem| sends alerts to users assigned
+       any role.
+
+       Configurable for ``GROUP`` notifications types.
+     - no
+
+   * - ``--notificationServiceKey``
+     - string
+     - PagerDuty service key.
+     - only if ``notificationType`` is ``PAGER_DUTY``.
+
+   * - ``--notificationSmsEnabled``
+     - boolean
+     - Flag indicating SMS notifications must be sent.
+     - only if:
+
+       - ``notificationType`` is ``GROUP``
+       - ``notificationType`` is ``USER``
+
+   * - ``--notificationTeamId``
+     - string
+     - Unique identifier of a team.
+     - no
+
+   * - ``--notificationType``
+     - string
+     - Type of alert notification. Accepted values are:
+        
+       - ``DATADOG``
+       - ``EMAIL``
+       - ``FLOWDOCK``
+       - ``GROUP`` (Project)
+       - ``HIPCHAT``
+       - ``OPS_GENIE``
+       - ``ORG``
+       - ``PAGER_DUTY``
+       - ``SLACK``
+       - ``SMS``
+       - ``SNMP``
+       - ``USER``
+       - ``VICTOR_OPS``
+       - ``WEBHOOK``
+
+     - yes
+
+   * - ``--notificationUsername``
+     - string
+     - Name of an |onprem| user to which to send notifications. 
+       Specify a user in the Project that owns the alert
+       configuration. 
+     - Only if ``notificationType`` is ``USER``.
+
+   * - ``--notificationVictorOpsRoutingKey``
+     - string
+     - VictorOps routing key
+     - Only if ``notificationType`` is ``VICTOR_OPS``.
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the public and private 
+       keys for the project are saved. If omitted, uses the ``default`` 
+       profile. To learn more about creating a 
+       profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project containing the alert
+       configuration you want to update.
+
+       .. include:: /includes/admonitions/note-get-project-id.rst
+     - yes
+
+.. _om-update-alerts-configs-output:
+
+Output 
+------ 
+
+If the command succeeds, it prints the subset of the following fields to 
+the terminal in |json| format that describes the alert configuration. 
+If the command returns an error, see :ref:`Troubleshooting 
+<troubleshooting>` for recommended solutions.
+
+.. include:: /includes/list-table-alert-config-response-om.rst
+
+Examples 
+--------
+
+The following example uses the ``mongocli om alerts configs update``
+command to update one alert configuration in the specified
+project. It uses the profile named ``myprofile`` for accessing the
+|onprem| project.
+
+.. code-block:: text
+   :copyable: false
+
+   mongocli om alert configs update 5eaafc90da10757c5fc51e70 \
+   --event JOINED_GROUP --enabled --notificationType USER \
+   --notificationEmailEnabled --notificationUsername john@example.com \
+   --projectId 5df90590f10fab5e33de2305 --profile myprofile
+
+The above command prints the following fields in |json| format to 
+the terminal. To learn more about these fields, see 
+:ref:`om-update-alerts-configs-output`.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+   	"id": "5eaafc90da10757c5fc51e70",
+   	"groupId": "5df90590f10fab5e33de2305",
+   	"eventTypeName": "JOINED_GROUP",
+   	"created": "2020-05-01T14:34:57Z",
+   	"updated": "2020-05-01T14:34:57Z",
+   	"enabled": true,
+   	"notifications": [
+   		{
+   			"delayMin": 0,
+   			"emailEnabled": true,
+   			"smsEnabled": false,
+   			"typeName": "USER",
+   			"username": "john@example.com"
+   		}
+   	]
+   }
