@@ -145,3 +145,26 @@
 
              registry:
                initAppDb: quay.io/mongodb
+
+   * - ``operator.watchedResources``
+     - Custom resources that the |k8s-op-short| watches.
+       
+       The |k8s-op-short| installs the |k8s-crds| for and watches only
+       the resources you specify.
+
+       Accepted values are:
+
+       .. include:: /includes/list-tables/crds.rst
+
+       Default values are: ``mongodbusers``, ``mongodb``, and ``opsmanagers``.
+
+       .. example::
+
+          .. code-block:: sh
+             :emphasize-lines: 2
+
+             operator:
+               watchedResources: 
+                 - mongodbusers
+                 - mongodb
+                 - opsmanagers
