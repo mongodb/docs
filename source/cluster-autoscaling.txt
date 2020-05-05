@@ -18,10 +18,10 @@ Cluster Auto-Scaling
 
 You can configure your |service| cluster to automatically scale its
 cluster tier, storage capacity, or both in response to cluster usage.
-Cluster auto-scaling removes the need to write scripts or use consulting
-services to make scaling decisions. To help control costs, you can
-specify a range of cluster tiers to which your cluster can automatically
-scale.
+Cluster auto-scaling removes the need to write scripts or use
+consulting services to make scaling decisions. To help control costs,
+you can specify a range of cluster tiers to which your cluster can
+automatically scale.
 
 Auto-scaling works on a rolling basis, meaning the process does not
 incur any downtime.
@@ -34,7 +34,7 @@ How |service| Scales Cluster Tier
 |service| analyzes the following cluster metrics to determine when to
 scale a cluster, and whether to scale the cluster tier up or down:
 
-- CPU Utilization 
+- CPU Utilization
 
 - Memory Utilization
 
@@ -48,18 +48,22 @@ would not be in a tier outside of your specified
 Scaling Up a Cluster Tier
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the next highest cluster tier is within your :guilabel:`Maximum
-Cluster Size` range, |service| scales the cluster up to the next tier if
-*one* of the following is true for the current cluster:
+If the next highest cluster tier is within your
+:guilabel:`Maximum Cluster Size` range, |service| scales the cluster
+up to the next tier if *one* of the following is true for the current
+cluster:
 
 - Average CPU Utilization has exceeded 75% for the past hour, or
 
 - Memory Utilization has exceeded 75% for the past hour.
 
+|service| scales a cluster to the next tier when the cluster hasn't
+been scaled up in the past hour.
+
 .. note::
 
-   |service| only auto-scales a cluster up if the cluster has not been
-   scaled up (manually or automatically) in the past hour.
+   Automatic scaling works on :guilabel:`General` tier clusters but
+   *not* on the *Low-CPU* or *Local NVMe SSD* tier clusters.
 
 Scaling Down a Cluster Tier
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -77,10 +81,9 @@ down to the next lowest tier if *both* of the following are true:
 
 .. note::
 
-   ``M10`` and ``M20`` clusters might use lower thresholds to accommodate 
-   caps placed by cloud providers on CPU usage after burst 
-   periods. These thresholds vary depending on your cloud provider and 
-   cluster tier.
+   ``M10`` and ``M20`` clusters might use lower thresholds if cloud
+   providers set caps on CPU usage after burst periods. These
+   thresholds vary depending on your cloud provider and cluster tier.
 
 To learn more about downward auto-scaling behavior, see
 :ref:`downward-scaling-considerations`.
@@ -95,12 +98,12 @@ increases cluster storage when disk usage reaches 90%. The scaling
 behavior differs by cloud provider:
 
 - On :ref:`AWS <amazon-aws>` and :ref:`GCP <google-gcp>` clusters,
-  |service| increases cluster storage capacity to achieve
-  70% disk utilization. For information on |aws| storage change 
-  limitations and how |service| works around them, see 
+  |service| increases cluster storage capacity to achieve 70% disk
+  utilization. For information on |aws| storage change limitations and
+  how |service| works around them, see
   :ref:`change-storage-capacity-aws`.
 
-- On :ref:`Azure <microsoft-azure>` clusters, |service| doubles the 
+- On :ref:`Azure <microsoft-azure>` clusters, |service| doubles the
   current amount of cluster storage.
 
 .. include:: /includes/autoscale-oplog.rst
@@ -121,8 +124,8 @@ behavior differs by cloud provider:
       your disk usage reaches 90%, a storage auto-scaling event would
       require raising your storage capacity to 600 GB. In this case,
       |service| scales your cluster tier up to ``M40``, because this is
-      the lowest cluster tier which can support the new required storage
-      capacity.
+      the lowest cluster tier which can support the new required
+      storage capacity.
 
    In the event that your specified maximum cluster tier cannot support
    the new storage capacity, |service|:
@@ -136,37 +139,40 @@ behavior differs by cloud provider:
 
       When |service| overrides your maximum cluster tier, it also
       disables your cluster from automatically scaling down. If you
-      want to re-enable downward auto-scaling, you must do so 
-      manually from your :ref:`Cluster Settings <scale-cluster>`.
-      See :ref:`downward-scaling-considerations`.
+      want to re-enable downward auto-scaling, you must do so manually
+      from your :ref:`Cluster Settings <scale-cluster>`
+
+      .. seealso:: :ref:`downward-scaling-considerations`.
 
    If |service| attempts to scale your cluster tier down and the target
    tier cannot support your current disk capacity, provisioned |iops|,
    or both, |service| does not scale your cluster down. In this
-   scenario, |service| updates your auto-scaling settings based on
-   the relationship between your current cluster tier and configured
+   scenario, |service| updates your auto-scaling settings based on the
+   relationship between your current cluster tier and configured
    maximum cluster tier:
 
    - If the cluster is currently at the configured maximum cluster
      tier, |service| disables the cluster from automatically scaling
-     down because all smaller tiers would not be able to accommodate the
-     necessary storage settings. If you want to re-enable downward
+     down because all smaller tiers would not be able to accommodate
+     the necessary storage settings. If you want to re-enable downward
      auto-scaling, you must do so manually from your :ref:`Cluster
-     Settings <scale-cluster>`. See
-     :ref:`downward-scaling-considerations`.
+     Settings <scale-cluster>`
+
+     .. seealso:: :ref:`downward-scaling-considerations`.
 
    - If the cluster is not currently at the configured maximum cluster
      tier, |service| raises the minimum cluster tier to the current
-     cluster tier. In this case, |service| does not disable
-     downward auto-scaling.
+     cluster tier. In this case, |service| does not disable downward
+     auto-scaling.
 
    This auto-scaling logic is designed to reduce downtime incurred by
    your storage settings not matching your workload.
 
    When an auto-scaling event modifies your configured minimum or
-   maximum cluster tier, |service| sends an email to all project members
-   with information on the event. The email includes the new cluster
-   tier and information on any modified minimum or maximum tier bounds.
+   maximum cluster tier, |service| sends an email to all project
+   members with information on the event. The email includes the new
+   cluster tier and information on any modified minimum or maximum tier
+   bounds.
 
 Configure Auto-Scaling Options
 ------------------------------
@@ -182,6 +188,8 @@ section of the cluster builder:
    :figwidth: 720px
    :alt: Image showing the auto-scaling cluster options.
 
+.. _configure-cluster-autoscaling:
+
 Configure Cluster Tier Auto-Scaling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -189,16 +197,17 @@ In the :guilabel:`Cluster tier` section of the :guilabel:`Auto-scale`
 options, you can specify the minimum and maximum sizes
 to which your cluster can automatically scale.
 
-Auto-scaling is disabled by default. To enable auto-scaling:
+|service| defaults auto-scaling set to disabled. To enable
+auto-scaling:
 
 1. In the :guilabel:`Auto-Scale` section, check
    :guilabel:`Cluster tier`.
 
 #. Select a :guilabel:`Maximum Cluster Size` from the dropdown.
 
-When you enable auto-scaling, by default your cluster can only
-automatically scale up to a higher cluster tier. To enable auto-scaling
-to a lower cluster tier:
+When you enable auto-scaling, your cluster can scale to increase
+capability with a higher cluster tier. To enable auto-scaling to a
+decrease capability with lower cluster tier:
 
 1. Check :guilabel:`Allow cluster to be scaled down`.
 
@@ -209,17 +218,17 @@ to a lower cluster tier:
 Considerations for Downward Auto-Scaling
 ````````````````````````````````````````
 
-- Automatically scaling down to a lower cluster tier may leave your
-  cluster unable to handle your workload. Only allow the cluster to
-  be scaled down if you have a clear understanding of your cluster's
-  workload. Ensure that you account for any possible spikes or dips
+- To permit |service| downscale your cluster to a lower cluster tier
+  may leave your cluster unable to handle your workload. Allow
+  |service| to scale the cluster down only if you understand your
+  cluster's range of workloads. Account for any possible spikes or dips
   in cluster activity.
 
 - You cannot scale to a cluster smaller than ``M10``.
 
-- When |service| auto-scales your cluster down, it checks that your
-  minimum cluster tier bound supports your cluster's current disk
-  configuration. If your selected minimum cluster tier cannot support
+- When |service| downscales your cluster, it checks that your minimum
+  cluster tier bound supports your cluster's current disk
+  configuration. If your selected minimum cluster tier can't support
   your current disk configuration, |service| adjusts your minimum tier
   to the next lowest tier which can support your configuration.
 
@@ -228,8 +237,8 @@ Considerations for Downward Auto-Scaling
      You have set your auto-scaling bounds to ``M10``-``M60`` and your
      current cluster tier is ``M40``. |service| triggers a downward
      auto-scaling event because the average CPU Utilization and Memory
-     Utilization on your current cluster has been under 50% for the past
-     72 hours.
+     Utilization on your current cluster has been under 50% for the
+     past 72 hours.
 
      1. |service| attempts to auto-scale your cluster down to ``M30``.
         ``M30`` supports your current disk configuration, so the
@@ -260,9 +269,9 @@ Acknowledge Auto-Scaling Events
 
 When an auto-scaling event occurs:
 
-- |service| logs the event in the project
-  :guilabel:`Activity Feed`. For more information on the
-  :guilabel:`Activity Feed`, see :ref:`project-activity-feed`.
+- |service| logs the event in the project :guilabel:`Activity Feed`. To
+  learn more about the :guilabel:`Activity Feed`, see
+  :ref:`project-activity-feed`.
 
 - |service| sends an email to all project members with
   information on the event. The email includes the original cluster
