@@ -18,7 +18,10 @@
 
   If your deployment is currently a standalone instance, you must first
   :manual:`convert it to a replica set </tutorial/convert-standalone-to-replica-set>`.
-  Live migration of data from sharded clusters is not supported.
+  
+  Live migration of data from sharded clusters is not supported. Your destination
+  cluster may be sharded, but your source cluster must be an unsharded replica
+  set.
 
 * (Optional) Enabled authentication on your source deployment.
 

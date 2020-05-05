@@ -67,24 +67,23 @@
      - id: java-sync
        content: |
 
-         You can implement a ``com.mongodb.Block`` to print the results
-         of the iteration
+         You can implement a ``java.util.function.Consumer`` to print the
+         results of the iteration
          
          .. code-block:: java
          
-            Block<Document> printBlock = new Block<Document>() {
-                @Override
-                public void apply(final Document document) {
-                    System.out.println(document.toJson());
+            Consumer<Document> printConsumer = new Consumer<Document>() {
+                public void accept(final Document doc) {
+                    System.out.println(doc.toJson());
                 }
             };
          
          Then iterate the cursor for documents, passing the
-         ``printBlock`` as a parameter.
+         ``printConsumer`` as a parameter.
          
          .. code-block:: java
        
-            findIterable.forEach(printBlock);
+            findIterable.forEach(printConsumer);
 
      - id: nodejs
        content: |
