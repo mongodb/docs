@@ -16,8 +16,12 @@ getLog
    recent 1024 logged :binary:`~bin.mongod` events. :dbcommand:`getLog` *does not*
    read log data from the :binary:`~bin.mongod` log file. It instead reads data
    from a RAM cache of logged :binary:`~bin.mongod` events. To run
-   :dbcommand:`getLog`, use the :method:`db.runCommand( { command } )
-   <db.runCommand()>` method on the ``admin`` database.
+   :dbcommand:`getLog`, use the :method:`db.adminCommand()` method.
+
+   Starting in MongoDB 4.4, :dbcommand:`getLog` returns log data in
+   escaped :doc:`Relaxed Extended JSON v2.0
+   </reference/mongodb-extended-json>` format. Previously, log data
+   was returned as plaintext.
 
 Syntax
 ------
@@ -51,11 +55,6 @@ Command Fields
    
         - Returns the combined output of all recent log entries.
 
-      * - ``rs`` 
-   
-        - Returns recent log entries related to replica set activity if
-          the :binary:`~bin.mongod` is part of a :term:`replica set`.
-
       * - ``startupWarnings`` 
    
         - Returns log entries that *may* contain errors or warnings
@@ -68,14 +67,19 @@ Output
 
 .. container::
 
-   If specified ``*``, then the command returns a document with the names
-   of the other acceptable values.
+   If specified ``*``, then the command returns a document with the
+   names of the other acceptable values.
 
-   Otherwise, the command returns document that includes the following fields:
+   Otherwise, the command returns a document that includes the following
+   fields:
 
-   - ``log`` field that contains an array of log events, and
+   - ``totalLinesWritten`` field that contains the number of log events
 
-   - ``totalLinesWritten`` field that contains the number of log events.
+   - ``log`` field that contains an array of log events
+
+   - A :method:`db.adminCommand()` :ref:`response document
+     <db-adminCommand-response>`, containing status and timestamp
+     information.
 
 Behavior
 --------
@@ -83,11 +87,19 @@ Behavior
 Line Truncation
 ~~~~~~~~~~~~~~~
 
-.. container::
+Starting in MongoDB 4.2, :dbcommand:`getLog` truncates any event
+that contains more than 1024 characters. In earlier versions,
+:dbcommand:`getLog` truncates after 512 characters.
 
-   Starting in MongoDB 4.2, :dbcommand:`getLog` truncates any event
-   that contains more than 1024 characters. In earlier versions,
-   :dbcommand:`getLog` truncates after 512 characters.
+Character Escaping
+~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, :dbcommand:`getLog` returns log data in
+escaped :doc:`Relaxed Extended JSON v2.0
+</reference/mongodb-extended-json>` format, using the following
+escape sequences to render log output as valid JSON:
+
+.. include:: /includes/fact-json-escape-sequences.rst
 
 Examples
 --------
@@ -95,8 +107,8 @@ Examples
 Retrieve Available Log Filters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following operation returns the available log filters for passing to
-:dbcommand:`getLog`
+The following operation, run from the :binary:`~bin.mongo` shell,
+returns the available log filters for passing to :dbcommand:`getLog`:
 
 .. code-block:: javascript
 
@@ -104,15 +116,17 @@ The following operation returns the available log filters for passing to
 
 The operation returns the following document:
 
-.. code-block:: sh
+.. code-block:: javascript
+   :copyable: false
 
-   { "names" : [ "global", "rs", "startupWarnings" ], "ok" : 1 }
+   { "names" : [ "global", "startupWarnings" ], "ok" : 1 }
 
 Retrieve Recent Events from Log
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following operation retrieves the most recent ``global`` events for the
-:binary:`~bin.mongod`
+The following operation, run from the :binary:`~bin.mongo` shell,
+retrieves the most recent ``global`` events for the
+:binary:`~bin.mongod`:
 
 .. code-block:: javascript
 
@@ -120,40 +134,48 @@ The following operation retrieves the most recent ``global`` events for the
 
 The operation returns a document similar to the following:
 
-.. tabs::
+.. code-block:: javascript
+   :copyable: false
 
-   tabs:
-
-      - id: 4.2-log-format
-        name: MongoDB 4.2
-        content: |
-
-           .. code-block:: javascript
-           
-              {
-                 "totalLinesWritten" : <num>,
-                 "log" : [
-                    "2020-03-15T19:31:05.644-0400 I  CONTROL  [main] Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'",
-                    "2020-03-15T19:31:05.715-0400 I  CONTROL  [initandlisten] MongoDB starting : pid=15902 port=27017 dbpath=/var/lib/mongodb 64-bit host=myreplset1.example.net",
-                    "2020-03-15T19:31:06.578-0400 I  CONTROL  [initandlisten] db version v4.2.3",
-                    "2020-03-15T19:31:06.578-0400 I  CONTROL  [initandlisten] git version: 6874650b362138df74be53d366bbefc321ea32d4",
-                    ...
-                    "2020-03-15T20:14:11.800-0400 I  REPL     [replexec-38] Scheduling remote command request for vote request: RemoteCommand 4658 -- target:myreplset1.example.net:27017 db:admin cmd:{ replSetRequestVotes: 1, setName: \"shardA\", dryRun: true, term: 6, candidateIndex: 1, configVersion: 1, lastCommittedOp: { ts: Timestamp(1584317639, 1), t: 6 } }",
-                    "2020-03-15T20:14:11.801-0400 I  REPL     [replexec-38] Scheduling remote command request for vote request: RemoteCommand 4659 -- target:myreplset3.example.net:27017 db:admin cmd:{ replSetRequestVotes: 1, setName: \"shardA\", dryRun: true, term: 6, candidateIndex: 1, configVersion: 1, lastCommittedOp: { ts: Timestamp(1584317639, 1), t: 6 } }",
-                    "2020-03-15T20:14:11.802-0400 I  REPL     [replication-0] Restarting oplog query due to error: NetworkInterfaceExceededTimeLimit: error in fetcher batch callback :: caused by :: Request 4654 timed out, deadline was 2020-03-15T20:14:09.543-0400, op was RemoteCommand 4654 -- target:[myreplset1.example.net:27017] db:local expDate:2020-03-15T20:14:09.543-0400 cmd:{ getMore: 2378871356916183748, collection: \"oplog.rs\", batchSize: 13981010, maxTimeMS: 5000, term: 6, lastKnownCommittedOpTime: { ts: Timestamp(1584317639, 1), t: 6 } }. Last fetched optime: { ts: Timestamp(1584317639, 1), t: 6 }. Restarts remaining: 1",
-                    "2020-03-15T20:14:11.802-0400 I  CONNPOOL [Replication] Connecting to myreplset3.example.net:27017",
-                    "2020-03-15T20:14:11.804-0400 I  REPL     [replication-0] Scheduled new oplog query Fetcher source: myreplset1.example.net:27017 database: local query: { find: \"oplog.rs\", filter: { ts: { $gte: Timestamp(1584317639, 1) } }, tailable: true, oplogReplay: true, awaitData: true, maxTimeMS: 2000, batchSize: 13981010, term: 6, readConcern: { afterClusterTime: Timestamp(0, 1) } } query metadata: { $replData: 1, $oplogQueryData: 1, $readPreference: { mode: \"secondaryPreferred\" } } active: 1 findNetworkTimeout: 7000ms getMoreNetworkTimeout: 10000ms shutting down?: 0 first: 1 firstCommandScheduler: RemoteCommandRetryScheduler request: RemoteCommand 4662 -- target:myreplset1.example.net:27017 db:local cmd:{ find: \"oplog.rs\", filter: { ts: { $gte: Timestamp(1584317639, 1) } }, tailable: true, oplogReplay: true, awaitData: true, maxTimeMS: 2000, batchSize: 13981010, term: 6, readConcern: { afterClusterTime: Timestamp(0, 1) } } active: 1 callbackHandle.valid: 1 callbackHandle.cancelled: 0 attempt: 1 retryPolicy: {type: \"No",
-                    "2020-03-15T20:14:11.805-0400 I  ELECTION [replexec-41] VoteRequester(term 6 dry run) received a yes vote from myreplset1.example.net:27017; response message: { term: 6, voteGranted: true, reason: \"\", ok: 1.0, $clusterTime: { clusterTime: Timestamp(1584317639, 1), signature: { hash: BinData(0, 0000000000000000000000000000000000000000), keyId: 0 } }, operationTime: Timestamp(1584317639, 1) }",
-                    ...
-                 ],
-                 "ok" : 1,
-                 "$clusterTime" : {
-                    "clusterTime" : Timestamp(1584318241, 1),
-                    "signature" : {
-                       "hash" : BinData(0,"5t4v8ZtiInmxBwGLxdPoOAe2TPg="),
-                       "keyId" : NumberLong("6804581450864656386")
-                    }
-                 },
-                 "operationTime" : Timestamp(1584318241, 1)
-              }
-
+   {
+         "totalLinesWritten" : <num>,
+         "log" : [
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:48.871+00:00\"},\"s\":\"I\",  \"c\":\"STORAGE\",  \"id\":4615611, \"ctx\":\"initandlisten\",\"msg\":\"MongoDB starting\",\"attr\":{\"pid\":12345,\"port\":27001,\"dbPath\":\"/var/lib/mongo\",\"architecture\":\"64-bit\",\"host\":\"server1.example.com\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:48.871+00:00\"},\"s\":\"I\",  \"c\":\"CONTROL\",  \"id\":23403,   \"ctx\":\"initandlisten\",\"msg\":\"Build Info\",\"attr\":{\"buildInfo\":{\"version\":\"4.4.0\",\"gitVersion\":\"328c35e4b883540675fb4b626c53a08f74e43cf0\",\"openSSLVersion\":\"OpenSSL 1.1.1c FIPS  28 May 2019\",\"modules\":[],\"allocator\":\"tcmalloc\",\"environment\":{\"distmod\":\"rhel80\",\"distarch\":\"x86_64\",\"target_arch\":\"x86_64\"}}}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:48.871+00:00\"},\"s\":\"I\",  \"c\":\"CONTROL\",  \"id\":51765,   \"ctx\":\"initandlisten\",\"msg\":\"Operating System\",\"attr\":{\"os\":{\"name\":\"CentOS Linux release 8.0.1905 (Core) \",\"version\":\"Kernel 4.18.0-80.11.2.el8_0.x86_64\"}}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:48.871+00:00\"},\"s\":\"I\",  \"c\":\"CONTROL\",  \"id\":21951,   \"ctx\":\"initandlisten\",\"msg\":\"Options set by command line\",\"attr\":{\"options\":{\"config\":\"/etc/mongod.conf\",\"net\":{\"bindIp\":\"127.0.0.1\",\"port\":27001},\"processManagement\":{\"fork\":true,\"timeZoneInfo\":\"/usr/share/zoneinfo\"},\"replication\":{\"replSetName\":\"repl-shard1\"},\"sharding\":{\"clusterRole\":\"shardsvr\"},\"storage\":{\"dbPath\":\"/var/lib/mongo\",\"journal\":{\"enabled\":true},\"wiredTiger\":{\"engineConfig\":{\"cacheSizeGB\":0.1}}},\"systemLog\":{\"destination\":\"file\",\"logAppend\":true,\"path\":\"/var/log/mongodb/mongod.log\"}}}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:48.873+00:00\"},\"s\":\"I\",  \"c\":\"STORAGE\",  \"id\":22270,   \"ctx\":\"initandlisten\",\"msg\":\"Storage engine to use detected by data files\",\"attr\":{\"dbpath\":\"/var/lib/mongo\",\"storageEngine\":\"wiredTiger\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:48.873+00:00\"},\"s\":\"I\",  \"c\":\"STORAGE\",  \"id\":22315,   \"ctx\":\"initandlisten\",\"msg\":\"wiredtiger_open config\",\"attr\":{\"config\":\"create,cache_size=102M,session_max=33000,eviction=(threads_min=4,threads_max=4),config_base=false,statistics=(fast),log=(enabled=true,archive=true,path=journal,compressor=snappy),file_manager=(close_idle_time=100000,close_scan_interval=10,close_handle_minimum=250),statistics_log=(wait=0),verbose=[recovery_progress,checkpoint_progress,compact_progress],\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:58.877+00:00\"},\"s\":\"I\",  \"c\":\"CONNPOOL\", \"id\":22576,   \"ctx\":\"ReplicaSetMonitor-TaskExecutor\",\"msg\":\"Connecting\",\"attr\":{\"hostAndPort\":\"server1.example.com:27001\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:58.877+00:00\"},\"s\":\"I\",  \"c\":\"CONNPOOL\", \"id\":22576,   \"ctx\":\"ReplicaSetMonitor-TaskExecutor\",\"msg\":\"Connecting\",\"attr\":{\"hostAndPort\":\"server2.example.com:27001\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:58.877+00:00\"},\"s\":\"I\",  \"c\":\"CONNPOOL\", \"id\":22576,   \"ctx\":\"ReplicaSetMonitor-TaskExecutor\",\"msg\":\"Connecting\",\"attr\":{\"hostAndPort\":\"server3.example.com:27001\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:58.877+00:00\"},\"s\":\"I\",  \"c\":\"CONNPOOL\", \"id\":22576,   \"ctx\":\"ReplicaSetMonitor-TaskExecutor\",\"msg\":\"Connecting\",\"attr\":{\"hostAndPort\":\"server4.example.com:27001\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:58.877+00:00\"},\"s\":\"I\",  \"c\":\"CONNPOOL\", \"id\":22576,   \"ctx\":\"ReplicaSetMonitor-TaskExecutor\",\"msg\":\"Connecting\",\"attr\":{\"hostAndPort\":\"server5.example.com:27001\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:58.877+00:00\"},\"s\":\"I\",  \"c\":\"CONNPOOL\", \"id\":22576,   \"ctx\":\"ReplicaSetMonitor-TaskExecutor\",\"msg\":\"Connecting\",\"attr\":{\"hostAndPort\":\"server6.example.com:27001\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:58.877+00:00\"},\"s\":\"I\",  \"c\":\"NETWORK\",  \"id\":23015,   \"ctx\":\"listener\",\"msg\":\"Listening on\",\"attr\":{\"address\":\"/tmp/mongodb-27001.sock\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:58.877+00:00\"},\"s\":\"I\",  \"c\":\"NETWORK\",  \"id\":23015,   \"ctx\":\"listener\",\"msg\":\"Listening on\",\"attr\":{\"address\":\"127.0.0.1\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:10:58.877+00:00\"},\"s\":\"I\",  \"c\":\"NETWORK\",  \"id\":23016,   \"ctx\":\"listener\",\"msg\":\"Waiting for connections\",\"attr\":{\"port\":27001,\"ssl\":\"off\"}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:15:10.392+00:00\"},\"s\":\"I\",  \"c\":\"NETWORK\",  \"id\":22943,   \"ctx\":\"listener\",\"msg\":\"connection accepted\",\"attr\":{\"remote\":\"127.0.0.1:35724\",\"sessionId\":67,\"connectionCount\":30}}",
+                 "{\"t\":{\"$date\":\"2020-05-19T19:15:10.393+00:00\"},\"s\":\"I\",  \"c\":\"NETWORK\",  \"id\":51800,   \"ctx\":\"conn67\",\"msg\":\"client metadata\",\"attr\":{\"remote\":\"127.0.0.1:35724\",\"client\":\"conn67\",\"doc\":{\"application\":{\"name\":\"MongoDB Shell\"},\"driver\":{\"name\":\"MongoDB Internal Client\",\"version\":\"4.4.0\"},\"os\":{\"type\":\"Linux\",\"name\":\"CentOS Linux release 8.0.1905 (Core) \",\"architecture\":\"x86_64\",\"version\":\"Kernel 4.18.0-80.11.2.el8_0.x86_64\"}}}}"
+         ],
+         "ok" : 1,
+         "$gleStats" : {
+                 "lastOpTime" : Timestamp(<ts>),
+                 "electionId" : ObjectId(<id>)
+         },
+         "lastCommittedOpTime" : Timestamp(<ts>),
+         "$configServerState" : {
+                 "opTime" : {
+                         "ts" : Timestamp(<ts>),
+                         "t" : NumberLong(8)
+                  }
+         },
+         "$clusterTime" : {
+                 "clusterTime" : Timestamp(<ts>),
+                 "signature" : {
+                         "hash" : BinData(<bin>),
+                         "keyId" : NumberLong(0)
+                  }
+         },
+         "operationTime" : Timestamp(<ts>)
+   }
