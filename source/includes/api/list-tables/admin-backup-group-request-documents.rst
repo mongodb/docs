@@ -25,8 +25,8 @@
 
    * - id
      - string
-     - The unique identifier that represents this project's backup jobs 
-       configuration.     
+     - The unique identifier that represents this project and its 
+       backup job configuration.
 
    * - kmipClientCertPassword
      - string
