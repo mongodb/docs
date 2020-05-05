@@ -146,6 +146,61 @@ Remove support for ``JavaScript with Scope``
 
    .. seealso:: :ref:`4.4-compatibility-deprecations`
 
+Structured Logging
+------------------
+
+Starting in MongoDB 4.4, :binary:`~bin.mongod` / :binary:`~bin.mongos`
+instances now output all log messages in :ref:`structured JSON format
+<log-message-json-output-format>`. This includes log output sent to the
+*file*, *syslog*, and *stdout* (standard out)
+:ref:`log destinations <log-message-destinations>`, as well as the
+output of the :dbcommand:`getLog` command.
+
+Previously, log entries were output as plaintext.
+
+If you have existing log parsing utilities, or use a log ingestion
+service, you may need to reconfigure these tools for the new structured
+logging format with MongoDB 4.4.
+
+See :doc:`Log Messages </reference/log-messages>` for a detailed
+examination of the new structured logging format, including 
+:ref:`examples of log parsing<log-message-parsing>` using the new log
+structure.
+
+Timestamp Format
+~~~~~~~~~~~~~~~~
+
+With the transition to structured JSON logging, the ``ctime`` timestamp
+format is no longer supported. The following configuration options no
+longer accept ``ctime`` as a valid parameter:
+
+- :setting:`systemLog.timeStampFormat`
+
+- :option:`mongod --timeStampFormat`
+
+- :option:`mongos --timeStampFormat`
+
+Use the ``iso8601-local`` (default) or ``iso8601-utc`` timestamp
+formats instead.
+
+maxLogSizeKB Parameter
+~~~~~~~~~~~~~~~~~~~~~~
+
+With the transition to structured JSON logging, the
+:parameter:`maxLogSizeKB` server parameter now truncates any individual
+attributes in a log entry that exceed the specified limit. Previously,
+this parameter would truncate the entire log entry.
+
+In addition: 
+
+- :parameter:`maxLogSizeKB` now accepts a value of ``0``, which disables
+  truncation entirely.
+
+- :parameter:`maxLogSizeKB` no longer accepts negative values.
+
+See :ref:`log message truncation <log-message-truncation>` for more
+information.
+
 General Changes
 ---------------
 
@@ -172,18 +227,6 @@ General Changes
 
 - MongoDB 4.4 removes the ``--noIndexBuildRetry`` command-line option and
   the corresponding ``storage.indexBuildRetry`` option.
-     
-- MongoDB log messages no longer support ``ctime`` timestamp format;
-  i.e. the following do not accept ``ctime`` as a value:
-
-  - :setting:`systemLog.timeStampFormat` configuration setting
-
-  - :option:`mongod --timeStampFormat`, and
-
-  - :option:`mongos --timeStampFormat`.
-
-  An example of ``ctime`` formatted timestamp is: ``Wed Dec 31
-  18:17:54.811``.
 
 
 - :binary:`~bin.mongos` now logs an error if you pass an empty
