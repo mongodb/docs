@@ -4,16 +4,20 @@ Search Geospatially
 
 .. default-domain:: mongodb
 
-You can query data based on geographical location using
-:manual:`geospatial query operators </geospatial-queries/index.html>`.
-Geospatial queries require a :manual:`geospatial index
-</geospatial-queries/#geospatial-indexes>`.
-
 Overview
 --------
 
-Geospatial queries work with two different formats depending on your use
-case.
+You can query data based on geographical location using geospatial query
+operators. Geospatial queries can be formatted using one of the following
+coordinate systems:
+
+- :ref:`Coordinates on an Earth-like Sphere <sphere>`
+- :ref:`Coordinates on a 2D Plane <plane>`
+
+This section contains examples of geospatial queries using different
+query operators that you can run against your Atlas sample dataset.
+
+.. _sphere:
 
 Coordinates on an Earth-like Sphere
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,7 +25,7 @@ Coordinates on an Earth-like Sphere
 For geospatial queries using longitude and latitude coordinates
 on an Earth-like sphere, use the :manual:`GeoJSON
 </geospatial-queries/index.html#geospatial-geojson>`
-format. While GeoJSON has :manual:`multiple types
+query format. While GeoJSON has :manual:`multiple types
 </reference/geojson/>`, all GeoJSON data
 types use some form of the following structure:
 
@@ -30,49 +34,66 @@ types use some form of the following structure:
    <field> : {
       type: <GeoJSON type>,
       coordinates: [
-         [longitude1, latitude1],
+         [longitude_1, latitude_1],
          ...
-         [longitudeN, latitudeN]
+         [longitude_n, latitude_n]
       ]
    }
 
 The object type determines the number of coordinates. For instance, a
-Point requires only one coordinate: a longitude and a latitude. A Line
-uses two coordinates: a longitude and a latitude for each end.
-Polygons consist of a list of coordinates in which the first and last
+``Point`` requires only one coordinate: a longitude and a latitude.
+A ``Line`` uses two coordinates: a longitude and a latitude for each end.
+A ``Polygon`` consists of a list of coordinates in which the first and last
 coordinate are the same, effectively closing the polygon. To learn more
 about the GeoJSON shapes you can use in MongoDB, consult the
-:manual:`GeoJSON manual entry </reference/geojson/>`. To geospatially
-query GeoJSON data, you must first add your GeoJSON data to a
-``2dsphere`` index. You can create a ``2dsphere`` index by passing the
-value ``2dsphere`` for a field in the ``createIndex()`` method.
+:manual:`GeoJSON manual entry </reference/geojson/>`. 
+
+To enable querying GeoJSON data, you must add the field to a ``2dsphere`` 
+index. The following snippet creates an index on the ``location.geo`` field in
+the ``movies`` collection using the ``createIndex()`` method:
+
+.. code-block:: javascript
+
+   db.movies.createIndex({location.geo: "2dsphere"})
+
+.. _plane:
 
 Coordinates on a 2D Plane
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Geospatial queries can also use x and y coordinates in a two dimensional
-Euclidean plane. To express data in this way, use the
-:manual:`legacy coordinate pair
-</geospatial-queries/index.html#legacy-coordinate-pairs>`
-format. Legacy coordinate pairs use some form of the following
-structure:
+You can also express geospatial queries using ``x`` and ``y`` coordinates in 
+a two-dimentional Euclidian plane. Until MongoDB, this was the only format 
+compatible with geospatial queries, and are now referred to as 
+"legacy coordinate pairs".
+
+Legacy coordinate pairs use the following structure:
 
 .. code-block:: javascript
 
    <field> : [ x, y ]
 
-The indexed field should contain an array in which the first value
-represents an ``x`` axis value and the second value represents a ``y``
-coordinate value. You can create a ``2d`` index by passing the value
-``2d`` for a field in the ``createIndex()`` method.
+The field should contain an array of two values in which the first represents 
+the ``x`` axis value and the second represents the ``y`` axis value. 
+
+To enable querying using legacy coordinate pairs, create a ``2d`` index on
+the field on the collection. The following snippet creats an index on the
+``coordinates`` field in the ``shipwrecks`` collection using the
+``createIndex()`` method:
+
+.. code-block:: javascript
+
+   db.shipwrecks({coordinates: "2d"})
+
+See the 
+:manual:`MongoDB server manual page on legacy coordinate pairs </geospatial-queries/index.html#legacy-coordinate-pairs>`
+for more information.
 
 .. note::
 
    Spherical (``2dsphere``) and flat (``2d``) indexes support some, but
    not all, of the same query operators. For a full list of operators
    and their index compatibility, consult the
-   :manual:`manual entry for geospatial queries
-   </geospatial-queries/index.html#geospatial-models>`.
+   :manual:`manual entry for geospatial queries </geospatial-queries/index.html#geospatial-models>`.
 
 Examples
 --------
@@ -80,17 +101,6 @@ Examples
 The following examples use the ``theaters`` collection of the
 ``sample_mflix`` sample database available in MongoDB Atlas, with a
 ``2dsphere`` index on the ``location.geo`` field.
-
-.. note::
-
-  Geo searches require a geospatial index. To create a ``2dsphere``
-  index on the ``location.geo`` field of the ``theaters`` collection of
-  the ``sample_mflix`` database, use the following command on the
-  sample_mflix database:
-
-  .. code-block:: javascript
-
-     db.movies.createIndex({location.geo: "2dsphere"})
 
 Query by Proximity
 ~~~~~~~~~~~~~~~~~~
@@ -122,3 +132,6 @@ England area:
    :start-after: start range geo example
    :end-before: end range geo example
    :dedent: 4
+
+See the :manual:`MongoDB server manual page on geospatial query operators </geospatial-queries/index.html>`
+for more information on the operators you can use in your query.
