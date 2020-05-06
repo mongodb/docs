@@ -29,7 +29,7 @@ async function word(movies) {
 
 async function phrase(movies) {
   // start phrase text example
-  const query = { $text: { $search: '"star trek"' } };
+  const query = { $text: { $search: "\"star trek\"" } };
 
   // Return only the `title` of each matched document
   const projection = {
@@ -50,7 +50,7 @@ async function phrase(movies) {
 
 async function negation(movies) {
   // start negation text example
-  const query = { $text: { $search: '"star trek"  -"into darkness"' } };
+  const query = { $text: { $search: "\"star trek\"  -\"into darkness\"" } };
 
   // Include only the `title` field of each matched document
   const projection = {
@@ -71,7 +71,7 @@ async function negation(movies) {
 
 async function relevance(movies) {
   // start relevance text example
-  const query = { $text: { $search: '"star trek"  -"into darkness"' } };
+  const query = { $text: { $search: "\"star trek\"  -\"into darkness\"" } };
 
   // sort returned documents by descending text relevance score
   const sort = { score: { $meta: "textScore" } };

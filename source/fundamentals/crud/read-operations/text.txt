@@ -4,48 +4,45 @@ Search Text
 
 .. default-domain:: mongodb
 
-Use the :manual:`$text
-</reference/operator/query/text/>`
-operator to perform text searches on fields which have a
-:manual:`text index </core/index-text/>`.
-
 Overview
 --------
 
-Text searches let you search a collection of string-valued fields for
-words or phrases, instead of matching substrings like
-:mdn:`regular expressions
-<Web/JavaScript/Guide/Regular_Expressions>`,
-also known as RegEx. While regex is very powerful, and MongoDB even
-offers a ``$regex`` operator, text searches work particularly well when
-applied to unstructured text, like transcripts, essays, or even web
-pages. Because MongoDB's text indexes are aware of concepts like
-plurality, case sensitivity, stop words, whitespace, and punctuation in
-multiple languages, all you have to do is query with a search term to
-find documents that contain your term.
+Text search, using the ``$text`` query operator, lets you search string
+type fields in your collection for words or phrases. This operator
+performs a logical ``OR`` on each term separated by a space in the search
+string. You can also specify additional options to the operator to
+handle case sensitivity, word stemming (e.g. plural forms, tense) and stop
+words for a supported language. This is particularly useful for
+unstructured text such as transcripts, essays, or web pages.
 
+The ``$text`` query operator requires that you specify the search field in
+a **text index** on your collection. See the examples below for sample
+code for creating a text index and using the ``$text`` query operator.
 
-.. admonition::
-
-   You can only create *one* text index per collection, so every text
-   search queries all fields used by the index for term matches.
 
 Examples
 --------
 
-The following examples use the ``movies`` collection in the
-``sample_mflix`` sample database and assume that you have created a text
-index on the ``title`` field.
+The following examples use the ``movies`` collection in the ``sample_mflix``
+database. In order to enable text searches on the ``title`` field, create
+the **text index** using the following command:
 
-.. note::
+.. code-block:: javascript
 
-  Text searches require a text index. To create a text index on the
-  ``title`` field of the ``movies`` collection of the ``sample_mflix``
-  database, use the following command on the sample_mflix database:
+   db.movies.createIndex({ title: "text" });
 
-  .. code-block:: javascript
+We use this text index for the examples, but you can create a compound
+text index that broadens your text queries to multiple fields as follows:
 
-     db.movies.createIndex({title: "text"})
+.. code-block:: javascript
+
+   db.movies.createIndex({ title: "text", fullplot: "text" });
+
+You can only create *one* text index per collection. Every text search
+queries all the fields specified in that index for matches.
+
+See the MongoDB server manual for more information on creating
+:manual:`text indexes </core/index-text/>`.
 
 Query for Words
 ~~~~~~~~~~~~~~~
@@ -80,10 +77,10 @@ This operation returns the following documents:
    { title: 'Star Trek II: The Wrath of Khan' }
 
 Success! The query found every document in the ``movies`` collection
-with a title including the word "trek". Unfortunately, it looks like the
-search included one unintended item: "Trek Nation," which is a movie
-about Star Trek and not a Star Trek movie. To solve this, we can query
-with a more specific **phrase**.
+with a title including the word "trek". Unfortunately, the search included
+one unintended item: "Trek Nation," which is a movie about Star Trek and not
+part of the Star Trek movie series. To solve this, we can query with a more
+specific **phrase**.
 
 Query By Phrase
 ~~~~~~~~~~~~~~~
@@ -119,18 +116,16 @@ matches the following documents:
 These results include all movies in the database that contain the phrase
 "star trek", which in this case results in only fictional Star Trek
 movies. Unfortunately, though, this query returned "Star Trek Into
-Darkness", a movie that nobody liked much. To solve this, we can omit
-that document with a **negation**.
+Darkness", a movie that was not part of the original series of movies. To
+resolve this issue, we can omit that document with a **negation**.
 
 Query with Negations
 ~~~~~~~~~~~~~~~~~~~~
 
-Because you probably don't want to be associated with such an unpopular
-movie, you can choose to exclude it from the results set using a negated
-term. To use a negated term, place a negative sign (``-``) in front of
-the term you'd like to omit from the result set. Any documents that
-contain this term will not show up in your results. Since this query
-includes two terms, separate the terms with spaces.
+To use a negated term, place a negative sign (``-``) in front of the term
+you would like to omit from the result set. The query operation omits any
+documents that contain this term from the search result. Since this query
+includes two distinct terms, separate them with a space.
 
 .. literalinclude:: /code-snippets/crud/startrek.js
    :language: javascript
