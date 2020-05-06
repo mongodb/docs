@@ -20,8 +20,8 @@
 
    * - ``errorState``
      - string
-     - Description of the |service| error when ``status`` is ``Failed``, 
-       Otherwise, |service| returns ``null``.
+     - Description of the |service| error when
+       ``"status" : "FAILED"``. Otherwise, |service| returns ``null``.
 
    * - ``id``
      - string

@@ -10,7 +10,8 @@
    * - ``containerId``
      - string
      - Required
-     - Unique identifier of the |service| Network Peering container for |gcp|.
+     - Unique identifier of the |service| Network Peering container for
+       |gcp|.
 
        You can create a |service| |vpc| container using the
        :doc:`Create Container </reference/api/vpc-create-container>`

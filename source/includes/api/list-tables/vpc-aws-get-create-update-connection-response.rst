@@ -27,14 +27,14 @@
 
    * - ``errorStateName``
      - string
-     - Error state, if any. 
+     - Error state, if any.
 
-       .. include:: /includes/vpc-peering-error.rst 
+       .. include:: /includes/vpc-peering-error.rst
 
    * - ``id``
      - string
-     - The CIDR block that |service| uses for the clusters in
-       your project.
+     - |cidr| block that |service| uses for the clusters in your
+       project.
 
    * - ``routeTableCidrBlock``
      - string
@@ -42,8 +42,7 @@
 
    * - ``statusName``
      - string
-     - 
-       .. include:: /includes/vpc-peering-status.rst
+     - .. include:: /includes/vpc-peering-status.rst
 
    * - ``vpcId``
      - string
