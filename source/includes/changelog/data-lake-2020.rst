@@ -1,26 +1,47 @@
+.. _data-lake-v20200505:
+
+05 May 2020 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Generates :doc:`Storage Configs </config/config-data-lake#generate-data-lake-configuration>`
+  when |service| creates a {+data-lake+}.
+- Adds support for :pipeline:`$out` to |s3|.
+- Updates support for `Apache Parquet <https://parquet.apache.org/>`__
+  `LIST <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#lists>`__
+  element.
+- Upgrades :manual:`wire protocol <l/reference/mongodb-wire-protocol>`
+  support to 4.2 from 3.6.
+- Adds support for verbosity in the explain plan.
+
+.. _data-lake-v20200426:
+
+26 April 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Fixes stability issues.
+
 .. _data-lake-v20200414:
 
 14 April 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Improves performance.
-- Supports the :manual:`$currentOp 
-  </reference/operator/aggregation/currentOp/>` stage so that you can
-  monitor query progress on long-running queries.
+- Supports the :manual:`$currentOp </reference/operator/aggregation/currentOp/>`
+  stage so that you can monitor query progress on long-running queries.
 - Updates the :ref:`isodate <datalake-path-attribute-types>` attribute
   to accept additional formats.
-- Refreshes the metadata catalog when you use :ref:`Storage
-  Configuration <config-datalake>` commands.
+- Refreshes the metadata catalog when you use
+  :ref:`Storage Configuration <config-datalake>` commands.
 
 
 .. _data-lake-v202020326:
 
-26 March 2020 Release 
+26 March 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Includes various performance and stability improvements.
-- Supports filename field references for :pipeline:`$out`. 
-- Supports :manual:`$toString </reference/operator/aggregation/toString/>` 
+- Supports filename field references for :pipeline:`$out`.
+- Supports :manual:`$toString </reference/operator/aggregation/toString/>`
   in :pipeline:`$out` to |s3|.
 
 .. _data-lake-v202020309:
@@ -28,19 +49,19 @@
 09 March 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- Supports optionally granting {+data-lake+} write access to S3 buckets,
-  enabling use of :pipeline:`$out` semantics to write directly to those
-  buckets.
+- Supports optionally granting {+data-lake+} write access to S3
+  buckets, enabling use of :pipeline:`$out` semantics to write directly
+  to those buckets.
 
-- Adds incremental :ref:`store <manage-stores-cli>`, :ref:`database
-  <dl-manage-db-cli>`, :ref:`collection <manage-collections-views-cli>`, and
-  :manual:`view </reference/method/db.createView/#db.createView>` 
+- Adds incremental :ref:`store <manage-stores-cli>`,
+  :ref:`database <dl-manage-db-cli>`,
+  :ref:`collection <manage-collections-views-cli>`, and
+  :manual:`view </reference/method/db.createView/#db.createView>`
   commands for storage configuration management.
 
 - Limits collections returned for wildcard collections to 1,000.
 
-- Updates the :ref:`storage configuration format
-  <datalake-configuration-format>`. 
+- Updates the :ref:`storage configuration format <datalake-configuration-format>`.
 
 .. _data-lake-v20200211:
 
@@ -48,8 +69,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Supports cross-database :pipeline:`$lookup` queries.
-- Supports lowercase and uppercase file extensions. 
-- Template segments now support dot-separated attribute names that 
+- Supports lowercase and uppercase file extensions.
+- Template segments now support dot-separated attribute names that
   correspond to nested fields.
 
 .. _data-lake-v20200121:
@@ -57,7 +78,7 @@
 21 January 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Allows the :ref:`defaultFormat <datalake-databases-reference>` 
+- Allows the :ref:`defaultFormat <datalake-databases-reference>`
   to be specified without a leading dot.
 - Supports filtering based on stripes for files in ORC format.
 - Allows query attributes to be extracted after the first stage.
