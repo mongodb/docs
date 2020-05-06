@@ -53,6 +53,7 @@ async function streamAPI(collection) {
 async function eventAPI(collection) {
   // start event cursor example
   const cursor = collection.find({});
+  // the "data" event is fired once per document
   cursor.on("data", data => console.log(data));
   // end event cursor example
 }
