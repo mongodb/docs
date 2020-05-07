@@ -13,6 +13,18 @@ Python 2 Compatibility
      - Python 2.6
      - Python 2.7, PyPy
 
+   * - 3.11 (beta)
+     -
+     -
+     -
+     - |checkmark|
+
+   * - 3.10
+     -
+     -
+     -
+     - |checkmark|
+
    * - 3.9
      -
      -
@@ -109,6 +121,26 @@ Python 3 Compatibility
      - Python 3.5
      - Python 3.6
      - Python 3.7
+
+   * - 3.11 (beta)
+     -
+     -
+     - |checkmark|
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - 3.10
+     -
+     -
+     - |checkmark|
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
    * - 3.9
      -
