@@ -2350,6 +2350,107 @@ Sharding Parameters
 
       - :ref:`mongos-hedged-reads`
 
+.. parameter:: mirrorReads
+
+   |mongod-only| 
+
+   *New in version 4.4*
+
+   *Type*: Document
+
+   *Default*: ``{ samplingRate: 0.01, maxTimeMS: 1000 }``
+
+   Specifies the settings for :ref:`mirrored reads <mirrored-reads>`
+   for the :binary:`~bin.mongod` instance. The settings only take
+   effect when the member is a primary.
+
+   The parameter :parameter:`mirrorReads` takes a JSON document with
+   the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 25 75
+
+      * - Field
+        - Description
+
+      * - ``samplingRate``
+
+        - The sampling rate used to mirror a subset of :ref:`operations
+          that support mirroring <mirrored-reads-supported-operations>`
+          to a subset of electable (i.e. :rsconf:`priority greater than
+          0 <members[n].priority>`) secondaries. That is, the primary
+          mirrors reads to each electable secondary at the specified
+          sampling rate.
+
+          Valid values are:
+
+          .. list-table::
+             :widths: 40 60
+
+             * - ``0.0``
+               - Turns off mirroring.
+
+             * - ``1.0``
+
+               - The primary mirrors all :ref:`operations that supports
+                 mirroring <mirrored-reads-supported-operations>` to
+                 each electable secondary.
+
+             * - Number between ``0.0`` and ``1.0`` (exclusive)
+
+               - The primary randomly samples each electable secondary
+                 at the specified rate to be sent mirrored reads.
+
+          For example, given a replica set with a primary and two
+          electable secondaries and a sampling rate of ``0.10``, the
+          primary mirrors reads to each electable secondary at the
+          sampling rate of 10 percent such that one read may be
+          mirrored to one secondary and not to the other or to both or
+          to neither. That is, if the primary receives ``100``
+          operations that can be mirrored, the sampling rate of
+          ``0.10`` may result in ``8`` reads being mirrored to one
+          secondary and ``13`` reads to the other or ``10`` to each,
+          etc.
+
+          The default value is ``0.01``.
+
+      * - ``maxTimeMS``
+
+        - The maximum time in milliseconds for the mirrored reads. The
+          default value is ``1000``. 
+
+          The ``maxTimeMS`` for the mirrored reads is separate from the
+          ``maxTimeMS`` of the original read being mirrored.
+
+   You can set :parameter:`mirrorReads` during startup in the
+   :setting:`configuration file <setParameter>` or with the
+   ``--setParameter`` option on the command line. If specifying from
+   the configuration file or on the command line, **enclose the**
+   ``mirrorReads`` **document in quotes**.
+
+   For example, the following sets the mirror reads sampling rate to
+   ``0.10`` from the command line:
+
+   .. code-block:: sh
+
+      mongod --setParameter mirrorReads='{ samplingRate: 0.10 }'
+
+   Or, to specify in a configuration file:
+
+   .. code-block:: yaml
+   
+      setParameter:
+         mirrorReads: '{samplingRate: 0.10}'
+
+   Or if using the :dbcommand:`setParameter` command in a
+   :binary:`~bin.mongo` shell connected to a running
+   :binary:`~bin.mongos`, do **not** enclose the document in quotes:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, mirrorReads: { samplingRate: 0.10 } } )
+
 .. parameter:: readHedgingMode
 
    .. versionadded:: 4.4

@@ -285,6 +285,77 @@ You cannot specify a tag set or ``maxStalenessSeconds`` to
 
 .. seealso:: :ref:`replica-set-initial-sync-source-selection`
 
+.. _4.4-mirrored-reads:
+
+Mirrored Reads
+~~~~~~~~~~~~~~
+
+.. container::
+
+   Starting in version 4.4, MongoDB provides :ref:`mirrored reads
+   <mirrored-reads>` to pre-warm electable secondary members' cache with
+   the most recently accessed data. With mirrored reads, the primary can
+   mirror a subset of :ref:`operations
+   <mirrored-reads-supported-operations>` that it receives and send them
+   to a subset of electable secondaries. Pre-warming the cache of a
+   secondary can help restore performance more quickly after an election.
+
+   .. note::
+
+      The primary's response to the client is not affected by the
+      mirror reads. The mirrored reads are "fire-and-forget" operations
+      by the primary; i.e., the primary does not await the response for
+      the mirrored reads.
+
+Mirrored Reads Parameter
+````````````````````````
+
+.. container::
+
+   MongoDB 4.4 adds the following mirrored reads parameter. You can set
+   the parameter at startup using the :setting:`setParameter`
+   configuration file setting or the :option:`--setParameter <mongod
+   --setParameter>` command line option or at runtime with
+   :dbcommand:`setParameter` command:
+
+   .. container::
+
+      .. list-table::
+         :widths: 20 80
+         :header-rows: 1
+
+         * - Parameter
+           - Description
+   
+         * - :parameter:`mirrorReads`
+
+           - Specifies the ``samplingRate`` and ``maxTimeMS`` settings for
+             mirrored reads.
+
+             ``{ samplingRate: <float>, maxTimeMS: <int> }``
+
+             A ``samplingRate`` of ``0`` turns off mirrored reads.
+
+Mirrored Reads Metrics
+``````````````````````
+
+.. container::
+
+   The command :dbcommand:`serverStatus` and its corresponding
+   :binary:`~bin.mongo` shell method :method:`db.serverStatus()` return
+   :serverstatus:`mirroredReads` if you specify the field's inclusion
+   in the operation:
+
+   .. code-block:: javascript
+
+      db.runCommand( { serverStatus: 1, mirroredReads: 1 } )
+
+   or
+
+   .. code-block:: javascript
+
+      db.serverStatus( { mirroredReads: 1 } )
+
 Sharded Clusters
 ----------------
 
@@ -1158,6 +1229,13 @@ output:
              | :serverstatus:`defaultRWConcern.updateOpTime`
              | :serverstatus:`defaultRWConcern.updateWallClockTime`
              | :serverstatus:`defaultRWConcern.localUpdateWallClockTime`
+
+   Mirrored Reads Metrics
+      .. list-table::
+   
+         * - | :serverstatus:`mirroredReads`
+             | :serverstatus:`mirroredReads.seen`
+             | :serverstatus:`mirroredReads.sent`
 
    Replication Metrics
       .. list-table::
