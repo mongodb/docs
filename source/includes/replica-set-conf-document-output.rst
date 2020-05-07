@@ -7,6 +7,7 @@ include only a subset of these settings:
    {
      _id: <string>,
      version: <int>,
+     term: <int>,
      protocolVersion: <number>,
      writeConcernMajorityJournalDefault: <boolean>,
      configsvr: <boolean>,
