@@ -121,15 +121,16 @@ following attributes:
      - ``admin``
 
    * - Roles
-     - | :authrole:`readWriteAnyDatabase`
-       | :authrole:`dbAdminAnyDatabase`
-       | :authrole:`clusterMonitor`
+     -
+       - :authrole:`readWriteAnyDatabase`
+       - :authrole:`dbAdminAnyDatabase`
+       - :authrole:`clusterMonitor`
 
-The |onprem| database user's name and roles cannot be modified. However,
-you can set the database user's password by :ref:`creating a
-secret <om-db-user-secret>` and can later update the password by editing
-that secret. If you don't create a secret, or if you delete a previously
-created secret, then the |k8s-op-short| automatically generates a password and stores it internally.
+You can't modify the |onprem| database user's name and roles. You
+:ref:`create a secret <om-db-user-secret>` to set the database user's
+password. You edit the secret to update the password. If you don't
+create a secret or delete an existing secret, the |k8s-op-short|
+generates a password and stores it.
 
 If you need to authenticate to the Application Database as a
 different user:
@@ -144,19 +145,52 @@ Offline Deployments
 +++++++++++++++++++
 
 The |k8s-op-short| bundles MongoDB Enterprise version {+bndl-version+}
-with the :opsmgr:`Application Database
-</core/system-overview/#application-database>` image to enable offline
-deployments of |onprem| resources.
+with the :opsmgr:`Application Database </core/system-overview/#application-database>`
+image to enable offline deployments of |onprem| resources.
 
 To deploy |onprem| inside |k8s| without an Internet connection, omit
 the :opsmgrkube:`spec.applicationDatabase.version` setting or leave the
 value empty.
 
-When you upgrade the |k8s-op-short|, the Application
-Database performs a rolling upgrade for new patch releases of MongoDB,
-such as from ``4.2.2-ent`` to ``4.2.3-ent``. However, the Application
-Database does not automatically upgrade between major versions,
-such as from ``4.2.2-ent`` to ``4.4.0-ent``.
+When you upgrade the |k8s-op-short|, the Application Database performs
+a rolling upgrade for new patch releases of MongoDB, such as from
+``4.2.2-ent`` to ``4.2.3-ent``. However, the Application Database does
+not automatically upgrade between major versions, such as from
+``4.2.2-ent`` to ``4.4.0-ent``.
+
+.. _om-rsrc-config:
+
+Streamlined Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using |k8s| speeds deployment of your |onprem| instance. After
+deploying |onprem|, you lose this benefit. You need to set up the
+|onprem| instance through its
+:opsmgr:`configuration wizard </reference/config/ui-settings>`.
+
+If you set some essential settings, |onprem| can bypass the wizard.
+
+In the :opsmgrkube:`spec.configuration` block of your |onprem| object
+specification, you need to:
+
+- Add :ref:`mms.ignoreInitialUiSetup <bypass-ui-config>` and set to
+  ``true``.
+
+- Add the :ref:`minimum configuration settings <bypass-ui-config>` to
+  allow the |onprem| instance to start without errors.
+
+.. example::
+
+   To disable the |onprem| configuration wizard, configure the
+   following settings in your :opsmgrkube:`spec.configuration` block:
+
+   .. literalinclude:: /includes/code-examples/yaml-files/om-spec-configuration-block.yaml
+      :language: yaml
+      :copyable: false
+      :linenos:
+
+   Replace the example values with the values you want your |onprem| to
+   use.
 
 .. _om-rsrc-backup:
 
@@ -172,60 +206,62 @@ enable the Backup Daemon and configure the head database.
 
 .. important::
 
-   To configure Backup, you must create MongoDB database resources
-   for the :term:`oplog store <oplog store database>` and for one of the 
-   following: 
-   
+   To configure Backup, you must create MongoDB database resources for
+   the :term:`oplog store <oplog store database>` and for one of the
+   following:
+
    - |s3| :term:`snapshot store <s3 snapshot store>`.
    - :term:`blockstore <Backup Blockstore Database>`.
 
-   If you deploy both an |s3| :term:`snapshot store <s3 snapshot store>`
-   and a :term:`blockstore <Backup Blockstore Database>`, |onprem| 
-   randomly choses one to use for Backup.
+   If you deploy both an |s3|
+   :term:`snapshot store <s3 snapshot store>` and a
+   :term:`blockstore <Backup Blockstore Database>`, |onprem| chooses
+   one to use for Backup at random.
 
-   The |onprem| resource remains in a ``Pending`` state until these 
-   Backup resources are configured.
+   The |onprem| resource remains in a ``Pending`` state until you configure these Backup resources.
 
 Oplog Store
 +++++++++++
-You must deploy a three-member replica set to store your :term:`oplog
-slices <Oplog Slice>`.
+
+You must deploy a three-member replica set to store your
+:term:`oplog slices <Oplog Slice>`.
 
 .. include:: /includes/admonitions/fact-backing-db-auth.rst
 
 Blockstore
 ++++++++++
 
-To configure a :term:`blockstore <Backup Blockstore Database>`, you 
+To configure a :term:`blockstore <Backup Blockstore Database>`, you
 must deploy a replica set to store snapshots.
 
 S3 Snapshot Store
 +++++++++++++++++
-To configure an |s3| :opsmgr:`snapshot store
-</reference/glossary/#term-s3-snapshot-store>`, you must create an |aws| 
-|s3| or |s3|-compatible bucket to store your database
-Backup :opsmgr:`snapshots </reference/glossary/#term-snapshot>`.
 
-The default configuration stores snapshot metadata in the Application 
-Database. You can also deploy a replica set to store snapshot metadata, 
-then configure it using the 
-:opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.name` and 
-:opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.user` settings in 
+To configure an |s3| :term:`snapshot store <S3 Snapshot Store>`, you
+must create an |aws| |s3| or |s3|-compatible bucket to store your
+database Backup :term:`snapshots <snapshot>`.
+
+The default configuration stores snapshot metadata in the Application
+Database. You can also deploy a replica set to store snapshot metadata,
+then configure it using the
+:opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.name` and
+:opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.user` settings in
 the |onprem| resource definition.
 
-You can update any additional |s3| :opsmgr:`configuration settings
-</tutorial/manage-s3-blockstore-storage/#provide-the-s3-blockstore-details>`
-that are not managed by the |k8s-op-short| through the |application|.
+You can update any additional |s3|
+:opsmgr:`configuration settings </tutorial/manage-s3-blockstore-storage/#provide-the-s3-blockstore-details>`
+that |k8s-op-short| doesn't manage through the |application|.
 
 Disable Backup
 ++++++++++++++
 
 To disable backup after you enabled it:
 
-1. Set the |onprem| |k8s| |k8s-obj| :opsmgrkube:`spec.backup.enabled` 
+1. Set the |onprem| |k8s| |k8s-obj| :opsmgrkube:`spec.backup.enabled`
    setting to ``false``.
 
-#. :opsmgr:`Disable backups </tutorial/disable-backup>` in the |application|. 
+#. :opsmgr:`Disable backups </tutorial/disable-backup>` in the
+   |application|.
 
 #. Delete the :ref:`backup-daemon` |k8s-statefulset|:
 
@@ -235,14 +271,13 @@ To disable backup after you enabled it:
 
 .. important::
 
-   The |k8s-pvc| and |k8s-pv| for the Backup Daemon's 
-   :term:`head database` are not deleted when you delete the 
-   :ref:`backup-daemon` |k8s-statefulset|. You can retrieve stored data 
-   before you delete these |k8s| resources.
+   The |k8s-pvc| and |k8s-pv| for the Backup Daemon's :term:`head
+   database` are not deleted when you delete the :ref:`backup-daemon`
+   |k8s-statefulset|. You can retrieve stored data before you delete
+   these |k8s| resources.
 
-   To learn about reclaiming |k8s-pvs|, see the 
-   :k8sdocs:`Kubernetes documentation 
-   </concepts/storage/persistent-volumes/#reclaiming>`.
+   To learn about reclaiming |k8s-pvs|, see the
+   :k8sdocs:`Kubernetes documentation </concepts/storage/persistent-volumes/#reclaiming>`.
 
 Ops Manager Application Access
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -280,9 +315,8 @@ MongoDB database resources deployed:
 - To the same |k8s| cluster as |onprem|.
 - Outside of |k8s| clusters.
 
-If |onprem| will manage MongoDB database resources deployed to
-different |k8s| clusters than |onprem| or outside of |k8s| clusters,
-you must:
+If |onprem| manages MongoDB database resources deployed to different
+|k8s| clusters than |onprem| or outside of |k8s| clusters, you must:
 
 1. Add the ``mms.centralUrl`` setting to ``spec.configuration`` in the
    |onprem| resource specification.
@@ -337,8 +371,7 @@ Prerequisites
    When you deploy the |onprem| resource, |onprem| creates a user with
    these credentials and grants it the :authrole:`Global Owner` role.
    Use these credentials to log in to |onprem| for the first time. Once
-   |onprem| is deployed, you should change the password or remove this
-   secret.
+   you deploy |onprem|, change the password or remove this secret.
 
    .. code-block:: sh
 
@@ -376,16 +409,15 @@ Prerequisites
       name in the |onprem| resource definition.
 
    If you don't create a secret, then the |k8s-op-short| automatically
-   generates a password and stores it internally. For more information,
+   generates a password and stores it internally. To learn more,
    see :ref:`app-db-auth`.
 
 #. (*Optional*). To configure Backup to an |s3| snapshot store, create
    a |k8s-secret| in the same namespace as the |onprem| resource.
 
-   This secret stores your |s3| credentials so that the
-   |k8s-op-short| can connect |onprem| to your |aws| |s3| or
-   |s3|-compatible bucket. The secret must contain the following
-   key-value pairs:
+   This secret stores your |s3| credentials so that the |k8s-op-short|
+   can connect |onprem| to your |aws| |s3| or |s3|-compatible bucket.
+   The secret must contain the following key-value pairs:
 
    .. list-table::
       :widths: 30 70
@@ -394,11 +426,11 @@ Prerequisites
         - Value
 
       * - ``accessKey``
-        - The access key ID of the user who owns the |s3| or
+        - Unique identifer of the |aws| user who owns the |s3| or
           |s3|-compatible bucket.
 
       * - ``secretKey``
-        - The secret key of the user who owns the |s3| or
+        - Secret key of the |aws| user who owns the |s3| or
           |s3|-compatible bucket.
 
    To create the secret, invoke the following command:
@@ -409,5 +441,5 @@ Prerequisites
         --from-literal=accessKey="<AKIAIOSFODNN7EXAMPLE>" \
         --from-literal=secretKey="<wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY>"
 
-   To learn more about managing |s3| blockstore snapshot storage, see the :opsmgr:`Prerequisites
-   </tutorial/manage-s3-blockstore-storage/#prerequisites>`.
+   To learn more about managing |s3| snapshot storage, see the
+   :opsmgr:`Prerequisites </tutorial/manage-s3-blockstore-storage/#prerequisites>`.
