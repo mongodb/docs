@@ -106,6 +106,7 @@ rst_epilog = '\n'.join([
     '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
     '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
+    '.. |gke| replace:: :abbr:`GKE (Google Kubernetes Engine)`',
     '.. |global-write-clusters| replace:: Global Clusters',
     '.. |global-write-cluster| replace:: Global Cluster',
     '.. |global-write| replace:: Global Writes',
@@ -226,7 +227,8 @@ extlinks = {
     'osil' : ('https://opensource.org/licenses/%s', ''),
     'cc' : ('http://creativecommons.org/licenses%s', ''),
     'tldrl' : ('https://www.tldrlegal.com/l/%s', ''),
-    'aws': ('http://docs.aws.amazon.com%s', '')
+    'aws': ('http://docs.aws.amazon.com%s', ''),
+    'gcp': ('https://cloud.google.com%s', '')
 }
 
 intersphinx_mapping = {}
