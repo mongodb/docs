@@ -9,5 +9,140 @@ Run Aggregation Pipelines
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
+
+You can run :manual:`aggregation pipelines </aggregation>` on your
+collections in |vsce|. Aggregation pipelines consist of
+:manual:`stages </reference/operator/aggregation-pipeline/>` that
+process your data and return computed results.
+
+Common uses for aggregation include:
+
+- Grouping data by a given expression.
+
+- Calculating results based on multiple fields and storing those results
+  in a new field.
+
+- Filtering data to return a subset that matches a given criteria.
+
+- Sorting data.
+
+When you run an aggregation, |vsce| conveniently outputs the
+results directly within Visual Studio Code.
+
+Open a Playground to Run Aggregation Pipelines
+----------------------------------------------
+
+You can run aggregation pipelines in a MongoDB Playground. MongoDB
+Playgrounds are JavaScript environments where you can prototype queries,
+aggregations, and MongoDB commands with helpful syntax highlighting.
+
+To open a new MongoDB Playground:
+
+.. include:: /includes/steps/open-new-playground.rst
+
+Create and Run an Aggregation Pipeline
+--------------------------------------
+
+To create an aggregation pipeline, use the following syntax in your
+Playground:
+
+.. code-block::
+
+   db.<collection>.aggregate([
+     {
+       <$stage1>
+     },
+     {
+       <$stage2>
+     }
+     ...
+   ])
+
+To run your Playground, press the :guilabel:`Play Button` at the top
+right of the Playground View. |vsce| outputs the results of your
+playground to the :guilabel:`Output` view in Visual Studio Code.
+
+.. _agg-pipeline-example:
+
+Example
+~~~~~~~
+
+To use this example, **start with a blank MongoDB Playground** by
+clearing the template Playground if it is loaded.
+
+Consider the following playground which inserts sample data into a
+collection and aggregates that data:
+
+.. code-block:: javascript
+
+   use("test");
+
+   db.sales.insertMany([
+     { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : new Date("2014-03-01T08:00:00Z") },
+     { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : new Date("2014-03-01T09:00:00Z") },
+     { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" :  10, "date" : new Date("2014-03-15T09:00:00Z") },
+     { "_id" : 4, "item" : "xyz", "price" : 5, "quantity" :  20, "date" : new Date("2014-04-04T11:21:39.736Z") },
+     { "_id" : 5, "item" : "abc", "price" : 10, "quantity" : 10, "date" : new Date("2014-04-04T21:23:13.331Z") },
+     { "_id" : 6, "item" : "def", "price" : 7.5, "quantity": 5, "date" : new Date("2015-06-04T05:08:13Z") },
+     { "_id" : 7, "item" : "def", "price" : 7.5, "quantity": 10, "date" : new Date("2015-09-10T08:43:00Z") },
+     { "_id" : 8, "item" : "abc", "price" : 10, "quantity" : 5, "date" : new Date("2016-02-06T20:20:13Z") }
+   ])
+
+   db.sales.aggregate([
+     { $match: { date: { $gte: new Date("2014-01-01"), $lt: new Date("2015-01-01") } } },
+     { $group: { _id: "$item", totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } } } }
+   ])
+
+This pipeline:
+
+1. Switches to the ``test`` database.
+
+#. Inserts eight documents into the ``test.sales`` collection.
+
+#. Performs an aggregation in two stages:
+
+   |
+
+   First Stage
+     The :pipeline:`$match` stage filters the data such that only sales
+     from the year 2014 are passed to the next stage.
+
+   Second Stage
+     The :pipeline:`$group` stage groups the data by item. The stage
+     adds a new field to the output called ``totalSaleAmount``, which
+     is the culmination of the item's ``price`` and ``quantity``.
+
+When you press the :guilabel:`Play Button`, this operation outputs the
+following documents to the :guilabel:`Output` view in Visual Studio
+Code:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {
+       _id: 'abc',
+       totalSaleAmount: 120
+     },
+     {
+       _id: 'jkl',
+       totalSaleAmount: 20
+     },
+     {
+       _id: 'xyz',
+       totalSaleAmount: 150
+     }
+   ]
+
+.. seealso::
+
+   - To learn more about the available aggregation stages, see
+     :manual:`Aggregation Pipeline Stages
+     </reference/operator/aggregation-pipeline/>`.
+
+   - To learn more about the available aggregation operators you
+     can use within stages, see
+     :manual:`Aggregation Pipeline Operators
+     </reference/operator/aggregation/>`.
