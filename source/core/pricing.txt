@@ -1,6 +1,6 @@
-=======
-Billing
-=======
+=========================
+Process Payment for |mms|
+=========================
 
 .. default-domain:: mongodb
 
@@ -10,81 +10,80 @@ Billing
    :depth: 1
    :class: twocols
 
-Overview
---------
-
-Billing is at the organization level. Each organization has its own
-account, plan, and billing method. All projects in an organization
-share the same billing settings.
+|mms| bills customers at the organization level. Each organization has
+its own account, plan, and billing method. All projects in an
+organization share the same billing settings.
 
 .. _pricing-information:
 
-Pricing Information for |mms| Features
---------------------------------------
+Pricing and Billing
+-------------------
 
-|mms| pricing is described at
-`https://www.mongodb.com/cloud/cloud-manager <https://www.mongodb.com/cloud/cloud-manager?jmp=docs>`_.
+Visit the
+:website:`MongoDB Cloud Manager web site </cloud/cloud-manager>`
+to learn current pricing.
 
-Monthly Billing
----------------
+|mms| charges your credit card once each month.
 
-Your credit card is charged monthly.
+.. list-table::
+   :stub-columns: 1
+   :widths: 20 80
 
-|mms| Standard
-~~~~~~~~~~~~~~
+   * - Level
+     - Monthly Charge Basis
 
-For |mms| Standard, |mms| monthly charges are based on :ref:`Server
-Hours <server-pricing>` and :ref:`backup-pricing`.
+   * - |mms| Standard
+     - :ref:`Server Hours <server-pricing>` and :ref:`backup-pricing`
 
-|mms| Premium
-~~~~~~~~~~~~~~
+   * - |mms| Premium
+     - :ref:`backup-pricing`
 
-For |mms| Premium, |mms| monthly charges are based on
-:ref:`backup-pricing`.
+.. note::
+
+   |mms| charges self-serve customers mid-month if they exceeded their
+   :alert:`Monthly pending invoice <PENDING_INVOICE_OVER_THRESHOLD>`
+   threshold. After successful payment, this threshold increases.
 
 .. _server-pricing:
 
-Server Hours (|mms| Standard)
------------------------------
+Server Pricing
+~~~~~~~~~~~~~~
 
-The following charges are for |mms| Standard only.
+These charges apply to |mms| Standard.
 
-The monthly charges include a charge for each billable server. A server
-is billable if it is running a :program:`mongod` process and is a data
-bearing node. Servers that act solely as config servers, arbiters and
-:program:`mongos` routers are not billable.
+The monthly charges include a charge per billable host. |mms| charges
+for a host if it runs a |mongod| process and bears data. |mms| doesn't
+charges for config servers, arbiters and |mongos| routers.
 
-The monthly rate is as specified on
-`https://www.mongodb.com/cloud/cloud-manager
-<https://www.mongodb.com/cloud/cloud-manager?jmp=docs>`_. The monthly
-rate for each server is annualized and then divided by ``365 * 24`` to
-calculate an an Hourly Server Rate for each server. We sample your
-account once per hour to determine the number of servers running.
+|mms| annualizes the monthly rate per host then divides by ``365 *
+24`` to calculate an **Hourly Server Rate** per host. |mms| samples
+your account once every hour to determine the count of running hosts.
 
 .. _backup-pricing:
 
-Backup Costs
-------------
+Backup Pricing
+~~~~~~~~~~~~~~
 
-Backup costs are affected by both the size of your backed-up snapshots
-and on your settings for snapshot frequency and retention.
+The following settings affect backup pricing:
+
+- Snapshots size
+- Snapshot frequency and retention
 
 Size
-~~~~
+````
 
 Monthly backup costs are based on the size per-gigabyte of your most
 recent snapshot.
 
 The cost per GB per month for backup pricing is as specified on
-`https://www.mongodb.com/cloud/cloud-manager
-<https://www.mongodb.com/cloud/cloud-manager?jmp=docs>`_. The monthly
+:website:`MongoDB Cloud Manager web site </cloud/cloud-manager?jmp=docs>`. The monthly
 rate is annualized and then divided by 365 to arrive at a Daily Backup
 Rate per GB. The first 1 GB per replica set is free.
 
 The size of the snapshot is roughly equivalent to the size of all
 documents and all indexes for all the databases backed up. To retrieve
 the size in gigabyte of the documents and indexes for a given database,
-you can issue the :manual:`db.stats() </reference/method/db.stats>`
+you can issue the :method:`db.stats() <db.stats>`
 method and sum the ``dataSize`` and ``indexSize`` fields.
 
 .. code-block:: javascript
@@ -92,24 +91,24 @@ method and sum the ``dataSize`` and ``indexSize`` fields.
    db.stats(1024*1024*1024).dataSize + db.stats(1024*1024*1024).indexSize
 
 Snapshot Frequency and Retention
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````
 
-The rate is based on your having 28 snapshots at steady state: 
+|mms| bases this rate on taking 28 snapshots at steady state:
 
-- The six-hour snapshots are kept for two days; 
+- Six-hour snapshots are kept for two days
 
-- The daily snapshots for one week,
+- Daily snapshots for one week
 
-- The weekly snapshots for one month,
+- Weekly snapshots for one month
 
-- The monthly for one year. 
+- Monthly for one year
 
-Adding that up, you get 8 + 5 + 3 + 12 = 28 snapshots. We adjust the
-backup rate each day based on the following formula:
+This creates a total 31 snapshots (``8 + 7 + 4 + 12``). |mms| adjusts
+the backup rate each day based on the following formula:
 
-.. code-block:: none
+.. code-block:: text
 
-   backupRatePerMonth = $1.25 + snapshotAtSteadyState/28 * $1.25
+   backupRatePerMonth = $1.25 + ((snapshotAtSteadyState / 31) * $1.25)
 
 .. seealso:: :ref:`snapshot-frequency-and-retention`.
 
@@ -123,206 +122,101 @@ Lowering snapshot frequency or retaining fewer snapshots lowers the
 cost per gigabyte. Retaining an increased number of snapshots or
 increasing the snapshot retention increases the cost per gigabyte.
 
-To change a backed-up deployment's schedule, click :guilabel:`Backup`, then
-the ellipsis icon for the backup, then :guilabel:`Edit Snapshot Schedule`.
-Administrators can change frequency and retention through the
-:doc:`snapshotSchedule resource </reference/api/snapshot-schedule>` in the
-API. Lowering snapshot frequency increases how long it takes to build a
-point-in-time restore.
+To change a backed-up deployment's schedule, see
+:ref:`edit-snapshot-schedule`
 
+Administrators can change
+:ref:`snapshot frequency and retention <snapshot-frequency-and-retention>`
+through the
+:doc:`snapshotSchedule resource </reference/api/snapshot-schedule>` in
+the |api|. Lowering snapshot frequency increases how long it takes to
+build a point-in-time restore.
 
 Excluding Databases or Collections
 ``````````````````````````````````
-
 To reduce the size of your snapshots, you can exclude non-mission
-critical databases and collections from your backup. From the Backup
-Dashboard, click on the gear icon, select :guilabel:`Edit Excluded
-Namespaces` and enter the namespaces that you wish to exclude.
+critical databases and collections from your backup.
 
+To learn how to exclude databases or collections, see
+:ref:`edit-namespaces-filter`.
 
 View Your Plan Type
 -------------------
 
-|mms| displays your plan at the top left the |mms| page. For more
-information on each plan, see
-`https://www.mongodb.com/cloud/cloud-manager
-<https://www.mongodb.com/cloud/cloud-manager?jmp=docs>`_. For
-monitoring metrics for each plan, see
-:doc:`/reference/monitoring-metrics-per-plan`.
+|mms| displays your plan at the top left the |mms| page.
 
-.. _view-your-costs:
+.. seealso::
 
-View Your Current Costs
------------------------
+   - Details on each plan, see
+     :website:`MongoDB Cloud Manager web site </cloud/cloud-manager?jmp=docs>`.
 
-#. Select your organization in the :guilabel:`Context` dropdown.
+   - Monitoring metrics for each plan, see
+     :doc:`/reference/monitoring-metrics-per-plan`.
 
-#. Select :guilabel:`Billing` from the left navigation bar to open 
-   the billing :guilabel:`Overview` tab.
 
-#. Click :guilabel:`View Current Invoice` to view running invoice 
-   total and a breakdown of incurred charges by project and by service. 
-   The running total does not include applied credits because |service| 
-   credits are applied to the invoice only when it closes at the 
-   end of the billing period.
+.. _cm-edit-billing-info:
 
-.. _edit-billing-info:
-
-Edit Payment Method and Billing Address
----------------------------------------
-
-.. COMMENT To DOCS:: this is the same things as the content in reopen a locked project account.
-
-To edit billing information, including billing address, card number and VAT
-number (if applicable), do the following:
-
-#. Select your organization in the :guilabel:`Context` dropdown.
-
-#. Select :guilabel:`Billing` from the left navigation bar to open 
-   the billing :guilabel:`Overview` tab.
-
-#. In the :guilabel:`Payment Method` section, click :guilabel:`Edit`.
-
-#. Enter/edit the information as needed and click :guilabel:`Submit`.
-
-   Changing the billing address does not affect the separate
-   :ref:`Invoice address <company-address>`, if set. If you set an
-   Invoice Address, you have the option to use this address for the
-   Billing Address.
-
-.. note::
-
-   |mms| charges `VAT <https://ec.europa.eu/taxation_customs/business/vat/what-is-vat_en>`_ 
-   if either:
-
-   - Your billing address is in Ireland, or
-   
-   - Your billing address is in another EU country and you have *not*
-     provided a valid :abbr:`VAT (Value Added Tax)` ID.
-
-.. _invoice-address:
-
-Edit Invoice Address
+Your Billing Profile
 --------------------
 
-You can set an optional invoice address that is different from your
-:ref:`billing address <edit-billing-info>`.
+.. _cm-billing-profile:
 
-#. Select your organization in the :guilabel:`Context` dropdown.
+View and Edit Your Billing Profile
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Select :guilabel:`Billing` from the left navigation bar to open 
-   the billing :guilabel:`Overview` tab.
+To view and edit your billing profile:
 
-#. In the :guilabel:`Billing Profile` section, click :guilabel:`Edit`.
+.. include:: /includes/steps/billing-profile-edit.rst
 
-#. Enter the Invoice address and click :guilabel:`Submit`.
+.. _cm-billing-methods:
 
-.. _company-address:
+Payment Method
+--------------
 
-Edit Billing Email Address
---------------------------
+To pay for your |mms| usage, you can pay with an
+:ref:`accepted payment method <payment-alternatives>`.
 
-To edit the billing email address:
+.. _payment-method:
+.. _cm-payment-method:
+.. _payment-alternatives:
 
-#. Select your organization in the :guilabel:`Context` dropdown.
+Set Payment Method
+~~~~~~~~~~~~~~~~~~
 
-#. Select :guilabel:`Billing` from the left navigation bar to open 
-   the billing :guilabel:`Overview` tab.
+MongoDB accepts the following payment methods through the |mms|
+console:
 
-#. In the :guilabel:`Billing Profile` section, click :guilabel:`Edit`.
+- Credit card
+- `PayPal <https://www.paypal.com/us/home>`__
 
-#. Enter the :guilabel:`Billing Email Address` and click :guilabel:`Submit`.
+To set your payment method:
 
-View or Download Your Past Charges
-----------------------------------
+.. include:: /includes/steps/billing-payments-edit.rst
 
-#. Select your organization in the :guilabel:`Context` dropdown.
+.. admonition:: Contact MongoDB for other payment methods
+   :class: note
 
-#. Select :guilabel:`Billing` from the left navigation bar.
+   Through :website:`MongoDB Sales </contact/atlas>`, you can pay using
+   a:
 
-#. Click the :guilabel:`Invoices` tab.
-
-   - To view charges and payments for a specific invoice, click the link 
-     for the invoice shown in the :guilabel:`Invoice Date` column.
-
-   - To download charges and payments for a specific invoice, click one 
-     of the invoice format buttons in the :guilabel:`Download As` column.
+   - Currency other than |usd|.
+   - Method other than a credit card or PayPal.
 
 .. _retry-failed-payment-cm:
 
 Retry a Failed Payment
 ----------------------
 
-If you receive notification of a failed payment, first check that your
-credit card is up-to-date. To do so, select :guilabel:`Billing` from 
-the left navigation bar for your organization and then in the 
-:guilabel:`Overview` tab, review the information in the 
-:guilabel:`Payment Method` section. For more information on modifying 
-your payment method, see :ref:`edit-billing-info`.
+If you receive notification of a failed payment,
+:ref:`verify <cm-billing-profile>` that |mms| has your current credit
+card information and retry the payment:
 
-Once you verify your credit card, retry the payment:
+.. include:: /includes/steps/billing-payments-retry.rst
 
-1. Select :guilabel:`Billing` from the left navigation bar, then 
-   click the :guilabel:`Invoices` tab.
+.. class:: hidden
 
-2. On the line for the failed payment, click :guilabel:`Retry`.
+   .. toctree::
+      :titlesonly:
 
-.. _sca-changes-cm:
-
-Strong Customer Authentication (SCA) Changes
---------------------------------------------
-
-|sca| is a new European regulatory requirement to reduce fraud and make
-online payments more secure. All payment service providers are required
-to build additional authentication into their checkout flow once |sca|
-goes into effect. Customers in European Economic Area (EEA) may be
-required to authenticate their credit cards depending on the card's
-issuer, starting September 14, 2019. If your credit card issuer
-requires authentication, review the following
-:ref:`sca-auth-process-cm` to continue paying for |cloud| seamlessly
-with a credit card.
-
-Marketing emails will be sent out to affected customers announcing the
-policy change and the steps necessary to comply with |sca|.
-
-.. _sca-auth-process-cm:
-
-Authentication Process
-~~~~~~~~~~~~~~~~~~~~~~
-
-The following sections cover different ways to authenticate your credit
-card to comply with Strong Customer Authentication.
-
-Edit Payment Method
-```````````````````
-
-Existing users can edit their :guilabel:`Payment Method` to
-authenticate a new credit card or reauthenticate an existing credit
-card to comply with |sca|. To learn more, see :ref:`edit-billing-info`.
-
-
-Failed Payment Email
-````````````````````
-
-|cloud-short| sends an email after a payment failure with a link to
-your invoices. Existing users can authenticate a credit card when
-retrying a failed payment. To retry the failed payment from the failed
-payment email:
-
-1. Follow the link in the failed payment email.
-
-#. Click the :guilabel:`Invoice Date` of the failed invoice.
-
-#. Under the :guilabel:`Payments` section, click :guilabel:`Retry` next
-   to the failed payment.
-
-Retry Failed Payment
-````````````````````
-
-Existing users can authenticate a credit card when retrying a failed
-payment. To learn more, see :ref:`retry-failed-payment-cm`.
-
-Contact Support
-```````````````
-
-Contact :doc:`support<support>` for further assistance.
+      /billing/invoices
+      /billing/international-billing
