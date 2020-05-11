@@ -301,6 +301,26 @@ otherwise specified:
        functionality. This applies only to :term:`TTL` indexes.
        
        
+   * - :ref:`hidden <method-createIndexes-hidden>`
+
+     - boolean
+
+     - .. _method-createIndexes-hidden:
+
+       Optional. A flag that determines whether the index is
+       :doc:`hidden </core/index-hidden>` from the query planner. A
+       hidden index is not evaluated as part of the query plan
+       selection.
+
+       Default is ``false``.
+
+       To use the ``hidden`` option, you must have
+       :ref:`featureCompatibilityVersion <view-fcv>` set to ``4.4`` or
+       greater. However, once hidden, the index remains hidden even
+       with :ref:`featureCompatibilityVersion <view-fcv>` set to
+       ``4.2`` on MongoDB 4.4 binaries.
+
+       .. versionadded:: 4.4
 
    * - ``storageEngine``
 
@@ -611,23 +631,68 @@ index or indexes.
 Index Options
 ~~~~~~~~~~~~~
 
-Non-Collation Options
-``````````````````````
+Non-Collation and Non-Hidden Options
+````````````````````````````````````
 
 With the exception of the :ref:`collation option
-<createIndexes-collation-option>`, if you create an index with one set
-of index options and then try to recreate the same index but with
+<method-createIndexes-collation-option>`, if you create an index with one
+set of index options and then try to recreate the same index but with
 different index options, MongoDB will not change the options nor
 recreate the index.
 
-To change these index options, drop the existing index with
+The :ref:`hidden <createIndexes-hidden-option>` option can be changed
+without dropping and recreating the index. See
+:ref:`method-createIndexes-hidden-option`.
+
+To change the other index options, drop the existing index with
 :method:`db.collection.dropIndex()` before running
 :method:`db.collection.createIndexes()` with the new options.
+
+.. _method-createIndexes-collation-option:
 
 Collation Option
 ````````````````
 
 .. include:: /includes/extracts/collation-index-options.rst
+
+.. _method-createIndexes-hidden-option:
+
+Hidden Option
+``````````````
+
+.. versionadded:: 4.4
+
+.. note::
+
+   To hide an index, you must have :ref:`featureCompatibilityVersion
+   <view-fcv>` set to ``4.4`` or greater. However, once hidden, the
+   index remains hidden even with :ref:`featureCompatibilityVersion
+   <view-fcv>` set to ``4.2`` on MongoDB 4.4 binaries.
+
+To hide or unhide existing indexes, you can use the following
+:binary:`~bin.mongo` shell methods:
+
+- :method:`db.collection.hideIndex()`
+
+- :method:`db.collection.unhideIndex()`
+
+For example,
+
+- To change the ``hidden`` option for an index to ``true``, use the
+  :method:`db.collection.hideIndex()` method:
+
+  .. code-block:: javascript
+
+     db.restaurants.hideIndex( { borough: 1, ratings: 1 } );
+
+- To change the ``hidden`` option for an index to ``false``, use the
+  :method:`db.collection.unhideIndex()` method:
+
+  .. code-block:: javascript
+
+     db.restaurants.unhideIndex( { borough: 1, city: 1 } );
+
+.. seealso:: :doc:`/core/index-hidden`
 
 Index Key Length Limit
 ~~~~~~~~~~~~~~~~~~~~~~

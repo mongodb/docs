@@ -56,36 +56,91 @@ Definition
 Options
 -------
 
-TTL Collections
-~~~~~~~~~~~~~~~
+Index Options
+~~~~~~~~~~~~~
 
 .. index:: expireAfterSeconds
 .. collflag:: index
 
-   The :collflag:`index` option changes the expiration time of a
-   :doc:`TTL Collection </tutorial/expire-data>`.
+   The :collflag:`index` option can change the following properties of
+   an **existing** index:
 
-   Specify the key or index name, and new expiration time with a document of the form:
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+      
+      * - Index Property
+        - Description
+        
+      * - ``expireAfterSeconds``
+      
+        - The number of seconds that determines the expiration
+          threshold of a :doc:`TTL Collection </tutorial/expire-data>`.
+
+          If successful, the command returns a document that contains
+          both the old and new values for the changed property:
+          ``expireAfterSeconds_old`` and ``expireAfterSeconds_new``.
+
+          You can only modify an existing TTL index; i.e. an index with
+          an existing ``expireAfterSeconds`` property. If the index
+          does not have an existing ``expireAfterSeconds`` property,
+          the operation errors with ``no expireAfterSeconds field to
+          update``.
+
+          Modifying the index option ``expireAfterSeconds`` resets the
+          :pipeline:`$indexStats` for the index.
+          
+      * - ``hidden``
+      
+        - A boolen that determines whether the index is :doc:`hidden
+          </core/index-hidden>` or not from the query planner.
+
+          If the ``hidden`` value changes, the command returns a
+          document that contains both the old and new values for the
+          changed property: ``hidden_old`` and ``hidden_new``.
+          
+          However, if the ``hidden`` value has not changed (i.e. hiding
+          an already hidden index or unhiding an already unhidden
+          index), the command omits the ``hidden_old`` and
+          ``hidden_new`` fields from the output.
+
+          To hide an index, you must have
+          :ref:`featureCompatibilityVersion <view-fcv>` set to ``4.4``
+          or greater.
+
+          Modifying the index option ``hidden`` resets the
+          :pipeline:`$indexStats` for the index if the value changes.
+
+          .. seealso:: 
+
+             :method:`db.collection.hideIndex()` and :method:`db.collection.unhideIndex()`.
+
+          .. versionadded:: 4.4
+
+   To change index options, specify either the key pattern or name of
+   the existing index and the index option or options you wish to
+   change:
 
    .. code-block:: javascript
 
-      {keyPattern: <index_spec> || name: <index_name>, expireAfterSeconds: <seconds> }
+      db.runCommand( { 
+         collMod: <collection>, 
+         index: { 
+            keyPattern: <index_spec> || name: <index_name>, 
+            expireAfterSeconds: <number>,  // If changing the TTL expiration threshold
+            hidden: <boolean>              // If changing the visibility of the index from the query planner
+         }
+      } )
 
-   In this example, ``<index_spec>`` is an existing index in the
-   collection. In cases of multiple indexes with the same key pattern, 
-   the user is required to specify the index by name. ``seconds`` is the number 
-   of seconds to subtract from the current time.
 
-   On success :dbcommand:`collMod` returns a document with fields
-   ``expireAfterSeconds_old`` and ``expireAfterSeconds_new`` set to
-   their respective values.
+   If the index does not exist, the command errors with the message
+   ``"cannot find index <name|keyPattern> for ns <db.collection>"``.
 
-   On failure, :dbcommand:`collMod` returns a document with ``no
-   expireAfterSeconds field to update`` if there is no existing
-   ``expireAfterSeconds`` field or ``cannot find index { **key**:
-   1.0 } for ns **namespace**`` if the specified ``keyPattern``
-   does not exist.
+   .. seealso:: 
 
+      - :doc:`/core/index-hidden`
+      - :method:`db.collection.hideIndex()`
+      - :method:`db.collection.unhideIndex()`
 
 Document Validation
 ~~~~~~~~~~~~~~~~~~~
@@ -230,24 +285,77 @@ Examples
 Change Expiration Value for Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To update the expiration value for a collection
-named ``sessions`` indexed on a ``lastAccess`` field from 30
-minutes to 60 minutes, use the following operation:
+The following example updates the ``expireAfterSeconds`` property of an
+existing TTL index ``{ lastAccess: 1 }`` on a collection named
+``user_log``. The current ``expireAfterSeconds`` property for the index
+is set to ``1800`` seconds (or 30 minutes) and the example changes the
+value to ``3600`` seconds (or 60 minutes).
 
 .. code-block:: javascript
 
-   db.runCommand( { collMod: "sessions",
-                    index: { keyPattern: { lastAccess: 1 },
-                             expireAfterSeconds: 3600
-                           }
+   db.runCommand({ 
+      collMod: "user_log",
+      index: { 
+         keyPattern: { lastAccess: 1 },
+         expireAfterSeconds: 3600 
+      }
    })
 
-Which will return the document:
+If successful, the operation returns a document that includes both the
+old and new value for the changed property:
 
 .. code-block:: javascript
 
    { "expireAfterSeconds_old" : 1800, "expireAfterSeconds_new" : 3600, "ok" : 1 }
 
+Hide an Index from the Query Planner
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   To hide an index, you must have :ref:`featureCompatibilityVersion
+   <view-fcv>` set to ``4.4`` or greater. However, once hidden, the
+   index remains hidden even with :ref:`featureCompatibilityVersion
+   <view-fcv>` set to ``4.2`` on MongoDB 4.4 binaries.
+
+The following example :doc:`hides </core/index-hidden>` an existing
+index on the ``orders`` collection. Specifically, the operation hides
+the index with the specification ``{ shippedDate: 1 }`` from the query
+planner.
+
+.. code-block:: javascript
+
+   db.runCommand({
+      collMod: "orders",
+      index: {
+         keyPattern: { shippedDate: 1 },
+         hidden: true
+      }
+   })
+
+If successful, the operation returns a document that includes both the
+old and new value for the changed property:
+
+.. code-block:: javascript
+
+   { "hidden_old" : false, "hidden_new" : true, "ok" : 1 }
+
+.. note::
+
+   If the operation is successful but the ``hidden`` value has not
+   changed (i.e. hiding an already hidden index or unhiding an already
+   unhidden index), the command omits the ``hidden_old`` and
+   ``hidden_new`` fields from the output.
+
+To hide a text index, you must specify the index by ``name`` and not by
+``keyPattern``.
+
+.. seealso:: 
+
+   - :doc:`/core/index-hidden`
+   - :method:`db.collection.hideIndex()`
+   - :method:`db.collection.unhideIndex()`
+      
 Add Document Validation to an Existing Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
