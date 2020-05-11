@@ -1,0 +1,218 @@
+==========
+Deployment
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service-fullname| or |mms-full|?
+---------------------------------
+
+|service| offers a managed and simplified experience. |service| users
+have access to a curated selection of configuration and infrastructure
+options. The available |service| configuration and infrastructure
+options may not provide the flexibility that some users require. For
+example, |service| requires |tls| for cluster connectivity and does not
+surface options for disabling |tls|. |service| suits users who want
+fewer moving parts to manage, enabling developers and database
+administrators to be more productive.
+
+|mms-full| offers more control by exposing more configuration options
+on the infrastructure of your choice. |mms| users have access to
+advanced operations and a higher level of control, but must manage the
+full lifecycle of their infrastructure. |mms| is best suited for users
+who require a higher level of control over their MongoDB clusters.
+
+For guidance on which MongoDB service best suits the needs of your
+organization,
+:contact:`contact MongoDB Support </atlas?tck=docs_atlas>`.
+
+Can I bring an existing MongoDB deployment into |service-fullname| for management?
+----------------------------------------------------------------------------------
+
+No. However, you can upload data from existing MongoDB deployment into
+|service-fullname|.
+
+- You can use the :doc:`Live Migrate </import/live-import>` feature
+  in |service| to migrate from a source replica set to an |service|
+  replica set cluster.
+
+- You can use the :doc:`Live Migrate </import/live-import-sharded>`
+  feature in |service| to migrate from a source sharded cluster to
+  an |service| sharded cluster.
+
+- You can use |mongomirror| to migrate data from an existing
+  MongoDB replica set into |service-fullname|.
+
+- You can use |mongodump| and |mongorestore| to seed |service-fullname|
+  clusters from an existing standalone, replica set, and sharded
+  cluster.
+
+To learn more, see :doc:`/import`.
+
+You can also write scripts using official MongoDB supported drivers to
+upload data.
+
+Can I migrate between regions?
+------------------------------
+
+Yes. You can change one or more regions for a given cluster within the
+original cloud service provider for that cluster. Using a
+rolling-migration strategy for moving nodes from the original region to
+a new region, MongoDB |service| preserves cluster availability.
+
+.. admonition:: AWS Only
+   :class: important
+
+   Amazon Web Services (AWS) Virtual Private Cloud (VPC) peering
+   connections are region-specific. Clusters utilizing an existing
+   |vpc| peering connection to an |aws| |vpc| in a given |aws| region
+   lose access to that peering connection if moved to a different |aws|
+   region. The moved cluster may use an existing peering connection in
+   the new region.
+
+   .. seealso:: :doc:`/security-vpc-peering`.
+
+If you need to migrate data between regions on different cloud service
+providers, you can:
+
+- :doc:`Perform live migration </import/live-import>`, or
+
+- :doc:`Migrate using mongomirror </import/mongomirror>`, or
+
+- :doc:`Seed the destination cluster using mongorestore </import/mongorestore>`, or
+
+- :doc:`Restore a backup from the source cluster to the destination cluster </import/mongorestore>`.
+
+.. seealso:: :ref:`import-strategies`
+
+Does |service| support cross-region deployments?
+------------------------------------------------
+
+Yes. You can specify additional regions for high availability or local
+reads when :doc:`creating </tutorial/create-new-cluster>` or
+:doc:`scaling </scale-cluster>` a deployment.
+
+|service| *doesn't* support cross-cloud service provider deployments.
+
+What AWS regions does |service| support?
+----------------------------------------
+
+|service| supports all |aws| regions other than those in China and
+`US GovCloud <https://aws.amazon.com/govcloud-us/>`__. To learn more,
+see :doc:`/reference/amazon-aws`.
+
+.. _can-i-pause-or-stop-cluster:
+
+Can I pause or stop my |service| clusters?
+------------------------------------------
+
+You can pause an ``M10+`` paid cluster for up to 7 days at a time.
+|service| automatically resumes the cluster after 7 days. For complete
+documentation, see :ref:`pause-cluster`.
+
+.. _can-i-pre-split-chunks:
+
+Can I pre-split chunks in a |service| sharded cluster?
+------------------------------------------------------
+
+The :authrole:`Atlas admin` database user role has the necessary
+privileges to pre-split chunks in an empty sharded collection.
+
+To learn more about sharded cluster chunk creation and management, see
+:manual:`Create Chunks in a Sharded Cluster </tutorial/create-chunks-in-sharded-cluster>`.
+
+.. _can-i-deploy-more-than-24-shards:
+.. _can-i-deploy-more-than-50-shards:
+
+Can |service-fullname| deploy clusters with more than 50 shards?
+----------------------------------------------------------------
+
+While |service-fullname| out of the box allows selection of up to 50
+shards, customers interested in more than 50 shards should inquire with
+MongoDB. Contact |mdb-support|.
+
+.. _high-availability:
+
+How does |service-fullname| deliver high availability?
+------------------------------------------------------
+
+|service| clusters use MongoDB's replication capability to deliver high
+availability. All |service| clusters are either replica sets or sharded
+clusters where each shard is a replica set. For complete documentation
+on MongoDB replica sets and replication, see :manual:`Replication
+</replication>`.
+
+|service| uses a rolling upgrade strategy for executing maintenance
+or infrastructure operations, such as applying security patches or
+scaling up a |service| cluster. The rolling upgrade strategy ensures
+that the cluster can process reads and writes for the majority of the
+maintenance or infrastructure operation. During the rolling upgrade
+procedure:
+
+- |service| applies the changes to each secondary node in the cluster.
+- |service| directs the primary node to step down to the secondary
+  state and trigger an election of a new primary.
+- Once the cluster has a new primary, |service| applies the changes to
+  the former primary node.
+
+Applications must hold write operations while the cluster elects a new
+primary. The cluster can continue to process
+:manual:`secondary read operations </core/read-preference>`
+during this period. Elections on |service| clusters typically complete
+within a few seconds. Factors such as network latency may extend the
+time required for replica set elections to complete, which in turn
+affects the amount of time your cluster may operate without a primary.
+These factors are dependent on your particular cluster architecture.
+
+.. include:: /includes/fact-retry-writes.rst
+
+For ``M10+`` clusters, |service| provides a
+:doc:`Test Failover </tutorial/test-failover>` feature for application
+developers to check that their applications are designed to detect and
+react appropriately to a replica set election. By designing
+applications that can seamlessly handle a replica set election,
+developers no longer have to worry about the underlying maintenance
+occurring on their clusters.
+
+|service| maintenance operations include OS patches and maintenance
+patches for the MongoDB database itself (e.g. v3.6.3 to v3.6.4).
+Infrastructure operations include repair operations required to replace
+faulty infrastructure, and scheduled infrastructure replacements
+such as changing the cluster tier.
+
+Please :contact:`contact MongoDB Support </atlas?tck=docs_atlas>`
+if you would like help architecting your application to use
+|service-fullname| with optimal availability.
+
+.. _analytics-nodes-overview:
+
+What are Analytics Nodes?
+-------------------------
+
+*Available on M10+ clusters.*
+
+Analytics nodes are specialized read-only nodes used to isolate
+queries which you do not want to affect your operational workload.
+They are useful for handling analytic data such as reporting queries
+executed by :abbr:`BI (Business Intelligence)` tools.
+
+Analytics nodes and :ref:`read-only nodes <deploy-read-only-replicas>`
+are configured with distinct
+:ref:`replica set tags <replica-set-tags>` that allow you to direct
+queries to desired node types and regions. For details on the
+pre-defined replica set tags implemented by |service|, see
+:ref:`Atlas Replica Set Tags <replica-set-tags>`.
+
+You can have up to 50 total nodes on a multi-region cluster.
+Within that :manual:`limit </reference/limits/#Number-of-Members-of-a-Replica-Set>`
+there's no maximum number of analytics nodes.
+
+Analytics nodes cannot contribute to a cluster's availability because
+they cannot participate in :term:`elections <election>`, or become the
+:term:`primary` for their cluster.

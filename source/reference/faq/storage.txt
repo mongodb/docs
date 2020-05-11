@@ -1,0 +1,82 @@
+=======
+Storage
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _faq-storage limit:
+
+What happens when I reach my Atlas storage limit?
+-------------------------------------------------
+
+The result of reaching your |service| storage limit depends on the
+|service| cluster you are using.
+
+- For shared clusters (``M0``, ``M2``, ``M5``), the maximum storage is
+  a hard limit and cannot be exceeded. You can add additional storage
+  by upgrading to a dedicated cluster (``M10+``). For details on how
+  |service| calculates storage limits for shared clusters, see
+  :ref:`this section <faq-caluculate-shared-storage-limit>` of the FAQ.
+
+- By default, ``M10+`` clusters
+  :ref:`auto-expand storage <scale-cluster-storage>` based on disk
+  usage thresholds. To modify this setting to a fixed storage limit,
+  refer to the :ref:`Modify a Cluster <scale-cluster-storage>` page.
+
+If you attempt to write to a shared cluster that does not have space
+for the desired write operation, |service| displays an error message
+similar to the following:
+
+.. code-block:: javascript
+
+   WriteResult({
+     "writeError": {
+       "code": 8000,
+       "errmsg": "you are over your space quota, using 513 MB of 512 MB"
+     }
+   })
+
+.. seealso::
+
+   To learn about the differences between shared and dedicated
+   clusters, see
+   :doc:`Atlas M0 (Free Tier), M2, and M5 Limitations </reference/free-shared-limitations/>`.
+
+.. tip::
+
+   You can configure alerts which trigger once your allocated storage
+   reaches a specified threshold. |service| calculates allocated
+   storage using metrics returned by the
+   :manual:`dbStats() <reference/command/dbStats>` command. To learn
+   more about storage alerts, see
+   :ref:`DB Storage alert conditions <db-storage-alerts>`.
+
+.. _faq-caluculate-shared-storage-limit:
+
+How does Atlas calculate storage limits for shared clusters (M0, M2, M5)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| calculates the storage limit for shared clusters based on
+data usage, as opposed to the ``storageSize`` metric used by
+non-shared clusters (which includes compression). |service| determines
+data usage by summing a cluster's ``dataSize`` and ``indexSize``.  You
+can issue the :manual:`db.stats() </reference/method/db.stats/>`
+method to view the values of these fields.
+
+Without using Provisioned IOPS on MongoDB Atlas on AWS, what kind of IOPS should I expect?
+------------------------------------------------------------------------------------------
+
+|service| provides an estimate of how many 16K |iops| you can expect,
+calculated as the lesser of 3 |iops| per provisioned GB, or the cluster
+node's maximum |iops| capacity.
+
+However, non-provisioned |iops| on |aws| can burst above this estimate
+or drop below it. As a result, customers who are interested in
+consistent |iops| throughput should consider leveraging
+:ref:`Provisioned IOPS <storage-iops-ui>`.

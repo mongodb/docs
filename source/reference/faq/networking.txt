@@ -1,0 +1,122 @@
+==========
+Networking
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _faq-public-ip-changes:
+
+Do |service| clusters' public IPs ever change?
+----------------------------------------------
+
+.. note::
+
+   This section applies to ``M10`` or larger clusters only unless 
+   specified.
+
+|A-service| cluster's public IPs don't change when you:
+
+- Scale the cluster vertically.
+- Unpause the cluster.
+- Change the cluster's topology.
+- Terminate then re-deploy a cluster with the same name within 36
+  hours.
+- Experience a maintenance event on your cluster.
+- Experience healing event on your cluster.
+
+|A-service| cluster's public IP addresses must change when you:
+
+- :ref:`Convert a replica set to a sharded cluster <scale-cluster-sharding>`.
+- :ref:`Add shards to a sharded cluster <scale-cluster-shardNum>`.
+- :ref:`Change the region(s) into which a cluster is deployed <scale-cluster-region>`.
+- :ref:`Scale <scale-cluster-open-dialog>` an ``M0``, ``M2``, or ``M5``
+  cluster to an ``M10`` or larger cluster.
+- Terminate then re-deploy a cluster with the same name *but in a
+  different tier* within 36 hours.
+
+To find the public IP address for any node in your cluster, use the
+``nslookup`` tool from the command line. The IP address shown are
+the ``Address`` portion of the output.
+
+.. code-block:: sh
+
+   $ nslookup ds-shard-00-00-17jcm.mongodb-dev.net
+
+   Address: 34.226.104.79
+
+.. _faq-atlas-side-hostnames:
+
+Can I specify my own VPC for my |service-fullname| project?
+-----------------------------------------------------------
+
+No. An |service| project, and its clusters, are associated with a
+region-specific |vpc|.
+
+|service| creates a |vpc| when you deploy the first ``M10+`` dedicated
+paid cluster to a given provider and region. For multi-region clusters,
+|service| creates one |vpc| per region if there is not already a |vpc|
+for that region.
+
+*(AWS deployments only)* |service| also creates a |vpc| when you create
+a :doc:`VPC peering connection </security-vpc-peering>` to an |aws|
+|vpc|. |service| creates the |vpc| in the same region as the peered
+|vpc|.
+
+To use a different |vpc| (that is, on the customer's own cloud
+infrastructure accounts), you would need to use |mms-full|
+or Ops Manager.
+
+How do I find my Atlas-side hostnames to open up my outbound firewall?
+----------------------------------------------------------------------
+
+If your firewall blocks outbound network connections, you must open
+outbound access from your application environment to
+|service-fullname|. To configure your application-side networks to
+accept |service| traffic you can either use the:
+
+- :ref:`clusters-get-all` endpoint to retrieve the ``mongoURIs`` of
+  your clusters from the
+  :ref:`response elements <clusters-get-all-response>`.
+
+- :ref:`processes-get-all` endpoint to retrieve the ``hostnames`` of
+  your clusters from the
+  :ref:`response elements <processes-get-all-response>`.
+
+You can parse these hostname values and pass the IP addresses
+programmatically into your application-tier orchestration automation to
+push firewall updates.
+
+To find the public IP address for any node in your cluster, use the
+``nslookup`` tool from the command line. The IP address is shown in
+the ``Address`` portion of the output.
+
+.. code-block:: sh
+
+   $ nslookup ds-shard-00-00-17jcm.mongodb-dev.net
+
+   Address: 34.226.104.79
+
+.. _faq-cross-region:
+
+How many cross-region network permissions does |service| support?
+-----------------------------------------------------------------
+
+.. include:: /includes/fact-cross-region-limits.rst
+
+If you would exceed the cross-region permissions limit when creating a
+cluster through the |service| |api|, the |api| returns the following
+error:
+
+.. code-block:: json
+
+   {
+     "error" : 403,
+     "detail" : "Cannot have more than 40 cross-region network permissions.",
+     "reason" : "Forbidden"
+   }
