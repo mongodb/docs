@@ -1,0 +1,324 @@
+.. _mcli-atlas-measurements-disks-describe-cmd:
+
+==========================================
+mongocli atlas measurements disks describe
+==========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+The ``measurements disks describe`` command lists the available
+measurements for a specified partition on a specified |service| host.
+You can get a list of partition names for a host with the
+:ref:`measurements disks list <mcli-atlas-measurements-disks-describe-cmd>`
+command. You can get the hostnames associated with a particular |service|
+project with the :ref:`process list <mcli-atlas-process-list-cmd>` command.
+
+Syntax 
+------
+
+.. code-block:: text 
+
+   mongocli atlas measurements disks describe <hostname>:<port> <partition-name>
+        --granularity <granularity>
+        --period <period> 
+        --start <start>
+        --end <end>
+        [--type <type>]
+        [ --profile|-P <profile-name> ]
+        [ --projectId <project-ID> ]
+
+.. include:: /includes/fact-command-line-help.rst
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Option
+     - Type
+     - Description
+     - Required?
+
+   * - ``<hostname>:<port>``
+     - String
+     - The hostname of the server running the |service| MongoDB process
+       and the port on which the process listens.
+     - yes
+
+   * - ``<partition-name>``
+     - string
+     - The name of the disk or partition for which to get available measurements.
+     - yes
+
+   * - ``granularity``
+     - String
+     - An ISO-8601-formatted time period that specifies the interval
+       between measurement data points. For example, ``PT1M`` specifies
+       1-minute granularity.
+   
+       The following subset of ISO-8601-formatted time periods are 
+       supported:
+   
+       - ``PT1M``
+       - ``PT5M``
+       - ``PT1H``
+       - ``P1D``
+   
+       When you specify ``granularity``, you must specify either ``period``
+       *or* ``start`` and ``end``.
+     - yes
+   
+   * - ``period``
+     - String
+     - An ISO-8601-formatted time period that specifies the length of time in
+       the past to query. For example, to request the last 36 hours, specify:
+       ``period=P1DT12H``. Mutually exclusive with ``start`` and ``end``.
+     - yes
+   
+   * - ``start``
+     - String
+     - The time at which to start retrieving measurements, as specified by an
+       ISO-8601 timestamp string. If you specify ``start``, you must also
+       specify ``end``. Mutually exclusive with ``period``.
+     - yes
+   
+   * - ``end``
+     - String
+     - The time at which to stop retrieving measurements, as specified by an
+       ISO-8601 timestamp string. If you specify ``end``, you must also
+       specify ``start``. Mutually exclusive with ``period``.
+     - yes
+   
+   * - ``type``
+     - String
+     - Specifies which measurement to return. If ``type`` is not specified, all
+       measurements are returned.
+   
+       You must specify a measurement that is valid for the host. |service|
+       returns an error if a specified measurement is invalid.
+   
+       The following measurement values are valid:
+   
+       .. list-table::
+   
+          * - - ``DISK_PARTITION_IOPS_READ``
+              - ``DISK_PARTITION_IOPS_WRITE``
+              - ``DISK_PARTITION_IOPS_TOTAL``
+          
+            - Measures throughput of I/O operations for the disk partition used for
+              MongoDB.
+          
+          * - - ``DISK_PARTITION_UTILIZATION``
+          
+            - The percentage of time during which requests are being issued to and
+              serviced by the partition. This includes requests from any process, not
+              just MongoDB processes.
+          
+          * - - ``DISK_PARTITION_LATENCY_READ``
+              - ``DISK_PARTITION_LATENCY_WRITE``
+          
+            - Measures latency, per operation type, of the disk partition used by
+              MongoDB.
+          
+          * - - ``DISK_PARTITION_SPACE_FREE``
+              - ``DISK_PARTITION_SPACE_USED``
+              - ``DISK_PARTITION_SPACE_PERCENT_FREE``
+              - ``DISK_PARTITION_SPACE_PERCENT_USED``
+          
+            - Measures the free disk space and used disk space on the disk partition
+              used by MongoDB.
+     - no
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the project ID and the |svc-api-key|\s 
+       for the project are saved. If omitted, uses the ``default`` profile. 
+       To learn more about creating a profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project for which to retrieve events. If
+       omitted, uses the project ID listed in the profile.
+     - no
+
+Output 
+------ 
+
+.. include:: /includes/command-output-intro.rst
+
+.. admonition:: Free Tier
+   :class: important
+
+   ``M0`` Free Tier and ``M2/M5`` shared-tier clusters return a subset
+   of the metrics documented here.
+
+If you set the query element ``envelope`` to ``true``, the response is wrapped
+by the ``content`` object.
+
+The HTTP response returns a JSON document that includes the following objects:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 10 60
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``end``
+     - string
+     - The end of the period for which to retrieve measurements, specified as
+       an ISO-8601
+       timestamp.
+
+   * - ``granularity``
+     - string
+     - An ISO-8601-formatted
+       time period that specifies the size of the interval covered by each
+       data point. For example, ``PT5M`` specifies a 5-minute granularity.
+
+   * - ``groupId``
+     - string
+     - The ID of the project that owns the |service| MongoDB process.
+
+   * - ``hostId``
+     - string
+     - The hostname of the machine running the |service| MongoDB process.
+
+   * - ``links``
+     - array
+     - An array of documents, representing a :ref:`link <api-linking>` to one
+       or more sub-resources and/or related resources such as :ref:`list
+       pagination <api-lists>`. See :ref:`api-linking` for more information.
+
+   * - ``measurements``
+     - object array
+     - An array of measurements and their data points.
+
+   * - ``measurements.name``
+     - string
+     - The name of the measurement.
+
+   * - ``measurements.units``
+     - string
+     - How the measurement is quantified. Possible units are:
+
+       - ``PERCENT``
+       - ``MILLISECONDS``
+       - ``BYTES``
+       - ``GIGABYTES``
+       - ``BYTES_PER_SECOND``
+       - ``MEGABYTES_PER_SECOND``
+       - ``GIGABYTES_PER_HOUR``
+       - ``SCALAR_PER_SECOND``
+       - ``SCALAR``
+
+   * - ``partitionName``
+     - string
+     - Name of the disk or partition to which the measurements pertain.
+
+   * -  ``processId``
+     - string
+     - The hostname and port of the machine running the |service| MongoDB
+       process.
+
+   * - ``start``
+     - string
+     - The start of the period for which to retrieve measurements, specified as
+       an ISO-8601
+       timestamp.
+
+Example
+-------
+
+The following example uses the ``mongocli atlas measurements disks describe`` command 
+to retrieve available process measurements for the ``data`` partition on a host with ID
+``atlas-ap6k8a-shard-00-02.qmljy.mongodb.net``, listening on port ``27017``. The
+granularity is set to one minute, with a period of one minute. The
+command uses a profile named ``egAtlasProfile`` where the project ID and the
+|svc-api-key|\s are stored.
+
+.. code-block:: json
+
+   mongocli atlas measurements disks describe \
+     atlas-ap6k8a-shard-00-02.qmljy.mongodb.net:27017 data \
+     --granularity PT1M --period PT1M \
+     --profile egAtlasProfile
+
+The previous command produces the following output.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+    	"end": "",
+    	"granularity": "PT1M",
+    	"groupId": "5dd5a6b6f10fab1d71a58495",
+    	"hostId": "atlas-ap6kaa-shard-00-02.qmajy.mongodb.net:27017",
+    	"links": [
+    		{
+    			"rel": "self",
+    			"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5dd5a6b6f10fab1d71a58495/processes/atlas-ap6kaa-shard-00-02.qmajy.mongodb.net:27017/disks/data/measurements?granularity=PT1M\u0026period=PT1M"
+    		},
+    		{
+    			"rel": "http://mms.mongodb.com/host",
+    			"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5dd5a6b6f10fab1d71a58495/processes/atlas-ap6kaa-shard-00-02.qmajy.mongodb.net:27017"
+    		}
+    	],
+    	"measurements": [
+    		{
+    			"name": "DISK_PARTITION_IOPS_READ",
+    			"units": "SCALAR_PER_SECOND"
+    		},
+    		{
+    			"name": "DISK_PARTITION_IOPS_WRITE",
+    			"units": "SCALAR_PER_SECOND"
+    		},
+    		{
+    			"name": "DISK_PARTITION_IOPS_TOTAL",
+    			"units": "SCALAR_PER_SECOND"
+    		},
+    		{
+    			"name": "DISK_PARTITION_UTILIZATION",
+    			"units": "PERCENT"
+    		},
+    		{
+    			"name": "DISK_PARTITION_LATENCY_READ",
+    			"units": "MILLISECONDS"
+    		},
+    		{
+    			"name": "DISK_PARTITION_LATENCY_WRITE",
+    			"units": "MILLISECONDS"
+    		},
+    		{
+    			"name": "DISK_PARTITION_SPACE_FREE",
+    			"units": "BYTES"
+    		},
+    		{
+    			"name": "DISK_PARTITION_SPACE_USED",
+    			"units": "BYTES"
+    		},
+    		{
+    			"name": "DISK_PARTITION_SPACE_PERCENT_FREE",
+    			"units": "PERCENT"
+    		},
+    		{
+    			"name": "DISK_PARTITION_SPACE_PERCENT_USED",
+    			"units": "PERCENT"
+    		}
+    	],
+    	"processId": "atlas-ap6kaa-shard-00-02.qmajy.mongodb.net:27017",
+    	"start": "",
+    	"partitionName": "data"
+    }
