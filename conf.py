@@ -92,6 +92,10 @@ extlinks = {
     'uservoice' : ('https://feedback.mongodb.com/forums/%s?jmp=docs',''),
     'mdbacct': ('https://account.mongodb.com/account%s',''),
     'contact': ('https://www.mongodb.com/contact%s',''),
+    'cwe': ('https://cwe.mitre.org/data/definitions/%s.html',''),
+    'cwe-id': ('https://cve.mitre.org/cgi-bin/cvename.cgi?name=%s',''),
+    'cvss': ('https://www.first.org/cvss%s',''),
+    'cvss-score' : ('https://www.first.org/cvss/calculator/3.1#%s','')
 }
 
 source_constants = {

@@ -45,8 +45,8 @@
 
 *Released on 2019-07-31*
 
-- **Dependency Update:** Updated ``org.quartz-scheduler:quartz`` to 2.3.1 to
-  address CVE-2018-20433.
+- **Dependency Update:** Updates ``org.quartz-scheduler:quartz`` to
+  2.3.1 to address CVE-2018-20433.
 
 - **Fix:** Backup Daemons on Amazon Linux 2 and SUSE 12/15 can
   successfully download required MongoDB builds.
@@ -56,7 +56,7 @@
      :ref:`4.0.13 <opsmgr-server-4.0.13>` and resolved in |onprem|
      4.0.14.
 
-- **Fix**: Fixed a bug which prevented the following two algorithms to
+- **Fix**: Fixes a bug which prevented the following two algorithms to
   be disabled by default when using
   :doc:`SSL connections with {+onprem+} </tutorial/configure-ssl-connection-to-web-interface>`:
 
@@ -65,7 +65,7 @@
 
   These algorithms are now disabled by default.
 
-- Improved performance when downloading multiple restores concurrently.
+- Improves performance when downloading multiple restores concurrently.
 
 - **Agent Upgrades:** :ref:`automation-5.4.21.5544`
 
@@ -93,10 +93,10 @@
   of ``PEM`` key file and password no matter the
   :option:`tlsMode <mongod.--tlsMode>`.
 
-- **Fix:** Fixed support for the ``security.clusterIpSourceWhitelist``
+- **Fix:** Fixes support for the ``security.clusterIpSourceWhitelist``
   MongoDB configuration option.
 
-- **Dependency Update:** Updated jetty to 9.4.18.
+- **Dependency Update:** Updates jetty to 9.4.18.
 
 - **Agent Upgrades:** :ref:`automation-5.4.19.5537`
 
@@ -112,12 +112,37 @@
 
 .. important::
 
-   Ops Manager 4.0.11 includes important security fixes. The highest
-   severity issue fixed in this release is a
-   `CVSSv3 score <https://www.first.org/cvss/specification-document>`__
-   score of 6.1 (Medium Severity).
+   Fixes important security fixes, including a
+   :cvss:`CVSSv3.1 score </specification-document>`
+   of :cvss-score:`5.8 (Medium Severity) <CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N>`.
 
-- A new option to bypass invitations allows users to be added to
+   .. list-table::
+      :widths: 20 80
+      :stub-columns: 1
+
+      * - ID
+        - :cwe-id:`CVE-2019-2388 <2019-2388>`
+
+      * - Title
+        - Potential exposure of log information in |onprem|
+
+      * - Description
+        - In affected |onprem| versions, an exposed |http| route may
+          allow attackers to view a specific access log of a publicly
+          exposed |onprem| instance.
+
+      * - |cwe|
+        - :cwe:`CWE-425: Direct Request ('Forced Browsing') (4.0) <425>`
+
+      * - |cvss| score
+        - 5.8 (Medium): :cvss-score:`CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N`
+
+      * - Affected versions
+        -
+          - Ops Manager 4.0 series: 4.0.9, 4.0.10
+          - Ops Manager 4.1 series: 4.1.5
+
+- Provides a new option to bypass invitations so you can add users to
   organizations and projects immediately, without requiring them to
   accept an invitation. Organization and project owners can enable
   this setting in the User Authentication section of the
@@ -129,10 +154,10 @@
   and the |api|.
 
 - **Fix:** When enabling MongoDB profiling from the :guilabel:`Profile`
-  tab, ensure that the pending changes banner is shown without requiring
-  a browser refresh.
+  tab, ensure that the pending changes banner is shown without
+  requiring a browser refresh.
 
-- Updated JDK to version 8u212. On Windows, Ops Manager now requires
+- Updated |jdk| to version 8u212. On Windows, Ops Manager now requires
   the `Visual C++ Redistributable Packages for Visual Studio 2013
   <https://www.microsoft.com/en-us/download/details.aspx?id=40784>`__.
 
@@ -299,8 +324,7 @@
 
 *Released 2018-09-06*
 
-- Added support for management of MongoDB processes
-  on Ubuntu 18.04.
+- Adds support for management of MongoDB processes on Ubuntu 18.04.
 
 - User alerts are now available.
 
@@ -353,17 +377,16 @@
 
 - Updates Ops Manager |jdk| (x86_64) to 8u181, which enables endpoint
   identification by default.
-  
-- When configuring MongoDB |ldap| authentication, allow setting the User
-  to Distinguished Name Mapping without setting the Authorization Query
-  Template.
+
+- When configuring MongoDB |ldap| authentication, allow setting the
+  User to Distinguished Name Mapping without setting the Authorization
+  Query Template.
 
 - **Agent Upgrades:** :ref:`automation-5.4.9.5483`,  :ref:`backup-6.8.4.1009`
 
 - **Critical Fix:** Set ``TasksMax=infinity`` and
   ``TasksAccounting=false`` in ``systemd`` scripts for
   SUSE 12 versions of |mms|.
-  
 
 .. _opsmgr-server-4.0.0:
 

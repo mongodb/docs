@@ -5,11 +5,12 @@
 
 *Released 2020-04-09*
 
-- Includes the ability to bootstrap a backup initial sync using :doc:`rsync 
-  </tutorial/resync-backup/>` when synchronizing from a hidden secondary.
-- Fixes an issue where the initial sync failed to complete after 
+- Includes the ability to bootstrap a backup initial sync using
+  :doc:`rsync </tutorial/resync-backup/>` when synchronizing from a
+  hidden secondary.
+- Fixes an issue where the initial sync failed to complete after
   :ref:`FCV <4.2-backup-considerations>` downgrade.
-- Includes :doc:`MongoDB Business Intelligence Connector v2.13.4 
+- Includes :doc:`MongoDB Business Intelligence Connector v2.13.4
   </tutorial/deploy-bi-connector>`.
 - Updates Agent: :ref:`mongodb-10.12.2.6205`.
 
@@ -29,8 +30,9 @@ Updates Agent: :ref:`mongodb-10.11.2.6172`.
 
 *Released 2020-02-27*
 
-- Adds support for fetching MongoDB binaries from a custom HTTP(S) 
-  endpoint. To learn more, see :hardlink:`Configure Deployment to Have Limited Internet Access <tutorial/configure-local-mode>`.
+- Adds support for fetching MongoDB binaries from a custom |http| or
+  |https| endpoint. To learn more, see
+  :doc:`Configure Deployment to Have Limited Internet Access </tutorial/configure-local-mode>`.
 
 Upgrades Agent: :ref:`mongodb-10.9.2.6097`.
 
