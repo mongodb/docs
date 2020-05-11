@@ -24,7 +24,8 @@ replSetReconfig
 
       db.adminCommand({ 
         replSetReconfig: <new_config_document>, 
-        force: false 
+        force: <boolean>,
+        maxTimeMS: <int>
       })
 
    The command takes the following optional field:
@@ -39,26 +40,110 @@ replSetReconfig
       * - .. _replSetReconfig-cmd-force:
           
           :ref:`force <replSetReconfig-cmd-force>`
+
         - Defaults to ``false``. Specify ``true`` to force the
           available replica set members to accept the new configuration.
 
-          Use this option if there is no current primary in the 
-          replica set, or to restore a replica set to new servers with
-          different hostnames.
+          Force reconfiguration can result in unexpected or
+          undesired behavior, including :ref:`rollback
+          <replica-set-rollbacks>` of :writeconcern:`"majority"`
+          committed writes.
+
+      * - .. _replSetReconfig-cmd-maxTimeMS:
+
+          :ref:`maxTimeMS <replSetReconfig-cmd-maxTimeMS>`
+
+        - Optional. Specifies a cumulative time limit in milliseconds
+          for processing the :dbcommand:`replSetReconfig`. By default,
+          :dbcommand:`replSetReconfig` waits indefinitely for the
+          replica configuration to propagate to a majority of replica
+          set members. Setting ``maxTimeMS`` may result 
+          in the operation failing *before* it can apply the new 
+          configuration. See :ref:`replSetReconfig-safe-reconfig` 
+          for more information.
+
+          .. versionadded:: 4.4
 
    You may also run :dbcommand:`replSetReconfig` with the shell's
    :method:`rs.reconfig()` method.
 
 .. slave-ok, admin-only
 
-Considerations
---------------
+Behavior
+--------
 
 MongoDB 4.4 adds the :rsconf:`term` field to the replica set
 configuration document. The :rsconf:`term` field is set by the
 :term:`primary` replica set member. The primary ignores the
 :rsconf:`term` field if set explicitly in the
 :dbcommand:`replSetReconfig` operation.
+
+.. _replSetReconfig-safe-reconfig:
+
+Safe Replica Set Reconfiguration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, :dbcommand:`replSetReconfig` waits until a
+majority of replica set members install the new replica configuration
+before returning success. Replica set members propagate their replica
+configuration via :ref:`heartbeats <replica-set-heartbeats>`. Whenever a
+member learns of a configuration with a higher :rsconf:`version` and
+:rsconf:`term`, it accepts and installs the new configuration. The
+reconfiguration process has two distinct 'waiting' phases:
+
+\1) Wait for the current configuration to be *committed* before installing the new configuration.
+  The "current" configuration refers to the replica configuration in use
+  by the primary at the time :dbcommand:`replSetReconfig` is issued. 
+  
+  The current configuration is *committed* when:
+
+  - A majority of replica set members have installed the current 
+    configuration, *and*
+
+  - All writes which were majority committed in the previous 
+    configuration have also replicated to a majority in the 
+    current configuration.
+    
+  The current configuration has typically already been installed on a
+  majority of replica set members and does not require additional
+  waiting. The operation *may* wait a significant amount of time for a
+  majority of replica members to commit specific oplog entries.
+  :rsconf:`Delayed <members[n].slaveDelay>` members *or* members that
+  are :method:`lagging behind <rs.printSlaveReplicationInfo()>`
+  the primary can increase the time spent in this phase.
+     
+  If the operation was issued with a 
+  :ref:`maxTimeMS <replSetReconfig-cmd-maxTimeMS>` limit *and* 
+  the operation exceeds the limit while waiting, 
+  return an error and discard the new configuration. The 
+  limit is *cumulative* and does not reset after proceeding to 
+  the next phase.
+
+\2) Wait for a majority of members in the new configuration to install the new configuration.
+  The "new" configuration refers to the replica configuration 
+  specified to :dbcommand:`replSetReconfig`.
+
+  The primary installs and begins using the new replica
+  configuration before propagating the configuration to the
+  remaining replica set members. The operation only waits for 
+  a majority of members to install the new configuration, and does 
+  not require waiting for the new configuration to be *committed*.
+       
+  If the operation was issued with a :ref:`maxTimeMS
+  <replSetReconfig-cmd-maxTimeMS>` limit *and* the operation
+  exceeds the limit while waiting, return an error *but* continue
+  using and propagating the new configuration.
+
+Issuing a :ref:`force <replSetReconfig-cmd-force>` reconfiguration
+immediately installs the new configuration regardless of the commitment
+status of the previous configuration. Force reconfiguration can cause 
+unexpected behavior, such as the rollback of :writeconcern:`"majority"`
+committed write operations.
+
+To check the commitment status of the current replica configuration,
+issue :dbcommand:`replSetGetConfig` with the 
+:ref:`commitmentStatus <replSetGetConfig-commitmentStatus>` parameter 
+on the replica set :term:`primary`. (*New in 4.4*)
 
 Access Control
 ~~~~~~~~~~~~~~

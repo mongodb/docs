@@ -13,12 +13,23 @@ rs.reconfig()
 Definition
 ----------
 
-.. method:: rs.reconfig(configuration, force)
+.. method:: rs.reconfig( configuration, { options } )
 
    Reconfigures an existing replica set, overwriting the existing
    replica set configuration. To run the method, you must connect to
    the :term:`primary` of the replica set.
 
+   The :method:`rs.reconfig()` method has the following syntax:
+
+   .. code-block:: shell
+
+      rs.reconfig(
+        <configuration>,
+        {
+          "force" : <boolean>,
+          "maxTimeMS" : <int>
+        }
+      )
 
    .. list-table::
       :header-rows: 1
@@ -30,26 +41,45 @@ Definition
    
         - Description
    
-      * - ``configuration``
+      * - .. _rs-reconfig-method-configuration:
+          
+          :ref:`configuration <rs-reconfig-method-configuration>`
    
         - document
    
         - A :doc:`document </reference/replica-configuration>` that specifies
           the configuration of a replica set.
-          
-          
    
-      * - ``force``
-   
-        - document
-   
-        - Optional. If set as ``{ force: true }``, this forces the replica set to
-          accept the new configuration even if a majority of the members are
-          not accessible. Use with caution, as this can lead to
-          :term:`rollback` situations.
+      * - .. _rs-reconfig-method-force: 
           
-          
+          :ref:`force <rs-reconfig-method-force>`
    
+        - boolean
+   
+        - *Optional*
+        
+          Specify ``true`` to force the available replica set members to
+          accept the new configuration. Defaults to ``false``.
+
+          Force reconfiguration can result in unexpected or undesired
+          behavior, including :ref:`rollback <replica-set-rollbacks>` of
+          :writeconcern:`"majority"` committed writes.
+          
+      * - .. _rs-reconfig-method-maxTimeMS:
+
+          :ref:`maxTimeMS <rs-reconfig-method-maxTimeMS>`
+
+        - integer
+
+        - *Optional* 
+        
+          Specifies a cumulative time limit in milliseconds
+          for processing the :method:`rs.reconfig()` operation. By
+          default, :method:`rs.reconfig()` waits indefinitely for the
+          replica configuration to propagate to a majority of replica
+          set members. 
+
+          .. versionadded:: 4.4
 
 
    To reconfigure an existing replica set, first retrieve the
@@ -63,14 +93,81 @@ Definition
    The ``force`` parameter allows a reconfiguration command to be issued
    to a non-primary node.
 
-Consideration
--------------
+Behavior
+--------
 
 MongoDB 4.4 adds the :rsconf:`term` field to the replica set
 configuration document. The :rsconf:`term` field is set by the
 :term:`primary` replica set member. The primary ignores the
 :rsconf:`term` field if set explicitly in the
 :method:`rs.reconfig()` operation.
+
+.. _rs-reconfig-safe-reconfig:
+
+Safe Replica Set Reconfiguration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, :method:`rs.reconfig()` waits until a
+majority of replica set members install the new replica configuration
+before returning success. Replica set members propagate their replica
+configuration via :ref:`heartbeats <replica-set-heartbeats>`. Whenever a
+member learns of a configuration with a higher :rsconf:`version` and
+:rsconf:`term`, it accepts and installs the new configuration. The
+reconfiguration process has two distinct 'waiting' phases:
+
+\1) Wait for the current configuration to be *committed* before installing the new configuration.
+  The "current" configuration refers to the replica configuration in use
+  by the primary at the time :method:`rs.reconfig()` is issued. 
+  
+  The current configuration is committed when:
+
+  - A majority of replica set members have installed the current 
+    configuration, *and*
+
+  - All writes which were majority committed in the previous 
+    configuration have also replicated to a majority in the 
+    current configuration.
+    
+  The current configuration has typically already been installed on a
+  majority of replica set members and does not require additional
+  waiting. The operation *may* wait a significant amount of time for a
+  majority of replica members to commit specific oplog entries.
+  :rsconf:`Delayed <members[n].slaveDelay>` members *or* members that
+  are :method:`lagging behind <rs.printSlaveReplicationInfo()>`
+  the primary can increase the time spent in this phase.
+     
+  If the operation was issued with a 
+  :ref:`maxTimeMS <rs-reconfig-method-maxTimeMS>` limit *and* 
+  the operation exceeds the limit while waiting, 
+  return an error and discard the new configuration. The 
+  limit is *cumulative* and does not reset after proceeding to 
+  the next phase.
+
+\2) Wait for a majority of members in the new configuration to install the new configuration.
+  The "new" configuration refers to the replica configuration 
+  specified to :method:`rs.reconfig()`.
+
+  The primary installs and begins using the new replica
+  configuration before propagating the configuration to the
+  remaining replica set members. The operation only waits for 
+  a majority of members to install the new configuration, and does 
+  not require waiting for the new configuration to be *committed*.
+       
+  If the operation was issued with a :ref:`maxTimeMS
+  <rs-reconfig-method-maxTimeMS>` limit *and* the operation
+  exceeds the limit while waiting, return an error *but* continue
+  using and propagating the new configuration.
+
+Issuing a :ref:`force <rs-reconfig-method-force>` reconfiguration
+immediately installs the new configuration regardless of the commitment
+status of the previous configuration. Force reconfiguration can cause 
+unexpected behavior, such as the rollback of :writeconcern:`"majority"`
+committed write operations.
+
+To check the commitment status of the current replica configuration,
+issue :dbcommand:`replSetGetConfig` with the 
+:ref:`commitmentStatus <replSetGetConfig-commitmentStatus>` parameter 
+on the replica set :term:`primary`. (*New in 4.4*)
 
 Access Control
 ~~~~~~~~~~~~~~
