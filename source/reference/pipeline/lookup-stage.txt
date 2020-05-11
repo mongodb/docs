@@ -1,0 +1,215 @@
+.. _adl-lookup-stage:
+
+===========
+``$lookup``
+===========
+
+.. default-domain:: mongodb
+
+.. include:: /includes/fact-data-lake-beta.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+``$lookup`` performs a left outer join to an unsharded collection in the 
+same database to filter in documents from the “joined” collection for
+processing. For more information, see :manual:`$lookup </manual/reference/operator/aggregation/lookup/>`. In {+data-lake+}, ``$lookup`` can be used to perform a join of collections from different databases. 
+
+.. _adl-lookup-syntax:
+
+Syntax 
+------
+
+The ``$lookup`` 
+:manual:`syntax </reference/operator/aggregation/lookup/#syntax>` is 
+described in the MongoDB server manual. In {+data-lake-short+}, the ``from`` 
+field in ``$lookup`` has the following alternate syntax to support specifying 
+an object containing an optional database name and a required collection name: 
+
+.. tabs:: 
+ 
+   .. tab:: Equality Match
+      :tabid: equalitymatch
+
+      .. code-block:: json 
+
+         {
+           $lookup: {
+             localField: "<fieldName>",
+             from: <collection-to-join>|{db: <db>, coll: <collection-to-join>}, 
+             foreignField: "<fieldName>",
+             as: "<output-array-field>",
+           }
+         }
+
+   .. tab:: Join Conditions and Uncorrelated Sub-queries
+      :tabid: joincondition
+
+      .. code-block:: json 
+
+         {
+           $lookup: {
+             from: <collection to join>|{db: <db>, coll: <collection-to-join>},
+             let: { <var_1>: <expression>, …, <var_n>: <expression> },
+             pipeline: [ <pipeline to execute on the collection to join> ],
+             as: <output array field>
+           }
+         }
+
+``from`` Field Object
+---------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 70 10
+
+   * - Field 
+     - Type 
+     - Description 
+     - Necessity
+
+   * - ``db``
+     - string 
+     - The database name. 
+       
+       If the database name is specified, data is read from the collection in 
+       the specified database. If you specify a database name that is different 
+       from the database upon which the command is operating, all nested 
+       :manual:`$lookup 
+       </reference/operator/aggregation/lookup/#pipe._S_lookup>` stages **must** 
+       also specify a database name. 
+
+       If the database name is not specified within a :manual:`$lookup 
+       </reference/operator/aggregation/lookup/#pipe._S_lookup>` stage, 
+       collections in the stage inherit the database name specified in the closest 
+       parent :manual:`$lookup </reference/operator/aggregation/lookup/#pipe._S_lookup>` 
+       stage if it exists or the database upon which the command is operating.
+     - Conditional
+
+   * - ``coll`` 
+     - string 
+     - The collection name. 
+     - Required
+
+Examples 
+--------
+
+Suppose there are three databases named ``sourceDB1``, ``sourceDB2``, and 
+``sourceDB3`` with the following collections:
+
+.. tabs::
+
+   .. tab:: sourceDB1
+      :tabid: sourceDB1
+
+      .. code-block:: json 
+
+         db.orders.insert([
+           { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
+           { "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 },
+           { "_id" : 3  }
+         ])
+
+   .. tab:: sourceDB2
+      :tabid: sourceDB2
+
+      .. code-block:: json 
+
+         db.catalog.insert([
+           { "_id" : 1, "sku" : "almonds", description: "product 1" },
+           { "_id" : 2, "sku" : "bread", description: "product 2" },
+           { "_id" : 3, "sku" : "cashews", description: "product 3" },
+           { "_id" : 4, "sku" : "pecans", description: "product 4" },
+           { "_id" : 5, "sku": null, description: "Incomplete" },
+           { "_id" : 6 }
+         ])
+
+   .. tab:: sourceDB3
+      :tabid: sourceDB3
+
+      .. code-block:: json 
+
+         db.warehouses.insert([
+           { "_id" : 1, "stock_item" : "almonds", warehouse: "A", "instock" : 120 },
+           { "_id" : 2, "stock_item" : "pecans", warehouse: "A", "instock" : 70 },
+           { "_id" : 3, "stock_item" : "cashews", warehouse: "B", "instock" : 60 },
+           { "_id" : 4, "stock_item" : "bread", warehouse: "B", "instock" : 80 },
+           { "_id" : 5, "stock_item" : "cookies", warehouse: "A", "instock" : 80 }
+         ])
+
+The following examples use the :manual:`$lookup 
+</reference/operator/aggregation/lookup/#pipe._S_lookup>` aggregation stage 
+to join documents from one collection with the documents from the collection 
+in the other databases.
+
+Basic Example 
+~~~~~~~~~~~~~
+
+The following aggregation operation on the ``sourceDB1.orders`` collection joins the documents from the ``orders`` collection with the documents 
+from the ``sourceDB2.catalog`` collection using the ``item`` field from the ``orders`` collection and the ``sku`` field from the ``catalog`` collection:
+
+.. code-block:: json 
+
+   db.getSiblingDb("sourceDB1").orders.aggregate(
+     {
+       $lookup: {
+         from: { db: "sourceDB2", coll: "catalog" },
+         localField: "item",
+         foreignField: "sku",
+         as: "inventory_docs"
+       }
+     }
+   )
+
+Nested Example 
+~~~~~~~~~~~~~~
+
+The following aggregation operation on the ``sourceDB1.orders`` collection joins the documents from the ``orders`` collection with the documents from the ``sourceDB2.catalog`` collection and the documents from the ``sourceDB3.warehouses`` collection using the ``item`` field from the ``orders`` collection, the ``sku`` field from the ``catalog`` collection, and the ``stock_item`` and ``instock`` fields from the ``warehouses`` collection:
+
+.. code-block:: json 
+
+   db.getSiblingDb(“sourceDB1”).orders.aggregate(
+     [
+       {
+         $lookup: {
+           from: db: "sourceDB2", coll: "catalog", 
+           let: { "order_sku": "$item" },
+           pipeline: [
+             {
+               $match: { 
+                 $expr: { 
+                   $eq: ["$sku", "$$order_sku"] 
+                 }
+               }
+             },
+             {
+               $lookup: {
+                 from: db: "sourceDB3", coll: "warehouses",
+                 pipeline: [
+                   { 
+                     $match: {
+                       $expr:{ 
+                         $eq : ["$stock_item", "$$order_sku"] 
+                       } 
+                     }
+                   },
+                   { 
+                     $project : { instock: 1, _id: 0} 
+                   }
+                 ],
+                 as: "wh"               
+               }
+             },
+             { "$unwind": "$wh" },
+             { 
+               $project : { description: 1, instock: "$wh.instock", _id: 0} 
+             }
+           ], 
+           as: "inventory"      
+         },
+       },
+     ]
+   )
