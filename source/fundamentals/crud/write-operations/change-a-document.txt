@@ -7,21 +7,21 @@ Change a Document
 Overview
 --------
 
-You can alter documents in a MongoDB collection with two distinct
-operation types: update and replace. Update operations mutate specified
-fields in altered documents, but leave other fields and values
-unchanged. Replace operations remove all existing fields in altered
-documents and substitute the specified fields and values instead.
+You can change documents in a MongoDB collection using two distinct
+operation types: **update** and **replace**. Update operations mutate
+specified fields in one or more documents and leave other fields and values
+unchanged. Replace operations remove all existing fields in one or more
+documents and substitute them with specified fields and values.
 
 .. _updateDocuments:
 
 Update
 ------
 
-Create an **update document** using :manual:`update operators
-</reference/operator/update/>` to
-describe the changes you would like to make via an **update** operation.
-Update documents use the following form:
+To perform an update to one or more documents, create an **update
+document** that specifies the **update operator** (the type of update to
+perform) and the fields and values that describe the change. Update
+documents use the following format:
 
 .. code-block:: javascript
 
@@ -38,28 +38,26 @@ Update documents use the following form:
       }
    }
 
-The top level of an update document contains exclusively update
-operators. Update operators allow you to
-:manual:`set the value of a field to a literal value
-</reference/operator/update/set/#up._S_set>`,
-:manual:`increment or decrement field values
-</reference/operator/update/inc/#up._S_inc>`,
-:manual:`rename fields
-</reference/operator/update/rename/#up._S_rename>`,
-:manual:`remove fields
-</reference/operator/update/unset/#up._S_unset>`,
-and :manual:`multiply a field value
-</reference/operator/update/mul/#up._S_mul>`,
-:manual:`among others </reference/operator/update/#id1>`.
+The top level of an update document contains one or more of the following
+update operators:
 
-Update operators alter only the fields specified in your update
-document.
+- ``$set`` - replaces the value of a field with a specified one
+- ``$inc`` - increments or decrements field values
+- ``$rename`` - renames fields
+- ``$unset`` - removes fields
+- ``$mul`` - multiplies a field value by a specified number
+
+See the MongoDB server manual for a :manual:`complete list of update operators
+and their usage </reference/operator/update-field/>`.
+
+The update operators apply only to the fields associated with them in your
+update document.
 
 Example
 ~~~~~~~
 
-Consider a document containing fields containing the english
-alphabet of lowercase letters ``a`` through ``z``:
+Consider a document of fields containing the English alphabet of lowercase
+letters ``a`` through ``z`` and their ordinal values:
 
 .. code-block:: javascript
 
@@ -73,13 +71,12 @@ alphabet of lowercase letters ``a`` through ``z``:
       z: 26,
    }
 
-Updating this document with the following code snippet only alters
-the ``z`` field, leaving all other fields in place:
+If you apply the ``$set`` update operator with a specified value for ``z``, 
+your update operation might resemble the following:
 
 .. code-block:: javascript
 
-   // match only documents containing a field named 'a' with value 1
-   const filter = { 'a': 1 };
+   const filter = { _id: 465 };
    // update the value of the 'z' field to 42
    const updateDocument = {
       $set: {
@@ -88,38 +85,37 @@ the ``z`` field, leaving all other fields in place:
    };
    const result = await collection.updateOne(filter, updateDocument);
 
-This operation produces the following altered document, with an updated
-``z`` field value and all other fields left unchanged:
+The updated document resembles the following, with an an updated value in
+the ``z`` field and all other values unchanged:
 
 .. code-block:: javascript
 
    {
       _id: 465,
       a: 1,
-      b: 2,
-      c: 3,
       ...
       y: 25,
       z: 42,
    }
 
 If an update operation fails to match any documents in a collection, it
-will do nothing by default. However, update operations can be configured
-to :doc:`upsert </fundamentals/crud/write-operations/upsert>`, or
-"update or insert", which changes this behavior to instead insert a new
-document if no matching document is found. Update operations cannot
-change the ``_id`` field of a document. Update operations fail if the
-updated document violates a :manual:`unique index
-</core/index-unique/>`.
+does not make any changes. Update operations can be configured to perform
+an :doc:`upsert </fundamentals/crud/write-operations/upsert>` which
+attempts to perform an update, but if no documents are matched, inserts
+a new document.
+
+You cannot modify the ``_id`` field of a document nor change a field to
+a value that violates a unique index constraint. See the MongoDB server manual 
+for more information on :manual:`unique indexes </core/index-unique/>`.
 
 .. _replacementDocument:
 
 Replace
 -------
 
-Create a **replacement document** using literal values to describe the
-new document you would like to insert via a **replace** operation.
-Replacement documents use the following form:
+To perform a replacement operation, create a **replacement document** that
+consists of the fields and values that you would like to insert in your
+**replace** operation. Replacement documents use the following format:
 
 .. code-block:: javascript
 
@@ -132,15 +128,14 @@ Replacement documents use the following form:
       }
    }
 
-Replacement documents contain field names and the values you would like
-to assign to those fields. The altered document contains only the
-fields listed in the replacement document after a replacement operation.
+Replacement documents are the documents that you want to take the place of
+existing documents that match the query filters.
 
 Example
 ~~~~~~~
 
-Consider a document containing fields containing the english
-alphabet of lowercase letters ``a`` through ``z``:
+Consider a document of fields containing the English alphabet of lowercase
+letters ``a`` through ``z`` and their ordinal values:
 
 .. code-block:: javascript
 
@@ -154,24 +149,21 @@ alphabet of lowercase letters ``a`` through ``z``:
       z: 26,
    }
 
-Replacing this document with the following code snippet removes all
-fields besides the ``z`` field, including the ``a`` field matched by
-the filter:
+Suppose you wanted to replace this document with one that contains only
+the field ``z`` with a value of ``42``. Your replacement operation might
+resemble the following:
 
 .. code-block:: javascript
 
-   // match only documents containing a field named 'a' with value 1
-   const filter = { 'a': 1 };
-   // replace the matched document with a document containing only
-   // the field 'z' with value 42
+   const filter = { _id: 465 };
+   // replace the matched document with the replacement document
    const replacementDocument = {
       z: 42,
    };
    const result = await collection.replaceOne(filter, replacementDocument);
 
-This produces the following document. Note that only the ``z`` field,
-which was present in the replacement document, and the immutable ``_id``
-field, which cannot be changed by any operation, remain:
+The replaced document contains the contents of the replacement document
+and the immutable ``_id`` field as follows:
 
 .. code-block:: javascript
 
@@ -181,9 +173,11 @@ field, which cannot be changed by any operation, remain:
    }
 
 If a replace operation fails to match any documents in a collection, it
-will do nothing by default. However, replace operations can be configured
-to :doc:`upsert </fundamentals/crud/write-operations/upsert>`, or
-"update or insert", which changes this behavior to instead insert a new
-document if no matching document is found. Replace operations fail if
-the updated document violates a :manual:`unique index
-</core/index-unique/>`.
+does not make any changes. Replace operations can be configured to perform
+an :doc:`upsert </fundamentals/crud/write-operations/upsert>` which
+attempts to perform the replacement, but if no documents are matched, it
+inserts a new document.
+
+You cannot modify the ``_id`` field of a document nor change a field to
+a value that violates a unique index constraint. See the MongoDB server manual
+for more information on :manual:`unique indexes </core/index-unique/>`.
