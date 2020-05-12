@@ -12,7 +12,7 @@ Build a Resilient Application with MongoDB Atlas
    :depth: 1
    :class: singlecol
 
-To write application code that takes full advantage of the always-on 
+To write application code that takes full advantage of the always-on
 capabilities of |service-fullname|, you should:
 
 - Install the latest drivers.
@@ -21,7 +21,7 @@ capabilities of |service-fullname|, you should:
 
 - Use retryable writes and retryable reads.
 
-- Use a ``majority`` write concern and a read concern that makes sense 
+- Use a ``majority`` write concern and a read concern that makes sense
   for your application.
 
 - Handle errors in your application.
@@ -29,9 +29,9 @@ capabilities of |service-fullname|, you should:
 Install the Latest Drivers
 --------------------------
 
-First, install the latest drivers for your language from 
-:driver:`MongoDB Drivers </>`. Drivers connect and relay 
-queries from your application to your database. Using the latest 
+First, install the latest drivers for your language from
+:driver:`MongoDB Drivers </>`. Drivers connect and relay
+queries from your application to your database. Using the latest
 drivers enables the latest MongoDB features.
 
 Then, in your application, import the dependency:
@@ -45,33 +45,58 @@ Then, in your application, import the dependency:
        content: |
 
          .. code-block:: javascript
- 
+
             // Latest 'mongodb' version installed with npm
             const MongoClient = require('mongodb').MongoClient;
+
+     - id: java-sync
+       content: |
+
+         If you are using `Maven <http://maven.apache.org/>`__, add the
+         following to your ``pom.xml`` dependencies list:
+
+         .. code-block:: xml
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.mongodb</groupId>
+                    <artifactId>mongodb-driver-sync</artifactId>
+                    <version>4.0.1</version>
+                </dependency>
+            </dependencies>
+
+         If you are using `Gradle <https://gradle.org/>`__, add the
+         following to your ``build.gradle`` dependencies list:
+
+         .. code-block:: groovy
+
+            dependencies {
+              compile 'org.mongodb:mongodb-driver-sync:4.0.1'
+            }
 
 Connection Strings
 ------------------
 
 .. note::
-   |service| provides a pre-configured connection string. For steps to 
-   copy the pre-configured string, see 
+   |service| provides a pre-configured connection string. For steps to
+   copy the pre-configured string, see
    :ref:`Atlas-Provided Connection Strings <atlas-connection-string>`.
 
-Use a :manual:`connection string </reference/connection-string>` that 
-specifies all the nodes in your |service| cluster to connect your 
-application to your database. If your cluster performs a 
-:manual:`replica set election </core/replica-set-elections/>` and a new 
-primary is elected, a connection string that specifies all the nodes in 
+Use a :manual:`connection string </reference/connection-string>` that
+specifies all the nodes in your |service| cluster to connect your
+application to your database. If your cluster performs a
+:manual:`replica set election </core/replica-set-elections/>` and a new
+primary is elected, a connection string that specifies all the nodes in
 your cluster discovers the new primary without application logic.
 
 You can specify all the nodes in your cluster using either:
 
 - the :manual:`Standard Connection String Format </reference/connection-string/#standard-connection-string-format>`, or
 
-- the :manual:`DNS Seedlist Connection Format </reference/connection-string/#dns-seedlist-connection-format>` 
+- the :manual:`DNS Seedlist Connection Format </reference/connection-string/#dns-seedlist-connection-format>`
   (recommended with |service|).
 
-The connection string can also specify options, notably 
+The connection string can also specify options, notably
 :manual:`retryWrites </reference/connection-string/#urioption.retryWrites>`
 and :manual:`writeConcern </reference/write-concern/#wc-w>`.
 
@@ -80,37 +105,39 @@ and :manual:`writeConcern </reference/write-concern/#wc-w>`.
 Atlas-Provided Connection Strings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you copy your connection string from your |service| cluster 
-interface, the connection string is pre-configured for your cluster, 
-uses the DNS Seedlist format, and includes the recommended 
+If you copy your connection string from your |service| cluster
+interface, the connection string is pre-configured for your cluster,
+uses the DNS Seedlist format, and includes the recommended
 ``retryWrites`` and ``w`` (write concern) options.
 
 To copy your connection string URI from |service|:
 
-1. In |service-fullname|, under your project, select 
+1. In |service-fullname|, under your project, select
    :guilabel:`Clusters` from the navigation panel.
 
-#. Click :guilabel:`Connect` on the cluster you wish to connect your 
+#. Click :guilabel:`Connect` on the cluster you wish to connect your
    application to.
 
-#. Select :guilabel:`Connect Your Application` as your connection 
+#. Select :guilabel:`Connect Your Application` as your connection
    method.
 
 #. Select your :guilabel:`Driver` and :guilabel:`Version`.
 
-#. Copy the connection string or full driver example into your 
+#. Copy the connection string or full driver example into your
    application code. You must provide database user credentials.
 
    .. note::
-      
-      This guide uses 
-      :manual:`SCRAM authentication </core/security-scram/>` through a 
-      connection string. If you want to learn about using X.509 
-      certificates to authenticate, see 
+
+      This guide uses
+      :manual:`SCRAM authentication </core/security-scram/>` through a
+      connection string. If you want to learn about using X.509
+      certificates to authenticate, see
       :manual:`X.509 </core/security-x.509/>`.
 
-Use your connection string to instantiate a MongoDB client in your 
+Use your connection string to instantiate a MongoDB client in your
 application:
+
+.. tabs-pillstrip:: languages
 
 .. tabs-drivers::
 
@@ -119,15 +146,26 @@ application:
        content: |
 
          .. code-block:: javascript
-            
+
             // Copy the connection string provided by Atlas
-            const uri = "mongodb+srv://<username>:<password>@cluster0-111xx.mongodb.net/test?retryWrites=true&w=majority";
+            const uri = "mongodb+srv://<username>:<password>@<cluster-url>/test?retryWrites=true&w=majority";
 
             // Instantiate the MongoDB client with the URI
             const client = new MongoClient(uri, {
                 useNewUrlParser: true,
                 useUnifiedTopology: true
             });
+
+     - id: java-sync
+       content: |
+
+         .. code-block:: java
+
+          // Copy the connection string provided by Atlas
+          String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+
+          // Instantiate the MongoDB client with the URI
+          MongoClient client = MongoClients.create(uri);
 
 .. _retryable-writes:
 
@@ -136,107 +174,107 @@ Retryable Writes and Reads
 
 .. note::
 
-   Starting in MongoDB version 3.6 and with 
-   :driver:`4.2-compatible drivers </>`, MongoDB retries both writes 
+   Starting in MongoDB version 3.6 and with
+   :driver:`4.2-compatible drivers </>`, MongoDB retries both writes
    and reads once by default.
 
 Retryable Writes
 ~~~~~~~~~~~~~~~~
 
-Use :manual:`retryable writes </core/retryable-writes>` to retry 
-certain write operations a single time if they fail. If you 
-copied your connection string from |service|, it includes 
+Use :manual:`retryable writes </core/retryable-writes>` to retry
+certain write operations a single time if they fail. If you
+copied your connection string from |service|, it includes
 ``"retryWrites=true"``. If you are providing your own connection string,
 include ``"retryWrites=true"`` as a query parameter.
 
-Retrying writes exactly once is the best strategy for handling 
-transient network errors and replica set elections in which the 
-application temporarily cannot find a healthy primary node. If the 
-retry succeeds, the operation as a whole succeeds and no error is 
+Retrying writes exactly once is the best strategy for handling
+transient network errors and replica set elections in which the
+application temporarily cannot find a healthy primary node. If the
+retry succeeds, the operation as a whole succeeds and no error is
 returned. If the operation fails, it is likely due to:
 
 - A lasting network error, or
 
 - An invalid command.
 
-When an operation fails, your application needs to 
+When an operation fails, your application needs to
 :ref:`handle the error <error-handling>` itself.
 
 Retryable Reads
 ~~~~~~~~~~~~~~~
- 
-Read operations are automatically retried a single time if they fail 
-starting in MongoDB version 3.6 and with 
-:driver:`4.2-compatible drivers </>`. 
+
+Read operations are automatically retried a single time if they fail
+starting in MongoDB version 3.6 and with
+:driver:`4.2-compatible drivers </>`.
 No additional configuration is required to retry reads.
 
 Write and Read Concern
 ----------------------
 
-You can tune the consistency and availability of your application using 
-write concerns and read concerns. Stricter concerns imply that database 
-operations wait for stronger data consistency guarantees, whereas 
+You can tune the consistency and availability of your application using
+write concerns and read concerns. Stricter concerns imply that database
+operations wait for stronger data consistency guarantees, whereas
 loosening consistency requirements provides higher availability.
 
 .. example::
 
-   If your application handles monetary balances, consistency is 
-   extremely important. You might use ``majority`` write and read 
-   concerns to ensure you never read from stale data or data that may 
+   If your application handles monetary balances, consistency is
+   extremely important. You might use ``majority`` write and read
+   concerns to ensure you never read from stale data or data that may
    be rolled back.
 
-   Alternatively, if your application records temperature data from 
-   hundreds of sensors every second, you may not be concerned if you 
-   read data that does not include the most recent readouts. You can 
-   loosen consistency requirements and provide faster access to that 
+   Alternatively, if your application records temperature data from
+   hundreds of sensors every second, you may not be concerned if you
+   read data that does not include the most recent readouts. You can
+   loosen consistency requirements and provide faster access to that
    data.
 
 Write Concern
 ~~~~~~~~~~~~~
 
-You can set the 
+You can set the
 :manual:`write concern level </reference/write-concern/>`
-of your |service| replica set through the connection string URI. Use a 
-``majority`` write concern to ensure your data is successfully written 
-to your database and persisted. This is the recommended default and 
-sufficient for most use cases. If you copied your connection string 
+of your |service| replica set through the connection string URI. Use a
+``majority`` write concern to ensure your data is successfully written
+to your database and persisted. This is the recommended default and
+sufficient for most use cases. If you copied your connection string
 from |service|, it includes ``"w=majority"``.
 
-When you use a write concern that requires acknowledgement, such as 
-``majority``, you may also specify a maximum time limit for writes 
+When you use a write concern that requires acknowledgement, such as
+``majority``, you may also specify a maximum time limit for writes
 to achieve that level of acknowledgement:
 
 - The :manual:`wtimeoutMS </reference/connection-string/#urioption.wtimeoutMS>` connection string parameter for all writes, or
 
-- The :manual:`wtimeout </reference/write-concern/#wtimeout>` option 
+- The :manual:`wtimeout </reference/write-concern/#wtimeout>` option
   for a single write operation.
 
-Whether or not you use a time limit and the value you use depend on 
+Whether or not you use a time limit and the value you use depend on
 your application context.
 
 .. important::
-   
-   If you do not specify a time limit for writes and the level of write 
+
+   If you do not specify a time limit for writes and the level of write
    concern is unachievable, the write operation will hang indefinitely.
 
 Read Concern
 ~~~~~~~~~~~~
 
-You can set the 
-:manual:`read concern level </reference/connection-string/#readconcern-options>` 
-of your |service| replica set through the connection string URI. The 
-ideal :manual:`read concern </reference/read-concern/>` depends on 
-your application requirements, but the default is sufficient for most 
-use cases. No connection string parameter is required to use default 
+You can set the
+:manual:`read concern level </reference/connection-string/#readconcern-options>`
+of your |service| replica set through the connection string URI. The
+ideal :manual:`read concern </reference/read-concern/>` depends on
+your application requirements, but the default is sufficient for most
+use cases. No connection string parameter is required to use default
 read concerns.
 
-Specifying a read concern can improve guarantees around the data your 
+Specifying a read concern can improve guarantees around the data your
 application receives from |service|.
 
 .. note::
-   The specific combination of write and read concern your application 
-   uses has an effect on order-of-operation guarantees. This is called 
-   causal consistency. For more information on causal consistency 
+   The specific combination of write and read concern your application
+   uses has an effect on order-of-operation guarantees. This is called
+   causal consistency. For more information on causal consistency
    guarantees, see :manual:`Causal Consistency and Read and Write Concerns </core/causal-consistency-read-write-concerns/>`.
 
 .. _error-handling:
@@ -244,27 +282,43 @@ application receives from |service|.
 Error Handling
 --------------
 
-Invalid commands, network outages, and network errors that are not 
-handled by :ref:`retryable writes <retryable-writes>` return |json| 
-error objects. Error objects have a ``name`` field, ``message`` or 
-``errmsg`` field, and additional issue-specific fields.
+Invalid commands, network outages, and network errors that are not
+handled by :ref:`retryable writes <retryable-writes>` return errors.
+Refer to your driver's |api| documentation for error details.
 
-For example, if an application tries to insert a document with a 
-duplicate ``_id``, the |service| cluster returns an error that includes:
+For example, if an application tries to insert a document with a
+duplicate ``_id``, your driver returns an error that includes:
 
-.. code-block:: json
+.. tabs-pillstrip:: languages
 
-   {
-       "name": : "MongoError",
-       "message": "E11000 duplicate key error collection on: <db>.<collection> ... ",
-       ...
-   }
+.. tabs-drivers::
 
-Without proper error handling, an error may block your application from 
+   tabs:
+     - id: nodejs
+       content: |
+
+         .. code-block:: json
+            :copyable: false
+
+            {
+                "name": : "MongoError",
+                "message": "E11000 duplicate key error collection on: <db>.<collection> ... ",
+                ...
+            }
+
+     - id: java-sync
+       content: |
+
+         .. code-block:: none
+
+            Unable to insert due to an error: com.mongodb.MongoWriteException:
+            E11000 duplicate key error collection: <db>.<collection> ...
+
+Without proper error handling, an error may block your application from
 processing requests until it is restarted.
 
-Your application should handle errors without crashing or side 
-effects. In the previous example of an application inserting a 
+Your application should handle errors without crashing or side
+effects. In the previous example of an application inserting a
 duplicate ``_id``, that application could handle errors as follows:
 
 .. tabs-drivers::
@@ -275,101 +329,137 @@ duplicate ``_id``, that application could handle errors as follows:
 
          .. code-block:: javascript
             :emphasize-lines: 9-11
-            
+
             ...
-            collection.insertOne({ 
+            collection.insertOne({
                 _id: 1,
                 body: "I'm a goofball trying to insert a duplicate _id"
             })
             .then(result => {
                 response.sendStatus(200) // send "OK" message to the client
-            }, 
+            },
             err => {
                 response.sendStatus(400); // send "Bad Request" message to the client
             });
 
-The insert operation in this example throws a "duplicate key" 
-error the second time it's invoked because the ``_id`` field must be 
-unique. The error is caught, the client is notified, and the app 
-continues to run. The insert operation fails, however, and it is 
-up to you to decide whether to show the user a message, retry the 
+     - id: java-sync
+       content: |
+
+         .. code-block:: java
+
+            // Declare a logger instance from java.util.logging.Logger
+            private static final Logger LOGGER = ...
+            ...
+            try {
+                InsertOneResult result = collection.insertOne(new Document()
+                    .append("_id", 1)
+                    .append("body", "I'm a goofball trying to insert a duplicate _id"));
+
+                // Everything is OK
+                LOGGER.info("Inserted document id: " + result.getInsertedId());
+
+            // Refer to the API documentation for specific exceptions to catch
+            } catch (MongoException me) {
+                // Report the error
+                LOGGER.severe("Failed due to an error: " + me);
+            }
+
+The insert operation in this example throws a "duplicate key"
+error the second time it's invoked because the ``_id`` field must be
+unique. The error is caught, the client is notified, and the app
+continues to run. The insert operation fails, however, and it is
+up to you to decide whether to show the user a message, retry the
 operation, or do something else.
 
-You should always log errors. Common strategies for further processing 
+You should always log errors. Common strategies for further processing
 errors include:
 
-- Return the error to the client with an error message. This is a good 
-  strategy when you cannot resolve the error and need to inform a user 
+- Return the error to the client with an error message. This is a good
+  strategy when you cannot resolve the error and need to inform a user
   that an action cannot be completed.
 
-- Write to a backup database. This is a good strategy when you cannot 
+- Write to a backup database. This is a good strategy when you cannot
   resolve the error but don't want to risk losing the request data.
 
-- Retry the operation beyond the 
-  :ref:`single default retry <retryable-writes>`. This is a good 
-  strategy when you can solve the cause of an error programmatically, 
+- Retry the operation beyond the
+  :ref:`single default retry <retryable-writes>`. This is a good
+  strategy when you can solve the cause of an error programmatically,
   then retry it.
 
 You must select the best strategies for your application context.
 
 .. example::
 
-   In the example of a duplicate key error, you should log the error 
-   but not retry the operation because it will never succeed. Instead, 
-   you could write to a fallback database and review the contents of 
-   that database at a later time to ensure that no information is lost. 
-   The user doesn't need to do anything else and the data is recorded, 
+   In the example of a duplicate key error, you should log the error
+   but not retry the operation because it will never succeed. Instead,
+   you could write to a fallback database and review the contents of
+   that database at a later time to ensure that no information is lost.
+   The user doesn't need to do anything else and the data is recorded,
    so you can choose not to send an error message to the client.
 
 Planning for Network Errors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Returning an error can be desirable behavior when an operation 
-would otherwise hang indefinitely and block your application from 
-executing new operations. You can use the 
-:manual:`maxTimeMS </tutorial/terminate-running-operations/#maxtimems>` 
-method to place a time limit on individual operations, returning an 
+Returning an error can be desirable behavior when an operation
+would otherwise hang indefinitely and block your application from
+executing new operations. You can use the
+:manual:`maxTimeMS </tutorial/terminate-running-operations/#maxtimems>`
+method to place a time limit on individual operations, returning an
 error for your application to handle if that time limit is exceeded.
 
-The time limit you place on each operation depends on the context of 
+The time limit you place on each operation depends on the context of
 that operation.
 
 .. example::
 
-   If your application reads and displays simple product information 
-   from an ``inventory`` collection, you can be reasonably confident 
-   that those read operations only take a moment. An unusually 
-   long-running query is a good indicator that there is a lasting 
-   network problem. Setting ``maxTimeMS`` on that operation to 5000, or 
-   5 seconds, means that your application receives feedback as soon as 
+   If your application reads and displays simple product information
+   from an ``inventory`` collection, you can be reasonably confident
+   that those read operations only take a moment. An unusually
+   long-running query is a good indicator that there is a lasting
+   network problem. Setting ``maxTimeMS`` on that operation to 5000, or
+   5 seconds, means that your application receives feedback as soon as
    you are confident there is a network problem.
 
 Test Failover
 -------------
 
-In the spirit of 
-`chaos testing <https://en.wikipedia.org/wiki/Chaos_engineering>`__, 
-|service| will perform replica 
-set elections automatically for periodic maintenance and certain 
+In the spirit of
+`chaos testing <https://en.wikipedia.org/wiki/Chaos_engineering>`__,
+|service| will perform replica
+set elections automatically for periodic maintenance and certain
 configuration changes.
 
 To check if your application is resilient to replica set elections,
-:hardlink:`test the failover process </tutorial/test-failover/>` by 
+:hardlink:`test the failover process </tutorial/test-failover/>` by
 simulating a failover event.
 
 Resilient Example Application
 -----------------------------
 
-The following example application brings together the recommendations for building resilient applications.
+The following example application brings together the recommendations
+for building resilient applications.
 
-The application is a simple user records 
-|api| that exposes two endpoints on ``localhost:3000``:
+The application is a simple user records
+|api| that exposes two endpoints on http://localhost:3000:
 
-- ``GET /users`` to get a list of user names from a ``users``
-  collection.
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
 
-- ``POST /users``, with a ``name`` in the request body, to add a new 
-  user to a ``users`` collection.
+   * - Method
+     - Endpoint
+     - Description
+
+   * - ``GET``
+     - ``/users``
+     - Gets a list of user names from a ``users`` collection.
+
+   * - ``POST``
+     -  ``/users``
+     - Requires a ``name`` in the request body. Adds a new user to a
+       ``users`` collection.
+
+.. tabs-pillstrip:: languages
 
 .. tabs-drivers::
 
@@ -377,10 +467,16 @@ The application is a simple user records
      - id: nodejs
        content: |
 
+         .. note::
+            The following server application uses
+            `Express <https://github.com/expressjs/express>`__,
+            which you need to add to your project as a dependency
+            before you can run it.
+
          .. code-block:: javascript
             :linenos:
             :emphasize-lines: 5, 14, 33, 47
-            
+
             const express = require('express');
             const bodyParser = require('body-parser');
 
@@ -406,7 +502,7 @@ The application is a simple user records
 
             app.get('/users', (req, res) => {
                 const collection = client.db("test").collection("users");
-                
+
                 collection
                 .find({})
                 // In this example, 'maxTimeMS' throws an error after 5 seconds,
@@ -445,3 +541,110 @@ The application is a simple user records
                     console.log('Connected.');
                 });
             });
+
+     - id: java-sync
+       content: |
+
+         .. note::
+            The following server application uses
+            `NanoHTTPD <https://github.com/NanoHttpd/nanohttpd>`__ and
+            `json <https://mvnrepository.com/artifact/org.json/json>`__ 
+            which you need to add to your project as dependencies before you 
+            can run it.
+
+         .. code-block:: java
+            :linenos:
+
+            // File: App.java
+
+            import java.util.Map;
+            import java.util.logging.Logger;
+
+            import org.bson.Document;
+            import org.json.JSONArray;
+
+            import com.mongodb.MongoException;
+            import com.mongodb.client.MongoClient;
+            import com.mongodb.client.MongoClients;
+            import com.mongodb.client.MongoCollection;
+            import com.mongodb.client.MongoDatabase;
+
+            import fi.iki.elonen.NanoHTTPD;
+
+            public class App extends NanoHTTPD {
+                private static final Logger LOGGER = Logger.getLogger(App.class.getName());
+
+                static int port = 3000;
+                static MongoClient client = null;
+
+                public App() throws Exception {
+                    super(port);
+
+                    // Replace the uri string with your MongoDB deployment's connection string
+                    String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+                    client = MongoClients.create(uri);
+
+                    start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+                    LOGGER.info("\nStarted the server: http://localhost:" + port + "/ \n");
+                }
+
+                public static void main(String[] args) {
+                    try {
+                        new App();
+                    } catch (Exception e) {
+                        LOGGER.severe("Couldn't start server:\n" + e);
+                    }
+                }
+
+                @Override
+                public Response serve(IHTTPSession session) {
+                    StringBuilder msg = new StringBuilder();
+                    Map<String, String> params = session.getParms();
+
+                    Method reqMethod = session.getMethod();
+                    String uri = session.getUri();
+
+                    if (Method.GET == reqMethod) {
+                        if (uri.equals("/")) {
+                            msg.append("Welcome to my API!");
+                        } else if (uri.equals("/users")) {
+                            msg.append(listUsers(client));
+                        } else {
+                            msg.append("Unrecognized URI: ").append(uri);
+                        }
+                    } else if (Method.POST == reqMethod) {
+                        try {
+                            String name = params.get("name");
+                            if (name == null) {
+                                throw new Exception("Unable to process POST request: 'name' parameter required");
+                            } else {
+                                insertUser(client, name);
+                                msg.append("User successfully added!");
+                            }
+                        } catch (Exception e) {
+                            msg.append(e);
+                        }
+                    }
+
+                    return newFixedLengthResponse(msg.toString());
+                }
+
+                static String listUsers(MongoClient client) {
+                    MongoDatabase database = client.getDatabase("test");
+                    MongoCollection<Document> collection = database.getCollection("users");
+
+                    final JSONArray jsonResults = new JSONArray();
+                    collection.find().forEach((result) -> jsonResults.put(result.toJson()));
+
+                    return jsonResults.toString();
+                }
+
+                static String insertUser(MongoClient client, String name) throws MongoException {
+                    MongoDatabase database = client.getDatabase("test");
+                    MongoCollection<Document> collection = database.getCollection("users");
+
+                    collection.insertOne(new Document().append("name", name));
+                    return "Successfully inserted user: " + name;
+                }
+            }
+
