@@ -4,43 +4,70 @@ Insert or Update in a Single Operation
 
 .. default-domain:: mongodb
 
-Many applications require the ability to insert new documents into a
-collection as well as the ability to update a document already within
-that collection. However, certain workflows benefit from the ability to
-complete *either* of these operations depending on whether or not a
-matching document already exists in the collection. This can simplify
-application logic and remove the need for initialization logic for
-certain kinds of document.
+If your application stores and modifies data in MongoDB, you probably use
+insert and update operations. In certain workflows, you may need to choose
+between an insert and update depending on whether the document exists.
+In these cases, you can streamline your application logic by using the
+``upsert`` option available in the following methods:
 
-Consider a messaging application that keeps track of users using phone
-numbers as a unique identifier. When a new user signs up for an account,
-it is possible that an older account was already created by a user who
-had that phone number in the past, since phone numbers are often reused.
-If the application relied solely upon an insert for creating a new
-account, the insert would fail, since that phone number was already in
-the collection. But if that same application used an upsert, the insert
-could succeed.
+- :doc:`updateOne() </usage-examples/updateOne>`
+- :doc:`replaceOne() </usage-examples/replaceOne>`
+- :doc:`updateMany() </usage-examples/updateMany>`
 
-While some workflows only require the ability to insert or update
-documents as discrete operations, many applications benefit from the
-ability to either update a document if a matching document is found or
-insert a new document if no matching document is found. For this reason,
-the ``upsert`` option exists for the :doc:`updateOne()
-</usage-examples/updateOne>`, :doc:`replaceOne()
-</usage-examples/replaceOne>`, and :doc:`updateMany()
-</usage-examples/updateMany>` methods. Set this option to ``true`` in
-the ``options`` object passed to either method to insert a document if
-no matching document is found. If a matching document is not found for
-the ``updateOne()`` or ``updateMany()`` methods, literal values in the
-query document are used to instantiate a new document and the update
-document is subsequently used to alter that document.
+If the query filter passed to these methods does not find any matches and
+you set the ``upsert`` option to ``true``, MongoDB inserts the update
+document. Let's go through an example.
+
+Suppose your application tracks the current location of food trucks,
+storing the nearest address data in a MongoDB collection that resembles the
+following:
 
 .. code-block:: javascript
 
-   // define an empty query document
-   const query = {"address":"1780 State Route 860"};
-   const update = {"address":"42 Avenue B"};
-   const options = {
-      upsert: true
-   }
-   collection.updateOne(query, update, options)
+   [
+     { name: "Haute Skillet", address: "42 Avenue B" },
+     { name: "Lady of the Latke", address: "35 Fulton Rd" },
+     ...
+   ]
+
+
+As an application user, you read about a food truck changing its regular
+location and want to apply the update. This update might resemble the
+following:
+
+.. code-block:: javascript
+
+   const query = { name: "Deli Llama" };
+   const update = { name: "Deli Llama", address: "3 Nassau St" };
+   const options = {};
+   collection.updateOne(query, update, options);
+
+If a food truck named "Deli Llama" exists, the method call above updates
+the document in the collection. However, if there are no food trucks named
+"Deli Llama" in your collection, no changes are made.
+
+Consider the case in which you want to add information about the food
+truck even if it does not currently exist in your collection. Rather than
+first querying whether it exists to determine whether we need to insert or
+update the document, we can set ``upsert`` to ``true`` in our call to
+``updateOne()`` as follows:
+
+.. code-block:: javascript
+
+   const query = { name: "Deli Llama" };
+   const update = { name: "Deli Llama", address: "3 Nassau St" };
+   const options = { upsert: true };
+   collection.updateOne(query, update, options);
+
+After you run the operation above, your collection should resemble the
+following, whether the "Deli Llama" document existed in your collection
+beforehand:
+
+.. code-block:: javascript
+
+   [
+     { name: "Haute Skillet", address: "42 Avenue B" },
+     { name: "Lady of the Latke", address: "35 Fulton Rd" },
+     { name: "Deli Llama", address: "3 Nassau St" },
+     ...
+   ]
