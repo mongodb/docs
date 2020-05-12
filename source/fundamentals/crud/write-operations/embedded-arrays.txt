@@ -4,36 +4,37 @@ Update Arrays in a Document
 
 .. default-domain:: mongodb
 
-To modify arrays embedded within a document, use the
-:manual:`filtered positional operator
-</reference/operator/update/positional-filtered/index.html>`. You can
-use this operator in an :doc:`update document
-</fundamentals/crud/write-operations/change-a-document>` to modify
-specific elements in an array. The operator determines which elements
-to modify based on a query filter that you define in the
-``arrayFilters`` option.
+If you need to modify an array embedded within a document, you can use an
+array update operator in your update method call. In this guide, we
+explain and show examples on usage of these operators including:
 
-You can think of ``arrayFilters`` as an subquery applied
-only to documents already matched by the update operation's query filter
-(the first parameter for ``updateOne()`` and ``updateMany()``). This
-query finds all positions in the referenced array that match your
-criteria, and you can use the returned position values to modify only
-those positions.
+- :ref:`First array element match positional operator <first-match-operator>`: ``$``
+- :ref:`All array element match operator <all-match-operator>`: ``$[]``
+- :ref:`Filtered positional operator <filtered-positional-operator>`: ``$[<identifier>]``
 
-Example
-~~~~~~~
+See the MongoDB server guide on
+:manual:`Update Operators </reference/operator/update-array/#update-operators>`
+for a complete list.
 
-The following example demonstrates how you can use the filtered
-position operator with ``arrayFilters`` to modify only specific
-elements of arrays embedded within documents matched by the query.
-Consider a pizza shop's order collection containing the following order:
+Examples
+~~~~~~~~
+
+The following examples use a database called ``test`` and collection
+called ``pizza`` which contains documents that describe customers and
+their pizza shop orders as array elements in field called ``items``. Use
+the following sample document to follow the example queries:
 
 .. code-block:: javascript
 
-   {
+   [{
       name: "Steve Lobsters",
       address: "731 Yexington Avenue",
       items: [
+        {
+          type: "beverage",
+          name: "Water",
+          size: "17oz"
+        },
         {
           type: "pizza",
           size: "large",
@@ -61,53 +62,245 @@ Consider a pizza shop's order collection containing the following order:
           size: "16oz",
         },
       ],
-    }
-
-If the customer calls back a few minutes later to adjust their order,
-the pizza shop can use the filtered positional operator to update only
-certain ``items`` in the order that match criteria specified in
-``arrayFilters``. In this case, the shop needs to add salami to *only*
-the large pepperoni pizza in Steve Lobsters' order:
-
-.. literalinclude:: /code-snippets/crud/arrayFilters.js
-   :language: javascript
-   :start-after: start arrayFilters example
-   :end-before: end arrayFilters example
-   :dedent: 4
-
-This operation produces the following modified order:
-
-.. code-block:: javascript
-
-   {
-      name: "Steve Lobsters",
-      address: "731 Yexington Avenue",
+    },
+    {
+      name: "Popeye",
+      address: "1 Sweethaven",
       items: [
         {
           type: "pizza",
           size: "large",
-          toppings: ["pepperoni", "salami"],
-        },
-        {
-          type: "pizza",
-          size: "medium",
-          toppings: ["mushrooms", "sausage", "green peppers"],
-          comment: "Extra green peppers please!",
-        },
-        {
-          type: "pizza",
-          size: "large",
-          toppings: ["pineapple, ham"],
-          comment: "red pepper flakes on top",
+          toppings: ["garlic, spinach"],
         },
         {
           type: "calzone",
-          fillings: ["canadian bacon", "sausage", "onion"],
-        },
-        {
-          type: "beverage",
-          name: "Diet Pepsi",
-          size: "16oz",
+          toppings: ["ham"],
         },
       ],
-    }
+    }]
+
+
+.. _first-match-operator:
+
+Match the First Array Element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform the update on only the first array element of each document
+that matches your query document in your update operation, use the ``$``
+positional array update operator. This update operator references the array
+matched by the query filter and cannot be used to reference an array nested
+within that array. For cases in which you need to access the nested arrays,
+use the :ref:`filtered positional operator <filtered-positional-operator>`.
+
+The following code snippet shows how you can use the ``$`` array update
+operator to update the size of the first pizza order item to "extra large"
+for the customer named "Steve Lobsters".
+
+.. literalinclude:: /code-snippets/crud/arrayFilters.js
+   :language: javascript
+   :start-after: start firstArrayElement example
+   :end-before: end firstArrayElement example
+   :dedent: 4
+
+Once the update operation is run, the document contains the new value for
+size for the first item:
+
+.. code-block:: javascript
+
+   {
+     name: "Steve Lobsters",
+     ...
+     items: [
+       {
+         type: "pizza",
+         size: "extra large",
+         ...
+   }
+
+The query filter matches all documents that contain an element embedded in
+the ``items`` array that contain a value of ``pizza`` in the ``type`` field.
+The ``updateDocument`` specifies the update operation should set the
+first array element match in ``items`` to "extra large".
+
+Note that we included both ``name`` and ``items.type`` fields in the query
+filter in order to match the array in which we apply the ``$`` operator. If we
+omit the ``items.type`` field from the query and specify the ``$`` operator
+in our update, we encounter the following error:
+
+.. code-block:: none
+
+   The positional operator did not find the match needed from the query.
+
+.. warning::
+
+   Do not use the ``$`` operator in an ``upsert`` call because the ``$``
+   is treated as a field name in the insert document.
+
+.. _all-match-operator:
+
+Match All Array Elements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform the update on all of the array elements of each document that
+matches your query document in your update operation, use the all
+positional operator, ``$[]``.
+
+The following code snippet shows how you can use the ``$[]`` array update
+operator to add "fresh mozzarella" to the toppings of all of Popeye's
+order items.
+
+.. literalinclude:: /code-snippets/crud/arrayFilters.js
+   :language: javascript
+   :start-after: start allArrayElement example
+   :end-before: end allArrayElement example
+   :dedent: 4
+
+After you run the update method, your customer document for "Popeye" should
+resemble the following:
+
+.. code-block:: javascript
+
+   {
+     "name":"Popeye",
+     ...
+     "items": [
+       {
+         "type": "pizza",
+         ...
+         "toppings": ["garlic", "spinach", "fresh mozzarella"],
+       },
+       {
+         "type": "calzone",
+         ...
+         "toppings":["ham", "fresh mozzarella"],
+       },
+     ]
+   }
+
+.. _filtered-positional-operator:
+
+Filtered Positional Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the previous sections, we used the ``$`` operator to match the first
+array element and the ``$[]`` operator to match all array elements. In this
+section, we use the filtered positional operator to match all embedded
+array elements that match our specified criteria.
+
+The filtered positional operator, denoted by ``$[<identifier>]``,
+specifies the matching array elements in the update document. This
+operator is paired with query filters in an ``arrayFilters`` object in
+your update operation's ``options`` parameter to identify which array
+elements to match.
+
+The ``<identifier>`` term is a placeholder value you designate that represents
+an element of the array field name that prefixes it. For example, to add a
+"garlic" topping to certain order items using this operator, format your
+update document as follows:
+
+.. code-block:: javascript
+
+   { $push: { items.$[orderItem].toppings: "garlic" } }
+
+.. note::
+
+   The <identifier> placeholder name must start with lowercase and contain
+   only alphanumeric characters.
+
+This update document specifies the following:
+
+- ``$push``: the update operator
+- ``items``: the array in the document to update
+- ``orderItem``: the identifier for the filtered positional operator
+- ``toppings``: the field on the ``items`` array element to update
+- ``garlic``: the value to push onto the ``toppings`` array
+
+Next, add the matching criteria in your ``arrayFilters`` object in your update
+operation's ``options`` parameter. This object is an array of query filters
+that specify which array elements to include in the update. To add the
+"garlic" topping to order items of type "pizza" and "large size", pass the
+following ``arrayFilters``:
+
+.. code-block:: javascript
+
+   arrayFilters: [
+     { orderItem.type: "pizza" },
+     { orderItem.size: "large" }
+   ]
+
+The following snippet shows the complete update method for this example:
+
+.. literalinclude:: /code-snippets/crud/arrayFilters.js
+   :language: javascript
+   :start-after: start arrayFiltersOne example
+   :end-before: end arrayFiltersOne example
+   :dedent: 4
+
+After we run the method above, all of the large pizza order items for
+customer "Steve Lobsters" now contain "garlic" in the ``toppings`` field:
+
+.. code-block:: javascript
+
+   {
+     name: "Steve Lobsters",
+     ...
+     items: [
+       {
+         type: "pizza",
+         size: "large",
+         toppings: ["pepperoni", "garlic"]
+       },
+       {
+         type: "pizza",
+         size: "large",
+         toppings: ["pineapple", "ham", "garlic"]
+         ...
+   }
+
+Let's run through another example. Suppose "Steve Lobsters" wants to
+adjust their order to add "salami" as a topping to *only* the large
+pepperoni pizza, you can use the filtered positional operator to perform
+the update as follows:
+
+.. literalinclude:: /code-snippets/crud/arrayFilters.js
+   :language: javascript
+   :start-after: start arrayFiltersTwo example
+   :end-before: end arrayFiltersTwo example
+   :dedent: 4
+
+After we run the update method, the document resembles the following:
+
+.. code-block:: javascript
+
+   {
+     name: "Steve Lobsters",
+     address: "731 Yexington Avenue",
+     items: [
+       {
+         type: "pizza",
+         size: "large",
+         toppings: ["pepperoni", "salami"],
+       },
+       {
+         type: "pizza",
+         size: "medium",
+         toppings: ["mushrooms", "sausage", "green peppers"],
+         comment: "Extra green peppers please!",
+       },
+       {
+         type: "pizza",
+         size: "large",
+         toppings: ["pineapple, ham"],
+         comment: "red pepper flakes on top",
+       },
+       {
+         type: "calzone",
+         fillings: ["canadian bacon", "sausage", "onion"],
+       },
+       {
+         type: "beverage",
+         name: "Diet Pepsi",
+         size: "16oz",
+       },
+     ],
+   }
