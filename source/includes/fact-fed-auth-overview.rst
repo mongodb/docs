@@ -1,5 +1,16 @@
-Federated Authentication links your credentials across many systems. You
-can authenticate to |service| and other MongoDB cloud services using
-your company's credentials through an Identity Provider (|idp|). This
-authentication flow ensures a unified login experience for your
-users and reduces the number of credentials they have to remember.
+MongoDB Federated Authentication links your credentials across many
+MongoDB systems. |service| implements authentication using the
+Federated Identity Management model.
+
+Using the |fim| model:
+
+- Your company manages your credentials using an Identity Provider
+  (|idp|). With its |idp|, your company can enable you to authenticate
+  with other services across the web.
+
+- You configure |service-fullname| to authenticate using data passed
+  from your |idp|.
+
+This goes beyond |sso| as your |idp| manages your credentials, not
+MongoDB. Your users can use |service| without needing to remember
+another username and password.
