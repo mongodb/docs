@@ -7,10 +7,9 @@
      - Description
      - Required?
 
-   * - ``<hostname>:<port>``
+   * - ``<hostID>``
      - String
-     - The hostname of the server running the MongoDB process
-       and the port on which the process listens.
+     - The host ID of the server running the MongoDB process.
      - yes
 
    * - ``<partition-name>``
