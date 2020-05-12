@@ -73,7 +73,7 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * - ``measurements.units``
      - string
-     - How the measurement is quantified. Possible units are:
+     - Units of measurement. Possible units are:
 
        - ``PERCENT``
        - ``MILLISECONDS``

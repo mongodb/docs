@@ -31,9 +31,7 @@
        - ``PT5M``
        - ``PT1H``
        - ``P1D``
-   
-       When you specify ``granularity``, you must specify either ``period``
-       *or* ``start`` and ``end``.
+       
      - yes
    
    * - ``period``
@@ -95,6 +93,16 @@
           
             - Measures the free disk space and used disk space on the disk partition
               used by MongoDB.
+     - no
+
+   * - ``--limit``
+     - number
+     - Number of items per page.
+     - no
+
+   * - ``--page``
+     - number
+     - Page number
      - no
 
    * - ``--profile``, ``-P``
