@@ -1,15 +1,29 @@
+.. _atlas_20200512:
+
+12 May 2020 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Introduces :ref:`Cross-Org Billing <cross-org-billing>` for customers
+  on annual subscriptions.
+
+- Changes default for new Atlas cluster deployments to |tls| 1.2
+  from |tls| 1.1.
+
+- Adds Atlas Search support for geospatial search queries and
+  autocomplete features.
+
 .. _atlas_20200422:
 
 22 April 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Redesigns the MongoDB Cloud navigation.
-- Introduces :doc:`schema suggestions </performance-advisor/schema-advisor>` 
+- Introduces :doc:`schema suggestions </performance-advisor/schema-advisor>`
   in Performance Advisor and Data Explorer.
 - Reduces the price of |nvme| storage for |aws| clusters.
-- Supports the following :ref:`advanced federation options
-  <fed-auth-advanced>` for customers who use |saml|\-based single 
-  sign-on:
+- Supports the following
+  :ref:`advanced federation options <fed-auth-advanced>` for customers
+  who use |saml|\-based single sign-on:
 
   - Restrict organization membership
   - Restrict access by domain
@@ -17,8 +31,7 @@
 
 - Removes legacy Continuous Backup as an option for new |gcp|\- and
   |azure|\-backed clusters. New |gcp|\- and |azure|\-backed clusters
-  use :doc:`Cloud Provider Snapshots 
-  </backup/cloud-provider-snapshots/>` for backup.
+  use :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>` for backup.
 
 .. _atlas_20200331:
 
