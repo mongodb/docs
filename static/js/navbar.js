@@ -178,12 +178,11 @@ class Navbar extends preact.Component {
             return <a href={ link.url } key={i} className={ linkClass }>{ link.text }</a>;
         });
 
-        const bannerUrl = document.body.clientWidth > 1200 ? 'https://docs.mongodb.com/images/mongodb-live-banner.png' : 'https://docs.mongodb.com/images/mongodb-live-banner-mobile.png';
-
         return (
             <div style="position: fixed; top: 0;">
                 <a href="https://www.mongodb.com/world">
-                    <img src={bannerUrl} alt="MongoDB.live Banner" />
+                    <img className="show-medium-and-up" src="https://docs.mongodb.com/images/mongodb-live-banner.png"  alt="Register Now for MongoDB.live, free & fully virtual on June 9th-10th" />
+                    <img className="hide-medium-and-up" src="https://docs.mongodb.com/images/mongodb-live-banner-mobile.png" alt="Register Now for MongoDB.live, free & fully virtual on June 9th-10th" />
                 </a>
                 <nav className="navbar">
                     <div className="navbar__left">
