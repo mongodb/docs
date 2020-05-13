@@ -1,3 +1,13 @@
+.. _data-lake-v20200512:
+
+12 May 2020 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Automates storage configuration generation for newly created
+  {+data-lake+}s
+- Allows write partitioning-aware data to S3 using the :pipeline:`$out`
+  in {+data-lake+}
+
 .. _data-lake-v20200505:
 
 05 May 2020 Release
