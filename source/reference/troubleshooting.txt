@@ -27,7 +27,7 @@ invoke one of the following commands:
      kubectl get <resource-name> -n <namespace> -o yaml
 
   - The ``status.applicationDatabase.phase`` field displays the
-    Application Database resource deployment status. 
+    Application Database resource deployment status.
   - The ``status.backup.phase`` displays the backup daemon resource
     deployment status.
   - The ``status.opsManager.phase`` field displays the |onprem| resource
@@ -35,7 +35,7 @@ invoke one of the following commands:
 
   .. note::
 
-     The ``opsManager`` controller watches the database resources 
+     The ``opsManager`` controller watches the database resources
      defined in the following settings:
 
      - :opsmgrkube:`spec.backup.opLogStores`
@@ -321,20 +321,26 @@ those pods.
 Replace a ConfigMap to Reflect Changes
 ---------------------------------------
 
-If you are unable to modify or redeploy an already-deployed configMap file using the *kubectl apply* command, invoke the following 
-instead:
+If you are unable to modify or redeploy an already-deployed configMap file using the *kubectl apply* command, invoke the following:
 
 .. code-block:: shell
 
-      kubectl replace -f <my-config-map>.yaml 
+      kubectl replace -f <my-config-map>.yaml
 
 This will delete and re-create a resource. This command is useful in cases where you need to update resource files that cannot be updated
-once initialized or want to make an immediate recursive change. 
+once initialized or want to make an immediate recursive change.
+
+Remove |k8s| Components
+-----------------------
+
+.. important::
+
+   .. include:: /includes/facts/remove-component-permissions.rst
 
 .. _remove-k8s-resource:
 
 Remove a |k8s-mdbrsc|
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 To remove any instance that |k8s| deployed, you must use |k8s|.
 
@@ -361,7 +367,7 @@ To remove any instance that |k8s| deployed, you must use |k8s|.
 .. _remove-k8s-operator:
 
 Remove the |k8s-op-short|
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To remove the |k8s-op-short|:
 
@@ -377,10 +383,31 @@ To remove the |k8s-op-short|:
 
       kubectl delete deployment mongodb-enterprise-operator -n <metadata.namespace>
 
+.. _remove-k8s-crds:
+
+Remove the |k8s-crds|
+~~~~~~~~~~~~~~~~~~~~~
+
+To remove the |k8s-crds|:
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
+
+   .. code-block:: shell
+
+      kubectl delete mdb --all -n <metadata.namespace>
+
+2. Remove the |k8s-crds|:
+
+   .. code-block:: shell
+
+      kubectl delete crd MongoDB
+      kubectl delete crd MongoDBUSer
+      kubectl delete crd MongoDBOpsManager
+
 .. _remove-k8s-namespace:
 
 Remove the |k8s-ns|
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 To remove the |k8s-ns|:
 
@@ -396,24 +423,6 @@ To remove the |k8s-ns|:
 
       kubectl delete namespace <metadata.namespace>
 
-.. _remove-k8s-crds:
-
-Remove the |k8s-crds|
----------------------
-
-To remove the |k8s-crds|:
-
-1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
-
-   .. code-block:: shell
-
-      kubectl delete mdb --all -n <metadata.namespace>
-
-2. Remove the |k8s-crds|:
-
-   .. code-block:: shell
-
-      kubectl delete crd --all
 
 .. _k8s-disable-feature-controls:
 
@@ -421,17 +430,14 @@ Disable |onprem| Feature Controls
 ---------------------------------
 
 When you manage an |onprem| project through the |k8s-op-short|, the
-|k8s-op-short| places the ``EXTERNALLY_MANAGED_LOCK`` :opsmgr:`feature
-control policy
-</reference/api/controlled-features/get-all-feature-control-policies/#response>`
+|k8s-op-short| places the ``EXTERNALLY_MANAGED_LOCK``
+:opsmgr:`feature control policy </reference/api/controlled-features/get-all-feature-control-policies/#response>`
 on the project. This policy disables certain features in the |onprem|
 application that might compromise your |k8s-op-short| configuration. If
 you need to use these blocked features, you can remove the policy
-through the :opsmgr:`feature controls API
-</reference/api/controlled-features/update-controlled-features-for-one-project/>`,
+through the :opsmgr:`feature controls API </reference/api/controlled-features/update-controlled-features-for-one-project/>`,
 make changes in the |onprem| application, and then restore the original
-policy through the :opsmgr:`API
-</reference/api/controlled-features/update-controlled-features-for-one-project/>`.
+policy through the :opsmgr:`API </reference/api/controlled-features/update-controlled-features-for-one-project/>`.
 
 .. warning::
 
@@ -448,13 +454,13 @@ policy through the :opsmgr:`API
            --header "Accept: application/json" \
            --header "Content-Type: application/json" \
            --include \
-           --request GET "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true"      
-   
+           --request GET "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true"
+
    .. important::
 
       Save the response that the API returns. After you make changes in
       the |onprem| application, you must add these policies back to
-      the project. 
+      the project.
 
    Your response should be similar to:
 
@@ -480,9 +486,8 @@ policy through the :opsmgr:`API
        "updated": "2020-02-25T04:10:12Z"
      }
 
-#. :opsmgr:`Update
-   </reference/api/controlled-features/update-controlled-features-for-one-project/>`
-   the ``policies`` array with an empty list: 
+#. :opsmgr:`Update </reference/api/controlled-features/update-controlled-features-for-one-project/>`
+   the ``policies`` array with an empty list:
 
    .. code-block:: sh
 
@@ -491,7 +496,7 @@ policy through the :opsmgr:`API
            --header "Content-Type: application/json" \
            --include \
            --request PUT "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true" \
-           --data 
+           --data
              '{
                "externalManagementSystem": {
                  "name": "mongodb-enterprise-operator",
@@ -506,9 +511,8 @@ policy through the :opsmgr:`API
 
 #. Make your changes in the |onprem| application.
 
-#. :opsmgr:`Update
-   </reference/api/controlled-features/update-controlled-features-for-one-project/>`
-   the ``policies`` array with the original feature control policies: 
+#. :opsmgr:`Update </reference/api/controlled-features/update-controlled-features-for-one-project/>`
+   the ``policies`` array with the original feature control policies:
 
    .. code-block:: sh
 
@@ -517,7 +521,7 @@ policy through the :opsmgr:`API
            --header "Content-Type: application/json" \
            --include \
            --request PUT "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true" \
-           --data 
+           --data
              '{
                "externalManagementSystem": {
                  "name": "mongodb-enterprise-operator",
