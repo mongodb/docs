@@ -1,19 +1,3 @@
-Output 
------- 
-
-.. include:: /includes/command-output-intro.rst
-
-.. admonition:: Free Tier
-   :class: important
-
-   ``M0`` Free Tier and ``M2/M5`` shared-tier clusters return a subset
-   of the metrics documented here.
-
-If you set the query element ``envelope`` to ``true``, the response is wrapped
-by the ``content`` object.
-
-The HTTP response returns a JSON document that includes the following objects:
-
 .. list-table::
    :header-rows: 1
    :widths: 30 10 60
@@ -36,11 +20,11 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * - ``groupId``
      - string
-     - ID of the project that owns the |service| MongoDB process.
+     - The ID of the project that owns the MongoDB process.
 
    * - ``hostId``
      - string
-     - The hostname of the machine running the |service| MongoDB process.
+     - The hostname of the machine running the MongoDB process.
 
    * - ``links``
      - array
@@ -52,28 +36,13 @@ The HTTP response returns a JSON document that includes the following objects:
      - object array
      - An array of measurements and their data points.
 
-   * - ``measurements.dataPoints``
-     - object array
-     - An array of objects, where each object represents a single data
-       point. If there is no data point available for a particular moment in
-       time (i.e., a timestamp), the ``value`` field is set to ``null``.
-
-   * - ``measurements.dataPoints.timestamp``
-     - string
-     - The timestamp of the beginning of the time interval represented by this
-       data point.
-
-   * - ``measurements.dataPoints.value``
-     - float
-     - The value of the data point.
-
    * - ``measurements.name``
      - string
      - The name of the measurement.
 
    * - ``measurements.units``
      - string
-     - Units of measurement. Possible units are:
+     - How the measurement is quantified. Possible units are:
 
        - ``PERCENT``
        - ``MILLISECONDS``
@@ -91,7 +60,7 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * -  ``processId``
      - string
-     - The hostname and port of the machine running the |service| MongoDB
+     - The hostname and port of the machine running the MongoDB
        process.
 
    * - ``start``
