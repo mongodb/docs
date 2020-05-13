@@ -7,11 +7,11 @@ import preact from 'preact';
 
 // PM has asked that we not use the download arrow anymore, so commenting this out.
 // function DownloadArrowIcon() {
-//     return (<svg height="11" width="9" xmlns="http://www.w3.org/2000/svg"><path d="m8.8 6.8-1.2-1.2-2.1 2v-7.6h-1.7v7.6l-2.1-2-1.2 1.2 4.2 4.2z" fill="#69b241"/></svg>);
+//     return (<svg height="11" width="9" xmlns="http://www.w3.org/2000/svg"><path d="m8.8 6.8-1.2-1.2-2.1 2v-7.6h-1.7v7.6l-2.1-2-1.2 1.2 4.2 4.2z" fill="#13aa52"/></svg>);
 // }
 
 function RocketDownloadIcon() {
-    return (<svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g id="Icons" fill="#69b241"><path class="cls-1" d="M15.67.32a.79.79,0,0,0-.76-.2,18.67,18.67,0,0,0-3.77,1.22l3.51,3.51a18.64,18.64,0,0,0,1.22-3.77A.79.79,0,0,0,15.67.32Z"/><path class="cls-1" d="M8,3.5,2.31,9.22l4.45,4.45L12.49,8a11,11,0,0,0,1.35-1.68L9.72,2.15A11,11,0,0,0,8,3.5Z"/><path class="cls-1" d="M1.2,11.45C.28,12.37.09,15.91.09,15.91s3.53-.19,4.45-1.11a2.34,2.34,0,0,0,.68-1.55L2.75,10.77A2.34,2.34,0,0,0,1.2,11.45Z"/><polygon class="cls-1" points="4.83 5.88 1.2 5.88 0.09 7 1.9 8.81 4.83 5.88"/><polygon class="cls-1" points="8.99 15.91 10.11 14.79 10.11 11.18 7.19 14.1 8.99 15.91"/></g></svg>);
+    return (<svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g id="Icons" fill="#13aa52"><path class="cls-1" d="M15.67.32a.79.79,0,0,0-.76-.2,18.67,18.67,0,0,0-3.77,1.22l3.51,3.51a18.64,18.64,0,0,0,1.22-3.77A.79.79,0,0,0,15.67.32Z"/><path class="cls-1" d="M8,3.5,2.31,9.22l4.45,4.45L12.49,8a11,11,0,0,0,1.35-1.68L9.72,2.15A11,11,0,0,0,8,3.5Z"/><path class="cls-1" d="M1.2,11.45C.28,12.37.09,15.91.09,15.91s3.53-.19,4.45-1.11a2.34,2.34,0,0,0,.68-1.55L2.75,10.77A2.34,2.34,0,0,0,1.2,11.45Z"/><polygon class="cls-1" points="4.83 5.88 1.2 5.88 0.09 7 1.9 8.81 4.83 5.88"/><polygon class="cls-1" points="8.99 15.91 10.11 14.79 10.11 11.18 7.19 14.1 8.99 15.91"/></g></svg>);
 }
 
 class Navbar extends preact.Component {
@@ -178,27 +178,34 @@ class Navbar extends preact.Component {
             return <a href={ link.url } key={i} className={ linkClass }>{ link.text }</a>;
         });
 
+        const bannerUrl = document.body.clientWidth > 1200 ? 'https://docs.mongodb.com/images/mongodb-live-banner.png' : 'https://docs.mongodb.com/images/mongodb-live-banner-mobile.png';
+
         return (
-            <nav className="navbar">
-                <div className="navbar__left">
-                    <a href="https://www.mongodb.com/">
-                        <img src="https://docs.mongodb.com/images/mongodb-logo.png" className="navbar-brand" alt="MongoDB Logo" />
-                    </a>
+            <div style="position: fixed; top: 0;">
+                <a href="https://www.mongodb.com/world">
+                    <img src={bannerUrl} alt="MongoDB.live Banner" />
+                </a>
+                <nav className="navbar">
+                    <div className="navbar__left">
+                        <a href="https://www.mongodb.com/">
+                            <img src="https://docs.mongodb.com/images/mongodb-logo.png" className="navbar-brand" alt="MongoDB Logo" />
+                        </a>
 
-                    <span className="navbar-seperator"></span>
+                        <span className="navbar-seperator"></span>
 
-                    <NavbarDropdown links={this.state.dropdown} />
-                </div>
-
-                <div className="navbar__right">
-                    <div className="navbar-links">
-                        { linkElements }
+                        <NavbarDropdown links={this.state.dropdown} />
                     </div>
 
-                    <NavbarDownloadButton />
-                    { searchBar }
-                </div>
-            </nav>
+                    <div className="navbar__right">
+                        <div className="navbar-links">
+                            { linkElements }
+                        </div>
+
+                        <NavbarDownloadButton />
+                        { searchBar }
+                    </div>
+                </nav>
+            </div>
         );
     }
 }
