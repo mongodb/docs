@@ -1,3 +1,21 @@
+.. _opsmgr-server-4.0.18:
+
+|onprem| Server 4.0.18
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2020-05-14*
+
+- Upgrade from `urllib3 <https://urllib3.readthedocs.io/en/latest/>`__
+  1.15.8 to 1.25.2 due to a
+  :snyk-vuln:`Denial of Service (DoS) vulnerability <SNYK-PYTHON-URLLIB3-559452>`.
+
+- Resolves issue when toggling the authentication mechanism for a
+  MongoDB User in the :guilabel:`Deployment` :icon-fa5:`arrow-right`
+  :guilabel:`Security` :icon-fa5:`arrow-right` :guilabel:`Users` tab
+  between :rfc:`SCRAM-SHA-256 <7677>` and :rfc:`SCRAM-SHA-1 <5802>`.
+
+- Updates |jdk| to AdoptOpenJDK 1.8.0-252.
+
 .. _opsmgr-server-4.0.17:
 
 |onprem| Server 4.0.17
@@ -5,7 +23,7 @@
 
 *Released on 2020-02-06*
 
-- Updates JDK to AdoptOpenJDK 1.8.0-242.
+- Updates |jdk| to AdoptOpenJDK 1.8.0-242.
 
 - **Upgrades Agent:** :ref:`automation-5.4.24.5565`
 
@@ -22,7 +40,7 @@
   (restores, storage engine changes, etc.) for deployments where the
   MongoDB journal directory is mounted on a separate partition.
 - Includes various security improvements.
-- Upgrades the JDK to 1.8.232.
+- Upgrades the |jdk| to 1.8.232.
 
 - **Agent Upgrades:** :ref:`automation-5.4.23.5559`,
   :ref:`backup-6.8.8.1027`, and :ref:`monitoring-6.6.3.469`
@@ -121,7 +139,7 @@
       :stub-columns: 1
 
       * - ID
-        - :cwe-id:`CVE-2019-2388 <2019-2388>`
+        - :cve-id:`CVE-2019-2388 <2019-2388>`
 
       * - Title
         - Potential exposure of log information in |onprem|
@@ -131,8 +149,8 @@
           allow attackers to view a specific access log of a publicly
           exposed |onprem| instance.
 
-      * - |cwe|
-        - :cwe:`CWE-425: Direct Request ('Forced Browsing') (4.0) <425>`
+      * - |cve|
+        - :cve-def:`CVE-425: Direct Request ('Forced Browsing') (4.0) <425>`
 
       * - |cvss| score
         - 5.8 (Medium): :cvss-score:`CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N`
