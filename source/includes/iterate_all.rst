@@ -72,7 +72,7 @@
          
          .. code-block:: java
          
-            Consumer<Document> printConsumer = new Consumer<Document>() {
+            Consumer<Document> printConsumer = new Consumer<>() {
                 public void accept(final Document doc) {
                     System.out.println(doc.toJson());
                 }
