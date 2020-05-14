@@ -8,20 +8,21 @@ Indexes
    :local:
    :backlinks: none
    :depth: 2
-   :class: singlecol   
+   :class: singlecol
 
 Overview
 --------
 
-Indexes support the efficient execution of queries in MongoDB. Without
-indexes, MongoDB must scan *every* document in a collection to find the
-documents that match each query. Collection scans are slow and can
-negatively affect the performance of your application. When an
-appropriate index exists for a query, MongoDB uses that index to limit
-the number of documents scanned, thus improving query performance. 
+Indexes are data structures that support the efficient execution of queries in
+MongoDB. They contain copies of parts of the data in documents to make
+queries more efficient.
 
-The :manual:`indexes section </indexes>` of the MongoDB manual provides a
-detailed overview of indexes in MongoDB.
+Without indexes, MongoDB must scan *every* document in a collection to find
+the documents that match each query. These collection scans are slow and can
+negatively affect the performance of your application. By using an index to
+limit the number of documents MongoDB scans, queries can be more efficient
+and therefore return faster.
+
 
 Query Coverage and Performance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,78 +30,118 @@ Query Coverage and Performance
 When you execute a query against MongoDB, your query can include three
 parts:
 
-- query criteria that specify field(s) and value(s) you are looking for,
-- options that affect the query's execution (e.g. read concern),
-
-- (optional) projection criteria to specify the fields MongoDB should
-  return
+- query criteria that specify field(s) and value(s) you are looking for
+- options that affect the query's execution (e.g. read concern)
+- projection criteria to specify the fields MongoDB should return (optional)
 
 When all the fields specified in the query criteria and projection of a
 query are indexed, MongoDB returns results directly from the index
-without scanning any documents or bringing documents into memory. Queries
-that use indexes are more performant than queries that rely on
-collection scans.
+without scanning any documents in the collection or loading them into
+memory.
 
-The MongoDB manual addresses both :manual:`query coverage
-</core/query-optimization/#read-operations-covered-query>` and
-:manual:`index intersection </core/index-intersection>` (using numerous
-indexes to fulfil a query) in more detail.
+For additional information on how to ensure your index covers your query
+criteria and projection, see the MongoDB manual articles on
+:manual:`query coverage </core/query-optimization/#read-operations-covered-query>`
+and :manual:`index intersection </core/index-intersection>`.
 
 Operational Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To improve query performance, you should build indexes on fields that
-appear often in queries and for all operations that involve sorted
-results. Each index that you add consumes disk space and memory when
-active so you should track index memory and disk usage for capacity
-planning. In addition, when a write operation updates an indexed field,
-MongoDB also has to update the index. Familiarize yourself with the :manual:`Indexing Strategies </applications/indexes>` and :manual:`Data Modeling and Indexes </core/data-model-operations/#data-model-indexes>` documentation when designing your data model and choosing the indexes appropriate for your application.
+To improve query performance, build indexes on fields that appear often in
+your application's queries and operations that return sorted results.
+Each index that you add consumes disk space and memory when active so you
+should track index memory and disk usage for capacity planning. In addition,
+when a write operation updates an indexed field, MongoDB also has to update
+the related index.
+
+For more information on designing your data model and choosing indexes
+appropriate for your application, see the MongoDB server documentation on
+:manual:`Indexing Strategies </applications/indexes>` and
+:manual:`Data Modeling and Indexes </core/data-model-operations/#data-model-indexes>`.
 
 Index Types
 -----------
 
 MongoDB supports a number of different index types to support querying
 your data. The following sections describe the most common index types
-and provide sample code that creates each index type.
+and provide sample code for creating each index type.
 
 Single Field and Compound Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:manual:`Single field indexes </core/index-single>` are user-defined ascending or descending indexes on
-a single field of a document. 
+**Single field indexes** are indexes that improve performance for queries
+that specify ascending or descending sort order on a single field of a
+document.
 
 The following example uses the ``createIndex()`` method to create an
-ascending index on the ``title`` field in the ``movies`` collection in
+ascending order index on the ``title`` field in the ``movies`` collection in
 the ``sample_mflix`` database.
 
 .. literalinclude:: /code-snippets/indexes/single-field.js
    :language: js
-   :start-after: begin-ex
-   :end-before: end-ex
+   :start-after: begin-idx
+   :end-before: end-idx
 
-:manual:`Compound indexes </core/index-compound>` are user-defined indexes on *multiple* fields. When you create a compound index, you specify the direction (i.e. ascending or descending) for each field in the index.
+The following is an example of a query that would be covered by the index
+created above.
 
-The following example uses the ``createIndex()`` method to create a compound index on the ``type`` and ``genre`` fields in the ``movies`` collection in the ``sample_mflix`` database.
+.. literalinclude:: /code-snippets/indexes/single-field.js
+   :language: js
+   :start-after: begin-query
+   :end-before: end-query
+
+See the MongoDB server manual section on
+:manual:`single field indexes </core/index-single>` for more information.
+
+**Compound indexes** are indexes that improve performance for queries that
+specify ascending or descending sort order for *multiple* fields of
+a document. You must specify the direction (ascending or descending) for
+each field in the index.
+
+The following example uses the ``createIndex()`` method to create a compound
+index on the ``type`` and ``genre`` fields in the ``movies`` collection in the
+``sample_mflix`` database.
 
 .. literalinclude:: /code-snippets/indexes/compound.js
    :language: js
-   :start-after: begin-ex
-   :end-before: end-ex
+   :start-after: begin-idx
+   :end-before: end-idx
+
+The following is an example of a query that would be covered by the index
+created above.
+
+.. literalinclude:: /code-snippets/indexes/compound.js
+   :language: js
+   :start-after: begin-query
+   :end-before: end-query
+
+See the MongoDB server manual section on
+:manual:`Compound indexes </core/index-compound>` for more information.
 
 Multikey Indexes (Indexes on Array Fields)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:manual:`Multikey indexes </core/index-multikey>` are user-defined ascending or descending indexes on
-fields that contain an array value. You define a multikey index in the
-same fashion as you would single and compound indexes: you do not 
-need to explicitly specify that an index is multikey.
+**Multikey indexes** are indexes that improve performance for queries that
+specify ascending or descending indexes on fields that contain an array value.
+You can define a multikey index using the same syntax as a single field or
+compound index.
 
-The following example use the ``createIndex()`` method to create an ascending index on the ``cast`` field in the ``movies`` collection in the ``sample_mflix`` database.
+The following example use the ``createIndex()`` method to create an ascending
+index on the ``cast`` field (array of names) in the ``movies`` collection in
+the ``sample_mflix`` database.
 
 .. literalinclude:: /code-snippets/indexes/multikey.js
    :language: js
-   :start-after: begin-ex
-   :end-before: end-ex
+   :start-after: begin-idx
+   :end-before: end-idx
+
+The following is an example of a query that would be covered by the index
+created above.
+
+.. literalinclude:: /code-snippets/indexes/multikey.js
+   :language: js
+   :start-after: begin-query
+   :end-before: end-query
 
 Multikey indexes behave differently from non-multikey indexes in terms of
 query coverage, index bound computation, and sort behavior. For a full
@@ -111,35 +152,51 @@ and limitations, refer to the :manual:`Multikey Indexes page
 Text Indexes
 ~~~~~~~~~~~~
 
-:manual:`Text indexes </core/index-text>` support :doc:`text search queries </fundamentals/crud/read-operations/text>` on
-string content. ``text`` indexes can include any field whose value is a
-string or an array of string elements. MongoDB supports text search for
-various languages. You can specify the default language as an option when
-creating the index.
+**Text indexes** support text search queries on string content. These indexes
+can include any field whose value is a string or an array of string elements.
+MongoDB supports text search for various languages. You can specify the
+default language as an option when creating the index. Read our guide on
+:doc:`text search queries </fundamentals/crud/read-operations/text>` for more
+information.
 
 The following example uses the ``createIndex()`` method to create a
 ``text`` index on the ``fullplot`` field in the ``movies`` collection in
-the ``sample_mflix`` database and specifies the default language to be
-``english``.
+the ``sample_mflix`` database and specifies ``english`` as the default
+language.
 
 .. literalinclude:: /code-snippets/indexes/text.js
    :language: js
-   :start-after: begin-ex
-   :end-before: end-ex
+   :start-after: begin-idx
+   :end-before: end-idx
 
-For a full explanation of text search with MongoDB, refer to :manual:`Text Indexes </core/index-text>` in the MongoDB manual.
+The following is an example of a query that would be covered by the index
+created above. Note that the ``sort`` is omitted because text indexes do not
+contain sort order.
+
+.. literalinclude:: /code-snippets/indexes/text.js
+   :language: js
+   :start-after: begin-query
+   :end-before: end-query
+
+For a full explanation of text search with MongoDB, refer to
+:manual:`Text Indexes </core/index-text>` in the MongoDB manual.
 
 Geospatial Indexes
 ~~~~~~~~~~~~~~~~~~
 
-MongoDB supports queries of geospatial coordinate data using :manual:`2dsphere </core/2dsphere>` indexes. With a ``2dsphere`` index, you can query for inclusion, intersection, and proximity. The :manual:`Geospatial Queries page </geospatial-queries>` in the MongoDB manual provides a detailed explanation of geospatial query operations in MongoDB.
+MongoDB supports queries of geospatial coordinate data using **2dsphere
+indexes**. With a 2dsphere index, you can query the geospatial data for
+inclusion, intersection, and proximity. For more information on querying
+geospatial data with the MongoDB Node.js driver, read our
+:doc:`Search Geospatial </fundamentals/crud/read-operations/geo>` guide.
 
-.. seealso::
-   
-   The :doc:`/fundamentals/crud/read-operations/geo` guide for an
-   overview of working with geospatial data with MongoDB and Node.js.
+To create a 2dsphere index, you must specify a field that contains
+only **GeoJSON objects**. For more details on this type, see the MongoDB
+server manual page on :manual:`GeoJSON objects </reference/geojson>`.
 
-To create a ``2dsphere`` index, the field you are indexing must be a :manual:`GeoJSON object </reference/geojson>`. The ``location.geo`` field in following sample document from the ``theaters`` collection in the ``sample_mflix`` database is a GeoJSON point object that describes the coordinates of the specified theater:
+The ``location.geo`` field in following sample document from the
+``theaters`` collection in the ``sample_mflix`` database is a GeoJSON Point
+object that describes the coordinates of the theater:
 
 .. code-block:: javascript
 
@@ -165,30 +222,44 @@ To create a ``2dsphere`` index, the field you are indexing must be a :manual:`Ge
 
 The following example uses the ``createIndexes()`` method to create a
 ``2dsphere`` index on the ``location.geo`` field in the ``theaters``
-collection in the ``sample_mflix`` database.
+collection in the ``sample_mflix`` database to enable geospatial searches.
 
 .. literalinclude:: /code-snippets/indexes/geo.js
    :language: js
-   :start-after: begin-ex
-   :end-before: end-ex
+   :start-after: begin-idx
+   :end-before: end-idx
 
-
-MongoDB also supports :manual:`2d </core/index-2d>` indexes for
-calculating distances on a Euclidean plane and for working with the
-"legacy coordinate pairs" syntax used in MongoDB 2.2 and earlier. If you
-need to calculate distances on a 2d plane, use a 2d index, rather than a
-2dsphere.
+MongoDB also supports ``2d`` indexes for calculating distances on a
+Euclidean plane and for working with the "legacy coordinate pairs" syntax
+used in MongoDB 2.2 and earlier. See the
+:manual:`Geospatial Queries page </geospatial-queries>` in the MongoDB
+server manual for more further information.
 
 Unique Indexes
 ~~~~~~~~~~~~~~
 
 Unique indexes ensure that the indexed fields do not store duplicate
 values. By default, MongoDB creates a unique index on the ``_id`` field
-during the creation of a collection. To create a unique index use the ``unique`` option set to ``true`` when you create the index. Unique indexes have their own restrictions and behavioral considerations. Refer to the :manual:`Unique Indexes page </core/index-unique>` in the MongoDB manual for a full explanation.
+during the creation of a collection. To create a unique index, specify the
+field or combination of fields that you want to prevent duplication on and
+set the ``unique`` option to ``true``.
 
-The following example uses the ``createIndex()`` method to create a unique ascending index on the ``theaterId`` field in the ``theaters`` collection of the ``sample_mflix`` database.
+The following example uses the ``createIndex()`` method to create a unique
+index on the ``theaterId`` field in the ``theaters`` collection of the
+``sample_mflix`` database.
 
 .. literalinclude:: /code-snippets/indexes/unique.js
    :language: js
-   :start-after: begin-ex
-   :end-before: end-ex
+   :start-after: begin-idx
+   :end-before: end-idx
+
+If you attempt to perform a write operation that stores a duplicate value
+that violates the unique index, MongoDB will throw an error that resembles
+the following:
+
+.. code-block:: none
+
+   E11000 duplicate key error index
+
+Refer to the :manual:`Unique Indexes page </core/index-unique>` in the
+MongoDB server manual for more information.

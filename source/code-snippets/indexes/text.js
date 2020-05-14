@@ -11,20 +11,24 @@ async function run() {
   try {
     await client.connect();
 
-    // begin-ex
-    //
-    // (Connection code omitted for space.)
-    //
-    // Specify the "sample_mflix" database.
-    const mflix = client.db("sample_mflix");
+    // begin-idx
+    const db = client.db("sample_mflix");
+    const movies = db.collection("movies");
 
     // Create a text index on the "fullplot" field in the
     // "movies" collection.
-    const result = await mflix
-      .collection("movies")
-      .createIndex({ fullplot: "text" }, { default_language: "english" });
-    console.log("Index " + result + " created.");
-    // end-ex
+    const result = await movies.createIndex({ fullplot: "text" }, { default_language: "english" });
+    console.log(`Index created: ${result}`);
+    // end-idx
+
+    // begin-query
+    const query = { $text: { $search: "java coffee shop" } };
+    const projection = { fullplot: 1 };
+    const cursor = movies
+      .find(query)
+      .projection(projection);
+    // end-query
+
   } finally {
     await client.close();
   }

@@ -11,20 +11,14 @@ async function run() {
   try {
     await client.connect();
 
-    // begin-ex
-    //
-    // (Connection code omitted for space.)
-    //
-    // Specify the "sample_mflix" database.
-    const mflix = client.db("sample_mflix");
+    // begin-idx
+    const db = client.db("sample_mflix");
+    const movies = db.collection("movies");
 
-    // Create a 2dsphere index on the "location.geo" field in the
-    // "theaters" collection.
-    const result = await mflix
-      .collection("movies")
-      .createIndex({ "location.geo": "2dsphere" });
-    console.log("Index " + result + " created.");
-    // end-ex
+    // Create a 2dsphere index on the "location.geo" field in the "theaters" collection.
+    const result = await movies.createIndex({ "location.geo": "2dsphere" });
+    console.log(`Index created: ${result}`);
+    // end-idx
   } finally {
     await client.close();
   }
