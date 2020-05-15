@@ -13,7 +13,7 @@ respective MongoDB deployments.
    If you toggle :guilabel:`Synced` to ``OFF`` after import, any users
    or roles you create are deleted.
 
-.. _enforce-consistent-set:
+.. _enforce-consistent-set-roles:
 
 Consistent Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,7 +23,7 @@ If you enforce a consistent set of users and roles in your project,
 project. Toggle :guilabel:`Enforce Consistent Set` to choose whether or
 not to manage one set of users and roles:
 
-.. _enforce-consistent-set-yes:
+.. _enforce-consistent-set-roles-yes:
 
 :guilabel:`Enforce Consistent Set` is ``YES``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,7 +35,7 @@ the same set of MongoDB users and roles.
 |mms| limits the access to users and roles where you set
 :guilabel:`Synced` to ``Yes``. |mms| deletes all users and roles that |mms| project doesn't manage from the deployments in your project.
 
-.. _enforce-consistent-set-no:
+.. _enforce-consistent-set-roles-no:
 
 :guilabel:`Enforce Consistent Set` is ``NO``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
