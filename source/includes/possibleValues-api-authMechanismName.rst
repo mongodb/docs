@@ -1,6 +1,0 @@
-- ``MONGODB_CR`` (deprecated)
-- ``SCRAM_SHA_1``
-- ``GSSAPI``
-- ``PLAIN``
-- ``MONGODB_X509``
-- ``NONE``
