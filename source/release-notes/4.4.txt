@@ -1195,35 +1195,31 @@ For more information on sorting and index use, see
    | :method:`cursor.allowDiskUse()`
    | :limit:`Memory Limits on Sort Operations <Sort Operations>`
 
-``allowDiskUse()`` Support for Queries with Large In-Memory Sorts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``find`` Can Use Temporary Files To Support Large Non-Indexed Sorts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If MongoDB cannot use an index or indexes to obtain the sort order,
-MongoDB must perform a blocking sort operation on the data. A blocking
-sort indicates that MongoDB must consume and process all input documents
-to the sort before returning results. Blocking sorts do not block
-concurrent operations on the collection or database.
+MongoDB 4.4 adds a new option :ref:`allowDiskUse
+<find-cmd-allowDiskUse>` to the :dbcommand:`find` command. With
+:ref:`allowDiskUse: true <find-cmd-allowDiskUse>`, the operation can use
+temporary files on disk when processing a non-indexed ("blocking") 
+:ref:`sort <find-cmd-sort>` operation that exceeds the 
+100 megabyte memory limit. Prior to MongoDB 4.4, a :dbcommand:`find`
+operation with a blocking sort failed if it exceeded the memory limit
+while processing the sort.
 
-.. versionadded:: 4.4
+For the :method:`db.collection.find()` shell method with
+:method:`cursor.sort()`, MongoDB 4.4 adds the 
+:method:`cursor.allowDiskUse()` cursor modifier.
 
-If MongoDB requires using more than 100 megabytes of system memory for
-the blocking sort operation, MongoDB returns an error *unless* the query
-specifies :method:`cursor.allowDiskUse()` (*New in MongoDB 4.4*).
-:method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files
-on disk to store data exceeding the 100 megabyte system memory limit
-while processing a blocking sort operation.
-:method:`cursor.allowDiskUse()` has no effect on sort operations
-resolved using an index *or* blocking sort operations which require less
-than 100 megabytes of system memory.
+:ref:`allowDiskUse <find-cmd-allowDiskUse>` and
+:method:`cursor.allowDiskUse()` have no effect if MongoDB can satisfy
+the sort using an :ref:`index <index-sort>`, *or* if the
+blocking sort requires less than 100 megabytes of memory.
 
-If using the :dbcommand:`find` database command, specify the optional
-parameter ``allowDiskUse: true`` to allow MongoDB to use temporary files
-on disk to store data exceeding the 100 megabyte system memory limit
-while processing a blocking sort operation
-
-For instructions on enabling :method:`~cursor.allowDiskUse` for queries
-issued through a MongoDB driver, defer to the documentation for your
-preferred :ecosystem:`MongoDB 4.4-compatible driver </drivers>`. 
+For instructions on enabling :ref:`allowDiskUse <find-cmd-allowDiskUse>` 
+for queries issued through a MongoDB driver, defer to the documentation 
+for your preferred 
+:ecosystem:`MongoDB 4.4-compatible driver </drivers>`. 
 
 .. seealso:: 
 
