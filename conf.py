@@ -62,7 +62,9 @@ source_constants = {
     'mcli-long': 'MongoDB Command Line Interface (``mongocli``)',
     'mcli-version': '0.2.0',
     'mdbagent': 'MongoDB Agent',
-    'aagent': 'Automation Agent'
+    'aagent': 'Automation Agent',
+    'magent': 'Monitoring Agent',
+    'bagent': 'Backup Agent',
 }
 
 rst_epilog = '\n'.join([
