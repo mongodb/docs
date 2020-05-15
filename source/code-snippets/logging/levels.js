@@ -1,8 +1,8 @@
 // ignored first line
+// begin-ex
 const { MongoClient, Logger } = require("mongodb");
 
-// Replace the following with your MongoDB deployment's connection
-// string.
+// Replace the following with your MongoDB deployment's connection string.
 const uri =
   "mongodb+srv://<clusterUrl>/?replicaSet=rs&w=majority";
 
@@ -17,6 +17,8 @@ async function main(client) {
   // Run a sample command to produce logger messages
   await db.command({ isMaster: true });
 }
+// end-ex
+
 
 async function run() {
   try {
