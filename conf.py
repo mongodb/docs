@@ -146,6 +146,7 @@ rst_epilog = [
     '.. |nvme-clusters| replace:: clusters with local :ref:`NVMe SSDs <nvme-storage>`',
     '.. |nvme| replace:: :abbr:`NVMe (non-volatile memory express)`',
     '.. |pa| replace:: Performance Advisor',
+    '.. |pcre| replace:: :abbr:`PCRE (Perl Compatible Regular Expressions)`',
     '.. |pem| replace:: :abbr:`PEM (Privacy Enhanced Mail)`',
     '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
     '.. |piv| replace:: :abbr:`PIV (Personal Identity Verification)`',

@@ -12,28 +12,32 @@ autocomplete (Operator)
    :depth: 1
    :class: singlecol
 
-Description
------------
+Definition
+----------
 
-The ``autocomplete`` operator performs a search for a word or phrase that 
-contains a sequence of characters from an incomplete input string. You 
-can use the ``autocomplete`` operator with search-as-you-type applications 
-to predict words with increasing accuracy as characters are entered in your 
-application's search field. ``autocomplete`` returns results that contain 
-predicted words based on the tokenization strategy specified in the index 
-definition for :ref:`autocompletion <bson-data-types-autocomplete>`. 
+.. expression:: autocomplete
+
+   The ``autocomplete`` operator performs a search for a word or phrase
+   that contains a sequence of characters from an incomplete input
+   string. You can use the ``autocomplete`` operator with
+   search-as-you-type applications to predict words with increasing
+   accuracy as characters are entered in your application's search
+   field. ``autocomplete`` returns results that contain predicted words
+   based on the tokenization strategy specified in the index definition
+   for :ref:`autocompletion <bson-data-types-autocomplete>`.
 
 .. _autocomplete-ref-syntax:
 
-Syntax 
+Syntax
 ------
 
-``autocomplete`` has the following syntax: 
+``autocomplete`` has the following syntax:
 
-.. code-block:: json 
+.. code-block:: javascript
+   :linenos:
 
-   { 
-     $search: {  
+   {
+     $search: {
        "autocomplete": {
          "query": "<search-string>",
          "path": "<field-to-search>",
@@ -46,121 +50,152 @@ Syntax
 
 .. _autocomplete-ref-options:
 
-Options 
+Options
 -------
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 10 60 10 
-   
+   :widths: 10 20 50 10 10
+
    * - Field
      - Type
      - Description
-     - Required?
-   
+     - Necessity
+     - Default
+
    * - ``query``
      - string or array of strings
-     - The string or strings to search for. If there are multiple 
-       terms in a string, |fts| also looks for a match for each term 
+     - String or strings to search for. If there are multiple
+       terms in a string, |fts| also looks for a match for each term
        in the string separately.
      - yes
-   
+     -
+
    * - ``path``
      - string
-     - The indexed :ref:`autocomplete <bson-data-types-autocomplete>` 
-       type of field to search. See :ref:`path construction <ref-path>` 
-       for more information. 
+     - Indexed :ref:`autocomplete <bson-data-types-autocomplete>` type
+       of field to search.
 
-       .. note:: 
+       .. seealso::
 
-          The ``autocomplete`` operator does not support ``multi`` in 
+          :ref:`path construction <ref-path>`
+
+       .. note::
+
+          The ``autocomplete`` operator does not support ``multi`` in
           the field path.
 
      - yes
+     -
 
    * - ``fuzzy``
      - object
      - Enable fuzzy search. Find strings which are similar to the
-       search term or terms. 
+       search term or terms.
      - no
+     -
 
-   * - ``fuzzy.maxEdits``
+   * - | ``fuzzy``
+       | ``.maxEdits``
      - integer
      - Maximum number of single-character edits required to match the
-       specified search term. Value can be ``1`` or ``2``. The default 
-       value is ``2``.
+       specified search term. Value can be ``1`` or ``2``.
      - no
-  
-   * - ``fuzzy.prefixLength``
-     - integer
-     - Number of characters at the beginning of each term in the result 
-       that must exactly match. The default value is ``0``.
-     - no
+     - ``2``
 
-   * - ``fuzzy.maxExpansions``
+   * - | ``fuzzy``
+       | ``.prefixLength``
      - integer
-     - The maximum number of variations to generate and search for. This 
-       limit applies on a per-token basis. The default value is ``50``.
+     - Number of characters at the beginning of each term in the result
+       that must exactly match.
      - no
+     - ``0``
+
+   * - | ``fuzzy``
+       | ``.maxExpansions``
+     - integer
+     - Maximum number of variations to generate and search for. This
+       limit applies on a per-token basis.
+     - no
+     - ``50``
 
    * - ``score``
      - object
-     - The :ref:`score <scoring-ref>` assigned to matching search term 
+     - :ref:`score <scoring-ref>` assigned to matching search term
        results. Use one of the following options to modify the score:
 
-       - ``boost``: multiply the result score by the given number.
-       - ``constant``: replace the result score with the given number.
+       .. list-table::
+          :stub-columns: 1
+          :widths: 10 90
 
-       .. note:: 
+          * - ``boost``
+            - Multiply the result score by the given number.
+          * - ``constant``
+            - Replace the result score with the given number.
 
-          ``autocomplete`` offers less fidelity in :ref:`score <scoring-ref>` 
-          in exchange for faster query execution.
+       .. note::
 
-     - no
-
-   * - ``tokenOrder`` 
-     - enum 
-     - The order in which to search for tokens. Value can be one of the 
-       following: 
-
-       - ``any`` - indicates tokens in the query can appear in any order 
-         in the documents. Results contain documents where the tokens 
-         appear sequentially and non-sequentially. However, results where 
-         the tokens appear sequentially score higher than other, 
-         non-sequential values.
-       - ``sequential`` - indicates tokens in the query must appear adjacent 
-         to each other or in the order specified in the query in the 
-         documents. Results contain only documents where the tokens 
-         appear sequentially.
-
-       The default value is ``any``.
+          ``autocomplete`` offers less fidelity in
+          :ref:`score <scoring-ref>` in exchange for faster query
+          execution.
 
      - no
+     -
+
+   * - ``tokenOrder``
+     - string
+     - Order in which to search for tokens. Value can be one of the
+       following:
+
+       .. list-table::
+          :stub-columns: 1
+          :widths: 10 90
+
+          * - ``any``
+            - Indicates tokens in the query can appear in any order in
+              the documents. Results contain documents where the tokens
+              appear sequentially and non-sequentially. However,
+              results where the tokens appear sequentially score higher
+              than other, non-sequential values.
+
+          * - ``sequential``
+            - Indicates tokens in the query must appear adjacent to
+              each other or in the order specified in the query in the
+              documents. Results contain only documents where the
+              tokens appear sequentially.
+
+     - no
+     - ``any``
 
 .. _autocomplete-ref-egs:
 
-Examples 
+Examples
 --------
 
-The following examples use the ``movies`` collection in the ``sample_mflix`` 
-database. If you loaded the :ref:`sample dataset <available-sample-datasets>` 
-on your cluster, you can create the static index for :ref:`autocompletion 
-<bson-data-types-autocomplete>` and run the queries on your cluster. Click on 
-your preferred :ref:`tokenization strategy <bson-data-types-autocomplete>` to 
-view a sample index definition that you can use for the queries in the 
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database. If you loaded the
+:ref:`sample dataset <available-sample-datasets>` on your cluster, you
+can create the static index for
+:ref:`autocompletion <bson-data-types-autocomplete>` and run
+the queries on your cluster.
+
+Click on your preferred
+:ref:`tokenization strategy <bson-data-types-autocomplete>` to view a
+sample index definition that you can use for the queries in the
 following examples:
 
-.. note:: 
- 
-   To learn more about ``edgeGram`` and ``nGram``, see :ref:`autocomplete 
-   <bson-data-types-autocomplete>`.
+.. note::
 
-.. tabs:: 
+   To learn more about ``edgeGram`` and ``nGram``, see
+   :ref:`autocomplete <bson-data-types-autocomplete>`.
 
-   .. tab:: edgeGram 
-      :tabid: edgeGram 
+.. tabs::
+
+   .. tab:: edgeGram
+      :tabid: edgeGram
 
       .. code-block:: json
+         :linenos:
 
          {
            "mappings": {
@@ -169,8 +204,8 @@ following examples:
                "title": [
                  {
                    "type": "autocomplete",
-                   "tokenization": "edgeGram", 
-                   "minGrams": 3, 
+                   "tokenization": "edgeGram",
+                   "minGrams": 3,
                    "maxGrams": 7,
                    "foldDiacritics": false
                  }
@@ -179,10 +214,11 @@ following examples:
            }
          }
 
-   .. tab:: nGram 
-      :tabid: nGram 
+   .. tab:: nGram
+      :tabid: nGram
 
       .. code-block:: json
+         :linenos:
 
          {
            "mappings": {
@@ -201,24 +237,23 @@ following examples:
            }
          }
 
-You can follow the steps in the :ref:`fts-tutorial-ref` to load the 
-:ref:`sample dataset <available-sample-datasets>`, create an :ref:`index 
-definition <ref-index-definitions>`, and run |fts| queries. 
+You can follow the steps in the :ref:`fts-tutorial-ref` to load the
+:ref:`sample dataset <available-sample-datasets>`, create an
+:ref:`index definition <ref-index-definitions>`, and run |fts| queries.
 
 .. _autocomplete-ref-egs-basic:
 
-Basic Examples 
+Basic Examples
 ~~~~~~~~~~~~~~
 
-The following query searches for movies with the characters ``off`` in 
+The following query searches for movies with the characters ``off`` in
 the ``title`` field. The query includes a:
 
-- :manual:`$limit </reference/operator/aggregation/limit>` stage to limit the 
-  output to 10 results.
-- :manual:`$project </reference/operator/aggregation/project>` stage to exclude 
-  all fields except ``title``.
+- :pipeline:`$limit` stage to limit the output to 10 results.
+- :pipeline:`$project` stage to exclude all fields except ``title``.
 
-.. code-block:: json 
+.. code-block:: json
+   :linenos:
 
    db.movies.aggregate([
      {
@@ -240,16 +275,17 @@ the ``title`` field. The query includes a:
      }
    ])
 
-Click on the :ref:`tokenization strategy <bson-data-types-autocomplete>` 
+Click on :ref:`tokenization strategy <bson-data-types-autocomplete>`
 to view the results:
 
-.. tabs:: 
+.. tabs::
 
-   .. tab:: edgeGram 
-      :tabid: edgeGram 
+   .. tab:: edgeGram
+      :tabid: edgeGram
 
-      .. code-block:: json 
-         :copyable: false 
+      .. code-block:: json
+         :copyable: false
+         :linenos:
 
          { "title" : "Off the Map" }
          { "title" : "Off and Running" }
@@ -262,14 +298,15 @@ to view the results:
          { "title" : "Off Beat" }
          { "title" : "Official Rejection" }
 
-      In the above results, the characters ``off`` appears at the 
+      In the above results, the characters ``off`` appears at the
       beginning of a word in all the titles.
 
-   .. tab:: nGram 
+   .. tab:: nGram
       :tabid: nGram
 
-      .. code-block:: json 
-         :copyable: false 
+      .. code-block:: json
+         :copyable: false
+         :linenos:
 
          { "title" : "Come Have Coffee with Us" }
          { "title" : "A Spell to Ward Off the Darkness" }
@@ -282,35 +319,45 @@ to view the results:
          { "title" : "Hands off Mississippi" }
          { "title" : "Romanoff and Juliet" }
 
-      In the above results, the characters ``off`` is present at different 
-      positions in the titles.
+      In the above results, the characters ``off`` is present at
+      different positions in the titles.
 
 .. _autocomplete-ref-egs-fuzzy:
 
 Fuzzy Example
 ~~~~~~~~~~~~~
 
-The following query searches for movies with the characters ``pre`` in 
-the ``title`` field. The query uses: 
+The following query searches for movies with the characters ``pre`` in
+the ``title`` field. The query uses:
 
-- The ``maxEdits`` field to indicate that only one character variation 
-  is allowed in the query string ``pre`` to match the query to a word 
-  in the documents.
-- The ``prefixLength`` field to indicate that the first character in 
-  the query string ``pre`` can't change when matching the query to a 
-  word in the documents.
-- The ``maxExpansions`` field to indicate that up to two hundred and fifty 
-  six similar terms for ``pre`` can be considered when matching the query 
-  string to a word in the documents. 
-  
+.. list-table::
+   :stub-columns: 1
+   :widths: 10 90
+
+   * - Field
+     - Description
+
+   * - ``maxEdits``
+     - Indicates that only one character variation is allowed in the
+       query string ``pre`` to match the query to a word in the
+       documents.
+
+   * - ``prefixLength``
+     - Indicates that the first character in the query string ``pre``
+       can't change when matching the query to a word in the documents.
+
+   * - ``maxExpansions``
+     - Indicates that up to two hundred and fifty six similar terms for
+       ``pre`` can be considered when matching the query string to a
+       word in the documents.
+
 The query also includes a:
 
-- :manual:`$limit </reference/operator/aggregation/limit>` stage to limit the 
-  output to 10 results.
-- :manual:`$project </reference/operator/aggregation/project>` stage to exclude 
-  all fields except ``title``.
+- :pipeline:`$limit` stage to limit the output to 10 results.
+- :pipeline:`$project` stage to exclude all fields except ``title``.
 
-.. code-block:: json 
+.. code-block:: json
+   :linenos:
 
    db.movies.aggregate([
      {
@@ -334,16 +381,17 @@ The query also includes a:
      }
    ])
 
-Click on the :ref:`tokenization strategy <bson-data-types-autocomplete>` 
+Click on :ref:`tokenization strategy <bson-data-types-autocomplete>`
 to view the results:
 
-.. tabs:: 
+.. tabs::
 
-   .. tab:: edgeGram 
-      :tabid: edgeGram 
+   .. tab:: edgeGram
+      :tabid: edgeGram
 
-      .. code-block:: json 
+      .. code-block:: json
          :copyable: false
+         :linenos:
 
          { "title" : "Prelude to War" }
          { "title" : "Sitting Pretty" }
@@ -356,15 +404,17 @@ to view the results:
          { "title" : "Premiya" }
          { "title" : "All the President's Men" }
 
-      The above results show the words that are predicted for the query string 
-      with one character modification and with the first character constant at 
-      the beginning of the word in all the titles.
+      These results show the words that are predicted for the query
+      string with one character modification and with the first
+      character constant at the beginning of the word in all the
+      titles.
 
-   .. tab:: nGram 
-      :tabid: nGram   
+   .. tab:: nGram
+      :tabid: nGram
 
-      .. code-block:: json 
-         :copyable: false 
+      .. code-block:: json
+         :copyable: false
+         :linenos:
 
          { "title" : "Les vampires" }
          { "title" : "He Who Gets Slapped" }
@@ -377,29 +427,28 @@ to view the results:
          { "title" : "Berlin Express" }
          { "title" : "Sitting Pretty" }
 
-      The above results show the words that are predicted for the query 
-      string with one character modification at different positions in the 
-      words in the titles.
+      These results show the words that are predicted for the query
+      string with one character modification at different positions in
+      the words in the titles.
 
 .. _autocomplete-ref-egs-tokenOrder:
 
-Token Order Example 
+Token Order Example
 ~~~~~~~~~~~~~~~~~~~
 
-The following queries search for movies with the characters ``men with`` 
-in ``any`` and ``sequential`` order in the ``title`` field. The query includes 
-a:
+The following queries search for movies with the characters ``men
+with`` in ``any`` and ``sequential`` order in the ``title`` field. The
+query includes a:
 
-- :manual:`$limit </reference/operator/aggregation/limit>` stage to limit the 
-  output to 4 results.
-- :manual:`$project </reference/operator/aggregation/project>` stage to exclude 
-  all fields except ``title``.
+- :pipeline:`$limit` stage to limit the output to 4 results.
+- :pipeline:`$project` stage to exclude all fields except ``title``.
 
-.. tabs:: 
+.. tabs::
 
-   .. tab:: any 
+   .. tab:: any
 
       .. code-block:: json
+         :linenos:
 
          db.movies.aggregate([
            {
@@ -422,21 +471,21 @@ a:
            }
          ])
 
-      The above query returns the following results for the ``edgeGram`` 
-      :ref:`tokenization strategy <bson-data-types-autocomplete>`: 
+      This query returns the following results for the ``edgeGram``
+      :ref:`tokenization strategy <bson-data-types-autocomplete>`:
 
-      .. code-block:: json 
-         :copyable: false 
+      .. code-block:: json
+         :copyable: false
 
          { "title" : "Men Without Women" }
          { "title" : "Men with Guns" }
          { "title" : "Men with Brooms" }
          { "title" : "Without Men" }
 
-      The above query returns the following results for the ``nGram`` 
-      :ref:`tokenization strategy <bson-data-types-autocomplete>`: 
+      This query returns the following results for the ``nGram``
+      :ref:`tokenization strategy <bson-data-types-autocomplete>`:
 
-      .. code-block:: json 
+      .. code-block:: json
          :copyable: false
 
          { "title" : "Men Without Women" }
@@ -444,10 +493,11 @@ a:
          { "title" : "Men with Brooms" }
          { "title" : "Women Without Men" }
 
-   .. tab:: sequential 
+   .. tab:: sequential
 
-      .. code-block:: json 
-      
+      .. code-block:: json
+         :linenos:
+
          db.movies.aggregate([
            {
              $search: {
@@ -469,20 +519,20 @@ a:
            }
          ])
 
-      The above query returns the following results for the ``edgeGram`` 
-      :ref:`tokenization strategy <bson-data-types-autocomplete>`: 
+      This query returns the following results for the ``edgeGram``
+      :ref:`tokenization strategy <bson-data-types-autocomplete>`:
 
-      .. code-block:: json 
-         :copyable: false 
+      .. code-block:: json
+         :copyable: false
 
          { "title" : "Men Without Women" }
          { "title" : "Men with Guns" }
          { "title" : "Men with Brooms" }
 
-      The above query returns the following results for the ``nGram`` 
-      :ref:`tokenization strategy <bson-data-types-autocomplete>`: 
+      This query returns the following results for the ``nGram``
+      :ref:`tokenization strategy <bson-data-types-autocomplete>`:
 
-      .. code-block:: json 
+      .. code-block:: json
          :copyable: false
 
          { "title" : "Men Without Women" }

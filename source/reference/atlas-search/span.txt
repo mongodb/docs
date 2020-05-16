@@ -12,20 +12,28 @@ span (Operator)
    :depth: 2
    :class: singlecol
 
-Description
------------
+Definition
+----------
 
-The ``span`` operator finds text search matches within regions of a
-text field. You can use it to find strings which are near each other to
-specified degrees of precision. The ``span`` operator is more
-computationally intensive than other operators, because queries must
-keep track of positional information.
+.. expression:: span
 
-``span`` queries are not ranked by score.
+   The ``span`` operator finds text search matches within regions of a
+   text field. You can use it to find strings which are near each other
+   to specified degrees of precision. The ``span`` operator is more
+   computationally intensive than other operators, because queries must
+   keep track of positional information.
+
+   ``span`` queries aren't ranked by score.
+
+.. _span-syntax:
+
+Syntax
+------
 
 ``span`` has the following syntax:
 
 .. code-block:: javascript
+   :linenos:
 
    {
       $search: {
@@ -51,6 +59,7 @@ The following examples use a collection called ``fruit`` which
 contains the following documents:
 
 .. code-block:: json
+   :linenos:
 
    {
      "_id" : 1,
@@ -62,10 +71,10 @@ contains the following documents:
      "type" : "banana",
      "description" : "Bananas are usually sold in bunches of five or six."
    },
-   { 
+   {
      "_id" : 3,
      "type" : "grapes",
-     "description" : "Six bunches of grapes weigh about 3 pounds." 
+     "description" : "Six bunches of grapes weigh about 3 pounds."
    }
 
 ``first``
@@ -78,17 +87,18 @@ value of ``2``, specifying that the search term must be the first
 or second word in the field.
 
 .. code-block:: javascript
+   :linenos:
 
    db.fruit.aggregate([
-     { 
+     {
        $search: {
-         "span": {  
-           "first": { 
+         "span": {
+           "first": {
              "operator": {
-               "term": { 
+               "term": {
                  "path": "description",
                  "query": "bunches"
-               } 
+               }
              },
              "endPositionLte": 2
            }
@@ -103,7 +113,11 @@ The above query returns the document with ``_id: 3``, which has a
 .. code-block:: json
    :copyable: false
 
-   { "_id" : 3, "type" : "grapes", "description" : "Six bunches of grapes weigh about 3 pounds." }
+   {
+     "_id": 3,
+     "type": "grapes",
+     "description": "Six bunches of grapes weigh about 3 pounds."
+   }
 
 ``near``
 ~~~~~~~~
@@ -115,13 +129,14 @@ be in any order. The ``slop`` parameter is set to ``4``, so
 the search terms must be separated by no more than 4 words.
 
 .. code-block:: javascript
+   :linenos:
 
    db.fruit.aggregate([
-     { 
+     {
        $search : {
-         "span": {   
-           "near": { 
-             "clauses": [ 
+         "span": {
+           "near": {
+             "clauses": [
                { "term": { "path": "description", "query": "bunches" } },
                { "term": { "path": "description", "query": "bananas" } }
              ],
@@ -138,7 +153,11 @@ The above query finds the following result:
 .. code-block:: json
    :copyable: false
 
-   { "_id" : 2, "type" : "banana", "description" : "Bananas are usually sold in bunches of five or six." }
+   {
+    "_id": 2,
+    "type": "banana",
+    "description": "Bananas are usually sold in bunches of five or six."
+   }
 
 ``or``
 ~~~~~~
@@ -148,16 +167,17 @@ in which the ``description`` field has either ``bananas`` or ``apples``
 as the first word.
 
 .. code-block:: javascript
+   :linenos:
 
    db.fruit.aggregate([
-     { 
+     {
        $search: {
-         "span": { 
-           "first": { 
+         "span": {
+           "first": {
              "endPositionLte": 1,
-             "operator": { 
-               "or": { 
-                 "clauses": [ 
+             "operator": {
+               "or": {
+                 "clauses": [
                    { "term": { "path": "description", "query": "bananas" } },
                    { "term": { "path": "description", "query": "apples" } }
                  ]
@@ -165,7 +185,7 @@ as the first word.
              }
            }
          }
-       }  
+       }
      }
    ])
 
@@ -174,8 +194,15 @@ The above query finds the following results:
 .. code-block:: json
    :copyable: false
 
-   { "_id" : 1, "type" : "apple", "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp." }
-   { "_id" : 2, "type" : "banana", "description" : "Bananas are usually sold in bunches of five or six." }
+   {
+     "_id": 1,
+     "type": "apple",
+     "description": "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+   }, {
+     "_id": 2,
+     "type": "banana",
+     "description": "Bananas are usually sold in bunches of five or six."
+   }
 
 ``subtract``
 ~~~~~~~~~~~~
@@ -187,16 +214,17 @@ in any order, within 3 words of each other. It excludes any document
 in which the word ``five`` occurs between ``six`` and ``bunches``.
 
 .. code-block:: javascript
+   :linenos:
 
    db.fruit.aggregate([
      {
        $search : {
-         "span": {  
-           "subtract": { 
+         "span": {
+           "subtract": {
              "include": {
-               "span": {  
-                 "near": { 
-                   "clauses": [ 
+               "span": {
+                 "near": {
+                   "clauses": [
                      { "term": { "path": "description", "query": "six" } },
                      { "term": { "path": "description", "query": "bunches" } }
                    ],
@@ -217,9 +245,13 @@ The above query finds the following result:
 .. code-block:: json
    :copyable: false
 
-   { "_id" : 3, "type" : "grapes", "description" : "Six bunches of grapes weigh about 3 pounds." }
+   {
+    "_id": 3,
+    "type": "grapes",
+    "description": "Six bunches of grapes weigh about 3 pounds."
+   }
 
-The document with ``_id: 2`` is not included. Although its
-``description`` field includes the words ``six`` and ``bunches``,
-it also has ``five`` between them, and ``five`` is in the ``exclude``
+The document with ``_id: 2`` isn't included. Although its
+``description`` field includes the words ``six`` and ``bunches``, it
+also has ``five`` between them, and ``five`` is in the ``exclude``
 clause of the query.

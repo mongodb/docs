@@ -17,60 +17,74 @@ Definition
 
 .. expression:: compound
 
-   The ``compound`` operator combines two or more operators into a single
-   query. Each element of a ``compound`` query is called a clause, and each
-   clause consists of one or more sub-queries.
-   
-   Documents in the result set are returned with a match score,
-   which is calculated by summing the score that each document received
-   for each individual clause which generated a match. The result set is
+   The ``compound`` operator combines two or more operators into a
+   single query. Each element of a ``compound`` query is called a
+   clause, and each clause consists of one or more sub-queries.
+
+   Documents in the result set are returned with a match score, which
+   is calculated by summing the score that each document received for
+   each individual clause which generated a match. The result set is
    ordered by score, highest to lowest.
 
-   ``compound`` has the following syntax:
-   
-   .. code-block:: javascript
-   
-      { 
-        $search: {
-          "index": <index name>, // optional, defaults to "default"
-          "compound": {
-            <must | mustNot | should | filter>: { <clauses> }
-          }
-        }
-      }
-   
-   ``compound`` uses the following terms to construct a query:
-   
-   .. list-table::
-      :widths: 15 85
-   
-      * - .. data:: must
-        - Clauses which must match to produce results. 
-    
-      * - .. data:: mustNot
-        - Clauses which must not match for a document to be included in the
-          results.
-    
-      * - .. data:: should
-        - Clauses which cause documents in the result set to be
-          scored higher if they match.
-    
-          ``minimumShouldMatch`` is an option of ``should``. If you use more
-          than one ``should`` clause, you can use the ``minimumShouldMatch``
-          option to specify a minimum number of ``should`` clauses which
-          must be satisfied for a document to be included in the result set.
-          See an :ref:`example <min-example>`.
-    
-      * - .. data:: filter
-        - Clauses which must all match all for a document to be
-          included in the results. ``filter`` clauses do not contribute to
-          a returned document's score. See an :ref:`example
-          <filter-example>`.
-   
-   Any of the above clauses may contain query criteria using any top-level
-   operator, such as :ref:`term <term-ref>`, :ref:`search <search-ref>`,
-   or :ref:`span <span-ref>`.
-   
+.. _compound-syntax:
+
+Syntax
+------
+
+``compound`` has the following syntax:
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     $search: {
+       "index": <index name>, // optional, defaults to "default"
+       "compound": {
+         <must | mustNot | should | filter>: { <clauses> }
+       }
+     }
+   }
+
+.. _compound-options:
+
+Options
+-------
+
+``compound`` uses the following terms to construct a query:
+
+.. list-table::
+   :widths: 15 85
+
+   * - .. data:: must
+     - Clauses which must match to produce results.
+
+   * - .. data:: mustNot
+     - Clauses which must not match for a document to be included in
+       the results.
+
+   * - .. data:: should
+     - Clauses which cause documents in the result set to be
+       scored higher if they match.
+
+       ``minimumShouldMatch`` is an option of ``should``. If you use
+       more than one ``should`` clause, you can use the
+       ``minimumShouldMatch`` option to specify a minimum number of
+       ``should`` clauses which must be satisfied for a document to
+       be included in the result set.
+
+       See an :ref:`example <min-example>`.
+
+   * - .. data:: filter
+     - Clauses which must all match all for a document to be
+       included in the results. ``filter`` clauses do not contribute
+       to a returned document's score.
+
+       See an :ref:`example <filter-example>`.
+
+Any of the above clauses may contain query criteria using any
+top-level operator, such as :ref:`term <term-ref>`,
+:ref:`search <search-ref>`, or :ref:`span <span-ref>`.
+
 Examples
 --------
 
@@ -78,6 +92,7 @@ The following examples use a collection called ``fruit`` which contains
 the following documents:
 
 .. code-block:: json
+   :linenos:
 
    {
      "_id" : 1,
@@ -95,10 +110,10 @@ the following documents:
      "description" : "Bosc and Bartlett are the most common varieties of pears."
    }
 
-The ``fruit`` collection has an |fts| index on the ``description`` field
-which uses the :ref:`standard <ref-standard-analyzer>` analyzer. The
-``standard`` analyzer lower-cases all words and disregards common stop
-words (``"the", "a", "and",`` etc).
+The ``fruit`` collection has an |fts| index on the ``description``
+field which uses the :ref:`standard <ref-standard-analyzer>` analyzer.
+The ``standard`` analyzer lower-cases all words and disregards common
+stop words (``"the", "a", "and",`` etc).
 
 ``must`` and ``mustNot`` Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -112,10 +127,11 @@ the term ``apples`` in the ``description`` field. For a document to
 match, it must *not* fulfill the ``mustNot`` clause.
 
 .. code-block:: javascript
+   :linenos:
 
    db.fruit.aggregate([
-     { 
-       $search: {  
+     {
+       $search: {
          "compound": {
            "must": {
              "search": {
@@ -150,10 +166,11 @@ all document fields except ``_id`` and adds a ``score`` field, which
 displays the document's relevance score.
 
 .. code-block:: javascript
+   :linenos:
 
    db.fruit.aggregate([
-     { 
-       $search: {  
+     {
+       $search: {
          "compound": {
            "must": {
              "search": {
@@ -171,7 +188,7 @@ displays the document's relevance score.
        }
      },
      {
-       $project: {          
+       $project: {
          "score": { "$meta": "searchScore" }
        }
      }
@@ -198,13 +215,14 @@ In a query with multiple ``should`` clauses, you can use the
 ``miniumumShouldMatch`` option to specify a minimum number of clauses
 which must match to return a result.
 
-The following query has one ``must`` clause and two ``should``
-clauses, with a ``minimumShouldMatch`` value of ``1``. A document
-must include the term ``varieties`` in the ``description`` field
-and must include either ``Fuji`` or ``Golden Delicious`` in the
-description field to be included in the result set.
+The following query has one ``must`` clause and two ``should`` clauses,
+with a ``minimumShouldMatch`` value of ``1``. A document must include
+the term ``varieties`` in the ``description`` field and must include
+either ``Fuji`` or ``Golden Delicious`` in the description field to be
+included in the result set.
 
 .. code-block:: javascript
+   :linenos:
 
    db.fruit.aggregate([
      {
@@ -240,8 +258,8 @@ The above query returns the following result:
 .. code-block:: json
    :copyable: false
 
-   { 
-     "_id" : 1, 
+   {
+     "_id" : 1,
      "type" : "apple",
      "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
    }
@@ -259,6 +277,7 @@ clause is not considered in a returned document's score, and therefore
 does not affect the order of the returned documents.
 
 .. code-block:: javascript
+   :linenos:
 
    db.fruit.aggregate([
      {
@@ -292,8 +311,8 @@ The above query returns the following result:
 .. code-block:: json
    :copyable: false
 
-   { 
-     "_id" : 1, 
+   {
+     "_id" : 1,
      "type" : "apple",
      "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
    }

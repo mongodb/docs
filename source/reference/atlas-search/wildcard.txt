@@ -17,8 +17,8 @@ Definition
 
 .. expression:: wildcard
 
-   The ``wildcard`` operator enables queries which use special characters
-   in the search string that can match any character.
+   The ``wildcard`` operator enables queries which use special
+   characters in the search string that can match any character.
 
    .. list-table::
       :header-rows: 1
@@ -34,140 +34,156 @@ Definition
         - Matches 0 or more characters.
 
       * - ``\``
-        - The escape character.
+        - Escape character.
 
-   ``wildcard`` is a term-level operator, meaning that the ``query`` field is
-   not analyzed. Term-level operators work well with the :ref:`Keyword Analyzer
-   <ref-keyword-analyzer>`, because the ``query`` field is treated as a single
-   term, with special characters included. For an example of querying against an
-   analyzed ``query`` field vs. a non-analyzed ``query`` field, see the
+   ``wildcard`` is a term-level operator, meaning that the ``query``
+   field is not analyzed. Term-level operators work well with the
+   :ref:`Keyword Analyzer <ref-keyword-analyzer>`, because the
+   ``query`` field is treated as a single term, with special characters
+   included. For an example of querying against an analyzed ``query``
+   field vs. a non-analyzed ``query`` field, see the
    :ref:`analyzed field example <analyzed-example>`.
 
-   ``wildcard`` has the following syntax:
+.. _wildcard-syntax:
 
-   .. code-block:: javascript
+Syntax
+------
 
-      { 
-        $search: {  
-          "index": <index name>, // optional, defaults to "default"
-          "wildcard": {
-            "query": "<search-string>",
-            "path": "<field-to-search>",
-            "allowAnalyzedField": <boolean>,
-            "score": <options>
-          }
-        }
-      }
+``wildcard`` has the following syntax:
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 10 15 40 10 10
+.. code-block:: javascript
 
-      * - Field
-        - Type
-        - Description
-        - Required?
-        - Default
+   {
+     $search: {
+       "index": <index name>, // optional, defaults to "default"
+       "wildcard": {
+         "query": "<search-string>",
+         "path": "<field-to-search>",
+         "allowAnalyzedField": <boolean>,
+         "score": <options>
+       }
+     }
+   }
 
-      * - ``query``
-        - string or array of strings
-        - The string or strings to search for.
-        - yes
-        -
+.. _wildcard-options:
 
-      * - ``path``
-        - string or array of strings
-        - The indexed field or fields to search. See :ref:`path
-          construction <ref-path>` for more information.
-        - yes
-        -
+Options
+-------
 
-      * - ``allowAnalyzedField``
-        - boolean
-        - Must be set to ``true`` if the query is run against an analyzed
-          field.
-        - no
-        - ``false``
-    
-      * - ``score``
-        - object
-        - Modify the :ref:`score <scoring-ref>` assigned to matching search
-          term results. Options are:
+``wildcard`` uses the following terms to construct a query:
 
-          - ``boost``: multiply the result score by the given number.
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15 40 10 10
 
-          - ``constant``: replace the result score with the given number.
+   * - Field
+     - Type
+     - Description
+     - Necessity
+     - Default
 
-        - no
-        -
+   * - ``query``
+     - string or array of strings
+     - String or strings to search for.
+     - yes
+     -
+
+   * - ``path``
+     - string or array of strings
+     - Indexed field or fields to search. See :ref:`path
+       construction <ref-path>` for more information.
+     - yes
+     -
+
+   * - ``allowAnalyzedField``
+     - boolean
+     - Must be set to ``true`` if the query is run against an
+       analyzed field.
+     - no
+     - ``false``
+
+   * - ``score``
+     - object
+     - Modify the :ref:`score <scoring-ref>` assigned to matching
+       search term results. Options are:
+
+       - ``boost``: multiply the result score by the given number.
+
+       - ``constant``: replace the result score with the given
+         number.
+
+     - no
+     -
 
 Behavior
 --------
 
 .. _analyzed-example:
 
-``wildcard`` is a term-level operator, meaning that the ``query`` field is
-not analyzed. It is possible to use the ``wildcard`` operator to perform
-searches on an analyzed field by setting the ``allowAnalyzedField`` option
-to ``true``, but you may get unexpected results.
+``wildcard`` is a term-level operator, meaning that the ``query`` field
+is not analyzed. It is possible to use the ``wildcard`` operator to
+perform searches on an analyzed field by setting the
+``allowAnalyzedField`` option to ``true``, but you may get unexpected
+results.
 
 .. example::
 
-   Searching for ``*Star Trek*`` on a field indexed with the ``keyword``
-   analyzer finds all documents in which the field contains the string
-   ``Star Trek`` in any context. Searching for ``*Star Trek*`` on a field indexed
-   with the :ref:`standard analyzer <ref-standard-analyzer>` finds nothing,
-   because there is a space between ``Star`` and ``Trek``, and the index
-   contains no spaces.
+   Searching for ``*Star Trek*`` on a field indexed with the
+   ``keyword`` analyzer finds all documents in which the field contains
+   the string ``Star Trek`` in any context. Searching for ``*Star
+   Trek*`` on a field indexed with the :ref:`standard analyzer
+   <ref-standard-analyzer>` finds nothing, because there is a space
+   between ``Star`` and ``Trek``, and the index contains no spaces.
 
 .. _escape-character-behavior:
 
 Escape Character Behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When using the escape character in the :binary:`mongo shell <bin.mongo>`,
-you must use a double backslash before the character to be escaped. 
+When using the escape character in the |mongo| shell, you must use a
+double backslash before the character to be escaped.
 
 .. example::
 
-   To create a wildcard expression which searches for any string containing
-   a literal asterisk in an aggregation pipeline which runs in the ``mongo``
-   shell, use the following expression:
+   To create a wildcard expression which searches for any string
+   containing a literal asterisk in an aggregation pipeline which runs
+   in the |mongo| shell, use the following expression:
 
    .. code-block:: none
 
       "*\\**"
 
-   The first and last asterisks act as wildcards which match any characters,
-   and the ``\\*`` matches a literal asterisk.
+   The first and last asterisks act as wildcards which match any
+   characters, and the ``\\*`` matches a literal asterisk.
 
-When using the escape character with a :driver:`driver </>`, use a single
-backslash before the character to be escaped.
+When using the escape character with a :driver:`driver </>`, use a
+single backslash before the character to be escaped.
 
 .. example::
 
-   To create a wildcard expression which searches for any string containing
-   a literal asterisk in an aggregation pipeline which runs in a driver,
-   use the following expression:
+   To create a wildcard expression which searches for any string
+   containing a literal asterisk in an aggregation pipeline which runs
+   in a driver, use the following expression:
 
    .. code-block:: none
 
       "*\**"
 
-   The first and last asterisks act as wildcards which match any characters,
-   and the ``\*`` matches a literal asterisk.
+   The first and last asterisks act as wildcards which match any
+   characters, and the ``\*`` matches a literal asterisk.
 
 Examples
 --------
 
-The following examples use the ``movies`` collection in the ``sample_mflix`` 
-database with a custom index definition that uses the :ref:`keyword analyzer
-<ref-keyword-analyzer>`. If you have the :ref:`sample dataset <available-sample-datasets>` 
-on your cluster, you can create an |fts| index on the ``movies`` collection and 
-run the queries on your cluster. The :ref:`Atlas Search Index Tutorial
-<fts-tutorial-ref>` contains  instructions for loading the :ref:`sample dataset
-<available-sample-datasets>`, creating an :ref:`index definition
-<ref-index-definitions>`, and running |fts| queries.
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database with a custom index definition that uses the
+:ref:`keyword analyzer <ref-keyword-analyzer>`. If you have the
+:ref:`sample dataset <available-sample-datasets>` on your cluster, you
+can create an |fts| index on the ``movies`` collection and run the
+queries on your cluster. The :ref:`Atlas Search Index Tutorial
+<fts-tutorial-ref>` contains  instructions for loading the :ref:`sample
+dataset <available-sample-datasets>`, creating an :ref:`index
+definition <ref-index-definitions>`, and running |fts| queries.
 
 Index Definition
 ~~~~~~~~~~~~~~~~
@@ -176,7 +192,8 @@ The following index definition indexes the ``title`` field in the
 ``movies`` collection with the :ref:`keyword analyzer
 <ref-keyword-analyzer>`:
 
-.. code-block:: json
+.. code-block:: javascript
+   :linenos:
 
    {
      "mappings": {
@@ -189,10 +206,12 @@ The following index definition indexes the ``title`` field in the
      }
    }
 
-The following example searches all ``title`` fields for movie titles that
-begin with ``Green D``, followed by any number of other characters.
+The following example searches all ``title`` fields for movie titles
+that begin with ``Green D``, followed by any number of other
+characters.
 
 .. code-block:: javascript
+   :linenos:
 
    db.movies.aggregate([
       {
@@ -219,13 +238,15 @@ The above query returns the following results:
    { "title" : "Green Dolphin Street" }
    { "title" : "Green Dragon" }
 
-The following example searches all ``title`` fields for movie titles that
-begin with the string ``Wom?n`` (where ``?`` may be any single character),
-followed by a space and then any number of additional characters. The
-``$limit`` stage limits the results to 5 documents, while the ``$project``
-stage limits the results to only the ``title`` field.
+The following example searches all ``title`` fields for movie titles
+that begin with the string ``Wom?n`` (where ``?`` may be any single
+character), followed by a space and then any number of additional
+characters. The ``$limit`` stage limits the results to 5 documents,
+while the ``$project`` stage limits the results to only the ``title``
+field.
 
 .. code-block:: javascript
+   :linenos:
 
    db.movies.aggregate([
       {
@@ -261,19 +282,20 @@ The above query returns the following results:
 Escape Character Example
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example searches for documents in which the ``title`` field
-ends with a question mark.
+The following example searches for documents in which the ``title``
+field ends with a question mark.
 
 .. note::
 
    The following example is intended to run in the ``mongo`` shell. For
-   more information about using the escape characters with a driver, see
-   :ref:`Escape Character Behavior <escape-character-behavior>`.
+   more information about using the escape characters with a driver,
+   see :ref:`Escape Character Behavior <escape-character-behavior>`.
 
-The ``*`` character in the ``query`` field matches any characters, and the
-``\\?`` string matches a literal question mark.
+The ``*`` character in the ``query`` field matches any characters, and
+the ``\\?`` string matches a literal question mark.
 
 .. code-block:: javascript
+   :linenos:
 
    db.movies.aggregate([
      {

@@ -18,77 +18,94 @@ Definition
 .. expression:: regex
 
    ``regex`` interprets the ``query`` field as a regular expression.
-   ``regex`` is a term-level operator, meaning that the ``query`` field is
-   not analyzed. For more information about analyzed and non-analyzed fields, see
-   :ref:`Analyzers <analyzers-ref>`. For an example of querying against
-   analyzed vs. non-analyzed fields, see the :ref:`analyzed field example
-   <analyzed-field-example>`.
+   ``regex`` is a term-level operator, meaning that the ``query`` field
+   isn't analyzed.
+
+   .. seealso::
+
+      - :ref:`Analyzers <analyzers-ref>`.
+      - :ref:`Analyzed field example <analyzed-field-example>`.
 
    .. note::
 
-      The regular expression language available to the ``regex`` operator is a
-      limited subset of the :abbr:`PCRE (Perl Compatible Regular Expressions)`
-      library. For detailed information, see the `Class RegExp
-      <https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/util/automaton/RegExp.html>`__
-      documentation.
+      The regular expression language available to the ``regex``
+      operator is a limited subset of the |pcre| library.
 
-   ``regex`` has the following syntax:
-   
-   .. code-block:: javascript
-   
-      { 
-        $search: {  
-          "index": <index name>, // optional, defaults to "default"
-          "regex": {
-            "query": "<search-string>",
-            "path": "<field-to-search>",
-            "allowAnalyzedField": <boolean>,
-            "score": <options>
-          }
-        }
-      }
-   
-   .. list-table::
-      :header-rows: 1
-      :widths: 10 15 40 10 10
-   
-      * - Field
-        - Type
-        - Description
-        - Required?
-        - Default
-   
-      * - ``query``
-        - string or array of strings
-        - The string or strings to search for.
-        - yes
-        -
-   
-      * - ``path``
-        - string or array of strings
-        - The indexed field or fields to search. See :ref:`path
-          construction <ref-path>` for more information.
-        - yes
-        -
+      For detailed information, see the
+      `Class RegExp <https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/util/automaton/RegExp.html>`__ documentation.
 
-      * - ``allowAnalyzedField``
-        - boolean
-        - Must be set to ``true`` if the query is run against an analyzed
-          field.
-        - no
-        - ``false``
+.. _regex-syntax:
 
-      * - ``score``
-        - object
-        - Modify the :ref:`score <scoring-ref>` assigned to matching search
-          term results. Options are:
+Syntax
+------
 
-          - ``boost``: multiply the result score by the given number.
+``regex`` has the following syntax:
 
-          - ``constant``: replace the result score with the given number.
+.. code-block:: javascript
+   :linenos:
 
-        - no
-        -
+   {
+     $search: {
+       "index": <index name>, // optional, defaults to "default"
+       "regex": {
+         "query": "<search-string>",
+         "path": "<field-to-search>",
+         "allowAnalyzedField": <boolean>,
+         "score": <options>
+       }
+     }
+   }
+
+.. _regex-options:
+
+Options
+-------
+
+``regex`` uses the following terms to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15 40 10 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+     - Default
+
+   * - ``query``
+     - string or array of strings
+     - String or strings to search for.
+     - yes
+     -
+
+   * - ``path``
+     - string or array of strings
+     - Indexed field or fields to search.
+
+       See :ref:`path construction <ref-path>`.
+     - yes
+     -
+
+   * - ``allowAnalyzedField``
+     - boolean
+     - Must be set to ``true`` if the query is run against an analyzed
+       field.
+     - no
+     - ``false``
+
+   * - ``score``
+     - object
+     - Modify the :ref:`score <scoring-ref>` assigned to matching
+       search term results. Options are:
+
+       - ``boost``: multiply the result score by the given number.
+
+       - ``constant``: replace the result score with the given
+         number.
+
+     - no
+     -
 
 Behavior
 --------
@@ -96,43 +113,48 @@ Behavior
 .. _analyzed-field-example:
 
 ``regex`` is a term-level operator, meaning that the ``query`` field is
-not analyzed. Regular expression searches work well with the :ref:`keyword
-analyzer <ref-keyword-analyzer>`, because it indexes fields one word at a
-time.
+not analyzed. Regular expression searches work well with the
+:ref:`keyword analyzer <ref-keyword-analyzer>`, because it indexes
+fields one word at a time.
 
-It is possible to use the ``regex`` operator to perform
-searches on an analyzed field by setting the ``allowAnalyzedField`` option
-to ``true``, but you may get unexpected results.
+It is possible to use the ``regex`` operator to perform searches on an
+analyzed field by setting the ``allowAnalyzedField`` option to
+``true``, but you may get unexpected results.
 
 .. example::
 
-   Searching for ``*Star Trek*`` on a field indexed with the ``keyword``
-   analyzer finds all documents in which the field contains the string
-   ``Star Trek`` in any context. Searching for ``*Star Trek*`` on a field indexed
-   with the :ref:`standard analyzer <ref-standard-analyzer>` finds nothing,
-   because there is a space between ``Star`` and ``Trek``, and the index
-   contains no spaces.
+   Searching for ``*Star Trek*`` on a field indexed with the
+   ``keyword`` analyzer finds all documents in which the field contains
+   the string ``Star Trek`` in any context. Searching for ``*Star
+   Trek*`` on a field indexed with the
+   :ref:`standard analyzer <ref-standard-analyzer>` finds nothing,
+   because there is a space between ``Star`` and ``Trek``, and the
+   index contains no spaces.
 
 Examples
 --------
 
-The following examples use the ``movies`` collection in the ``sample_mflix`` 
-database with a custom index definition that uses the :ref:`keyword analyzer
-<ref-keyword-analyzer>`. If you have the :ref:`sample dataset <available-sample-datasets>` 
-on your cluster, you can create an |fts| index on the ``movies`` collection and 
-run the queries on your cluster. The :ref:`Atlas Search Index Tutorial
-<fts-tutorial-ref>` contains  instructions for loading the :ref:`sample dataset
-<available-sample-datasets>`, creating an :ref:`index definition
-<ref-index-definitions>`, and running |fts| queries.
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database with a custom index definition that uses the
+:ref:`keyword analyzer <ref-keyword-analyzer>`. If you have the
+:ref:`sample dataset <available-sample-datasets>` on your cluster, you
+can create an |fts| index on the ``movies`` collection and run the
+queries on your cluster. The
+:ref:`Atlas Search Index Tutorial <fts-tutorial-ref>` contains
+instructions for loading the
+:ref:`sample dataset <available-sample-datasets>`, creating an
+:ref:`index definition <ref-index-definitions>`, and running |fts|
+queries.
 
 Index Definition
 ~~~~~~~~~~~~~~~~
 
 The following index definition indexes the ``title`` field in the
-``movies`` collection with the :ref:`keyword analyzer
-<ref-keyword-analyzer>`:
+``movies`` collection with the
+:ref:`keyword analyzer <ref-keyword-analyzer>`:
 
-.. code-block:: json
+.. code-block:: javascript
+   :linenos:
 
    {
      "mappings": {
@@ -145,11 +167,12 @@ The following index definition indexes the ``title`` field in the
      }
    }
 
-The following example searches all ``title`` fields for movie titles that
-end with the word ``Seattle``. The ``(.*)`` regular expression matches any
-number of characters.
+The following example searches all ``title`` fields for movie titles
+that end with the word ``Seattle``. The ``(.*)`` regular expression
+matches any number of characters.
 
 .. code-block:: javascript
+   :linenos:
 
    db.movies.aggregate([
       {
@@ -158,8 +181,8 @@ number of characters.
                "path": "title",
                "query": "(.*) Seattle"
             }
-         } 
-      }, 
+         }
+      },
       {
          $project: {
             "_id": 0,
@@ -181,6 +204,7 @@ to find movie titles which begin with a 2-digit number followed by a
 space, and end with a 5-letter word ending in ``s``.
 
 .. code-block:: javascript
+   :linenos:
 
    db.movies.aggregate([
       {
@@ -189,8 +213,8 @@ space, and end with a 5-letter word ending in ``s``.
                "path": "title",
                "query": "[0-9]{2} (.){4}s"
             }
-         } 
-      }, 
+         }
+      },
       {
          $project: {
             "_id": 0,

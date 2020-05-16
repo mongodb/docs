@@ -12,26 +12,35 @@ range (Operator)
    :depth: 1
    :class: singlecol
 
-Description
------------
+Definition
+----------
 
-The ``range`` operator supports querying and scoring numeric 
-and date values. This operator can be used to perform a search over:
+.. expression:: range
 
-- Number fields of BSON ``int32``, ``int64``, and ``double`` data types.
-- Date fields of BSON ``date`` data type in 
-  :manual:`ISODate </reference/glossary/#term-isodate>` format.
+   The ``range`` operator supports querying and scoring numeric and
+   date values. This operator can be used to perform a search over:
 
-You can use the ``range`` operator to find results that are within a given 
-numeric or date range. 
+   - Number fields of BSON ``int32``, ``int64``, and ``double`` data
+     types.
+   - Date fields of BSON ``date`` data type in
+     :term:`ISODate <isodate>` format.
+
+   You can use the ``range`` operator to find results that are within a
+   given numeric or date range.
+
+.. _range-syntax:
+
+Syntax
+------
 
 ``range`` has the following syntax:
 
 .. code-block:: javascript
-   :copyable: false
+   :linenos:
 
    {
        "$search": {
+          "index": <index name>, // optional, defaults to "default"
           "range": {
              "path": "<field-to-search>",
              "gt | gte": <value-to-search>,
@@ -41,56 +50,63 @@ numeric or date range.
        }
    }
 
+.. _range-options:
+
+Options
+-------
+
+``range`` uses the following terms to construct a query:
+
 .. list-table::
    :header-rows: 1
-   :widths: 10 20 60 10 
-   
+   :widths: 10 20 60 10
+
    * - Field
      - Type
      - Description
-     - Required?
+     - Necessity
 
    * - ``gt`` or ``gte``
      - BSON date or number
-     - Find values greater than (i.e. ``>``) or greater than or equal 
-       to (i.e. ``>=``) the given value.
+     - Find values greater than (``>``) or greater than or equal to
+       (``>=``) the given value.
 
        - For number fields, the value can be an ``int32``, ``int64``, 
          or ``double`` data type.
        - For date fields, the value must be an 
-         :manual:`ISODate </reference/glossary/#term-isodate>` formatted 
+         :term:`ISODate <isodate>` formatted 
          date. 
 
      - no
 
    * - ``lt`` or ``lte``
      - BSON date or number
-     - Find values less than (i.e. ``<``) or less than or equal 
-       to (i.e. ``<=``) the given value.
+     - Find values less than (``<``) or less than or equal to (``<=``)
+       the given value.
 
-       - For number fields, the value can be an ``int32``, ``int64``, or 
-         ``double`` data type.
-       - For date fields, the value must be an 
-         :manual:`ISODate </reference/glossary/#term-isodate>` formatted 
-         date. 
+       - For number fields, the value can be an ``int32``, ``int64``,
+         or ``double`` data type.
+       - For date fields, the value must be an
+         :term:`ISODate <isodate>`
+         formatted date.
 
      - no
 
    * - ``path``
      - string or array of strings
-     - The indexed field or fields to search. See :ref:`Path
-       Construction <ref-path>` for more information.
+     - Indexed field or fields to search.
+       See :ref:`Path Construction <ref-path>`.
      - yes
 
    * - ``score``
      - object
-     - Modify the score assigned to matching search results. Options 
+     - Modify the score assigned to matching search results. Options
        are:
 
        - ``boost``: multiply the result score by the given number.
        - ``constant``: replace the result score with the given number.
 
-       For information on using ``score`` in your query, see 
+       For information on using ``score`` in your query, see
        :ref:`scoring-ref`.
      - no
 
@@ -104,28 +120,33 @@ array.
 Examples
 --------
 
-The following examples use the ``movies`` collection in the ``sample_mflix`` 
-database. If you loaded the :ref:`sample dataset <available-sample-datasets>` 
-on your cluster, you can create the static indexes using the index 
-definitions in the examples below and run the queries on your cluster.
-The :ref:`fts-tutorial-ref` contains instructions for loading the :ref:`sample 
-dataset <available-sample-datasets>`, creating an :ref:`index definition 
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database. If you loaded the :ref:`sample dataset
+<available-sample-datasets>` on your cluster, you can create the static
+indexes using the index definitions in the examples below and run the
+queries on your cluster. The :ref:`fts-tutorial-ref` contains
+instructions for loading the :ref:`sample dataset
+<available-sample-datasets>`, creating an :ref:`index definition
 <ref-index-definitions>`, and running |fts| queries.
 
-Number Example 
+Number Example
 ~~~~~~~~~~~~~~
 
-The following examples uses the ``range`` operator to query a number field. 
+The following examples uses the ``range`` operator to query a number
+field.
 
-**Example 1:** The following example uses ``gte`` and ``lte`` fields to define 
-the numeric range to search.
+Example 1
+`````````
+
+The following example uses ``gte`` and ``lte`` fields to define the
+numeric range to search.
 
 .. example::
 
-   The following index definition named ``runtimes`` indexes the 
+   The following index definition named ``runtimes`` indexes the
    ``runtime`` field in the ``movies`` collection.
 
-   .. code-block:: json
+   .. code-block:: javascript
 
       {
          "mappings": {
@@ -138,14 +159,14 @@ the numeric range to search.
          }
       }
 
-   The following query searches for movies with a runtime greater 
-   than or equal to 2 and less than equal to 3. It includes a 
-   :manual:`$limit </reference/operator/aggregation/limit>` stage 
-   to limit the output to 5 results and a :manual:`$project
-   </reference/operator/aggregation/project>` stage to exclude all
-   fields except ``title`` and ``runtime``.
+   The following query searches for movies with a runtime greater than
+   or equal to 2 and less than equal to 3. It includes a
+   :pipeline:`$limit <limit>` stage to limit the output to 5 results
+   and a :pipeline:`$project <project>` stage to exclude all fields
+   except ``title`` and ``runtime``.
 
-   .. code-block:: json
+   .. code-block:: javascript
+      :linenos:
 
       db.movies.aggregate([
          {
@@ -181,15 +202,19 @@ the numeric range to search.
       { "runtime" : 2, "title" : "Andrè and Wally B." }
       { "runtime" : 2, "title" : "Luxo Jr." }
 
-**Example 2:** The following example uses the ``lte`` field to search 
-for all values less than or equal to the given value.
+Example 2
+`````````
+
+The following example uses the ``lte`` field to search for all values
+less than or equal to the given value.
 
 .. example::
 
-   The following index definition named ``runtimes`` indexes the 
+   The following index definition named ``runtimes`` indexes the
    ``runtime`` field in the ``movies`` collection.
 
-   .. code-block:: json
+   .. code-block:: javascript
+      :linenos:
 
       {
          "mappings": {
@@ -202,16 +227,16 @@ for all values less than or equal to the given value.
          }
       }
 
-   The following query searches for all movies with a runtime less 
-   than or equal to 2. It includes a :manual:`$limit
-   </reference/operator/aggregation/limit>` stage to limit the output
-   to 5 results and a :manual:`$project
-   </reference/operator/aggregation/project>` stage to:
-   
+   The following query searches for all movies with a runtime less than
+   or equal to 2. It includes a :pipeline:`$limit <limit>` stage to
+   limit the output to 5 results and a :pipeline:`$project <project>`
+   stage to:
+
    - Exclude all fields except ``title`` and ``runtime``
    - Add a field named ``score``
 
-   .. code-block:: json
+   .. code-block:: javascript
+      :linenos:
 
       db.movies.aggregate([
          {
@@ -247,17 +272,18 @@ for all values less than or equal to the given value.
       { "runtime" : 1, "title" : "The Kiss", "score" : 1 }
       { "runtime" : 1, "title" : "Dickson Experimental Sound Film", "score" : 1 }
 
-Date Example 
+Date Example
 ~~~~~~~~~~~~
 
-The following example uses the ``range`` operator to query a date field. 
+The following example uses the ``range`` operator to query a date
+field.
 
 .. example::
 
    The following index definition named ``releaseddate`` indexes the 
    ``released`` field in the ``movies`` collection:
 
-   .. code-block:: json
+   .. code-block:: javascript
 
       {
          "mappings": {
@@ -270,14 +296,14 @@ The following example uses the ``range`` operator to query a date field.
          }
       }
 
-   The following query searches for movies released between January 1, 
-   2010 and January 1, 2015. It includes a :manual:`$limit
-   </reference/operator/aggregation/limit>` stage to limit the output
-   to 5 results and a :manual:`$project
-   </reference/operator/aggregation/project>` stage to exclude all
-   fields except ``title`` and ``released``.
+   The following query searches for movies released between January 1,
+   2010 and January 1, 2015. It includes a :pipeline:`$limit <limit>`
+   stage to limit the output to 5 results and a
+   :pipeline:`$project <project>` stage to exclude all fields except
+   ``title`` and ``released``.
 
-   .. code-block:: json
+   .. code-block:: javascript
+      :linenos:
 
       db.movies.aggregate([
          {
@@ -305,6 +331,7 @@ The following example uses the ``range`` operator to query a date field.
    The above query returns the following search results:
 
    .. code-block:: json
+      :linenos:
       :copyable: false
 
       { "title" : "The Fall of the House of Usher", "released" : ISODate("2011-09-20T00:00:00Z") }

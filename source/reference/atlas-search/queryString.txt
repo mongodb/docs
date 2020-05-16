@@ -12,117 +12,138 @@ queryString (Operator)
    :depth: 1
    :class: singlecol
 
-Description
------------
+Definition
+----------
 
-The ``queryString`` operator supports querying a combination of indexed 
-fields and values. You can combine the fields and values using the following:
+.. expression:: queryString
 
-.. list-table:: 
-   :widths: 20 80
+   The ``queryString`` operator supports querying a combination of
+   indexed fields and values.
 
-   * - ``AND`` 
-     - Indicates ``AND`` boolean operator. All search values must be present 
-       for a document to be included in the results.
+.. _querystring-syntax:
 
-   * - ``OR`` 
-     - Indicates ``OR`` boolean operator. At least one of the search value must 
-       be present for a document to be included in the results.
-
-   * - ``()`` 
-     - Delimiters for subqueries. Use the parentheses to group fields and 
-       values to search. 
+Syntax
+------
 
 ``queryString`` has the following syntax:
 
-.. code-block:: json
-   :copyable: false
+.. code-block:: javascript
+   :linenos:
 
    {
-       "$search": {
-          "queryString": {
-             "defaultPath": "<default-field-to-search>",
-             "query": "<field-to-search>:(<search-values> AND|OR <search-values>|<field-to-search>: <search-values>)"
-          }
-       }
+     "$search": {
+        "index": <index name>, // optional, defaults to "default"
+        "queryString": {
+           "defaultPath": "<default-field-to-search>",
+           "query": "<field-to-search>:(<search-values> AND|OR <search-values>|<field-to-search>: <search-values>)"
+        }
+     }
    }
+
+.. _querystring-options:
+
+Options
+-------
+
+``queryString`` uses the following terms to construct a query:
 
 .. list-table::
    :header-rows: 1
-   :widths: 15 10 60 15 
-   
+   :widths: 15 10 60 15
+
    * - Field
      - Type
      - Description
-     - Required?
+     - Necessity
 
    * - ``defaultPath``
      - string
-     - The indexed field to search by default. |fts| only searches the field in 
-       ``defaultPath``: 
+     - The indexed field to search by default. |fts| only searches the
+       field in ``defaultPath``:
 
        - If you omit the field to search in the ``query``.
-       - If a value you specified in the ``query`` is not found in the field 
-         you specified in the ``query``. 
+       - If a value you specified in the ``query`` is not found in the
+         field you specified in the ``query``.
 
      - yes
 
-   * - ``query`` 
+   * - ``query``
      - string
-     - One or more indexed fields and values to search. Fields and values are 
-       colon-delimited. For example, to search the ``plot`` field for the string 
-       ``baseball``, use ``plot:baseball``. The following operators are available 
-       to combine multiple search criteria:
+     - One or more indexed fields and values to search. Fields and
+       values are colon-delimited. For example, to search the ``plot``
+       field for the string ``baseball``, use ``plot:baseball``. The
+       following operators are available to combine multiple search
+       criteria:
 
-       - ``AND``
-       - ``OR`` 
-       - ``()`` 
+       You can combine the fields and values using the following:
 
-       See :ref:`querystring-ref-examples` below for some sample queries that 
-       use the operators and delimiters to search the sample ``movies`` 
-       collection. 
+       .. list-table::
+          :widths: 10 90
+
+          * - ``AND``
+            - Indicates ``AND`` boolean operator. All search values
+              must be present for a document to be included in the
+              results.
+
+          * - ``OR``
+            - Indicates ``OR`` boolean operator. At least one of the
+              search value must be present for a document to be
+              included in the results.
+
+          * - ``()``
+            - Delimiters for subqueries. Use the parentheses to group
+              fields and values to search.
+
+       .. seealso::
+
+          :ref:`querystring-ref-examples` for some sample queries that
+          use the operators and delimiters to search the sample
+          ``movies`` collection.
      - yes
 
-   * - ``score`` 
+   * - ``score``
      - object
-     - The score assigned to matching search results. You can modify 
+     - The score assigned to matching search results. You can modify
        the score using the following options:
 
        - ``boost``: multiply the result score by the given number.
        - ``constant``: replace the result score with the given number.
 
-       For information on using ``score`` in your query, see 
+       For information on using ``score`` in your query, see
        :ref:`scoring-ref`.
      - no
 
 .. _querystring-ref-examples:
 
-Examples 
+Examples
 --------
 
-The following examples use the ``movies`` collection in the ``sample_mflix`` 
-database. If you have the :ref:`sample dataset <available-sample-datasets>` 
-on your cluster, you can create the |fts| ``default`` index and run the 
-queries on your cluster. The :ref:`fts-tutorial-ref` contains instructions 
-for loading the :ref:`sample dataset <available-sample-datasets>`, creating 
-an :ref:`index definition <ref-index-definitions>`, and running |fts| queries.
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database. If you have the :ref:`sample dataset
+<available-sample-datasets>` on your cluster, you can create the |fts|
+``default`` index and run the queries on your cluster. The
+:ref:`fts-tutorial-ref` contains instructions for loading the
+:ref:`sample dataset <available-sample-datasets>`, creating an
+:ref:`index definition <ref-index-definitions>`, and running |fts|
+queries.
 
-Example 1 
+Example 1
 ~~~~~~~~~
 
-The following example uses the ``queryString`` operator to query for movies 
-with the title ``Rocky`` and either ``IV``, ``4``, or ``Four``. 
+The following example uses the ``queryString`` operator to query for
+movies with the title ``Rocky`` and either ``IV``, ``4``, or ``Four``.
 
-.. example:: 
+.. example::
 
-   The following query searches for the combination of ``Rocky`` and either 
-   ``IV``, ``4``, or ``Four`` at path ``title`` in the ``movies`` collection. 
-   In the following query, a field is specified in the ``defaultPath``, but no 
-   fields are specified in the ``query``. The query includes a 
-   :manual:`$project </reference/operator/aggregation/project>` stage to exclude 
-   all fields except ``title``.
+   The following query searches for the combination of ``Rocky`` and
+   either ``IV``, ``4``, or ``Four`` at path ``title`` in the
+   ``movies`` collection. In the following query, a field is specified
+   in the ``defaultPath``, but no fields are specified in the
+   ``query``. The query includes a :pipeline:`$project` stage
+   to exclude all fields except ``title``.
 
-   .. code-block:: json
+   .. code-block:: javascript
+      :linenos:
 
       db.movies.aggregate([
          {
@@ -141,36 +162,38 @@ with the title ``Rocky`` and either ``IV``, ``4``, or ``Four``.
          }
       ])
 
-   For the above query, |fts| performs a search at ``defaultPath`` because 
-   there are no fields in the ``query``. It returns the following results:
+   For the above query, |fts| performs a search at ``defaultPath``
+   because there are no fields in the ``query``. It returns the
+   following results:
 
-   .. code-block:: json 
-      :copyable: false 
+   .. code-block:: json
+      :copyable: false
 
       { "title" : "Rocky IV" }
 
-Example 2 
+Example 2
 ~~~~~~~~~
-      
-The following example uses the ``queryString`` operator to query for movies 
-with the title ``The Italian`` in the ``Drama`` genre. 
 
-.. example:: 
+The following example uses the ``queryString`` operator to query for
+movies with the title ``The Italian`` in the ``Drama`` genre.
 
-   The following query searches a combination of fields for movies 
-   with the title ``The Italian`` in the ``Drama`` genre. The ``plot`` 
-   field in the ``defaultPath`` will be searched only if no matching 
-   results can be found in either of the fields specified in the 
-   ``query`` field. The ``query`` field contains escaped double quotes as 
+.. example::
+
+   The following query searches a combination of fields for movies with
+   the title ``The Italian`` in the ``Drama`` genre. The ``plot`` field
+   in the ``defaultPath`` will be searched only if no matching results
+   can be found in either of the fields specified in the ``query``
+   field. The ``query`` field contains escaped double quotes as
    delimiters for the phrase to search.
 
-   The query includes a 
-   :manual:`$project</reference/operator/aggregation/project>` stage to:
-   
-   - Exclude all fields except ``_id``, ``title``, ``plot``, and ``genres``
+   The query includes a :pipeline:`$project` stage to:
+
+   - Exclude all fields except ``_id``, ``title``, ``plot``, and
+     ``genres``
    - Add a field named ``score``
 
-   .. code-block:: json
+   .. code-block:: javascript
+      :linenos:
 
       db.movies.aggregate([
          {
@@ -194,56 +217,58 @@ with the title ``The Italian`` in the ``Drama`` genre.
 
    The above query returns the following results:
 
-   .. code-block:: json 
+   .. code-block:: json
+      :linenos:
       :copyable: false
 
       {
-	     "_id" : ObjectId("573a1390f29313caabcd56df"),
+        "_id" : ObjectId("573a1390f29313caabcd56df"),
         "plot" : "An immigrant leaves his sweetheart in Italy to find a better life across the sea in the grimy slums of New York. They are eventually reunited and marry. But life in New York is hard and ...",
-	     "genres" : [ "Drama" ],
-	    "title" : "The Italian",
-	    "score" : 4.975106716156006
+        "genres" : [ "Drama" ],
+       "title" : "The Italian",
+       "score" : 4.975106716156006
       }
       {
-	     "_id" : ObjectId("573a13b3f29313caabd3e36c"),
+        "_id" : ObjectId("573a13b3f29313caabd3e36c"),
         "plot" : "Set in 2002, an abandoned 5-year-old boy living in a rundown orphanage in a small Russian village is adopted by an Italian family.",
-	     "genres" : [ "Drama" ],
-	     "title" : "The Italian",
-	     "score" : 4.975106716156006
+        "genres" : [ "Drama" ],
+        "title" : "The Italian",
+        "score" : 4.975106716156006
       }
       {
-	     "_id" : ObjectId("573a13c7f29313caabd756ee"),
+        "_id" : ObjectId("573a13c7f29313caabd756ee"),
         "plot" : "A romantic fairy tale about a 19-year old orphan girl who, as her sole inheritance, gets an antique key that unlocks both an old Italian villa and the secrets of her family history.",
-	     "genres" : [ "Comedy", "Drama", "Romance" ],
-	     "title" : "The Italian Key",
-	     "score" : 4.221206188201904
+        "genres" : [ "Comedy", "Drama", "Romance" ],
+        "title" : "The Italian Key",
+        "score" : 4.221206188201904
       }
       {
-	     "_id" : ObjectId("573a13caf29313caabd7d1e4"),
+        "_id" : ObjectId("573a13caf29313caabd7d1e4"),
         "plot" : "A chronicle of the 1969 bombing at a major national bank in Milan and its aftermath.",
-	     "genres" : [ "Drama" ],
-	     "title" : "Piazza Fontana: The Italian Conspiracy",
-	     "score" : 3.4441356658935547
+        "genres" : [ "Drama" ],
+        "title" : "Piazza Fontana: The Italian Conspiracy",
+        "score" : 3.4441356658935547
       }
 
-Example 3 
-~~~~~~~~~ 
+Example 3
+~~~~~~~~~
 
-The following example uses the ``queryString`` operator to query for movie 
-plots that contain the terms ``captain`` or ``kirk`` and ``enterprise``. 
+The following example uses the ``queryString`` operator to query for
+movie plots that contain the terms ``captain`` or ``kirk`` and
+``enterprise``.
 
-.. example:: 
+.. example::
 
-   The following query searches for a combination of terms,
-   ``captain`` or ``kirk`` and ``enterprise``, in the ``plot`` field. 
-   It includes a :manual:`$limit </reference/operator/aggregation/limit>` 
-   stage to limit the output to 3 results and a :manual:`$project
-   </reference/operator/aggregation/project>` stage to: 
-   
+   The following query searches for a combination of terms, ``captain``
+   or ``kirk`` and ``enterprise``, in the ``plot`` field. It includes a
+   :pipeline:`$limit <limit>` stage to limit the output to 3 results
+   and a :pipeline:`$project` stage to:
+
    - Exclude all fields except ``title``, ``plot``, and ``fullplot``
    - Add a field named ``score``
 
-   .. code-block:: json 
+   .. code-block:: javascript
+      :linenos:
 
       db.movies.aggregate([
          {
@@ -270,59 +295,64 @@ plots that contain the terms ``captain`` or ``kirk`` and ``enterprise``.
 
    The above query returns the following results:
 
-   .. code-block:: json 
-      :copyable: false 
+   .. code-block:: json
+      :linenos:
+      :copyable: false
 
-      { "plot" : "Captain Picard, with the help of supposedly dead Captain Kirk, must stop a madman willing to murder on a planetary scale in order to enter an energy ribbon.", 
-      "fullplot" : "In the late 23rd century, the gala maiden voyage of the third Starship Enterprise (NCC-1701-B) boasts such luminaries as Pavel Chekov, Montgomery Scott and the legendary Captain James T. Kirk as guests. But the maiden voyage turns to disaster as the unprepared ship is forced to rescue two transport ships from a mysterious energy ribbon. The Enterprise manages to save a handful of the ships' passengers and barely makes it out intact... but at the cost of Captain Kirk's life. Seventy-eight years later, Captain Jean-Luc Picard and the crew of the Enterprise-D find themselves at odds with the renegade scientist Tolian Soran... who is destroying entire star systems. Only one man can help Picard stop Soran's scheme... and he's been dead for seventy-eight years.", 
-      "title" : "Star Trek: Generations", 
+      { "plot" : "Captain Picard, with the help of supposedly dead Captain Kirk, must stop a madman willing to murder on a planetary scale in order to enter an energy ribbon.",
+      "fullplot" : "In the late 23rd century, the gala maiden voyage of the third Starship Enterprise (NCC-1701-B) boasts such luminaries as Pavel Chekov, Montgomery Scott and the legendary Captain James T. Kirk as guests. But the maiden voyage turns to disaster as the unprepared ship is forced to rescue two transport ships from a mysterious energy ribbon. The Enterprise manages to save a handful of the ships' passengers and barely makes it out intact... but at the cost of Captain Kirk's life. Seventy-eight years later, Captain Jean-Luc Picard and the crew of the Enterprise-D find themselves at odds with the renegade scientist Tolian Soran... who is destroying entire star systems. Only one man can help Picard stop Soran's scheme... and he's been dead for seventy-eight years.",
+      "title" : "Star Trek: Generations",
       "score" : 11.274821281433105 }
-      { "plot" : "Captain Kirk and his crew must deal with Mr. Spock's long-lost half-brother who hijacks the Enterprise for an obsessive search for God at the center of the galaxy.", 
-      "fullplot" : "When the newly-christened starship Enterprise's shakedown cruise goes poorly, Captain Kirk and crew put her into Spacedock for repairs. But an urgent mission interrupts their Earth-bound shore leave. A renegade Vulcan named Sybok has taken three ambassadors hostage on Nimbus III, the Planet of Galactic Peace. This event also attracts the attention of a Klingon captain who wants to make a name for himself and sets out to pursue the Enterprise. Sybok's ragtag army captures the Enterprise and takes her on a journey to the center of the galaxy in search of the Supreme Being.", 
-      "title" : "Star Trek V: The Final Frontier", 
+      { "plot" : "Captain Kirk and his crew must deal with Mr. Spock's long-lost half-brother who hijacks the Enterprise for an obsessive search for God at the center of the galaxy.",
+      "fullplot" : "When the newly-christened starship Enterprise's shakedown cruise goes poorly, Captain Kirk and crew put her into Spacedock for repairs. But an urgent mission interrupts their Earth-bound shore leave. A renegade Vulcan named Sybok has taken three ambassadors hostage on Nimbus III, the Planet of Galactic Peace. This event also attracts the attention of a Klingon captain who wants to make a name for himself and sets out to pursue the Enterprise. Sybok's ragtag army captures the Enterprise and takes her on a journey to the center of the galaxy in search of the Supreme Being.",
+      "title" : "Star Trek V: The Final Frontier",
       "score" : 9.889547348022461 }
-      { "plot" : "When an alien spacecraft of enormous power is spotted approaching Earth, Admiral Kirk resumes command of the Starship Enterprise in order to intercept, examine and hopefully stop the intruder.",  
-      "fullplot" : "A massive alien spacecraft of enormous power is approaching Earth, destroying everything in its path. The only star ship in range is the USS Enterprise still in dry-dock after a major overhaul. As Captain Willard Decker readies his ship and his crew to face this menace, Admiral James T. Kirk arrives with orders to take command of the Enterprise and intercept the alien intruder. But it has been three years since Kirk last commanded the Enterprise on its historic five year mission... is he up to the task of saving the Earth?", 
+      { "plot" : "When an alien spacecraft of enormous power is spotted approaching Earth, Admiral Kirk resumes command of the Starship Enterprise in order to intercept, examine and hopefully stop the intruder.",
+      "fullplot" : "A massive alien spacecraft of enormous power is approaching Earth, destroying everything in its path. The only star ship in range is the USS Enterprise still in dry-dock after a major overhaul. As Captain Willard Decker readies his ship and his crew to face this menace, Admiral James T. Kirk arrives with orders to take command of the Enterprise and intercept the alien intruder. But it has been three years since Kirk last commanded the Enterprise on its historic five year mission... is he up to the task of saving the Earth?",
       "title" : "Star Trek: The Motion Picture",
       "score" : 8.322310447692871 }
 
    The documents in the above results match because:
 
-   - In the first document, the ``plot`` field, which is the field to search 
-     per the  ``query``, contains both ``captain`` and ``kirk``, although only 
-     either one is required to meet the criteria for a match. For the term 
-     ``enterprise``, |fts| searches the ``fullplot`` field, which is the  
-     ``defaultPath``, because the ``plot`` field does not contain ``enterprise``, 
-     and finds ``enterprise`` in the ``fullplot`` field.
-   - In the second document, the ``plot`` field contains all three search terms. 
-   - In  the third document, the ``plot`` field contains ``kirk`` and 
+   - In the first document, the ``plot`` field, which is the field to
+     search per the  ``query``, contains both ``captain`` and ``kirk``,
+     although only either one is required to meet the criteria for a
+     match. For the term ``enterprise``, |fts| searches the
+     ``fullplot`` field, which is the ``defaultPath``, because the
+     ``plot`` field does not contain ``enterprise``, and finds
+     ``enterprise`` in the ``fullplot`` field.
+   - In the second document, the ``plot`` field contains all three
+     search terms.
+   - In  the third document, the ``plot`` field contains ``kirk`` and
      ``enterprise``.
 
-Example 4 
+Example 4
 ~~~~~~~~~
 
-The following example uses the ``queryString`` operator to query for movie 
-plots that contain the terms ``captain``, ``kirk``, and ``chess``. This example 
-shows how different grouping of the same search terms using parentheses can 
-result in different documents to be included in the search results. 
+The following example uses the ``queryString`` operator to query for
+movie plots that contain the terms ``captain``, ``kirk``, and
+``chess``. This example shows how different grouping of the same search
+terms using parentheses can result in different documents to be
+included in the search results.
 
-.. example:: 
+.. example::
 
-   The following queries search for a combination of the terms, ``captain``, 
-   ``kirk``, and ``chess``, in the ``plot`` field. It includes a 
-   :manual:`$project </reference/operator/aggregation/project>` stage to: 
-   
+   The following queries search for a combination of the terms,
+   ``captain``, ``kirk``, and ``chess``, in the ``plot`` field. It
+   includes a :pipeline:`$project` stage to:
+
    - Exclude all fields except ``title``, ``plot``, and ``fullpath``
    - Add a field named ``score``
 
-   .. tabs:: 
+   .. tabs::
 
-      tabs: 
+      tabs:
         - id: eg1
           name: Query Example 1
           content: |
 
-           .. code-block:: json 
+           .. code-block:: javascript
+              :linenos:
 
               db.movies.aggregate([
                 {
@@ -344,29 +374,29 @@ result in different documents to be included in the search results.
                 }
               ])
 
-           The above query returns the following results: 
+           The above query returns the following results:
 
-           .. code-block:: json 
+           .. code-block:: json
               :copyable: false
 
               {
-	            "fullplot" : "When the crew of the Enterprise is called back home, they find an unstoppable force of terror from within their own organization has detonated the fleet and everything it stands for, leaving our world in a state of crisis. With a personal score to settle, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction. As our heroes are propelled into an epic chess game of life and death, love will be challenged, friendships will be torn apart, and sacrifices must be made for the only family Kirk has left: his crew.",
-	            "plot" : "After the crew of the Enterprise find an unstoppable force of terror from within their own organization, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction.",
-	            "title" : "Star Trek Into Darkness",
-	            "score" : 7.968792915344238
+               "fullplot" : "When the crew of the Enterprise is called back home, they find an unstoppable force of terror from within their own organization has detonated the fleet and everything it stands for, leaving our world in a state of crisis. With a personal score to settle, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction. As our heroes are propelled into an epic chess game of life and death, love will be challenged, friendships will be torn apart, and sacrifices must be made for the only family Kirk has left: his crew.",
+               "plot" : "After the crew of the Enterprise find an unstoppable force of terror from within their own organization, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction.",
+               "title" : "Star Trek Into Darkness",
+               "score" : 7.968792915344238
               }
-         
-           The document in the above results is a match because the 
-           ``plot`` contains the terms ``captain`` and ``kirk``, although 
-           only one is needed to meet the criteria for a match, and the 
-           term ``chess``, although not in the ``plot``, appears in the 
+        
+           The document in the above results is a match because the
+           ``plot`` contains the terms ``captain`` and ``kirk``, although
+           only one is needed to meet the criteria for a match, and the
+           term ``chess``, although not in the ``plot``, appears in the
            ``fullplot``, which is the ``defaultPath``.
 
         - id: eg2
           name: Query Example 2
           content: |
 
-           .. code-block:: json 
+           .. code-block:: javascript
 
               db.movies.aggregate([
                 {
@@ -393,42 +423,42 @@ result in different documents to be included in the search results.
 
            The above query returns the following results:
 
-           .. code-block:: json 
-              :copyable: false 
+           .. code-block:: json
+              :copyable: false
 
               {
-	            "fullplot" : "When the crew of the Enterprise is called back home, they find an unstoppable force of terror from within their own organization has detonated the fleet and everything it stands for, leaving our world in a state of crisis. With a personal score to settle, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction. As our heroes are propelled into an epic chess game of life and death, love will be challenged, friendships will be torn apart, and sacrifices must be made for the only family Kirk has left: his crew.",
-	            "plot" : "After the crew of the Enterprise find an unstoppable force of terror from within their own organization, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction.",
-	            "title" : "Star Trek Into Darkness",
-	            "score" : 9.227973937988281
+               "fullplot" : "When the crew of the Enterprise is called back home, they find an unstoppable force of terror from within their own organization has detonated the fleet and everything it stands for, leaving our world in a state of crisis. With a personal score to settle, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction. As our heroes are propelled into an epic chess game of life and death, love will be challenged, friendships will be torn apart, and sacrifices must be made for the only family Kirk has left: his crew.",
+               "plot" : "After the crew of the Enterprise find an unstoppable force of terror from within their own organization, Captain Kirk leads a manhunt to a war-zone world to capture a one-man weapon of mass destruction.",
+               "title" : "Star Trek Into Darkness",
+               "score" : 9.227973937988281
               }
               {
-	            "plot" : "Captain Picard, with the help of supposedly dead Captain Kirk, must stop a madman willing to murder on a planetary scale in order to enter an energy ribbon.",
-	            "title" : "Star Trek: Generations",
-	            "fullplot" : "In the late 23rd century, the gala maiden voyage of the third Starship Enterprise (NCC-1701-B) boasts such luminaries as Pavel Chekov, Montgomery Scott and the legendary Captain James T. Kirk as guests. But the maiden voyage turns to disaster as the unprepared ship is forced to rescue two transport ships from a mysterious energy ribbon. The Enterprise manages to save a handful of the ships' passengers and barely makes it out intact... but at the cost of Captain Kirk's life. Seventy-eight years later, Captain Jean-Luc Picard and the crew of the Enterprise-D find themselves at odds with the renegade scientist Tolian Soran... who is destroying entire star systems. Only one man can help Picard stop Soran's scheme... and he's been dead for seventy-eight years.",
-	            "score" : 3.3556222915649414
+               "plot" : "Captain Picard, with the help of supposedly dead Captain Kirk, must stop a madman willing to murder on a planetary scale in order to enter an energy ribbon.",
+               "title" : "Star Trek: Generations",
+               "fullplot" : "In the late 23rd century, the gala maiden voyage of the third Starship Enterprise (NCC-1701-B) boasts such luminaries as Pavel Chekov, Montgomery Scott and the legendary Captain James T. Kirk as guests. But the maiden voyage turns to disaster as the unprepared ship is forced to rescue two transport ships from a mysterious energy ribbon. The Enterprise manages to save a handful of the ships' passengers and barely makes it out intact... but at the cost of Captain Kirk's life. Seventy-eight years later, Captain Jean-Luc Picard and the crew of the Enterprise-D find themselves at odds with the renegade scientist Tolian Soran... who is destroying entire star systems. Only one man can help Picard stop Soran's scheme... and he's been dead for seventy-eight years.",
+               "score" : 3.3556222915649414
               }
               {
-	            "plot" : "An army cadet accompanies an irascible, blind captain on a week-long trip from Turin to Naples. The captain, Fausto, who wants no pity, brooks no disagreement, and charges into every ...",
-	            "title" : "Scent of a Woman",
-	            "fullplot" : "An army cadet accompanies an irascible, blind captain on a week-long trip from Turin to Naples. The captain, Fausto, who wants no pity, brooks no disagreement, and charges into every situation, nicknames the youth Ciccio (\"Babyfat\"), and spends the next few days ordering him about and generally behaving badly in public. In Rome, Fausto summons a priest to ask for his blessing; in Naples, where Fausto joins a blind lieutenant for drinking and revelry, the two soldiers talk quietly and seriously about \"going through with it.\" Also in Naples is Sara, in love with Fausto, but treated cruelly by him. What do the blind soldiers plan? Can Sara soften Fausto's hardened heart?",
-	            "score" : 3.2553727626800537
+               "plot" : "An army cadet accompanies an irascible, blind captain on a week-long trip from Turin to Naples. The captain, Fausto, who wants no pity, brooks no disagreement, and charges into every ...",
+               "title" : "Scent of a Woman",
+               "fullplot" : "An army cadet accompanies an irascible, blind captain on a week-long trip from Turin to Naples. The captain, Fausto, who wants no pity, brooks no disagreement, and charges into every situation, nicknames the youth Ciccio (\"Babyfat\"), and spends the next few days ordering him about and generally behaving badly in public. In Rome, Fausto summons a priest to ask for his blessing; in Naples, where Fausto joins a blind lieutenant for drinking and revelry, the two soldiers talk quietly and seriously about \"going through with it.\" Also in Naples is Sara, in love with Fausto, but treated cruelly by him. What do the blind soldiers plan? Can Sara soften Fausto's hardened heart?",
+               "score" : 3.2553727626800537
               }
               {
-	            "plot" : "A seductive woman falls in love with a mysterious ship's captain.",
-	            "title" : "Pandora and the Flying Dutchman",
-	            "fullplot" : "Albert Lewin's interpretation of the legend of the Flying Dutchman. In a little Spanish seaport named Esperanza, during the 30s, appears Hendrick van der Zee, the mysterious captain of a yacht (he is the only one aboard). Pandora is a beautiful woman (who men kill and die for). She's never really fallen in love with any man, but she feels very attracted to Hendrick... We are soon taught that Hendrick is the Flying Dutchman, this sailor of the 17th century that has been cursed by God to wander over the seas until the Doomsday... unless a woman is ready to die for him...",
-	            "score" : 3.2536067962646484
+               "plot" : "A seductive woman falls in love with a mysterious ship's captain.",
+               "title" : "Pandora and the Flying Dutchman",
+               "fullplot" : "Albert Lewin's interpretation of the legend of the Flying Dutchman. In a little Spanish seaport named Esperanza, during the 30s, appears Hendrick van der Zee, the mysterious captain of a yacht (he is the only one aboard). Pandora is a beautiful woman (who men kill and die for). She's never really fallen in love with any man, but she feels very attracted to Hendrick... We are soon taught that Hendrick is the Flying Dutchman, this sailor of the 17th century that has been cursed by God to wander over the seas until the Doomsday... unless a woman is ready to die for him...",
+               "score" : 3.2536067962646484
               }
               {
-	            "plot" : "The adventures of pirate Captain Red and his first mate Frog.",
-	            "title" : "Pirates",
-	            "fullplot" : "Captain Red runs a hardy pirate ship with the able assistance of Frog, a dashing young French sailor. One day Capt. Red is captured and taken aboard a Spanish galleon, but thanks to his inventiveness, he raises the crew to mutiny, takes over the ship, and kidnaps the niece of the governor of Maracaibo. The question is, can he keep this pace up?",
-	            "score" : 3.2536067962646484
+               "plot" : "The adventures of pirate Captain Red and his first mate Frog.",
+               "title" : "Pirates",
+               "fullplot" : "Captain Red runs a hardy pirate ship with the able assistance of Frog, a dashing young French sailor. One day Capt. Red is captured and taken aboard a Spanish galleon, but thanks to his inventiveness, he raises the crew to mutiny, takes over the ship, and kidnaps the niece of the governor of Maracaibo. The question is, can he keep this pace up?",
+               "score" : 3.2536067962646484
               }
 
-           The documents in the above results match because the ``plot`` 
-           field contains the term ``captain``. The first document 
-           gets a higher score because |fts| also finds the terms ``kirk`` 
-           and ``chess`` in the ``fullplot`` field although the terms are 
+           The documents in the above results match because the ``plot``
+           field contains the term ``captain``. The first document
+           gets a higher score because |fts| also finds the terms ``kirk``
+           and ``chess`` in the ``fullplot`` field although the terms are
            not required to be present to meet the criteria for a match.
