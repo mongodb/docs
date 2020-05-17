@@ -226,7 +226,8 @@ extlinks = {
     'ruby': ('https://docs.mongodb.com/ruby-driver/current%s', ''),
     'mdbacct': ('https://account.mongodb.com/account%s',''),
     'contact': ('https://www.mongodb.com/contact%s',''),
-    'adl': ('https://docs.mongodb.com/datalake%s','')
+    'adl': ('https://docs.mongodb.com/datalake%s',''),
+    'guides' : ('https://docs.mongodb.com/guides%s','')
 }
 
 # add `extlinks` for each published version.
