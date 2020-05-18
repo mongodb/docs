@@ -40,7 +40,7 @@
               |ldap| user and authorizes this user using their |ldap|
               group. To learn more about |ldap| security, see
               :atlas:`Set up User Authentication and Authorization with 
-              LDAP<security-ldaps>`.
+              LDAP </security-ldaps>`.
        
        The default value is ``NONE``.
 

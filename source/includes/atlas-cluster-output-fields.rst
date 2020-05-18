@@ -7,12 +7,12 @@
 
    * - ``autoScaling``
      - Configuration for :atlas:`automatically scaling 
-       <cluster-autoscaling/#cluster-autoscaling>` cluster storage 
+       </cluster-autoscaling/#cluster-autoscaling>` cluster storage 
        and tier.
 
    * - ``autoscaling.diskGBEnabled``
      - Specifies whether or not disk :atlas:`auto-scaling 
-       <cluster-autoscaling/#cluster-autoscaling>` is enabled. 
+       </cluster-autoscaling/#cluster-autoscaling>` is enabled. 
 
        Value can be:
 
@@ -22,8 +22,8 @@
        By default, disk auto-scaling is disabled.
 
    * - ``backupEnabled``
-     - Specifies whether or not :atlas:`continuous 
-       backups <backup/continuous-backups>` is enabled. 
+     - Specifies whether or not :atlas:`cloud provider snapshots 
+       </backup/cloud-provider-snapshots>` are enabled. 
        Value can be:
 
        - ``true`` if enabled
@@ -50,7 +50,7 @@
        - ``secondary`` to allow |bic-short| to read from 
          the secondary. 
        - ``analytics`` to allow |bic-short| to read from 
-         the :atlas:`analytics node <faq/#analytics-nodes-overview>`.
+         the :atlas:`analytics node </faq/#analytics-nodes-overview>`.
 
        The default value is ``secondary`` if there are no 
        analytics nodes in the cluster. If there analytics 
@@ -169,13 +169,13 @@
      - Specifies the physical location of the cluster. For a 
        complete list of regions, see cloud provider reference:
 
-       - :atlas:`AWS <reference/amazon-aws/#amazon-aws>`
-       - :atlas:`GCP <reference/google-gcp/#google-gcp>` 
-       - :atlas:`Azure <reference/microsoft-azure/#microsoft-azure>`
+       - :atlas:`AWS </reference/amazon-aws/#amazon-aws>`
+       - :atlas:`GCP </reference/google-gcp/#google-gcp>` 
+       - :atlas:`Azure </reference/microsoft-azure/#microsoft-azure>`
 
    * - ``replicationFactor``
      - Specifies the number of :atlas:`replica set members 
-       <reference/glossary/#term-replica-set>` in the cluster. The 
+       </reference/glossary/#term-replica-set>` in the cluster. The 
        possible values are ``3``, ``5``, ``7``.
 
    * - ``replicationSpec``
@@ -199,7 +199,7 @@
    * - ``replicationSpec.<region>.electableNodes``
      - Specifies the number of electable nodes in the 
        region. Electable nodes can become the 
-       :atlas:`primary <reference/glossary/#term-primary>` 
+       :atlas:`primary </reference/glossary/#term-primary>` 
        and can facilitate local reads.
 
    * - ``replicationSpec.<region>.priority``
@@ -220,9 +220,9 @@
 
    * - ``replicationSpecs``
      - Configuration for each zone in a :atlas:`Global Cluster 
-       <global-clusters>`. Each object in this array represents a 
+       </global-clusters>`. Each object in this array represents a 
        zone where |service| deploys nodes for your :atlas:`Global Cluster 
-       <global-clusters>`.
+       </global-clusters>`.
 
    * - ``replicationSpecs.id``
      - Specifies the unique identifier of the replication object.
@@ -233,7 +233,7 @@
 
    * - ``replicationSpecs.zoneName``
      - Specifies the name for the zone in a :atlas:`Global Cluster 
-       <global-clusters>`.
+       </global-clusters>`.
 
    * - ``replicationSpecs.regionConfig``
      - Configuration for the physical location of the region. Each 
