@@ -16,17 +16,13 @@ You can also define additional query options such as
 :doc:`sort </fundamentals/crud/read-operations/sort>`
 and
 :doc:`projection </fundamentals/crud/read-operations/project>`
-to configure the result set. You should specify these options using the
-cursor methods
-:node-api:`sort() <Cursor.html#sort>`
-and
-:node-api:`project() <Cursor.html#project>`.
-For detailed reference documentation, see
-:node-api:`collection.find() <Collection.html#find>`.
+to configure the result set. You can specify these in the options
+parameter in your ``find()`` method call in ``sort`` and ``projection``
+objects. See :node-api:`collection.find() <Collection.html#find>` for more
+information on the parameters you can pass to the method.
 
-``find()`` returns a
-:node-api:`Cursor <Cursor.html>`
-that provides the results of your query. Iterate through the
+The ``find()`` method returns a :node-api:`Cursor <Cursor.html>` that
+manages the results of your query. Iterate through the
 :doc:`cursor </fundamentals/crud/read-operations/cursor>` using cursor
 methods like ``next()``, ``toArray()``, or ``forEach()`` to
 fetch and work with the returned documents. If no documents match the
@@ -35,14 +31,15 @@ query, ``find()`` returns an empty cursor.
 Example
 -------
 
-The following snippet finds documents from the ``movies``
-collection. It uses the following:
+The following snippet finds documents from the ``movies`` collection. It
+uses the following parameters:
 
 - A **query document** that configures the query to return only
   movies with a runtime of less than 15 minutes.
 
 - A **sort** that organizes returned documents in ascending order by
-  title (A->Z)
+  title (alphabetical order in which "A" comes before "Z" and "1" before
+  "9").
 
 - A **projection** that explicitly excludes the ``_id`` field from
   returned documents and explicitly includes only the ``title`` and
@@ -51,6 +48,25 @@ collection. It uses the following:
 .. include:: /includes/connect-guide-note.rst
 
 .. literalinclude:: /code-snippets/usage-examples/find.js
-  :language: javascript
-  :emphasize-lines: 18
-  :linenos:
+   :language: javascript
+   :dedent: 4
+
+If you run the example above, you should see results that resemble the
+following:
+
+.. code-block:: javascript
+
+   { title: '10 Minutes', imdb: { rating: 7.9, votes: 743, id: 339976 } }
+   { title: '3x3', imdb: { rating: 6.9, votes: 206, id: 1654725 } }
+   { title: '7:35 in the Morning', imdb: { rating: 7.3, votes: 1555, id: 406501 } }
+   { title: '8', imdb: { rating: 7.8, votes: 883, id: 1592502 } }
+   ...
+
+The ``sort`` and ``projection`` options can also be specified as methods
+(``sort()`` and ``project()``, respectively) chained to the ``findOne`` method.
+The following two commands are equivalent:
+
+.. code-block:: javascript
+
+   collection.find({ runtime: { $lt: 15 } }, { sort: { title: 1 }, projection: { _id: 0, title: 1, imdb: 1 }});
+   collection.find({ runtime: { $lt: 15 } }).sort({ title: 1}).project({ _id: 0, title: 1, imdb: 1 });

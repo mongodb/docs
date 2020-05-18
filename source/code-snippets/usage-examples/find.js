@@ -16,16 +16,15 @@ async function run() {
 
     // query for movies that have a runtime less than 15 minutes
     const query = { runtime: { $lt: 15 } };
-    // sort returned documents in ascending order by title (A->Z)
-    const sort = { title: 1 };
-    // Include only the `title` and `imdb` fields in each returned document
-    const projection = { _id: 0, title: 1, imdb: 1 };
 
-    // find documents based on our query, sort, and projection
-    const cursor = collection
-      .find(query)
-      .sort(sort)
-      .project(projection);
+    const options = {
+      // sort returned documents in ascending order by title (A->Z)
+      sort: { title: 1 },
+    // Include only the `title` and `imdb` fields in each returned document
+      projection: { _id: 0, title: 1, imdb: 1 },
+    };
+
+    const cursor = collection.find(query, options);
 
     // print a message if no documents were found
     if ((await cursor.count()) === 0) {
