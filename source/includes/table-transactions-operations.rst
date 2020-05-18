@@ -60,8 +60,16 @@
        | :method:`db.collection.findOneAndUpdate()`
 
      - :dbcommand:`findAndModify`
-     - For ``upsert``, only when run against an existing collection.
 
+     - For :ref:`feature compatibility version (fcv) <view-fcv>`
+       ``"4.4"`` or greater, if the update/replace operation is run
+       with ``upsert: true`` against a non-existing collection, the
+       collection is implicitly created.
+
+       For fcv ``"4.2"`` or less, if ``upsert: true``, the operation
+       must be run against an existing collection.
+       
+       .. seealso:: :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.insertMany()`
        | :method:`db.collection.insertOne()`
@@ -75,6 +83,8 @@
        
        For fcv ``"4.2"`` or less, can only be run against an existing
        collection.
+       
+       .. seealso:: :ref:`transactions-operations-ddl`
 
    * - :method:`db.collection.save()`
      - 
@@ -85,12 +95,15 @@
        With fcv ``"4.2"`` or less, if an insert, can only be run against an
        existing collection.
 
+       .. seealso:: :ref:`transactions-operations-ddl`
+
    * - | :method:`db.collection.updateOne()`
        | :method:`db.collection.updateMany()`
        | :method:`db.collection.replaceOne()`
        | :method:`db.collection.update()`
 
      - :dbcommand:`update`
+
      - For :ref:`feature compatibility version (fcv) <view-fcv>`
        ``"4.4"`` or greater, if run with ``upsert: true`` against a
        non-existing collection, the collection is implicitly created.
@@ -98,7 +111,17 @@
        For fcv ``"4.2"`` or less, if ``upsert: true``, the operation must be
        run against an existing collection.
 
+       .. seealso:: :ref:`transactions-operations-ddl`
+
    * - | :method:`db.collection.bulkWrite()`
        | Various :doc:`/reference/method/js-bulk`
      - 
-     - .. include:: /includes/extracts/4.4-changes-transactions-bulkWrite.rst
+     - For :ref:`feature compatibility version (fcv) <view-fcv>` ``"4.4"``
+       and greater, if an insert operation or update operation with
+       ``upsert: true`` is run in a transaction against a non-existing
+       collection, the collection is implicitly created.
+
+       For fcv ``"4.2"`` or less, the collection must already exist for
+       insert and ``upsert: true`` operations.
+       
+       .. seealso:: :ref:`transactions-operations-ddl`

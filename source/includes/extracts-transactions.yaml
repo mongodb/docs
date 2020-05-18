@@ -85,11 +85,12 @@ content: |
  
    The following operations are not allowed in transactions:
 
-   - Operations that affect the database catalog,
-     such as creating or dropping a collection or an index, unless
-     using :ref:`feature compatibility version (fcv) <view-fcv>`
-     ``"4.4"`` or greater. With fcv ``"4.4"`` or greater you can create
-     collections and indexes in transactions. For details, see
+   - Operations that affect the database catalog, such as creating or
+     dropping a collection or an index when using :ref:`feature
+     compatibility version (fcv) <view-fcv>` ``"4.2"`` or lower. With
+     fcv ``"4.4"`` or greater, you can create collections and indexes
+     in transactions unless the transaction is a cross-shard write
+     transaction. For details, see
      :ref:`transactions-create-collections-indexes`.
  
    - Creating new collections in cross-shard write transactions. For
@@ -97,8 +98,11 @@ content: |
      implicitly create a collection in a different shard, MongoDB cannot
      perform both operations in the same transaction.
 
-   - The :method:`~db.createCollection()` and
-     :method:`~db.collection.createIndexes()` methods when using a read
+   - :ref:`Explicit creation of collections
+     <transactions-operations-ddl-explicit>`, e.g.
+     :method:`db.createCollection()` method, and indexes, e.g.
+     :method:`db.collection.createIndexes()` and
+     :method:`db.collection.createIndex()` methods, when using a read
      concern level other than :readconcern:`"local"`.
 
    - The :dbcommand:`listCollections` and :dbcommand:`listIndexes`
@@ -108,28 +112,6 @@ content: |
      :dbcommand:`createUser`, :dbcommand:`getParameter`,
      :dbcommand:`count`, etc. and their helpers.
 
----
-ref: transactions-4.4-allowed-operations
-content: |
-
-   - Create a collection in a transaction.
-
-     - Explicitly create a collection in a transaction using
-       :method:`db.createCollection()`.
-
-     - Implicitly create a collection in a transaction by running an
-       insert operation or update operation with ``upsert: true``
-       against a non-existing collection.
-
-   - Create an index using :dbcommand:`createIndexes` on:
-
-     - A non-existing collection. In this case, the collection is
-       created implicitly.
-
-     - An empty collection which was created earlier in the same
-       multi-document transaction.
-
-   
 ---
 ref: transactions-operations-restrictions-info
 content: |
@@ -559,10 +541,102 @@ content: |
 ---
 ref: transactions-create-collections-read-concern
 content: |
-   In :doc:`multi-document transactions </core/transactions>`, you can
-   only run the :method:`~db.createCollection()` and
-   :method:`~db.collection.createIndex()` methods when using read
-   concern level of :readconcern:`"local"`. If you specify a read
-   concern level other than :readconcern:`"local"`, the transaction
-   fails.
+
+   Starting in MongoDB 4.4, with :ref:`feature compatibility version
+   (fcv) <view-fcv>` ``"4.4"`` or greater, you can :ref:`create
+   collections and indexes <transactions-create-collections-indexes>`
+   inside a transaction. If :ref:`explicitly
+   <transactions-operations-ddl-explicit>` creating a collection or an
+   index, the transaction must use read concern
+   :readconcern:`"local"`. :ref:`Implicit <transactions-operations-ddl-implicit>` 
+   creation of a collection can use any of the read concerns available
+   for transactions.
+   
+---
+ref: transactions-example-note
+content: |
+   
+   .. important::
+
+      - *Recommended*. Use the MongoDB driver updated for the version
+        of your MongoDB deployment. For transactions on MongoDB 4.2
+        deployments (replica sets and sharded clusters), clients
+        :red:`must` use MongoDB drivers updated for MongoDB 4.2.
+
+      - When using the drivers, each operation in the
+        transaction :red:`must` be associated with the session (i.e.
+        pass in the session to each operation).
+
+      - Operations in a transaction use :ref:`transaction-level read
+        concern <transactions-read-concern>`, :ref:`transaction-level
+        write concern <transactions-write-concern>`, and
+        :ref:`transaction-level read preference
+        <transactions-read-preference>`.
+
+      - In MongoDB 4.2 and earlier, you cannot create collections in
+        transctions. Write operations that result in document inserts
+        (e.g. ``insert`` or update operations with ``upsert: true``)
+        must be on **existing** collections if run inside transactions.
+
+      - Starting in MongoDB 4.4, you can create collections in
+        transactions implicitly or explicitly. You must use MongoDB
+        drivers updated for 4.4, however. See
+        :ref:`transactions-create-collections-indexes` for details.
+
+---
+ref: transactions-upsert-availability
+content: |
+
+   Starting in MongoDB 4.4 with :ref:`feature compatibility version
+   (fcv) <view-fcv>` ``"4.4"``, you can create collections and indexes
+   inside a :ref:`multi-document transaction
+   <transactions-create-collections-indexes>` if the transaction is
+   :red:`not` a cross-shard write transaction.
+   
+   As such, for the :ref:`feature compatibility version (fcv)
+   <view-fcv>` is ``"4.4"`` or greater, |operation| with ``upsert:
+   true`` can be run against an existing collection or a non-existing
+   collection. If run against a non-existing collection, the operation
+   creates the collection.
+
+   If the :ref:`feature compatibility version (fcv) <view-fcv>` is
+   ``"4.2"`` or less, the operation must be against an existing
+   collection.
+
+   .. seealso:: :ref:`transactions-create-collections-indexes`
+---
+ref: transactions-insert-implicit-collection-creation
+content: |
+
+   Starting in MongoDB 4.4 with :ref:`feature compatibility version
+   (fcv) <view-fcv>` ``"4.4"``, you can create collections and indexes
+   inside a :ref:`multi-document transaction
+   <transactions-create-collections-indexes>` if the transaction is
+   :red:`not` a cross-shard write transaction.
+
+   As such, for :ref:`feature compatibility version (fcv) <view-fcv>`
+   ``"4.4"`` and greater, if you specify an insert on a non-existing
+   collection in a transaction, the collection is implicitly created.
+
+   If the :ref:`feature compatibility version (fcv) <view-fcv>` is
+   ``"4.2"`` or less, the operation must be against an existing
+   collection.
+
+   .. seealso:: :ref:`transactions-create-collections-indexes`
+
+---
+ref: transactions-explicit-ddl
+content: |
+   Starting in MongoDB 4.4 with :ref:`feature compatibility version
+   (fcv) <view-fcv>` ``"4.4"``, you can create collections and indexes
+   inside a :ref:`multi-document transaction
+   <transactions-create-collections-indexes>` if the transaction is
+   :red:`not` a cross-shard write transaction.
+
+   To use |operation| in a transaction, the transaction must use read
+   concern :readconcern:`"local"`. If you specify a read concern level
+   other than :readconcern:`"local"`, the transaction fails.
+
+   .. seealso:: :ref:`transactions-create-collections-indexes`
+   
 ...

@@ -787,39 +787,61 @@ For more information, see:
 Transactions
 ------------
 
-Transactions Support Collection and Index Creation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. container::
 
-Starting in MongoDB 4.4 with
-:ref:`feature compatibility version (fcv) <view-fcv>` ``"4.4"``, you
-can:
+   Starting in MongoDB 4.4 with :ref:`feature compatibility version
+   (fcv) <view-fcv>` ``"4.4"``, you can create collections and indexes
+   inside a :doc:`multi-document transaction </core/transactions>`
+   unless the transaction is a cross-shard write transaction.
 
-- Create collections inside of a
-  :doc:`multi-document transaction </core/transactions>`.
+   When creating a collection inside a transaction:
 
-- Create indexes inside of a multi-document transaction in the
-  following scenarios:
+   - You can :ref:`implicitly create a collection
+     <transactions-operations-ddl-implicit>`, such as with:
 
-  - The index is specified on a non-existing collection. In this case,
-    the collection is created implicitly.
+     - an insert operation against a non-existing collection; 
 
-  - The index is specified on an empty collection which was
-    created earlier in the same transaction.
+     - an update/findAndModify operation with ``upsert: true`` against
+       a non-existing collection.
 
-For more details, see :ref:`transactions-create-collections-indexes`.
+   - You can explicitly create a collection using the
+     :dbcommand:`create` command or its helper
+     :method:`db.createCollection()`.
 
-With fcv ``"4.2"`` or less, operations that affect the database
-catalog, such as creating or dropping a collection or an index, are not
-allowed in transactions. For details on transaction restrictions, see
-:ref:`transactions-ops-restricted`.
+   When :ref:`creating an index <transactions-operations-ddl-explicit>`
+   inside a transaction:
 
-.. note::
+   - You can create an index on a non-existing collection. The
+     collection is created as part of the operation.
 
-   You can only run the :method:`~db.createCollection()` and
-   :method:`~db.collection.createIndexes()` methods when using read
-   concern level of :readconcern:`"local"`. If you specify a read
-   concern level other than :readconcern:`"local"`, the transaction
-   fails.
+   - You can create an index on a new empty collection created earlier
+     in the same transaction.
+
+   For more details, see :ref:`transactions-create-collections-indexes`.
+
+   MongoDB 4.4 adds a new parameter
+   :parameter:`shouldMultiDocTxnCreateCollectionAndIndexes` which can
+   enable (default) or disable collection and index creation inside a
+   transaction. When setting the parameter for a sharded cluster, set
+   the parameter on all shards.
+
+   For explicit creation of a collection or an index inside a
+   transaction, the transaction read concern level must be
+   :readconcern:`"local"`. Explicit creation is through:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Command
+        - Method
+  
+      * - :dbcommand:`create`
+        - :method:`db.createCollection()`
+
+      * - :dbcommand:`createIndexes`
+
+        - | :method:`db.collection.createIndex()`
+          | :method:`db.collection.createIndexes()`
 
 .. seealso::
 
