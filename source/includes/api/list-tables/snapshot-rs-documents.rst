@@ -1,46 +1,46 @@
 .. list-table::
-   :widths: 20 20 60
+   :widths: 15 10 75
    :header-rows: 1
+   :stub-columns: 1
 
-   * - Name
+   * - ``Name``
      - Type
      - Description
 
-   * - clusterId
-     - :ref:`objectId <document-bson-type-object-id>`
-     - ID of the cluster the :term:`snapshot` represents.
+   * - ``clusterId``
+     - string
+     - Unique identifier of the cluster the :term:`snapshot`
+       represents.
 
-   * - complete
+   * - ``complete``
      - boolean
-     - Indicator that the :term:`snapshot` has been created. This is
-       ``false`` if the snapshot creation job is still in progress.
+     - Flag that indicates the :term:`snapshot` has been created. This
+       is ``false`` if the snapshot creation job is still in progress.
 
-   * - created
+   * - ``created``
      - document
-     - The components of a :ref:`timestamp <document-bson-type-timestamp>`.
+     - Components of a :ref:`timestamp <document-bson-type-timestamp>`.
 
-   * - created.date
+   * - | ``created``
+       | ``.date``
      - timestamp
-     - The exact point in time when the :term:`snapshot` was taken in
-       `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-       date and time format at :abbr:`UTC (Coordinated Universal Time)`.
+     - iso8601-time when the :term:`snapshot` was taken.
 
-   * - created.increment
+   * - | ``created``
+       | ``.increment``
      - integer
-     - The operation order in which this :term:`snapshot` took place at
+     - Operation order in which this :term:`snapshot` took place at
        this exact point in time. To learn how timestamps work in
        MongoDB, see :ref:`document-bson-type-timestamp`.
 
-   * - doNotDelete
+   * - ``doNotDelete``
      - boolean
-     - Indicator that the :term:`snapshot` cannot be deleted.
+     - Flag that indicates the :term:`snapshot` cannot be deleted.
 
-   * - expires
+   * - ``expires``
      - timestamp
-     - The date in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format at :abbr:`UTC (Coordinated Universal Time)` after
-       which this :term:`snapshot` can be deleted.
+     - |iso8601-time| at |utc| after which this :term:`snapshot` can be
+       deleted.
 
        If ``doNotDelete`` is set to ``true``, any value in ``expires``
        is removed.
@@ -48,17 +48,19 @@
        If the ``expires`` value is earlier than the current date and
        time, it cannot be edited.
 
-   * - groupId
-     - objectId
-     - ID of the :term:`project` that owns the :term:`snapshot`.
+   * - ``groupId``
+     - string
+     - Unique identifier of the :term:`project` that owns the
+       :term:`snapshot`.
 
-   * - id
-     - objectId
-     - ID of the :term:`snapshot`.
+   * - ``id``
+     - string
+     - Unique identifier of the :term:`snapshot`.
 
-   * - isPossiblyInconsistent
+   * - | ``isPossibly``
+       | |nbsp| |nbsp| ``Inconsistent``
      - boolean
-     - Indicator of the consistency of this :term:`snapshot`.
+     - Flag that indicates the consistency of this :term:`snapshot`.
 
        .. note::
           This appears for :term:`sharded cluster` snapshots only.
@@ -72,45 +74,49 @@
        If this happens, the snapshot may be in an inconsistent state
        (e.g., chunk migrations may be in progress).
 
-   * - lastOplogAppliedTimestamp
+   * - | ``lastOplog``
+       | |nbsp| |nbsp| ``AppliedTimestamp``
      - document
-     - The components of the
+     - Components of the
        :ref:`timestamp <document-bson-type-timestamp>`  of the last
        oplog entry was applied.
 
-   * - lastOplogAppliedTimestamp.date
+   * - | ``lastOplog``
+       | |nbsp| |nbsp| ``AppliedTimestamp``
+       | |nbsp| |nbsp| ``.date``
      - timestamp
-     - The exact point in time when the last :term:`oplog` was applied
-       in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format at :abbr:`UTC (Coordinated Universal Time)`.
+     - |iso8601-time| at |utc| when the last :term:`oplog` was applied.
 
-   * - lastOplogAppliedTimestamp.increment
+   * - | ``lastOplog``
+       | |nbsp| |nbsp| ``AppliedTimestamp``
+       | |nbsp| |nbsp| ``.increment``
      - integer
-     - The operation order in which last :term:`oplog` was applied at
+     - Operation order in which last :term:`oplog` was applied at
        this exact point in time. To learn how timestamps work in
        MongoDB, see :ref:`document-bson-type-timestamp`.
 
-   * - links
+   * - ``links``
      - object array
      - .. include:: /includes/api/links-explanation.rst
 
-   * - namespaceFilterList
+   * - ``namespaceFilterList``
      - object
-     - The :term:`namespaces <namespace>` that are included or excluded
+     - :term:`namespaces <namespace>` that are included or excluded
        from this :term:`snapshot`.
 
-   * - namespaceFilterList.filterList
+   * - | ``namespaceFilterList``
+       | ``.filterList``
      - string array
-     - A comma-separated list of any combination of databases or
+     - Comma-separated list of any combination of databases or
        :term:`namespaces <namespace>` that are exclusively included or
        explicitly excluded from the snapshot.
 
        The default value is an empty array (``[]``).
 
-   * - namespaceFilterList.filterType
+   * - | ``namespaceFilterList``
+       | ``.filterType``
      - string
-     - A value that determines how :term:`namespaces <namespace>` are
+     - Label that determines how :term:`namespaces <namespace>` are
        filtered for this snapshot.
 
        - If this value is set to ``blacklist``, namespaces in
@@ -122,108 +128,124 @@
 
        The default value is ``blacklist``.
 
-   * - missingShards
-     - object array
+   * - ``missingShards``
+     - array of objects
      - List of shards that the :term:`snapshot` is missing.
 
        .. note::
           This appears for :term:`sharded cluster` snapshots only.
 
-       In steady state, this array is empty. If the {+bagent+}
-       cannot connect to a shard when a :term:`snapshot` is created, the
-       shard is omitted from the snapshot. Each :term:`document` in the
-       array is a **cluster** document containing a ``self`` link.
+       In steady state, this array is empty. If the {+bagent+} cannot
+       connect to a shard when a :term:`snapshot` is created, the shard
+       is omitted from the snapshot. Each :term:`document` in the array
+       is a **cluster** document containing a ``self`` link.
 
-   * - missingShards.id
-     - objectId
-     - ID of the missing :term:`shard`.
-
-   * - missingShards.groupId
-     - objectId
-     - ID of the project that owns the missing :term:`shard`.
-
-   * - missingShards.typeName
+   * - | ``missingShards``
+       | ``.id``
      - string
-     - The type of server that the missing :term:`shard` represents:
+     - Unique identifier of the missing :term:`shard`.
+
+   * - | ``missingShards``
+       | ``.groupId``
+     - string
+     - Unique identifier of the project that owns the missing
+       :term:`shard`.
+
+   * - | ``missingShards``
+       | ``.typeName``
+     - string
+     - Type of server that the missing :term:`shard` represents:
 
        - ``CONFIG_SERVER_REPLICA_SET``
        - ``REPLICA_SET``
 
-   * - missingShards.clusterName
+   * - | ``missingShards``
+       | ``.clusterName``
      - string
-     - The name of the cluster for the missing :term:`shard`.
+     - Name of the cluster for the missing :term:`shard`.
 
-   * - missingShards.shardName
+   * - | ``missingShards``
+       | ``.shardName``
      - string
-     - The name of the missing :term:`shard`.
+     - Name of the missing :term:`shard`.
 
-   * - missingShards.replicaSetName
+   * - | ``missingShards``
+       | ``.replicaSetName``
      - string
      - Name of the replica set in the missing :term:`shard`.
 
-   * - missingShards.lastHeartbeat
+   * - | ``missingShards``
+       | ``.lastHeartbeat``
      - timestamp
-     - The exact point in time in
-       `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-       date and time format at :abbr:`UTC (Coordinated Universal Time)` when the last heartbeat was received from
-       the missing :term:`shard`.
+     - |iso8601-time| at |utc| when the last heartbeat was received
+       from the missing :term:`shard`.
 
-   * - parts
-     - object array
-     - The individual parts that comprise the complete :term:`snapshot`.
+   * - ``parts``
+     - array of objects
+     - Individual parts that comprise the complete :term:`snapshot`.
 
        - For a :term:`replica set`, this array contains a single
          document.
-       - For a :term:`sharded cluster`, this array contains one document
-         for each shard plus one document for the :term:`config server`.
+       - For a :term:`sharded cluster`, this array contains one
+         document for each shard plus one document for the
+         :term:`config server`.
 
-   * - parts.clusterId
-     - objectId
-     - ID of the :term:`replica set`.
+   * - | ``parts``
+       | ``.clusterId``
+     - string
+     - Unique identifier of the :term:`replica set`.
 
-   * - parts.compressionSetting
+   * - | ``parts``
+       | ``.compressionSetting``
      - string
      - Method of compression for the :term:`snapshot`.
 
-   * - parts.dataSizeBytes
+   * - | ``parts``
+       | ``.dataSizeBytes``
      - number
-     - The total size of the data in the :term:`snapshot` in bytes.
+     - Total size of the data in the :term:`snapshot` in bytes.
 
-   * - parts.encryptionEnabled
+   * - | ``parts``
+       | ``.encryptionEnabled``
      - boolean
      - Indicator of the state of encryption of the :term:`snapshot`
        data.
 
-   * - parts.fileSizeBytes
+   * - | ``parts``
+       | ``.fileSizeBytes``
      - number
-     - The total size of the data files in bytes.
+     - Total size of the data files in bytes.
 
-   * - parts.masterKeyUUID
-     - objectId
-     - The :abbr:`KMIP (Key Management Interoperability Protocol)`
-       master key ID used to encrypt the :term:`snapshot` data.
+   * - | ``parts``
+       | ``.masterKeyUUID``
+     - string
+     - |kmip| master key ID used to encrypt the :term:`snapshot` data.
 
        .. note::
           This appears only if this snapshot has
           ``parts.encryptionEnabled : true``.
 
-   * - parts.mongodVersion
+   * - | ``parts``
+       | ``.mongodVersion``
      - string
-     - The version of ``mongod`` that the :term:`replica set`
+     - Version of |mongod| that the :term:`replica set`
        :term:`primary` was running when the :term:`snapshot` was
        created.
 
-   * - parts.replicaSetName
+   * - | ``parts``
+       | ``.replicaSetName``
      - string
      - Name of the :term:`replica set`.
 
-   * - parts.storageSizeBytes
+   * - | ``parts``
+       | ``.storageSizeBytes``
      - number
-     - The total size of space allocated for document storage.
+     - Total size of space allocated for document storage.
 
-   * - parts.typeName
+   * - | ``parts``
+       | ``.typeName``
      - string
-     - The type of server that the part represents:
+     - Type of server that the part represents:
 
        - ``REPLICA_SET``
        - ``CONFIG_SERVER_REPLICA_SET``
