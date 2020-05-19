@@ -92,7 +92,7 @@
 
    * - ``mongoURI``
      - Specifies the base :manual:`connection string 
-       </manual/reference/connection-string/>` for the cluster.
+       </reference/connection-string/>` for the cluster.
 
    * - ``MongoURIUpdated``
      - Specifies the timestamp in |iso8601-time| when the connection 
@@ -118,7 +118,7 @@
 
    * - ``providerBackupEnabled``
      - Specifies whether or not :atlas:`Cloud Provider 
-       Snapshots <backup/cloud-provider-snapshots/#backup-cloud-provider>` 
+       Snapshots </backup/cloud-provider-snapshots/#backup-cloud-provider>` 
        is enabled. Value can be: 
 
        - ``true`` if enabled.
@@ -192,9 +192,9 @@
 
    * - ``replicationSpec.<region>.analyticsNodes``
      - Specifies the number of :atlas:`analytics nodes 
-       <faq/#analytics-nodes-overview>` in the region. 
+       </faq/#analytics-nodes-overview>` in the region. 
        Analytics nodes are read-only, and can never become 
-       the :atlas:`primary <reference/glossary/#term-primary>`.
+       the :atlas:`primary </reference/glossary/#term-primary>`.
 
    * - ``replicationSpec.<region>.electableNodes``
      - Specifies the number of electable nodes in the 
