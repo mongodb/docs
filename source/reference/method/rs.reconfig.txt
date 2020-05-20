@@ -96,78 +96,32 @@ Definition
 Behavior
 --------
 
+``term`` Replica Configuration Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 MongoDB 4.4 adds the :rsconf:`term` field to the replica set
 configuration document. The :rsconf:`term` field is set by the
 :term:`primary` replica set member. The primary ignores the
 :rsconf:`term` field if set explicitly in the
 :method:`rs.reconfig()` operation.
 
-.. _rs-reconfig-safe-reconfig:
+.. |reconfig| replace:: :method:`rs.reconfig()`
+.. |reconfig-force| replace:: :ref:`force <rs-reconfig-method-force>`
+.. |reconfig-maxTimeMS| replace:: :ref:`maxTimeMS <rs-reconfig-method-maxTimeMS>`
 
-Safe Replica Set Reconfiguration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _rs-reconfig-single-node:
 
-Starting in MongoDB 4.4, :method:`rs.reconfig()` waits until a
-majority of replica set members install the new replica configuration
-before returning success. Replica set members propagate their replica
-configuration via :ref:`heartbeats <replica-set-heartbeats>`. Whenever a
-member learns of a configuration with a higher :rsconf:`version` and
-:rsconf:`term`, it accepts and installs the new configuration. The
-reconfiguration process has two distinct 'waiting' phases:
+Reconfiguration Can Add or Remove No More than One Voting Member at a Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\1) Wait for the current configuration to be *committed* before installing the new configuration.
-  The "current" configuration refers to the replica configuration in use
-  by the primary at the time :method:`rs.reconfig()` is issued. 
-  
-  The current configuration is committed when:
+.. include:: /includes/extracts/replSetReconfig-single-node.rst
 
-  - A majority of replica set members have installed the current 
-    configuration, *and*
+.. _rs-reconfig-majority-install:
 
-  - All writes which were majority committed in the previous 
-    configuration have also replicated to a majority in the 
-    current configuration.
-    
-  The current configuration has typically already been installed on a
-  majority of replica set members and does not require additional
-  waiting. The operation *may* wait a significant amount of time for a
-  majority of replica members to commit specific oplog entries.
-  :rsconf:`Delayed <members[n].slaveDelay>` members *or* members that
-  are :method:`lagging behind <rs.printSlaveReplicationInfo()>`
-  the primary can increase the time spent in this phase.
-     
-  If the operation was issued with a 
-  :ref:`maxTimeMS <rs-reconfig-method-maxTimeMS>` limit *and* 
-  the operation exceeds the limit while waiting, 
-  return an error and discard the new configuration. The 
-  limit is *cumulative* and does not reset after proceeding to 
-  the next phase.
+Reconfiguration Waits Until a Majority of Members Install the Replica Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\2) Wait for a majority of members in the new configuration to install the new configuration.
-  The "new" configuration refers to the replica configuration 
-  specified to :method:`rs.reconfig()`.
-
-  The primary installs and begins using the new replica
-  configuration before propagating the configuration to the
-  remaining replica set members. The operation only waits for 
-  a majority of members to install the new configuration, and does 
-  not require waiting for the new configuration to be *committed*.
-       
-  If the operation was issued with a :ref:`maxTimeMS
-  <rs-reconfig-method-maxTimeMS>` limit *and* the operation
-  exceeds the limit while waiting, return an error *but* continue
-  using and propagating the new configuration.
-
-Issuing a :ref:`force <rs-reconfig-method-force>` reconfiguration
-immediately installs the new configuration regardless of the commitment
-status of the previous configuration. Force reconfiguration can cause 
-unexpected behavior, such as the rollback of :writeconcern:`"majority"`
-committed write operations.
-
-To check the commitment status of the current replica configuration,
-issue :dbcommand:`replSetGetConfig` with the 
-:ref:`commitmentStatus <replSetGetConfig-commitmentStatus>` parameter 
-on the replica set :term:`primary`. (*New in 4.4*)
+.. include:: /includes/extracts/replSetReconfig-majority.rst
 
 Access Control
 ~~~~~~~~~~~~~~

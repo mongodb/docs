@@ -42,13 +42,6 @@ of ``0``. :ref:`Hidden members <replica-set-hidden-members>` and
 :ref:`delayed members <replica-set-delayed-members>` have
 ``priority`` set to ``0``. 
 
-
-.. versionchanged:: 3.2
-
-   - .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
-
-   - .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
-
 .. versionchanged:: 3.6
 
    .. include:: /includes/fact-arbiter-priority.rst
@@ -58,6 +51,34 @@ Adjust priority settings during a scheduled maintenance window.
 Reconfiguring priority can force the current primary to step down,
 leading to an election. Before an election, the primary closes all open
 :term:`client` connections.
+
+Priority and Votes
+~~~~~~~~~~~~~~~~~~
+
+:rsconf:`members[n].priority` and :rsconf:`members[n].votes`
+have the following relationship:
+
+- .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+- .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+
+As such, increasing a non-voting member's :rsconf:`~members[n].priority`
+*requires* setting :rsconf:`~members[n].votes` to ``1`` and increases
+the number of voting replica set members. Before increasing the 
+priority of a non-voting member, consider the following:
+
+- MongoDB replica sets can have no more than 
+  :limit:`7 voting members <Number of Voting Members of a Replica Set>`.
+  If the replica set already has 7 voting members, you cannot modify the
+  priority of any remaining members in the replica set to be greater
+  than ``0``.
+
+- Starting in MongoDB 4.4, replica reconfiguration can add or remove 
+  no more than *one* voting member at a time. To change multiple
+  non-voting members to have a priority greater than ``0``, issue a
+  series of :dbcommand:`replSetReconfig` or :method:`rs.reconfig()`
+  operations to modify one member at a time. See
+  :ref:`replSetReconfig-cmd-single-node` for more information.
 
 Procedure
 ---------

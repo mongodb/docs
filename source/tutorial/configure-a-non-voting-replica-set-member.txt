@@ -13,64 +13,83 @@ Configure Non-Voting Replica Set Member
 Non-voting members allow you to add additional members for read
 distribution beyond the maximum seven voting members.
 
-.. important::
+To configure a member as non-voting, use the
+:dbcommand:`replSetReconfig` command *or* its
+:binary:`~bin.mongo` shell helper :method:`rs.reconfig()` to set its
+:rsconf:`members[n].votes` and :rsconf:`members[n].priority` values to
+``0``. Non-voting replica set members *must* have a 
+:rsconf:`~members[n].priority` of ``0``.
 
-   .. versionchanged:: 3.2
+.. note::
 
-      - .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+   Starting in MongoDB 4.4, replica reconfiguration can add or remove no
+   more than *one* voting replica set member at a time. To modify the
+   votes of multiple members, issue a series of
+   :dbcommand:`replSetReconfig` or :method:`rs.reconfig()` operations to
+   modify one member at a time. See
+   :ref:`replSetReconfig-cmd-single-node` for more information.
 
-      - .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+Procedure
+---------
 
-To configure a member as non-voting, set both its
-:rsconf:`~members[n].votes` and :rsconf:`~members[n].priority` values to
-``0``.
+The following procedure converts configures a single :term:`secondary`
+replica set member to be non-voting. To convert the :term:`primary`
+member to be non-voting, you must first successfully step the primary
+down using :dbcommand:`replSetStepDown` or its shell helper
+:method:`rs.stepDown()` before performing this procedure.
 
-Example
--------
+\1) Connect to the Replica Set Primary
+   Connect a :binary:`~bin.mongo` shell to the replica set 
+   :term:`primary`:
 
-The following example configures the fourth, fifth, and sixth replica
-set members to be non-voting members.
+   .. code-block:: shell 
 
-#. In a :binary:`~bin.mongo` shell connected to a primary, run the
-   :method:`rs.conf()` method and assign the result to a variable:
+      mongo --host "<hostname>:<port>"
+
+   Replace the ``<hostname>`` and ``<port>`` with the hostname and 
+   port of the replica set primary. Include any other parameters 
+   required for your deployment. 
+
+\2) Retrieve the Replica Configuration
+   Issue the :method:`rs.conf()` method in the shell and assign the 
+   result to a variable ``cfg``:
 
    .. code-block:: javascript
 
       cfg = rs.conf();
 
-   The returned document contains a ``members`` field which contains a
-   zero-indexed array of member configuration documents, one document for each
-   member of the replica set.
+   The returned :ref:`document <replSetGetConfig-output>` contains a 
+   :rsconf:`members` array, where each element in the array contains 
+   the configuration for a single replica set member.
 
-#. To configure the fourth, fifth, and sixth replica set members to be
-   non-voting, use the following command sequence to set both their
-   :rsconf:`members[n].votes` and :rsconf:`members[n].priority` values
-   to ``0``.
+\3) Configure the Member to be Non-Voting
+   For the replica member to change to be non-voting, 
+   set its :rsconf:`~members[n].votes` and
+   :rsconf:`~members[n].priority` to ``0``.
 
-   .. code-block:: javascript
+   .. code-block:: javascript 
 
-      cfg.members[3].votes = 0;
-      cfg.members[3].priority = 0;
-      cfg.members[4].votes = 0
-      cfg.members[4].priority = 0;
-      cfg.members[5].votes = 0
-      cfg.members[5].priority = 0;
+      cfg.members[n].votes = 0;
+      cfg.members[n].priority = 0;
 
-#. Use :method:`rs.reconfig()` method to reconfigure the replica set
+   Replace ``n`` with the array index position of the member 
+   to modify. The :rsconf:`members` array is *zero-indexed*, 
+   where the first element in the array has an index position of 
+   ``0``. 
+
+   The array index position of a member in the 
+   :rsconf:`members` array is *distinct* from the 
+   :rsconf:`members[n]._id` of a specific member. Do *not* 
+   use the :rsconf:`~members[n]._id` to reference the array 
+   index position of any any member in :rsconf:`members`.
+
+\4) Reconfigure the Replica Set with the New Configuration
+   Use :method:`rs.reconfig()` method to reconfigure the replica set
    with the updated replica set configuration document.
 
    .. code-block:: javascript
 
       rs.reconfig(cfg);
-
-Place voting members so that the :binary:`~bin.mongod` instance or instances
-that you wish to serve as primary can
-reach a majority of votes in the event of a network partition.
-
-Use :rsconf:`members[n].priority`
-to control which members are more likely to become primary.
-
-.. include:: /includes/fact-rs-conf-array-index.rst
 
 .. include:: /includes/warning-rs-reconfig.rst
 
