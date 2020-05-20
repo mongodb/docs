@@ -12,52 +12,50 @@ Perform Bulk Operations
    the result object type, see the
    :node-api:`API documentation <BulkWriteResult.html>`.
 
-:node-api:`collection.bulkWrite <Collection.html#bulkWrite>` lets you
-perform bulk write operations against a *single* collection. With
-``collection.bulkWrite()``, you specify a list of operations to perform
-and MongoDB then executes those operations in bulk. Bulk write supports
-``insertOne``, ``updateOne``, ``updateMany``, ``deleteOne``,
-``deleteMany``, and ``replaceOne`` operations. Refer to the method
-documentation for full details.
+The ``bulkWrite()`` method performs batch write operations against a
+*single* collection. This method reduces the number of network round trips from
+your application to the server which therefore increases the throughput and
+performance. Since you only receive the success status after the batch
+write returns, we recommend you use this if that meets the requirements
+of your use case.
 
-``bulkWrite()`` accepts the following parameters:
+You can specify one or more of the following write operations in
+``bulkWrite()``:
 
-- ``operations``: specifies the bulk operations to
+- ``insertOne``
+- ``updateOne``
+- ``updateMany``
+- ``deleteOne``
+- ``deleteMany``
+- ``replaceOne``
+
+The ``bulkWrite()`` method accepts the following parameters:
+
+- ``operations``: specifies the bulk write operations to
   perform. Pass each operation to ``bulkWrite()`` as an object in
-  an array.
+  an array. For examples that show the syntax for each write operation, see
+  the :node-api:`bulkWrite API documentation <Collection.html#bulkWrite>`.
 
 - ``options``: *optional* settings that affect the execution
-  of the operation, such as :manual:`write concern
-  </reference/write-concern>` and order.
+  of the operation, such as whether the write operations should execute in
+  sequential order and the write concern.
 
-  By default, MongoDB executes bulk operations one-by-one in the
+  By default, MongoDB executes bulk write operations one-by-one in the
   specified order (i.e. serially). During an ordered bulk write, if
   an error occurs during the processing of an operation, MongoDB returns
   without processing the remaining operations in the list. In contrast,
   when ``ordered`` is ``false``, MongoDB continues to process remaining
-  write operations in the list. Unordered operations are faster as
-  MongoDB can execute the operations in parallel, but the results of the
-  operation may vary. For example, a ``deleteOne`` operation run before
-  an ``updateMany`` operation might have a different result from running
-  it after the ``updateMany``. Refer to :manual:`Execution of Operations
-  </reference/method/db.collection.bulkWrite/#execution-of-operations>`
-  for more information.
+  write operations in the list. Unordered operations are theoretically faster
+  since MongoDB can execute them in parallel, but should only be used if
+  the writes do not depend on order.
 
-- ``callback``: command result callback. Like other collection methods,
-  ``bulkWrite()`` returns a Promise if you do not specify a callback.
-  The Promise resolves to a :node-api:`bulkWriteOpCallback
-  <Collection.html#~bulkWriteOpCallback>` object containing the
-  result of the operation.
-
-If you create an index with a :manual:`unique constraint
-</core/index-unique>`, you might encounter a duplicate key write error
-during an operation. The following example shows a duplicate key error
-encountered when two of the users in the inserted sample dataset had the
-same email address.
+If you create an index with a :manual:`unique index </core/index-unique>`
+constraint, you might encounter a duplicate key write error during an
+operation in the following format:
 
 .. code-block:: sh
 
-   Error during bulkWrite, BulkWriteError: E11000 duplicate key error collection: sample_mflix.users index: email_1 dup key: { : "rita_91@example.com" }
+   Error during bulkWrite, BulkWriteError: E11000 duplicate key error collection: ...
 
 Similarly, if you attempt to perform a bulk write against a collection
 that uses :manual:`schema validation </core/schema-validation>`, you may
@@ -67,29 +65,40 @@ modified documents.
 Example
 -------
 
-The following code sample performs a bulk write operation against the
-``users`` collection in the ``sample_mflix`` database. Specifically, the
-program formats the data from a ``users.json`` source file to perform a
-series of ``insertOne`` operations with the ``bulkWrite()`` collection
-method. Download the dataset here: `users.json
-<https://raw.githubusercontent.com/mongodb-university/universal-driver-examples/master/users.json>`_.
-
-Documents in the ``users`` collection have ``email``, ``password``,
-and ``name`` fields, as well as the generated ``_id`` field.
-``users.json`` contains an array of objects that map directly to the
-existing fields in the collection, as in the following:
-
-.. code-block:: javascript
-
-   {
-     "email" : "marieconrad@example.com",
-     "password" : "450f6704710dcf8033157978f7fbdfde",
-     "name" : "Marie Conrad"
-   }
+The following code sample performs a bulk write operation on the
+``theaters`` collection in the ``sample_mflix`` database. The example call
+to ``bulkWrite()`` includes examples of ``insertOne``, ``updateMany``, and
+``deleteOne`` write operations:
 
 .. include:: /includes/connect-guide-note.rst
 
-.. literalinclude:: /code-snippets/usage-examples/bulkWrite-example.js
+.. literalinclude:: /code-snippets/usage-examples/bulkWrite.js
    :language: javascript
 
+When you run the code sample, your output should resemble the following:
 
+.. code-block:: javascript
+
+   BulkWriteResult {
+     result: {
+       ok: 1,
+       writeErrors: [],
+       writeConcernErrors: [],
+       insertedIds: [ [Object], [Object] ],
+       nInserted: 2,
+       nUpserted: 0,
+       nMatched: 1,
+       nModified: 1,
+       nRemoved: 0,
+       upserted: [],
+       lastOp: { ts: [Timestamp], t: 17 }
+     },
+     insertedCount: 2,
+     matchedCount: 1,
+     modifiedCount: 1,
+     deletedCount: 0,
+     upsertedCount: 0,
+     upsertedIds: {},
+     insertedIds: { '0': 5ec4..., '1': 5ec4... },
+     n: 2
+   }
