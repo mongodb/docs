@@ -7,7 +7,7 @@
 
 * Your current MongoDB database is running MongoDB 2.6 or higher.
 
-  Atlas supports the latest versions of MongoDB: 3.4, 3.6, and 4.0.
+  Atlas supports the latest versions of MongoDB: 3.6, 4.0, and 4.2.
   If you're running MongoDB version 2.6 or greater, the Atlas Live Migration
   Service can move your data directly into a newer database version.
   Update your `MongoDB drivers <https://docs.mongodb.com/ecosystem/drivers>`_
