@@ -8,60 +8,128 @@ Open a Change Stream
 --------------------
 
 You can keep track of changes to data in MongoDB, such as changes to a
-collection, database, or deployment, by opening a :manual:`change
-stream</changeStreams/>`. A change stream allows applications to
-watch for changes to data and react to those changes. You can open a
-change stream by calling the :node-api:`Collection.watch()
-</Collection.html#watch>`, :node-api:`Db.watch() </Db.html#watch>`, or
-:node-api:`MongoClient.watch()</MongoClient.html#watch>`  method.
+collection, database, or deployment, by opening a **change stream**. A change
+stream allows applications to watch for changes to data and react to them.
+You can open a change stream by calling ``watch()`` method on
+a ``Collection``, ``Db``, or ``MongoClient`` object. The change stream
+returns **change event** documents when they occur.
 
-The ``watch()`` method  optionally takes a :manual:`pipeline
-</reference/operator/aggregation-pipeline/>`, an array of
-:manual:`stages </changeStreams/#modify-change-stream-output>`, as the
-first parameter to filter and transform the :manual:`change events
-</reference/change-events/>` output. ``watch()`` accepts an additional
-options object as the second parameter. By default, change streams only
-return the fields modified by an update operation, instead of the entire
-updated document. You can configure your change stream to also
-return the most current version of a document by setting the
-``fullDocument`` field of the options object to ``"updateLookup"``.
+The ``watch()`` method optionally takes an **aggregation pipeline**  which
+consists of an array of **stages** as the first parameter to filter and
+transform the change events output as follows:. 
+
+.. code-block:: javascript
+
+   const pipeline = [ { $match: { runtime: { $lt: 15 } }, ];
+   const changeStream = await collection.watch(pipeline);
+
+The ``watch()`` method accepts an additional ``options`` object as the second
+parameter. Refer to the links at the end of this section for more
+information on the settings you can configure in this object.
+
+The ``watch()`` method returns an instance of a ``ChangeStream``. You can
+call methods on the ChangeStream such as ``hasNext()`` to check for remaining
+documents in the stream, ``next()`` to request the next document in the
+stream, ``pause()`` to stop emitting events, ``resume()`` to continue to
+emit events, and ``close()`` to close the ChangeStream. You can also attach
+listener functions by calling the ``on()`` method on the instance. See the
+link to the ``ChangeStream`` API documentation below for more details on the
+available methods.
+
+Visit the following resources for additional material on the classes and
+methods presented above:
+
+- :manual:`change streams </changeStreams/>`
+- :manual:`change events </reference/change-events/>`
+- :manual:`aggregation pipeline </reference/operator/aggregation-pipeline/>`
+- :manual:`aggregation stages </changeStreams/#modify-change-stream-output>`
+- :node-api:`ChangeStream class API documentation <api/ChangeStream.html>`
+- :node-api:`Collection.watch() </Collection.html#watch>`,
+  :node-api:`Db.watch() </Db.html#watch>`,
+  :node-api:`MongoClient.watch() API documentation </MongoClient.html#watch>`
 
 Process the Change Stream Events
 --------------------------------
 
-You can capture events from a change stream with a listener
-function. Call the ``watch()`` command to get a ``ChangeStream`` instance.
-Add your listener function by calling the `EventEmitter.on()
-<https://nodejs.org/api/events.html#events_emitter_on_eventname_listener>`_
-method on that instance. Pass the string ``change`` as the first parameter
-and add your :mdn:`callback function <Glossary/Callback_function>` as
-the second parameter.  The callback triggers when a change event is
-emitted, providing the next available document. You can specify logic in
-the callback to process the event document when it is received.
+You can capture events from a change stream using a listener function. Call
+the ``watch()`` command to get a ``ChangeStream`` instance. Add your listener
+function by calling the ``on()`` method on the instance, inherited from
+the Javascript ``EventEmitter`` class. Pass the string ``"change"`` as the
+first parameter and add your callback function as the second parameter as
+shown below:
 
-Call the :node-api:`close() </ChangeStream.html#close>` method on the
-``ChangeStream`` instance to stop processing change events. This method
-closes the change stream and frees resources.
+.. code-block:: javascript
+
+   changeStream.on("change", (changeEvent) => { /* your callback function */ });
+
+The callback function triggers when a change event is emitted. You can
+specify logic in the callback to process the event document when it is
+received.
+
+To stop processing change events, call the
+:node-api:`close() </ChangeStream.html#close>` method on the ``ChangeStream``
+instance. This closes the change stream and frees resources.
+
+.. code-block:: javascript
+
+   changeStream.close();
+
+.. note::
+
+   For update operation change events, change streams only return the modified
+   fields by default rather than the full updated document. You can configure
+   your change stream to also return the most current version of the document
+   by setting the ``fullDocument`` field of the options object to
+   ``"updateLookup"`` as follows:
+
+   .. code-block:: javascript
+
+      const changeStream = await collection.watch();
+      const options = { fullDocument: "updateLookup" };
+      changeStream.on("change", callbackFunction, options);
 
 Example
 -------
 
-The following example opens a change stream on the ``movies``
-collection. We create a listener function to receive and print change
-events that occur.
+The following example opens a change stream on the ``movies`` collection in
+the ``sample_mflix`` database. Let's create a listener function to receive and
+print change events that occur on the collection.
 
-To emit a change event, we perform a change to the collection, such as
-insertion with ``insertOne()``. To prevent ``insertOne()`` from
-executing before the listener function can register, we create a timer
-that uses :mdn:`setTimeout <Web/API/WindowOrWorkerGlobalScope/setTimeout>`
-to wait 1 second. When you insert a document, the listener receives the
-corresponding event.
+First, open the change stream on the collection and then define a callback
+on the change stream using the ``on()`` method. Once set, generate a change
+event to be emitted by performing a change to the collection.
 
-After that, we create a second timer to wait an additional second after
-the insertion of the document to close the ``ChangeStream`` instance
-using ``changeStream.close()``.
+To generate the change event on the collection, let's use ``insertOne()``
+method to add a new document. Since the ``insertOne()`` may run before the
+listener function can register, we use a timer, declared with ``setTimeout()``
+to wait one second before executing the insert.
+
+We also use a second timer to wait an additional second after the insertion of
+the document to provide ample time for the change event to be received and
+the for the callback to complete its execution before closing the
+``ChangeStream`` instance using the ``close()`` method.
+
+The timers used in this example are only necessary for this demonstration
+to make sure there is enough time to register listener and have the
+callback process the event before exiting.
 
 .. include:: /includes/connect-guide-note.rst
 
 .. literalinclude:: /code-snippets/usage-examples/changeStream.js
-  :language: javascript :linenos:
+  :language: javascript
+
+If you run the example above, you should see output similar to the
+following:
+
+.. code-block:: javascript
+
+   received a change to the collection: 	 {
+     _id: {
+       _data: '825EC...'
+     },
+     operationType: 'insert',
+     clusterTime: Timestamp { ... },
+     fullDocument: { _id: 5ec3..., test: 'sample movie document' },
+     ns: { db: 'sample_mflix', coll: 'movies' },
+     documentKey: { _id: 5ec3... },
+   }

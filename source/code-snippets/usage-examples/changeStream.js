@@ -23,9 +23,9 @@ async function run() {
       console.log("received a change to the collection: \t", next);
     });
 
-    // wrap the setTimeout methods in a new Promise to wait for the timers to run
+    // use a timeout to ensure the listener is registered before the insertOne
+    // operation is called.
     await new Promise(resolve => {
-      // wait for the event listener to register before inserting a document
       setTimeout(async () => {
         await collection.insertOne({
           test: "sample movie document",
