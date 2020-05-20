@@ -1,114 +1,29 @@
 .. list-table::
-   :widths: 20 80
+   :widths: 15 75 10
    :header-rows: 1
+   :stub-columns: 1
 
    * - Setting
-     - When to Use
-
-   * - ``registry.imagePullSecrets``
-     - |k8s-secret| that contains the credentials required to pull imagePullSecrets
-       from the repository.
-
-       .. important::
-
-          This setting is mandatory for OpenShift installs. You must 
-          either define it in this file or pass it when you install the 
-          |k8s-op-short| using Helm.
-
-       .. example::
-
-          .. code-block:: sh
-             :emphasize-lines: 2
-
-             registry:
-               imagePullSecrets: <openshift-pull-secret>
-
-   * - ``registry.operator``
-     - Repository from which the |k8s-op-short| image is pulled. Specify 
-       this value if you want to pull the |k8s-op-short| image from a 
-       private repository.
-
-       .. example::
-
-          .. code-block:: sh
-             :emphasize-lines: 2
-
-             registry:
-               operator: registry.connect.redhat.com/mongodb
-
-   * - ``registry.opsManager``
-     - Repository from which the |onprem| image is pulled. Specify 
-       this value if you want to pull the |onprem| image from a 
-       private repository.
-
-       .. example::
-
-          .. code-block:: sh
-             :emphasize-lines: 2
-
-             registry:
-               opsManager: registry.connect.redhat.com/mongodb
-
-   * - ``registry.initOpsManager``
-     - Repository from which the |onprem| initContainer image is pulled.
-       This image contains the start-up scripts and readiness probe
-       for |onprem|.
-
-       Specify this value if you want to pull the |onprem| initContainer
-       image from a private repository.
-
-       .. example::
-
-          .. code-block:: sh
-             :emphasize-lines: 2
-
-             registry:
-               initOpsManager: registry.connect.redhat.com/mongodb
-
-   * - ``registry.appDb``
-     - Repository from which the Application Database image is pulled. 
-       Specify this value if you want to pull the |onprem| image from a 
-       private repository.
-
-       .. example::
-
-          .. code-block:: sh
-             :emphasize-lines: 2
-
-             registry:
-               appDb: registry.connect.redhat.com/mongodb
-
-   * - ``registry.initAppDb``
-     - Repository from which the Application Database initContainer 
-       image is pulled. This image contains the start-up scripts and 
-       readiness probe for the Application Database.
-
-       Specify this value if you want to pull the Application Database 
-       initContainer image from a private repository.
-
-       .. example::
-
-          .. code-block:: sh
-             :emphasize-lines: 2
-
-             registry:
-               initAppDb: registry.connect.redhat.com/mongodb
+     - Purpose
+     - Default
 
    * - ``namespace``
-     - To use a different namespace, you need to specify that
-       ``namespace``.
 
-       Default value is: ``mongodb``.
+     - To use a different namespace, specify that ``namespace``.
 
        .. example::
 
-          .. code-block:: sh
+          .. code-block:: yaml
              :emphasize-lines: 2
 
              # Name of the Namespace to use
              namespace: mongodb
 
-   * - ``operator.env``
+     - ``mongodb``
+
+   * - | ``operator``
+       | ``.env``
+
      - Label for the Operator's deployment environment. The ``env``
        value affects default timeouts and the format and level of
        logging.
@@ -129,18 +44,21 @@
 
        Accepted values are:  ``dev``, ``prod``.
 
-       Default value is: ``prod``.
-
        .. example::
 
-          .. code-block:: sh
+          .. code-block:: yaml
              :emphasize-lines: 3
 
              operator:
-              # Execution environment for the operator, dev or prod. Use dev for more verbose logging
-              env: prod
+               # Execution environment for the operator, dev or prod.
+               # Use dev for more verbose logging
+               env: prod
 
-   * - ``operator.watchNamespace``
+     - ``prod``
+
+   * - | ``operator``
+       | ``.watchNamespace``
+
      - Namespace that the Operator watches for |k8s-mdbrsc| changes.
        If this |k8s-ns| differs from the default, ensure that the
        Operator's ServiceAccount
@@ -152,21 +70,23 @@
        assigned to the ``mongodb-enterprise-operator`` ServiceAccount
        which is the ServiceAccount used to run the |k8s-op-short|.
 
-       Default value is: ``<metadata.namespace>``.
-
-       .. include:: /includes/admonitions/fact-create-service-account-namespaces.rst
-
        .. example::
 
-          .. code-block:: sh
+          .. code-block:: yaml
              :emphasize-lines: 2
 
              operator:
                watchNamespace: *
 
-   * - ``operator.watchedResources``
+       .. include:: /includes/admonitions/fact-create-service-account-namespaces.rst
+
+     - ``<metadata.namespace>``
+
+   * - | ``operator``
+       | ``.watchedResources``
+
      - Custom resources that the |k8s-op-short| watches.
-       
+
        The |k8s-op-short| installs the |k8s-crds| for and watches only
        the resources you specify.
 
@@ -174,15 +94,139 @@
 
        .. include:: /includes/list-tables/crds.rst
 
-       Default values are: ``mongodbusers``, ``mongodb``, and ``opsmanagers``.
-
        .. example::
 
-          .. code-block:: sh
+          .. code-block:: yaml
              :emphasize-lines: 2
 
              operator:
-               watchedResources: 
+               watchedResources:
                  - mongodbusers
                  - mongodb
                  - opsmanagers
+
+     -
+       - ``mongodbusers``
+       - ``mongodb``
+       - ``opsmanagers``
+
+   * - | ``registry``
+       | ``.appDb``
+
+     - Repository from which the Application Database image is pulled.
+       Specify this value if you want to pull the |onprem| image from a
+       private repository.
+
+       .. example::
+
+          .. code-block:: yaml
+             :emphasize-lines: 2
+
+             registry:
+               appDb: registry.connect.redhat.com/mongodb
+     -
+
+   * - | ``registry``
+       | ``.imagePullSecrets``
+
+     - |k8s-secret| that contains the credentials required to pull
+       imagePullSecrets from the repository.
+
+       .. important::
+
+          OpenShift requires this setting. Define it in this file or
+          pass it when you install the |k8s-op-short| using Helm.
+
+       .. example::
+
+          .. code-block:: yaml
+             :emphasize-lines: 2
+
+             registry:
+               imagePullSecrets: <openshift-pull-secret>
+     -
+
+   * - | ``registry``
+       | ``.operator``
+
+     - Repository from which the |k8s-op-short| image is pulled.
+       Specify this value if you want to pull the |k8s-op-short| image
+       from a private repository.
+
+       .. example::
+
+          .. code-block:: yaml
+             :emphasize-lines: 2
+
+             registry:
+               operator: registry.connect.redhat.com/mongodb
+     -
+
+   * - | ``registry``
+       | ``.opsManager``
+
+     - Repository from which OpenShift pulls the |onprem| image.
+       Specify this value if you want to pull the |onprem| image from a
+       private repository.
+
+       .. example::
+
+          .. code-block:: yaml
+             :emphasize-lines: 2
+
+             registry:
+               opsManager: registry.connect.redhat.com/mongodb
+     -
+
+   * - | ``registry``
+       | ``.initAppDb``
+
+     - Repository from which the Application Database ``initContainer``
+       image is pulled. This image contains the start-up scripts and
+       readiness probe for the Application Database.
+
+       Specify this value if you want to pull the Application Database
+       ``initContainer`` image from a private repository.
+
+       .. example::
+
+          .. code-block:: yaml
+             :emphasize-lines: 2
+
+             registry:
+               initAppDb: registry.connect.redhat.com/mongodb
+     -
+
+   * - | ``registry``
+       | ``.initOpsManager``
+
+     - Repository from which the |onprem| ``initContainer`` image is
+       pulled. This image contains the start-up scripts and readiness
+       probe for |onprem|.
+
+       Specify this value if you want to pull the |onprem|
+       ``initContainer`` image from a private repository.
+
+       .. example::
+
+          .. code-block:: yaml
+             :emphasize-lines: 2
+
+             registry:
+               initOpsManager: registry.connect.redhat.com/mongodb
+     -
+
+   * - ``subresourceEnabled``
+
+     - Creates the CRDs supporting the status subresource. Set to
+       "false" if you are running OpenShift 3.11 or earlier. Those
+       versions don't support subresources.
+
+       .. example::
+
+          .. code-block:: yaml
+             :emphasize-lines: 1
+
+             subresourceEnabled: false
+
+     - ``true``
