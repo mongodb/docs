@@ -1,3 +1,51 @@
+.. _opsmgr-server-4.2.13:
+
+|onprem| Server 4.2.13
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-05-14*
+
+Backup
+``````
+
+- Supports :ref:`point-in-time restores <restore-http-point>` for
+  MongoDB 4.2 deployments.
+
+- Retries rather than fails when a transient network error to the
+  |kmip| server configured for |onprem| occurs.
+
+- Improves the algorithm for which MongoDB 4.2 replica set and shard
+  members use to select for creating snapshots.
+
+Fixes
+`````
+
+- Fixes bug that prevented creating a new group via the |api| when
+  |saml| is enabled.
+
+- Fixes a console issue for managed deployments where a shard key's
+  fields can be displayed out of order.
+
+- Fixes an issue for managed deployments on Windows with spaces in
+  directory paths.
+
+- Fixes an issue that could prevent enabling authentication on a
+  managed deployment through the |api|.
+
+- Fixes an issue that could prevent managed deployments from upgrading
+  to a custom MongoDB build.
+
+- Fixes issue in console for managed deployments where the Review and
+  Deploy confirmation can mistakenly display that a sharded cluster
+  |csrs| is being removed from the deployment.
+
+- Reduces impact of RTPP on backing MongoDB.
+
+Agents
+``````
+
+Upgrades MongoDB Agent: :ref:`10.2.17.5970 <mongodb-10.2.17.5970>`.
+
 .. _opsmgr-server-4.2.12:
 
 |onprem| Server 4.2.12

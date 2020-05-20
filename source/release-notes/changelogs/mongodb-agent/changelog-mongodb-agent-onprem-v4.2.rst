@@ -1,3 +1,15 @@
+.. _mongodb-10.2.17.5970:
+
+MongoDB Agent 10.2.17.5970
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.13 on 2020-05-14 <opsmgr-server-4.2.13>`
+
+- Fixes an issue with managed deployments that can occur when a sharded
+  cluster has a shard added and an index built at the same time.
+
+- Supports SUSE 15.
+
 .. _mongodb-10.2.16.5960:
 
 MongoDB Agent 10.2.16.5960

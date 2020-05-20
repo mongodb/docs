@@ -5,12 +5,12 @@ MongoDB Agent 10.12.2.6205
 
 :ref:`Released with Ops Manager 4.3.9 on 2020-04-09 <opsmgr-server-4.3.9>`
 
-- Ensures that a majority of the healthy nodes are running at all times if a 
-  cluster has unhealthy nodes prior to the initiation of a storage-affecting 
-  rolling change.
-- When importing a new sharded cluster for monitoring, the automatic discovery 
-  of all processes in the sharded cluster now also considers fully qualified 
-  domain names.
+- Ensures that a majority of the healthy nodes are running at all times
+  if a cluster has unhealthy nodes prior to the initiation of a
+  storage-affecting rolling change.
+- When importing a new sharded cluster for monitoring, the automatic
+  discovery of all processes in the sharded cluster now also considers
+  fully qualified domain names.
 
 .. _mongodb-10.11.2.6172:
 
