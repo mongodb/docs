@@ -1,16 +1,16 @@
-.. list-table:: 
-   :widths: 20 80
+.. list-table::
+   :widths: 15 85
    :header-rows: 1
 
    * - Environment Variable
-     - When to Use
+     - Purpose
 
    * - ``OPERATOR_ENV``
      - Label for the Operator's deployment environment. The ``env``
        value affects default timeouts and the format and level of
        logging.
 
-       .. list-table:: 
+       .. list-table::
           :widths: 40 30 30
           :header-rows: 1
 
@@ -29,7 +29,7 @@
        Default value is: ``prod``.
 
        You can set the following pair of values:
-       
+
        .. code-block:: yaml
 
           spec.template.spec.containers.name.env.name: OPERATOR_ENV
@@ -69,7 +69,7 @@
        .. include:: /includes/admonitions/fact-create-service-account-namespaces.rst
 
        You can set the following pair of values:
-       
+
        .. code-block:: yaml
 
           spec.template.spec.containers.name.env.name: WATCH_NAMESPACE
@@ -93,19 +93,19 @@
                        value: "<testNamespace>"
 
    * - ``MONGODB_ENTERPRISE_DATABASE_IMAGE``
-     - |url| of the MongoDB Enterprise Database image the |k8s-op-short|
-       deploys.
+     - |url| of the MongoDB Enterprise Database image the
+       |k8s-op-short| deploys.
 
        Default value is
        ``registry.connect.redhat.com/mongodb/mongodb-enterprise-database``.
 
        .. code-block:: yaml
 
-          spec.template.spec.containers.name.env.name: 
+          spec.template.spec.containers.name.env.name:
           MONGODB_ENTERPRISE_DATABASE_IMAGE
           spec.template.spec.containers.name.env.value:
           registry.connect.redhat.com/mongodb/mongodb-enterprise-database
-      
+
        .. example::
 
           .. code-block:: yaml
@@ -127,19 +127,19 @@
                        value: Always
 
    * - ``IMAGE_PULL_POLICY``
-     - :k8sdocs:`Pull policy
-       </concepts/configuration/overview/#container-images>` for the
-       MongoDB Enterprise database image the |k8s-op-short| deploys.
-       
+     - :k8sdocs:`Pull policy </concepts/configuration/overview/#container-images>`
+       for the MongoDB Enterprise database image the |k8s-op-short|
+       deploys.
+
        Accepted values are ``Always``, ``IfNotPresent``, ``Never``.
 
        Default value is ``Always``.
 
        .. code-block:: yaml
 
-          spec.template.spec.containers.name.env.name: 
+          spec.template.spec.containers.name.env.name:
           IMAGE_PULL_POLICY
-          spec.template.spec.containers.name.env.value: 
+          spec.template.spec.containers.name.env.value:
           <policy>
 
        .. example::
@@ -163,19 +163,20 @@
                        value: Always
 
    * - ``OPS_MANAGER_IMAGE_REPOSITORY``
-     - |url| of the repository from which the image for an :doc:`Ops
-       Manager resource </tutorial/deploy-om-container>` is downloaded.
+     - |url| of the repository from which the image for an
+       :doc:`Ops Manager resource </tutorial/deploy-om-container>` is
+       downloaded.
 
        Default value is
        ``registry.connect.redhat.com/mongodb/mongodb-enterprise-ops-manager``.
 
        .. code-block:: yaml
 
-          spec.template.spec.containers.name.env.name: 
+          spec.template.spec.containers.name.env.name:
           OPS_MANAGER_IMAGE_REPOSITORY
           spec.template.spec.containers.name.env.value:
           registry.connect.redhat.com/mongodb/mongodb-enterprise-ops-manager
-      
+
        .. example::
 
           .. code-block:: yaml
@@ -195,22 +196,21 @@
                        value: registry.connect.redhat.com/mongodb/mongodb-enterprise-ops-manager
                      - name: OPS_MANAGER_IMAGE_PULL_POLICY
                        value: Always
-       
+
    * - ``OPS_MANAGER_IMAGE_PULL_POLICY``
-     - :k8sdocs:`Pull policy
-       </concepts/configuration/overview/#container-images>` for the
-       image deployed to an :doc:`Ops Manager resource
-       </tutorial/deploy-om-container>`.
-       
+     - :k8sdocs:`Pull policy </concepts/configuration/overview/#container-images>`
+       for the image deployed to an
+       :doc:`Ops Manager resource </tutorial/deploy-om-container>`.
+
        Accepted values are ``Always``, ``IfNotPresent``, ``Never``.
 
        Default value is ``Always``.
 
        .. code-block:: yaml
 
-          spec.template.spec.containers.name.env.name: 
+          spec.template.spec.containers.name.env.name:
           OPS_MANAGER_IMAGE_PULL_POLICY
-          spec.template.spec.containers.name.env.value: 
+          spec.template.spec.containers.name.env.value:
           <policy>
 
        .. example::
@@ -235,7 +235,7 @@
 
    * - ``INIT_OPS_MANAGER_IMAGE_REPOSITORY``
      - |url| of the repository from which the initContainer image that
-       contains |onprem| start-up scripts and the readiness probe is 
+       contains |onprem| start-up scripts and the readiness probe is
        downloaded.
 
        Default value is
@@ -243,9 +243,9 @@
 
        .. code-block:: yaml
 
-          spec.template.spec.containers.name.env.name: 
+          spec.template.spec.containers.name.env.name:
           INIT_OPS_MANAGER_IMAGE_REPOSITORY
-          spec.template.spec.containers.name.env.value: 
+          spec.template.spec.containers.name.env.value:
           registry.connect.redhat.com/mongodb/mongodb-enterprise-ops-manager-init
 
        .. example::
@@ -267,16 +267,16 @@
                        value: registry.connect.redhat.com/mongodb/mongodb-enterprise-ops-manager-init
 
    * - ``INIT_OPS_MANAGER_VERSION``
-     - Version of the initContainer image that contains |onprem| 
+     - Version of the initContainer image that contains |onprem|
        start-up scripts and the readiness probe.
 
        Default value is ``latest``.
 
        .. code-block:: yaml
 
-          spec.template.spec.containers.name.env.name: 
+          spec.template.spec.containers.name.env.name:
           INIT_OPS_MANAGER_VERSION
-          spec.template.spec.containers.name.env.value: 
+          spec.template.spec.containers.name.env.value:
           latest
 
        .. example::
@@ -298,17 +298,17 @@
                        value: latest
 
    * - ``APPDB_IMAGE_REPOSITORY``
-     - |url| of the repository from which the Application Database image 
-       is downloaded.
+     - |url| of the repository from which the Application Database
+       image is downloaded.
 
        Default value is
        ``registry.connect.redhat.com/mongodb/mongodb-enterprise-appdb``.
 
        .. code-block:: yaml
 
-          spec.template.spec.containers.name.env.name: 
+          spec.template.spec.containers.name.env.name:
           APPDB_IMAGE_REPOSITORY
-          spec.template.spec.containers.name.env.value: 
+          spec.template.spec.containers.name.env.value:
           registry.connect.redhat.com/mongodb/mongodb-enterprise-appdb
 
        .. example::
@@ -330,18 +330,18 @@
                        value: registry.connect.redhat.com/mongodb/mongodb-enterprise-appdb
 
    * - ``INIT_APPDB_IMAGE_REPOSITORY``
-     - |url| of the repository from which the initContainer image that
-       contains Application Database start-up scripts and the readiness 
-       probe is downloaded.
+     - |url| of the repository from which the ``initContainer`` image
+       that contains Application Database start-up scripts and the
+       readiness probe is downloaded.
 
        Default value is
        ``registry.connect.redhat.com/mongodb/mongodb-enterprise-appdb-init``.
 
        .. code-block:: yaml
 
-          spec.template.spec.containers.name.env.name: 
+          spec.template.spec.containers.name.env.name:
           INIT_APPDB_IMAGE_REPOSITORY
-          spec.template.spec.containers.name.env.value: 
+          spec.template.spec.containers.name.env.value:
           registry.connect.redhat.com/mongodb/mongodb-enterprise-init-appdb
 
        .. example::
@@ -363,16 +363,16 @@
                        value: registry.connect.redhat.com/mongodb/mongodb-enterprise-init-appdb
 
    * - ``INIT_APPDB_VERSION``
-     - Version of the initContainer image that contains |onprem| 
+     - Version of the ``initContainer`` image that contains |onprem|
        start-up scripts and the readiness probe.
 
        Default value is ``latest``.
 
        .. code-block:: yaml
 
-          spec.template.spec.containers.name.env.name: 
+          spec.template.spec.containers.name.env.name:
           INIT_APPDB_VERSION
-          spec.template.spec.containers.name.env.value: 
+          spec.template.spec.containers.name.env.value:
           latest
 
        .. example::
