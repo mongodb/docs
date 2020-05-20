@@ -22,6 +22,7 @@ async function run() {
     const query = { directors: "Barbra Streisand" };
 
     const distinctValues = await collection.distinct(fieldName, query);
+
     console.log(distinctValues);
   } finally {
     await client.close();
