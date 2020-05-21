@@ -1,0 +1,428 @@
+.. _mcli-om-backup-restore-list-cmd:
+
+========================================
+mongocli ops-manager backup restore list
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+The ``backup restore list`` command lists the restore jobs for a
+deployment. You can also list restore jobs using the |onprem|
+:opsmgr:`API
+</reference/api/restorejobs/get-all-restore-jobs-for-one-cluster/>`.
+
+.. _mcli-om-backup-restore-list-syntax:
+
+Syntax 
+------
+
+.. code-block:: text 
+
+   mongocli ops-manager|om backup|backups restore|restores list|ls 
+        <cluster-ID>
+        [ --limit <items-per-page>]
+        [ --page <page-num> ]
+        [ --profile|-P <profile-name> ]
+        [ --projectId <project-ID> ]
+
+.. _mcli-om-backup-restore-list-options:
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Option 
+     - Type 
+     - Description 
+     - Required? 
+
+   * - ``<cluster-ID>``
+     - string
+     - Unique identifier of the cluster that contains the
+       restore jobs you want to list.
+     - yes
+
+   * - ``--limit``
+     - integer
+     - Number of items to return per page, up to a maximum of 500.
+       Defaults to ``100`` if not specified.
+     - no
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the project ID and the |svc-api-key|\s 
+       for the project are saved. If omitted, uses the ``default`` profile. 
+       To learn more about creating a profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project that contains the cluster. 
+       If omitted, uses the project ID in the profile or :ref:`environment 
+       variable <mcli-env-var>`.
+     - no
+
+   * - ``--page``
+     - integer
+     - Page number (1-based). Defaults to ``1`` if not specified.
+     - no
+
+.. _mcli-om-backup-restore-list-output:
+
+Output 
+------
+
+The command prints the following fields in |json| format to the terminal
+if the command succeeds. If the command returns an error, see
+:ref:`Troubleshooting <troubleshooting>` for recommended solutions.
+
+Response Document
+~~~~~~~~~~~~~~~~~
+
+The response |json| document includes an array of :guilabel:`result`
+objects, an array of :guilabel:`link` objects and a count of the total
+number of :guilabel:`result` objects retrieved.
+
+.. list-table::
+   :widths: 15 10 75
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``results``
+     - array
+     - Array includes one object for each item detailed in the
+       `results Embedded Document`_ section.
+   * - ``links``
+     - array
+     - Array includes one or more links to sub-resources
+       and/or related resources. The relations between |url|\s are
+       explained in the :rfc:`Web Linking Specification <5988>`.
+   * - ``totalCount``
+     - number
+     - Integer count of the total number of items in the result set. It
+       may be greater than the number of objects in the
+       :guilabel:`results` array if the entire result set is paginated.
+
+``results`` Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 15 15 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - batchId
+     - string
+     - *Conditional:* :term:`sharded cluster` only.
+       Unique identifier of the :term:`batch` to which this restore
+       job belongs.
+
+   * - clusterId
+     - string
+     - *Conditional:* :term:`cluster` only.
+       Unique identifier of the :term:`cluster` that the
+       restore job represents.
+
+   * - created
+     - string
+     - |iso8601-time| when the restore job was requested.
+
+   * - delivery
+     - object
+     - Method and details of how the restored :term:`snapshot` data
+       is delivered.
+
+   * - delivery.expirationHours
+     - number
+     - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+       Number of hours the download |url| is valid once the restore
+       job is complete.
+
+   * - delivery.expires
+     - string
+     - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+       |iso8601-time| after which the |url| is no longer available.
+
+   * - delivery.maxDownloads
+     - number
+     - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+       Number of times the download |url| can be used. This must be
+       ``1`` or greater.
+
+   * - delivery.methodName
+     - string
+     - Means by which the data is delivered. Accepted values are:
+
+       - ``HTTP``
+
+         .. important::
+
+            Restore delivery via :abbr:`SCP (secure copy)` has been
+            removed as of March 27, 2018.
+
+   * - delivery.statusName
+     - string
+     - Current status of the downloadable file. Accepted values are:
+
+       - ``NOT_STARTED``
+       - ``IN_PROGRESS``
+       - ``READY``
+       - ``FAILED``
+       - ``INTERRUPTED``
+       - ``EXPIRED``
+       - ``MAX_DOWNLOADS_EXCEEDED``
+
+   * - delivery.url
+     - string
+     - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+       |url| from which the restored :term:`snapshot` data can be
+       downloaded.
+
+   * - encryptionEnabled
+     - boolean
+     - Flag indicating whether the restored snapshot data is
+       encrypted.
+
+   * - groupId
+     - string
+     - Unique identifier of the :term:`group` that owns the restore 
+       job.
+
+   * - hashes
+     - object array
+     - If the corresponding ``delivery.url`` has been downloaded,
+       each document in this array is a mapping of a restore file to
+       a hashed checksum. This array is present *only after* the
+       file is downloaded.
+
+       .. note::
+          For an ``HTTP`` restore, this array only contains a single
+          object that represents the hash of the ``.tar.gz`` file.
+
+   * - hashes.fileName
+     - string
+     - Name of the snapshot file that has been hashed.
+
+   * - hashes.hash
+     - string
+     - Hash of the snapshot file.
+
+   * - hashes.typeName
+     - string
+     - Hashing algorithm used to compute the hash value. If 
+       present, this value is ``SHA1``.
+
+   * - hostId
+     - string
+     - *Conditional:* mirrored :term:`config server`
+       (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
+       Unique identifier of the :term:`config server` to which this 
+       restore job belongs.
+
+   * - id
+     - string
+     - Unique identifier of the restore job.
+
+   * - links
+     - object array
+     - One or more links to sub-resources and/or related resources. All
+       ``links`` arrays in responses include at least one link called
+       ``self``. The relationships between |url|\s are explained in the
+       :rfc:`Web Linking Specification <5988>`.
+
+   * - masterKeyUUID
+     - string
+     - *Conditional:* ``"encryptionEnabled" : true``.
+       |kmip| :opsmgr:`master key ID </tutorial/encrypt-snapshots>`
+       used to encrypt the :term:`snapshot` data.
+
+   * - pointInTime
+     - boolean
+     - Flag indicating that the job for a 
+       :abbr:`PIT (point-in-time)` restore.
+
+   * - snapshotId
+     - string
+     - Unique identifier of the :term:`snapshot` to restore.
+
+   * - statusName
+     - string
+     - Current status of the job. Accepted values are:
+
+       - ``FINISHED``
+       - ``IN_PROGRESS``
+       - ``BROKEN``
+       - ``KILLED``
+
+   * - timestamp
+     - object
+     - Timestamp of the Oplog entry when the snapshot was created.
+
+   * - timestamp.date
+     - string
+     - |iso8601-time| of the latest oplog entry in the restored
+       snapshot.
+
+   * - timestamp.increment
+     - string
+     - Order of all operations completed at the latest oplog entry in
+       the restored snapshot.
+
+.. _mcli-om-backup-restore-list-eg:
+
+Example
+-------
+
+The following example uses the ``mongocli cm backup restore list``
+command to retrieve the restore jobs for the cluster ID
+``7c88887880eef52e5f4d0e2d``. The command uses the default profile.
+
+.. code-block:: json 
+
+   mongocli cm backup restore list Cluster0 
+
+The previous command prints the following fields to the terminal. To
+learn more about these fields, see
+:ref:`mcli-om-backup-restore-list-output`.
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+     "links": [
+       {
+         "href": "https://cloud.mongodb.com/api/cm/v1.0/groups/6b77777887d9d61443b41645/clusters/Cluster0/restoreJobs?pageNum=1&itemsPerPage=100",
+         "rel": "self"
+       }
+     ],
+     "results": [
+       {
+         "batchId": "5a66783b80eef5354c77ee13",
+         "clusterId": "7c88887880eef52e5f4d0e2d",
+         "created": "2018-01-22T23:48:11Z",
+         "delivery": {
+           "expirationHours": 48,
+           "expires": "2018-01-22T23:49:38Z",
+           "maxDownloads": 2147483647,
+           "methodName": "HTTP",
+           "statusName": "EXPIRED",
+           "url": "https://ops-host.com:27017/backup/restore/v2/pull/5a66783b80eef5354c77ee16/MGViYTUwZGQ4YWVkNDY4MGE2YWE4NGQzODY0MzAzYTU=/config-Cluster0-config-0-5a66689487d9d61443b46149-1516661094-5a66783b80eef5354c77ee16.tar.gz"
+         },
+         "encryptionEnabled": false,
+         "groupId": "6b77777887d9d61443b41645",
+         "hashes": [
+           {
+             "fileName": "config-Cluster0-config-0-5a66689487d9d61443b46149-1516661094-5a66783b80eef5354c77ee16.tar.gz",
+             "hash": "a98af3c1f85a9eb3061423cda0fad8b4d0a48209",
+             "typeName": "SHA1"
+           }
+         ],
+         "id": "5a66783b80eef5354c77ee16",
+         "links": [
+           {
+             "href": "https://cloud.mongodb.com/api/cm/v1.0/groups/6b77777887d9d61443b41645/clusters/Cluster0/restoreJobs/5a66783b80eef5354c77ee16",
+             "rel": "self"
+           }
+         ],
+         "pointInTime": false,
+         "snapshotId": "5a6669d5e2bfb3461861360c",
+         "statusName": "FINISHED",
+         "timestamp": {
+           "date": "2018-01-22T22:44:54Z",
+           "increment": 1
+         }
+       },
+       {
+         "batchId": "5a66783b80eef5354c77ee13",
+         "clusterId": "7c88887880eef52e5f4d0e2d",
+         "created": "2018-01-22T23:48:11Z",
+         "delivery": {
+           "expirationHours": 48,
+           "expires": "2018-01-22T23:49:38Z",
+           "maxDownloads": 2147483647,
+           "methodName": "HTTP",
+           "statusName": "EXPIRED",
+           "url": "https://ops-host.com:27017/backup/restore/v2/pull/5a66783b80eef5354c77ee15/N2Y1NDhkMjg0Mzk4NGU1Mzk3NTkwMjA0M2ZhODVkNDk=/Cluster0-shard-1-1516661094-5a66783b80eef5354c77ee15.tar.gz"
+         },
+         "encryptionEnabled": false,
+         "groupId": "6b77777887d9d61443b41645",
+         "hashes": [
+           {
+             "fileName": "Cluster0-shard-1-1516661094-5a66783b80eef5354c77ee15.tar.gz",
+             "hash": "86bc2f505c0874cdc0eaaa82ead2ef48aaf56d67",
+             "typeName": "SHA1"
+           }
+         ],
+         "id": "5a66783b80eef5354c77ee15",
+         "links": [
+           {
+             "href": "https://cloud.mongodb.com/api/cm/v1.0/groups/6b77777887d9d61443b41645/clusters/Cluster0/restoreJobs/5a66783b80eef5354c77ee15",
+             "rel": "self"
+           }
+         ],
+         "pointInTime": false,
+         "snapshotId": "5a6669d9fcc178211a0d75a8",
+         "statusName": "FINISHED",
+         "timestamp": {
+           "date": "2018-01-22T22:44:54Z",
+           "increment": 1
+         }
+       },
+       {
+         "batchId": "5a66783b80eef5354c77ee13",
+         "clusterId": "7c88887880eef52e5f4d0e2d",
+         "created": "2018-01-22T23:48:11Z",
+         "delivery": {
+           "expirationHours": 48,
+           "expires": "2018-01-22T23:49:38Z",
+           "maxDownloads": 2147483647,
+           "methodName": "HTTP",
+           "statusName": "EXPIRED",
+           "url": "https://ops-host.com:27017/backup/restore/v2/pull/5a66783b80eef5354c77ee14/NjMxOWFhNTA3MGY1NDU0Mzk5ZDU1YjE0YWY2ZjQ5NDM=/Cluster0-shard-0-1516661094-5a66783b80eef5354c77ee14.tar.gz"
+         },
+         "encryptionEnabled": false,
+         "groupId": "6b77777887d9d61443b41645",
+         "hashes": [
+           {
+             "fileName": "Cluster0-shard-0-1516661094-5a66783b80eef5354c77ee14.tar.gz",
+             "hash": "18a8617d0b6bfff97b7232d1ebeeea16edc216b0",
+             "typeName": "SHA1"
+           }
+         ],
+         "id": "5a66783b80eef5354c77ee14",
+         "links": [
+           {
+             "href": "https://cloud.mongodb.com/api/cm/v1.0/groups/6b77777887d9d61443b41645/clusters/Cluster0/restoreJobs/5a66783b80eef5354c77ee14",
+             "rel": "self"
+           }
+         ],
+         "pointInTime": false,
+         "snapshotId": "5a6669d9e2bfb34668cfe459",
+         "statusName": "FINISHED",
+         "timestamp": {
+           "date": "2018-01-22T22:44:54Z",
+           "increment": 1
+         }
+       }
+     ],
+     "totalCount": 3
+   }
