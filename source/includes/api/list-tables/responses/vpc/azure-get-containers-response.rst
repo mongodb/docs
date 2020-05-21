@@ -2,14 +2,14 @@
    :header-rows: 1
    :widths: 15 10 75
 
-   * - Response Object
+   * - Response Element
      - Type
      - Description
 
    * - ``atlasCidrBlock``
      - string
-     - CIDR block that |service| uses for the clusters in
-       your project.
+     - |cidr| block that |service| uses for the clusters in your
+       project.
 
    * - ``azureSubscriptionId``
      - string
@@ -22,16 +22,16 @@
 
    * - ``providerName``
      - string
-     - The name of the cloud provider.
+     - Name of the cloud provider.
 
    * - ``provisioned``
      - boolean
-     - Indicates whether the project has MongoDB clusters deployed
-       in the Azure VNet.
-       
+     - Indicates whether the project has MongoDB clusters deployed in
+       the Azure VNet.
+
    * - ``region``
      - string
-     - The Azure region where the VNet resides.
+     - Azure region where the VNet resides.
 
    * - ``vnetName``
      - string
