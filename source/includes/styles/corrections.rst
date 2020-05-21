@@ -22,7 +22,8 @@
      div.button-code-block {
         margin: 0px 0px 0px 0px
      }
+     table.footnote td.label {
+       width: 5%
+     }
    </style>
 
-.. |nbsp| unicode:: 0xA0
-   :trim:

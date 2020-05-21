@@ -58,7 +58,7 @@
      - Unique identifier of the :term:`snapshot`.
 
    * - | ``isPossibly``
-       | |nbsp| |nbsp| ``Inconsistent``
+       | ``Inconsistent``
      - boolean
      - Flag that indicates the consistency of this :term:`snapshot`.
 
@@ -75,21 +75,21 @@
        (e.g., chunk migrations may be in progress).
 
    * - | ``lastOplog``
-       | |nbsp| |nbsp| ``AppliedTimestamp``
+       | ``AppliedTimestamp``
      - document
      - Components of the
        :ref:`timestamp <document-bson-type-timestamp>`  of the last
        oplog entry was applied.
 
    * - | ``lastOplog``
-       | |nbsp| |nbsp| ``AppliedTimestamp``
-       | |nbsp| |nbsp| ``.date``
+       | ``AppliedTimestamp``
+       | ``.date``
      - timestamp
      - |iso8601-time| at |utc| when the last :term:`oplog` was applied.
 
    * - | ``lastOplog``
-       | |nbsp| |nbsp| ``AppliedTimestamp``
-       | |nbsp| |nbsp| ``.increment``
+       | ``AppliedTimestamp``
+       | ``.increment``
      - integer
      - Operation order in which last :term:`oplog` was applied at
        this exact point in time. To learn how timestamps work in

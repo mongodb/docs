@@ -130,7 +130,7 @@ Backup Features Supported at Present
 .. [*] |mms| requires a full backup for your first backup, after a
        snapshot has been deleted, and if the blockstore block size has
        been changed. Incremental backups reduce network transfer and
-       storage costs.
+       storage costs. This feature works with MongoDB 4.2.6 or later.
 
 
 Requirements and Limitations

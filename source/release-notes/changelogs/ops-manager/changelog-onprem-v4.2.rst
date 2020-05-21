@@ -17,6 +17,10 @@ Backup
 - Improves the algorithm for which MongoDB 4.2 replica set and shard
   members use to select for creating snapshots.
 
+- Supports queryable restores for MongoDB 4.2 deployments.
+
+- Supports incremental backup with MongoDB 4.2.6 or later.
+
 Fixes
 `````
 
