@@ -36,13 +36,25 @@ What Is the Difference Between "connectTimeoutMS", "socketTimeoutMS" and "maxTim
        after it has reached the server. If an operation runs over the
        specified time limit, it returns a timeout error.
 
+To specify the optional settings for your ``MongoClient``, declare one or
+more of them in the ``options`` object of the constructor as follows:
+
+.. code-block:: javascript
+
+   const client = new MongoClient(uri, {
+     connectTimeoutMS: <integer value>,
+     socketTimeoutMS: <integer value>,
+     maxTimeMS: <integer value>,
+   });
+
+
 How Can I Prevent the Driver From Hanging During Connection or From Spending Too Long Trying to Reach Unreachable Replica Sets?
 -------------------------------------------------------------------------------------------------------------------------------
 
 To prevent the driver from hanging during connection or to prevent the
 driver from spending too long trying to reach unreachable replica sets,
 you can set the ``connectTimeoutMS`` option of your
-:doc:`connection options </fundamentals/connection#connection-options>`. 
+:doc:`connection options </fundamentals/connection#connection-options>`.
 Generally, you should ensure that the
 ``connectTimeoutMS`` setting is not lower than the longest network
 latency you have to a member of the set. If one of the secondary members
@@ -80,6 +92,7 @@ through the driver.
 
 How Can I Prevent Sockets From Timing out Before They Become Active?
 --------------------------------------------------------------------
+
 Having a large connection pool does not always reduce reconnection
 requests.  Consider the following example:
 
@@ -94,25 +107,49 @@ One message every 3000 milliseconds is not enough to keep the sockets
 active, so several of the sockets will time out after 5000 milliseconds.
 Reduce the ``poolSize`` in the connection settings to fix the problem.
 
+To specify the optional ``poolSize`` setting for your ``MongoClient``, declare
+it in the ``options`` object of the constructor as follows:
+
+.. code-block:: javascript
+
+   const client = new MongoClient(uri, {
+     poolSize: <integer value>,
+   });
+
+
 What Does a Value of "0" mean for "connectTimeoutMS" and "socketTimeoutMS"?
 ---------------------------------------------------------------------------
 
-Setting ``connectTimeoutMS`` and ``socketTimeoutMS`` to the value ``0`` has
-causes the application to use the operating system's default socket timeout value.
+If you set the value of ``connectTimeoutMS`` or ``socketTimeoutMS`` to
+``0``, your application will use the operating system's default socket
+timeout value.
 
 How Can I Prevent Long-Running Operations From Slowing Down the Server?
 -----------------------------------------------------------------------
 
-By using ``maxTimeMS()`` you can prevent long-running operations from
-slowing down the server. This method allows the MongoDB server to cancel
-operations that run for more than the set value of ``maxTimeMS``.
+You can prevent long-running operations from slowing down the server by
+specifying a timeout value. You can use the ``maxTimeMS`` option setting in
+your ``MongoClient`` constructor to apply this to all the operations
+called by the client, or chain the ``maxTimeMS()`` method to an operation that
+returns a ``Cursor`` to apply to that specific one.
 
-The following example demonstrates how to use MaxTimeMS with a find
-operation:
+To specify the optional ``maxTimeMS`` setting for your ``MongoClient``,
+declare it in the ``options`` object of the constructor as follows:
+
+.. code-block:: javascript
+
+   const client = new MongoClient(uri, {
+     connectTimeoutMS: <integer value>,
+     socketTimeoutMS: <integer value>,
+     maxTimeMS: <integer value>,
+   });
+
+
+The following example shows how you can chain the ``maxTimeMS()`` method
+to an operation that returns a ``Cursor``:
 
 .. literalinclude:: /code-snippets/faq/maxTimeMS-example.js
   :language: javascript
-  :linenos:
 
 What Does the "keepAlive" Setting Do?
 ---------------------------------------
@@ -185,6 +222,21 @@ other, faster operations.
     If the number of operations is greater than the set ``poolSize`` and
     a slow operation occurs, subsequent operations will be delayed.
 
+
+To create a separate connection pool, instantiate another ``MongoClient``
+call the ``connect()`` method on it. See the following example for the
+syntax you can use to create two clients, each with its own connection
+pool:
+
+.. code-block:: javascript
+
+   const clientA = new MongoClient(uri, options);
+   clientA.connect(); // any method calls on clientA use clientA's connection pool
+
+   const clientB = new MongoClient(uri, options);
+   clientB.connect(); // any method calls on clientB use clientB's connection pool
+
+
 How Can I Ensure My Connection String Is Valid for a Replica Set?
 -----------------------------------------------------------------
 
@@ -216,3 +268,8 @@ to reach ``server1``, ``server2``, and ``server3``.
        }
      ]
    }
+
+
+If you are unable to find the answer to your question here, try our forums and
+support channels listed in the :doc:`Issues and Help <issues-and-help>`
+section.
