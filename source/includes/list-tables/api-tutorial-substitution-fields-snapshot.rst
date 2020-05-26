@@ -30,7 +30,7 @@
      - string
      - Unique identifier of your project that contains the source
        cluster for the restore job. You can find this value in the
-       :doc:`Project Settings <manage-project-settings>` of that
+       :ref:`Project Settings <manage-group-settings>` of that
        project.
 
    * - ``CLUSTER-ID``
