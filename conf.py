@@ -150,6 +150,7 @@ rst_epilog = [
     '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
     '.. |piv| replace:: :abbr:`PIV (Personal Identity Verification)`',
     '.. |rdp| replace:: :abbr:`RDP (Remote Desktop Protocol)`',
+    '.. |rtpp| replace:: :abbr:`RTPP (Real-Time Performance Panel)`',
     '.. |restapi| replace:: :abbr:`REST (Representational State Transfer)` :abbr:`API (Application Programming Interface)`',
     '.. |rest| replace:: :abbr:`REST (Representational State Transfer)`',
     '.. |s3| replace:: :abbr:`S3 (Simple Storage Service)`',
