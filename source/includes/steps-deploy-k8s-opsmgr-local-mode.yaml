@@ -1,0 +1,207 @@
+---
+ref: configure-kubectl-om
+stepnum: 1
+inherit:
+  file: steps-configure-kubectl-namespace.yaml
+  ref: configure-kubectl-namespace
+---
+title: "Copy the highlighted fields of this |onprem| resource."
+stepnum: 2
+level: 4
+ref: copy-k8s-example
+content: |
+
+  The highlighted section: 
+
+  - Uses the |onprem| configuration setting 
+    ``automation.versions.source: local`` in 
+    :opsmgrkube:`spec.configuration` to enable Local Mode.
+
+  - Defines a |k8s-pv| for the |onprem| StatefulSet to store the 
+    MongoDB installation tarball. MongoDB database resources 
+    you create with the |k8s-op-short| download these tarballs from the
+    Persistent Volumes instead of from the Internet.
+
+  .. literalinclude:: /reference/k8s/example-opsmgr-local-mode.yaml
+     :language: yaml
+     :linenos:
+     :emphasize-lines: 9-32
+
+---
+title: "Paste the copied example section into your existing |onprem| resource."
+stepnum: 3
+level: 4
+ref: paste-k8s-example
+content: |
+
+  Open your preferred text editor and paste the |k8s-obj|
+  specification into the appropriate location in your resource file.
+---
+title: "Save your |onprem| config file."
+stepnum: 4
+level: 4
+ref: save-object-spec
+
+---
+title: "Apply changes to your |onprem| deployment."
+stepnum: 5
+level: 4
+ref: apply-changes-om-k8s
+content: |
+
+  Invoke the following ``kubectl`` command on the filename of the
+  |onprem| resource definition:
+
+  .. code-block:: sh
+
+     kubectl apply -f <opsmgr-resource>.yaml
+
+---
+title: "Track the status of your |onprem| instance."
+stepnum: 6
+level: 4
+ref: track-k8s-instance
+content: |
+
+  To check the status of your |onprem| resource, invoke the following
+  command:
+
+  .. code-block:: sh
+
+     kubectl get om -o yaml -w
+
+  See :doc:`/reference/troubleshooting` for information about the
+  resource deployment statuses.
+
+  After the |onprem| resource completes the ``Reconciling`` phase, the 
+  command returns output similar to the following:
+
+  .. literalinclude:: /reference/k8s/example-status-om-running-local-mode.yaml
+     :language: yaml
+     :copyable: false
+     :linenos:
+     :emphasize-lines: 12,14
+
+  Copy the value of the ``status.opsManager.url`` field, which states 
+  the resource's connection |url|. You use this value when you create a
+  |k8s-configmap| later in the procedure.
+---
+title: "Download the MongoDB installation tarball to your local machine."
+level: 4
+ref: download-mdb-tarball
+stepnum: 7
+content: |
+
+  The installer you download depends on the environment to which 
+  you deployed the operator:
+
+  .. tabs::
+
+     .. tab:: Vanilla Kubernetes
+        :tabid: k8s
+
+        Download the Ubuntu 16.04 installer for the MongoDB version you
+        want the |k8s-op-short| to deploy. For example, to download the
+        ``4.2.0`` release:
+
+        .. code-block:: sh
+
+           curl -OL https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-4.2.0.tgz
+
+     .. tab:: OpenShift
+        :tabid: os
+
+        Download the RHEL 7 installer for the MongoDB version you
+        want the |k8s-op-short| to deploy. For example, to download the
+        ``4.2.0`` release:
+
+        .. code-block:: sh
+
+           curl -OL https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-4.2.0.tgz
+
+---
+
+title: "Copy the MongoDB installation tarball to the |onprem| Persistent Volume for each |onprem| :opsmgrkube:`replica <spec.replicas>` you deployed."
+level: 4
+ref: copy-mdb-tarball
+stepnum: 8
+content: |
+
+  The command you use depends on the environment to which you deployed 
+  the operator:
+
+  .. note::
+
+     Only copy the MongoDB installation file to ``Replica 1`` and beyond 
+     if you deployed more than one |onprem| :opsmgrkube:`replica 
+     <spec.replicas>`.  
+
+  .. tabs::
+
+     .. tab:: Vanilla Kubernetes
+        :tabid: k8s
+
+        To copy the MongoDB ``4.2.0`` installation tarball to the 
+        |onprem| PersistentVolume:
+
+        Replica 0:
+
+        .. code-block:: sh
+
+           kubectl cp mongodb-linux-x86_64-ubuntu1604-4.2.0.tgz \ 
+           "ops-manager-localmode-0:/mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-ubuntu1604-4.2.0.tgz"
+
+        Replica 1:
+
+        .. code-block:: sh
+
+           kubectl cp mongodb-linux-x86_64-ubuntu1604-4.2.0.tgz \ 
+           "ops-manager-localmode-1:/mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-ubuntu1604-4.2.0.tgz"
+
+     .. tab:: OpenShift
+        :tabid: os
+
+        To copy the MongoDB ``4.2.0`` installation tarball to the 
+        |onprem| PersistentVolume:
+
+        Replica 0:
+
+        .. code-block:: sh
+
+           oc rsync  "ops-manager-localmode-0:/mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-rhel70-4.2.0.tgz" \ 
+           mongodb-linux-x86_64-rhel70-4.2.0.tgz
+
+        Replica 1:
+
+        .. code-block:: sh
+
+           oc rsync  "ops-manager-localmode-1:/mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-rhel70-4.2.0.tgz" \ 
+           mongodb-linux-x86_64-rhel70-4.2.0.tgz
+---
+title: "Deploy a MongoDB Database Resource."
+level: 4
+ref: deploy-mdb-resource
+stepnum: 9
+content: |
+
+  a. If you have not done so already, complete the following 
+     prerequisites:
+
+     - :doc:`/tutorial/create-operator-credentials`
+     - :doc:`/tutorial/create-project-using-configmap`
+
+  #. Deploy a :ref:`MongoDB database resource <k8s-deploy-mdb-resources>` 
+     in the same namespace to which you deployed |onprem|. 
+     Ensure that you:
+
+     i. Match the ``spec.opsManager.configMapRef.name`` of the resource 
+        to the ``metadata.name`` of your ConfigMap.
+     #. Match the ``spec.credentials`` of the resource to the name of 
+        the secret you created that contains an |onprem| programmatic 
+        API key pair.
+
+  The |k8s-op-short| downloads the installation tarballs for 
+  the MongoDB Database resources from the |onprem| Persistent Volumes 
+  instead of from the Internet.
+
+...
