@@ -1,6 +1,6 @@
 .. list-table::
    :header-rows: 1
-   :widths: 33 33 34
+   :widths: 33 33 33
 
    * - Operating System
      - Method
