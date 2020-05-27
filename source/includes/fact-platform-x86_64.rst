@@ -4,6 +4,9 @@
       :widths: 40 60
       :class: border-table
 
+      * - Amazon Linux 2013.03
+        - Support removed in MongoDB 4.4+.
+
       * - Windows 8.1 / Server 2012 R2
         - Support removed in MongoDB 4.4+.
 
@@ -36,7 +39,7 @@
      -
 
    * - Amazon Linux 2013.03 and later
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -52,12 +55,6 @@
      - |checkmark|
      - |checkmark|
      - 3.6.5+
-
-   * - Debian 8
-     -
-     -
-     - |checkmark|
-     - |checkmark|
 
    * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 8.0 and later
      - |checkmark|
@@ -89,6 +86,12 @@
      - |checkmark|
      - |checkmark|
 
+   * - Ubuntu 20.04
+     - |checkmark|
+     -
+     -
+     -
+
    * - Ubuntu 18.04
      - |checkmark|
      - |checkmark|
@@ -98,12 +101,6 @@
    * - Ubuntu 16.04
      - |checkmark|
      - |checkmark|
-     - |checkmark|
-     - |checkmark|
-
-   * - Ubuntu 14.04
-     -
-     -
      - |checkmark|
      - |checkmark|
 
@@ -147,16 +144,4 @@
      -
      - |checkmark|
      - |checkmark|
-     - |checkmark|
-
-   * - macOS 10.11
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-
-   * - macOS 10.10
-     -
-     -
-     -
      - |checkmark|

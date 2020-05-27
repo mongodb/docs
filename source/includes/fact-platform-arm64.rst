@@ -1,14 +1,3 @@
-.. topic:: Platform Support EOL Notice
-
-   .. list-table::
-      :widths: 20 80
-      :class: border-table
-
-      * - Ubuntu 16.04 ARM64
-        - Support removed in MongoDB Community 4.2+.
-
-   |
-
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -20,8 +9,14 @@
      - 4.0 Community & Enterprise
      - 3.6 Community & Enterprise
 
+   * - Ubuntu 20.04
+     - |checkmark|
+     -
+     -
+     -
+
    * - Ubuntu 18.04
-     - Community only
+     - |checkmark|
      - Community only
      -
      -

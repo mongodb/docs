@@ -1,3 +1,13 @@
+.. topic:: Platform Support EOL Notice
+
+   .. list-table::
+      :widths: 20 80
+      :class: border-table
+
+      * - RHEL 6 PPC64LE
+        - Support removed in MongoDB 4.4+.
+
+   |
 
 .. list-table::
    :header-rows: 1
@@ -10,21 +20,27 @@
      - 4.0 Enterprise
      - 3.6 Enterprise
 
+   * - RHEL/CentOS 8
+     -
+     - Community only
+     -
+     -
+
    * - RHEL/CentOS 7
-     - |checkmark|
-     - |checkmark|
+     - Enterprise only
+     - Enterprise only
      - 4.0.6+
      - Removed starting in 3.6.2
 
    * - RHEL/CentOS 6
-     - |checkmark|
-     - |checkmark|
+     -
+     - Enterprise only
      - |checkmark|
      - Removed starting in 3.6.14
 
-   * - SLES12
-     - |checkmark|
-     - |checkmark|
+   * - SLES 12
+     - Enterprise only
+     - Enterprise only
      - 4.0.6+
      - Removed starting in 3.6.2
 
