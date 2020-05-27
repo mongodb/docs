@@ -5,16 +5,15 @@
 
 - Adds support for :atlas:`Atlas Clusters <cluster-configuration>` as a
   data source.
-- Improves performance for the :manual:`$lookup
-  </reference/operator/aggregation/lookup/>` aggregation pipeline stage.
+- Improves performance for the :ref:`adl-lookup-stage` aggregation pipeline stage.
 - Adds support for evaluating string :manual:`$convert
-  </reference/operator/aggregation/convert/>` expressions in filename
-  expressions for :manual:`$out </reference/operator/aggregation/lookup/>`
-  to |s3|.
+  </reference/operator/aggregation/convert/>` expressions in the ``filename``
+  for :ref:`adl-out-stage` to |s3|.
 - Updates `Parquet <https://parquet.apache.org/documentation/latest/>`__
   support for MAP types.
-- Improves error messaging for ``$out`` to |s3|.
-- Adds a command to generate a storage configuration.
+- Improves error messaging for :ref:`adl-out-stage` to |s3|.
+- Adds a command to :ref:`generate a storage configuration
+  <datalake-storagegenconfig>`.
 
 .. _data-lake-v20200512:
 
@@ -110,4 +109,3 @@
   to be specified without a leading dot.
 - Supports filtering based on stripes for files in ORC format.
 - Allows query attributes to be extracted after the first stage.
-
