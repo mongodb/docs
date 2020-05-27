@@ -23,8 +23,8 @@
      - number
      - Count of the total number of items in the result set.
 
-`results` array
-~~~~~~~~~~~~~~~
+``results`` array
+~~~~~~~~~~~~~~~~~
 
 .. list-table::
    :widths: 20 10 70

@@ -24,7 +24,7 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * - ``end``
      - string
-     - The end of the period for which to retrieve measurements, specified as
+     - The end of the period for which to retrieve metrics, specified as
        an ISO-8601
        timestamp.
 
@@ -50,7 +50,7 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * - ``measurements``
      - object array
-     - An array of measurements and their data points.
+     - An array of metrics and their data points.
 
    * - ``measurements.dataPoints``
      - object array
@@ -69,7 +69,7 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * - ``measurements.name``
      - string
-     - The name of the measurement.
+     - The name of the metric.
 
    * - ``measurements.units``
      - string
@@ -87,7 +87,7 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * - ``partitionName``
      - string
-     - Name of the disk or partition to which the measurements pertain.
+     - Name of the disk or partition to which the metrics pertain.
 
    * -  ``processId``
      - string
@@ -96,6 +96,6 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * - ``start``
      - string
-     - The start of the period for which to retrieve measurements, specified as
+     - The start of the period for which to retrieve metrics, specified as
        an ISO-8601
        timestamp.

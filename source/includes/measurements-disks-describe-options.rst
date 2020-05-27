@@ -14,13 +14,13 @@
 
    * - ``<partition-name>``
      - string
-     - The name of the disk or partition for which to get available measurements.
+     - The name of the disk or partition for which to get available metrics.
      - yes
 
    * - ``granularity``
      - String
      - An ISO-8601-formatted time period that specifies the interval
-       between measurement data points. For example, ``PT1M`` specifies
+       between metric data points. For example, ``PT1M`` specifies
        1-minute granularity.
    
        The following subset of ISO-8601-formatted time periods are 
@@ -42,27 +42,27 @@
    
    * - ``start``
      - String
-     - The time at which to start retrieving measurements, as specified by an
+     - The time at which to start retrieving metrics, as specified by an
        ISO-8601 timestamp string. If you specify ``start``, you must also
        specify ``end``. Mutually exclusive with ``period``.
      - yes
    
    * - ``end``
      - String
-     - The time at which to stop retrieving measurements, as specified by an
+     - The time at which to stop retrieving metrics, as specified by an
        ISO-8601 timestamp string. If you specify ``end``, you must also
        specify ``start``. Mutually exclusive with ``period``.
      - yes
    
    * - ``type``
      - String
-     - Specifies which measurement to return. If ``type`` is not specified, all
-       measurements are returned.
+     - Specifies which metric to return. If ``type`` is not specified, all
+       metrics are returned.
    
-       You must specify a measurement that is valid for the host. |service|
-       returns an error if a specified measurement is invalid.
+       You must specify a metric that is valid for the host. |service|
+       returns an error if a specified metric is invalid.
    
-       The following measurement values are valid:
+       The following metric values are valid:
    
        .. list-table::
    
