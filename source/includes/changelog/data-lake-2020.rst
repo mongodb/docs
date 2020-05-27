@@ -1,12 +1,30 @@
+.. _data-lake-v20200526:
+
+26 May 2020 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Adds support for :atlas:`Atlas Clusters <cluster-configuration>` as a
+  data source.
+- Improves performance for the :manual:`$lookup
+  </reference/operator/aggregation/lookup/>` aggregation pipeline stage.
+- Adds support for evaluating string :manual:`$convert
+  </reference/operator/aggregation/convert/>` expressions in filename
+  expressions for :manual:`$out </reference/operator/aggregation/lookup/>`
+  to |s3|.
+- Updates `Parquet <https://parquet.apache.org/documentation/latest/>`__
+  support for MAP types.
+- Improves error messaging for ``$out`` to |s3|.
+- Adds a command to generate a storage configuration.
+
 .. _data-lake-v20200512:
 
 12 May 2020 Release
 ~~~~~~~~~~~~~~~~~~~
 
 - Automates storage configuration generation for newly created
-  {+data-lake+}s
+  {+data-lake+}s.
 - Allows write partitioning-aware data to S3 using the :pipeline:`$out`
-  in {+data-lake+}
+  in {+data-lake+}.
 
 .. _data-lake-v20200505:
 
