@@ -10,7 +10,6 @@ Java
      - License |url|
      - Copyright
 
-   * - :mvn:`oro:oro@2.0.8</oro/oro/2.0.8>`
+   * - :mvn:`org.json:json@20190722</org.json/json/20190722>`
      -
      -
-

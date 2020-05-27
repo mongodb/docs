@@ -25,5 +25,13 @@
      table.footnote td.label {
        width: 5%
      }
+     table.licenses tr td, table.licenses tr th {
+       padding: 5px;
+       font-size: 11px;
+       line-height: 14px
+     }
+     table.licenses tr.row-even {
+       background-color: #fcfcfc
+     }
    </style>
 
