@@ -10,7 +10,8 @@
   </reference/operator/aggregation/convert/>` expressions in the ``filename``
   for :ref:`adl-out-stage` to |s3|.
 - Updates `Parquet <https://parquet.apache.org/documentation/latest/>`__
-  support for MAP types.
+  support for `MAP types
+  <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__.
 - Improves error messaging for :ref:`adl-out-stage` to |s3|.
 - Adds a command to :ref:`generate a storage configuration
   <datalake-storagegenconfig>`.
