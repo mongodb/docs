@@ -110,3 +110,4 @@
   to be specified without a leading dot.
 - Supports filtering based on stripes for files in ORC format.
 - Allows query attributes to be extracted after the first stage.
+
