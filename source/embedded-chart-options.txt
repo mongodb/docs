@@ -12,8 +12,10 @@ Embedded Chart Options
    :depth: 1
    :class: singlecol
 
-You can customize your embedded charts by appending various
-query parameters to their iframe URLs.
+You can customize the appearance and behavior your embedded charts with a
+variety of options. Options are avaiable to charts charts embedded with the
+:ref:`Embedding SDK <embedding-charts-sdk>` and embedded within :ref:`iframes
+<embedding-charts-iframe>`.
 
 .. note::
 
@@ -21,210 +23,394 @@ query parameters to their iframe URLs.
    options on your data sources. For instructions, see
    :ref:`embedding-charts`.
 
+.. _sdk-option-reference:
 .. _embed-options-refresh:
-
-Specify a Refresh Interval
---------------------------
-
-Use the ``autorefresh`` query parameter to define the interval,
-in seconds, at which the chart refreshes with the latest data from
-its :ref:`data source <data-sources>`. Use the options on the 
-:guilabel:`Unauthenticated` tab on the :guilabel:`Embed Chart` dialog
-to customize the ``autorefresh`` value in the iframe snippet.
-
-If you do not specify the ``autorefresh`` option, your embedded chart 
-loads once when the iframe loads and does not automatically refresh.
-
-Example
-~~~~~~~
-
-The following iframe embeds a chart which automatically refreshes
-every 30 seconds as defined by the ``autorefresh=30`` query parameter:
-
-.. code-block:: html
-
-   <iframe style="border: none;border-radius: 2px;box-shadow: 0 2px
-   10px 0 rgba(70, 76, 79, .2);" width="640" height="480" src="
-   {charts-host}/embed/charts?id=b3ca720f-4b4a-40b4-a726-e7dc0c49aa1c&
-   autorefresh=30"></iframe>
-
-Considerations
-~~~~~~~~~~~~~~
-
-- The minimum automatic refresh interval is 10 seconds. If you specify
-  an ``autorefresh`` value less than 10, the chart refreshes every 10
-  seconds.
-
-- If you specify an ``autorefresh`` value which is not an integer or
-  less than 0, an :ref:`error <embedded-errors>` is returned.
-
-- If your data source requires a
-  :ref:`Verified Signature <embedding-procedure>`, the signature
-  validity (including the expiry date) is checked on each refresh. If
-  the signature's expiry date passed, the host web page must
-  regenerate a new signature to continue rendering charts. For
-  code examples using verified signatures, see
-  `MongoDB Charts Embedding Examples <https://github.com/mongodb/charts-embedding-examples>`__
-  on GitHub.
-
-  .. example::
-
-     If you specify an automatic refresh interval of one minute and the
-     expiry date of the signature is in 1 hour, the chart refreshes
-     every minute for an hour. Once one hour has elapsed, the chart
-     will not render and an error will be displayed as the signature is
-     no longer valid. The host web page must regenerate a new signature
-     to resume rendering the chart.
-
 .. _chart-display-theme:
 
-Specify a Display Theme
------------------------
+.. tabs::
 
-Use the ``theme`` query parameter to select a display theme:
+   tabs:
+     - id: embedding-sdk-options
+       name: Embedding SDK
+       content: |
+         The Embedding SDK provides the Javascript ``createChart`` method
+         for rendering a chart within a web page. You can use options to
+         control the height and width of the chart, as well as the refresh
+         interval and other aspects.
 
-- ``light``: chart axes and text are optimized for presentation against 
-  a light or white background.
-- ``dark``: chart axes and text are optimized for presentation against a 
-  dark or black background.
+         .. example::
 
-Choosing a ``theme`` value only updates the iframe snippet you use to 
-embed the chart in your application. The chart is not saved with a ``theme`` value. The chart renders with the light theme by default. 
-Embedded charts that do not include the theme parameter also render with 
-the light theme.
+            The following example uses the ``createChart`` method with
+            options.
+    
+            .. code-block:: javascript
+    
+               const chart = sdk.createChart({
+                 chartId: "8d4dff93-e7ca-4ccd-a622-e20e8a100197",
+                 baseUrl: "https://charts.mongodb.com/charts-embedding-examples-hmewt",
+                 height: 300,
+                 width: 400,
+                 refreshInterval: 300
+               });
 
-.. note::
-   Choosing the ``light`` or  ``dark`` theme does not change the color 
-   palette that chart data elements use. All bars and marks display 
-   using the default palette or the custom palette the chart author 
-   chose.
+         The following options are available to ``createChart``:
 
-   For example, if you choose a chart bar to render in black, choosing
-   the ``dark`` theme does not change the color of this bar to make it 
-   more visible against a dark background.
+         .. list-table::
+            :header-rows: 1
+            :widths: 10 10 70 10
+         
+            * - Option
+              - Type
+              - Description
+              - Required?
+         
+            * - ``baseUrl``
+              - string
+              - Base URL of the chart.
+              - yes
+         
+            * - ``chartID``
+              - string
+              - Unique identifier of the chart.
+              - yes
+         
+            * - ``height``
+              - number
+              - Height of the chart. If no height is provided, it defaults to
+                the height of its container. If a value is provided without units,
+                it is assumed to be pixels (px).
+              - no
+         
+            * - ``width``
+              - number
+              - Width of the chart. If no width is provided, it defaults to
+                the width of its container. If a value is provided without units,
+                it is assumed to be pixels (px).
+              - no
+         
+            * - ``filter``
+              - object
+              - A :ref:`filter <embed-options-filter>` to apply to the chart.
+              - no
+         
+            * - ``refreshInterval``
+              - number
+              - How often to refresh the chart, in seconds. The minimum refresh
+                interval is 10 seconds. ``autorefresh`` is off by default.
+              - no
+         
+            * - ``theme``
+              - string
+              - A :ref:`theme <chart-display-theme>` for the chart to use. Valid
+                options are:
+         
+                - ``light`` for a light background with dark text and chart 
+                  elements, or
+         
+                - ``dark`` for a dark background with light text and chart 
+                  elements.
+         
+                Defaults to ``light``.
+              - no
+         
+            * - ``background``
+              - string
+              - A background color to apply to your chart instead of the 
+                ``theme`` background. You can specify:
+         
+                - A color hex code
+         
+                - A |css| color name
+         
+                - ``transparent`` for a transparent background
+         
+                If no background is provided, the background color defaults to 
+                the current ``theme``:
+         
+                - ``#FFFFFF`` for the ``light`` theme, or
+         
+                - ``#21313C`` for the ``dark`` theme.
+              - no
+         
+            * - ``showAttribution``
+              - boolean
+              - Specifies whether or not to display the :guilabel:`MongoDB` logo
+                below the chart. Defaults to ``true``.
+              - no
+         
+            * - ``getUserToken``
+              - object
+              - Function that returns a ``base64``-encoded |jwt| token. 
+                |charts-short| validates this token to determine if an 
+                authenticated chart will be rendered.
+         
+                If authenticated access is enabled, the authenticated chart view 
+                is rendered only if |charts-short| can validate the token using 
+                the :doc:`configured authentication providers 
+                </configure-auth-providers>`.
+         
+                If the token is invalid, |charts| renders the unauthenticated 
+                chart if you enabled unauthenticated access. Otherwise, the chart 
+                does not render.
+         
+                .. seealso:: :doc:`/embed-chart-jwt-auth`
+         
+              - no
 
-Customization
-~~~~~~~~~~~~~
+         After the chart is created, you can control the configuration
+         of the chart by calling methods on the ``Chart`` instance returned
+         by ``ChartsEmbedSDK.createChart({ ... })``.
 
-|charts| adds inline style properties to the iframe snippet you copy 
-from the UI that add a background color and a border with a box shadow 
-to the embedded chart based on the theme you selected:
+         .. example::
 
-- ``light`` theme ``background``: ``#FFFFFF``
-- ``dark`` theme ``background``: ``#21313C``
-- ``border``: ``none``
-- ``border-radius``: ``2px``
-- ``box-shadow``: ``0 2px 10px 0 rgba(70, 76, 79, .2)``
-- ``width``: ``640``
-- ``height``: ``480``
+            The following code snippets set the theme of a Chart instance named
+            ``chart`` to ``dark`` and its refresh interval to 30 seconds.
+   
+            .. code-block:: javascript
+   
+               chart.setTheme("dark");
+               chart.setRefreshInterval(30);
 
-Change the values of the inline style properties to change how the 
-embedded chart displays in your application:
+         .. list-table::
+            :header-rows: 1
+            :widths: 50 50
 
-- Change the value of the ``background`` property to any value 
-  supported by the ``background`` CSS property to display the chart 
-  against it. See `background 
-  <https://developer.mozilla.org/en-US/docs/Web/CSS/background>`__
-  in the MDN Web Docs for more information.
+            * - Method
+              - Description
 
-- Remove the ``background`` property to display the chart with a 
-  transparent background, allowing your application's background to 
-  display through the chart.
+            * - ``setRefreshInterval(seconds: number)``
+              - Sets how long the embedded chart waits before refreshing.
+                The minimum interval is 10 seconds. To disable, set to 0.
 
-- Modify or remove the following properties to customize or remove the 
-  chart border:
+            * - ``setFilter(filter: object)``
+              - Applies a :ref:`query filter <filter-embedded-charts>` to the
+                embedded chart. This method expects an object that contains
+                valid query operators. Any fields referenced in this filter
+                must be whitelisted in the ``Embed Chart`` modal window.
+                An empty document {} is equivalent to no filter.
 
-  - ``border``
-  - ``border-radius``
-  - ``box-shadow`` 
+                See the :ref:`Embedding Tutorials <embedding-tutorials>` for
+                more information about enabling embedding for a chart and
+                whitelisting fields for filter use. 
 
-- You can change the value of the ``theme`` query parameter in the 
-  iframe snippet after you paste it into your application. If you do, 
-  make sure you adjust the iframe's inline style properties to match the 
-  theme you choose.
+            * - ``setTheme(theme: 'dark' | 'light')``
+              - Sets the current theme of the embedded chart. When setting the
+                theme to ``dark``, you need to ensure that your chart's
+                background color has appropriate contrast so that the information
+                remains visible. By default, a chart's background is transparent.
 
-  .. example::
+         .. seealso::
 
-     If you change the ``theme`` from ``light`` to ``dark``, adjust the 
-     value of the ``background`` property in the iframe snippet 
-     to display the chart against a dark background.
+            - `Charts Embedding SDK API Documentation
+              <https://www.npmjs.com/package/@mongodb-js/charts-embed-dom>`__
 
-     Chart using ``light`` theme with default ``light`` theme 
-     ``background`` of ``#FFFFFF``:
+            - `Charts Embedding SDK examples
+              <https://github.com/mongodb-js/charts-embed-sdk/blob/master/examples>`__
 
-     .. figure:: /images/charts/light-theme-default.png
-        :figwidth: 540
-        :alt: Chart displayed using the light theme with light theme style.
+     - id: iframe
+       name: iframe
+       content: |
+         You can set chart options within an iframe by adding inline style
+         tags and by adding query parameters to the chart URL. Inline style
+         tags allow you to specify display options such as height, width,
+         background color, and border width. Query parameters allow you to
+         specify a refresh interval for your chart, as well as a light or
+         dark display theme.
+  
+         Specify a Refresh Interval
+         --------------------------
+         
+         Use the ``autorefresh`` query parameter to define the interval,
+         in seconds, at which the chart refreshes with the latest data from
+         its :ref:`data source <data-sources>`. Use the options on the 
+         :guilabel:`Unauthenticated` tab on the :guilabel:`Embed Chart` dialog
+         to customize the ``autorefresh`` value in the iframe snippet.
+         
+         If you do not specify the ``autorefresh`` option, your embedded chart 
+         loads once when the iframe loads and does not automatically refresh.
+         
+         Example
+         ~~~~~~~
+         
+         The following iframe embeds a chart which automatically refreshes
+         every 30 seconds as defined by the ``autorefresh=30`` query parameter:
+         
+         .. code-block:: html
+         
+            <iframe style="border: none;border-radius: 2px;box-shadow: 0 2px
+            10px 0 rgba(70, 76, 79, .2);" width="640" height="480" src="
+            {charts-host}/embed/charts?id=b3ca720f-4b4a-40b4-a726-e7dc0c49aa1c&
+            autorefresh=30"></iframe>
+         
+         Considerations
+         ~~~~~~~~~~~~~~
+         
+         - The minimum automatic refresh interval is 10 seconds. If you specify
+           an ``autorefresh`` value less than 10, the chart refreshes every 10
+           seconds.
+         
+         - If you specify an ``autorefresh`` value which is not an integer or
+           less than 0, an :ref:`error <embedded-errors>` is returned.
+         
+         - If your data source requires a
+           :ref:`Verified Signature <embed-with-iframe-procedure>`, the signature
+           validity (including the expiry date) is checked on each refresh. If
+           the signature's expiry date passed, the host web page must
+           regenerate a new signature to continue rendering charts. For
+           code examples using verified signatures, see
+           `MongoDB Charts Embedding Examples <https://github.com/mongodb/charts-embedding-examples>`__
+           on GitHub.
+         
+           .. example::
+         
+              If you specify an automatic refresh interval of one minute and the
+              expiry date of the signature is in 1 hour, the chart refreshes
+              every minute for an hour. Once one hour has elapsed, the chart
+              will not render and an error will be displayed as the signature is
+              no longer valid. The host web page must regenerate a new signature
+              to resume rendering the chart.
+         
+         Specify a Display Theme
+         -----------------------
+         
+         Use the ``theme`` query parameter to select a display theme:
+         
+         - ``light``: chart axes and text are optimized for presentation against 
+           a light or white background.
+         - ``dark``: chart axes and text are optimized for presentation against a 
+           dark or black background.
+         
+         Choosing a ``theme`` value only updates the iframe snippet you use to 
+         embed the chart in your application. The chart is not saved with a ``theme``
+         value. The chart renders with the light theme by default. 
+         Embedded charts that do not include the theme parameter also render with 
+         the light theme.
+         
+         .. note::
+            Choosing the ``light`` or  ``dark`` theme does not change the color 
+            palette that chart data elements use. All bars and marks display 
+            using the default palette or the custom palette the chart author 
+            chose.
+         
+            For example, if you choose a chart bar to render in black, choosing
+            the ``dark`` theme does not change the color of this bar to make it 
+            more visible against a dark background.
+         
+         Customize Display Options
+         -------------------------
+         
+         |charts| adds inline style properties to the iframe snippet you copy 
+         from the UI that add a background color and a border with a box shadow 
+         to the embedded chart based on the theme you selected:
+         
+         - ``light`` theme ``background``: ``#FFFFFF``
+         - ``dark`` theme ``background``: ``#21313C``
+         - ``border``: ``none``
+         - ``border-radius``: ``2px``
+         - ``box-shadow``: ``0 2px 10px 0 rgba(70, 76, 79, .2)``
+         - ``width``: ``640``
+         - ``height``: ``480``
+         
+         Change the values of the inline style properties to change how the 
+         embedded chart displays in your application.
 
-     Chart using ``dark`` theme with default ``light`` theme 
-     ``background`` of ``#FFFFFF``:
+         Background Color
+         ~~~~~~~~~~~~~~~~
+         
+         - Change the value of the ``background`` property to any value 
+           supported by the ``background`` CSS property to display the chart 
+           against it. See `background 
+           <https://developer.mozilla.org/en-US/docs/Web/CSS/background>`__
+           in the MDN Web Docs for more information.
+         
+         - Remove the ``background`` property to display the chart with a 
+           transparent background, allowing your application's background to 
+           display through the chart.
+         
+         Chart Border
+         ~~~~~~~~~~~~
 
-     .. figure:: /images/charts/dark-theme-light-theme-values.png
-        :figwidth: 540
-        :alt: Chart displayed using the dark theme with light theme style.
+         - Modify or remove the following properties to customize or remove the 
+           chart border:
+         
+           - ``border``
+           - ``border-radius``
+           - ``box-shadow`` 
+         
+         Display Theme
+         ~~~~~~~~~~~~~
 
-     Chart using ``dark`` theme with default ``dark`` theme ``background`` 
-     of ``#21313C``:
-
-     .. figure:: /images/charts/dark-theme-dark-theme-values.png
-        :figwidth: 540
-        :alt: Chart displayed using the dark theme with dark theme style.
-
-Example
-~~~~~~~
-
-The following iframe embeds a chart with the ``dark`` theme with the 
-default ``dark`` theme inline style properties. The code is formatted 
-for readability.
-
-.. code-block:: html
-   :copyable: false
-   :emphasize-lines: 2,3,7
-
-   <iframe style="
-   background: #21313C;border: none;border-radius: 2px;
-   box-shadow: 0 2px 10px 0 rgba(70, 76, 79, .2);" 
-   width="640" height="480" src="
-   https://charts.mongodb.com/charts-crllr/embed/charts?id=a1b2c3d4-a1b2-c3d4-9766-47b0b2daaff3&
-   theme=dark
-   "></iframe>
-
-Remove the MongoDB Logo
----------------------------
-
-Use the ``attribution`` query parameter with a value of ``false`` to
-display your embedded chart without the ``MongoDB`` logo.
-
-Example
-~~~~~~~
-
-The following image displays an embedded chart with the ``MongoDB`` 
-logo:
-
-.. figure:: /images/charts/chart-with-logo.png
-   :figwidth: 540
-   :alt: Chart displayed with the MongoDB logo.
-
-The following iframe snippet renders a chart that does not display
-the ``MongoDB`` logo:
-
-.. code-block:: html
-   :copyable: false
-   :emphasize-lines: 9
-
-   <iframe 
-   style="background: #FFFFFF;border: none;border-radius: 2px;
-   box-shadow: 0 2px 10px 0 rgba(70, 76, 79, .2);" 
-   width="640" height="480" src="
-   https://charts.mongodb.com/mongodb-charts-twsqq/embed/charts
-   ?id=a1b2c3d4-a1b2-c3d4-9766-47b0b2daaff3&
-   theme=light&
-   attribution=false
-   "></iframe>
-
-The following image displays the embedded chart without the ``MongoDB``
-logo:
-
-.. figure:: /images/charts/chart-without-logo.png
-   :figwidth: 640
-   :alt: Chart displayed without the MongoDB logo.
+         - You can change the value of the ``theme`` query parameter in the 
+           iframe snippet after you paste it into your application. If you do, 
+           make sure you adjust the iframe's inline style properties to match the 
+           theme you choose.
+         
+           .. example::
+         
+              If you change the ``theme`` from ``light`` to ``dark``, adjust the 
+              value of the ``background`` property in the iframe snippet 
+              to display the chart against a dark background.
+         
+              Chart using ``light`` theme with default ``light`` theme 
+              ``background`` of ``#FFFFFF``:
+         
+              .. figure:: /images/charts/light-theme-default.png
+                 :figwidth: 540
+                 :alt: Chart displayed using the light theme with light theme style.
+         
+              Chart using ``dark`` theme with default ``light`` theme 
+              ``background`` of ``#FFFFFF``:
+         
+              .. figure:: /images/charts/dark-theme-light-theme-values.png
+                 :figwidth: 540
+                 :alt: Chart displayed using the dark theme with light theme style.
+         
+              Chart using ``dark`` theme with default ``dark`` theme ``background`` 
+              of ``#21313C``:
+         
+              .. figure:: /images/charts/dark-theme-dark-theme-values.png
+                 :figwidth: 540
+                 :alt: Chart displayed using the dark theme with dark theme style.
+         
+         Iframe Example
+         ~~~~~~~~~~~~~~
+         
+         The following iframe embeds a chart with the ``dark`` theme with the 
+         default ``dark`` theme inline style properties. The code is formatted 
+         for readability.
+         
+         .. code-block:: html
+            :copyable: false
+            :emphasize-lines: 2,3
+         
+            <iframe style="
+            background: #21313C;border: none;border-radius: 2px;
+            box-shadow: 0 2px 10px 0 rgba(70, 76, 79, .2);" 
+            width="640" height="480" src="
+            https://charts.mongodb.com/charts-crllr/embed/charts?id=a1b2c3d4-a1b2-c3d4-9766-47b0b2daaff3&
+            theme=dark
+            "></iframe>
+         
+         Remove the MongoDB Logo
+         ~~~~~~~~~~~~~~~~~~~~~~~
+         
+         Use the ``attribution`` query parameter with a value of ``false`` to
+         display your embedded chart without the ``MongoDB`` logo.
+         
+         The following iframe snippet renders a chart that does not display
+         the ``MongoDB`` logo:
+         
+         .. code-block:: html
+            :copyable: false
+            :emphasize-lines: 8
+         
+            <iframe 
+            style="background: #FFFFFF;border: none;border-radius: 2px;
+            box-shadow: 0 2px 10px 0 rgba(70, 76, 79, .2);" 
+            width="640" height="480" src="
+            https://charts.mongodb.com/mongodb-charts-twsqq/embed/charts
+            ?id=a1b2c3d4-a1b2-c3d4-9766-47b0b2daaff3&
+            theme=light&
+            attribution=false
+            "></iframe>
+         
