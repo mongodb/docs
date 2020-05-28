@@ -13,15 +13,15 @@ mongocli iam org list
    :class: singlecol
 
 The ``mongocli iam org list`` command lists organizations for the
-specified |onprem|. 
+specified |onprem|.
 
-When you use a :opsmgr:`Programmatic API Key
-</tutorial/configure-public-api-access/#programmatic-api-keys>`, the
-command retrieves only the organization of the project whose
-|api| key has the ``Project Owner`` role. 
+When you use a
+:opsmgr:`Programmatic API Key </tutorial/configure-public-api-access/#programmatic-api-keys>`,
+the command retrieves only the organization of the project whose |api|
+key has the ``Project Owner`` role.
 
-To list all organizations in your |onprem|, you must use a :opsmgr:`Personal API Key
-</tutorial/configure-public-api-access/#personal-api-keys-deprecated>`. 
+To list all organizations in your |onprem|, you must use a
+:opsmgr:`Personal API Key </tutorial/configure-public-api-access/#personal-api-keys-deprecated>`.
 
 You can also list organizations through the
 :opsmgr:`API </reference/api/organizations/organization-get-all/>`.
@@ -33,8 +33,10 @@ Syntax
 
 .. code-block:: sh
 
-   mongocli iam org list 
+   mongocli iam org list
         [ --profile|-P <profile-name> ]
+        [ --limit <integer> ]
+        [ --page <integer> ]
 
 .. include:: /includes/fact-command-line-help.rst
 
@@ -49,13 +51,32 @@ Options
 
    * - Option
      - Type
-     - Description  
+     - Description
      - Required?
 
    * - ``-P`` | ``--profile``
      - string
      - Name of the profile that contains the access information. If
-       omitted, uses the ``default`` profile. 
+       omitted, uses the ``default`` profile.
+     - no
+
+   * - ``--limit``
+     - integer
+     - Number of organizations to return from the result set.
+
+       - If omitted, returns all organizations.
+       - If this value exceeds the number of organizations,
+         ``mongocli`` returns all organizations.
+     - no
+
+   * - ``--page``
+     - integer
+     - Starting chunk of organizations to return from the result set.
+       The ``--limit`` flag sets the number of organizations per page.
+
+       - If omitted, returns the first page.
+       - If this value exceeds the number of pages, ``mongocli``
+         returns the last page.
      - no
 
 .. _mcli-iam-org-list-output:
@@ -63,14 +84,13 @@ Options
 Output
 ------
 
-The command prints the following |json| document to 
-the terminal if the command succeeds. If the command returns 
-errors, see :ref:`Troubleshooting <troubleshooting>` for 
-recommended solutions.
+The command prints the following |json| document to the terminal if the
+command succeeds. If the command returns errors, see
+:ref:`Troubleshooting <troubleshooting>` for recommended solutions.
 
-The |json| document includes an array of :guilabel:`result`
-objects, an array of :guilabel:`link` objects and a count of the total
-number of :guilabel:`result` objects retrieved.
+The |json| document includes an array of :guilabel:`result` objects, an
+array of :guilabel:`link` objects and a count of the total number of
+:guilabel:`result` objects retrieved.
 
 .. list-table::
    :widths: 20 80
@@ -110,34 +130,32 @@ Each **result** is one organization.
 
    * - ``links``
      - One or more links to sub-resources and/or related resources. The
-       relations between |url|\s are explained in the :rfc:`Web Linking
-       Specification <5988>`. 
+       relations between |url|\s are explained in the
+       :rfc:`Web Linking Specification <5988>`.
 
    * - ``name``
      - Name of the organization.
-
 
 .. _mcli-iam-org-list-example:
 
 Examples
 --------
 
-Example 1
-~~~~~~~~~
+List All Organizations using Default Profile
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following ``mongocli iam org list`` command lists the |onprem|
 organizations using the ``default`` profile. The profile contains a
-:opsmgr:`Programmatic API Key
-</tutorial/configure-public-api-access/#programmatic-api-keys>`. 
+:opsmgr:`Programmatic API Key </tutorial/configure-public-api-access/#programmatic-api-keys>`.
 
 .. code-block:: sh
 
    mongocli iam org list
 
-The command prints the following fields to the terminal:
+The command returns the following |json| document:
 
-.. code-block:: json 
-   :copyable: false 
+.. code-block:: json
+   :copyable: false
 
    {
     "links": [
@@ -161,22 +179,22 @@ The command prints the following fields to the terminal:
     "totalCount": 1
    }
 
-Example 2
-~~~~~~~~~
+List All Organizations using Defined Profile
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following ``mongocli iam org list`` command lists all the organizations
-in an |onprem| deployment. The command uses the ``om-personalkey``
-profile, which contains a :opsmgr:`Personal API Key
-</tutorial/configure-public-api-access/#personal-api-keys-deprecated>`. 
+The following ``mongocli iam org list`` command lists all the
+organizations in an |onprem| deployment. The command uses the
+``om-personalkey`` profile, which contains a
+:opsmgr:`Personal API Key </tutorial/configure-public-api-access/#personal-api-keys-deprecated>`.
 
 .. code-block:: sh
 
    mongocli iam org list -P om-personalkey
 
-The command prints the following fields to the terminal:
+The command returns the following |json| document:
 
-.. code-block:: json 
-   :copyable: false 
+.. code-block:: json
+   :copyable: false
 
    {
     "links": [
@@ -208,4 +226,85 @@ The command prints the following fields to the terminal:
      }
     ],
     "totalCount": 2
+   }
+
+List the First 5 Organizations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following ``mongocli iam org list`` command lists the first five
+organizations in an |onprem| deployment. The command uses the
+``om-personalkey`` profile, which contains a
+:opsmgr:`Personal API Key </tutorial/configure-public-api-access/#personal-api-keys-deprecated>`.
+
+.. code-block:: sh
+
+   mongocli iam org list -P om-personalkey --limit 5 --page 1
+
+This command returns the following list in |json| format to
+the terminal. To learn more about these fields, see
+:ref:`Output <mcli-iam-org-list-output>`.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+    "links": [
+     {
+      "rel": "self",
+      "href": "http://www.example.com:8080/api/public/v1.0/orgs?pageNum=1\u0026itemsPerPage=5"
+     }
+    ],
+    "results": [
+     {
+      "id": "5e332f3e1234de007b387a9f",
+      "links": [
+       {
+        "rel": "self",
+        "href": "http://www.example.com:8080/api/public/v1.0/orgs/5e332f3e1234de007b387a9f"
+       }
+      ],
+      "name": "Org1"
+     },
+     {
+      "id": "5e38efd83b60f567896baf4d",
+      "links": [
+       {
+        "rel": "self",
+        "href": "http://www.example.com:8080/api/public/v1.0/orgs/5e38efd83b60f567896baf4d"
+       }
+      ],
+      "name": "Org2"
+     },
+     {
+      "id": "27a91237ba9cb28a15ed3f51",
+      "links": [
+       {
+        "rel": "self",
+        "href": "http://www.example.com:8080/api/public/v1.0/orgs/27a91237ba9cb28a15ed3f51"
+       }
+      ],
+      "name": "Org3"
+     },
+     {
+      "id": "959bd41f6c65d5a31077f78a",
+      "links": [
+       {
+        "rel": "self",
+        "href": "http://www.example.com:8080/api/public/v1.0/orgs/959bd41f6c65d5a31077f78a"
+       }
+      ],
+      "name": "Org4"
+     },
+     {
+      "id": "f459b51a9a6e4eba907b47ad",
+      "links": [
+       {
+        "rel": "self",
+        "href": "http://www.example.com:8080/api/public/v1.0/orgs/f459b51a9a6e4eba907b47ad"
+       }
+      ],
+      "name": "Org5"
+     }
+    ],
+    "totalCount": 64
    }
