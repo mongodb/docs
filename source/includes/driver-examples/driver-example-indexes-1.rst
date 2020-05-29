@@ -92,7 +92,7 @@
      - id: python
        content: |
          To create an index using the
-         `Python driver <https://api.mongodb.com/python/current/>`_,
+         :api:`Python driver <pymongo>`,
          use :py:meth:`pymongo.collection.Collection.create_index`.
 
          .. class:: copyable-code
