@@ -20,7 +20,7 @@
        content: |
          This page provides examples of |query_operations| using the
          :py:meth:`pymongo.collection.Collection.find` method in the
-         `PyMongo <https://api.mongodb.com/python/current/index.html>`_
+         :api:`PyMongo <pymongo>`
          Python driver. The examples on this page use the ``inventory``
          collection. To populate the ``inventory`` collection, run the
          following:

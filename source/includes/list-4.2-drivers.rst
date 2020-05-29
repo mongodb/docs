@@ -15,7 +15,7 @@
 
    - `Perl 2.2.0 <https://metacpan.org/author/MONGODB>`__
 
-   - `Python 3.9.0 <https://api.mongodb.com/python/current/index.html>`__
+   - :api:`Python 3.9.0 <pymongo>`
 
    - `Ruby 2.10.0 <https://docs.mongodb.com/ruby-driver/current/>`__
 

@@ -93,7 +93,7 @@ source_constants = {
 extlinks = {
     'hardlink' : ( 'https://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'api': ('https://api.mongodb.com/%s', ''),
+    'api': ('https://docs.mongodb.com/drivers/%s', ''),
     'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'ecosystem': ('https://docs.mongodb.com/ecosystem%s', ''),
