@@ -13,7 +13,7 @@ Embedded Chart Options
    :class: singlecol
 
 You can customize the appearance and behavior your embedded charts with a
-variety of options. Options are avaiable to charts charts embedded with the
+variety of options. Options are available to charts charts embedded with the
 :ref:`Embedding SDK <embedding-charts-sdk>` and embedded within :ref:`iframes
 <embedding-charts-iframe>`.
 
@@ -49,8 +49,7 @@ variety of options. Options are avaiable to charts charts embedded with the
                  chartId: "8d4dff93-e7ca-4ccd-a622-e20e8a100197",
                  baseUrl: "https://charts.mongodb.com/charts-embedding-examples-hmewt",
                  height: 300,
-                 width: 400,
-                 refreshInterval: 300
+                 width: 400
                });
 
          The following options are available to ``createChart``:
@@ -93,10 +92,27 @@ variety of options. Options are avaiable to charts charts embedded with the
               - A :ref:`filter <embed-options-filter>` to apply to the chart.
               - no
          
-            * - ``refreshInterval``
+            * - ``autoRefresh``
+              - boolean
+              - Specifies whether the chart automatically refreshes. If
+                omitted, charts do not automatically refresh.
+
+                Use this option with the ``maxDataAge`` option to
+                configure how often the chart refreshes. 
+              - no
+
+            * - ``maxDataAge``
               - number
-              - How often to refresh the chart, in seconds. The minimum refresh
-                interval is 10 seconds. ``autorefresh`` is off by default.
+              - Specifies the maximum age of data to load from the cache
+                when loading or refreshing the chart. If omitted,
+                |charts| renders the chart with data from the cache if
+                the data is less than one hour old.
+
+                To learn how |charts| loads data from the cache when
+                loading or refreshing the chart based on the
+                ``autoRefresh`` and ``maxDataAge`` values, see
+                :ref:`auto-refresh-behavior`.
+
               - no
          
             * - ``theme``
@@ -164,12 +180,14 @@ variety of options. Options are avaiable to charts charts embedded with the
          .. example::
 
             The following code snippets set the theme of a Chart instance named
-            ``chart`` to ``dark`` and its refresh interval to 30 seconds.
+            ``chart`` to ``dark`` and it to refresh automatically every
+            30 seconds.
    
             .. code-block:: javascript
    
                chart.setTheme("dark");
-               chart.setRefreshInterval(30);
+               chart.setAutoRefresh(true);
+               chart.setMaxDataAge(30);
 
          .. list-table::
             :header-rows: 1
@@ -178,9 +196,23 @@ variety of options. Options are avaiable to charts charts embedded with the
             * - Method
               - Description
 
-            * - ``setRefreshInterval(seconds: number)``
-              - Sets how long the embedded chart waits before refreshing.
-                The minimum interval is 10 seconds. To disable, set to 0.
+            * - ``setAutoRefresh``
+              - Specifies whether the chart automatically refreshes. If
+                omitted, charts do not automatically refresh.
+
+                Use this method with the ``setMaxDataAge`` method to
+                configure how often the chart refreshes.
+
+            * - ``setMaxDataAge``
+              - Specifies the maximum age of data to load from the cache
+                when loading or refreshing the chart. If omitted,
+                |charts| renders the chart with data from the cache if
+                the data is less than one hour old.
+
+                To learn how |charts| loads data from the cache when
+                loading or refreshing the chart based on the
+                ``setAutoRefresh`` and ``setMaxDataAge`` values, see
+                :ref:`auto-refresh-behavior`.
 
             * - ``setFilter(filter: object)``
               - Applies a :ref:`query filter <filter-embedded-charts>` to the
@@ -197,7 +229,7 @@ variety of options. Options are avaiable to charts charts embedded with the
               - Sets the current theme of the embedded chart. When setting the
                 theme to ``dark``, you need to ensure that your chart's
                 background color has appropriate contrast so that the information
-                remains visible. By default, a chart's background is transparent.
+                remains visible.
 
          .. seealso::
 
@@ -217,58 +249,75 @@ variety of options. Options are avaiable to charts charts embedded with the
          specify a refresh interval for your chart, as well as a light or
          dark display theme.
   
-         Specify a Refresh Interval
-         --------------------------
+         Configure Auto Refresh and Data Caching Behavior
+         ------------------------------------------------
          
-         Use the ``autorefresh`` query parameter to define the interval,
-         in seconds, at which the chart refreshes with the latest data from
-         its :ref:`data source <data-sources>`. Use the options on the 
-         :guilabel:`Unauthenticated` tab on the :guilabel:`Embed Chart` dialog
-         to customize the ``autorefresh`` value in the iframe snippet.
+         Use the ``autorefresh`` query parameter to configure the chart
+         to refresh automatically. 
          
-         If you do not specify the ``autorefresh`` option, your embedded chart 
-         loads once when the iframe loads and does not automatically refresh.
+         Use the ``maxDataAge`` query parameter to:
+         
+         - Determine the interval at which the chart refreshes if
+           ``autorefresh`` is ``true``.
+         - Configure the maximum age of data to load from the cache when
+           loading or manually refreshing the chart if ``autorefresh``
+           is ``false`` or omitted. 
+         
+           To learn how |charts| loads data from the cache when loading
+           or refreshing the chart based on the ``autorefresh`` and
+           ``maxDataAge`` values, see :ref:`auto-refresh-behavior`.
+         
+         Use the options on the 
+         :guilabel:`Unauthenticated` tab on the :guilabel:`Embed Chart`
+         dialog to customize the ``autorefresh`` value in the iframe
+         snippet. 
          
          Example
          ~~~~~~~
          
-         The following iframe embeds a chart which automatically refreshes
-         every 30 seconds as defined by the ``autorefresh=30`` query parameter:
+         The following iframe embeds a chart which automatically
+         refreshes every 30 seconds as defined by the
+         ``autorefresh=true`` and the ``maxDataAge=30`` query
+         parameters:
          
          .. code-block:: html
          
             <iframe style="border: none;border-radius: 2px;box-shadow: 0 2px
             10px 0 rgba(70, 76, 79, .2);" width="640" height="480" src="
             {charts-host}/embed/charts?id=b3ca720f-4b4a-40b4-a726-e7dc0c49aa1c&
-            autorefresh=30"></iframe>
+            autorefresh=true&maxDataAge=30"></iframe>
          
          Considerations
          ~~~~~~~~~~~~~~
          
-         - The minimum automatic refresh interval is 10 seconds. If you specify
-           an ``autorefresh`` value less than 10, the chart refreshes every 10
-           seconds.
+         - The minimum cache duration is 10 seconds. If ``autorefresh``
+           is ``true`` and you specify a ``maxDataAge`` value less than
+           10, the chart refreshes every 10 seconds.
          
-         - If you specify an ``autorefresh`` value which is not an integer or
-           less than 0, an :ref:`error <embedded-errors>` is returned.
+         - If you specify an ``maxDataAge`` value which is not an
+           integer or less than ``-1``, an :ref:`error
+           <embedded-errors>` is returned. 
          
          - If your data source requires a
-           :ref:`Verified Signature <embed-with-iframe-procedure>`, the signature
-           validity (including the expiry date) is checked on each refresh. If
-           the signature's expiry date passed, the host web page must
-           regenerate a new signature to continue rendering charts. For
-           code examples using verified signatures, see
-           `MongoDB Charts Embedding Examples <https://github.com/mongodb/charts-embedding-examples>`__
+           :ref:`Verified Signature <embed-with-iframe-procedure>`, the
+           signature validity (including the expiry date) is checked on
+           each refresh. If the signature's expiry date passed, the host
+           web page must regenerate a new signature to continue
+           rendering charts. For code examples using verified
+           signatures, see 
+           `MongoDB Charts Embedding Examples 
+           <https://github.com/mongodb/ charts-embedding-examples>`__
            on GitHub.
          
            .. example::
          
-              If you specify an automatic refresh interval of one minute and the
-              expiry date of the signature is in 1 hour, the chart refreshes
-              every minute for an hour. Once one hour has elapsed, the chart
-              will not render and an error will be displayed as the signature is
-              no longer valid. The host web page must regenerate a new signature
-              to resume rendering the chart.
+              If ``autorefresh`` is ``true``, the cache duration is one
+              minute (``maxDataAge=60``), and the expiry date of the
+              signature is in one hour, the chart refreshes every minute
+              for an hour. Once one hour has elapsed, the chart will not
+              render and an error will be displayed as the signature is
+              no longer valid. The host web page must regenerate a new
+              signature to resume rendering the chart.
          
          Specify a Display Theme
          -----------------------
@@ -323,9 +372,17 @@ variety of options. Options are avaiable to charts charts embedded with the
            <https://developer.mozilla.org/en-US/docs/Web/CSS/background>`__
            in the MDN Web Docs for more information.
          
-         - Remove the ``background`` property to display the chart with a 
-           transparent background, allowing your application's background to 
+         - Change the ``background`` property to ``transparent`` to
+           display the chart with a transparent background, allowing
+           your application's background to 
            display through the chart.
+
+         - Remove the ``background`` property to use the default
+           background color of the theme you choose:
+
+           - ``#FFFFFF`` for the ``light`` theme (default), or
+         
+           - ``#21313C`` for the ``dark`` theme.
          
          Chart Border
          ~~~~~~~~~~~~
@@ -413,4 +470,32 @@ variety of options. Options are avaiable to charts charts embedded with the
             theme=light&
             attribution=false
             "></iframe>
-         
+
+.. _auto-refresh-behavior:
+
+Auto Refresh and Data Caching Behavior
+--------------------------------------
+
+The following table describes how |charts| loads data from the cache
+when loading or refreshing the chart based on the ``autorefresh`` or
+``autoRefresh`` and  ``maxDataAge`` values.
+
+.. note::
+
+   The casing of the ``autoRefresh`` option differs based on whether
+   you embed a chart using the Embedding SDK or an iframe:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 50 50
+
+      * - Embedding Method
+        - Auto Refresh Option
+
+      * - Embedding SDK
+        - ``autoRefresh``
+
+      * - iframe
+        - ``autorefresh``
+
+.. include:: /includes/autorefresh-maxdataage-values.rst
