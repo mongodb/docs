@@ -23,129 +23,131 @@ Definition
    analyzer which was used during the index creation still applies to
    the index, but the search itself does not use an analyzer.
 
-.. _term-syntax:
+   .. note:: 
 
-Syntax
-------
+      The ``term`` operator normalizes the query terms in the same way they 
+      are normalized in the index. That is, when you use it with the 
+      :ref:`ref-standard-analyzer`, the operator converts your query terms 
+      to lower case. When you use it with the :ref:`ref-keyword-analyzer`, 
+      the ``term`` operator performs an exact match on the field.
+   
+   ``term`` has the following syntax:
+   
+   .. code-block:: javascript
+   
+      { 
+        $search: {  
+          "index": <index name>, // optional, defaults to "default"
+          "term": {
+            "query": "<search-term>",
+            "path": "<field-to-search>",
+            "wildcard": <boolean>,
+            "regex": <boolean>,
+            "prefix": <boolean>,
+            "fuzzy": { "maxEdits": <integer>, "prefixLength": <integer> },
+            "score": <options>
+          }
+        }
+      }
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 20 50 10 10
+   
+      * - Field
+        - Type
+        - Description
+        - Required?
+        - Default
+   
+      * - ``query``
+        - string or array of strings
+        - The term or terms to search for.
+        - yes
+        -
+   
+      * - ``path``
+        - string or array of strings
+        - The indexed field or fields to search. See :ref:`path
+          construction <ref-path>` for more information.
+        - yes
+        -
+   
+      * - ``wildcard``
+        - boolean
+        - Enable wildcard searching. 
 
-``term`` has the following syntax:
+          .. note::
 
-.. code-block:: javascript
-   :linenos:
+             The ``wildcard`` option is deprecated for the :ref:`term <term-ref>`
+             operator. Use the :ref:`wildcard <wildcard-ref>` operator instead.
+        - no
+        - ``false``
+   
+      * - ``regex``
+        - boolean
+        - Enable regular expression searching. 
 
-   {
-     $search: {
-       "index": <index name>, // optional, defaults to "default"
-       "term": {
-         "query": "<search-term>",
-         "path": "<field-to-search>",
-         "wildcard": <boolean>,
-         "regex": <boolean>,
-         "prefix": <boolean>,
-         "fuzzy": { "maxEdits": <integer>, "prefixLength": <integer> },
-         "score": <options>
-       }
-     }
-   }
+          .. note::
 
-.. _term-options:
+             The ``regex`` option is deprecated for the :ref:`term <term-ref>`
+             operator. Use the :ref:`regex <regex-ref>` operator instead.
+        - no
+        - ``false``
+   
+      * - ``prefix``
+        - boolean
+        - Use the string specified in ``query`` as a prefix and search
+          for any term which starts with it.
 
-Options
--------
+          .. note::
 
-``term`` uses the following terms to construct a query:
+             The ``prefix`` option is deprecated for the :ref:`term <term-ref>`
+             operator. Use the :ref:`wildcard <wildcard-ref>` or :ref:`regex
+             <regex-ref>` operators instead.
+        - no
+        - ``false``
 
-.. list-table::
-   :header-rows: 1
-   :widths: 10 20 50 10 10
+      * - ``fuzzy``
+        - object
+        - Enable fuzzy search. Find strings which are similar to the
+          search term or terms.
+        - no
+        -
 
-   * - Field
-     - Type
-     - Description
-     - Necessity
-     - Default
+      * - ``fuzzy.maxEdits``
+        - integer
+        - Maximum number of single-character edits required to match the
+          specified search term.
+  
+          .. note::
+  
+                 ``maxEdits`` has a maximum allowable value of ``2``.
+        - no
+        - ``2``
+  
+      * - ``fuzzy.prefixLength``
+        - integer
+        - Number of characters at the beginning of the result that
+          must exactly match the search term.
+        - no
+        - ``0``
 
-   * - ``query``
-     - string or array of strings
-     - Term or terms to search for.
-     - yes
-     -
+      * - ``score``
+        - object
+        - Modify the score assigned to matching search term results. Options are:
 
-   * - ``path``
-     - string or array of strings
-     - Indexed field or fields to search. See :ref:`path
-       construction <ref-path>` for more information.
-     - yes
-     -
+          - ``boost``: multiply the result score by the given number.
 
-   * - ``wildcard``
-     - boolean
-     - Enable wildcard searching.
-     - no
-     - ``false``
+          - ``constant``: replace the result score with the given number.
 
-   * - ``regex``
-     - boolean
-     - Enable regular expression searching.
-     - no
-     - ``false``
+        - no
+        -
 
-   * - ``prefix``
-     - boolean
-     - Use the string specified in ``query`` as a prefix and search
-       for any term which starts with it.
-
-       .. note::
-
-          The ``prefix`` option is deprecated for the :ref:`term <term-ref>`
-          operator. Use the :ref:`wildcard <wildcard-ref>` or :ref:`regex
-          <regex-ref>` operators instead.
-     - no
-     - ``false``
-
-   * - ``fuzzy``
-     - object
-     - Enable fuzzy search. Find strings which are similar to the
-       search term or terms.
-     - no
-     -
-
-   * - ``fuzzy.maxEdits``
-     - integer
-     - Maximum number of single-character edits required to match
-       the specified search term.
-
-       .. note::
-
-              For beta purposes, ``maxEdits`` has a maximum
-              allowable value of ``2``.
-     - no
-     - ``2``
-
-   * - ``fuzzy.prefixLength``
-     - integer
-     - Number of characters at the beginning of the result that
-       must exactly match the search term.
-     - no
-     - ``0``
-
-   * - ``score``
-     - object
-     - Modify the score assigned to matching search term results.
-       Options are:
-
-       - ``boost``: multiply the result score by the given number.
-
-       - ``constant``: replace the result score with the given
-         number.
-
-     - no
-     -
-
-.. important::
-
-   You can't use the ``wildcard``, ``regex``, ``prefix`` and ``fuzzy``
-   options in combination with each other.
+   .. important::
+  
+      The ``wildcard``, ``regex``, ``prefix`` and ``fuzzy`` options
+      cannot be used in combination with each other.
 
 Examples
 --------
@@ -217,53 +219,6 @@ which was used to create the index lower-cases all tokens, and the
 
 The above query returns the document with ``_id: 1``, which has the
 word ``Smith`` in the ``description`` field.
-
-Wildcard Example
-~~~~~~~~~~~~~~~~
-
-The ``wildcard`` option allows you to use the ``*`` character, which
-evaluates to zero or more characters of any value within a given
-token.
-
-.. code-block:: javascript
-   :linenos:
-
-   db.fruit.aggregate([
-     {
-       $search: {
-         "term": {
-           "query": "s*l*",
-           "path": "description",
-           "wildcard": true
-         }
-       }
-     }
-   ])
-
-The above query returns both the documents in the collection. ``s*l*``
-matches ``several`` in the first document's ``description`` field
-and ``sold`` in the second.
-
-Regular Expression Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: javascript
-   :linenos:
-
-   db.fruit.aggregate([
-     {
-       $search: {
-         "term": {
-           "query": "([a-z]{7})",
-           "path": "description",
-           "regex": true
-         }
-       }
-     }
-   ])
-
-The above query returns both the documents in the collection, because
-both ``description`` fields contain seven-letter words.
 
 Fuzzy Example
 ~~~~~~~~~~~~~
