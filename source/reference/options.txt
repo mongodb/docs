@@ -1,0 +1,416 @@
+=====================
+MongoDB Shell Options
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/admonitions/fact-mdb-shell-beta.rst
+
+Use the following options to control various aspects of your
+|mdb-shell| connection and behavior.
+
+General Options
+---------------
+
+.. setting:: --eval <javascript>
+
+   Evaluates a JavaScript expression that is specified as an argument.
+   The |mdb-shell| does not load its own environment when evaluating
+   code. As a result, many options of the shell environment are not
+   available when using this option.
+
+.. setting:: --help, -h
+
+   Returns information on the options and use of the |mdb-shell|.
+
+.. setting:: --nodb
+
+   Prevents the shell from connecting to any database instances. Later,
+   to connect to a database within the shell, see
+   :ref:`mdb-shell-connect`.
+
+.. setting:: --norc
+
+   Prevents the shell from sourcing and evaluating
+   :file:`~/.mongorc.js` on start up.
+
+.. setting:: --shell
+
+   Enables the shell interface. If you invoke the ``mongosh``
+   command and specify a JavaScript file as an argument, or use
+   ``--eval`` to specify JavaScript on the command line, the
+   ``--shell`` option provides the user with a shell prompt after
+   the file finishes executing.
+
+.. setting:: --version
+
+   Returns the |mdb-shell| release number.
+
+Connection Options
+------------------
+
+.. setting:: --host <hostname>
+
+   Specifies the name of the host machine where the
+   :binary:`~bin.mongod` or :binary:`~bin.mongos` is running. If this is
+   not specified, the |mdb-shell| attempts to connect to a MongoDB
+   process running on the localhost.
+   
+   To connect to a replica set,
+      Specify the :setting:`replica set name <~replication.replSetName>`
+      and a seed list of set members. Use the following form:
+   
+      .. code-block:: none
+   
+         <replSetName>/<hostname1><:port>,<hostname2><:port>,<...>
+   
+   For TLS/SSL connections (``--tls``),
+     The |mdb-shell| shell verifies that the hostname
+     (specified in the ``--host`` option or the
+     connection string) matches the ``SAN`` (or, if ``SAN`` is not
+     present, the ``CN``) in the certificate presented by the
+     :binary:`~bin.mongod` or :binary:`~bin.mongos`. If ``SAN`` is
+     present, the |mdb-shell| does not match against the ``CN``. If
+     the hostname does not match the ``SAN`` (or ``CN``), the
+     |mdb-shell| shell fails to connect.
+   
+   For `DNS seedlist connections <https://docs.mongodb.com/manual/reference/connection-string/#dns-seedlist-connection-format/>`_, 
+      Specify the connection protocol as ``mongodb+srv``, followed by
+      the DNS SRV hostname record and any options. The ``authSource``
+      and ``replicaSet`` options, if included in the connection string,
+      overrides any corresponding DNS-configured options set in the
+      TXT record. Use of the ``mongodb+srv:`` connection string
+      implicitly enables |tls-ssl| (normally set with ``tls=true``) for
+      the client connection. The |tls| option can be turned off by
+      setting ``tls=false`` in the query string.
+
+      .. example::
+   
+         .. code-block:: none
+      
+            mongodb+srv://server.example.com/?connectionTimeout=3000ms
+
+.. setting:: --ipv6
+
+   Enables IPv6 support. the |mdb-shell| disables IPv6 by default.
+   
+   To connect to a MongoDB cluster via IPv6, you must specify
+   both ``--ipv6`` *and*  ``--host <mongod/mongos IPv6 address>``
+   when starting the |mdb-shell|.
+   
+   :binary:`~bin.mongod` and :binary:`~bin.mongos` disable IPv6 support
+   by default. Specifying ``--ipv6`` when connecting to a
+   ``mongod/mongos`` does not enable IPv6 support on the
+   ``mongod/mongos``. For documentation on enabling IPv6 support on the
+   ``mongod/mongos``, see :setting:`net.ipv6`.
+
+.. setting:: --port <port>
+
+   Specifies the port where the :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` instance is listening. If ``--port`` is not
+   specified, the |mdb-shell| attempts to connect to port ``27017``.
+
+TLS Options
+~~~~~~~~~~~
+
+.. setting:: --tls
+   
+   Enables connection to a :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` that has |tls-ssl| support enabled.
+   
+   .. include:: /includes/fact-ssl-see-more.rst
+
+.. setting:: --tlsCertificateKeyFile <filename>
+   
+   Specifies the :file:`.pem` file that contains both the |tls-ssl|
+   certificate and key for the :binary:`~bin.mongo` shell. Specify the
+   file name of the :file:`.pem` file using relative or absolute paths.
+   
+   This option is required when using the ``--tls`` option to connect to
+   a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance that
+   requires :ref:`client certificates
+   <mongo-connect-require-client-certificates-tls>`. That is, the
+   |mdb-shell| presents this certificate to the server.
+
+   .. note::
+
+      .. include:: /includes/fact-certificate-expiry-warning.rst
+   
+   .. include:: /includes/fact-ssl-see-more.rst
+
+.. setting:: --tlsCertificateKeyFilePassword <value>
+   
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   ``--tlsCertificateKeyFile``).
+   
+   Use the ``--tlsCertificateKeyFilePassword`` option only if the
+   certificate-key file is encrypted. In all cases, the |mdb-shell|
+   redacts the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not
+   specify the ``--tlsCertificateKeyFilePassword`` option; the
+   |mdb-shell| prompts for a passphrase.
+   
+   See :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+.. setting:: --tlsCAFile <filename>
+     
+   Specifies the :file:`.pem` file that contains the root certificate
+   chain from the Certificate Authority. This file is used to validate
+   the certificate presented by the
+   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance.
+   
+   Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+.. setting:: --tlsCRLFile <filename>
+   
+   Specifies the :file:`.pem` file that contains the Certificate
+   Revocation List. Specify the file name of the :file:`.pem` file
+   using relative or absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+.. setting:: --tlsAllowInvalidHostnames
+   
+   Disables the validation of the hostnames in the certificate presented
+   by the :binary:`~bin.mongod`/:binary:`~bin.mongos` instance. Allows
+   the |mdb-shell| to connect to MongoDB instances even if the hostname
+   in the server certificates do not match the server's host.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+.. setting:: --tlsAllowInvalidCertificates
+
+   .. versionadded:: 4.2
+   
+   Bypasses the validation checks for the certificates presented by the
+   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance and allows
+   connections to servers that present invalid certificates.
+   
+   .. note::
+      
+      Starting in MongoDB 4.0, if you specify
+      ``--tlsAllowInvalidCertificates`` when using x.509
+      authentication, an invalid certificate is only sufficient to
+      establish a |tls-ssl| connection but is *insufficient* for
+      authentication.
+   
+   .. warning::
+
+      Although available, avoid using the
+      ``--tlsAllowInvalidCertificates`` option if possible. If the use
+      of ``--tlsAllowInvalidCertificates`` is necessary, only use the
+      option on systems where intrusion is not possible.
+
+      If the |mdb-shell| shell (and other
+      :ref:`mongodb-tools-support-ssl`) runs with the
+      ``--tlsAllowInvalidCertificates`` option, the shell (and other
+      :ref:`mongodb-tools-support-ssl`) do not attempt to validate the
+      server certificates. This creates a vulnerability to expired
+      :binary:`~bin.mongod` and :binary:`~bin.mongos` certificates as
+      well as to foreign processes posing as valid :binary:`~bin.mongod`
+      or :binary:`~bin.mongos` instances. If you only need to disable
+      the validation of the hostname in the |tls-ssl| certificates, see
+      ``--tlsAllowInvalidHostnames``.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+.. setting:: --tlsCertificateSelector <parameter>=<value>
+   
+   Available on Windows and macOS as an alternative to
+   ``--tlsCertificateKeyFile``.
+   
+   The ``--tlsCertificateKeyFile`` and
+   ``--tlsCertificateSelector`` options are mutually exclusive.
+   You can only specify one.
+
+   Specifies a certificate property in order to select a matching
+   certificate from the operating system's certificate store.
+
+   ``--tlsCertificateSelector`` accepts an argument of the format
+   ``<property>=<value>`` where the property can be one of the
+   following:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Property
+        - Value type
+        - Description
+    
+      * - ``subject``
+        - ASCII string
+        - Subject name or common name on certificate
+
+      * - ``thumbprint``
+        - hex string
+
+        - A sequence of bytes, expressed as hexadecimal, used to
+          identify a public key by its SHA-1 digest.
+
+          The ``thumbprint`` is sometimes referred to as a
+          ``fingerprint``.
+
+   When using the system SSL certificate store, OCSP (Online
+   Certificate Status Protocol) is used to validate the revocation
+   status of certificates.
+
+   .. note::
+
+      .. include:: /includes/fact-certificate-expiry-warning.rst
+
+.. setting:: --tlsDisabledProtocols <string>
+   
+   Disables the specified TLS protocols. The option recognizes the
+   following protocols:
+   
+   - ``TLS1_0``
+   - ``TLS1_1``
+   - ``TLS1_2``
+   - *(Starting in version 4.0.4, 3.6.9, 3.4.24)* ``TLS1_3``
+   
+   - On macOS, you cannot disable ``TLS1_1`` and leave both ``TLS1_0``
+     and ``TLS1_2`` enabled. You must also disable at least one of the
+     other two; for example, ``TLS1_0,TLS1_1``.
+   
+   - To list multiple protocols, specify as a comma separated list of
+     protocols. For example ``TLS1_0,TLS1_1``.
+   
+   - The specified disabled protocols overrides any default disabled
+     protocols.
+   
+   Starting in version 4.0, MongoDB disables the use of TLS 1.0 if TLS
+   1.1+ is available on the system. To enable the
+   disabled TLS 1.0, specify ``none`` to ``--tlsDisabledProtocols``.
+
+Authentication Options
+----------------------
+
+.. setting:: --authenticationDatabase <dbname>
+   
+   Specifies the authentication database where the specified
+   ``--username`` has been created. See
+   :ref:`user-authentication-database`.
+   
+
+   If you do not specify a value for ``--authenticationDatabase``,
+   the |mdb-shell| uses the database specified in the connection
+   string.
+
+.. setting:: --authenticationMechanism <name>
+
+   *Default*: SCRAM-SHA-1
+
+   Specifies the authentication mechanism the |mdb-shell| uses to
+   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+   
+   .. note::
+   
+      Starting in version 4.0:
+      
+      - MongoDB removes support for the deprecated MongoDB
+        Challenge-Response (``MONGODB-CR``) authentication mechanism.
+   
+      -  MongoDB adds support for SCRAM mechanism using the SHA-256 hash
+         function (``SCRAM-SHA-256``).
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+
+      * - Value
+
+        - Description
+
+      * - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+
+        - `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_ standard
+          Salted Challenge Response Authentication Mechanism using the
+          SHA-1 hash function.
+
+      * - :ref:`SCRAM-SHA-256 <authentication-scram-sha-256>`
+
+        - `RFC 7677 <https://tools.ietf.org/html/rfc7677>`_ standard
+          Salted Challenge Response Authentication Mechanism using the
+          SHA-256 hash function.
+
+          Requires featureCompatibilityVersion set to ``4.0``.
+
+      * - :ref:`MONGODB-X509 <security-auth-x509>`
+
+        - MongoDB |tls-ssl| certificate authentication.
+
+      * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
+
+        - External authentication using Kerberos. This mechanism is
+          available only in `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise-advanced?jmp=docs>`_.
+
+      * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
+
+        - External authentication using LDAP. You can also use ``PLAIN``
+          for authenticating in-database users. ``PLAIN`` transmits
+          passwords in plain text. This mechanism is available only in
+          `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise-advanced?jmp=docs>`_.
+
+.. setting:: --gssapiHostName
+
+   Specify the hostname of a service using
+   :manual:`GSSAPI/Kerberos </core/kerberos>`. Only required if the
+   hostname of a machine does not match the hostname resolved by DNS.
+   
+   This option is available only in MongoDB Enterprise.
+
+.. setting:: --gssapiServiceName
+
+   Specify the name of the service using
+   :manual:`GSSAPI/Kerberos </core/kerberos>`. Only required if the service does not use the default name of ``mongodb``.
+   
+   This option is available only in MongoDB Enterprise.
+
+.. setting:: --password <password>, -p <password>
+
+   Specifies a password with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the
+   ``--username`` and ``--authenticationDatabase`` options.
+
+   To force the |mdb-shell| to prompt for a password, enter the
+   ``--password`` option as the last option and leave out the
+   argument.
+
+.. setting:: --username <username>, -u <username>
+
+   Specifies a username with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the
+   ``--password`` and ``--authenticationDatabase`` options.
+
+Session Options
+---------------
+
+.. setting:: --retryWrites
+   
+   Enables :manual:`retryable writes </core/retryable-writes/>` as the
+   default for sessions in the |mdb-shell|.
+   
+   For more information on sessions, see :ref:`sessions`.
+
+.. disableImplicitSessions
+
+Client-Side Field Level Encryption Options
+------------------------------------------
+
+For information on Client-Side Field Level Encryption Options,
+refer to the :manual:`MongoDB Manual
+</reference/program/mongo/#client-side-field-level-encryption-options>`.
