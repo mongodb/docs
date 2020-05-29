@@ -6,86 +6,80 @@
      - Type
      - Description
 
-   * - ``id``
-     - string
-     - Unique identifier for the alert.
+   * - ``acknowledgedUntil``
+     - date
+     - |iso8601-time| through which the alert has been acknowledged.
+       ``mongocli`` returns this value after the alert has been
+       acknowledged.
 
-   * - ``groupId``
+   * - ``acknowledgementComment``
      - string
-     - ID of the project for which this alert was opened.
+     - Comment left by the user who acknowledged the alert.
+       ``mongocli`` returns this value after the alert has been
+       acknowledged.
+
+   * - ``acknowledgingUsername``
+     - string
+     - Username of the user who acknowledged the alert. ``mongocli``
+       returns this value after the alert has been acknowledged.
 
    * - ``alertConfigId``
      - string
-     - ID of the alert configuration that triggered this alert.
+     - Unique identifier of the alert configuration that triggered this
+       alert.
 
-   * - ``eventTypeName``
+   * - ``clusterName``
      - string
-     - The name of the event that triggered the alert. The possible values
-       depend on the alert type.
-
-   * - ``status``
-     - string
-     - The current state of the alert. Possible values are:
-
-       .. list-table::
-          :widths: 20 80
-          :stub-columns: 1
-
-          * - ``TRACKING``
-            - Alert conditions exist, but the condition hasn't
-              persisted for long enough to trigger an alert.
-
-          * - ``OPEN``
-            - Alert is open.
-
-          * - ``CLOSED``
-            - Alert is closed.
-
-          * - ``CANCELLED``
-            - Alert is cancelled.
+     - Name the cluster to which this alert applies.
 
    * - ``created``
      - date
      - |iso8601-time| when this alert was created.
 
-   * - ``updated``
-     - date
-     - |iso8601-time| when this alert was last updated.
+   * - ``currentValue``
+     - object
+     - Current value of the metric that triggered the alert.
+       ``mongocli`` returns this value if ``"eventTypeName" :
+       "OUTSIDE_METRIC_THRESHOLD"``.
 
-   * - ``lastNotified``
-     - date
-     - |iso8601-time| when the last notification was sent for this 
-       alert. Only present if notifications have been sent.
+   * - ``currentValue.number``
+     - float
+     - Value.
 
-   * - ``resolved``
-     - date
-     - |iso8601-time| when the alert was closed. Only present if the 
-       status is ``CLOSED``.
-
-   * - ``acknowledgedUntil``
-     - date
-     - |iso8601-time| through which the alert has been acknowledged. 
-       This is not present if the alert has never been acknowledged.
-
-   * - ``acknowledgementComment``
+   * - ``currentValue.units``
      - string
-     - The comment left by the user who acknowledged the alert. This is not
-       present if the alert has never been acknowledged.
+     - Units for the value. Possible units are:
 
-   * - ``acknowledgingUsername``
+       .. include:: /includes/possibleValues-api-units.rst
+
+   * - ``eventTypeName``
      - string
-     - The username of the user who acknowledged the alert. This is not
-       present if the alert has never been acknowledged.
+     - Name of the event that triggered the alert. The possible values
+       depend on the alert type.
+
+   * - ``groupId``
+     - string
+     - Unique identifier of the project for which this alert was
+       opened.
 
    * - ``hostnameAndPort``
      - string
-     - The hostname and port of the host to which the alert applies.
+     - Hostname and port of the host to which the alert applies.
+
+   * - ``id``
+     - string
+     - Unique identifier for the alert.
+
+   * - ``lastNotified``
+     - date
+     - |iso8601-time| when the last notification was sent for this
+       alert. Only present if notifications have been sent.
 
    * - ``metricName``
      - string
-     - The name of the metric whose value went outside the threshold. Only
-       present if ``eventTypeName`` is ``OUTSIDE_METRIC_THRESHOLD``. Possible
-       values are:
+     - Name of the metric whose value went outside the threshold.
+       ``mongocli`` returns this value if ``"eventTypeName" :
+       "OUTSIDE_METRIC_THRESHOLD"``. Possible values are:
 
        - ``ASSERT_MSG``
        - ``ASSERT_REGULAR``
@@ -147,25 +141,36 @@
        - ``TICKETS_AVAILABLE_READS``
        - ``TICKETS_AVAILABLE_WRITES``
 
-   * - ``currentValue``
-     - object
-     - The current value of the metric that triggered the alert. Only present
-       if ``eventTypeName`` is ``OUTSIDE_METRIC_THRESHOLD``.
-
-   * - ``currentValue.number``
-     - float
-     - The value.
-
-   * - ``currentValue.units``
-     - string
-     - The units for the value. Possible units are:
-
-       .. include:: /includes/possibleValues-api-units.rst
-
    * - ``replicaSetName``
      - string
      - Name of the replica set, if applicable.
 
-   * - ``clusterName``
+   * - ``resolved``
+     - date
+     - |iso8601-time| when the alert was closed. ``mongocli`` returns
+       this value if ``"status" : "CLOSED"``.
+
+   * - ``status``
      - string
-     - The name the cluster to which this alert applies.
+     - Current state of the alert. Possible values are:
+
+       .. list-table::
+          :widths: 20 80
+          :stub-columns: 1
+
+          * - ``TRACKING``
+            - Alert conditions exist, but the condition hasn't
+              persisted for long enough to trigger an alert.
+
+          * - ``OPEN``
+            - Alert is open.
+
+          * - ``CLOSED``
+            - Alert is closed.
+
+          * - ``CANCELLED``
+            - Alert is cancelled.
+
+   * - ``updated``
+     - date
+     - |iso8601-time| when this alert was last updated.
