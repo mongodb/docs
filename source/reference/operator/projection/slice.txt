@@ -10,60 +10,252 @@ $slice (projection)
    :depth: 1
    :class: singlecol
 
+Definition
+----------
+
 .. projection:: $slice
 
-   The :projection:`$slice` operator controls the number of items of an
-   array that a query returns. For information on limiting the size of
-   an array during an update with :update:`$push`, see the
-   :update:`$slice` modifier instead.
+   The :projection:`$slice` projection operator specifies the number of
+   elements in an array to return in the query result.
+
+   .. admonition:: Disambiguation
+
+      For information on limiting the size of an array during an update
+      with :update:`$push`, see the :update:`$slice` modifier instead.
+
+      For aggregation operator, see :expression:`$slice` aggregation
+      operator instead.
+
+Syntax
+------
+
+The :projection:`$slice` has one of the following syntax forms:
+
+.. code-block:: javascript
+   :emphasize-lines: 3
+
+   db.collection.find( 
+      <query>, 
+      { <arrayField>: { $slice: <number> } } 
+   );
+
+or
+
+.. code-block:: javascript
+   :emphasize-lines: 3
+
+   db.collection.find( 
+      <query>, 
+      { <arrayField>: { $slice: [ <number>, <number> ] } } 
+   );
+
+.. list-table::
+   :header-rows: 1
+
+   * - Value
+     - Description
+     
+   * - ``$slice: <number>``
    
-   .. include:: /includes/extracts/views-unsupported-projection-$slice.rst
+     - Specifies the number of elements to return in the
+       ``<arrayField>``. For ``<number>``:
 
-   Consider the following prototype query:
+       - Specify a positive number ``n`` to return the first ``n``
+         elements.
 
-   .. code-block:: javascript
+       - Specify a negative number ``n`` to return the last ``n``
+         elements.
 
-      db.collection.find( { field: value }, { array: {$slice: count } } );
+       If the ``<number>`` is greater than the number of array
+       elements, the query returns all array elements.
 
-   This operation selects the document ``collection`` identified by a
-   field named ``field`` that holds ``value`` and returns the number
-   of elements specified by the value of ``count`` from the array
-   stored in the ``array`` field. If ``count`` has a value greater
-   than the number of elements in ``array`` the query returns all
-   elements of the array.
+   * - ``$slice: [ <number to skip>, <number to return> ]``
 
-   :projection:`$slice` accepts arguments in a number of formats,
-   including negative values and arrays. Consider the following
-   examples:
+     - Specifies the number of elements to return in the
+       ``<arrayField>`` after skipping the specified number of elements
+       starting from the first element. You must specify both elements.
 
-   .. code-block:: javascript
+       For the ``<number to skip>``:
 
-      db.posts.find( {}, { comments: { $slice: 5 } } )
+       - Specify a positive number ``n`` to skip ``n`` elements from
+         the start of the array; i.e. 0th index position. Based on a
+         zero-based array index, ``1`` indicates the starting position
+         of the 2nd element, etc. If ``n`` is greater than the number
+         of array elements, the query returns an empty array for the
+         ``<arrayField>``.
 
-   Here, :projection:`$slice` selects the first five items in an array
-   in the ``comments`` field.
+       - Specify a negative number ``n`` to skip backward ``n``
+         elements from the start of the array; i.e. 0th index position
+         Based on a zero-based array index (i.e. the first element is
+         at index 0), ``-1`` indicates the starting position of the
+         last element, etc. If the absolute value of the negative
+         number is greater than the number of array elements, the
+         starting position is the start of the array.
 
-   .. code-block:: javascript
+       For the ``<number to return>``, you must specify a 
+       *positive* number ``n`` to return the next ``n`` elements,
+       starting after skipping the specified number.
 
-      db.posts.find( {}, { comments: { $slice: -5 } } )
+Behavior
+--------
 
-   This operation returns the last five items in array.
+View Restriction
+~~~~~~~~~~~~~~~~
 
-   The following examples specify an array as an argument to
-   :projection:`$slice`. Arrays take the form of ``[ skip , limit ]``, where the
-   first value indicates the number of items in the array to skip and
-   the second value indicates the number of items to return.
+.. include:: /includes/extracts/views-unsupported-projection-$slice.rst
 
-   .. code-block:: javascript
+``$`` Positional Operator and ``$slice`` Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      db.posts.find( {}, { comments: { $slice: [ 20, 10 ] } } )
+.. include:: /includes/extracts/projection-positional-operator-slice-full.rst
 
-   Here, the query will only return 10 items, after skipping the first
-   20 items of that array.
+Path Collision: ``$slice`` of an Array and Embedded Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. code-block:: javascript
+.. include:: /includes/extracts/projection-path-collision-slice-embedded-field-full.rst
 
-      db.posts.find( {}, { comments: { $slice: [ -20, 10 ] } } )
+.. |findoperation| replace:: :method:`find <db.collection.find()>` and :method:`findAndModify <db.collection.findAndModify()>`
 
-   This operation returns 10 items as well, beginning with the item
-   that is 20th from the last item of the array.
+.. seealso:: :ref:`find-projection`
+
+Examples
+--------
+
+Create an example collection ``posts`` with the following documents:
+
+.. code-block:: javascript
+
+   db.posts.insertMany([
+      {
+        _id: 1, 
+        title: "Bagels are not croissants.", 
+        comments: [ { comment: "0. true" }, { comment: "1. croissants aren't bagels."} ]
+      },
+      {
+        _id: 2, 
+        title: "Coffee please.", 
+        comments: [ { comment: "0. fooey" }, { comment: "1. tea please" }, { comment: "2. iced coffee" }, { comment: "3. cappuccino" }, { comment: "4. whatever" } ]
+      }
+   ])
+
+Return an Array with Its First 3 Elements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the :projection:`$slice` projection
+operator on the ``comments`` array to return the array with its first
+three elements. If the array has less than three elements, all elements
+in the array are returned.
+
+.. code-block:: javascript
+
+   db.posts.find( {}, { comments: { $slice: 3 } } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1, 
+      "title" : "Bagels are not croissants.", 
+      "comments" : [ { "comment" : "0. true" }, { "comment" : "1. croissants aren't bagels." } ] 
+   }
+   { 
+      "_id" : 2,
+      "title" : "Coffee please.",
+      "comments" : [ { "comment" : "0. fooey" }, { "comment" : "1. tea please" }, { "comment" : "2. iced coffee" } ]
+   }
+
+Return an Array with Its Last 3 Elements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the :projection:`$slice` projection
+operator on the ``comments`` array to return the array with its last
+three elements. If the array has less than three elements, all elements
+in the array are returned.
+
+.. code-block:: javascript
+
+   db.posts.find( {}, { comments: { $slice: -3 } } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { 
+      "_id" : 1, 
+      "title" : "Bagels are not croissants.",
+      "comments" : [ { "comment" : "0. true" }, { "comment" : "1. croissants aren't bagels." } ]
+   }
+   { 
+      "_id" : 2,
+      "title" : "Coffee please.",
+      "comments" : [ { "comment" : "2. iced coffee" }, { "comment" : "3. cappuccino" }, { "comment" : "4. whatever" } ]
+   }
+
+Return an Array with 3 Elements After Skipping the First Element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the :projection:`$slice` projection
+operator on the ``comments`` array to:
+
+- Skip the first element such that the second element is the starting
+  point.
+
+- Then, return three elements from the starting point.
+
+If the array has less than three
+elements after the skip, all remaining elements are returned.
+
+.. code-block:: javascript
+
+   db.posts.find( {}, { comments: { $slice: [ 1, 3 ] } } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "title" : "Bagels are not croissants.",
+      "comments" : [ { "comment" : "1. croissants aren't bagels." } ]
+   }
+   
+   {
+      "_id" : 2,
+      "title" : "Coffee please.",
+      "comments" : [ { "comment" : "1. tea please" }, { "comment" : "2. iced coffee" }, { "comment" : "3. cappuccino" } ]
+   }
+
+Return an Array with 3 Elements After Skipping the Last Element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the :projection:`$slice` projection
+operator on the ``comments`` array to
+
+- Skip backwards from the first element such that the last element is
+  the starting point.
+
+- Then, return three elements from the starting point.
+
+If the array has less than three elements after the skip, all remaining
+elements in the array are returned.
+
+.. code-block:: javascript
+
+   db.posts.find( {}, { comments: { $slice: [ -1, 3 ] } } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "title" : "Bagels are not croissants.",
+      "comments" : [ { "comment" : "1. croissants aren't bagels." } ]
+   }
+   {
+      "_id" : 2,
+      "title" : "Coffee please.",
+      "comments" : [ { "comment" : "4. whatever" } ]
+   }
+

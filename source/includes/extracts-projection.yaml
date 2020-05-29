@@ -1,0 +1,141 @@
+ref: projection-path-collision-embedded-document-full
+content: |
+
+   Starting in MongoDB 4.4, it is illegal to project an embedded
+   document with any of the embedded document's fields.
+
+   For example, consider a collection ``inventory`` with documents that
+   contain a ``size`` field:
+  
+   .. code-block:: javascript
+      :copyable: false
+
+      { ..., size: { h: 10, w: 15.25, uom: "cm" }, ... }
+
+   Starting in MongoDB 4.4, the following operation fails with a ``Path
+   collision`` error because it attempts to project both ``size`` document
+   and the ``size.uom`` field:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.inventory.find( {}, { size: 1, "size.uom": 1 } )  // Invalid starting in 4.4
+
+   In previous versions, lattermost projection between the embedded
+   documents and its fields determines the projection:
+
+   - If the projection of the embedded document comes after any and all
+     projections of its fields, MongoDB projects the embedded document.
+     For example, the projection document ``{ "size.uom": 1, size: 1 }``
+     produces the same result as the projection document ``{ size: 1 }``.
+
+   - If the projection of the embedded document comes before the
+     projection any of its fields, MongoDB projects the specified field or
+     fields. For example, the projection document ``{ "size.uom": 1, size:
+     1, "size.h": 1 }`` produces the same result as the projection
+     document ``{ "size.uom": 1, "size.h": 1 }``.
+---
+ref: projection-path-collision-slice-embedded-field-full
+content: |
+
+   Starting in MongoDB 4.4, |findoperation| projection
+   cannot contain both a :projection:`$slice` of an array and a field
+   embedded in the array. 
+
+   For example, consider a collection ``inventory`` that contains an array
+   field ``instock``:
+  
+   .. code-block:: javascript
+      :copyable: false
+
+      { ..., instock: [ { warehouse: "A", qty: 35 }, { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ], ... }
+
+   Starting in MongoDB 4.4, the following operation fails with a ``Path
+   collision`` error:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.inventory.find( {}, { "instock": { $slice: 1 }, "instock.warehouse": 0 } ) // Invalid starting in 4.4
+
+   In previous versions, the projection applies both projections and
+   returns the first element (``$slice: 1``) in the ``instock`` array
+   but suppresses the ``warehouse`` field in the projected element.
+   Starting in MongoDB 4.4, to achieve the same result, use the
+   :method:`db.collection.aggregate()` method with two separate
+   :pipeline:`$project` stages.
+   
+---
+ref: projection-dollar-prefixed-field-full
+content: |
+
+   Starting in MongoDB 4.4, the |findoperation| projection cannot
+   project a field that starts with ``$`` with the exception of the
+   :ref:`DBRef fields <dbref-explanation>`.
+
+   For example, starting in MongoDB 4.4, the following operation is
+   invalid:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.inventory.find( {}, { "$instock.warehouse": 0, "$item": 0, "detail.$price": 1 } ) // Invalid starting in 4.4
+
+   MongoDB already has a :limit:`restriction <Restrictions on Field Names>`
+   where top-level field names cannot start with the dollar sign
+   (``$``). 
+
+   In earlier version, MongoDB ignores the ``$``-prefixed field
+   projections.
+---
+ref: projection-positional-operator-slice-full
+content: |
+
+   Starting in MongoDB 4.4, |findoperation| projection
+   cannot include :projection:`$slice` projection expression as part of a
+   :projection:`$` projection expression. 
+   
+   For example, starting in MongoDB 4.4, the following operation is
+   invalid:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.inventory.find( { "instock.qty": { $gt: 25 } }, { "instock.$": { $slice: 1 } } ) // Invalid starting in 4.4
+
+   MongoDB already has a :limit:`restriction <Restrictions on Field
+   Names>` where top-level field names cannot start with the dollar sign
+   (``$``). 
+
+   In previous versions, MongoDB returns the first element
+   (``instock.$``) in the ``instock`` array that matches the query
+   condition; i.e. the positional projection ``"instock.$"`` takes
+   precedence and the ``$slice:1`` is a no-op. The ``"instock.$": {
+   $slice: 1 }`` does not exclude any other document field.
+   
+---
+ref: projection-empty-field-full
+content: |
+   Starting in MongoDB 4.4, |findoperation| projection
+   cannot include a projection of an empty field name. 
+
+   For example, starting in MongoDB 4.4, the following operation is
+   invalid:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.inventory.find( { }, { "": 0 } ) // Invalid starting in 4.4
+
+   In previous versions, MongoDB treats the inclusion/exclusion of the
+   empty field as it would the projection of non-existing fields.
+
+---
+project: projection-accept-agg
+content: |
+   As part of making |findoperation| projection consistent with
+   aggregation's :pipeline:`$project` stage, starting in MongoDB 4.4the
+   |findoperation| projection can accept aggregation expressions and
+   aggregation syntax.
+   
+...
