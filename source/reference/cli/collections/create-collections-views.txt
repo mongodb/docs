@@ -27,19 +27,64 @@ The wildcard ``"*"`` can be used with the ``create`` command in two ways:
   files and folders in the specified file path on the :datalakeconf:`stores` 
   {+data-lake-store+}.
 
-.. _dl-collections-views-create-cmd-syntax:
-
-Syntax 
-------
+Click on the tab to learn more about creating a collection or a view.
 
 .. tabs:: 
 
    .. tab:: Collection 
       :tabid: coll
 
-      .. code-block:: sh 
+      This tab contains the syntax and parameters for creating a collection.
+      Choose the tab for your {+data-lake-store+} to learn more about the 
+      syntax and parameters for the {+data-lake-store+}.
 
-         db.runCommand({ "create" : "<collection-name>|*", "dataSources" : [{ "storeName" : "<store-name>", "path" : "<path-to-files-or-folders>", "defaultFormat" :  "<file-extension>" }]})
+      .. tabs::
+      
+         .. tab:: S3  
+            :tabid: s3 
+
+            This tab contains the syntax and parameters for creating a 
+            collection for |s3| {+data-lake-store+}.
+
+         .. tab:: Atlas Cluster 
+            :tabid: atlas
+
+            This tab contains the syntax and parameters for creating a 
+            collection for |service| {+data-lake-store+}.
+
+   .. tab:: Views 
+      :tabid: views 
+
+      This tab contains the syntax and parameters for creating a view for 
+      a collection.
+
+.. _dl-collections-views-create-cmd-syntax:
+
+Syntax 
+------
+
+.. tabs:: 
+   :hidden:
+
+   .. tab:: Collection 
+      :tabid: coll
+
+      .. tabs::
+         :hidden:
+      
+         .. tab:: S3  
+            :tabid: s3
+
+            .. code-block:: sh 
+
+               db.runCommand({ "create" : "<collection-name>|*", "dataSources" : [{ "storeName" : "<store-name>", "path" : "<path-to-files-or-folders>", "defaultFormat" :  "<file-extension>" }]})
+
+         .. tab:: Atlas Cluster 
+            :tabid: atlas
+
+            .. code-block:: sh 
+
+               db.runCommand({ "create" : "<collection-name>|*", "dataSources" : [{ "storeName" : "<store-name>", "database" : "<atlas-database-name>", "collection" :  "<atlas-collection-name>" }]})
 
    .. tab:: Views 
       :tabid: views
@@ -54,6 +99,7 @@ Parameters
 ----------
 
 .. tabs:: 
+   :hidden:
 
    .. tab:: Collection
       :tabid: coll
@@ -71,9 +117,25 @@ Parameters
            - string 
            - Either the name of the collection to which {+data-lake-short+} maps 
              the data contained in the {+data-lake-store+} or the wildcard ``"*"`` 
-             to dynamically create collections using the :ref:`wildcard collection 
-             function <datalake-advanced-path-generate-collection>` 
-             ``collectionName()``.
+             to dynamically create collections. 
+             
+             .. tabs:: 
+                :hidden: 
+
+                .. tab:: S3 Configuration 
+                   :tabid: s3
+
+                   You can generate collection names dynamically from file paths by 
+                   specifying ``*`` for the collection name and the ``collectionName()`` 
+                   function in the ``dataSources.collection`` field.
+             
+                .. tab:: Atlas Configuration 
+                   :tabid: atlas
+
+                   You can generate collection names dynamically by specifying ``*`` 
+                   for the collection name and omitting the ``dataSources.collection`` 
+                   field. 
+                   
            - yes
 
          * - ``dataSources``
@@ -89,23 +151,51 @@ Parameters
              :datalakeconf:`stores` array.
            - yes
 
-         * - ``dataSources.path``
-           - string
-           - The path to the files and folders. Specify ``/`` to capture all files 
-             and folders from the ``prefix`` path. See :ref:`datalake-path-syntax` 
-             for more information.
-           - yes
+      .. tabs:: 
+         :hidden: 
 
-         * - ``dataSources.defaultFormat`` 
-           - string 
-           - The format that {+data-lake-short+} defaults to if it encounters 
-             a file without an extension while querying the {+data-lake-store+}. If 
-             omitted, {+data-lake-short+} attempts to detect the file type by 
-             scanning a few bytes of the file. The following values are valid:
+         .. tab:: S3 Configuration 
+            :tabid: s3
 
-             ``.json, .json.gz, .bson, .bson.gz, .avro, .avro.gz, .tsv, .tsv.gz, 
-             .csv, .csv.gz, .parquet``
-           - no
+            .. list-table::
+               :widths: 5 10 75 10
+
+               * - ``dataSources.path``
+                 - string
+                 - The path to the files and folders. Specify ``/`` to capture all files 
+                   and folders from the ``prefix`` path. See :ref:`datalake-path-syntax` 
+                   for more information. 
+                 - yes
+
+               * - ``dataSources.defaultFormat`` 
+                 - string 
+                 - The format that {+data-lake-short+} defaults to if it encounters 
+                   a file without an extension while querying the {+data-lake-store+}. If 
+                   omitted, {+data-lake-short+} attempts to detect the file type by 
+                   scanning a few bytes of the file. The following values are valid:
+
+                   ``.json, .json.gz, .bson, .bson.gz, .avro, .avro.gz, .tsv, .tsv.gz, 
+                   .csv, .csv.gz, .parquet``
+
+                 - no
+
+         .. tab:: Atlas Configuration 
+            :tabid: atlas
+
+            .. list-table::
+               :widths: 10 10 70 10
+
+               * - ``dataSources.database`` 
+                 - string 
+                 - The name of the database that contains the collection in the 
+                   |service| cluster. 
+                 - yes 
+
+               * - ``dataSources.collection``
+                 - string
+                 - The name of the collection in the |service| database. When 
+                   creating a wildcard collection, this must not be specified.
+                 - yes
 
    .. tab:: Views
       :tabid: views 
@@ -165,420 +255,540 @@ solutions.
 Examples 
 --------
 
-The following examples use the sample dataset, 
-`airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__ 
-and 
-`weather <https://atlas-data-lake.s3.amazonaws.com/json/sample_weatherdata/data.json>`__, 
-on |aws| |s3| stores with the following settings: 
+.. tabs:: 
+   :hidden:
 
-.. list-table:: 
-   :stub-columns: 1
-   :widths: 20 40 40
+   .. tab:: Create Collections Examples
+      :tabid: coll
 
-   * - **Store Name** 
-     - ``egS3Store``
-     - ``sampleS3Store``
+      .. tabs:: 
+         :hidden:
 
-   * - **Region**
-     - ``us-east-2``
-     - ``us-east-1``
+         .. tab:: S3 Example 
+            :tabid: s3
 
-   * - **Bucket**
-     - ``sbx-data-lake``
-     - ``sbx-yadl-store``
+            The following examples use the sample dataset, 
+            `airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__, 
+            on |aws| |s3| store with the following settings: 
 
-   * - **Prefix**
-     - ``json``
-     - ``egData``
+            .. list-table:: 
+               :stub-columns: 1
+               :widths: 20 80
 
-   * - **Delimiter**
-     - ``/``
-     - ``/``
+               * - **Store Name** 
+                 - ``egS3Store``
 
-   * - **Sample Dataset**
-     - ``airbnb``
-     - ``weather``
+               * - **Region**
+                 - ``us-east-2``
 
-Use the procedure in the :doc:`Getting Started with Atlas Data Lake 
-Tutorial </tutorial/load-sample-data/>` to prepare your |s3| 
-bucket and upload the sample dataset.
+               * - **Bucket**
+                 - ``test-data-lake``
 
-Create Collections Examples
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+               * - **Prefix**
+                 - ``json``
 
-.. _dl-create-collection-cmd-basic-eg:
+               * - **Delimiter**
+                 - ``/``
 
-Basic Example 
-#############
+               * - **Sample Dataset**
+                 - ``airbnb``
 
-The following command creates a collection named ``airbnb`` in the 
-``sampleDB`` database in the storage configuration. The ``airbnb`` collection 
-maps to the ``airbnb`` sample dataset in the ``json`` folder in the |s3| store 
-named ``egS3Store``.
+            Use the procedure in the :doc:`Getting Started with Atlas Data Lake 
+            Tutorial </tutorial/load-sample-data/>` to prepare your |s3| 
+            bucket and upload the sample dataset.
 
-.. example::
+         .. tab:: Atlas Example 
+            :tabid: atlas 
 
-   .. code-block:: json 
+            The following examples use the ``sample_airbnb.listingsAndReviews`` 
+            collection from the :atlas:`sample dataset </sample-data/sample-airbnb/>` 
+            on the |service| cluster with the following settings: 
 
-      use sampleDB
-      db.runCommand({ "create" : "airbnb", "dataSources" : [{ "storeName" : "egS3Store", "path" : "/json/airbnb", "defaultFormat" : ".json" }]})
+            .. list-table:: 
+               :stub-columns: 1
+               :widths: 20 80
 
-The previous command returns the following output:
+               * - **Store Name** 
+                 - ``egAtlasStore``
 
-.. example::
+               * - **Sample Dataset**
+                 - ``sample_airbnb.listingsAndReviews``
 
-   .. code-block:: json 
-      :copyable: false 
+            Review :atlas:`Load Sample Data into Your Atlas Cluster </sample-data/>` 
+            to load the sample dataset in your |service| cluster.
 
-      { "ok" : 1 }
+      .. _dl-create-collection-cmd-basic-eg:
 
-The following commands show that the collection was successfully 
-created: 
+      **Basic Example** 
 
-.. code-block:: json
-   :copyable: false 
+      The following command creates a collection named ``airbnb`` in the 
+      ``sampleDB`` database in the storage configuration. 
 
-   > show collections
-   airbnb
-   > db.runCommand({"storageGetConfig" : 1 })
-   {
-	   "ok" : 1,
-	   "storage" : {
-		   "stores" : [{
-				 "name" : "egS3Store",
-				 "provider" : "s3",
-				 "region" : "us-east-2",
-				 "bucket" : "sbx-data-lake",
-				 "delimiter" : "/",
-				 "prefix" : ""
-			 }],
-		   "databases" : [{
-			   "name" : "sample",
-				 "collections" : [{
-				   "name" : "airbnb",
-					 "dataSources" : [{
-					   "storeName" : "egS3Store",
-					   "path" : "/json/airbnb",
-					   "defaultFormat" : ".json"
-					 }]
-			   }]
-		   }]
-	   }
-   }
+      .. tabs:: 
+         :hidden:
 
-.. _dl-create-collection-cmd-multi-eg:
+         .. tab:: S3 Example 
+            :tabid: s3
+      
+            The ``airbnb`` collection maps to the ``airbnb`` sample dataset 
+            in the ``json`` folder in the |s3| store named ``egS3Store``.
 
-Multiple Data Sources Example 
-#############################
+            .. code-block:: json 
 
-The following command creates a collection named ``egCollection`` in the 
-``sampleDB`` database in the storage configuration. The ``egCollection`` collection 
-maps to the following sample datasets: 
+               use sampleDB
+               db.runCommand({ "create" : "airbnb", "dataSources" : [{ "storeName" : "egS3Store", "path" : "/json/airbnb", "defaultFormat" : ".json" }]})
 
-- ``airbnb`` dataset in the ``json`` folder in the |s3| store 
-  named ``egS3Store``
-- ``weather`` dataset in the ``egData`` folder in the |s3| store 
-  named ``sampleS3Store``
+            The previous command returns the following output:
 
-.. code-block:: json 
+            .. code-block:: json 
+               :copyable: false 
 
-   use sampleDB
-   db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egS3Store", "path" : "/json/airbnb" }],[{ "storeName" : "sampleS3Store", "path" : "/egData/weather" }]}})
+               { "ok" : 1 }
 
-The previous command returns the following output:
+            The following commands show that the collection was successfully 
+            created: 
 
-.. code-block:: json 
-   :copyable: false 
+            .. code-block:: json
+               :copyable: false 
 
-   { "ok" : 1 }
+               > show collections
+               airbnb
+               > db.runCommand({"storageGetConfig" : 1 })
+               {
+	               "ok" : 1,
+	               "storage" : {
+		               "stores" : [{
+				             "name" : "egS3Store",
+				             "provider" : "s3",
+				             "region" : "us-east-2",
+				             "bucket" : "test-data-lake",
+				             "delimiter" : "/",
+				             "prefix" : ""
+		               }],
+		               "databases" : [{
+			               "name" : "sampleDB",
+			               "collections" : [{
+				               "name" : "airbnb",
+				               "dataSources" : [{
+					               "storeName" : "egS3Store",
+					               "path" : "/json/airbnb",
+					               "defaultFormat" : ".json"
+				               }]
+			               }]
+		               }]
+	               }
+               }
 
-The following commands show that the collection was successfully 
-created: 
+         .. tab:: Atlas Example 
+            :tabid: atlas
+      
+            The ``airbnb`` collection maps to the ``listingsAndReviews`` sample 
+            collection in the ``sample_airbnb`` database on the |service| cluser.
 
-.. code-block:: json
-   :copyable: false 
+            .. code-block:: json 
 
-   > show collections
-   egCollection
-   > db.runCommand({"storageGetConfig":1})
-   {
-	   "ok" : 1,
-	   "storage" : {
-		   "stores" : [{
-				 "name" : "egS3Store",
-				 "provider" : "s3",
-				 "region" : "us-east-2",
-				 "bucket" : "sbx-data-lake",
-				 "delimiter" : "/",
-				 "prefix" : ""
-			 },
-			 {
-				 "name" : "sampleS3Store",
-				 "provider" : "s3",
-				 "region" : "us-east-1",
-				 "bucket" : "sbx-yadl-store",
-				 "delimiter" : "/",
-				 "prefix" : ""
-			 }],
-		   "databases" : [{
-			   "name" : "egS3Store",
-				 "collections" : [{
-				   "name" : "egCollection",
-				   "dataSources" : [
-					   {
-					     "storeName" : "sampleS3Store",
-					     "path" : "egData/weather/*"
-					   },
-					   {
-					     "storeName" : "egS3Store",
-					     "path" : "json/airbnb/*"
-					   }
-				   ]
-			   }]
-		   }]
-	   }
-   }
+               use sampleDB
+               db.runCommand({ "create" : "airbnb", "dataSources" : [{ "storeName" : "egAtlasStore", "database" : "sample_airbnb", "collection" : "listingsAndReviews" }]})
 
-.. _dl-create-collection-cmd-wildcard-eg:
+            The previous command returns the following output:
 
-Wildcard Usage Examples 
-#######################
+            .. code-block:: json 
+               :copyable: false 
 
-This example shows the two ways in which the wildcard ``"*"`` can be 
-specified with the ``create`` command. The following commands create a 
-collection that maps to a {+data-lake-short+} store named ``egS3Store`` in the 
-storage configuration. The ``egS3Store`` contains the sample dataset, 
-`airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__, 
-in a folder named ``json``.
+               { "ok" : 1 }
 
-.. tabs::
+            The following commands show that the collection was successfully 
+            created: 
 
-   tabs:
-     - id: paramEg
-       name: Collection Name Example
-       content: |
+            .. code-block:: json
+               :copyable: false 
 
-         The following example uses the ``create`` command to dynamically 
-         create collections for the files in the path ``/json/`` in the 
-         ``egS3Store`` {+data-lake-store+}. It uses the ``collectionName()`` 
-         function to name the collections after the filenames in the specified 
-         path.
+               > show collections
+               airbnb
+               > db.runCommand({"storageGetConfig":1})
+               {
+	               "ok" : 1,
+	               "storage" : {
+		               "stores" : [{
+				             "name" : "egAtlasStore",
+				             "provider" : "atlas",
+				             "clusterName" : "myTestCluster",
+				             "projectId" : "<project-id>"
+			             }],
+		               "databases" : [{
+			               "name" : "sampleDB",
+			               "collections" : [{
+				               "name" : "airbnb",
+				               "dataSources" : [{
+					               "storeName" : "egAtlasStore",
+					               "database" : "sample_airbnb",
+					               "collection" : "listingsAndReview"
+				               }]
+			               }]
+		               }]
+	               }
+               }
 
-         .. code-block:: json 
+      .. _dl-create-collection-cmd-multi-eg:
+
+      **Multiple Data Sources Example** 
+
+      The following command creates a collection named ``egCollection`` in the 
+      ``sampleDB`` database in the storage configuration. The ``egCollection`` 
+      collection maps to the following sample datasets: 
+
+      - ``airbnb`` dataset in the ``json`` folder in the |s3| store 
+        named ``egS3Store``
+      - ``airbnb`` dataset in the ``sample_airbnb.listingsAndReviews`` 
+        collection on the |service| cluster named ``myTestCluster``
+
+      .. code-block:: json 
+
+         use sampleDB
+         db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egS3Store", "path" : "/json/airbnb" },{ "storeName" : "egAtlasStore", "database": "sample_airbnb", "collection": "listingsAndReviews" }]})
+
+      The previous command returns the following output:
+
+      .. code-block:: json 
+         :copyable: false 
+
+         { "ok" : 1 }
+
+      The following commands show that the collection was successfully 
+      created: 
+
+      .. code-block:: json
+         :copyable: false 
+
+         > show collections
+         egCollection
+         > db.runCommand({"storageGetConfig":1})
+         {
+	         "ok" : 1,
+	         "storage" : {
+		         "stores" : [{
+				       "name" : "egS3Store",
+				       "provider" : "s3",
+				       "region" : "us-east-2",
+				       "bucket" : "test-data-lake",
+				       "delimiter" : "/",
+				       "prefix" : ""
+			       },
+			       {
+				       "name" : "egAtlasStore",
+				       "provider" : "atlas",
+				       "clusterName" : "myTestCluster",
+				       "projectId" : "<project-id>"
+			       }],
+		         "databases" : [{
+			         "name" : "sampleDB",
+			         "collections" : [{
+				         "name" : "egCollection",
+				         "dataSources" : [
+					         {
+					           "storeName" : "egS3Store",
+					           "path" : "json/airbnb"
+					         },
+					         {
+					           "storeName" : "egAtlasStore",
+					           "database" : "sample_airbnb",
+					           "collection" : "listingsAndReviews"
+					         }
+				         ]
+			         }]
+		         }]
+	         }
+         }
+
+      .. _dl-create-collection-cmd-wildcard-eg:
+
+      **Wildcard Usage Examples** 
+
+      This example shows how the wildcard ``"*"`` can be specified with the 
+      ``create`` command. 
+
+      *Collection Name Example*
+
+      The following example uses the ``create`` command to dynamically 
+      create collections.
+
+      .. tabs:: 
+         :hidden:
+
+         .. tab:: S3 Example 
+            :tabid: s3
+
+            The following example uses the ``create`` command to dynamically 
+            create collections for the files in the path ``/json/`` in the 
+            ``egS3Store`` {+data-lake-store+}. It uses the ``collectionName()`` 
+            function to name the collections after the filenames in the specified 
+            path.
+
+            .. code-block:: json 
          
-            use sampleDB 
-            db.runCommand({ "create" : "*", "dataSources" : [{ "storeName" : "egS3Store", "path": "/json/{collectionName()}"}]})
+               use sampleDB 
+               db.runCommand({ "create" : "*", "dataSources" : [{ "storeName" : "egS3Store", "path": "/json/{collectionName()}"}]})
 
-         The previous command returns the following output:
+            The previous command returns the following output:
 
-         .. code-block:: json 
-            :copyable: false 
+            .. code-block:: json 
+               :copyable: false 
 
-            { "ok" : 1 }
+               { "ok" : 1 }
+      
+            The following commands show that the collection was successfully 
+            created:
+
+            .. code-block:: json 
+               :copyable: false 
+
+                > show collections
+                airbnb
+                > db.runCommand({"storageGetConfig" : 1 })
+                {
+                  "ok" : 1,
+                  "storage" : {
+                    "stores" : [{
+                      "name" : "egS3Store",
+                      "provider" : "s3",
+                      "region" : "us-east-2",
+                      "bucket" : "test-data-lake",
+                      "delimiter" : "/",
+                      "prefix" : ""
+                    }],
+                    "databases" : [{
+                      "name" : "sampleDB",
+                      "collections" : [{
+                        "name" : "*",
+                        "dataSources" : [{
+                          "storeName" : "egS3Store",
+                          "path" : "/json/{collectionName()}"
+                        }]
+                      }]
+                    }]
+                  }
+                }
+         
+         .. tab:: Atlas Example 
+            :tabid: atlas
+
+            The following example uses the ``create`` command to dynamically 
+            create collections for the documents in the ``sample_airbnb`` database 
+            on the |service| cluster name ``myTestCluster``. 
+
+            .. code-block:: json 
+    
+               use sampleDB 
+               db.runCommand({ "create" : "*", "dataSources" : [{ "storeName" : "egAtlasStore", "database": "sample_airbnb"}]})
+
+            The previous command returns the following output:
+
+            .. code-block:: json 
+               :copyable: false 
+
+                { "ok" : 1 }
             
-         The following commands show that the collection was successfully 
-         created:
+            The following command shows that the collection was successfully 
+            created:
 
-         .. code-block:: json 
-            :copyable: false 
+            .. code-block:: json 
+              :copyable: false 
 
-            > show collections
-            airbnb
-            > db.runCommand({"storageGetConfig" : 1 })
-            {
-              "ok" : 1,
-              "storage" : {
-                "stores" : [{
-                  "name" : "egS3Store",
-                  "provider" : "s3",
-                  "region" : "us-east-2",
-                  "bucket" : "sbx-data-lake",
-                  "delimiter" : "/",
-                  "prefix" : ""
-                }],
-                "databases" : [{
-                  "name" : "sample",
-                  "collections" : [{
-                    "name" : "*",
-                    "dataSources" : [{
-                      "storeName" : "egS3Store",
-                      "path" : "/json/{collectionName()}"
+              > db.runCommand({storageGetConfig:1})
+              {
+                "ok" : 1,
+                "storage" : {
+                  "stores" : [{
+                    "name" : "egAtlasStore",
+                    "provider" : "atlas",
+                    "clusterName" : "myTestCluster",
+                    "projectId" : "<project-id>"
+                  }],
+                  "databases" : [{
+                    "name" : "sampleDB",
+                    "collections" : [{
+                      "name" : "*",
+                      "dataSources" : [{
+                        "storeName" : "egAtlasStore",
+                        "database" : "sample_airbnb"
+                       }]
                     }]
                   }]
-                }]
+                }
               }
-            }
+              > show collections 
+              listingsAndReviews
 
-     - id: pathEg
-       name: Path Glob Example
-       content: |
+      .. tabs:: 
+         :hidden:
 
-         The following example uses the ``create`` command to create a collection 
-         named ``egCollection`` that maps to a {+data-lake-short+} store named 
-         ``egS3Store``. The ``egS3Store`` contains the sample dataset, 
-         `airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__, 
-         in a folder named ``json``. 
+         .. tab:: S3 Example 
+            :tabid: s3
 
-         .. code-block:: json 
+            *Path Glob Example*
+
+            The following example uses the ``create`` command to create a collection 
+            named ``egCollection`` that maps to a {+data-lake-short+} store named 
+            ``egS3Store``. The ``egS3Store`` contains the sample dataset, 
+            `airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__, 
+            in a folder named ``json``. 
+
+            .. code-block:: json 
       
-            use sampleDB
-            db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egS3Store", "path": "/json/*"}]}})
+               use sampleDB
+               db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egS3Store", "path": "/json/*"}]}})
 
-         The previous command returns the following output:
+            The previous command returns the following output:
 
-         .. code-block:: json 
-            :copyable: false 
+            .. code-block:: json 
+               :copyable: false 
 
-            { "ok" : 1 }
+               { "ok" : 1 }
 
-         The following commands show that the collection was successfully 
-         created: 
+            The following commands show that the collection was successfully 
+            created: 
 
-         .. code-block:: json 
-            :copyable: false 
+            .. code-block:: json 
+               :copyable: false 
 
-            > show collections
-            egCollection
-            > db.runCommand({"storageGetConfig" : 1 })
-            {
-	            "ok" : 1,
-	            "storage" : {
-		            "stores" : [{
-				          "name" : "egS3Store",
-				          "provider" : "s3",
-				          "region" : "us-east-2",
-				          "bucket" : "sbx-data-lake",
-				          "delimiter" : "/",
-				          "prefix" : ""
-			          }],
-		            "databases" : [{
-			            "name" : "sample",
-				          "collections" : [{
-				            "name" : "egCollection",
-				            "dataSources" : [{
-					            "storeName" : "egS3Store",
-					            "path" : "/json/*"
-				            }]
-			            }]
-		            }]
-	            }
-            }
+               > show collections
+               egCollection
+               > db.runCommand({"storageGetConfig" : 1 })
+               {
+	               "ok" : 1,
+	               "storage" : {
+		               "stores" : [{
+		                 "name" : "egS3Store",
+		                 "provider" : "s3",
+		                 "region" : "us-east-2",
+		                 "bucket" : "test-data-lake",
+		                 "delimiter" : "/",
+		                 "prefix" : ""
+		               }],
+		               "databases" : [{
+		                 "name" : "sample",
+		                 "collections" : [{
+			                 "name" : "egCollection",
+			                 "dataSources" : [{
+				                 "storeName" : "egS3Store",
+				                 "path" : "/json/*"
+				               }]
+			               }]
+		               }]
+	               }
+               }
 
-.. _dl-create-views-cmd-eg:
+         .. tab:: Atlas Example 
+            :tabid: atlas
 
-Create Views Example 
-~~~~~~~~~~~~~~~~~~~~
+   .. tab:: Create Views Example
+      :tabid: views
 
-The following command creates a view named ``listings`` on the 
-`airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__ collection in the ``sample`` database with the 
-``name`` and ``property_type`` fields:
+      The following command creates a view named ``listings`` on the 
+      `airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__ collection in the ``sample`` database with the ``name`` and ``property_type`` 
+      fields:
 
-.. code-block:: sh 
+      .. code-block:: sh 
 
-   use sampleDB
-   db.runCommand({ "create" : "listings", "viewOn" : "airbnb", "pipeline" : [{$project: {"property_type":1, "name": 1}}] })
+         use sampleDB
+         db.runCommand({ "create" : "listings", "viewOn" : "airbnb", "pipeline" : [{$project: {"property_type":1, "name": 1}}] })
 
-This command returns the following output: 
+      This command returns the following output: 
+      
+      .. code-block:: json 
+         :copyable: false 
 
-.. example::
+         { "ok" : 1 }
 
-   .. code-block:: json 
-      :copyable: false 
+      The ``listCollections`` and ``storageGetConfig`` commands return the 
+      following output: 
 
-      { "ok" : 1 }
+      .. tabs:: 
 
-The ``listCollections`` and ``storageGetConfig`` commands return the 
-following output: 
+         .. tab:: listCollections
+            :tabid: listCollections
 
-.. tabs:: 
+            .. code-block:: json 
+               :copyable: false 
 
-   tabs:
-     - id: listCollections
-       name: listCollections
-       content: |
+               > db.runCommand({"listCollections":1})
+               {
+	               "ok" : 1,
+	               "cursor" : {
+		               "firstBatch" : [
+			               {
+				               "name" : "airbnb/",
+				               "type" : "collection",
+				               "info" : {
+					               "readOnly" : true
+				               }
+			               },
+			               {
+				               "name" : "listings",
+				               "type" : "view",
+				               "info" : {
+					               "readOnly" : true
+				               }
+			               }
+		               ],
+		               "id" : NumberLong(0),
+		               "ns" : "egS3Store.$cmd.listCollections"
+	               }
+               }
 
-         .. code-block:: json 
-            :copyable: false 
+         .. tab:: storageGetConfig
+            :tabid: storageGetConfig
 
-            > db.runCommand({"listCollections":1})
-            {
-	            "ok" : 1,
-	            "cursor" : {
-		            "firstBatch" : [
-			            {
-				            "name" : "airbnb/",
-				            "type" : "collection",
-				            "info" : {
-					            "readOnly" : true
-				            }
-			            },
-			            {
-				            "name" : "listings",
-				            "type" : "view",
-				            "info" : {
-					            "readOnly" : true
-				            }
-			            }
-		            ],
-		            "id" : NumberLong(0),
-		            "ns" : "egS3Store.$cmd.listCollections"
-	            }
-            }
+            .. code-block:: json 
+               :copyable: false 
 
-     - id: storageGetConfig
-       name: storageGetConfig
-       content: |
-
-         .. code-block:: json 
-            :copyable: false 
-
-            > db.runCommand({"storageGetConfig":1})
-            {
-	            "ok" : 1,
-	            "storage" : {
-		            "stores" : [
-			            {
-				            "name" : "egS3Store",
-				            "provider" : "s3",
-				            "region" : "us-east-2",
-				            "bucket" : "ks-sbx-data-lake",
-				            "delimiter" : "/"
-			            }
-		            ],
-		            "databases" : [
-			            {
-				            "name" : "sample",
-				            "collections" : [
-					            {
-						            "name" : "airbnb/",
-						            "dataSources" : [
-							            {
-								            "storeName" : "egS3Store",
-								            "path" : "json/airbnb/*"
-							            }
-						            ]
-					            },
-					            {
-						            "name" : "*",
-						            "dataSources" : [
-							            {
-								            "storeName" : "egS3Store",
-								            "path" : "json/{collectionName()}"
-							            }
-						            ]
-					            }
-				            ],
-				            "views" : [
-					            {
-						            "name" : "listings",
-						            "source" : "airbnb",
-						            "pipeline" : "[{\"$project\":{\"property_type\":{\"$numberInt\":\"1\"},\"name\":{\"$numberInt\":\"1\"}}}]"
-					            }
-				            ]
-			            },
-		            ]
-	            }
-            }
+               > db.runCommand({"storageGetConfig":1})
+               {
+	               "ok" : 1,
+	               "storage" : {
+		               "stores" : [
+			               {
+				               "name" : "egS3Store",
+				               "provider" : "s3",
+				               "region" : "us-east-2",
+				               "bucket" : "test-data-lake",
+				               "delimiter" : "/"
+			               }
+		               ],
+		               "databases" : [
+			               {
+				               "name" : "sample",
+				               "collections" : [
+					               {
+						               "name" : "airbnb/",
+						               "dataSources" : [
+							               {
+								               "storeName" : "egS3Store",
+								               "path" : "json/airbnb/*"
+							               }
+						               ]
+					               },
+					               {
+						               "name" : "*",
+						               "dataSources" : [
+							               {
+								               "storeName" : "egS3Store",
+								               "path" : "json/{collectionName()}"
+							               }
+						               ]
+					               }
+				               ],
+				               "views" : [
+					               {
+						               "name" : "listings",
+						               "source" : "airbnb",
+						               "pipeline" : "[{\"$project\":{\"property_type\":{\"$numberInt\":\"1\"},\"name\":{\"$numberInt\":\"1\"}}}]"
+					               }
+				               ]
+			               },
+		               ]
+	               }
+               }
 
 .. _dl-collections-views-create-cmd-verify:
 
@@ -600,6 +810,7 @@ Troubleshoot Errors
 -------------------
 
 .. tabs:: 
+   :hidden:
 
    .. tab:: Collection 
       :tabid: coll

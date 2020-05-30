@@ -15,16 +15,45 @@
    :class: singlecol
 
 The ``createStore`` command creates a store in the 
-{+data-lake+} storage configuration.
+{+data-lake+} storage configuration. Click on the tab below to 
+learn more about creating a {+data-lake-store+} for the data 
+source.
+
+.. tabs:: 
+
+   .. tab:: S3  
+      :tabid: s3
+
+      This tab contains the syntax and parameters for creating a 
+      {+data-lake-store+} for data in |aws| |s3| bucket.
+
+   .. tab:: Atlas Cluster 
+      :tabid: atlas 
+
+      This tab contains the syntax and parameters for creating a 
+      {+data-lake-store+} for data in an |service| cluster.
 
 .. _dl-create-store-cmd-syntax:
 
 Syntax 
 ------
 
-.. code-block:: json 
+.. tabs:: 
+   :hidden:
 
-   db.runCommand({ createStore: <store-name>, provider: <storage-provider>, region: <region-name>, bucket: <bucket-name>, delimiter: <delimiter>, prefix: <prefix> })
+   .. tab:: S3 Configuration 
+      :tabid: s3
+
+      .. code-block:: sh 
+
+         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, region: <region-name>, bucket: <bucket-name>, delimiter: <delimiter>, prefix: <prefix> })
+
+   .. tab:: Atlas Configuration 
+      :tabid: atlas 
+
+      .. code-block:: sh
+
+         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, clusterName: <cluster-name>, projectId: <project-id>  })
 
 .. _dl-create-store-cmd-params:
 
@@ -42,43 +71,70 @@ Parameters
 
    * - ``createStore``
      - string
-     - | Name of the new {+data-lake-store+}. 
-       | The {+data-lake-store+} name must be unique.
+     - Name of the new {+data-lake-store+}. The {+data-lake-store+} 
+       name must be unique.
      - yes
 
    * - ``provider``
      - string
-     - | Name of the storage provider where the data is stored. 
-       | Value must be ``s3`` for an |aws| |s3| bucket as a data store.
+     - Name of the service where the data is stored. 
+       Value can be one of the following: 
+       
+       - ``s3`` for an |aws| |s3| bucket.
+       - ``atlas`` for |service|.
+
      - yes
 
-   * - ``region``
-     - string
-     - | Region in which the ``bucket`` is hosted. 
-       | For a list of valid region names, see :atlas:`Amazon Web 
-         Services (AWS) <reference/amazon-aws/#amazon-aws>`.
-     - yes
+.. tabs:: 
+   :hidden:
 
-   * - ``bucket`` 
-     - string 
-     - | Name of the bucket in which data is stored. 
-       | Must exactly match the name of an |s3| bucket which
-       | {+data-lake-short+} can access given the configured |aws| |iam|
-       | credentials.
-     - yes
+   .. tab:: S3 Configuration 
+      :tabid: s3
 
-   * - ``delimiter`` 
-     - string 
-     - | Character used to define the separation of elements in the
-       | ``prefix``.  
-       | If ommitted, defaults to ``"/"``.
-     - no
+      .. list-table::
+         :widths: 10 10 70 10 
 
-   * - ``prefix`` 
-     - string 
-     - | Value prepended to the ``path``.
-       | If ommitted, defaults to ``""``.
-     - no
+         * - ``region``
+           - string
+           - Region in which the ``bucket`` is hosted. For a list of valid 
+             region names, see :atlas:`Amazon Web 
+             Services (AWS) <reference/amazon-aws/#amazon-aws>`.
+           - yes
+
+         * - ``bucket`` 
+           - string 
+           - Name of the bucket in which data is stored. Must exactly match the 
+             name of an |s3| bucket which {+data-lake-short+} can access given 
+             the configured |aws| |iam| credentials.
+           - yes
+
+         * - ``delimiter`` 
+           - string 
+           - Character used to define the separation of elements in the ``prefix``. 
+             If ommitted, defaults to ``"/"``.
+           - no
+
+         * - ``prefix`` 
+           - string 
+           - Value prepended to the ``path``. If ommitted, defaults to ``""``.
+           - no
+
+   .. tab:: Atlas Configuration 
+      :tabid: atlas 
+
+      .. list-table::
+         :widths: 10 10 70 10 
+
+         * - ``clusterName`` 
+           - string 
+           - Name of the |service| cluster on which the store is based.
+           - yes
+
+         * - ``projectId`` 
+           - string 
+           - Unique identifier of the project that contains the |service| 
+             cluster.
+           - yes
 
 .. _dl-create-store-cmd-output:
 
@@ -88,20 +144,42 @@ Output
 The command prints the following output if it succeeds. If the command
 fails, see :ref:`dl-create-store-cmd-errors` for recommended solutions.
 
-.. code-block:: json 
+.. tabs:: 
+   :hidden:
 
-   {
-     "ok": 1,
-     "store": {
-       "name": "<store-name>",
-       "region": "<region-name>",
-       "bucket": "<bucket-name>",
-       "delimiter": "<delimiter>",
-       "prefix": "<prefix>",
-       "provider": "<storage-provider>"
-     }
-   }
+   .. tab:: S3 Configuration 
+      :tabid: s3
 
+      .. code-block:: json 
+         :copyable: false
+
+        {
+          "ok": 1,
+          "store": {
+            "name": "<store-name>",
+            "region": "<region-name>",
+            "bucket": "<bucket-name>",
+            "delimiter": "<delimiter>",
+            "prefix": "<prefix>",
+            "provider": "<storage-provider>"
+          }
+        }
+
+   .. tab:: Atlas Configuration 
+      :tabid: atlas 
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+	         "ok" : 1,
+	         "store" : {
+		         "name" : "<store-name>",
+		         "provider" : "<storage-provider>",
+		         "clusterName" : "<cluster-name>",
+		         "projectId" : "<project-id>"
+	         }
+         }
 
 .. _dl-create-store-cmd-egs:
 
@@ -111,27 +189,56 @@ Example
 The following example uses the ``createStore`` command to create a new
 {+data-lake-store+} called ``myStore``.
 
-.. code-block:: json 
+.. tabs:: 
+   :hidden:
 
-   use sample
-   db.runCommand({ createStore: "myStore", provider: "s3", region: "us-east-1", bucket: "my-data-lake", prefix: "/sample" })
+   .. tab:: S3 Configuration 
+      :tabid: s3
 
-The previous command prints the following: 
+      .. code-block:: json 
 
-.. code-block:: json 
-   :copyable: false
+         use sample
+         db.runCommand({ createStore: "myStore", provider: "s3", region: "us-east-1", bucket: "my-data-lake", prefix: "/sample" })
 
-   {
-     "ok": 1,
-     "store": {
-       "name": "myStore",
-       "region": "us-east-1",
-       "bucket": "my-data-lake",
-       "delimiter": "/",
-       "prefix": "/sample",
-       "provider": "s3"
-     }
-   }
+      The previous command prints the following: 
+
+      .. code-block:: json 
+         :copyable: false
+
+         {
+           "ok": 1,
+           "store": {
+             "name": "myStore",
+             "region": "us-east-1",
+             "bucket": "my-data-lake",
+             "delimiter": "/",
+             "prefix": "/sample",
+             "provider": "s3"
+           }
+         }
+
+   .. tab:: Atlas Configuration 
+      :tabid: atlas 
+
+      .. code-block:: json 
+
+         use sample
+         db.runCommand({ createStore: "myStore", provider: "atlas", clusterName: "myTestCluster", projectID: "<project-id>" })
+
+      The previous command prints the following: 
+
+      .. code-block:: json 
+         :copyable: false
+
+         {
+	         "ok" : 1,
+	         "store" : {
+		         "name" : "myStore",
+		         "provider" : "atlas",
+		         "clusterName" : "myTestCluster",
+		         "projectId" : "<project-id>"
+	         }
+         }
 
 .. _dl-create-store-cmd-errors:
 
