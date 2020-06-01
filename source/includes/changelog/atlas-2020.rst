@@ -1,17 +1,3 @@
-.. _atlas_20200602:
-
-02 June 2020 Release
-~~~~~~~~~~~~~~~~~~~~
-
-- Renames :ref:`"Cloud Provider Snapshots" <backup-cloud-provider>` to
-  "Cloud Backup".
-
-- Renames :ref:`"Cloud Provider Snapshots with Point in Time Restore"
-  <pit-restore>` to "Continuous Cloud Backup".
-
-- Introduces Low-CPU :ref:`Cluster Tiers <create-cluster-instance>` on |gcp|
-  in select regions.
-
 .. _atlas_20200512:
 
 12 May 2020 Release
