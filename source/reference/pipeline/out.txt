@@ -267,10 +267,35 @@ is a combination of the following:
 Limitations 
 -----------
 
-{+dl+} interprets null values in partitions as empty strings (``""``). If you 
-want {+dl+} to handle null values in filenames, you must wrap the null values 
-using :manual:`$convert </reference/operator/aggregation/convert>` with an 
-empty string ``onNull`` value.
+{+dl+} interprets empty strings (``""``) as null values when parsing 
+filenames. If you want {+dl+} to generate filenames that it can parse 
+correctly, you must wrap the field references that could have null values 
+using :manual:`$convert </reference/operator/aggregation/convert>` with 
+an empty string ``onNull`` value. The following example shows how to handle 
+null values in the ``year`` field when creating a filename from the field 
+value.
+
+.. code-block:: json 
+   :copyable: false 
+
+   { 
+     $out: { 
+       s3: { 
+         bucket: "my-s3-bucket",
+         region: "us-east-1",
+         filename: {
+           $concat: [  
+             "big-box-store/", 
+             {$convert: {input: "year", to: "string", onNull: ""}}
+           ]
+         }, 
+         format: { 
+           name: "json.gz", 
+           maxFileSize: "200MiB"
+         } 
+       } 
+     }
+   }
 
 .. _adl-out-stage-errors:
 
