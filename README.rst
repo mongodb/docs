@@ -8,7 +8,7 @@ Manual <http://docs.mongodb.org/manual/>`_.
 
 If you already have `giza <https://pypi.python.org/pypi/giza/>`_
 installed, you can download and build this documentation locally with
-the following command: ::
+the following command::
 
      git clone git://github.com/mongodb/docs-compass
      cd docs-compass/
