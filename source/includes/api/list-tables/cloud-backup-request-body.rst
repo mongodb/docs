@@ -24,7 +24,7 @@
 
        Three conditions apply to this parameter:
 
-       - Enable :ref:`Point-in-Time restores <pit-restore>` on your
+       - Enable :ref:`{+PIT-Restore+} restores <pit-restore>` on your
          cluster.
        - Specify ``oplogInc``.
        - Specify either ``oplogTs`` and ``oplogInc`` or
@@ -39,7 +39,7 @@
 
        Three conditions apply to this parameter:
 
-       - Enable :ref:`Point-in-Time restores <pit-restore>` on your
+       - Enable :ref:`{+PIT-Restore+} restores <pit-restore>` on your
          cluster.
        - Specify ``oplogTs``.
        - Specify either ``oplogTs`` and ``oplogInc`` or
@@ -52,7 +52,7 @@
 
        Two conditions apply to this parameter:
 
-       - Enable :ref:`Point-in-Time restores <pit-restore>` on your
+       - Enable :ref:`{+PIT-Restore+} restores <pit-restore>` on your
          cluster.
        - Specify either ``pointInTimeUTCSeconds`` or ``oplogTs`` and
          ``oplogInc``, but *not both*.

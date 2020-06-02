@@ -29,9 +29,10 @@
   - Restrict access by domain
   - Bypass single sign-on
 
-- Removes legacy Continuous Backup as an option for new |gcp|\- and
+- Removes legacy {+Old-Backup+} as an option for new |gcp|\- and
   |azure|\-backed clusters. New |gcp|\- and |azure|\-backed clusters
-  use :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>` for backup.
+  use :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>` for
+  backup.
 
 .. _atlas_20200331:
 
@@ -88,7 +89,7 @@
   - Azure UAE Central: This non-standard Azure region should be used
     secondary disaster recovery region for UAE North.
 
-- Supports :ref:`Point-in-Time Restores <pit-restore>` for |gcp| and
+- Supports :ref:`{+PIT-Restore+}s <pit-restore>` for |gcp| and
   Azure backups.
 - Defaults new clusters to MongoDB 4.2.
 - Displays a review change modal to users after making edits to a
@@ -101,10 +102,9 @@
 
 - Supports "Click-to-Create"
   :ref:`Index Suggestions in Performance Advisor <pa-create-suggested-indexes>`.
-- Supports MongoDB 4.2 on |aws| using Cloud Provider Snapshots with
-  Point-in-Time restores.
-- Transitions customers with Continuous Backups automatically to Cloud
-  Provider Snapshots when upgrading from 4.0 to 4.2.
+- Supports MongoDB 4.2 on |aws| using {+Cloud-Backup+}s with
+  {+PIT-Restore+} restores.
+- Transitions customers with {+Old-Backup+}s automatically to {+Cloud-Backup+}s when upgrading from 4.0 to 4.2.
 - Increases maximum storage to memory ratio:
 
   .. list-table::
@@ -165,9 +165,9 @@
 28 January 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Removes :ref:`Continuous Backup <backup-continuous>` as a backup
+- Removes :ref:`{+Old-Backup+} <legacy-backup>` as a backup
   option for new |aws|\-backed clusters. Newly deployed |aws|\-backed
-  clusters use :ref:`Cloud Provider Snapshots <backup-cloud-provider>` for backup.
+  clusters use :ref:`{+Cloud-Backup+}s <backup-cloud-provider>` for backup.
 
 - Provides customers with :ref:`project-level maintenance windows
   <atlas-modify-project-settings>` enabled with ability to receive the

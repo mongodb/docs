@@ -76,17 +76,17 @@
        | ``"delivery.methodName" : "AUTOMATED_RESTORE"``
      - Unique identifier of the target cluster. Use the ``clusterId``
        returned in the response body of the
-       :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
-       and :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+       :doc:`Get All Snapshots </reference/api/legacy-backup/restore/get-all-restore-jobs>`
+       and :doc:`Get a Snapshot </reference/api/legacy-backup/restore/get-one-restore-job>`
        endpoints. For use only with automated restore jobs.
 
        .. note::
 
           If backup is not enabled on the target cluster, the
-          :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
+          :doc:`Get All Snapshots </reference/api/legacy-backup/restore/get-all-restore-jobs>`
           endpoint returns an empty ``results`` array without
           ``clusterId`` elements, and the
-          :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+          :doc:`Get a Snapshot </reference/api/legacy-backup/restore/get-one-restore-job>`
           endpoint also does not return a ``clusterId`` element. Use
           the ``delivery.targetClusterName`` parameter instead or
           enable backup on the target cluster.
@@ -98,17 +98,17 @@
        | ``"delivery.methodName" : "AUTOMATED_RESTORE"``
      - Name of the target cluster. Use the ``clusterName``
        returned in the response body of the
-       :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
-       and :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+       :doc:`Get All Snapshots </reference/api/legacy-backup/restore/get-all-restore-jobs>`
+       and :doc:`Get a Snapshot </reference/api/legacy-backup/restore/get-one-restore-job>`
        endpoints. For use only with automated restore jobs.
 
        .. note::
 
           If backup is not enabled on the target cluster, the
-          :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
+          :doc:`Get All Snapshots </reference/api/legacy-backup/restore/get-all-restore-jobs>`
           endpoint returns an empty ``results`` array without
           ``clusterName`` elements, and the
-          :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+          :doc:`Get a Snapshot </reference/api/legacy-backup/restore/get-one-restore-job>`
           endpoint also does not return a ``clusterName`` element. Use
           the ``delivery.targetClusterName`` parameter instead or
           enable backup on the target cluster.

@@ -68,16 +68,15 @@
      - boolean
      - Optional
      - Set to ``true`` to enable |service|
-       :doc:`continuous backups </backup/continuous-backups>` for the
+       :doc:`{+old-backup+}s </backup/legacy-backup/overview>` for the
        cluster.
 
-       Set to ``false`` to disable continuous backups for the cluster.
-       |service| deletes any stored snapshots. See the continuous
-       backup :ref:`retention-policy` for more information.
+       Set to ``false`` to disable {+old-backup+}s for the cluster.
+       |service| deletes any stored snapshots. See the {+old-backup+} :ref:`retention-policy` for more information.
 
-       You cannot enable continuous backups if you have an
+       You cannot enable {+old-backup+}s if you have an
        existing cluster in the project with
-       :doc:`/backup/cloud-provider-snapshots` enabled.
+       :doc:`/backup/cloud-backup/overview` enabled.
 
        The default value is ``false``.
 
@@ -85,16 +84,16 @@
 
           This option is not supported on clusters running
           MongoDB 4.2. Clusters running MongoDB 4.2 must use
-          :doc:`/backup/cloud-provider-snapshots`.
+          :doc:`/backup/cloud-backup/overview`.
 
        .. important::
 
-          If you have :doc:`continuous backups </backup/continuous-backups>`
+          If you have :doc:`{+old-backup+}s </backup/legacy-backup/overview>`
           enabled on your cluster and you upgrade from MongoDB server version
           ``4.0`` to ``4.2``, you must set ``backupEnabled`` to ``false`` and set
           ``providerBackupEnabled`` to ``true`` as part of the API request.
           Continuous backups are no longer supported in MongoDB version ``4.2``.
-          Instead, use :doc:`/backup/cloud-provider-snapshots`.
+          Instead, use :doc:`/backup/cloud-backup/overview`.
 
    * - ``biConnector``
      - document
@@ -306,11 +305,11 @@
        .. note::
 
           If you are upgrading from version ``4.0`` to ``4.2`` and you
-          have :doc:`continuous backups </backup/continuous-backups>`
+          have :doc:`{+old-backup+}s </backup/legacy-backup/overview>`
           enabled, you must set ``backupEnabled`` to ``false`` and set
           ``providerBackupEnabled`` to ``true`` as part of the API request.
           Continuous backups are no longer supported in MongoDB version ``4.2``.
-          Instead, use :doc:`/backup/cloud-provider-snapshots`. 
+          Instead, use :doc:`/backup/cloud-backup/overview`. 
 
    * - ``numShards``
      - integer
@@ -358,7 +357,7 @@
    * - ``pitEnabled``
      - boolean
      - Optional
-     - Indicates if the cluster uses :ref:`Point-in-Time backups
+     - Indicates if the cluster uses :ref:`{+pit-restore+}s
        <pit-restore>`. If set to ``true``, ``providerBackupEnabled``
        must also be set to ``true``.
 
@@ -370,13 +369,12 @@
        If ``providerBackupEnabled`` *and* ``backupEnabled`` are
        ``false``, the cluster does not use |service| backups.
 
-       If you disable continuous backups for the cluster,
-       |service| deletes all stored snapshots. See the continuous
-       backup :ref:`retention-policy` for more information.
+       If you disable {+old-backup+}s for the cluster,
+       |service| deletes all stored snapshots. See the {+old-backup+} :ref:`retention-policy` for more information.
 
-       You cannot enable cloud provider snapshots if you have an
+       You cannot enable {+Cloud-Backup+}s if you have an
        existing cluster in the project with
-       :ref:`backup-continuous` enabled.
+       :ref:`legacy-backup` enabled.
 
        .. important::
 

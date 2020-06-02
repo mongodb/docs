@@ -29,7 +29,7 @@
        .. note::
 
           If empty, |service| is processing the restore job. Use the
-          :doc:`/reference/api/cloud-provider-snapshot-restore-jobs-get-all/`
+          :doc:`/reference/api/cloud-backup/restore/get-all-restore-jobs`
           endpoint periodically check for a ``deliveryUrl`` download
           value for the restore job.
 

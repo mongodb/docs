@@ -53,7 +53,7 @@
    * - Backups
      - No
      - Yes, :ref:`daily backup snapshots <m2-m5-snapshots>`
-     - Yes, including :doc:`queryable backups </query-backup>`
+     - Yes, including :doc:`queryable backups </backup/legacy-backup/backup-query>`
 
    * - Sharding
      - No

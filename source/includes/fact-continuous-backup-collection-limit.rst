@@ -1,4 +1,4 @@
-.. admonition:: Collection Limit for |service| Continuous Backup.
+.. admonition:: Collection Limit for |service| {+Old-Backup+}.
    :class: important
 
    Your |service| cluster can backup or restore clusters with fewer

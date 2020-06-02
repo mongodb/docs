@@ -123,7 +123,7 @@
           * - ``alert.inform``
 
             - Represents an informational alert, which is a
-              point-in-time event, such as "Primary Elected."
+              {+PIT-Restore+} event, such as "Primary Elected."
 
        If you specify a key in the :guilabel:`Webhook Secret` field,
        |service| adds the ``X-MMS-Signature`` request header. This

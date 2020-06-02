@@ -200,10 +200,12 @@ source_constants = {
     'fts' : 'Atlas Search',
     'latest-mongodb-eol': '3.4',
     'service-api-v1-base-uri' : 'https://cloud.mongodb.com/api/atlas/v1.0',
-    'Cloud-Backup' : 'Cloud Provider Snapshot',
-    'Old-Backup' : 'Continuous Backup',
-    'cloud-backup' : 'cloud provider snapshot',
-    'old-backup' : 'continuous backup',
+    'Cloud-Backup' : 'Cloud Backup',
+    'Old-Backup' : 'Legacy Backup',
+    'cloud-backup' : 'cloud backup',
+    'old-backup' : 'legacy backup',
+    'PIT-Restore' : 'Continuous Cloud Backup',
+    'pit-restore' : 'continuous cloud backup',
 }
 
 pygments_style = 'sphinx'

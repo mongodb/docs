@@ -1,7 +1,7 @@
 - Use an M10 or larger cluster.
 
 - Use
-  :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots>`
+  :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`
   to encrypt your backup snapshots.
-  :doc:`Continuous Backups </backup/continuous-backups>` are not
+  :doc:`{+Old-Backup+}s </backup/legacy-backup/overview>` are not
   supported.

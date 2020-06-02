@@ -43,20 +43,20 @@
           Clusters running MongoDB 4.2 and any net new |service|
           clusters of any type do not support this parameter.
           These clusters must use
-          :doc:`/backup/cloud-provider-snapshots`:
+          :doc:`/backup/cloud-backup/overview`:
           ``providerBackupEnabled``
 
           If you create a new |service| cluster and set
           ``"backupEnabled" : true``, the |api| responds with an error.
 
           This change doesn't affect existing |service| clusters that use
-          continuous backups.
+          {+old-backup+}s.
 
        If set to ``true``, |service| enabled
-       :doc:`continuous backups </backup/continuous-backups>` for the
+       :doc:`{+old-backup+}s </backup/legacy-backup/overview>` for the
        cluster.
 
-       If set to ``false``, |service| disabled continuous backups for
+       If set to ``false``, |service| disabled {+old-backup+}s for
        the cluster. |service| deleted any stored snapshots.
 
    * - ``biConnector``
@@ -348,7 +348,7 @@
 
    * - ``pitEnabled``
      - boolean
-     - Flag that indicates if the cluster uses :ref:`Point-in-Time
+     - Flag that indicates if the cluster uses :ref:`{+PIT-Restore+}
        backups <pit-restore>`. If set to ``true``,
        ``providerBackupEnabled`` must also be set to ``true``.
 

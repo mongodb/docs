@@ -1,5 +1,5 @@
-.. admonition:: Continuous Backups Only
+.. admonition:: {+Old-Backup+}s Only
    :class: important
 
    This resource only applies to clusters using
-   :ref:`backup-continuous`.
+   :ref:`legacy-backup`.

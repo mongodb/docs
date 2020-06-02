@@ -34,4 +34,4 @@
 
    * - ``pointInTime``
      - |service| performs a
-       :ref:`Point-in-Time restore <pit-restore>`.
+       :ref:`{+PIT-Restore+} restore <pit-restore>`.

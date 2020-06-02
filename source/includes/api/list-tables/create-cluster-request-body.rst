@@ -75,28 +75,27 @@
           Clusters running MongoDB 4.2 and any net new |service|
           clusters of any type do not support this parameter.
           These clusters must use
-          :doc:`/backup/cloud-provider-snapshots`:
+          :doc:`/backup/cloud-backup/overview`:
           ``providerBackupEnabled``
 
           If you create a new |service| cluster and set
           ``"backupEnabled" : true``, the |api| responds with an error.
 
           This change doesn't affect existing clusters that use
-          continuous backups.
+          {+old-backup+}s.
 
        Set to ``true`` to enable |service|
-       :doc:`continuous backups </backup/continuous-backups>` for the
+       :doc:`{+old-backup+}s </backup/legacy-backup/overview>` for the
        cluster.
 
-       Set to ``false`` to disable continuous backups for the cluster.
+       Set to ``false`` to disable {+old-backup+}s for the cluster.
        |service| deletes any stored snapshots.
 
-       To learn more about snapshot storage, see the continuous
-       backup :ref:`retention-policy`.
+       To learn more about snapshot storage, see the {+old-backup+} :ref:`retention-policy`.
 
-       You can't enable continuous backups if you have an
+       You can't enable {+old-backup+}s if you have an
        existing cluster in the project with
-       :doc:`/backup/cloud-provider-snapshots` enabled.
+       :doc:`/backup/cloud-backup/overview` enabled.
 
        The default value is ``false``.
 
@@ -452,14 +451,14 @@
      - boolean
      - Optional
      - Flag that indicates the cluster uses
-       :ref:`Point-in-Time backups <pit-restore>`.
+       :ref:`{+pit-restore+}s <pit-restore>`.
 
        - Set to ``true`` to enable
-         :ref:`Point-in-Time backups <pit-restore>`. Requires that
+         :ref:`{+pit-restore+}s <pit-restore>`. Requires that
          you set ``providerBackupEnabled`` to ``true``.
 
        - Set to ``false`` to disable
-         :ref:`Point-in-Time backups <pit-restore>`.
+         :ref:`{+pit-restore+}s <pit-restore>`.
 
    * - ``providerBackupEnabled``
      - boolean
@@ -473,9 +472,9 @@
        backups. If ``providerBackupEnabled`` *and* ``backupEnabled``
        are ``false``, the cluster does not use |service| backups.
 
-       You cannot enable cloud provider snapshots if you have an
+       You cannot enable {+Cloud-Backup+}s if you have an
        existing cluster in the project with
-       :ref:`backup-continuous` enabled.
+       :ref:`legacy-backup` enabled.
 
        .. important::
 

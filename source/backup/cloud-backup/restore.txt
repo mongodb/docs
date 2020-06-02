@@ -1,0 +1,323 @@
+.. _restoration-cloud-provider-snapshot:
+
+================================================
+Restore a Cluster from a {+Cloud-Backup+}
+================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| lets you restore data from a scheduled {+Cloud-Backup+}. For information on {+Cloud-Backup+} backups, see
+:doc:`/backup/cloud-backup/overview`.
+
+For instructions on restoring data from a
+:doc:`{+old-backup+} snapshot </backup/legacy-backup/overview>`, see
+:doc:`/backup/legacy-backup/restore`.
+
+Restore Restrictions
+--------------------
+
+- |service| can only restore to a :term:`replica set` or
+  :term:`sharded cluster` that uses the same encryption provider as
+  the source snapshot cluster.
+
+- The target cluster must run the same or newer release version of
+  MongoDB as the snapshot MongoDB version.
+
+Fallback Snapshots
+------------------
+
+If a scheduled snapshot fails for any reason, |service| attempts to
+repeat the snapshot process. If necessary, you may use the resulting
+fallback snapshot to :ref:`restore the cluster
+<restoration-cloud-provider-snapshot>`. This isn't recommended:
+fallback snapshots use a different process from regular snapshots. They
+may contain inconsistent data.
+
+Fallback snapshots are marked in the UI with a warning icon, and a
+warning message appears in the restore modal window if the restore uses
+a fallback snapshot.
+
+.. warning::
+
+   Restoring your cluster from a fallback snapshot may result in
+   inconsistent data across your cluster, and should be considered an
+   option of last resort.
+
+Prerequisites
+-------------
+
+Stop Client Operations during Restoration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-stop-ops-during-restore.rst
+
+Procedure
+---------
+
+.. admonition:: Restoring Snapshots for Clusters using Encryption at Rest
+   :class: important
+
+   |service| automatically encrypts
+   :ref:`{+Cloud-Backup+}s <backup-cloud-provider>` for
+   clusters using :doc:`/security-kms-encryption`, in addition to the
+   existing encryption applied to all |service| storage and snapshot
+   volumes. For documentation on restoring an encrypted snapshot, see
+   :ref:`restore-encrypted-snapshot`
+
+   The following instructions only apply to snapshots for
+   clusters not using Encryption at Rest.
+
+.. tabs::
+
+   .. tab:: Snapshot Restore
+      :tabid: snapshot-restore
+
+      #. From the :guilabel:`Clusters` view, click on the cluster name.
+
+      #. Click the :guilabel:`Backup` tab.
+
+         If the cluster has no :guilabel:`Backup` tab, then |service| backups
+         are disabled for that cluster and no snapshots are available.
+         You can enable backups when
+         :ref:`scaling the cluster <scale-cluster-backups>`.
+
+      #. Select a cluster's snapshot to restore.
+
+         Click :guilabel:`Restore` or :guilabel:`Download`.
+
+      #. Follow the prompts to restore your cluster. You may choose to:
+
+         - :ref:`Download your snapshot via HTTPS <restore-cloud-provider-snapshot-download>`.
+
+         - :ref:`Restore your snapshot to an Atlas cluster <restore-cloud-provider-snapshot-atlas>`.
+
+         - :ref:`Restore your snapshot to a Cloud Manager project <restore-cloud-provider-snapshot-mms>`.
+
+   .. tab:: {+PIT-Restore+}
+      :tabid: pit-restore
+
+      You can enable {+PIT-Restore+}s when you :ref:`create
+      <create-new-cluster>` or :ref:`scale <scale-cluster-backups>` a
+      cluster.
+
+      #. From the :guilabel:`Clusters` view, click on the cluster name.
+
+      #. Click the :guilabel:`Backup` tab.
+
+         If the cluster has no :guilabel:`Backup` tab, then |service|
+         backups are disabled for that cluster and no snapshots are
+         available. You can enable backups when
+         :ref:`scaling the cluster <scale-cluster-backups>`.
+
+      #. Click the :guilabel:`Point in Time Restore` button on the far
+         right side of the screen.
+
+      #. Select either the :guilabel:`Date & Time` or :guilabel:`Oplog
+         Timestamp` tab.
+
+         .. note::
+
+            If you select the :guilabel:`Date & Time` option, you can
+            specify the time of restore with one minute of granularity.
+            If you select the :guilabel:`Oplog Timestamp` option, you
+            can specify the time of restore with one second of
+            granularity.
+
+      #. Enter the desired point in time to restore from.
+
+      #. Click the :guilabel:`Next: Select Cluster` button.
+
+      #. Choose a project and cluster to restore to from the dropdown
+         menus.
+
+      #. Click the :guilabel:`Restore` button.
+
+.. _restore-cloud-provider-snapshot-atlas:
+
+Restore your Snapshot to an Atlas Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-restore-cluster-downtime-warning.rst
+
+You can restore to any |service| cluster in a project for which you
+have the :authrole:`Project Owner` role.
+
+1. Click :guilabel:`Restore` in the :guilabel:`Actions` column
+   for the snapshot you want to restore.
+
+#. From the :guilabel:`Restore` dialog, select the target cluster to
+   which you want to restore.
+
+   .. note::
+
+      Restores improve their performance if the target cluster:
+
+      - Exists in the same project as the snapshot.
+      - Exists in the same cloud provider region as the snapshot.
+      - Doesn't use |nvme| storage.
+      - Equals or exceeds the disk size of the snapshot’s original
+        total, not used, disk size.
+
+#. Click :guilabel:`Restore`.
+
+#. Restart your application and ensure it uses the new target cluster.
+
+.. _restore-cloud-provider-snapshot-mms:
+
+Restore your Snapshot to a Cloud Manager Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-restore-cluster-downtime-warning.rst
+
+1. Click :guilabel:`Restore` in the :guilabel:`Actions` column
+   for the snapshot you want to restore.
+
+#. From the :guilabel:`Restore` dialog, select the
+   target |mms| project to which you want to restore.
+
+#. Click :guilabel:`Restore`.
+
+#. Restart your application and ensure it uses the new target
+   cluster.
+
+|mms| can only restore to a :term:`replica set` or
+:term:`sharded cluster`. The target cluster must run the same or newer
+version of MongoDB as the snapshot MongoDB version.
+
+You can restore to any |mms| project for which the authenticated
+|service| user has any of the following roles:
+
+- :cloudmgr:`Organization Owner </reference/user-roles#Organization-Owner>`
+- :cloudmgr:`Project Owner </reference/user-roles#Project-Owner>`
+- :cloudmgr:`Project Backup Admin </reference/user-roles#Project-Backup-Admin>`
+
+You must add the |ipaddr| or |cidr| addresses of the target |mms|
+project to your |service| project :ref:`whitelist <whitelist>`. The
+:guilabel:`Restore` prompt displays your
+:guilabel:`Existing IP Whitelist`.
+
+If the current project whitelist ranges do not cover the target |mms|
+project |ipaddr| or |cidr| addresses, click
+:guilabel:`Add or Modify your IP Addresses` to make changes to your
+|service| project whitelist.
+
+.. _restore-encrypted-snapshot:
+
+Restore a Snapshot of a Cluster with Encryption at Rest
+-------------------------------------------------------
+
+.. important::
+
+   Snapshots of clusters using
+   :doc:`Encryption at Rest using your Key Management </security-kms-encryption>`
+   can only restore to other clusters that use Encryption at Rest. You
+   cannot restore a snapshot with Encryption at Rest to a |mms|
+   project, nor can you download the snapshot.
+
+   If the target project does not have a cluster with Encryption at
+   Rest enabled, you can either
+   :ref:`deploy <create-cluster-enable-encryption>` a cluster with 
+   Encryption at Rest, or :ref:`enable Encryption at Rest <scale-cluster-enable-encryption>`
+   in an existing cluster.
+
+#. From the :guilabel:`Clusters` view, click on the cluster name.
+
+#. Click the :guilabel:`Backup` tab.
+
+   If the cluster has no :guilabel:`Backup` tab, then |service| backups
+   are disabled for that cluster and no snapshots are available.
+   You can enable backups when
+   :ref:`modifying the cluster <scale-cluster-backups>`.
+
+#. Click :guilabel:`Restore` in the :guilabel:`Actions` column
+   for the snapshot you want to restore.
+
+#. From the :guilabel:`Restore` dialog, select the target |service|
+   :guilabel:`Project` to which you want to restore. You can restore to
+   any |service| project for which the authenticated |service| user has
+   the :authrole:`Project Owner` role.
+
+#. Select the :guilabel:`Cluster` to restore to. You can only restore
+   to an |service| replica set running Encryption at Rest. The target
+   cluster must run the same or greater version of MongoDB as the
+   :guilabel:`MongoDB Version` of the snapshot.
+
+
+   After the restoration procedure, |service| triggers a key rotation
+   for MongoDB encryption key. |service| then encrypts the new MongoDB
+   encryption keys based on the configured Encryption at Rest provider
+   for the target cluster.
+
+#. Restart your application and ensure it uses the new target
+   cluster.
+
+.. topic:: Troubleshooting Encryption at Rest
+
+   If |service| has an issue with the encryption of either the snapshot
+   or the target cluster, it displays one of the following errors:
+
+   .. list-table::
+      :widths: 40 60
+      :stub-columns: 1
+      :header-rows: 1
+
+      * - Error
+
+        - Result
+
+      * - Cannot restore a non-encrypted snapshot to a cluster with
+          Encryption at Rest enabled.
+
+        - The snapshot cannot be restored to |service|.
+
+      * - Target cluster does not have encryption enabled.
+
+        - You can either :ref:`deploy <create-cluster-enable-encryption>`
+          a new target cluster with Encryption at Rest, or
+          :ref:`enable Encryption at Rest <scale-cluster-enable-encryption>`
+          on your desired target cluster.
+
+      * - Encryption provider of target cluster does not match selected
+          snapshot's encryption provider.
+
+        - The encryption provider for the snapshot and target cluster
+          do not match. You can either:
+
+          1. Create a new snapshot with the same encryption provider.
+          #. Change the encryption provider for the target cluster.
+
+      * - Encryption credentials on snapshot are not present.
+
+        - |service| cannot restore a snapshot whose encryption key was
+          deleted.
+
+View Status of Snapshot Restorations
+------------------------------------
+
+|service| provides a detailed list of completed and in-progress
+snapshot restorations, including when |service| took the snapshot and
+the snapshot's delivery type. To view this list, from a cluster's
+:guilabel:`Backup` tab, click the :guilabel:`Restore History` tab.
+
+The :guilabel:`Status` column of the table displays the results of
+completed snapshots, and the progress of snapshots currently
+being restored.
+
+- For manually downloaded snapshots, the :guilabel:`Status` column
+  displays progress while |service| prepares the download link. Once
+  the download is ready, the column displays the link to download the
+  snapshot.
+
+- For automated restores and {+PIT-Restore+} restores, the
+  :guilabel:`Status` column updates as the restoration progresses on
+  each node in the cluster. When the restoration completes, the column
+  displays the time of completion and the cluster to which |service|
+  restored the snapshot.

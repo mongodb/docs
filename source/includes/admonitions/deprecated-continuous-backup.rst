@@ -1,8 +1,7 @@
-.. admonition:: Continuous Backup Deprecated
+.. admonition:: {+Old-Backup+} Deprecated
    :class: important
 
-   MongoDB deprecated the Continuous Backup feature. Clusters that use
-   Continuous Backup can continue to use it. MongoDB recommends using
-   :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>`.
-   Effective 23 March 2020, all net new clusters can *only* use Cloud
-   Provider Snapshots.
+   MongoDB deprecated the {+Old-Backup+} feature. Clusters that use
+   {+Old-Backup+} can continue to use it. MongoDB recommends using
+   :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`.
+   Effective 23 March 2020, all net new clusters can *only* use {+Cloud-Backup+}s.

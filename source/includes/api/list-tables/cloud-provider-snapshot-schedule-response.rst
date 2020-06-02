@@ -87,9 +87,9 @@
    * - ``restoreWindowDays``
      - number
      - Number of days back in time you can restore to with
-       point-in-time accuracy. Must be a positive, non-zero integer.
+       {+PIT-Restore+} accuracy. Must be a positive, non-zero integer.
 
-       Applies to point-in-time restores only.
+       Applies to {+pit-restore+}s only.
 
    * - ``updateSnapshots``
      - boolean

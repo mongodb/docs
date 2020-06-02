@@ -72,7 +72,7 @@
   the |gcp| Brazil (São Paulo) region.
 - Supports ``M0`` Free Tier clusters in the |aws| Syndey region.
 - Enables faster
-  :ref:`restores from Cloud Provider Snapshot backups <restore-cloud-provider-snapshot-atlas>`.
+  :ref:`restores from {+Cloud-Backup+} backups <restore-cloud-provider-snapshot-atlas>`.
 
 .. _atlas-v20191001:
 
@@ -88,9 +88,9 @@
 - Supports the
   `MongoDB Atlas Open Service Broker <https://docs.mongodb.com/atlas-open-service-broker/current/>`__
   for Kubernetes.
-- Introduces :ref:`Point-in-Time Restore (PITR) <pit-restore>`
+- Introduces :ref:`{+PIT-Restore+} (PITR) <pit-restore>`
   available for clusters using |aws|
-  :ref:`Cloud Provider Snapshots <backup-cloud-provider>`.
+  :ref:`{+Cloud-Backup+}s <backup-cloud-provider>`.
 - Increases throughput for M2 & M5 cluster tiers.
 
 .. _atlas-v20190910:
@@ -187,7 +187,7 @@
 
 - Introduces `{+data-lake+} <https://docs.mongodb.com/datalake/>`__ on-demand query service.
 
-- Supports :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>`
+- Supports :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`
   for 4.2 replica sets.
 
 - Supports Encryption at Rest for snapshots.
@@ -209,7 +209,7 @@
 07 May 2019 Release
 ~~~~~~~~~~~~~~~~~~~
 
-- :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>` are now
+- :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>` are now
   available for |gcp|-backed clusters.
 - |service| clusters can now use :doc:`Google Cloud KMS for encryption at rest
   </security-gcp-kms>`.
@@ -219,9 +219,9 @@
   to gather monitoring data after reaching the maximum number of connections.
   This change affects all new |service| clusters.  Existing |service| clusters
   are affected the next time you request a configuration change to a cluster.
-- |service| projects may now use either the :doc:`Continuous Backup
-  </backup/continuous-backups>` or the :doc:`Cloud Provider Snapshots
-  </backup/cloud-provider-snapshots/>` backup method. An |service|
+- |service| projects may now use either the :doc:`{+Old-Backup+}
+  </backup/legacy-backup/overview>` or the :doc:`{+Cloud-Backup+}s
+  </backup/cloud-backup/overview>` backup method. An |service|
   project supports multiple backup types among clusters within that
   project. You must terminate the existing backup method before
   switching between backup methods for an |service| cluster.
@@ -273,7 +273,7 @@
     - ``northeurope`` (``M0``)
     - ``westus`` (``M0/M2/M5``)
 
-- Cloud Provider Snapshots for Geo-sharded clusters.
+- {+Cloud-Backup+}s for Geo-sharded clusters.
 
 .. _atlas-v20190212:
 
@@ -317,4 +317,4 @@
 - Provides more visibility to maintenance timing in the administration
   user interface.
 - Supports On-Demand
-  :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots/>`.
+  :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`.
