@@ -41,6 +41,10 @@
      - integer
      - |iso8601-time| when the restore job expires.
 
+   * - ``failed``
+     - boolean
+     - Flag indicating whether the restore job failed.
+
    * - ``finishedAt``
      - integer
      - |iso8601-time| when the restore job completed.
