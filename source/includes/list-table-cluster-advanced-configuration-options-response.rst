@@ -24,9 +24,16 @@
        perform server-side executions of JavaScript. When ``false``,
        the cluster disables execution of those operations.
 
-       This option corresponds to the 
-       :setting:`security.javascriptEnabled` :binary:`~bin.mongod` 
-       configuration file option.
+       - If your cluster runs a MongoDB version less than 4.4, this
+         option corresponds to modifying the
+         :setting:`security.javascriptEnabled` configuration file option
+         for each :binary:`~bin.mongod` in the cluster.
+         
+       - If your cluster runs MongoDB version 4.4 or greater, this
+         option corresponds to  modifying the
+         :setting:`security.javascriptEnabled` configuration file option
+         for each :binary:`~bin.mongod` and :binary:`~bin.mongos` in the
+         cluster.
 
    * - ``minimumEnabledTlsProtocol``
      - string
