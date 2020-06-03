@@ -1,0 +1,352 @@
+.. _equals-ref:
+
+======
+equals
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: equals
+
+   The ``equals`` operator supports querying :ref:`boolean <boolean-ref>` and 
+   :ref:`objectId <objectId-ref>` values.
+
+.. _equals-syntax:
+
+Syntax
+------
+
+``equals`` has the following syntax:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      $search: {
+         "index": <index name>, // optional, defaults to "default"
+         "equals": {
+            "path": "<field-to-search>",
+            "value": <boolean-value>|<objectId>,
+            "score": <score-options>
+         }
+      }
+   }
+
+Options
+-------
+
+``equals`` uses the following terms to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Required?
+
+   * - ``path``
+     - string
+     - Indexed field to search.
+     - yes
+
+   * - ``value``
+     - :ref:`boolean <boolean-ref>` or :ref:`objectId <objectId-ref>`
+     -  Value to query for.
+     - yes
+
+   * - ``score``
+     - object
+     - Score assigned to matching search term results. Use one of the
+       following options to modify the score:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+
+       For information on using ``score`` in your query, see
+       :ref:`scoring-ref`.
+     - no
+
+Behavior
+--------
+
+``equals`` uses constant scoring. Each matching document receives
+a score of ``1`` for each search clause matched. A document that matches
+one search clause receives a score of ``1``, while a document that matches
+three search clauses receives a score of ``3``. See the
+:ref:`equals-query-examples` section for scoring examples.
+
+.. _equals-query-examples:
+
+Examples
+--------
+
+The following examples use a collection named ``users`` containing the
+following three documents:
+
+.. code-block:: javascript
+
+   {
+   	 "_id" : ObjectId("5ed698faa1199b471010d70c"),
+   	 "name" : "Jim Hall",
+   	 "verified_user" : true,
+   	 "teammates" : [
+   	 	ObjectId("5a9427648b0beebeb69579d0"),
+   	 	ObjectId("59b99dbdcfa9a34dcd7885c8")
+   	 ],
+   	 "region" : "East"
+   }
+   {
+   	 "_id" : ObjectId("5ed6990aa1199b471010d70d"),
+   	 "name" : "Ellen Smith",
+   	 "verified_user" : true,
+   	 "teammates" : [
+   		ObjectId("5a9427648b0beebeb69537a5"),
+		ObjectId("59b99dbdcfa9a34dcd7881d1")
+     ],
+   	 "region" : "Southwest"
+   }
+   {
+   	 "_id" : ObjectId("5ed6994fa1199b471010d70e"),
+   	 "name" : "Fred Osgood",
+   	 "verified_user" : false,
+   	 "teammates" : [
+    	ObjectId("5a9427648b0beebeb69589a1"),
+    	ObjectId("59b99dbdcfa9a34dcd7897d3")
+     ],
+   	 "region" : "Northwest"
+   }
+
+The ``users`` collection is indexed with the following :ref:`index definition
+<ref-index-definitions>`:
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "teammates": {
+           "type": "objectId"
+         },
+         "verified_user": {
+           "type": "boolean"
+         },
+         "region": {
+           "type": "string"
+         }
+       }
+     }
+   }
+
+Basic Examples
+~~~~~~~~~~~~~~
+
+The following example uses the ``equals`` operator to search the ``users``
+collection for documents in which the ``verified_user`` field is set to
+``true``.
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+     {
+       "$search": {
+         "equals": {
+           "path": "verified_user",
+           "value": true
+         }
+       }
+     },
+     {
+       "$project": { 
+         "name": 1, 
+         "_id": 0, 
+         "score": { "$meta": "searchScore" }
+       }
+     }
+   ])
+
+The above query returns the following results:
+
+.. code-block:: javascript
+
+   { "name" : "Jim Hall", "score" : 1 }
+   { "name" : "Ellen Smith", "score" : 1 }
+
+The documents for "Jim Hall" and "Ellen Smith" each receive a score of ``1``
+because those documents have the ``verified_user`` field set to ``true``.
+
+The following example uses the ``equals`` operator to search the ``users``
+collection for documents in which the ``teammates`` field contains the value
+``ObjectId("5a9427648b0beebeb69589a1")``.
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+     {
+       "$search": {
+         "equals": {
+           "path": "teammates",
+           "value": ObjectId("5a9427648b0beebeb69589a1")
+         }
+       }
+     }
+   ])
+
+The above query returns the document for "Fred Osgood", because that document
+contains ``ObjectId("5a9427648b0beebeb69589a1")`` in the ``teammates`` array.
+
+Compound Examples
+~~~~~~~~~~~~~~~~~
+
+The following example uses the :ref:`compound <compound-ref>` operator in
+conjunction with ``must``, ``mustNot``, and ``equals`` to search for documents
+in which the ``region`` field is ``Southwest`` and the ``verified_user`` field
+is not ``false``.
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+     {
+       "$search": {
+         "compound": {
+           "must": {
+             "search": {
+               "path": "region",
+               "query": "Southwest"
+             }
+           },
+           "mustNot": {
+             "equals": {
+               "path": "verified_user",
+               "value": false
+             }
+           }
+         }
+       }
+     }
+   ])
+
+The above query returns the document for "Ellen Smith", which is the only
+one in the collection which meets the search criteria.
+
+The following example query has these search criteria:
+
+- The ``verified_user`` field must be set to ``true``
+- One of the following must be true:
+
+  - The ``teammates`` array contains the value ``ObjectId("5a9427648b0beebeb69579d0")``
+  - The ``region`` field is set to ``Northwest``
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+     {
+       "$search": {
+         "compound": {
+           "must": {
+             "equals": {
+               "path": "verified_user",
+               "value": true
+             }
+           },
+           "should": [
+             {
+               "equals": {
+                 "path": "teammates",
+                 "value": ObjectId("5a9427648b0beebeb69579d0")
+               }
+             },
+             {
+               "search": {
+                 "path": "region",
+                 "query": "Northwest"
+               }
+             }
+           ],
+           "minimumShouldMatch": 1
+           }
+         }
+       },
+       {
+         "$project": { 
+           "name": 1, 
+           "_id": 0, 
+           "score": { "$meta": "searchScore" }
+         }
+       }
+   ])
+
+The above query returns the following results:
+
+.. code-block:: javascript
+
+   { "name" : "Jim Hall", "score" : 2 }
+
+The document for "Jim Hall" receives a score of ``2`` because it meets the
+requirements for the ``must`` clause and the first of the two ``should`` clauses.
+
+.. _equals-compound-query-example:
+
+You can search for multiple ObjectIDs with a compound query. The following
+example query uses the ``compound`` operator with a ``should`` clause
+to search for three different ObjectIDs, at least two of which must appear
+to satisfy the query.
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+     {
+       "$search": {
+         "compound": {
+           "should": [
+             {
+               "equals": {
+                 "path": "teammates",
+                 "value": ObjectId("5a9427648b0beebeb69537a5")
+               }
+             },
+             {
+               "equals": {
+                 "path": "teammates",
+                 "value": ObjectId("59b99dbdcfa9a34dcd7881d1")
+               }
+             },
+             {
+               "equals": {
+                 "path": "teammates",
+                 "value": ObjectId("5a9427648b0beebeb69579d0")
+               }
+             }
+           ],
+           "minimumShouldMatch": 2
+           }
+         }
+       },
+       {
+         "$project": { 
+           "name": 1, 
+           "_id": 0, 
+           "score": { "$meta": "searchScore" }
+         }
+       }
+   ])
+
+The above query returns the following results:
+
+.. code-block:: javascript
+
+   { "name" : "Ellen Smith", "score" : 2 }
+
+The document for "Ellen Smith" receives a score of ``2`` because it contains
+two of the specified ObjectIDs in its ``teammates`` array.
