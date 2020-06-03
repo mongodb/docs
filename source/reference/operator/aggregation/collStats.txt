@@ -28,7 +28,8 @@ Definition
           {
             latencyStats: { histograms: <boolean> },
             storageStats: { scale: <number> },
-            count: {}
+            count: {},
+            queryExecStats: {}
           }
       }
 
@@ -90,6 +91,12 @@ Definition
 
           .. versionadded:: 3.6
 
+      * - ``queryExecStats``
+        - Adds :ref:`query execution statistics
+          <collstat-queryexecstats>` to the return document.
+
+          .. versionadded:: 4.4
+
    For a collection in a replica set or a
    :ref:`non-sharded collection<sharded-vs-non-sharded-collections>` in
    a cluster, ``$collStats`` outputs a single document. For a
@@ -127,16 +134,16 @@ Definition
         milliseconds since the :term:`Unix epoch`.
 
     * - ``latencyStats``
-      - A collection of statistics related to request latency for a
-        collection or :doc:`view </core/views>`. See
-        :ref:`latency-stats-document` for details on this document.
+      - Statistics related to request latency for a collection or
+        :doc:`view </core/views>`. See :ref:`latency-stats-document`
+        for details on this document.
 
         Only present when the ``latencyStats: {}`` option is specified.
 
     * - ``storageStats``
 
-      - A collection of statistics related to a collection's storage
-        engine. See :ref:`storage-stats-document` for details on this
+      - Statistics related to a collection's storage engine. See
+        :ref:`storage-stats-document` for details on this
         document.
 
         The various size data is scaled by the specified factor (with
@@ -159,6 +166,13 @@ Definition
 
         Only present when the ``count: {}`` option is specified. Returns
         an error if applied to a :doc:`view </core/views>`.
+
+    * - ``queryExecStats``
+      - Statistics related to query execution for the collection. 
+
+        Only present when the ``queryExecStats: {}`` option is
+        specified. Returns an error if applied to a :doc:`view
+        </core/views>`. 
 
 Behavior
 --------
@@ -339,6 +353,40 @@ The total number of documents in the collection is also available as
 ``storageStats.count`` when ``storageStats: {}`` is specified. For more
 information, see :ref:`storage-stats-document`.
 
+.. _collstat-queryexecstats:
+
+``queryExecStats`` Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4
+
+The ``queryExecStats`` embedded document only exists in the output if
+you specify the ``queryExecStats`` option.
+
+.. include:: /includes/fact-queryexecstats-reference.rst
+
+For example, if you run ``$collStats`` with the ``queryExecStats: {}``
+option on a ``matrices`` collection:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { queryExecStats: { } } } ] )
+
+The query returns a result similar to the following:
+
+.. code-block:: javascript
+
+   {
+     "ns": "test.matrices",
+     "host": "mongo.example.net:27017",
+     "localTime": ISODate("2020-06-03T14:23:29.711Z"),
+     "queryExecStats": {
+         "collectionScans": {
+             "total": NumberLong(33),
+             "nonTailable": NumberLong(31)
+         }
+     }
+   }
 
 ``$collStats`` on Sharded Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
