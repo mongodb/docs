@@ -1,3 +1,10 @@
+.. _data-lake-v20200602:
+
+02 June 2020 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Includes general performance and stability improvements.
+
 .. _data-lake-v20200526:
 
 26 May 2020 Release
