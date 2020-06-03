@@ -256,3 +256,86 @@ the following behavior for data consumed from ``topicA``:
   up to 100.
 - Generate a UUID to be stored in the ``_id`` field for each new document.
 - Omit fields ``k2`` and ``k4`` from the value projection using a blacklist.
+
+
+Dead Letter Queue Configuration Settings
+----------------------------------------
+
+Kafka connectors send messages that cannot be processed to the **dead letter
+queue**. The connector sends invalid messages to this queue in order to
+allow manual inspection, updates, and re-submission for processing. It is
+disabled by default and requires restarting the connector for the changes to
+the configuration to take effect.
+
+The following is an example configuration for enabling the dead letter queue
+topic ``example.deadletterqueue`` that specifies that both the invalid
+message as well as the log file should record invalid messages, and that
+context headers should be included in the dead letter queue messages.
+
+.. code-block:: properties
+
+   errors.tolerance=all
+   errors.log.enable=true
+   errors.log.include.messages=true
+   errors.deadletterqueue.topic.name=example.deadletterqueue
+   errors.deadletterqueue.context.headers.enable=true
+
+
+The table below describes the configuration settings relevant to the dead
+letter queue.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 2 1 4
+
+
+   * - Name
+     - Type
+     - Description
+
+   * - errors.tolerance
+     - string
+     - | Which errors to allow before the message processing task fails. When the connector encounters an error when tolerance is set to "none", it reports an error and blocks further processing of the rest of the records. When set to "all", the connector silently ignores any bad messages.
+       |
+       | **Default:** "none"
+       | **Accepted Values**: "none" or "all"
+
+   * - errors.log.enable
+     - boolean
+     - | Whether details of failed operations should be written to the log file. When set to **true**, both errors that are tolerated (determined by the **errors.tolerance** setting) and not tolerated are written. When set to **false**, errors that are tolerated are omitted.
+       |
+       | **Default:** false
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - errors.log.include.messages
+     - boolean
+     - | Whether to include the invalid message, including record keys, values, and headers, in the error log file.
+       |
+       | **Default:** false
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - errors.deadletterqueue.topic.name
+     - string
+     - | Name of topic to use as the dead letter queue. If blank, none of the invalid messages are written to the dead letter queue.
+       |
+       | **Default:** ""
+       | **Accepted Values**: A valid Kafka topic name
+
+   * - errors.deadletterqueue.context.headers.enable
+     - boolean
+     - | Whether to provide the context headers in messages written to the dead letter queue.
+       |
+       | **Default:** false
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - errors.deadletterqueue.topic.replication.factor
+     - integer
+     - | The number of nodes on which to replicate the dead letter queue topic. If running a single-node Kafka cluster, this must be set to 1.
+       |
+       | **Default:** 3
+       | **Accepted Values**: A valid number
+
+See the `Confluent Sink Connector documentation <https://docs.confluent.io/current/installation/configuration/connect/sink-connect-configs.html>`__
+for more information on these settings.
+
