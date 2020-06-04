@@ -1,0 +1,161 @@
+=============
+Retrieve Data
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can use read operations to retrieve data from your MongoDB database.
+There are multiple types of read operations that access the data in
+different ways. If you want to request results based on a set of criteria
+from the existing set of data, you can use a find operation such as the 
+``find()`` or ``findOne()`` methods.
+
+You can also further specify the information you are requesting by
+including additional parameters or by chaining other methods such as:
+
+- :doc:`Sort Results </fundamentals/crud/read-operations/sort>`
+- :doc:`Skip Returned Results </fundamentals/crud/read-operations/skip>`
+- :doc:`Limit the Number of Returned Results </fundamentals/crud/read-operations/limit>`
+- :doc:`Specify Which Fields to Return </fundamentals/crud/read-operations/project>`
+
+You can also use an aggregation operation to retrieve data. This type of 
+operation allows you to apply an ordered pipeline of transformations to the 
+matched data.
+
+If you want to monitor the database for incoming data that matches a set of
+criteria, you can use the watch operation to be notified in real-time when 
+matching data is inserted.
+
+Find
+----
+
+The ``find()`` method is called on the ``Collection`` object that
+references the collection you want to query. The method accepts a query
+document that describes the documents you want to retrieve. For more
+information on how to specify your query document, see our guide on
+how to :doc:`Specify a Query </fundamentals/crud/query-document>`.
+
+To access the results, you can optionally pass a callback in the method
+call or resolve the returned ``Promise`` object. See our guide on
+:doc:`Promises and Callbacks </fundamentals/promises>` for more
+information.
+
+If you resolve the ``Promise`` returned by ``find()``, you receive
+a reference to a ``Cursor`` with which you can navigate matched documents.
+If you resolve the ``Promise`` returned by ``findOne()``, you receive the
+matching document or ``null`` if there are no matches.
+
+.. example::
+
+   A pizza restaurant wants to find all pizzas ordered by Lemony Snicket
+   yesterday. They run the following ``find()`` query on the
+   ``orders`` collection:
+
+   .. literalinclude:: /code-snippets/crud/pizza.js
+      :language: javascript
+      :start-after: start find crud example
+      :end-before: end find crud example
+      :dedent: 4
+
+
+   Once the operation returns, the ``findResult`` variable references a 
+   ``Cursor``. You can print the documents retrieved using the ``forEach()``
+   method as shown below:
+
+   .. code-block:: javascript
+      
+      await cursor.forEach(console.dir);
+
+
+   The output might resemble the following:
+
+   .. code-block:: none
+
+      [
+        { name: "Lemony Snicket", type: "horseradish pizza", qty: 1, status: "delivered", date: ... },
+        { name: "Lemony Snicket", type: "coal-fired oven pizza", qty: 3, status: "canceled", date: ...},
+        ...
+      ]
+
+See the :doc:`find() </usage-examples/find>` and :doc:`findOne()
+</usage-examples/findOne>` for fully-runnable examples.
+
+Aggregate
+---------
+
+If you want to run a custom processing pipeline to retrieve data from your
+database, you can use the ``aggregate()`` method. This method accepts
+aggregation expressions to run in sequence. These expressions let you filter,
+group, and arrange the result data from a collection.
+
+.. example::
+
+   A pizza restaurant wants to run a status report on-demand to
+   summarize pizza orders over the past week. They run the following
+   ``aggregate()`` query on the ``orders`` collection to fetch the
+   totals for each distinct "status" field:
+
+   .. literalinclude:: /code-snippets/crud/pizza.js
+      :language: javascript
+      :start-after: start aggregate crud example
+      :end-before: end aggregate crud example
+      :dedent: 4
+
+
+   Once the operation returns, the ``aggregateResult`` variable references a 
+   ``Cursor``. You can print the documents retrieved using the ``forEach()``
+   method as shown below:
+
+   .. code-block:: javascript
+      
+      await cursor.forEach(console.dir);
+
+
+   The output might resemble the following:
+
+   .. code-block:: none
+
+      [
+        { _id: 'delivering', count: 5 },
+        { _id: 'delivered', count: 37 },
+        { _id: 'created', count: 9 },
+      ]
+
+See the MongoDB server manual pages on :manual:`aggregation </aggregation>`
+for more information on how to construct an aggregation pipeline.
+
+Watch / Subscribe
+-----------------
+
+You can use the ``watch()`` method to monitor a collection for changes to
+a collection that match certain criteria. These changes include inserted,
+updated, replaced, and deleted documents. You can pass this method
+a pipeline of aggregation comands that sequentially runs on the changed
+data whenever write operations are executed on the collection.
+
+.. example::
+
+   A pizza restaurant wants to receive a notification whenever a new pizza
+   order comes in. To accomplish this, they create an aggregation pipeline
+   to filter on insert operations and return specific fields. They pass
+   this pipeline to the ``watch()`` method called on the ``orders``
+   collection as shown below:
+
+   .. literalinclude:: /code-snippets/crud/pizza.js
+      :language: javascript
+      :start-after: start watch crud example
+      :end-before: end watch crud example
+      :dedent: 4
+
+
+For a runnable example of the ``watch()`` method using the NodeJS driver, see
+the :doc:`change streams </usage-examples/changeStream>` usage example.
