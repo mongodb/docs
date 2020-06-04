@@ -72,11 +72,7 @@ Behavior
 Projection
 ~~~~~~~~~~
 
-.. admonition:: Restrictions
-   :class: warning
-
-   Starting in version 4.4, MongoDB enforces additional restrictions
-   with regards to projections. See :limit:`Projection Restrictions` for details.
+.. include:: /includes/extracts/projection-language-consistency-admonition.rst
 
 The ``projection`` parameter determines which fields are returned in
 the matching documents. The ``projection`` parameter takes a document
@@ -88,13 +84,7 @@ of the following form:
 
 The ``<value>`` can be any of the following:
 
-- ``1`` or ``true`` to include the field in the return documents.
-
-- ``0`` or ``false`` to exclude the field.
-
-- Expression using a :doc:`/reference/operator/projection`.
-
-  .. include:: /includes/extracts/views-unsupported-projection-operators.rst
+.. include:: /includes/extracts/projection-values-table.rst
 
 .. note::
 
@@ -108,7 +98,9 @@ specifications, except for the exclusion of the ``_id`` field. In
 projections that *explicitly include* fields, the ``_id`` field is the
 only field that you can *explicitly exclude*.
 
-For examples, see :ref:`Projection Examples <find-projection-examples>`.
+.. include:: /includes/extracts/projection-embedded-field-format.rst
+
+See :ref:`Projection Examples <find-projection-examples>`.
 
 Cursor Handling
 ~~~~~~~~~~~~~~~
@@ -532,7 +524,7 @@ For a list of array specific query operators, see :ref:`operator-query-array`.
 Projections
 ~~~~~~~~~~~
 
-The :ref:`projection <method-find-projection>` parameter specifies
+The :ref:`projection <find-projection>` parameter specifies
 which fields to return. The parameter contains either include or
 exclude specifications, not both, unless the exclude is for the ``_id``
 field.
@@ -604,12 +596,71 @@ array:
 
    db.bios.find(
       { },
+      { _id: 0, 'name.last': 1, contribs: { $slice: 2 } } )
+
+Starting in MongoDB 4.4, you can also specify embedded fields using the
+nested form, e.g.
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
+      { _id: 0, name: { last: 1 }, contribs: { $slice: 2 } }
+   )
+
+
+
+Use Aggregation Expression
+``````````````````````````
+
+Starting in MongoDB 4.4, :method:`db.collection.find()` projection can
+accept :ref:`aggregation expressions and syntax
+<aggregation-expressions>`.
+
+With the use of aggregation expressions and syntax, you can project new
+fields or project existing fields with new values. For example, the
+following operation uses aggregation expressions to override the value
+of the ``name`` and ``awards`` fields as well as to include new fields
+``reportDate``, ``reportBy``, and ``reportNumber``.
+          
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
       {
         _id: 0,
-        'name.last': 1,
-        contribs: { $slice: 2 }
+        name: { 
+           $concat: [ 
+              { $ifNull: [ "$name.aka", "$name.first" ] },
+              " ",
+              "$name.last"
+           ]
+        },
+        birth: 1,
+        contribs: 1,
+        awards: { $cond: { if: { $isArray: "$awards" }, then: { $size: "$awards" }, else: 0 } },
+        reportDate: { $dateToString: {  date: new Date(), format: "%Y-%m-%d" } },
+        reportBy: "hellouser123",
+        reportNumber: { $literal: 1 }
       }
    )
+
+To set the ``reportRun`` field to the value ``1`` 
+The operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "birth" : ISODate("1924-12-03T05:00:00Z"), "contribs" : [ "Fortran", "ALGOL", "Backus-Naur Form", "FP" ], "name" : "John Backus", "awards" : 4, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1927-09-04T04:00:00Z"), "contribs" : [ "Lisp", "Artificial Intelligence", "ALGOL" ], "name" : "John McCarthy", "awards" : 3, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1906-12-09T05:00:00Z"), "contribs" : [ "UNIVAC", "compiler", "FLOW-MATIC", "COBOL" ], "name" : "Grace Hopper", "awards" : 4, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1926-08-27T04:00:00Z"), "contribs" : [ "OOP", "Simula" ], "name" : "Kristen Nygaard", "awards" : 3, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1931-10-12T04:00:00Z"), "contribs" : [ "OOP", "Simula" ], "name" : "Ole-Johan Dahl", "awards" : 3, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1956-01-31T05:00:00Z"), "contribs" : [ "Python" ], "name" : "Guido van Rossum", "awards" : 2, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1941-09-09T04:00:00Z"), "contribs" : [ "UNIX", "C" ], "name" : "Dennis Ritchie", "awards" : 3, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1965-04-14T04:00:00Z"), "contribs" : [ "Ruby" ], "name" : "Matz Matsumoto", "awards" : 1, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "birth" : ISODate("1955-05-19T04:00:00Z"), "contribs" : [ "Java" ], "name" : "James Gosling", "awards" : 2, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
+   { "contribs" : [ "Scala" ], "name" : "Martin Odersky", "awards" : 0, "reportDate" : "2020-06-05", "reportBy" : "hellouser123", "reportNumber" : 1 }
 
 .. seealso:: :doc:`/tutorial/project-fields-from-query-results`
 

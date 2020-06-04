@@ -679,6 +679,91 @@ Starting in version 4.4 (and 4.2.7), MongoDB automatically splits the
 ``system.sessions`` collection into at least 1024 chunks and
 distributes the chunks uniformly across shards in the cluster.
 
+Projection
+----------
+
+Starting in MongoDB 4.4, as part of making
+:method:`~db.collection.find` and
+:method:`~db.collection.findAndModify` projection consistent with
+aggregation's :pipeline:`$project` stage, 
+
+- The :method:`~db.collection.find` and
+  :method:`~db.collection.findAndModify` projection can accept
+  aggregation expressions and aggregation syntax. With the use of
+  aggregation expressions and syntax, you can project new fields or
+  project existing fields with new values.
+
+- The :method:`~db.collection.find` and
+  :method:`~db.collection.findAndModify` projection can specify
+  embedded fields using the nested form; e.g. ``{ field: { nestedfield:
+  1 } }`` as well as :ref:`dot notation <document-dot-notation>`. In
+  earlier versions, you can only use the dot notation.
+
+For more information, see:
+
+- :method:`db.collection.find()`
+- :method:`db.collection.findOneAndDelete()`
+- :method:`db.collection.findOneAndReplace()`
+- :method:`db.collection.findOneAndUpdate()`
+- :method:`db.collection.findAndModify()`
+
+.. seealso:: :ref:`4.4-compatibility-projection-restrictions`
+
+.. _4.4-rel-notes-projection-meta-keyword:
+
+.. _4.4-rel-notes-agg-meta-keyword:
+
+``$meta`` Operator
+~~~~~~~~~~~~~~~~~~
+
+
+.. container::
+
+   ``$meta`` Keyword Support
+      .. list-table::
+
+
+         * - Starting in MongoDB 4.4, the :expression:`$meta` operator adds
+             support for retrieving the ``indexKey`` metadata. The ``indexKey``
+             metadata is for debugging purposes only and not for application
+             logic. See :expression:`$meta` for more information.
+
+   ``{ $meta: "textScore" }`` Usage with ``find()``
+      .. list-table::
+
+
+         * - Starting in version 4.4, MongoDB makes the following
+             :expression:`{ $meta: "textScore" } <$meta>` changes when used
+             with :method:`db.collection.find()`:
+
+             - You must specify the :query:`$text` operator in the query
+               predicate to use :expression:`{ $meta: "textScore" } <$meta>`.
+       
+             - You can sort the resulting documents by their search relevance,
+               i.e. :expression:`{ $meta: "textScore" } <$meta>`, without also
+               having to project the ``textScore``.
+
+               | In earlier versions, to include :expression:`{ $meta: "textScore"
+                 } <$meta>` expression in the :method:`~cursor.sort()`, you must
+                 also include the same expression in the projection.
+               |
+
+             - If you include the :expression:`{ $meta: "textScore" } <$meta>`
+               expression in both the projection and sort, i.e.
+               ``db.collection.find(<$text search>, <projection>).sort(<sort>)``,
+               the projection and sort documents can have different field names
+               for the expression.
+
+               | In previous versions of MongoDB, if you include the :expression:`{
+                 $meta: "textScore" } <$meta>` in both the projection and sort, you
+                 must specify the same field name in both places.
+
+             For more information, see :ref:`project-meta-textscore-sort`. For
+             examples of ``"textScore"`` projections and sorts, see
+             :ref:`ex-text-search-score`.
+
+.. seealso:: :ref:`4.4-compatibility-meta-textscore`
+
 Transactions
 ------------
 
@@ -1381,62 +1466,6 @@ Support for ``$natural`` Sort on Views
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/extracts/4.4-changes-natural-sort-views.rst
-
-.. _4.4-rel-notes-projection-meta-keyword:
-
-.. _4.4-rel-notes-agg-meta-keyword:
-
-
-``$meta`` Operator
-~~~~~~~~~~~~~~~~~~
-
-
-.. container::
-
-   ``$meta`` Keyword Support
-      .. list-table::
-
-
-         * - Starting in MongoDB 4.4, the :expression:`$meta` operator adds
-             support for retrieving the ``indexKey`` metadata. The ``indexKey``
-             metadata is for debugging purposes only and not for application
-             logic. See :expression:`$meta` for more information.
-
-   ``{ $meta: "textScore" }`` Usage with ``find()``
-      .. list-table::
-
-
-         * - Starting in version 4.4, MongoDB makes the following
-             :expression:`{ $meta: "textScore" } <$meta>` changes when used
-             with :method:`db.collection.find()`:
-
-             - You must specify the :query:`$text` operator in the query
-               predicate to use :expression:`{ $meta: "textScore" } <$meta>`.
-       
-             - You can sort the resulting documents by their search relevance,
-               i.e. :expression:`{ $meta: "textScore" } <$meta>`, without also
-               having to project the ``textScore``.
-
-               | In earlier versions, to include :expression:`{ $meta: "textScore"
-                 } <$meta>` expression in the :method:`~cursor.sort()`, you must
-                 also include the same expression in the projection.
-               |
-
-             - If you include the :expression:`{ $meta: "textScore" } <$meta>`
-               expression in both the projection and sort, i.e.
-               ``db.collection.find(<$text search>, <projection>).sort(<sort>)``,
-               the projection and sort documents can have different field names
-               for the expression.
-
-               | In previous versions of MongoDB, if you include the :expression:`{
-                 $meta: "textScore" } <$meta>` in both the projection and sort, you
-                 must specify the same field name in both places.
-
-             For more information, see :ref:`project-meta-textscore-sort`. For
-             examples of ``"textScore"`` projections and sorts, see
-             :ref:`ex-text-search-score`.
-
-.. seealso:: :ref:`4.4-compatibility-meta-textscore`
 
 
 Support for Diagnostic Backtrace Generation
