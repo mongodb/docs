@@ -1,1 +1,2 @@
-"build-and-stage-next-gen"
+#!/bin/bash
+make html
