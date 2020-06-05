@@ -1,3 +1,40 @@
+.. _opsmgr-server-4.2.14:
+
+|onprem| Server 4.2.14
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-06-04*
+
+Alerts
+``````
+
+- Fixes an issue with the ``BACKUP_AGENT_DOWN`` alert and MongoDB 4.2+
+  deployments. 
+
+Backup
+``````
+
+- Removes enforcement of a minimum oplog window size on a replica set
+  before you can enable {+bagent+}. 
+
+- Fixes an issue with snapshots of MongoDB 4.2+ running on Windows while
+  the |application| runs on Linux.
+
+- Fixes an issue where a MongoDB 4.2+ queryable restore fails if the
+  snapshot contains a large ``WiredTiger.wt`` file.
+
+- Fixes an issue that caused snapshot generation of the |csrs| of a
+  sharded cluster to stall in certain arrangements of {+mdbagent+}\s
+  running the {+bagent+} module.
+
+- Fixes an issue that prevented editing block stores in the |mms|
+  Administration Console.
+
+Agents
+``````
+Upgrades MongoDB Agent: :ref:`10.2.18.5978 <mongodb-10.2.18.5978>`.
+
+
 .. _opsmgr-server-4.2.13:
 
 |onprem| Server 4.2.13

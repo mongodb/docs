@@ -1,3 +1,20 @@
+.. _mongodb-10.2.18.5978:
+
+MongoDB Agent 10.2.18.5978
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.14 on 2020-06-04 <opsmgr-server-4.2.14>`
+
+- Allows {+aagent+} for managed deployments to start |mongos| processes
+  if only the |csrs| primary is available, instead of requiring all
+  |csrs| members to be available.
+
+- Fixes a rare issue with managed deployments where the {+mdbagent+} is
+  unable to start MongoDB processes.
+
+- Fixes an issue where the {+mdbagent+} ignores other agent
+  authentication mechanisms if ``clusterAuth`` is set to ``x509``.
+
 .. _mongodb-10.2.17.5970:
 
 MongoDB Agent 10.2.17.5970
