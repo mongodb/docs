@@ -57,6 +57,7 @@ release = conf.version.release
 pygments_style = 'sphinx'
 
 source_constants = {
+    'default-profile': ':ref:`default profile <mcli-config-file>`',
     'version': version,
     'mcli': 'MongoDB CLI',
     'mcli-long': 'MongoDB Command Line Interface (``mongocli``)',

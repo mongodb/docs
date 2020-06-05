@@ -16,7 +16,7 @@
      - string
      - Name of the profile where the public and private 
        keys for the project are saved. If omitted, uses the 
-       ``default`` profile. To learn more about creating a 
+       {+default-profile+}. To learn more about creating a 
        profile, see :ref:`mcli-configure`.
      - no
 
