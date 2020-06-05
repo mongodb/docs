@@ -58,8 +58,70 @@ Replica Configuration Document Changes
 
 .. _4.4-compatibility-projection-restrictions:
 
-Projection Restrictions
------------------------
+Projection Compatibility Changes
+--------------------------------
+
+Set Fields to New Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, |findoperation| projection can accept
+:ref:`aggregation expressions and aggregation syntax <4.4-projection>`.
+
+With the use of aggregation expressions and syntax, including the use
+of literals and aggregation variables, if you specify a literal (other
+than a number or a boolean) for the projection field value, the field
+is projected with the new value.
+
+For example, consider a collection inventory with documents that
+contain a ``status`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.inventory.insertOne( { _id: 1, item: "postcard", status: "A", instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] })
+
+Starting in MongoDB, 4.4, the following operation projects the fields
+``status`` and ``instock`` with new values instead of their current
+value:
+
+.. code-block:: javascript
+   :emphasize-lines: 3
+
+   db.inventory.find( 
+      { status: "A" }, 
+      { status: "Active", instock: ["blue", "crimson"] } 
+   )
+
+That is, the operation returns the following document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "status" : "Active", "instock" : [ "blue", "crimson" ] }
+
+In previous versions, any specification value (with the exception of
+zero/false value or the :ref:`previously unsupported document value
+<4.4-projection>`) is treated as ``true`` to indicate the inclusion of
+the field with its current value. That is, in earlier versions, the
+previous operation returns a document with the ``status`` and
+``instock`` fields with their current values:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "status" : "A", "instock" : [ { "warehouse" : "B", "qty" : 15 }, { "warehouse" : "C", "qty" : 35 } ] }
+   
+``$elemMatch`` Projection Field Order
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-elemMatch-projection-field-order.rst
+
+``$slice`` of Embedded Array 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-slice-operator-inclusion.rst
+
+.. _4.4-compatibility-projection-restrictions:
 
 Path Collision Restrictions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,6 +141,11 @@ Path Collision: ``$slice`` of an Array and Embedded Fields
 
 .. include:: /includes/extracts/projection-dollar-prefixed-field-full.rst
 
+``$`` Positional Operator Placement Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/projection-positional-operator-path.rst
+
 ``$`` Positional Operator and ``$slice`` Restriction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -89,7 +156,8 @@ Empty Field Name Projection Restriction
 
 .. include:: /includes/extracts/projection-empty-field-full.rst
 
-.. |findoperation| replace:: :method:`~db.collection.find` and :method:`~db.collection.findAndModify`
+
+.. |findoperation| replace:: :ref:`find <find-projection>` and :method:`~db.collection.findAndModify`
 
 .. _4.4-compatibility-meta-textscore:
 

@@ -137,36 +137,139 @@ content: |
       :header-rows: 1
       :widths: 40 60
 
-      * - Value
+      * - Projection
         - Description
 
-      * - ``1`` or ``true``
+      * - ``<field>: <1 or true>``
 
         - Specifies the inclusion of a field.
 
-      * - ``0`` or ``false``
+      * - ``<field>: <0 or false>``
 
         - Specifies the exclusion of a field.
 
-      * - :doc:`Projection Operators </reference/operator/projection>` 
+      * - ``"<field>.$": <1 or true>``
 
-        - The use of array projection operators (:projection:`$`,
-          :projection:`$elemMatch`, :projection:`$slice`) specifies the
-          array elements to include.
+        - With the use of the :projection:`$` array projection operator,
+          you can specify the projection to return the **first** element
+          that match the query condition on the array field; e.g.
+          ``"arrayField.$" : 1``. (Not available for :doc:`views
+          </core/views>`.)
 
-          With the use of meta projection expression, specifies the
-          inclusion of available per-document metadata.
+      * - ``<field>: <array projection>``
 
-          .. note::
+        - Using the array projection operators :projection:`$elemMatch`,
+          :projection:`$slice`, specifies the array element(s) to include,
+          thereby excluding those elements that do not meet the
+          expressions. (Not available for :doc:`views </core/views>`.)
 
-             :doc:`/core/views` do not support projection operator expressions.
+      * - ``<field>: <$meta expression>``
 
-      * - :ref:`Aggregation expressions <aggregation-expressions>`
+        - Using the :expression:`$meta` operator expression, specifies the
+          inclusion of available :expression:`per-document metadata
+          <$meta>`. (Not available for :doc:`views </core/views>`.)
+
+
+      * - ``<field>: <aggregation expression>``
 
         - Specifies the value of the projected field.
 
-          With the use of aggregation expressions, you can project new
-          fields or project existing fields with new values.
+          Starting in MongoDB 4.4, with the use of :ref:`aggregation
+          expressions and syntax <aggregation-expressions>`, including the
+          use of literals and aggregation variables, you can project new
+          fields or project existing fields with new values. For example,
+       
+          - If you specify a non-numeric, non-boolean literal (such as a
+            literal string or an array or an operator expression) for the
+            projection value, the field is projected with the new value;
+            e.g.:
+
+            - ``{ field: [ 1, 2, 3, "$someExistingField" ] }``
+            - ``{ field: "New String Value" }``
+            - ``{ field: { status: "Active", total: { $sum: "$existingArray" } } }``
+
+          - To project a literal value for a field, use the :expression:`$literal`
+            aggregation expression; e.g.:
+
+            - ``{ field: { $literal: 5 } }``
+         
+            - ``{ field: { $literal: true } }``
+
+            - ``{ field: { $literal: { fieldWithValue0: 0, fieldWithValue1: 1 } } }`` 
+            
+          In versions 4.2 and earlier, any specification value (with
+          the exception of the :ref:`previously unsupported document
+          value <4.4-projection>`) is treated as either ``true``
+          or ``false`` to indicate the inclusion or exclusion of
+          the field.
+
+          .. versionadded:: 4.4
+---
+ref: projection-values-table-without-meta
+content: |
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 60
+
+      * - Projection
+        - Description
+
+      * - ``<field>: <1 or true>``
+
+        - Specifies the inclusion of a field.
+
+      * - ``<field>: <0 or false>``
+
+        - Specifies the exclusion of a field.
+
+      * - ``"<field>.$": <1 or true>``
+
+        - With the use of the :projection:`$` array projection operator,
+          you can specify the projection to return the **first** element
+          that match the query condition on the array field; e.g.
+          ``"arrayField.$" : 1``. (Not available for :doc:`views
+          </core/views>`.)
+
+      * - ``<field>: <array projection>``
+
+        - Using the array projection operators :projection:`$elemMatch`,
+          :projection:`$slice`, specifies the array element(s) to include,
+          thereby excluding those elements that do not meet the
+          expressions. (Not available for :doc:`views </core/views>`.)
+
+      * - ``<field>: <aggregation expression>``
+
+        - Specifies the value of the projected field.
+
+          Starting in MongoDB 4.4, with the use of :ref:`aggregation
+          expressions and syntax <aggregation-expressions>`, including the
+          use of literals and aggregation variables, you can project new
+          fields or project existing fields with new values. For example,
+       
+          - If you specify a non-numeric, non-boolean literal (such as a
+            literal string or an array or an operator expression) for the
+            projection value, the field is projected with the new value;
+            e.g.:
+
+            - ``{ field: [ 1, 2, 3, "$someExistingField" ] }``
+            - ``{ field: "New String Value" }``
+            - ``{ field: { status: "Active", total: { $sum: "$existingArray" } } }``
+
+          - To project a literal value for a field, use the :expression:`$literal`
+            aggregation expression; e.g.:
+
+            - ``{ field: { $literal: 5 } }``
+         
+            - ``{ field: { $literal: true } }``
+
+            - ``{ field: { $literal: { fieldWithValue0: 0, fieldWithValue1: 1 } } }`` 
+            
+          In versions 4.2 and earlier, any specification value (with
+          the exception of the :ref:`previously unsupported document
+          value <4.4-projection>`) is treated as either ``true``
+          or ``false`` to indicate the inclusion or exclusion of
+          the field.
 
           .. versionadded:: 4.4
 ---
@@ -199,5 +302,153 @@ content: |
 
       - MongoDB enforces additional restrictions with regards to
         projections. See :limit:`Projection Restrictions` for details.
+---
+ref: projection-elemMatch-projection-field-order
+content: |
+ 
+    Starting in MongoDB 4.4, regardless of the ordering of the fields
+    in the document, the :projection:`$elemMatch` projection of an
+    existing field returns the field after the other existing field
+    inclusions.
+
+    For example, consider a ``players`` collection with the following document:
+
+    .. code-block:: javascript
+
+       db.players.insert( { 
+          name: "player1", 
+          games: [ { game: "abc", score: 8 }, { game: "xyz", score: 5 } ], 
+          joined: new Date("2020-01-01"),
+          lastLogin: new Date("2020-05-01")
+       } )
+
+    In version 4.4+, the following projection returns the ``games`` field
+    after the other existing fields included in the projection even though
+    in the document, the field is listed before ``joined`` and
+    ``lastLogin`` fields:
+
+    .. code-block:: javascript
+
+        db.players.find( {}, { games: { $elemMatch: { score: { $gt: 5 } } }, joined: 1, lastLogin: 1 } )
+
+    That is, the operation returns the following document:
+
+    .. code-block:: javascript 
+       :copyable: false
+
+       { 
+          "_id" : ObjectId("5edef64a1c099fff6b033977"),
+          "joined" : ISODate("2020-01-01T00:00:00Z"),
+          "lastLogin" : ISODate("2020-05-01T00:00:00Z"),
+          "games" : [ { "game" : "abc", "score" : 8 } ]
+       }
+
+    In version 4.2 and earlier, the :projection:`$elemMatch` projection of
+    an existing field upholds the ordering in the document:
+
+    .. code-block:: javascript
+       :copyable: false
+
+       { 
+         "_id" : ObjectId("5edef91e76ddff7d92f118e1"), 
+         "games" : [ { "game" : "abc", "score" : 8 } ],
+         "joined" : ISODate("2020-01-01T00:00:00Z"),
+         "lastLogin" : ISODate("2020-05-01T00:00:00Z") 
+       }
+---
+ref: projection-positional-operator-path
+content: |
+
+   Starting in MongoDB 4.4, the :projection:`$` projection operator can
+   only appear at the end of the field path; e.g. ``"field.$"``
+   or ``"fieldA.fieldB.$"``.
+   
+   For example, starting in MongoDB 4.4, the following operation is
+   invalid:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.inventory.find( { }, { "instock.$.qty": 1 } ) // Invalid starting in 4.4
+
+   To resolve, remove the component of the field path that follows the
+   :projection:`$` projection operator.
+
+   In previous versions, MongoDB ignores the part of the path that follows
+   the ``$``; i.e. the projection is treated as ``"instock.$"``. 
+---
+ref: projection-slice-operator-inclusion
+content: |
+
+   Starting in MongoDB 4.4, the :projection:`$slice` projection of an
+   array in an nested document no longer returns the other fields in
+   the nested document when the projection is part of an inclusion
+   projection. 
+   
+   For example, consider a collection ``inventory`` with documents that
+   contain a ``size`` field:
+  
+   .. code-block:: javascript
+      :copyable: false
+
+      { item: "socks", qty: 100, details: { colors: [ "blue", "red" ], sizes: [ "S", "M", "L"] } }
+      
+   Starting in MongoDB 4.4, the following operation projects the
+   ``_id`` field (by default), the ``qty`` field, and the ``details``
+   field with just the specified slice of the ``colors`` array:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { }, { qty: 1, "details.colors": { $slice: 1 } } )
+   
+   That is, the operation returns the following document:
+   
+   .. code-block:: javascript
+      :copyable: false
+      
+      { "_id" : ObjectId("5ee92a6ec644acb6d13eedb1"), "qty" : 100, "details" : { "colors" : [ "blue" ] } }
+      
+   If the :projection:`$slice` projection is part of an exclusion
+   projection, the operation continues to return the other fields in
+   the nested document. That is, the following projection is an
+   exclusion projection. The projection excludes the ``_id`` field and
+   the elements in the ``colors`` array that fall outside the specified
+   slice and returns all other fields.
+
+   .. code-block:: javascript
+
+      db.inventory.find( { }, { _id: 0, "details.colors": { $slice: 1 } } )
+   
+   .. code-block:: javascript
+      :copyable: false
+
+      { "item" : "socks", "qty" : 100, "details" : { "colors" : [ "blue" ], "sizes" : [ "S", "M", "L" ] } }
+
+   The :projection:`$slice` projection by itself is considered an exclusion.
+   
+   In previous versions, the :projection:`$slice` projection also
+   include the other fields in the nested document regardless of
+   whether the projection is an inclusion or an exclusion.
+
+---
+ref: projection-id-field
+content: |
+
+   The ``_id`` field is included in the returned documents by default unless
+   you explicitly specify ``_id: 0`` in the projection to suppress the field.
+
+---
+ref: projection-inclusion-exclusion
+content: |
+   
+   A ``projection`` *cannot* contain *both* include and exclude
+   specifications, with the exception of the ``_id`` field:
+
+   - In projections that *explicitly include* fields, the ``_id`` field is
+     the only field that you can *explicitly exclude*.
+
+   - In projections that *explicitly excludes* fields, the ``_id`` field
+     is the only field that you can *explicitly include*; however, the
+     ``_id`` field is included by default.
 
 ...
