@@ -19,8 +19,10 @@ The backup process:
       Sharded Clusters also can
       :ref:`enable checkpoints <enable-cluster-checkpoints>` to permit
       restores at points in time between snapshots. To learn how
-      sharded clusters use checkpoints, see :ref:`checkpoints
-      <checkpoint>`.
+      sharded clusters use checkpoints, see
+      :ref:`checkpoints <checkpoint>`.
+
+   .. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
 
 #. Monitors the :term:`oplog` constantly and adds new database
    operations to the latest backup to keep the local |onprem| copy of

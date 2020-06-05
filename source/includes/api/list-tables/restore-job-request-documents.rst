@@ -19,9 +19,7 @@
           :class: note
 
           - Set ``"delivery.methodName" : "AUTOMATED_RESTORE"``.
-          - Run Sharded Clusters using
-            :dbcommand:`FCV <setFeatureCompatibilityVersion>` of 4.0
-            or earlier.
+          - Run Sharded Clusters using |fcv-link| of 4.0 or earlier.
           - Can't set ``oplogInc``, ``oplogTs``, or
             ``pointInTimeUTCMillis``.
 
