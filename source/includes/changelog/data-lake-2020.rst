@@ -38,7 +38,7 @@
 05 May 2020 Release
 ~~~~~~~~~~~~~~~~~~~
 
-- Generates :doc:`Storage Configs </config/config-data-lake#generate-data-lake-configuration>`
+- Generates :ref:`Storage Configs <datalake-storagegenconfig>`
   when |service| creates a {+data-lake+}.
 - Adds support for :pipeline:`$out` to |s3|.
 - Updates support for `Apache Parquet <https://parquet.apache.org/>`__
