@@ -15,7 +15,7 @@
        Returned values include:
 
        - ``$external`` if the user is authenticated using X.509 
-         certificates or |ldap|.
+         certificates, |ldap|, or AWS IAM.
        - ``admin`` users authenticated using
          :manual:`SCRAM-SHA </core/security-scram>`.
 
@@ -92,6 +92,28 @@
               Externally authenticated users can only be created on the 
               ``$external`` database.
 
+   * - ``awsIAMType``
+     - string
+     - If this value is set, the new database user :doc:`authenticates
+       </security-add-mongodb-users>` with
+       |aws| IAM credentials.
+
+       Possible response values are:
+
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
+          
+          * - ``NONE``
+            - The user does not use AWS IAM credentials.
+
+          * - ``USER``
+            - New database user has AWS IAM user credentials.
+          
+          * - ``ROLE``
+            - New database user has credentials associated with an AWS
+              IAM role.
+
    * - ``links``
      - document array
      - One or more :ref:`links <api-linking>` to sub-resources and/or
@@ -145,3 +167,7 @@
 
        - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
        - ``x509Type`` is ``CUSTOMER``.
+
+       An :abbr:`ARN (Amazon Resource Name)` is returned if:
+
+       - ``awsIAMType`` is ``USER`` or ``ROLE``.

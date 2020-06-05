@@ -71,12 +71,13 @@ Request Body Parameters
 
        Accepted values include:
 
-       - ``admin`` if ``ldapAuthType`` and ``x509Type`` are omitted or
-         ``NONE``.
+       - ``admin`` if ``ldapAuthType``, ``x509Type`` and ``awsIAMType``
+         are omitted or ``NONE``.
        - ``$external`` if:
 
          - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
          - ``x509Type`` is ``MANAGED`` or ``CUSTOMER``.
+         - ``awsIAMType`` is ``USER`` or ``ROLE``.
 
    * - ``deleteAfterDate``
      - string
@@ -164,6 +165,29 @@ Request Body Parameters
 
               Externally authenticated users must be created on the
               ``$external`` database.
+
+   * - ``awsIAMType``
+     - string
+     - Optional
+     - If this value is set, the new database user :doc:`authenticates
+       </security-add-mongodb-users>` with |aws| IAM credentials.
+       If no value is given, |service| uses the default value of ``NONE``.
+
+       The accepted types are:
+
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
+          
+          * - ``NONE``
+            - The user does not use AWS IAM credentials.
+
+          * - ``USER``
+            - New database user has AWS IAM user credentials.
+          
+          * - ``ROLE``
+            - New database user has credentials associated with an AWS
+              IAM role.
 
    * - ``groupId``
      - string
@@ -256,8 +280,12 @@ Request Body Parameters
    * - ``password``
      - string
      - Conditional
-     - User's password. Required if ``x509Type`` and ``ldapAuthType``
-       are ``NONE``. This field is *not* included in the server
+     - User's password. Required if:
+     
+       - ``x509Type``, ``ldapAuthType`` and ``awsIAMType`` are ``NONE``,
+         meaning that the database user authenticates with ``SCRAM-SHA``.
+       
+       This field is *not* included in the server
        response.
 
    * - ``username``
@@ -270,6 +298,12 @@ Request Body Parameters
 
        - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
        - ``x509Type`` is ``CUSTOMER``.
+
+       Must be an `Amazon Resource Name (ARN) 
+       <https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html>`__
+       if:
+
+       - ``awsIAMType`` is ``USER`` or ``ROLE``.
 
 Response Elements
 ~~~~~~~~~~~~~~~~~
@@ -332,6 +366,20 @@ Request
             :linenos:
             :emphasize-lines: 7-18
 
+     - id: aws-iam
+       name: AWS IAM
+       content: |
+
+         Create a database user that |service| authenticates using AWS IAM
+         credentials and the ``$external`` database.
+
+         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+
+         .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-aws-iam.sh
+            :language: sh
+            :linenos:
+            :emphasize-lines: 7-18
+
 Response Header
 ~~~~~~~~~~~~~~~
 
@@ -370,6 +418,15 @@ Response Body
        content: |
 
          .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-ldap.json
+            :language: json
+            :copyable: false
+            :emphasize-lines: 2, 5, 12-22
+
+     - id: aws-iam
+       name: AWS-IAM
+       content: |
+
+         .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-aws-iam.json
             :language: json
             :copyable: false
             :emphasize-lines: 2, 5, 12-22

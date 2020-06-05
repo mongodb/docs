@@ -58,7 +58,7 @@ Request Path Parameters
        Accepted values include:
 
        - ``$external`` if the user is authenticated using X.509 
-         certificates or |ldap|.
+         certificates, |ldap| or AWS IAM.
        - ``admin`` users authenticated using
          :manual:`SCRAM-SHA </core/security-scram>`.
 
@@ -75,6 +75,10 @@ Request Path Parameters
 
        - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
        - ``x509Type`` is ``CUSTOMER``.
+
+       Must be an URL-encoded |aws| :abbr:`ARN (Amazon Resource Name)` if:
+
+       - ``awsIAMType`` is ``USER`` or ``ROLE``.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -251,6 +255,31 @@ Request
               } ]
             }'
 
+     - id: aws-iam
+       name: AWS IAM
+       content: |
+
+         Update one database user that |service| authenticates using
+         AWS IAM credentials and the ``$external`` database.
+
+         .. note::
+
+            The ``/`` character must be replaced with ``%2F`` in the AWS
+            :abbr:`ARN (Amazon Resource Name)`.  
+
+         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+
+         .. code-block:: none
+
+            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --header "Content-Type: application/json" \
+              --include \
+              --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5dd5a6b8f10fab1d71a58495/databaseUsers/$external/arn:aws:iam::358363220050:user%2Fmongodb-aws-iam-auth-test-user" \
+              --data '{
+                        "roles": [ { "databaseName": "admin", "roleName": "read" } ]
+                      }'
+
 Response Header
 ~~~~~~~~~~~~~~~
 
@@ -282,7 +311,10 @@ Response Body
                 "databaseName" : "service",
                 "roleName" : "read"
               } ],
-              "username" : "david"
+              "username" : "david",
+              "awsIAMType" : "NONE",
+              "x509Type" : "NONE",
+              "ldapAuthType" : "NONE"
             }
 
      - id: ldap
@@ -293,6 +325,7 @@ Response Body
             :copyable: false
 
             {
+              "awsIAMType" : "NONE",
               "databaseName" : "$external",
               "groupId" : "5356823b3794dee37132bb7b",
               "labels" [],
@@ -302,4 +335,26 @@ Response Body
                 "roleName" : "read"
               } ],
               "username" : "CN=david@example.com,OU=users,DC=example,DC=com"
+            }
+     
+     - id: aws-iam
+       name: AWS IAM
+       content: |
+
+         .. code-block:: json
+            :copyable: false
+
+            {
+              "awsIAMType" : "USER",
+              "databaseName" : "$external",
+              "groupId" : "5356823b3794dee37132bb7b",
+              "labels" [],
+              "links" : [ ... ],
+              "roles" : [ {
+                "databaseName" : "admin",
+                "roleName" : "read"
+              } ],
+              "username" : "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user",
+              "ldapAuthType" : "NONE",
+              "x509Type" : "NONE"
             }
