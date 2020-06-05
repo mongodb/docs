@@ -3,7 +3,7 @@ the :ref:`mcli-config-command` and :ref:`mcli-config-set-command`
 commands. In the following steps, the commands:
 
 - Create the ``default`` profile in the
-  ``mongocli.toml`` file.
+  :ref:`configuration file <mcli-config-file>`.
 - Set your programmatic |api| access keys and project ID in the
   profile.
 
