@@ -34,6 +34,7 @@
        - 3.6
        - 4.0
        - 4.2
+       - 4.4
 
    * - :guilabel:`Configuration`
      - Additional configuration options for the cluster including

@@ -72,7 +72,8 @@
 
        .. important::
 
-          Clusters running MongoDB 4.2 and any net new |service|
+          Clusters running MongoDB 4.2 or later and any net new 
+          |service|
           clusters of any type do not support this parameter.
           These clusters must use
           :doc:`/backup/cloud-backup/overview`:
@@ -402,10 +403,15 @@
        - ``3.6``
        - ``4.0``
        - ``4.2``
+       - ``4.4``
+
+       .. include:: /includes/admonitions/version-4.4-beta.rst
 
        You must set this value to ``4.2`` if
        ``providerSettings.instanceSizeName``
        is either ``M2`` or ``M5``.
+
+       .. include:: /includes/admonitions/version-4.4-beta-shared-tier-exception.rst
 
        |service| always deploys the cluster with the latest stable
        release of the specified version. You can upgrade to a newer

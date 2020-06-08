@@ -40,7 +40,8 @@
      - boolean
      - .. important::
 
-          Clusters running MongoDB 4.2 and any net new |service|
+          Clusters running MongoDB version 4.2 or later and any net new 
+          |service|
           clusters of any type do not support this parameter.
           These clusters must use
           :doc:`/backup/cloud-backup/overview`:
@@ -288,6 +289,7 @@
        - 3.6
        - 4.0
        - 4.2
+       - 4.4
 
    * - ``mongoURI``
      - string
