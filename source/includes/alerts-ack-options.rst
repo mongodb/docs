@@ -37,10 +37,10 @@
 
    * - ``--profile``, ``-P``
      - string
-     - Name of the profile where the project ID and the |svc-api-key|\s
-       for the project are saved. If omitted, uses the ``default``
-       profile.
-
+     - Name of the profile where the project ID and the |svc-api-key|\s 
+       for the project are saved. If omitted, uses the
+       {+default-profile+}.
+       
        .. seealso::
 
           To learn more about creating a profile, see

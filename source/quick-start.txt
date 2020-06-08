@@ -18,10 +18,10 @@ This tutorial demonstrates how to:
 
 - Download, install, and  configure {+mcli+}
 - Create clusters in your |service|, |cloud-short|, or |mms| project
-- Create whitelist and MongoDB user for your |service| cluster
+- Create a whitelist and MongoDB user for your |service| cluster
 - Retrieve details about the new cluster 
 
-The reference pages for the CLIs mentioned in this tutorial are  
+The reference pages for the commands mentioned in this tutorial are  
 available in the :ref:`mcli-reference` section.
 
 .. _quick-start-reqs:
@@ -40,11 +40,6 @@ This tutorial requires the following:
 
 Download and  Install {+mcli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-There are two ways to install {+mcli+}. You can:
-
-- Clone the {+mcli+} git repository
-- Download the binary
 
 See :ref:`mcli-install` for information on downloading and installing 
 {+mcli+}. After installing {+mcli+}, run the following command to 
@@ -71,8 +66,8 @@ To learn more about generating the |svc-api-key|, see:
 
 .. note:: 
 
-   The following sections are organized by the MongoDB services. Select 
-   the tab for your MongoDB service to proceed with this tutorial. 
+   The following sections are organized by MongoDB service. Select 
+   the tab for your MongoDB service to proceed. 
 
 .. tabs:: 
 
@@ -82,13 +77,7 @@ To learn more about generating the |svc-api-key|, see:
       Configure the {+mcli+}
       ----------------------
 
-      You can configure the {+mcli+} access to MongoDB |service| using
-      the ``mongocli config`` and ``mongocli config set`` commands. The
-      commands in the following steps create a custom profile named
-      ``atlasProfile`` in the ``~/.config/mongocli.toml`` file and sets
-      your programmatic |api| access keys and project ID in the profile.
-      You can use this profile with all the other commands in this
-      tutorial.
+      .. include:: /includes/quick-start-intro.rst
 
       .. include:: /includes/steps/quick-start-atlas-config-mcli.rst
 
@@ -97,10 +86,12 @@ To learn more about generating the |svc-api-key|, see:
       Create a Cluster 
       ----------------
 
-      You can create a cluster on |service| using the {+mcli+} :ref:`cluster 
-      create <mcli-atlas-cluster-create-command>` command. 
+      Use the :ref:`mcli-atlas-cluster-create-command` command to create
+      a cluster in |service|.
+
+      .. include:: /includes/admonitions/note-atlas-api-free-tier-limits.rst
       
-      The following command creates a sample cluster with the following settings: 
+      The following command creates a sample paid-tier cluster with the following settings: 
 
       - Cluster name: ``getStarted``
       - Service provider: ``AWS`` 
@@ -110,69 +101,67 @@ To learn more about generating the |svc-api-key|, see:
       - MongoDB version: ``4.2`` 
       - Replica set members: ``3``
 
-      .. example::
+      .. code-block:: text 
 
-         .. code-block:: text 
-
-            mongocli atlas cluster create getStarted --provider AWS --region US_EAST_1 --tier M10 --diskSizeGB 10 --mdbVersion 4.2 --members 3 --profile atlasProfile
+         mongocli atlas cluster create getStarted --provider AWS --region US_EAST_1 --tier M10 --diskSizeGB 10 --mdbVersion {+mdbVersion+} --members 3
 
       .. _quick-start-whitelist:
 
       Whitelist Your IP Address
       -------------------------
 
-      For each project, you can create a list of trusted IP addresses, referred 
-      to as a whitelist, and connect to the clusters in the project from a 
-      trusted IP address. Run the following command to add IP addresses to your 
-      whitelist. 
-
+      |service| only allows incoming connections to the cluster from
+      entries in the project’s whitelist. You can add individual IP
+      addresses or |cidr| blocks to the project IP whitelist. 
+      
+      |service| supports specifying private IP addresses with VPC peered
+      connections. For more information, see
+      :atlas:`Set up a Network Peering Connection </security-vpc-peering/index.html>`.
+      
+      Run the following command to add entries to your whitelist.
       Replace the IP address with your connection IP address. 
 
       .. code-block:: sh 
          
-         mongocli atlas whitelist create <your-IP-address> --type ipAddress --profile atlasProfile
+         mongocli atlas whitelist create <your-IP-address> --type ipAddress
 
       .. _quick-start-create-mdb-user:
 
       Create a MongoDB User 
       ---------------------
 
-      You must create a MongoDB user for you |service| cluster with the 
-      :ref:`dbuser create <mcli-atlas-dbuser-create-command>`. The MongoDB 
-      user can access the database hosted in |service|. Run the following command 
-      to add a MongoDB user. The command creates a MongoDB user with the following 
-      attributes:
+      If the |service| project does not yet have a MongoDB database user
+      configured, you must create one in order to access the database.
+      Run the :ref:`mcli-atlas-dbuser-create-command` command to add a
+      MongoDB database user. 
+      
+      The command creates a MongoDB user with the following attributes: 
 
-      - Username: ``myMongoDbUser`` 
-      - Password: ``myMongoDbUserPwd``
+      - Username: ``User1`` 
+      - Password: ``ChangeThisPasswordToSomethingSecure``
 
         .. note:: 
 
-           The tutorial uses the password ``myMongoDbUserPwd``. Replace this password 
-           with a strong password.
+           The tutorial uses the password ``ChangeThisPasswordToSomethingSecure``. Replace this
+           password with a strong password.
 
       - Role: |service| admin
 
       .. code-block:: sh 
          
-         mongocli atlas dbuser create --username myMongoDbUser --password myMongoDbUserPwd --role atlasAdmin@admin --profile atlasProfile
+         mongocli atlas dbuser create --username User1 --password ChangeThisPasswordToSomethingSecure --role atlasAdmin@admin
 
       .. _quick-start-atlas-retrieve-cluster:
 
       Retrieve Your Cluster 
       ---------------------
 
-      You can check whether your cluster was successfully created by 
-      retrieving your cluster details using the {+mcli+}. Run the following 
-      command to retrieve the cluster. The command uses: 
-	  
-      - The specified profile to determine the ID of the project that contains 
-        the cluster.
-      - The programmatic |api| access keys in the profile for authentication.
-	     
+      To check your cluster's deployment status, issue the
+      :ref:`mcli-atlas-cluster-describe-command` command.
+
       .. code-block:: sh 
 
-         mongocli atlas cluster describe getStarted --profile atlasProfile
+         mongocli atlas cluster describe getStarted
 
       Your command output should look similar to the following:
 
@@ -195,7 +184,7 @@ To learn more about generating the |svc-api-key|, see:
 	       "groupId": "<project-ID>",
 	       "mongoDBVersion": "4.2.3",
 	       "mongoDBMajorVersion": "4.2",
-	       "mongoURI": "mongodb://getstarted-shard-00-00-7hgjn.mongodb.net:27017,getstarted-shard-00-01-7hgjn.mongodb.net:27017,getstarted-shard-00-02-7hgjn.mongodb.net:27017",
+	       "mongoURI": "mongodb://getstarted.mongodb.example.net:27017,getstarted.mongodb.example.net:27017,getstarted.mongodb.example.net:27017",
 	       "name": "getStarted",
 	       "numShards": 1,
 	       "paused": false,
@@ -230,23 +219,19 @@ To learn more about generating the |svc-api-key|, see:
 			  }
 		     }
 	       ],
-	       "srvAddress": "mongodb+srv://getstarted-7hgjn.mongodb.net",
+	       "srvAddress": "mongodb+srv://getstarted.mongodb.example.net",
 	       "stateName": "IDLE"
          }
 
       Summary 
       -------
 
-      Congratulations! You have successfully created a cluster in |service| 
-      to host your data. You can view your cluster by logging in to the 
-      |service| UI. You can also connect to your cluster using the ``mongoURI``. 
-      For example, run the following command to connect using the ``mongoURI``. 
-      Replace ``mongoURI`` with the value of ``mongoURI`` in your ``cluster 
-      describe`` command output.
+      .. include:: /includes/quick-start-summary.rst
 
-      .. code-block:: sh 
-
-         mongo <mongoURI>
+      You can also use the |mongo| shell connect to your cluster with
+      the ``srvAddress`` and appropriate :manual:`connection string
+      options
+      </reference/connection-string/#connection-string-options>`.
 
    .. tab:: Cloud Manager
       :tabid: cloud-manager 
@@ -254,19 +239,15 @@ To learn more about generating the |svc-api-key|, see:
       Configure the {+mcli+}
       ----------------------
 
-      You can configure the {+mcli+} access to |cloud-short| using the 
-      ``mongocli config`` and ``mongocli config set`` commands. The commands 
-      in the following steps create a custom profile named ``cmProfile`` 
-      in the ``~/.config/mongocli.toml`` file and sets your programmatic |api| 
-      access keys and project ID in the profile. You can use this profile 
-      to run all the other commands in this tutorial.
+      .. include:: /includes/quick-start-intro.rst
 
       .. include:: /includes/steps/quick-start-cm-config-mcli.rst
 
       Create a Cluster 
       ----------------
 
-      You can create a cluster on |cloud-short| using the {+mcli+}.
+      Use the :ref:`mcli-cm-cluster-create-command` command to create
+      a cluster in |cloud-short|.
 
       .. include:: /includes/quick-start-cm-om-create-cluster-intro.rst
       .. include:: /includes/steps/quick-start-cm-cluster-create.rst
@@ -274,19 +255,13 @@ To learn more about generating the |svc-api-key|, see:
       Retrieve the Cluster 
       --------------------
 
-      You can check whether your cluster was created by retrieving your cluster 
-      details using the {+mcli+}. Run the following command to retrieve the 
-      cluster. The following command retrieves a detailed description of the cluster 
-      named ``getStarted``. The command uses: 
-	  
-      - The specified profile to determine the ID of the project that contains 
-        the cluster.
-      - The programmatic |api| access keys in the profile to interact with the 
-        |cloud-short| project.
+      You can check whether your cluster was successfully created by
+      retrieving the cluster details using the
+      :ref:`mcli-cm-cluster-describe-command` command.
 
       .. code-block:: sh 
 
-         mongocli cloud-manager cluster describe getStarted --profile cmProfile
+         mongocli cloud-manager cluster describe getStarted
 
       Your command output should look similar to the following:
 
@@ -354,16 +329,7 @@ To learn more about generating the |svc-api-key|, see:
       Summary 
       -------
 
-      Congratulations! You have successfully created a cluster in |cloud-short| 
-      to host your data. You can view your cluster by logging in to the 
-      |cloud-short| UI. You can also connect to your cluster using the 
-      ``mongoURI``. For example, run the following command to connect using the 
-      ``mongoURI``. Replace ``mongoURI`` with the value of ``mongoURI`` in your 
-      ``cluster describe`` command output.
-
-      .. code-block:: sh 
-
-         mongo <mongoURI>
+      .. include:: /includes/quick-start-summary.rst
 
    .. tab:: Ops Manager
       :tabid: ops-manager 
@@ -371,12 +337,7 @@ To learn more about generating the |svc-api-key|, see:
       Configure the {+mcli+}
       ----------------------
 
-      You can configure the {+mcli+} access to |mms| using the 
-      ``mongocli config`` and ``mongocli config set`` commands. The commands 
-      in the following steps create a custom profile named ``omProfile`` 
-      in the ``~/.config/mongocli.toml`` file and sets your programmatic |api| 
-      access keys and project ID in the profile. You can use this profile 
-      to run all the other commands in this tutorial.
+      .. include:: /includes/quick-start-intro.rst
 
       .. include:: /includes/steps/quick-start-om-config-mcli.rst
 
@@ -385,7 +346,8 @@ To learn more about generating the |svc-api-key|, see:
       Create a Cluster 
       ----------------
 
-      You can create a cluster on |mms| using the {+mcli+}.
+      Use the :ref:`mcli-om-cluster-create-command` command to create
+      a cluster in |onprem|.
 
       .. include:: /includes/quick-start-cm-om-create-cluster-intro.rst
       .. include:: /includes/steps/quick-start-om-cluster-create.rst
@@ -395,15 +357,13 @@ To learn more about generating the |svc-api-key|, see:
       Retrieve the Cluster 
       --------------------
 
-      The following command retrieves a detailed description of the cluster 
-      named ``getStarted``. The command uses the profile named ``omProfile``: 
-	  
-      - To determine the ID of the project that contains the cluster.
-      - For the programmatic |api| access keys to access the |mms| project.
+      You can check whether your cluster was successfully created by
+      retrieving the cluster details using the
+      :ref:`mcli-om-cluster-describe-command` command.
 
       .. code-block:: sh 
 
-         mongocli ops-manager cluster describe getStarted --profile omProfile
+         mongocli ops-manager cluster describe getStarted
 
       Your command output should look similar to the following:
 
@@ -471,13 +431,4 @@ To learn more about generating the |svc-api-key|, see:
       Summary 
       -------
 
-      Congratulations! You have successfully created a cluster in |mms| to 
-      host your data. You can view your cluster by logging in to the |mms|
-      UI. You can also connect to your cluster using the ``mongoURI``. For 
-      example, run the following command to connect using the ``mongoURI``. 
-      Replace ``mongoURI`` with the value of ``mongoURI`` in your ``cluster 
-      describe`` command output.
-
-      .. code-block:: sh 
-
-         mongo <mongoURI>
+      .. include:: /includes/quick-start-summary.rst

@@ -57,10 +57,12 @@ release = conf.version.release
 pygments_style = 'sphinx'
 
 source_constants = {
+    'default-profile': ':ref:`default profile <mcli-profiles>`',
     'version': version,
     'mcli': 'MongoDB CLI',
     'mcli-long': 'MongoDB Command Line Interface (``mongocli``)',
     'mcli-version': '0.5.0',
+    'mdbVersion': '4.2',
     'mdbagent': 'MongoDB Agent',
     'aagent': 'Automation Agent',
     'magent': 'Monitoring Agent',

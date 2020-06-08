@@ -15,7 +15,7 @@
    * - ``--profile``, ``-P``
      - string
      - Name of the profile where the project ID and the |svc-api-key|\s 
-       for the project are saved. If omitted, uses the ``default`` profile. 
+       for the project are saved. If omitted, uses the {+default-profile+}. 
        To learn more about creating a profile, see :ref:`mcli-configure`.
      - no
 
