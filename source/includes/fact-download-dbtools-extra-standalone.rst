@@ -2,11 +2,11 @@ To install |tool-binary| as a standalone installation:
 
 - Follow the download link for MongoDB Enterprise Edition:
   `MongoDB Enterprise Download Center
-  <https://www.mongodb.com/download-center/enterprise?tck=docs_server>`_
+  <https://www.mongodb.com/try/download/enterprise?tck=docs_server>`_
 
-- Select your :guilabel:`OS` (operating system) from the dropdown menu,
-  then select the appropriate :guilabel:`Package` for your platform
-  according to the following chart:
+- Select your :guilabel:`Platform` (operating system) from the dropdown
+  menu, then select the appropriate :guilabel:`Package` for your
+  platform according to the following chart:
 
   .. list-table::
      :header-rows: 1
@@ -18,15 +18,15 @@ To install |tool-binary| as a standalone installation:
 
      * - *Linux* 
 
-       - ``TGZ`` package
+       - ``tgz`` package
 
      * - *Windows*
 
-       - ``ZIP`` package
+       - ``zip`` package
 
      * - *macOS*
 
-       - ``TGZ`` package 
+       - ``tgz`` package 
 
 - Once downloaded, unpack the archive and copy |tool-binary| to a
   location on your hard drive.

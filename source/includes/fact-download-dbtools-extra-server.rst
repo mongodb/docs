@@ -10,5 +10,5 @@ installation:
 
   .. note::
 
-     For the Windows ``MSI`` installer wizard, the
+     For the Windows ``.msi`` installer wizard, the
      :guilabel:`Complete` installation option includes |tool-binary|.
