@@ -1,0 +1,188 @@
+.. _adl-sql-stage:
+
+========
+``$sql``
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-sql-beta-message.rst
+
+``$sql`` processes a SQL query of the data in a collection. 
+It must be the first stage in the pipeline.  
+
+.. _adl-sql-syntax:
+
+Syntax 
+------
+
+.. code-block:: json 
+
+   {
+     $sql: { 			
+       statement: "<SQL-statement>",
+       format: "jdbc",
+       formatVersion: 1,
+       dialect: "mysql"
+     }
+   }
+
+.. _adl-sql-fields:
+
+Fields 
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 70 10
+
+   * - Field 
+     - Type 
+     - Description 
+     - Necessity
+
+   * - ``dialect``
+     - string
+     - SQL dialect used by the statement. Value must be ``mysql``.
+     - Required
+
+   * - ``format``
+     - string
+     - Structure of the output documents. Value must be ``jdbc``.
+     - Required
+
+   * - ``formatVersion``
+     - int
+     - Version of the requested schema format. If omitted, defaults 
+       to the latest version of the requested schema format.
+     - Optional
+
+   * - ``statement``
+     - string
+     - SQL query or command to run. 
+     - Required
+
+.. _adl-sql-output:
+
+Output 
+------
+
+If the SQL statement is not a query or a command that returns a 
+result set, the ``$sql`` stage does not return any documents. 
+
+If the SQL statement is a query, the ``$sql`` stage returns one document 
+per row in the SQL result set. Each document includes a single array field 
+named ``values`` that contains documents representing the columns in the 
+result set and their values. For example: 
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+     "values": [
+       {
+         "database": "<databaseName>",
+         "table": "<tableName>",
+         "tableAlias": "<tableAlias>",
+         "column": "<columnName>",
+         "columnAlias": "<columnAlias>",
+         "bsonType": "<bsonType>",
+         "value": "<columnValue>"
+       },
+       ...
+     ]
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 70 
+
+   * - Field 
+     - Type 
+     - Description 
+
+   * - ``database``
+     - string
+     - Name of the database. For queries against ``DUAL``, the field 
+       has a ``null`` value.
+
+   * - ``table``
+     - string
+     - Name of the table. For computed columns, the field has 
+       a ``null`` value. 
+
+   * - ``tableAlias``
+     - string
+     - Alias for the table. If the query provides no alias, value is 
+       the same as the table name. For computed columns, the field has 
+       a ``null`` value.
+
+   * - ``column``
+     - string
+     - Name of the column. For computed columns, the field has 
+       a ``null`` value.
+
+   * - ``columnAlias``
+     - string
+     - Alias for the column. If the query provides no alias, value is 
+       the same as the column name. For computed columns, the field 
+       contains the column name.
+
+   * - ``bsonType``
+     - string
+     - The type of value. See :ref:`sql-bson-types` for more 
+       information.
+
+   * - ``value``
+     - string
+     - The column value.
+
+If the result set of the query is empty, the output includes a 
+field ``emptyResultSet`` whose value is ``true``. The ``values`` field 
+has all of the column metadata, but the ``value`` field value is ``null``. 
+For example: 
+
+.. code-block:: json 
+   :copyable: false 
+   :emphasize-lines: 2, 11
+
+   {
+     "emptyResultSet": true,
+     "values": [
+       {
+         "database": "<databaseName>",
+         "table": "<tableName>",
+         "tableAlias": "<tableAlias>",
+         "column": "<columnName>",
+         "columnAlias": "<columnAlias>",
+         "bsonType": "<bsonType>",
+         "value": "null"
+       },
+       ...
+     ]
+   }
+
+.. _adl-sql-eg:
+
+Example 
+-------
+
+The following example shows the ``$sql`` syntax for querying 
+a ``sampleDB.egData`` collection: 
+
+.. code-block:: json 
+   
+   {
+     $sql: { 			
+       statement: "select * from egData limit 2",
+       format: "jdbc",
+       formatVersion: 1,
+       dialect: "mysql",
+     }
+   }

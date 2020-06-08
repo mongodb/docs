@@ -1,0 +1,372 @@
+.. _sql-schema-format:
+
+=================
+SQL Schema Format
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-sql-beta-message.rst
+
+.. _sql-schema-overview:
+
+Overview 
+--------
+
+To query data using SQL, {+adl+} needs to be aware of the schema for that 
+data. {+dl+} automatically generates a |json| schema for all new collections, 
+except wildcard collections, and views. To learn more about auto-generated 
+schemas, see :ref:`query-with-sql`.
+
+By default, {+dl+} samples data from a single document in your collection 
+or view to generate a |json| schema. If your collection or view contains 
+polymorphic data, you can provide a larger sampling size to {+dl+} when 
+manually :ref:`generating <sqlgenerateschema-cmd>` the schema. 
+
+{+dl+} maps |json| schemas to relational schemas. MongoDB's :manual:`flexible 
+schema model </core/data-modeling-introduction/>` allows a given field to 
+contain data of multiple types, while relational databases restrict columns to 
+a single data type. The following sections describe the fields supported in 
+the |json| schema, the |bson| types that are supported in a relational schema, 
+and how {+dl+} resolves conflicts for polymorphic fields when mapped to 
+relational schema.
+
+|json| Schema Format 
+--------------------
+
+The schema for a collection is a document with two fields: ``jsonSchema`` 
+and ``version``. 
+
+.. code-block:: json 
+
+	 "schema" : {
+		 "version" : NumberLong(1),
+		 "jsonSchema" : {}
+	 }
+
+The ``version`` field represents the version of the schema format used by 
+the document and the value is always ``1``. The ``jsonSchema`` field is 
+a document that describes the schema of the :manual:`namespace 
+</reference/limits/#faq-dev-namespace>`. 
+
+.. _sql-json-schema-fields:
+
+Supported JSON Schema Fields 
+----------------------------
+
+{+dl+} supports the following |json| schema fields: 
+
+- ``bsonType`` 
+- ``items`` 
+- ``properties``
+
+To learn more about these fields, see :manual:`JSON Schema Keywords 
+</reference/operator/query/jsonSchema/#jsonschema-keywords>`.
+
+.. _sql-bson-types:
+
+Supported BSON Types 
+--------------------
+
+{+dl+} only supports the following |bson| types when mapping |json| 
+schema to relational schema:
+
+- ``double``
+- ``string``
+- ``object``
+- ``array``
+- ``binData``
+- ``objectId``
+- ``bool``
+- ``date``
+- ``null``
+- ``int``
+- ``long``
+- ``decimal``
+
+Other types are ignored in the relational schema. Fields with 
+composite types, such as objects and arrays, are handled specially. 
+
+Object Fields
+~~~~~~~~~~~~~
+
+Object fields are flattened such that each nested field maps to its 
+own column in the relational schema. For example, consider the following 
+``eg`` collection: 
+
+.. code-block:: json 
+
+   { _id: 0, a: true, b: "bar", c: { x: 1.0, y: 2.0 } } 
+   { _id: 1, a: true, b: "baz", c: { x: 10.0, y: 20.0 } }
+
+For the above collection, {+dl+} generates the following |json| 
+schema: 
+
+.. code-block:: json
+   :copyable: false 
+
+   {
+     bsonType: "object",
+     properties: {
+       _id: { bsonType: "int" },
+       a: { bsonType: "bool" },
+       b: { bsonType: "string" },
+       c: {
+         bsonType: "object",
+         properties: {
+           x: { bsonType: "double" },
+           y: { bsonType: "double" }
+         }
+       }
+     }
+   }
+
+In the relational schema, the nested fields ``c.x`` 
+and ``c.y`` are flattened into their own columns. The following 
+table is a representation of the above schema:
+
+.. list-table::
+   :widths: 20 20 20 20 20
+   :header-rows: 1
+
+   * - ``_id`` 
+     - ``a``
+     - ``b`` 
+     - ``c.x`` 
+     - ``c.y``
+
+   * - ``0`` 
+     - ``true`` 
+     - ``bar``
+     - ``1.0`` 
+     - ``2.0``
+
+   * - ``1`` 
+     - ``true`` 
+     - ``baz`` 
+     - ``10.0`` 
+     - ``20.0``
+
+Array Fields
+~~~~~~~~~~~~
+
+Array fields are mapped to their own tables. For example, 
+consider the following ``eg`` collection: 
+
+.. code-block:: json 
+
+   { _id: 0, a: ["k", "l", "m"] } 
+   { _id: 1, a: ["x", "y", "z"] } 
+
+For the above collection, {+dl+} generates the following 
+|json| schema: 
+
+.. code-block:: json
+   :copyable: false 
+
+   {
+     bsonType: "object",
+     properties: {
+       _id: { bsonType: "int" },
+       a: {
+         bsonType: "array",
+         items: {
+           bsonType: "string"
+         }
+       }
+     }
+   }
+
+In the relational schema, the array field ``a`` is mapped to its 
+own table. The array tables include a column suffixed with ``_idx`` to 
+track the index of the row's value in the array. The following tables 
+are representations of the above schema: 
+
+**Table:** ``eg``
+
+.. list-table::
+   :widths: 100
+   :header-rows: 1
+
+   * - ``id`` 
+
+   * - ``0`` 
+
+   * - ``1``
+
+**Table:** ``eg_a`` 
+
+.. list-table::
+   :widths: 30 35 35
+   :header-rows: 1
+
+   * - ``_id``
+     - ``a_idx`` 
+     - ``a``
+
+   * - 0
+     - 0
+     - ``k``
+
+   * - 0
+     - 1
+     - ``l``
+
+   * - 0
+     - 2
+     - ``m``
+
+   * - 1
+     - 0
+     - ``x``
+
+   * - 1
+     - 1
+     - ``y``
+
+   * - 1
+     - 2
+     - ``z``
+
+Type Conversion Conflicts 
+-------------------------
+
+MongoDB's :manual:`flexible schema model </core/data-modeling-introduction/>` 
+allows a given field to contain data of multiple types, while relational 
+databases restrict columns to a single data type. When {+dl+} maps the 
+|json| schema to relational schema, type conflicts can occur if a field 
+is polymorphic. There are two main categories of type conversion conflicts 
+that might occur when there are multiple data types: 
+
+- Conflicts between scalar types
+- Conflicts involving composite types like documents and arrays
+
+Scalar-Scalar Conflicts 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When a scalar-scalar confict occurs, {+dl+} uses the following
+lattice to determine the least upper bound of the two different 
+data types:
+
+.. figure:: /images/scalar-lattice.png 
+   :figwidth: 650px 
+   :alt: scalar-scalar type lattice
+
+.. example::
+
+   If a given field contains:
+   
+   - ``int``, ``double``, and ``string`` types, the least upper bound 
+     is ``string``.
+   - ``int64`` and ``double`` types, the least upper bound is 
+     ``decimal128``.
+
+When a scalar-scalar conflict occurs, {+dl+} takes the least upper 
+bound type and uses that as the single type in the relational schema.
+
+Composite Conflicts
+~~~~~~~~~~~~~~~~~~~
+
+Composite conflicts are type conversion conflicts involving a document
+or an array. The following sections describe how {+dl+} resolves both 
+types of composite conflicts.
+
+Document Conflicts
+##################
+
+When a conflict occurs involving a document, {+dl+} displays the fields 
+of the document type as separate columns using dot notation. For example, 
+consider a collection named ``conflict`` that contains the following 
+documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 0, a: "foo" } // "a" is scalar (string)
+   { _id: 1, a: { a: "bar", b: "baz" } } // "a" is composite (document)
+
+{+dl+} detects a scalar-composite conflict and generates the
+schema. The following table is a representation of that schema:
+
+**Table:** ``conflict``
+
+.. list-table::
+   :widths: 25 25 25 25
+   :header-rows: 1
+
+   * - _id
+     - a
+     - a.a
+     - a.b
+
+   * - 0
+     - "foo"
+     - ``NULL``
+     - ``NULL``
+
+   * - 1
+     - ``NULL``
+     - "bar"
+     - "baz"
+
+When a conflict occurs involving a document, {+dl+} inserts a
+column in the table and lists the different sampled types in the 
+column.
+
+Array Conflicts
+###############
+
+When a conflict occurs involving an array, {+dl+} creates a new
+table for the conflict field with a column for the foreign key, 
+array index, and value. {+dl+} unwinds the array into multiple rows 
+in a new table and fills in the columns accordingly. For example, the 
+``conflict`` collection contains the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 0, a: "foo" } // "a" is scalar (string)
+   { _id: 1, a: ["bar", "baz"] } // "a" is composite (array)
+
+The following two tables are representations of the relational 
+schema:
+
+**Table:** ``conflict``
+
+.. list-table::
+   :widths: 100
+   :header-rows: 1
+
+   * - _id
+
+   * - 0
+
+   * - 1
+
+**Table:** ``conflict_a``
+
+.. list-table::
+   :widths: 33 34 33 
+   :header-rows: 1
+
+   * - _id
+     - a_idx
+     - a
+
+   * - 0
+     - ``NULL``
+     - "foo"
+
+   * - 1
+     - 0
+     - "bar"
+
+   * - 1
+     - 1
+     - "baz"

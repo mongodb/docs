@@ -1,0 +1,310 @@
+.. _sqlgenerateschema-cmd:
+
+=====================
+``sqlGenerateSchema``
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-sql-beta-message.rst
+
+The ``sqlGenerateSchema`` command generates a SQL schema for the 
+specified collection or view.  
+
+.. _sqlgenerateschema-syntax:
+
+Syntax 
+------
+
+.. code-block:: sh 
+
+   db.runCommand({sqlGenerateSchema: 1, sampleNamespaces: [<namespace>], sampleSize: <int>, setSchemas: true|false})
+
+.. _sqlgenerateschema-params:
+
+Parameters  
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 10 70 10
+
+   * - Parameter
+     - Type
+     - Description
+     - Necessity
+
+   * - ``sampleNamespaces``
+     - array of strings
+     - Specifies the comma-separated list of namespaces for which to generate 
+       schemas. A :manual:`namespace </reference/limits/#faq-dev-namespace>` 
+       includes the database name, a dot (.) separator, and the collection or 
+       view name (i.e. ``<database>.<collection>|<view>``). To generate schemas 
+       for all the collections in a database, specify ``*`` instead of the 
+       collection or view name (i.e. ``<database>.*``). If omitted, generates 
+       schemas for all collections and views in the current database.
+
+     - Optional
+
+   * - ``sampleSize``
+     - integer
+     - Specifies the number of documents to use as a sample to create the schema. 
+       If omitted, defaults to ``1000``.
+     - Optional
+
+   * - ``setSchemas``
+     - boolean
+     - Specifies whether or not to store the generated schema for the collection 
+       or view. Value can be one of the following: 
+
+       - ``true`` to store the schema. If a schema already exists 
+         for the collection or view, overwrite the existing schema.
+       - ``false`` to not store the schema. 
+       
+       If omitted, defaults to ``false``.
+
+     - Optional
+
+.. _sqlgenerateschema-output:
+
+Output  
+------
+
+The command returns the following if the command succeeds. 
+
+.. code-block:: json 
+
+   {
+	 "ok" : 1,
+	 "schemas" : [
+	   {
+		 "databaseName" : "<database-name>",
+		 "namespaces" : [
+		   {
+			 "name" : "<collection-name>",
+			 "schema" : {
+			   "version" : NumberLong(1),
+			   "jsonSchema" : {}
+			 }
+		   }
+		 ]
+	   },
+	   ...
+	 ]
+   }
+
+.. include:: /includes/sql-cmd-output-schemas-fields.rst
+
+If you set the schema for the collection or view using the 
+``setSchemas`` option, you can verify that the command 
+succeeded by running the ``sqlGetSchema`` command. The 
+``sqlGetSchema`` command ``metadata.description`` should 
+contain the following value: 
+
+.. code-block:: json 
+   :copyable: false 
+
+   "set using sqlGenerateSchema with setSchemas = true"
+
+.. _sqlgetschema-egs:
+
+Examples 
+--------
+
+.. include:: /includes/command-example-collection.rst
+
+The examples below use the ``sqlGenerateSchema`` command to 
+generate a schema for the above collection.
+
+Basic Example 
+-------------
+
+The following command generates a schema for the collection 
+named ``sampleDB.egData`` in the storage configuration. The 
+command uses two randomly selected documents from the 
+collection to create the schema because the ``sampleSize`` 
+is ``2``. The command does not set the schema for the 
+collection because the ``setSchemas`` option is not specified 
+with the command and defaults to ``false``. 
+
+.. code-block:: sh 
+
+   db.runCommand({sqlGenerateSchema: 1, sampleNamespaces: ["sampleDB.egData"], sampleSize: 2})
+
+The previous command returns the following output. To learn 
+more about the fields in the output, see 
+:ref:`sqlgenerateschema-output`.
+
+.. code-block:: json 
+
+   {
+	 "ok" : 1,
+	 "schemas" : [
+	   {
+		 "databaseName" : "sampleDB",
+		 "namespaces" : [
+		   {
+			 "name" : "egData",
+			 "schema" : {
+			   "version" : NumberLong(1),
+			   "jsonSchema" : {
+				 "bsonType" : [
+				   "object"
+				 ],
+				 "properties" : {
+				   "a" : {
+					 "bsonType" : [
+					   "object"
+					 ],
+					 "properties" : {
+					   "b" : {
+						 "bsonType" : [
+						   "object"
+						 ],
+						 "properties" : {
+						   "c" : {
+							 "bsonType" : [
+							   "array"
+							 ],
+							 "items" : [
+							   {
+								 "bsonType" : [
+								   "int"
+								 ]
+							   }
+							 ]
+						   }
+						 }
+					   }
+					 }
+				   },
+				   "s" : {
+					 "bsonType" : [
+					   "int"
+					 ]
+				   }
+				 }
+			   }
+			 }
+		   }
+		 ]
+	   }
+	 ]
+   }
+
+Generate and Set Schema Example 
+-------------------------------
+
+The following command generates a schema for the collection 
+named ``sampleDB.egData`` in the storage configuration. The command 
+uses up to 1000 documents in the collection to create the schema 
+because the ``sampleSize`` option is not specified with the command 
+and defaults to ``1000``. The command sets the generated schema as 
+the schema to use for the collection because the ``setSchemas`` 
+option is set to ``true``. 
+
+.. code-block:: sh 
+
+   db.runCommand({sqlGenerateSchema: 1, sampleNamespaces: ["sampleDB.egData"], setSchemas: true})
+
+The previous command returns the following output. To learn 
+more about the fields in the output, see 
+:ref:`sqlgenerateschema-output`.
+
+.. code-block:: json 
+
+   {
+	 "ok" : 1,
+	 "schemas" : [
+	   {
+		 "databaseName" : "sampleDB",
+		 "namespaces" : [
+		   {
+			 "name" : "egData",
+			 "schema" : {
+			   "version" : NumberLong(1),
+			   "jsonSchema" : {
+				 "bsonType" : [
+				   "object"
+				 ],
+			     "properties" : {
+				   "a" : {
+				     "bsonType" : [
+					   "object"
+				     ],
+				     "properties" : {
+					   "b" : {
+					     "bsonType" : [
+						   "object",
+						   "array"
+					     ],
+					     "properties" : {
+						   "c" : {
+						     "bsonType" : [
+							   "array",
+							   "string",
+							   "object",
+							   "null"
+						     ],
+						     "properties" : {
+							   "d" : {
+							     "bsonType" : [
+								   "int"
+							     ]
+							   }
+						     },
+						     "items" : [
+							   {
+							     "bsonType" : [
+								   "int"
+							     ]
+						       }
+						     ]
+					       }
+					     },
+					     "items" : [
+					       {
+						     "bsonType" : [
+						       "int"
+						     ]
+					       }
+					     ]
+				       }
+				     }
+			       },
+			       "s" : {
+				     "bsonType" : [
+				       "int",
+				       "object"
+				     ]
+			       }
+			     }
+		       }
+	       }
+	     ]
+	   }
+	 ]
+   }    
+
+.. _sqlgetschema-errors:
+
+Errors 
+------
+
+The command returns the following error if the command fails: 
+
+.. code-block:: none 
+   :copyable: false
+
+   failedNamespaces: [<db.ns>]
+
+The above error is returned if the specified namespaces do not 
+exist in the storage configuration or are empty. This error is 
+also returned if the schema could not be set for a given  
+namespace.
