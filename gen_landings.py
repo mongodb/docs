@@ -9,7 +9,6 @@ Site = collections.namedtuple('Site', ('input_path', 'output_path', 'title', 'se
 BUILD_DIR = argv[1]
 
 SITES = [
-    Site('./src/html/home.html', os.path.join(BUILD_DIR, 'index.html'), 'MongoDB Documentation', ''),
     Site('./src/html/cloud.html',
          os.path.join(BUILD_DIR, 'cloud', 'index.html'),
          'Cloud Products — MongoDB Documentation',

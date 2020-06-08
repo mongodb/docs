@@ -21,7 +21,6 @@ help:
 
 stage: build
 	mut-publish build/ docs-mongodb-org-staging --prefix=${PREFIX} --stage --verbose ${ARGS}
-	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/cloud/index.html"
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/tools/index.html"
 
@@ -34,14 +33,12 @@ build:
 	# Clean build directory
 	rm -rf $@
 	# Create output directories
-	mkdir -p $@
 	mkdir -p $@/cloud
 	mkdir -p $@/tools
 	mkdir -p $@/images
 	mkdir -p $@/announcements/login-and-access-changes
 	@# Copy CSS and JS files to output directories
 	cp static/favicon.png $@/favicon.ico
-	cp -r static/images static/css static/js $@/
 	cp -r static/images static/css static/js $@/tools
 	cp -r static/images static/css static/js $@/cloud
 	cp -r static/images static/css static/js $@/announcements/login-and-access-changes
