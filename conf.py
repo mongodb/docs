@@ -61,7 +61,7 @@ source_constants = {
     'version': version,
     'mcli': 'MongoDB CLI',
     'mcli-long': 'MongoDB Command Line Interface (``mongocli``)',
-    'mcli-version': '0.5.0',
+    'mcli-version': '1.0.0',
     'mdbVersion': '4.2',
     'mdbagent': 'MongoDB Agent',
     'aagent': 'Automation Agent',
@@ -273,7 +273,7 @@ html_theme_options = {
     'nav_excluded': sconf.theme.nav_excluded,
     'version_selector': get_versions(conf),
     'is_upcoming': False,
-    'is_alpha': True,
+    'is_alpha': False,
 }
 
 html_sidebars = sconf.sidebars
