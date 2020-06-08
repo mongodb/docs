@@ -1,0 +1,279 @@
+.. _api-online-archive-update-one:
+
+========================
+Update an Online Archive
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-online-archive-beta-message.rst
+
+You can pause or resume archiving for an :ref:`online archive 
+<manage-online-archive>` or modify the archiving criteria in an 
+:ref:`online archive <manage-online-archive>` from the API. You can 
+also :ref:`pause and resume <pause-resume-online-archive>` or 
+:ref:`edit <edit-online-archive>` an :ref:`online archive 
+<manage-online-archive>` from the |service| UI. You must have the 
+``GROUP_DATA_ACCESS_ADMIN`` (:authrole:`Project Data Access Admin`) 
+role to update an online archive.
+
+.. include:: /includes/api-requirements.rst
+
+.. include:: /includes/fact-projects-groups-synonyms.rst
+
+.. include:: /includes/api-base-url-new.rst
+
+.. _api-online-archive-update-one-syntax:
+
+Syntax
+------
+
+.. code-block:: none
+
+   PATCH /groups/{GROUP-ID}/clusters/{CLUSTER-NAME}/onlineArchives/{ARCHIVE-ID}
+
+.. _api-online-archive-update-one-params:
+
+Request Parameters
+------------------
+
+.. _api-online-archive-update-one-path-params:
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 10 75
+
+   * - Path Element
+     - Necessity
+     - Description
+
+   * - ``GROUP-ID``
+     - Required
+     - Unique identifier of the :ref:`project <projects>`
+       that contains the specified cluster.
+
+   * - ``CLUSTER-NAME``
+     - Required
+     - Name of the cluster that contains the collection whose 
+       online archive to update.
+
+   * - ``ARCHIVE-ID``
+     - Required
+     - Unique identifier of the online archive to update.
+
+.. _api-online-archive-update-one-query-params:
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/no-query-parameters.rst
+
+.. _api-online-archive-update-one-body-params:
+
+Request Body Parameters 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 10 10 65
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``criteria``
+     - object
+     - Conditional
+     - Criteria to use for archiving data. This is only required for 
+       modifying the archiving criteria. Either ``criteria`` or 
+       ``paused`` is required.
+
+   * - ``criteria.expireAfterDays``
+     - int
+     - Conditional
+     - The number of days after which the data in the live |service| 
+       cluster can be archived. Note that data is archived only when the 
+       current date is greater than the value of the date field 
+       specified via the ``dateField`` parameter plus the number of days 
+       specified here.
+
+   * - ``paused``
+     - boolean
+     - Conditional
+     - Pause or resume archiving for the the online archive. Value can 
+       be: 
+
+       - ``true`` - to pause archiving for an active online archive
+       - ``false`` - to resume archiving for a paused online archive
+
+         .. note:: 
+
+            The resume request will fail if the collection has another 
+            active online archive. 
+
+       This is required for pausing an active or resume a paused 
+       online archive.
+
+       Either ``paused`` or ``criteria`` is required.
+
+.. _api-online-archive-update-one-response:
+
+Response Elements 
+-----------------
+
+.. include:: /includes/list-table-online-archive-response.rst
+
+.. _api-online-archive-update-one-eg:
+
+Examples 
+--------
+
+The following example request updates the number of days criteria for an 
+online archive from 5 days to 7 days. The example response contains the 
+updated archiving criteria for the ``people.employees`` collection in the 
+cluster named ``myTestClstr``.
+
+Example Request 
+~~~~~~~~~~~~~~~
+
+.. code-block:: json 
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+   --header "Content-Type: application/json" \
+   --include \
+   --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5e2211c17a3e5a48f5497de3/clusters/myTestClstr/onlineArchives/5ebad3c1fe9c0ab8d37d61e1?pretty=true" \
+   --data '
+     {
+	     "criteria": {
+		   "expireAfterDays": 7
+     }
+   }'
+
+Example Response 
+~~~~~~~~~~~~~~~~
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+     "_id": "5ebad3c1fe9c0ab8d37d61e1",
+     "clusterName": "onlineArchiveSbx",
+     "collName": "employees",
+     "criteria": {
+        "dateField": "startDate",
+        "expireAfterDays": 7
+     },
+     "dbName": "people",
+     "groupId": "5e2211c17a3e5a48f5497de3",
+     "partitionFields": [
+        {
+            "fieldName": "firstName",
+            "fieldType": "string",
+            "order": 0
+        },
+        {
+            "fieldName": "lastName",
+            "fieldType": "string",
+            "order": 1
+        },
+        {
+            "fieldName": "startDate",
+            "fieldType": "date",
+            "order": 2
+        }
+     ],
+     "paused": false
+   }
+
+The following example request pauses archiving for an online archive 
+specified by its ID. The example response contains the updated status 
+of the online archive for the ``people.employees`` collection in the 
+cluster named ``myTestClstr``. 
+
+Example Request 
+~~~~~~~~~~~~~~~
+
+.. code-block:: json 
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+   --header "Content-Type: application/json" \
+   --include \
+   --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5e2211c17a3e5a48f5497de3/clusters/myTestClstr/onlineArchives/5ebad3c1fe9c0ab8d37d61e1?pretty=true" \
+   --data '{ "paused": true }'
+
+Example Response 
+~~~~~~~~~~~~~~~~
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+     "_id": "5ebad3c1fe9c0ab8d37d61e1",
+     "clusterName": "myTestClstr",
+     "collName": "employees",
+     "criteria": {
+        "dateField": "startDate",
+        "expireAfterDays": 7
+     },
+     "dbName": "people",
+     "groupId": "5e2211c17a3e5a48f5497de3",
+     "partitionFields": [
+        {
+            "fieldName": "firstName",
+            "fieldType": "string",
+            "order": 0
+        },
+        {
+            "fieldName": "lastName",
+            "fieldType": "string",
+            "order": 1
+        },
+        {
+            "fieldName": "startDate",
+            "fieldType": "date",
+            "order": 2
+        }
+     ],
+     "paused": true
+   }
+
+.. _api-online-archive-update-one-errors:
+
+Error Codes 
+-----------
+
+If the request fails, it returns one of the following errors: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Error Code
+     - Description
+
+   * - ``INVALID_GROUP_ID``
+     - The specified project ID is not valid.
+
+   * - ``CLUSTER_NOT_FOUND``
+     - There is no cluster with the specified name in the specified 
+       project.
+
+   * - ``CLUSTER_DELETE_REQUESTED``
+     - The cluster for the online archive is being deleted.
+
+   * - ``NAMESPACE_HAS_ONLINE_ARCHIVE``
+     - The collection has another active online archive and so, the 
+       specified online archive can't be resumed.
+
+   * - ``RESOURCE_NOT_FOUND``
+     - The specified archive ID is not valid.
