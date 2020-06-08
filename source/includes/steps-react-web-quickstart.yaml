@@ -1,0 +1,201 @@
+title: Set up a New React App
+ref: set-up-a-new-react-app
+level: 4
+content: |
+  Generate a new application template using `create-react-app
+  <https://create-react-app.dev/>`__:
+  
+    .. tabs-realm-languages::
+     
+     .. tab:: JavaScript
+        :tabid: javascript
+     
+        .. code-block:: shell
+           
+           npx create-react-app realm-web-react-quickstart
+     
+     .. tab:: TypeScript
+        :tabid: typescript
+        
+        .. code-block:: shell
+           
+           npx create-react-app realm-web-react-quickstart --template=typescript
+
+  Navigate into the new app and install the ``realm-web`` package:
+
+  .. code-block:: shell
+     
+     cd realm-react-quickstart
+     yarn add realm-web
+---
+title: Import Dependencies & Connect to Your Realm App
+ref: import-dependencies-connect-to-your-realm-app
+level: 4
+content: |
+  The Realm Web SDK contains everything you need to connect to a MongoDB Realm
+  application from a browser application. In ``/src/App.js``, add the following
+  code that imports the Web SDK and uses it to instantiate a new ``Realm.App``
+  object:
+  
+  .. tabs-realm-languages::
+     
+     .. tab:: JavaScript
+        :tabid: javascript
+        
+        .. code-block:: javascript
+             
+           import * as Realm from "realm-web";
+           
+           const REALM_APP_ID = "<Your App ID>"; // e.g. myapp-abcde
+           const app = new Realm.App({ id: REALM_APP_ID });
+     
+     .. tab:: TypeScript
+        :tabid: typescript
+        
+        .. code-block:: typescript
+             
+           import * as Realm from "realm-web";
+           
+           const REALM_APP_ID = "<Your App ID>"; // e.g. myapp-abcde
+           const app: Realm.App = new Realm.App({ id: REALM_APP_ID });
+  
+  The ``app`` object represents your Realm app. You'll use it to authenticate
+  and manage the users that interact with your app.
+---
+title: Create React Components
+ref: create-react-components
+level: 4
+content: |
+  In ``/src/App.js``, add the following components that display details about a
+  given user and allow users to log in.
+  
+  .. tabs-realm-languages::
+     
+     .. tab:: JavaScript
+        :tabid: javascript
+        
+        .. code-block:: javascript
+           
+           // Create a component that displays the given user's details
+           function UserDetail({ user }) {
+             return (
+               <div>
+                 <h1>Logged in with anonymous id: {user.id}</h1>
+               </div>
+             );
+           }
+           
+           // Create a component that lets an anonymous user log in
+           function Login({ setUser }) {
+             const loginAnonymous = async () => {
+               const user = await app.logIn(Realm.Credentials.anonymous());
+               setUser(user);
+             };
+             return <button onClick={loginAnonymous}>Log In</button>;
+           }
+     
+     .. tab:: TypeScript
+        :tabid: typescript
+        
+        .. code-block:: typescript
+           
+           // Create a component that displays the given user's details
+           const UserDetail: React.FC<{ user: Realm.User }> = ({ user }) => {
+             return (
+               <div>
+                 <h1>Logged in with anonymous id: {user.id}</h1>
+               </div>
+             );
+           }
+           
+           // Create a component that lets an anonymous user log in
+           const Login: React.FC<{ setUser: (user: Realm.User) => void }> = ({ setUser }) => {
+             const loginAnonymous = async () => {
+               const user: Realm.User = await app.logIn(Realm.Credentials.anonymous());
+               setUser(user);
+             };
+             return <button onClick={loginAnonymous}>Log In</button>;
+           }
+---
+title: Create and Export the App Component
+ref: create-and-export-the-app-component
+level: 4
+content: |
+  In ``/src/App.js``, overwrite the existing ``App` component with the following
+  component that stores the current user in local state and conditionally
+  renders either details about the current user or a login screen if no user is
+  currently authenticated.
+  
+  .. tabs-realm-languages::
+     
+     .. tab:: JavaScript
+        :tabid: javascript
+        
+        .. code-block:: javascript
+           
+           const App = () => {
+             // Keep the logged in Realm user in local state. This lets the app re-render
+             // whenever the current user changes (e.g. logs in or logs out).
+             const [user, setUser] = React.useState(app.currentUser);
+             
+             // If a user is logged in, show their details.
+             // Otherwise, show the login screen.
+             return (
+               <div className="App">
+                 <div className="App-header">
+                   {user ? <UserDetail user={user} /> : <Login setUser={setUser} />}
+                 </div>
+               </div>
+             );
+           }
+           
+           export default App;
+     
+     .. tab:: TypeScript
+        :tabid: typescript
+        
+        .. code-block:: typescript
+           
+           const App: React.FC = () => {
+             // Keep the logged in Realm user in local state. This lets the app re-render
+             // whenever the current user changes (e.g. logs in or logs out).
+             const [user, setUser] = React.useState<Realm.User | null>(app.currentUser);
+             
+             // If a user is logged in, show their details. Otherwise, show the login screen.
+             return (
+               <div className="App">
+                 <div className="App-header">
+                   {user ? <UserDetail user={user} /> : <Login setUser={setUser} />}
+                 </div>
+               </div>
+             );
+           }
+           
+           export default App;
+---
+title: Run the App
+ref: run-the-app
+level: 4
+content: |
+  You're now ready to connect to your Realm app and log in! Make sure you've
+  saved your changes to ``/src/App.js`` and then run the following command from
+  the project root:
+  
+  .. code-block:: shell
+     
+     yarn start
+  
+  This starts a local web server that serves your application. If successful,
+  you should see the following output in your shell:
+
+  .. code-block:: shell
+     
+     Compiled successfully!
+     
+     You can now view realm-quickstart-web in the browser.
+     
+       Local:  http://localhost:3000
+  
+  Open http://localhost:3000 in your browser and test that you can successfully
+  log in as an anonymous user.
+...
