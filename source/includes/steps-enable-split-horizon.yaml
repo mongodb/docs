@@ -1,48 +1,30 @@
 ---
-title: If you haven't done so already, deploy a replica with the |k8s-op-short|.
+title: "Deploy a replica set with the |k8s-op-short|."
 stepnum: 1
 level: 4
+optional: true
 ref: pre-deploy-replicaset
 content: |
 
-  Follow the instructions to :ref:` deploy a replica set 
-  <deploy-replica-set>`. To simplify the configuration, don't enable 
-  |tls| with the :setting:`spec.security.tls.enabled` setting.
+  If you haven't deployed a replica set, follow the instructions to
+  :ref:`deploy one <deploy-replica-set>`.
+
+  To simplify the configuration, don't enable |tls| with the
+  :setting:`spec.security.tls.enabled` setting.
 
 ---
-title: "If you already deployed a replica set with the |k8s-op-short| with |tls| enabled, remove the |csrs| for each host in your deployment."
+title: "Add Subject Alternate Names to your |tls| certificates."
 level: 4
-ref: remove-tls-existing-replicasets
 stepnum: 2
 optional: true
+ref: remove-tls-existing-replicasets
 content: |
-  a. Invoke the following command to retrieve the |csrs| for each host:
 
-     .. code-block:: sh
+  If the |k8s-op-short| deployed a |tls|\-enabled replica set,
+  provide the external |dns| names (|san-dns|\s) for each member.
 
-       kubectl get csr
-
-     The command's output resembles the following:
-
-     .. literalinclude:: /includes/code-examples/responses/k8s-cert-output.sh
-        :language: sh
-        :copyable: false
-        :start-after: START-output-k8s-rs-tls-csrs-approved
-        :end-before: END-output-k8s-rs-tls-csrs-approved
-
-  #. Repeat the following command for each host in your deployment to 
-     remove the |csrs|: 
-
-     .. code-block:: none
-
-        kubectl delete my-secure-rs-0.mongodb 
-
-     .. important::
-
-        Remove only the |tls| |csrs|. Don't remove X.509 or any other 
-        |csrs|.
 ---
-title: Create a NodePort for each |k8s-pod|.
+title: "Create a NodePort for each |k8s-pod|."
 level: 4
 stepnum: 3
 ref: k8s-ext-rs-create-nodeports
@@ -57,7 +39,7 @@ content: |
      kubectl expose pod/<my-replica-set>-2 --type="NodePort" --port 27017
 
 ---
-title: Discover the dynamically assigned NodePorts.
+title: "Discover the dynamically assigned NodePorts."
 level: 4
 stepnum: 4
 ref: k8s-ext-rs-discover-nodeports
@@ -66,12 +48,13 @@ content: |
   Discover the dynamically assigned NodePorts:
 
   .. code-block:: sh
+     :copyable: false
 
      $ kubectl get svc | grep <my-replica-set>
-     <my-replica-set>-0                      NodePort    172.30.39.228    <none>        27017:30907/TCP              16m
-     <my-replica-set>-1                      NodePort    172.30.185.136   <none>        27017:32350/TCP              16m
-     <my-replica-set>-2                      NodePort    172.30.84.192    <none>        27017:31185/TCP              17m
-     <my-replica-set>-svc                    ClusterIP   None             <none>        27017/TCP                    38m
+     <my-replica-set>-0     NodePort   172.30.39.228   <none>  27017:30907/TCP  16m
+     <my-replica-set>-1     NodePort   172.30.185.136  <none>  27017:32350/TCP  16m
+     <my-replica-set>-2     NodePort   172.30.84.192   <none>  27017:31185/TCP  17m
+     <my-replica-set>-svc   ClusterIP  None            <none>  27017/TCP        38m
 
   NodePorts range from 30000 to 32767, inclusive.
 ---
@@ -126,20 +109,20 @@ content: |
   .. include:: /includes/list-tables/resource-keys-split-horizons.rst
 
 ---
-title: Confirm the external hostnames and NodePort values in your replica set resource.
+title: "Confirm the external hostnames and NodePort values in your replica set resource."
 level: 4
 stepnum: 9
 ref: k8s-ext-rs-confirm-hostnames
 content: |
 
-  Confirm that the external hostnames in the 
+  Confirm that the external hostnames in the
   :setting:`spec.connectivity.replicaSetHorizons` setting are correct.
 
-  External hostnames should match the |dns| names of |k8s| worker
-  nodes. These can be *any* nodes in the |k8s| cluster. |k8s-nodes| do
-  internal routing if the pod is run on another node.
+  External hostnames should match the |dns| names of |k8s| worker nodes.
+  These can be *any* nodes in the |k8s| cluster. |k8s-nodes| do internal
+  routing if the pod is run on another node.
 
-  Set the ports in :setting:`spec.connectivity.replicaSetHorizons` to 
+  Set the ports in :setting:`spec.connectivity.replicaSetHorizons` to
   the NodePort values that you discovered.
 
   .. example::
@@ -172,55 +155,28 @@ replacement:
   k8sResource: :term:`replica set`
   k8sResourceType: replica-set
 ---
-stepnum: 12
-level: 4
-ref: check-k8s-deployment-rs-tls
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: check-k8s-deployment
----
-stepnum: 13
-level: 4
-ref: get-csrs-rs-tls
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: get-csrs
-replacement:
-  k8sResource: replica set
-  startTag: START-output-k8s-rs-tls-csrs
-  endTag: END-output-k8s-rs-tls-csrs
----
-stepnum: 14
-level: 4
-ref: approve-csrs-rs-tls
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: approve-host-csrs
-replacement:
-  k8sResource: replica set
-  startTag: START-input-k8s-rs-csrs
-  endTag: END-input-k8s-rs-csrs
----
 title: Test the connection to the replica set.
 level: 4
-stepnum: 15
+stepnum: 12
 ref: k8s-ext-rs-test-conn
 content: |
 
   .. code-block:: sh
 
-     mongo --host <my-replica-set>/web1.example.com:30907,web2.example.com:32350,web3.example.com:31185 --ssl --sslAllowInvalidCertificates
+     mongo --host <my-replica-set>/web1.example.com:30907,web2.example.com:32350,web3.example.com:31185 \
+           --ssl \
+           --sslAllowInvalidCertificates
 
   .. warning::
 
-     Don't use the --sslAllowInvalidCertificates flag in production. In
-     production, share the Kubernetes CA files with client tools or
-     applications.
+     Don't use the ``--sslAllowInvalidCertificates`` flag in production.
+     In production, share the |k8s| |certauth| files with client tools
+     or applications.
 
   If the connection succeeds, you should see:
 
   .. code-block:: javascript
 
-     MongoDB Enterprise <my-replica-set>:PRIMARY>
+     MongoDB Enterprise <my-replica-set>:PRIMARY
 
 ...
