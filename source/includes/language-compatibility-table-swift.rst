@@ -1,1 +1,1 @@
-The MongoDB Swift driver requires Swift 5 or later.
+The MongoDB Swift driver requires **Swift 5.1** or later.

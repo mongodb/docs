@@ -19,12 +19,7 @@ Introduction
 
 This is the official MongoDB Swift Driver.
 
-.. admonition:: Alpha Release
-   :class: important
-
-   The MongoDB Swift Driver is currently in alpha.
-
-- `Usage Guide <https://mongodb.github.io/mongo-swift-driver/index.html#example-usage>`__
+- `Usage Guide <https://github.com/mongodb/mongo-swift-driver#example-usage>`__
 
 - `API Reference <https://mongodb.github.io/mongo-swift-driver>`__
 
@@ -36,7 +31,7 @@ This is the official MongoDB Swift Driver.
 Installation
 ------------
 
-See `Installation <https://mongodb.github.io/mongo-swift-driver/index.html#installation>`__
+See `Installation <https://github.com/mongodb/mongo-swift-driver#installation>`__
 
 
 Connect to MongoDB Atlas
@@ -44,16 +39,51 @@ Connect to MongoDB Atlas
 
 .. include:: /includes/atlas-connect-blurb.rst
 
-.. code-block:: swift
+.. tabs::
 
-   import MongoSwift
+   .. tab:: Synchronous API
+      :tabid: swift-sync
 
-   let client = try MongoClient("mongodb+srv://<username>:<password>@<cluster-url>/test?retryWrites=true&w=majority")
-   let db = client.db("test")
+      .. code-block:: swift
 
-   // your application logic
-   // free all resources
-   cleanupMongoSwift()
+         import MongoSwiftSync
+
+         defer {
+             // free driver resources
+             cleanupMongoSwift()
+         }
+
+         let client = try MongoClient("mongodb+srv://<username>:<password>@<cluster-url>/test?retryWrites=true&w=majority")
+         let db = client.db("myDB")
+
+         // your application logic
+
+   .. tab:: Asynchronous API
+      :tabid: swift-async
+
+      .. code-block:: swift
+
+         import MongoSwift
+         import NIO
+
+         let elg = MultiThreadedEventLoopGroup(numberOfThreads: 4)
+         let client = try MongoClient(
+             "mongodb+srv://<username>:<password>@<cluster-url>/test?retryWrites=true&w=majority",
+             using: elg
+         )
+
+         defer {
+             // clean up driver resources
+             try? client.syncClose()
+             cleanupMongoSwift()
+
+             // shut down EventLoopGroup
+             try? elg.syncShutdownGracefully()
+         }
+
+         let db = client.db("myDB")
+
+         // your application logic
 
 Compatibility
 -------------
