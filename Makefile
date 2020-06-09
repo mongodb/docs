@@ -4,10 +4,9 @@ URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_BUCKET=docs-mongodb-org-prod
 PREFIX=landing
 
-.PHONY: help stage fake-deploy build
+DOCS_TOOLS_THEME=docs-tools/themes/mongodb/static
 
-CSS_ERRORS=errors,empty-rules,duplicate-properties,selector-max-approaching
-CSS_WARNINGS=regex-selectors,unqualified-attributes,text-indent
+.PHONY: help stage fake-deploy build clean
 
 help:
 	@echo 'Targets'
@@ -20,7 +19,7 @@ help:
 	@echo '  ARGS         - Arguments to pass to mut-publish'
 
 stage: build
-	mut-publish build/ docs-mongodb-org-staging --prefix=${PREFIX} --stage --verbose ${ARGS}
+	mut-publish build/ docs-mongodb-org-staging --prefix=${PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/cloud/index.html"
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/tools/index.html"
 
@@ -30,18 +29,32 @@ deploy: build
 	@echo "Deployed"
 
 build:
-	# Clean build directory
+	@# Pull docs-tools updates
+	git submodule init
+	git submodule update --remote
+
+	@# Clean build directory
 	rm -rf $@
-	# Create output directories
+
+	@# Create output directories
+	mkdir -p $@
 	mkdir -p $@/cloud
 	mkdir -p $@/tools
-	mkdir -p $@/images
-	mkdir -p $@/announcements/login-and-access-changes
+
 	@# Copy CSS and JS files to output directories
 	cp static/favicon.png $@/favicon.ico
-	cp -r static/images static/css static/js $@/tools
-	cp -r static/images static/css static/js $@/cloud
-	cp -r static/images static/css static/js $@/announcements/login-and-access-changes
-	cp -r src/images/announcements/* $@/announcements/login-and-access-changes/images
+	for prefix in $@/ $@/tools $@/cloud; do \
+		mkdir -p $$prefix/js || exit 1; \
+		cp -r static/images $$prefix || exit 1; \
+		cp -r static/css $$prefix || exit 1; \
+		cp ${DOCS_TOOLS_THEME}/landing.min.js* $$prefix/js || exit 1; \
+		cp ${DOCS_TOOLS_THEME}/navbar.min.js* $$prefix/js || exit 1; \
+		cp ${DOCS_TOOLS_THEME}/landing.css $$prefix/css || exit 1; \
+		cp ${DOCS_TOOLS_THEME}/navbar.min.css $$prefix/css || exit 1; \
+	done
+
 	@# Run the script to generate each landing page
 	python3 ./gen_landings.py $@
+
+clean:
+	-rm -r build
