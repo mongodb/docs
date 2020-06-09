@@ -117,7 +117,8 @@ specification, and has the following layout and field order:
   log statement.
 
 - **id** - String representing the unique identifier of the log
-  statement.
+  statement. See :ref:`log-message-parsing-example-filter-id` for an
+  example.
 
 - **Message** - String representing the raw log output message as passed
   from the server or driver. This message is :ref:`escaped as needed
@@ -337,6 +338,9 @@ format for the timestamp is ``iso8601-local``. To modify the
 timestamp format, use the :option:`--timeStampFormat <mongod
 --timeStampFormat>` runtime option or the
 :setting:`systemLog.timeStampFormat` setting.
+
+See :ref:`log-message-parsing-example-filter-timestamp` for log parsing
+examples that filter on the timestamp field.
 
 .. note::
 
@@ -890,18 +894,18 @@ log file, sorted by frequency:
 
 .. code-block:: shell
 
-   jq ".msg" /var/log/mongodb/mongod.log | sort | uniq -c | sort -rn | head -10
-
+   jq -r ".msg" /var/log/mongodb/mongod.log | sort | uniq -c | sort -rn | head -10
 
 Monitoring Connections
 ``````````````````````
 Remote client connections are shown in the log under the "remote" key
 in the attribute object. The following counts all unique connections
-over the course of the log file and presents them in descending order:
+over the course of the log file and presents them in descending order by
+number of occurrences:
 
 .. code-block:: shell
 
-   jq '.attr.remote' /var/log/mongodb/mongod.log | grep -v 'null' | uniq -c | sort -r
+   jq -r '.attr.remote' /var/log/mongodb/mongod.log | grep -v 'null' | sort | uniq -c | sort -r
 
 Note that connections from the same IP address, but connecting over
 different ports, are treated as different connections by this command.
@@ -910,27 +914,7 @@ change:
 
 .. code-block:: shell
 
-   jq '.attr.remote' /var/log/mongodb/mongod.log | grep -v 'null' | awk -F':' '{print $1}' | uniq -c | sort -r
-
-The following alternate version limits results to a connections that
-occurred on a specific day, by first filtering on a provided date
-before passing the results to ``jq``:
-
-.. code-block:: shell
-
-   cat /var/log/mongodb/mongod.log | grep '{"t":{"$date":"2020-05-01T.*"}' | jq '.attr.remote' | grep -v 'null' | awk -F':' '{print $1}' | uniq -c | sort -r
-
-The same could be done by the hour:
-
-.. code-block:: shell
-
-   cat /var/log/mongodb/mongod.log | grep '{"t":{"$date":"2020-05-01T15.*"}' | jq '.attr.remote' | grep -v 'null' | awk -F':' '{print $1}' | uniq -c | sort -r
-
-Note that these date filtering examples match by the entire
-timestamp key/value pair (using the ``.*`` wildcard to match the
-remainder of the timestamp after the date, or hour), to avoid false
-matching in situations where a similar timestamp might also be present
-as part of the message body or in an attribute object.
+   jq -r '.attr.remote' /var/log/mongodb/mongod.log | grep -v 'null' | awk -F':' '{print $1}' | sort | uniq -c | sort -r
 
 Analyzing Client Types
 ``````````````````````
@@ -944,7 +928,7 @@ connected, sorted by frequency:
 
 .. code-block:: shell
 
-   jq '.attr.doc.os.type' /var/log/mongodb/mongod.log | grep -v null | sort | uniq -c | sort -rn
+   jq -r '.attr.doc.os.type' /var/log/mongodb/mongod.log | grep -v null | sort | uniq -c | sort -rn
 
 The string "Darwin", as reported in this log field, represents a macOS
 client.
@@ -959,6 +943,63 @@ following returns only the slow operations that took above
 .. code-block:: shell
 
    jq '. | select(.attr.durationMillis>=2000)' /var/log/mongodb/mongod.log
+
+Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
+for more information on the ``jq`` filters shown in this example.
+
+.. _log-message-parsing-example-filter-id:
+
+Filtering by Known Log ID
+`````````````````````````
+
+Log IDs (the fifth field in the :ref:`JSON log output format
+<log-message-json-output-format>`) map to specific log events, and can
+be relied upon to remain stable over successive MongoDB releases.
+
+As an example, you might be interested in the following two log events,
+showing a client connection followed by a disconnection:
+
+.. code-block:: javascript
+
+   {"t":{"$date":"2020-06-01T13:06:59.027-0500"},"s":"I", "c":"NETWORK", "id":22943,"ctx":"listener","msg":"connection accepted from {session_remote} #{session_id} ({connectionCount}{word} now open)","attr":{"session_remote":"127.0.0.1:61298","session_id":164,"connectionCount":11,"word":" connections"}}
+   {"t":{"$date":"2020-06-01T13:07:03.490-0500"},"s":"I", "c":"NETWORK", "id":22944,"ctx":"conn157","msg":"end connection {remote} ({connectionCount}{word} now open)","attr":{"remote":"127.0.0.1:61298","connectionCount":10,"word":" connections"}}
+
+The log IDs for these two entires are ``22943`` and ``22944``
+respectively. You could then filter your log output to show only these
+log IDs, effectively showing only client connection activity, using the
+following ``jq`` syntax:
+
+.. code-block:: shell
+
+   jq '. | select( .id as $id | [22943, 22944] | index($id) )' /var/log/mongodb/mongod.log
+
+Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
+for more information on the ``jq`` filters shown in this example.
+
+.. _log-message-parsing-example-filter-timestamp:
+
+Filtering by Date Range
+```````````````````````
+
+Log output can be further refined by filtering on the timestamp field,
+limiting log entires returned to a specific date range. For example, 
+the following returns all log entries that occurred on April 15th, 2020:
+
+.. code-block:: shell
+
+   jq '. | select(.t["$date"] >= "2020-04-15T00:00:00.000" and .t["$date"] <= "2020-04-15T23:59:59.999")' /var/log/mongodb/mongod.log
+
+Note that this syntax includes the full timestamp, including
+milliseconds but excluding the timezone offset. 
+
+Filtering by date range can be combined with any of the examples above,
+creating weekly reports or yearly summaries for example. The following
+syntax expands the "Monitoring Connections" example from earlier to
+limit results to the month of May, 2020:
+
+.. code-block:: shell
+
+   jq '. | select(.t["$date"] >= "2020-05-01T00:00:00.000" and .t["$date"] <= "2020-05-31T23:59:59.999" and .attr.remote)' /var/log/mongodb/mongod.log
 
 Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
 for more information on the ``jq`` filters shown in this example.
