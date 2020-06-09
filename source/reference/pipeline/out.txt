@@ -1,8 +1,8 @@
 .. _adl-out-stage:
 
-========
-``$out``
-========
+====
+$out
+====
 
 .. default-domain:: mongodb
 
@@ -12,74 +12,96 @@
    :depth: 2
    :class: singlecol
 
-``$out`` takes documents returned by the aggregation pipeline and writes them 
-to a specified collection. The :manual:`$out 
-</reference/operator/aggregation/out/#pipe._S_out>` operator must be the last 
-stage in the :manual:`aggregation pipeline 
-</reference/operator/aggregation-pipeline/>`. For more information, see 
-:manual:`$out </reference/operator/aggregation/out/>`. In {+adl+}, ``$out`` can 
-be used to write to |s3| buckets with read and write permissions or to an 
-|service| cluster :manual:`namespace </reference/limits/#faq-dev-namespace>`.
+.. |out| replace:: :pipeline:`~pipe.$out`
+.. |convert| replace:: :pipeline:`~pipe.$convert`
+
+
+|out| takes documents returned by the aggregation pipeline and writes
+them to a specified collection. The |out| operator must be the last
+stage in the
+:manual:`aggregation pipeline </reference/operator/aggregation-pipeline/>`.
+In {+adl+}, |out| can be used to write to |s3| buckets with read and
+write permissions or to an |service| cluster
+:manual:`namespace </reference/limits/#faq-dev-namespace>`.
+
+.. seealso::
+
+   |out|
+
+.. tabs::
+
+   .. tab:: S3
+      :tabid: s3
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
 
 .. _adl-out-stage-perms:
 
-Permissions Required 
+Permissions Required
 --------------------
 
-.. tabs:: 
+.. tabs::
+   :hidden:
 
-   .. tab:: S3 
+   .. tab:: S3
       :tabid: s3
 
-      You must have: 
+      You must have:
 
-      - A {+dl+} configured for |s3| bucket with read and write permissions or 
-        `s3::PutObject 
-        <https://docs.aws.amazon.com/AmazonS3/latest/dev/using-with-s3-actions.html#using-with-s3-actions-related-to-objects>`__ permissions.
-      - A MongoDB user with :atlas:`readWriteAnyDatabase 
-        <security-add-mongodb-users/#readWriteAnyDatabase>` role. 
+      - A {+dl+} configured for |s3| bucket with read and write
+        permissions or
+        :aws:`s3::PutObject </AmazonS3/latest/dev/using-with-s3-actions.html#using-with-s3-actions-related-to-objects>`
+        permissions.
+      - A MongoDB user with :authrole:`readWriteAnyDatabase` role.
 
-   .. tab:: Atlas Cluster 
-      :tabid: atlas 
+   .. tab:: Atlas Cluster
+      :tabid: atlas
 
       You must be a database user with one of the following roles:
-      
-      - :atlas:`readWriteAnyDatabase <security-add-mongodb-users/#readWriteAnyDatabase>`
-      - :atlas:`readAnyDatabase <security-add-mongodb-users/#readAnyDatabase>`
-      - :atlas:`atlasAdmin <security-add-mongodb-users/#atlasAdmin>`
-      - A custom role with :manual:`insert </reference/privilege-actions/#insert>` 
-        and :manual:`remove </reference/privilege-actions/#remove>` privileges
+
+      - :authrole:`readWriteAnyDatabase`
+      - :authrole:`readAnyDatabase`
+      - :atlasrole:`atlasAdmin`
+      - A custom role with the following privileges:
+
+        - :manual:`insert </reference/privilege-actions/#insert>` and
+        - :manual:`remove </reference/privilege-actions/#remove>`
 
 .. _adl-out-stage-syntax:
 
-Syntax 
+Syntax
 ------
 
-.. tabs:: 
+.. tabs::
+   :hidden:
 
-   .. tab:: S3 
+   .. tab:: S3
       :tabid: s3
 
-      .. code-block:: json 
+      .. code-block:: json
+         :linenos:
 
          {
-           $out: { 			
-             s3: { 
-               bucket: "<bucket-name>",
-               region: "<aws-region>",
-               filename: "<file-name>",
-               format: { 
-                 name: "json|json.gz|bson|bson.gz", 
-                 maxFileSize: "<file-size>"
-               } 
-             } 
+           "$out": {
+             "s3": {
+               "bucket": "<bucket-name>",
+               "region": "<aws-region>",
+               "filename": "<file-name>",
+               "format": {
+                 "name": "json|json.gz|bson|bson.gz",
+                 "maxFileSize": "<file-size>"
+               }
+             }
            }
          }
 
-   .. tab:: Atlas Cluster 
-      :tabid: atlas 
+   .. tab:: Atlas Cluster
+      :tabid: atlas
 
-      .. code-block:: json 
+      .. code-block:: json
+         :linenos:
 
          {
            "$out": {
@@ -94,268 +116,342 @@ Syntax
 
 .. _adl-out-stage-fields:
 
-Fields 
+Fields
 ------
 
-.. tabs:: 
+.. tabs::
+   :hidden:
 
-   .. tab:: S3 
+   .. tab:: S3
       :tabid: s3
 
       .. list-table::
          :header-rows: 1
          :widths: 10 10 70 10
 
-         * - Field 
-           - Type 
-           - Description 
+         * - Field
+           - Type
+           - Description
            - Necessity
 
          * - ``s3``
            - object
-           - The location to write the documents from the aggregation pipeline.
+           - Location to write the documents from the aggregation
+             pipeline.
            - Required
 
          * - ``s3.bucket``
            - string
-           - The name of the |s3| bucket to write the documents from the 
-             aggregation pipeline to.
+           - Name of the |s3| bucket to write the documents from
+             the aggregation pipeline to.
+
+             .. important::
+
+                The generated call to |s3| inserts a ``/`` between
+                ``s3.bucket`` and ``s3.filename``. Don't append a
+                ``/`` after the ``s3.bucket``.
+
+                .. example::
+
+                   If you set ``s3.bucket`` to ``myBucket`` and
+                   ``s3.filename`` to ``myPath/myData``, {+adl+} writes
+                   this out as ``s3://myBucket/myPath/myFile``
+
            - Required
 
          * - ``s3.region``
-           - string 
-           - The name of the |aws| region in which the bucket is hosted.
+           - string
+           - Name of the |aws| region in which the bucket is hosted.
            - Required
 
          * - ``s3.filename``
            - string
-           - The name of the file to write the documents from the aggregation 
-             pipeline to. Filename can be constant or :ref:`created dynamically 
-             <adl-out-stage-egs>` from the fields in the documents that reach the 
-             ``$out`` stage. Filename must be of type string.
+           - Name of the file to write the documents from the
+             aggregation pipeline to. Filename can be constant or
+             :ref:`created dynamically <adl-out-stage-egs>` from the
+             fields in the documents that reach the |out| stage.
+
+             .. important::
+
+                The generated call to |s3| inserts a ``/`` between
+                ``s3.bucket`` and ``s3.filename``. Don't prepend a
+                ``/`` before the ``s3.filename``.
+
+                .. example::
+
+                   If you set ``s3.bucket`` to ``myBucket`` and
+                   ``s3.filename`` to ``myPath/myData``, {+adl+} writes
+                   this out as ``s3://myBucket/myPath/myFile``
+
            - Required
 
          * - ``s3.format``
-           - object 
-           - The details of the file in |s3|.
+           - object
+           - Details of the file in |s3|.
            - Required
 
-         * - ``s3.format.name``
+         * - | ``s3``
+             | ``.format``
+             | ``.name``
            - enum
-           - The format of the file in |s3|. Value can be one of the following: 
+           - Format of the file in |s3|. Value can be one of the
+             following:
 
-             - ``json`` 
+             - ``json``
              - ``json.gz``
-             - ``bson`` 
+             - ``bson``
              - ``bson.gz``
 
            - Required
 
-         * - ``s3.format.maxFileSize``
+         * - | ``s3``
+             | ``.format``
+             | ``.maxFileSize``
            - bytes
-           - The maximum size of the file in |s3|. When the file size limit for 
-             the current file is reached, a new file is created in |s3|. For each 
-             additional file, an incremental number is appended to the filename. 
-             For example: ``<filename>.1.<fileformat>``, ``<filename>.2.<fileformat>``. 
-             If a document is larger than the ``maxFileSize``, {+dl+} writes the 
-             document to its own file. The following suffixes are supported: 
+           - Maximum size of the file in |s3|. When the file size limit
+             for the current file is reached, a new file is created in
+             |s3|. For each additional file, an incremental number is
+             appended to the filename.
 
-             - ``B``, ``KB``, ``MB``, ``GB``, ``TB``, ``PB`` - suffixes that use 
-               1000 bytes
-             - ``KiB``, ``MiB``, ``GiB``, ``TiB``, ``PiB`` - suffixes that use 
-               1024 bytes
+             .. example::
+
+                ``<filename>.1.<fileformat>``
+
+                ``<filename>.2.<fileformat>``
+
+             If a document is larger than the ``maxFileSize``, {+dl+}
+             writes the document to its own file. The following
+             suffixes are supported:
+
+             .. list-table::
+                :widths: 30 70
+
+                * - Base 10: scaling in multiples of 1000
+                  - - ``B``
+                    - ``KB``
+                    - ``MB``
+                    - ``GB``
+                    - ``TB``
+                    - ``PB``
+                * - Base 2: scaling in multiples of 1024
+                  - - ``KiB``
+                    - ``MiB``
+                    - ``GiB``
+                    - ``TiB``
+                    - ``PiB``
 
              If omitted, defaults to ``200MiB``.
 
            - Optional
 
-   .. tab:: Atlas Cluster 
-      :tabid: atlas 
+   .. tab:: Atlas Cluster
+      :tabid: atlas
 
       .. list-table::
          :header-rows: 1
          :widths: 10 10 70 10
 
-         * - Field 
-           - Type 
-           - Description 
+         * - Field
+           - Type
+           - Description
            - Necessity
 
          * - ``atlas``
            - object
-           - The location to write the documents from the aggregation 
+           - Location to write the documents from the aggregation
              pipeline.
            - Required
 
-         * - ``clusterName`` 
-           - string 
+         * - ``clusterName``
+           - string
            - Name of the |service| cluster.
            - Required
 
          * - ``coll``
-           - string 
-           - Name of the collection on the |service| cluster. 
+           - string
+           - Name of the collection on the |service| cluster.
            - Required
 
-         * - ``db`` 
-           - string 
-           - Name of the database on the |service| cluster that 
-             contains the collection. 
+         * - ``db``
+           - string
+           - Name of the database on the |service| cluster that contains
+             the collection.
            - Required
 
-         * - ``projectId`` 
-           - string 
-           - Unique identifier of the project that contains the 
-             |service| cluster. The project ID must be the ID of the 
-             project that contains your {+dl+}. If omitted, defaults 
-             to the ID of the project that contains your {+dl+}.
+         * - ``projectId``
+           - string
+           - Unique identifier of the project that contains the
+             |service| cluster. The project ID must be the ID of the
+             project that contains your {+dl+}. If omitted, defaults to
+             the ID of the project that contains your {+dl+}.
            - Optional
 
 .. _adl-out-stage-egs:
 
-Examples 
+Examples
 --------
 
-.. tabs:: 
+.. tabs::
+   :hidden:
 
-   .. tab:: S3 
+   .. tab:: S3
       :tabid: s3
 
-      The following examples show ``$out`` syntaxes for dynamically creating a 
-      filename from a constant string or from the fields of the same or different 
-      data types in the documents that reach the ``$out`` stage.
+      The following examples show |out| syntaxes for dynamically
+      creating a filename from a constant string or from the fields of
+      the same or different data types in the documents that reach the
+      |out| stage.
 
-      **Simple String Example** 
+      **Simple String Example**
 
-      Consider the following ``$out`` syntax: 
+      .. example::
 
-      .. code-block:: json 
+         Consider the following |out| syntax:
 
-         { 
-           $out: { 
-             s3: { 
-               bucket: "my-s3-bucket",
-               region: "us-east-1",
-               filename: "big_box_store/",  
-               format: { 
-                 name: "bson.gz" 
-               } 
-             } 
-           }
-         }
+         .. code-block:: json
+            :linenos:
 
-      For the above example, ``$out`` operation writes up to 200 MiB of data, 
-      which is the default file size, to a compressed |bson| file named 
-      ``big_box_store.bson.gz`` in the bucket named ``my-s3-bucket``. Once 
-      the maximum file size of 200 MiB is reached, the ``$out`` operation 
-      creates a new file by appending an incremental number to the constant 
-      filename. That is, ``big_box_store.1.bson.gz``, 
-      ``big_box_store.2.bson.gz``, and so on.
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "region": "us-east-1",
+                  "filename": "big_box_store/",
+                  "format": {
+                    "name": "bson.gz"
+                  }
+                }
+              }
+            }
 
-      **Single Field from Documents** 
+         |out| operation writes up to 200 MiB of data, which is the
+         default file size, to a compressed |bson| file named
+         ``big_box_store.bson.gz`` in the bucket named ``my-s3-bucket``.
+         Once the maximum file size of 200 MiB is reached, the |out|
+         operation creates a new file by appending an incremental number
+         to the constant filename. That is, ``big_box_store.1.bson.gz``,
+         ``big_box_store.2.bson.gz``, and so on.
 
-      Consider the following ``$out`` syntax: 
+      **Single Field from Documents**
 
-      .. code-block:: json 
+      .. example::
 
-         { 
-           $out: { 
-             s3: { 
-               bucket: "my-s3-bucket",
-               region: "us-east-1",
-               filename: {$toString: "$sale-date"},  
-               format: { 
-                 name: "json", 
-                 maxFileSize: "100MiB"
-               } 
-             } 
-           }
-         } 
+         Consider the following |out| syntax:
 
-      For the above example, ``$out`` writes up to 100 MiB of data to a |json| 
-      file in the root of the bucket named ``my-s3-bucket``. The filename is the 
-      value of the date type field named ``sale-date`` from the documents and is 
-      converted to a string.
+         .. code-block:: json
+            :linenos:
 
-      **Multiple Fields from Documents** 
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "region": "us-east-1",
+                  "filename": {"$toString": "$sale-date"},
+                  "format": {
+                    "name": "json",
+                    "maxFileSize": "100MiB"
+                  }
+                }
+              }
+            }
 
-      Consider the following ``$out`` syntax: 
+         |out| writes up to 100 MiB of data to a |json| file in the root
+         of the bucket named ``my-s3-bucket``. The filename is the value
+         of the date type field named ``sale-date`` from the documents
+         and is converted to a string.
 
-      .. code-block:: json 
+      **Multiple Fields from Documents**
 
-         { 
-           $out: { 
-             s3: { 
-               bucket: "my-s3-bucket",
-               region: "us-east-1",
-               filename: {
-                 $concat: [  
-                   "persons/", 
-                   "$name", ‘/’, 
-                   "$unique-id"  
-                 ]
-               }, 
-               format: { 
-                 name: "bson", 
-                 maxFileSize: "200MiB"
-               } 
-             } 
-           }
-         } 
+      .. example::
 
-      For the above example, ``$out`` operation writes up to 200 MiB of data to 
-      a |bson| file in the bucket named ``my-s3-bucket``. The filename is a 
-      combination of a constant string named ``persons`` and the value of the 
-      fields named ``name`` and ``unique-id`` of type string from the documents.
+         Consider the following |out| syntax:
 
-      **Multiple Types of Fields from Documents** 
+         .. code-block:: json
+            :linenos:
 
-      Consider the following ``$out`` syntax: 
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "region": "us-east-1",
+                  "filename": {
+                    "$concat": [
+                      "persons/",
+                      "$name", "/",
+                      "$unique-id"
+                    ]
+                  },
+                  "format": {
+                    "name": "bson",
+                    "maxFileSize": "200MiB"
+                  }
+                }
+              }
+            }
 
-      .. code-block:: json 
+         |out| operation writes up to 200 MiB of data to a |bson| file
+         in the bucket named ``my-s3-bucket``. The filename is a
+         combination of a constant string named ``persons`` and the
+         value of the fields named ``name`` and ``unique-id`` of type
+         string from the documents.
 
-         { 
-           $out: { 
-             s3: { 
-               bucket: "my-s3-bucket",
-               region: "us-east-1",
-               filename: {
-                 $concat: [  
-                   "big-box-store/", 
-                   {$toString: "$store_number"}, '/', 
-                   {$toString: "$sale-date"}, '/', 
-                   "$part-id"
-                 ]
-               }, 
-               format: { 
-                 name: "json.gz", 
-                 maxFileSize: "200MiB"
-               } 
-             } 
-           }
-         } 
+      **Multiple Types of Fields from Documents**
 
-      For the above example, ``$out`` operation writes up to 200 MiB of data to 
-      a compressed |json| file in the bucket named ``my-s3-bucket``. The filename 
-      is a combination of the following: 
+      .. example::
 
-      - A constant string named ``big-box-store``
-      - A unique store number in the field named ``store-number`` that is converted 
-        to a string
-      - The value of the date type field named ``sale-date`` that is converted to a 
-        string
-      - A part ID in the field named ``part-id`` that is already a string 
+         Consider the following |out| syntax:
 
-   .. tab:: Atlas Cluster 
-      :tabid: atlas 
+         .. code-block:: json
+            :linenos:
 
-      The following example shows the ``$out`` syntax for sending the 
-      aggregated data to a ``sampleDB.mySampleData`` collection in 
-      the |service| cluster named ``myTestCluster``. In the following 
-      syntax, the project ID is not specified and therefore ``$out`` uses 
-      the ID of the project that contains your {+dl+}.
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "region": "us-east-1",
+                  "filename": {
+                    "$concat": [
+                      "big-box-store/",
+                      {
+                        "$toString": "$store_number"
+                      }, "/",
+                      {
+                        "$toString": "$sale-date"
+                      }, "/",
+                      "$part-id"
+                    ]
+                  },
+                  "format": {
+                    "name": "json.gz",
+                    "maxFileSize": "200MiB"
+                  }
+                }
+              }
+            }
 
-      .. code-block:: json 
+         The |out| operation writes up to 200 MiB of data to a
+         compressed |json| file in the bucket named ``my-s3-bucket``.
+         The filename is a combination of the following:
+
+         - A constant string named ``big-box-store``
+         - A unique store number in the field named ``store-number``
+           that is converted to a string
+         - Value of the date type field named ``sale-date`` that is
+           converted to a string
+         - A part ID in the field named ``part-id`` that is already a
+           string
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+      The following example shows the |out| syntax for sending the
+      aggregated data to a ``sampleDB.mySampleData`` collection in the
+      |service| cluster named ``myTestCluster``. In the following
+      syntax, the project ID is not specified and therefore |out|
+      uses the ID of the project that contains your {+dl+}.
+
+      .. code-block:: json
+         :linenos:
 
          {
            "$out": {
@@ -369,57 +465,71 @@ Examples
 
 .. _adl-out-stage-limitations:
 
-.. tabs:: 
+.. tabs::
    :hidden:
 
-   .. tab:: S3 
+   .. tab:: S3
       :tabid: s3
 
-      **Limitations** 
+      **Limitations**
 
-      {+dl+} interprets empty strings (``""``) as null values when parsing 
-      filenames. If you want {+dl+} to generate filenames that it can parse 
-      correctly, you must wrap the field references that could have null values 
-      using :manual:`$convert </reference/operator/aggregation/convert>` with 
-      an empty string ``onNull`` value. The following example shows how to handle 
-      null values in the ``year`` field when creating a filename from the field 
-      value.
+      {+dl+} interprets empty strings (``""``) as null values when
+      parsing filenames. If you want {+dl+} to generate filenames that
+      it can parse correctly, you must wrap the field references that
+      could have null values using |convert| with an empty
+      string ``onNull`` value.
 
-      .. code-block:: json 
-         :copyable: false 
+      .. example::
 
-         { 
-           $out: { 
-             s3: { 
-               bucket: "my-s3-bucket",
-               region: "us-east-1",
-               filename: {
-                 $concat: [  
-                   "big-box-store/", 
-                   {$convert: {input: "year", to: "string", onNull: ""}}
-                 ]
-               }, 
-               format: { 
-                 name: "json.gz", 
-                 maxFileSize: "200MiB"
-               } 
-             } 
-           }
-         }
+         This example shows how to handle null values in the ``year``
+         field when creating a filename from the field value.
 
-      **Errors** 
+         .. code-block:: json
+            :copyable: false
+            :linenos:
 
-      - If the filename is not of type string, {+dl+} writes documents to a special 
-        error file in your bucket.
-      - If the documents cannot be written to a file with the specified filename, 
-        {+dl+} writes documents to ordinally-named files in the specified format and 
-        specified size. For example:
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "region": "us-east-1",
+                  "filename": {
+                    "$concat": [
+                      "big-box-store/",
+                      {
+                        "$convert": {
+                          "input": "year",
+                          "to": "string",
+                          "onNull": ""
+                        }
+                      }
+                    ]
+                  },
+                  "format": {
+                    "name": "json.gz",
+                    "maxFileSize": "200MiB"
+                  }
+                }
+              }
+            }
 
-        - ``s3://<bucket-name>/atlas-data-lake-{<CORRELATION_ID>}/$out-error-docs/1.json``
-        - ``s3://<bucket-name>/atlas-data-lake-{<CORRELATION_ID>}/$out-error-docs/2.json``
+      **Errors**
 
-        {+dl+} returns an error message that specifies the number of documents that 
-        had invalid filenames and the directory where these documents were written.
+      - If the filename is not of type string, {+dl+} writes documents
+        to a special error file in your bucket.
 
-   .. tab:: Atlas Cluster 
+      - If the documents cannot be written to a file with the specified
+        filename, {+dl+} writes documents to ordinally-named files in
+        the specified format and specified size.
+
+        .. example::
+
+          - ``s3://<bucket-name>/atlas-data-lake-{<CORRELATION_ID>}/$out-error-docs/1.json``
+          - ``s3://<bucket-name>/atlas-data-lake-{<CORRELATION_ID>}/$out-error-docs/2.json``
+
+        {+dl+} returns an error message that specifies the number of
+        documents that had invalid filenames and the directory where
+        these documents were written.
+
+   .. tab:: Atlas Cluster
       :tabid: atlas
