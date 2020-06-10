@@ -32,62 +32,9 @@
                the collection must contain documents.
 
          To create an index in
-         :ref:`MongoDB Compass <compass-index>`, complete the following
-         steps:
+         :ref:`MongoDB Compass <compass-index>`:
 
-         1. Navigate to the collection for which you wish to create
-            the index:
-
-            a. In the left-hand MongoDB Compass navigation pane, click
-               the database to which your target collection belongs.
-
-            b. From the database view, click the target collection name.
-
-         #. Click the :guilabel:`Indexes` tab:
-
-            .. figure:: /images/compass-index-tab.png
-               :alt: Compass index tab
-
-            .. raw:: html
-
-               <br>
-
-         #. Click the :guilabel:`Create Index` button:
-
-            .. figure:: /images/compass-create-index-button.png
-               :alt: Compass index button
-
-            .. raw:: html
-
-               <br>
-
-            The following dialog appears:
-
-            .. figure:: /images/compass-index-dialog.png
-               :scale: 60 %
-               :alt: Compass index dialog
-
-         #. (Optional) Enter the index name.
-
-            Leaving this field blank causes |compass| to create a
-            default name for the index.
-
-         #. Add fields to the index.
-
-            Use the :guilabel:`Configure the index definition` section
-            of the dialog to define the fields for your index and
-            their respective types. To create an index on multiple
-            fields, click :guilabel:`Add another field`.
-
-         #. (Optional) Specify the index options.
-
-            The following index options can be specified:
-
-            - Create a :ref:`unique index <unique-index>`
-            - Create :ref:`TTL <ttl-index>`
-            - Partial :ref:`filter expression <partial-index>`
-
-         #. Click :guilabel:`Create` to create the index.
+         .. include:: /includes/steps/create-index-compass.rst
 
      - id: python
        content: |

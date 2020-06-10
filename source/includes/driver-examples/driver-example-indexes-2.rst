@@ -8,12 +8,16 @@
      - id: compass
        content: |
 
-         .. important::
-
-            |compass| does not support collation for indexes.
+         .. note::
 
             The following examples illustrate indexes and collation in
             the :doc:`Mongo Shell </mongo/>`.
+
+            Refer to the
+            :hardlink:`MongoDB Compass Documentation
+            </compass/current/indexes/>` for instructions on using
+            custom collation with indexes in Compass.
+
 
      - id: python
        content: |
