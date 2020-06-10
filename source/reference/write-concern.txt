@@ -27,8 +27,8 @@ pass the write concern on to the shards.
 .. note::
 
    For :doc:`multi-document transactions </core/transactions>`, you set
-   the write concern at the transaction level, not at the individual
-   operation level. Do not explicitly set the write concern for
+   the write concern at the transaction level, :red:`not at the individual
+   operation level`. Do not explicitly set the write concern for
    individual write operations in a transaction.
 
 Starting in MongoDB 4.4, replica sets and sharded clusters support
@@ -87,24 +87,29 @@ available:
          Requests acknowledgment that the write operation has
          propagated to the standalone :binary:`~bin.mongod` or the primary
          in a replica set. ``w: 1`` is the default write concern for
-         MongoDB.
+         MongoDB. Data can be :ref:`rolled back <rollback-avoid>`
+         if the primary steps down before the write operations have
+         replicated to any of the secondaries.
 
        ``w: 0``
          Requests no acknowledgment of the write operation. However, ``w:
          0`` may return information about socket exceptions and
-         networking errors to the application.
+         networking errors to the application. Data can be 
+         :ref:`rolled back <rollback-avoid>` if the primary steps down
+         before the write operations have replicated to any of the
+         secondaries.
 
          If you specify ``w: 0`` but include :ref:`j: true <wc-j>`, the
          :ref:`j: true <wc-j>` prevails to request acknowledgment from
          the standalone :binary:`~bin.mongod` or the primary of a replica
          set.
 
-       ``w`` greater than 1 requires acknowledgment from the primary and
-       as many additional data-bearing secondaries to meet the specified
-       write concern. For example, consider a 3-member replica set with
-       no :term:`arbiters <Arbiter>`. Specifying ``w: 2`` would
-       require acknowledgment from the primary and one of the 
-       secondaries. Specifying ``w: 3`` would require acknowledgment 
+       ``w`` greater than 1 requires acknowledgment from the primary
+       and as many data-bearing secondaries as needed to meet the
+       specified write concern. For example, consider a 3-member
+       replica set with a primary and 2 secondaries. Specifying ``w:
+       2`` would require acknowledgment from the primary and one of the
+       secondaries. Specifying ``w: 3`` would require acknowledgment
        from the primary and both secondaries.
 
        .. note:: 
@@ -158,14 +163,22 @@ available:
      - Requests acknowledgment that the write operations have
        propagated to :rsconf:`tagged <members[n].tags>` members that
        satisfy the custom write concern defined in
-       :rsconf:`settings.getLastErrorModes`. 
-
-       For an example, see :ref:`configure-custom-write-concern`.
+       :rsconf:`settings.getLastErrorModes`. For an example, see
+       :ref:`configure-custom-write-concern`.
+       
+       Data can be :ref:`rolled back <rollback-avoid>` if the custom
+       write concern only requires acknowledgement from the primary and
+       the primary steps down before the write operations have
+       replicated to any of the secondaries.
 
        See :ref:`wc-ack-behavior` for when :binary:`~bin.mongod`
        instances acknowledge the write.
 
-.. seealso:: :doc:`/reference/replica-set-protocol-versions`
+.. seealso:: 
+
+   - :doc:`/reference/mongodb-defaults`
+
+   - :doc:`/reference/replica-set-protocol-versions`
 
 .. _wc-j:
 
