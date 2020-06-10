@@ -309,7 +309,7 @@ Examples
 
       .. example::
 
-         You want to write 1 GiB of data as a compressed |bson| file to
+         You want to write 1 GiB of data as compressed |bson| files to
          an |s3| bucket named ``my-s3-bucket``.
 
          Using the following |out| syntax:
@@ -333,33 +333,37 @@ Examples
          |out| writes five compressed |bson| files:
 
          1. The first 200 MiB of data to a file that |out| names
-            ``big_box_store.bson.gz``.
-
-            As you didn't change the maximum file size using
-            ``s3.format.maxFileSize``, {+adl+} uses the default value
-            of 200 MiB.
-
-         2. The second 200 MiB of data to a new file that |out| names
             ``big_box_store/1.bson.gz``.
 
-            The value of ``s3.filename`` serves as a constant in each
-            filename.
+            .. note::
 
-            Your ``s3.filename`` included a delimiter, so {+adl+}
-            includes it in the filename before incrementing the counter.
+               - The value of ``s3.filename`` serves as a constant in
+                 each filename. This value doesn't depend upon any
+                 document field or value.
 
-            If it didn't include a delimiter, {+adl+} would have added
-            a ``.`` in its place, like ``big_box_store.1.bson.gz``
+               - Your ``s3.filename`` ends with a delimiter, so {+adl+}
+                 appends the counter after the constant.
+
+               - If it didn't end with a delimiter, {+adl+} would have
+                 added a ``.`` between the constant and the counter,
+                 like ``big_box_store.1.bson.gz``
+
+               - As you didn't change the maximum file size using
+                 ``s3.format.maxFileSize``, {+adl+} uses the default
+                 value of 200 MiB.
+
+         2. The second 200 MiB of data to a new file that |out| names
+            ``big_box_store/2.bson.gz``.
 
          3. Three more files that |out| names
-            ``big_box_store/2.bson.gz`` through
-            ``big_box_store/4.bson.gz``.
+            ``big_box_store/3.bson.gz`` through
+            ``big_box_store/5.bson.gz``.
 
       **Single Field from Documents**
 
       .. example::
 
-         You want to write 90 MiB of data as a |json| file to an |s3|
+         You want to write 90 MiB of data to |json| files to an |s3|
          bucket named ``my-s3-bucket``.
 
          Using the following |out| syntax:
@@ -381,16 +385,18 @@ Examples
               }
             }
 
-         |out| writes 90 MiB of data to a |json| file in the root
-         of the bucket. |out| names each file using each document's
-         ``sale-date`` value converted to a string.
+         |out| writes 90 MiB of data to |json| files in the root of the
+         bucket. Each |json| file contains all of the documents with the
+         same ``sale-date`` value. |out| names each file using the
+         documents' ``sale-date`` value converted to a string.
+
 
       **Multiple Fields from Documents**
 
       .. example::
 
-         You want to write 176 MiB of data as a compressed |bson| file
-         to an |s3| bucket named ``my-s3-bucket``.
+         You want to write 176 MiB of data as |bson| files to an |s3|
+         bucket named ``my-s3-bucket``.
 
          Using the following |out| syntax:
 
@@ -417,7 +423,7 @@ Examples
               }
             }
 
-         |out| writes 176 MiB of data to a |bson| file. To name the
+         |out| writes 176 MiB of data to |bson| files. To name each
          file, |out| concatenates:
 
          - A constant string ``persons/`` and, from the documents:
@@ -425,11 +431,16 @@ Examples
            - A forward slash (``/``), and
            - The string value of the ``unique-id`` field.
 
+         Each |bson| file contains all of the documents with the same
+         ``name`` and ``unique-id`` values. |out| names each file using
+         the documents' ``name`` and ``unique-id`` values.
+
+
       **Multiple Types of Fields from Documents**
 
       .. example::
 
-         You want to write 154 MiB of data as a compressed |json| file
+         You want to write 154 MiB of data as compressed |json| files
          to an |s3| bucket named ``my-s3-bucket``.
 
          Consider the following |out| syntax:
@@ -446,7 +457,7 @@ Examples
                     "$concat": [
                       "big-box-store/",
                       {
-                        "$toString": "$store_number"
+                        "$toString": "$store-number"
                       }, "/",
                       {
                         "$toString": "$sale-date"
@@ -462,8 +473,10 @@ Examples
               }
             }
 
-         |out| writes 154 MiB of data to a compressed |json| file.  To
-         name the file, |out| concatenates:
+         |out| writes 154 MiB of data to compressed |json| files, where
+         each file contains all documents with the same ``store-number``,
+         ``sale-date``, and ``part-id`` values.  To name each file, |out|
+         concatenates:
 
          - A constant string value of ``big-box-store``,
          - A string value of a unique store number in the
@@ -474,24 +487,25 @@ Examples
    .. tab:: Atlas Cluster
       :tabid: atlas
 
-      The following example shows the |out| syntax for sending the
-      aggregated data to a ``sampleDB.mySampleData`` collection in the
-      |service| cluster named ``myTestCluster``. In the following
-      syntax, the project ID is not specified and therefore |out|
-      uses the ID of the project that contains your {+dl+}.
+      .. example::
 
-      .. code-block:: json
-         :linenos:
+         This |out| syntax sends the aggregated data to a
+         ``sampleDB.mySampleData`` collection in the |service| cluster
+         named ``myTestCluster``. The syntax doesn't specify a project
+         ID; |out| uses the ID of the project that contains your {+dl+}.
 
-         {
-           "$out": {
-             "atlas": {
-               "clusterName": "myTestCluster",
-               "db": "sampleDB",
-               "coll": "mySampleData"
-             }
-           }
-         }
+         .. code-block:: json
+            :linenos:
+
+            {
+              "$out": {
+                "atlas": {
+                  "clusterName": "myTestCluster",
+                  "db": "sampleDB",
+                  "coll": "mySampleData"
+                }
+              }
+            }
 
 .. _adl-out-stage-limitations:
 
@@ -503,15 +517,14 @@ Examples
 
       **Limitations**
 
-      {+dl+} interprets empty strings (``""``) as null values when
-      parsing filenames. If you want {+dl+} to generate filenames that
-      it can parse correctly, you must wrap the field references that
-      could have null values using |convert| with an empty
-      string ``onNull`` value.
+      {+dl+} interprets empty strings (``""``) as ``null`` values when
+      parsing filenames. If you want {+dl+} to generate parseable
+      filenames, wrap the field references that could have ``null``
+      values using |convert| with an empty string ``onNull`` value.
 
       .. example::
 
-         This example shows how to handle null values in the ``$year``
+         This example shows how to handle null values in the ``year``
          field when creating a filename from the field value.
 
          .. code-block:: json
