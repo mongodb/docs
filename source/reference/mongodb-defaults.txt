@@ -1,0 +1,230 @@
+============================================
+Default MongoDB Read Concerns/Write Concerns
+============================================
+
+.. COMMENT Since the immediate need is for the default read/write concerns and the content will be restricted to just those, this page is currently titled as default read/write concern.
+   However, going forward, this page could be a 1-stop shop for
+   defaults used in MongoDB and as such the file itself is named
+   mongodb-defaults in anticipation of future work.
+
+.. default-domain:: mongodb
+
+.. role:: red(strong)
+   :class: text-danger
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Default Read Concern
+--------------------
+
+The default :doc:`read concern </reference/read-concern>` is as follows:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Operations
+     - Default Read Concern
+
+   * - Reads against primary
+
+     - :readconcern:`"local"`
+
+       This read concern can return data that may be rolled back.
+
+   * - Reads against secondaries if the reads are associated with
+       :ref:`causally consistent sessions <sessions>`.
+
+     - :readconcern:`"local"`
+
+       This read concern can return data that may be rolled back.
+
+   * - Reads against secondaries if the reads are :red:`not` associated with
+       :ref:`causally consistent sessions <sessions>`.
+
+     - :readconcern:`"available"`
+
+       This read concern can return data that may be rolled back. For
+       sharded collection, can also return orphaned documents.
+
+.. note::
+
+   With :ref:`causally consistent client sessions <sessions>`, the
+   client sessions only guarantee causal consistency if:
+   
+   - the associated read operations use :readconcern:`"majority"` read
+     concern, and 
+     
+   - the associated write operations use :writeconcern:`"majority"`
+     write concern.
+
+MongoDB Drivers
+~~~~~~~~~~~~~~~
+
+Using the `MongoDB drivers <https://docs.mongodb.com/drivers/>`__, read
+concern may be set at the following levels:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Level
+
+     - Description
+
+   * - Client level
+
+     - Applies to operations unless a finer-grained read concern for an
+       operation is set at the
+       session/transaction/database/collection/operation level.
+
+   * - Session level
+
+     - Applies for :doc:`transactions </core/transactions>` started in
+       the session unless a finer-grained read concern level is set at
+       a specific transaction level.
+
+       Operations within a transaction use the transaction read concern.
+
+       See :ref:`transactions-read-concern` for more information.
+
+   * - Transaction level
+
+     - Applies to all operations within the :doc:`transactions
+       </core/transactions>`. 
+
+       All operations in a transaction use the :ref:`transaction read
+       concern <transactions-read-concern>`.
+
+       See :ref:`transactions-read-concern` for more information.
+
+   * - Database level
+
+     - Applies to the database's collections (i.e. overrides the client
+       read concern) unless either:
+
+       - the operation is part of a transaction. Operations within a
+         transaction use the transaction read concern, set at either
+         the session level or the transaction level.
+
+       - the operation is not part of a transaction and a read concern
+         has been set at the collection level or the operation level.
+
+   * - Collection level
+
+     - Applies for read operations on the collection (i.e. overrides
+       the database and client read concern) unless either:
+
+       - the operation is not part of a transaction and a read concern
+         has been set at the operation level.
+
+       - the operation is part of a transaction. Operations within a
+         transaction use the transaction read concern, set at either
+         the session level or the transaction level.
+
+
+   * - Operation level
+
+     - Applies for the specific read operation unless the operation is
+       part of a transaction. Operations within a transaction use the
+       transaction read concern, set at either the session level or the
+       transaction level.
+
+       The ability to set read concern at the operation depends on the
+       driver. Refer to your `driver's documentation
+       <https://docs.mongodb.com/drivers/>`__.
+
+
+Default Write Concern
+---------------------
+
+The default :doc:`write concern </reference/read-concern>` is
+:writeconcern:`w: 1 <w: \<number\>>`. Data can be rolled back.
+
+.. note::
+
+   With :ref:`causally consistent client sessions <sessions>`, the
+   client sessions only guarantee causal consistency if:
+
+   - the associated read operations use :readconcern:`"majority"` read
+     concern, and 
+
+   - the associated write operations use :writeconcern:`"majority"`
+     write concern.
+
+MongoDB Drivers
+~~~~~~~~~~~~~~~
+
+Using the `MongoDB drivers <https://docs.mongodb.com/drivers/>`__,
+write concern may be set at the following levels:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Level
+
+     - Description
+
+   * - Client level
+
+     - Applies to operations unless a finer-grained write concern for
+       an operation is set at the
+       database/collection/session/transaction level.
+
+   * - Session level
+
+     - Applies for :doc:`transactions </core/transactions>` started in
+       the session unless a finer-grained write concern level is set at
+       a specific transaction level.
+
+       All operations within a transaction use the transaction write
+       concern.
+
+       See :ref:`transactions-write-concern` for more information.
+
+   * - Transaction level
+
+     - Applies to all operations within the transactions; i.e. any write
+       concern set at the collection/database/session/client level is ignored
+       inside the transaction.
+
+       See :ref:`transactions-write-concern` for more information.
+
+   * - Database level
+
+     - Applies to the database's collections (i.e. overrides the client
+       write concern) unless either:
+
+       - the operation is part of a transaction. Operations within a
+         transaction use the transaction write concern, set at either
+         the session level or the transaction level.
+
+       - the operation is not part of a transaction and a write concern
+         has been set at the collection level or the operation level.
+
+   * - Collection level
+
+     - Applies for write operations on the collection (i.e. overrides
+       the database and client write concern) unless either:
+
+       - the operation is not part of a transaction and a write concern
+         has been set at the operation level.
+
+       - the operation is part of a transaction. Operations within a
+         transaction use the transaction write concern, set at either
+         the session level or the transaction level.
+
+   * - Operation level
+
+     - Applies for the specific write operation unless the operation is
+       part of a transaction. Operations within a transaction use the
+       transaction write concern, set at either the session level or the
+       transaction level.
+
+       The ability to set write concern at the operation depends on the
+       driver. Refer to your `driver's documentation
+       <https://docs.mongodb.com/drivers/>`__.
