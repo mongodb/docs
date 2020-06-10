@@ -33,5 +33,8 @@
      table.licenses tr.row-even {
        background-color: #fcfcfc
      }
+     div.tabs > ul.tab-strip {
+       width: 100%
+     }
    </style>
 
