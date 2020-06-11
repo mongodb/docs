@@ -4,319 +4,70 @@ Clusters
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: twocols
-
 .. include:: /includes/fact-groups-projects-synonyms.rst
-
-Overview
---------
 
 MongoDB supports two types of clusters: :term:`replica sets
 <replica set>` and :term:`sharded clusters <sharded cluster>`.
 A sharded cluster can contain replica sets within it: each shard can be a
-replica set and the config server can also be a replica set.
-These relationships are reflected in the
-way |mms| models clusters, and it might lead to unexpected results from
-the **Clusters** resource. As an example, consider a deployment with one
-sharded cluster containing four shards, and each shard is a three-node
-replica set. In this scenario, the **Clusters** resource will return
-five entities: one that represents the sharded cluster, and four to
-represent the replica sets (shards). However, if each shard in this
-fictitious deployment was a standalone :program:`mongod` instead of a
-replica set, then the **Clusters** resource would only return one entity
-representing the sharded cluster.
+replica set and the config server can also be a replica set. These
+relationships are reflected in the way |mms| models clusters, and it
+might lead to unexpected results from the ``clusters`` resource. 
+
+.. example::
+   
+   Consider a deployment with one sharded cluster containing four
+   shards, and each shard is a three-node replica set. 
+
+   In this scenario, the ``clusters`` resource will return five
+   entities: 
+
+   - One that represents the sharded cluster, and 
+   - Four that represent the replica sets (shards). 
+
+   However, if each shard in this fictitious deployment were a
+   standalone :program:`mongod` instead of a replica set, then the
+   ``clusters`` resource returns only one entity representing the
+   sharded cluster.
+
+.. include:: /includes/api/base-api-uri.rst
 
 Endpoints
 ---------
 
-Get All Clusters
-~~~~~~~~~~~~~~~~
-
-Get all clusters in a project.
-
-.. code-block:: http
-
-   GET /groups/{PROJECT-ID}/clusters
-
-Use the ``parentClusterId`` query parameter to get all clusters with the
-specified parent cluster ID. The list of entities is sorted in ascending
-order by the date that |mms| discovered the cluster.
-
-Get a Cluster
-~~~~~~~~~~~~~
-
-Get a single cluster by ID.
-
-.. code-block:: http
-
-   GET /groups/{PROJECT-ID}/clusters/CLUSTER-ID
-
-Update a Cluster
-~~~~~~~~~~~~~~~~
-
-Update a cluster by ID. The only property that you may modify is the
-``clusterName``, since |mms| discovers all other cluster properties.
-This operation is only available on clusters of
-type ``SHARDED`` and ``SHARDED_REPLICA_SET``.
-
-.. code-block:: none
-
-   PATCH /groups/{PROJECT-ID}/clusters/CLUSTER-ID
-
-Sample Entity
--------------
-
-.. code-block:: javascript
-
-   {
-     "id": "yyy",
-     "groupId": "xxx",
-     "typeName": "REPLICA_SET",
-     "clusterName": "Cluster 0",
-     "shardName": "shard001",
-     "replicaSetName": "rs1",
-     "lastHeartbeat": "2014-02-26T17:32:45Z",
-     "links" : []
-   }
-
-Entity Fields
--------------
+The following endpoints are available for ``clusters``.
 
 .. list-table::
-   :widths: 10 10 80
    :header-rows: 1
    :stub-columns: 1
+   :widths: 10 50 40
 
-   * - Name
-     - Type
+   * - Method
+     - Endpoint
      - Description
-   * - id
-     - string
-     - Unique identifier.
-   * - groupId
-     - string
-     - Unique identifier of the project that owns this cluster.
-   * - typeName
-     - string
-     - Specifies what kind of cluster this is. Possible values are:
 
-       - ``REPLICA_SET``
+   * - GET
+     - :doc:`/clusters </reference/api/clusters/clusters-get-all-key>`
+     - Get details for all clusters in all projects available to the 
+       programmatic or personal API key making the request.
 
-       - ``SHARDED``: a sharded cluster where each shard is a :term:`standalone` instance. No shards
-         are replica sets.
+   * - GET
+     - :doc:`/groups/{PROJECT-ID}/clusters </reference/api/clusters/clusters-get-all>`
+     - Retrieve details for all clusters in one project.
 
-       - ``SHARDED_REPLICA_SET``: a sharded cluster that contains at least one shard that is a replica set.
+   * - GET
+     - :doc:`/groups/{PROJECT-ID}/clusters/{CLUSTER-ID} </reference/api/clusters/clusters-get-one>`
+     - Retrieve details for one cluster in one project.
 
-       - ``CONFIG_SERVER_REPLICA_SET``: config servers deployed as a replica set.
+   * - PATCH
+     - :doc:`/groups/{PROJECT-ID}/clusters/{CLUSTER-ID} </reference/api/clusters/clusters-update-one>`
+     - Update one cluster in one project.
 
-       - ``MASTER_SLAVE``
+.. class:: hidden
 
-   * - clusterName
-     - string
-     - Display name of the cluster. Only applies to sharded clusters. Note that
-       ``mongod`` itself doesn't allow you to name a cluster; this name is
-       supplied by (and editable within) |mms|. For a replica set within a sharded
-       cluster, the cluster name is the name of its parent cluster.
-   * - shardName
-     - string
-     - Name of the shard. Only present for a cluster of type ``SHARDED`` or
-       ``REPLICA_SET`` that is part of a sharded cluster.
-   * - replicaSetName
-     - string
-     - Name of the replica set. Only present for a cluster of type
-       ``REPLICA_SET`` or ``CONFIG_SERVER_REPLICA_SET``.
-   * - lastHeartbeat
-     - date
-     - The approximate last time |mms| processed a ping from this cluster.
+   .. toctree::
+      :titlesonly:
 
-Links
------
-
-.. list-table::
-   :header-rows: 1
-
-   * - Relation
-     - Description
-   * - self
-     - Me
-   * - ``http://mms.mongodb.com/parentCluster``
-     - The parent cluster. Only present if the type is ``SHARDED`` or
-       ``REPLICA_SET`` within a sharded cluster.
-   * - ``http://mms.mongodb.com/group``
-     - The project that this cluster belongs to.
-   * - ``http://mms.mongodb.com/clusters``
-     - The member shards that belong to this cluster. Only present if the type
-       is ``SHARDED_REPLICA_SET``.
-   * - ``http://mms.mongodb.com/hosts``
-     - The member hosts that belong to this cluster. Present for all types
-       except ``SHARDED_REPLICA_SET``. Note: to get the hosts of a sharded
-       cluster, follow the ``clusters`` link and get the ``hosts`` for each
-       shard.
-
-Examples
---------
-
-Get a Cluster
-~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/clusters/533d7d4730040be257defe88"
-
-.. only:: onprem
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://<ops-manager-host>/api/public/v1.0/groups/{PROJECT-ID}/clusters/533d7d4730040be257defe88"
-
-Response
-````````
-
-Response Header
-~~~~~~~~~~~~~~~
-
-.. include:: /includes/api/api-headers/401.rst
-
-.. include:: /includes/api/api-headers/200.rst
-
-Response Body
-~~~~~~~~~~~~~
-
-.. code-block:: json
-
-   {
-     "id" : "533d7d4730040be257defe88",
-     "typeName" : "SHARDED_REPLICA_SET",
-     "clusterName" : "Animals",
-     "lastHeartbeat" : "2014-04-03T15:26:58Z",
-     "links" : []
-   }
-
-Get all Clusters
-~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/clusters"
-
-.. only:: onprem
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://<ops-manager-host>/api/public/v1.0/groups/{PROJECT-ID}/clusters"
-
-Response
-````````
-
-Response Header
-~~~~~~~~~~~~~~~
-
-.. include:: /includes/api/api-headers/401.rst
-
-.. include:: /includes/api/api-headers/200.rst
-
-Response Body
-~~~~~~~~~~~~~
-
-.. code-block:: json
-
-   {
-     "totalCount" : 3,
-     "results" : [ {
-       "id" : "533d7d4730040be257defe88",
-       "typeName" : "SHARDED_REPLICA_SET",
-       "clusterName" : "Animals",
-       "lastHeartbeat" : "2014-04-03T15:26:58Z",
-       "links" : []
-     }, {
-       "id" : "533d7d4630040be257defe85",
-       "typeName" : "REPLICA_SET",
-       "clusterName" : "Animals",
-       "shardName" : "cats",
-       "replicaSetName" : "cats",
-       "lastHeartbeat" : "2014-04-03T15:24:54Z",
-       "links" : []
-     }, {
-       "id" : "533d7d4630040be257defe83",
-       "typeName" : "REPLICA_SET",
-       "clusterName" : "Animals",
-       "shardName" : "dogs",
-       "replicaSetName" : "dogs",
-       "lastHeartbeat" : "2014-04-03T15:26:30Z",
-       "links" : []
-     } ],
-     "links" : []
-   }
-
-Update a Cluster
-~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: sh
-
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PATCH "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/clusters/533d7d4730040be257defe88" --data '
-      {
-        "clusterName": "Zoo"
-      }'
-
-.. only:: onprem
-
-   .. code-block:: sh
-
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PATCH "https://<ops-manager-host>/api/public/v1.0/groups/{PROJECT-ID}/clusters/533d7d4730040be257defe88" --data '
-      {
-        "clusterName": "Zoo"
-      }'
-
-Response
-````````
-
-Response Header
-~~~~~~~~~~~~~~~
-
-.. include:: /includes/api/api-headers/401.rst
-
-.. include:: /includes/api/api-headers/200.rst
-
-Response Body
-~~~~~~~~~~~~~
-
-.. code-block:: json
-
-   {
-     "id" : "533d7d4730040be257defe88",
-     "typeName" : "SHARDED_REPLICA_SET",
-     "clusterName" : "Zoo",
-     "lastHeartbeat" : "2014-04-03T15:26:58Z",
-     "links" : []
-   }
+      /reference/api/clusters/clusters-get-all-key
+      /reference/api/clusters/clusters-get-all
+      /reference/api/clusters/clusters-get-one
+      /reference/api/clusters/clusters-update-one
