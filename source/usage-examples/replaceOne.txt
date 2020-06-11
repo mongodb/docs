@@ -1,0 +1,108 @@
+==================
+Replace a Document
+==================
+
+.. default-domain:: mongodb
+
+You can replace a single document using the ``replaceOne()`` method on
+a ``MongoCollection`` object. This method removes all the existing fields
+and values from a document (except the ``_id`` field) and substitutes it
+with your replacement document.
+
+The ``replaceOne()`` method accepts a query filter that matches the
+document you want to replace and a replacement document that contains the
+data you want to save in place of the matched document. The ``replaceOne()``
+method only updates the first document that matches the filter.
+
+You can optionally pass an instance of ``ReplaceOptions`` to the method in
+order to specify the method behavior. For example, if you set the ``upsert``
+field of the ``ReplaceOptions`` object to ``true``, the operation inserts
+a new document from the fields in the replacement document if no documents
+match the query filter. See the link to the ``ReplaceOptions`` API
+documentation at the bottom of this page for more information.
+
+Upon successful execution, the ``replaceOne()`` method returns an instance
+of ``UpdateResult``.  You can retrieve information such as the number of
+documents modified calling the ``getModifiedCount()`` method. You can also
+retrieve the value of the document's ``_id`` field by calling the
+``getUpsertedId()`` method if you set ``upsert(true)`` in the
+``UpdateOptions`` instance and the operation resulted in an upsert.
+
+If your replacement operation fails, the driver raises an exception.
+For example, if you try to specify a value for the immutable field
+``_id`` in your replacement document that differs from the original
+document, the method throws a ``MongoWriteException`` with the message:
+
+.. code-block:: none
+
+   After applying the update, the (immutable) field '_id' was found to have been altered to _id: ObjectId('...)
+
+If your replacement document contains a change that violates unique index
+rules, the method throws a ``MongoWriteException`` with the error
+message that resembles the following:
+
+.. code-block:: none
+
+   E11000 duplicate key error collection: ...
+
+For more information on the types of exceptions raised under specific
+conditions, see the API documentation for ``replaceOne()``, linked at the
+bottom of this page.
+
+Example
+-------
+
+In this example, we replace the first match of our query filter in the
+``movies`` collection of the ``sample_mflix`` database with a replacement
+document. All the fields except for the ``_id`` field are deleted from the
+original document and are substituted by the replacement document.
+
+Before the ``replaceOne()`` operation runs, the original document contains
+several fields describing the movie. After the operation runs, the resulting
+document contains only the fields specified by the replacement document
+(``title`` and ``fullplot``) and the ``_id`` field.
+
+The following snippet uses the following objects and methods:
+
+- A **query filter** that is passed in the ``replaceOne()`` method. The ``eq``
+  filter matches only movies with the title exactly matching the text
+  ``'Music of the Heart'``.
+
+- A **replacement document** that contains the document that replaces the
+  matching document if it exists.
+
+- A **ReplaceOptions** object with the ``upsert`` option set to ``true``.
+
+.. include:: /includes/connect-guide-note.rst
+
+.. literalinclude:: /includes/usage-examples/code-snippets/ReplaceOne.java
+   :language: java
+
+If you are using the **legacy API**, see (TODO: FAQ ?) to determine what
+changes you need to make to this code example.
+
+After you run the example, you should see output that resembles the
+following:
+
+.. code-block:: none
+
+   Modified document count: 1
+
+If you query the replaced document, it should resemble the following:
+
+.. code-block:: none
+
+   Document {
+     { _id=...,
+       title=50 Violins,
+       fullplot=A dramatization of the true story of Roberta Guaspari who co-founded the Opus 118 Harlem School of Music
+     }
+   }
+
+For additional information on the classes and methods mentioned on this
+page, see the following API documentation:
+
+- :java-sync-api:`ReplaceOne <com/mongodb/client/MongoCollection.html#replaceOne(org.bson.conversions.Bson,TDocument)>`
+- :java-sync-api:`ReplaceOptions <com/mongodb/client/model/ReplaceOptions.html>`
+- :java-sync-api:`UpdateResult <com/mongodb/client/result/UpdateResult.html>`
+- :java-sync-api:`Filters.eq <com/mongodb/client/model/Filters.html#eq(TItem)>`

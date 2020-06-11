@@ -10,39 +10,38 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.Updates;
+import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.result.UpdateResult;
 
-public class UpdateOne {
+public class ReplaceOne {
 
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
         String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+
         MongoClient mongoClient = MongoClients.create(uri);
 
         MongoDatabase database = mongoClient.getDatabase("sample_mflix");
         MongoCollection<Document> collection = database.getCollection("movies");
 
         try {
-            Bson query = eq("title", "Cool Runnings");
+            Bson query = eq("title", "Music of the Heart");
 
-            Bson updates = Updates.combine(
-                    Updates.set("runtime", 99),
-                    Updates.addToSet("genres", "Sports"),
-                    Updates.currentTimestamp("lastUpdated"));
+            Document replaceDocument = new Document().
+                    append("title", "50 Violins").
+                    append("fullplot", " A dramatization of the true story of Roberta Guaspari who co-founded the Opus 118 Harlem School of Music");
 
-            UpdateOptions options = new UpdateOptions().upsert(true);
+            ReplaceOptions opts = new ReplaceOptions().upsert(true);
 
-            UpdateResult result = collection.updateOne(query, updates, options);
+            UpdateResult result = collection.replaceOne(query, replaceDocument, opts);
 
             System.out.println("Modified document count: " + result.getModifiedCount());
 
         } catch (MongoException me) {
-            System.err.println("Unable to update due to an error: " + me);
+            System.err.println("Unable to replace due to an error: " + me);
         }
         mongoClient.close();
     }
 }
-
