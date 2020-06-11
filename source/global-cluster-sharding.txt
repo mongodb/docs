@@ -4,11 +4,16 @@ Global Cluster Sharding Reference
 
 .. default-domain:: mongodb
 
+.. include:: /includes/styles/corrections.rst
+
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 2
    :class: singlecol
+
+.. |iso3166-2| replace:: :wikipedia:`ISO-3166-2 </ISO_3166-2>`
+.. |iso3166-1a2| replace:: :wikipedia:`ISO-3166-1 alpha 2 </ISO_3166-1_alpha-2>`
 
 The following sections describe :manual:`sharding </sharding>`
 behavior and how to enable sharding for :ref:`global-clusters`.
@@ -18,24 +23,22 @@ behavior and how to enable sharding for :ref:`global-clusters`.
 Sharding Collections for Global Writes
 --------------------------------------
 
-Unsharded collections must meet the following compatibility 
-requirements **prior to sharding** to utilize |global-write| when 
+Unsharded collections must meet the following compatibility
+requirements **prior to sharding** to utilize |global-write| when
 sharded:
 
-- Every document in the collection **must** include a 
+- Every document in the collection **must** include a
   ``location`` field.
 
 - The value of the ``location`` field **must** be either an
-  `ISO-3166-1 alpha 2 <https://en.wikipedia.org/wiki/ISO_3166-1>`_
-  country code (``"US"``, ``"DE"``, ``"IN"``) *or* a supported
-  `ISO-3166-2 <https://en.wikipedia.org/wiki/ISO_3166-2>`_ 
-  subdivision code (``"US-DC"``, ``"DE-BE"``, ``"IN-DL"``). 
-  Documents that do not match this criteria can be routed to any shard 
-  in the cluster. To view the complete list of currently supported 
-  country or subdivision codes, visit
+  |iso3166-1a2| country code (``"US"``, ``"DE"``, ``"IN"``) *or* a
+  supported |iso3166-2| subdivision code (``"US-DC"``, ``"DE-BE"``,
+  ``"IN-DL"``). Documents that do not match this criteria can be routed
+  to any shard in the cluster. To view the complete list of currently
+  supported country or subdivision codes, visit
   https://cloud.mongodb.com/static/atlas/country_iso_codes.txt.
 
-For collections that meet the stated requirements, you **must** shard 
+For collections that meet the stated requirements, you *must* shard
 the collection using the following pattern:
 
 .. code-block:: json
@@ -45,34 +48,67 @@ the collection using the following pattern:
 A shard key on the ``location`` field alone may result in bottlenecks,
 especially for workloads where a subset of countries or subdivisions
 receive the majority of write operations. |service| |global-write|
-requires a :manual:`compound shard key </core/index-compound>` 
-to facilitate efficient distribution of sharded data across the cluster.
-|service| |global-write-cluster| shard keys share the same restrictions as 
-MongoDB shard keys; for example, the secondary shard key field *cannot* 
-be an array.
+requires a :manual:`compound shard key </core/index-compound>` to
+facilitate efficient distribution of sharded data across the cluster.
+|service| |global-write-cluster| shard keys share the same restrictions
+as MongoDB shard keys. For example: the secondary shard key field
+*can't* be an array.
 
-For guidance on choosing a secondary shard key field and the effect of 
-shard key choice on data distribution, see :manual:`Choosing a Shard Key 
-</core/sharding-shard-key/#choosing-a-shard-key>`. For complete
-documentation on shard key limitations, see 
-:ref:`Shard Key Limitations <limits-shard-keys>`.
+.. seealso::
 
-.. important::
+   To learn more about:
 
-   You cannot easily change the shard key after sharding, nor can 
-   you modify the value of shard key fields in any document in the 
-   sharded collection.
+   - How to choose a secondary shard key field and the effect of shard
+     key choice on data distribution, see
+     :manual:`Choosing a Shard Key </core/sharding-shard-key/#choosing-a-shard-key>`.
 
-The |service| :ref:`data-explorer` supports creating sharded collections
-with specific validations for |global-write|. For complete 
-documentation, see :ref:`de-shard-collection-for-global-writes`. 
+   - What shard key limitations are, see
+     :ref:`Shard Key Limitations <limits-shard-keys>`.
+
+.. admonition:: Changing the Shard Key
+   :class: important
+
+   After sharding, what you can modify depends upon the version of
+   MongoDB that you run:
+
+   .. list-table::
+      :widths: 40 30 30
+      :header-rows: 1
+      :stub-columns: 1
+
+      * - MongoDB Version
+        - Modify Shard Key Keys
+        - Modify Shard Key Values
+
+      * - MongoDB 4.0
+        - No
+        - No
+
+      * - MongoDB 4.2
+        - No
+        - Yes
+
+      * - MongoDB 4.4
+        - Yes, add fields to Key
+        - Yes
+
+The |service| :ref:`data-explorer` supports creating sharded
+collections with specific validations for |global-write|.
+
+.. seealso::
+
+   To learn more, see
+   :ref:`de-shard-collection-for-global-writes`.
 
 You can also use the :binary:`~bin.mongo` shell to execute the
 :method:`sh.shardCollection() <sh.shardCollection>`. After sharding
 the collection, you must use the |service| :ref:`data-explorer`
-to enable |global-write| for that collection. For complete 
-documentation on sharding collections via the Data Explorer, 
-see :ref:`de-shard-collection-for-global-writes`. 
+to enable |global-write| for that collection.
+
+.. seealso::
+
+   To learn more about sharding collections via the Data
+   Explorer, see :ref:`de-shard-collection-for-global-writes`.
 
 Error Handling
 ~~~~~~~~~~~~~~
@@ -84,7 +120,7 @@ writes, a message appears in the banner at the top of the screen.
    :alt: Screenshot of an Atlas sharding error alert
    :figwidth: 550px
 
-Click the :guilabel:`See Details` button for more information about the
+Click :guilabel:`See Details` for more information about the
 error. A modal window appears with the complete error message and a
 :guilabel:`Fix Now` button:
 
@@ -92,26 +128,28 @@ error. A modal window appears with the complete error message and a
    :alt: Screenshot of an Atlas sharding error modal window
    :figwidth: 550px
 
-Clicking the :guilabel:`Fix Now` button takes you to the Data Explorer,
-where you can request to cancel the sharding operation. After making any
+Click :guilabel:`Fix Now` to navigate to the Data Explorer, where you
+can request to cancel the sharding operation. After making any
 necessary changes to the collection as indicated by the error message,
 you can start the sharding process again.
 
-Possible errors include the following:
+Possible errors include:
 
-- **An index already exists on the custom shard key.** If the field
-  chosen as the second part of the compound shard key is already
-  indexed, the sharding operation may fail.
+An index already exists on the custom shard key.
+  If the field chosen as the second part of the compound shard key is
+  already indexed, the sharding operation may fail.
 
-- **The shard key field is not present.** All documents in the collection
-  must contain both the shard key fields.
+The shard key field is not present.
+  All documents in the collection must contain both the shard key
+  fields.
 
-- **The collection is already sharded.** If the collection has already been
-  manually sharded, the operation will fail.
+The collection is already sharded.
+  If the collection has already been manually sharded, the operation
+  fails.
 
-- **The collection has a custom default collation.** A :manual:`custom
-  default collation </reference/collation/>` on the collection may cause
-  a sharding error.
+The collection has a custom default collation.
+  A :manual:`custom default collation </reference/collation/>` on the
+  collection may cause a sharding error.
 
 .. _global-writes-write-operations:
 
@@ -119,88 +157,89 @@ Possible errors include the following:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Each write to a sharded collection *must* include the shard key for the
-operation to succeed. For each document in a write operation, MongoDB 
-uses the ``location`` field of the shard key to determine the zone to 
-which to route the data. MongoDB selects a shard associated to that zone
-as the target for writing the document, facilitating geographically 
-isolated and segmented data storage.
+operation to succeed. For each document in a write operation, MongoDB
+uses the ``location`` field of the shard key to determine the zone to
+which to route the data. MongoDB selects a shard associated to that
+zone as the target for writing the document, facilitating
+geographically isolated and segmented data storage.
 
-MongoDB can only guarantee this behavior for inserted documents that 
-meet the criteria defined in :ref:`global-writes-collections`. 
-Specifically, MongoDB can route a document whose ``location`` field does 
-not conform to 
-`ISO-3166-1 alpha 2 <https://en.wikipedia.org/wiki/ISO_3166-1>`_ *or*
-`ISO-3166-2 <https://en.wikipedia.org/wiki/ISO_3166-2>`_ to any shard
-in the cluster.
+MongoDB can only guarantee this behavior for inserted documents that
+meet the criteria defined in :ref:`global-writes-collections`.
+Specifically, MongoDB can route a document whose ``location`` field
+doesn't conform to |iso3166-1a2| *or* |iso3166-2| to any shard in the
+cluster.
 
 .. _global-writes-read-operations:
 
 |global-write-cluster| Read Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB query routing depends on whether the read operation
-includes the full shard key **and** that the ``location`` value
-corresponds to a supported
-`ISO-3166-1 alpha 2 <https://en.wikipedia.org/wiki/ISO_3166-1>`_
-country code (``"US"``, ``"DE"``, ``"IN"``) *or* a supported
-`ISO-3166-2 <https://en.wikipedia.org/wiki/ISO_3166-2>`_ 
-subdivision code (``"US-DC"``, ``"DE-BE"``, ``"IN-DL"``).
+MongoDB query routing depends on whether the read operation includes
+the full shard key **and** that the ``location`` value corresponds to a
+supported |iso3166-1a2| country code (``"US"``, ``"DE"``, ``"IN"``)
+*or* a supported |iso3166-2| subdivision code (``"US-DC"``,
+``"DE-BE"``, ``"IN-DL"``).
 
 For queries that do include the full shard key and whose ``location``
-value meets the requirements for |global-write|, MongoDB targets 
-the read operation to the zone which maps to the ``location`` value or 
-values specified in the query. 
+value meets the requirements for |global-write|, MongoDB targets
+the read operation to the zone which maps to the ``location`` value or
+values specified in the query.
 
-For read operations that do not include the full shard key, or if the 
-``location`` value does not correspond to a supported
-``ISO-3166-1 alpha 2`` country code or ``ISO-3166-2`` subdivision code,
-MongoDB must broadcast the read operation to every zone in the cluster.
+For read operations that don't include the full shard key, or if the
+``location`` value does not correspond to a supported |iso3166-1a2|
+country code or |iso3166-2| subdivision code, MongoDB must broadcast
+the read operation to every zone in the cluster.
 
-For |global-write| zones which have :guilabel:`Read-only` nodes
-in geographically distant regions, clients in those regions can
-query the local :guilabel:`Read-only` node for that zone by specifying
-the full shard key as part of the query **and** issuing the
-read operation with a :manual:`Read Preference </core/read-preference/>` 
-of :readmode:`nearest`. 
+For |global-write| zones which have :guilabel:`Read-only` nodes in
+geographically distant regions, clients in those regions can query the
+local :guilabel:`Read-only` node for that zone by specifying the full
+shard key as part of the query *and* issuing the read operation with a
+:manual:`Read Preference </core/read-preference/>` of
+:readmode:`nearest`.
 
 .. important::
 
    Secondary reads may return stale data depending on the level
    of replication lag between the secondary node and the primary.
-   For complete documentation on MongoDB read preference,
-   see :manual:`Read Preference </core/read-preference/>`.
 
 .. seealso::
 
-   For more information on MongoDB query routing, see 
-   :manual:`mongos </core/sharded-cluster-query-router/>`.  
+   To learn more about:
+
+   - MongoDB read preference, see
+     :manual:`Read Preference </core/read-preference/>`.
+
+   - MongoDB query routing, see
+     :manual:`mongos </core/sharded-cluster-query-router/>`.
 
 Sharding Collections without Global Writes
 ------------------------------------------
 
 |global-write| clusters support the same
-:manual:`Ranged </core/ranged-sharding>` and 
-:manual:`Hashed </core/hashed-sharding>` sharding strategies
-as a standard |service| sharded cluster. For sharded collections whose 
-shard keys and document schema do not support |global-write|, 
-MongoDB distributes the sharded data evenly across the available shards 
-in the cluster with respect to the chosen 
+:manual:`Ranged </core/ranged-sharding>` and
+:manual:`Hashed </core/hashed-sharding>` sharding strategies as a
+standard |service| sharded cluster. For sharded collections whose shard
+keys and document schema don't support |global-write|, MongoDB
+distributes the sharded data evenly across the available shards in the
+cluster with respect to the chosen
 :manual:`shard key </core/sharding-shard-key/>`. Consider using a
-separate sharded cluster for data that cannot take advantage of 
-|global-write| functionality. 
+separate sharded cluster for data that cannot take advantage of
+|global-write| functionality.
 
-You cannot modify a collection to support |global-write| after
-sharding. Consider whether you might want to use |global-write|
-for a collection in the future before choosing an incompatible shard
-key. For more information on |global-write| sharding requirements, see 
-:ref:`global-writes-collections`.
+You can't modify a collection to support |global-write| after sharding.
+Consider whether you might want to use |global-write| for a collection
+in the future before choosing an incompatible shard key.
+
+.. seealso::
+
+   To learn more about |global-write| sharding requirements, see
+   :ref:`global-writes-collections`.
 
 Unsharded Collections in Global Write Clusters
 ----------------------------------------------
 
-|global-write-clusters| provide the same support for unsharded 
-collections as a standard |service| sharded cluster. For each database 
-in the cluster, MongoDB stores its unsharded collections on a 
+|global-write-clusters| provide the same support for unsharded
+collections as a standard |service| sharded cluster. For each database
+in the cluster, MongoDB stores its unsharded collections on a
 :term:`primary shard`. Use :method:`sh.status() <sh.status>` from
-the :binary:`~bin.mongo` shell to determine the primary shard for the 
-database. 
+the |mongo| shell to determine the primary shard for the database.
