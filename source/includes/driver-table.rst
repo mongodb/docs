@@ -67,7 +67,7 @@
    * - :doc:`Python </python>`
      - `Releases <https://pypi.python.org/pypi/pymongo/>`__
      - `Source <https://github.com/mongodb/mongo-python-driver>`__
-     - :api:`API <python/current>`
+     - `API <https://pymongo.readthedocs.io/en/stable/api>`__
      - :issue:`JIRA <PYTHON>`
      - `Course <https://university.mongodb.com/courses/M220P/about>`__
 
