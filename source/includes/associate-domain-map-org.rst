@@ -17,10 +17,3 @@ integration between your domain and |idp-provider|:
 
 .. include:: /includes/steps/test-domain-mapping.rst
 
-Map an Organization
-~~~~~~~~~~~~~~~~~~~
-
-Use the :guilabel:`Federation Management Console` to assign your 
-domain's users access to specific |service| organizations:
-
-.. include:: /includes/steps/manage-organization-mapping.rst
