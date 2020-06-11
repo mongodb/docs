@@ -17,18 +17,27 @@ Definition
 
 
    The positional :projection:`$` operator limits the contents of an
-   ``<array>`` from the query results to contain only the **first** element
-   matching the query document. To specify an array element to update, see the
-   :doc:`positional $ operator for updates
-   </reference/operator/update/positional>`.
+   ``<array>`` to return either:
+
+   - The first element that matches the query condition on the array.
+   - The first element if no query condition is specified for the
+     array (Starting in MongoDB 4.4).
 
    Use :projection:`$` in the :term:`projection` document of the
    :method:`~db.collection.find()` method or the
-   :method:`~db.collection.findOne()` method when you only need one particular
-   array element in selected documents.
+   :method:`~db.collection.findOne()` method when you only need one
+   particular array element in selected documents.
 
    See the aggregation operator :expression:`$filter` to return an
    array with only those elements that match the specified condition.
+
+   .. admonition:: Disambiguation
+   
+      To specify an array element to update, see the
+      :doc:`positional $ operator for updates
+      </reference/operator/update/positional>`.
+
+      
 
 Usage Considerations
 --------------------
@@ -40,21 +49,35 @@ Usage Considerations
 Behavior
 --------
 
-Usage Requirements
-~~~~~~~~~~~~~~~~~~
+Syntax
+~~~~~~
 
-Given the form:
+To return the first array element that matches the specified query
+condition on the array:
 
 .. code-block:: javascript
 
-   db.collection.find( { <array>: <value> ... },
+   db.collection.find( { <array>: <condition> ... },
                        { "<array>.$": 1 } )
-   db.collection.find( { <array.field>: <value> ...},
+   db.collection.find( { <array.field>: <condition> ...},
                        { "<array>.$": 1 } )
 
-The ``<array>`` field being limited **must** appear in the :ref:`query document
-<read-operations-query-argument>`, and the ``<value>`` can be documents
-that contain :ref:`query operator expressions <query-selectors-comparison>`.
+.. versionchanged:: 4.4
+
+   You can use the :projection:`$` operator to limit an ``<array>``
+   field which does not appear in the
+   :ref:`query document <read-operations-query-argument>`. In previous
+   versions of MongoDB, the ``<array>`` field being limited
+   **must** appear in the query document.
+
+   .. code-block:: javascript
+
+      db.collection.find( { <someOtherArray>: <condition> ... }, 
+                          { "<array>.$" : 1 } )
+
+   .. important::
+
+      .. include:: /includes/fact-behavior-project-different-array.rst
 
 .. _array-field-limitation:
 
@@ -66,38 +89,38 @@ MongoDB requires the following when dealing with projection over arrays:
 - Only one positional :projection:`$` operator may appear in the projection
   document.
 
-- Only one array field, the one being limited with the :projection:`$`
-  projection operator, should appear in the :ref:`query document
-  <read-operations-query-argument>`. Additional array fields in the
-  query document may lead to undefined behavior.
+- Only one array field should appear in the
+  :ref:`query document <read-operations-query-argument>`. Additional
+  array fields in the query document may lead to undefined behavior.
+
+  For example, the following projection may lead to
+  undefined behavior:
+
+  .. code-block:: javascript
+
+     db.collection.find( { <array>: <value>, <someOtherArray>: <value2> },
+                         { "<array>.$": 1 } )
 
 - The :ref:`query document <read-operations-query-argument>` should only
-  contain a single condition on the array field being projected. Multiple
-  conditions may override each other internally and lead to undefined
-  behavior.
+  contain a single condition on the array field to which it is applied.
+  Multiple conditions may override each other internally and lead to
+  undefined behavior.
 
-Under these requirements, the following query is **incorrect**:
+  To specify criteria on multiple fields of documents inside that array, use the
+  :query:`$elemMatch` query operator. The following query returns the first 
+  document inside a ``grades`` array that has a ``mean`` of greater than 70
+  and a ``grade`` of greater than 90.
 
-.. code-block:: javascript
+  .. code-block:: javascript
 
-   db.collection.find( { <array>: <value>, <someOtherArray>: <value2> },
-                       { "<array>.$": 1 } )
+     db.students.find( { grades: { $elemMatch: {
+                                                 mean: { $gt: 70 },
+                                                 grade: { $gt:90 }
+                                               } } },
+                       { "grades.$": 1 } )
 
-To specify criteria on multiple fields of documents inside that array, use the
-:query:`$elemMatch` query operator. The following query returns the first 
-document inside a ``grades`` array that has a ``mean`` of greater than 70
-and a ``grade`` of greater than 90.
-
-.. code-block:: javascript
-
-   db.students.find( { grades: { $elemMatch: {
-                                               mean: { $gt: 70 },
-                                               grade: { $gt:90 }
-                                             } } },
-                     { "grades.$": 1 } )
-
-You must use the :projection:`$elemMatch` operator if you need separate conditions
-for selecting documents and for choosing fields within those documents.
+  You must use the :projection:`$elemMatch` operator if you need separate conditions
+  for selecting documents and for choosing fields within those documents.
 
 Sorts and the Positional Operator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
