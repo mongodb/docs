@@ -18,22 +18,23 @@ public class InsertMany {
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
         String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
-        MongoClient mongoClient = MongoClients.create(uri);
 
-        MongoDatabase database = mongoClient.getDatabase("sample_mflix");
-        MongoCollection<Document> collection = database.getCollection("movies2");
+        try (MongoClient mongoClient = MongoClients.create(uri)) {
 
-        List<Document> movieList = Arrays.asList(
-                new Document().append("title", "Short Circuit 3"),
-                new Document().append("title", "The Lego Frozen Movie"));
+            MongoDatabase database = mongoClient.getDatabase("sample_mflix");
+            MongoCollection<Document> collection = database.getCollection("movies");
 
-        try {
-            InsertManyResult result = collection.insertMany(movieList);
+            List<Document> movieList = Arrays.asList(
+                    new Document().append("title", "Short Circuit 3"),
+                    new Document().append("title", "The Lego Frozen Movie"));
 
-            System.out.println("Inserted document ids: " + result.getInsertedIds());
-        } catch (MongoException me) {
-            System.err.println("Unable to insert due to an error: " + me);
+            try {
+                InsertManyResult result = collection.insertMany(movieList);
+
+                System.out.println("Inserted document ids: " + result.getInsertedIds());
+            } catch (MongoException me) {
+                System.err.println("Unable to insert due to an error: " + me);
+            }
         }
-        mongoClient.close();
     }
 }

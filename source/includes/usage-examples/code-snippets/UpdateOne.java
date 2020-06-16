@@ -1,8 +1,6 @@
 // ignored first line
 package usage.examples;
 
-import static com.mongodb.client.model.Filters.eq;
-
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -20,13 +18,13 @@ public class UpdateOne {
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
         String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
-        MongoClient mongoClient = MongoClients.create(uri);
 
-        MongoDatabase database = mongoClient.getDatabase("sample_mflix");
-        MongoCollection<Document> collection = database.getCollection("movies");
+        try (MongoClient mongoClient = MongoClients.create(uri)) {
 
-        try {
-            Bson query = eq("title", "Cool Runnings");
+            MongoDatabase database = mongoClient.getDatabase("sample_mflix");
+            MongoCollection<Document> collection = database.getCollection("movies");
+
+            Document query = new Document().append("title",  "Cool Runnings 2");
 
             Bson updates = Updates.combine(
                     Updates.set("runtime", 99),
@@ -35,14 +33,15 @@ public class UpdateOne {
 
             UpdateOptions options = new UpdateOptions().upsert(true);
 
-            UpdateResult result = collection.updateOne(query, updates, options);
+            try {
+                UpdateResult result = collection.updateOne(query, updates, options);
 
-            System.out.println("Modified document count: " + result.getModifiedCount());
+                System.out.println("Modified document count: " + result.getModifiedCount());
 
-        } catch (MongoException me) {
-            System.err.println("Unable to update due to an error: " + me);
+                System.out.println("Upserted id: " + result.getUpsertedId()); // only contains a value when an upsert is performed
+            } catch (MongoException me) {
+                System.err.println("Unable to update due to an error: " + me);
+            }
         }
-        mongoClient.close();
     }
 }
-
