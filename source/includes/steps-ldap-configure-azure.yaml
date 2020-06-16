@@ -1,0 +1,293 @@
+title: "Configure |ldap-provider| for your domain."
+level: 4
+ref: configure-azure-ldap-adds-domain
+content: |
+
+  To configure |ldap-provider|, follow the 
+  :azure:`Create an advanced managed domain 
+  </active-directory-domain-services/tutorial-create-instance-advanced>` 
+  tutorial in the |azure| Documentation using the 
+  ``Custom domain names`` DNS name option.
+
+  When you configure your managed domain, make sure that you note the 
+  value you enter in the :guilabel:`DNS domain name` field. This value 
+  is your ``<managed-domain>``. You must provide it in several places in 
+  this tutorial.
+
+  .. example::
+
+     aadds.example.com
+
+---
+title: "Obtain an SSL certificate for secure LDAP."
+level: 4
+ref: configure-azure-ldap-cert
+content: |
+
+  |ldap-provider| uses SSL certificates to secure LDAP. Your certificate 
+  must adhere to the requirements outlined in the :azure:`Azure Documentation 
+  </active-directory-domain-services/tutorial-configure-ldaps#create-a-certificate-for-secure-ldap>`.
+
+  To obtain a certificate, either:
+
+  - Get one from the public or enterprise certificate authority (CA) your 
+    organization uses.
+
+    - You must obtain a wildcard certificate to ensure secure LDAP works 
+      properly with |ldap-provider|.
+    - The certificate's subject name must match the ``<managed-domain>`` 
+      you used when you configured |ldap-provider|.
+
+      .. example::
+
+        \*.aadds.example.com
+
+  - Generate a self-signed certificate. Self-signed certificates are not 
+    recommended for production.
+
+  To generate a self-signed certificate on MacOS or Linux systems **for 
+  testing purposes**:
+
+  .. note::
+
+     If you are on macOS Catalina, install the latest version of
+     ``openssl``. Run the following command to install using Homebrew:
+
+     .. code-block:: sh
+
+        brew install openssl
+
+  a. Generate a private key with ``openssl``. The following command 
+     generates a private key file named ``<your-key-name>.key``:
+
+     .. code-block:: sh
+
+        openssl genrsa -out <your-key-name>.key 2048
+
+  #. Edit the following configuration file template. Update the 
+     attributes in the ``[dn-param]`` section with values that relate 
+     to your organization. Make sure the subject name (``CN``) matches 
+     the following template: ``*.<managed-domain>``
+
+     .. example::
+
+        \*.aadds.example.com
+
+     .. code-block:: sh
+        :emphasize-lines: 8-14
+
+        # openssl x509 extfile params
+        extensions = extend
+    
+        [req] # openssl req params
+        prompt = no
+        distinguished_name = dn-param
+    
+        [dn-param] # DN fields
+        C = US
+        ST = NY
+        L  = New York
+        O = MongoDB
+        OU = Atlas
+        CN = *.aadds.example.com
+    
+        [extend] # openssl extensions
+        subjectKeyIdentifier = hash
+        authorityKeyIdentifier = keyid:always
+        keyUsage = digitalSignature,keyEncipherment,keyCertSign
+        extendedKeyUsage=serverAuth,clientAuth
+
+  #. Save the file as ``<your-config-name>.cfg``.
+
+  #. Generate a certificate signing request using the key and 
+     configuration files you created. The following command generates a 
+     certificate signing request named ``<your-csr-name>.csr``:
+
+     .. code-block:: sh
+
+        openssl req -new -key <your-key-name>.key \
+        -out <your-csr-name>.csr -config <your-config-name>.cfg \
+        -extensions extend
+
+  #. Generate a self-signed certificate using key, configuration, and 
+     certificate signing request files you created. The following 
+     command generates a self-signed certificate file named 
+     ``<your-cert-name>.crt``:
+
+     .. code-block:: sh
+     
+        openssl x509 -req -sha256 -days 365 -in <your-csr-name>.csr \
+        -signkey <your-key-name>.key -out <your-cert-name>.crt \
+        -extfile <your-config-name>.cfg     
+
+  To generate a self-signed certificate on a Windows system **for testing 
+  purposes**, see the :azure:`Azure documentation 
+  </active-directory-domain-services/tutorial-configure-ldaps#create-a-certificate-for-secure-ldap>`.  
+
+---
+title: "Obtain an SSL certificate that includes your private key."
+level: 4
+ref: configure-azure-ldap-pk-cert
+content: |
+
+  |ldap-provider| uses private keys to decrypt secure LDAP traffic. 
+  Certificates that include private keys use the ``PKCS#12`` format and 
+  use the ``.pfx`` file format. You must upload a certificate of this 
+  format to |ldap-provider| to decrypt secure LDAP traffic sent over
+  the public internet.
+
+  To generate a ``.pfx`` certificate on MacOS or Linux systems:
+
+  a. Save your public key and SSL certificate to your local machine. 
+
+     .. note::
+     
+        Your certificate must use the ``PEM`` format.
+
+     If your certificate does not contain your private key, you can save 
+     your private key to a ``.key`` format file.
+
+  #. Generate a ``.pfx`` certificate using your private key and your 
+     certificate with ``openssl``. The following command generates a 
+     ``.pfx`` certificate file named ``<your-cert-name>.pfx``:
+
+     .. code-block:: sh
+     
+        openssl pkcs12 -export -out <your-cert-name>.pfx \ 
+        -inkey <your-key-name>.key -in <your-cert-name>.crt
+
+     When prompted, enter and verify a password to encrypt the file. You 
+     will enter this password to decrypt your private key when you 
+     upload the ``.pfx`` certificate to |ldap-provider|.
+
+  To generate a ``.pfx`` certificate on a Windows system,
+  see the :azure:`Azure documentation 
+  </active-directory-domain-services/tutorial-configure-ldaps#export-a-certificate-for-azure-ad-ds>`.
+
+---
+title: "Enable secure LDAP on |ldap-provider|."
+level: 4
+ref: configure-azure-ldap-secure-ldap
+content: |
+
+  To enable secure LDAP on |ldap-provider|, see the 
+  :azure:`Azure documentation 
+  </active-directory-domain-services/tutorial-configure-ldaps#enable-secure-ldap-for-azure-ad-ds>`.
+
+---
+title: "Configure your DNS provider."
+level: 4
+ref: configure-azure-ldap-dns-provider
+content: |
+
+  You must configure your DNS provider so that |mms| and the 
+  database nodes can connect to the LDAP server in the custom domain 
+  that |ldap-provider| manages. 
+
+  Create a host record for LDAP traffic that resolves a subdomain of 
+  your ``<managed-domain>`` to the external IP address that the 
+  |ldap-provider| LDAP service uses:
+
+  .. list-table::
+    :header-rows: 1
+    :widths: 50 50
+
+    * - LDAP IP Address
+      - Subdomain for LDAP Traffic
+
+    * - ``203.0.113.77``
+      - ``ldap.aadds.example.com``
+
+  To find the external IP address the |ldap-provider| LDAP service uses,
+  see the :azure:`Azure documentation 
+  </active-directory-domain-services/tutorial-configure-ldaps#configure-dns-zone-for-external-access>`.
+
+---
+title: "Add your custom domain to Azure AD."
+level: 4
+ref: configure-azure-ldap-custom-domain
+content: | 
+
+  Add your custom domain name to 
+  :abbr:`Azure AD (Azure Active Directory)` to create users that belong 
+  to your domain. After you add your domain, you must also add the 
+  :abbr:`Azure AD (Azure Active Directory)` DNS information in a ``TXT``
+  record with your DNS provider and verify the configuration.
+
+  To add your custom domain to 
+  :abbr:`Azure AD (Azure Active Directory)`, see the 
+  :azure:`Azure documentation 
+  </active-directory/fundamentals/add-custom-domain>`.
+
+---
+title: "Configure |ldap-provider| for inbound LDAP traffic."
+level: 4
+ref: configure-azure-ldap-inbound-traffic
+content: |
+
+  You must allow all traffic over all ports from the public internet to 
+  port ``636`` to use |ldap-provider| as an LDAP provider with |mms|.
+
+  To add an inbound security rule to allow inbound LDAP traffic on port 
+  ``636``, see the :azure:`Azure documentation 
+  </virtual-network/manage-network-security-group#create-a-security-rule>`.
+
+---
+title: "Create a bind user."
+level: 4
+ref: configure-azure-ldap-bind-user
+content: |
+
+  Create a bind user. The bind user is an 
+  :abbr:`Azure AD (Azure Active Directory)` user that you use to query
+  the account and to authenticate database users' credentials when they
+  connect to an |mms| database. The bind user must belong to the 
+  custom domain you added to :abbr:`Azure AD (Azure Active Directory)`.
+
+  To create :abbr:`Azure AD (Azure Active Directory)` users, see the 
+  :azure:`Azure documentation 
+  </active-directory/fundamentals/add-users-azure-active-directory/>`.
+
+---
+title: "Enable the bind user account for |ldap-provider|."
+level: 4
+ref: configure-azure-ldap-bind-user-pwhash
+content: |
+
+  You must generate a password hash for the bind user for Kerberos
+  and NTLM authentication before the bind user can use |ldap-provider|. 
+  The steps differ based on the the type of 
+  :abbr:`Azure AD (Azure Active Directory)` user account.
+
+  To learn how to generate password hashes for your users, see the 
+  :azure:`Azure documentation </active-directory-domain-services/tutorial-create-instance#enable-user-accounts-for-azure-ad-ds>`.
+
+---  
+title: "Add the bind user to the ``AAD DC Administrators`` group."
+level: 4
+ref: configure-azure-ldap-bind-user-role
+content: |
+
+  To query :abbr:`Azure AD (Azure Active Directory)`, the bind user 
+  must belong to the ``AAD DC Administrators`` group.
+
+  To add users to the ``AAD DC Administrators`` group, see the 
+  :azure:`Azure documentation 
+  </active-directory-domain-services/tutorial-create-instance-advanced#configure-an-administrative-group>`.
+
+---
+
+title: "Create :abbr:`Azure AD (Azure Active Directory)` Users."
+level: 4
+ref: configure-azure-ldap-add-users
+content: |
+
+  If they don't exist already, create users in |ldap-provider| that you 
+  want to grant database access to. Users must belong to the custom 
+  domain you added to :abbr:`Azure AD (Azure Active Directory)`.  
+
+  To create :abbr:`Azure AD (Azure Active Directory)` users, see the 
+  :azure:`Azure documentation 
+  </active-directory/fundamentals/add-users-azure-active-directory>`.
+
+...
