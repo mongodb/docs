@@ -1,41 +1,54 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 10 10 65
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
    * - ``awsKms``
      - object
-     - Specifies AWS KMS configuration details and whether Encryption at
-       Rest is enabled for an |service| project.
+     - Required
+     - |aws| |kms| configuration details and whether {+encrypt-at-rest+}
+       is enabled for |a-service| project.
 
-   * - ``awsKms.accessKeyID``
+   * - | ``awsKms``
+       | ``.accessKeyID``
      - string
-     - The IAM access key ID with permissions to access the customer
-       master key specified by ``customerMasterKeyID``.
+     - Optional
+     - |iam| access key ID with permissions to access the customer
+       master key (``awsKms.customerMasterKeyID``).
 
-   * - ``awsKms.customerMasterKeyID``
+   * - | ``awsKms``
+       | ``.customerMasterKeyID``
      - string
-     - The AWS customer master key used to encrypt and decrypt the MongoDB
+     - Optional
+     - |aws| customer master key used to encrypt and decrypt the MongoDB
        master keys.
 
-   * - ``awsKms.enabled``
+   * - | ``awsKms``
+       | ``.enabled``
      - boolean
-     - Specifies whether Encryption at Rest is enabled for an |service|
-       project.  To disable Encryption at Rest, pass only this parameter
-       with a value of ``false``.  When you disable Encryption at Rest,
-       |service| also removes the configuration details.
+     - Optional
+     - Flag that indicates whether {+encrypt-at-rest+} is enabled for
+       |a-service| project. To disable {+encrypt-at-rest+}, pass only
+       this parameter with a value of ``false``. When you disable
+       {+encrypt-at-rest+}, |service| removes the configuration
+       details.
 
-   * - ``awsKms.region``
+   * - | ``awsKms``
+       | ``.region``
      - string
-     - The AWS region in which the AWS customer master key exists:
-       
+     - Optional
+     - |aws| region in which the |aws| customer master key exists:
+
        .. include:: /includes/fact-aws-region-names.rst
 
-   * - ``awsKms.secretAccessKey``
+   * - | ``awsKms``
+       | ``.secretAccessKey``
      - string
-     - The IAM secret access key with permissions to access the customer
-       master key specified by ``customerMasterKeyID``.
+     - Optional
+     - |iam| secret access key with permissions to access the customer
+       master key (``awsKms.customerMasterKeyID``).

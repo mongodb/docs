@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 10 75
    :header-rows: 1
    :stub-columns: 1
 
@@ -9,28 +9,33 @@
 
    * - ``awsKms``
      - object
-     - Specifies whether Encryption at Rest is enabled for an |service|
-       project and the AWS KMS configuration details.
+     - Specifies whether {+encrypt-at-rest+} is enabled for |a-service|
+       project and the |aws| |kms| configuration details.
 
-   * - ``awsKms.accessKeyID``
+   * - | ``awsKms``
+       | ``.accessKeyID``
      - string
-     - The IAM access key ID with permissions to access the customer
-       master key specified by ``customerMasterKeyID``.
+     - |iam| access key ID with permissions to access the customer
+       master key (``awsKms.customerMasterKeyID``).
 
-   * - ``awsKms.customerMasterKeyID``
+   * - | ``awsKms``
+       | ``.customerMasterKeyID``
      - string
-     - The AWS customer master key used to encrypt and decrypt the MongoDB
-       master keys.
+     - |aws| customer master key used to encrypt and decrypt the
+       MongoDB master keys.
 
-   * - ``awsKms.enabled``
+   * - | ``awsKms``
+       | ``.enabled``
      - boolean
-     - Specifies whether Encryption at Rest is enabled for an |service|
-       project.
+     - Flag that indicates whether {+encrypt-at-rest+} is enabled for
+       |a-service| project.
 
-   * - ``awsKms.region``
+   * - | ``awsKms``
+       | ``.region``
      - string
-     - The AWS region in which the AWS customer master key exists.
+     - |aws| region in which the |aws| customer master key exists.
 
-   * - ``awsKms.valid``
+   * - | ``awsKms``
+       | ``.valid``
      - boolean
      - .. include:: /includes/api-valid-field.rst

@@ -1,62 +1,80 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 10 10 65
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
    * - ``azureKeyVault``
      - object
-     - Specifies Azure Key Vault configuration details and whether
-       Encryption at Rest is enabled for an |service| project.
+     - Required
+     - |akv| configuration details and whether {+encrypt-at-rest+} is
+       enabled for an |service| project.
 
-   * - ``azureKeyVault.azureEnvironment``
+   * - | ``azureKeyVault``
+       | ``.azureEnvironment``
      - string
-     - The Azure environment where the Azure account credentials reside.
+     - Optional
+     - Azure environment where the Azure account credentials reside.
        Valid values are the following:
 
        * ``AZURE``
        * ``AZURE_CHINA``
        * ``AZURE_GERMANY``
 
-   * - ``azureKeyVault.clientID``
+   * - | ``azureKeyVault``
+       | ``.clientID``
      - string
-     - The client ID, also known as the application ID, for an Azure
-       application associated with the :abbr:`Azure AD (Azure Active Directory)`
-       tenant.
+     - Optional
+     - Client ID, also known as the application ID, for an Azure
+       application associated with the |azure-ad| tenant.
 
-   * - ``azureKeyVault.enabled``
+   * - | ``azureKeyVault``
+       | ``.enabled``
      - boolean
-     - Specifies whether Encryption at Rest is enabled for an |service|
-       project.  To disable Encryption at Rest, pass only this parameter
-       with a value of ``false``.  When you disable Encryption at Rest,
-       |service| also removes the configuration details.
+     - Required
+     - Flag that indicates whether {+encrypt-at-rest+} is enabled for
+       |a-service| project. To disable {+encrypt-at-rest+}, pass only
+       this parameter with a value of ``false``. When you disable
+       {+encrypt-at-rest+}, |service| also removes the configuration
+       details.
 
-   * - ``azureKeyVault.keyIdentifier``
+   * - | ``azureKeyVault``
+       | ``.keyIdentifier``
      - string
-     - The unique identifier of a key in an Azure Key Vault.
-    
-   * - ``azureKeyVault.keyVaultName``
+     - Optional
+     - Unique identifier of a key in an |akv|.
+
+   * - | ``azureKeyVault``
+       | ``.keyVaultName``
      - string
-     - The name of an Azure Key Vault containing your key.
-       
-   * - ``azureKeyVault.resourceGroupName``
+     - Optional
+     - Name of an |akv| containing your key.
+
+   * - | ``azureKeyVault``
+       | ``.resourceGroupName``
      - string
-     - The name of the Azure Resource group that contains an Azure Key
-       Vault.
-       
-   * - ``azureKeyVault.secret``
+     - Optional
+     - Name of the Azure Resource group that contains an |akv|.
+
+   * - | ``azureKeyVault``
+       | ``.secret``
      - string
-     - The secret associated with the Azure Key Vault specified by
-       ``azureKeyVault.tenantID``.
-       
-   * - ``azureKeyVault.subscriptionID``
+     - Optional
+     - Secret associated with the |akv| (``azureKeyVault.tenantID``).
+
+   * - | ``azureKeyVault``
+       | ``.subscriptionID``
      - string
-     - The unique identifier associated with an Azure subscription.
-       
-   * - ``azureKeyVault.tenantID``
+     - Optional
+     - Unique identifier associated with an Azure subscription.
+
+   * - | ``azureKeyVault``
+       | ``.tenantID``
      - string
-     - The unique identifier for an :abbr:`Azure AD (Azure Active Directory)`
-       tenant within an Azure subscription.
+     - Optional
+     - Unique identifier for an |azure-ad| tenant within an Azure
+       subscription.

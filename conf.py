@@ -77,6 +77,7 @@ rst_epilog = [
     '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`',
     '.. |aws-eni| replace:: :abbr:`ENI (Elastic Network Interface)`',
     '.. |azure| replace:: :abbr:`Azure (Microsoft Azure)`',
+    '.. |azure-ad| replace:: :abbr:`Azure AD (Azure Active Directory)`',
     '.. |bic-full| replace:: :bic:`MongoDB Connector for BI </>`',
     '.. |bic-official| replace:: MongoDB Connector for Business Intelligence for Atlas',
     '.. |bic-short| replace:: :bic:`BI Connector </>`',
@@ -210,6 +211,7 @@ source_constants = {
     'pit-restore' : 'continuous cloud backup',
     'Realm' : 'Realm',
     'MongoDB-Realm' : 'MongoDB Realm',
+    'encrypt-at-rest' : 'Encryption at Rest using Customer Key Management'
 }
 
 pygments_style = 'sphinx'
