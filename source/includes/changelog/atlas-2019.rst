@@ -117,7 +117,7 @@
   Pre-existing clusters, and clusters in all other Azure other regions
   will continue to be deployed in *Availability Sets*.
 
-- Internal {+Realm+}/Charts-created database users and IP whitelist
+- Internal {+MongoDB-Realm+}/Charts-created database users and IP whitelist
   entries no longer show in the Atlas UI.
 
 - MongoDB Cloud billing authenticates credit cards for customers in the

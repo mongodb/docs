@@ -206,7 +206,7 @@ source_constants = {
     'old-backup' : 'legacy backup',
     'PIT-Restore' : 'Continuous Cloud Backup',
     'pit-restore' : 'continuous cloud backup',
-    'Realm' : 'MongoDB Realm',
+    'Realm' : 'Realm',
     'MongoDB-Realm' : 'MongoDB Realm',
 }
 

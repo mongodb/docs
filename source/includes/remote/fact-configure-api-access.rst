@@ -1,5 +1,5 @@
 .. This is split out into an include so that we can fetch it while building
-.. the {+Realm+} documentation. Please do not move it without notifying the {+Realm+}
+.. the {+MongoDB-Realm+} documentation. Please do not move it without notifying the {+MongoDB-Realm+}
 .. documentation team.
 
 To access the |service| API, you must generate an API key, which gives
