@@ -58,7 +58,7 @@
   - Supports deploying a multi-region |service| cluster on |azure| and
     connecting to it using VNet peering.
 
-  - Supports using |stitch-docs| to connect to an |service| cluster
+  - Supports using |realm-docs| to connect to an |service| cluster
     that uses |vpc| peering on |gcp| or VNet peering on Azure.
 
   - Supports using |charts| to connect to an |service| cluster that

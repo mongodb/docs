@@ -1,13 +1,13 @@
 .. _atlas_20191210:
 
-10 December 2019 Release 
+10 December 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports ``M0`` Free Tier and ``M2/M5`` shared starter clusters in the
-  |gcp| Japan (Tokyo) and |azure| Canada Central (Toronto) regions.
+- Supports ``M0`` Free Tier and ``M2/M5`` shared starter clusters in
+  the |gcp| Japan (Tokyo) and |azure| Canada Central (Toronto) regions.
 
-- Introduces :doc:`Atlas Triggers integration with Amazon EventBridge
-  </triggers/eventbridge>`.
+- Introduces
+  :doc:`Atlas Triggers integration with Amazon EventBridge </triggers/eventbridge>`.
 
 - Introduces
   :ref:`Identity Federation with SAML <atlas-federated-authentication>`.
@@ -22,34 +22,34 @@
 
 .. _atlas_20191112:
 
-18 November 2019 Release 
+18 November 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports :doc:`Private Endpoints with AWS PrivateLink 
-  </security-private-endpoint>`.
+- Supports :doc:`Private Endpoints with AWS PrivateLink </security-private-endpoint>`.
 
 - Supports "Passwordless" X.509 authentication for database users. You
   can :doc:`Configure Database Users </security-add-mongodb-users>`
-  to use Atlas-managed X.509 authentication, or you can 
+  to use Atlas-managed X.509 authentication, or you can
   :doc:`Set up Self-Managed X.509 </security-self-managed-x509>`.
 
-- Enhancements to index recommendations in 
+- Enhancements to index recommendations in
   :doc:`Performance Advisor </performance-advisor/index-ranking>`.
 
-- Enables always-on database-level authentication 
-  :ref:`access auditing <access-tracking>` for dedicated clusters. 
+- Enables always-on database-level authentication
+  :ref:`access auditing <access-tracking>` for dedicated clusters.
 
-- Enables API management for :doc:`third party service integrations 
+- Enables API management for :doc:`third party service integrations
   </reference/api/third-party-integration-settings/>` like DataDog and Slack.
 
-- Enables API management for AWS security group IDs on the |service| 
+- Enables API management for AWS security group IDs on the |service|
   :doc:`project whitelist </reference/api/whitelist/>` when using VPC peering.
 
-- Introduces the ``humanReadable`` field to webhook alert notifications. This 
-  field contains a human-readable description of the alert.
+- Introduces the ``humanReadable`` field to webhook alert
+  notifications. This field contains a human-readable description of
+  the alert.
 
-- Includes new guides for configuring |service| to authenticate and authorize 
-  users from third-party LDAP providers:
+- Includes new guides for configuring |service| to authenticate and
+  authorize users from third-party LDAP providers:
 
   - :doc:`/security-ldaps-okta`
 
@@ -67,9 +67,9 @@
 
   - Germany West Central
   - Switzerland North
-  
-- Supports ``M0`` Free Tier and ``M2``/``M5`` shared starter clusters in
-  the |gcp| Brazil (São Paulo) region.
+
+- Supports ``M0`` Free Tier and ``M2``/``M5`` shared starter clusters
+  in the |gcp| Brazil (São Paulo) region.
 - Supports ``M0`` Free Tier clusters in the |aws| Syndey region.
 - Enables faster
   :ref:`restores from {+Cloud-Backup+} backups <restore-cloud-provider-snapshot-atlas>`.
@@ -79,15 +79,14 @@
 01 October 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Introduces :ref:`compute auto-scaling <cluster-autoscaling>` in public
-  beta.
+- Introduces :ref:`compute auto-scaling <cluster-autoscaling>` in
+  public beta.
 - Enhances Integrations interface for third party services.
 - Introduces EU destinations for DataDog and Opsgenie integrations.
 - Supports the official
-  `Terraform MongoDB Atlas Provider <https://www.mongodb.com/atlas/terraform>`__ .
-- Supports the
-  `MongoDB Atlas Open Service Broker <https://docs.mongodb.com/atlas-open-service-broker/current/>`__
-  for Kubernetes.
+  `Terraform MongoDB Atlas Provider <https://www.terraform.io/docs/providers/mongodbatlas/>`__.
+- Supports the :osb:`MongoDB Atlas Open Service Broker </>` for
+  Kubernetes.
 - Introduces :ref:`{+PIT-Restore+} (PITR) <pit-restore>`
   available for clusters using |aws|
   :ref:`{+Cloud-Backup+}s <backup-cloud-provider>`.
@@ -118,7 +117,7 @@
   Pre-existing clusters, and clusters in all other Azure other regions
   will continue to be deployed in *Availability Sets*.
 
-- Internal Stitch/Charts-created database users and IP whitelist
+- Internal {+Realm+}/Charts-created database users and IP whitelist
   entries no longer show in the Atlas UI.
 
 - MongoDB Cloud billing authenticates credit cards for customers in the
@@ -185,7 +184,7 @@
 
   - Requires MongoDB 4.2.
 
-- Introduces `{+data-lake+} <https://docs.mongodb.com/datalake/>`__ on-demand query service.
+- Introduces :adl:`{+data-lake+} </>` on-demand query service.
 
 - Supports :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`
   for 4.2 replica sets.
@@ -211,20 +210,25 @@
 
 - :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>` are now
   available for |gcp|-backed clusters.
-- |service| clusters can now use :doc:`Google Cloud KMS for encryption at rest
-  </security-gcp-kms>`.
-- |service| clusters now have a new MongoDB configuration option that allows
-  agents to continue connecting even if you have exceeded the maximum
-  number of connections. For example, this means that |service| continues
-  to gather monitoring data after reaching the maximum number of connections.
-  This change affects all new |service| clusters.  Existing |service| clusters
-  are affected the next time you request a configuration change to a cluster.
+
+- |service| clusters can now use
+  :doc:`Google Cloud KMS for encryption at rest </security-gcp-kms>`.
+
+- |service| clusters now have a new MongoDB configuration option that
+  allows agents to continue connecting even if you have exceeded the
+  maximum number of connections. For example, this means that |service|
+  continues to gather monitoring data after reaching the maximum number
+  of connections. This change affects all new |service| clusters.
+  Existing |service| clusters are affected the next time you request a
+  configuration change to a cluster.
+
 - |service| projects may now use either the :doc:`{+Old-Backup+}
   </backup/legacy-backup/overview>` or the :doc:`{+Cloud-Backup+}s
   </backup/cloud-backup/overview>` backup method. An |service|
   project supports multiple backup types among clusters within that
   project. You must terminate the existing backup method before
   switching between backup methods for an |service| cluster.
+
 - Enhanced left-hand navigation.
 
 .. _atlas-v20190416:
@@ -238,8 +242,8 @@
 - Supports the :ref:`Microsoft Azure <microsoft-azure>` South Africa
   North region.
 - Supports the :ref:`Google Cloud Platform <google-gcp>` Zurich region.
-- Offers self-serve customers option to sign up for a :doc:`support package
-  </support>`.
+- Offers self-serve customers option to sign up for a
+  :doc:`support package </support>`.
 
 .. _atlas-v20190326:
 
@@ -301,8 +305,8 @@
 
 - Optimizes safe cluster upgrades after failure (no user-facing
   components, internal |service| planner optimizations).
-- Allows creation of API Keys that are scoped to an organization and are
-  not tied to a human.
+- Allows creation of API Keys that are scoped to an organization and
+  are not tied to a human.
 - Credit cards will be authorized for a small amount ($1.00) to reduce
   the risk of failed charges.
 - Users can now remove themselves from a project.

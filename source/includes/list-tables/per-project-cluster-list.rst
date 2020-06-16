@@ -20,6 +20,6 @@
      - Type of structure for the cluster (i.e., Replica Set or
        Sharded Cluster), and number of nodes in the cluster.
 
-   * - :guilabel:`Linked Stitch App`
-     - Name of the :stitch:`MongoDB Stitch </>` application linked to
-       this cluster, if appropriate.
+   * - :guilabel:`Linked {+Realm+} App`
+     - Name of the :realm:`{+MongoDB-Realm+} </>` application linked
+       to this cluster, if appropriate.

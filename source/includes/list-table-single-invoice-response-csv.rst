@@ -7,10 +7,8 @@
      - Description
 
    * - ``Date``
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date and
-       time format in :abbr:`UTC (Coordinated Universal Time)` when the
-       period for which the line item applies ended.
+     - |iso8601-time| when the period for which the line item applies
+       ended.
 
    * - ``Description``
      - Description of the line item.
@@ -25,7 +23,6 @@
      - ID of the project with which the line item is associated.
 
    * - ``SKU``
-
      - Description of the line item. This could be the instance type, a
        support charge, advanced security, etc.
 
@@ -42,9 +39,8 @@
      - The name of the config server that incurred the charge
 
    * - ``Application``
-
-     - Name of the `MongoDB Stitch <https://docs.mongodb.com/stitch/>`_ app
-       associated with the line item.
+     - Name of the :realm:`{+MongoDB-Realm+} </>` app associated with
+       the line item.
 
    * - ``Unit``
      - Unit of measure of the item (e.g. hours, GB, etc.)

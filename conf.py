@@ -64,7 +64,7 @@ rst_epilog = [
     '.. _service-fullname: https://www.mongodb.com/cloud/atlas?tck=docs_atlas',
     '.. _service-pricing: https://www.mongodb.com/cloud/atlas/pricing?tck=docs_atlas',
     '.. _service:  https://www.mongodb.com/cloud/atlas?tck=docs_atlas',
-    '.. _stitch-docs: https://docs.mongodb.com/stitch',
+    '.. _realm-docs: https://docs.mongodb.com/realm',
     '.. |service-register| replace:: :mdbacct:`MongoDB Atlas registration page </register>`',
     '.. |service-login| replace:: :mdbacct:`MongoDB Atlas login page </login>`',
     '.. |2fa| replace:: :abbr:`2FA (Two Factor Authentication)`',
@@ -170,7 +170,7 @@ rst_epilog = [
     '.. |ssd| replace:: :abbr:`SSD (Solid State Disk)`',
     '.. |ssl| replace:: :abbr:`SSL (Secure Sockets Layer)`',
     '.. |sso| replace:: :abbr:`SSO (Single Sign-On)`',
-    '.. |stitch-docs| replace:: MongoDB Stitch',
+    '.. |realm-docs| replace:: MongoDB Realm',
     '.. |tcp| replace:: :abbr:`TCP (Transmission Control Protocol)`',
     '.. |times| unicode:: U+000D7',
     '.. |tls-ssl| replace:: :abbr:`TLS (Transport Layer Security)`/:abbr:`SSL (Secure Sockets Layer)`',
@@ -206,6 +206,8 @@ source_constants = {
     'old-backup' : 'legacy backup',
     'PIT-Restore' : 'Continuous Cloud Backup',
     'pit-restore' : 'continuous cloud backup',
+    'Realm' : 'MongoDB Realm',
+    'MongoDB-Realm' : 'MongoDB Realm',
 }
 
 pygments_style = 'sphinx'
@@ -217,7 +219,8 @@ extlinks = {
     'cloudmgr': ('https://docs.cloudmanager.mongodb.com%s', ''),
     'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
     'compass': ('https://docs.mongodb.com/compass%s', ''),
-    'stitch': ('https://docs.mongodb.com/stitch%s', ''),
+    'stitch': ('https://docs.mongodb.com/realm%s', ''),
+    'realm': ('https://docs.mongodb.com/realm%s', ''),
     'charts': ('https://docs.mongodb.com/charts/saas%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
     'website': ('https://www.mongodb.com%s?tck=docs_atlas', ''),
@@ -234,7 +237,8 @@ extlinks = {
     'mdbacct': ('https://account.mongodb.com/account%s',''),
     'contact': ('https://www.mongodb.com/contact%s',''),
     'adl': ('https://docs.mongodb.com/datalake%s',''),
-    'guides' : ('https://docs.mongodb.com/guides%s','')
+    'guides' : ('https://docs.mongodb.com/guides%s',''),
+    'osb' : ('https://docs.mongodb.com/atlas-open-service-broker/current%s','')
 }
 
 # add `extlinks` for each published version.
