@@ -1,3 +1,12 @@
+.. _data-lake-v20200616:
+
+16 June 2020 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Adds ``storageValidateConfig`` command to validate your 
+  {+dl+} :ref:`storage configuration <datalake-configuration-file>`.
+- Includes bug fixes and performance improvements.
+
 .. _data-lake-v20200602:
 
 02 June 2020 Release
