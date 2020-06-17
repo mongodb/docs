@@ -355,17 +355,15 @@ The following example uses the ``near`` operator to query a date field.
 
 .. _near-geo-point-eg:
 
-GeoJSON Point Example
-~~~~~~~~~~~~~~~~~~~~~
+GeoJSON Point Examples
+~~~~~~~~~~~~~~~~~~~~~~
 
-The following example uses a GeoJSON point object to query the
-``address.location`` field in the ``listingsAndReviews`` collection in
-the ``sample_airbnb`` database.
+The following examples use the ``near`` operator to query a GeoJSON 
+point object in the ``sample_airbnb.listingsAndReviews`` collection. 
+The following index definition indexes the ``address.location`` and 
+``property_type`` fields in the ``listingsAndReviews`` collection.
 
 .. example::
-
-   The following index definition indexes the ``address.location``
-   field in the ``listingsAndReviews`` collection.
 
    .. code-block:: javascript
       :linenos:
@@ -380,16 +378,26 @@ the ``sample_airbnb`` database.
                 }
               },
               "type": "document"
+            },
+            "property_type": {
+              "type": "string"
             }
           }
-          "type": "document"
         }
-      }
+      } 
+
+Basic Example 
+`````````````
+
+The following examples use the ``near`` operator to query the 
+``address.location`` field in the ``sample_airbnb.listingsAndReviews`` 
+collection.
+
+.. example::
 
    The following query searches for properties in Portugal. It includes
-   a :pipeline:`$limit` stage to
-   limit the output to 3 results and a :manual:`$project
-   </reference/operator/aggregation/project>` stage to:
+   a :pipeline:`$limit` stage to limit the output to 3 results and a 
+   :manual:`$project </reference/operator/aggregation/project>` stage to:
 
    - Exclude all fields except ``name`` and ``address``
    - Add a field named ``score``
@@ -487,3 +495,124 @@ the ``sample_airbnb`` database.
 
    The results show that properties that are farther away from the
    specified coordinates have a lower score.
+
+Compound Example 
+````````````````
+
+The following example uses the ``compound`` operator to query the 
+``property_type`` and ``address.location`` fields in the 
+``sample_airbnb.listingsAndReviews`` collection.
+
+.. example::
+
+   The following query searches for apartments in Hong Kong near a 
+   specified GeoJSON point. The query uses **must** to specify the search 
+   condition, which must be met, and **should** to specify preference for 
+   location. It includes a :pipeline:`$limit` stage to limit the output to 3 
+   results and a :manual:`$project </reference/operator/aggregation/project>` 
+   stage to:
+
+   - Exclude all fields except ``property_type`` and ``address``
+   - Add a field named ``score``
+
+   The ``score`` is calculated using the ``pivot`` field. Note that
+   ``pivot`` is measured here in meters and 1000 meters is equal to 1
+   kilometer.
+
+   .. code-block:: javascript
+      :linenos:
+
+      db.listingsAndReviews.aggregate([
+        {
+          $search: {
+            "compound": {
+              "must": {
+                "text": {
+                  "query": "Apartment",
+                  "path": "property_type"
+                }
+              },
+              "should": {
+                "near": {
+                  "origin": {
+                    "type": "Point",
+                    "coordinates": [114.15027, 22.28158]
+                  },
+                  "pivot": 1000,
+                  "path": "address.location"
+                }
+              }
+            }
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $project: {
+            "_id": 0,
+            "property_type": 1,
+            "address": 1,
+            score: { $meta: "searchScore" }
+          }
+        }
+      ])
+
+   The above query returns the following search results:
+
+   .. code-block:: json
+      :linenos:
+      :copyable: false
+
+      { 
+        "property_type" : "Apartment", 
+        "address" : { 
+          "street" : "Hong Kong, Hong Kong Island, Hong Kong", 
+          "suburb" : "Central & Western District", 
+          "government_area" : "Central & Western", 
+          "market" : "Hong Kong", 
+          "country" : "Hong Kong", 
+          "country_code" : "HK", 
+          "location" : { 
+            "type" : "Point", 
+            "coordinates" : [ 114.15027, 22.28158 ], 
+            "is_location_exact" : true 
+          } 
+        }, 
+        "score" : 1.177286982536316 
+      }
+      { 
+        "property_type" : "Apartment", 
+        "address" : { 
+          "street" : "Hong Kong, Hong Kong Island, Hong Kong", 
+          "suburb" : "Central & Western District", 
+          "government_area" : "Central & Western", 
+          "market" : "Hong Kong", 
+          "country" : "Hong Kong", 
+          "country_code" : "HK", 
+          "location" : { 
+            "type" : "Point", 
+            "coordinates" : [ 114.15082, 22.28161 ], 
+            "is_location_exact" : true 
+          } 
+        }, 
+        "score" : 1.1236450672149658 
+      }
+      { 
+        "property_type" : "Apartment", 
+        "address" : { 
+          "street" : "Hong Kong, 
+          Hong Kong Island, Hong Kong", 
+          "suburb" : "Mid-Levels", 
+          "government_area" : "Central & Western", 
+          "market" : "Hong Kong", 
+          "country" : "Hong Kong", 
+          "country_code" : "HK", 
+          "location" : { 
+            "type" : "Point", 
+            "coordinates" : [ 114.15007, 22.28215 ], 
+            "is_location_exact" : true 
+          }
+        }, 
+        "score" : 1.114811897277832 
+      }
