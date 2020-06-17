@@ -487,19 +487,19 @@
             - id: aws
               content: |
 
-                .. include:: /includes/extracts/fact-cluster-instance-sizes-AWS.rst
+                .. include:: /includes/list-tables/instance-types/aws.rst
 
                 .. include:: /includes/fact-instance-size-names.rst
 
             - id: gcp
               content: |
 
-                .. include:: /includes/extracts/fact-cluster-instance-sizes-GCP.rst
+                .. include:: /includes/list-tables/instance-types/gcp.rst
 
             - id: azure
               content: |
 
-                .. include:: /includes/extracts/fact-cluster-instance-sizes-AZURE.rst
+                .. include:: /includes/list-tables/instance-types/azure.rst
 
        .. include:: /includes/fact-m2-m5-multi-tenant.rst
 

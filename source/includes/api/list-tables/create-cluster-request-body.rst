@@ -72,9 +72,8 @@
 
        .. important::
 
-          Clusters running MongoDB 4.2 or later and any net new 
-          |service|
-          clusters of any type do not support this parameter.
+          Clusters running MongoDB 4.2 or later and any net new
+          |service| clusters of any type do not support this parameter.
           These clusters must use
           :doc:`/backup/cloud-backup/overview`:
           ``providerBackupEnabled``
@@ -313,7 +312,7 @@
           This setting:
 
           - Cannot be used with |nvme-clusters|
-          - Cannot be used with Azure clusters. Use   
+          - Cannot be used with Azure clusters. Use
             :ref:`providerSettings.diskTypeName <create-cluster-providerSettings-diskTypeName>` instead.
           - Must be used when ``replicationSpecs`` is set
 
@@ -594,19 +593,19 @@
             - id: aws
               content: |
 
-                .. include:: /includes/extracts/fact-cluster-instance-sizes-AWS.rst
+                .. include:: /includes/list-tables/instance-types/aws.rst
 
                 .. include:: /includes/fact-instance-size-names.rst
 
             - id: gcp
               content: |
 
-                .. include:: /includes/extracts/fact-cluster-instance-sizes-GCP.rst
+                .. include:: /includes/list-tables/instance-types/gcp.rst
 
             - id: azure
               content: |
 
-                .. include:: /includes/extracts/fact-cluster-instance-sizes-AZURE.rst
+                .. include:: /includes/list-tables/instance-types/azure.rst
 
        .. include:: /includes/fact-m2-m5-multi-tenant.rst
 
