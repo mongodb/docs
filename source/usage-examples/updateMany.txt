@@ -1,0 +1,114 @@
+===========================
+Update a Multiple Documents
+===========================
+
+.. default-domain:: mongodb
+
+You can update multiple documents using the ``updateMany()`` method on
+a ``MongoCollection`` object. The method accepts a **filter** that matches the
+document you want to update and an **update** statement that instructs the
+driver to change the matching document. The ``updateMany()`` method only
+updates the first document that matches the filter.
+
+To perform an update with the ``updateMany()`` method, you must pass
+a query filter and an update document. The query filter specifies the criteria
+for which document to perform the update on and the update document provides
+instructions on what changes to make to them.
+
+You can optionally pass an instance of ``UpdateOptions`` to the method in
+order to specify the behavior. For example, if you set the ``upsert`` field of
+the ``UpdateOptions`` object to ``true`` and no documents match the
+specified query filter, the operation inserts a new document composed of
+the fields from both the query and update document. See the link to the
+``UpdateOptions`` API documentation at the bottom of this page for more
+information.
+
+Upon successful execution, the ``updateMany()`` method returns an instance
+of ``UpdateResult``.  You can retrieve information such as the number of
+documents modified calling the ``getModifiedCount()`` method. If you
+specified ``upsert(true)`` in the ``UpdateOptions`` object and the
+operation results in an insert, you can retrieve the ``_id`` field of the
+new document by calling the ``getUpsertedId()`` method on the
+``UpdateResult``.
+
+If your update operation fails, the driver raises an exception.
+For example, if you try to set a value for the immutable field ``_id`` in
+your update document, the method throws a ``MongoWriteException`` with the
+message:
+
+.. code-block:: none
+
+   Performing an update on the path '_id' would modify the immutable field '_id'
+
+If your update document contains a change that violates unique index
+rules, the method throws a ``MongoWriteException`` with the error
+message that resembles the following:
+
+.. code-block:: none
+
+   E11000 duplicate key error collection: ...
+
+For more information on the types of exceptions raised under specific
+conditions, see the API documentation for ``updateMany()``, linked at the
+bottom of this page.
+
+Example
+-------
+
+In this example, we update the first match for our query in the ``movies``
+collection of the ``sample_mflix`` database. We perform the following
+updates to the matching document:
+
+- Add ``Frequently Discussed`` to the array of ``genres`` only if it does not
+  already exist
+- Set the value of ``lastUpdated`` to the current time.
+
+We use the ``Updates`` builder, a factory class that contains static
+helper methods to construct the update document. While you can pass an update
+document instead of using the builder, the builder provides type checking and
+simplified syntax. Read our
+:doc:`guide on Updates </fundamentals/builders/updates>` in the Builders
+section for more information.
+
+.. include:: /includes/connect-guide-note.rst
+
+.. literalinclude:: /includes/usage-examples/code-snippets/UpdateMany.java
+   :language: java
+
+If you are using the **legacy API**, see the :doc:`FAQ </faq>` to determine
+what changes you need to make to this code example.
+
+After you run the example, you should see output that resembles the
+following:
+
+.. code-block:: none
+
+   Modified document count: 53
+
+If you query the updated document or documents,they should resemble the
+following:
+
+.. code-block:: none
+
+   [
+     Document {
+       { _id=...,
+         plot=...,
+         genres=[..., Frequently Discussed, ...],
+         ...
+         lastUpdated=Timestamp{...}
+       }
+     },
+     ...
+   ]
+
+For additional information on the classes and methods mentioned on this
+page, see the following API documentation:
+
+- :java-sync-api:`UpdateMany <com/mongodb/client/MongoCollection.html#updateMany(org.bson.conversions.Bson,java.util.List,com.mongodb.client.model.UpdateOptions)>`
+- :java-sync-api:`UpdateOptions <com/mongodb/client/model/UpdateOptions.html>`
+- :java-sync-api:`Updates.combine <com/mongodb/client/model/Updates.html#combine(org.bson.conversions.Bson...)>`
+- :java-sync-api:`Updates.addToSet <com/mongodb/client/model/Updates.html#addToSet(java.lang.String,TItem)>`
+- :java-sync-api:`Updates.currentTimestamp <com/mongodb/client/model/Updates.html#currentTimestamp(java.lang.String)>`
+- :java-sync-api:`UpdateResult <com/mongodb/client/result/UpdateResult.html>`
+
