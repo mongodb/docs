@@ -6,6 +6,12 @@ Supported Partition Attribute Types
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
 The following table lists the supported data types for partition attributes and 
 an example :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` 
 for each data type:
@@ -35,6 +41,10 @@ for each data type:
        In the above ``path`` examples, ``phone`` is interpreted 
        as a string.
 
+       .. seealso:: 
+        
+          :ref:`parse-null-values`
+
    * - ``int``
      - Parses the filename as an integer.
      - filename: ``/zipcodes/90210.json``
@@ -43,6 +53,10 @@ for each data type:
 
        In the above example, ``zipcode`` is interpreted 
        as an integer.
+
+       .. seealso:: 
+        
+          :ref:`parse-padded-numeric-values`
 
    * - ``isodate``
      - Parses the filename in `RFC 3339 <https://tools.ietf.org/html/rfc3339>`_ 
@@ -89,6 +103,10 @@ for each data type:
        In the above example, ``startTimestamp`` is interpreted 
        as a Unix timestamp in seconds.
 
+       .. seealso:: 
+        
+          :ref:`parse-padded-numeric-values`
+
    * - ``epoch_millis``
      - Parses the filename as a Unix timestamp in milliseconds.
      - filename: ``/metrics/1549046112000.json``
@@ -97,6 +115,10 @@ for each data type:
 
        In the above example, ``startTimestamp`` is interpreted 
        as a Unix timestamp in milliseconds.
+
+       .. seealso:: 
+        
+          :ref:`parse-padded-numeric-values`
 
    * - ``objectid``
      - Parses the filename as an 
@@ -123,7 +145,9 @@ for each data type:
    {+adl+} supports the `Package Syntax 
    <https://golang.org/pkg/regexp/syntax/>`__ for regular expressions 
    in the path to the filename.
-   
+
+.. _parse-null-values:
+
 Parsing Null Values from Filenames 
 ----------------------------------
 
@@ -142,3 +166,31 @@ attribute types except ``string``. For example, consider the following |s3|
 For the path ``/records/{month string}/*``, {+dl+} does not add any 
 computed fields for the ``month`` attribute to documents generated 
 from the third record in the above store. 
+
+.. _parse-padded-numeric-values:
+
+Parsing Padded Numbers from Filenames 
+-------------------------------------
+
+For attribute types like ``int``, ``epoch_millis``, and ``epoch_secs``, 
+if you want {+dl+} to correctly parse numeric values that are padded 
+with leading zeros in the path to the file, specify the number 
+of digits in the padded value using regular expressions. For example, 
+consider a |s3| store with the following files: 
+
+.. code-block:: text 
+   :copyable: false 
+
+   |--users
+      |--001.json
+      |--002.json
+      ...
+
+The following ``path`` syntax uses a regular expression with the 
+``int`` attribute type to specify the number of digits in the 
+filename:
+
+.. code-block:: sh
+   :copyable: false
+
+   /users/{user_id int:\\d{3}}
