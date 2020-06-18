@@ -2,7 +2,7 @@
    :header-rows: 1
    :widths: 33 33 33
 
-   * - ``autorefresh`` or ``autoRefresh`` Value
+   * - ``autoRefresh`` Value
      - ``maxDataAge`` Value
      - |charts| Behavior
 
