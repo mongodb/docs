@@ -1,3 +1,5 @@
+.. _encrypt-snapshots:
+
 ==========================
 Encrypted Backup Snapshots
 ==========================
@@ -12,69 +14,150 @@ Encrypted Backup Snapshots
 
 .. include:: /includes/styles/corrections.rst
 
-Starting in version 3.4, |onprem| supports encryption for any backup
-job that was stored in a :term:`head database` running
-:product:`MongoDB Enterprise <mongodb-enterprise-advanced>` 3.4 or
-later with the :ref:`WiredTiger <encrypted-storage-engine>` storage
-engine.
+.. cond:: onprem
 
-To encrypt backups, you use a master key that a |kmip|-compliant key
-management appliance generates and maintains. This master key encrypts
-the :term:`head databases <head database>`. As the
-:term:`Backup Daemon` creates snapshots from the head databases,
-resulting snapshots from the encrypted head databases are themselves
-encrypted.
+   Snapshot encryption depends upon which
+   :manual:`version of MongoDB your database is compatible </reference/command/setFeatureCompatibilityVersion>`.
+   This Feature Compatibility Version ranges from the current version
+   to one version earlier. For MongoDB 4.2, the FCV can be ``4.0`` or
+   ``4.2``.
 
-To restore from an encrypted backup, you need the same master key used
-to encrypt the backup and either the same certificate as is on the
-:term:`Backup Daemon` host or a new certificate provisioned with that
-key from the |kmip| host.
+   .. tabs::
+
+      .. tab:: FCV of 4.0 or earlier
+         :tabid: fcv40
+
+         |onprem| supports encryption for any backup job that was
+         stored in a :term:`head database` running
+         :product:`MongoDB Enterprise <mongodb-enterprise-advanced>`
+         3.4 or later with the
+         :ref:`WiredTiger <encrypted-storage-engine>` storage engine.
+
+         To encrypt backups, you use a master key that a
+         |kmip|-compliant key management appliance generates and
+         maintains. This master key encrypts the :term:`head databases
+         <head database>`. As the
+         :term:`Backup Daemon` creates snapshots from the head databases,
+         resulting snapshots from the encrypted head databases are
+         themselves encrypted.
+
+         To restore from an encrypted backup, you need the same master
+         key used to encrypt the backup and either the same certificate
+         as is on the :term:`Backup Daemon` host or a new certificate
+         provisioned with that key from the |kmip| host. This
+         corresponds to the value in the **KMIP client certificate
+         path** field.
+
+      .. tab:: FCV of 4.2 or later
+         :tabid: fcv42
+
+         |mms| can encrypt any backup job that it had stored in a
+         snapshot store. The snapshot must come from a database that
+         ran
+         :product:`MongoDB Enterprise <mongodb-enterprise-advanced>`
+         4.2 or later with:
+
+         - |fcv-link| of 4.2 or later and
+         - :ref:`WiredTiger <encrypted-storage-engine>` storage engine.
+
+         To encrypt backups, use a master key that a |kmip|-compliant
+         key management appliance generates and maintains. This master
+         key encrypts key that encrypts the database.
+
+.. cond:: cloud
+
+   |mms| can encrypt any backup job that it had stored in a snapshot
+   store. The snapshot must come from a database that ran
+   :product:`MongoDB Enterprise <mongodb-enterprise-advanced>` 4.2
+   or later with:
+
+   - |fcv-link| of 4.2 or later and
+   - :ref:`WiredTiger <encrypted-storage-engine>` storage engine.
+
+   To encrypt backups, you use a master key that a |kmip|-compliant
+   key management appliance generates and maintains. This master key
+   encrypts key that encrypts the database.
+
+   .. seealso::
+
+      :manual:`MongoDB Encryption at Rest </core/security-encryption-at-rest/>`
 
 Prerequisites
 -------------
 
-- :term:`Head databases <head database>` use `MongoDB Enterprise
-  <https://www.mongodb.com/products/mongodb-enterprise-advanced>`_ 3.4
-  or later with the WiredTiger :term:`storage engine`.
+A host running |kmip|-compliant key management to generate and store
+encryption keys.
 
-- A host running |kmip|-compliant key management to generate and store
-  encryption keys.
+.. cond:: onprem
 
-- A valid |kmip| client certificate and |kmip| host |certauth| files.
-  These files are used to authenticate |onprem| to the |kmip| host. The
-  client certificate on the Backup Daemon host must have access to
-  all keys in the |kmip| host.
+   .. tabs::
+      :hidden:
+
+      .. tab:: FCV of 4.0 or earlier
+         :tabid: fcv40
+
+         - :term:`Head databases <head database>` use
+           :product:`MongoDB Enterprise <mongodb-enterprise-advanced>`
+           3.4 or later with the WiredTiger :term:`storage engine`.
+
+         - A valid |kmip| client certificate and |kmip| host |certauth|
+           files. These files are used to authenticate |onprem| to the
+           |kmip| host. The client certificate on the Backup Daemon
+           host must have access to all keys in the |kmip| host.
+
+      .. tab:: FCV of 4.2 or later
+         :tabid: fcv42
+
 
 .. important::
 
    You must maintain all keys, even rotated keys, in the |kmip| host.
 
-.. _setup-kmip-server-conf:
+.. cond:: onprem
 
-Set up KMIP Host Configuration for |onprem|
--------------------------------------------
+   .. _setup-kmip-server-conf:
 
-.. include:: /includes/steps/set-kmip-values.rst
+   Set up KMIP Host Configuration for |onprem|
+   -------------------------------------------
 
-.. _configure-group-kmip:
+   .. include:: /includes/steps/set-kmip-values.rst
 
-Configure Your Project to Use KMIP
-----------------------------------
+   .. _configure-group-kmip:
 
-.. note::
+   Configure Your Project to Use KMIP
+   ----------------------------------
 
-   All deployments in the project use the same |kmip| client
-   certificate file to authenticate.
+   .. note::
 
-.. include:: /includes/steps/set-group-kmip-values.rst
+      All deployments in the project use the same |kmip| client
+      certificate file to authenticate.
+
+   .. include:: /includes/steps/set-group-kmip-values.rst
 
 Encrypt Your Backup Job
 -----------------------
 
-.. important::
+.. cond:: onprem
 
-   For existing backups in a project, enabling encryption requires an
-   initial backup sync to recreate the backups' head databases.
+   .. tabs::
+      :hidden:
 
-.. include:: /includes/steps/enable-backup.rst
+      .. tab:: FCV of 4.0 or earlier
+         :tabid: fcv40
 
+         .. important::
+
+            For existing backups in a project, enabling encryption
+            requires an initial backup sync to recreate the backups'
+            head databases.
+
+         .. include:: /includes/steps/enable-backup.rst
+
+      .. tab:: FCV of 4.2 or later
+         :tabid: fcv42
+
+         .. include:: /includes/steps/enable-encryption-fcv42.rst
+
+.. cond:: cloud
+
+   .. include:: /includes/steps/enable-encryption-fcv42.rst
