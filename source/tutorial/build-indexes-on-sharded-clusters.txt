@@ -3,9 +3,9 @@
 
 .. _index-build-on-sharded-clusters:
 
-=================================
-Build Indexes on Sharded Clusters
-=================================
+========================================
+Rolling Index Builds on Sharded Clusters
+========================================
 
 .. default-domain:: mongodb
 
@@ -15,15 +15,18 @@ Build Indexes on Sharded Clusters
    :depth: 1
    :class: singlecol
 
-To minimize the impact of building an index on **sharded clusters**
-with replica set shards, use the following procedure to build indexes
-in a rolling fashion. For building an index on replica set deployments,
-see :doc:`/tutorial/build-indexes-on-replica-sets` instead.
+Index builds can impact sharded cluster performance. By default, MongoDB
+4.4 and later build indexes simultaneously on all data-bearing replica
+set members. Index builds on sharded clusters occur only on those
+shards which contain data for the collection being indexed. For
+workloads which cannot tolerate performance decrease due to index
+builds, consider using the following procedure to build indexes in a
+rolling fashion. 
 
-The following procedure for sharded clusters deployments *does* take out
-one member of the shard replica set at a time. However, this
-procedure will only affect one member at a time rather than *all*
-secondaries at the same time.
+Rolling index builds take at most one shard replica set member out at a
+time, starting with the secondary members, and builds the index on that
+member as a standalone. Rolling index builds require at least one
+replica set election per shard.
 
 Considerations
 --------------
@@ -75,6 +78,13 @@ For building unique indexes
 
 Procedure
 ---------
+
+.. important::
+
+   The following procedure to build indexes in a rolling fashion applies
+   to sharded clusters deployments, and not replica set deployments. For
+   the procedure for replica sets, see
+   :doc:`/tutorial/build-indexes-on-replica-sets` instead.
 
 A. Stop the Balancer
 ~~~~~~~~~~~~~~~~~~~~
