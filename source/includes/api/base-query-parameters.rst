@@ -10,7 +10,7 @@
 
    * - ``pageNum``
      - integer
-     - Page number (1-based).
+     - Page number (1-index based).
      - ``1``
 
    * - ``itemsPerPage``
