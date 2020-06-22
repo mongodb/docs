@@ -98,7 +98,6 @@ html_split_index = False
 html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
-html_add_permalinks = ''
 
 manual_edition_path = '{0}/{1}/{2}.{3}'
 
