@@ -25,8 +25,6 @@ public class DeleteOne {
 
             Bson query = eq("title", "The Garbage Pail Kids Movie");
 
-            System.out.println(collection.find(query).first());
-
             try {
                 DeleteResult result = collection.deleteOne(query);
                 System.out.println("Deleted document count: " + result.getDeletedCount());
