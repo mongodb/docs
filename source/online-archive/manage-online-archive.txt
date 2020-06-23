@@ -14,105 +14,126 @@ Archive Cluster Data
 
 .. include:: /includes/fact-online-archive-beta-message.rst
 
-Overview 
---------
+|service| offers a feature that moves infrequently accessed immutable
+data from your |service| cluster to a MongoDB-managed read-only
+:adl:`Data Lake </>` on |aws| |s3| bucket without user action.
 
-|service| provides a mechanism for automatically moving data in your |service| 
-cluster to a MongoDB managed read-only `Data Lake 
-<https://docs.mongodb.com/datalake/>`__ on |aws| |s3| bucket. This 
-data tiering functionality is referred to as online archive and is available 
-only on ``M10`` and higher clusters. Once data is archived, you will have a 
-unified view of your |service| and online archive data powered by the 
-read-only |data-lake|.
+|service| offers this *online archive* feature only on ``M10`` and
+greater clusters. Once |service| archives the data, you have a unified
+view of your |service| and online archive data from a read-only
+|data-lake|.
 
-|service| archives data based on the criteria you specify in an archiving rule. 
-The criteria is a combination of a date plus number of days. |service| archives 
-data when the current date is greater than the date plus the number of days 
-specified in the archiving rule.
+|service| archives data based on the criteria you specify in an
+archiving rule. The criteria combines a date with a number of
+days. |service| archives data when the current date exceeds the
+date plus the number of days specified in the archiving rule.
 
-To archive data, |service| runs :manual:`$match
-</reference/operator/aggregation/match>` query every five minutes to determine 
-the documents that match the criteria for archiving. For documents that match 
-the archival criteria, |service| writes data from the documents to files of up 
-to 100MB in the |aws| |s3| bucket with a maximum of 2GB (i.e. 20 files) during 
-each archiving job. Any data identified for archival, but over the 2 GB limit, 
-is archived when |service| runs :manual:`$match
-</reference/operator/aggregation/match>` again after five minutes.
+To archive data:
 
-|service| provides a unified endpoint through which you can query both your 
-live cluster and archived data using the same database and collection name you 
-use in your |service| cluster. You cannot use the unified endpoint over a 
-private connection such as :doc:`Peering </security-vpc-peering>` or {+aws-pl+}. 
-You must use a standard internet connection over |tls|.
+1. |service| runs :pipeline:`$match` query every five minutes to
+   determine the documents that match the criteria for archiving. |service| refers to this query as a *job*.
 
-Archived data is stored in MongoDB managed, encrypted |aws| |s3| buckets. 
+2. For documents that match the archival criteria, |service|:
 
-.. important:: 
+   a. Writes the first 2 GB of document data to the |aws| |s3| bucket
+      as files of up to 100 MB each per job. This would be up to 20
+      files.
 
-   Your archived data is encrypted using MongoDB's |aws| encryption keys. It 
-   will not use the encryption-at-rest encryption key you might have used on 
-   your cluster data. 
+   b. Writes each subsequent quantity of document data (up to 2 GB)
+      with each :pipeline:`$match` query run.
 
-|data-lake| for Online Archive 
+|service| provides a unified endpoint through which you can query both
+your live cluster and archived data using the same database and
+collection name you use in your |service| cluster. You can't use the
+unified endpoint over a private connection such as
+:doc:`Peering </security-vpc-peering>` or {+aws-pl+}. You must use a
+standard internet connection over |tls|.
+
+|service| stores archived data in managed, encrypted |aws| |s3|
+buckets. These |aws| |s3| buckets exist in the same region as your
+cluster. If you created a |gcp| or |azure| cluster, |service| creates
+the archive in the region closest to your cluster's primary.
+
+.. important::
+
+   |service| encryptes your archived data using MongoDB's |aws|
+   encryption keys. It can't use any encryption-at-rest encryption keys
+   you might have used on your cluster data.
+
+|data-lake| for Online Archive
 ------------------------------
 
-When you configure your ``M10`` or higher |service| cluster for online archive, 
-|service| creates a read-only `Data Lake <https://docs.mongodb.com/datalake/>`__, 
-one per cluster, on |aws| |s3| for your archived data. Note that the |data-lake| 
-for online archives is read-only and does not include write permission. Your 
-|data-lake| for the online archive is visible in the |service| UI |data-lake| 
-page, which you can access by clicking :guilabel:`Data Lake` from the left 
-navigation in your Project page. 
+When you configure your ``M10`` or greater |service| cluster for online
+archive, |service| creates a read-only :adl:`Data Lake </>`, one per
+cluster, on |aws| |s3| for your archived data.
 
-You can use the connection string through the |data-lake| :guilabel:`Connect` 
-button to connect to your |aws| |s3| bucket for querying data. However, you 
-cannot perform any |data-lake| `configuration 
-<https://docs.mongodb.com/datalake/config/config-data-lake>`__ or `administration 
-<https://docs.mongodb.com/datalake/administration>`__ operations 
-either through the |service| UI, |data-lake| `CLI 
-<https://docs.mongodb.com/datalake/reference/cli/datalake-cli>`__, or |data-lake| 
-`API <https://docs.mongodb.com/datalake/reference/api/datalakes-api>`__.  
+Limitations
+~~~~~~~~~~~
 
-If you delete all the online archives, |service| deletes the |data-lake|. After 
-deleting all the online archives, if you create an online archive with the same 
-settings as a deleted online archive, |service| creates a new |data-lake| for 
-the new online archive.
+- You can't write to the online archive |data-lake|.
+
+- You can't :adl:`configure </config/config-data-lake>` or
+  :adl:`administer </administration>` any |data-lake| through the:
+
+  - |service| console,
+  - |data-lake| :adl:`CLI </reference/cli/datalake-cli>`, or
+  - |data-lake| :adl:`API </reference/api/datalakes-api>`.
+
+Viewing the Online Archive
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view your |data-lake| for the online archive:
+
+1. Navigate to the |data-lake| page in the |service| console.
+
+2. Click :guilabel:`Data Lake` from the left navigation in your
+   :guilabel:`Project` page.
+
+Querying the Online Archive
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To query your online archive data, use the connection string through
+the |data-lake| :guilabel:`Connect` button to connect to your |aws|
+|s3| bucket.
+
+Deleting Online Archives
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you delete all the online archives, |service| deletes the
+|data-lake|. After deleting all the online archives, if you create an
+online archive with the same settings as a deleted online archive,
+|service| creates a new |data-lake| for the new online archive.
 
 .. _online-archive-pricing:
 
 Online Archive Costs
 --------------------
 
-Online archive lowers the data storage costs on your |service| 
-cluster by archiving infrequently accessed immutable data. However, you 
-will incur costs for storage on |aws| and queries on archived data. For 
-more information on the storage and query costs, see `Atlas pricing page 
-<https://www.mongodb.com/cloud/atlas/pricing?tck=docs_atlas>`__.
+Online archive stores infrequently accessed immutable data to lower
+the data storage costs on your |service| cluster. You incur costs for
+storage on |aws| and queries on archived data.
 
-Manage Online Archive 
----------------------
+.. seealso::
 
-You can configure an online archive for a collection on your 
-cluster through your |service| UI and |api|. Once you create an online 
-archive, you can view the list of archives, edit an archiving rule, pause 
-archiving, and delete your online archive at any time. If you need to move 
-archived data back to your cluster, you must use |mongodump| or 
-:binary:`mongoexport <bin.mongoexport>`. The following pages describe how to: 
+   To learn more about the storage and query costs, see
+   :website:`Atlas pricing page </cloud/atlas/pricing>`.
 
-- :ref:`config-online-archive`
-- :ref:`connect-online-archive`
-- :ref:`view-online-archive`
-- :ref:`edit-online-archive`
-- :ref:`pause-resume-online-archive`
-- :ref:`delete-online-archive`
+Manage Your Online Archive
+--------------------------
 
-.. class:: hidden
+You can configure an online archive for a collection on your cluster
+through your |service| UI and |api|. Once you create an online archive,
+you can view the list of archives, edit an archiving rule, pause
+archiving, and delete your online archive at any time. If you need to
+move archived data back to your cluster, you must use |mongodump| or
+|mongoexport|. The following pages describe how to:
 
-   .. toctree::
+.. toctree::
+   :titlesonly:
 
-      /online-archive/configure-online-archive
-      /online-archive/connect-to-online-archive
-      /online-archive/view-online-archives
-      /online-archive/edit-online-archive
-      /online-archive/pause-resume-online-archive
-      /online-archive/delete-online-archive
+   /online-archive/configure-online-archive
+   /online-archive/connect-to-online-archive
+   /online-archive/view-online-archives
+   /online-archive/edit-online-archive
+   /online-archive/pause-resume-online-archive
+   /online-archive/delete-online-archive

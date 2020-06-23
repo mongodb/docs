@@ -143,6 +143,8 @@ rst_epilog = [
     '.. |mongod| replace:: :binary:`~bin.mongod`',
     '.. |mongomirror| replace:: :binary:`~bin.mongomirror`',
     '.. |mongorestore| replace:: :binary:`~bin.mongorestore`',
+    '.. |mongoimport| replace:: :binary:`~bin.mongoimport`',
+    '.. |mongoexport| replace:: :binary:`~bin.mongoexport`',
     '.. |mongos| replace:: :binary:`~bin.mongos`',
     '.. |mongo| replace:: :binary:`~bin.mongo`',
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
