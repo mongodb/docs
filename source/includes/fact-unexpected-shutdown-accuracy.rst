@@ -9,5 +9,5 @@ usually occur every 60 seconds. However, :binary:`~bin.mongod` instances running
 with non-default :option:`--syncdelay <mongod --syncdelay>` settings may have more or less frequent
 checkpoints.
 
-Run :dbcommand:`validate` (in foreground) on each collection on the :binary:`~bin.mongod`
+Run :dbcommand:`validate` on each collection on the :binary:`~bin.mongod`
 to restore the correct statistics after an unclean shutdown.
