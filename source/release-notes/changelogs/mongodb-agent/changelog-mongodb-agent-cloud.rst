@@ -1,3 +1,13 @@
+.. _10.15.0.6463:
+
+MongoDB Agent 10.15.0.6463
+--------------------------
+
+*Released* :ref:`2020-06-24 <cloudmanager_20200624>`
+
+- Support for the upcoming release of MongoDB 4.4.
+- Signature verification for all MongoDB binary downloads.
+
 .. _10.14.0.6306-1:
 
 MongoDB Agent 10.14.0.6306-1

@@ -1,3 +1,12 @@
+.. _cloudmanager_20200624:
+
+24 June 2020 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports WiredTiger checkpoint backups with encryption at rest in 
+  MongoDB 4.2 and later.
+- Updates {+mdbagent+} to :ref:`10.15.0.6463 <10.15.0.6463>`.
+
 .. _cloudmanager_20200421:
 
 21 April 2020 Release
