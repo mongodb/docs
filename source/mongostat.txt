@@ -14,6 +14,7 @@
 
 .. |arrow| unicode:: U+27A4
 .. |tool-binary| replace:: :binary:`~bin.mongostat`
+.. |mongodb-aws-example| replace:: :ref:`mongostat-example-connect-using-aws-iam`
 
 Synopsis
 --------
@@ -274,8 +275,10 @@ Options
    database that uses authentication. Use in conjunction with the
    :option:`--password <mongostat --password>` and
    :option:`--authenticationDatabase <mongostat --authenticationDatabase>` options.
-   
+
    .. include:: /includes/extracts/uri-used-with-username.rst
+
+   .. include:: /includes/extracts/mongodb-aws-username-mongostat.rst
 
 
 .. option:: --password=<password>, -p=<password>
@@ -294,16 +297,26 @@ Options
 
    .. include:: /includes/extracts/uri-used-with-password.rst
 
+   .. include:: /includes/extracts/mongodb-aws-password-mongostat.rst
+
+
+.. option:: --awsSessionToken=<AWS Session Token>
+
+   .. include:: /includes/extracts/mongodb-aws-session-token-mongostat.rst
+
+
 .. option:: --authenticationDatabase=<dbname>
 
    Specifies the authentication database where the specified
    :option:`--username <mongostat --username>` has been created. See
    :ref:`user-authentication-database`.
    
-   .. include:: /includes/extracts/uri-used-with-authenticationdatabase.rst
-
    :option:`--authenticationDatabase` is required for :binary:`~bin.mongod`
    and :binary:`~bin.mongos` instances that use :ref:`authentication`.
+
+   .. include:: /includes/fact-auth-database-use-external.rst
+
+   .. include:: /includes/extracts/uri-used-with-authenticationdatabase.rst
 
 
 .. option:: --authenticationMechanism=<name>
@@ -312,7 +325,15 @@ Options
 
    Specifies the authentication mechanism the :program:`mongostat` instance uses to
    authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+
+
+   .. versionchanged:: 100.1.0
    
+      Starting in version ``100.1.0``, :program:`mongostat` adds support for
+      the ``MONGODB-AWS`` authentication mechanism when connecting to a
+      `MongoDB Atlas
+      <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__ cluster.
+
    .. include:: /includes/list-table-auth-mechanisms.rst
    
    .. include:: /includes/extracts/uri-used-with-authenticationmechanism.rst
@@ -836,6 +857,104 @@ The output for a sharded cluster would then resemble:
         localhost:27017   2071    *0     *0     *0       0  2073|0                  0     0B 2.43G 9.00M      0 0|0 0|0   249k    130k    4      RTR Nov  2 11:44:47.429
    
    Press '?' to toggle help
+
+.. _mongostat-example-connect-using-aws-iam:
+
+Connect to a MongoDB Atlas Cluster using AWS IAM Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 100.1.0
+
+To connect to a `MongoDB Atlas
+<https://www.mongodb.com/cloud/atlas?tck=docs_server>`__ cluster which
+has been configured to support authentication via `AWS IAM credentials
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__,
+provide a :option:`connection string <mongostat --uri>` to
+|tool-binary| similar to the following:
+
+.. code-block:: none
+
+   mongostat 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS' <other options>
+
+Connecting to Atlas using AWS IAM credentials in this manner uses the
+``MONGODB-AWS`` :urioption:`authentication mechanism <authMechanism>`
+and the ``$external`` :urioption:`authSource`, as shown in this example.
+
+If using an `AWS session token
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__,
+as well, provide it with the ``AWS_SESSION_TOKEN``
+:urioption:`authMechanismProperties` value, as follows:
+
+.. code-block:: none
+
+   mongostat 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<aws session token>' <other options>
+
+If the AWS access key ID, the secret access key, or the session token
+include the 'at' sign ``@``, colon ``:``, slash ``/``, or the percent
+sign ``%`` characters, those characters must be converted using
+`percent encoding <https://tools.ietf.org/html/rfc3986#section-2.1>`__.
+
+Alternatively, the AWS access key ID, secret access key, and optionally
+session token can each be provided outside of the connection string
+using the :option:`--username`, :option:`--password`, and
+:option:`--awsSessionToken` options instead, like so:
+
+.. code-block:: none
+
+   mongostat 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS' --username <aws access key id> --password <aws secret access key> --awsSessionToken <aws session token> <other options>
+
+When provided as command line parameters, these three options do not
+require percent encoding.
+
+You may also set these credentials on your platform using standard
+`AWS IAM environment variables
+<https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list>`__.
+|tool-binary| checks for the following environment variables when you
+use the ``MONGODB-AWS``
+:urioption:`authentication mechanism <authMechanism>`:
+
+- ``AWS_ACCESS_KEY_ID``
+- ``AWS_SECRET_ACCESS_KEY``
+- ``AWS_SESSION_TOKEN``
+
+If set, these credentials do not need to be specified in the connection
+string or via their explicit options.
+
+.. note::
+
+   If you chose to use the AWS environment variables to specify these
+   values, you cannot mix and match with the corresponding explicit or 
+   connection string options for these credentials. Either use the
+   environment variables for access key ID *and* secret access key
+   (*and* session token if used), **or** specify each of these using the
+   explicit or connection string options instead.
+
+The following example sets these environment variables in the ``bash``
+shell:
+
+.. code-block:: none
+
+   export AWS_ACCESS_KEY_ID='<aws access key id>'
+   export AWS_SECRET_ACCESS_KEY='<aws secret access key>'
+   export AWS_SESSION_TOKEN='<aws session token>'
+
+Syntax for setting environment variables in other shells will be
+different. Consult the documentation for your platform for more
+information.
+
+You can verify that these environment variables have been set with the
+following command:
+
+.. code-block:: none
+
+   env | grep AWS
+
+Once set, the following example connects to a MongoDB Atlas cluster
+using these environment variables:
+
+.. code-block:: none
+
+   mongostat 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS'  <other options>
 
 Additional Information
 ----------------------
