@@ -18,13 +18,22 @@ Default MongoDB Read Concerns/Write Concerns
    :depth: 1
    :class: singlecol
 
-Default Read Concern
---------------------
+Read Concern
+------------
 
-The default :doc:`read concern </reference/read-concern>` is as follows:
+.. figure:: /images/read-write-concern-inheritance.bakedsvg.svg
+   :alt: Read/Write Concern Inheritance
+   :figwidth: 500px
+
+Default Read Concern
+~~~~~~~~~~~~~~~~~~~~
+
+The :red:`default` :doc:`read concern </reference/read-concern>` is as
+follows:
 
 .. list-table::
    :header-rows: 1
+   :widths: 45 55
    
    * - Operations
      - Default Read Concern
@@ -33,198 +42,378 @@ The default :doc:`read concern </reference/read-concern>` is as follows:
 
      - :readconcern:`"local"`
 
-       This read concern can return data that may be rolled back.
+       .. note::
 
-   * - Reads against secondaries if the reads are associated with
-       :ref:`causally consistent sessions <sessions>`.
+          - This read concern can return data that may be rolled
+            back.
+
+          - This read concern :red:`does not` guarantee :ref:`causal
+            consistency <sessions>`.
+
+   * - | Reads against secondaries if the reads are 
+       | associated with :ref:`causally consistent sessions <sessions>`.
 
      - :readconcern:`"local"`
 
-       This read concern can return data that may be rolled back.
+       .. note::
 
-   * - Reads against secondaries if the reads are :red:`not` associated with
-       :ref:`causally consistent sessions <sessions>`.
+          - This read concern can return data that may be rolled
+            back.
+
+          - This read concern :red:`does not` guarantee :ref:`causal
+            consistency <sessions>`.
+
+
+   * - | Reads against secondaries if the reads are :red:`not`
+       | associated with :ref:`causally consistent sessions <sessions>`.
 
      - :readconcern:`"available"`
 
-       This read concern can return data that may be rolled back. For
-       sharded collection, can also return orphaned documents.
+       .. note::
 
-.. note::
+          - This read concern can return data that may be rolled
+            back.
 
-   With :ref:`causally consistent client sessions <sessions>`, the
-   client sessions only guarantee causal consistency if:
-   
-   - the associated read operations use :readconcern:`"majority"` read
-     concern, and 
-     
-   - the associated write operations use :writeconcern:`"majority"`
-     write concern.
+          - This read concern :red:`does not` guarantee :ref:`causal
+            consistency <sessions>`.
 
-MongoDB Drivers
-~~~~~~~~~~~~~~~
+          - For sharded collections, this read concern can also return
+            :red:`orphaned documents`.
 
-Using the `MongoDB drivers <https://docs.mongodb.com/drivers/>`__, read
-concern may be set at the following levels:
+.. _mongodb-default-rc-outside-transactions:
 
-.. list-table::
-   :header-rows: 1
-   :widths: 25 75
+.. _mongodb-default-rc-txns:
 
-   * - Level
+Specify Read Concern: MongoDB Drivers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     - Description
+.. tabs::
 
-   * - Client level
+   .. tab:: Operations outside Transactions
+      :tabid: override-concern
 
-     - Applies to operations unless a finer-grained read concern for an
-       operation is set at the
-       session/transaction/database/collection/operation level.
+      .. note::
 
-   * - Session level
+         The following applies to operations issued outside
+         :doc:`transactions </core/transactions>`.
 
-     - Applies for :doc:`transactions </core/transactions>` started in
-       the session unless a finer-grained read concern level is set at
-       a specific transaction level.
+         For read concern information related to operations issued
+         inside transactions, click on the ``Operations in
+         Transactions`` tab.
 
-       Operations within a transaction use the transaction read concern.
+      .. container::
 
-       See :ref:`transactions-read-concern` for more information.
+         Using the `MongoDB drivers <https://docs.mongodb.com/drivers/>`__,
+         you can override the default :doc:`read concern
+         </reference/read-concern>` and set read concern for operations at
+         the following levels:
 
-   * - Transaction level
+         .. list-table::
+            :header-rows: 1
+            :widths: 25 75
 
-     - Applies to all operations within the :doc:`transactions
-       </core/transactions>`. 
+            * - Level
 
-       All operations in a transaction use the :ref:`transaction read
-       concern <transactions-read-concern>`.
+              - Description
 
-       See :ref:`transactions-read-concern` for more information.
+            * - Client level
 
-   * - Database level
+              - Applies to operations unless a finer-grained read concern for an
+                operation is set at the database/collection/operation level.
 
-     - Applies to the database's collections (i.e. overrides the client
-       read concern) unless either:
+            * - Database level
 
-       - the operation is part of a transaction. Operations within a
-         transaction use the transaction read concern, set at either
-         the session level or the transaction level.
+              - Applies to operations on the database's collections
+                (i.e. overrides the client read concern) unless a read
+                concern has been set at the collection level or the operation
+                level.
 
-       - the operation is not part of a transaction and a read concern
-         has been set at the collection level or the operation level.
+                .. note::
 
-   * - Collection level
+                   Does not apply to operations inside transactions.
 
-     - Applies for read operations on the collection (i.e. overrides
-       the database and client read concern) unless either:
+            * - Collection level
 
-       - the operation is not part of a transaction and a read concern
-         has been set at the operation level.
+              - Applies for read operations on the collection (i.e. overrides
+                the database/client read concern) unless a read concern has
+                been set at the operation level.
 
-       - the operation is part of a transaction. Operations within a
-         transaction use the transaction read concern, set at either
-         the session level or the transaction level.
+                .. note::
 
+                   Does not apply to operations inside transactions.
 
-   * - Operation level
+            * - Operation level
 
-     - Applies for the specific read operation unless the operation is
-       part of a transaction. Operations within a transaction use the
-       transaction read concern, set at either the session level or the
-       transaction level.
+              - Applies for the specific read operation (i.e. overrides the
+                database/client/collection read concern).
 
-       The ability to set read concern at the operation depends on the
-       driver. Refer to your `driver's documentation
-       <https://docs.mongodb.com/drivers/>`__.
+                The ability to set read concern at the operation depends on the
+                driver. Refer to your `driver's documentation
+                <https://docs.mongodb.com/drivers/>`__.
 
+                .. note::
+
+                   Does not apply to operations inside transactions.
+
+   .. tab:: Operations in Transactions
+      :tabid: override-concern-txn
+
+      .. note::
+
+         The following applies to operations issued inside :doc:`transactions
+         </core/transactions>`.
+
+         For read concern information related to operations issued
+         :red:`outside` transactions, click on the ``Operations
+         outside Transactions`` tab.
+
+      .. container::
+
+         Using the `MongoDB drivers <https://docs.mongodb.com/drivers/>`__,
+         you can override the default :doc:`read concern
+         </reference/read-concern>` and set read concern **for transactions**
+         at the following levels:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 25 75
+
+            * - Level
+
+              - Description
+
+            * - Client level
+
+              - Applies to transactions unless a finer-grained read concern
+                is set at the session/transaction level.
+
+                .. note::
+          
+                   All operations in a transaction use the transaction read
+                   concern; i.e., any read concern set at the
+                   operation/collection/database level is :red:`ignored`
+                   inside the transaction.
+
+            * - Session level
+
+              - Applies to :doc:`transactions </core/transactions>` started
+                in the session (i.e. overrides the client read concern)
+                unless a finer-grained read concern level is set at a
+                specific transaction level.
+
+                .. note::
+          
+                   All operations in a transaction use the transaction read
+                   concern; i.e., any read concern set at the
+                   operation/collection/database level is :red:`ignored`
+                   inside the transaction.
+
+                See :ref:`transactions-read-concern` for more information.
+
+            * - Transaction level
+
+              - Applies to the specific transaction (i.e. overrides the
+                client/session read concern).
+
+                .. note::
+
+                   All operations in a transaction use the transaction read
+                   concern; i.e., any read concern set at the
+                   operation/collection/database level is :red:`ignored`
+                   inside the transaction.
+
+                See :ref:`transactions-read-concern` for more information.
+
+Additional Information
+~~~~~~~~~~~~~~~~~~~~~~
+
+For more information on the available read concerns, see
+:doc:`/reference/read-concern`.
+
+Write Concern
+-------------
+
+.. figure:: /images/read-write-concern-inheritance.bakedsvg.svg
+   :alt: Read/Write Concern Inheritance
+   :figwidth: 500px
 
 Default Write Concern
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
-The default :doc:`write concern </reference/read-concern>` is
-:writeconcern:`w: 1 <w: \<number\>>`. Data can be rolled back.
+The :red:`default` :doc:`write concern </reference/write-concern>` is
+:writeconcern:`w: 1 <w: \<number\>>`. 
 
 .. note::
 
-   With :ref:`causally consistent client sessions <sessions>`, the
-   client sessions only guarantee causal consistency if:
+   - With the default write concern, data can be rolled back.
 
-   - the associated read operations use :readconcern:`"majority"` read
-     concern, and 
+   - This write concern :red:`does not` guarantee :ref:`causal
+     consistency <sessions>`.
 
-   - the associated write operations use :writeconcern:`"majority"`
-     write concern.
+.. _mongodb-default-wc-txns:
 
-MongoDB Drivers
-~~~~~~~~~~~~~~~
+.. _mongodb-default-wc-outside-transactions:
 
-Using the `MongoDB drivers <https://docs.mongodb.com/drivers/>`__,
-write concern may be set at the following levels:
+Specify Write Concern: MongoDB Drivers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. list-table::
-   :header-rows: 1
-   :widths: 25 75
+.. tabs::
 
-   * - Level
+   .. tab:: Operations outside Transactions
+      :tabid: override-concern
 
-     - Description
+      .. note::
 
-   * - Client level
+         The following applies to operations issued outside
+         :doc:`transactions </core/transactions>`.
 
-     - Applies to operations unless a finer-grained write concern for
-       an operation is set at the
-       database/collection/session/transaction level.
+         For read concern information related to operations issued
+         inside transactions, click on the ``Operations in
+         Transactions`` tab.
 
-   * - Session level
+      .. container::
 
-     - Applies for :doc:`transactions </core/transactions>` started in
-       the session unless a finer-grained write concern level is set at
-       a specific transaction level.
+         Using the `MongoDB drivers <https://docs.mongodb.com/drivers/>`__,
+         you can override the default :doc:`write concern
+         </reference/write-concern>` and set write concern for operations at
+         the following levels:
 
-       All operations within a transaction use the transaction write
-       concern.
+         .. list-table::
+            :header-rows: 1
+            :widths: 25 75
 
-       See :ref:`transactions-write-concern` for more information.
+            * - Level
 
-   * - Transaction level
+              - Description
 
-     - Applies to all operations within the transactions; i.e. any write
-       concern set at the collection/database/session/client level is ignored
-       inside the transaction.
+            * - Client level
 
-       See :ref:`transactions-write-concern` for more information.
+              - Applies to operations unless a finer-grained write concern
+                for an operation is set at the operation/database/collection.
 
-   * - Database level
+            * - Database level
 
-     - Applies to the database's collections (i.e. overrides the client
-       write concern) unless either:
+              - Applies to write operations on the database's collections
+                (i.e. overrides the client write concern) unless a write
+                concern has been set at the collection level or the operation
+                level.
 
-       - the operation is part of a transaction. Operations within a
-         transaction use the transaction write concern, set at either
-         the session level or the transaction level.
+                .. note::
 
-       - the operation is not part of a transaction and a write concern
-         has been set at the collection level or the operation level.
+                   Does not apply to operations inside transactions.
 
-   * - Collection level
+            * - Collection level
 
-     - Applies for write operations on the collection (i.e. overrides
-       the database and client write concern) unless either:
+              - Applies to write operations on the collection (i.e.
+                overrides the database and client write concern) unless a
+                write concern has been set at the operation level.
 
-       - the operation is not part of a transaction and a write concern
-         has been set at the operation level.
+                .. note::
 
-       - the operation is part of a transaction. Operations within a
-         transaction use the transaction write concern, set at either
-         the session level or the transaction level.
+                   Does not apply to operations inside transactions.
 
-   * - Operation level
+            * - Operation level
 
-     - Applies for the specific write operation unless the operation is
-       part of a transaction. Operations within a transaction use the
-       transaction write concern, set at either the session level or the
-       transaction level.
+              - Applies to the specific write operation.
 
-       The ability to set write concern at the operation depends on the
-       driver. Refer to your `driver's documentation
-       <https://docs.mongodb.com/drivers/>`__.
+                The ability to set write concern at the operation depends on the
+                driver. Refer to your `driver's documentation
+                <https://docs.mongodb.com/drivers/>`__.
+
+                .. note::
+
+                   Does not apply to operations inside transactions.
+
+
+   .. tab:: Operations in Transactions
+      :tabid: override-concern-txn
+
+
+      .. note::
+
+         The following applies to operations issued inside :doc:`transactions
+         </core/transactions>`.
+
+         For read concern information related to operations issued
+         :red:`outside` transactions, click on the ``Operations
+         outside Transactions`` tab.
+
+      .. container::
+
+         Using the `MongoDB drivers <https://docs.mongodb.com/drivers/>`__,
+         you can override the default :doc:`write concern
+         </reference/write-concern>` and set write concern for **for
+         transactions** at the following levels:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 25 75
+
+            * - Level
+
+              - Description
+
+            * - Client level
+
+              - Applies to transactions unless a finer-grained write concern for
+                transactions are set at the session/transaction level.
+          
+                Transaction write concern applies to the commit operation and
+                the operations inside the transaction.
+
+                .. note::
+
+                   All operations within a transaction use the transaction write
+                   concern; i.e., any write concern set at the
+                   operation/collection/database level is :red:`ignored` inside
+                   the transaction.
+
+            * - Session level
+
+              - Applies for :doc:`transactions </core/transactions>` started in
+                the session unless the write concern level is set at a specific
+                transaction level.
+
+                Transaction write concern applies to the commit operation and
+                the operations inside the transaction.
+
+                .. note::
+
+                   All operations within a transaction use the transaction write
+                   concern; i.e., any write concern set at the
+                   operation/collection/database level is :red:`ignored` inside
+                   the transaction.
+
+            * - Transaction level
+
+              - Applies to the specific transaction.
+
+                Transaction write concern applies to the commit operation and
+                the operations inside the transaction.
+
+                .. note::
+
+                   All operations within a transaction use the transaction write
+                   concern; i.e., any write concern set at the
+                   operation/collection/database level is :red:`ignored` inside
+                   the transaction.
+
+         See :ref:`transactions-write-concern` for more information. 
+
+Additional Information
+~~~~~~~~~~~~~~~~~~~~~~
+
+For more information on the available write concerns, see
+:doc:`/reference/write-concern`.
+
+Causally Consistency Guarantees
+-------------------------------
+
+With :ref:`causally consistent client sessions <sessions>`, the
+client sessions only guarantee causal consistency if:
+
+- the associated read operations use :readconcern:`"majority"` read
+  concern, and 
+
+- the associated write operations use :writeconcern:`"majority"`
+  write concern.
