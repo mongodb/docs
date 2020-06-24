@@ -1,3 +1,11 @@
+.. _atlas_20200624:
+
+24 June 2020 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces alerts for 
+  :ref:`Performance Advisor <performance-advisor>` recommendations.
+
 .. _atlas_20200602:
 
 02 June 2020 Release
