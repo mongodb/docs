@@ -1,4 +1,3 @@
-// ignored first line
 // start query index collation
 collection.find({"year": 1980}, {"collation" : {"locale" : "en_US" }})
   .sort({"title": -1});

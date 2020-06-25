@@ -1,4 +1,3 @@
-// ignored first line
 collection.aggregate(
   [
     { $group: { "_id": "$first_name", "nameCount": { "$sum": 1 } } },

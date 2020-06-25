@@ -1,4 +1,3 @@
-// ignored first line
 const { MongoClient } = require("mongodb");
 
 // Replace the uri string with your MongoDB deployment's connection string.

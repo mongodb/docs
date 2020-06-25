@@ -1,4 +1,3 @@
-// ignored first line
 // start findOneAndUpdate without collation
 collection.findOneAndUpdate(
   { first_name : { $lt: "Gunter" } },

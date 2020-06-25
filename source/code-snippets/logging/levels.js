@@ -1,4 +1,3 @@
-// ignored first line
 // begin-ex
 const { MongoClient, Logger } = require("mongodb");
 

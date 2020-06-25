@@ -1,4 +1,3 @@
-// ignored first line
 const { MongoClient } = require("mongodb");
 
 // Replace the following with values for your environment.

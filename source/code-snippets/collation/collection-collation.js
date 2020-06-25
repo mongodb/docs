@@ -1,5 +1,3 @@
-// ignored first line
-
 // start create collection with collation
 // Create the collection with a collation
 db.createCollection("souvenirs", {

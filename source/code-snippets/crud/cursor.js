@@ -1,4 +1,3 @@
-// ignored first line
 const { MongoClient } = require("mongodb");
 const stream = require("stream");
 
