@@ -10,24 +10,24 @@
 
      - id: compass
        content: |
-         Copy the following expression into the :guilabel:`Filter` bar:
+         1. Copy the following expression into the :guilabel:`Filter`
+            field:
 
-         .. class:: copyable-code
-         .. code-block:: javascript
+            .. code-block:: javascript
 
-            { status: "A" }
+               { status: "A" }
 
-         Copy the following expression into the :guilabel:`Project`
-         bar:
+         #. Click :guilabel:`Options` to open the additional query
+            options.
 
-         .. class:: copyable-code
-         .. code-block:: javascript
+         #. Copy the following expression into the :guilabel:`Project`
+            field:
 
-            { status: 0, instock: 0 }
+            .. code-block:: javascript
 
-         Click :guilabel:`Find`.
+               { status: 0, instock: 0 }
 
-         .. figure:: /images/compass-project-exclude-fields.png
+         #. Click :guilabel:`Find`.
 
      - id: python
        content: |

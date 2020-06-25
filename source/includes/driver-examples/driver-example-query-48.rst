@@ -13,24 +13,24 @@
 
      - id: compass
        content: |
-         Copy the following expression into the :guilabel:`Filter` bar:
+         1. Copy the following expression into the :guilabel:`Filter`
+            field:
 
-         .. class:: copyable-code
-         .. code-block:: javascript
+            .. code-block:: javascript
 
-            { status: "A" }
+               { status: "A" }
 
-         Copy the following expression into the :guilabel:`Project`
-         bar:
+         #. Click :guilabel:`Options` to open the additional query
+            options.
 
-         .. class:: copyable-code
-         .. code-block:: javascript
+         #. Copy the following expression into the :guilabel:`Project`
+            field:
 
-            { "size.uom": 0 }
+            .. code-block:: javascript
 
-         Click :guilabel:`Find`.
+               { "size.uom": 0 }
 
-         .. figure:: /images/compass-project-suppress-embedded-field.png
+         #. Click :guilabel:`Find`.
 
      - id: python
        content: |
