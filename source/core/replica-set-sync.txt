@@ -202,7 +202,7 @@ Replication
 Secondary members replicate data continuously after the initial sync.
 Secondary members copy the :doc:`oplog </core/replica-set-oplog>` from
 their *sync from* source and apply these operations in an asynchronous
-process. [#slow-oplogs]_
+process. [#slow-oplogs]_ 
 
 Secondaries may automatically change their *sync from* source as needed
 based on changes in the ping time and state of other members'
@@ -212,6 +212,33 @@ for more information on sync source selection criteria.
 .. [#slow-oplogs]
 
    .. include:: /includes/extracts/4.2-changes-slow-oplog-log-message-footnote.rst
+
+.. _replica-set-streaming-replication:
+
+Streaming Replication 
+~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, *sync from* sources send a continuous stream 
+of :doc:`oplog </core/replica-set-oplog>` entries to their syncing 
+secondaries. Streaming replication mitigates replication lag in 
+high-load and high-latency networks. It also: 
+
+- Reduces staleness for reads from secondaries.
+- Reduces risk of losing write operations with :ref:`w: 1 <wc-w>` due to 
+  primary failover.
+- Reduces latency on write operations with :writeconcern:`w: "majority" 
+  <"majority">` and :ref:`w: >1 <wc-w>` (that is, any write concern that 
+  requires waiting for replication).
+
+Prior to MongoDB 4.4, secondaries fetched batches of :doc:`oplog 
+</core/replica-set-oplog>` entries by issuing a request to their *sync 
+from* source and waiting for a response. This required a network roundtrip 
+for each batch of :doc:`oplog </core/replica-set-oplog>` entries. MongoDB 
+4.4 adds the :parameter:`oplogFetcherUsesExhaust` startup parameter for 
+disabling streaming replication and using the older replication behavior. 
+Set the :parameter:`oplogFetcherUsesExhaust` parameter to ``false`` only if 
+there are any resource constraints on the *sync from* source or if you wish 
+to limit MongoDB's usage of network bandwidth for replication.
 
 .. _replica-set-internals-multi-threaded-replication:
 
