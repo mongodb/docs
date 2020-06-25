@@ -231,9 +231,10 @@ This behavior also affects the :dbcommand:`moveChunk` command, and
 migration scripts that use the :dbcommand:`moveChunk` command may
 proceed more quickly.
 
-In some cases, the delete phases may persist longer. If multiple delete
-phases are queued but not yet complete, a crash of the replica set's
-primary can orphan data from multiple migrations.
+In some cases, the delete phases may persist longer. Starting in MongoDB
+4.4, chunk migrations are enhanced to be more resilient in the event of
+a failover during the delete phase. Orphaned documents are cleaned up
+even if a replica set's primary crashes or restarts during this phase.
 
 The ``_waitForDelete``, available as a setting for the balancer as well
 as the :dbcommand:`moveChunk` command, can alter the behavior so that
@@ -299,6 +300,22 @@ Maximum Number of Documents Per Chunk to Migrate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/limits-sharding-maximum-documents-chunk.rst
+
+.. _range-deletion-performance-tuning:
+
+Range Deletion Performance Tuning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can tune the performance impact of range deletions
+with :parameter:`rangeDeleterBatchSize` and
+:parameter:`rangeDeleterBatchDelayMS` parameters. For example:
+
+- To limit the number of documents deleted per batch, you can set
+  :parameter:`rangeDeleterBatchSize` to a small value such as ``32``.
+
+- To add an additional delay between batch deletions, you can set
+  :parameter:`rangeDeleterBatchDelayMS` above the current default of
+  ``20`` milliseconds.
 
 .. _sharding-shard-size:
 
