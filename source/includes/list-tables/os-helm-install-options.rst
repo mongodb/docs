@@ -21,6 +21,24 @@
 
      - ``mongodb``
 
+   * - ``managedSecurityContext``
+
+     - Flag that determines if the |k8s-op-short| inherits the
+       ``securityContext`` settings that your |k8s| cluster manages.
+
+       For OpenShift, ``managedSecurityContext`` must always be
+       ``true``.
+
+       .. example::
+
+          .. code-block:: yaml
+             :emphasize-lines: 2
+
+             # OpenShift manages security context on its own
+             managedSecurityContext: true
+
+     - ``true``
+
    * - | ``operator``
        | ``.env``
 
