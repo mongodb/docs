@@ -2422,6 +2422,49 @@ Sharding Parameters
    ``AsyncRequestsSenderUseBaton`` and always enables the performance
    enhancement controlled by the parameter.
 
+.. parameter:: disableResumableRangeDeleter
+
+   .. versionadded:: 4.4
+
+   *Type*: boolean
+
+   *Default*: false
+
+   |mongod-only|
+
+   If set on a shard's primary, specifies if range deletion is paused on
+   the shard. If set to ``true``, cleanup of :term:`chunk`ranges
+   containing :term:`orphaned documents <orphaned document>` is paused.
+   The shard can continue to donate chunks to other shards, but the
+   donated documents will not be removed from this shard until you set
+   this parameter to ``false``. This shard can continue to receive
+   chunks from other shards as long as it does not have a pending range
+   deletion task in the :data:`config.rangeDeletions` collection that
+   overlaps with the incoming chunk's range.
+
+   When :parameter:`disableResumableRangeDeleter` is ``true``, chunk
+   migrations fail if :term:`orphaned documents <orphaned document>`
+   exist on the recipient shard's primary in the same range as the
+   incoming chunks.
+
+   The parameter has no effect on the :binary:`~bin.mongod` if it is not
+   the shard's primary.
+
+   .. important::
+
+      If you set :parameter:`disableResumableRangeDeleter` parameter to
+      ``true``, ensure that you apply it consistently for all members in
+      the shard's replica set. In the event of a failover, this
+      setting's value on the new primary dictates the behavior of the
+      range deleter.
+
+   You can only set this parameter during start-up and cannot change
+   this setting using the :dbcommand:`setParameter` database command.
+
+   .. code-block:: javascript
+
+      mongod --setParameter disableResumableRangeDeleter=false
+
 .. parameter:: enableShardedIndexConsistencyCheck
 
    *New in version 4.4 (and 4.2.6).*

@@ -643,6 +643,30 @@ where the hashed field is the shard key prefix:
 
 .. seealso:: :ref:`sharding-hashed-sharding` , :ref:`4.4-rel-notes-compound-hashed-index`
 
+Chunk Migration Failover Resiliency Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.4, the following changes improve :term:`chunk`
+migrations and :term:`orphaned document` cleanup resiliency during
+failover:
+
+- Chunk ranges awaiting cleanup after a chunk migration are now
+  persisted in the :data:`config.rangeDeletions` collection and
+  replicated throughout the shard. In the event of a failover, the
+  shard's new primary reads the documents in the
+  :data:`config.rangeDeletions` collection and resumes deleting the
+  corresponding ranges. The document that describes a range awaiting
+  cleanup is deleted from the :data:`config.rangeDeletions` collection
+  after the range is deleted.
+
+- The :dbcommand:`cleanupOrphaned` command no longer deletes orphaned
+  documents from a shard. Instead, :dbcommand:`cleanupOrphaned` waits
+  for orphaned documents that are scheduled for deletion from a shard to
+  be deleted.
+
+Set the :parameter:`disableResumableRangeDeleter` parameter to ``true``
+on a shard's primary to pause range deletion on the shard.
+
 General Sharded Clusters Improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
