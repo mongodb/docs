@@ -8,6 +8,30 @@
 
             db.inventory.find( { status: "A" }, { item: 1, status: 1, instock: { $slice: -1 } } )
 
+     - id: compass
+       content: |
+
+         1. Copy the following expression into the :guilabel:`Filter`
+            field:
+
+            .. code-block:: javascript
+
+               { status: "A" }
+
+         #. Click :guilabel:`Options` to open the additional query
+            options.
+
+         #. Copy the following expression into the :guilabel:`Project`
+            field:
+
+            .. code-block:: javascript
+
+               { item: 1, status: 1, instock: { $slice: -1 } }
+
+         #. Click :guilabel:`Find`.
+
+            
+
      - id: python
        content: |
          .. class:: copyable-code
@@ -110,4 +134,3 @@
             :dedent: 2
             :start-after: Start Example 50
             :end-before: End Example 50
-
