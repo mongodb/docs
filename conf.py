@@ -242,7 +242,8 @@ extlinks = {
     'contact': ('https://www.mongodb.com/contact%s',''),
     'adl': ('https://docs.mongodb.com/datalake%s',''),
     'guides' : ('https://docs.mongodb.com/guides%s',''),
-    'osb' : ('https://docs.mongodb.com/atlas-open-service-broker/current%s','')
+    'osb' : ('https://docs.mongodb.com/atlas-open-service-broker/current%s',''),
+    'mdb-shell' : ('https://docs.mongodb.com/mongodb-shell%s','')
 }
 
 # add `extlinks` for each published version.
