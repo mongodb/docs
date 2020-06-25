@@ -8,12 +8,13 @@
 - Supports management, monitoring and backup of MongoDB 4.4
   deployments.
 
-- Can deploy to Kubernetes using the
+- Can be deployed to Kubernetes using the
   :k8s:`MongoDB Enterprise Kubernetes Operator </>`.
 
 - Improves summary and detailed views of MongoDB deployments.
 
-- Improves management performance of large sharded clusters.
+- Improves the operational performance of managing large sharded
+  clusters.
 
   .. example::
 

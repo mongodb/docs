@@ -6,7 +6,7 @@ Upgrade Versions in Chronological Order
 When you upgrade to another version, make sure the new version has a
 ``release_date`` that was released after the date of the version you
 want to upgrade. You might have this issue when upgrading from the
-current version ({+manifest-version+}) to rapid release
+current version ({+manifest-version+}) to a rapid release
 ({+rr-version+}) version. In this case, the version numbers don't
 correspond to release dates.
 
