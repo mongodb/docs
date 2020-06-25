@@ -34,7 +34,7 @@
  
        Possible values include:
  
-       .. include:: /includes/possibleValues-api-eventTypeName.rst
+       .. include:: /includes/api/list-tables/alert-eventTypeNames.rst
 
      -
  

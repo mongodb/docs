@@ -1,7 +1,7 @@
 .. raw:: html
 
    <style type="text/css">
-     table.docutils, table.hlist {
+     table.docutils, table.hlist, table.colwidths-given.docutils {
        width: 100%;
        table-layout: fixed;
      }

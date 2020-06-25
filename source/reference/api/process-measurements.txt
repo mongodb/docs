@@ -12,9 +12,7 @@ Get Measurements for a MongoDB Process
 
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
-Get measurements for a specific |service| MongoDB process. A |service| MongoDB
-process can be either a :binary:`mongod <bin.mongod>` or :binary:`mongos
-<bin.mongos>`.
+Get measurements for a specific |service| MongoDB process. A |service| MongoDB process can be either a |mongod| or |mongos|.
 
 .. include:: /includes/api-requirements.rst
 
@@ -23,9 +21,9 @@ process can be either a :binary:`mongod <bin.mongod>` or :binary:`mongos
 Resource
 --------
 
-.. code-block:: none
+.. code-block:: http
 
-   GET api/atlas/v1.0/groups/{GROUP-ID}/processes/{HOST}:{PORT}/measurements
+   GET /groups/{GROUP-ID}/processes/{HOST}:{PORT}/measurements
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,57 +64,69 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * - ``end``
      - string
-     - The end of the period for which to retrieve measurements, specified as
-       an ISO-8601_
-       timestamp.
+     - |iso8601-time| when the period for which to retrieve
+       measurements ends.
 
    * - ``granularity``
      - string
-     - An ISO-8601_-formatted
-       time period that specifies the size of the interval covered by each
-       data point. For example, ``PT5M`` specifies a 5-minute granularity.
+     - |iso8601-duration| that specifies the size of each data point's
+       covered interval.
+
+       .. example::
+
+          ``PT5M`` specifies a 5-minute granularity.
 
    * - ``groupId``
      - string
-     - ID of the project that owns the |service| MongoDB process.
+     - Unique identifier of the project that owns the |service| MongoDB
+       process.
 
    * - ``hostId``
      - string
-     - The hostname of the machine running the |service| MongoDB process.
+     - Hostname of the machine running the |service| MongoDB process.
 
    * - ``links``
-     - array
-     - An array of documents, representing a :ref:`link <api-linking>` to one
-       or more sub-resources and/or related resources such as :ref:`list
-       pagination <api-lists>`. See :ref:`api-linking` for more information.
+     - array of objects
+     - An array of documents, representing a :ref:`link <api-linking>`
+       to one or more sub-resources and/or related resources such as
+       :ref:`list pagination <api-lists>`. See :ref:`api-linking` for
+       more information.
 
    * - ``measurements``
-     - object array
+     - array of objects
      - An array of measurements and their data points.
 
-   * - ``measurements.dataPoints``
-     - object array
-     - An array of objects, where each object represents a single data
-       point. If there is no data point available for a particular moment in
-       time (i.e., a timestamp), the ``value`` field is set to ``null``.
+   * - | ``measurements``
+       | ``.dataPoints``
+     - array of objects
+     - Each object represents a single data
+       point. If there is no data point available for a particular
+       moment in time (i.e., a timestamp), the ``value`` field is set
+       to ``null``.
 
-   * - ``measurements.dataPoints.timestamp``
+   * - | ``measurements``
+       | ``.dataPoints``
+       | ``.timestamp``
      - string
-     - The timestamp of the beginning of the time interval represented by this
-       data point.
+     - Timestamp of the beginning of the time interval represented by
+       this data point.
 
-   * - ``measurements.dataPoints.value``
+   * - | ``measurements``
+       | ``.dataPoints``
+       | ``.value``
      - float
-     - The value of the data point.
+     - Value of the data point.
 
-   * - ``measurements.name``
+   * - | ``measurements``
+       | ``.name``
      - string
-     - The name of the measurement. For possible values, see
+     - Name of the measurement. For possible values, see
        :ref:`measurement-types` below on this page.
 
-   * - ``measurements.units``
+   * - | ``measurements``
+       | ``.units``
      - string
-     - How the measurement is quantified. Possible units are:
+     - Quanitifier of this measurement. You may use:
 
        - ``PERCENT``
        - ``MILLISECONDS``
@@ -130,268 +140,21 @@ The HTTP response returns a JSON document that includes the following objects:
 
    * -  ``processId``
      - string
-     - The hostname and port of the machine running the |service| MongoDB
+     - Hostname and port of the machine running the |service| MongoDB
        process.
 
    * - ``start``
      - string
-     - The start of the period for which to retrieve measurements, specified as
-       an ISO-8601_
-       timestamp.
+     - |iso8601-time| when the period for which to retrieve
+       measurements starts.
 
 
-.. _measurement-types:
-
-Measurement Values
-~~~~~~~~~~~~~~~~~~
-
-.. list-table::
-
-   * - - ``ASSERT_REGULAR``
-       - ``ASSERT_WARNING``
-       - ``ASSERT_MSG``
-       - ``ASSERT_USER``
-
-     - Measures the rate of asserts for a MongoDB process, as collected from
-       the MongoDB :manual:`serverStatus </reference/command/serverStatus>`
-       command's :serverstatus:`asserts` document.
-
-   * - - ``BACKGROUND_FLUSH_AVG``
-
-     - Amount of data flushed in the background.
-
-   * - - ``CACHE_BYTES_READ_INTO``
-       - ``CACHE_BYTES_WRITTEN_FROM``
-       - ``CACHE_USAGE_DIRTY``
-       - ``CACHE_USAGE_USED``
-
-     - Applies to a MongoDB process's :manual:`WiredTiger </core/wiredtiger>`
-       storage engine, as collected from the MongoDB :manual:`serverStatus
-       </reference/command/serverStatus>` command's
-       :serverstatus:`wiredTiger.cache` and
-       :serverstatus:`wiredTiger.concurrentTransactions` documents.
-
-   * - - ``CONNECTIONS``
-       - ``CONNECTIONS_MAX``
-       - ``CONNECTIONS_PERCENT``
-
-     - Measures connections to a MongoDB process, as collected from the
-       MongoDB :manual:`serverStatus </reference/command/serverStatus>`
-       command's :serverstatus:`connections` document.
-
-   * - - ``CURSORS_TOTAL_OPEN``
-       - ``CURSORS_TOTAL_TIMED_OUT``
-       - ``CURSORS_TOTAL_CLIENT_CURSORS_SIZE``
-
-     - Measures the number of :manual:`cursors </core/cursors>` for a MongoDB
-       process, as collected from the MongoDB :manual:`serverStatus
-       </reference/command/serverStatus>` command's
-       :serverstatus:`metrics.cursor` document.
-
-   * - - ``DB_STORAGE_TOTAL``
-       - ``DB_DATA_SIZE_TOTAL``
-       - ``DB_INDEX_SIZE_TOTAL``
-
-     - Measures the database's on-disk storage space, as collected from
-       the MongoDB :manual:`dbStats </reference/command/dbStats>` command.
-
-   * - - ``LOGICAL_SIZE``
-
-     - Logical size of cluster data.
-
-   * - - ``DISK_PARTITION_SPACE_USED_DATA``
-       - ``DISK_PARTITION_SPACE_USED_INDEX``
-       - ``DISK_PARTITION_SPACE_USED_JOURNAL``
-       - ``DISK_PARTITION_UTILIZATION_DATA``
-       - ``DISK_PARTITION_UTILIZATION_INDEX``
-       - ``DISK_PARTITION_UTILIZATION_JOURNAL``
-    
-     - Measurements on the amount of disk space used on partitions
-       containing different types of MongoDB data.
-
-   * - - ``DOCUMENT_RETURNED``
-       - ``DOCUMENT_INSERTED``
-       - ``DOCUMENT_UPDATED``
-       - ``DOCUMENT_DELETED``
-
-     - The average rate per second of documents returned, inserted, updated,
-       or deleted for a selected time period.
-
-   * - - ``EXTRA_INFO_PAGE_FAULTS``
-       - ``GLOBAL_ACCESSES_NOT_IN_MEMORY``
-       - ``GLOBAL_PAGE_FAULT_EXCEPTIONS_THROWN``
-
-     - Measurements on page faults related to the host.
-
-   * - - ``FTS_MEMORY_RESIDENT``
-       - ``FTS_MEMORY_VIRTUAL``
-       - ``FTS_MEMORY_MAPPED``
-
-     - Memory usage for :ref:`fts-top-ref` processes, in bytes.
-
-   * - - ``FTS_DISK_UTILIZATION``
-
-     - Disk space in use by :ref:`fts-top-ref` indexes, in bytes.
-
-   * - - ``FTS_PROCESS_CPU_USER``
-       - ``FTS_PROCESS_CPU_KERNEL``
-       - ``NORMALIZED_FTS_PROCESS_CPU_USER``
-       - ``NORMALIZED_FTS_PROCESS_CPU_KERNEL``
-
-     - Percentage of CPU in use by :ref:`fts-top-ref` processes.
-
-   * - - ``GLOBAL_LOCK_CURRENT_QUEUE_TOTAL``
-       - ``GLOBAL_LOCK_CURRENT_QUEUE_READERS``
-       - ``GLOBAL_LOCK_CURRENT_QUEUE_WRITERS``
-       - ``GLOBAL_LOCK_PERCENTAGE``
-
-     - Measures operations waiting on locks, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command.
-
-   * - - ``INDEX_COUNTERS_BTREE_ACCESSES``
-       - ``INDEX_COUNTERS_BTREE_HITS``
-       - ``INDEX_COUNTERS_BTREE_MISSES``
-       - ``INDEX_COUNTERS_BTREE_MISS_RATIO``
-
-     - Measurements concerning :term:`B-tree` index activity.
-
-   * - - ``JOURNALING_COMMITS_IN_WRITE_LOCK``
-       - ``JOURNALING_MB``
-       - ``JOURNALING_WRITE_DATA_FILES_MB``
-
-     - Measurements concerning :manual:`journaling </core/journaling/>`
-       activity.
-
-   * - - ``MEMORY_RESIDENT``
-       - ``MEMORY_VIRTUAL``
-       - ``MEMORY_MAPPED``
-       - ``COMPUTED_MEMORY``
-
-     - Measures memory for a MongoDB process, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command's
-       :serverstatus:`mem` document.
-
-   * - - ``MUNIN_CPU_USER``
-       - ``MUNIN_CPU_NICE``
-       - ``MUNIN_CPU_SYSTEM``
-       - ``MUNIN_CPU_IOWAIT``
-       - ``MUNIN_CPU_IRQ``
-       - ``MUNIN_CPU_SOFTIRQ``
-       - ``MUNIN_CPU_STEAL``
-
-     - Measurements concerning `munin-node <http://munin-monitoring.org/>`__
-       CPU activity.
-
-   * - - ``NETWORK_BYTES_IN``
-       - ``NETWORK_BYTES_OUT``
-       - ``NETWORK_NUM_REQUESTS``
-
-     - Measures throughput for MongoDB process, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command's
-       :serverstatus:`network` document.
-
-   * - - ``OPCOUNTER_CMD``
-       - ``OPCOUNTER_QUERY``
-       - ``OPCOUNTER_UPDATE``
-       - ``OPCOUNTER_DELETE``
-       - ``OPCOUNTER_GETMORE``
-       - ``OPCOUNTER_INSERT``
-
-     - Measures the rate of database operations on a MongoDB process since the
-       process last started, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command's
-       :serverstatus:`opcounters` document.
-
-   * - - ``OPCOUNTER_REPL_CMD``
-       - ``OPCOUNTER_REPL_UPDATE``
-       - ``OPCOUNTER_REPL_DELETE``
-       - ``OPCOUNTER_REPL_INSERT``
-
-     - Measures the rate of database operations on MongoDB :term:`secondaries
-       <secondary>`, as collected from the MongoDB :manual:`serverStatus
-       </reference/command/serverStatus>` command's
-       :serverstatus:`opcountersRepl` document.
-
-   * - - ``OPERATIONS_SCAN_AND_ORDER``
-
-     - For a selected time period, the average rate per second for
-       operations that perform a sort but cannot perform the sort using
-       an index.
-
-   * - - ``AVG_READ_EXECUTION_TIME``
-       - ``AVG_WRITE_EXECUTION_TIME``
-       - ``AVG_COMMAND_EXECUTION_TIME``
-
-     - Available to hosts running MongoDB 3.6 or later. The execution
-       time in milliseconds per read, write, or command operation
-       over the selected time period.
-
-   * - - ``OPLOG_MASTER_TIME``
-       - ``OPLOG_MASTER_TIME_ESTIMATED_TTL``
-       - ``OPLOG_SLAVE_LAG_MASTER_TIME``
-       - ``OPLOG_MASTER_LAG_TIME_DIFF``
-       - ``OPLOG_RATE_GB_PER_HOUR``
-
-     - Measurements that apply to the MongoDB process's
-       :manual:`oplog </core/replica-set-oplog>`.
-
-   * - - ``QUERY_EXECUTOR_SCANNED``
-
-     - The average rate per second to scan index items during
-       queries and query-plan evaluations. This rate is driven by
-       the same value as ``totalKeysExamined`` in the output of
-       :manual:`explain </reference/command/explain>`. This
-       measurement is found on the host's ``Query Executor``
-       chart, accessed when viewing metrics.
-
-   * - - ``QUERY_EXECUTOR_SCANNED_OBJECTS``
-
-     - The average rate per second to scan documents during queries
-       and query-plan evaluations. |service| derives the rate using the
-       :manual:`explain </reference/command/explain>` output's
-       ``totalDocsExamined`` value. This measurement is found on the
-       host's ``Query Executor`` chart, accessed when viewing
-       metrics.
-
-   * - - ``QUERY_TARGETING_SCANNED_PER_RETURNED``
-
-     - The ratio of the number of index items scanned to the number of
-       documents returned. This measurement is found on the host's
-       ``Query Targeting`` chart, accessed when viewing metrics.
-
-   * - - ``QUERY_TARGETING_SCANNED_OBJECTS_PER_RETURNED``
-
-     - The ratio of the number of documents scanned to the number of
-       documents returned. This measurement is found on the host's
-       ``Query Targeting`` chart, accessed when viewing metrics.
-
-   * - - ``RESTARTS_IN_LAST_HOUR``
-    
-     - 	Number of times the host restarted within the previous hour.
-
-   * - - ``TICKETS_AVAILABLE_READS``
-       - ``TICKETS_AVAILABLE_WRITES``
-
-     - Measurement of the :manual:`WiredTiger </core/wiredtiger>` storage
-       engine :serverstatus:`wiredTiger.cache` and
-       :serverstatus:`wiredTiger.concurrentTransactions` documents as
-       collected from the MongoDB :manual:`serverStatus
-       </reference/command/serverStatus>` command.
-
-   * - - ``NORMALIZED_SYSTEM_CPU_USER``
-       - ``NORMALIZED_SYSTEM_CPU_STEAL``
-
-     - CPU usage of processes on the host server, scaled to a range of 0-100%
-       by dividing by the number of CPU cores.
 
 Example Request
 ---------------
 
-The following example request sets a ``granularity`` and ``period`` of one
-minute. Replace the information in brackets ``{}`` with your own |service|
-information to execute this example request:
+The following example request sets a ``granularity`` and ``period`` of one minute. Replace the information in brackets ``{}`` with your own |service| information to execute this example request:
 
-.. class:: copyable-code
 .. code-block:: shell
 
    curl -u "<ATLAS-USERNAME>:<API-KEY>" --digest -i "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/processes/{HOST}:{PORT}}/measurements?granularity=PT1M&period=PT1M&pretty=true"
@@ -399,7 +162,7 @@ information to execute this example request:
 Example Response
 ----------------
 
-.. code-block:: none
+.. code-block:: http
 
    HTTP/1.1 200 OK
    Vary: Accept-Encoding
