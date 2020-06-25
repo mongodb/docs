@@ -391,3 +391,37 @@
                      env:
                      - name: INIT_APPDB_VERSION
                        value: latest
+
+   * - ``MANAGED_SECURITY_CONTEXT``
+     - Flag that determines if the |k8s-op-short| inherits the
+       ``securityContext`` settings that your |k8s| cluster manages.
+
+       Set this field to ``true`` if you want to run the |k8s-op-short|
+       in OpenShift or in a restrictive environment.
+
+       Default value is ``false``.
+
+       .. code-block:: yaml
+
+          spec.template.spec.containers.name.env.name: 
+          MANAGED_SECURITY_CONTEXT
+          spec.template.spec.containers.name.env.value: 
+          false
+
+       .. example::
+
+          .. code-block:: yaml
+             :linenos:
+             :emphasize-lines: 9-11
+
+             spec:
+               template:
+                 spec:
+                   serviceAccountName: mongodb-enterprise-operator
+                   containers:
+                   - name: mongodb-enterprise-operator
+                     image: <operatorVersionUrl>
+                     imagePullPolicy: <policyChoice>
+                     env:
+                     - name: MANAGED_SECURITY_CONTEXT
+                       value: true
