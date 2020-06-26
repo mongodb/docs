@@ -14,7 +14,7 @@
      - 3.4 Enterprise
 
    * - RHEL/CentOS 7
-     - Removed starting in 3.6.2
+     - Removed starting in 3.6.17
      - Removed starting in 3.4.14
 
    * - RHEL/CentOS 6
@@ -22,11 +22,11 @@
      - Removed starting in 3.4.22
 
    * - SLES 12
-     - Removed starting in 3.6.2
+     - Removed starting in 3.6.17
      - Removed starting in 3.4.13
 
    * - SLES 11
-     - Removed starting in 3.6.2
+     - Removed starting in 3.6.4
      - Removed starting in 3.4.15
 
    * - Ubuntu 16.04
