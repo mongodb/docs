@@ -14,7 +14,7 @@
      - |checkmark|
      - |checkmark|
      - 4.0.6+
-     - Removed starting in 3.6.2
+     - Removed starting in 3.6.17
 
    * - RHEL/CentOS 6
      - |checkmark|
@@ -26,7 +26,7 @@
      - |checkmark|
      - |checkmark|
      - 4.0.6+
-     - Removed starting in 3.6.2
+     - Removed starting in 3.6.17
 
    * - Ubuntu 18.04
      - |checkmark|
