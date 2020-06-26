@@ -40,6 +40,15 @@
 
        - Set to ``false`` to disable cluster tier auto-scaling.
 
+       .. note::
+
+          If you disable auto-scaling for your cluster, |service|
+          sets your minimum and maximum autoscaling bounds to
+          ``null``. If you re-enable autoscaling at a later time, you
+          must set new values for
+          ``providerSettings.autoScaling.compute.minInstanceSize`` and
+          ``providerSettings.autoScaling.compute.maxInstanceSize``.
+
    * - | ``autoScaling``
        | ``.compute``
        | ``.scaleDownEnabled``
@@ -51,6 +60,10 @@
 
        If this option is enabled, you must specify a value for
        ``providerSettings.autoScaling.compute.minInstanceSize``.
+
+       .. note::
+
+          .. include:: /includes/fact-must-enable-autoscaling.rst
 
    * - | ``autoScaling``
        | ``.diskGBEnabled``
@@ -401,6 +414,10 @@
        can scale. Required if
        ``autoScaling.compute.enabled`` is ``true``.
 
+       .. important::
+
+          .. include:: /includes/fact-must-enable-autoscaling.rst
+
    * - | ``providerSettings``
        | ``.autoScaling``
        | ``.compute``
@@ -408,8 +425,7 @@
      - Conditional
      - Contains the ``minInstanceSize`` and ``maxInstanceSize`` fields
        which specify the range of instance sizes to which your cluster
-       can scale. Required if your cluster has cluster tier
-       auto-scaling enabled.
+       can scale.
 
    * - | ``providerSettings``
        | ``.autoScaling``

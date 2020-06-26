@@ -15,6 +15,9 @@
        cluster tier. For more information on cluster auto-scaling, see
        :ref:`cluster-autoscaling`.
 
+       If you specify the ``autoScaling`` object, you must also specify
+       the ``providerSettings.autoScaling`` object.
+
    * - | ``autoScaling``
        | ``.compute``
      - object
@@ -499,6 +502,11 @@
      - Object that contains the ``minInstanceSize`` and
        ``maxInstanceSize`` fields which specify the range of instance
        sizes to which your cluster can scale.
+
+       .. important::
+
+          You cannot specify the ``providerSettings.autoScaling`` object
+          if ``autoScaling.compute.enabled`` is ``false``.
 
    * - | ``providerSettings``
        | ``.autoScaling``
