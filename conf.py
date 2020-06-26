@@ -213,7 +213,8 @@ source_constants = {
     'pit-restore' : 'continuous cloud backup',
     'Realm' : 'Realm',
     'MongoDB-Realm' : 'MongoDB Realm',
-    'encrypt-at-rest' : 'Encryption at Rest using Customer Key Management'
+    'encrypt-at-rest' : 'Encryption at Rest using Customer Key Management',
+    'Online-Archive' : 'Online Archive'
 }
 
 pygments_style = 'sphinx'
