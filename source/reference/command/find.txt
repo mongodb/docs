@@ -30,10 +30,13 @@ Definition
 Syntax
 ------
 
-.. versionchanged:: 4.2
+.. versionchanged:: 4.4
 
-   MongoDB removes the deprecated ``maxScan`` option to the
-   :dbcommand:`find` command. Use the ``maxTimeMS`` option instead.
+   MongoDB deprecates the ``oplogReplay`` option to the :dbcommand:`find` 
+   command. The optimization enabled by this flag in previous versions now 
+   happens automatically for eligible queries on the oplog. Therefore, 
+   you don't need to specify this flag. If specified, the server accepts 
+   the flag for backwards compatibility, but the flag has no effect.
 
 The :dbcommand:`find` command has the following syntax:
 
@@ -66,6 +69,8 @@ The :dbcommand:`find` command has the following syntax:
          "allowDiskUse" : <bool>
       }
    )
+
+.. _find-cmd-fields:
 
 Command Fields
 ~~~~~~~~~~~~~~
@@ -284,13 +289,14 @@ The command accepts the following fields:
 
      - boolean
 
-     - Optional. An internal command for replaying a :ref:`replica set's oplog
+     - .. deprecated:: 4.4
+     
+       Optional. An internal command for replaying a :ref:`replica set's oplog
        <replica-set-oplog>`.
        
-       To use ``oplogReplay``, the ``find`` field must refer to a
-       :doc:`capped collection </core/capped-collections>` and you must
-       provide a ``filter`` option comparing the ``ts`` document field to a
-       :data:`timestamp` using one of the following comparison operators:
+       To use ``oplogReplay``, the ``find`` field must provide a ``filter`` 
+       option comparing the ``ts`` document field to a :data:`timestamp` using 
+       one of the following comparison operators:
        
        * :expression:`$gte`
        * :expression:`$gt`
@@ -306,11 +312,18 @@ The command accepts the following fields:
             oplogReplay: true,
             filter: { ts: { $gte: new Timestamp(1514764800, 0) } } }
        
-       .. versionchanged:: 3.6
-       
-          :expression:`$eq` is now supported.
-       
-       
+       .. admonition:: Deprecated
+          :class: note
+
+          .. versionchanged:: 4.4
+
+          Starting in MongoDB 4.4, the ``oplogReplay`` field is deprecated. 
+          ``find`` fields that use the :expression:`$gte`, :expression:`$gt`, 
+          or :expression:`$eq` ``filter`` predicated on the ``ts`` field 
+          will automatically utilize the storage format of the :ref:`replica 
+          set's oplog <replica-set-oplog>` to execute the command more 
+          efficiently. If specified, the server accepts the ``oplogReplay`` 
+          flag for backwards compatibility, but the flag has no effect. 
 
    * - ``noCursorTimeout``
 
