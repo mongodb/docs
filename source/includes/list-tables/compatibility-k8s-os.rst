@@ -2,7 +2,7 @@
    :header-rows: 1
    :widths: 33 33 33
 
-   * - |k8s-op| Release Series
+   * - |k8s-op-short| Release Series
      - |k8s| Version
      - OpenShift Version
    

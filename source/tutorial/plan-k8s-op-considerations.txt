@@ -1,0 +1,217 @@
+.. _k8s-considerations:
+
+==============
+Considerations
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+``MANAGED_SECURITY_CONTEXT`` for |k8s-op-short| OpenShift Deployments
+---------------------------------------------------------------------
+
+When you deploy the |k8s-op-short| to OpenShift, you must set the
+``MANAGED_SECURITY_CONTEXT`` flag to ``true``. This value is set for you
+in the :gh:`mongodb-enterprise-openshift.yaml
+</mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml>`
+and :gh:`values-openshift.yaml
+</mongodb/mongodb-enterprise-kubernetes/blob/master/helm_chart/values-openshift.yaml>`
+files included in the :gh:`MongoDB Enterprise Kubernetes Operator
+repository </mongodb/mongodb-enterprise-kubernetes>`.
+
+For more information on modifying this value, see the :ref:`instructions
+<install-k8s-operator>` for the installation method you want to use.
+
+Docker Container Details
+------------------------
+
+MongoDB builds the container images from the latest builds of the
+following operating systems:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - If you get your |k8s-op-short| from...
+     - ...the Container uses
+
+   * - `quay.io <https://quay.io/repository/mongodb/mongodb-enterprise-operator?tag=latest&tab=tags>`__
+       or :gh:`GitHub </mongodb/mongodb-enterprise-kubernetes>`
+     - `Ubuntu 16.04 <https://www.ubuntu.com/containers>`__
+
+   * - `OpenShift <https://access.redhat.com/containers/?tab=tags#/registry.connect.redhat.com/mongodb/enterprise-operator>`__
+     - `Red Hat Enterprise Linux 7 <https://www.redhat.com/en/topics/containers>`__
+
+MongoDB, Inc. updates all packages on these images before releasing
+them every three weeks.
+
+.. _k8s-validation-webhook:
+
+Validation Webhook
+------------------
+
+The |k8s-op-short| uses a webhook to prevent users from applying
+invalid resource definitions. The webhook rejects invalid requests.
+The |k8s-op-short| doesn't create or update the resource.
+
+The ``ClusterRole`` and ``ClusterRoleBinding`` for the webhook are
+included in the default configuration files that you apply during
+installation. To create the role and binding, you must have
+:k8sdocs:`cluster-admin privileges </reference/access-authn-authz/rbac/#user-facing-roles>`.
+
+If you apply an invalid resource definition, the webhook returns
+a message that describes the error to the shell:
+
+   Error from server (shardPodSpec field is not configurable for
+   application databases as it is for sharded clusters and appdbs are
+   replica sets): error when creating "my-ops-manager.yaml":
+   admission webhook "ompolicy.mongodb.com" denied the request:
+   shardPodSpec field is not configurable for application databases as
+   it is for sharded clusters and appdbs are replica sets
+
+The |k8s-op-short| doesn't require the validation webhook to create or
+update resources. If you omit the validation webhook, remove its role
+and binding from the default configuration, or have insufficient
+privileges to run it, the |k8s-op-short| performs the same validations
+when it reconciles each resource. The |k8s-op-short| marks resources as
+``Failed`` if validation encounters a critical error. For non-critical
+errors, the |k8s-op-short| issues warnings.
+
+.. admonition:: |gke| deployments
+
+   |gke| has a known issue with the webhook when deploying to private
+   clusters. To learn more, see :ref:`k8s-private-cluster-on-gke`
+
+.. _k8s-deployment-scopes:
+
+|k8s-op-short| Deployment Scopes
+--------------------------------
+
+You can deploy the |k8s-op-short| with different scopes based on where
+you want to deploy |onprem| and |k8s-mdbrscs| resources:
+
+- :ref:`ns-scope-same-ns` *(Default)*
+- :ref:`ns-scope-different-ns`
+- :ref:`cluster-wide-scope`
+
+.. _ns-scope-same-ns:
+
+Operator in Same Namespace as Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You scope the |k8s-op-short| to a namespace. The |k8s-op-short| watches 
+|onprem| and |k8s-mdbrscs| in that same |k8s-ns|.
+
+This is the default scope when you install the |k8s-op-short| using the 
+:ref:`installation instructions <install-k8s-operator>`.
+
+.. _ns-scope-different-ns:
+
+Operator in Different Namespace Than Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You scope the |k8s-op-short| to a namespace. The |k8s-op-short| watches 
+|onprem| and |k8s-mdbrscs| in the |k8s-ns| you specify.
+
+You must use ``helm`` to install the |k8s-op-short| with this scope. 
+Follow the relevant ``helm`` :ref:`installation instructions <install-k8s-operator>`,
+but use the following command to set the namespace for the 
+|k8s-op-short| to watch:
+
+.. code-block:: sh
+
+   helm template --set operator.watchNamespace=<namespace> \ 
+   helm_chart | kubectl apply -f -
+
+Setting the namespace ensures that: 
+
+- The namespace you want the |k8s-op-short| to watch has the correct 
+  roles and role bindings.
+- The |k8s-op-short| can watch and create resources in the namespace.
+
+.. _cluster-wide-scope:
+
+Cluster-Wide Scope
+~~~~~~~~~~~~~~~~~~
+
+You scope the |k8s-op-short| to a cluster. The |k8s-op-short| watches
+|onprem| and |k8s-mdbrscs| in all |k8s-nss| in the |k8s| cluster.
+
+.. important::
+
+   You can deploy only one Operator with a cluster-wide scope per |k8s|
+   cluster.
+
+You must use ``helm`` to install the |k8s-op-short| with this scope.
+Follow the relevant ``helm``
+:ref:`installation instructions <install-k8s-operator>`, but make the
+following adjustments:
+
+1. To set the |k8s-op-short| to watch all namespaces, invoke the
+   following command:
+
+   .. code-block:: sh
+
+      helm template --set operator.watchNamespace=* \
+      helm_chart | kubectl apply -f -
+
+2. Create the required service accounts for each namespace where you
+   want to deploy |onprem| and |k8s-mdbrscs|:
+
+   .. tabs::
+
+      .. tab:: Helm v2
+         :tabid: helm2
+
+         .. code-block:: sh
+
+            helm template --set namespace=<namespace> \
+            helm_chart -x templates/database-roles.yaml | kubectl apply -f -
+
+      .. tab:: Helm v3
+         :tabid: helm3
+
+         .. code-block:: sh
+
+            helm template --set namespace=<namespace> \
+            helm_chart --show-only templates/database-roles.yaml | kubectl apply -f -
+
+Customize the CustomResourceDefinitions that the |k8s-op-short| Watches
+-----------------------------------------------------------------------
+
+Earlier versions of the |k8s-op-short| would crash on startup if any
+one of the MongoDB |k8s-crds| was not present in the cluster. For
+instance, you had to install the CustomResourceDefinition for |onprem|
+even if you did not plan to deploy it with the |k8s-op-short|.
+
+You can now specify which custom resources you want the |k8s-op-short|
+to watch. This allows you to install the CustomResourceDefinition for
+only the resources that you want the |k8s-op-short| to manage.
+
+You must use ``helm`` to configure the |k8s-op-short| to watch only the
+custom resources you specify. Follow the relevant ``helm``
+:ref:`installation instructions <install-k8s-operator>`,
+but make the following adjustments:
+
+1. Decide which CustomResourceDefinitions you want to install. You can
+   install any number of the following:
+
+   .. include:: /includes/list-tables/crds.rst
+
+#. Use the ``--set`` option on the ``operator.watchedResources`` field
+   with the ``helm template`` command to specify which 
+   CustomResourceDefinitions you want to install and configure the 
+   |k8s-op-short| to watch them.
+   
+   Separate each custom resource with a comma:
+
+   .. code-block:: sh
+
+      helm template --set operator.watchedResources="{mongodb,mongodbusers}" \ 
+      helm_chart | kubectl apply -f -
