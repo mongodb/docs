@@ -30,11 +30,6 @@ public class InsertOne {
                         .append("genres", Arrays.asList("Documentary", "Comedy")));
 
                 System.out.println("Success! Inserted document id: " + result.getInsertedId());
-
-                // Retrieve the inserted document
-                //            Document insertedDoc = collection.find(eq("_id", result.getInsertedId())).first();
-                //            System.out.println("insertedDoc: " + insertedDoc);
-
             } catch (MongoException me) {
                 System.err.println("Unable to insert due to an error: " + me);
             }
