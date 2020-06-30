@@ -1,18 +1,17 @@
 package usage.examples;
 
-import java.util.Arrays;
-
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import com.mongodb.MongoException;
+import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.result.InsertOneResult;
+import com.mongodb.client.model.Filters;
 
-public class InsertOne {
+public class Distinct {
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
         String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
@@ -23,15 +22,16 @@ public class InsertOne {
             MongoCollection<Document> collection = database.getCollection("movies");
 
             try {
-                InsertOneResult result = collection.insertOne(new Document()
-                        .append("_id", new ObjectId())
-                        .append("title", "Ski Bloopers")
-                        .append("genres", Arrays.asList("Documentary", "Comedy")));
+                DistinctIterable<Integer> docs = collection.distinct("year", Filters.eq("directors", "Carl Franklin"), Integer.class);
+                MongoCursor<Integer> results = docs.iterator();
 
-                System.out.println("Success! Inserted document id: " + result.getInsertedId());
+                while(results.hasNext()) {
+                    System.out.println(results.next());
+                }
             } catch (MongoException me) {
-                System.err.println("Unable to insert due to an error: " + me);
+                System.err.println("An error occurred: " + me);
             }
         }
     }
 }
+

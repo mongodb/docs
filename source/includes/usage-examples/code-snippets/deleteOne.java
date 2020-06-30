@@ -1,18 +1,19 @@
 package usage.examples;
 
-import java.util.Arrays;
+import static com.mongodb.client.model.Filters.eq;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
+import org.bson.conversions.Bson;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.result.InsertOneResult;
+import com.mongodb.client.result.DeleteResult;
 
-public class InsertOne {
+public class DeleteOne {
+
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
         String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
@@ -22,16 +23,15 @@ public class InsertOne {
             MongoDatabase database = mongoClient.getDatabase("sample_mflix");
             MongoCollection<Document> collection = database.getCollection("movies");
 
-            try {
-                InsertOneResult result = collection.insertOne(new Document()
-                        .append("_id", new ObjectId())
-                        .append("title", "Ski Bloopers")
-                        .append("genres", Arrays.asList("Documentary", "Comedy")));
+            Bson query = eq("title", "The Garbage Pail Kids Movie");
 
-                System.out.println("Success! Inserted document id: " + result.getInsertedId());
+            try {
+                DeleteResult result = collection.deleteOne(query);
+                System.out.println("Deleted document count: " + result.getDeletedCount());
             } catch (MongoException me) {
-                System.err.println("Unable to insert due to an error: " + me);
+                System.err.println("Unable to delete due to an error: " + me);
             }
         }
     }
 }
+

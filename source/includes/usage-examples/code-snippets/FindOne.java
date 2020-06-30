@@ -1,4 +1,3 @@
-// ignored first line
 package usage.examples;
 
 import static com.mongodb.client.model.Filters.eq;

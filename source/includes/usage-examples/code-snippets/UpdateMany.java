@@ -1,18 +1,21 @@
+// ignored first line
 package usage.examples;
 
-import java.util.Arrays;
+import static com.mongodb.client.model.Filters.gt;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
+import org.bson.conversions.Bson;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.result.InsertOneResult;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
 
-public class InsertOne {
+public class UpdateMany {
+
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
         String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
@@ -22,15 +25,19 @@ public class InsertOne {
             MongoDatabase database = mongoClient.getDatabase("sample_mflix");
             MongoCollection<Document> collection = database.getCollection("movies");
 
-            try {
-                InsertOneResult result = collection.insertOne(new Document()
-                        .append("_id", new ObjectId())
-                        .append("title", "Ski Bloopers")
-                        .append("genres", Arrays.asList("Documentary", "Comedy")));
+            Bson query = gt("num_mflix_comments", 50);
 
-                System.out.println("Success! Inserted document id: " + result.getInsertedId());
+            Bson updates = Updates.combine(
+                    Updates.addToSet("genres", "Frequently Discussed"),
+                    Updates.currentTimestamp("lastUpdated"));
+
+            try {
+                UpdateResult result = collection.updateMany(query, updates);
+
+                System.out.println("Modified document count: " + result.getModifiedCount());
+
             } catch (MongoException me) {
-                System.err.println("Unable to insert due to an error: " + me);
+                System.err.println("Unable to update due to an error: " + me);
             }
         }
     }
