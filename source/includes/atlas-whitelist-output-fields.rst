@@ -21,6 +21,10 @@
    * - ``ipAddress``
      - Whitelisted IP address. Mutually exclusive with ``awsSecurityGroup`` and ``ciderBlock``.
 
+   * - ``deleteAfter``
+     - Date in |iso8601| format after which |service| deletes the
+       whitelist entry. 
+
    * - ``awsSecurityGroup``
      - Whitelisted ID of an |aws| security group. Mutually exclusive with ``cidrBlock`` and ``ipAddress``.
 

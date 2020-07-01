@@ -19,7 +19,7 @@
      - string
      - Type of event that triggers an alert.
        
-       For a complete list of alert events, see :cloudmgr:`Alert Conditions
+       For a complete list of alert events, see :opsmgr:`Alert Conditions
        </reference/alerts/>`.
 
    * - groupId
@@ -36,7 +36,7 @@
      - Name of the field in the target object to match on.
        
        Use the :ref:`List alert configuration matcher fields 
-       <mcli-cm-alert-config-fields-type-command>` to return the 
+       <mcli-om-alert-settings-fields-type-command>` to return the 
        possible values.
 
    * - matchers.operator
@@ -110,13 +110,18 @@
    * - notifications.apiToken
      - string
      - Slack API token or Bot token. Populated for ``SLACK``
-       notifications. If the token later becomes invalid, |cloud-short|
+       notifications. If the token later becomes invalid, |onprem|
        sends an email to the Project owner and eventually removes
        the token.
 
    * - notifications.channelName
      - string
      - Slack channel name. Populated for ``SLACK`` notifications.
+
+   * - notifications.datadogApiKey
+     - string
+     - DataDog API Key. Found in the DataDog dashboard. Populated
+       for ``DATADOG`` notifications.
 
    * - notifications.delayMin
      - number
@@ -137,7 +142,7 @@
      - string
      - Flowdock "personal API token." Populated for 
        ``FLOWDOCK`` notifications. If the token later becomes 
-       invalid, |cloud-short| sends an email to the Project owner and 
+       invalid, |onprem| sends an email to the Project owner and 
        eventually removes the token.
 
    * - notifications.flowName
@@ -152,6 +157,12 @@
      - Number of minutes to wait between successive notifications 
        for unacknowledged alerts that are not resolved.
 
+   * - notifications.notificationToken
+     - string
+     - HipChat API token. Populated for ``HIP_CHAT`` notifications.
+       If the token later becomes invalid, |onprem| sends an email to
+       the Project owner and eventually removes the token.
+
    * - notifications.orgName
      - string
      - Flowdock organization name in lower-case letters. This is
@@ -160,13 +171,17 @@
 
    * - notifications.role
      - string
-     - |cloud-short| role in current Project. Populated for ``GROUP``
+     - |onprem| role in current Project. Populated for ``GROUP``
        notifications.
+
+   * - notifications.roomName
+     - string
+     - HipChat room name. Populated for ``HIP_CHAT`` notifications.
 
    * - notifications.serviceKey
      - string
      - PagerDuty service key. Populated for ``PAGER_DUTY`` 
-       notifications. If the key later becomes invalid, |cloud-short| sends 
+       notifications. If the key later becomes invalid, |onprem| sends 
        an email to the Project owner and eventually removes the key.
 
    * - notifications.smsEnabled
@@ -174,25 +189,35 @@
      - Flag indicating SMS notifications must be sent. Populated
        for ``ORG``, ``GROUP``, and ``USER`` notifications.
 
+   * - notifications.snmpAddress
+     - string
+     - Hostname and port to send |snmp| traps to. At this time,
+       |onprem| is only able to send |snmp| traps to the standard
+       |snmp| port (162). Populated for ``SNMP`` notifications.
+       |onprem| uses |snmp| v2c.
+
    * - notifications.typeName
      - string
      - Type of alert notification. Accepted values are:
        
+       - ``DATADOG``
        - ``EMAIL``
        - ``FLOWDOCK``
        - ``GROUP`` (Project)
-       - ``ORG``
+       - ``HIPCHAT``
        - ``OPS_GENIE``
+       - ``ORG``
        - ``PAGER_DUTY``
        - ``SLACK``
        - ``SMS``
-       - ``TEAM``
+       - ``SNMP``
        - ``USER``
        - ``VICTOR_OPS``
+       - ``WEBHOOK``
 
    * - notifications.username
      - string
-     - Name of the |cloud-short| user to which to send notifications. Only
+     - Name of an |onprem| user to which to send notifications. Only
        a user in the Project that owns the alert configuration is
        allowed here. Populated for ``USER`` notifications.
 
