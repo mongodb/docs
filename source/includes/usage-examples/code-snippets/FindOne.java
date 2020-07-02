@@ -12,33 +12,32 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 
-public class FindOne
-{
-  public static void main( String[] args )
-  {
-    // Replace the uri string with your MongoDB deployment's connection string
-    String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
-    MongoClient mongoClient = MongoClients.create(uri);
+public class FindOne {
 
-    MongoDatabase database = mongoClient.getDatabase("sample_mflix");
-    MongoCollection<Document> collection = database.getCollection("movies");
+    public static void main( String[] args ) {
 
-    Bson projectionFields = Projections.fields(
-        Projections.include("title", "imdb"),
-        Projections.excludeId());
+        // Replace the uri string with your MongoDB deployment's connection string
+        String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
 
-    Document doc = collection.find(eq("title", "The Room"))
-        .projection(projectionFields)
-        .sort(Sorts.descending("rating"))
-        .first();
+        try (MongoClient mongoClient = MongoClients.create(uri)) {
 
-    if (doc == null) {
-      System.out.println("No results found.");
-    } else {
-      System.out.println(doc.toJson());
+            MongoDatabase database = mongoClient.getDatabase("sample_mflix");
+            MongoCollection<Document> collection = database.getCollection("movies");
+
+            Bson projectionFields = Projections.fields(
+                    Projections.include("title", "imdb"),
+                    Projections.excludeId());
+
+            Document doc = collection.find(eq("title", "The Room"))
+                    .projection(projectionFields)
+                    .sort(Sorts.descending("rating"))
+                    .first();
+
+            if (doc == null) {
+                System.out.println("No results found.");
+            } else {
+                System.out.println(doc.toJson());
+            }
+        }
     }
-
-    mongoClient.close();
-  }
 }
-
