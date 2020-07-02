@@ -1,3 +1,33 @@
+.. _opsmgr-server-4.2.15:
+
+|onprem| Server 4.2.15
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-07-02*
+
+- Allows users to audit user creation / modification events through the
+  |api|.
+
+Fixes
+`````
+
+- Fixes a bug that prevented |onprem| upgrades when the Application
+  Database is a sharded cluster.
+
+- Fixes a bug with converting from |ldap| Native Authentication to
+  ``saslauthd``.
+
+- Fixes a bug where the :guilabel:`Backup` dashboard can be
+  inaccessible while a snapshot is in progress for a MongoDB 4.2
+  deployment.
+
+- Fixes an issue that can prevent a successful snapshot of a MongoDB
+  4.2 deployment that contains a large number of files.
+
+Agents
+``````
+Upgrades MongoDB Agent: :ref:`10.2.19.5989 <mongodb-10.2.19.5989>`.
+
 .. _opsmgr-server-4.2.14:
 
 |onprem| Server 4.2.14

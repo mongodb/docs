@@ -1,3 +1,14 @@
+.. _mongodb-10.2.19.5989:
+
+MongoDB Agent 10.2.19.5989
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.15 on 2020-07-02 <opsmgr-server-4.2.15>`
+
+- Reduces number of connections per second.
+
+- Improves the Backup Module :term:`oplog` tail performance.
+
 .. _mongodb-10.2.18.5978:
 
 MongoDB Agent 10.2.18.5978
