@@ -40,7 +40,7 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Redesigns the MongoDB Cloud navigation.
-- Introduces :doc:`schema suggestions </performance-advisor/schema-advisor>`
+- Introduces :doc:`schema suggestions </performance-advisor/schema-suggestions>`
   in Performance Advisor and Data Explorer.
 - Reduces the price of |nvme| storage for |aws| clusters.
 - Supports the following
