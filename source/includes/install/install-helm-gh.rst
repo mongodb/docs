@@ -1,2 +1,2 @@
-If you have not already installed Helm, follow the
-instructions on :gh:`GitHub </kubernetes/helm>` to install it.
+You can install the |k8s-op-short| with `Helm 3
+<https://helm.sh/docs/intro/install/>`_.

@@ -126,8 +126,8 @@ but use the following command to set the namespace for the
 
 .. code-block:: sh
 
-   helm template --set operator.watchNamespace=<namespace> \ 
-   helm_chart | kubectl apply -f -
+   helm install <chart-name> helm_chart \
+        --set operator.watchNamespace=<namespace> \
 
 Setting the namespace ensures that: 
 
@@ -158,29 +158,16 @@ following adjustments:
 
    .. code-block:: sh
 
-      helm template --set operator.watchNamespace=* \
-      helm_chart | kubectl apply -f -
+      helm install <chart-name> helm_chart \
+           --set operator.watchNamespace=* 
 
 2. Create the required service accounts for each namespace where you
    want to deploy |onprem| and |k8s-mdbrscs|:
 
-   .. tabs::
+   .. code-block:: sh
 
-      .. tab:: Helm v2
-         :tabid: helm2
-
-         .. code-block:: sh
-
-            helm template --set namespace=<namespace> \
-            helm_chart -x templates/database-roles.yaml | kubectl apply -f -
-
-      .. tab:: Helm v3
-         :tabid: helm3
-
-         .. code-block:: sh
-
-            helm template --set namespace=<namespace> \
-            helm_chart --show-only templates/database-roles.yaml | kubectl apply -f -
+      helm template --set namespace=<namespace> \
+      helm_chart --show-only templates/database-roles.yaml | kubectl apply -f -
 
 Customize the CustomResourceDefinitions that the |k8s-op-short| Watches
 -----------------------------------------------------------------------
@@ -204,14 +191,24 @@ but make the following adjustments:
 
    .. include:: /includes/list-tables/crds.rst
 
-#. Use the ``--set`` option on the ``operator.watchedResources`` field
-   with the ``helm template`` command to specify which 
-   CustomResourceDefinitions you want to install and configure the 
-   |k8s-op-short| to watch them.
+#. Install each CustomResourceDefinition that you want the
+   |k8s-op-short| to manage from the :gh:`helm_chart/crds
+   </10gen/ops-manager-kubernetes/tree/master/public/helm_chart/crds>`
+   directory:
+
+   .. code-block:: sh
+
+      kubectl apply -f helm_chart/crds/{value}.mongodb.com.yaml
+
+
+#. Install the Helm Chart and specify which 
+   CustomResourceDefinitions you want the 
+   |k8s-op-short| to watch.
    
    Separate each custom resource with a comma:
 
    .. code-block:: sh
 
-      helm template --set operator.watchedResources="{mongodb,mongodbusers}" \ 
-      helm_chart | kubectl apply -f -
+      helm install <chart-name> helm_chart \
+           --operator.watchedResources="{mongodb,mongodbusers}" \ 
+           --skip-crds

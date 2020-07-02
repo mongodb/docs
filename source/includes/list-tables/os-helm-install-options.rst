@@ -233,18 +233,3 @@
              registry:
                initOpsManager: registry.connect.redhat.com/mongodb
      -
-
-   * - ``subresourceEnabled``
-
-     - Creates the CRDs supporting the status subresource. Set to
-       "false" if you are running OpenShift 3.11 or earlier. Those
-       versions don't support subresources.
-
-       .. example::
-
-          .. code-block:: yaml
-             :emphasize-lines: 1
-
-             subresourceEnabled: false
-
-     - ``true``
