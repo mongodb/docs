@@ -12,6 +12,8 @@ First install `mut <https://github.com/mongodb/mut>`_.
 Then you can download and build this documentation locally with
 the following command:
 
+.. code-block:: sh
+
     git clone https://github.com/mongodb/datalake.git
     cd docs-datalake/
     make build

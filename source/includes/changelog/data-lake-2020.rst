@@ -27,7 +27,7 @@
 26 May 2020 Release
 ~~~~~~~~~~~~~~~~~~~
 
-- Adds support for :atlas:`Atlas Clusters <cluster-configuration>` as a
+- Adds support for :atlas:`Atlas Clusters </cluster-configuration>` as a
   data source.
 - Improves performance for the :ref:`adl-lookup-stage` aggregation pipeline stage.
 - Adds support for evaluating string :manual:`$convert

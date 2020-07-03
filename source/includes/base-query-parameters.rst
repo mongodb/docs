@@ -16,5 +16,5 @@
   * - ``envelope``
     - boolean
     - Specifies whether or not to wrap the response in an :atlas:`envelope 
-      <api/#api-envelope>`.
+      </api/#api-envelope>`.
     - ``false``
