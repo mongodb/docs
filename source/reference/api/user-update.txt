@@ -1,8 +1,10 @@
-=============
-Update a User
-=============
+=========================
+Update Roles for One User
+=========================
 
 .. default-domain:: mongodb
+
+.. include:: /includes/styles/corrections.rst
 
 .. contents:: On this page
    :local:
@@ -12,26 +14,43 @@ Update a User
 
 .. include:: /includes/fact-groups-projects-synonyms.rst
 
-Update a user's roles with an organization. You must have the
-appropriate Owner roles to use this API endpoint.
+Update a user's roles with an organization.
+
+Resource
+--------
+
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
+
+   PATCH /users/{USER-ID}
+
+Required Roles
+--------------
+
+You must have the appropriate Owner roles to use this |api| endpoint.
+
+.. list-table::
+   :widths: 60 40
+   :header-rows: 1
+
+   * - Level
+     - Needed Role
+
+   * - Organization
+     - :authrole:`Organization Owner`
+
+   * - Project
+     - :authrole:`Project Owner`
 
 .. important::
 
    You can always update your own user account.
 
-   If you are the owner of an organization or project,
-   you can also update the :ref:`user roles <user-roles>` for any
-   user with membership in that organization or project. You cannot
-   modify any other user profile information.
-
-.. include:: /includes/api/base-api-uri.rst
-
-Resource
---------
-
-.. code-block:: none
-
-   PATCH /users/{USER-ID}
+   If you own an organization or project, you can update the
+   :ref:`user roles <user-roles>` for any user with membership in that
+   organization or project. You cannot modify any other user profile
+   information.
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,17 +58,18 @@ Request Path Parameters
 .. list-table::
    :widths: 15 10 10 65
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
      - Necessity
      - Description
 
-   * - USER-ID
+   * - ``USER-ID``
      - string
      - Required
      - Unique identifier of the user that you want to
-       retrieve. To retrieve the **USER-ID** for a user, see
+       retrieve. To retrieve the ``USER-ID`` for a user, see
        :ref:`api-get-all-users-in-group`.
 
 Request Query Parameters
@@ -61,53 +81,59 @@ Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
-   :widths: 15 10 75
+   :widths: 15 10 10 65
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
-   * - id
-     - string
-     - Unique identifier of the |mms| user.
+   * - ``roles``
+     - array of objects
+     - Required
+     - Role assigned to the |mms| user.
 
-   * - username
+   * - | ``roles``
+       | ``.orgId``
      - string
-     - Username of the |mms| user.
-
-   * - roles
-     - object array
-     - Role assignments of the |mms| user.
-
-   * - roles.orgId
-     - string
+     - Optional
      - Unique identifier of the organization in which the |mms| user
        has the specified role.
 
-   * - roles.groupId
+   * - | ``roles``
+       | ``.groupId``
      - string
+     - Optional
      - Unique identifier of the project in which the |mms| user has the
        specified role.
 
        .. cond:: onprem
 
-          For the "global" roles (those whose name starts
-          with ``GLOBAL_``) there is no ``groupId`` since these
-          roles are not tied to a project.
+          Roles that start with ``GLOBAL_`` don't require a ``groupId``.
+          These roles aren't tied to a project.
 
-   * - roles.roleName
+   * - | ``roles``
+       | ``.roleName``
      - string
+     - Optional
      - Name of the role. Accepted values are:
 
-       .. include:: /includes/extracts/list-api-user-roles.rst
+       .. cond:: cloud
+
+          .. include:: /includes/list-tables/api-user-roles-cloud.rst
+
+       .. cond:: onprem
+
+          .. include:: /includes/list-tables/api-user-roles-onprem.rst
 
 Response
 --------
 
-.. include:: /includes/extracts/api-users-response-elements.rst
+The |json| document contains each of the following elements:
 
+.. include:: /includes/api/list-tables/users/create-update-user-response.rst
 
 Example Request
 ---------------
@@ -115,30 +141,40 @@ Example Request
 .. cond:: cloud
 
    .. code-block:: sh
+      :linenos:
+      :emphasize-lines: 7-12
 
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-        --header "Accept: application/json" \
-        --header "Content-Type: application/json" \
-        --include \
-        --request PATCH "https://cloud.mongodb.com/api/public/v1.0/users/{USER-ID}" \
-        --data '
-          {
-            "roles": [{ "groupId": "{GROUP-ID}", "roleName": "{ROLE}" }]
-          }'
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include \
+           --request PATCH "https://{+cloudmgr-url+}/api/public/v1.0/users/{USER-ID}" \
+           --data '
+             {
+               "roles": [{
+                 "groupId": "{GROUP-ID}",
+                 "roleName": "{ROLE}"
+               }]
+             }'
 
 .. cond:: onprem
 
    .. code-block:: sh
+      :linenos:
+      :emphasize-lines: 7-12
 
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-        --header "Accept: application/json" \
-        --header "Content-Type: application/json" \
-        --include \
-        --request PATCH "https://<ops-manager-host>/api/public/v1.0/users/{USER-ID}" \
-        --data '
-          {
-            "roles": [{ "groupId": "{GROUP-ID}", "roleName": "{ROLE}" }]
-          }'
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include \
+           --request PATCH "https://{+opsmgr-url+}/api/public/v1.0/users/{USER-ID}" \
+           --data '
+             {
+               "roles": [{
+                 "groupId": "{GROUP-ID}",
+                 "roleName": "{ROLE}"
+               }]
+             }'
 
 Example Response
 ----------------
@@ -153,35 +189,62 @@ Response Header
 Response Body
 ~~~~~~~~~~~~~
 
-.. code-block:: json
+.. cond:: cloud
 
-   {
-     "id" : "533dc19ce4b00835ff81e2eb",
-     "username" : "jane",
-     "emailAddress" : "jane@qa.example.com",
-     "firstName" : "Jane",
-     "lastName" : "D'oh",
-     "links": [
-           {
-               "href": "https://cloud.mongodb.com/api/atlas/v1.0/users/5b06ed7083fb5a40df86e93b",
-               "rel": "self"
-           },
-           {
-               "href": "https://cloud.mongodb.com/api/atlas/v1.0/users/5b06ed7083fb5a40df86e93b/whitelist",
-               "rel": "http://mms.mongodb.com/whitelist"
-           }
-       ],
-       "roles": [
-         {
-           "orgId" : "8dbbe4570bd55b23f25444db",
-           "roleName" : "ORG_MEMBER"
+   .. code-block:: json
+      :linenos:
+      :emphasize-lines: 19-20
 
-         },
-         {
-           "groupId" : "2ddoa1233ef88z75f64578ff",
-           "roleName" : "GROUP_READ_ONLY"
+      {
+        "id": "{USER-ID}",
+        "username": "jane",
+        "emailAddress": "jane@qa.example.com",
+        "firstName": "Jane",
+        "lastName": "D'oh",
+        "links": [{
+          "href": "https://{+cloudmgr-url+}/api/public/v1.0/users/{USER-ID}",
+          "rel": "self"
+        },
+        {
+          "href": "https://{+cloudmgr-url+}/api/public/v1.0/users/{USER-ID}/whitelist",
+          "rel": "http://mms.mongodb.com/whitelist"
+        }],
+        "roles": [{
+          "orgId": "{ORG-ID}",
+          "roleName": "ORG_MEMBER"
+        },{
+          "groupId": "{PROJECT-ID}",
+          "roleName": "GROUP_READ_ONLY"
+        }],
+        "teamIds": []
+      }
 
-         }
-       ],
-       "teamIds": []
-   }
+.. cond:: onprem
+
+   .. code-block:: json
+      :linenos:
+      :emphasize-lines: 19-20
+
+      {
+        "id": "{USER-ID}",
+        "username": "jane",
+        "emailAddress": "jane@qa.example.com",
+        "firstName": "Jane",
+        "lastName": "D'oh",
+        "links": [{
+          "href": "https://{+opsmgr-url+}/api/public/v1.0/users/{USER-ID}",
+          "rel": "self"
+        },
+        {
+          "href": "https://{+opsmgr-url+}/api/public/v1.0/users/{USER-ID}/whitelist",
+          "rel": "http://mms.mongodb.com/whitelist"
+        }],
+        "roles": [{
+          "orgId": "{ORG-ID}",
+          "roleName": "ORG_MEMBER"
+        },{
+          "groupId": "{PROJECT-ID}",
+          "roleName": "GROUP_READ_ONLY"
+        }],
+        "teamIds": []
+      }

@@ -8,6 +8,8 @@
      - :authrole:`Organization Member`
    * - ``ORG_READ_ONLY``
      - :authrole:`Organization Read Only`
+   * - ``ORG_BILLING_ADMIN``
+     - :authrole:`Organization Billing Admin`
    * - ``ORG_GROUP_CREATOR``
      - :authrole:`Organization Project Creator`
    * - ``ORG_OWNER``
@@ -30,15 +32,3 @@
      - :authrole:`Project Data Access Read Only`
    * - ``GROUP_DATA_ACCESS_READ_WRITE``
      - :authrole:`Project Data Access Read/Write`
-   * - ``GLOBAL_AUTOMATION_ADMIN``
-     - :authrole:`Global Automation Admin`
-   * - ``GLOBAL_BACKUP_ADMIN``
-     - :authrole:`Global Backup Admin`
-   * - ``GLOBAL_MONITORING_ADMIN``
-     - :authrole:`Global Monitoring Admin`
-   * - ``GLOBAL_OWNER``
-     - :authrole:`Global Owner`
-   * - ``GLOBAL_READ_ONLY``
-     - :authrole:`Global Read Only`
-   * - ``GLOBAL_USER_ADMIN``
-     - :authrole:`Global User Admin`
