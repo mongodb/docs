@@ -103,9 +103,10 @@ ref: create-a-data-encryption-key
 level: 4
 content: |
   Construct a client with the MongoDB connection string and key vault
-  namespace configuration, and create a data encryption key with the
-  following **code snippet**. The key vault in
-  this example uses the ``encryption`` database and ``__keyVault`` collection.
+  namespace configuration, create a unique index on the ``keyAltNames`` field
+  in that collection, and create a data encryption key with the following 
+  **code snippet**. The key vault in this example uses the ``encryption`` 
+  database and ``__keyVault`` collection.
 
   .. tabs-drivers::
 
@@ -298,7 +299,10 @@ content: |
         :tabid: nodejs
 
         .. code-block:: javascript
-           :emphasize-lines: 4
+           :emphasize-lines: 7
+
+           const mongodb = require("mongodb")
+           const { MongoClient, Binary } = mongodb
 
            const connectionString = 'mongodb://localhost:27017/';
            const keyVaultDb = 'encryption';
@@ -316,7 +320,7 @@ content: |
                const keyDB = client.db(keyVaultDb);
                const keyColl = keyDB.collection(keyVaultCollection);
                const query = {
-                 _id: base64KeyId,
+                 _id: new Binary(Buffer.from(base64KeyId, "base64"), 4),
                };
                const dataKey = await keyColl.findOne(query);
                console.log(dataKey);
