@@ -113,16 +113,25 @@ instances. You can restore an instance using this array.
      - string
      - Required
      - Version of MongoDB with which this process has feature
-       compatibility. Changing this value can enable MongoDB
-       {+fcv-current+} features that aren't backwards compatible with
-       MongoDB {+fcv-previous+}.
+       compatibility. Changing this value can enable or disable certain
+       features that persist data incompatible with MongoDB versions
+       earlier or later than the ``featureCompatibilityVersion`` you
+       choose.
 
-       - |mms| accepts ``{+fcv-previous+}`` and ``{+fcv-current+}`` as
-         parameter values.
-       - |mms| sets this parameter to ``{+fcv-current+}`` in new
-         deployments of MongoDB {+fcv-current+}.
-       - |mms| doesn't add this parameter set to ``{+fcv-current+}``
-         when upgrading a host from {+fcv-previous+} to {+fcv-current+}.
+       - |mms| accepts ``3.2``, ``3.6``, ``{+fcv-previous+}`` and
+         ``{+fcv-current+}`` as parameter values. If you have an
+         existing deployment, |mms| only accepts a
+         ``featureCompatibilityVersion`` equal to or one release older
+         than the MongoDB version you deployed. To learn which of
+         these parameter values is supported for each MongoDB version,
+         and which features each of these values enable or disable,
+         see :manual:`setFeatureCompatibilityVersion
+         </reference/command/setFeatureCompatibilityVersion/>` in the
+         MongoDB Manual.
+       - |mms| sets this parameter to match the MongoDB version for new
+         deployments. 
+       - |mms| doesn't automatically increment this parameter when you
+         upgrade a host from one MongoDB version to the next.
 
        .. seealso::
 
