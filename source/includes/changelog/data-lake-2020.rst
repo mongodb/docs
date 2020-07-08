@@ -1,3 +1,11 @@
+.. _data-lake-v20200707:
+
+07 July 2020 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for the ``skip`` and ``limit`` fields to the ``count()``
+  command.
+ 
 .. _data-lake-v20200616:
 
 16 June 2020 Release
