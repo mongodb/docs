@@ -47,7 +47,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Supports Encrypted Snapshots
+      * - Supports Snapshots that use Encryption
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -55,7 +55,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Supports Saving to S3 Snapshot Storage
+      * - Supports Saving to |s3| Snapshot Storage
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
