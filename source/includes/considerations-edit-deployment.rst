@@ -134,3 +134,19 @@ You can combine multiple modifications into one deployment.
 
 When you click :guilabel:`Review Changes`, the review displays all the
 changes on one screen for you to confirm before deploying.
+
+.. _mms-force-reconfigure-ui:
+
+Force Reconfigure
+~~~~~~~~~~~~~~~~~
+
+*For Replica Sets and Sharded Clusters Only*
+
+The {+mdbagent+} can force a replica set to accept a new configuration
+when you set the :guilabel:`Force Reconfigure` Replication Setting to
+``Yes``. Only force a reconfiguration to recover a replica set from a
+state in which a minority of its members are available.
+
+.. include:: /includes/admonitions/warning/force-reconfigure-rollback.rst
+
+.. seealso:: :manual:`Reconfigure a Replica Set with Unavailable Members </tutorial/reconfigure-replica-set-with-unavailable-members/>` in the MongoDB Manual.
