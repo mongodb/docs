@@ -30,7 +30,7 @@ public class CountDocuments {
                 long matchingCount = collection.countDocuments(query);
                 System.out.println("Number of movies from Spain: " + matchingCount);
             } catch (MongoException me) {
-                System.err.println("Unable to delete due to an error: " + me);
+                System.err.println("An error occurred: " + me);
             }
         }
     }
