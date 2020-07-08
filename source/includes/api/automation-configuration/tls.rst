@@ -10,13 +10,14 @@ object is optional.
 .. list-table::
    :widths: 15 10 10 65
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
      - Necessity
      - Description
 
-   * - tls
+   * - ``tls``
      - object
      - Optional
      - Enables |tls| for encrypting connections. To use |tls|,
@@ -26,13 +27,15 @@ object is optional.
        :product:`MongoDB Enterprise <mongodb-enterprise>` also support
        |tls|.
 
-   * - tls.CAFilePath
+   * - | ``tls``
+       | ``.CAFilePath``
      - string
      - Conditional
      - Absolute file path to the certificate used to authenticate
        through |tls|. Required if ``tls.clientCertificateMode`` is set.
 
-   * - tls.clientCertificateMode
+   * - | ``tls``
+       | ``.clientCertificateMode``
      - string
      - Conditional
      - Declaration as to whether connections to |mms| require a |tls|

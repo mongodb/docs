@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 15 10 10 65
+   :widths: 15 15 10 60
    :header-rows: 1
    :stub-columns: 1
 
@@ -130,14 +130,16 @@
        ``auth.usersDeleted.dbs``.
 
    * - | ``auth``
-       | ``.usersDeleted[n]``
+       | ``.usersDeleted``
+       | ``.[n]``
        | ``.user``
      - string
      - Optional
      - Username of user that |mms| should delete.
 
    * - | ``auth``
-       | ``.usersDeleted[n]``
+       | ``.usersDeleted``
+       | ``.[n]``
        | ``.dbs``
      - array of strings
      - Optional
@@ -157,21 +159,24 @@
        ``auth.usersWanted[n].userSource``.
 
    * - | ``auth``
-       | ``.usersWanted[n]``
+       | ``.usersWanted``
+       | ``.[n]``
        | ``.db``
      - string
      - Conditional
      - Database to which to add the user.
 
    * - | ``auth``
-       | ``.usersWanted[n]``
+       | ``.usersWanted``
+       | ``.[n]``
        | ``.user``
      - string
      - Conditional
      - Name of the user that |mms| should add.
 
    * - | ``auth``
-       | ``.usersWanted[n]``
+       | ``.usersWanted``
+       | ``.[n]``
        | ``.roles``
      - array
      - Conditional
@@ -180,7 +185,8 @@
        ``auth.usersWanted[n].db``.
 
    * - | ``auth``
-       | ``.usersWanted[n]``
+       | ``.usersWanted``
+       | ``.[n]``
        | ``.pwd``
      - string
      - Conditional
@@ -197,7 +203,8 @@
 
 
    * - | ``auth``
-       | ``.usersWanted[n]``
+       | ``.usersWanted``
+       | ``.[n]``
        | ``.initPwd``
      - string
      - Conditional
@@ -210,14 +217,16 @@
        - ``"auth.usersWanted[n].pwd"`` is unset.
 
    * - | ``auth``
-       | ``.usersWanted[n]``
+       | ``.usersWanted``
+       | ``.[n]``
        | ``.userSource``
      - string
      - Deprecated
      - No longer supported.
 
    * - | ``auth``
-       | ``.usersWanted[n]``
+       | ``.usersWanted``
+       | ``.[n]``
        | ``.otherDBRoles``
      - object
      - Optional
@@ -229,7 +238,8 @@
        that database.
 
    * - | ``auth``
-       | ``.usersWanted[n]``
+       | ``.usersWanted``
+       | ``.[n]``
        | ``.authenticationRestrictions``
      - array of documents
      - Optional
@@ -239,8 +249,10 @@
        .. include:: /includes/warning-inheriting-incompatible-auths.rst
 
    * - | ``auth``
-       | ``.usersWanted[n]``
-       | ``.authenticationRestrictions[k]``
+       | ``.usersWanted``
+       | ``.[n]``
+       | ``.authenticationRestrictions``
+       | ``.[k]``
        | ``.clientSource``
      - array of strings
      - Conditional
@@ -250,8 +262,10 @@
        authenticate the user.
 
    * - | ``auth``
-       | ``.usersWanted[n]``
-       | ``.authenticationRestrictions[k]``
+       | ``.usersWanted``
+       | ``.[n]``
+       | ``.authenticationRestrictions``
+       | ``.[k]``
        | ``.serverAddress``
      - array of strings
      - Conditional

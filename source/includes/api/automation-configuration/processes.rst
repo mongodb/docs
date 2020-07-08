@@ -30,6 +30,7 @@ instances. You can restore an instance using this array.
 .. list-table::
    :widths: 15 10 10 65
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type

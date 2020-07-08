@@ -11,12 +11,13 @@ The ``balancer`` object is optional and defines balancer settings for each clust
 .. list-table::
    :widths: 30 10 80
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
      - Description
 
-   * - balancer
+   * - ``balancer``
      - object
      - *Optional*. This object contains fields named according to
        clusters, each field containing an object with the desired

@@ -33,12 +33,13 @@ The ``roles`` array is optional and describes user-defined roles.
    :widths: 30 10 80
    :header-rows: 1
    :class: table-large
+   :stub-columns: 1
 
    * - Name
      - Type
      - Description
 
-   * - roles
+   * - ``roles``
      - object array
      - *Optional*. The ``roles`` array contains objects that
        describe the cluster's user-defined roles. Each object describes
@@ -47,33 +48,51 @@ The ``roles`` array is optional and describes user-defined roles.
        </reference/system-roles-collection>`, except for the ``_id``
        field, which is not included here.
 
-   * - ``roles[n].role``
+   * - | ``roles``
+       | ``.[n]``
+       | ``.role``
      - string
      - The name of the user-defined role.
   
-   * - ``roles[n].db``
+   * - | ``roles``
+       | ``.[n]``
+       | ``.db``
      - string
      - The database to which the user-defined role belongs.
        
-   * - ``roles[n].privileges``
+   * - | ``roles``
+       | ``.[n]``
+       | ``.privileges``
      - array of documents
      - Defines the :ref:`privileges <privileges>` for the role.
        
-   * - ``roles[n].privileges[i].resource``
+   * - | ``roles``
+       | ``.[n]``
+       | ``.privileges``
+       | ``.[i]``
+       | ``.resource``
      - string
      - Specifies the resources upon which the privilege ``actions`` apply.
        
-   * - ``roles[n].privileges[i].actions``
+   * - | ``roles``
+       | ``.[n]``
+       | ``.privileges``
+       | ``.[i]``
+       | ``.actions``
      - string
      - Specifies the actions permitted on the resource. For a list of
        actions, see `Privilege Actions <https://docs.mongodb.com/manual/reference/privilege-actions/>`_.
 
-   * - ``roles[n].roles`` 
+   * - | ``roles``
+       | ``.[n]``
+       | ``.roles`` 
      - array of documents
      - Specifies the roles from which this role :ref:`inherits <inheritance>`
        privileges.
 
-   * - ``roles[n].authenticationRestrictions``
+   * - | ``roles``
+       | ``.[n]``
+       | ``.authenticationRestrictions``
      - array of documents
      - *Optional*. The authentication restrictions that the server enforces
        on the role. 
@@ -84,16 +103,24 @@ The ``roles`` array is optional and describes user-defined roles.
 
        .. include:: /includes/warning-inheriting-incompatible-auths.rst
 
-   * - ``roles[n].authenticationRestrictions[k].clientSource``
-     - array of IP addresses and/or CIDR ranges
+   * - | ``roles``
+       | ``.[n]``
+       | ``.authenticationRestrictions``
+       | ``.[k]``
+       | ``.clientSource``
+     - array of strings
      - If present, when authenticating a user, the server verifies that
        the client's IP address is either in the given list or belongs to a 
        :abbr:`CIDR (Classless Inter-Domain Routing)` range in the list. 
        If the client's IP address is not present, the server does not
        authenticate the user.
 
-   * - ``roles[n].authenticationRestrictions[k].serverAddress``
-     - array of IP addresses and/or CIDR ranges
+   * - | ``roles``
+       | ``.[n]``
+       | ``.authenticationRestrictions``
+       | ``.[k]``
+       | ``.serverAddress``
+     - array of strings
      - A comma-separated array of IP addresses to which the client can connect. If present,
        the server will verify that the client's connection was accepted
        from an IP address in the given array. If the connection was accepted

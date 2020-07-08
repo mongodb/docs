@@ -11,21 +11,24 @@ downloads will be targeted and scripts for starting processes will be created.
 .. list-table::
    :widths: 30 10 80
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
      - Description
 
-   * - options
+   * - ``options``
      - object
      - The ``options`` object is required and must contain both the
        ``downloadBase`` and ``downloadBaseWindows`` fields.
 
-   * - options.downloadBase
+   * - | ``options``
+       | ``.downloadBase``
      - string
      - The directory on Linux and Unix (including Mac OS X) platforms for
        automatic version downloads and startup scripts.
 
-   * - options.downloadBaseWindows
+   * - | ``options``
+       | ``.downloadBaseWindows``
      - string
      - The directory on Windows platforms for automatic version downloads and startup scripts.

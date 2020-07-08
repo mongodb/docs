@@ -31,17 +31,19 @@ of the :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
 .. list-table::
    :widths: 30 10 80
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
      - Description
 
-   * - monitoringVersions
+   * - ``monitoringVersions``
      - object array
      - *Optional*. Objects that define version information for each
        :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
 
-   * - monitoringVersions.name
+   * - | ``monitoringVersions``
+       | ``.name``
      - string
      - Version of the {+magent+} (e.g. "2.9.1.176-1").
 
@@ -55,18 +57,22 @@ of the :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
           {+magent+} through the |api|. To update the Monitoring Agent version, see :ref:`this endpoint
           <update-monitoring-backup-versions>`.
 
-   * - monitoringVersions.hostname
+   * - | ``monitoringVersions``
+       | ``.hostname``
      - string
      - The hostname of the machine that runs the {+magent+}. If the
        {+magent+} is not running on the machine, |mms| installs the
        agent from the location specified in ``monitoringVersions.urls``.
 
-   * - monitoringVersions.urls
+   * - | ``monitoringVersions``
+       | ``.urls``
      - object
      - The platform- and build-specific URLs from which to download the
        {+magent+}.
 
-   * - ``monitoringVersions.urls.<platform>``
+   * - | ``monitoringVersions``
+       | ``.urls``
+       | ``.<platform>``
      - object
      - This field has a name that identifies an operating system and
        optionally a version. The field contains an object with key-value
@@ -75,37 +81,46 @@ of the :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
        object must include the ``default`` key set to the default
        download URL for the platform.
 
-   * - monitoringVersions.baseUrl
+   * - | ``monitoringVersions``
+       | ``.baseUrl``
      - string
      - The base URL used for the ``mmsBaseUrl`` setting in the
        :doc:`/reference/monitoring-agent`.
 
-   * - monitoringVersions.logPath
+   * - | ``monitoringVersions``
+       | ``.logPath``
      - string
      - *Optional*. The directory where the agent stores its logs. The
        default is to store logs in ``/dev/null``. To update, see the
        :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - monitoringVersions.logRotate
+   * - | ``monitoringVersions``
+       | ``.logRotate``
      - object
      - *Optional*. Enables log rotation for the MongoDB logs for a
        process. To update, see the :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - monitoringVersions.logRotate.sizeThresholdMB
+   * - | ``monitoringVersions``
+       | ``.logRotate``
+       | ``.sizeThresholdMB``
      - number
      - The maximum size in MB for an individual log file before rotation.
        To update, see the :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - monitoringVersions.logRotate.timeThresholdHrs
+   * - | ``monitoringVersions``
+       | ``.logRotate``
+       | ``.timeThresholdHrs``
      - integer
      - The maximum time in hours for an individual log file before
        rotation. To update, see the :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - monitoringVersions.logRotate.numUncompressed
+   * - | ``monitoringVersions``
+       | ``.logRotate``
+       | ``.numUncompressed``
      - integer
      - *Optional*. The maximum number of total log files to leave
        uncompressed, including the current log file. The default is ``5``.
@@ -115,17 +130,19 @@ of the :doc:`{+magent+} </tutorial/nav/monitoring-agent/>`.
        :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - monitoringVersions.logRotate.percentOfDiskspace
+   * - | ``monitoringVersions``
+       | ``.logRotate``
+       | ``.percentOfDiskspace``
      - number
      - *Optional*. The maximum percentage of total disk space all log
        files should take up before deletion. The default is ``.02``.
        To update, see the :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - monitoringVersions.logRotate.numTotal
+   * - | ``monitoringVersions``
+       | ``.logRotate``
+       | ``.numTotal``
      - integer
      - *Optional*. The total number of log files. If a number is not specified, the total 
        number of log files defaults to ``0`` and is determined by other
        ``monitoringVersions.logRotate`` settings.
-
-

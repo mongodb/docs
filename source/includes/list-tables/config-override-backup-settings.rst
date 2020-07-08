@@ -1,6 +1,7 @@
 .. list-table::
-   :widths: 30 10 60
+   :widths: 40 10 50
    :header-rows: 1
+   :stub-columns: 1
 
    * - Backup Setting
      - Data Type
