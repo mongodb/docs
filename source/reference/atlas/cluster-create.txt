@@ -9,7 +9,7 @@ mongocli atlas cluster create
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. include:: /includes/styles/corrections.rst
@@ -30,16 +30,18 @@ Syntax
 
    mongocli atlas cluster create <cluster-name>
         [ --backup ]
-        [ --tier <cluster-tier> ]
         [ --diskSizeGB <size-of-disk> ]
         [ --file|-f <path-to-cluster-config-file> ]
         [ --mdbVersion <mongodb-version> ]
         [ --members|-m <number-of-members> ]
-        [ --projectId <project-ID> ]
         [ --profile|-P <profile-name> ]
+        [ --projectId <project-ID> ]
           --provider AWS|GCP|AZURE
           --region|-r <region-name>
-
+        [ --shards|-s <number-of-shards> ]
+        [ --tier <cluster-tier> ]
+        [ --type <replicaset-or-sharded>]
+        
 .. include:: /includes/fact-command-line-help.rst
 
 .. _atlas-cluster-create-options:
@@ -56,15 +58,6 @@ Options
      - Description
      - Required?
 
-   * - ``--backup``
-     - 
-     - Flag to enable :atlas:`backup </backup-cluster>` on 
-       ``M10`` and larger clusters. This option is not available
-       for clusters smaller than ``M10``. If omitted, :atlas:`cloud 
-       provider snapshots </backup/cloud-provider-snapshots>` is 
-       disabled.
-     - no
-
    * - ``<cluster-name>``
      - string
      - Name of the cluster. The cluster name cannot
@@ -73,12 +66,13 @@ Options
        hyphen.
      - yes
 
-   * - ``--tier``
-     - string
-     - Name of the :atlas:`cluster tier </cluster-tier/>` you want to
-       use. You can later modify your cluster tier with the
-       :ref:`mongocli atlas cluster update <mcli-atlas-cluster-update-command>`
-       command. If omitted, uses the tier ``M2``.
+   * - ``--backup``
+     - 
+     - Flag to enable :atlas:`backup </backup-cluster>` on 
+       ``M10`` and larger clusters. This option is not available
+       for clusters smaller than ``M10``. If omitted, :atlas:`cloud 
+       provider snapshots </backup/cloud-provider-snapshots>` is 
+       disabled.
      - no
 
    * - ``--diskSizeGB``
@@ -134,8 +128,7 @@ Options
 
    * - ``--members``, ``-m``
      - integer
-     - Number of members in the :atlas:`replica set
-       </reference/glossary/#term-replica-set>`. The
+     - Number of members in the :term:`replica set`. The
        default value is ``3``.
      - no
 
@@ -206,6 +199,34 @@ Options
 
      - yes
 
+   * - ``--shards``, ``-s``
+     - integer
+     - Number of shards in the :term:`sharded cluster`. The
+       default value is ``1``, which is equivalent to a replica set.
+     - no
+  
+   * - ``--tier``
+     - string
+     - Name of the :atlas:`cluster tier </cluster-tier/>` you want to
+       use. You can later modify your cluster tier with the
+       :ref:`mongocli atlas cluster update <mcli-atlas-cluster-update-command>`
+       command. If omitted, uses the tier ``M2``.
+     - no
+
+   * - ``--type``
+     - string
+     - Type of cluster to deploy. Value can be:
+
+       - ``REPLICASET`` to deploy a 
+         :term:`replica set`, 
+         or
+
+       - ``SHARDED`` to deploy a 
+         :term:`sharded cluster`.
+
+       By default, deploys a replica set.
+     - no
+
 .. _atlas-cluster-create-output-fields:
 
 Output
@@ -220,15 +241,15 @@ Output
 Examples
 --------
 
-Example 1
-~~~~~~~~~
+Create a Cluster
+~~~~~~~~~~~~~~~~
 
 The following ``mongocli atlas cluster create`` command creates a sample
 ``M2`` cluster named ``myCluster`` in the AWS region ``US_EAST_1`` with
 ``3`` nodes. The command uses the {+default-profile+},
 which contains the public and private keys for accessing |service|. 
 
-.. code-block:: text
+.. code-block:: sh
    :copyable: false
 
    mongocli atlas cluster create myCluster --projectId 5e2211c17a3e5a48f5497de3 --provider AWS --region US_EAST_1 --members 3 --tier M2 --mdbVersion {+mdbVersion+} --diskSizeGB 10
@@ -297,8 +318,8 @@ these fields, see :ref:`Output <atlas-cluster-create-output-fields>`.
      "stateName": "CREATING"
    }
 
-Example 2
-~~~~~~~~~
+Create a Cluster using a Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following ``mongocli atlas cluster create`` command creates a
 sample ``M40`` cluster named ``myCluster`` in the |aws| region
@@ -417,3 +438,100 @@ these fields, see :ref:`Output <atlas-cluster-create-output-fields>`.
       ],
       "stateName": "CREATING"
    }
+
+Create a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following ``mongocli atlas cluster create`` command creates a sample
+``M10`` sharded cluster named ``myShardedCluster`` in the |gcp| region 
+``EASTERN_US`` with ``2`` shards and ``3`` nodes per shard. The command 
+uses the {+default-profile+}, which contains the public and private 
+keys for accessing |service|, as well as a default project ID.
+
+.. code-block:: sh
+   :copyable: false
+
+   mongocli atlas cluster create myShardedCluster \
+    --provider GCP \
+    --region EASTERN_US \
+    --type SHARDED \
+    --shards 2 \
+    --members 3 \
+    --tier M10 \
+    --mdbVersion {+mdbVersion+} \
+    --diskSizeGB 10
+
+The command returns the following to the terminal. To learn more about
+these fields, see :ref:`Output <atlas-cluster-create-output-fields>`.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "autoScaling": {
+        "diskGBEnabled": true,
+        "compute": {
+          "enabled": false,
+          "scaleDownEnabled": false
+        }
+      },
+      "backupEnabled": false,
+      "biConnector": {
+        "enabled": false,
+        "readPreference": "secondary"
+      },
+      "clusterType": "SHARDED",
+      "diskSizeGB": 10,
+      "encryptionAtRestProvider": "NONE",
+      "labels": [
+        {
+          "key": "Infrastructure Tool",
+          "value": "mongoCLI"
+        }
+      ],
+      "id": "5efe19b205e4b2501fb14374",
+      "groupId": "5dd6fab7493979f10faffb78",
+      "mongoDBVersion": "4.2.8",
+      "mongoDBMajorVersion": "4.2",
+      "mongoURIUpdated": "2020-07-02T17:30:25Z",
+      "name": "testShard",
+      "numShards": 2,
+      "paused": false,
+      "pitEnabled": false,
+      "providerBackupEnabled": false,
+      "providerSettings": {
+        "instanceSizeName": "M10",
+        "providerName": "GCP",
+        "regionName": "EASTERN_US",
+        "autoScaling": {
+          "compute": {}
+        }
+      },
+      "replicationFactor": 3,
+      "replicationSpec": {
+        "EASTERN_US": {
+          "analyticsNodes": 0,
+          "electableNodes": 3,
+          "priority": 7,
+          "readOnlyNodes": 0
+        }
+      },
+      "replicationSpecs": [
+        {
+          "id": "505e4b24efe19b1fb1437429",
+          "numShards": 2,
+          "zoneName": "Zone 1",
+          "regionsConfig": {
+            "EASTERN_US": {
+              "analyticsNodes": 0,
+              "electableNodes": 3,
+              "priority": 7,
+              "readOnlyNodes": 0
+            }
+          }
+        }
+      ],
+      "stateName": "CREATING",
+      "connectionStrings": {}
+   }
+  
