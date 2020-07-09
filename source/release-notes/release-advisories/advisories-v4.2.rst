@@ -57,10 +57,6 @@ internet must support dual-stack |ipv4|/|ipv6|.
 Kubernetes
 ~~~~~~~~~~
 
-The containerization of |onprem| has been included as a beta release.
-This beta release is unsupported for production use. The Backup Daemon
-is not containerized.
-
 When you use the |k8s-op-short| and upgrade |onprem|, upgrade to
 |onprem| 4.2.1. If you must remain on 4.2.0, change to your Kubernetes
 |k8s-statefulset| to restart your MongoDB Agents and trigger a
