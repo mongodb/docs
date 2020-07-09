@@ -57,7 +57,7 @@ User Access Control
   address, except those that explicitly require whitelisting for
   access.
 
-.. only:: cloud
+.. cond:: cloud
 
    |https| Only
      You can only access the |api| via |https|, ensuring all
@@ -115,11 +115,11 @@ Apply the Correct Content Type Header
   ``Content-Type: application/json``
 
 Set Dates as |iso8601| Strings
-  When sending dates to the server (i.e., as query parameters
-  or fields in ``POST`` or ``PATCH`` request entities), use dates
-  formatted according to the |iso8601| standard. If you do not specify
-  a time zone, |utc| is assumed. It is highly recommended that you
-  include a time zone designator to avoid any ambiguity.
+  When sending dates to the server (as query parameters or fields in
+  ``POST`` or ``PATCH`` request entities), use dates formatted
+  according to the |iso8601| standard. If you don't specify a time
+  zone, |mms| assumes |utc|. Include a time zone designator to avoid
+  any ambiguity.
 
   .. example::
 
@@ -244,16 +244,16 @@ link relation.
 
    This is a portion of a ``host`` resource with a few links:
 
-   .. only:: cloud
+   .. cond:: cloud
 
-      .. code:: json
+      .. code-block:: json
+         :linenos:
 
          {
            "id": "xxx",
            "projectId": "yyy",
            "hostname": "mongodb.example.com",
            "port": 27017,
-           // additional host properties...
            "links": [
              {
                "rel": "self",
@@ -266,9 +266,10 @@ link relation.
            ]
          }
 
-   .. only:: onprem
+   .. cond:: onprem
 
-      .. code:: json
+      .. code-block:: json
+         :linenos:
 
          {
            "rel": "http://mms.mongodb.com/project",
@@ -277,7 +278,6 @@ link relation.
            "projectId": "yyy",
            "hostname": "mongodb.example.com",
            "port": 27017,
-           // additional host properties...
            "links": [
              {
                "rel": "self",
@@ -374,34 +374,35 @@ results in a an |http| 404 response status.
    This is an |http| response for the second page of 10 hosts in a
    project with a total of 57 hosts:
 
-   .. code:: json
+   .. code-block:: json
+      :linenos:
 
-     {
+      {
 
-       "totalCount": 57,
-       "results": [
-         {
-           "id": "yyy",
-           "projectId": "xxx",
-           // additional host properties...
-         },
-         // additional host documents...
-       ],
-       "links": [
-         {
-           "rel" : "self",
-           "href" : "https://www.mongodb.com/api/public/v1.0/projects/xxx/hosts?pageNum=2&itemsPerPage=10"
-         },
-         {
-           "rel": "previous",
-           "href": "https://www.mongodb.com/api/public/v1.0/projects/xxx/hosts?itemsPerPage=10&pageNum=1"
-         },
-         {
-           "rel": "next",
-           "href": "https://www.mongodb.com/api/public/v1.0/projects/xxx/hosts?itemsPerPage=10&pageNum=3"
-         }
-       ]
-     }
+        "totalCount": 57,
+        "results": [
+          {
+            "id": "yyy",
+            "projectId": "xxx",
+            // additional host properties...
+          },
+          // additional host documents...
+        ],
+        "links": [
+          {
+            "rel" : "self",
+            "href" : "https://www.mongodb.com/api/public/v1.0/projects/xxx/hosts?pageNum=2&itemsPerPage=10"
+          },
+          {
+            "rel": "previous",
+            "href": "https://www.mongodb.com/api/public/v1.0/projects/xxx/hosts?itemsPerPage=10&pageNum=1"
+          },
+          {
+            "rel": "next",
+            "href": "https://www.mongodb.com/api/public/v1.0/projects/xxx/hosts?itemsPerPage=10&pageNum=3"
+          }
+        ]
+      }
 
 .. _api-envelope:
 
@@ -445,7 +446,7 @@ By default, extraneous whitespace is stripped from the |json| that
 |mms| returns. To ask for pretty-printed |json|, simply append the
 ``pretty=true`` query parameter to any request:
 
-.. only:: cloud
+.. cond:: cloud
 
    .. code-block:: shell
 
@@ -454,7 +455,7 @@ By default, extraneous whitespace is stripped from the |json| that
        --include \
        --request GET "https://cloud.mongodb.com/api/public/v1.0?pretty=true"
 
-.. only:: onprem
+.. cond:: onprem
 
    .. code-block:: shell
 
@@ -549,35 +550,52 @@ Errors
 
 When a request results in an error, the response body contains a |json|
 document with additional details about what went wrong. The document
-contains three fields:
+contains five fields:
 
 .. list-table::
-  :widths: 20 80
+  :widths: 15 10 75
   :header-rows: 1
 
   * - Field
+    - Data Type
     - Definition
 
+  * - ``detail``
+    - string
+    - Human-readable description of the |api| request error.
+
   * - ``error``
-    - |http| status code.
+    - integer
+    - |http| :rfc:`status code <2616#section-6.1.1>`.
+
+  * - ``errorCode``
+    - string
+    - Named constant representing the |api| request error as shown in
+      :ref:`api-error-codes`.
+
+  * - ``parameters``
+    - array of strings
+    - List of parameters passed in the |api| request.
 
   * - ``reason``
-    - |http| status phrase.
-
-  * - ``detail``
-    - More detailed description of the error.
+    - string
+    - |http| :rfc:`status code definition <2616#section-6.1.1>`.
 
 .. example::
 
-   This is the response body for a request for a host that does not
-   exist:
+   |mms| returns this response body for an incorrectly formatted
+   request:
 
-   .. code:: json
+   .. code-block:: json
+      :copyable: false
+      :linenos:
 
       {
-        "error": 404,
-        "reason": "Not Found",
-        "detail": "No host exists with ID yyy in project xxx."
+        "detail" : "Cannot find resource /api/public/v1.0/softwareComponents/version.",
+        "error" : 404,
+        "errorCode" : "RESOURCE_NOT_FOUND",
+        "parameters" : [ "/api/public/v1.0/softwareComponents/version" ],
+        "reason" : "Not Found"
       }
 
 To review the list of codes, see :doc:`/reference/api-error-codes`.
@@ -602,7 +620,7 @@ Keep the following points in mind:
   prevent replay attacks, so you cannot cache a nonce and use it
   forever.
 
-.. only:: cloud
+.. cond:: cloud
 
    - Using digest authentication in combination with |https| provides
      an extra layer of security by ensuring that a password is never
@@ -627,7 +645,7 @@ Keep the following points in mind:
      or :authrole:`Project Owner` in the project to which the host
      belongs.
 
-.. only:: cloud
+.. cond:: cloud
 
    - Many resources are tied to a project (former known as a *group*),
      as evidenced by |url|\s of the following form:
@@ -638,7 +656,7 @@ Keep the following points in mind:
 
      For these resources, the user tied to the |api| key must be a member of the project. Otherwise |application| responds with an |http| 401 error.
 
-.. only:: onprem
+.. cond:: onprem
 
    - Many resources are tied to a project (former known as a *group*),
      as evidenced by |url|\s of the following form:
@@ -676,7 +694,7 @@ current state of the system to match the goal state.
    modifications, and then submit their modifications, the later
    modification wins.
 
-.. only:: cloud
+.. cond:: cloud
 
    .. _api-rate-limiting:
 
