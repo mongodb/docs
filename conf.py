@@ -71,7 +71,8 @@ rst_epilog = '\n'.join([
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
     '.. |bi| replace:: MongoDB Connector for BI',
     '.. |version| replace:: {0}'.format(version),
-    '.. |compass| replace:: MongoDB Compass'
+    '.. |compass| replace:: MongoDB Compass',
+    '.. |mdb-shell| replace:: MongoDB Shell'
 ])
 
 source_constants = {
@@ -101,6 +102,7 @@ extlinks = {
     'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
     'atlas': ('https://docs.atlas.mongodb.com%s',''),
+    'mongosh': ('https://docs.mongodb.com/mongodb-shell%s', ''),
     'products': ('https://www.mongodb.com/products%s', ''),
     'wtdocs': ('https://source.wiredtiger.com/mongodb-3.4%s', ''),
     'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
