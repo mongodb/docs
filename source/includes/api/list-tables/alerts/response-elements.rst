@@ -1,25 +1,32 @@
 .. list-table::
-   :widths: 20 20 60
+   :widths: 15 10 75
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
      - Description
 
-   * - ``acknowledgedUntil``
+   * - | ``acknowledged``
+       | ``Until``
      - string
-     - |Epoch-time| when the alert has been acknowledged. Only
-       displayed if the alert has never been acknowledged.
+     - |Epoch-time| until which the alert has been acknowledged.
 
-   * - ``acknowledgementComment``
-     - string
-     - Comment left by the user who acknowledged the alert. Only
-       displayed if the alert has never been acknowledged.
+       |mms| returns this value if the alert has been acknowledged.
 
-   * - ``acknowledgingUsername``
+   * - | ``acknowledgement``
+       | ``Comment``
      - string
-     - Username of the user who acknowledged the alert. Only displayed
-       if the alert has never been acknowledged.
+     - Comment left by the user who acknowledged the alert.
+
+       |mms| returns this value if the alert has been acknowledged.
+
+   * - | ``acknowledging``
+       | ``Username``
+     - string
+     - Username of the user who acknowledged the alert.
+
+       |mms| returns this value if the alert has been acknowledged.
 
    * - ``alertConfigId``
      - string
@@ -28,14 +35,17 @@
 
    * - ``clusterId``
      - string
-     - unique identifier for the cluster to which this alert applies.
-       Only displayed for alerts of type ``BACKUP``, ``REPLICA_SET``,
-       and ``CLUSTER``.
+     - Unique identifier for the cluster to which this alert applies.
+
+       |mms| returns this value if ``"eventTypeName"`` was set to
+       ``BACKUP``, ``REPLICA_SET``, or ``CLUSTER``.
 
    * - ``clusterName``
      - string
-     - Name the cluster to which this alert applies. Only present
-       for alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
+     - Name of the cluster to which this alert applies.
+
+       |mms| returns this value if ``"eventTypeName"`` was set to
+       ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
 
    * - ``created``
      - string
@@ -43,14 +53,18 @@
 
    * - ``currentValue``
      - object
-     - Current value of the metric that triggered the alert. Only
-       present for alerts of type ``HOST_METRIC``.
+     - Current value of the metric that triggered the alert.
 
-   * - ``currentValue.number``
+       |mms| returns this value if ``"eventTypeName"`` was set to
+       ``HOST_METRIC``.
+
+   * - | ``currentValue``
+       | ``.number``
      - number
      - Value of the metric.
 
-   * - ``currentValue.units``
+   * - | ``currentValue``
+       | ``.units``
      - string
      - Units for the value. Value depends on the type of metric.
 
@@ -60,7 +74,7 @@
           measurement, while a metric that measures time would have a
           time unit.
 
-       Possible values are:
+       |mms| can return:
 
        .. include:: /includes/possibleValues-api-units.rst
 
@@ -77,15 +91,18 @@
    * - ``hostId``
      - string
      - unique identifier for the host to which the metric pertains.
-       Only displayed for alerts of type ``HOST``, ``HOST_METRIC``, and
-       ``REPLICA_SET``.
+
+       |mms| returns this value if ``"eventTypeName"`` was set to
+       ``HOST``, ``HOST_METRIC``, or ``REPLICA_SET``.
 
    * - ``hostnameAndPort``
      - string
      - Hostname and port of each host to which the alert applies. This
        can be a hostname, an |fqdn|, an |ipv4| address, or an |ipv6|
-       address. Only displayed for alerts of type ``HOST``,
-       ``HOST_METRIC``, and ``REPLICA_SET``.
+       address.
+
+       |mms| returns this value if ``"eventTypeName"`` was set to
+       ``HOST``, ``HOST_METRIC``, or ``REPLICA_SET``.
 
    * - ``hostId``
      - string
@@ -105,32 +122,35 @@
        Only displayed if notifications have been sent.
 
    * - ``links``
-     - object array
-     - This array includes one or more links to sub-resources
-       and/or related resources. The relations between URLs are
-       explained in the :rfc:`Web Linking Specification <5988>`.
+     - array of objects
+     - .. include:: /includes/api/links-explanation.rst
 
    * - ``metricName``
      - string
      - Name of the measurement whose value went outside the
-       threshold. Only displayed if ``eventTypeName`` is set to
+       threshold.
+
+       |mms| returns this value if ``"eventTypeName"`` was set to
        ``OUTSIDE_METRIC_THRESHOLD``.
 
        For possible values, see :ref:`measurement-types-for-alerts-api`.
 
    * - ``replicaSetName``
      - string
-     - Name of the replica set. Only displayed for alerts of type
+     - Name of the replica set.
+
+       |mms| returns this value if ``"eventTypeName"`` was set to
        ``HOST``, ``HOST_METRIC``, ``BACKUP``, and ``REPLICA_SET``.
 
    * - ``resolved``
      - string
-     - |Epoch-time| when the alert was closed. Only displayed if the
-       status is ``CLOSED``.
+     - |Epoch-time| when the alert was closed.
+
+       |mms| returns this value if ``"status" : "CLOSED"``.
 
    * - ``status``
      - string
-     - Current state of the alert. Possible values are:
+     - Current state of the alert. |mms| can return:
 
        - ``TRACKING``
 
@@ -144,8 +164,8 @@
 
    * - ``sourceTypeName``
      - string
-     - Type of server being backed up when alerts are ``"type" :
-       "BACKUP"``. Possible values are:
+     - Type of server being backed up when ``"eventTypeName" :
+       "BACKUP"``. |mms| can return:
 
        - ``REPLICA_SET``
        - ``SHARDED_CLUSTER``
@@ -157,7 +177,7 @@
 
    * - ``typeName``
      - string
-     - *This field is deprecated and will be ignored.*
+     - *Deprecated field. |mms| ignores it.*
 
    * - ``updated``
      - string
