@@ -57,16 +57,21 @@ Definition
    
       * - ``force``
    
-        - boolean
+        - flag
    
-        - Optional. If ``true``, :dbcommand:`compact` can run on the
-          :term:`primary` in a :term:`replica set`. If ``false``,
-          :dbcommand:`compact` returns an error when run on a
-          primary, because the command blocks all other operations.
+        - .. versionchanged:: 4.4 
+        
+          Optional. Starting in v4.4, if specified, forces 
+          :dbcommand:`compact` to run on the :term:`primary` in 
+          a :term:`replica set`. Before v4.4, this boolean field 
+          enabled :dbcommand:`compact` to run on the :term:`primary` 
+          in a :term:`replica set` if the value was ``true`` and 
+          returned an error when run on a :term:`primary` if the 
+          value was ``false``, because the command blocked all other 
+          operations.
           
-          :dbcommand:`compact` blocks operations only for the database
-          it is compacting.
-          
+          Starting in v4.4, :dbcommand:`compact` does not block 
+          :ref:`crud` on the database it is compacting. 
           
       * - ``comment``
 
@@ -151,13 +156,28 @@ Behavior
 Blocking
 ~~~~~~~~
 
-:dbcommand:`compact` only blocks operations for the database it is currently
-operating on. Only use :dbcommand:`compact` during scheduled maintenance
-periods.
+.. versionchanged:: 4.4 
+
+Starting in v4.4, on :ref:`WiredTiger <storage-wiredtiger>`, 
+:dbcommand:`compact` only blocks the following metadata operations: 
+
+- :method:`db.collection.drop`
+- :method:`db.collection.createIndex` and 
+  :method:`db.collection.createIndexes`
+- :method:`db.collection.dropIndex` and 
+  :method:`db.collection.dropIndexes`
+
+:dbcommand:`compact` does not block :ref:`crud` for the database it is 
+currently operating on. 
+
+Before v4.4, :dbcommand:`compact` blocked all operations for the 
+database it was compacting, including :ref:`crud`, and was therefore 
+recommended for use only during scheduled maintenance periods. Starting in 
+v4.4, the :dbcommand:`compact` command is appropriate for use at any time.
 
 You may view the intermediate progress either by viewing the
-:binary:`~bin.mongod` log file or by running the :method:`db.currentOp()`
-in another shell instance.
+:binary:`~bin.mongod` log file or by running the 
+:method:`db.currentOp()` in another shell instance.
 
 Operation Termination
 ~~~~~~~~~~~~~~~~~~~~~
@@ -204,9 +224,13 @@ Replica Sets
 - Compact each member separately.
 
 - Ideally run :dbcommand:`compact` on a secondary. See option
-  ``force:true`` above for information regarding compacting the primary.
+  ``force`` above for information regarding compacting the primary.
 
-.. include:: /includes/extracts/fact-command-puts-secondary-into-recovering-compact.rst
+Before v4.4, :dbcommand:`compact` forced the secondary to enter 
+:replstate:`RECOVERING` state during its execution, which caused read 
+operations from clients to fail. Starting in v4.4, :dbcommand:`compact` 
+does not change the run state of the secondary, and clients may continue 
+to read from the secondary during the compaction operation. 
 
 Sharded Clusters
 ~~~~~~~~~~~~~~~~
