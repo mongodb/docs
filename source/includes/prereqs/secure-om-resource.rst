@@ -1,7 +1,5 @@
 - :doc:`Install the Kubernetes Operator </tutorial/install-k8s-operator>`.
 
-- :doc:`Create Credentials for the Kubernetes Operator </tutorial/create-operator-credentials>`.
-
 - :ref:`Deploy the Ops Manager application <deploy-om-container>` that
   you want to secure.
 
@@ -21,7 +19,7 @@
 
          .. code-block:: sh
 
-            <opsmgr-name>db<index>.<opsmgr-name>-db-svc.<namespace>.svc.cluster.local
+            <opsmgr-name>-db-<index>.<opsmgr-name>-db-svc.<namespace>.svc.cluster.local
 
      * - Key Usages
        - MongoDB requires the |tls| certs to include two specific
