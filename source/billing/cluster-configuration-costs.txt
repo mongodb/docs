@@ -224,16 +224,43 @@ rate per GB. See :ref:`modify-backup-schedule` for more information.
 {+Cloud-Backup+}s
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+|service| computes the cost for {+Cloud-Backup+}s based on the *total*
+size of all snapshots in GB per month.
+
+{+Cloud-Backup+}s support incremental snapshots, where a new
+snapshot saves only the data that changed after your most recent
+snapshot.
+
+.. example::
+
+   A cluster with 10 GB of data and 3 snapshots may require less
+   than 30 GB of total snapshot storage depending on how data
+   changed between snapshots.
+
 .. tabs-cloud-providers::
 
    .. tab::
       :tabid: azure
 
-      The backup cost for {+Cloud-Backup+}s is the *total*
-      size of all snapshots per GB per month. The rate per GB
-      depends on the region of the cluster. For multi-region
-      clusters, the rate per GB depends on the cluster's preferred
-      region.
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Cluster Type
+           - Backup Billing Basis
+
+         * - Single-Region
+           - Region where |service| takes and stores the snapshot.
+
+             |service| selects the lowest priority node of the cluster
+             *at the time the snapshot is taken*. It stores snapshots
+             in the same cloud region as the cluster.
+
+         * - Multi-Region
+           - Region with the highest priority.
+
+             |service| selects the lowest priority cluster node in the
+             highest priority region to execute and store snapshots.
 
       .. example::
 
@@ -250,30 +277,97 @@ rate per GB. See :ref:`modify-backup-schedule` for more information.
             time of writing. |service| displays the most current
             cost per GB for the cluster's selected region during
             cluster configuration.
+
+         .. seealso::
+
             To learn more about cluster configuration, see :doc:`/tutorial/create-new-cluster` or :doc:`/scale-cluster`.
 
-      When restoring a cluster using a manual download via |https|,
-      |service| also charges for each hour that the download link
-      remains active. To contact MongoDB Support for more
-      information, click :guilabel:`Support` at the top of any page.
+   .. tab::
+      :tabid: aws
 
-      .. note::
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
 
-         You can't download Backup snapshots that you encrypted
-         using :ref:`KMS <security-kms-encryption>`.
+         * - Cluster Type
+           - Backup Billing Basis
 
-      .. include:: /includes/cps-sizing-support.rst
+         * - Single-Region
+           - Region where |service| takes and stores the snapshot.
 
-      {+PIT-Restore+}s
-      ~~~~~~~~~~~~~~~~~~~~~~
+             |service| selects the lowest priority node of the cluster
+             *at the time the snapshot is taken*. It stores snapshots
+             in the same cloud region as the cluster.
 
-      Cluster owners may opt to enable
-      :ref:`{+PIT-Restore+} restores <pit-restore>` from {+Cloud-Backup+}s. |pit| backups are billed based on the disk
-      space occupied by the cluster's :term:`oplog` combined with
-      the {+cloud-backup+} backup size. Total cost is calculated based on
-      tiered pricing, which varies by region.
+         * - Multi-Region
+           - Region with the highest priority.
 
-      Pricing by region is as follows:
+             |service| selects the lowest priority cluster node in the
+             highest priority region to execute and store snapshots.
+
+   .. tab::
+      :tabid: gcp
+
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Cluster Type
+           - Backup Billing Basis
+
+         * - Single-Region
+           - Region where |service| takes and stores the snapshot.
+
+             |service| selects the lowest priority node of the cluster
+             *at the time the snapshot is taken*. It stores snapshots
+             in the same cloud region as the cluster.
+
+         * - Multi-Region
+           - Region with the highest priority.
+
+             |service| selects the lowest priority cluster node in the
+             highest priority region to execute and store snapshots.
+
+If the existing snapshot storage volume becomes invalid, |service|
+creates a new snapshot storage volume in the same region as the
+cluster's current backup node and takes a full-copy snapshot. |service|
+continues using that backup node and its cloud provider region for
+snapshots and snapshot storage. This may result in a higher invoice for
+the few days required to re-establish incremental snapshots.
+
+.. seealso::
+
+   To learn more about how |service| manages snapshot storage, see
+   :ref:`backup-cloud-provider`.
+
+When restoring a cluster using a manual download via |https|, |service|
+also charges for each hour that the download link remains active. To
+contact MongoDB Support for more information, click :guilabel:`Support`
+at the top of any page.
+
+.. note::
+
+   You can't download Backup snapshots that you encrypted
+   using :ref:`KMS <security-kms-encryption>`.
+
+   .. include:: /includes/cps-sizing-support.rst
+
+{+PIT-Restore+}s
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cluster owners may enable :ref:`{+PIT-Restore+} restores <pit-restore>`
+from {+Cloud-Backup+}s. |pit| backups are billed based on the disk
+space occupied by the cluster's :term:`oplog` combined with the
+{+cloud-backup+} backup size.
+
+|service| calculates backup pricing based on the region where it stores
+the snapshot and the amount of storage used:
+
+.. tabs-cloud-providers::
+   :hidden:
+
+   .. tab::
+      :tabid: azure
 
       .. include:: /includes/list-tables/backup-pricing/azure.rst
 
@@ -288,58 +382,6 @@ rate per GB. See :ref:`modify-backup-schedule` for more information.
    .. tab::
       :tabid: aws
 
-      The backup cost for {+Cloud-Backup+}s is the *total* size
-      of all snapshots per GB per month. The rate per GB depends on the
-      region of the cluster. For multi-region clusters, the snapshot
-      storage location depends on the location of the replica set
-      member targeted for snapshots. The rate per GB therefore depends
-      on the region of the targeted replica set member at the time of
-      the snapshot.
-
-      |aws| {+Cloud-Backup+}s supports incremental snapshots,
-      where a new snapshot saves only the data that changed after your
-      most recent snapshot.
-
-      .. example::
-
-         A cluster with 10 GB of data and 3 snapshots may require less
-         than 30 GB of total snapshot storage depending on how data
-         changed between snapshots.
-
-      If the existing snapshot storage volume becomes invalid,
-      |service| creates a new snapshot storage volume in the same
-      region as the cluster's current primary and takes a full-copy
-      snapshot. |service| continues using that primary and its |aws|
-      region for snapshots and snapshot storage. This may result in a
-      higher invoice for the few days required to re-establish
-      incremental snapshots. The cost per GB for snapshot storage may
-      also change depending on the region of the new snapshot target.
-      To learn more about how |service| manages snapshot storage, see
-      :ref:`backup-cloud-provider`.
-
-      When restoring a cluster using a manual download via |https|,
-      |service| also charges for each hour that the download link
-      remains active. To contact MongoDB Support for more information,
-      click :guilabel:`Support` at the top of any page.
-
-      .. note::
-
-         You can't download Backup snapshots that you encrypted
-         using :ref:`KMS <security-kms-encryption>`.
-
-      .. include:: /includes/cps-sizing-support.rst
-
-      {+PIT-Restore+}s
-      ~~~~~~~~~~~~~~~~~~~~~~
-
-      Cluster owners may opt to enable :ref:`{+PIT-Restore+} restores
-      <pit-restore>` from {+Cloud-Backup+}s. |pit| backups
-      are billed based on the disk space occupied by the cluster's
-      :term:`oplog` combined with the {+cloud-backup+} backup size. Total cost is
-      calculated based on tiered pricing, which varies by region.
-
-      Pricing by region is as follows:
-
       .. include:: /includes/list-tables/backup-pricing/aws.rst
 
       .. example::
@@ -352,58 +394,6 @@ rate per GB. See :ref:`modify-backup-schedule` for more information.
 
    .. tab::
       :tabid: gcp
-
-      The backup cost for {+Cloud-Backup+}s is the *total* size
-      of all snapshots per GB per month. The rate per GB depends on the
-      region of the cluster. For multi-region clusters, the snapshot
-      storage location depends on the location of the replica set
-      member targeted for snapshots. The rate per GB therefore depends
-      on the region of the targeted replica set member at the time of
-      the snapshot.
-
-      |gcp| {+Cloud-Backup+}s supports incremental snapshots,
-      where a new snapshot saves only the data that changed after your
-      most recent snapshot.
-
-      .. example::
-
-         A cluster with 10 GB of data and 3 snapshots may require less
-         than 30 GB of total snapshot storage depending on how data
-         changed between snapshots.
-
-      If the existing snapshot storage volume becomes invalid,
-      |service| creates a new snapshot storage volume in the same
-      region as the cluster's current primary and takes a full-copy
-      snapshot. |service| continues using that primary and its |gcp|
-      region for snapshots and snapshot storage. This may result in a
-      higher invoice for the few days required to re-establish
-      incremental snapshots. The cost per GB for snapshot storage may
-      also change depending on the region of the new snapshot target.
-      To learn more about how |service| manages snapshot storage, see
-      :ref:`backup-cloud-provider`.
-
-      When restoring a cluster using a manual download via |https|,
-      |service| also charges for each hour that the download link
-      remains active. To contact MongoDB Support for more information,
-      click :guilabel:`Support` at the top of any page.
-
-      .. note::
-
-         You can't download Backup snapshots that you encrypted
-         using :ref:`KMS <security-kms-encryption>`.
-
-      .. include:: /includes/cps-sizing-support.rst
-
-      {+PIT-Restore+}s
-      ~~~~~~~~~~~~~~~~~~~~~~
-
-      Cluster owners may opt to enable :ref:`{+PIT-Restore+} restores
-      <pit-restore>` from {+Cloud-Backup+}s. |pit| backups
-      are billed based on the disk space occupied by the cluster's
-      :term:`oplog` combined with the {+cloud-backup+} backup size. Total cost is
-      calculated based on tiered pricing, which varies by region.
-
-      Pricing by region is as follows:
 
       .. include:: /includes/list-tables/backup-pricing/gcp.rst
 

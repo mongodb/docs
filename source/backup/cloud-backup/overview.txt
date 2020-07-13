@@ -66,57 +66,51 @@ Service (KMS) provider configured for the cluster.
 
 .. tabs::
 
-   tabs:
+   .. tab:: AWS Identity and Access Management (IAM)
+      :tabid: aws-kms
 
-   - id: aws-kms
+      For clusters using :doc:`AWS IAM </security-aws-kms>` as their
+      Key Management Service, |service| uses the project's customer
+      master key (CMK) and AWS |iam| user credentials at the time of
+      the snapshot to automatically encrypt the snapshot data files.
+      This is an additional layer of encryption on the existing
+      encryption applied to all |service| storage and snapshot
+      volumes.
 
-     name: "AWS Identity and Access Management (IAM)"
+      |service| stores the unique ID of the |cmk| and the |aws| |iam|
+      user credentials used to access the |cmk|. |service| uses this
+      information when restoring the snapshot. For complete
+      documentation on restoring an encrypted snapshot, see
+      :ref:`restore-encrypted-snapshot`.
 
-     content: |
+   .. tab:: Azure Key Vault
+      :tabid: azure-kms
 
-       For clusters using :doc:`AWS IAM </security-aws-kms>` as their
-       Key Management Service, |service| uses the project's customer
-       master key (CMK) and AWS |iam| user credentials at the time of
-       the snapshot to automatically encrypt the snapshot data files.
-       This is an additional layer of encryption on the existing
-       encryption applied to all |service| storage and snapshot
-       volumes.
+      For clusters using :doc:`Azure Key Vault </security-azure-kms>`
+      as their Key Management Service, |service| uses the project's
+      Key Identifier, Key Vault Credentials, and Active Directory
+      application account credentials at the time of the snapshot to
+      automatically encrypt the snapshot data files. This is an
+      additional layer of encryption on the existing encryption
+      applied to all |service| storage and snapshot volumes.
 
-       |service| stores the unique ID of the |cmk| and the |aws| |iam|
-       user credentials used to access the |cmk|. |service| uses this
-       information when restoring the snapshot. For complete
-       documentation on restoring an encrypted snapshot, see
-       :ref:`restore-encrypted-snapshot`.
+      |service| stores the unique ID of the Azure Key Identifier used
+      the encrypt the snapshot. |service| also stores the Azure Key
+      Vault credentials and the Active Domain application account
+      credentials used to access the Key Identifier. |service| uses
+      this information when restoring the snapshot. For complete
+      documentation on restoring an encrypted snapshot, see
+      :ref:`restore-encrypted-snapshot`.
 
-   - id: azure-kms
-     name: "Azure Key Vault"
-     content: |
+   .. tab:: Google Cloud KMS
+      :tabid: gcp-kms
 
-       For clusters using :doc:`Azure Key Vault </security-azure-kms>`
-       as their Key Management Service, |service| uses the project's
-       Key Identifier, Key Vault Credentials, and Active Directory
-       application account credentials at the time of the snapshot to
-       automatically encrypt the snapshot data files. This is an
-       additional layer of encryption on the existing encryption
-       applied to all |service| storage and snapshot volumes.
-
-       |service| stores the unique ID of the Azure Key Identifier used
-       the encrypt the snapshot. |service| also stores the Azure Key
-       Vault credentials and the Active Domain application account
-       credentials used to access the Key Identifier. |service| uses
-       this information when restoring the snapshot. For complete
-       documentation on restoring an encrypted snapshot, see
-       :ref:`restore-encrypted-snapshot`.
-
-   - id: gcp-kms
-     name: "Google Cloud KMS"
-     content: |
-
-       |service| uses your |gcp| Service Account Key to encrypt and decrypt
-       your MongoDB master keys. These MongoDB master keys are used to encrypt
-       cluster database files and :ref:`cloud providers snapshots
-       <backup-cloud-provider>`. For complete documentation on restoring an
-       encrypted snapshot, see :ref:`restore-encrypted-snapshot`.
+      |service| uses your |gcp| Service Account Key to encrypt and
+      decrypt your MongoDB master keys. These MongoDB master keys are
+      used to encrypt cluster database files and :ref:`cloud providers
+      snapshots <backup-cloud-provider>`. For complete documentation
+      on restoring an encrypted snapshot, see
+      :ref:`restore-encrypted-snapshot`.
 
 To view the key used to encrypt a snapshot:
 
@@ -140,147 +134,95 @@ see :doc:`/security-kms-encryption`. You can then either
 :ref:`enable <scale-cluster-enable-encryption>` an existing cluster
 with Encryption at Rest using your Key Management.
 
-Single Region Cluster Backups
+.. _single-region-cloud-backup:
+
+Single-Region Cluster Backups
 -----------------------------
 
-.. tabs::
+With single-region cluster backups, |service|:
 
-     tabs:
+- Selects the lowest priority node of the cluster *at the time the
+  snapshot is taken*. (If two or more nodes have the same priority,
+  |service| selects the node with the lexicographically smallest name.)
+- Stores the snapshots in the same cloud region as the cluster.
+- Retains snapshots based on your
+  :ref:`retention policy <cloud-provider-retention-policy>`.
 
-     - id: aws-gcp
-       name: AWS / GCP
-       content: |
+.. .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
 
-         |service| selects the :term:`primary` member of the cluster
-         *at the time you enable snapshots for the cluster*. |service|
-         stores the snapshots in the same cloud region as the cluster.
-         |service| retains snapshots based on the :ref:`retention policy
-         <cloud-provider-retention-policy>`.
+If the node goes offline, |service| selects the next-lowest priority
+cluster node in the same region to execute and store snapshots.
 
-         .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
+.. .. include:: /images/cloud-provider-snapshot-single-region-secondary.rst
 
-         |service| continues to use that member and its
-         corresponding region for snapshots and snapshot storage, even
-         if that member is no longer the primary.
+|service| automatically creates a new snapshot storage volume if the
+existing snapshot storage volume becomes invalid. |service| creates the
+new volume in the same region as the cluster's current primary.
+|service| then takes a full-copy snapshot to maintain backup
+availability and continues using that member and its corresponding
+region for further incremental snapshots.
 
-         .. include:: /images/cloud-provider-snapshot-single-region-secondary.rst
+Events that can trigger storage invalidation include:
 
-         |service| automatically creates a new snapshot storage volume
-         if the existing snapshot storage volume becomes invalid.
-         |service| creates the new volume in the same region as the
-         cluster's current primary. |service| then takes a full-copy
-         snapshot to maintain backup availability and continues using
-         that member and its corresponding region for further
-         incremental snapshots.
+- Changing the |service| cluster tier,
+- Modifying the |service| cluster's storage volume or speed,
+- Changing the |service| cluster's |aws| region, and
+- Maintenance performed by |service| or |aws|.
 
-         Events that can trigger storage invalidation include:
+.. seealso::
 
-         - Changing the |service| cluster tier,
-         - Modifying the |service| cluster's storage volume or speed,
-         - Changing the |service| cluster's |aws| region, and
-         - Maintenance performed by |service| or |aws|.
+   To learn more about snapshot retention, see
+   :ref:`cloud-provider-retention-policy`.
 
-         To manually reset the snapshot target and storage, disable and
-         re-enable backups for the cluster. Disabling |service| backups
-         removes all snapshots for the cluster.
-         For more information on snapshot retention, see
-         :ref:`cloud-provider-retention-policy`.
-
-     - id: azure
-       name: Azure
-       content: |
-
-         |service| always selects the :term:`primary` member of the
-         cluster for backup snapshots and stores the
-         snapshots in the same cloud region as the cluster. |service|
-         retains snapshots based on the
-         :ref:`retention policy <cloud-provider-retention-policy>`.
-
-         .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
-
-         If that member steps down
-         to a :term:`secondary`, |service| changes the snapshot
-         target to the current :term:`primary`.
-
-         .. include:: /images/cloud-provider-snapshot-single-region-moved-primary.rst
+.. _multi-region-cloud-backup:
 
 Multi-Region Cluster Backups
 ----------------------------
 
-.. tabs::
+With multi-region cluster backups, |service|:
 
-     tabs:
+- Selects lowest priority cluster node in the highest priority region to
+  execute and store snapshots. (If two or more nodes have the same
+  priority, |service| selects the node with the lexicographically
+  smallest name.)
+- Retains snapshots based on your
+  :ref:`retention policy <cloud-provider-retention-policy>`.
 
-     - id: aws-gcp
-       name: AWS / GCP
-       content: |
+.. .. include:: /images/cloud-provider-snapshot-multi-region-primary.rst
 
-         |service| selects the :term:`primary` member of the cluster
-         *at the time you enable snapshots for the cluster* for backup
-         snapshots. |service| stores the snapshots in the same region
-         as the primary member. |service| retains snapshots based on
-         the :ref:`retention policy <cloud-provider-retention-policy>`.
+If the node goes offline, |service| selects the next-lowest priority
+cluster node in the same region to execute and store snapshots.
 
-         .. include:: /images/cloud-provider-snapshot-multi-region-primary.rst
+.. .. include:: /images/cloud-provider-snapshot-multi-region-secondary.rst
 
-         If the member steps down to a :term:`secondary`, |service|
-         continues to use that member for snapshots. |service|
-         continues storing snapshots in the same region as that member,
-         even if the primary is in a different region.
+|service| automatically creates a new snapshot storage volume if the
+existing snapshot storage volume becomes invalid. |service| creates the
+new volume in the same region as the cluster's current primary.
+|service| then takes a full-copy snapshot to maintain backup
+availability and continues using that member and its corresponding
+region for further incremental snapshots.
 
-         .. include:: /images/cloud-provider-snapshot-multi-region-secondary.rst
+Events that can trigger storage invalidation include:
 
-         |service| automatically creates a new snapshot storage volume
-         if the existing snapshot storage volume becomes invalid.
-         |service| creates the new volume in the same region as the
-         cluster's current primary. |service| then takes a full-copy
-         snapshot to maintain backup availability and continues using
-         that member and its corresponding region for further
-         incremental snapshots.
+- Changing the |service| cluster tier,
+- Modifying the |service| cluster's storage volume or speed,
+- Changing the |service| cluster's |aws| region, and
+- Maintenance performed by |service| or |aws|.
 
-         Events that can trigger storage invalidation include:
+.. seealso::
 
-         - Changing the |service| cluster tier,
-         - Modifying the |service| cluster's storage volume or speed,
-         - Changing the |service| cluster's |aws| region, and
-         - Maintenance performed by |service| or |aws|.
-
-         To manually reset the snapshot target and storage, disable and
-         re-enable backups for the cluster. Disabling |service| backups
-         removes all snapshots for the cluster.
-         For more information on snapshot retention, see
-         :ref:`cloud-provider-retention-policy`.
-
-     - id: azure
-       name: Azure
-       content: |
-
-         |service| always selects the :term:`primary` member of the
-         cluster for backup snapshots and stores the snapshots
-         in the same region as the primary member. |service| retains
-         snapshots based on the
-         :ref:`retention policy <cloud-provider-retention-policy>`.
-
-         .. include:: /images/cloud-provider-snapshot-multi-region-primary.rst
-
-         If that member steps down
-         to a :term:`secondary`, |service| changes the snapshot
-         target to the current :term:`primary`.
-
-         .. include:: /images/cloud-provider-snapshot-multi-region-moved-primary.rst
-
-         |service| stores subsequent snapshots in the region of the
-         new primary member.
+   To learn more about snapshot retention, see
+   :ref:`cloud-provider-retention-policy`.
 
 .. _sharded-global-cluster-backup:
 
 Global Cluster Backups
 ----------------------
 
-|service| provides backups for
-:doc:`Global Clusters </global-clusters>` using {+Cloud-Backup+}s as their backup method. |service| restores the shards in the
-source cluster to the corresponding shards in the target cluster using
-the same order as specified in the cluster configuration.
+|service| can back up :doc:`Global Clusters </global-clusters>` using
+{+Cloud-Backup+}s as their backup method. |service| restores the shards
+in the source cluster to the corresponding shards in the target cluster
+using the same order as specified in the cluster configuration.
 
 .. example::
 
@@ -338,7 +280,9 @@ Configure your {+pit-restore+} window with the
 
 .. note::
 
-   Enabling {+pit-restore+}s increases the monthly cost of your cluster.
+   Enabling {+pit-restore+}s increases the monthly cost of your
+   cluster.
+
    To learn more about the cost implications, see
    :ref:`billing <billing-backup-cloud-provider-snapshots>`.
 
@@ -349,8 +293,8 @@ service under the cluster or shard's :ref:`highest priority region
 
 .. note::
 
-   All clusters with {+pit-restore+}s enabled store :term:`oplog` data on
-   AWS |s3|, including clusters backed by Azure and GCP.
+   All clusters with {+pit-restore+}s enabled store :term:`oplog` data
+   on |aws| |s3|, including clusters backed by Azure and |gcp|.
 
 The following actions cause all existing oplog backups to be deleted.
 All existing snapshots remain intact, but previously preserved oplog
