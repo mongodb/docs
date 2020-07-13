@@ -132,45 +132,52 @@ consider before starting a backup.
 
        - If you do not want to maintain separate backup systems nor do
          you want your staff to maintain them, consider backing up to a
-         **MongoDB** or **S3 blockstore**.
+         *MongoDB* or *|s3| snapshot store*.
 
        - If you need to restore data without relying on MongoDB
-         database, consider backing up to a **file system on a** |san|
-         **or** |nas| **device** or an **S3 blockstore**.
+         database, consider backing up to a *file system on a* |san|
+         *or* |nas| *device* or an *|s3| snapshot store*.
 
        - If you are backing up large amounts of data or frequently need
-         to restore data, consider either a **file system on a** |san|,
-         **S3 blockstore** or a **MongoDB blockstore configured as a
-         replica set or sharded cluster**.
+         to restore data, consider either a *file system on a* |san|,
+         *|s3| snapshot store* or a *MongoDB blockstore configured as a
+         replica set or sharded cluster*.
 
        - If you want to minimize internal storage and maintenance
-         costs, consider backing up to a **MongoDB standalone
-         blockstore** or an **S3 blockstore**.
+         costs, consider backing up to one of the following options:
+
+         - An *|s3| snapshot store* or
+         - A *MongoDB standalone blockstore*.
+
+         A MongoDB standalone blockstore offers limited resilience. If
+         the disk fills, this blockstore may go offline. You can
+         recover snapshots only after adding additional storage.
 
        - If you have a |san| with advanced features like high
          availability, compression, :term:`deduplication`, etc.,
-         consider using that |san| **for file system** backups.
+         consider using that |san| *for file system* backups.
 
 .. _limits-of-backup:
 
 Backup Sizing Recommendation
 ----------------------------
 
-When sizing the backup of your data, MongoDB recommends keeping replica
-set size to 2 TB or less of
-:manual:`uncompressed data </reference/command/dbStats#dbStats.dataSize>`.
-If your data increases beyond 2 TB, you should shard that database and
-keep each shard to 2 TB or less of uncompressed data.
+When sizing the backup of your data, keep the :term:`replica set` size
+to 2 TB or less of :data:`uncompressed data <~dbStats.dataSize>`. If
+your database increases beyond 2 TB:
 
-These size recommendations are a best practice, and are not due to a
+- Shard the database
+- Keep each shard to 2 TB or less of uncompressed data
+
+These size recommendations are a best practice. They are not a
 limitation of the MongoDB database or |mms|.
 
-Backup and restore can use great amounts of CPU, memory, storage and
+Backup and restore can use great amounts of CPU, memory, storage, and
 network bandwidth.
 
 .. example::
 
-   Your stated network throughput, like 10 Gbps, 100 Gbps, is a
+   Your stated network throughput, like 10 Gbps or 100 Gbps, is a
    *theoretical* maximum. That value doesn't account for sharing or
    throttling of network traffic.
 
@@ -386,6 +393,33 @@ Databases not Running FCV 4.2
 The following considerations apply when your databases run any version
 of MongoDB 4.0 or earlier or when they run MongoDB 4.2 with
 ``"featureCompatibilityVersion" : 4.0``
+
+Garbage Collection of Expired Snapshots
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| manages expired snapshots using groom jobs. These groom jobs act
+differently depending upon which snapshot store contains the snapshots:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Snapshot Store
+     - How Groom Jobs Work
+
+   * - MongoDB Blockstore
+     - Uses additional disk space up to the amount of living blocks for
+       each job.
+
+   * - Filesystem Snapshot stores
+     - Deletes expired snapshots
+
+   * - S3 snapshot stores
+     - For |fcv-link| 4.0 or earlier, may use additional disk space if
+       |mms| creates a snapshot while the groom job is running.
+
+       For |fcv| 4.2 or later, |mms| can't create snapshots while a groom job is running.
 
 .. _namespaces-filter:
 
