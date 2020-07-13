@@ -16,8 +16,9 @@ mongocli atlas backup restore start
 
 The ``backup restore start`` command restores a deployment using the 
 snapshot or point in time of a cluster. You can also restore a 
-deployment using the |service| :atlas:`UI </restore-cluster/>` or 
-:atlas:`API </reference/api/restore-jobs-create-one/>`. 
+deployment using the |service| :atlas:`UI
+</backup/cloud-backup/restore/>` or :atlas:`API
+</reference/api/cloud-backup/restore/create-one-restore-job/>`.
 
 .. _mcli-atlas-backup-restore-start-syntax:
 
@@ -26,24 +27,30 @@ Syntax
 
 .. code-block:: text 
 
-   mongocli atlas backup restore start AUTOMATED_RESTORE|HTTP
-        [ --checkpoint <checkpoint-ID> ]
+   mongocli atlas backup restore start <restore-job-type>
         --clusterName <cluster-name>
-        [ --expirationHours <N> ]
         [ --oplogInc <oplog-Inc> ]
         [ --oplogTs <oplog-timestamp> ]
         [ --pointInTimeUTCMillis <pointInTime-UTC-ms> ]
         [ --profile|-P <profile-name> ]
         [ --projectId <project-ID> ]
-        [ --maxDownloads <N> ]
         --snapshotId <snapshot-ID>
-        [ --targetClusterId <cluster-ID> ]
+        [ --targetClusterName <cluster-name> ]
         [ --targetProjectId <project-ID> ]
 
 .. _mcli-atlas-backup-restore-start-args:
 
 Arguments 
 ---------
+
+.. warning::
+
+   If you create an ``automated`` or ``pointInTime`` restore job,
+   |service| **removes all existing data** on the target cluster prior
+   to the restore.
+
+Specify the type of restore job with one of the following
+arguments:
 
 .. include:: /includes/backup-restore-start-args.rst
 
@@ -52,273 +59,573 @@ Arguments
 Options 
 -------
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 10 60 10
+The options required by or available for the command depend on the type
+of restore job:
 
-   * - Option 
-     - Type 
-     - Description 
-     - Required? 
+.. tabs::
 
-   * - ``--checkpoint``
-     - string
-     - *Only available for AUTOMATED RESTORE of sharded clusters*
+   .. tab:: Automated
+      :tabid: automated
 
-       The unique identifier for the :manual:`sharded cluster 
-       </reference/glossary/#term-sharded-cluster>` checkpoint that 
-       represents the point in time to which your data will be restored.
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 10 50 10
 
-       .. note:: 
+         * - Option 
+           - Type 
+           - Description 
+           - Required? 
 
-          If you set ``checkpointId``, you cannot set ``oplogInc``, ``oplogTs``, 
-          or ``pointInTimeUTCMillis``.
-     - no
+         * - ``--clusterName``
+           - string
+           - Name of the cluster that the job represents.
+           - yes
 
-   * - ``--clusterName``
-     - string
-     - The name of the cluster that the job represents.
-     - yes
+         * - ``--profile``, ``-P``
+           - string
+           - Name of the profile where the project ID and the 
+             |svc-api-key|\s for the project are saved. If omitted, uses
+             the {+default-profile+}. To learn more about creating a
+             profile, see :ref:`mcli-configure`.
+           - no
 
-   * - ``--expirationHours``
-     - integer
-     - *Only available for HTTP*
-     
-       The number of hours the download URL is valid once the restore job is 
-       complete.
-     - no
+         * - ``--projectId``
+           - string
+           - Unique identifier of the project that contains the 
+             cluster. If omitted, uses the project ID in the profile or
+             :ref:`environment variable <mcli-env-var>`.
+           - no
 
-   * - ``--oplogInc``
-     - string
-     - *Only available for AUTOMATED RESTORE of replica sets*
+         * - ``--snapshotId``
+           - string
+           - Unique identifier of the snapshot to use for restore.
+           - yes
 
-       The 32-bit incrementing ordinal that represents operations within a 
-       given second. When paired with ``oplogTs``, they represent the point 
-       in time to which your data will be restored.
+         * - ``--targetClusterId``
+           - string
+           - Unique identifier of the target cluster to restore.
+           - yes
 
-       .. note::
+         * - ``--targetProjectId``
+           - string
+           - Unique identifier of the project that contains the 
+             destination cluster for the restore job
+           - yes
 
-          If you set ``oplogInc``, you:
+   .. tab:: Continuous Cloud Backup
+      :tabid: pit
 
-          - Must set ``oplogTs``. 
-          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
-     - no
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 10 60 10
 
-   * - ``--oplogTs``
-     - string
-     - *Only available for AUTOMATED RESTORE of replica sets*
+         * - Option 
+           - Type 
+           - Description 
+           - Required? 
 
-       The oplog :manual:`timestamp </reference/bson-types>` given as a
-       |epoch-time|. When paired with ``oplogInc``, they represent the
-       point in time to which your data will be restored.
+         * - ``--clusterName``
+           - string
+           - Name of the cluster that the job represents.
+           - yes
 
-       .. note::
+         * - ``--oplogInc``
+           - string
+           - :atlas:`Oplog </reference/atlas-oplog/index.html>` 
+             operation number from which 
+             to you want to restore this snapshot. This is the second
+             part of an :atlas:`Oplog
+             </reference/atlas-oplog/index.html>` timestamp.
 
-          If you set ``oplogTs``, you:
+             Three conditions apply to this parameter:
 
-          - Must set ``oplogInc``. 
-          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
-     - no
+             - Enable :atlas:`Continuous Cloud Backup restores </backup/cloud-backup/overview/#continuous-cloud-backups>` on 
+               your cluster.
+             - Specify ``oplogTs``.
+             - Specify either ``oplogTs`` and ``oplogInc`` or
+               ``pointInTimeUTCSeconds``, but *not both*.
 
-   * - ``--pointInTimeUTCMillis``
-     - integer
-     - *Only available for AUTOMATED RESTORE of replica sets* 
+           - conditional
 
-       The |epoch-time-ms| that represents the point in time to which 
-       your data will be restored. This timestamp must be within last 24 
-       hours of the current time.
+         * - ``--oplogTs``
+           - string
+           - |Epoch-time| from which to you want to restore this 
+             snapshot. This is the first part of an :atlas:`Oplog
+             </reference/atlas-oplog/index.html>` timestamp.
 
-       .. note::
+             Three conditions apply to this parameter:
 
-          If you set ``pointInTimeUTCMillis``, you cannot set
-          ``oplogInc``, ``oplogTs``, or ``checkpointId``.
-     - no
+             - Enable :atlas:`Continuous Cloud Backup restores </backup/cloud-backup/overview/#continuous-cloud-backups>` on 
+               your cluster.
+             - Specify ``oplogInc``.
+             - Specify either ``oplogTs`` and ``oplogInc`` or
+               ``pointInTimeUTCSeconds``, but *not both*.
 
-   * - ``--profile``, ``-P``
-     - string
-     - Name of the profile where the project ID and the |svc-api-key|\s 
-       for the project are saved. If omitted, uses the {+default-profile+}. 
-       To learn more about creating a profile, see :ref:`mcli-configure`.
-     - no
+           - conditional
 
-   * - ``--projectId``
-     - string
-     - Unique identifier of the project that contains the cluster. 
-       If omitted, uses the project ID in the profile or :ref:`environment 
-       variable <mcli-env-var>`.
-     - no
+         * - ``--pointInTimeUTCMillis``
+           - integer
+           - |Epoch-time| from which you want to restore this snapshot.
 
-   * - ``--maxDownloads``
-     - integer
-     - *Only available for HTTP*
+             Two conditions apply to this parameter:
 
-       The number of times the download |url| can be used. This must be
-       ``1`` or greater.
-     - no
+             - Enable :atlas:`Continuous Cloud Backup restores </backup/cloud-backup/overview/#continuous-cloud-backups>` on 
+               your cluster.
+             - Specify either ``pointInTimeUTCSeconds`` or ``oplogTs`` 
+               and ``oplogInc``, but *not both*.
 
-   * - ``--snapshotId``
-     - string
-     - The unique identifier of the snapshot to use for restore.
+           - conditional
 
-       .. note:: 
+         * - ``--profile``, ``-P``
+           - string
+           - Name of the profile where the project ID and the 
+             |svc-api-key|\s for the project are saved. If omitted, uses
+             the {+default-profile+}. To learn more about creating a
+             profile, see :ref:`mcli-configure`.
+           - no
 
-          If you set snapshotId, you cannot set ``oplogInc``, ``oplogTs``, 
-          ``pointInTimeUTCMillis``, or ``checkpointId``.
-     - yes
+         * - ``--projectId``
+           - string
+           - Unique identifier of the project that contains the 
+             cluster. If omitted, uses the project ID in the profile or
+             :ref:`environment variable <mcli-env-var>`.
+           - no
 
-   * - ``--targetClusterId``
-     - string
-     - *Only available for AUTOMATED RESTORE*
+         * - ``--targetClusterId``
+           - string
+           - Unique identifier of the target cluster to restore.
+           - yes
 
-       The unique identifier of the target cluster to restore.
-     - no
+         * - ``--targetProjectId``
+           - string
+           - Unique identifier of the project that contains the 
+             destination cluster for the restore job.
+           - yes
 
-   * - ``--targetProjectId``
-     - string
-     - *Only available for AUTOMATED RESTORE* 
+   .. tab:: Downloaded
+      :tabid: downloaded
 
-       The unique identifier of the project that contains the destination 
-       cluster for the restore job
-     - no
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 10 60 10
+
+         * - Option 
+           - Type 
+           - Description 
+           - Required? 
+
+         * - ``--clusterName``
+           - string
+           - Name of the cluster that the job represents.
+           - yes
+
+         * - ``--profile``, ``-P``
+           - string
+           - Name of the profile where the project ID and the 
+             |svc-api-key|\s for the project are saved. If omitted, uses
+             the {+default-profile+}. To learn more about creating a
+             profile, see :ref:`mcli-configure`.
+           - no
+
+         * - ``--projectId``
+           - string
+           - Unique identifier of the project that contains the  
+             cluster. If omitted, uses the project ID in the profile or
+             :ref:`environment variable <mcli-env-var>`.
+           - no
+
+         * - ``--snapshotId``
+           - string
+           - Unique identifier of the snapshot to use for restore.
+           - yes
+
+
 
 .. _mcli-atlas-backup-restore-start-output:
 
 Output 
 ------
 
-The command prints the following fields in |json| format to the terminal if 
-the command succeeds. If the command returns an error, see 
+The command prints the following fields in |json| format to the terminal
+if the command succeeds. If the command returns an error, see
 :ref:`Troubleshooting <troubleshooting>` for recommended solutions.
 
-.. include:: /includes/backup-restore-output-fields.rst
+.. tabs::
+   
+   .. tab:: Automated
+      :tabid: automated
+
+      .. list-table::
+         :widths: 15 10 75
+         :header-rows: 1
+         :stub-columns: 1
+
+         * - Name
+           - Type
+           - Description
+
+         * - ``cancelled``
+           - boolean
+           - Flag indicating whether the restore job was canceled.
+
+         * - ``createdAt``
+           - string
+           - |iso8601-time| when |service| created the restore job.
+
+         * - ``deliveryType``
+           - string
+           - Type of restore job to create. 
+
+         * - ``expired``
+           - boolean
+           - Flag indicating whether the restore job expired.
+
+         * - ``expiresAt``
+           - integer
+           - |iso8601-time| when the restore job expires.
+
+         * - ``finishedAt``
+           - integer
+           - |iso8601-time| when the restore job completed.
+
+         * - ``id``
+           - string
+           - Unique identifier of the restore job.
+
+         * - ``links``
+           - array of objects
+           - .. include:: /includes/links-explanation.rst
+
+         * - ``snapshotId``
+           - string
+           - Unique identifier of the source snapshot ID of the restore 
+             job.
+
+         * - | ``target``
+             | ``GroupId``
+           - string
+           - Name of the target |service| project of the restore job.
+
+         * - | ``target``
+             | ``ClusterName``
+           - string
+           - Name of the target |service| cluster to which the restore 
+             job restores the snapshot.
+
+         * - ``timestamp``
+           - string
+           - |iso8601-time| when the snapshot associated to 
+             ``snapshotId`` was taken.
+
+   .. tab:: Continuous Cloud Backup
+      :tabid: pit
+
+      .. list-table::
+         :widths: 15 10 75
+         :header-rows: 1
+         :stub-columns: 1
+
+         * - Name
+           - Type
+           - Description
+
+         * - ``cancelled``
+           - boolean
+           - Flag indicating whether the restore job was canceled.
+
+         * - ``createdAt``
+           - string
+           - |iso8601-time| when |service| created the restore job.
+
+         * - ``deliveryType``
+           - string
+           - Type of restore job to create. 
+
+         * - ``expired``
+           - boolean
+           - Flag indicating whether the restore job expired.
+
+         * - ``expiresAt``
+           - integer
+           - |iso8601-time| when the restore job expires.
+
+         * - ``finishedAt``
+           - integer
+           - |iso8601-time| when the restore job completed.
+
+         * - ``id``
+           - string
+           - Unique identifier of the restore job.
+
+         * - ``links``
+           - array of objects
+           - .. include:: /includes/links-explanation.rst
+
+         * - ``oplogTs``
+           - integer
+           - |Epoch-time| from which to you want to restore this 
+             snapshot.
+             This is the first part of an :atlas:`Oplog </reference/atlas-oplog/index.html>`
+             timestamp. Returned when ``"oplogTs" > 0``.
+
+         * - ``oplogInc``
+           - integer
+           - :atlas:`Oplog </reference/atlas-oplog/index.html>` 
+             operation number from which to
+             you want to restore this snapshot. This is the second part
+             of an :atlas:`Oplog </reference/atlas-oplog/index.html>`
+             timestamp. Returned when ``"oplogTs" > 0``.
+
+         * - | ``pointInTime``
+             | ``UTCSeconds``
+           - integer
+           - |Epoch-time| from which |service| restored this snapshot.
+             Returned when ``"pointInTimeUTCSeconds" > 0``.
+
+         * - | ``target``
+             | ``GroupId``
+           - string
+           - Name of the target |service| project of the restore job.
+
+         * - | ``target``
+             | ``ClusterName``
+           - string
+           - Name of the target |service| cluster to which the restore 
+             job restores the snapshot.
+
+         * - ``timestamp``
+           - string
+           - |iso8601-time| when the snapshot associated to 
+             ``snapshotId`` was taken.
+
+   .. tab:: Downloaded
+      :tabid: downloaded
+
+      .. list-table::
+         :widths: 15 10 75
+         :header-rows: 1
+         :stub-columns: 1
+
+         * - Name
+           - Type
+           - Description
+
+         * - ``cancelled``
+           - boolean
+           - Flag indicating whether the restore job was canceled.
+
+         * - ``createdAt``
+           - string
+           - |iso8601-time| when |service| created the restore job.
+
+         * - ``deliveryType``
+           - string
+           - Type of restore job to create.
+
+         * - ``deliveryUrl``
+           - array of strings
+           - One or more |url|\s for the compressed snapshot files for 
+             manual download. Returned when ``"deliveryType" :
+             "download"``.
+
+             .. note::
+
+                If empty, |service| is processing the restore job. Use
+                the
+                :atlas:`/reference/api/cloud-backup/restore/get-all-restore-jobs`
+                endpoint periodically check for a ``deliveryUrl``
+                download value for the restore job.
+
+         * - ``expired``
+           - boolean
+           - Flag indicating whether the restore job expired.
+
+         * - ``expiresAt``
+           - integer
+           - |iso8601-time| when the restore job expires.
+
+         * - ``finishedAt``
+           - integer
+           - |iso8601-time| when the restore job completed.
+
+         * - ``id``
+           - string
+           - Unique identifier of the restore job.
+
+         * - ``links``
+           - array of objects
+           - .. include:: /includes/links-explanation.rst
+
+         * - ``snapshotId``
+           - string
+           - Unique identifier of the source snapshot ID of the restore 
+             job.
+
+         * - ``timestamp``
+           - string
+           - |iso8601-time| when the snapshot associated to 
+             ``snapshotId`` was taken.
+
 
 .. _mcli-atlas-backup-restore-start-eg:
 
-Examples 
---------
+Example
+-------
 
-The following examples show two ways to restore a deployment.
+.. tabs::
 
-Automated Restore Example 
-~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. tab:: Automated
+      :tabid: automated
 
-The following example uses the ``mongocli atlas backup restore start 
-AUTOMATED_RESTORE`` command to restore a deployment, which is specified using 
-the ``targetProjectId`` and ``targetClusterId`` fields. The command uses the 
-{+default-profile+} where the project ID and the |svc-api-key|\s 
-for the source cluster are stored.
+      The following example uses the ``mongocli atlas backup restore
+      start automated`` command to restore a deployment. The command
+      uses the {+default-profile+} where the project ID and the
+      |svc-api-key|\s for the source cluster are stored.
 
-.. code-block:: json 
+      .. code-block:: sh 
 
-   mongocli atlas backup restore start AUTOMATED_RESTORE --snapshotId 5e7e00128f8ce03996a47179 --clusterName myDemo --targetProjectId 1a2345b67c8e9a12f3456de7 --targetClusterName myBackup
+         mongocli atlas backup restore start automated \
+                  --clusterName myDemo \
+                  --snapshotId 5e7e00128f8ce03996a47179 \
+                  --targetClusterId 5e2f56937a3e5a26326a5ee8 \
+                  --targetProjectId 1a2345b67c8e9a12f3456de7
 
-The previous command prints the following fields to the terminal. To learn more 
-about these fields, see :ref:`mcli-atlas-backup-restore-start-output`. 
+      The previous command prints the following fields to the terminal.
+      To learn more about these fields, see
+      :ref:`mcli-atlas-backup-restore-start-output`. 
+      
+      .. code-block:: json
+         :copyable: false
 
-.. code-block:: json 
-   :copyable: false 
+         {
+           "cancelled": false,
+           "deliveryType": "automated",
+           "expired": false,
+           "expiresAt": "2020-05-04T16:25:01Z",
+           "id": "5e7e207f6b77fc028bee5e2d",
+           "links": [
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d/clusters/myCluster/backup/restoreJobs/5e7e207f6b77fc028bee5e2d",
+               "rel": "self"
+             },
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d/clusters/myCluster/backup/snapshots/5e7e00128f8ce03996a47179",
+               "rel": "http://example.mongodb.com/snapshot"
+             },
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d/clusters/myCluster",
+               "rel": "http://example.mongodb.com/cluster"
+             },
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d",
+               "rel": "http://example.mongodb.com/group"
+             }
+           ],
+           "snapshotId": "5e7e00128f8ce03996a47179",
+           "targetClusterName": "Cluster1",
+           "targetGroupId": "1a2345b67c8e9a12f3456de7",
+           "timestamp": "2020-05-03T16:25:01Z"
+         }
 
-   {
-	 "results": [
-		{
-			"clusterId": "5e7dff0f48c7230516c60639",
-			"created": "2020-03-27T15:37:25Z",
-			"clusterName": "myDemo",
-			"delivery": {
-				"expires": "2020-03-29T15:37:25Z",
-				"expirationHours": 48,
-				"maxDownloads": 2147483647,
-				"methodName": "HTTP",
-				"statusName": "READY",
-				"url": "https://api-backup-dev.mongodb.com/backup/restore/v2/pull/5e7e1db56b77fc028bee5376/ZmQ5OWIyMzZjNWM0NDY2ZDlhYjhkZGViYjVhMzMyMTY=/myDemo-shard-0-1585315789-5e7e1db56b77fc028bee5376.tar.gz",
-				"targetClusterId": "5e7d58fbf7c5207d678d7d6a",
-				"targetClusterName": "myBackup-shard-0",
-				"targetGroupId": "1a2345b67c8e9a12f3456de7"
-			},
-			"encryptionEnabled": false,
-			"groupId": "1a2345b67c8e9a12f3456de7",
-			"id": "5e7e1db56b77fc028bee5376",
-			"links": [
-				{
-					"rel": "self",
-					"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/1a2345b67c8e9a12f3456de7/clusters/myDemo/restoreJobs/5e7e1db56b77fc028bee5376"
-				}
-			],
-			"snapshotId": "5e7e00128f8ce03996a47179",
-			"statusName": "FINISHED",
-			"pointInTime": false,
-			"timestamp": {
-				"date": "2020-03-27T13:29:49Z",
-				"increment": 1
-			}
-		}
-	 ],
-	 "links": [
-		{
-			"rel": "self",
-			"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/1a2345b67c8e9a12f3456de7/clusters/myDemo/restoreJobs?batchId=5e7e1db56b77fc028bee5376"
-		}
-	 ],
-	 "totalCount": 1
-   }
+   .. tab:: Continuous Cloud Backup
+      :tabid: pit
 
-HTTP Example 
-~~~~~~~~~~~~
+      The following example uses the ``mongocli atlas backup restore
+      start download`` command to restore a deployment. The command
+      uses the {+default-profile+} where the project ID and the
+      |svc-api-key|\s for the source cluster are stored.
 
-The following example uses the ``mongocli atlas backup restore start 
-HTTP`` command to restore a deployment. The command uses the default
-profile where the project ID and the |svc-api-key|\s for the source 
-cluster are stored.
+      .. code-block:: sh 
+         
+         mongocli atlas backup restore start pointInTime \
+                  --clusterName myDemo \
+                  --pointInTimeUTCMillis 1588523147 \
+                  --targetClusterId 5e2f56937a3e5a26326a5ee8 \
+                  --targetProjectId 1a2345b67c8e9a12f3456de7
 
-.. code-block:: json 
+      The previous command prints the following fields to the terminal.
+      To learn more about these fields, see
+      :ref:`mcli-atlas-backup-restore-start-output`. 
+      
+      .. code-block:: json
+         :copyable: false
 
-  mongocli atlas backup restore start HTTP --snapshotId 5e7e00128f8ce03996a47179 --clusterName myDemo --maxDownloads 1 --expirationHours 1
+         {
+           "cancelled": false,
+           "deliveryType": "download",
+           "expired": false,
+           "expiresAt": "2020-05-04T16:25:01Z",
+           "id": "5e7e207f6b77fc028bee5e2d",
+           "links": [
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d/clusters/myCluster/backup/restoreJobs/5e7e207f6b77fc028bee5e2d",
+               "rel": "self"
+             },
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d/clusters/myCluster/backup/snapshots/5e7e00128f8ce03996a47179",
+               "rel": "http://example.mongodb.com/snapshot"
+             },
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d/clusters/myCluster",
+               "rel": "http://example.mongodb.com/cluster"
+             },
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d",
+               "rel": "http://example.mongodb.com/group"
+             }
+           ],
+           "pointInTimeUTCSeconds" : 1588523147,
+           "targetClusterName": "Cluster1",
+           "targetGroupId": "1a2345b67c8e9a12f3456de7",
+           "timestamp": "2020-05-03T16:25:01Z"
+         }
+       
+   .. tab:: Downloaded
+      :tabid: downloaded
 
-The previous command prints the following fields to the terminal. To learn more 
-about these fields, see :ref:`mcli-atlas-backup-restore-start-output`. 
+      The following example uses the ``mongocli atlas backup restore
+      start pointInTime`` command to restore a deployment. The command
+      uses the {+default-profile+} where the project ID and the
+      |svc-api-key|\s for the source cluster are stored.
 
-.. code-block:: json 
-   :copyable: false 
+      .. code-block:: sh 
+         
+         mongocli atlas backup restore start download \
+                  --clusterName myDemo \
+                  --snapshotId 5e7e00128f8ce03996a47179 
 
-   {
-	 "results": [
-		{
-			"clusterId": "5e7dff0f48c7230516c60639",
-			"created": "2020-03-27T15:49:19Z",
-			"clusterName": "myDemo",
-			"delivery": {
-				"expires": "2020-03-27T16:49:19Z",
-				"expirationHours": 1,
-				"maxDownloads": 1,
-				"methodName": "HTTP",
-				"statusName": "READY",
-				"url": "https://api-backup-dev.mongodb.com/backup/restore/v2/pull/5e7e207f6b77fc028bee5e2d/N2UxYTI2MTQwOGI5NGQ3M2FmZWJkMjA5ZjJkYWJjMTE=/myDemo-shard-0-1585315789-5e7e207f6b77fc028bee5e2d.tar.gz"
-			},
-			"encryptionEnabled": false,
-			"groupId": "1a2345b67c8e9a12f3456de7",
-			"id": "5e7e207f6b77fc028bee5e2d",
-			"links": [
-				{
-					"rel": "self",
-					"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/1a2345b67c8e9a12f3456de7/clusters/myDemo/restoreJobs/5e7e207f6b77fc028bee5e2d"
-				}
-			],
-			"snapshotId": "5e7e00128f8ce03996a47179",
-			"statusName": "FINISHED",
-			"pointInTime": false,
-			"timestamp": {
-				"date": "2020-03-27T13:29:49Z",
-				"increment": 1
-			}
-		}
-	 ],
-	 "links": [
-		{
-			"rel": "self",
-			"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/1a2345b67c8e9a12f3456de7/clusters/myDemo/restoreJobs/5e7e207f6b77fc028bee5e2d"
-		}
-	 ],
-	 "totalCount": 1
-   }
+      The previous command prints the following fields to the
+      terminal. To learn more about these fields, see
+      :ref:`mcli-atlas-backup-restore-start-output`.
+       
+      .. code-block:: json
+         :copyable: false
 
-
+         {
+           "cancelled": false,
+           "deliveryType": "download",
+           "expired": false,
+           "expiresAt": "2020-05-04T16:25:01Z",
+           "id": "5e7e207f6b77fc028bee5e2d",
+           "links": [
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d/clusters/myDemo/backup/restoreJobs/5e7e207f6b77fc028bee5e2d",
+               "rel": "self"
+             },
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d/clusters/myDemo/backup/snapshots/5e7e00128f8ce03996a47179",
+               "rel": "http://example.mongodb.com/snapshot"
+             },
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d/clusters/myDemo",
+               "rel": "http://example.mongodb.com/cluster"
+             },
+             {
+               "href": "https://example.mongodb.com/api/atlas/v1.0/groups/5e3f04ecf10fab66c7d4072d",
+               "rel": "http://example.mongodb.com/group"
+             }
+           ],
+           "snapshotId": "5e7e00128f8ce03996a47179",
+           "deliveryUrl": "https://example.mongodb.com/backup/restore/v2/pull/5e7e207f6b77fc028bee5e2d/N2UxYTI2MTQwOGI5NGQ3M2FmZWJkMjA5ZjJkYWJjMTE=/myDemo-shard-0-1585315789-5e7e207f6b77fc028bee5e2d.tar.gz",
+           "timestamp": "2020-05-03T16:25:01Z"
+         }
