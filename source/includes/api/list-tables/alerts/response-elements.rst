@@ -10,7 +10,7 @@
    * - | ``acknowledged``
        | ``Until``
      - string
-     - |Epoch-time| until which the alert has been acknowledged.
+     - |iso8601-time| until which the alert has been acknowledged.
 
        |mms| returns this value if the alert has been acknowledged.
 
@@ -37,26 +37,35 @@
      - string
      - Unique identifier for the cluster to which this alert applies.
 
-       |mms| returns this value if ``"eventTypeName"`` was set to
-       ``BACKUP``, ``REPLICA_SET``, or ``CLUSTER``.
+       |mms| returns this value if ``"eventTypeName"`` was set to one
+       of the following:
+
+       - ``BACKUP``
+       - ``REPLICA_SET``
+       - ``CLUSTER``
 
    * - ``clusterName``
      - string
      - Name of the cluster to which this alert applies.
 
-       |mms| returns this value if ``"eventTypeName"`` was set to
-       ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
+       |mms| returns this value if ``"eventTypeName"`` was set to one
+       of the following:
+
+       - ``BACKUP``
+       - ``REPLICA_SET``
+       - ``CLUSTER``
+       - ``OUTSIDE_METRIC_THRESHOLD``
 
    * - ``created``
      - string
-     - |Epoch-time| when the alert was opened.
+     - |iso8601-time| when the alert was opened.
 
    * - ``currentValue``
      - object
      - Current value of the metric that triggered the alert.
 
-       |mms| returns this value if ``"eventTypeName"`` was set to
-       ``HOST_METRIC``.
+       |mms| returns this value if
+       ``"eventTypeName" : "OUTSIDE_METRIC_THRESHOLD"``.
 
    * - | ``currentValue``
        | ``.number``
@@ -92,8 +101,12 @@
      - string
      - unique identifier for the host to which the metric pertains.
 
-       |mms| returns this value if ``"eventTypeName"`` was set to
-       ``HOST``, ``HOST_METRIC``, or ``REPLICA_SET``.
+       |mms| returns this value if ``"eventTypeName"`` was set to one
+       of the following:
+
+       - ``HOST_DOWN``
+       - ``OUTSIDE_METRIC_THRESHOLD``
+       - ``REPLICA_SET``
 
    * - ``hostnameAndPort``
      - string
@@ -101,16 +114,12 @@
        can be a hostname, an |fqdn|, an |ipv4| address, or an |ipv6|
        address.
 
-       |mms| returns this value if ``"eventTypeName"`` was set to
-       ``HOST``, ``HOST_METRIC``, or ``REPLICA_SET``.
+       |mms| returns this value if ``"eventTypeName"`` was set to one
+       of the following:
 
-   * - ``hostId``
-     - string
-     - Unique identifier for this alert.
-
-   * - ``humanReadable``
-     - string
-     - Notes about the alert in human-readable format.
+       - ``HOST_DOWN``
+       - ``OUTSIDE_METRIC_THRESHOLD``
+       - ``REPLICA_SET``
 
    * - ``id``
      - string
@@ -118,8 +127,8 @@
 
    * - ``lastNotified``
      - string
-     - |Epoch-time| when the last notification was sent for this alert.
-       Only displayed if notifications have been sent.
+     - |iso8601-time| when the last notification was sent for this
+       alert. |mms| returns this value if notifications have been sent.
 
    * - ``links``
      - array of objects
@@ -139,18 +148,24 @@
      - string
      - Name of the replica set.
 
-       |mms| returns this value if ``"eventTypeName"`` was set to
-       ``HOST``, ``HOST_METRIC``, ``BACKUP``, and ``REPLICA_SET``.
+       |mms| returns this value if ``"eventTypeName"`` was set to one
+       of the following:
+
+       - ``BACKUP``
+       - ``HOST_DOWN``
+       - ``OUTSIDE_METRIC_THRESHOLD``
+       - ``REPLICA_SET``
 
    * - ``resolved``
      - string
-     - |Epoch-time| when the alert was closed.
+     - |iso8601-time| when the alert was closed.
 
        |mms| returns this value if ``"status" : "CLOSED"``.
 
    * - ``status``
      - string
-     - Current state of the alert. |mms| can return:
+     - Current state of the alert. |mms| can return one of the
+       following:
 
        - ``TRACKING``
 
@@ -164,8 +179,8 @@
 
    * - ``sourceTypeName``
      - string
-     - Type of server being backed up when ``"eventTypeName" :
-       "BACKUP"``. |mms| can return:
+     - Type of host being backed up when ``"eventTypeName" :
+       "BACKUP"``. |mms| can return one of the following:
 
        - ``REPLICA_SET``
        - ``SHARDED_CLUSTER``
@@ -181,4 +196,4 @@
 
    * - ``updated``
      - string
-     - |Epoch-time| when the alert was last updated.
+     - |iso8601-time| when the alert was last updated.
