@@ -37,24 +37,15 @@
      - string
      - Unique identifier for the cluster to which this alert applies.
 
-       |mms| returns this value if ``"eventTypeName"`` was set to one
-       of the following:
-
-       - ``BACKUP``
-       - ``REPLICA_SET``
-       - ``CLUSTER``
+       |mms| returns this value if
+       ``"eventTypeName" : "SHARDED_CLUSTER"``
 
    * - ``clusterName``
      - string
      - Name of the cluster to which this alert applies.
 
-       |mms| returns this value if ``"eventTypeName"`` was set to one
-       of the following:
-
-       - ``BACKUP``
-       - ``REPLICA_SET``
-       - ``CLUSTER``
-       - ``OUTSIDE_METRIC_THRESHOLD``
+       |mms| returns this value if
+       ``"eventTypeName" : "SHARDED_CLUSTER"``
 
    * - ``created``
      - string
