@@ -40,10 +40,9 @@
      - The minimum Transport Layer Security (TLS) version the 
        cluster accepts for incoming connections. 
 
-       Clusters using the deprecated TLS 1.0 protocol version
-       should consider setting TLS 1.1 or later as the minimum
-       TLS protocol version. To learn more about TLS 1.0 deprecation,
-       see :ref:`faq-tls-1.0-deprecation`.
+       Clusters using TLS 1.0 or 1.1 should consider setting |tls| 1.2 
+       as the minimum |tls| protocol version. To learn more, see 
+       :ref:`faq-tls-1.0-deprecation`.
 
        This option corresponds to the
        :setting:`net.ssl.disabledProtocols` :binary:`~bin.mongod`
