@@ -1,3 +1,13 @@
+.. _data-lake-v20200714:
+
+14 July 2020 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Supports :pipeline:`$collStats` aggregation pipeline stage.
+- Includes performance optimizations for `ORC <https://orc.apache.org/docs/>`_ 
+  files.
+- Includes general performance and stability improvements.
+
 .. _data-lake-v20200707:
 
 07 July 2020 Release
