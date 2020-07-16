@@ -34,6 +34,7 @@ The following sections contain the:
 
 - Cluster-wide configuration properties
 - Replica set member configuration properties
+- Sharded cluster configuration properties
 
 Cluster-Wide Settings 
 ~~~~~~~~~~~~~~~~~~~~~
@@ -49,26 +50,47 @@ The configuration file for creating or updating a |cloud| or
      - Type 
      - Description 
 
+   * - ``name``
+     - string
+     - Name of the cluster.
+
+   * - ``version``
+     - string
+     - Version of the :manual:`mongod 
+       </reference/program/mongod/#bin.mongod>` process to deploy.
+
    * - ``featureCompatibilityVersion``
      - string
      - :manual:`Feature Compatibility Version 
        </reference/command/setFeatureCompatibilityVersion#dbcmd.setFeatureCompatibilityVersion>` 
        of the deployment. 
 
-   * - ``name``
-     - string
-     - Name of the cluster.
-
    * - ``processes``
-     - object
-     - Settings for the MongoDB process. Each object contain 
-       settings for one instance of the :manual:`mongod 
-       </reference/program/mongod/#bin.mongod>` process.
+     - array of objects
+     - Required for replica sets. An array of objects containing 
+       settings for each 
+       :manual:`mongod </reference/program/mongod/#bin.mongod>` 
+       process. Each ``mongod`` has 
+       :ref:`replica set member settings <replica-set-member-settings>`.
 
-   * - ``version``
-     - string
-     - Version of the :manual:`mongod 
-       </reference/program/mongod/#bin.mongod>` process to deploy.
+   * - ``shards``
+     - array of objects
+     - Required for sharded clusters. An array of objects containing 
+       settings for each shard.
+
+   * - ``config``
+     - object
+     - Required for sharded clusters. Object that contains your 
+       :manual:`config server </core/sharded-cluster-config-servers/>` 
+       replica set.
+
+   * - ``mongos``
+     - array of objects
+     - Required for sharded clusters. An array of objects containing 
+       settings for each :manual:`mongos </reference/program/mongos>` 
+       instance.
+
+.. _replica-set-member-settings:
 
 Replica Set Member Settings 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -131,7 +153,7 @@ replica set member:
 
    * - ``port``
      - integer
-     - Port for the replica set memeber. The :manual:`mongod 
+     - Port for the replica set member. The :manual:`mongod 
        </reference/program/mongod/#bin.mongod>` process 
        must have exclusive access to the specified port. 
      - yes
@@ -140,7 +162,7 @@ replica set member:
      - integer
      - :manual:`Priority 
        </reference/replica-configuration/#rsconf.members[n].priority>` 
-       of the replica set memeber during elections. Value 
+       of the replica set member during elections. Value 
        can be: 
 
        - ``0`` 
@@ -157,10 +179,42 @@ replica set member:
        votes in the election. Value can be: 
 
        - ``0`` if the replica set member cannot vote
-       - ``1`` if the replica set memeber can vote
+       - ``1`` if the replica set member can vote
 
        To learn more about ``votes``, see :manual:`votes 
        </reference/replica-configuration/#rsconf.members[n].votes>`.
+     - yes
+
+.. _shard-settings:
+
+Shard Settings 
+~~~~~~~~~~~~~~
+
+The configuration file for creating or updating a |cloud| or 
+|mms-full| cluster can contain the following settings for each 
+shard:
+
+.. list-table:: 
+   :header-rows: 1 
+   :widths: 20 10 60 10
+
+   * - Field 
+     - Type 
+     - Description 
+     - Required?
+
+   * - ``name``
+     - string
+     - Name of the of the shard.
+     - yes
+   
+   * - ``processes``
+     - array of objects
+     - An array of objects containing settings 
+       for each 
+       :manual:`mongod </reference/program/mongod/#bin.mongod>` 
+       process. Each ``mongod`` has 
+       :ref:`replica set member settings <replica-set-member-settings>`.
      - yes
 
 .. _mms-sample-config-file:
@@ -170,7 +224,7 @@ Sample Configuration File
 
 .. tabs:: 
 
-   .. tab:: YAML 
+   .. tab:: YAML Replica Set Configuration
       :tabid: yaml 
 
       .. code-block:: text 
@@ -198,7 +252,7 @@ Sample Configuration File
                votes: 1
                port: 29030
 
-   .. tab:: JSON 
+   .. tab:: JSON Replica Set Configuration
       :tabid: json 
 
       .. code-block:: json 
@@ -233,4 +287,103 @@ Sample Configuration File
                  "port": 30030
               }
             ]
+         }
+
+   .. tab:: JSON Sharded Cluster Configuration
+      :tabid: json-sharded 
+
+      .. code-block:: json 
+
+         {
+           "name": "myShardedCluster",
+           "version": "4.2.2",
+           "featureCompatibilityVersion": "4.2",
+           "shards": [
+             {
+               "name": "myShard_0",
+               "processes": [
+                 {
+                   "dbPath": "/data/myCluster/myShard_0/27000",
+                   "hostname": "host0.example",
+                   "logPath": "/data/myCluster/myShard_0/27000/mongodb.log",
+                   "port": 27000,
+                   "votes": 1
+                 },
+                 {
+                   "dbPath": "/data/myCluster/myShard_0/27001",
+                   "hostname": "host1.example",
+                   "logPath": "/data/myCluster/myShard_0/27001/mongodb.log",
+                   "port": 27001,
+                   "votes": 1
+                 },
+                 {
+                   "dbPath": "/data/myCluster/myShard_0/27002",
+                   "hostname": "host2.example",
+                   "logPath": "/data/myCluster/myShard_0/27002/mongodb.log",
+                   "port": 27002,
+                   "version": "4.2.8-ent",
+                   "votes": 1
+                 }
+               ]
+             },
+             {
+               "name": "myShard_1",
+               "processes": [
+                 {
+                   "dbPath": "/data/myCluster/myShard_1/28000",
+                   "hostname": "host3.example",
+                   "logPath": "/data/myCluster/myShard_1/28000/mongodb.log",
+                   "port": 28000,
+                   "votes": 1
+                 },
+                 {
+                   "dbPath": "/data/myCluster/myShard_1/28001",
+                   "hostname": "host4.example",
+                   "logPath": "/data/myCluster/myShard_1/28001/mongodb.log",
+                   "port": 28001,
+                   "votes": 1
+                 },
+                 {
+                   "dbPath": "/data/myCluster/myShard_1/28002",
+                   "hostname": "host5.example",
+                   "logPath": "/data/myCluster/myShard_1/28002/mongodb.log",
+                   "port": 28002,
+                   "votes": 1
+                 }
+               ]
+             }
+           ],
+           "config": {
+             "name": "configRS",
+             "processes": [
+               {
+                 "dbPath": "/data/myCluster/configRS/29000",
+                 "hostname": "host6.example",
+                 "logPath": "/data/myCluster/configRS/29000/mongodb.log",
+                 "port": 29000,
+                 "votes": 1
+               },
+               {
+                 "dbPath": "/data/myCluster/configRS/29001",
+                 "hostname": "host7.example",
+                 "logPath": "/data/myCluster/configRS/29001/mongodb.log",
+                 "port": 29001,
+                 "votes": 1
+               },
+               {
+                 "dbPath": "/data/myCluster/configRS/29002",
+                 "hostname": "host8.example",
+                 "logPath": "/data/myCluster/configRS/29002/mongodb.log",
+                 "port": 29002,
+                 "votes": 1
+               }
+             ]
+           },
+           "mongos": [
+             {
+               "hostname": "host9.example",
+               "logPath": "/data/myCluster/mongoses/27015/mongodb.log",
+               "port": 27015
+             }
+           ]
          }
