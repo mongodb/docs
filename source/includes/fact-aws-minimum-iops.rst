@@ -1,4 +1,4 @@
-|service| enforces the following minimum ratios for given cluster tiers. This keeps network performance consistent with large datasets.
+|service| enforces the following minimum ratios for given cluster tiers. This keeps cluster performance consistent with large datasets.
 
 .. list-table::
    :header-rows: 1
