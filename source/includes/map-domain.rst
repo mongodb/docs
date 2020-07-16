@@ -8,7 +8,7 @@ When users visit the |mms| login page, they enter their email address.
 If the email domain is associated with an IdP, they are sent to the custom
 Login URL for that IdP.
 
-.. include:: /includes/multiple-idps-note.rst
+.. include:: /includes/admonitions/use-alternate-idp-multiple-mapped-domains.rst
 
 Use the :guilabel:`Federation Management Console` to map your domain
 to the |idp|:
