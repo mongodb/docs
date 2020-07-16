@@ -14,7 +14,7 @@
      * - ``cloudProviderConfig.<provider>``
        - object
        - Name of the provider of the cloud service where {+data-lake-short+} 
-         can access the S3 Bucket data stores. 
+         can access the |s3| Bucket data stores. 
 
          {+data-lake-short+} only supports ``AWS``.
 
@@ -38,10 +38,10 @@
 
      * - ``dataProcessRegion``
        - Optional
-       - The cloud provider region to which {+data-lake+} routes
+       - Cloud provider region to which {+data-lake+} routes
          client connections for data processing.
 
-         If ``null``, the {+data-lake+} routes client connections to the
+         If ``null``, {+data-lake+} routes client connections to the
          region nearest to the client based on DNS resolution.
 
      * - ``dataProcessRegion.cloudProvider``
@@ -66,11 +66,11 @@
 
      * - ``groupId``
        - string
-       - The unique identifier for the project.
+       - Unique identifier of the project.
 
      * - ``hostnames``
        - array
-       - The list of hostnames assigned to the {+data-lake+}. Each string 
+       - List of hostnames assigned to the {+data-lake+}. Each string 
          in the array is a hostname assigned to the {+data-lake+}.
 
      * - ``name``
@@ -83,11 +83,11 @@
 
          - ``ACTIVE`` - The {+data-lake-short+} is active and 
            verified. You can query the
-           {+data-lake-stores+} associated to the {+data-lake+}.
+           {+data-lake-stores+} associated with the {+data-lake+}.
 
          - ``UNVERIFIED`` - The {+data-lake+} has an incomplete 
            configuration *or* the provided credentials do not grant 
-           the access to the {+data-lake-stores+}. 
+           access to the {+data-lake-stores+}. 
 
            For |aws| specifically, the
            provided ``cloudProviderConfig.aws.iamAssumedRoleARN`` 
