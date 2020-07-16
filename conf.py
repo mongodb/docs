@@ -67,6 +67,10 @@ source_constants = {
     'aagent': 'Automation Agent',
     'magent': 'Monitoring Agent',
     'bagent': 'Backup Agent',
+    'data-lake': 'Atlas Data Lake',
+    'data-lake-short': 'Data Lake',
+    'data-lake-stores': 'data stores',
+    'data-lake-store': 'data store'
 }
 
 rst_epilog = '\n'.join([
