@@ -37,7 +37,7 @@
          <https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazons3.html>`_.
 
      * - ``dataProcessRegion``
-       - Object
+       - object
        - Cloud provider region to which {+data-lake+} routes
          client connections for data processing.
 
@@ -45,13 +45,13 @@
          region nearest to the client based on DNS resolution.
 
      * - ``dataProcessRegion.cloudProvider``
-       - String
+       - string
        - Name of the cloud service provider. 
 
          {+data-lake+} only supports ``AWS``.
 
      * - ``dataProcessRegion.region``
-       - String
+       - string
        - Name of the region to which {+data-lake+} routes client 
          connections for data processing.
 
