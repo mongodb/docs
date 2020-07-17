@@ -15,78 +15,216 @@ Path Syntax Examples
 Overview 
 --------
 
+When you query documents in your |s3| buckets, the {+adl+} 
+:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` 
+value allows {+dl+} to map the data inside your document to the 
+filename of the document. 
+
 :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path`
-supports parsing filenames into computed fields. {+data-lake-short+}
-can add the computed fields to each document generated from the
-parsed file. {+data-lake-short+} can target queries on those
-computed field values to only those file(s) with a matching file name.
+supports parsing filenames in |s3| buckets into computed fields. 
+{+data-lake-short+} can add the computed fields to each document 
+generated from the parsed file. {+data-lake-short+} can target 
+queries on those computed field values to only those file(s) with 
+a matching file name. See :ref:`supported-parsing-funcs` and 
+:ref:`datalake-path-syntax-egs` for more information.
 
-- You can specify a single parsing function on the filename:
+:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path`
+also supports creating partitions using partition attributes in the 
+path to the file. {+data-lake-short+} can target queries on the 
+parameter defined in the partition attribute to only those files 
+that contain the query in the filename or partition prefix.
 
-  .. code-block:: none
-     :copyable: false
+.. example::
 
-     /path/to/files/{<fieldA> <data-type>}
+   Consider the following files in your |s3| bucket: 
 
-- You can specify multiple parsing functions on the filename:
+   .. code-block:: sh 
+      :copyable: false
 
-  .. code-block:: none
-     :copyable: false
+      /users/1234.json
+      /users/5678.json
 
-     /path/to/files/{<fieldA> <data-type>}-{<fieldB> <data-type>}
+   The |json| document ``1234.json`` contains the following: 
 
-- You can specify parsing functions alongside static strings
-  in the filename:
+   .. code-block:: json 
+      :copyable: false
 
-  .. code-block:: none
-     :copyable: false
-   
-     /path/to/files/prefix-{<fieldA> <data-type>}-suffix
+      {
+        "name": "jane doe",
+        "age": 26,
+        "userID": "1234"
+      }
 
-- You can specify dot (i.e. ``.``) along the path to the filename:
+   Your {+dl+} configuration for the files in your |s3| bucket defines 
+   the following ``path``:
 
-  .. code-block:: none 
-     :copyable: false 
+   .. code-block:: sh 
+      :copyable: false 
 
-     /path/to/files/{<fieldA>.<fieldB> <data-type>}
+      "path": "/users/{age int}/{userID string}"
+       
+   The following shows how {+dl+} maps a query to the 
+   partitions created from the ``path`` definition: 
 
-- You can specify ``ObjectIds`` in the path to the files to create 
-  partitions:
+   .. code-block:: json 
+      :copyable: false 
 
-  .. code-block:: none 
-     :copyable: false
+      db.users.findOne(                /users
+        {                                /40 
+          "age": 26 ----------------->   /26
+          "userID": "1234" ---------->     /1234.json
+        }                                  /5678.json
+      )
 
-     /path/to/files/{objid objectid}
+If the computed field for the partition attribute already exists 
+in your document, {+dl+} maps your query to the appropriate file. 
+If the computed field does not exist, {+dl+} adds the computed 
+field to the document. For example, if the ``age`` field does not 
+exist in ``1234.json``, {+dl+} adds the ``age`` field and value to 
+``1234.json``.
 
-- You can specify a range of ``ObjectIds`` in the path to the files 
-  to create partitions:
+.. _supported-parsing-funcs:
 
-  .. code-block:: none 
-     :copyable: false
+Supported Parsing Functions 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     /path/to/files/{min(obj) objectid}-{max(obj) objectid}
+.. list-table:: 
+   :widths: 30 70 
 
-- You can specify parsing functions along the path to the filename:
+   * - You can specify a single parsing function on the filename.
+     - .. code-block:: none
+          :copyable: false
 
-  .. code-block:: none
-     :copyable: false 
+          /path/to/files/{<fieldA> <data-type>}
 
-     /path/{<fieldA> <data-type>}/{<fieldB> <data-type>}/{<fieldC> <data-type>}/*
+   * - You can specify multiple parsing functions on the filename.
+     - .. code-block:: none
+          :copyable: false
 
-The default data type for partition attributes in the 
-:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` is string. 
-If you omit the data type, defaults to string. For example, suppose a path similar 
-to the following:
+          /path/to/files/{<fieldA> <data-type>}-{<fieldB> <data-type>}
+
+   * - You can specify parsing functions alongside static strings in the   
+       filename:
+     - .. code-block:: none
+          :copyable: false
+
+          /path/to/files/prefix-{<fieldA> <data-type>}-suffix
+
+   * - You can specify dot (i.e. ``.``) along the path to the filename.
+     - .. code-block:: none 
+          :copyable: false 
+
+          /path/to/files/{<fieldA>.<fieldB> <data-type>}
+
+   * - You can specify ``ObjectIds`` in the path to the files to create 
+       partitions.
+     - .. code-block:: none 
+          :copyable: false
+
+          /path/to/files/{objid objectid}
+
+   * - You can specify a range of ``ObjectIds`` in the path to the files to 
+       create partitions.
+     - .. code-block:: none 
+          :copyable: false
+
+          /path/to/files/{min(obj) objectid}-{max(obj) objectid}
+
+   * - You can specify parsing functions along the path to the filename.
+     - .. code-block:: none
+          :copyable: false 
+
+          /path/{<fieldA> <data-type>}/{<fieldB> <data-type>}/{<fieldC> <data-type>}/*
+
+.. note::
+
+   .. include:: /includes/fact-path-delimiter.rst
+
+.. _parse-null-values:
+
+Parsing Null Values from Filenames 
+``````````````````````````````````
+
+{+dl+} automatically parses an empty string (``""``) in the place of an
+attribute in the file path as the BSON null value for all the {+adl+} attribute 
+types except ``string``. With a ``string``, empty string could either represent 
+a BSON null value or a BSON empty string value. {+adl+} does not parse any BSON 
+value for ``string`` attribute type. This avoids adding a BSON value with a 
+conflicting type to documents read from |s3|.
+
+.. example:: 
+
+   Consider the following |s3| {+data-lake-store+}:
 
 .. code-block:: none 
-   :copyable: false 
+   :emphasize-lines: 3
 
-   /employees/{startDate}
+   /records/january/1.json
+   /records/february/1.json
+   /records//1.json
 
-In the above example, ``startDate`` is interpreted as a string. For more 
-information on all supported data types, see :ref:`datalake-path-attribute-types`. 
+   For the path ``/records/{month string}/*``, {+dl+} does not add any 
+   computed fields for the ``month`` attribute to documents generated 
+   from the third record in the above store. 
 
-.. include:: /includes/fact-path-delimiter.rst
+.. note:: 
+
+   When writing files to |s3|, write |bson| null values as empty 
+   strings in filenames for all {+adl+} attribute types.
+
+.. _parse-padded-numeric-values:
+
+Parsing Padded Numbers from Filenames 
+`````````````````````````````````````
+
+File path can include numeric values that are padded with leading zeros. For 
+{+dl+} to correctly parse padded numeric values for attribute types like 
+``int``, ``epoch_millis``, and ``epoch_secs``, specify the number of digits in 
+the value using regular expressions. 
+
+.. example::
+
+   Consider a |s3| store with the following files: 
+
+   .. code-block:: text 
+      :copyable: false 
+
+      |--users
+         |--001.json
+         |--002.json
+         ...
+
+   The following ``path`` syntax uses a regular expression to specify the 
+   number of digits in the filename. {+dl+} identifies the portion of the 
+   path that corresponds to the partition attribute and then maps that 
+   partition attribute to a type ``int``:
+
+   .. code-block:: sh
+      :copyable: false
+
+      /users/{user_id int:\\d{3}}
+
+Default Partition Attribute Type 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The partition attributes in the 
+:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` defaults to 
+string if you don't set a different data type. 
+
+.. example:: 
+
+   Suppose a path similar to the following:
+
+   .. code-block:: none 
+      :copyable: false 
+
+      /employees/{startDate}
+
+   ``startDate`` is interpreted as a string. 
+
+.. seealso:: 
+
+   :ref:`datalake-path-attribute-types`
 
 .. _datalake-path-syntax-egs:
 
@@ -572,5 +710,45 @@ results in the following collections:
 - SuperSoftware
 - UltraSoftware
 - MegaSoftware
+
+Or, consider a {+data-lake-store+} ``accountingArchive``  with the
+following files:
+
+.. code-block:: text
+   :copyable: false
+
+   /orders/MONGODB-invoices-jan.json
+   /orders/MONGODB-purchaseOrders-jan.json
+   /orders/MONGODB-invoices-feb.json
+   ...
+
+The following :ref:`datalake-databases-reference` object 
+generates a dynamic collection name from the file path:
+
+.. code-block:: json
+   :copyable: false
+
+   "databases" : [
+     {
+       "name" : "invoices",
+       "collections" : [
+         {
+           "name" : "*", 
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/orders/MONGODB-{collectionName()}/{invoiceMonth string}.json/"
+             }
+           ]
+         }
+       ]
+     }
+   ]
+
+When applied to the example filenames, the path 
+results in the following collections:
+
+- ``invoices``
+- ``purchaseOrders``
 
 .. include:: /includes/fact-data-lake-dynamic-collections.rst

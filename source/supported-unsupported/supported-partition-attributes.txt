@@ -1,8 +1,8 @@
 .. _datalake-path-attribute-types:
 
-===================================
-Supported Partition Attribute Types
-===================================
+=========================
+Partition Attribute Types
+=========================
 
 .. default-domain:: mongodb
 
@@ -10,13 +10,19 @@ Supported Partition Attribute Types
    :local:
    :backlinks: none
    :depth: 2
-   :class: singlecol
+   :class: singlecol 
 
-The following table lists the supported data types for partition attributes and 
-an example :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` 
-for each data type:
+.. note::
 
-.. include:: /includes/fact-path-delimiter.rst
+   .. include:: /includes/fact-path-delimiter.rst
+
+Supported Partition Attribute Types
+-----------------------------------
+
+The following table lists the supported data types for partition 
+attributes, filename, and 
+:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` 
+example for each data type:
 
 .. list-table::
    :header-rows: 1
@@ -38,8 +44,7 @@ for each data type:
 
        path: ``employees/{phone}``
 
-       In the above ``path`` examples, ``phone`` is interpreted 
-       as a string.
+       In the preceding ``path`` examples, {+dl+} interprets ``phone``  as a string.
 
        .. seealso:: 
         
@@ -51,8 +56,7 @@ for each data type:
 
        path: ``/zipcodes/{zipcode int}``
 
-       In the above example, ``zipcode`` is interpreted 
-       as an integer.
+       In the preceding example, {+dl+} interprets ``zipcode`` as an integer.
 
        .. seealso:: 
         
@@ -66,8 +70,8 @@ for each data type:
 
        path: ``/metrics/{startTimestamp isodate}``
 
-       In the above example, ``startTimestamp`` is interpreted 
-       as an :manual:`ISODate </reference/glossary/#term-isodate>`. 
+       In the preceding example, {+dl+} interprets ``startTimestamp`` as an 
+       :manual:`ISODate </reference/glossary/#term-isodate>`. 
        Partitions with the following date formats are also supported 
        by the :manual:`ISODate </reference/glossary/#term-isodate>` 
        attribute: 
@@ -100,8 +104,8 @@ for each data type:
 
        path: ``/metrics/{startTimestamp epoch_secs}``
 
-       In the above example, ``startTimestamp`` is interpreted 
-       as a Unix timestamp in seconds.
+       In the preceding example, {+dl+} interprets ``startTimestamp`` as a Unix 
+       timestamp in seconds.
 
        .. seealso:: 
         
@@ -113,8 +117,8 @@ for each data type:
 
        path: ``/metrics/{startTimestamp epoch_millis}``
 
-       In the above example, ``startTimestamp`` is interpreted 
-       as a Unix timestamp in milliseconds.
+       In the preceding example, {+dl+} interprets ``startTimestamp`` as a Unix 
+       timestamp in milliseconds.
 
        .. seealso:: 
         
@@ -127,8 +131,8 @@ for each data type:
 
        path: ``/metrics/{objid objectid}``
 
-       In the above example, ``objid``  is interpreted 
-       as an :manual:`ObjectId </reference/method/ObjectId/>`.
+       In the preceding example, {+dl+} interprets ``objid`` as an 
+       :manual:`ObjectId </reference/method/ObjectId/>`.
 
    * - ``uuid`` 
      - Parses the filename as a `UUID of binary subtype 
@@ -137,8 +141,8 @@ for each data type:
 
        path: ``/metrics/{myUuid uuid}``
 
-       In the above example, ``myUuid``  is interpreted 
-       as a `UUID <http://bsonspec.org/spec.html>`__ of binary subtype 4.
+       In the preceding example, {+dl+} interprets ``myUuid`` as a `UUID 
+       <http://bsonspec.org/spec.html>`__ of binary subtype 4.
 
 .. note:: 
 
@@ -146,51 +150,56 @@ for each data type:
    <https://golang.org/pkg/regexp/syntax/>`__ for regular expressions 
    in the path to the filename.
 
-.. _parse-null-values:
+Supported Conversions
+---------------------
 
-Parsing Null Values from Filenames 
-----------------------------------
+{+adl+} converts the partition attributes to `BSON types 
+<http://bsonspec.org/spec.html>`_ when parsing the 
+:datalakeconf:`path <databases.[n].collections.[n].dataSources.[n].path>` 
+to the filename. Later writes of data to |s3| must use the |bson| types 
+after converting them to string. The following table shows:
 
-If there is an empty string (``""``) in the place of an attribute in the path 
-to the file, {+dl+} automatically parses it as a null value for all the 
-attribute types except ``string``. For example, consider the following |s3| 
-{+data-lake-store+}:
+- The partition attribute types and the |bson| types to which {+dl+} converts 
+  them.
+- The |bson| data type to convert to a string for later writes to |s3|.
 
-.. code-block:: none 
-   :emphasize-lines: 3
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 40 40
 
-   /records/january/1.json
-   /records/february/1.json
-   /records//1.json
+   * - Partition Attribute Type
+     - Parsed |bson| Type
+     - Source |bson| Type
 
-For the path ``/records/{month string}/*``, {+dl+} does not add any 
-computed fields for the ``month`` attribute to documents generated 
-from the third record in the above store. 
+   * - ``string``
+     - - UTF-8 string
+       - null*
+     - - UTF-8 string
+       - null
 
-.. _parse-padded-numeric-values:
+   * - ``int``
+     - - 64-bit integer
+       - null
+     - - 32-bit integer
+       - 64-bit integer
+       - null (as strings with no padding)
 
-Parsing Padded Numbers from Filenames 
--------------------------------------
+   * - ``isodate``
+     - - UTC datetime
+       - null
+     - - UTC datetime (as an `ISO-8601 <https://tools.ietf.org/html/rfc3339>`_ 
+         format string)
+       - null
 
-For attribute types like ``int``, ``epoch_millis``, and ``epoch_secs``, 
-if you want {+dl+} to correctly parse numeric values that are padded 
-with leading zeros in the path to the file, specify the number 
-of digits in the padded value using regular expressions. For example, 
-consider a |s3| store with the following files: 
+   * - ``objectid``
+     - - :manual:`ObjectId </reference/method/ObjectId/>`
+       - null
+     - - :manual:`ObjectId </reference/method/ObjectId/>` (as a string 
+         with hex encoding)
+       - null
 
-.. code-block:: text 
-   :copyable: false 
-
-   |--users
-      |--001.json
-      |--002.json
-      ...
-
-The following ``path`` syntax uses a regular expression with the 
-``int`` attribute type to specify the number of digits in the 
-filename:
-
-.. code-block:: sh
-   :copyable: false
-
-   /users/{user_id int:\\d{3}}
+   * - ``uuid``
+     - - |bson| `Binary data subtype 4 (UUID) <http://bsonspec.org/spec.html>`_ 
+       - null
+     - - |bson| `Binary data subtype 4 (UUID) <http://bsonspec.org/spec.html>`_
+       - null
