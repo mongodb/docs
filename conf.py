@@ -212,7 +212,8 @@ extlinks = {
     'website': ('https://www.mongodb.com%s?jmp=docs',''),
     'k8sdocs': ('https://kubernetes.io/docs%s', ''),
     'gh' : ('https://github.com%s', ''),
-    'svc-cat' : ('https://svc-cat.io/docs%s', '')
+    'svc-cat' : ('https://svc-cat.io/docs%s', ''),
+    'datalake' : ('https://docs.mongodb.com/datalake%s', '')
 }
 
 intersphinx_mapping = {}
