@@ -1,3 +1,4 @@
 .. note::
-   The |bi| and associated utilities are compatible only with MongoDB
-   server version 3.2 or greater.
+   The |bi| and associated utilities are compatible with all `currently
+   supported <https://www.mongodb.com/support-policy>`__ MongoDB server
+   versions.
