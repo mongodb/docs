@@ -1,0 +1,143 @@
+.. _adl-collstats-stage:
+
+==============
+``$collStats``
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+``$collStats`` returns statistics for a given collection. ``$collstats`` must 
+be the first stage in the aggregation pipeline. For more information, 
+see :manual:`$collStats </reference/operator/aggregation/collStats/>`. In  
+{+data-lake+}, ``$collStats`` can only be used to retrieve information about the 
+partitions for a given collection or view.
+
+.. _adl-collstats-syntax: 
+
+Syntax 
+------
+
+In {+adl+}, :manual:`$collStats </reference/operator/aggregation/collStats/>` 
+accepts an empty document. It does not support any of the optional fields 
+supported by the MongoDB server and returns an error if an unsupported option 
+is specified.
+
+.. code-block:: sh 
+
+   db.<collection-name>|<view-name>.aggregate([{ "$collStats" : {} }])
+
+.. _adl-collstats-output:
+
+Output 
+------
+
+``$collStats`` returns the following fields in the document for each partition: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 70
+
+   * - Field 
+     - Type 
+     - Description 
+
+   * - ``ns``
+     - string
+     - The namespace of the current collection or view in the format 
+       ``[database].[collection|view]``.
+
+   * - ``partition``
+     - document
+     - The details about the partition such as the source, format, size, and 
+       :ref:`partition attributes <datalake-path-attribute-types>`, if any.
+
+   * - ``partition.format``
+     - string
+     - The format of the file. Value can be any of the  
+       :ref:`data-lake-data-formats` for data in |s3| bucket or ``MONGO`` for 
+       data in the |service| cluster.
+
+   * - ``partition.attributes``
+     - document
+     - The :ref:`partition attributes <datalake-path-attribute-types>` for this 
+       partition defined in the 
+       :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` for 
+       |s3| partitions. An empty document indicates that there are no partition 
+       attributes in the partition's data source.
+
+   * - ``partition.size``
+     - int
+     - The size of the partition.
+
+   * - ``partition.source``
+     - string
+     - The source for the partition. The value can be one of the following:
+     
+       - The path to the file on |s3|.
+       - The cluster name for partitions on |service|.
+
+.. _adl-collstats-egs:
+
+Examples 
+--------
+
+The following example shows :manual:`$collStats 
+</reference/operator/aggregation/collStats/>` syntax for retrieving the 
+partitions from a ``s3Db.abc`` collection with 3 files in an |s3| 
+{+data-lake-store+}:
+
+.. code-block:: sh 
+
+   use s3Db
+   db.abc.aggregate([ {$collStats: {}} ])
+
+The preceding command returns the following output:
+
+.. code-block:: json 
+   :copyable: false 
+
+   { "ns" : "s3Db.abc", "partition" : { "format" : "JSON", "attributes" : { "year" : NumberLong(2018) }, "size" : 139, "source" : "s3://my-bucket/s3Db/abc/2018/1.json?delimiter=%2F&region=us-east-1" } }
+   { "ns" : "s3Db.abc", "partition" : { "format" : "JSON", "attributes" : { "year" : NumberLong(2017) }, "size" : 124, "source" : "s3://my-bucket/s3Db/abc/2017/1.json?delimiter=%2F&region=us-east-1" } }
+   { "ns" : "s3Db.abc", "partition" : { "format" : "JSON", "attributes" : { "year" : NumberLong(2017) }, "size" : 130, "source" : "s3://my-bucket/s3Db/abc/2017/2.json?delimiter=%2F&region=us-east-1" } }
+
+The following example shows :manual:`$collStats 
+</reference/operator/aggregation/collStats/>` syntax for retrieving the 
+partitions from the ``atlasDb.sampleColl`` collection in the |service| cluster 
+named ``mySandboxCluster``: 
+
+.. code-block:: sh 
+
+   use atlasDb
+   db.sampleColl.aggregate([ {$collStats: {}} ])
+
+The preceding command returns the following output: 
+
+.. code-block:: json 
+   :copyable: false 
+
+   { "ns" : "atlasDb.sampleColl", "partition" : { "format" : "MONGO", "attributes" : {  }, "size" : 94362191, "source" : "mySandboxCluster" } }
+
+.. _adl-collstats-errors:
+
+Errors 
+------
+
+An error similar to the following is returned if the :manual:`collStats 
+</reference/operator/aggregation/collStats/>` argument document contains 
+any of the options allowed by the MongoDB server but not by {+adl+}.
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+	  "ok" : 0,
+	  "errmsg" : "$collStats param 'latencyStats' is not valid for Data Lake, correlationID = 1622929884a47d16f4888a1c",
+	  "code" : 9,
+	  "codeName" : "FailedToParse"
+   }
