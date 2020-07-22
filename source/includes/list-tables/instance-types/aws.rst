@@ -98,8 +98,7 @@
      - 4 TB
      - 768 GB
 
-:sup:`1` Unavailable if ``providerSettings.regionName`` equals
-``AP_SOUTHEAST_2``.
+:sup:`1` Unavailable in the ``AP_SOUTHEAST_2`` region.
 
 :sup:`2` Availability limited to the following regions:
 

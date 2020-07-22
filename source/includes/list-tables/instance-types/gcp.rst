@@ -82,7 +82,7 @@
      - 4096 GB
      - 640 GB
 
-:sup:`1` Unavailable if ``providerSettings.regionName`` equals:
+:sup:`1` Unavailable in the following regions:
 
 - ``SOUTH_AMERICA_EAST_1``
 - ``EUROPE_WEST_3``
@@ -100,4 +100,3 @@ regions:
 - ``europe-west4``
 - ``us-central1``
 - ``us-west1``
-
