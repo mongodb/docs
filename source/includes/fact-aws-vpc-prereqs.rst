@@ -1,4 +1,4 @@
-- Create the following network traffic rules on your |aws| |cidr|:
+- Create the following network traffic rule on your |aws| |cidr|:
 
   .. list-table::
      :header-rows: 1
@@ -8,11 +8,6 @@
        - Direction
        - Port
        - Target
-
-     * - Allow
-       - inbound
-       - 443
-       - from your |service| |cidr|
 
      * - Allow
        - outbound
