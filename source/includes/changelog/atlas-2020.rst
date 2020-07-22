@@ -1,3 +1,11 @@
+.. _atlas_20200721:
+
+21 July 2020 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- :ref:`Cloud Backups <backup-cloud-provider>` on Azure now use incremental
+  snapshots.
+
 .. _atlas_20200624:
 
 24 June 2020 Release
