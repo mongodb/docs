@@ -26,30 +26,44 @@
      - 32 GB
      - 8 GB
 
-   * - ``M40`` or ``R40``
+   * - ``M40 or R40``
      - 128 GB
      - 16 GB
 
-   * - ``M50`` or ``R50``
+   * - ``M50 or R50``
      - 128 GB
      - 32 GB
 
-   * - ``M60`` or ``R60``
+   * - ``M60 or R60``
      - 128 GB
      - 64 GB
 
-   * - ``M80`` or ``R80``
+   * - ``M80 or R80``
      - 256 GB
      - 128 GB
 
-   * - ``M200`` or ``R200``
+   * - ``M200 or R200``
      - 256 GB
      - 256 GB
 
-   * - ``R300``
+   * - ``R300`` :sup:`1`
      - 512 GB
      - 384 GB
-   
+
    * - ``R400``
      - 512 GB
      - 432 GB
+
+:sup:`1` Not available in the following regions:
+
+- ``germanywestcentral``
+- ``switzerlandnorth``
+- ``switzerlandwest``
+
+.. admonition:: Cluster Tier Naming Conventions
+   :class: note
+
+   Cluster tier names that are:
+
+   - Prepended with ``R`` instead of an ``M`` (``R40`` for example) run
+     a low CPU version of the cluster.
