@@ -26,6 +26,15 @@
 
      - MongoDB TLS/SSL certificate authentication.
 
+   * - ``MONGODB-AWS``
+
+     - External authentication using AWS IAM credentials for use in
+       connecting to a
+       `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?tck=docs_server>`_
+       cluster. See :ref:`example-connect-mongo-using-aws-iam`.
+
+       .. versionadded:: 4.4
+
    * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
 
      - External authentication using Kerberos. This mechanism is
