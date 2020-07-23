@@ -5,6 +5,7 @@
 
 - :ref:`Cloud Backups <backup-cloud-provider>` on Azure now use incremental
   snapshots.
+- Introduces :ref:`Low-CPU Cluster Tiers <storage-class-ui>` on Azure.
 
 .. _atlas_20200624:
 
