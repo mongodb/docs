@@ -1,5 +1,4 @@
 .. list-table::
-   :class: index-table index-table-less-padding
 
    * - .. list-table::
           :header-rows: 1

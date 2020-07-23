@@ -8,8 +8,6 @@ Consider a ``inventory`` collection with the following documents:
 The following aggregation pipeline operation calculates the total in
 stock for each item and adds to the ``instock`` document:
 
-.. cssclass:: copyable-code
-
 .. code-block:: javascript
 
    db.inventory.aggregate( [
