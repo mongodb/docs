@@ -1,5 +1,5 @@
-.. admonition:: Availability
-   :class: important
+.. important:: Availability
+
 
    Starting in MongoDB 4.2.1,
    :data:`replSetGetStatus.initialSyncStatus` metrics are only

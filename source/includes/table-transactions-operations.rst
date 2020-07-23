@@ -69,7 +69,9 @@
        For fcv ``"4.2"`` or less, if ``upsert: true``, the operation
        must be run against an existing collection.
        
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+   :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.insertMany()`
        | :method:`db.collection.insertOne()`
@@ -84,7 +86,9 @@
        For fcv ``"4.2"`` or less, can only be run against an existing
        collection.
        
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+   :ref:`transactions-operations-ddl`
 
    * - :method:`db.collection.save()`
      - 
@@ -95,7 +99,9 @@
        With fcv ``"4.2"`` or less, if an insert, can only be run against an
        existing collection.
 
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+   :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.updateOne()`
        | :method:`db.collection.updateMany()`
@@ -111,7 +117,9 @@
        For fcv ``"4.2"`` or less, if ``upsert: true``, the operation must be
        run against an existing collection.
 
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+   :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.bulkWrite()`
        | Various :doc:`/reference/method/js-bulk`
@@ -124,4 +132,6 @@
        For fcv ``"4.2"`` or less, the collection must already exist for
        insert and ``upsert: true`` operations.
        
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+   :ref:`transactions-operations-ddl`

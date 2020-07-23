@@ -1,5 +1,5 @@
-.. admonition:: MongoDB does not support duplicate field names
-   :class: warning
+.. warning:: MongoDB does not support duplicate field names
+
 
    The MongoDB Query Language is undefined over documents with
    duplicate field names. BSON builders may support creating a BSON 
