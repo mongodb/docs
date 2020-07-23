@@ -4,7 +4,7 @@ the database. As of MongoDB 3.6, this value is ``100,000``.
 This value is shown in the :data:`isMaster.maxWriteBatchSize` field.
 
 This limit prevents issues with oversized error messages. If a group
-exceeds this :limit:`limit<Write Command Operation Limit Size>`,
+exceeds this :limit:`limit <Write Command Batch Limit Size>`,
 the client driver divides the group into smaller groups with counts
 less than or equal to the value of the limit. For example, with the
 ``maxWriteBatchSize`` value of ``100,000``, if the queue consists of

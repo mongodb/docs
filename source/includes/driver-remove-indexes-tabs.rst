@@ -18,8 +18,6 @@
          For example, the following operation removes an ascending index on the
          ``tax-id`` field in the ``accounts`` collection:
 
-         .. cssclass:: copyable-code
-
          .. code-block:: javascript
 
             db.accounts.dropIndex( { "tax-id": 1 } )
@@ -58,14 +56,13 @@
          For example, the following command removes all indexes from
          the ``accounts`` collection:
 
-         .. cssclass:: copyable-code
          .. code-block:: javascript
 
             db.accounts.dropIndexes()
 
          These shell helpers provide wrappers around the
-         :dbcommand:`dropIndexes` :term:`database command`. Your :ecosystem:`client
-         library </drivers>` may have a different or additional
+         :dbcommand:`dropIndexes` :term:`database command`. Your :driver:`client
+         library </>` may have a different or additional
          interface for these operations.
 
      - id: compass
