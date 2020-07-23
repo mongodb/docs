@@ -5,7 +5,7 @@
 
 If you need guidance on upgrading to |newversion|, `MongoDB offers major version
 upgrade services
-<https://www.mongodb.com/products/consulting?jmp=docs>`_ to help ensure
+<https://www.mongodb.com/products/consulting?tck=docs_server>`_ to help ensure
 a smooth transition without interruption to your MongoDB application.
 
 Upgrade Recommendations and Checklists
