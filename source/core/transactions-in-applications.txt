@@ -7,8 +7,7 @@ Drivers API
 
 .. default-domain:: mongodb
 
-.. role:: red(strong)
-   :class: text-danger
+
 
 .. contents:: On this page
    :local:
@@ -51,199 +50,15 @@ The new callback API incorporates logic:
 - To retry the commit operation if the commit encounters an
   :ref:`unknown-transaction-commit-result`.
 
-.. container::
+.. tabs-pillstrip:: languages
 
-   .. tabs-pillstrip:: languages
+.. tabs-drivers::
 
-   .. tabs-drivers::
+   tabs:
 
-      tabs:
+      - id: python
+        content: |
 
-        - id: python
-          content: |
-
-             .. include:: /includes/extracts/transactions-example-note.rst
-
-             The example uses the new callback API for working with
-             transactions, which starts a transaction, executes the
-             specified operations, and commits (or aborts on error). The
-             new callback API incorporates retry logic for
-             :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
-
-             .. literalinclude:: /driver-examples/test_examples.py
-                :language: python
-                :dedent: 8
-                :start-after: Start Transactions withTxn API Example 1
-                :end-before: End Transactions withTxn API Example 1
-
-        - id: java-sync
-          content: |
-
-             .. include:: /includes/extracts/transactions-example-note.rst
-
-             The example uses the new callback API for working with
-             transactions, which starts a transaction, executes the
-             specified operations, and commits (or aborts on error). The
-             new callback API incorporates retry logic for
-             :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
-
-             .. code-block:: java
-
-                /*
-                  For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
-                  String uri = "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl";
-                  For a sharded cluster, connect to the mongos instances; e.g.
-                  String uri = "mongodb://mongos0.example.com:27017,mongos1.example.com:27017:27017/admin";
-                 */
-
-                final MongoClient client = MongoClients.create(uri);
-
-                /*
-                    Create collections.
-                 */
-
-                client.getDatabase("mydb1").getCollection("foo")
-                        .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("abc", 0));
-                client.getDatabase("mydb2").getCollection("bar")
-                        .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("xyz", 0));
-
-                /* Step 1: Start a client session. */
-
-                final ClientSession clientSession = client.startSession();
-
-                /* Step 2: Optional. Define options to use for the transaction. */
-
-                TransactionOptions txnOptions = TransactionOptions.builder()
-                        .readPreference(ReadPreference.primary())
-                        .readConcern(ReadConcern.LOCAL)
-                        .writeConcern(WriteConcern.MAJORITY)
-                        .build();
-
-                /* Step 3: Define the sequence of operations to perform inside the transactions. */
-
-                TransactionBody txnBody = new TransactionBody<String>() {
-                    public String execute() {
-                        MongoCollection<Document> coll1 = client.getDatabase("mydb1").getCollection("foo");
-                        MongoCollection<Document> coll2 = client.getDatabase("mydb2").getCollection("bar");
-
-                        /*
-                           Important:: You must pass the session to the operations..
-                         */
-
-                        coll1.insertOne(clientSession, new Document("abc", 1));
-                        coll2.insertOne(clientSession, new Document("xyz", 999));
-
-                        return "Inserted into collections in different databases";
-                    }
-                };
-                try {
-                    /* 
-                        Step 4: Use .withTransaction() to start a transaction, 
-                        execute the callback, and commit (or abort on error).
-                     */
-                                  
-                    clientSession.withTransaction(txnBody, txnOptions);
-                } catch (RuntimeException e) {
-                    // some error handling
-                } finally {
-                    clientSession.close();
-                }
-
-        - id: nodejs
-          content: |
-
-             .. include:: /includes/extracts/transactions-example-note.rst
-
-             The example uses the new callback API for working with
-             transactions, which starts a transaction, executes the
-             specified operations, and commits (or aborts on error). The
-             new callback API incorporates retry logic for
-             :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
-
-             .. literalinclude:: /driver-examples/node_transactions.js
-                :language: javascript
-                :dedent: 4
-                :start-after: Start Transactions withTxn API Example 1
-                :end-before: End Transactions withTxn API Example 1
-
-        - id: php
-          content: |
-
-             .. include:: /includes/extracts/transactions-example-note.rst
-
-             The example uses the new callback API for working with
-             transactions, which starts a transaction, executes the
-             specified operations, and commits (or aborts on error). The
-             new callback API incorporates retry logic for
-             :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
-
-             .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
-                :language: php
-                :dedent: 8
-                :start-after: Start Transactions withTxn API Example 1
-                :end-before: End Transactions withTxn API Example 1
-
-        - id: csharp
-          content: |
-
-             .. include:: /includes/extracts/transactions-example-note.rst
-
-             The example uses the new callback API for working with
-             transactions, which starts a transaction, executes the
-             specified operations, and commits (or aborts on error). The
-             new callback API incorporates retry logic for
-             :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
-
-             .. literalinclude:: /driver-examples/withTxnExample1.cs
-                :language: c#
-                :dedent: 12
-                :start-after: Start Transactions withTxn API Example 1
-                :end-before: End Transactions withTxn API Example 1
-
-
-        - id: c
-          content: |
-
-             .. include:: /includes/extracts/transactions-example-note.rst
-
-             The example uses the new callback API for working with
-             transactions, which starts a transaction, executes the
-             specified operations, and commits (or aborts on error). The
-             new callback API incorporates retry logic for
-             :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
-
-             .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
-                :language: c
-                :start-after: Start Transactions withTxn API Example 1
-                :end-before: End Transactions withTxn API Example 1
-
-        - id: cpp
-          content: |
-
-             .. include:: /includes/extracts/transactions-example-note.rst
-
-             The example uses the new callback API for working with
-             transactions, which starts a transaction, executes the
-             specified operations, and commits (or aborts on error). The
-             new callback API incorporates retry logic for
-             :ref:`transient-transaction-error` or
-             :ref:`unknown-transaction-commit-result` commit errors.
-
-             .. literalinclude:: /driver-examples/cpp-with-transaction.cpp
-                :language: cpp
-                :dedent: 4
-                :start-after: Start Transactions withTxn API Example 1
-                :end-before: End Transactions withTxn API Example 1
-
-        - id: motor
-          content: |
-       
             .. include:: /includes/extracts/transactions-example-note.rst
 
             The example uses the new callback API for working with
@@ -253,14 +68,14 @@ The new callback API incorporates logic:
             :ref:`transient-transaction-error` or
             :ref:`unknown-transaction-commit-result` commit errors.
 
-            .. literalinclude:: /driver-examples/test_examples_motor.py
+            .. literalinclude:: /driver-examples/test_examples.py
                :language: python
                :dedent: 8
                :start-after: Start Transactions withTxn API Example 1
                :end-before: End Transactions withTxn API Example 1
 
-        - id: ruby
-          content: |
+      - id: java-sync
+        content: |
 
             .. include:: /includes/extracts/transactions-example-note.rst
 
@@ -271,15 +86,90 @@ The new callback API incorporates logic:
             :ref:`transient-transaction-error` or
             :ref:`unknown-transaction-commit-result` commit errors.
 
+            .. code-block:: java
 
-            .. literalinclude:: /driver-examples/with_transactions_examples_spec.rb
-               :language: ruby
+               /*
+               For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
+               String uri = "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl";
+               For a sharded cluster, connect to the mongos instances; e.g.
+               String uri = "mongodb://mongos0.example.com:27017,mongos1.example.com:27017:27017/admin";
+               */
+
+               final MongoClient client = MongoClients.create(uri);
+
+               /*
+                  Create collections.
+               */
+
+               client.getDatabase("mydb1").getCollection("foo")
+                     .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("abc", 0));
+               client.getDatabase("mydb2").getCollection("bar")
+                     .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("xyz", 0));
+
+               /* Step 1: Start a client session. */
+
+               final ClientSession clientSession = client.startSession();
+
+               /* Step 2: Optional. Define options to use for the transaction. */
+
+               TransactionOptions txnOptions = TransactionOptions.builder()
+                     .readPreference(ReadPreference.primary())
+                     .readConcern(ReadConcern.LOCAL)
+                     .writeConcern(WriteConcern.MAJORITY)
+                     .build();
+
+               /* Step 3: Define the sequence of operations to perform inside the transactions. */
+
+               TransactionBody txnBody = new TransactionBody<String>() {
+                  public String execute() {
+                     MongoCollection<Document> coll1 = client.getDatabase("mydb1").getCollection("foo");
+                     MongoCollection<Document> coll2 = client.getDatabase("mydb2").getCollection("bar");
+
+                     /*
+                        Important:: You must pass the session to the operations..
+                        */
+
+                     coll1.insertOne(clientSession, new Document("abc", 1));
+                     coll2.insertOne(clientSession, new Document("xyz", 999));
+
+                     return "Inserted into collections in different databases";
+                  }
+               };
+               try {
+                  /* 
+                     Step 4: Use .withTransaction() to start a transaction, 
+                     execute the callback, and commit (or abort on error).
+                  */
+                                 
+                  clientSession.withTransaction(txnBody, txnOptions);
+               } catch (RuntimeException e) {
+                  // some error handling
+               } finally {
+                  clientSession.close();
+               }
+
+      - id: nodejs
+        content: |
+
+            .. include:: /includes/extracts/transactions-example-note.rst
+
+            The example uses the new callback API for working with
+            transactions, which starts a transaction, executes the
+            specified operations, and commits (or aborts on error). The
+            new callback API incorporates retry logic for
+            :ref:`transient-transaction-error` or
+            :ref:`unknown-transaction-commit-result` commit errors.
+
+            .. literalinclude:: /driver-examples/node_transactions.js
+               :language: javascript
                :dedent: 4
                :start-after: Start Transactions withTxn API Example 1
                :end-before: End Transactions withTxn API Example 1
 
-        - id: go
-          content: |
+      - id: php
+        content: |
+
+            .. include:: /includes/extracts/transactions-example-note.rst
 
             The example uses the new callback API for working with
             transactions, which starts a transaction, executes the
@@ -288,26 +178,133 @@ The new callback API incorporates logic:
             :ref:`transient-transaction-error` or
             :ref:`unknown-transaction-commit-result` commit errors.
 
-            .. include:: /includes/extracts/transactions-example-note.rst
-
-            .. literalinclude:: /driver-examples/go_examples.go
-               :language: go
+            .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+               :language: php
+               :dedent: 8
                :start-after: Start Transactions withTxn API Example 1
                :end-before: End Transactions withTxn API Example 1
 
-        - id: perl
-          content: |
+      - id: csharp
+        content: |
 
-             .. note::
-             
-                For the Perl driver, see the :ref:`txn-core-api` usage example instead.
+            .. include:: /includes/extracts/transactions-example-note.rst
 
-        - id: scala
-          content: |
+            The example uses the new callback API for working with
+            transactions, which starts a transaction, executes the
+            specified operations, and commits (or aborts on error). The
+            new callback API incorporates retry logic for
+            :ref:`transient-transaction-error` or
+            :ref:`unknown-transaction-commit-result` commit errors.
 
-             .. note::
-             
-                For the Scala driver, see the :ref:`txn-core-api` usage example instead.
+            .. literalinclude:: /driver-examples/withTxnExample1.cs
+               :language: c#
+               :dedent: 12
+               :start-after: Start Transactions withTxn API Example 1
+               :end-before: End Transactions withTxn API Example 1
+
+
+      - id: c
+        content: |
+
+            .. include:: /includes/extracts/transactions-example-note.rst
+
+            The example uses the new callback API for working with
+            transactions, which starts a transaction, executes the
+            specified operations, and commits (or aborts on error). The
+            new callback API incorporates retry logic for
+            :ref:`transient-transaction-error` or
+            :ref:`unknown-transaction-commit-result` commit errors.
+
+            .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+               :language: c
+               :start-after: Start Transactions withTxn API Example 1
+               :end-before: End Transactions withTxn API Example 1
+
+      - id: cpp
+        content: |
+
+            .. include:: /includes/extracts/transactions-example-note.rst
+
+            The example uses the new callback API for working with
+            transactions, which starts a transaction, executes the
+            specified operations, and commits (or aborts on error). The
+            new callback API incorporates retry logic for
+            :ref:`transient-transaction-error` or
+            :ref:`unknown-transaction-commit-result` commit errors.
+
+            .. literalinclude:: /driver-examples/cpp-with-transaction.cpp
+               :language: cpp
+               :dedent: 4
+               :start-after: Start Transactions withTxn API Example 1
+               :end-before: End Transactions withTxn API Example 1
+
+      - id: motor
+        content: |
+      
+         .. include:: /includes/extracts/transactions-example-note.rst
+
+         The example uses the new callback API for working with
+         transactions, which starts a transaction, executes the
+         specified operations, and commits (or aborts on error). The
+         new callback API incorporates retry logic for
+         :ref:`transient-transaction-error` or
+         :ref:`unknown-transaction-commit-result` commit errors.
+
+         .. literalinclude:: /driver-examples/test_examples_motor.py
+            :language: python
+            :dedent: 8
+            :start-after: Start Transactions withTxn API Example 1
+            :end-before: End Transactions withTxn API Example 1
+
+      - id: ruby
+        content: |
+
+         .. include:: /includes/extracts/transactions-example-note.rst
+
+         The example uses the new callback API for working with
+         transactions, which starts a transaction, executes the
+         specified operations, and commits (or aborts on error). The
+         new callback API incorporates retry logic for
+         :ref:`transient-transaction-error` or
+         :ref:`unknown-transaction-commit-result` commit errors.
+
+
+         .. literalinclude:: /driver-examples/with_transactions_examples_spec.rb
+            :language: ruby
+            :dedent: 4
+            :start-after: Start Transactions withTxn API Example 1
+            :end-before: End Transactions withTxn API Example 1
+
+      - id: go
+        content: |
+
+         The example uses the new callback API for working with
+         transactions, which starts a transaction, executes the
+         specified operations, and commits (or aborts on error). The
+         new callback API incorporates retry logic for
+         :ref:`transient-transaction-error` or
+         :ref:`unknown-transaction-commit-result` commit errors.
+
+         .. include:: /includes/extracts/transactions-example-note.rst
+
+         .. literalinclude:: /driver-examples/go_examples.go
+            :language: go
+            :start-after: Start Transactions withTxn API Example 1
+            :end-before: End Transactions withTxn API Example 1
+
+      - id: perl
+        content: |
+
+            .. note::
+            
+               For the Perl driver, see the :ref:`txn-core-api` usage example instead.
+
+      - id: scala
+        content: |
+
+            .. note::
+            
+               For the Scala driver, see the :ref:`txn-core-api` usage example instead.
 
 .. _txn-core-api:
 
@@ -334,11 +331,9 @@ labeled:
 The following example incorporates logic to retry the transaction for
 transient errors and retry the commit for unknown commit error:
 
-.. container::
+.. tabs-pillstrip:: languages
 
-   .. tabs-pillstrip:: languages
-
-   .. include:: /includes/driver-examples/driver-example-transactions-retry-3.rst
+.. include:: /includes/driver-examples/driver-example-transactions-retry-3.rst
 
 Driver Versions
 ---------------
