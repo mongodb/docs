@@ -7,11 +7,9 @@ the ``service`` command).
 If you are unsure which init system your platform uses, run the
 following command:
 
-.. container::
+.. code-block:: sh
 
-   .. code-block:: sh
-
-      ps --no-headers -o comm 1
+   ps --no-headers -o comm 1
 
 Then select the appropriate tab below based on the result:
 

@@ -7,4 +7,6 @@ resort. If you want a secondary to sync from a hidden member, use the
 sync target. See the documentation for :dbcommand:`replSetSyncFrom`
 before using the command.
 
-.. seealso:: :doc:`/tutorial/manage-chained-replication`
+.. seealso::
+
+   :doc:`/tutorial/manage-chained-replication`

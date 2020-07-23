@@ -6,50 +6,48 @@
 Permit Access to ``cgroup``
 +++++++++++++++++++++++++++
 
-.. container::
+The current SELinux Policy does not allow the MongoDB process to
+access ``/sys/fs/cgroup``, which is required to determine
+the available memory on your system. If you intend to run SELinux in
+``enforcing`` mode, you will need to make the following adjustment
+to your SELinux policy:
 
-   The current SELinux Policy does not allow the MongoDB process to
-   access ``/sys/fs/cgroup``, which is required to determine
-   the available memory on your system. If you intend to run SELinux in
-   ``enforcing`` mode, you will need to make the following adjustment
-   to your SELinux policy:
+#. Ensure your system has the ``checkpolicy`` package installed:
 
-   #. Ensure your system has the ``checkpolicy`` package installed:
+   .. code-block:: sh
 
-      .. code-block:: sh
+      sudo yum install checkpolicy
 
-         sudo yum install checkpolicy
+#. Create a custom policy file :file:`mongodb_cgroup_memory.te`:
 
-   #. Create a custom policy file :file:`mongodb_cgroup_memory.te`:
+   .. code-block:: sh
 
-      .. code-block:: sh
+      cat > mongodb_cgroup_memory.te <<EOF
+      module mongodb_cgroup_memory 1.0;
 
-         cat > mongodb_cgroup_memory.te <<EOF
-         module mongodb_cgroup_memory 1.0;
+      require {
+            type cgroup_t;
+            type mongod_t;
+            class dir search;
+            class file { getattr open read };
+      }
 
-         require {
-             type cgroup_t;
-             type mongod_t;
-             class dir search;
-             class file { getattr open read };
-         }
+      #============= mongod_t ==============
+      allow mongod_t cgroup_t:dir search;
+      allow mongod_t cgroup_t:file { getattr open read };
+      EOF
 
-         #============= mongod_t ==============
-         allow mongod_t cgroup_t:dir search;
-         allow mongod_t cgroup_t:file { getattr open read };
-         EOF
+#. Once created, compile and load the custom policy module by
+   running these three commands:
 
-   #. Once created, compile and load the custom policy module by
-      running these three commands:
+   .. code-block:: sh
 
-      .. code-block:: sh
+      checkmodule -M -m -o mongodb_cgroup_memory.mod mongodb_cgroup_memory.te
+      semodule_package -o mongodb_cgroup_memory.pp -m mongodb_cgroup_memory.mod
+      sudo semodule -i mongodb_cgroup_memory.pp
 
-         checkmodule -M -m -o mongodb_cgroup_memory.mod mongodb_cgroup_memory.te
-         semodule_package -o mongodb_cgroup_memory.pp -m mongodb_cgroup_memory.mod
-         sudo semodule -i mongodb_cgroup_memory.pp
-
-   The MongoDB process is now able to access the correct files with
-   SELinux set to ``enforcing``.
+The MongoDB process is now able to access the correct files with
+SELinux set to ``enforcing``.
 
 Permit Access to ``netstat`` for FTDC
 +++++++++++++++++++++++++++++++++++++
@@ -112,77 +110,73 @@ Permit Access to ``netstat`` for FTDC
 Using a Custom MongoDB Directory Path
 +++++++++++++++++++++++++++++++++++++
 
-.. container::
+#. Update the SELinux policy to allow the ``mongod`` service
+   to use the new directory:
 
-   #. Update the SELinux policy to allow the ``mongod`` service
-      to use the new directory:
+   .. code-block:: sh
 
-      .. code-block:: sh
+      sudo semanage fcontext -a -t <type> </some/MongoDB/directory.*>
 
-         sudo semanage fcontext -a -t <type> </some/MongoDB/directory.*>
+   where specify one of the following types as appropriate:
 
-      where specify one of the following types as appropriate:
+   - ``mongod_var_lib_t`` for data directory
 
-      - ``mongod_var_lib_t`` for data directory
+   - ``mongod_log_t`` for log file directory
 
-      - ``mongod_log_t`` for log file directory
+   - ``mongod_var_run_t`` for pid file directory
 
-      - ``mongod_var_run_t`` for pid file directory
+   .. note::
 
-      .. note::
+      Be sure to include the ``.*`` at the end of the directory.
 
-         Be sure to include the ``.*`` at the end of the directory.
+#. Update the SELinux user policy for the new directory:
 
-   #. Update the SELinux user policy for the new directory:
+   .. code-block:: sh
 
-      .. code-block:: sh
+      sudo chcon -Rv -u system_u -t <type> </some/MongoDB/directory>
 
-         sudo chcon -Rv -u system_u -t <type> </some/MongoDB/directory>
+   where specify one of the following types as appropriate:
 
-      where specify one of the following types as appropriate:
+   - ``mongod_var_lib_t`` for data directory
 
-      - ``mongod_var_lib_t`` for data directory
+   - ``mongod_log_t`` for log directory
 
-      - ``mongod_log_t`` for log directory
+   - ``mongod_var_run_t`` for pid file directory
 
-      - ``mongod_var_run_t`` for pid file directory
+#. Apply the updated SELinux policies to the directory:
 
-   #. Apply the updated SELinux policies to the directory:
+   .. code-block:: sh
 
-      .. code-block:: sh
+      restorecon -R -v </some/MongoDB/directory>
 
-         restorecon -R -v </some/MongoDB/directory>
+For example:
 
-   For example:
+.. tip::
 
-   .. tip::
+   Be sure to include the ``.*`` at the end of the directory for the
+   ``semanage fcontext`` operations.
 
-      Be sure to include the ``.*`` at the end of the directory for the
-      ``semanage fcontext`` operations.
+- If using a non-default MongoDB data path of ``/mongodb/data``:
 
-   - If using a non-default MongoDB data path of ``/mongodb/data``:
+  .. code-block:: sh
 
-     .. code-block:: sh
+     sudo semanage fcontext -a -t mongod_var_lib_t '/mongodb/data.*'
+     sudo chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
+     restorecon -R -v '/mongodb/data'
 
-        sudo semanage fcontext -a -t mongod_var_lib_t '/mongodb/data.*'
-        sudo chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
-        restorecon -R -v '/mongodb/data'
+- If using a non-default MongoDB log directory of ``/mongodb/log``
+  (e.g. if the log file path is ``/mongodb/log/mongod.log``):
 
-   - If using a non-default MongoDB log directory of ``/mongodb/log``
-     (e.g. if the log file path is ``/mongodb/log/mongod.log``):
+  .. code-block:: sh
 
-     .. code-block:: sh
-
-        sudo semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
-        sudo chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
-        restorecon -R -v '/mongodb/log' 
+     sudo semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
+     sudo chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
+     restorecon -R -v '/mongodb/log' 
 
 
 Using a Custom MongoDB Port
 +++++++++++++++++++++++++++
 
-.. container::
+.. code-block:: sh
 
-   .. code-block:: sh
-
-      sudo semanage port -a -t mongod_port_t -p tcp <portnumber>
+   sudo semanage port -a -t mongod_port_t -p tcp <portnumber>
