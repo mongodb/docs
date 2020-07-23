@@ -3,7 +3,7 @@ Instructs the :term:`primary` of the replica set to become a
 hold an :ref:`election for primary <replica-set-election-internals>`.
 
 The |command-method| does not immediately step down the primary. If no
-:data:`electable <~replSetGetConfig.members[n].priority>` secondaries
+:rsconf:`electable <members[n].priority>` secondaries
 are up to date with the primary, the primary waits up to
 ``secondaryCatchUpPeriodSecs`` (by default 10 seconds) for a
 secondary to catch up. Once an electable secondary is

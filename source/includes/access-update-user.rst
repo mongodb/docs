@@ -6,5 +6,5 @@ You must have the :authaction:`grantRole` :ref:`action
 <security-user-actions>` on a role's database to add a role to a user.
 
 To change another user's ``pwd`` or ``customData`` field, you must have
-the :authaction:`changeAnyPassword` and :authaction:`changeAnyCustomData`
+the :authaction:`changePassword` and :authaction:`changeCustomData`
 :ref:`actions <security-user-actions>` respectively on that user's database.
