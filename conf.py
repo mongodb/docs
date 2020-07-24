@@ -33,14 +33,17 @@ except NameError:
 needs_sphinx = '1.0'
 
 extensions = [
-    'sphinx.ext.extlinks',
     'sphinx.ext.todo',
-    'mongodb',
-    'directives',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.extlinks',
     'intermanual',
-    'testcode',
+    'directives',
+    'mongodb',
+    'fasthtml',
+    'fixed_only',
     'tabs',
     'icon',
+    'source_constants',
     'xmlrole',
     'guides'
 ]
@@ -107,8 +110,18 @@ extlinks = {
     'sphinx' : ('https://www.sphinx-doc.org/en/master%s', ''),
     'rst' : ('http://docutils.sourceforge.net/docs/ref/rst%s',''),
     'cc' : ('https://creativecommons.org/licenses%s',''),
-    'gh' : ('https://github.com%s','')
+    'gh' : ('https://github.com%s',''),
+    'mdb-legal' : ('https://www.mongodb.com/legal%s','')
 }
+
+source_constants = {
+    'rst': 'restructuredtext',
+    'package-branch': 'testing',
+    'package-version': '3.0.0',
+    'package-name-org': 'mongodb-org',
+    'version': '3.0'
+}
+
 
 ## add `extlinks` for each published version.
 for i in conf.git.branches.published:
