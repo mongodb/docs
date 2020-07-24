@@ -1,0 +1,214 @@
+.. _mdb-shell-write-scripts:
+
+=================================
+Write Scripts for the |mdb-shell|
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can write scripts for the |mdb-shell| that manipulate data in
+MongoDB or perform administrative operations.
+
+This tutorial introduces using the |mdb-shell| with JavaScript to
+access MongoDB.
+
+.. _mdb-shell-open-new-connections-in-shell:
+
+Open a New Connection
+---------------------
+
+From the |mdb-shell| or from a JavaScript file, you can instantiate
+database connections using the :method:`Mongo()` method:
+
+.. code-block:: javascript
+   :copyable: false
+
+   new Mongo()
+   new Mongo(<host>)
+   new Mongo(<host:port>)
+
+.. note::
+
+   The |mdb-shell| does not support the
+   :manual:`ClientSideFieldLevelEncryptionOptions
+   </reference/method/Mongo/#clientsidefieldlevelencryptionoptions>`
+   document with the :method:`Mongo()` method.
+
+Consider a MongoDB instance running on localhost on the default port.
+
+.. example::
+
+   The following example:
+
+   - Instantiates a new connection to the instance, and
+   - Sets the global ``db`` variable to ``myDatabase`` using the
+     :method:`getDB()` method. 
+
+   .. code-block:: javascript
+
+      conn = Mongo();
+      db = conn.getDB("myDatabase");
+
+If you connect to a MongoDB instance that enforces access control, you
+must include the credentials in the :manual:`connection string
+</reference/connection-string/>`. 
+
+.. example::
+
+   The following command connects to a MongoDB instance that is:
+
+   - Running on ``localhost`` on the default port, and
+   - Secured using :manual:`SCRAM </core/security-scram/>`.
+
+   .. code-block:: javascript
+
+      conn = Mongo("mongodb://<username>:<password>@localhost:27017/<authDB>");
+
+.. the manual page says to use db.auth(), which isn't implemented yet.
+   this is the only way I could get it to work.
+   https://docs.mongodb.com/manual/tutorial/write-scripts-for-the-mongo-shell/#opening-new-connections
+
+.. include:: /includes/admonitions/note-redact-credentials-command-history.rst
+
+Additionally, you can use the :manual:`connect()
+</reference/method/connect/>` method to connect to the MongoDB instance.
+
+.. example::
+
+   The following command:
+
+   - Connects to the MongoDB instance that is running on ``localhost`` with
+     the non-default port ``27020``, and 
+   - Sets the global ``db`` variable.
+
+   .. code-block:: javascript
+
+      db = connect("localhost:27020/myDatabase");
+
+.. skipping the Differences Between Interactive and Scripted mongo
+   section as most of the javascript equivalents to the shell helpers
+   have not yet been implemented in mongosh -- revisit later
+   https://docs.mongodb.com/manual/tutorial/write-scripts-for-the-mongo-shell/#differences-between-interactive-and-scripted-mongo
+
+.. also skippping --eval section as I'm having issues getting it to work
+   https://docs.mongodb.com/manual/tutorial/write-scripts-for-the-mongo-shell/#eval-option
+
+Use ``require()`` to Include External Files and Modules
+-------------------------------------------------------
+
+.. important::
+
+   A complete description of Node.js, modules, and the
+   `require() <https://nodejs.org/api/modules.html#modules_require_id>`__
+   function is out of scope for this tutorial. To learn more, refer to
+   the `Node.js Documentation <https://nodejs.org/api/modules.html>`__.
+
+You can use the `require()
+<https://nodejs.org/api/modules.html#modules_require_id>`__ function in
+the |mdb-shell| to include modules which exist in separate files.
+
+Require a File
+~~~~~~~~~~~~~~
+
+You can ``require()`` JavaScript files in the |mdb-shell| without any
+additional setup or configuration.
+
+.. note::
+
+   The |mdb-shell| does not execute files imported with ``require()``.
+   The |mdb-shell| adds everything from an imported file to the current
+   execution scope.
+
+.. example::
+
+   Use one of the following commands include a file from the current
+   working directory named ``tests.js``:
+
+   .. code-block:: javascript
+
+      require('./tests.js')
+
+   .. code-block:: javascript
+      
+      var tests = require('./tests.js')
+
+Require a Native Module
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can ``require()`` native Node modules (such as
+`fs <https://nodejs.org/api/fs.html#fs_file_system>`__) in the
+|mdb-shell| without any additional setup or configuration.
+
+.. example::
+
+   Use one of the following commands to include the ``fs`` module:
+
+   .. code-block:: javascript
+
+      require('fs')
+
+   .. code-block:: javascript
+
+      var fs = require('fs');
+
+Require a Non-Native Module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To ``require()`` non-native Node modules (such as those downloaded from
+`npm <https://www.npmjs.com/>`__) you must install the module globally
+or to the ``node_modules`` directory in your current working directory.
+
+Once you install or copy your desired package to one of the module
+directories, you can ``require()`` that package.
+
+.. example::
+
+   Use one of the following commands to include the
+   `moment <https://www.npmjs.com/package/moment>`__:
+
+   .. code-block:: javascript
+
+      require('moment')
+
+   .. code-block:: javascript
+
+      var moment = require('moment')
+
+.. _mdb-shell-execute-file:
+
+Execute a JavaScript File
+-------------------------
+
+You can execute a ``.js`` file from within the |mdb-shell|
+using the ``.load`` command. 
+
+.. example::
+
+   The following command loads and executes the ``myjstest.js`` file:
+
+   .. code-block:: javascript
+
+      .load myjstest.js
+
+The ``.load`` command accepts relative and absolute paths. If the
+current working directory of the |mdb-shell| is ``/data/db``,
+and ``myjstest.js`` resides in the ``/data/db/scripts`` directory, then
+the following calls within the |mdb-shell| are equivalent: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   .load scripts/myjstest.js
+   .load /data/db/scripts/myjstest.js
+
+.. note::
+
+   There is no search path for the ``.load`` command. If the desired
+   script is not in the current working directory or the full specified
+   path, the |mdb-shell| cannot access the file.
