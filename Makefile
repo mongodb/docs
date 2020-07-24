@@ -20,6 +20,10 @@ help: ## Show this help message
 html: ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
+clean-html:
+	rm -rf build/${GIT_BRANCH}
+	giza make html
+
 publish: ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
 
