@@ -1,0 +1,104 @@
+=======================
+Perform Bulk Operations
+=======================
+
+.. default-domain:: mongodb
+
+
+The ``bulkWrite()`` method performs batch write operations against a
+*single* collection. This method reduces the number of network round trips from
+your application to the server which therefore increases the potential 
+throughput and performance. Since you only receive the success status after 
+all the operations return, we recommend you use this if that meets the 
+requirements of your use case.
+
+You can specify one or more of the following write operations in
+``bulkWrite()``:
+
+- ``insertOne``
+- ``updateOne``
+- ``updateMany``
+- ``deleteOne``
+- ``deleteMany``
+- ``replaceOne``
+
+The ``bulkWrite()`` method accepts the following parameters:
+
+- A ``List`` of objects that implement ``WriteModel``: the classes that
+  implement the ``WriteModel`` correspond to the aforementioned write
+  operations. E.g. the ``InsertOneModel`` class wraps the ``insertOne`` write 
+  operation. See the links to the API documentation at the bottom of this page 
+  for more information on each class.
+  
+- ``BulkWriteOptions``: *optional* object that specifies settings such as
+  whether to ensure the writes are ordered.
+
+.. note::
+
+   Retryable writes run on MongoDB server versions 3.6 or later in bulk
+   write operations unless they include one or more instances of 
+   ``UpdateManyModel`` or ``DeleteManyModel``.
+
+.. note::
+
+  By default, MongoDB executes bulk write operations one-by-one in the
+  specified order (i.e. serially). During an ordered bulk write, if
+  an error occurs during the processing of an operation, MongoDB returns
+  without processing the remaining operations in the list. In contrast,
+  when you set ``ordered`` to ``false``, MongoDB continues to process remaining
+  write operations in the list. Unordered operations are theoretically faster
+  since MongoDB can execute them in parallel, but should only be used if
+  the writes do not depend on order.
+
+The ``bulkWrite()`` method returns a ``BulkWriteResult`` object that
+contains information about the write operation results including the number
+of documents inserted, modified, and deleted.
+
+If one or more of your operations attempts to set a value that violates a
+:manual:`unique index </core/index-unique>` on your collection, an
+exception is raised that resembles the following:
+
+.. code-block:: sh
+
+   The bulk write operation failed due to an error: Bulk write operation error on server <hostname>. Write errors: [BulkWriteError{index=0, code=11000, message='E11000 duplicate key error collection: ... }].
+
+Similarly, if you attempt to perform a bulk write against a collection
+that uses :manual:`schema validation </core/schema-validation>` and one or
+more of your write operations provide an unexpected format, you may
+encounter exceptions.
+
+Example
+-------
+
+The following code sample performs an ordered bulk write operation on the
+``movies`` collection in the ``sample_mflix`` database. The example call
+to ``bulkWrite()`` includes examples of the ``InsertOneModel``,
+``UpdateOneModel``, and ``DeleteOneModel``. 
+
+.. include:: /includes/connect-guide-note.rst
+
+.. literalinclude:: /includes/usage-examples/code-snippets/BulkWrite.java
+   :language: java
+
+The output should resemble the following:
+
+.. code-block:: none
+
+   Result statistics:
+   inserted: 3
+   updated: 2
+   deleted: 1
+
+For additional information on the classes and methods mentioned on this
+page, see the following API documentation:
+
+- :java-sync-api:`bulkWrite <com/mongodb/client/MongoCollection.html#bulkWrite(java.util.List,com.mongodb.client.model.BulkWriteOptions)>`
+- :java-docs:`BulkWriteOptions <apidocs/mongodb-driver-core/com/mongodb/client/model/BulkWriteOptions.html>`
+- :java-docs:`BulkWriteResult <apidocs/mongodb-driver-core/com/mongodb/bulk/BulkWriteResult.html>`
+- :java-docs:`InsertOneModel <apidocs/mongodb-driver-core/com/mongodb/client/model/InsertOneModel.html>`
+- :java-docs:`UpdateOneModel <apidocs/mongodb-driver-core/com/mongodb/client/model/UpdateOneModel.html>`
+- :java-docs:`UpdateManyModel <apidocs/mongodb-driver-core/com/mongodb/client/model/UpdateManyModel.html>`
+- :java-docs:`DeleteOneModel <apidocs/mongodb-driver-core/com/mongodb/client/model/DeleteOneModel.html>`
+- :java-docs:`DeleteManyModel <apidocs/mongodb-driver-core/com/mongodb/client/model/DeleteManyModel.html>`
+- :java-docs:`ReplaceOneModel <apidocs/mongodb-driver-core/com/mongodb/client/model/ReplaceOneModel.html>`
+
