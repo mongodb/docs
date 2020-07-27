@@ -335,6 +335,31 @@ Upgrades Agent: :ref:`mongodb-10.2.11.5927`.
 
 - Disables weak |tls| ciphers.
 
+  .. hlist::
+     :columns: 2
+
+     - ``SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA``
+     - ``SSL_DHE_DSS_WITH_DES_CBC_SHA``
+     - ``SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA``
+     - ``SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA``
+     - ``SSL_DHE_RSA_WITH_DES_CBC_SHA``
+     - ``SSL_RSA_EXPORT_WITH_DES40_CBC_SHA``
+     - ``SSL_RSA_EXPORT_WITH_RC4_40_MD5``
+     - ``TLS_DHE_DSS_WITH_AES_128_CBC_SHA256``
+     - ``TLS_DHE_DSS_WITH_AES_128_CBC_SHA``
+     - ``TLS_DHE_DSS_WITH_AES_256_CBC_SHA256``
+     - ``TLS_DHE_DSS_WITH_AES_256_CBC_SHA``
+     - ``TLS_DHE_RSA_WITH_AES_128_CBC_SHA256``
+     - ``TLS_DHE_RSA_WITH_AES_128_CBC_SHA``
+     - ``TLS_DHE_RSA_WITH_AES_128_GCM_SHA256``
+     - ``TLS_DHE_RSA_WITH_AES_256_CBC_SHA256``
+     - ``TLS_DHE_RSA_WITH_AES_256_CBC_SHA``
+     - ``TLS_DHE_RSA_WITH_AES_256_GCM_SHA384``
+     - ``TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256``
+     - ``TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384``
+
+  .. seealso:: :setting:`mms.disableCiphers`
+
 Platform Support
 ````````````````
 
