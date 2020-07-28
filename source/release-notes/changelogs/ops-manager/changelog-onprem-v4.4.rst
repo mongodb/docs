@@ -51,3 +51,5 @@
   optimization opportunities.
 
 - Supports |aws| |iam| roles in |s3| Snapshot Store configurations.
+
+- Upgrades OpenJDK to 11.0.8+10.
