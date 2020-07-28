@@ -10,7 +10,9 @@ Build Locally
 To build the documentation locally, 
 
 - Install `giza <https://pypi.python.org/pypi/giza/>`_, if not already
-  installed.
+  installed. There is an `installation guide 
+  <https://docs.mongodb.com/meta/tutorials/install/>`_ on the MongoDB meta site
+  to help you get started.
 
 - Run the following to download and build this documentation locally::
 
