@@ -30,8 +30,7 @@
           :widths: 20 80
 
           * - ``NONE``
-            - |service| authenticates this user through
-              :manual:`SCRAM-SHA </core/security-scram>`, not |ldap|.
+            - This user does not use |ldap| authentication.
           * - ``USER``
             - |ldap| server authenticates this user through the user's
               |ldap| user.
@@ -41,8 +40,40 @@
               group. To learn more about |ldap| security, see
               :atlas:`Set up User Authentication and Authorization with 
               LDAP </security-ldaps>`.
+
+   * - ``x509Type``
+     - Method by which the specified ``username`` is 
+       authenticated. Valid values are:
        
-       The default value is ``NONE``.
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
+
+          * - ``NONE``
+            - This user does not use X.509 authentication.
+          * - ``MANAGED``
+            - This user authenticates with :atlas:`Atlas-managed X.509 certificates
+              </security-add-mongodb-users/#database-user-authentication>`.
+          * - ``CUSTOMER``
+            - This user authenticates with :atlas:`Self-managed X.509 certificates
+              </security-self-managed-x509/#self-managed-x509>`.
+
+   * - ``awsIAMType``
+     - Method by which the specified ``username`` is 
+       authenticated. Valid values are:
+       
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
+
+          * - ``NONE``
+            - This user does not use AWS IAM authentication.
+          * - ``USER``
+            - This user authenticates with :atlas:`AWS IAM user credentials
+              </security-add-mongodb-users/#database-user-authentication>`.
+          * - ``ROLE``
+            - This user authenticates with :atlas:`AWS IAM role credentials
+              </security-add-mongodb-users/#database-user-authentication>`.
 
    * - ``roles``
      - User's roles and the databases or collections on which the 

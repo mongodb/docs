@@ -1,0 +1,209 @@
+.. _mcli-atlas-dbuser-describe-command:
+
+==============================
+mongocli atlas dbuser describe
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``dbuser describe`` command retrieves one MongoDB database user
+on the specified |service| cluster. You can also retrieve a MongoDB 
+database user through the |service| :atlas:`API 
+</reference/api/database-users-get-single-user/>`.
+
+Syntax
+------
+
+.. code-block:: text
+
+   mongocli atlas dbuser describe <username>
+        [ --authDB <auth-db> ]
+        [ --profile|-P <profile-name> ]
+        [ --projectId <project-ID> ]
+
+.. include:: /includes/fact-command-line-help.rst
+
+.. _dbuser-atlas-describe-options:
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 45 20
+
+   * - Option 
+     - Type
+     - Description
+     - Required?
+
+   * - ``<username>``
+     - string
+     - Username of the database user to retrieve.
+     - yes
+
+   * - ``--authDB <auth-db>``
+     - string
+     - Authentication database to use. Defaults to ``admin``.
+       
+       Acceptable values are:
+
+       - ``admin`` for users who use :atlas:`password authentication
+         </security-add-mongodb-users/#database-user-authentication>`.
+       - ``$external`` for users who authenticate with :atlas:`X.509
+         certificates </security-add-mongodb-users/#database-user-authentication>`,
+         :atlas:`LDAP </security-ldaps/>`, or :atlas:`AWS IAM
+         </security-add-mongodb-users/#database-user-authentication>`.
+     - no
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the public and private 
+       keys for the project are saved. If omitted, uses the 
+       {+default-profile+}. To learn more about creating a 
+       profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project that contains the 
+       cluster to update. If omitted, uses the project ID in 
+       the profile or :ref:`environment variable <mcli-env-var>`.
+     - no
+
+.. _dbuser-atlas-describe-command-output:
+
+Output
+------
+
+.. include:: /includes/command-output-intro.rst
+
+.. include:: /includes/atlas-dbuser-output-fields.rst
+
+Examples
+--------
+
+.. tabs:: 
+
+   tabs:
+   - id: scram
+     name: Password Authentication
+     content: |
+       The following example uses the ``mongocli atlas dbuser describe`` command to
+       retrieve a MongoDB database user named ``myDbUser`` on an |service| cluster.
+       The command uses the {+default-profile+}, which contains the |svc-api-key|\s
+       and the project ID.
+       
+       .. code-block:: sh
+          :copyable: false
+       
+          mongocli atlas dbuser describe myDbUser --authDB admin 
+       
+       The previous command prints the following fields to the terminal. To
+       learn more about these fields, see :ref:`Output
+       <dbuser-atlas-describe-command-output>`.
+       
+       .. code-block:: json
+          :copyable: false
+       
+          {
+            "databaseName": "admin",
+            "ldapAuthType": "NONE",
+            "x509Type": "NONE",
+            "awsIAMType": "NONE",
+            "groupId": "5dd5a6b6f10fab1d71a58495",
+            "roles": [
+              {
+                "roleName": "atlasAdmin",
+                "databaseName": "admin"
+              }
+            ],
+            "username": "myDbUser"
+          }
+
+   - id: x509
+     name: X.509 Certificates
+     content: |
+       The following example uses the ``mongocli atlas dbuser describe`` command to
+       retrieve a MongoDB database user with ``X.509`` authentication on an |service|
+       cluster. The command uses the {+default-profile+}, which contains the
+       |svc-api-key|\s and the project ID.
+       
+       .. note::
+       
+          When passing ``$external`` as a command line option, prepend it with
+          a ``\`` character to escape the special-use ``$`` character.
+       
+       .. code-block:: sh
+          :copyable: false
+       
+          mongocli atlas dbuser describe CN=ellen@example.com,OU=users,DC=example,DC=com --authDB \$external 
+       
+       The previous command prints the following fields to the terminal. To
+       learn more about these fields, see :ref:`Output
+       <dbuser-atlas-describe-command-output>`.
+       
+       .. code-block:: json
+          :copyable: false
+       
+          {
+            "databaseName": "admin",
+            "ldapAuthType": "NONE",
+            "x509Type": "USER",
+            "awsIAMType": "NONE",
+            "groupId": "5dd5a6b6f10fab1d71a58495",
+            "roles": [
+              {
+                "roleName": "atlasAdmin",
+                "databaseName": "admin"
+              }
+            ],
+            "username": "CN=ellen@example.com,OU=users,DC=example,DC=com"
+          }
+    
+   - id: aws-iam
+     name: AWS IAM Authentication
+     content: |
+
+       The following example uses the ``mongocli atlas dbuser describe`` command to
+       retrieve a MongoDB database user with ``AWS IAM`` authentication on an |service|
+       cluster. The command uses the {+default-profile+}, which contains the
+       |svc-api-key|\s and the project ID.
+        
+       .. note::
+        
+          When passing ``$external`` as a command line option, prepend it with
+          a ``\`` character to escape the special-use ``$`` character.
+        
+       .. code-block:: sh
+          :copyable: false
+        
+          mongocli atlas dbuser describe arn:aws:iam::772401394250:user/my-test-user --authDB \$external 
+       
+       The previous command prints the following fields to the terminal. To
+       learn more about these fields, see :ref:`Output
+       <dbuser-atlas-describe-command-output>`.
+   
+       .. code-block:: json
+          :copyable: false
+   
+          {
+            "databaseName": "admin",
+            "ldapAuthType": "NONE",
+            "x509Type": "NONE",
+            "awsIAMType": "USER",
+            "groupId": "5dd5a6b6f10fab1d71a58495",
+            "roles": [
+              {
+                "roleName": "atlasAdmin",
+                "databaseName": "admin"
+              }
+            ],
+            "username": "arn:aws:iam::772401394250:user/my-test-user"
+          } 
