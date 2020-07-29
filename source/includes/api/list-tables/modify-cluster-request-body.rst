@@ -309,13 +309,11 @@
        - ``4.2``
        - ``4.4``
 
-       .. include:: /includes/admonitions/version-4.4-beta.rst
-
        You must set this value to ``4.2`` if
        ``providerSettings.instanceSizeName``
        is either ``M2`` or ``M5``.
 
-       .. include:: /includes/admonitions/version-4.4-beta-shared-tier-exception.rst
+       .. include:: /includes/admonitions/version-4.4-shared-tier-exception.rst
 
        |service| always deploys the cluster with the latest stable
        release of the specified version. You can upgrade to a newer

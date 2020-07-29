@@ -6,18 +6,6 @@
      - Type
      - Description
 
-   * - ``failIndexKeyTooLong``
-     - boolean
-     - When ``true``, documents can only be updated or inserted if, for 
-       all indexed fields on the target collection, the corresponding 
-       index entries do not exceed 1024 bytes. When ``false``, 
-       :binary:`~bin.mongod` writes documents that breach the limit
-       but does *not* index them. 
-
-       This option corresponds to the 
-       :parameter:`failIndexKeyTooLong <param.failIndexKeyTooLong>`
-       :binary:`~bin.mongod` parameter.
-
    * - ``javascriptEnabled``
      - boolean
      - When ``true``, the cluster allows execution of operations that
