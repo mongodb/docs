@@ -168,8 +168,6 @@ html_theme_options = {
     'version': version,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
-    'banner': True,
-    'banner_msg': 'This is an upcoming (i.e. in progress) version of the 4.4 MongoDB Database Tools Documentation. <br><br> See the <a href=https://docs.mongodb.com/v4.2/reference/program>MongoDB 4.2 Manual</a> for documentation on the 4.2 database tools',
 }
 
 # -- Options for manual page output --------------------------------------------
