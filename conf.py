@@ -114,7 +114,8 @@ extlinks = {
     'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
     'java-async-docs': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
     'java-async-api': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', ''),
-    'go-api': ('https://godoc.org/github.com/mongodb/mongo-go-driver/%s', '')
+    'go-api': ('https://godoc.org/github.com/mongodb/mongo-go-driver/%s', ''),
+    'db-tools': ('https://docs.mongodb.com/database-tools/%s', '')
 }
 
 ## add `extlinks` for each published version.
