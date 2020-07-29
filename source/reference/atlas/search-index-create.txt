@@ -1,0 +1,218 @@
+.. _mcli-atlas-search-index-create-command:
+
+===========================================
+mongocli atlas cluster searach index create
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``search index create`` command creates an |fts| :atlas:`index 
+</reference/atlas-search/index-definitions/>`. You can also create an 
+|fts| :atlas:`index </reference/atlas-search/index-management/>` through 
+the |service| :atlas:`UI </reference/atlas-search/create-index/>` or 
+:atlas:`API </reference/api/fts-indexes-create-one/>`.
+
+.. _mcli-atlas-search-index-create-syntax:
+
+Syntax 
+------
+
+.. code-block:: text 
+
+   mongocli atlas cluster search|fts index create <index-name>  
+        --clusterName <cluster-name>  
+        --collection <collection-name> 
+        --db <database-name> 
+        [ --dynamic ]
+        [ --field <field-name>:<index-type> ]
+        [ --profile|-P <profile-name> ]
+        [ --projectId <project-ID> ]
+        [ --searchAnalyzer <analyzer-name> ]
+
+.. _mcli-atlas-search-index-create-options: 
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Option
+     - Type
+     - Description
+     - Required?
+
+   * - ``<index-name>``
+     - string
+     - Name of the |fts| index. 
+     - yes
+
+   * - ``--clusterName``
+     - string
+     - Name of the cluster. 
+     - yes
+
+   * - ``--collection``
+     - string
+     - Name of the collection for which to create an |fts| index.
+     - yes
+
+   * - ``--db``
+     - string
+     - Name of the database that contains the collection.
+     - yes
+
+   * - ``--dynamic``
+     - flag
+     - Whether the |fts| index uses dynamic field mappings. This is 
+       required if ``field`` is not specified. You cannot specify  
+       ``field`` if this flag is set.
+     
+       To learn more, see :atlas:`Static and Dynamic Mappings 
+       <reference/atlas-search/index-definitions/#static-and-dynamic-mappings>`.
+     - no
+
+   * - ``--field``
+     - string
+     - Comma-separated list of fields to index in the following format:
+
+       .. code-block:: text 
+          :copyable: false 
+
+           <field-name>:<index-type>
+
+       where: 
+
+       - ``<field-name>`` is the name of the field to index. 
+       - ``<index-type>`` is the :atlas:`type 
+         </reference/atlas-search/index-definitions/#data-types/>` of index. 
+         Value can be one of the following: ``autocomplete``, ``boolean``, 
+         ``date``, ``document``, ``geo``, ``number``, ``objectId``, ``string``.
+       
+       This is required if the index uses static mappings. You cannot set the 
+       ``dynamic`` flag if field names are specified.
+     - no
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the public and private keys for the project 
+       are set. If omitted, uses the {+default-profile+}. To learn more about 
+       creating a profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project where you want to create the cluster. 
+       If omitted, uses the project ID in the profile or :ref:`environment 
+       variable <mcli-env-var>`.
+     - no
+
+   * - ``--searchAnalyzer``
+     - string
+     - Analyzer to use when searching the index. Value can be one  of the 
+       following: 
+
+       - :atlas:`lucene.standard </reference/atlas-search/analyzers/standard/>`
+       - :atlas:`lucene.simple </reference/atlas-search/analyzers/simple/>`
+       - :atlas:`lucene.whitespace 
+         </reference/atlas-search/analyzers/whitespace/>`
+       - :atlas:`lucene.language </reference/atlas-search/analyzers/language/>`
+       - :atlas:`lucene.keyword </reference/atlas-search/analyzers/keyword/>`
+
+       If omitted, defaults to ``lucene.standard``.
+     - no
+
+.. _mcli-atlas-search-index-create-output:
+
+Output 
+------
+
+.. include:: /includes/command-output-intro.rst
+
+.. include:: /includes/atlas-search-index-output-fields.rst
+
+.. _mcli-atlas-search-index-create-egs:
+
+Examples 
+--------
+
+The following examples use the ``mongocli atlas cluster search index create`` 
+command to create an |fts| index named ``default`` on the 
+``sample_mflix.movies`` collection in an |service| cluster named 
+``myTestCluster``.
+
+Create an Index for Dynamic Field Mappings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following ``mongocli atlas cluster search index create`` command creates 
+an |fts| index that uses dynamic field mappings. It uses the ``egAtlasProfile`` 
+to access the project. 
+
+.. code-block:: text 
+
+   mongocli atlas cluster search index create default --dynamic --clusterName myTestCluster --db sample_mflix --collection movies --profile egAtlasProfile
+
+The previous command prints the following fields in |json| format to the 
+terminal. To learn more about these fields, see 
+:ref:`mcli-atlas-search-index-create-output`.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "analyzer": "lucene.standard",
+     "collectionName": "movies",
+     "database": "sample_mflix",
+     "indexID": "5f1f40842f2ac35f49190c20",
+     "mappings": {
+       "dynamic": true
+     },
+     "name": "dynamic",
+     "searchAnalyzer": "lucene.standard"
+   }
+
+Create an Index for Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following ``mongocli atlas cluster search index create`` command creates 
+an |fts| index that indexes the ``title`` field of type ``string`` using the 
+``keyword`` analyzer and ``plot`` field of type ``string`` using the 
+``keyword`` analyzer. It uses the {+default-profile+} to access the project. 
+
+.. code-block:: text 
+
+   mongocli atlas cluster search index create default --clusterName myTestCluster --db sample_mflix --collection movies --field title:string,released:date 
+
+The previous command prints the following fields in |json| format to the 
+terminal. To learn more about these fields, see 
+:ref:`mcli-atlas-search-index-create-output`.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "analyzer": "lucene.standard",
+     "collectionName": "movies",
+     "database": "sample_mflix",
+     "indexID": "5f2099cd683fc55fbb30bef6",
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "released": {
+           "type": "date"
+         },
+         "title": {
+           "type": "string"
+         }
+       }
+     },
+     "name": "default",
+     "searchAnalyzer": "lucene.standard"
+   }

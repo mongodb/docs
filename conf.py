@@ -70,7 +70,7 @@ source_constants = {
     'data-lake': 'Atlas Data Lake',
     'data-lake-short': 'Data Lake',
     'data-lake-stores': 'data stores',
-    'data-lake-store': 'data store'
+    'data-lake-store': 'data store',
 }
 
 rst_epilog = '\n'.join([
@@ -105,6 +105,7 @@ rst_epilog = '\n'.join([
     '.. |epoch-time-ms| replace:: timestamp in the number of milliseconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |Epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |fts| replace:: Atlas Search',
     '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
     '.. |gcp| replace:: :abbr:`GCP (Google Cloud Platform)`',
     '.. |global-write-clusters| replace:: Global Clusters',
