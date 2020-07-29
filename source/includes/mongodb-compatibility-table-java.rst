@@ -6,6 +6,7 @@
    :class: compatibility-large
 
    * - Java Driver Version
+     - MongoDB 4.4
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
@@ -14,7 +15,18 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
+   * - Version 4.1
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
    * - Version 4.0
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -24,6 +36,7 @@
      - |checkmark|
 
    * - Version 3.12
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -33,6 +46,7 @@
      - |checkmark|
 
    * - Version 3.11
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -43,6 +57,7 @@
 
    * - Version 3.10
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -52,6 +67,7 @@
 
    * - Version 3.9
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -60,6 +76,7 @@
      - |checkmark|
 
    * - Version 3.8
+     -
      -
      - |checkmark|
      - |checkmark|
@@ -71,6 +88,7 @@
    * - Version 3.7
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -78,6 +96,7 @@
      - |checkmark|
 
    * - Version 3.6
+     -
      -
      -
      - |checkmark|
@@ -90,6 +109,7 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -97,6 +117,7 @@
 
 
    * - Version 3.4
+     -
      -
      -
      -
@@ -111,11 +132,13 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
    * - Version 3.2
+     -
      -
      -
      -
@@ -131,6 +154,7 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
 
@@ -140,10 +164,12 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
 
    * - Version 2.14
+     -
      -
      -
      -
@@ -158,10 +184,12 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
 
    * - Version 2.12
+     -
      -
      -
      -

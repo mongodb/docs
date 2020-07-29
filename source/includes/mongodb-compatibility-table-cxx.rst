@@ -5,6 +5,7 @@
 
 
    * - C++ Driver Version
+     - MongoDB 4.4
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
@@ -14,7 +15,19 @@
      - MongoDB 2.6
      - MongoDB 2.4
 
+   * - mongocxx 3.6
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+
    * - mongocxx 3.5
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -26,6 +39,7 @@
 
    * - mongocxx 3.4
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -35,6 +49,7 @@
      -
 
    * - mongocxx 3.3
+     -
      -
      -
      - |checkmark|
@@ -48,6 +63,7 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -58,6 +74,7 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -65,6 +82,7 @@
      - |checkmark|
 
    * - mongocxx 3.0
+     -
      -
      -
      -

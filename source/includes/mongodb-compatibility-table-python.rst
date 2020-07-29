@@ -7,6 +7,7 @@
    :class: compatibility-large
 
    * - Python Driver
+     - MongoDB 4.4
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
@@ -15,7 +16,8 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
-   * - 3.11 (beta)
+   * - 3.11
+     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -25,6 +27,7 @@
      - |checkmark|
 
    * - 3.10
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -34,6 +37,7 @@
      - |checkmark|
 
    * - 3.9
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -44,6 +48,7 @@
 
    * - 3.8
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -53,6 +58,7 @@
 
    * - 3.7
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -61,6 +67,7 @@
      - |checkmark|
 
    * - 3.6
+     -
      -
      -
      - |checkmark|
@@ -73,12 +80,14 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
    * - 3.4
+     -
      -
      -
      -
@@ -92,11 +101,13 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
    * - 3.2
+     -
      -
      -
      -
@@ -111,10 +122,12 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
 
    * - 3.0
+     -
      -
      -
      -
@@ -129,10 +142,12 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
 
    * - 2.8
+     -
      -
      -
      -
@@ -148,4 +163,6 @@
      -
      -
      -
+     -
      - |checkmark|
+

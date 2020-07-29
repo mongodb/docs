@@ -4,6 +4,7 @@
    :class: compatibility-large
 
    * - Swift Driver
+     - MongoDB 4.4
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
@@ -13,10 +14,12 @@
      - MongoDB 2.6
 
    * - 1.0.0
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
+     - |checkmark|
      -
      -
      -
-     -
+

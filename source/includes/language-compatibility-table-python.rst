@@ -13,7 +13,7 @@ Python 2 Compatibility
      - Python 2.6
      - Python 2.7, PyPy
 
-   * - 3.11 (beta)
+   * - 3.11
      -
      -
      -
