@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - image: nginx:1.14.2
+          imagePullPolicy: IfNotPresent
+          name: nginx
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /mongodb-ops-manager/mongodb-releases/linux
+              name: mongodb-versions
+            - mountPath: /tools/db/
+              name: mongodb-tools
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+      initContainers:
+        - name: setting-up-ubuntu-mongodb
+          image: curlimages/curl:latest
+          command:
+            - curl
+            - -L
+            - https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-4.2.0.tgz
+            - -o
+            - /mongodb-ops-manager/mongodb-releases/linux/mongodb-linux-x86_64-ubuntu1604-4.2.0.tgz
+          volumeMounts:
+            - name: mongodb-versions
+              mountPath: /mongodb-ops-manager/mongodb-releases/linux
+        - name: setting-up-ubuntu-mongodb-tools
+          image: curlimages/curl:latest
+          command:
+            - curl
+            - -L
+            - https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu1604-x86_64-100.1.0.tgz
+            - -o
+            - /tools/db/mongodb-database-tools-ubuntu1604-x86_64-100.1.0.tgz
+          volumeMounts:
+            - name: mongodb-tools
+              mountPath: /tools/db/
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: mongodb-versions
+          emptyDir: {}
+        - name: mongodb-tools
+          emptyDir: {}
+        - configMap:
+            name: nginx-conf
+          name: nginx-conf
+...

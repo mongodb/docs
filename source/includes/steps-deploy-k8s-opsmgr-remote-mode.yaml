@@ -1,0 +1,328 @@
+---
+ref: configure-kubectl-om
+stepnum: 1
+inherit:
+  file: steps-configure-kubectl-namespace.yaml
+  ref: configure-kubectl-namespace
+---
+title: "Create a |k8s-configmap| for Nginx."
+ref: nginx-configmap
+level: 4
+stepnum: 2
+content: |
+
+  The ConfigMap in this tutorial configures Nginx to: 
+
+  - Run an HTTP server named ``localhost`` listening on port ``80`` on a
+    node in your |k8s| cluster, and 
+  - Route HTTP requests for specific resources to locations that serve
+    the the MongoDB Server and MongoDB Database Tools installation
+    archives.
+
+  a. Paste the following example Nginx ConfigMap into a text editor:
+
+     .. literalinclude:: /reference/k8s/example-nginx-configmap.yaml
+        :language: yaml
+        :linenos:
+
+  #. Save this file with a ``.yaml`` file extension.
+
+  #. Create the Nginx ConfigMap by invoking the following
+     ``kubectl`` command on the ConfigMap file you created:
+
+     .. code-block:: sh
+
+        kubectl apply -f <nginix-configmap>.yaml
+
+---
+title: "Deploy Nginx to your |k8s| cluster."
+ref: deploy-nginx
+level: 4
+stepnum: 3
+content: |
+
+  The Nginx resource configuration in this tutorial:
+
+  - Deploys one Nginx replica,
+  - Creates volume mounts to store MongoDB Server and MongoDB Database
+    Tools installation archives, and
+  - Defines :k8sdocs:`init containers
+    </concepts/workloads/pods/init-containers/>` that use ``curl``
+    commands to download the installation archives that Nginx serves to
+    MongoDB Database resources you deploy in your |k8s| cluster.
+
+  .. tabs::
+
+     .. tab:: Vanilla Kubernetes
+        :tabid: k8s
+
+        a. Paste the following example Nginx resource configuration
+           into a text editor: 
+
+           .. literalinclude:: /reference/k8s/example-nginx-deployment-k8s.yaml
+              :language: yaml
+              :linenos:
+              :emphasize-lines: 36, 38, 47, 49
+
+        #. Modify the lines highlighted in the example to specify the
+           MongoDB Server versions that you want to install. 
+
+           For example, to replace MongoDB version ``4.0.2`` with
+           a different database version, update the following block:
+
+           .. literalinclude:: /reference/k8s/example-nginx-deployment-k8s.yaml
+              :language: yaml
+              :lines: 31-38
+              :emphasize-lines: 6, 8
+
+           Update this block to modify the MongoDB Database Tools
+           version:
+
+           .. literalinclude:: /reference/k8s/example-nginx-deployment-k8s.yaml
+              :language: yaml
+              :lines: 42-49
+              :emphasize-lines: 6, 8
+
+        #. To load multiple versions, append ``curl`` commands
+            to the appropriate initContainer for each version you want
+            Nginx to serve. 
+
+            For example, to configure Nginx to serve MongoDB ``4.2.0``
+            and ``4.4.0``:
+
+            .. code-block:: yaml
+               :emphasize-lines: 9-14
+               :copyable: false
+
+               - name: setting-up-ubuntu-mongodb
+                 image: curlimages/curl:latest
+                 command:
+                   - curl
+                   - -L
+                   - https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-4.2.0.tgz
+                   - -o
+                   - /mongodb-ops-manager/mongodb-releases/linux/mongodb-linux-x86_64-ubuntu1604-4.2.0.tgz
+                   - &&
+                   - curl
+                   - -L
+                   - https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-4.4.0.tgz
+                   - -o
+                   - /mongodb-ops-manager/mongodb-releases/linux/mongodb-linux-x86_64-ubuntu1604-4.4.0.tgz
+
+        #. Save this file with a ``.yaml`` file extension.
+
+        #. Deploy Nginx by invoking the following ``kubectl``
+           command on the Nginx resource file you created:
+
+           .. code-block:: sh
+
+              kubectl apply -f <nginix>.yaml
+
+     .. tab:: OpenShift
+        :tabid: os
+
+        a. Paste the following example Nginx resource configuration
+           into a text editor: 
+
+           .. literalinclude:: /reference/k8s/example-nginx-deployment-os.yaml
+              :language: yaml
+              :linenos:
+              :emphasize-lines: 36, 38, 47, 49
+
+        #. Modify the lines highlighted in the example to specify the
+           MongoDB Server versions that you want to install. 
+
+           For example, to replace MongoDB version ``4.0.2`` with
+           a different database version, update the following block:
+
+           .. literalinclude:: /reference/k8s/example-nginx-deployment-os.yaml
+              :language: yaml
+              :lines: 31-38
+              :emphasize-lines: 6, 8
+
+           Update this block to modify the MongoDB Database Tools
+           version:
+
+           .. literalinclude:: /reference/k8s/example-nginx-deployment-os.yaml
+              :language: yaml
+              :lines: 42-49
+              :emphasize-lines: 6, 8
+
+        #. To load multiple versions, append ``curl`` commands
+           to the appropriate initContainer for each version you want
+           Nginx to serve.
+
+           For example, to configure Nginx to serve MongoDB ``4.2.0``
+           and ``4.4.0``:
+
+           .. code-block:: yaml
+              :emphasize-lines: 10-15
+              :copyable: false
+
+              initContainers:
+                - name: setting-up-rhel-mongodb
+                  image: curlimages/curl:latest
+                  command:
+                    - curl
+                    - -L
+                    - https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-4.2.0.tgz
+                    - -o
+                    - /mongodb-ops-manager/mongodb-releases/linux/mongodb-linux-x86_64-rhel70-4.2.0.tgz
+                    - &&
+                    - curl
+                    - -L
+                    - https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-4.4.0.tgz
+                    - -o
+                    - /mongodb-ops-manager/mongodb-releases/linux/mongodb-linux-x86_64-rhel70-4.4.0.tgz
+
+        #. Save this file with a ``.yaml`` file extension.
+
+        #. Deploy Nginx by invoking the following ``oc``
+           command on the Nginx resource file you created:
+
+           .. code-block:: sh
+
+              oc apply -f <nginix>.yaml
+
+---
+
+title: "Create a |k8s| service to make Nginx accessible from other pods in your cluster."
+ref: nginx-service
+level: 4
+stepnum: 4
+content: |
+
+  The service in this tutorial exposes Nginx to traffic from other nodes
+  in your |k8s| cluster over port ``80``. This allows the MongoDB
+  Database resource pods you deploy using the |k8s-op-short| to download
+  the installation archives from Nginx.
+
+  Run the following command to create a service your Nginx deployment:
+
+  a. Paste the following example service into a text editor:
+
+     .. literalinclude:: /reference/k8s/example-nginx-service.yaml
+        :language: yaml
+        :linenos:
+
+  #. Save this file with a ``.yaml`` file extension.
+
+  #. Create the service by invoking the following
+     ``kubectl`` command on the service file you created:
+
+     .. code-block:: sh
+
+        kubectl apply -f <nginix-service>.yaml
+
+---
+title: "Copy and update the highlighted fields of this |onprem| resource."
+stepnum: 5
+level: 4
+ref: copy-k8s-example
+content: |
+
+  The highlighted section uses the following |onprem| configuration
+  settings:  
+
+  - ``automation.versions.source: remote`` in 
+    :opsmgrkube:`spec.configuration` to enable Remote Mode.
+
+  - ``automation.versions.download.baseUrl`` in
+    :opsmgrkube:`spec.configuration` to provide the base URL of the
+    HTTP resources that serve the MongoDB installation archives.
+
+    Update this line to replace <namespace> with the namespace to which
+    you deploy resources with the |k8s-op-short|.
+
+  .. literalinclude:: /reference/k8s/example-opsmgr-remote-mode.yaml
+     :language: yaml
+     :linenos:
+     :emphasize-lines: 12-13
+
+---
+title: "Paste the copied example section into your existing |onprem| resource."
+stepnum: 6
+level: 4
+ref: paste-k8s-example
+content: |
+
+  Open your preferred text editor and paste the |k8s-obj|
+  specification into the appropriate location in your resource file.
+---
+title: "Save your |onprem| config file."
+stepnum: 7
+level: 4
+ref: save-object-spec
+
+---
+title: "Apply changes to your |onprem| deployment."
+stepnum: 8
+level: 4
+ref: apply-changes-om-k8s
+content: |
+
+  Invoke the following ``kubectl`` command on the filename of the
+  |onprem| resource  definition:
+
+  .. code-block:: sh
+
+     kubectl apply -f <opsmgr-resource>.yaml
+
+---
+title: "Track the status of your |onprem| instance."
+stepnum: 9
+level: 4
+ref: track-k8s-instance
+content: |
+
+  To check the status of your |onprem| resource, invoke the following
+  command:
+
+  .. code-block:: sh
+
+     kubectl get om -o yaml -w
+
+  See :doc:`/reference/troubleshooting` for information about the
+  resource deployment statuses.
+
+  After the |onprem| resource completes the ``Reconciling`` phase, the 
+  command returns output similar to the following:
+
+  .. literalinclude:: /reference/k8s/example-status-om-running-local-mode.yaml
+     :language: yaml
+     :copyable: false
+     :linenos:
+     :emphasize-lines: 12,14
+
+  Copy the value of the ``status.opsManager.url`` field, which states 
+  the resource's connection |url|. You use this value when you create a
+  |k8s-configmap| later in the procedure.
+---
+
+title: "Deploy a MongoDB Database Resource."
+level: 4
+ref: deploy-mdb-resource
+stepnum: 10
+content: |
+
+  a. If you have not done so already, complete the following 
+     prerequisites:
+
+     - :doc:`/tutorial/create-operator-credentials`
+     - :doc:`/tutorial/create-project-using-configmap`
+
+  #. Deploy a :ref:`MongoDB Database resource <k8s-deploy-mdb-resources>` 
+     in the same namespace to which you deployed |onprem|. 
+     Ensure that you:
+
+     i. Match the ``spec.opsManager.configMapRef.name`` of the resource 
+        to the ``metadata.name`` of your ConfigMap.
+     #. Match the ``spec.credentials`` of the resource to the name of 
+        the secret you created that contains an |onprem| programmatic 
+        API key pair.
+
+  {+mdbagent+}\s running in MongoDB database resource containers that
+  you create with the |k8s-op-short| download the installation archives
+  from |onprem| via Nginx instead of from the Internet. 
+
+...
