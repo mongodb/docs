@@ -1,6 +1,6 @@
 
-.. admonition:: MongoDB 4.4 Release Candidates
+.. admonition:: MongoDB {+version-dev+} Release Candidates
    :class: warning
 
-   While the 4.4 release candidates are available, these versions of
+   While the {+version-dev+} release candidates are available, these versions of
    MongoDB are for **testing purposes only and not for production use**.
