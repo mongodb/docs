@@ -1,3 +1,6 @@
+The Oplog database only supports the ``SCRAM`` authentication mechanism.
+You cannot enable other authentication mechanisms.
+
 If you enable ``SCRAM`` authentication on the oplog database, you
 must: 
 
