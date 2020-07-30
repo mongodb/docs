@@ -1,0 +1,302 @@
+=========================
+Authentication Mechanisms
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In this guide, we show you sample code to connect to MongoDB using each
+authentication mechanism available in the MongoDB Community Edition:
+
+* ``DEFAULT``
+* ``SCRAM-SHA-256``
+* ``SCRAM-SHA-1``
+* ``MONGODB-CR``
+* ``X.509``
+
+If you need to connect using ``Kerberos`` or ``LDAP`` see the
+:docs:`Enterprise Authentication Mechanisms guide <fundamentals/enterprise-auth>`.
+
+
+MongoCredential
+---------------
+
+While you can configure the authentication mechanism and supply
+credentials using the connection string, you can use the static factory
+methods in the ``MongoCredential`` helper class to keep your code
+organized especially when specifying multiple credentials or hosts in
+a cluster.
+
+If you choose to use the ``MongoCredential`` helper class, you
+need to use the ``MongoClientSettings.Builder`` class to configure your
+connection settings. If you choose to use the aforementioned classes to 
+configure your connection, it might resemble the following:
+
+.. code-block:: java
+
+   MongoCredential credential = MongoCredential.createCredential(<username>, <auth db>, <password>);
+
+   MongoClient mongoClient = MongoClients.create(
+      MongoClientSettings.builder()
+          .applyToClusterSettings(builder ->
+                  builder.hosts(Arrays.asList(new ServerAddress(<hostname>, <port>))))
+              .credential(credential)
+              .build());
+
+You can select the **MongoCredential** or **Connection String** tab in the
+following sections to see the associated sample code.
+
+
+``DEFAULT``
+-----------
+
+The ``DEFAULT`` authentication mechanism is a fallback setting that instructs
+the driver to negotiate the first authentication mechanism supported by the
+server in the following order of preference:
+
+#. ``SCRAM-SHA-256``
+#. ``SCRAM-SHA-1``
+#. ``MONGODB-CR``
+
+If the ``DEFAULT`` option is specified, the driver first attempts to
+authenticate using ``SCRAM-SHA-256``. If the version of the MongoDB instance
+does not support that mechanism, the driver attempts to authenticate using
+``SCRAM-SHA-1``. If the instance does not support that mechanism either,
+the driver attempts to authenticate using ``MONGODB-CR``.
+
+You can specify this authentication mechanism by setting the ``authMechanism``
+parameter to ``DEFAULT`` in the
+:manual:`connection string </reference/connection-string/>`, or by omitting
+the parameter since it is the default value. Also include your username and
+password as shown in the code below.
+
+.. important::
+   Always **URI encode** the username and password using the
+   ``encodeURIComponent`` method to ensure they are correctly parsed.
+
+.. tabs-connection-configuration::
+
+   .. tab::
+      :tabid: Connection String
+
+      .. code-block:: java
+         
+         TODO
+         
+   .. tab::
+      :tabid: MongoCredential
+
+      .. code-block:: java
+
+         TODO
+
+.. literalinclude:: /code-snippets/authentication/default.js
+   :language: javascript
+
+For more information on the challenge-response (CR) and salted
+challenge-response authentication mechanisms (SCRAM) that MongoDB supports,
+see the :manual:`SCRAM </core/security-scram/>` section of the manual.
+
+``SCRAM-SHA-256``
+-----------------
+
+.. note::
+
+   ``SCRAM-SHA-256`` is the default authentication method for MongoDB starting
+   in version 4.0
+
+``SCRAM-SHA-256`` is a salted challenge-response authentication mechanism
+(SCRAM) that uses your username and password, encrypted with the ``SHA-256``
+algorithm to authenticate your user.
+
+You can specify this authentication mechanism by setting the ``authMechanism``
+to the value ``SCRAM-SHA-256`` in the
+:manual:`connection string <reference/connection-string/>` as shown in the
+following sample code.
+
+.. important::
+   Always **URI encode** the username and password using the
+   ``encodeURIComponent`` method to ensure they are correctly parsed.
+
+.. literalinclude:: /code-snippets/authentication/sha256.js
+   :language: javascript
+
+``SCRAM-SHA-1``
+---------------
+
+.. note::
+   ``SCRAM-SHA-1`` is the default authentication method for MongoDB versions
+   3.0, 3.2, 3.4, and 3.6.
+
+``SCRAM-SHA-1`` is a salted challenge-response mechanism (SCRAM) that uses your
+username and password, encrypted with the ``SHA-1`` algorithm to authenticate
+your user.
+
+You can specify this authentication mechanism by setting the ``authMechanism``
+parameter to the value ``SCRAM-SHA-1`` in the
+:manual:`connection string </reference/connection-string/>` as shown
+in the following sample code.
+
+.. important::
+   Always **URI encode** the username and password using the
+   ``encodeURIComponent`` method to ensure they are correctly parsed.
+
+.. literalinclude:: /code-snippets/authentication/sha1.js
+   :language: javascript
+
+``MONGODB-CR``
+--------------
+
+.. warning::
+   MONGODB-CR was deprecated starting in MongoDB 3.6, and is no longer supported as of MongoDB 4.0
+
+``MONGODB-CR`` is a challenge-response authentication mechanism that uses your
+username and password to authenticate your user.
+
+You can specify this option by setting the ``authMechanism`` parameter to value
+``MONGODB-CR`` in the
+:manual:`connection string </reference/connection-string/>` as shown
+in the following sample code.
+
+.. important::
+   Always **URI encode** the username and password using the
+   ``encodeURIComponent`` method to ensure they are correctly parsed.
+
+.. literalinclude:: /code-snippets/authentication/cr.js
+   :language: javascript
+
+.. important::
+   If you have :manual:`upgraded the authentication schema from MONGODB-CR to
+   SCRAM </release-notes/3.0-scram/>`, any ``MONGODB-CR`` user
+   authentication requests fail.
+
+
+``MONGODB-AWS``
+---------------
+
+.. note::
+   The MONGODB-AWS authentication mechanism is only available in MongoDB
+   versions 4.4 and later.
+
+The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
+Identity and Access Management (AWS IAM) credentials to authenticate your
+user.
+
+To connect to a MongoDB instance with ``MONGODB-AWS`` authentication
+enabled, specify the ``MONGODB-AWS`` authentication mechanism and pass
+your ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` credentials to the
+driver when you attempt to connect. If your AWS login requires a session
+token, you must include your ``AWS_SESSION_TOKEN`` as well.
+
+The driver checks the following sources for your credentials in order:
+
+1. Connection string
+2. Environment variables
+3. AWS ECS endpoint specified in ``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI``
+4. AWS EC2 endpoint. For more information, see `IAM Roles for Tasks
+   <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`_.
+
+The following code shows an example of specifying the ``MONGODB-AWS``
+authentication mechanism and credentials in the connection string.
+
+.. literalinclude:: /code-snippets/authentication/aws.js
+   :language: javascript
+
+
+``X.509``
+---------
+
+.. note::
+   The X.509 authentication mechanism is only available in MongoDB versions
+   2.6 and later.
+
+The ``X.509`` authentication mechanism uses
+:wikipedia:`TLS <Transport_Layer_Security>` with X.509 certificates to
+authenticate your user, identified by the distinguished name (DN) of your
+client certificate. For more information on determining the *subject* name from
+the X.509 certificate, see the MongoDB manual :manual:`X.509 tutorial
+</tutorial/configure-x509-client-authentication/#add-x-509-certificate-subject-as-a-user>`.
+
+You can specify this authentication mechanism by setting the following
+parameters of your
+:manual:`connection string </reference/connection-string/>`:
+
+- Set the ``authMechanism`` parameter to the value ``MONGODB-X509``
+- Set the ``tls`` parameter to the value ``true``
+
+Pass the location of your client certificate file as the value of
+``tlsCertificateKeyFile`` as a parameter of the connection URI.
+
+.. important::
+   Always **URI encode** the username and certificate file path using the
+   ``encodeURIComponent`` method to ensure they are correctly parsed.
+
+.. literalinclude:: /code-snippets/authentication/x509.js
+   :language: javascript
+
+TLS/SSL Options
+~~~~~~~~~~~~~~~
+
+The following table describes each of the TLS/SSL options that can be passed
+as a parameter in the connection URI.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter Name
+     - Type
+     - Default Value
+     - Description
+
+   * - ``tls``
+     - boolean
+     - ``false``
+     - Specifies whether to use TLS/SSL connections.
+
+   * - ``tlsInsecure``
+     - boolean
+     - ``false``
+     -  Specifies whether to allow invalid certificates and mismatched
+        hostnames. When set to ``true``, this is equivalent to setting
+        ``tlsAllowInvalidCertificates`` and ``tlsAllowInvalidHostnames`` to
+        ``true``.
+
+   * - ``tlsCAFile``
+     - string
+     -
+     - Path to file that contains a single or bundle of trusted certificate
+       authorities used in a TLS connection.
+
+   * - ``tlsCertificateKeyFile``
+     - string
+     -
+     - Path to the client certificate file or the client private key file. If
+       both are required, the two must be concatenated into a single file.
+
+   * - ``tlsCertificateKeyFilePassword``
+     - buffer or string
+     -
+     - String or buffer that contains the password to decrypt the client
+       private key.
+
+   * - ``tlsAllowInvalidCertificates``
+     - boolean
+     - ``false``
+     - Specifies whether the driver permits an invalid certificate to be used
+       to connect.
+
+   * - ``tlsAllowInvalidHostnames``
+     - boolean
+     - ``false``
+     - Specifies whether the driver should permit a mismatch between the
+       server hostname and TLS certificate hostname.
+
+
+
+http://mongodb.github.io/mongo-java-driver/4.0/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
+
