@@ -12,7 +12,8 @@ Build Locally
 To build the documentation locally, 
 
 - Install `giza <https://pypi.python.org/pypi/giza/>`_, if not already
-  installed. There is an `installation guide 
+  installed. Note that giza requires Python 2.7 and does not work with Python 3.
+  There is an `installation guide 
   <https://docs.mongodb.com/meta/tutorials/install/>`_ on the MongoDB meta site
   to help you get started.
 
@@ -31,7 +32,7 @@ Stage
 -----
 
 Install [mut](https://github.com/mongodb/mut) following its installation
-instructions.
+instructions. Note that mut requires Python 3 and does not work with Python 2.7.
 
 Request access to the documentation staging bucket. Obtain AWS S3
 access key id and secret access key.
