@@ -52,6 +52,25 @@ Finally to publish the docs to the staging bucket, run::
 
 The output will include a URL to the published documentation.
 
+Deploy To Live Site
+-------------------
+
+Install `mut <https://github.com/mongodb/mut>`_ following its installation
+instructions. Note that mut requires Python 3 and does not work with Python 2.7.
+
+Request access to the production documentation bucket. Obtain AWS S3
+access key id and secret access key.
+
+Create ``~/.config/giza-aws-authentication.conf`` with the following contents::
+
+    [authentication]
+    accesskey=<AWS access key>
+    secretkey=<AWS secret key>
+
+Publish the docs to the production bucket::
+
+    make publish deploy
+
 Contribute
 ----------
 
