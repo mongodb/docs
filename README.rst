@@ -2,7 +2,9 @@
 MongoDB Mongoid Documentation
 =============================
 
-This repository contains the files to handle the build and publication of the Mongoid documentation.  The actual Mongoid documentation files are located in the mongoid repo. 
+This repository contains the files to handle the build and publication of the
+Mongoid documentation.  The actual Mongoid documentation files are located in
+the `mongoid repo <https://github.com/mongodb/mongoid/tree/master/docs>`_.
 
 Build Locally
 -------------
