@@ -25,8 +25,36 @@ The generated HTML will be placed in `build/master/html/`.
 *Note*: The build process invokes Sphinx and expects Sphinx's various
 binaries to be in PATH.
 
+Stage
+-----
+
+Install [mut](https://github.com/mongodb/mut) following its installation
+instructions.
+
+Request access to the documentation staging bucket. Obtain AWS S3
+access key id and secret access key.
+
+Create ``~/.config/giza-aws-authentication.conf`` with the following contents::
+
+    [authentication]
+    accesskey=<AWS access key>
+    secretkey=<AWS secret key>
+
+(If you run ``make stage`` without configuring authentication, it will
+also give you these instructions.)
+
+Finally to publish the docs to the staging bucket, run::
+
+    make stage
+
+The output will include a URL to the published documentation.
+
 Contribute
 ----------
+
+Documentation sources for Mongoid are in Mongoid's primary repository:
+https://github.com/mongodb/mongoid/tree/master/docs/tutorials.
+This repository contains documentation build tooling only.
 
 To contribute to the documentation, please sign the `MongoDB
 Contributor Agreement
