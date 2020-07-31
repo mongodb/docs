@@ -71,6 +71,21 @@ Publish the docs to the production bucket::
 
     make publish deploy
 
+Using Docker
+------------
+
+Build the docker image::
+
+    docker build -t docs-mongoid .
+
+Deploy to live site (no need to configure ``~/.config/giza-aws-authentication.conf``
+on the host system):
+
+    docker run -it docs-mongoid \
+      -e AWS_ACCESS_KEY_ID=<AWS access key> \
+      -e AWS_SECRET_ACCESS_KEY=<AWS secret key> \
+      make publish deploy
+
 Contribute
 ----------
 
