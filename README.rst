@@ -81,10 +81,10 @@ Build the docker image::
 Deploy to live site (no need to configure ``~/.config/giza-aws-authentication.conf``
 on the host system)::
 
-    docker run -it docs-mongoid \
+    docker run -it \
       -e AWS_ACCESS_KEY_ID=<AWS access key> \
       -e AWS_SECRET_ACCESS_KEY=<AWS secret key> \
-      make publish deploy
+      docs-mongoid make publish deploy
 
 Contribute
 ----------
