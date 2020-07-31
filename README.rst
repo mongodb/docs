@@ -31,7 +31,7 @@ binaries to be in PATH.
 Stage
 -----
 
-Install [mut](https://github.com/mongodb/mut) following its installation
+Install `mut <https://github.com/mongodb/mut>`_ following its installation
 instructions. Note that mut requires Python 3 and does not work with Python 2.7.
 
 Request access to the documentation staging bucket. Obtain AWS S3
