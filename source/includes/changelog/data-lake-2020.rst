@@ -1,3 +1,13 @@
+.. _data-lake-v20200728:
+
+28 July 2020 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Relaxes :ref:`adl-out-stage` |s3| region requirement.
+- Includes improved :ref:`storage configuration <datalake-configuration-file>`  
+  error messages.
+- Includes general performance and stability improvements.
+
 .. _data-lake-v20200714:
 
 14 July 2020 Release
