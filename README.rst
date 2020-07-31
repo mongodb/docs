@@ -1,6 +1,6 @@
-=============================
-MongoDB Mongoid Documentation
-=============================
+=====================
+Mongoid Documentation
+=====================
 
 This repository contains the files to handle the build and publication of the
 Mongoid documentation.  The actual Mongoid documentation files are located in
