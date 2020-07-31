@@ -11,7 +11,7 @@
      - MongoDB 3.4
 
    * - 1.0.0
-     - ✓ (*)
+     - |checkmark| (*)
      - |checkmark|
      - |checkmark|
      - |checkmark|
