@@ -78,6 +78,16 @@ Build the docker image::
 
     docker build -t docs-mongoid .
 
+Build the documentation to ``build`` subdir, clobbering its existing contents::
+
+    rm -rf build && \
+    mkdir build && \
+    docker run -itv `pwd`/build:/build \
+      docs-mongoid sh -c 'make html && rsync -av build/ /build'
+
+Note that since Docker container runs everything as root, the built files
+will also be owned by root and will require root access to modify or remove.
+
 Deploy to live site (no need to configure ``~/.config/giza-aws-authentication.conf``
 on the host system)::
 
