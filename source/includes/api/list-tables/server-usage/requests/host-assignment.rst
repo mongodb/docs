@@ -8,30 +8,30 @@
      - Necessity
      - Description
 
-   * - ``hosts``
+   * - hosts
      - array of strings
      - Required
      - List of virtual hosts bound to the provided physical host.
 
-   * - | ``hosts``
-       | ``.groupId``
+   * - | hosts
+       | .groupId
      - string
      - Optional
      - Unique identifier of the project into which |onprem| places this
        virtual host.
 
-   * - | ``hosts``
-       | ``.hostname``
+   * - | hosts
+       | .hostname
      - string
      - Optional
      - |fqdn| of the virtual host bound to the physical host.
 
-   * - ``name``
+   * - name
      - string
      - Required
      - Label you gave to the physical host. This value must be unique.
 
-   * - ``serverType``
+   * - serverType
      - string
      - Required
      - Server Type of the physical host. You can set this to one of the
@@ -40,6 +40,7 @@
        - ``DEV_SERVER``
        - ``TEST_SERVER``
        - ``PRODUCTION_SERVER``
+       - ``RAM_POOL``
 
        .. seealso::
 

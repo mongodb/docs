@@ -1,15 +1,19 @@
-curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+curl --user "{publicApiKey}:{privateApiKey}" --digest \
      --header "Accept: application/json" \
      --header "Content-Type: application/json" \
      --include \
-     --request PUT "https://<OpsManagerHost>:<Port>/api/public/v1.0/usage/groups/{PROJECT-ID}?pretty=true" \
+     --request PUT "https://<OpsManagerHost>:<Port>/api/public/v1.0/usage/groups/{groupId}?pretty=true" \
      --data '{
                "name": "physicalHostA",
-               "serverType": "PRODUCTION_SERVER",
+               "serverType":
+                 {
+                   "name": "PRODUCTION_SERVER",
+                   "label": "Production Server",
+                 },
                "virtualHosts": [
                  {
                    "hostname": "virtual.host.lqhfcxlgzqtimcxf.internal.mongodb-1",
-                   "groupId": "{PROJECT-ID}"
+                   "groupId": "{groupId}"
                  }
                ]
              }'

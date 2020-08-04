@@ -8,23 +8,23 @@
      - Description
      - Default
 
-   * - ``pageNum``
+   * - pageNum
      - integer
      - Page number (1-index based).
      - ``1``
 
-   * - ``itemsPerPage``
+   * - itemsPerPage
      - integer
      - Number of items to return per page, up to a maximum of 500.
      - ``100``
 
-   * - ``pretty``
+   * - pretty
      - boolean
      - Indicates whether the response body should be in a
        :wikipedia:`prettyprint </Prettyprint?oldid=791126873>` format.
      - ``false``
 
-   * - ``envelope``
+   * - envelope
      - boolean
      - Indicates whether or not to wrap the response in an envelope.
 
@@ -40,9 +40,9 @@
           :header-rows: 1
           :stub-columns: 1
 
-          * - ``status``
+          * - status
             - |http| response code
-          * - ``envelope``
+          * - envelope
             - Expected response body
 
        For endpoints that return a list of results, the ``results``

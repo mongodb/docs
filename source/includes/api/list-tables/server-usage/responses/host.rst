@@ -7,38 +7,40 @@
      - Type
      - Description
 
-   * - ``hosts``
-     - array of strings
+   * - hosts
+     - array of objects
      - List of virtual hosts bound to the provided physical host.
 
-   * - | ``hosts``
-       | ``.groupId``
+   * - | hosts
+       | .[n].groupId
      - string
      - Unique identifier of the project into which |onprem| places this
        virtual host.
 
-   * - | ``hosts``
-       | ``.hostname``
+   * - | hosts
+       | .[n].hostname
      - string
      - |fqdn| of the virtual host bound to the physical host.
 
-   * - ``id``
+   * - id
      - string
      - Unique identifier of the physical host to which |onprem| bound
        the virtual hosts.
 
-   * - ``name``
+   * - name
      - string
      - Label you gave to the physical host.
 
-   * - ``serverType``
+   * - serverType
      - string
-     - Server Type of the physical host. You can set this to one of the
-       following values:
+     - Server Type of the physical host.
 
-       - ``DEV_SERVER``
-       - ``TEST_SERVER``
-       - ``PRODUCTION_SERVER``
+       |mms| returns one of the following values:
+
+       - DEV_SERVER
+       - TEST_SERVER
+       - PRODUCTION_SERVER
+       - RAM_POOL
 
        .. seealso::
 
