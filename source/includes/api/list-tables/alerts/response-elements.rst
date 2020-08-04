@@ -82,7 +82,7 @@
      - string
      - Name of the event that triggered the alert.
 
-       .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
+       .. include:: /includes/api/facts/event-type-values.rst
 
    * - ``groupId``
      - string

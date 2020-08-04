@@ -1,6 +1,7 @@
 .. list-table::
-   :widths: 20 20 60
+   :widths: 15 10 85
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
@@ -25,7 +26,7 @@
 
    * - clusterId
      - string
-     - ID of the cluster to which this event applies.
+     - Unique identifier of the cluster to which this event applies.
 
    * - clusterName
      - string
@@ -45,11 +46,13 @@
      - object
      - Current value of the metric that triggered this event.
 
-   * - currentValue.number
+   * - | currentValue
+       | .number
      - number
      - Value of the metric.
 
-   * - currentValue.units
+   * - | currentValue
+       | .units
      - string
      - Relevant units for the value.
 
@@ -70,15 +73,15 @@
      - string
      - Name of the circumstance that triggered this event.
 
-       .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
+       .. include:: /includes/api/facts/event-type-values.rst
 
    * - groupId
      - string
-     - ID of the project in which this event occurred.
+     - Unique identifier of the project in which this event occurred.
 
    * - hostId
      - string
-     - ID of the host on which this event occurred.
+     - Unique identifier of the host on which this event occurred.
 
    * - hostname
      - string
@@ -116,8 +119,8 @@
 
    * - publicKey
      - string
-     - Public key associated with the :ref:`API Key
-       <mms-prog-api-key>` that triggered this event.
+     - Public key associated with the
+       :ref:`API Key <mms-prog-api-key>` that triggered this event.
 
        If this field is present in the response, |mms| does not return
        the ``username`` field.
@@ -133,11 +136,12 @@
 
    * - shardName
      - string
-     - The name of the shard associated with the event.
+     - Name of the shard associated with the event.
 
    * - targetPublicKey
      - string
-     - Public key of the API Key targeted by the event.
+     - Public key of the :ref:`API Key <mms-prog-api-key>`
+       targeted by the event.
 
    * - targetUsername
      - string

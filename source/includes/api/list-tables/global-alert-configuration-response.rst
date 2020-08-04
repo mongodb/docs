@@ -20,7 +20,7 @@
      - Type of event for which this alert configuration triggers
        an alert.
 
-       .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
+       .. include:: /includes/api/facts/event-type-values.rst
 
    * - ``forAllGroups``
      - boolean

@@ -1,6 +1,7 @@
 .. list-table::
-   :widths: 20 20 60
+   :widths: 15 10 85
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
@@ -25,7 +26,7 @@
 
    * - clusterId
      - string
-     - ID of the cluster to which this event applies.
+     - Unique identifier of the cluster to which this event applies.
 
    * - clusterName
      - string
@@ -45,11 +46,13 @@
      - object
      - Current value of the metric that triggered this event.
 
-   * - currentValue.number
+   * - | currentValue
+       | .number
      - number
      - Value of the metric.
 
-   * - currentValue.units
+   * - | currentValue
+       | .units
      - string
      - Relevant units for the value.
 
@@ -70,15 +73,15 @@
      - string
      - Name of the circumstance that triggered this event.
 
-       .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
+       .. include:: /includes/api/facts/event-type-values.rst
 
    * - groupId
      - string
-     - ID of the project in which this event occurred.
+     - Unique identifier of the project in which this event occurred.
 
    * - hostId
      - string
-     - ID of the host on which this event occurred.
+     - Unique identifier of the host on which this event occurred.
 
    * - hostname
      - string
@@ -89,14 +92,10 @@
      - string
      - Unique identifier for this event.
 
-   * - invoiceId
-     - string
-     - Unique identifier of the invoice associated with this event.
-
    * - isGlobalAdmin
      - boolean
-     - Flag indicating whether the user who triggered this event is a
-       MongoDB employee.
+     - Flag indicating whether the user who triggered this event has
+       the :authrole:`Global Monitoring Administrator` role.
 
    * - links
      - object array
@@ -113,11 +112,6 @@
      - Type of operation that generated the event. This field is
        present when the ``eventTypeName`` is either ``DATA_EXPLORER``
        or ``DATA_EXPLORER_CRUD``.
-  
-   * - paymentId
-     - string
-     - Unique identifier of the invoice payment associated with this
-       event.
 
    * - port
      - integer
@@ -142,11 +136,12 @@
 
    * - shardName
      - string
-     - The name of the shard associated with the event.
+     - Name of the shard associated with the event.
 
    * - targetPublicKey
      - string
-     - Public key of the API Key targeted by the event.
+     - Public key of the :ref:`API Key <mms-prog-api-key>`
+       targeted by the event.
 
    * - targetUsername
      - string
