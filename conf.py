@@ -68,8 +68,7 @@ rst_epilog = '\n'.join([
     '.. |hardlink| replace:: {0}/{1}'.format(conf.project.url, conf.git.branches.current),
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
     '.. |bi| replace:: MongoDB Connector for BI',
-    '.. |mdbsg| replace:: MongoDB Style Guide',
-    '.. |nbsp| unicode:: 0xA0'
+    '.. |mdbsg| replace:: MongoDB Style Guide'
 ])
 
 pygments_style = 'sphinx'
@@ -112,18 +111,18 @@ extlinks = {
     'rst' : ('http://docutils.sourceforge.net/docs/ref/rst%s',''),
     'cc' : ('https://creativecommons.org/licenses%s',''),
     'gh' : ('https://github.com%s',''),
-    'mdb-legal' : ('https://www.mongodb.com/legal%s','')
+    'mdb-legal' : ('https://www.mongodb.com/legal%s',''),
+    'mdbcloud' : ('https://cloud.mongodb.com%s',''),
 }
 
 source_constants = {
-    'rst': 'restructuredtext',
+    'rst': 'restructuredText',
+    'Rst': 'RestructuredText',
     'package-branch': 'testing',
-    'package-version': '3.0.0',
+    'package-version': '4.4.0',
     'package-name-org': 'mongodb-org',
-    'version': '3.0',
-    'nbsp' : 'unicode:: 0xA0'
+    'version': '4.0',
 }
-
 
 ## add `extlinks` for each published version.
 for i in conf.git.branches.published:
