@@ -1,6 +1,6 @@
 .. code-block:: java
 
-   MongoCredential credential = MongoCredential.createCredential(<username>, <auth db>, <password>);
+   MongoCredential credential = MongoCredential.createCredential(<username>, <authenticationDb>, <password>);
 
    MongoClient mongoClient = MongoClients.create(
        MongoClientSettings.builder()
