@@ -7,8 +7,5 @@
        MongoClientSettings.builder()
            .applyConnectionString(connectionString)
            .credential(credential)
-           .applyToSslSettings(builder -> {
-               builder.enabled(true));
-               })
            .build());
 
