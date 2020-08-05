@@ -1,11 +1,11 @@
 .. code-block:: java
 
-   MongoCredential credential = MongoCredential.createMongoX509Credential(<username>);
+   MongoCredential credential = MongoCredential.createMongoX509Credential("<username>");
 
    MongoClient mongoClient = MongoClients.create(
        MongoClientSettings.builder()
            .applyToClusterSettings(builder ->
-               builder.hosts(Arrays.asList(new ServerAddress(<hostname>, <port>))))
+               builder.hosts(Arrays.asList(new ServerAddress("<hostname>", "<port>"))))
            .applyToSslSettings(builder ->
                builder.enabled(true);
                )
