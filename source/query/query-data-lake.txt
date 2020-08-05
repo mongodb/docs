@@ -1,0 +1,219 @@
+.. _query-adl:
+
+=======================
+Querying Your Data Lake
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol 
+
+You can run queries against data in your |s3| bucket and/or 
+documents in your MongoDB |service| cluster.
+
+.. seealso:: 
+
+   - :doc:`How to Connect to Your Data Lake </tutorial/connect>`
+   - :doc:`How to Run Queries Against Your Data Lake </tutorial/run-queries>`
+
+.. _query-s3:
+
+Querying Data on S3 
+-------------------
+
+You can use {+adl+} to query and analyze data on your cloud object store 
+using MongoDB Query Language (MQL). {+adl+} supports most, but not all the 
+standard server commands. To learn more about the supported and unsupported 
+MongoDB server commands and aggregation pipleline stages, see 
+:ref:`data-lake-mql-support`.  
+
+To query data on |s3|, your {+dl+} storage :ref:`configuration 
+<datalake-configuration-file>` must contain settings that define:
+
+- Your |s3| {+data-lake-store+}. 
+- {+dl+} virtual databases and collections that map to your 
+  {+data-lake-store+}.
+
+.. example::
+
+   .. code-block:: json
+
+      {
+        "stores" : [
+          {
+            "name" : "<store-name>",
+            "provider" : "s3",
+            "region" : "<aws-region>",
+            "bucket" : "<s3-bucket-name>",
+            "prefix" : "<file-path-prefix>",
+            "delimiter" : "<path-separator>"
+          }
+        ],
+        "databases" : [ 
+          {
+            "name" : "<database-name>", 
+            "collections" : [
+              {
+                "name" : "<collection-name>",
+                "dataSources" : [
+                  {
+                    "storeName" : "<store-name>",
+                    "path" : "<path-to-file>"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+
+To learn more about these settings, see :ref:`datalake-configuration-file`.
+
+{+dl+} creates the virtual databases and collections you specified in your 
+{+dl+} configuration for the data in your |s3| store. When you :doc:`connect 
+</tutorial/connect>` to your {+dl+} and :doc:`run queries 
+</tutorial/run-queries>`, {+dl+} processes your queries against the data and 
+returns the query results.
+
+When :doc:`deploying </tutorial/deploy>` your {+dl+}, if you specified an |s3| 
+bucket with both read and write permissions or |aws| |s3| :aws:`s3:PutObject 
+</AmazonS3/latest/dev/using-with-s3-actions.html#using-with-s3-actions-related-to-objects>` 
+permission, you can also save your query results in your |s3| bucket using 
+:ref:`adl-out-stage` to |s3|.
+
+.. _query-atlas:
+
+Querying Data in Your |service| Cluster 
+---------------------------------------
+
+You can use {+adl+} to query and analyze data in your |service| cluster using 
+MongoDB Query Language (MQL). {+adl+} supports most, but not all the standard 
+server commands. To learn more about the supported and unsupported MongoDB 
+server commands and aggregation pipleline stages, see 
+:ref:`data-lake-mql-support`.
+
+To query data in your |service| cluster, your {+dl+} storage 
+:ref:`configuration <datalake-configuration-file>` must contain settings that 
+define: 
+
+- Your |service| {+data-lake-store+}.
+- {+dl+} virtual databases and collections that map to your 
+  {+data-lake-store+}.
+
+.. example::
+
+   .. code-block:: json
+
+      {
+        "stores" : [
+          {
+            "name" : "<store-name>",
+            "provider": "atlas",
+            "clusterName": "<atlas-cluster-name>", 
+            "projectId": "<atlas-project-ID>"
+          }
+        ],
+        "databases" : [
+          {
+            "name" : "<database-name>",
+            "collections" : [
+              {
+                "name" : "<collection-name>",
+                "dataSources" : [
+                  {
+                    "storeName" : "<store-name>",
+                    "database" : "<atlas-database-name>",
+                    "collection" : "<atlas-collection-name>" 
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+
+To learn more about these settings, see :ref:`datalake-configuration-file`. 
+
+{+dl+} creates the virtual databases and collections you specified in your 
+{+dl+} configuration for the data in your |service| cluster. When you 
+:doc:`connect </tutorial/connect>` to your {+dl+} and run queries, {+dl+} 
+processes your queries against the against the data and returns the query 
+results.
+
+.. _federated-queries:
+
+Running Federated Queries 
+-------------------------
+
+You can use {+adl+} to query and analyze a unified view of data in your 
+|service| cluster and |s3| bucket. For federated queries, your {+dl+} 
+storage :ref:`configuration <datalake-configuration-file>` must contain the 
+settings that define: 
+
+- Your |s3| {+data-lake-store+}. 
+- Your |service| {+data-lake-store+}.
+- {+dl+} virtual databases and collections that map to your |s3| and |service| 
+  {+data-lake-store+}\s.
+
+.. example:: 
+
+   .. code-block:: json 
+
+      {
+        "stores" : [
+          {
+            "name" : "<atlas-store-name>",
+            "provider": "atlas",
+            "clusterName": "<atlas-cluster-name>", 
+            "projectId": "<atlas-project-ID>"
+          },
+          {
+            "name" : "<s3-store-name>",
+            "provider" : "s3",
+            "region" : "<aws-region>",
+            "bucket" : "<s3-bucket-name>",
+            "prefix" : "<file-path-prefix>",
+            "delimiter" : "<path-separator>"
+          }
+        ],
+        "databases" : [
+          {
+            "name" : "<database-name>",
+            "collections" : [
+              {
+                "name" : "<collection-name>",
+                "dataSources" : [
+                  {
+                    "storeName" : "<atlas-store-name>",
+                    "database" : "<atlas-database-name>",
+                    "collection" : "<atlas-collection-name>" 
+                  },
+                  {
+                    "storeName" : "<s3-store-name>",
+                    "path" : "<path-to-file>"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+
+To learn more about these settings, see :ref:`datalake-configuration-file`.
+
+When you :doc:`connect </tutorial/connect>` to your {+dl+} and run federated
+queries, {+dl+} combines data from your |service| cluster and |s3| bucket 
+in virtual databases and collections and returns a union of data in the 
+results. 
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /admin/optimize-query-performance
+      /admin/determine-query-status

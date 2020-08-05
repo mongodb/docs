@@ -1,9 +1,9 @@
 
 .. _datalake-configuration-file:
 
-======================================
-{+data-lake-short+} Configuration File
-======================================
+=================================
+{+data-lake-short+} Configuration
+=================================
 
 .. default-domain:: mongodb
 
@@ -18,162 +18,224 @@
 Overview 
 --------
 
-The {+adl+} configuration file uses the |json| format. It defines mappings 
-between your {+data-lake-stores+} and {+data-lake-short+}. {+dl+} supports 
-|s3| buckets and |service| clusters as {+data-lake-stores+}. Click on the 
-tab to learn more about the {+dl+} configuration for that {+data-lake-store+}.
+The {+adl+} configuration is in |json| format. It contains mappings between 
+your {+data-lake-stores+} and {+data-lake-short+}. {+dl+} supports |s3| buckets 
+and |service| clusters as {+data-lake-stores+}. You must define mappings between your:
+
+- |s3| {+data-lake-store+} and {+data-lake-short+} to run queries against your 
+  |s3| data only.
+- |service| cluster and {+data-lake-short+} to run queries against your 
+  |service| cluster only.
+- |s3| and |service| cluster {+data-lake-stores+} and {+data-lake-short+} to 
+  run federated queries.
+
+Click on the tab below to learn more about the {+dl+} configuration for that data store.
 
 .. tabs:: 
 
-   .. tab:: S3 
-      :tabid: s3
-      
-      Consider a S3 bucket ``datacenter-alpha`` containing data 
-      collected from a datacenter:
+   .. tab:: S3  
+      :tabid: s3 
 
-      .. code-block:: none
-         :copyable: false
+      .. example::
 
-         |--metrics
-            |--hardware
+         Consider a S3 bucket ``datacenter-alpha`` containing data 
+         collected from a datacenter:
 
-      The ``/metrics/hardware`` path stores JSON files with metrics derived
-      from the datacenter hardware, where each filename is the UNIX timestamp
-      in milliseconds of the 24 hour period covered by that file:
+         .. code-block:: none
+            :copyable: false
 
-      .. code-block:: none
-         :copyable: false
+            |--metrics
+              |--hardware
 
-         /hardware/1564671291998.json
+         The ``/metrics/hardware`` path stores JSON files with metrics derived
+         from the datacenter hardware, where each filename is the UNIX 
+         timestamp in milliseconds of the 24 hour period covered by that file:
 
-      The following configuration file:
+         .. code-block:: none
+            :copyable: false
 
-      - Defines a {+data-lake-store+} on the ``datacenter-alpha`` S3 bucket
-        in the ``us-east-1`` AWS region. The {+data-lake-store+}
-        is specifically restricted to only datafiles in the ``metrics``
-        folder path.
+            /hardware/1564671291998.json
 
-      - Maps files from the ``hardware`` folder to a MongoDB database
-        ``datacenter-alpha-metrics`` and collection ``hardware``. The
-        configuration mapping includes parsing logic for capturing the
-        timestamp implied in the filename.
+         The following configuration:
 
-      .. code-block:: json
+         - Defines a {+data-lake-store+} on the ``datacenter-alpha`` S3 bucket
+           in the ``us-east-1`` AWS region. The {+data-lake-store+} is 
+           specifically restricted to only datafiles in the ``metrics`` folder 
+           path.
 
-         {
-           "stores" : [
-             {
-               "name" : "datacenter-alpha",
-               "provider" : "s3",
-               "region" : "us-east-1",
-               "bucket" : "datacenter-alpha",
-               "prefix" : "/metrics",
-               "delimiter" : "/"
-             }
-           ],
-           "databases" : [ 
-             {
-               "name" : "datacenter-alpha-metrics", 
-               "collections" : [
-                 {
-                   "name" : "hardware",
-                   "dataSources" : [
-                     {
-                       "storeName" : "datacenter-alpha",
-                       "path" : "/hardware/{date date}"
-                     }
-                   ]
-                 }
-               ]
-             }
-           ]
-         }
+         - Maps files from the ``hardware`` folder to a MongoDB database
+           ``datacenter-alpha-metrics`` and collection ``hardware``. The
+           configuration mapping includes parsing logic for capturing the
+           timestamp implied in the filename.
 
-      {+data-lake+} parses the S3 bucket ``datacenter-alpha`` and processes 
-      all files under ``/metrics/hardware/``. The ``collections`` uses the 
-      :ref:`path parsing syntax <datalake-path-syntax>` to map the filename to 
-      the ``date`` field, which is an ISO-8601 date, in each document. If a 
-      matching ``date`` field does not exist in a document, it will be added.
+         .. code-block:: json
 
-      Users connected to the {+data-lake-short+} can use the MongoDB
-      Query Language and supported aggregations to analyze data in the
-      S3 bucket through the ``datacenter-metrics.hardware`` collection.
+            {
+              "stores" : [
+                {
+                  "name" : "datacenter-alpha",
+                  "provider" : "s3",
+                  "region" : "us-east-1",
+                  "bucket" : "datacenter-alpha",
+                  "prefix" : "/metrics",
+                  "delimiter" : "/"
+                }
+              ],
+              "databases" : [ 
+                {
+                  "name" : "datacenter-alpha-metrics", 
+                  "collections" : [
+                    {
+                      "name" : "hardware",
+                      "dataSources" : [
+                        {
+                          "storeName" : "datacenter-alpha",
+                          "path" : "/hardware/{date date}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
 
-   .. tab:: Atlas Cluster 
+         {+data-lake+} parses the S3 bucket ``datacenter-alpha`` and processes 
+         all files under ``/metrics/hardware/``. The ``collections`` uses the 
+         :ref:`path parsing syntax <datalake-path-syntax>` to map the filename 
+         to the ``date`` field, which is an ISO-8601 date, in each document. 
+         If a matching ``date`` field does not exist in a document, it will be 
+         added.
+
+         Users connected to the {+data-lake-short+} can use the MongoDB Query 
+         Language and supported aggregations to analyze data in the |s3| 
+         bucket through the ``datacenter-metrics.hardware`` collection.
+
+   .. tab:: Atlas  
       :tabid: atlas 
 
       .. note:: 
 
          To use |service| as a {+data-lake-store+}, {+dl+} requires ``M10`` or 
-         higher cluster. 
+         higher cluster.
 
-      Consider a ``M10`` or higher |service| cluster named ``myDataCenter`` 
-      containing data in the ``metrics.hardware`` collection. The ``metrics.hardware`` 
-      collection contains JSON documents with metrics derived from the hardware in 
-      a datacenter. The following configuration file:
+      .. example:: 
 
-      - Specifies the |service| cluster named ``myDataCenter`` in the specified 
-        project as a {+data-lake-store+}.
+         Consider a ``M10`` or higher |service| cluster named ``myDataCenter`` 
+         containing data in the ``metrics.hardware`` collection. The ``metrics.
+         hardware`` collection contains JSON documents with metrics derived 
+         from the hardware in a datacenter. The following configuration:
 
-      - Maps documents from the ``metrics.hardware`` collection in the 
-        |service| cluster to the ``dataCenter.inventory`` collection 
-        in the storage configuration.
+         - Specifies the |service| cluster named ``myDataCenter`` in the 
+           specified project as a {+data-lake-store+}.
 
-      .. code-block:: json 
+         - Maps documents from the ``metrics.hardware`` collection in the 
+           |service| cluster to the ``dataCenter.inventory`` collection in the 
+           storage configuration.
 
-         {
-           "stores" : [
-             {
-               "name" : "atlasClusterStore",
-               "provider" : "atlas",
-               "clusterName" : "myDataCenter",
-               "projectId" : "5e2211c17a3e5a48f5497de3"
-             }
-           ],
-           "databases" : [ 
-             {
-               "name" : "dataCenter", 
-               "collections" : [
-                 {
-                   "name" : "inventory",
-                   "dataSources" : [
-                     {
-                       "storeName" : "atlasClusterStore",
-                       "database" : "metrics",
-                       "collection" : "hardware"
-                     }
-                   ]
-                 }
-               ]
-             }
-           ]
-         }
+         .. code-block:: json 
 
-      {+data-lake+} maps all the documents in the ``metrics.hardware`` 
-      collection to the ``dataCenter.inventory`` collection in the storage 
-      configuration.
+            {
+              "stores" : [
+                {
+                  "name" : "atlasClusterStore",
+                  "provider" : "atlas",
+                  "clusterName" : "myDataCenter",
+                  "projectId" : "5e2211c17a3e5a48f5497de3"
+                }
+              ],
+              "databases" : [ 
+                {
+                  "name" : "dataCenter", 
+                  "collections" : [
+                    {
+                      "name" : "inventory",
+                      "dataSources" : [
+                        {
+                          "storeName" : "atlasClusterStore",
+                          "database" : "metrics",
+                          "collection" : "hardware"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
 
-      Users connected to the {+data-lake-short+} can use the MongoDB
-      Query Language and supported aggregations to analyze data in the
-      |service| cluster through the ``dataCenter.inventory`` collection.  
-      When you run queries, the query first goes to {+adl+}. Therefore, 
-      if you run aggregation queries that are supported by your |service| 
-      cluster but not by {+adl+}, the queries will fail. To learn 
-      more about supported and unsupported commands in {+dl+}, see 
-      :ref:`data-lake-mql-support`.
+         {+data-lake+} maps all the documents in the ``metrics.hardware`` 
+         collection to the ``dataCenter.inventory`` collection in the storage 
+         configuration.
+
+         Users connected to the {+data-lake-short+} can use the MongoDB Query 
+         Language and supported aggregations to analyze data in the |service| 
+         cluster through the ``dataCenter.inventory`` collection. When you run 
+         queries, the query first goes to {+adl+}. Therefore, if you run 
+         aggregation queries that are supported by your |service| cluster but 
+         not by {+adl+}, the queries will fail. To learn more about supported 
+         and unsupported commands in {+dl+}, see :ref:`data-lake-mql-support`.
+
+You can define mappings between your |s3| and |service| cluster 
+{+data-lake-stores+} and {+data-lake-short+} in the {+dl+} configuration to run federated queries. 
+
+.. example::
+
+   For the preceding sample |s3| and |service| {+data-lake-stores+}, the 
+   {+dl+} configuration for federated queries resembles the following:
+
+   .. code-block:: json
+
+      {
+        "stores" : [
+          {
+            "name" : "datacenter-alpha",
+            "provider" : "s3",
+            "region" : "us-east-1",
+            "bucket" : "datacenter-alpha",
+            "prefix" : "/metrics",
+            "delimiter" : "/"
+          },
+          {
+            "name" : "atlasClusterStore",
+            "provider" : "atlas",
+            "clusterName" : "myDataCenter",
+            "projectId" : "5e2211c17a3e5a48f5497de3"
+          }
+        ],
+        "databases" : [ 
+          {
+            "name" : "datacenter-metrics", 
+            "collections" : [
+              {
+                "name" : "inventory",
+                "dataSources" : [
+                  {
+                    "storeName" : "datacenter-alpha",
+                    "path" : "/hardware/{date date}"
+                  },
+                  {
+                    "storeName" : "atlasClusterStore",
+                    "database" : "metrics",
+                    "collection" : "hardware"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
 
 .. important:: 
 
-   If the database in the storage configuration contains collections from 
-   both |s3| and |service| {+data-lake-stores+}, the query results might 
-   contain data from both the {+data-lake-stores+}.
+   If the database in the storage configuration contains collections 
+   from both |s3| and |service| {+data-lake-stores+}, the query results 
+   might contain data from both the {+data-lake-stores+}.
 
 .. _datalake-configuration-format:
 
-Configuration File Format
--------------------------
+Configuration Format
+--------------------
 
-The {+data-lake-short+} configuration file has the following format:
+The {+data-lake-short+} configuration has the following format:
 
 .. tabs:: 
    :hidden:
