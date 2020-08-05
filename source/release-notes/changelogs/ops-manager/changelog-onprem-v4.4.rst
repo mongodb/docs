@@ -1,3 +1,20 @@
+.. _opsmgr-server-4.4.1:
+
+|onprem| Server 4.4.1
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-08-05*
+
+- Allows replica sets to be force reconfigured using console.
+
+- Fixes an issue with Organization-level |api| key returning
+  `HTTP error 500 <https://httpstatuses.com/500>`__ when no roles are
+  defined.
+
+- Improves |onprem| packaging.
+
+- Updates MongoDB Agent to :ref:`10.14.12.6411 <mongodb-10.14.12.6411>`.
+
 .. _opsmgr-server-4.4.0:
 
 |onprem| Server 4.4.0
