@@ -1,0 +1,435 @@
+================
+Connection Guide
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. toctree::
+
+   /fundamentals/connection/tls
+   /fundamentals/connection/jndi
+
+This guide shows you how to connect to a MongoDB instance or replica set
+deployment using the driver.
+
+For information about authenticating with a MongoDB instance,
+see :doc:`Authentication </fundamentals/auth>`. To learn more about using
+the driver with the Java Naming and Directory Interface (JNDI), see
+:doc:`JNDI <fundamentals/connection/jndi>`. To configure TLS/SSL security
+for connections to your MongoDB instance, see :doc:`TLS/SSL
+<fundamentals/connection/tls>`.
+
+.. _mongoclient:
+
+MongoClient
+-----------
+
+Use the ``MongoClients.create()`` method to construct a
+``MongoClient``. As each ``MongoClient`` represents a threadsafe pool of
+connections to the database, most applications only require a single
+instance of a ``MongoClient``, even across multiple threads. All resource
+usage limits, such as max connections, apply to individual
+``MongoClient`` instances.
+
+.. note::
+
+   Always call ``MongoClient.close()`` to clean up resources when an
+   instance is no longer needed. The `try-with-resources statement
+   <https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html>`__
+   provides a convenient pattern to guarantee that a ``MongoClient``
+   is always closed.
+
+.. _connection-uri:
+
+Connection String
+--------------
+
+The **connection string** (also known as a **connection uri**) provides
+instructions on how to connect to a MongoDB deployment. The driver
+interprets the connection string to determine where and how
+it should connect to MongoDB as well as how to behave while
+connected. The following example shows each part of the connection URI:
+
+.. figure:: /includes/figures/connection_string_parts.png
+
+In this example, for the protocol, we use ``mongodb+srv`` which specifies the
+:manual:`DNS Seedlist Connection Format
+</reference/connection-string/#dns-seedlist-connection-format>`. This indicates
+that the hostname following it corresponds to the DNS SRV record of your
+MongoDB instance or deployment. If your instance or deployment does not have a
+DNS SRV record, use ``mongodb`` to specify the :manual:`Standard Connection
+Format </reference/connection-string/#standard-connection-string-format>`.
+
+.. note::
+
+   If your deployment is on MongoDB Atlas, follow the
+   :atlas:`Atlas driver connection guide <driver-connection?jmp=docs_driver_java>`
+   to retrieve your connection string.
+
+The next part of the connection string contains your username and password
+if you are using password-based authentication. Replace the value of ``user``
+with your username and ``pass`` with your password. If you are using an
+authentication mechanism that does not require a username and password, omit
+this part of the connection URI.
+
+The next part of the connection string specifies the hostname or IP address and
+port of your MongoDB instance. In the example below, we use ``sample-hostname``
+as the hostname and ``27017`` as the port. Replace these values to point to
+your MongoDB instance.
+
+The last part of the connection string contains connection and authentication
+options as parameters. In the example below, we set two connection options:
+``retryWrites=true`` and ``w=majority``. For more information on connection
+options, skip to the :ref:`connection options <connection-options>` section.
+
+The code below shows how you can use the sample connection URI in a client to
+connect to MongoDB.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/srv.java
+   :language: java
+
+.. _connect-replica-set:
+
+Connect to a Replica Set
+------------------------
+
+A MongoDB replica set deployment is a group of connected instances that
+store the same set of data. This configuration of instances provides data
+redundancy and high data availability.
+
+To connect to a replica set deployment, specify the hostname (or IP address)
+and port numbers of one or more members of the replica set separated by commas.
+Use the  to specify the name
+of the replica set with which your application is connecting. When the
+replica set option is specified, the driver assumes that your
+connection string uses a seed list of multiple hosts instead of a single
+``host:port`` configuration.
+
+The connection string below specifies three hosts in the cluster and
+replica set named "myRs".
+
+.. code-block:: none
+
+   mongodb://host1:27017,host2:27017,host3:27017
+
+.. note::
+
+   Although it is possible to connect to a replica set deployment by
+   providing only a single host, you should provide the driver with the
+   full list to ensure that it is able to connect even if one host fails.
+
+.. note::
+
+   The :manual:`replicaSet option
+   </reference/connection-string/#urioption.replicaSet>` is no longer
+   necessary to connect to a replica set, since the driver automatically
+   detects and handles multiple hosts in the connection string as a
+   replica set.
+
+.. _compression:
+
+Compression
+-----------
+
+You can compress messages passing between your MongoDB instance and the
+driver. MongoDB drivers support up to three different algorithms
+depending on release version:
+
+1. `Snappy <https://google.github.io/snappy/>`__: available in MongoDB 3.4 and later.
+
+2. `Zlib <https://zlib.net/>`__: available in MongoDB 3.6 and later.
+
+3. `Zstandard <https://github.com/facebook/zstd/>`__: available in MongoDB 4.2 and later.
+
+You can specify one or more compression algorithms, but the driver uses
+the first compressor in the list supported by the connected
+MongoDB instance.
+
+.. _compression:
+
+Enable Compression
+~~~~~~~~~~~~~~~~~~
+
+You can enable compression for the connection to your MongoDB instance
+in two different ways: through a parameter in your connection string, or
+using a method in the ``MongoClientSettings.Builder`` class.
+
+.. tabs::
+
+   .. tab:: ConnectionString
+      :tabid: connectionstring
+
+      To enable compression with a :java-sync-api:`ConnectionString
+      <com/mongodb/ConnectionString.html>`, use the parameter ``compressors``
+      in the connection string passed to
+      ``MongoClients.create()``. You can specify one or more compression
+      algorithms, separating multiple algorithms with commas:
+
+      .. code-block:: java
+
+         ConnectionString connectionString = new ConnectionString("mongodb+srv://<user>:<password>@<cluster-url>?compressors=snappy,zlib,zstd");
+         MongoClient mongoClient = MongoClients.create(connectionString);
+
+      Specify compression algorithms using the following strings:
+
+      - "snappy" for `Snappy <https://google.github.io/snappy/>`__ compression.
+
+      - "zlib" for `Zlib <https://zlib.net/>`__ compression.
+
+      - "zstd" for `Zstandard <https://github.com/facebook/zstd/>`__ compression.
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      To enable compression with :java-sync-api:`MongoClientSettings
+      <com/mongodb/MongoClientSettings.html>`, pass the
+      :java-sync-api:`compressorList()
+      <com/mongodb/MongoClientSettings.Builder.html#compressorList(java.util.List)>`
+      builder method a list of :java-sync-api:`MongoCompressor <com/mongodb/MongoCompressor.html>`
+      instances. You can specify one or more compression algorithms in the list:
+
+      .. code-block:: java
+         :emphasize-lines: 2-4
+
+         MongoClientSettings settings = MongoClientSettings.builder()
+              .compressorList(Arrays.asList(MongoCompressor.createSnappyCompressor(),
+                                            MongoCompressor.createZlibCompressor(),
+                                            MongoCompressor.createZstdCompressor()))
+              .build();
+         MongoClient client = MongoClients.create(settings);
+
+.. _compression-dependencies:
+
+Compression Algorithm Dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The JDK supports `Zlib <https://zlib.net/>`__ compression natively, but
+`Snappy <https://google.github.io/snappy/>`__ and
+`Zstandard <https://github.com/facebook/zstd/>`__ depend upon open source
+implementations. See 
+`snappy-java <https://github.com/xerial/snappy-java>`__ and
+`zstd-java <https://github.com/luben/zstd-jni>`__ for details.
+
+.. _connection-options:
+
+Connection Options
+------------------
+
+This section explains MongoDB connection and authentication options
+supported by the driver. You can pass the connection options as
+parameters of the connection URI to specify the behavior of the client.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Option Name
+     - Type
+     - Description
+
+   * - **maxPoolSize**
+     - integer
+     - Specifies the maximum size of the instance connection pool.
+
+   * - **waitQueueTimeoutMS**
+     - integer
+     - Specifies the maximum amount of time, in milliseconds, that a
+       thread may wait for a connection to become available.
+
+   * - **serverSelectionTimeoutMS**
+     - integer
+     - Specifies the maximum amount of time, in milliseconds, the driver
+       will wait for server selection to succeed before throwing an
+       exception.
+
+   * - **localThresholdMS**
+     - integer
+     - When communicating with multiple instances of MongoDB in a replica
+       set, the driver will only send requests to a server whose
+       response time is less than or equal to the server with the fastest
+       response time plus the local threshold, in milliseconds.
+
+   * - **heartbeatFrequencyMS**
+     - integer
+     - Specifies the frequency, in milliseconds, that the driver will
+       wait between attempts to determine the current state of each
+       server in the cluster.
+
+   * - **replicaSet**
+     - string
+     - Specifies that the :ref:`connection string <connection-uri>`
+       provided includes multiple hosts. When specified, the driver
+       attempts to find all members of that set.
+
+   * - **ssl**
+     - boolean
+     - Specifies that all communication with MongoDB instances should
+       use TLS/SSL. Superseded by the **tls** option.
+
+   * - **tls**
+     - boolean
+     - Specifies that all communication with MongoDB instances should
+       use TLS. Supersedes the **ssl** option.
+
+   * - **tlsInsecure**
+     - boolean
+     - Specifies that the driver should allow invalid hostnames for TLS
+       connections. Has the same effect as setting
+       **tlsAllowInvalidHostnames** to true. To configure TLS security
+       constraints in other ways, use a
+       :ref:`custom SSLContext <tls-custom-sslContext>`.
+
+   * - **sslInvalidHostNameAllowed**
+     - boolean
+     - Specifies that the driver should allow invalid hostnames in the
+       certificate for TLS/SSL connections. Superseded by
+       **tlsAllowInvalidHostnames**.
+
+   * - **tlsAllowInvalidHostnames**
+     - boolean
+     - Specifies that the driver should allow invalid hostnames in the
+       certificate for TLS connections. Supersedes
+       **sslInvalidHostNameAllowed**.
+
+   * - **connectTimeoutMS**
+     - integer
+     - Specifies the maximum amount of time, in milliseconds, the Java
+       driver will wait for a connection to open before timing out.
+
+   * - **socketTimeoutMS**
+     - integer
+     - Specifies the maximum amount of time, in milliseconds, the Java
+       driver will wait to send or receive a request before timing out.
+
+   * - **maxIdleTimeMS**
+     - integer
+     - Specifies the maximum amount of time, in milliseconds, the Java
+       driver will allow a pooled connection to idle before closing the
+       connection.
+
+   * - **maxLifeTimeMS**
+     - integer
+     - Specifies the maximum amount of time, in milliseconds, the Java
+       driver will continue to use a pooled connection before closing the
+       connection.
+
+   * - **safe**
+     - boolean
+     - Specifies that the driver ensures that all writes are acknowledged
+       by the connected MongoDB instance. Throws an exception on any write
+       that does not receive acknowledgment from the connected MongoDB
+       instance.
+
+   * - **journal**
+     - boolean
+     - Specifies that the driver must wait for the connected MongoDB
+       instance to group commit to the journal file on disk for all writes.
+
+   * - **w**
+     - string or integer
+     - Specifies the write concern. For more information on values, see
+       the server documentation for the :manual:`w option
+       </reference/write-concern/#w-option>`. Configuring this option
+       implicitly configures the **safe** option to ``true``.
+
+   * - **wtimeoutMS**
+     - integer
+     - Specifies a time limit, in milliseconds, for the write concern. For
+       more information, see the server documentation for the
+       :manual:`wtimeoutMS option
+       </reference/connection-string/#urioption.wtimeoutMS>`. Configuring
+       this option implicitly configures the **safe** option to ``true``.
+
+   * - **readPreference**
+     - string
+     - Specifies the read preference. For more information on values, see
+       the server documentation for the :manual:`readPreference option
+       </reference/connection-string/#urioption.readPreference>`.
+
+   * - **readPreferenceTags**
+     - string
+     - Specifies the read preference tags. For more information on values, see
+       the server documentation for the :manual:`readPreferenceTags option
+       </reference/connection-string/#urioption.readPreferenceTags>`.
+
+   * - **maxStalenessSeconds**
+     - integer
+     - Specifies, in seconds, how stale a secondary can be before the
+       driver stops communicating with that secondary. Not providing
+       a parameter or explicitly setting it to ``-1`` indicates that there
+       should be no staleness check for secondaries. The minimum value is
+       either 90 seconds or the heartbeat frequency plus 10 seconds, whichever
+       is greater. For more information, see the server documentation for the
+       :manual:`maxStalenessSeconds option
+       </reference/connection-string/#urioption.maxStalenessSeconds>`.
+
+   * - **authMechanism**
+     - string
+     - Specifies the authentication mechanism that the driver should
+       use if a credential was supplied. By default, the client will pick
+       the most secure mechanism available based on the server version.
+       For possible values, see the server documentation for the
+       :manual:`authMechanism option
+       </reference/connection-string/#urioption.authMechanism>`.
+
+   * - **authSource**
+     - string
+     - Specifies the database that the supplied credentials should be
+       validated against. Defaults to ``admin``.
+
+   * - **authMechanismProperties**
+     - string
+     - Specifies authentication properties for the specified authentication
+       mechanism as a list of colon-separated properties and values.
+       For more information, see the server documentation for
+       the :manual:`authMechanismProperties option
+       </reference/connection-string/#urioption.authMechanismProperties>`.
+
+   * - **appName**
+     - string
+     - Specifies the name of the application provided to MongoDB instances
+       during the connection handshake. Can be used for server logs and
+       profiling.
+
+   * - **compressors**
+     - string
+     - Specifies one or more compression algorithms that the driver
+       will attempt to use to compress requests sent to the connected
+       MongoDB instance. Possible values include: ``zlib``, ``snappy``,
+       and ``zstd``.
+
+   * - **zlibCompressionLevel**
+     - integer
+     - Specifies the degree of compression that `Zlib <https://zlib.net/>`__
+       should employ to decrease the size of requests to the connected
+       MongoDB instance. The level can range from ``-1`` to ``9``, with
+       lower values compressing faster (but resulting in larger requests)
+       and larger values compressing slower (but resulting in smaller
+       requests).
+
+   * - **retryWrites**
+     - boolean
+     - Specifies that the driver must retry supported write operations
+       if they fail due to a network error. Defaults to true.
+
+   * - **retryReads**
+     - boolean
+     - Specifies that the driver must retry supported read operations
+       if they fail due to a network error. Defaults to true.
+
+   * - **uuidRepresentation**
+     - string
+     - Specifies the UUID representation to use for read and write
+       operations. For more information, see the the driver documentation
+       for the :java-sync-api:`MongoClientSettings.getUuidRepresentation() method
+       <com/mongodb/MongoClientSettings.html#getUuidRepresentation()>`.
+
+   * - **directConnection**
+     - boolean
+     - Specifies that the driver must connect to the host directly.
+
+For a complete list of options, see the :java-sync-api:`ConnectionString
+<com/mongodb/ConnectionString.html>` API reference page.
