@@ -38,10 +38,7 @@ usage limits, such as max connections, apply to individual
 .. note::
 
    Always call ``MongoClient.close()`` to clean up resources when an
-   instance is no longer needed. The `try-with-resources statement
-   <https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html>`__
-   provides a convenient pattern to guarantee that a ``MongoClient``
-   is always closed.
+   instance is no longer needed.
 
 .. _connection-uri:
 
@@ -103,11 +100,19 @@ redundancy and high data availability.
 
 To connect to a replica set deployment, specify the hostname (or IP address)
 and port numbers of one or more members of the replica set separated by commas.
-Use the  to specify the name
-of the replica set with which your application is connecting. When the
-replica set option is specified, the driver assumes that your
-connection string uses a seed list of multiple hosts instead of a single
-``host:port`` configuration.
+By default, specifying the hostname and port number of a single MongoDB
+instance only connects to the specified member of the replica set.
+However, you can automatically discover and connect to all members of the
+replica set in several different ways. To create a replica set connection:
+
+- specify the name of the replica set using the ``replicaSet`` parameter
+
+- specify the ``directConnection`` parameter with a value of ``false``
+
+- specify multiple hosts, instead of a single host
+
+Each of these methods causes the driver to discover any unspecified
+hosts in the replica set.
 
 The connection string below specifies three hosts in the cluster and
 replica set named "myRs".
@@ -125,7 +130,7 @@ replica set named "myRs".
 .. note::
 
    The :manual:`replicaSet option
-   </reference/connection-string/#urioption.replicaSet>` is no longer
+   </reference/connection-string/#urioption.replicaSet>` is not
    necessary to connect to a replica set, since the driver automatically
    detects and handles multiple hosts in the connection string as a
    replica set.
@@ -148,6 +153,12 @@ depending on release version:
 You can specify one or more compression algorithms, but the driver uses
 the first compressor in the list supported by the connected
 MongoDB instance.
+
+.. note::
+
+   Applications that require Snappy or Zstandard compression must
+   :ref:`add explicit dependencies <compression-dependencies>` for those
+   algorithms.
 
 .. _enable-compression:
 
@@ -316,13 +327,6 @@ parameters of the connection URI to specify the behavior of the client.
        driver will continue to use a pooled connection before closing the
        connection.
 
-   * - **safe**
-     - boolean
-     - Specifies that the driver ensures that all writes are acknowledged
-       by the connected MongoDB instance. Throws an exception on any write
-       that does not receive acknowledgment from the connected MongoDB
-       instance.
-
    * - **journal**
      - boolean
      - Specifies that the driver must wait for the connected MongoDB
@@ -332,16 +336,14 @@ parameters of the connection URI to specify the behavior of the client.
      - string or integer
      - Specifies the write concern. For more information on values, see
        the server documentation for the :manual:`w option
-       </reference/write-concern/#w-option>`. Configuring this option
-       implicitly configures the **safe** option to ``true``.
+       </reference/write-concern/#w-option>`.
 
    * - **wtimeoutMS**
      - integer
      - Specifies a time limit, in milliseconds, for the write concern. For
        more information, see the server documentation for the
        :manual:`wtimeoutMS option
-       </reference/connection-string/#urioption.wtimeoutMS>`. Configuring
-       this option implicitly configures the **safe** option to ``true``.
+       </reference/connection-string/#urioption.wtimeoutMS>`.
 
    * - **readPreference**
      - string
@@ -368,10 +370,11 @@ parameters of the connection URI to specify the behavior of the client.
 
    * - **authMechanism**
      - string
-     - Specifies the authentication mechanism that the driver should
-       use if a credential was supplied. By default, the client will pick
-       the most secure mechanism available based on the server version.
-       For possible values, see the server documentation for the
+     - Specifies the :doc:`authentication mechanism
+       <fundamentals/auth>` that the driver should use if a credential
+       was supplied. By default, the client picks the most secure
+       mechanism available based on the server version. For possible
+       values, see the server documentation for the
        :manual:`authMechanism option
        </reference/connection-string/#urioption.authMechanism>`.
 
