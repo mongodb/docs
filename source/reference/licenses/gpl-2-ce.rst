@@ -10,6 +10,6 @@ Java
      - License |url|
      - Copyright
 
-   * - :mvn:`com.google.errorprone:javac-shaded@9+181-r4173-1</com.google.errorprone/javac-shaded/9+181-r4173-1>`
-     - :gh:`License </google/error-prone-javac/blob/9+181-r4173-1/LICENSE>`
+   * - AdoptOpenJDK 11
+     - `License <https://openjdk.java.net/legal/gplv2+ce.html>`__
      -

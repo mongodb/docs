@@ -5845,8 +5845,8 @@ Javascript
      - :gh:`License </faisalman/ua-parser-js/blob/master/LICENSE>`
      - Copyright (c) 2012-2019 Faisal Salman <<f@faisalman.com>>
    * - :npmjs:`ua-parser-js@0.7.21</ua-parser-js/v/0.7.21>`
-     -
-     -
+     - :gh:`License </faisalman/ua-parser-js/blob/master/license.md>`
+     - Copyright (c) 2012-2019 Faisal Salman <f@faisalman.com>
    * - :npmjs:`ui@5.1.9</ui/v/5.1.9>`
      - :gh:`License </storybookjs/storybook/blob/master/LICENSE>`
      - Copyright (c) 2017 Kadira Inc. <hello@kadira.io>
@@ -6170,10 +6170,10 @@ Javascript
      -
    * - :npmjs:`worker-farm@1.6.0</worker-farm/v/1.6.0>`
      - :gh:`License </rvagg/node-worker-farm/blob/master/LICENSE>`
-     - Copyright (c) 2014 LevelUP contributors. ---------------------------------------
+     - Copyright (c) 2014 LevelUP contributors.
    * - :npmjs:`worker-farm@1.7.0</worker-farm/v/1.7.0>`
      - :gh:`License </rvagg/node-worker-farm/blob/master/LICENSE>`
-     - Copyright (c) 2014 LevelUP contributors. ---------------------------------------
+     - Copyright (c) 2014 LevelUP contributors.
    * - :npmjs:`worker-rpc@0.1.1</worker-rpc/v/0.1.1>`
      - :gh:`License </DirtyHairy/worker-rpc/blob/master/LICENSE>`
      - Copyright (c) 2016 Christian Speckner <cnspeckn@googlemail.com>
