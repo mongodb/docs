@@ -1,3 +1,13 @@
+.. _opsmgr-server-4.0.19:
+
+|onprem| Server 4.0.19
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2020-08-06*
+
+- Fixes a bug with converting from |ldap| Native Authentication to
+  ``saslauthd``.
+
 .. _opsmgr-server-4.0.18:
 
 |onprem| Server 4.0.18
