@@ -1,3 +1,17 @@
+.. _opsmgr-server-4.2.16:
+
+|onprem| Server 4.2.16
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-08-06*
+
+- Fixes an error when creating API Keys without roles.
+
+- Updates the diagnostic archive filename to include the current date
+  and time of the server when generated or downloaded.
+
+- Updates MongoDB Agent to 10.2.20.5991.
+
 .. _opsmgr-server-4.2.15:
 
 |onprem| Server 4.2.15
