@@ -13,5 +13,5 @@ The backup process:
    specifies and then transfers the snapshots to a storage system.
 
 #. Monitors the :term:`oplog` constantly and adds new database
-   operations to the latest backup to keep the local |onprem| copy of
+   operations to the latest backup to keep the local |mms| copy of
    the data current.
