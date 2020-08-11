@@ -1,5 +1,5 @@
-.. admonition:: MongoDB Atlas
-   :class: note
+.. note:: MongoDB Atlas
+
 
    .. container::
 
