@@ -4,8 +4,8 @@ Map-Reduce Examples
 .. map-reduce-document-examples-begin
 .. map-reduce-document-prototype-begin
 
-.. admonition:: Aggregation Pipeline as Alternative
-   :class: note
+.. note:: Aggregation Pipeline as Alternative
+
 
    :doc:`Aggregation pipeline </core/aggregation-pipeline>`
    provides better performance and a more coherent interface than

@@ -1,5 +1,5 @@
-.. admonition:: MongoDB Atlas Search
-   :class: note
+.. note:: MongoDB Atlas Search
+
 
    :atlas:`Atlas Search </atlas-search>` makes it easy to build fast,
    relevance-based search capabilities on top of your MongoDB data. Try
