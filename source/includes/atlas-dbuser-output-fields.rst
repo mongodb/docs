@@ -20,6 +20,13 @@
 
           Groups and projects are synonymous terms. Your {GROUP-ID} 
           is the same as your project ID.
+   
+   * - ``roles``
+     - User's roles and the databases or collections on which the 
+       roles apply.
+
+   * - ``username``
+     - Username for authentication.
 
    * - ``ldapAuthType``
      - Method by which the specified ``username`` is 
@@ -74,11 +81,8 @@
           * - ``ROLE``
             - This user authenticates with :atlas:`AWS IAM role credentials
               </security-add-mongodb-users/#database-user-authentication>`.
-
-   * - ``roles``
-     - User's roles and the databases or collections on which the 
-       roles apply.
-
-   * - ``username``
-     - Username for authentication.
      
+   * - ``deleteAfterDate``
+     - |iso8601-time| after which |service| deletes the user. This 
+       field is only present if an expiration date was specified when 
+       creating the entry.

@@ -25,13 +25,14 @@ Syntax
 
 .. code-block:: text
 
-   mongocli atlas dbuser create     
-        --password|-p <password-of-user>
+   mongocli atlas dbuser create 
+        --username|-u <name-of-user>
+        [ --password|-p <password-of-user> ]   
         [ --profile|-P <profile-name> ]
         [ --projectId <project-ID> ]
         --role <name-of-role>
-        --username|-u <name-of-user>
         [ --authDB <authentication-database> ]
+        [ --deleteAfter <date-of-deletion> ]
 
 .. include:: /includes/fact-command-line-help.rst
 
@@ -49,10 +50,15 @@ Options
      - Description
      - Required?
 
+   * - ``--username``, ``-u``
+     - string
+     - Username for authenticating the user to MongoDB.
+     - yes
+
    * - ``--password``, ``-p``
      - string
-     - Password for authenticating the user to MongoDB. 
-     - yes
+     - Password for authenticating the user to MongoDB.
+     - no
 
    * - ``--profile``, ``-P``
      - string
@@ -79,19 +85,36 @@ Options
        </security-add-mongodb-users/index.html#mongodb-database-user-privileges>`.
      - yes
 
-   * - ``--username``, ``-u``
-     - string
-     - Username for authenticating the user to MongoDB.
-     - yes
-
    * - ``--authDB``
      - string
      - Name of the authentication database. Defaults to ``admin``.
      - no
 
+   * - ``--deleteAfter``
+     - date
+     - |iso8601-time| after which |service| deletes the user. The 
+       specified date must be in the future and within one week of the 
+       time you make the API request.
+
+       .. note::
+          You may include an |iso8601| time zone designator to ensure 
+          that the expiration date occurs with respect to the local 
+          time in the specified time zone. Time zones are represented 
+          as an offset from |utc|.
+
+       .. example::
+          To delete a database user on August 1st, 2020, at 12:30pm in 
+          New York (Eastern Daylight Time), use the option:
+
+          .. code-block:: sh
+             :copyable: true
+
+             --deleteAfter 2020-08-01T12:30-04:00
+     - no
+
 .. _dbuser-create-command-output:
 
-Output 
+Output
 ------
 .. include:: /includes/command-output-intro.rst
 
@@ -191,3 +214,45 @@ To learn more about these fields, see :ref:`Output
 	      "databaseName": "admin",
 	      "ldapAuthType": "NONE"
     }
+
+.. _dbuser-create-eg-3:
+
+Example 3
+~~~~~~~~~
+
+The following command creates a temporary user with credentials that 
+expire in one week.
+
+- Username: ``tempUser`` 
+- Password: ``ChangeThisToAStrongPassword`` 
+- Role: ``clusterMonitor``
+- Credential expiry date: ``2020-07-31``
+
+The command uses the {+default-profile+} to access |service| and create 
+the user.
+
+.. code-block:: sh
+   :copyable: false
+
+   mongocli atlas dbuser create --username tempUser --password ChangeThisToAStrongPassword --role clusterMonitor@admin --deleteAfter 2020-07-31 --projectId 5e2211c17a3e5a48f5497de3
+
+The previous command prints the following fields
+to the terminal. To learn more about these fields, see 
+:ref:`Output <dbuser-create-command-output>`.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "roles": [{
+         "roleName": "clusterMonitor",
+         "databaseName": "admin"
+      }],
+      "groupId": "5e2211c17a3e5a48f5497de3",
+      "username": "tempUser",
+      "databaseName": "admin",
+      "ldapAuthType": "NONE",
+      "x509Type": "NONE",
+      "awsIAMType": "NONE",
+      "deleteAfterDate": "2020-07-31T00:00:00Z"
+   }
