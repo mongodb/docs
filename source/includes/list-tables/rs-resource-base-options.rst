@@ -33,6 +33,8 @@
        The format should be ``X.Y.Z`` for the Community edition and
        ``X.Y.Z-ent`` for the Enterprise edition.
 
+       .. include:: /includes/admonitions/ubi-8-min-db-versions.rst
+
        To learn more about MongoDB versioning, see
        :ref:`release-version-numbers` in the MongoDB Manual.
      - ``3.6.7``
