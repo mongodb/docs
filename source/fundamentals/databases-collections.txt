@@ -1,0 +1,174 @@
+=========================
+Databases and Collections
+=========================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+MongoDB organizes data into a hierachy of the following levels:
+
+- databases
+
+- collections
+
+- documents
+
+Databases are the top level of data organization in a MongoDB instance.
+Databases are organized into collections which contain **documents**.
+Documents
+contain literal data such as strings, numbers, and dates as well as
+other (embedded) documents. For more information on document field
+types and structure, see the server documentation for :manual:`documents
+<core/document/>`. 
+
+Access a Database
+-----------------
+
+Use the :java-sync-api:`getDatabase()
+<com/mongodb/client/MongoClient.html#getDatabase(java.lang.String)>` method of
+a ``MongoClient`` instance to access a ``MongoDatabase`` in a MongoDB
+instance.
+
+The following example accesses a database named "testDatabase":
+
+.. code-block:: java
+
+   MongoDatabase database = mongoClient.getDatabase("testDatabase");
+
+Access a Collection
+-------------------
+
+Use the :java-sync-api:`getCollection()
+<com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String)>`
+method of a ``MongoDatabase`` instance to access a
+``MongoCollection`` in a database of your connected MongoDB instance.
+
+The following example accesses a collection named "testCollection" from
+a ``MongoDatabase``:
+
+.. code-block:: java
+
+   MongoDatabase database = mongoClient.getDatabase("testDatabase");
+   MongoCollection<Document> collection = database.getCollection("testCollection");
+
+.. note::
+
+   If the provided collection name does not already exist in the database,
+   MongoDB implicitly creates the collection when you first insert data
+   into that collection.
+
+Create a Collection
+-------------------
+
+Use the :java-sync-api:`createCollection()
+<com/mongodb/client/MongoDatabase.html#createCollection(java.lang.String,com.mongodb.client.model.CreateCollectionOptions)>`
+method of a ``MongoDatabase`` instance to create a collection called
+"exampleCollection" in a database of your connected MongoDB instance:
+
+.. code-block:: java
+
+   database.createCollection("exampleCollection");
+
+You can specify collection options like maximum size and document
+validation rules using the :java-docs:`CreateCollectionOptions
+<apidocs/mongodb-driver-core/com/mongodb/client/model/CreateCollectionOptions.html>`
+class. ``createCollection()`` accepts an instance of
+``CreateCollectionOptions`` as an optional second parameter.
+
+Document Validation
+~~~~~~~~~~~~~~~~~~~
+
+**Document validation** provides the ability to validate documents
+against a series of filters during writes to a collection. You can
+specify these filters using the :java-docs:`ValidationOptions
+<apidocs/mongodb-driver-core/com/mongodb/client/model/ValidationOptions.html>`
+class, which accepts a series of :java-docs:`Filters
+<apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html>`
+that specifies the validation rules and expressions:
+
+.. code-block:: java
+
+   ValidationOptions collOptions = new ValidationOptions().validator(
+       Filters.or(Filters.exists("commander"), Filters.exists("first officer")));
+   database.createCollection("ships",
+       new CreateCollectionOptions().validationOptions(collOptions));
+
+For more information, see the server documentation for :manual:`document
+validation </core/document-validation>`.
+
+Get a List of Collections
+-------------------------
+
+You can query for a list of collections in a database using the
+:java-sync-api:`MongoDatabase.listCollectionNames()
+<com/mongodb/client/MongoDatabase.html#listCollectionNames()>` method:
+
+.. code-block:: java
+
+   for (String name : database.listCollectionNames()) {
+       System.out.println(name);
+   }
+
+Drop a Collection
+-----------------
+
+You can remove a collection from the database using the 
+:java-sync-api:`MongoCollection.drop()
+<com/mongodb/client/MongoCollection.html#drop()>` method:
+
+.. code-block:: java
+
+   MongoCollection<Document> collection = database.getCollection("bass");
+   collection.drop();
+
+.. warning:: Dropping a Collection Deletes All Data in the Collection
+
+   Dropping a collection from your database also permanently deletes all
+   documents within that collection and all indexes on that collection.
+   Only drop collections that contain data that is no longer needed.
+
+Specify Read Preferences, Read Concerns and  Write Concerns
+-----------------------------------------------------------
+
+**Read preferences**, **read concerns**, and **write concerns** control
+how the driver routes read operations and waits for acknowledgement for
+read and write operations when connected to a MongoDB replica set.
+Read preferences and read concerns apply to all read operations;
+write concerns apply to all write operations.
+
+``MongoDatabase`` instances inherit their write concern, read concern,
+and write preference settings from the ``MongoClient`` used to create
+them. ``MongoCollection`` instances inherit their write concern, read concern,
+and write preference settings from the ``MongoDatabase`` used to create
+them. However, you can use the following methods to obtain an instance
+of a ``MongoDatabase`` or ``MongoCollection`` with a read preference,
+read concern, or write concern that differs from the setting they would
+normally inherit:
+
+- :java-sync-api:`MongoDatabase.withReadConcern() <com/mongodb/client/MongoDatabase.html#withReadConcern(com.mongodb.ReadConcern)>`
+
+- :java-sync-api:`MongoDatabase.withReadPreference() <com/mongodb/client/MongoDatabase.html#withReadPreference(com.mongodb.ReadPreference)>`
+
+- :java-sync-api:`MongoDatabase.withWriteConcern() <com/mongodb/client/MongoDatabase.html#withWriteConcern(com.mongodb.WriteConcern)>`
+
+- :java-sync-api:`MongoCollection.withReadConcern()<com/mongodb/client/MongoCollection.html#withReadConcern(com.mongodb.ReadConcern)>`
+
+- :java-sync-api:`MongoCollection.withReadPreference() <com/mongodb/client/MongoCollection.html#withReadPreference(com.mongodb.ReadPreference)>`
+
+- :java-sync-api:`MongoCollection.withWriteConcern() <com/mongodb/client/MongoCollection.html#withWriteConcern(com.mongodb.WriteConcern)>`
+
+.. note::
+
+   The ``withReadConcern()``, ``withReadPreference()``, and
+   ``withWriteConcern`` methods create a new instance of a
+   ``MongoDatabase`` or ``MongoCollection`` with the desired preference
+   or concern. The ``MongoDatabase`` or ``MongoCollection`` upon which
+   the method is called retains its original preference and concern
+   settings.
+
+For more information, see the server documentation on
+:manual:`read preferences <core/read-preference/>`,
+:manual:`read concerns <reference/read-concern/>`, and
+:manual:`write concerns <reference/write-concern/>`.
