@@ -98,7 +98,9 @@ extlinks = {
     'cvss': ('https://www.first.org/cvss%s',''),
     'cvss-score' : ('https://www.first.org/cvss/calculator/3.1#%s',''),
     'snyk-vuln' : ('https://snyk.io/vuln/%s',''),
-    'db-tools' : ('https://docs.mongodb.com/database-tools%s?tck=docs','')
+    'db-tools' : ('https://docs.mongodb.com/database-tools%s?tck=docs',''),
+    'mdb-sup' : ('https://support.mongodb.com%s?tck=docs',''),
+    'mdbu' : ('https://university.mongodb.com%s?tck=docs',''),
 }
 
 source_constants = {
