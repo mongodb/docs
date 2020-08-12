@@ -26,7 +26,7 @@ Edition are as follows:
 * :ref:`X.509 <x509-auth-mechanism>`
 
 If you need to authentication using ``Kerberos`` or ``LDAP`` see the
-:docs:`Enterprise Authentication Mechanisms guide <fundamentals/enterprise-auth>`.
+:doc:`Enterprise Authentication Mechanisms guide <fundamentals/enterprise-auth>`.
 For more information on establishing a connection to your MongoDB cluster,
 read our :doc:`Connection Guide </fundamentals/connection>`.
 
@@ -47,18 +47,18 @@ to instantiate your ``MongoClient``. For descriptions of how to use a
 connection string to specify your authentication method, navigate to the
 relevant mechanism section and select the :guilabel:`Connection String` tab.
 
-The ``MongoCredential`` class contains static factory methods that allow you
-to specify your authentication mechanism and credentials. You can use this
-helper class to keep your code organized. If you choose to use the
-``MongoCredential`` helper class, you need to use the
-``MongoClientSettings.Builder`` class to configure your connection settings
-when constructing your ``MongoClient``. For descriptions of how to use the
-``MongoCredential`` class to specify your authentication method, navigate
-to the relevant mechanism section and select the :guilabel:`MongoCredential`
-tab.
+Alternatively, you can use the ``MongoCredential`` class to specify your
+authentication details. The ``MongoCredential`` class contains static factory
+methods that construct instances containing your authentication mechanism and
+credentials. When you use the ``MongoCredential`` helper class, you need
+to use the ``MongoClientSettings.Builder`` class to configure your
+connection settings when constructing your ``MongoClient``. For
+a description of how to use the ``MongoCredential`` class to specify your
+authentication method, navigate to the relevant mechanism section and select
+the :guilabel:`MongoCredential` tab.
 
-For more information on the aforementioned classes and methods, refer to the
-following API documentation:
+For more information on these classes and methods, refer to the following API
+documentation:
 
 - :java-sync-api:`MongoClients.create() </com/mongodb/client/MongoClients.html#create(com.mongodb.ConnectionString)>`
 - :java-sync-api:`MongoClient </com/mongodb/client/MongoClient.html>`
@@ -73,21 +73,18 @@ Mechanisms
 Default
 ~~~~~~~
 
-The default authentication mechanism is a fallback setting that instructs
-the driver to negotiate the first authentication mechanism supported by the
-server in the following order of preference:
+The default authentication mechanism setting uses one of the following
+authentication mechanisms depending on what your MongoDB server supports:
 
 #. ``SCRAM-SHA-256``
 #. ``SCRAM-SHA-1``
 #. ``MONGODB-CR``
 
-When you use the default authentication mechanism, the driver first attempts
-to authenticate using ``SCRAM-SHA-256``. If the version of the MongoDB
-instance does not support that mechanism, the driver attempts to authenticate
-using ``SCRAM-SHA-1``. If the instance does not support that mechanism either,
-the driver attempts to authenticate using ``MONGODB-CR``.
+Server versions 3.6 and earlier use ``MONGODB-CR`` as the default
+mechanism. Newer versions of the server use one of the mechanisms for
+which they advertise support.
 
-The following code snippets show how to specify the connection mechanism,
+The following code snippets show how to specify the authentication mechanism,
 using the following placeholders:
 
 * ``username`` - your MongoDB username
@@ -108,8 +105,8 @@ mechanism:
       :tabid: Connection String
 
       To specify the default authentication mechanism using a connection
-      string, explicitly omit the mechanism. Your code to instantiate
-      a ``MongoClient`` should resemble the following:
+      string, omit the mechanism. Your code to instantiate a ``MongoClient``
+      should resemble the following:
 
       .. code-block:: java
 
@@ -142,7 +139,7 @@ see the :manual:`SCRAM </core/security-scram/>` section of the server manual.
 (SCRAM) that uses your username and password, encrypted with the ``SHA-256``
 algorithm to authenticate your user.
 
-The following code snippets show how to specify the connection mechanism,
+The following code snippets show how to specify the authentication mechanism,
 using the following placeholders:
 
 * ``username`` - your MongoDB username
@@ -195,7 +192,7 @@ mechanism:
 username and password, encrypted with the ``SHA-1`` algorithm to authenticate
 your user.
 
-The following code snippets show how to specify the connection mechanism,
+The following code snippets show how to specify the authentication mechanism,
 using the following placeholders:
 
 * ``username`` - your MongoDB username
@@ -229,7 +226,7 @@ mechanism:
 
       To specify the default authentication mechanism using the
       ``MongoCredential`` class, use the
-      :java-docs:`createScramSha1Credental() </apidocs/mongodb-driver-core/com/mongodb/MongoCredential.html#createScramSha1Credential(java.lang.String,java.lang.String,char[])>`
+      :java-docs:`createScramSha1Credential() </apidocs/mongodb-driver-core/com/mongodb/MongoCredential.html#createScramSha1Credential(java.lang.String,java.lang.String,char[])>`
       method. Your code to instantiate a ``MongoClient`` should resemble the
       following:
 
@@ -263,7 +260,7 @@ The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
 Identity and Access Management (AWS IAM) credentials to authenticate your
 user.
 
-The following code snippets show how to specify the connection mechanism,
+The following code snippets show how to specify the authentication mechanism,
 using the following placeholders:
 
 * ``username`` - value of your ``AWS_ACCESS_KEY_ID``
@@ -329,17 +326,13 @@ mechanism:
 The ``X.509`` authentication mechanism uses
 :wikipedia:`TLS <Transport_Layer_Security>` with X.509 certificates to
 authenticate your user, identified by the relative distinguished names
-(RDNs) of your client certificate.
+(RDNs) of your client certificate. When you specify the ``X.509``
+authentication mechanism, the server authenticates the connection using
+the subject name of the client certificate.
 
-To retrieve the X.509 certificate *subject* which is used as your
-*username* for authentication, see the MongoDB server :manual:`X.509
-tutorial </tutorial/configure-x509-client-authentication/#add-x-509-certificate-subject-as-a-user>`
-for more information.
-
-The following code snippets show how to specify the connection mechanism,
+The following code snippets show how to specify the authentication mechanism,
 using the following placeholders:
 
-* ``username`` - your MongoDB username, :manual:`derived from the certificate subject </tutorial/configure-x509-client-authentication/#add-x-509-certificate-subject-as-a-user>`
 * ``hostname`` - network address of your MongoDB server, accessible by your client
 * ``port`` - port number of your MongoDB server
 * ``authenticationDb`` - MongoDB database that contains your user's
@@ -363,7 +356,7 @@ mechanism:
 
       .. code-block:: java
 
-         MongoClient mongoClient = MongoClients.create("mongodb://<username>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=MONGODB-X509&tls=true");
+         MongoClient mongoClient = MongoClients.create("mongodb://<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=MONGODB-X509&tls=true");
 
    .. tab::
       :tabid: MongoCredential
@@ -380,5 +373,6 @@ mechanism:
 
       .. include:: /includes/fundamentals/code-snippets/auth-credentials-x509.rst
 
-For additional information on specifying SSL/TLS options, see the
-:doc:`connection guide </fundamentals/connection>`.
+For additional information on configuring your application to use
+certificates as well as TLS/SSL options, see our
+:doc:`TLS/SSL guide </fundamentals/connection>`.
