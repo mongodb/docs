@@ -55,8 +55,8 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Supports Snapshots that use Encryption
-        -
-        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Supports Saving to Blockstore Snapshot Storage
@@ -70,8 +70,8 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Supports Saving to File System Storage
-        -
-        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Supports Databases running MongoDB Enterprise
@@ -157,7 +157,6 @@ Backup Features Supported at Present
        been changed. Incremental backups reduce network transfer and
        storage costs. This feature works with MongoDB 4.2.6 or later.
 
-
 Requirements and Limitations
 ````````````````````````````
 
@@ -166,43 +165,25 @@ To run backups and restores if you are running MongoDB 4.2 with
 
 .. cond:: onprem
 
-   - Must run MongoDB Enterprise.
-
-   - Cannot use namespace filter lists to define the
-     :term:`namespaces <namespace>` included in a backup. Snapshots
-     using FCV 4.2 always include all namespaces.
-
-   - Cannot specify a sync source database. For FCV 4.2 replica sets,
-     no Initial Sync step is required. When taking a Snapshot, |mms|
-     selects the replica set member with the least performance impact
-     and greatest storage-level duplication of Snapshot data.
-
-   - Cannot save your backup to a file system store. Backup supports
-     :doc:`MongoDB </tutorial/manage-blockstore-storage>` and
-     :doc:`S3 Snapshot Storage </tutorial/manage-s3-blockstore-storage>`.
-
-   - Must deploy a MongoDB Agent with every |mongod| node in
-     the cluster.
+   - Must run :product:`MongoDB Enterprise <enterprise>`.
 
 .. cond:: cloud
 
-   - Must run MongoDB Enterprise. MongoDB, Inc. grants a
-     :doc:`special license </reference/legal/cloud-manager-backup-license>`
+   - Must run :product:`MongoDB Enterprise <enterprise>`. MongoDB, Inc.
+     grants a :doc:`special license </reference/legal/cloud-manager-backup-license>`
      to use MongoDB Enterprise for |mms| backups.
 
-   - Cannot use namespace filter lists to define the
-     :term:`namespaces <namespace>` included in a backup. Snapshots
-     using FCV 4.2 always include all namespaces.
+- Can't use namespace filter lists to define the
+  :term:`namespaces <namespace>` included in a backup. Snapshots
+  using FCV 4.2 or later always include all namespaces.
 
-   - Cannot specify a sync source database. For FCV 4.2 replica sets,
-     no Initial Sync step is required. When taking a Snapshot, |mms|
-     selects the replica set member with the least performance impact
-     and greatest storage-level duplication of Snapshot data.
+- Don't need a sync source database. When taking a Snapshot, |mms|
+  selects the replica set member with the least performance impact
+  and greatest storage-level duplication of Snapshot data.
 
-   - Must deploy a MongoDB Agent with every |mongod| node in
-     the cluster.
+- Must deploy a MongoDB Agent with every |mongod| node in
+  the cluster.
 
-Backup and restore performance decreases for MongoDB 4.2 replica
-sets with many small collections: those with tens of
-thousands of collections with less than 1 GB of data per
-collection.
+Backup and restore performance decreases for MongoDB 4.2 or later
+replica sets with many small collections: those with tens of thousands
+of collections with less than 1 GB of data per collection.
