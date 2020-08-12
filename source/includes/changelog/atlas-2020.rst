@@ -1,3 +1,20 @@
+.. _atlas_20200811:
+
+12 August 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Enhances :ref:`Performance Advisor and Query Profiler
+  <performance-advisor>` with higher volume log ingestion.
+- Improves UX for the :ref:`Real Time Performance Panel 
+  <real-time-metrics-status-tab>`, including one-minute history views.
+
+.. _atlas_20200730:
+
+30 July 2020 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces general availability of MongoDB 4.4.
+
 .. _atlas_20200721:
 
 21 July 2020 Release
