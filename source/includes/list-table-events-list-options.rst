@@ -7,23 +7,6 @@
      - Description 
      - Required? 
 
-   * - ``--profile``, ``-P``
-     - string
-     - Name of the profile where the project ID and the |svc-api-key|\s 
-       for the project are saved. If omitted, uses the {+default-profile+}. 
-       To learn more about creating a profile, see :ref:`mcli-configure`.
-     - no
-
-   * - ``--projectId``
-     - string
-     - Unique identifier of the project for which to retrieve events.
-     - yes
-
-   * - ``--orgId``
-     - string
-     - Unique identifier of the organization for which to retrieve events.
-     - yes
-
    * - ``--limit``
      - integer
      - Number of items per page.
@@ -39,10 +22,32 @@
      - Return events whose created date is greater than or equal to it.
      - no
 
+   * - ``--orgId``
+     - string
+     - Unique identifier of the organization for which to retrieve events.
+     - yes
+
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
    * - ``--page``
      - integer
      - Page number.
      - no
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the project ID and the |svc-api-key|\s 
+       for the project are saved. If omitted, uses the {+default-profile+}. 
+       To learn more about creating a profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project for which to retrieve events.
+     - yes
 
 .. note::
 

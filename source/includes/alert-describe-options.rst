@@ -12,6 +12,11 @@
      - Unique identifier of the alert you want to describe.
      - yes
 
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
    * - ``--profile``, ``-P``
      - string
      - Name of the profile where the public and private 

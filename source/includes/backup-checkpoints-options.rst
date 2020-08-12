@@ -12,6 +12,11 @@
      - ID of the cluster. 
      - yes 
 
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
    * - ``--profile``, ``-P``
      - string
      - Name of the profile where the project ID and the |svc-api-key|\s 

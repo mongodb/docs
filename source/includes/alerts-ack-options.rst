@@ -12,6 +12,12 @@
      - ID of the alert you want to acknowledge or un-acknowledge.
      - yes
 
+   * - ``--comment``
+     - string
+     - Comment describing the alert acknowledgement. If included, wrap
+       the comment in double quotes.
+     - no
+
    * - ``--forever``
      - string
      - Prevent the alert from resuming at any point in the future.
@@ -20,19 +26,9 @@
        command.
      - no
 
-   * - ``--until``
-     - string
-     - |iso8601-time| through which you acknowledge this alert. After
-       this time passes, the alert becomes un-acknowledged.
-
-       You can't set both ``--until`` and ``--forever`` in the same
-       command.
-     - no
-
-   * - ``--comment``
-     - string
-     - Comment describing the alert acknowledgement. If included, wrap
-       the comment in double quotes.
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
      - no
 
    * - ``--profile``, ``-P``
@@ -52,4 +48,13 @@
      - Unique identifier of the project that contains the cluster. If
        omitted, uses the project ID in the profile or
        :ref:`environment variable <mcli-env-var>`.
+     - no
+
+   * - ``--until``
+     - string
+     - |iso8601-time| through which you acknowledge this alert. After
+       this time passes, the alert becomes un-acknowledged.
+
+       You can't set both ``--until`` and ``--forever`` in the same
+       command.
      - no

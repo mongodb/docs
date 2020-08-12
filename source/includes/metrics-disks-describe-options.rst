@@ -7,14 +7,16 @@
      - Description
      - Required?
 
-   * - ``<hostID>``
-     - String
-     - The host ID of the server running the MongoDB process.
-     - yes
-
    * - ``<partition-name>``
      - string
      - The name of the disk or partition for which to get available metrics.
+     - yes
+
+   * - ``end``
+     - String
+     - The time at which to stop retrieving metrics, as specified by an
+       ISO-8601 timestamp string. If you specify ``end``, you must also
+       specify ``start``. Mutually exclusive with ``period``.
      - yes
 
    * - ``granularity``
@@ -32,26 +34,52 @@
        - ``P1D``
        
      - yes
-   
+
+   * - ``<hostID>``
+     - String
+     - The host ID of the server running the MongoDB process.
+     - yes
+
+   * - ``--limit``
+     - number
+     - Number of items per page.
+     - no
+
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
+   * - ``--page``
+     - number
+     - Page number
+     - no
+
    * - ``period``
      - String
      - An ISO-8601-formatted time period that specifies the length of time in
        the past to query. For example, to request the last 36 hours, specify:
        ``period=P1DT12H``. Mutually exclusive with ``start`` and ``end``.
      - yes
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the project ID and the |svc-api-key|\s 
+       for the project are saved. If omitted, uses the {+default-profile+}. 
+       To learn more about creating a profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project for which to retrieve events. If
+       omitted, uses the project ID listed in the profile.
+     - no
    
    * - ``start``
      - String
      - The time at which to start retrieving metrics, as specified by an
        ISO-8601 timestamp string. If you specify ``start``, you must also
        specify ``end``. Mutually exclusive with ``period``.
-     - yes
-   
-   * - ``end``
-     - String
-     - The time at which to stop retrieving metrics, as specified by an
-       ISO-8601 timestamp string. If you specify ``end``, you must also
-       specify ``start``. Mutually exclusive with ``period``.
      - yes
    
    * - ``type``
@@ -92,27 +120,4 @@
           
             - Measures the free disk space and used disk space on the disk partition
               used by MongoDB.
-     - no
-
-   * - ``--limit``
-     - number
-     - Number of items per page.
-     - no
-
-   * - ``--page``
-     - number
-     - Page number
-     - no
-
-   * - ``--profile``, ``-P``
-     - string
-     - Name of the profile where the project ID and the |svc-api-key|\s 
-       for the project are saved. If omitted, uses the {+default-profile+}. 
-       To learn more about creating a profile, see :ref:`mcli-configure`.
-     - no
-
-   * - ``--projectId``
-     - string
-     - Unique identifier of the project for which to retrieve events. If
-       omitted, uses the project ID listed in the profile.
      - no

@@ -66,6 +66,11 @@
           - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
      - no
 
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
    * - ``--pointInTimeUTCMillis``
      - integer
      - *Only available for AUTOMATED RESTORE of replica sets.* 

@@ -32,6 +32,11 @@
        *or* ``start`` and ``end``.
      - yes
    
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
    * - ``period``
      - String
      - An ISO-8601-formatted time period that specifies the length of time in

@@ -13,6 +13,11 @@
        ``100`` if not specified.
      - no
 
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
    * - ``--page``
      - integer
      - Page number (1-based). Defaults to ``1`` if not specified.
