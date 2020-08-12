@@ -4,7 +4,7 @@
 
      - id: python
        content: |
-         .. class:: copyable-code
+
          .. literalinclude:: /driver-examples/test_examples.py
             :language: python
             :dedent: 8
