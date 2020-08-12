@@ -10,6 +10,8 @@ Host Issues
    :depth: 1
    :class: singlecol
 
+.. include:: /includes/styles/corrections.rst
+
 .. _host-issue-outofmemoryerror:
 
 Logs Display ``java.lang.OutOfMemoryError``
@@ -39,7 +41,10 @@ dedicated Backup Daemon hosts.
             .. list-table::
                :widths: 40 60
                :stub-columns: 1
+               :header-rows: 1
 
+               * - Key
+                 - Value
                * - ``-Xmx``
                  - Java Heap Maximum Memory
                * - ``-Xms``
@@ -113,7 +118,10 @@ dedicated Backup Daemon hosts.
             .. list-table::
                :widths: 40 60
                :stub-columns: 1
+               :header-rows: 1
 
+               * - Key
+                 - Value
                * - ``-Xmx``
                  - Java Heap Maximum Memory
                * - ``-Xms``
@@ -158,35 +166,147 @@ collection, and the frequency of garbage collection.
    amount of physical memory in the |onprem| host or less than the
    default value of ``4352m`` (4,352 :abbr:`MB (Megabytes)`).
 
+.. _host-issue-stackoverflowerror:
+
+Logs Display ``java.lang.StackOverflowError``
+---------------------------------------------
+
+If your logs display ``java.lang.StackOverflowError``, you can adjust
+the Java stack memory settings. Repeat the following steps for every
+host running |a-mms| instance except dedicated Backup Daemon hosts.
+
+.. tabs::
+
+   tabs:
+     - id: linux
+       name: Linux Hosts
+       content: |
+
+         1. Open ``mms.conf`` in your preferred text editor.
+         2. Find this line:
+
+            .. code-block:: ini
+
+               JAVA_MMS_UI_OPTS="${JAVA_MMS_UI_OPTS} -Xss228k -Xmx4352m -Xms4352m -XX:NewSize=600m -Xmn1500m -XX:ReservedCodeCacheSize=128m -XX:-OmitStackTraceInFastThrow"
+
+            The key values in this line are:
+
+            .. list-table::
+               :widths: 40 60
+               :stub-columns: 1
+               :header-rows: 1
+
+               * - Key
+                 - Value
+               * - ``-Xss``
+                 - Java Stack Size
+
+            By default, this value is set to 228 :abbr:`KB (Kilobytes)`
+            (``228k``).
+
+            .. admonition:: Do not change other Java options
+               :class: warning
+
+               Changing any option value other than ``-Xss`` could have
+               an unexpected impact on the |application|. Do not change
+               other values without consulting MongoDB Support.
+
+         3. Change ``-Xss228k`` to ``-Xss1m``
+            (1 :abbr:`MB (Megabyte)`).
+
+     - id: windows
+       name: Windows Hosts
+       content: |
+
+         1. Click :guilabel:`Run` from the :guilabel:`Start` menu.
+         2. Type ``regedit``.
+         3. Click :guilabel:`OK`.
+         4. If User Access Control asks :guilabel:`Do you want to
+            allow this app to make changes to your device?`, click
+            :guilabel:`Yes`.
+         5. Edit the following registry value:
+
+            .. code-block:: registry
+
+               HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Apache Software Foundation\Procrun 2.0\MMS\Parameters\Java\Options
+
+         6. Change the ``-Xss`` values  in the :guilabel:`Options`
+            multi-line registry key to 1 MB. The value of
+            the :guilabel:`Options` key should include the following:
+
+            .. code-block:: ini
+               :copyable: false
+
+               -d64
+               -Xss228k
+               -Xmx4352m
+               -Xms4352m
+               -XX:NewSize=600m
+               -Xmn1500m
+               -XX:ReservedCodeCacheSize=128m
+               -XX:-OmitStackTraceInFastThrow"
+
+            The key values in this block are:
+
+            .. list-table::
+               :widths: 40 60
+               :stub-columns: 1
+               :header-rows: 1
+
+               * - Key
+                 - Value
+               * - ``-Xss``
+                 - Java Stack Size
+
+            By default, this value is set to 228 :abbr:`KB (Kilobytes)`
+            (``228k``).
+
+            .. admonition:: Do not change other Java options
+               :class: warning
+
+               Changing any option value other than ``-Xss`` could have
+               an unexpected impact on the |application|. Do not change
+               other values without consulting MongoDB Support.
+
+         7. Change ``-Xss228k`` to ``-Xss1m``
+            (1 :abbr:`MB (Megabyte)`).
+
+
+.. important::
+
+   Your Java stack size must not be set to a value greater than the
+   amount of physical memory in the |onprem| host or less than the
+   default value of ``228k`` (228 :abbr:`KB (Kilobytes)`).
+
+.. _host-issue-userlimits:
+
 Increase User Limits
 --------------------
 
-For the recommended User Limit (``ulimit``) setting, see the |faq|
-on :ref:`open-file-limits`.
+For the recommended User Limit (``ulimit``) setting, see the |faq| on
+:ref:`open-file-limits`.
 
 |mms| infers the host's ``ulimit`` setting using the total number of
-available and current connections. To learn more about ``ulimit``
-in MongoDB, see the
-:manual:`UNIX ulimit Settings </reference/ulimit/>`
+available and current connections. To learn more about ``ulimit`` in
+MongoDB, see the :manual:`UNIX ulimit Settings </reference/ulimit/>`
 reference page in the MongoDB manual.
 
 Ensure Sufficient RAM for All Components
 ----------------------------------------
 
-Ensure that each server has enough RAM for the components it runs.
-If a server runs multiple components, its RAM must be at least the
-sum of the required amount of RAM for *each* component.
+Ensure that each server has enough RAM for the components it runs. If a
+server runs multiple components, its RAM must be at least the sum of
+the required amount of RAM for *each* component.
 
-For the individual RAM requirements for the |application| server,
-|application| Database, Backup Daemon server, and Backup Database,
-see :doc:`/core/requirements`.
+To learn about the individual RAM requirements for the |application|
+server, |application| Database, Backup Daemon server, and Backup
+Database, see :doc:`/core/requirements`.
 
 Obsolete Config Settings
 ------------------------
 
-|mms| fails to start if there are obsolete configuration settings
-set in the
-:doc:`conf-mms.properties </reference/configuration>` file. If
+|mms| fails to start if there are obsolete configuration settings set
+in the :doc:`conf-mms.properties </reference/configuration>` file. If
 there is an obsolete setting, the log lists an
 :guilabel:`Obsolete Setting` error as in the following:
 
