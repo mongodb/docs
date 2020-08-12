@@ -6,7 +6,7 @@
 
      - Description
 
-   * - :guilabel:`PagerDuty Service Key`
+   * - :guilabel:`PagerDuty Integration Key`
 
      - Default service key for alert notifications sent to a
        `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`__

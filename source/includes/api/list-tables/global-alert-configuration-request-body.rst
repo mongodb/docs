@@ -222,7 +222,7 @@
        | ``.serviceKey``
      - string
      - Conditional
-     - PagerDuty service key. Only accepted for ``PAGER_DUTY`` 
+     - PagerDuty integration key. Only accepted for ``PAGER_DUTY`` 
        notifications. If the key later becomes invalid, |mms| sends an 
        email to the project owner and removes the key.
 

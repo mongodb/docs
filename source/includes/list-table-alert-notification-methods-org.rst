@@ -118,7 +118,7 @@
 
         - Sends the alert to a 
           `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
-          account. Enter only the PagerDuty service key. Define
+          account. Enter only the PagerDuty integration key. Define
           escalation rules and alert assignments directly in PagerDuty.
 
           This option is available only for alerts that require an 
@@ -309,7 +309,7 @@
 
         - Sends the alert to a 
           `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
-          account. Enter only the PagerDuty service key. Define
+          account. Enter only the PagerDuty integration key. Define
           escalation rules and alert assignments directly in PagerDuty.
 
           This option is available only for alerts that require an 

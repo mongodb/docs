@@ -188,7 +188,7 @@
 
    * - ``notifications.serviceKey``
      - string
-     - PagerDuty service key. Only present for ``PAGER_DUTY`` 
+     - PagerDuty integration key. Only present for ``PAGER_DUTY`` 
        notifications. If the key later becomes invalid, |mms| sends an 
        email to the project owner and removes the key.
 
