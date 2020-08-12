@@ -35,8 +35,7 @@
             To associate read and write operations with a transaction, you **must**
             pass the session to each operation in the transaction.
 
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/test_examples.py
+                  .. literalinclude:: /driver-examples/test_examples.py
             :language: python
             :dedent: 8
             :start-after: Start Transactions Retry Example 1

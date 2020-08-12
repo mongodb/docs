@@ -3,8 +3,7 @@
    tabs:
      - id: shell
        content: |
-         .. class:: copyable-code
-         .. code-block:: javascript
+                  .. code-block:: javascript
 
             db.inventory.insertMany([
                { item: "journal", qty: 25, tags: ["blank", "red"], size: { h: 14, w: 21, uom: "cm" } },
@@ -20,8 +19,7 @@
 
      - id: python
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/test_examples.py
+                  .. literalinclude:: /driver-examples/test_examples.py
             :language: python
             :dedent: 8
             :start-after: Start Example 3
@@ -29,8 +27,7 @@
 
      - id: motor
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/test_examples_motor.py
+                  .. literalinclude:: /driver-examples/test_examples_motor.py
             :language: python
             :dedent: 8
             :start-after: Start Example 3
@@ -38,8 +35,7 @@
 
      - id: java-sync
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/DocumentationSamples.java
+                  .. literalinclude:: /driver-examples/DocumentationSamples.java
             :language: java
             :dedent: 8
             :start-after: Start Example 3
@@ -47,8 +43,7 @@
 
      - id: java-async
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+                  .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
             :language: java
             :dedent: 8
             :start-after: Start Example 3
@@ -64,8 +59,7 @@
 
      - id: php
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+                  .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
             :language: php
             :dedent: 8
             :start-after: Start Example 3
@@ -73,8 +67,7 @@
 
      - id: perl
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/driver-examples.t
+                  .. literalinclude:: /driver-examples/driver-examples.t
             :language: perl
             :dedent: 4
             :start-after: Start Example 3
@@ -82,8 +75,7 @@
 
      - id: ruby
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/shell_examples_spec.rb
+                  .. literalinclude:: /driver-examples/shell_examples_spec.rb
             :language: ruby
             :dedent: 8
             :start-after: Start Example 3
@@ -91,8 +83,7 @@
 
      - id: scala
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
+                  .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
             :language: scala
             :dedent: 4
             :start-after: Start Example 3
@@ -100,8 +91,7 @@
 
      - id: csharp
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/DocumentationExamples.cs
+                  .. literalinclude:: /driver-examples/DocumentationExamples.cs
             :language: c#
             :dedent: 12
             :start-after: Start Example 3
