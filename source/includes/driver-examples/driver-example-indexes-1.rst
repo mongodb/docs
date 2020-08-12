@@ -7,7 +7,7 @@
          :doc:`Mongo Shell </tutorial/getting-started/>`, use
          :method:`db.collection.createIndex()`.
 
-         .. class:: copyable-code
+
          .. code-block:: javascript
 
             db.collection.createIndex( <key and index type specification>, <options> )
@@ -15,7 +15,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: javascript
 
             db.collection.createIndex( { name: -1 } )
@@ -42,7 +42,7 @@
          :api:`Python driver <pymongo>`,
          use :py:meth:`pymongo.collection.Collection.create_index`.
 
-         .. class:: copyable-code
+
          .. code-block:: python
 
             db.collection.create_index([(<key and index type specification>)], <options> )
@@ -50,7 +50,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: python
 
             collection.create_index([("name", pymongo.DESCENDING)])
@@ -66,7 +66,7 @@
          use
          :py:meth:`motor.motor_asyncio.AsyncIOMotorCollection.create_index`.
 
-         .. class:: copyable-code
+
          .. code-block:: python
 
             await db.collection.create_index([(<key and index type specification>)], <options> )
@@ -74,7 +74,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: python
 
             await collection.create_index([("name", pymongo.DESCENDING)])
@@ -90,7 +90,7 @@
          use
          `com.mongodb.client.MongoCollection.createIndex <http://mongodb.github.io/mongo-java-driver/3.4/javadoc/?com/mongodb/client/MongoCollection.html#createIndex-org.bson.conversions.Bson->`_.
 
-         .. class:: copyable-code
+
          .. code-block:: java
 
             collection.createIndex( <key and index type specification>, <options> )
@@ -98,7 +98,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: java
 
             collection.createIndex(Indexes.descending("name"));
@@ -114,7 +114,7 @@
          use
          `com.mongodb.async.client.MongoCollection.createIndex <http://mongodb.github.io/mongo-java-driver/3.4/javadoc/?com/mongodb/async/client/MongoCollection.html#createIndex-org.bson.conversions.Bson-com.mongodb.async.SingleResultCallback->`_.
 
-         .. class:: copyable-code
+
          .. code-block:: java
 
             collection.createIndex( <key and index type specification>, <options>, <callbackFunction>)
@@ -122,7 +122,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: java
 
             collection.createIndex(Indexes.descending("name"), someCallbackFunction());
@@ -138,7 +138,7 @@
          use
          `createIndex() <http://mongodb.github.io/node-mongodb-native/2.1/tutorials/create-indexes/>`_.
 
-         .. class:: copyable-code
+
          .. code-block:: javascript
 
             collection.createIndex( { <key and index type specification> }, function(err, result) {
@@ -149,7 +149,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: javascript
 
              collection.createIndex( { name : -1 }, function(err, result) {
@@ -167,7 +167,7 @@
          `PHP driver <https://docs.mongodb.com/php-library/current/>`_, use
          :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex>`.
 
-         .. class:: copyable-code
+
          .. code-block:: php
 
             $collection->createIndex(<key and index type specification>, <options>);
@@ -175,7 +175,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: php
 
             $collection->createIndex(['name' => -1]);
@@ -191,7 +191,7 @@
          use
          `create_one() <https://metacpan.org/pod/MongoDB::Examples#CREATE-INDEX-myindexname-ON-users(name)>`_.
 
-         .. class:: copyable-code
+
          .. code-block:: perl
 
             my $indexes = $db->get_collection( <collection> )->indexes;
@@ -200,7 +200,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: perl
 
             my $indexes = $db->get_collection( <collection> )->indexes;
@@ -216,7 +216,7 @@
          `Ruby driver <https://api.mongodb.com/ruby/current/>`_, use
          `Mongo::Index::View#create_one <http://www.rubydoc.info/github/mongodb/mongo-ruby-driver/Mongo%2FIndex%2FView%3Acreate_one>`_.
 
-         .. class:: copyable-code
+
          .. code-block:: ruby
 
             client[:collection].indexes.create_one({ <key and index type specification> }, {options})
@@ -224,7 +224,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: ruby
 
             client[:collection].indexes.create_one({ name: -1 })
@@ -240,7 +240,7 @@
          use
          `org.mongodb.scala.model.Indexes <https://mongodb.github.io/mongo-scala-driver/1.0/scaladoc/index.html#org.mongodb.scala.model.Indexes$>`_.
 
-         .. class:: copyable-code
+
          .. code-block:: scala
 
             collection.createIndex(<key and index type specification>)
@@ -248,7 +248,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: scala
 
             collection.createIndex(descending("name"))
@@ -264,7 +264,7 @@
          use
          `MongoCollection.CreateIndex <http://api.mongodb.com/csharp/current/html/Overload_MongoDB_Driver_MongoCollection_CreateIndex.htm>`_.
 
-         .. class:: copyable-code
+
          .. code-block:: csharp
 
             collection.CreateIndex( IndexKeys<collection>.<key and index type specification>, <options> );
@@ -272,7 +272,7 @@
          The following example creates a single key descending index on
          the ``name`` field:
 
-         .. class:: copyable-code
+
          .. code-block:: csharp
 
             collection.CreateIndex( IndexKeys<collection>.Descending("name") );
