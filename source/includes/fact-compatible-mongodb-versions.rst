@@ -1,77 +1,47 @@
 For the following |onprem| release series, you may run its
 :term:`backing databases` on any of the following MongoDB versions:
 
-.. list-table::
+.. list-table:: Minimum Supported Versions of MongoDB for Backing Databases on Each Version of |onprem|
    :header-rows: 1
-   :widths: 20 10 10 10 10 10 10 10
+   :stub-columns: 1
+   :widths: 25 15 15 15 15 15
 
    * - |onprem| Release Series
-     - Minimum MongoDB 2.6 version
-     - Minimum MongoDB 3.0 version
-     - Minimum MongoDB 3.2 version
-     - Minimum MongoDB 3.4 version
-     - Minimum MongoDB 3.6 version
-     - Minimum MongoDB 4.0 version
-     - Minimum MongoDB 4.2 version
+     - MongoDB 3.4
+     - MongoDB 3.6
+     - MongoDB 4.0
+     - MongoDB 4.2
+     - MongoDB 4.4
 
-   * - 2.0
-     - 2.6.6
-     - 3.0.6
-     - 3.2.0
-     -
-     -
-     -
-     -
-
-   * - 3.4
-     -
-     - 3.0.8
-     - 3.2.0
-     - 3.4.0
-     -
-     -
-     -
-
-   * - 3.6
-     -
-     -
-     - *3.2.0*
-     - 3.4.0
-     - 3.6.0
-     -
-     -
-
-   * - 4.0
-     -
-     -
-     -
+   * - |onprem| 4.0
      - *3.4.0*
      - 3.6.0
      - 4.0.0
      -
-
-   * - 4.1
-     -
-     -
-     -
-     - *3.4.0*
-     - 3.6.0
-     - 4.0.0
      -
 
-   * - 4.2
-     -
-     -
-     -
+   * - |onprem| 4.2
      -
      - *3.6.0*
      - 4.0.0
      - 4.2.0
+     -
 
+   * - |onprem| 4.4
+     -
+     -
+     - 4.0.0
+     - 4.2.0
+     - 4.4.0
 
-Each version listed spans the full release series starting from the
-listed version (i.e., a minimum MongoDB 2.6 version of 2.6.6 implies
-compatibility with MongoDB versions 2.6.6 to 2.6.12).
+The version listed spans the full release series starting from the
+listed version.
+
+.. example::
+
+   If the listed MongoDB 3.6 version was ``3.6.6``, |onprem| can run
+   any MongoDB version from 3.6.6 to 3.6.19, inclusive, as a backing
+   database.
 
 MongoDB versions in *italics* are deprecated.
 
