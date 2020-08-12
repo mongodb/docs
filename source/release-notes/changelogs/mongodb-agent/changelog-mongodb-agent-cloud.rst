@@ -1,3 +1,12 @@
+.. _10.17.0.6529-1:
+
+MongoDB Agent 10.17.0.6529-1
+----------------------------
+
+*Released* :ref:`2020-08-12 <cloudmanager_20200811>`
+
+- Improves logging when a MongoDB process fails to start.
+
 .. _10.15.0.6463:
 
 MongoDB Agent 10.15.0.6463

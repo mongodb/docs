@@ -1,3 +1,21 @@
+.. _cloudmanager_20200811:
+
+12 August 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Enhances :ref:`Performance Advisor and Query Profiler
+  <performance-advisor>` with higher volume log ingestion.
+- Improves UX for the :ref:`Real Time Performance Panel 
+  <real-time-metrics-status-tab>`, including one-minute history views.
+- Updates {+mdbagent+} to :ref:`10.17.0.6529-1 <10.17.0.6529-1>`.
+
+.. _cloudmanager_20200730:
+
+30 July 2020 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces general availability of MongoDB 4.4.
+
 .. _cloudmanager_20200624:
 
 24 June 2020 Release
