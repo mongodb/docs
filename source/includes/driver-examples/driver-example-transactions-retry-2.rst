@@ -73,7 +73,8 @@
             To associate read and write operations with a transaction, you **must**
             pass the session to each operation in the transaction.
 
-                  .. literalinclude:: /driver-examples/perl-transactions-examples.t
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/perl-transactions-examples.t
             :language: perl
             :start-after: Start Transactions Retry Example 2
             :end-before: End Transactions Retry Example 2
