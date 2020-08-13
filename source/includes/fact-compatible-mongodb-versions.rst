@@ -37,8 +37,8 @@ For the following |onprem| release series, you may run its
 The preceding table uses this convention:
 
 .. list-table::
-   :header-rows: 1
-   :widths: 20 80
+   :stub-columns: 1
+   :widths: 5 95
 
    * - :icon-fa5:`check-circle`
      - Version supported

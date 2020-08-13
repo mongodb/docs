@@ -41,24 +41,28 @@ If a |dns| setup is not possible, add entries for each host in the
    * - Linux
      -
       .. code-block:: sh
+         :copyable: false
 
          /etc/hosts
 
    * - Mac OS X
      -
       .. code-block:: sh
+         :copyable: false
 
          /private/etc/hosts
 
    * - Windows
      -
       .. code-block:: powershell
+         :copyable: false
 
          %SystemRoot%\System32\drivers\etc\hosts
 
       This normally resolves to:
 
       .. code-block:: powershell
+         :copyable: false
 
          C:\Windows\System32\drivers\etc\hosts
 
@@ -67,11 +71,11 @@ with ``root`` or ``Administrator`` permissions. The entry format is
 written as:
 
 .. code-block:: ini
+   :copyable: false
 
    127.0.0.1   localhost
    10.15.0.5   opsmgr.example.dev
    10.15.10.15 rs1.example.dev
    10.15.10.16 rs2.example.dev
    10.15.10.17 rs3.example.dev
-
 
