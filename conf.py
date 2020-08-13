@@ -69,6 +69,8 @@ extlinks = {
     'v3.4': ('https://docs.mongodb.com/v3.4%s', ''),
     'v3.6': ('https://docs.mongodb.com/v3.6%s', ''),
     'v4.0': ('https://docs.mongodb.com/v4.0%s', ''),
+    'v4.2': ('https://docs.mongodb.com/v4.2%s', ''),
+    'v4.4': ('https://docs.mongodb.com/v4.4%s', ''),
     'azure': ('https://docs.microsoft.com/en-us/azure%s',''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
     'k8s': ('https://docs.mongodb.com/kubernetes-operator/stable%s',''),

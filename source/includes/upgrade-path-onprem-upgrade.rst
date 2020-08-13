@@ -30,24 +30,25 @@ The following table lists upgrade paths for all versions:
 
      - Upgrade Path
 
-   * - 4.3.x
-     - Use this tutorial to upgrade from |onprem| 4.2.x to the latest
-       patch version of 4.3.x.
+   * - 4.4.x
+     - Use this tutorial to upgrade from |onprem| 4.4.x to the latest
+       patch version of 4.4.x.
 
        .. note::
 
-          Upgrades must be made in chronological order. The 4.3 release
+          Upgrades must be made in chronological order. The 4.4 release
           you choose must have been released after the 4.2 release you
           want to upgrade. To learn more, see this
           :ref:`section on chronological order <om-upgrade-con-release-date>`.
 
    * - 4.2.x
-     - Use this tutorial to upgrade from |onprem| 4.2.x to a more
-       recent 4.2.x version.
+     - Use this tutorial to upgrade from |onprem| 4.2.x to the latest
+       patch version of 4.4.
 
    * - 4.0.x
-     - Use this tutorial to upgrade from |onprem| 4.0.x to the latest
-       patch version of 4.2.
+     - Use the
+       :v4.2:`v4.2 upgrade tutorial </tutorial/nav/upgrade-application>`
+       to upgrade from |onprem| 4.0.x to version 4.2.x.
 
    * - 3.6.x
      - Use the
