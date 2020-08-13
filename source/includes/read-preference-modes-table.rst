@@ -28,14 +28,15 @@
    * - :readmode:`secondaryPreferred`
      - In most situations, operations read from :term:`secondary`
        members but if no :term:`secondary` members are available,
-       operations read from the :term:`primary`  on sharded clusters.
+       operations read from the :term:`primary` on sharded clusters.
 
        Starting in version 4.4, :readmode:`secondaryPreferred` supports
-       :ref:`hedged reads <mongos-hedged-reads>`  on sharded clusters.
+       :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters.
 
    * - :readmode:`nearest`
-     - Operations read from member of the :term:`replica
-       set` with the least network latency, irrespective of the member's type.
+     - Operations read from the member of the :term:`replica set` with
+       the least network latency, irrespective of whether that member
+       is a :term:`primary` or :term:`secondary`.
 
        Starting in version 4.4, :readmode:`nearest` supports
        :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters
