@@ -34,17 +34,17 @@ ref: config-yum
 level: 4
 content: |
 
-  Issue the following command to set up a ``yum`` package management
-  system repository definition:
+  Create a ``/etc/yum.repos.d/mongodb-org-4.4.repo`` file so
+  that you can install MongoDB directly using ``yum``:
 
-  .. code-block:: sh
+  .. code-block:: cfg
 
-     echo "[mongodb-org-4.4]
+     [mongodb-org-4.4]
      name=MongoDB Repository
-     baseurl=https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.4/x86_64/
+     baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/4.4/x86_64/
      gpgcheck=1
      enabled=1
-     gpgkey=https://www.mongodb.org/static/pgp/server-4.4.asc" | sudo tee /etc/yum.repos.d/mongodb.repo
+     gpgkey=https://www.mongodb.org/static/pgp/server-4.4.asc
 
 ---
 stepnum: 3
@@ -57,19 +57,19 @@ content: |
 
   .. code-block:: sh
 
-     sudo yum install -y mongodb-org mongodb-org-shell
+     sudo yum install -y mongodb-org
 
 ---
 stepnum: 4
 title: "Disable the |mongod| service."
 ref: disable-mongodb-service-for-appdb
+optional: true
 level: 4
 content: |
 
-  By default, a |mongod| service starts on port ``27017`` when you
-  start a MongoDB instance. You need this port for the |onprem|
-  Application Database. Disable the |mongod| service to keep this port
-  free for the Application Database should the host restart.
+  The |onprem| attaches to its application database on port 27017. If
+  the host on which you want to install the application database is
+  already running a |mongod|, you need to disable it.
 
   Invoke the following command to disable the |mongod| service:
 
@@ -89,20 +89,42 @@ content: |
 
      sudo mkdir -p /data/appdb
      sudo chown -R mongod:mongod /data
+
 ---
 stepnum: 6
-title: "Create the |onprem| backup data directory."
-optional: true
-ref: create-backup-dir
+title: "Update the MongoDB configuration file."
+ref: update-mdb-conf-file
 level: 4
 content: |
-  To configure the Backup feature as well, issue the following
-  additional commands for the backup database:
 
-  .. code-block:: sh
+  When you install MongoDB, it creates a configuration file saved at
+  ``/etc/mongod.conf``. Open this file with your preferred text editor.
+  Make the following changes to the file:
 
-     sudo mkdir -p /data/backup
-     sudo chown mongod:mongod /data/backup
+  .. code-block:: yaml
+     :linenos:
+
+     systemLog:
+        destination: file
+        path: "/data/appdb/mongodb.log"
+        logAppend: true
+     storage:
+        dbPath: "/data/appdb"
+        journal:
+           enabled: true
+        wiredTiger:
+           engineConfig:
+              cacheSizeGB: 1
+     processManagement:
+        fork: true
+     net:
+        port: 27017
+     setParameter:
+        enableLocalhostAuthBypass: false
+     ...
+
+  Save the file when you have made the edits.
+
 ---
 stepnum: 7
 title: "Start the |onprem| Application Database mongod instance."
@@ -110,84 +132,12 @@ ref: start-mongod-instance
 level: 4
 content: |
 
-  Start MongoDB as the |mongod| user, specifying:
-
-  .. list-table::
-     :widths: 50 30 20
-     :header-rows: 1
-
-     * - Setting
-       - Command Option
-       - Value
-     * - Port
-       - ``--port``
-       - ``27017``
-     * - Absolute path for MongoDB data files
-       - ``--dbpath``
-       - ``/data/appdb``
-     * - Absolute file path for MongoDB logs
-       - ``--logpath``
-       - ``/data/appdb/mongodb.log``
-     * - Amount of cache the WiredTiger :term:`storage engine` uses
-         for the :term:`application database`.
-       - ``--wiredTigerCacheSizeGB``
-       - ``1``
-     * - Flag to run the |mongod| in the background and maintain
-         control of the terminal
-       - ``--fork``
-       -
-
-  The resulting command would resemble this:
-
   .. code-block:: sh
 
-    sudo -u mongod mongod --port 27017 --dbpath /data/appdb \
-      --logpath /data/appdb/mongodb.log \
-      --wiredTigerCacheSizeGB 1 --fork
+    sudo -u mongod mongod -f /etc/mongod.conf
+
 ---
 stepnum: 8
-title: "Start the |onprem| Backup Database mongod instance."
-optional: true
-ref: start-mongod-backup-instance
-level: 4
-content: |
-
-  Start MongoDB as the |mongod| user, specifying:
-
-  .. list-table::
-     :widths: 50 30 20
-     :header-rows: 1
-
-     * - Setting
-       - Command Option
-       - Value
-     * - Port
-       - ``--port``
-       - ``27018``
-     * - Absolute path for MongoDB data files
-       - ``--dbpath``
-       - ``/data/backup``
-     * - Absolute file path for MongoDB logs
-       - ``--logpath``
-       - ``/data/backup/mongodb.log``
-     * - Amount of cache the WiredTiger :term:`storage engine` uses
-         for the :term:`application database`.
-       - ``--wiredTigerCacheSizeGB``
-       - ``1``
-     * - Flag to run the |mongod| in the background and maintain
-         control of the terminal
-       - ``--fork``
-       -
-
-  The resulting command would resemble this:
-
-  .. code-block:: sh
-
-    sudo -u mongod mongod --port 27018 --dbpath /data/backup \
-      --logpath /data/backup/mongodb.log \
-      --wiredTigerCacheSizeGB 1 --fork
----
-stepnum: 9
 title: "Download the |onprem| package."
 ref: application-package-download
 level: 4
@@ -210,23 +160,23 @@ content: |
      version number.
 
 ---
-stepnum: 10
+stepnum: 9
 title: "Copy the |onprem| ``.rpm`` package to your host."
 optional: true
 ref: copy-rpm-installer
 level: 4
 content: |
 
-  If you are installing |onprem| on a remote host, such as a cloud 
+  If you are installing |onprem| on a remote host, such as a cloud
   provider compute instance, use ``scp`` to copy the installer to your
   host:
 
   .. code-block:: sh
-     
+
      scp -i <keyfile> mongodb-mms-<version>.x86_64.rpm ec2-user@<public-ip>:~
 
 ---
-stepnum: 11
+stepnum: 10
 title: "Install |onprem|."
 ref: install
 level: 4
@@ -252,7 +202,7 @@ content: |
     ``locahost``, port ``27017``, so no changes are necessary.
 
 ---
-stepnum: 12
+stepnum: 11
 title: "Start |onprem|."
 level: 4
 ref: start-the-application
@@ -263,7 +213,7 @@ content: |
 
      sudo service mongodb-mms start
 ---
-stepnum: 13
+stepnum: 12
 title: "Get your instance hostname."
 level: 4
 ref: public-host-name
@@ -279,7 +229,7 @@ content: |
 
      https://www.google.com/search?q=myip
 ---
-stepnum: 14
+stepnum: 13
 title: "Open the |onprem| home page and register the first user."
 level: 4
 ref: home-page
@@ -298,7 +248,7 @@ content: |
      <global-owner-role>` role.
 
 ---
-stepnum: 15
+stepnum: 14
 title: "Configure |onprem|."
 level: 4
 ref: configure-app
@@ -315,7 +265,7 @@ content: |
      :doc:`/reference/config/ui-settings/`.
 
 ---
-stepnum: 16
+stepnum: 15
 title: "Set up your first deployment."
 level: 4
 ref: deploy
