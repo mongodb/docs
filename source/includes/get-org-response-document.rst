@@ -10,6 +10,10 @@
      - :ref:`ObjectId <document-bson-type-object-id>`
      - Unique identifier for the organization.
 
+   * - ``isDeleted``
+     - boolean
+     - Flag indicating if the organization is deleted.
+
    * - ``name``
      - string
      - Name of the organization.
