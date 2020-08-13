@@ -7,6 +7,8 @@
   <performance-advisor>` with higher volume log ingestion.
 - Improves UX for the :ref:`Real Time Performance Panel 
   <real-time-metrics-status-tab>`, including one-minute history views.
+- Introduces predefined ``getLastErrorModes`` to enable multi-region
+  write concern.
 
 .. _atlas_20200730:
 
