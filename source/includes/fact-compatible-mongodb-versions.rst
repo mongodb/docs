@@ -1,7 +1,7 @@
 For the following |onprem| release series, you may run its
 :term:`backing databases` on any of the following MongoDB versions:
 
-.. list-table:: Minimum Supported Versions of MongoDB for Backing Databases on Each Version of |onprem|
+.. list-table:: Supported Versions of MongoDB for Backing Databases on Each Version of |onprem|
    :header-rows: 1
    :stub-columns: 1
    :widths: 25 15 15 15 15 15
@@ -14,36 +14,44 @@ For the following |onprem| release series, you may run its
      - MongoDB 4.4
 
    * - |onprem| 4.0
-     - *3.4.0*
-     - 3.6.0
-     - 4.0.0
+     - :icon-fa5:`check`
+     - :icon-fa5:`check-circle`
+     - :icon-fa5:`check-circle`
      -
      -
 
    * - |onprem| 4.2
      -
-     - *3.6.0*
-     - 4.0.0
-     - 4.2.0
+     - :icon-fa5:`check`
+     - :icon-fa5:`check-circle`
+     - :icon-fa5:`check-circle`
      -
 
    * - |onprem| 4.4
      -
      -
-     - 4.0.0
-     - 4.2.0
-     - 4.4.0
+     - :icon-fa5:`check`
+     - :icon-fa5:`check-circle`
+     - :icon-fa5:`check-circle`
 
-The version listed spans the full release series starting from the
-listed version.
+The preceding table uses this convention:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - :icon-fa5:`check-circle`
+     - Version supported
+   * - :icon-fa5:`check`
+     - Version deprecated
+
+Version support covers the full release series from the first to the
+last release.
 
 .. example::
 
-   If the listed MongoDB 3.6 version was ``3.6.6``, |onprem| can run
-   any MongoDB version from 3.6.6 to 3.6.19, inclusive, as a backing
-   database.
-
-MongoDB versions in *italics* are deprecated.
+   |onprem| 4.0 and 4.2 support the entire MongoDB release series from
+   3.6.0 to 3.6.19.
 
 To learn more about MongoDB versioning, see
 :ref:`release-version-numbers` in the MongoDB Manual.
