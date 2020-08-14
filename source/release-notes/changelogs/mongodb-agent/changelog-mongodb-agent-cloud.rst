@@ -7,6 +7,12 @@ MongoDB Agent 10.17.0.6529-1
 
 - Improves logging when a MongoDB process fails to start.
 
+.. _10.16.0.6499-1:
+
+*Released* 2020-07-21
+
+- Improves support for the upcoming release of MongoDB 4.4.
+
 .. _10.15.0.6463:
 
 MongoDB Agent 10.15.0.6463
