@@ -53,8 +53,11 @@ version = conf.version.branch
 release = conf.version.release
 pygments_style = 'sphinx'
 
-manifest_version = '4.2'
-rr_version = '4.3'
+manifest_version = version
+if version == 'upcoming':
+    manifest_version = '4.6'
+
+rr_version = '4.5'
 # rr_version = str(float(manifest_version) + 0.1)
 
 extlinks = {
