@@ -14,4 +14,5 @@ The backup process:
 
 #. Monitors the :term:`oplog` constantly and adds new database
    operations to the latest backup to keep the local |mms| copy of
-   the data current.
+   the data to allow
+   :term:`point-in-time restores <point-in-time restore>`.
