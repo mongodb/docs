@@ -1,3 +1,12 @@
+.. _data-lake-v20200813:
+
+13 August 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds ``correlationID`` to the :ref:`$currentOp <determine-query-status>` 
+  output.
+- Includes general performance and stability improvements.
+
 .. _data-lake-v20200728:
 
 28 July 2020 Release
