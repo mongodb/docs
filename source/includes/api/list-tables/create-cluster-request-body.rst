@@ -390,6 +390,16 @@
 
        .. include:: /includes/fact-example-labels.rst
 
+       .. note::
+
+          The ``labels`` you define are not visible in the |service| UI.
+          They are returned in the response body when you use the
+          |service| API to :doc:`get one
+          </reference/api/clusters-get-one/>`, :doc:`get
+          all </reference/api/clusters-get-all/>`, or
+          :doc:`modify </reference/api/clusters-modify-one/>` a
+          |service| cluster.
+
    * - ``name``
      - string
      - Required
