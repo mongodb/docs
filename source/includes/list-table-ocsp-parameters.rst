@@ -9,10 +9,14 @@
 
      - Enables or disables the OCSP support.
 
-   * - :parameter:`ocspValidationRefreshPeriodSecs`
+   * - :parameter:`ocspStaplingRefreshPeriodSecs`
 
      - Specifies the number of seconds to wait before refreshing the
        stapled OCSP status response.
+
+       .. include:: /includes/fact-4.4-stapling-refresh-rename.rst
+
+       .. versionchanged:: 4.4.1
 
    * - :parameter:`tlsOCSPStaplingTimeoutSecs`
    
