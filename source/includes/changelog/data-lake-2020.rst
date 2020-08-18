@@ -3,9 +3,9 @@
 18 August 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- Improves :ref:`$out <adl-out-stage>` to S3 write performance.
+- Improves :ref:`$out <adl-out-stage>` to |s3| write performance.
 
-- General Performance and Stability improvements.
+- Includes general performance and stability improvements.
 
 .. _data-lake-v20200813:
 
