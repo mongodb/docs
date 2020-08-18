@@ -20,24 +20,18 @@ The pipeline constructed by |charts| consists of the following segments in the f
 
 1. `Data Source Pipeline <https://docs.mongodb.com/charts/saas/data-source-pipeline/>`_
 #. `Dashboard Filters <https://docs.mongodb.com/charts/saas/dashboard-filtering/#filter-dashboards-by-field-values>`_
-#. `Query bar <https://docs.mongodb.com/charts/saas/filter-documents/#query-bar>`_
+#. `Query Bar <https://docs.mongodb.com/charts/saas/filter-chart-results/#filter-your-data-using-the-query-bar>`_
 #. `Embedding Filters <https://docs.mongodb.com/charts/saas/embedded-chart-options/#embedded-chart-options>`_
 #. `Calculated Fields <https://docs.mongodb.com/charts/saas/calculated-fields/>`_
-#. `Chart Filter Pane <https://docs.mongodb.com/charts/saas/filter-documents/#filter-tab>`_
+#. `Chart Filter Pane <https://docs.mongodb.com/charts/saas/filter-chart-results/#create-filters-for-your-data>`_
 #. `Encoding <https://docs.mongodb.com/charts/saas/encoding-channels/>`_
+#. `Sorting & Limiting <https://docs.mongodb.com/charts/saas/bin-data/#sort-data>`_
 #. Maximum Document limit
 
 .. note::
    You do not need to configure all of the above settings when creating
    a chart. Unspecified settings are skipped when generating the
-   aggregation pipeline. 
-
-
-.. note::
-   Sorts and limits specified in the encoding panel are currently not
-   included in the aggregation pipeline. Instead, the sorting and
-   limiting is applied on the client-side while rendering the chart.
-
+   aggregation pipeline.
 
 Example 
 -------
@@ -63,10 +57,11 @@ queries, calculated fields, and filters added in the :guilabel:`Filter`
 pane, |charts| generates the following aggregation pipeline: 
 
 .. code-block:: javascript
-   :emphasize-lines: 1-31
+   :emphasize-lines: 1-31, 33-51
+   :linenos:
 
    {
-     "$addFields": {                         //Encoding
+     "$addFields": {              // Encoding
        "__alias_0": {
          "$sum": "$items.price"
        }
@@ -91,19 +86,38 @@ pane, |charts| generates the following aggregation pipeline:
    },
    {
      "$project": {
-       "y": "$__alias_0",
        "x": "$__alias_1",
+       "y": "$__alias_0",
        "_id": 0
+     }
+   },
+
+   {
+     "$addFields": {              // Sorting
+       "__agg_sum": {
+         "$sum": [
+           "$y"
+         ]
+       }
+     }
+   },
+   {
+     "$sort": {
+       "__agg_sum": -1
+     }
+   },
+   {
+     "$project": {
+       "__agg_sum": 0
      }
    },
    {
      "$limit": 5000
    }
-
   
-The pipeline at this stage only consists of groups from the
-:guilabel:`Encode` panel and the maximum document limit, which is set to
-5000 by |charts|. 
+The pipeline at this point consists of groups from the
+:guilabel:`Encode` panel, stages for the default sort order, and the 
+maximum document limit, which is set to 5000 by |charts|.
 
 Adding Queries
 ~~~~~~~~~~~~~~
@@ -140,9 +154,10 @@ Aggregation Pipeline:
 
 .. code-block:: javascript
    :emphasize-lines: 1-18
+   :linenos:
 
    {
-     "$match": {                              // Query
+     "$match": {              // Query     
        "$and": [
          {
            "saleDate": {
@@ -164,7 +179,8 @@ Aggregation Pipeline:
        "__alias_0": {
          "$sum": "$items.price"
        }
-    },
+     }
+   },
    {
      "$group": {
        "_id": {
@@ -172,7 +188,7 @@ Aggregation Pipeline:
        },
        "__alias_0": {
          "$sum": "$__alias_0"
-        }
+       }
      }
    },
    {
@@ -184,15 +200,33 @@ Aggregation Pipeline:
    },
    {
      "$project": {
-       "y": "$__alias_0",
        "x": "$__alias_1",
+       "y": "$__alias_0",
        "_id": 0
+     }
+   },
+   {
+     "$addFields": {
+       "__agg_sum": {
+         "$sum": [
+           "$y"
+         ]
+       }
+     }
+   },
+   {
+     "$sort": {
+       "__agg_sum": -1
+     }
+   },
+   {
+     "$project": {
+       "__agg_sum": 0
      }
    },
    {
      "$limit": 5000
    }
-
 
 The aggregation pipeline now starts with the query applied, and is
 followed by the groups selected in the :guilabel:`Encode` panel and the
@@ -221,6 +255,7 @@ Aggregation Pipeline:
 
 .. code-block:: javascript
    :emphasize-lines: 19-39
+   :linenos:
 
    {
      "$match": {
@@ -241,7 +276,7 @@ Aggregation Pipeline:
      }
    },
    {
-     "$addFields": {                          // Calculated Field
+     "$addFields": {              // Calculated Field
        "revenue": {
          "$reduce": {
            "input": "$items",
@@ -286,14 +321,32 @@ Aggregation Pipeline:
      }
    },
    {
+     "$addFields": {
+       "__agg_sum": {
+         "$sum": [
+           "$y"
+         ]
+       }
+     }
+   },
+   {
+     "$sort": {
+       "__agg_sum": -1
+     }
+   },
+   {
+     "$project": {
+       "__agg_sum": 0
+     }
+   },
+   {
      "$limit": 5000
    }
-    
+
 
 The updated pipeline now includes the calculated field right below the
 query applied in the :guilabel:`Query` bar while the order of the rest
 of the components remains unchanged. 
-
 
 Adding Filters
 ~~~~~~~~~~~~~~
@@ -311,7 +364,8 @@ aggregation pipeline:
 Aggregation Pipeline: 
 
 .. code-block:: javascript
-   :emphasize-lines: 40-54
+   :emphasize-lines: 40-48
+   :linenos:
 
    {
      "$match": {
@@ -353,16 +407,10 @@ Aggregation Pipeline:
      }
    },
    {
-     "$match": {                              // Filter
+     "$match": {             // Filter
        "storeLocation": {
-         "$nin": [
-           null,
-           "",
-           "Austin",
-           "Denver",
-           "London",
-           "San Diego",
-           "Seattle"
+         "$in": [
+           "New York"
          ]
        }
      }
@@ -373,20 +421,7 @@ Aggregation Pipeline:
          "__alias_0": "$purchaseMethod"
        },
        "__alias_1": {
-         "$sum": {
-           "$cond": [
-             {
-               "$ne": [
-                 {
-                   "$type": "$Revenue "
-                 },
-                 "missing"
-               ]
-             },
-             1,
-             0
-           ]
-         }
+         "$sum": "$revenue"
        }
      }
    },
@@ -402,6 +437,25 @@ Aggregation Pipeline:
        "x": "$__alias_0",
        "y": "$__alias_1",
        "_id": 0
+     }
+   },
+   {
+     "$addFields": {
+       "__agg_sum": {
+         "$sum": [
+           "$y"
+         ]
+       }
+     }
+   },
+   {
+     "$sort": {
+       "__agg_sum": -1
+     }
+   },
+   {
+     "$project": {
+       "__agg_sum": 0
      }
    },
    {
