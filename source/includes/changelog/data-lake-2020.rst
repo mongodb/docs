@@ -1,3 +1,12 @@
+.. _data-lake-v20200818:
+
+18 August 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves :ref:`$out <adl-out-stage>` to S3 write performance.
+
+- General Performance and Stability improvements.
+
 .. _data-lake-v20200813:
 
 13 August 2020 Release
