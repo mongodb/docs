@@ -21,6 +21,9 @@ and their corresponding storage size.
    * - ``P10`` :sup:`2`
      - 128GB
 
+   * - ``P15``
+     - 256GB
+
    * - ``P20``
      - 512GB
 
