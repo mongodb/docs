@@ -1,3 +1,21 @@
+.. important::
+
+   If you have SSL enabled on your Compose deployment, you will need
+   access to your SSL certificate to complete the Live Migration
+   process.
+
+   In some Compose deployments, you can no longer view your SSL
+   certificate in the Compose UI. If this is the case for your
+   deployment, you have two options:
+
+   - Contact Compose directly to request your SSL certificate.
+   - Use :atlas:`MongoMirror </import/mongomirror/>` to migrate
+     your data to Atlas.
+
+   See the `Compose documentation
+   <https://help.compose.com/docs/lets-encrypt-certificates>`__ for more
+   information about SSL certificates.
+
 * Your data is currently in a MongoDB database.
 
   This guide focuses on migrating to Atlas from an existing MongoDB deployment
