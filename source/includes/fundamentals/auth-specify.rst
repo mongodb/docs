@@ -25,7 +25,7 @@ the :guilabel:`MongoCredential` tab.
 For more information on these classes and methods, refer to the following API
 documentation:
 
-- :java-sync-api:`MongoClients.create() </com/mongodb/client/MongoClients.html#create(com.mongodb.ConnectionString)>`
-- :java-sync-api:`MongoClient </com/mongodb/client/MongoClient.html>`
+- :java-docs:`MongoClients.create() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoClients.html#create()>`
+- :java-docs:`MongoClient <apidocs/mongodb-driver-sync/com/mongodb/client/MongoClient.html>`
 - :java-sync-api:`MongoClientSettings.Builder </com/mongodb/MongoClientSettings.Builder.html>`
 - :java-sync-api:`MongoCredential </com/mongodb/MongoCredential.html>`
