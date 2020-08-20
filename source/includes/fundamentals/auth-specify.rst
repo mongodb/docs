@@ -27,5 +27,5 @@ documentation:
 
 - :java-docs:`MongoClients.create() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoClients.html#create()>`
 - :java-docs:`MongoClient <apidocs/mongodb-driver-sync/com/mongodb/client/MongoClient.html>`
-- :java-sync-api:`MongoClientSettings.Builder </com/mongodb/MongoClientSettings.Builder.html>`
-- :java-sync-api:`MongoCredential </com/mongodb/MongoCredential.html>`
+- :java-docs:`MongoClientSettings.Builder <apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html>`
+- :java-docs:`MongoCredential <apidocs/mongodb-driver-core/com/mongodb/MongoCredential.html>`
