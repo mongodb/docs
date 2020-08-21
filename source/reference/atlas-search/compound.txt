@@ -103,17 +103,24 @@ the following documents:
    {
      "_id" : 1,
      "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+     "category" : "nonorganic",
+     "in_stock" : false
    },
    {
      "_id" : 2,
      "type" : "banana",
-     "description" : "Bananas are usually sold in bunches of five or six."
+     "description" : "Bananas are usually sold in bunches of five or six.",
+     "category" : "nonorganic",
+     "in_stock" : true
    },
    {
      "_id" : 3,
      "type" : "pear",
-     "description" : "Bosc and Bartlett are the most common varieties of pears."
+     "description" : "Bosc and Bartlett are the most common varieties of 
+     pears.",
+     "category" : "organic",
+     "in_stock" : true
    }
 
 The ``fruit`` collection has an |fts| index on the ``description``
@@ -205,8 +212,8 @@ The above query returns the following results:
 .. code-block:: json
    :copyable: false
 
-   { "_id" : 1, "score" : 0.9701932668685913 }
-   { "_id" : 3, "score" : 0.3912709355354309 }
+   { "_id" : 1, "score" : 0.6425117254257202 }
+   { "_id" : 3, "score" : 0.21649497747421265 }
 
 The document with ``_id: 1`` has a higher score because its
 ``description`` field contains the word ``Fuji``, satisfying the
@@ -267,7 +274,9 @@ The above query returns the following result:
    {
      "_id" : 1,
      "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+     "category" : "nonorganic",
+     "in_stock" : false
    }
 
 The document with ``_id: 1`` matches the ``must`` clause and the first
@@ -320,7 +329,9 @@ The above query returns the following result:
    {
      "_id" : 1,
      "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+     "category" : "nonorganic",
+     "in_stock" : false
    }
 
 The above document fulfills all the requirements for inclusion:
@@ -329,3 +340,81 @@ The above document fulfills all the requirements for inclusion:
 - The ``minimumShouldMatch`` value is not specified, so it defaults to
   ``0``, which allows the ``should`` clause to fail and still return
   a document.
+
+Nested Example 
+~~~~~~~~~~~~~~
+
+The following example uses nested ``compound`` clauses to construct a 
+query. For this example, the ``fruit`` collection has an index on the 
+``type``, ``category``, and ``in_stock`` fields, whose text fields use the 
+:ref:`default <ref-standard-analyzer>` analyzer. The query requires 
+documents to only satisfy one of the following  ``should`` clauses: 
+
+- Contain the word ``apple`` in the ``type`` field.
+- Contain the term ``organic`` in the ``category`` field and have the 
+  value ``true`` in the ``in_stock`` field.
+
+.. code-block:: javascript
+   :linenos:
+
+   db.fruit.aggregate([
+     {
+       $search: {
+         "compound": {
+           "should": [
+             {
+               "text": {
+                 "query": "apple",
+                 "path": "type"
+               }
+             },
+             {
+               "compound": {
+                 "must": [
+                   {
+                     "text": {
+                       "query": "organic",
+                       "path": "category"
+                     }
+                   },
+                   {
+                     "equals": {
+                       "value": true,
+                       "path": "in_stock"
+                     }
+                   }
+                 ]
+               }
+             }
+           ],
+           "minimumShouldMatch": 1
+         }
+       }
+     }
+   ])
+
+The above query returns the following result:
+
+.. code-block:: json
+   :copyable: false
+   
+   { 
+     "_id" : 3, 
+     "type" : "pear", 
+     "description" : "Bosc and Bartlett are the most common varieties of pears.", 
+     "category" : "organic", 
+     "in_stock" : true 
+   }
+   {
+     "_id" : 1,
+     "type" : "apple",
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+     "category" : "nonorganic",
+     "in_stock" : false
+   }
+
+The above document fulfills all the requirements for inclusion: 
+
+- The document with ``_id: 3`` matches the ``must`` clause nested within 
+  the second ``should`` clause.
+- The document with ``_id: 1`` matches the first ``should`` clause.
