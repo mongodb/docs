@@ -552,6 +552,10 @@ description: |
      - :setting:`spec.security.authentication.internalCluster` ``: "X509"``
      - :setting:`spec.security.tls.enabled` ``: true``
 
+  If you provide more than one value for
+  :setting:`spec.security.authentication.modes`, you must also specify a
+  value for :setting:`spec.security.authentication.agent.mode`.
+
 ---
 program: _shared
 name: spec.security.authentication.enabled
@@ -684,6 +688,133 @@ description: |
   
   The |k8s-secret| must contain only one ``password`` field which stores
   the password.
+---
+program: _shared
+name: spec.security.authentication.ldap.authzQueryTemplate
+type: string
+directive: setting
+description: |
+
+  *Required for LDAP authorization.*
+
+  An `RFC4515 <https://tools.ietf.org/html/rfc4515>`_ and `RFC4516
+  <https://tools.ietf.org/html/rfc4516>`_ LDAP-formatted query URL
+  template executed by MongoDB to obtain the LDAP groups that the user
+  belongs to. The query is relative to the host or hosts
+  specified in :setting:`spec.security.authentication.ldap.servers`.
+  You can use the following tokens in the template:
+
+  - ``{USER}`` 
+        Substitutes the authenticated username, or the
+        :setting:`transformed <security.ldap.userToDNMapping>`
+        username, into the LDAP query.
+  - ``{PROVIDED_USER}``
+        Substitutes the supplied username, before either
+        authentication or LDAP transformation, into the LDAP query.
+        (*Available starting in MongoDB version 4.2*)
+
+  .. seealso:: :manual:`LDAP Query Templates </core/security-ldap-external/#ldap-query-template>` in the MongoDB Manual
+---
+program: _shared
+name: spec.security.authentication.ldap.userToDNMapping
+type: string
+directive: setting
+description: |
+  Maps the username provided to :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` for authentication to a LDAP Distinguished Name
+  (DN).
+
+  .. seealso:: :manual:`security.ldap.userToDNMapping </reference/configuration-options/#security.ldap.userToDNMapping>` in the MongoDB Manual
+---
+program: _shared
+name: spec.security.authentication.agents
+type: collection
+directive: setting
+description: |
+
+  {+mdbagent+} authentication configuration for the |com| project.
+
+---
+program: _shared
+name: spec.security.authentication.agents.mode
+type: string
+directive: setting
+description: |
+
+  The authentication mechanism that the {+mdbagent+}s for
+  your MongoDB deployment use. Valid values are ``SCRAM``, ``X509``, and
+  ``LDAP``. The value you specify must also be present in
+  :setting:`spec.security.authentication.modes`.
+
+  This setting is required if you specified more than one value for
+  :setting:`spec.security.authentication.modes`.
+---
+program: _shared
+name: spec.security.authentication.agents.automationUserName
+type: string
+directive: setting
+description: |
+
+  Name of the user the that {+mdbagent+}s use to interact with your
+  MongoDB deployment. The username is mapped to an LDAP Distinguished
+  Name (DN) according to
+  :setting:`spec.security.authentication.ldap.userToDNMapping`. The
+  resulting DN must already exist in your LDAP deployment.
+
+  This setting is required if 
+  :setting:`spec.security.authentication.agents.mode` is ``LDAP``.
+---
+program: _shared
+name: spec.security.authentication.agents.automationPasswordSecretRef
+type: collection
+directive: setting
+description: |
+
+  Details of the |k8s-secret| that contains the password for the
+  :setting:`spec.security.authentication.agents.automationUserName`
+  user.
+
+  This setting is required if 
+  :setting:`spec.security.authentication.agents.mode` is ``LDAP``.
+---
+program: _shared
+name: spec.security.authentication.agents.automationPasswordSecretRef.name
+type: string
+directive: setting
+description: |
+
+  Name of the |k8s-secret| that contains the password for the
+  :setting:`spec.security.authentication.agents.automationUserName`
+  user. You must create this secret in the same namespace to which you
+  deploy the |k8s-op-short|:
+
+  .. code-block:: sh
+
+     kubectl create secret generic ldap-agent-user \
+     --from-literal="password=<password>" -n <namespace>
+
+  This secret must contain one key, the value of which matches the
+  password of the
+  :setting:`spec.security.authentication.agents.automationUserName` user
+  in your LDAP deployment.
+
+  This setting is required if 
+  :setting:`spec.security.authentication.agents.mode` is ``LDAP``.
+---
+program: _shared
+name: spec.security.authentication.agents.automationPasswordSecretRef.key
+type: string
+directive: setting
+description: |
+
+  Key in the
+  :setting:`spec.security.authentication.agents.automationPasswordSecretRef.name`
+  |k8s-secret| that contains the password for the user in
+  :setting:`spec.security.authentication.agents.automationUserName`.
+
+  This setting is required if 
+  :setting:`spec.security.authentication.agents.mode` is
+  ``LDAP``.
 ---
 program: _shared
 name: spec.additionalMongodConfig.net.ssl.mode
