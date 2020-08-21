@@ -38,3 +38,30 @@ project, you must:
 
   To learn how to configure the referenced Azure components, see the
   :azure:`Azure Documentation </index>`.
+
+- If your Azure Key Vault configuration requires it, :azure:`allow
+  access </key-vault/general/network-security>` from the following IP
+  addresses so that |service| can communicate with your key vault:
+
+  .. code-block:: none
+  
+     18.214.178.145
+     18.235.30.157
+     18.235.48.235
+     18.235.145.62
+     34.193.242.51
+     34.196.151.229
+     34.200.66.236
+     34.235.52.68
+     35.153.40.82
+     35.169.184.216
+     35.171.106.60
+     35.174.179.65
+     35.174.230.146
+     35.175.93.3
+     35.175.94.38
+     35.175.95.59
+     52.71.233.234
+     52.87.98.128
+     107.20.0.247
+     107.20.107.166
