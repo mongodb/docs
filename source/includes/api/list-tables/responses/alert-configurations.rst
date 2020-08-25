@@ -12,222 +12,287 @@
      - Type
      - Description
 
-   * - ``created``
+   * - created
      - string
      - |iso8601-time| when this alert configuration was created.
 
-   * - ``enabled``
+   * - enabled
      - boolean
      - Flag indicating this alert configuration enabled.
 
-   * - ``eventTypeName``
+   * - eventTypeName
      - string
      - Type of event that triggers an alert.
 
-   * - ``groupId``
+   * - groupId
      - string
      - Unique identifier of the Project that owns this alert
        configuration.
 
-   * - ``id``
+   * - id
      - string
      - Unique identifier of the alert configuration.
 
-   * - ``matchers``
+   * - links
+     - array of objects
+     - .. include:: /includes/links-explanation.rst
+
+   * - matchers
      - array of objects
      - Rules to apply when matching an object against this alert
        configuration.
 
-   * - | ``matchers``
-       | ``.fieldName``
+   * - | matchers
+       | .[n].fieldName
      - string
      - Name of the field in the target object that you wanted this
        configuration to match.
 
-   * - | ``matchers``
-       | ``.operator``
+   * - | matchers
+       | .[n].operator
      - string
-     - Operator to test the field's value.
+     - Comparison operator to apply when checking the current metric
+       value against **matcher.[n].value**.
 
-   * - | ``matchers``
-       | ``.value``
+   * - | matchers
+       | .[n].value
      - string
-     - Value to test with the specified operator.
+     - Value to match or exceed using **matchers.[n].operator**.
 
-   * - ``metricThreshold``
+   * - metricThreshold
      - object
-     - Threshold that triggers an alert. Returned if ``"eventTypeName"
-       : "OUTSIDE_METRIC_THRESHOLD"``.
+     - Value and means of comparison that triggers an alert.
 
-   * - | ``metricThreshold``
-       | ``.metricName``
+   * - | metricThreshold
+       | .metricName
      - string
      - Name of the metric to check. Supports the same values as
-       the ``metricName`` field of the ``alerts`` resource.
+       the **metricName** field of the **alerts** resource.
 
-   * - | ``metricThreshold``
-       | ``.mode``
+   * - | metricThreshold
+       | .mode
      - string
      - Average value of this metric.
 
-   * - | ``metricThreshold``
-       | ``.operator``
+   * - | metricThreshold
+       | .operator
      - string
-     - Operator to apply when checking the current metric value
-       against the threshold value.
+     - Comparison operator that |service| applied when checking the
+       current metric value against the threshold value.
 
-   * - | ``metricThreshold``
-       | ``.threshold``
+   * - | metricThreshold
+       | .threshold
      - number
-     - Value that, when exceeded, triggers an alert.
+     - Value of **metricThreshold.metricName** that, when exceeded,
+       triggers an alert.
 
-   * - | ``metricThreshold``
-       | ``.units``
+   * - | metricThreshold
+       | .units
      - string
-     - Units for the threshold value.
+     - Units of capacity or time that define the scope of the
+       **metricThreshold.threshold**.
 
-   * - ``notifications``
+   * - notifications
      - array of objects
      - One or more targets for |service| to send notifications when an
        alert condition is detected.
 
-   * - | ``notifications``
-       | ``.apiToken``
+   * - | notifications.[n]
+       | .apiToken
      - string
-     - Slack API token token. Returned if ``"notifications.typeName" :
-       "SLACK"``.
+     - Slack API token token. |service| returns this value if you set
+       **notifications.[n].typeName** to **SLACK**.
 
-   * - | ``notifications``
-       | ``.channelName``
+   * - | notifications.[n]
+       | .channelName
      - string
-     - Slack channel name. Returned if ``"notifications.typeName" :
-       "SLACK"``.
+     - Slack channel name. |service| returns this value if you set
+       **notifications.[n].typeName** to **SLACK**.
 
-   * - | ``notifications``
-       | ``.datadogApiKey``
+   * - | notifications.[n]
+       | .datadogApiKey
      - string
-     - DataDog API Key. Returned if ``"notifications.typeName" :
-       "DATADOG"``.
+     - DataDog API Key. |service| returns this value if you set
+       **notifications.[n].typeName** to **DATADOG**.
 
-   * - | ``notifications``
-       | ``.datadogRegion``
+   * - | notifications.[n]
+       | .datadogRegion
      - string
      - Region that indicates which |api| |url| to use.
 
-   * - | ``notifications``
-       | ``.delayMin``
+   * - | notifications.[n]
+       | .delayMin
      - number
      - Number of minutes to wait after an alert condition is detected
        before sending out the first notification.
 
-   * - | ``notifications``
-       | ``.emailAddress``
+   * - | notifications.[n]
+       | .emailAddress
      - string
-     - Email address to which to send notification. Returned if
-       ``"notifications.typeName" : "EMAIL"``.
+     - Email address to which to send notification. |service| returns
+       this value if you set **notifications.[n].typeName** to
+       **EMAIL**.
 
-   * - | ``notifications``
-       | ``.emailEnabled``
+   * - | notifications.[n]
+       | .emailEnabled
      - boolean
-     - Flag indicating email notifications must be sent. Returned if
-       ``"notifications.typeName" : "ORG"``, ``GROUP``, or ``USER``.
+     - Flag indicating email notifications must be sent. |service|
+       returns this value if you set **notifications.[n].typeName** to
+       **ORG**, **GROUP**, or **USER**.
 
-   * - | ``notifications``
-       | ``.flowdockApiToken``
+   * - | notifications.[n]
+       | .flowdockApiToken
      - string
-     - Flowdock personal |api| token. Returned if
-       ``"notifications.typeName" : "FLOWDOCK"``.
+     - Flowdock personal |api| token. |service| returns this value if
+       you set **notifications.[n].typeName** to **FLOWDOCK**.
 
-   * - | ``notifications``
-       | ``.flowName``
+   * - | notifications.[n]
+       | .flowName
      - string
-     - Name of the Flowdock flow. Returned if
-       ``"notifications.typeName" : "FLOWDOCK"``.
+     - Name of the Flowdock flow. |service| returns this value if
+       you set **notifications.[n].typeName** to **FLOWDOCK**.
 
-   * - | ``notifications``
-       | ``.intervalMin``
+   * - | notifications.[n]
+       | .intervalMin
      - number
      - Number of minutes to wait between successive notifications
        for unacknowledged alerts that are not resolved.
 
-   * - | ``notifications``
-       | ``.mobileNumber``
+   * - | notifications.[n]
+       | .mobileNumber
      - string
-     - Mobile number to which alert notifications are sent. Set this
-       value if ``"notifications.typeName" : "SMS"``.
+     - Mobile number to which alert notifications are sent. |service|
+       returns this value if you set **notifications.[n].typeName** to
+       **SMS**.
 
-   * - | ``notifications``
-       | ``.opsGenieApiKey``
+   * - | notifications.[n]
+       | .notificationToken
      - string
-     - Opsgenie |api| Key. Set this value if ``"notifications.typeName"
-       : "OPS_GENIE"``.
+     - HipChat API token. |service| returns this value if you set
+       **notifications.[n].typeName** to **HIP_CHAT**.
 
-   * - | ``notifications``
-       | ``.opsGenieRegion``
+       .. include:: /includes/api/facts/invalid-integration-api-token.rst
+
+   * - | notifications.[n]
+       | .opsGenieApiKey
      - string
-     - Region that indicates which |api| |url| to use. Set this value
-       if ``"notifications.typeName" : "OPS_GENIE"``.
+     - Opsgenie |api| Key. |service| returns this value if
+       you set **notifications.[n].typeName** to **OPS_GENIE**.
 
-   * - | ``notifications``
-       | ``.orgName``
+   * - | notifications.[n]
+       | .opsGenieRegion
      - string
-     - Name of the Flowdock organization. Returned if
-       ``"notifications.typeName" : "FLOWDOCK"``.
+     - Region that indicates which |api| |url| to use. |service| returns
+       this value if you set **notifications.[n].typeName** to
+       **OPS_GENIE**.
 
-   * - | ``notifications``
-       | ``.roles``
+   * - | notifications.[n]
+       | .orgName
+     - string
+     - Name of the Flowdock organization. |service| returns this value
+       if you set **notifications.[n].typeName** to **FLOWDOCK**.
+
+   * - | notifications.[n]
+       | .roles
      - array of strings
-     - |service| role in current Project or Organization. Returned if
-       ``"notifications.typeName" : "ORG"`` or ``GROUP``.
+     - |service| role in current Project or Organization. |service|
+       returns this value if you set **notifications.[n].typeName** to
+       **ORG** or **GROUP**.
 
-   * - | ``notifications``
-       | ``.serviceKey``
+   * - | notifications.[n]
+       | .roomName
      - string
-     - PagerDuty service key. Returned if ``"notifications.typeName" :
-       "PAGER_DUTY"``.
+     - HipChat room name. |service| returns this value if
+       **"notifications.typeName" : "HIP_CHAT**.
 
-   * - | ``notifications``
-       | ``.smsEnabled``
+   * - | notifications.[n]
+       | .serviceKey
+     - string
+     - PagerDuty service key. |service| returns this value if
+       you set **notifications.[n].typeName** to **PAGER_DUTY**.
+
+   * - | notifications.[n]
+       | .severity
+     - string
+     - Degree of seriousness of this notification.
+
+   * - | notifications.[n]
+       | .smsEnabled
      - boolean
-     - Flag indicating text notifications must be sent. Returned if
-       ``"notifications.typeName" : "ORG"``, ``GROUP``, or ``USER``.
+     - Flag indicating text notifications must be sent. |service|
+       returns this value if you set **notifications.[n].typeName** to
+       **ORG**, **GROUP**, or **USER**.
 
-   * - | ``notifications``
-       | ``.teamId``
+   * - | notifications.[n]
+       | .teamId
      - string
-     - Unique identifier of a team.
+     - Unique identifier of the team that receives this notification.
 
-   * - | ``notifications``
-       | ``.typeName``
+   * - | notifications.[n]
+       | .teamName
      - string
-     - Type of alert notification.
+     - Label for the team that receives this notification.
 
-   * - | ``notifications``
-       | ``.username``
+   * - | notifications.[n]
+       | .typeName
+     - string
+     - Means by which you want |service| to send you notification of an
+       alert.
+
+   * - | notifications.[n]
+       | .username
      - string
      - Name of |a-service| user to which to send notifications.
-       Returned if ``"notifications.typeName" : "USER"``.
+       |service| returns this value if you set
+       **notifications.[n].typeName** to **USER**.
 
-   * - ``threshold``
-     - object
-     - Threshold that triggers an alert. Returned if ``eventTypeName``
-       is any value other than ``OUTSIDE_METRIC_THRESHOLD``.
-
-   * - | ``threshold``
-       | ``.operator``
+   * - | notifications.[n]
+       | .victorOpsApiKey
      - string
-     - Operator to apply when checking the current metric value
-       against the threshold value.
+     - VictorOps |api| key.
 
-   * - | ``threshold``
-       | ``.threshold``
+       .. include:: /includes/api/facts/invalid-integration-api-key.rst
+
+       |service| returns this value if you set
+       **notifications.[n].typeName** to **VICTOR_OPS**.
+
+   * - | notifications.[n]
+       | .victorOpsRoutingKey
+     - string
+     - VictorOps routing key.
+
+       .. include:: /includes/api/facts/invalid-integration-api-key.rst
+
+       |service| returns this value if you set
+       **notifications.[n].typeName** to **VICTOR_OPS**.
+
+   * - threshold
+     - object
+     - Threshold that triggers an alert. |service| returns this value if
+       **eventTypeName** is any value other than
+       **OUTSIDE_METRIC_THRESHOLD**.
+
+   * - | threshold
+       | .operator
+     - string
+     - Comparison operator that |service| applied when checking the
+       current metric value against the threshold value.
+
+   * - | threshold
+       | .threshold
      - number
-     - Threshold value outside of which an alert is triggered.
+     - Value that, when exceeded, |service| triggers an alert.
 
-   * - ``typeName``
+   * - | threshold
+       | .units
+     - string
+     - Units of capacity or time that define the scope of the
+       **threshold.threshold**.
+
+   * - typeName
      - string
      - *This field is deprecated and is ignored.*
 
-   * - ``updated``
+   * - updated
      - string
      - |iso8601-time| when this alert configuration was last updated.

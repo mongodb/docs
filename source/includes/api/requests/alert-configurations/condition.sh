@@ -15,7 +15,8 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
          } ],
          "threshold" : {
            "operator" : "LESS_THAN",
-           "threshold" : 1
+           "threshold" : 1,
+           "units" : "HOURS"
          },
          "typeName" : "REPLICA_SET"
        }'

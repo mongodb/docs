@@ -2,37 +2,38 @@
    :widths: 20 14 11 55
    :stub-columns: 1
 
-   * - | ``metricThreshold``
-       | ``.metricName``
+   * - | metricThreshold
+       | .metricName
      - string
-     - Conditional
+     - Required
      - Name of the metric to check.
 
-       See :ref:`measurement-types` for the available metrics.
+       To review available metrics, see :ref:`measurement-types`.
 
-   * - | ``metricThreshold``
-       | ``.operator``
+   * - | metricThreshold
+       | .operator
      - string
-     - Conditional
-     - Operator to apply when checking the current metric value against
-       the threshold value. |service| accepts the following values:
+     - Required
+     - Comparison operator to apply when checking the current metric
+       value against the threshold value. |service| accepts the
+       following values:
 
        - ``GREATER_THAN``
        - ``LESS_THAN``
 
-   * - | ``metricThreshold``
-       | ``.threshold``
+   * - | metricThreshold
+       | .threshold
      - integer
-     - Conditional
-     - Value of ``metricThreshold.metricName`` outside of which an
-       alert will be triggered.
+     - Required
+     - Value of **metricThreshold.metricName** that, when exceeded,
+       |service| triggers an alert.
 
-   * - | ``metricThreshold``
-       | ``.units``
+   * - | metricThreshold
+       | .units
      - string
-     - Conditional
-     - Units for the value of ``metricThreshold.threshold``. Depends on
-       the type of metric.
+     - Required
+     - Units of capacity or time that define the scope of the
+       **metricThreshold.threshold**. Depends on the type of metric.
 
        .. example::
 
@@ -40,17 +41,17 @@
           measurement, while a metric that measures time would have a
           time unit.
 
-       Accepted values for durations are:
+       |service| accepts the following values for durations:
 
        .. include:: /includes/api/list-tables/units/times-within-days.rst
 
-       Accepted values for storage or memory are:
+       |service| accepts the following values for storage or memory:
 
        .. include:: /includes/api/list-tables/units/storage-units.rst
 
-   * - | ``metricThreshold``
-       | ``.mode``
+   * - | metricThreshold
+       | .mode
      - string
-     - Conditional
+     - Required
      - This must be set to ``AVERAGE``. |service| computes the current
        metric value as an average.

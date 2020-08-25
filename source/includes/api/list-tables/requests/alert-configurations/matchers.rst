@@ -2,8 +2,8 @@
    :widths: 20 14 11 55
    :stub-columns: 1
 
-   * - | ``matchers``
-       | ``.fieldName``
+   * - | matchers
+       | .[n].fieldName
      - string
      - Required
      - Name of the field in the target object that you wanted this
@@ -33,11 +33,12 @@
               | ``CLUSTER_NAME``
               | ``SHARD_NAME``
 
-   * - | ``matchers``
-       | ``.operator``
+   * - | matchers
+       | .[n].operator
      - string
      - Optional
-     - Operator to test the field's value. |service| accepts the
+     - Comparison operator to apply when checking the current metric
+       value against **matcher.[n].value**. |service| accepts the
        following values:
 
        .. hlist::
@@ -51,14 +52,14 @@
           - ``ENDS_WITH``
           - ``REGEX``
 
-   * - | ``matchers``
-       | ``.value``
+   * - | matchers
+       | .[n].value
      - string
      - Optional
      - Value against which the specified operator compares.
 
-       If ``"matchers.fieldName" : "TYPE_NAME"``, you can match on the
-       following values:
+       If you set **matchers.[n].fieldName** to ``TYPE_NAME``, you can
+       match on the following values:
 
        .. hlist::
           :columns: 2

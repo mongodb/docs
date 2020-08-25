@@ -8,15 +8,15 @@
      - Necessity
      - Description
 
-   * - ``enabled``
+   * - **enabled**
      - boolean
      - Optional
      - Flag that indicates if this alert configuration is enabled or
        disabled.
 
-   * - ``eventTypeName``
+   * - **eventTypeName**
      - string
      - Required
      - Type of event that triggers an alert. Set this value to
-       ``OUTSIDE_METRIC_THRESHOLD``. You must also set one or more host
-       metrics in the ``metricThreshold`` array.
+       **OUTSIDE_METRIC_THRESHOLD**. You must also set one or more host
+       metrics in the **metricThreshold** array.
