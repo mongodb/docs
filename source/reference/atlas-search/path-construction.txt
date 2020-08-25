@@ -79,6 +79,22 @@ parameter can take an object with the following fields:
      - The name of the alternate analyzer specified in a
        ``multi`` object in an index definition.
 
+   * - ``wildcard`` 
+     - The object containing the wildcard character ``*`` to match any 
+       character in the name of the field to search, including nested fields. A 
+       wildcard path: 
+       
+       - Must be defined as an object.
+       - Cannot contain the ``value`` or ``multi`` option.
+       - Cannot contain multiple consecutive wildcard characters such as ``**``.
+
+       Wildcard path is only accepted by the following operators: 
+
+       - :ref:`phrase-ref`
+       - :ref:`regex-ref`
+       - :ref:`text-ref`
+       - :ref:`wildcard-ref`
+
 In the following index definition, fields named ``names`` and ``notes``
 use the :ref:`standard <ref-standard-analyzer>` analyzer.
 A field named ``comments`` uses ``standard`` as its default analyzer, and
@@ -129,6 +145,14 @@ analyzers, use an array. The following example searches the
 .. code-block:: javascript
 
    "path": [ "names", "notes", { "value": "comments", "multi": "mySecondaryAnalyzer" } ]
+
+The following ``path`` example searches all the fields that contain the letter 
+``n`` followed by any characters, and the ``comments`` field using the 
+``multi`` named ``mySecondaryAnalyzer`` in the index definition. 
+
+.. code-block:: javascript
+
+   "path": [{"wildcard": "n*"}, { "value": "comments", "multi": "mySecondaryAnalyzer" }]
 
 .. _ref-path-egs:
 
@@ -487,3 +511,128 @@ field must not contain the string ``cauliflower``.
 
 The preceding query returns the document with ``_id: 1``, in which the
 ``posts.body`` field contains the string ``broccoli``.
+
+Wildcard Field Search 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses a collection named ``cars``, which has the following documents: 
+
+.. code-block:: json
+
+   {
+     "_id" : 1,
+     "type" : "sedan",
+     "make" : "Toyota",
+     "description" : "Four-door sedan, lots of trunk space. Three to four passengers.",
+     "warehouse" : [
+       {
+         "inventory" : 3,
+         "color" : "red"
+       }
+     ]
+   }
+   { 
+     "_id" : 2,
+     "type" : "coupe",
+     "make" : "BMW",
+     "description" : "Two-door convertible, driver's-side airbag.",
+     "warehouse" : [
+       {
+         "inventory" : 5,
+         "color" : "black"
+       }
+     ]
+   }
+   { 
+     "_id" : 3,
+     "type" : "SUV",
+     "make" : "Ford",
+     "description" : "Four-door SUV, three rows of seats.",
+     "warehouse" : [
+       {
+         "inventory" : 7,
+         "color" : "white"
+       },
+       {
+         "inventory" : 3,
+         "color" : "red"
+       }
+     ]
+   }
+
+The index definition for the ``cars`` collection is as follows:
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": true
+     }
+   }
+
+The following query searches the fields specified using the wildcard character 
+``*`` for the string ``red``.
+
+.. tabs::  
+
+   .. tab:: All Fields Search
+
+      The following :ref:`query <phrase-ref>` searches all the fields for the 
+      string ``red``.
+
+      .. code-block:: javascript 
+
+          db.cars.aggregate([
+            {
+              "$search": {
+                "phrase": {
+                  "path": {"wildcard": "*"},
+                  "query": "red"
+                }
+              }
+            }
+          ])
+
+   .. tab:: Nested Field Search
+
+      The following :ref:`query <text-ref>` searches all the fields nested 
+      within the ``warehouse`` field for the string ``red``.
+
+      .. code-block:: javascript 
+
+          db.cars.aggregate([
+            {
+              "$search": {
+                "text": {
+                  "path": {"wildcard": "warehouse.*"},
+                  "query": "red"
+                }
+              }
+            }
+          ])
+
+The previous query returns the following results: 
+
+.. code-block:: json
+   :copyable: false
+   :emphasize-lines: 7,17
+
+   { 
+     "_id" : 1, 
+     "type" : "sedan", 
+     "make" : "Toyota", 
+     "description" : "Four-door sedan, lots of trunk space. Three to four passengers.", 
+     "warehouse" : [ 
+       { "inventory" : 3, "color" : "red" } 
+     ] 
+   }
+   { 
+     "_id" : 3, 
+     "type" : "SUV", 
+     "make" : "Ford", 
+     "description" : "Four-door SUV, three rows of seats.", 
+     "warehouse" : [ 
+       { "inventory" : 7, "color" : "white" }, 
+       { "inventory" : 3, "color" : "red" } 
+     ] 
+   }
