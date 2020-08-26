@@ -20,12 +20,6 @@
      - 4.0 Enterprise
      - 3.6 Enterprise
 
-   * - RHEL/CentOS 8
-     -
-     - Community only
-     -
-     -
-
    * - RHEL/CentOS 7
      - Enterprise only
      - Enterprise only
