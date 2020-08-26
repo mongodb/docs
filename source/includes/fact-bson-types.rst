@@ -76,10 +76,10 @@
      - "symbol"
      - Deprecated.
 
-   * - JavaScript (with scope)
+   * - JavaScript code with scope
      - 15
      - "javascriptWithScope"
-     -
+     - Deprecated with 4.2.1.
 
    * - 32-bit integer
      - 16
