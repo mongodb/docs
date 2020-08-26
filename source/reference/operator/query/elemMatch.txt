@@ -28,8 +28,10 @@ Definition
       { <field>: { $elemMatch: { <query1>, <query2>, ... } } }
 
    If you specify only a single ``<query>`` condition in the
-   :query:`$elemMatch` expression, you do not need to use
-   :query:`$elemMatch`.
+   :query:`$elemMatch` expression, and are not using the :query:`$not`
+   or :query:`$ne` operators inside of :query:`$elemMatch`,
+   :query:`$elemMatch` can be omitted. See
+   :ref:`elemmatch-single-query-condition`.
 
 Behavior
 --------
@@ -55,7 +57,7 @@ Given the following documents in the ``scores`` collection:
 
 The following query matches only those documents where the ``results``
 array contains at least one element that is both greater than or equal
-to ``80`` and is less than ``85``.
+to ``80`` and is less than ``85``:
 
 .. code-block:: javascript
 
@@ -64,7 +66,7 @@ to ``80`` and is less than ``85``.
    )
 
 The query returns the following document since the element ``82`` is
-both greater than or equal to ``80`` and is less than ``85``
+both greater than or equal to ``80`` and is less than ``85``:
 
 .. code-block:: javascript
 
@@ -76,17 +78,24 @@ elements, see :ref:`specify-multiple-criteria-for-array-elements`.
 Array of Embedded Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Given the following documents in the ``survey`` collection:
+This statement inserts documents into the ``survey`` collection:
 
 .. code-block:: javascript
 
-   { _id: 1, results: [ { product: "abc", score: 10 }, { product: "xyz", score: 5 } ] }
-   { _id: 2, results: [ { product: "abc", score: 8 }, { product: "xyz", score: 7 } ] }
-   { _id: 3, results: [ { product: "abc", score: 7 }, { product: "xyz", score: 8 } ] }
+   db.survey.insertMany( [
+      { "_id": 1, "results": [ { "product": "abc", "score": 10 },
+                               { "product": "xyz", "score": 5 } ] },
+      { "_id": 2, "results": [ { "product": "abc", "score": 8 },
+                               { "product": "xyz", "score": 7 } ] },
+      { "_id": 3, "results": [ { "product": "abc", "score": 7 },
+                               { "product": "xyz", "score": 8 } ] },
+      { "_id": 4, "results": [ { "product": "abc", "score": 7 },
+                               { "product": "def", "score": 8 } ] }
+   ] )
 
 The following query matches only those documents where the ``results``
 array contains at least one element with both ``product`` equal to
-``"xyz"`` and ``score`` greater than or equal to ``8``.
+``"xyz"`` and ``score`` greater than or equal to ``8``:
 
 .. code-block:: javascript
 
@@ -97,17 +106,24 @@ array contains at least one element with both ``product`` equal to
 Specifically, the query matches the following document:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : 3, "results" : [ { "product" : "abc", "score" : 7 }, { "product" : "xyz", "score" : 8 } ] }
+   { "_id" : 3, "results" : [ { "product" : "abc", "score" : 7 },
+                              { "product" : "xyz", "score" : 8 } ] }
+
+.. _elemmatch-single-query-condition:
 
 Single Query Condition
 ~~~~~~~~~~~~~~~~~~~~~~
 
 If you specify a single query predicate in the :query:`$elemMatch`
-expression, :query:`$elemMatch` is not necessary.
+expression, and are not using the :query:`$not` or :query:`$ne`
+operators inside of :query:`$elemMatch`, :query:`$elemMatch` can be
+omitted.
 
-For example, consider the following example where :query:`$elemMatch`
-specifies only a single query predicate ``{ product: "xyz" }``:
+The following examples return the same documents.
+
+With :query:`$elemMatch`:
 
 .. code-block:: javascript
 
@@ -115,15 +131,63 @@ specifies only a single query predicate ``{ product: "xyz" }``:
       { results: { $elemMatch: { product: "xyz" } } }
    )
 
-Since the :query:`$elemMatch` only specifies a single condition, the
-:query:`$elemMatch` expression is not necessary, and instead you can
-use the following query:
+Without :query:`$elemMatch`:
 
 .. code-block:: javascript
 
    db.survey.find(
       { "results.product": "xyz" }
    )
+
+However, if your :query:`$elemMatch` expression contains the
+:query:`$not` or :query:`$ne` operators then omitting the
+:query:`$elemMatch` expression changes the documents returned.
+
+The following examples return different documents.
+
+With :query:`$elemMatch`:
+
+.. code-block:: javascript
+
+   db.survey.find(
+      { "results": { $elemMatch: { product: { $ne: "xyz" } } } }
+   )
+
+Without :query:`$elemMatch`:
+
+.. code-block:: javascript
+
+   db.survey.find(
+      { "results.product": { $ne: "xyz" } }
+   )
+
+With :query:`$elemMatch`, the first query returns these documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "results" : [ { "product" : "abc", "score" : 10 },
+                              { "product" : "xyz", "score" : 5 } ] }
+   { "_id" : 2, "results" : [ { "product" : "abc", "score" : 8 },
+                              { "product" : "xyz", "score" : 7 } ] }
+   { "_id" : 3, "results" : [ { "product" : "abc", "score" : 7 },
+                              { "product" : "xyz", "score" : 8 } ] }
+   { "_id" : 4, "results" : [ { "product" : "abc", "score" : 7 },
+                              { "product" : "def", "score" : 8 } ] }
+
+Without :query:`$elemMatch`, the second query returns this
+document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "results" : [ { "product" : "abc", "score" : 7 },
+                              { "product" : "def", "score" : 8 } ] }
+
+The first query returns the documents where any product in the
+``results`` array is not ``"xyz"``. The second query returns the
+documents where all of the products in the ``results`` array are not
+``"xyz"``.
 
 Additional Examples
 -------------------
