@@ -61,7 +61,7 @@ source_constants = {
     'version': version,
     'mcli': 'MongoDB CLI',
     'mcli-long': 'MongoDB Command Line Interface (``mongocli``)',
-    'mcli-version': '1.4.0',
+    'mcli-version': '1.4.1',
     'mdbVersion': '4.2',
     'mdbagent': 'MongoDB Agent',
     'aagent': 'Automation Agent',
