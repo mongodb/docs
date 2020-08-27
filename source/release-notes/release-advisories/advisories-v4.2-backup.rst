@@ -231,3 +231,10 @@ with |fcv-link| 4.2 or later, you:
    Backup and restore performance decreases for MongoDB 4.2 or later
    replica sets with many small collections: those with tens of
    thousands of collections with less than 1 GB of data per collection.
+
+.. note::
+
+   If |mms| doesn't manage your cluster,
+   :ref:`grant <edit-security-credentials>` the
+   :authrole:`backup` permission to the MongoDB user that runs
+   backups.
