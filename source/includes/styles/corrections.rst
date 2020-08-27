@@ -37,4 +37,14 @@
        padding-left: 0px;
        padding-right: 10px;
      }
+     dl.alert {
+       padding: 0px;
+       border: 0px;
+       padding-left: 15px;
+     }
+     dl.alert > dt > code.descname {
+       font-family: "Akzidenz","Helvetica Neue",sans-serif;
+       font-weight: 700;
+       font-size: 100%
+     }
    </style>
