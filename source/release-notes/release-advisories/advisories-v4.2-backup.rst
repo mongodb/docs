@@ -168,7 +168,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Supports Databases running MongoDB Community
+      * - Supports Databases running MongoDB Community [*]_
         -
         -
         -
@@ -191,6 +191,13 @@ Backup Features Supported at Present
 
    .. [*] Querying an encrypted snapshot requires
           :product:`MongoDB Enterprise <enterprise>` 4.2.9 or 4.4.0.
+
+.. cond:: cloud
+
+   .. [*] |mms| grants a :doc:`special license to use MongoDB
+          Enterprise </reference/legal/cloud-manager-backup-license>`
+          to :doc:`MongoDB Community users </reference/legal/cloud-manager-backup-changes>`
+          for backup only.
 
 Requirements and Limitations
 ````````````````````````````
