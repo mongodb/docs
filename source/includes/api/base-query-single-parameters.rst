@@ -9,18 +9,18 @@
      - Description
      - Default
 
-   * - ``pretty``
+   * - pretty
      - boolean
      - Optional
      - Flag indicating whether the response body should be in a
        :wikipedia:`prettyprint </Prettyprint?oldid=791126873>` format.
      - ``false``
 
-   * - ``envelope``
+   * - envelope
      - boolean
      - Optional
-     - Flag indicating if |mms| should wrap the response in a |json|
-       envelope.
+     - Flag indicating if |service| should wrap the response in a
+       |json| envelope.
 
        This option may be needed for some |api| clients. These clients
        cannot access the |http| response headers or status code. To
@@ -33,9 +33,9 @@
           :widths: 30 70
           :stub-columns: 1
 
-          * - ``status``
+          * - status
             - |http| response code
-          * - ``envelope``
+          * - envelope
             - Expected response body
 
      - ``false``
