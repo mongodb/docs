@@ -6,6 +6,27 @@
    * - Alert Target
      - Condition
 
+   * - Backup
+     -
+
+       ``CPS_SNAPSHOT_SUCCESSFUL``
+         Snapshot taken successfully
+
+       ``CPS_SNAPSHOT_FALLBACK_SUCCESSFUL``
+         Fallback snapshot taken
+
+       ``CPS_SNAPSHOT_FALLBACK_FAILED``
+         Fallback snapshot failed
+
+       ``CPS_SNAPSHOT_BEHIND``
+         Snapshot schedule fell behind
+
+       ``CPS_RESTORE_FAILED``
+         Backup restore failed
+
+       ``CPS_RESTORE_SUCCESSFUL``
+         Backup restore succeeded
+
    * - Billing
      -
 
