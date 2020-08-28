@@ -21,7 +21,10 @@ $eq
 
       { <field>: { $eq: <value> } }
 
-   The :query:`$eq` expression is equivalent to ``{ field: <value> }``.
+   The :query:`$eq` operator is equivalent to using the form ``{ field: <value> }`` 
+   except when the ``<value>`` is a regular expression. See :ref:`match-regex` 
+   for further details. 
+
 
 Behavior
 --------
@@ -44,6 +47,23 @@ If the specified ``<value>`` is an array, MongoDB matches documents
 where the ``<field>`` matches the array exactly or the ``<field>``
 contains an element that matches the array exactly. The order of the
 elements matters. For an example, see :ref:`eq-match-array-value`.
+
+.. _match-regex:
+
+Match a Regular Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The expression ``{ field: <value> }`` implicitly specifies a match on 
+``<value>``. MongoDB translates the implicit match to a more explicit
+form. 
+
+When the ``<value>`` is fixed, like a particular string, the expression
+is equivalent to using the ``$eq`` operator ``{ field: { $eq: <value> } }``.
+
+If ``<value>`` is a regular expression, the statement is expanded
+using the ``$regex`` operator ``{ field: { $regex: <value> } }``.
+
+For examples illustrating this behaviour, see :ref:`eq-regex-matching`.
 
 Examples
 --------
@@ -165,3 +185,63 @@ Both queries match the following documents:
 
    { _id: 3, item: { name: "ij", code: "456" }, qty: 25, tags: [ "A", "B" ] }
    { _id: 5, item: { name: "mn", code: "000" }, qty: 20, tags: [ [ "A", "B" ], "C" ] }
+
+
+.. _eq-regex-matching:
+
+Regex Match Behaviour
+~~~~~~~~~~~~~~~~~~~~~
+
+The following examples demonstrate the differences in behavior between
+implicit and explict regular expression matching. Consider a collection 
+with these documents: 
+
+.. code-block:: javascript
+
+   { _id: 001, company: "MongoDB" } 
+   { _id: 002, company: "MongoDB2" }
+
+$eq match on a string
+  A string expands to return the same values whether an implicit match
+  or an explicit use of ``$eq``. Both of these queries:
+
+  .. code-block:: javascript
+  
+     db.collection.find( { company: "MongoDB" }, {_id: 0 })
+     db.collection.find( { company: { $eq: "MongoDB" } }, {_id: 0 } )
+
+  return the following result: 
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "company" : "MongoDB" }
+
+$eq match on a regular expression
+   An explicit query using ``$eq`` and a regular expression will only 
+   match an object which is also a regular expresssion. The example 
+   query won't return anything since values in the ``company`` field 
+   are strings.
+   
+   .. code-block:: javascript
+  
+      db.collection.find( { company: { $eq: /MongoDB/ } }, {_id: 0 } )
+      
+Regular expression matches
+   A query with an implicit match against a regular expression is
+   equivalent to a making a query with the ``$regex`` operator. Both of
+   these queries:
+
+   .. code-block:: javascript
+   
+      db.collection.find( { company: /MongoDB/ }, {_id: 0 })
+      db.collection.find( { company: { $regex: /MongoDB/ } }, {_id: 0 } )
+
+   return the same results:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      { "company" : "MongoDB" }
+      { "company" : "MongoDB2" }  
+
