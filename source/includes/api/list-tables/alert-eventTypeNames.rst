@@ -27,6 +27,9 @@
        ``CPS_RESTORE_SUCCESSFUL``
          Backup restore succeeded
 
+       ``CPS_SNAPSHOT_DOWNLOAD_REQUEST_FAILED``
+         Snapshot download request failed
+
    * - Billing
      -
 
