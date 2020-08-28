@@ -10,10 +10,21 @@ Backup
    :depth: 1
    :class: singlecol
 
+.. cond:: cloud
+
+   Run Backups with |fcv| 4.2 or Later with MongoDB Community
+   ----------------------------------------------------------
+
+   MongoDB has a special license to use MongoDB Enterprise for backups.
+
+   To learn more about this license, see
+   :doc:`/reference/legal/cloud-manager-backup-changes`
+
+
 .. cond:: onprem
 
    Logs Display ``MongodVersionException``
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   ---------------------------------------
 
    The ``MongodVersionException`` can occur if the
    :ref:`Backup Daemon <backup-daemon>`\'s host cannot access the
@@ -27,53 +38,41 @@ Backup
    :doc:`/tutorial/configure-local-mode` to install the appropriate
    binaries.
 
-.. _troubleshoot-insufficient-oplog-size-error:
+   .. _troubleshoot-insufficient-oplog-size-error:
 
-Insufficient Oplog Size Error
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   Insufficient Oplog Size Error
+   -----------------------------
 
-When using the |mms| interface to back up a MongoDB cluster, |mms|
-checks to see if the cluster's oplogs are, based on their recent
-usage, large enough to hold a minimum of 3 hours worth of data based
-on the last 24 hours of usage patterns. If the oplogs are not large
-enough, it may be possible that the oplogs may have turned over
-multiple times, creating a gap between where a backup
-ends and an oplog starts.
+   If you have set the :setting:`mms.backup.minimumOplogWindowHours`, |mms| checks to see if the cluster's oplogs can store a given number of hours of data. It bases on recent oplog usage patterns from the last 24 hours.
 
-If the oplog size check fails, the user cannot enable backups and is
-shown the warning:
+   If the oplogs lack capacity, the oplogs may have turned over
+   multiple times. This creates a gap between where a backup
+   ends and an oplog starts.
 
-.. warning::
+   If this oplog size check fails:
 
-   Insufficient oplog size: The oplog window must be at least 3
-   hours over the last 24 hours for all members of replica set
-   <name>. Please increase the oplog.
+   - You cannot enable backups
+   - |mms| displays the following:
 
-If possible, wait to start a backup until the oplog has had
-sufficient time to meet the size requirement.
+     .. warning::
 
-.. cond:: onprem
+        Insufficient oplog size: The oplog window must be at least
+        <duration> hours over the last 24 hours for all members of
+        replica set <deploymentName>. Please increase the oplog.
 
-   If this is not possible, the minimum oplog size value can be
-   changed. See :setting:`mms.backup.minimumOplogWindowHours` for how
-   to set this value.
+   If possible, wait to start a backup until the oplog has had
+   sufficient time to meet the size requirement.
 
    .. warning::
       Do not change the minimum oplog size unless you are certain
       smaller backups still provide useful backups.
 
-   .. important::
-
       MongoDB recommends only changing this value temporarily to permit
       a test backup job to execute. The minimum oplog size value should
-      be reset to the default as soon as possible. If an oplog is set
-      to too small of a value, it can result in a gap between a backup
-      job and an oplog which makes the backup unusuable for restores.
-      Stale backup jobs must be resynchronized before it can be used
-      for restores.
+      be reset to the default as soon as possible.
 
-   Understanding the risks given, you can start backups using this
-   changed minimum value. Once you pass the 24 hour mark, you should
-   reset this minimum value to preserve the sanity check for the global
-   Ops Manager installation going forward.
+      Understanding the risks given, you can start backups using this
+      changed minimum value. Once you pass the 24 hour mark, you should
+      reset this minimum value to preserve the sanity check for the
+      global Ops Manager installation going forward.
 
