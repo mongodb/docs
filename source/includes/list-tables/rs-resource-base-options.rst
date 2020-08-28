@@ -53,8 +53,7 @@
 
        .. include:: /includes/admonitions/fact-k8s-operator-manages-configmap.rst
 
-     - ``<myconfigmap>`` or
-       ``<namespace>/<myconfigmap>``
+     - ``<myconfigmap>``
 
    * - :setting:`spec.credentials`
      - string
@@ -67,8 +66,7 @@
 
        .. include:: /includes/admonitions/fact-k8s-operator-manages-secret.rst
 
-     - ``<mycredentials>`` or
-       ``<namespace>/<mycredentials>``
+     - ``<mycredentials>``
 
    * - :setting:`spec.type`
      - string
