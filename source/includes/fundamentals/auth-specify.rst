@@ -4,11 +4,12 @@ to MongoDB using either of the following:
 - a connection string
 - a ``MongoCredential`` factory method
 
-A **connection string** or **connection uri** provides instructions on how
-to connect and authenticate to your MongoDB cluster. To specify your
-authentication mechanism using a connection string, include your settings in
-your connection string and pass it to the ``MongoClients.create()`` method
-to instantiate your ``MongoClient``. Select the :guilabel:`Connection String`
+A **connection string** (also known as a **connection uri**) specifies how to
+connect and authenticate to your MongoDB cluster.
+
+To authenticate using a connection string, include your settings in your
+connection string and pass it to the ``MongoClients.create()`` method to
+instantiate your ``MongoClient``. Select the :guilabel:`Connection String`
 tab to see the syntax for authenticating using a **connection string**.
 
 Alternatively, you can use the ``MongoCredential`` class to specify your
