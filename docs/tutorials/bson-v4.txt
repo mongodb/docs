@@ -11,7 +11,7 @@ BSON 4.x Tutorial
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: twocols
 
 This tutorial discusses using the Ruby BSON library.
@@ -409,6 +409,20 @@ access to them with symbol keys.
   BSON::Document[:key, "value"]
   BSON::Document.new
 
+.. note::
+
+  All BSON documents are deserialized into instances of BSON::Document,
+  even when the invocation is made from the ``Hash`` class:
+  
+  .. code-block:: ruby
+    
+    bson = {test: 1}.to_bson.to_s
+    loaded = Hash.from_bson(BSON::ByteBuffer.new(bson))
+    => {"test"=>1}
+    loaded.class
+    => BSON::Document
+
+
 ``BSON::MaxKey``
 ````````````````
 
@@ -659,3 +673,40 @@ object, one must call ``compile`` on the returned object.
   regex.pattern #=> Returns the pattern as a string.
   regex.options #=> Returns the raw options as a String.
   regex.compile #=> Returns the compiled Ruby Regexp object.
+
+
+Key Order
+---------
+
+BSON documents preserve the order of keys, because the documents are stored
+as lists of key-value pairs. Hashes in Ruby also preserve key order; thus
+the order of keys specified in Ruby will be respected when serializing a
+hash to a BSON document, and when deserializing a BSON document into a hash
+the order of keys in the document will match the order of keys in the hash.
+
+
+Duplicate Keys
+--------------
+
+BSON specification allows BSON documents to have duplicate keys, because the
+documents are stored as lists of key-value pairs. Applications should refrain
+from generating such documents, because MongoDB server behavior is undefined
+when a BSON document contains duplicate keys.
+
+Since in Ruby hashes cannot have duplicate keys, when serializing Ruby hashes
+to BSON documents no duplicate keys will be generated. (It is still possible
+to hand-craft a BSON document that would have duplicate keys in Ruby, and
+some of the other MongoDB BSON libraries may permit creating BSON documents
+with duplicate keys.)
+
+Note that, since keys in BSON documents are always stored as strings,
+specifying the same key as as string and a symbol in Ruby only retains the
+most recent specification:
+
+.. code-block:: ruby
+
+  BSON::Document.new(test: 1, 'test' => 2)
+  => {"test"=>2}
+
+When loading a BSON document with duplicate keys, the last value for a
+duplicated key overwrites previous values for the same key.
