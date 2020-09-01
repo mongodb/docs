@@ -14,5 +14,9 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
            "databaseName": "marketing",
            "roleName": "read"
          }],
+         "scopes": [{
+           "name": "myCluster", 
+           "type": "CLUSTER"
+         }],
          "username": "CN=david@example.com,OU=users,DC=example,DC=com"
        }'

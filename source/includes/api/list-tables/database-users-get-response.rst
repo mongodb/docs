@@ -158,6 +158,26 @@
        - ``readWrite``
        - A name of a :ref:`custom role <mongodb-roles>`
 
+   * - ``scopes``
+     - array of documents
+     - Array of clusters and {+data-lake+}\s that this user has 
+       access to. Returns an empty array if the user has access to all 
+       the clusters and {+data-lake+}\s in the project. Database users 
+       are granted access to all resources by default.
+
+   * - ``scopes.name``
+     - string
+     - Name of the cluster or {+data-lake+} that this user has 
+       access to.
+
+   * - ``scopes.type``
+     - string
+     - Type of resource that this user has access to. Valid values 
+       are: 
+
+       - ``CLUSTER``
+       - ``DATA_LAKE``
+
    * - ``username``
      - string
      - Username for authenticating to MongoDB.
