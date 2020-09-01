@@ -100,7 +100,9 @@ Backup Features Supported at Present
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Requires a MongoDB Agent on every |mongod| cluster node
+      * - Requires a MongoDB Agent with
+          :ref:`backup enabled <activate-backup>` on every |mongod|
+          cluster node
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -174,7 +176,9 @@ Backup Features Supported at Present
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Requires a MongoDB Agent on every |mongod| cluster node
+      * - Requires a MongoDB Agent with
+          :ref:`backup enabled <activate-backup>` on every |mongod|
+          cluster node
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
