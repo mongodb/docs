@@ -26,8 +26,7 @@
           data files, see
           :atlas:`Manual Restore One Snapshot </backup/archive/archive-one-snapshot/>`.
 
-       .. admonition:: Download Limitations
-          :class: note
+       .. note:: Download Limitations
 
           Each cloud backup can have one download at a time, and each
           :atlas:`project </tutorial/manage-projects/>` can have

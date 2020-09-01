@@ -13,7 +13,7 @@
 
    * - ``groupId``
      - string
-     - Unique identifier of the :term:`project` that the log
+     - Unique identifier of the project that the log
        collection request is associated with.
 
    * - ``userId``

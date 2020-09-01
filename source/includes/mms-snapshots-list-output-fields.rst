@@ -50,7 +50,7 @@
 
    * - ``groupId``
      - objectId
-     - ID of the :term:`project` that owns the snapshot.
+     - ID of the project that owns the snapshot.
 
    * - ``id``
      - objectId
@@ -83,20 +83,20 @@
        
    * - ``namespaceFilterList``
      - object
-     - The :term:`namespaces <namespace>` that are included or excluded
+     - The namespaces that are included or excluded
        from this snapshot.
 
    * - ``namespaceFilterList.filterList``
      - string array
      - A comma-separated list of any combination of databases or
-       :term:`namespaces <namespace>` that are exclusively included or
+       namespaces that are exclusively included or
        explicitly excluded from the snapshot.
 
        The default value is an empty array (``[]``).
 
    * - ``namespaceFilterList.filterType``
      - string
-     - A value that determines how :term:`namespaces <namespace>` are
+     - A value that determines how namespaces are
        filtered for this snapshot.
 
        - If this value is set to ``blacklist``, namespaces in
@@ -112,14 +112,14 @@
      - document array
      - The individual parts that comprise the complete snapshot.
 
-       - For a :term:`replica set`, this array contains a single
+       - For a replica set, this array contains a single
          document.
-       - For a :term:`sharded cluster`, this array contains one document
+       - For a sharded cluster, this array contains one document
          for each shard plus one document for the :term:`config server`.
 
    * - ``parts.clusterId``
      - objectId
-     - ID of the :term:`replica set`.
+     - ID of the replica set.
 
    * - ``parts.compressionSetting``
      - string
@@ -147,13 +147,13 @@
 
    * - ``parts.mongodVersion``
      - string
-     - The version of MongoDB that the :term:`replica set`
-       :term:`primary` was running when the snapshot was
+     - The version of MongoDB that the replica set
+       primary was running when the snapshot was
        created.
 
    * - ``parts.replicaSetName``
      - string
-     - Name of the :term:`replica set`.
+     - Name of the replica set.
 
    * - ``parts.shardName``
      - string

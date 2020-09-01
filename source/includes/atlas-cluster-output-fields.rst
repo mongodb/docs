@@ -165,7 +165,7 @@
        - :atlas:`Azure </reference/microsoft-azure/#microsoft-azure>`
 
    * - ``replicationFactor``
-     - Number of :term:`replica set members <replica set>` in the
+     - Number of replica set members in the
        cluster: ``3``, ``5``, or ``7``.
 
    * - ``replicationSpec``

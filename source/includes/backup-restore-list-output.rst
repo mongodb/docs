@@ -11,14 +11,14 @@
      - Unique identifier of the batch to which this restore job
        belongs.
 
-       Only present for a restore of a :term:`sharded cluster`.
+       Only present for a restore of a sharded cluster.
 
    * - ``clusterId``
      - string
-     - Unique identifier of the :term:`cluster` the restore job
+     - Unique identifier of the cluster the restore job
        represents.
 
-       Only present for a restore of a :term:`cluster`.
+       Only present for a restore of a cluster.
 
    * - ``created``
      - string

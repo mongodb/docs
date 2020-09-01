@@ -27,10 +27,10 @@
      - The hostname of the machine running the MongoDB process.
 
    * - ``links``
-     - array
-     - An array of documents, representing a :ref:`link <api-linking>` to one
-       or more sub-resources and/or related resources such as :ref:`list
-       pagination <api-lists>`. See :ref:`api-linking` for more information.
+     - document array
+     - One or more links to sub-resources and/or related resources.
+       The relations between URLs are explained in the `Web Linking
+       Specification <http://tools.ietf.org/html/rfc5988>`_.
 
    * - ``measurements``
      - object array

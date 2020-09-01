@@ -9,7 +9,7 @@
 
    * - clusterId
      - string
-     - Unique identifier of the :term:`cluster` that the
+     - Unique identifier of the cluster that the
        restore job represents.
 
    * - created
@@ -18,7 +18,7 @@
 
    * - delivery
      - object
-     - Method and details of how the restored :term:`snapshot` data
+     - Method and details of how the restored snapshot data
        is delivered.
 
    * - delivery.expirationHours
@@ -63,7 +63,7 @@
      - string
      - *For HTTP only.*
 
-       |url| from which the restored :term:`snapshot` data can be
+       |url| from which the restored snapshot data can be
        downloaded.
 
    * - encryptionEnabled
@@ -73,7 +73,7 @@
 
    * - groupId
      - string
-     - Unique identifier of the :term:`group` that owns the restore 
+     - Unique identifier of the group that owns the restore 
        job.
 
    * - id
@@ -83,8 +83,7 @@
    * - links
      - object array
      - One or more links to sub-resources and/or related resources. The
-       relations between URLs are explained in the `Web Linking Specification
-       <http://tools.ietf.org/html/rfc5988>`_.
+       relations between URLs are explained in the `Web Linking Specification <http://tools.ietf.org/html/rfc5988>`_.
 
    * - pointInTime
      - boolean
@@ -93,7 +92,7 @@
 
    * - snapshotId
      - string
-     - Unique identifier of the :term:`snapshot` to restore.
+     - Unique identifier of the snapshot to restore.
 
    * - statusName
      - string
