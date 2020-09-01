@@ -28,7 +28,7 @@
 
    * - mongocxx 3.5
      -
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
