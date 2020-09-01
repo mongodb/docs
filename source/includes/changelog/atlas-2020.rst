@@ -101,7 +101,7 @@
     uses |vpc| peering on |gcp| or VNet peering on Azure.
 
   - Supports using Live Migration to migrate to an |service| cluster
-    that uses |vpc| peering on |gcp| or VNet peering on Azure.
+    where |vpc| peering on GCP or VNet peering on Azure is enabled.
 
   - Supports connecting from public IP using a special connection
     string to an |service| cluster on |gcp| or Azure that is using
