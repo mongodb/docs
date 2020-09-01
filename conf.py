@@ -91,6 +91,12 @@ rst_epilog = '\n'.join([
     '.. |upn| replace:: :abbr:`UPN (User Principal Name)`',
     '.. |url| replace:: :abbr:`URL (Uniform Resource Locator)`',
     '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`',
+    '.. |mongodump| replace:: :binary:`~bin.mongodump`',
+    '.. |mongod| replace:: :binary:`~bin.mongod`',
+    '.. |mongorestore| replace:: :binary:`~bin.mongorestore`',
+    '.. |mongosqld| replace:: :binary:`~bin.mongosqld`',
+    '.. |mongos| replace:: :binary:`~bin.mongos`',
+    '.. |mongo| replace:: :binary:`~bin.mongo`',
 ])
 
 source_constants = {
