@@ -101,6 +101,6 @@
        | ``.disabledParams``
      - array
      - List of |mongod| settings to disable if you apply the
-     ``DISABLE_SET_MONGOD_CONFIG`` policy. For information about
+       ``DISABLE_SET_MONGOD_CONFIG`` policy. For information about
        possible values, see :doc:`Supported MongoDB Options for
        Automation </reference/cluster-configuration-process-options>`.
