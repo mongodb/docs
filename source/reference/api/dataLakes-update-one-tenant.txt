@@ -1,3 +1,5 @@
+.. _api-update-one-endpoint:
+
 ==============================
 Update One {+data-lake-short+} 
 ==============================
@@ -22,12 +24,16 @@ Update One {+data-lake-short+}
 Use this endpoint to update a specific {+data-lake+} associated to an
 |service| project. 
 
+.. _api-update-one-endpoint-syntax:
+
 Syntax
 ------
 
 .. code-block:: none
 
    PATCH /groups/{GROUP-ID}/dataLakes/{NAME}
+
+.. _api-update-one-endpoint-path-params:
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,10 +63,14 @@ Request Path Parameters
        project. The ``name`` field in the response of that endpoint
        corresponds to the ``NAME`` parameter.
 
+.. _api-update-one-endpoint-query-params:
+
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/no-query-parameters.rst
+
+.. _api-update-one-endpoint-body-params:
 
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -92,10 +102,19 @@ Request Body Parameters
 
    * - ``cloudProviderConfig.aws.
        iamAssumedRoleARN``
-     - Required
-     - Amazon Resource Name (ARN) of the role which
-       {+data-lake+} uses for accessing the {+data-lake-stores+}.
+     - Optional
+     - .. note:: Deprecated 
 
+          ``iamAssumedRoleARN`` is deprecated. Use ``roleId`` instead.
+       
+       Amazon Resource Name (ARN) of the role which
+       {+data-lake+} uses for accessing the {+data-lake-stores+}. Use 
+       the |service| :atlas:`UI </security/manage-iam-roles/>` or 
+       :atlas:`API </reference/api/cloud-provider-access-get-roles/>` to 
+       retrieve your list of configured |cpa| |aws| IAM Roles. You can 
+       choose the ``iamAssumedRoleArn`` from the list of configured |cpa| 
+       |aws| IAM Roles.
+       
        The IAM Role must support the following actions against each
        S3 bucket:
 
@@ -107,7 +126,17 @@ Request Body Parameters
        `Actions, Resources, and Condition Keys for Amazon S3 
        <https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazons3.html>`_.
 
-       Required if specifying ``cloudProviderConfig``.
+       Either ``iamAssumedRoleARN`` or ``roleId`` is required.
+
+   * - ``cloudProviderConfig.aws.roleId``
+     - Optional
+     - Unique identifier of the role that {+dl+} can use for accessing the 
+       {+data-lake-stores+}. If necessary, use the |service| :atlas:`UI 
+       </security/manage-iam-roles/>` or :atlas:`API 
+       </reference/api/cloud-provider-access-get-roles>` to retrieve the role 
+       ID. 
+
+       Either ``roleId`` or ``iamAssumedRoleARN`` is required.
 
    * - ``cloudProviderConfig.aws.
        testS3Bucket``
@@ -164,60 +193,67 @@ Request Body Parameters
 
        Required if specifying ``dataProcessRegion``.
 
+.. _api-update-one-endpoint-response:
+
 Response
 --------
 
-.. include:: /includes/extracts/data-lakes-api-full-response.rst
+.. include:: /includes/fact-data-lake-api-response.rst
+
+.. _api-update-one-endpoint-egs:
 
 Example
 -------
 
-Request
-~~~~~~~
+.. example:: Request
 
-.. code-block:: none
+   .. code-block:: shell
 
-   curl -u "username:apiKey" --digest \
-    --header "Accept: application/json" \
-    --header "Content-Type: application/json" \
-    --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/dataLakes/{NAME}?pretty=true"
-    --data '{ 
-      "cloudProviderConfig" : {
-        "aws" : {
-          "iamAssumedRoleARN" : "arn:aws:iam::123456789012:role/ReadS3BucketRole",
-          "testS3Bucket" : "user-metric-data-bucket"
+      curl -u "username:apiKey" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/dataLakes/{NAME}?pretty=true"
+       --data '{ 
+         "cloudProviderConfig" : {
+           "aws" : {
+             "roleId" : "1a234bcd5e67f89a12b345c6",
+             "testS3Bucket" : "user-metric-data-bucket"
+           }
+         },
+         "dataProcessRegion" : {
+           "cloudProvider" : "AWS",
+           "region" : "OREGON_USA"
+         }
+       }'
+
+The preceding request returns the following:
+
+.. example:: Response
+
+   .. code-block:: json
+      :copyable: false
+
+      {
+        "cloudProviderConfig": {
+          "aws": {
+            "externalId": "12a3bc45-de6f-7890-12gh-3i45jklm6n7o",
+            "iamAssumedRoleARN": "arn:aws:iam::123456789012:role/ReadS3BucketRole",
+            "iamUserARN": "arn:aws:iam::1234567890123:root",
+            "roleId": "1a234bcd5e67f89a12b345c6"
+          }
+        },
+        "dataProcessRegion": {
+          "cloudProvider" : "AWS",
+          "region" : "OREGON_USA"
+        },
+        "groupId": "1ab23c4567def890gh12ij34",
+        "hostnames": [
+          "hardwaremetricdata.mongodb.example.net"
+        ],
+        "name": "UserMetricData",
+        "state": "ACTIVE",
+        "storage": {
+          "databases": {},
+          "stores": []
         }
-      },
-      "dataProcessRegion" : {
-        "cloudProvider" : "AWS",
-        "region" : "OREGON_USA"
       }
-    }'
-
-Response
-~~~~~~~~
-
-.. code-block:: none
-   :copyable: false
-
-   {
-     "cloudProviderConfig": {
-       "aws": {
-         "iamAssumedRoleARN": "arn:aws:iam::123456789012:role/ReadS3BucketRole"
-       }
-     },
-     "dataProcessRegion": {
-       "cloudProvider" : "AWS",
-       "region" : "OREGON_USA"
-     },
-     "groupId": "1ab23c4567def890gh12ij34",
-     "hostnames": [
-       "dataLakes3tenant.mongodb.example.net"
-     ],
-     "name": "HardwareMetricData",
-     "state": "ACTIVE",
-     "storage": {
-       "databases": {},
-       "stores": []
-     }
-   }

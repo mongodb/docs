@@ -1,3 +1,5 @@
+.. _api-update-one-endpoint:
+
 ==============================
 Create One {+data-lake-short+} 
 ==============================
@@ -19,8 +21,24 @@ Create One {+data-lake-short+}
 
 .. include:: /includes/api-base-url.rst
 
+.. _api-update-one-endpoint-usage:
+
+Usage 
+-----
+
 Use this endpoint to create a specific {+data-lake+} associated to an
-|service| project.
+|service| project. You can create a {+dl+} two ways: 
+
+- Specify only a name for your {+dl+}. Note that your {+dl+} will be in 
+  ``UNVERIFIED`` state. To complete the creation of your {+dl+}, you must 
+  then :ref:`update <api-update-one-endpoint>` the {+dl+} with a valid role 
+  ID.
+
+- Specify a name for your {+dl+}, the unique identifier of the role that 
+  {+dl+} can use to access your |aws| data store, and the |s3| bucket where 
+  data is stored.
+
+.. _api-update-one-endpoint-syntax:
 
 Syntax
 ------
@@ -28,6 +46,8 @@ Syntax
 .. code-block:: none
 
    POST /groups/{GROUP-ID}/dataLakes
+
+.. _api-update-one-endpoint-path-params:
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -46,10 +66,14 @@ Request Path Parameters
 
      - The unique identifier for the :atlas:`project </api#group-id>`.
 
+.. _api-update-one-endpoint-query-params:
+
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/no-query-parameters.rst
+
+.. _api-update-one-endpoint-body-params:
 
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,48 +90,141 @@ Request Body Parameters
      - Required
      - Name of the {+data-lake+}.
 
+   * - ``cloudProviderConfig``
+     - Optional
+     - Configuration information related to the cloud service where 
+       {+data-lake+} source data is stored. 
+
+   * - ``cloudProviderConfig.<provider>``
+     - Required
+     - Name of the provider of the cloud service where {+data-lake-short+} 
+       can access the S3 Bucket.
+
+       {+data-lake+} supports only ``aws``.
+
+       Required if specifying ``cloudProviderConfig``.
+
+   * - ``cloudProviderConfig.aws.roleId``
+     - Required
+     - Unique identifier of the role that {+dl+} can use to access 
+       the {+data-lake-stores+}. If necessary, use the |service| 
+       :atlas:`UI </security/manage-iam-roles/>` or :atlas:`API 
+       </reference/api/cloud-provider-access-get-roles>` to retrieve 
+       the role ID. You must also specify the ``testS3Bucket``.
+
+       Required if specifying ``cloudProviderConfig``.
+
+   * - ``cloudProviderConfig.aws.
+       testS3Bucket``
+     - Required
+     - Name of the |s3| data bucket that the provided role ID is 
+       authorized to access. You must also specify the ``roleId``.
+
+       Required if specifying ``cloudProviderConfig``.
+
+.. _api-update-one-endpoint-response:
+
 Response
 --------
 
-.. include:: /includes/extracts/data-lakes-api-create-response.rst
+.. include:: /includes/fact-data-lake-api-response.rst
 
-Example
--------
+.. _api-update-one-endpoint-egs:
 
-Request
-~~~~~~~
+Examples
+--------
 
-.. code-block:: none
+The following examples show two ways to use this endpoint for creating 
+a {+dl+}.
 
-   curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-    --header "Accept: application/json" \
-    --header "Content-Type: application/json" \
-    --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/dataLakes?pretty=true" \
-    --data '{ "name" : "UserMetricData" }'
+Basic Example 
+~~~~~~~~~~~~~
 
-Response
-~~~~~~~~
+.. example:: Request
 
-.. code-block:: none
-   :copyable: false
+   .. code-block:: none
 
-   {
-     "cloudProviderConfig": {
-       "aws": {
-         "externalId" : "12a3bc45-de6f-7890-12gh-3i45jklm6n7o",
-         "iamAssumedRoleARN": null
-         "iamUserARN": "arn:aws:iam::1234567890123:user/queryengine"
-       }
-     },
-     "dataProcessRegion": null,
-     "groupId": "1ab23c4567def890gh12ij34",
-     "hostnames": [
-       "hardwaremetricdata.mongodb.example.net"
-     ],
-     "name": "UserMetricData",
-     "state": "UNVERIFIED",
-     "storage": {
-       "databases": {},
-       "stores": []
-     }
-   }
+      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/dataLakes?pretty=true" \
+       --data '{ "name" : "UserMetricData" }'
+
+The preceding request returns the following:
+
+.. example:: Response
+
+   .. code-block:: none
+      :copyable: false
+
+      {
+        "cloudProviderConfig": {
+          "aws": {
+            "externalId" : "12a3bc45-de6f-7890-12gh-3i45jklm6n7o",
+            "iamAssumedRoleARN": null
+            "iamUserARN": "arn:aws:iam::1234567890123:root",
+            "roleId": null
+          }
+        },
+        "dataProcessRegion": null,
+        "groupId": "1ab23c4567def890gh12ij34",
+        "hostnames": [
+          "hardwaremetricdata.mongodb.example.net"
+        ],
+        "name": "UserMetricData",
+        "state": "UNVERIFIED",
+        "storage": {
+          "databases": [],
+          "stores": []
+        }
+      }
+
+Role ID Example 
+~~~~~~~~~~~~~~~
+
+.. example:: Request
+
+   .. code-block:: shell
+
+      curl -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/dataLakes?pretty=true" \
+       --data '{ \
+         "name" : "UserMetricData", \
+         "cloudProviderConfig" : {
+           "aws" : {
+             "roleId" : "1a234bcd5e67f89a12b345c6",
+             "testS3Bucket" : "user-metric-data-bucket"
+           }
+         }
+       }'
+
+The preceding request returns the following:
+
+.. example:: Response
+
+   .. code-block:: json
+      :copyable: false
+
+      {
+        "cloudProviderConfig": {
+          "aws": {
+            "externalId" : "12a3bc45-de6f-7890-12gh-3i45jklm6n7o",
+            "iamAssumedRoleARN": "arn:aws:iam::123456789012:role/ReadS3BucketRole",
+            "iamUserARN": "arn:aws:iam::1234567890123:root",
+            "roleId": "1a234bcd5e67f89a12b345c6"
+          }
+        },
+        "dataProcessRegion": null,
+        "groupId": "1ab23c4567def890gh12ij34",
+        "hostnames": [
+          "hardwaremetricdata.mongodb.example.net"
+        ],
+        "name": "UserMetricData",
+        "state": "ACTIVE",
+        "storage": {
+          "databases": [],
+          "stores": []
+        }
+      }
