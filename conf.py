@@ -106,16 +106,20 @@ source_constants = {
     'download-center': '`MongoDB Download Center <https://www.mongodb.com/download-center/bi-connector>`__',
     'download-center-bi': '`MongoDB Connector for BI <https://www.mongodb.com/download-center/bi-connector>`__',
     'download-center-tableau': '`MongoDB Connector for BI <https://www.mongodb.com/download-center/bi-connector?jmp=tbl>`__',
-    'download-center-url': 'https://www.mongodb.com/download-center/bi-connector'
+    'download-center-url': 'https://www.mongodb.com/download-center/bi-connector',
+    'java-plugin': 'MongoSQL Authentication Plugin for MySQL Connector/J'
 }
 
 extlinks = {
+    'gh' : ('https://github.com%s',''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'manual': ('http://docs.mongodb.com/manual%s', ''),
+    'ms-docs': ('https://docs.microsoft.com/en-us%s',''),
+    'mvn' : ('https://mvnrepository.com/artifact%s',''),
+    'v2.10': ('https://docs.mongodb.com/bi-connector/v2.10%s',''),
     'v3.6': ('https://docs.mongodb.com/v3.6%s', ''),
     'website': ('https://www.mongodb.com%s?jmp=docs', ''),
-    'ms-docs': ('https://docs.microsoft.com/en-us%s',''),
-    'v2.10': ('https://docs.mongodb.com/bi-connector/v2.10%s','')
+    'mysql': ('https://dev.mysql.com%s', '')
 }
 
 intersphinx_mapping = {}
