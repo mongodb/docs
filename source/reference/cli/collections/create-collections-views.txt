@@ -34,7 +34,7 @@ Click on the tab to learn more about creating a collection or a view.
 
       This tab contains the syntax and parameters for creating a collection.
       Choose the tab for your {+data-lake-store+} to learn more about the 
-      syntax and parameters for the {+data-lake-store+}.
+      syntax and parameters for that {+data-lake-store+}.
 
       .. tabs::
       
@@ -49,6 +49,14 @@ Click on the tab to learn more about creating a collection or a view.
 
             This tab contains the syntax and parameters for creating a 
             collection for |service| {+data-lake-store+}.
+
+         .. tab:: HTTP 
+            :tabid: http
+
+            This tab contains the syntax and parameters for creating a 
+            collection for a |http| {+data-lake-store+}.
+
+            .. include:: /includes/extracts/fact-http-beta-message.rst
 
    .. tab:: Views 
       :tabid: views 
@@ -84,6 +92,13 @@ Syntax
 
                db.runCommand({ "create" : "<collection-name>|*", "dataSources" : [{ "storeName" : "<store-name>", "database" : "<atlas-database-name>", "collection" :  "<atlas-collection-name>" }]})
 
+         .. tab:: HTTP 
+            :tabid: http
+
+            .. code-block:: sh 
+
+               db.runCommand({ "create" : "<collection-name>", "dataSources" : [{ "storeName" : "<store-name>", "urls" : [ "<url>" ] }]})
+
    .. tab:: Views 
       :tabid: views
 
@@ -113,33 +128,45 @@ Parameters
 
          * - ``<collection-name>|*``
            - string 
-           - Either the name of the collection to which {+data-lake-short+} maps 
-             the data contained in the {+data-lake-store+} or the wildcard ``"*"`` 
-             to dynamically create collections. 
-             
-             .. tabs:: 
+           - .. tabs:: 
                 :hidden: 
 
                 .. tab:: S3 Configuration 
                    :tabid: s3
 
-                   You can generate collection names dynamically from file paths by 
-                   specifying ``*`` for the collection name and the ``collectionName()`` 
-                   function in the ``dataSources.collection`` field.
+                   .. include:: /includes/extracts/cli-param-collection-name.rst
+
+
+                   You can generate collection names dynamically from file 
+                   paths by  specifying ``*`` for the collection name and the 
+                   ``collectionName()`` function in the 
+                   ``dataSources.collection`` field.
              
                 .. tab:: Atlas Configuration 
                    :tabid: atlas
 
-                   You can generate collection names dynamically by specifying ``*`` 
-                   for the collection name and omitting the ``dataSources.collection`` 
-                   field. 
+                   .. include:: /includes/extracts/cli-param-collection-name.rst
+
+
+                   You can generate collection names dynamically by specifying 
+                   ``*`` for the collection name and omitting the 
+                   ``dataSources.collection`` field. 
+
+                .. tab:: HTTP Configuration 
+                   :tabid: http
+
+                   The name of the collection to which {+data-lake-short+} maps 
+                   the data contained in the {+data-lake-store+}. You can't 
+                   generate collection names dynamically by specifying 
+                   ``*``.
                    
            - yes
 
          * - ``dataSources``
            - object 
-           - Array of objects where each object represents a {+data-lake-store+} in 
-             the :datalakeconf:`stores` array to map with the collection.
+           - Array of objects where each object represents a 
+             {+data-lake-store+} in the :datalakeconf:`stores` array to map 
+             with the collection.
            - yes
 
          * - ``dataSources.storeName``
@@ -156,32 +183,23 @@ Parameters
             :tabid: s3
 
             .. list-table::
-               :widths: 5 10 75 10
 
                * - ``dataSources.path``
                  - string
-                 - The path to the files and folders. Specify ``/`` to capture all files 
-                   and folders from the ``prefix`` path. See :ref:`datalake-path-syntax` 
-                   for more information. 
+                 - The path to the files and folders. Specify ``/`` to capture 
+                   all files and folders from the ``prefix`` path. See 
+                   :ref:`datalake-path-syntax` for more information. 
                  - yes
 
                * - ``dataSources.defaultFormat`` 
                  - string 
-                 - The format that {+data-lake-short+} defaults to if it encounters 
-                   a file without an extension while querying the {+data-lake-store+}. If 
-                   omitted, {+data-lake-short+} attempts to detect the file type by 
-                   processing a few bytes of the file. The following values are valid:
-
-                   ``.json, .json.gz, .bson, .bson.gz, .avro, .avro.gz, .tsv, .tsv.gz, 
-                   .csv, .csv.gz, .parquet``
-
+                 - .. include:: /includes/extracts/cli-param-default-format.rst
                  - no
 
          .. tab:: Atlas Configuration 
             :tabid: atlas
 
             .. list-table::
-               :widths: 10 10 70 10
 
                * - ``dataSources.database`` 
                  - string 
@@ -193,6 +211,20 @@ Parameters
                  - string
                  - The name of the collection in the |service| database. When 
                    creating a wildcard collection, this must not be specified.
+                 - yes
+
+         .. tab:: HTTP Configuration 
+            :tabid: http
+
+            .. list-table::
+
+               * - ``dataSources.urls``
+                 - array of strings or empty array
+                 - The |url|\s of the publicly accessible data files. You 
+                   can't specify |url|\s that require authentication. {+adl+} 
+                   creates a partition for each |url|. If empty or omitted, 
+                   {+dl+} uses the |url|\s from the store specified in the 
+                   ``dataSources.storeName`` parameter.
                  - yes
 
    .. tab:: Views
@@ -315,6 +347,14 @@ Examples
             Review :atlas:`Load Sample Data into Your Atlas Cluster </sample-data/>` 
             to load the sample dataset in your |service| cluster.
 
+         .. tab:: HTTP Example 
+            :tabid: http 
+
+            The following examples use the following |url|\s:
+
+            - ``https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json`` 
+            - ``https://atlas-data-lake.s3.amazonaws.com/json/sample_weatherdata/data.json`` 
+
       .. _dl-create-collection-cmd-basic-eg:
 
       **Basic Example** 
@@ -427,6 +467,68 @@ Examples
 	               }
                }
 
+         .. tab:: HTTP Example 
+            :tabid: http
+      
+            The ``http-collection`` collection includes a partition for 
+            each |url| in the collection.
+
+            .. code-block:: json 
+
+               use sampleDB
+               db.runCommand({ "create" : "http-collection", "dataSources" : [{ "storeName" : "http-store", "urls" : [ "https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json","https://atlas-data-lake.s3.amazonaws.com/json/sample_weatherdata/data.json" ]  }]})
+
+            The previous command returns the following output:
+
+            .. code-block:: json 
+               :copyable: false 
+
+               { "ok" : 1 }
+
+            The following commands show that the collection was successfully 
+            created: 
+
+            .. code-block:: json
+               :copyable: false 
+
+               > show collections
+               http-collection
+               > db.runCommand({"storageGetConfig":1})
+               {
+	              "ok" : 1,
+	              "storage" : {
+		             "stores" : [
+			            {
+				           "name" : "http-store",
+				           "provider" : "http",
+				           "urls" : [
+					          "https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json",
+					          "https://atlas-data-lake.s3.amazonaws.com/json/sample_weatherdata/data.json"
+				           ]
+			            }
+		             ],
+		             "databases" : [
+			            {
+				           "name" : "http-db",
+				           "collections" : [
+					          {
+						         "name" : "http-collection",
+						         "dataSources" : [
+							        {
+								       "storeName" : "http-store",
+								       "urls" : [
+									      "https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json",
+									      "https://atlas-data-lake.s3.amazonaws.com/json/sample_weatherdata/data.json"
+								       ]
+							        }
+						         ]
+					          }
+				           ]
+			            }
+		             ]
+	              }
+               }
+
       .. _dl-create-collection-cmd-multi-eg:
 
       **Multiple Data Sources Example** 
@@ -439,11 +541,12 @@ Examples
         named ``egS3Store``
       - ``airbnb`` dataset in the ``sample_airbnb.listingsAndReviews`` 
         collection on the |service| cluster named ``myTestCluster``
+      - ``airbnb`` dataset in the |url| ``https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json``
 
       .. code-block:: json 
 
          use sampleDB
-         db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egS3Store", "path" : "/json/airbnb" },{ "storeName" : "egAtlasStore", "database": "sample_airbnb", "collection": "listingsAndReviews" }]})
+         db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egS3Store", "path" : "/json/airbnb" },{ "storeName" : "egAtlasStore", "database": "sample_airbnb", "collection": "listingsAndReviews" },{"storeName" : "egHttpStore", "urls": ["https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json"]}]})
 
       The previous command returns the following output:
 
@@ -471,13 +574,19 @@ Examples
 				       "bucket" : "test-data-lake",
 				       "delimiter" : "/",
 				       "prefix" : ""
-			       },
-			       {
+			        },
+			        {
 				       "name" : "egAtlasStore",
 				       "provider" : "atlas",
 				       "clusterName" : "myTestCluster",
 				       "projectId" : "<project-id>"
-			       }],
+			        },
+			        {
+				       "name" : "egHttpStore",
+				       "provider" : "http",
+				       "urls" : ["https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json"]                   
+			        }
+               ],
 		         "databases" : [{
 			         "name" : "sampleDB",
 			         "collections" : [{
@@ -491,6 +600,10 @@ Examples
 					           "storeName" : "egAtlasStore",
 					           "database" : "sample_airbnb",
 					           "collection" : "listingsAndReviews"
+					         },
+					         {
+					           "storeName" : "egHttpStore",
+					           "urls" : ["https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json"]
 					         }
 				         ]
 			         }]
@@ -500,21 +613,20 @@ Examples
 
       .. _dl-create-collection-cmd-wildcard-eg:
 
-      **Wildcard Usage Examples** 
-
-      This example shows how the wildcard ``"*"`` can be specified with the 
-      ``create`` command. 
-
-      *Collection Name Example*
-
-      The following example uses the ``create`` command to dynamically 
-      create collections.
-
       .. tabs:: 
          :hidden:
 
          .. tab:: S3 Example 
             :tabid: s3
+
+            **Wildcard Usage Examples** 
+            
+            This example shows how the wildcard ``"*"`` can be specified with the ``create`` command.
+            
+            *Collection Name Example*
+            
+            The following example uses the ``create`` command to dynamically 
+            create collections.
 
             The following example uses the ``create`` command to dynamically 
             create collections for the files in the path ``/json/`` in the 
@@ -566,69 +678,13 @@ Examples
                     }]
                   }
                 }
-         
-         .. tab:: Atlas Example 
-            :tabid: atlas
-
-            The following example uses the ``create`` command to dynamically 
-            create collections for the documents in the ``sample_airbnb`` database 
-            on the |service| cluster name ``myTestCluster``. 
-
-            .. code-block:: json 
-    
-               use sampleDB 
-               db.runCommand({ "create" : "*", "dataSources" : [{ "storeName" : "egAtlasStore", "database": "sample_airbnb"}]})
-
-            The previous command returns the following output:
-
-            .. code-block:: json 
-               :copyable: false 
-
-                { "ok" : 1 }
-            
-            The following command shows that the collection was successfully 
-            created:
-
-            .. code-block:: json 
-              :copyable: false 
-
-              > db.runCommand({storageGetConfig:1})
-              {
-                "ok" : 1,
-                "storage" : {
-                  "stores" : [{
-                    "name" : "egAtlasStore",
-                    "provider" : "atlas",
-                    "clusterName" : "myTestCluster",
-                    "projectId" : "<project-id>"
-                  }],
-                  "databases" : [{
-                    "name" : "sampleDB",
-                    "collections" : [{
-                      "name" : "*",
-                      "dataSources" : [{
-                        "storeName" : "egAtlasStore",
-                        "database" : "sample_airbnb"
-                       }]
-                    }]
-                  }]
-                }
-              }
-              > show collections 
-              listingsAndReviews
-
-      .. tabs:: 
-         :hidden:
-
-         .. tab:: S3 Example 
-            :tabid: s3
 
             *Path Glob Example*
 
-            The following example uses the ``create`` command to create a collection 
-            named ``egCollection`` that maps to a {+data-lake-short+} store named 
-            ``egS3Store``. The ``egS3Store`` contains the sample dataset, 
-            `airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__, 
+            The following example uses the ``create`` command to create a 
+            collection named ``egCollection`` that maps to a 
+            {+data-lake-short+} store named ``egS3Store``. The ``egS3Store`` 
+            contains the sample dataset, `airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__, 
             in a folder named ``json``. 
 
             .. code-block:: json 
@@ -675,16 +731,69 @@ Examples
 		               }]
 	               }
                }
-
+         
          .. tab:: Atlas Example 
             :tabid: atlas
+
+            **Wildcard Usage Example** 
+            
+            The following example uses the ``create`` command to dynamically 
+            create collections for the documents in the ``sample_airbnb`` 
+            database on the |service| cluster name ``myTestCluster``. 
+
+            .. code-block:: json 
+    
+               use sampleDB 
+               db.runCommand({ "create" : "*", "dataSources" : [{ "storeName" : "egAtlasStore", "database": "sample_airbnb"}]})
+
+            The previous command returns the following output:
+
+            .. code-block:: json 
+               :copyable: false 
+
+                { "ok" : 1 }
+            
+            The following command shows that the collection was successfully 
+            created:
+
+            .. code-block:: json 
+              :copyable: false 
+
+              > db.runCommand({storageGetConfig:1})
+              {
+                "ok" : 1,
+                "storage" : {
+                  "stores" : [{
+                    "name" : "egAtlasStore",
+                    "provider" : "atlas",
+                    "clusterName" : "myTestCluster",
+                    "projectId" : "<project-id>"
+                  }],
+                  "databases" : [{
+                    "name" : "sampleDB",
+                    "collections" : [{
+                      "name" : "*",
+                      "dataSources" : [{
+                        "storeName" : "egAtlasStore",
+                        "database" : "sample_airbnb"
+                       }]
+                    }]
+                  }]
+                }
+              }
+              > show collections 
+              listingsAndReviews
+
+         .. tab:: HTTP Example 
+            :tabid: http
 
    .. tab:: Create Views Example
       :tabid: views
 
       The following command creates a view named ``listings`` on the 
-      `airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__ collection in the ``sample`` database with the ``name`` and ``property_type`` 
-      fields:
+      `airbnb <https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json>`__ 
+      collection in the ``sample`` database with the ``name`` and 
+      ``property_type`` fields:
 
       .. code-block:: sh 
 

@@ -19,15 +19,13 @@ Overview
 --------
 
 The {+adl+} configuration is in |json| format. It contains mappings between 
-your {+data-lake-stores+} and {+data-lake-short+}. {+dl+} supports |s3| buckets 
-and |service| clusters as {+data-lake-stores+}. You must define mappings between your:
+your {+data-lake-stores+} and {+data-lake-short+}. {+dl+} supports |s3| 
+buckets, |service| clusters, and publicly accessible |url|\s as 
+{+data-lake-stores+}. You must define mappings in your {+dl+} to your |s3| 
+bucket, |service| cluster, and |http| {+data-lake-stores+} to run queries.
 
-- |s3| {+data-lake-store+} and {+data-lake-short+} to run queries against your 
-  |s3| data only.
-- |service| cluster and {+data-lake-short+} to run queries against your 
-  |service| cluster only.
-- |s3| and |service| cluster {+data-lake-stores+} and {+data-lake-short+} to 
-  run federated queries.
+Example Configuration for Individual Data Stores 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Click on the tab below to learn more about the {+dl+} configuration for that data store.
 
@@ -110,6 +108,10 @@ Click on the tab below to learn more about the {+dl+} configuration for that dat
          Language and supported aggregations to analyze data in the |s3| 
          bucket through the ``datacenter-metrics.hardware`` collection.
 
+      .. seealso:: 
+
+         :ref:`query-s3`
+
    .. tab:: Atlas  
       :tabid: atlas 
 
@@ -174,13 +176,73 @@ Click on the tab below to learn more about the {+dl+} configuration for that dat
          not by {+adl+}, the queries will fail. To learn more about supported 
          and unsupported commands in {+dl+}, see :ref:`data-lake-mql-support`.
 
-You can define mappings between your |s3| and |service| cluster 
-{+data-lake-stores+} and {+data-lake-short+} in the {+dl+} configuration to run federated queries. 
+      .. seealso:: 
 
+         :ref:`query-atlas`
+
+   .. tab:: HTTP  
+      :tabid: http 
+
+      .. include:: /includes/extracts/fact-http-beta-message.rst
+
+      Consider |url|\s ``https://www.datacenter-hardware.com/data.json``, 
+      ``https://www.datacenter-software.com/data.json``, and
+      ``https://www.datacenter-metrics.com/data.json`` containing data 
+      collected from a datacenter. The following configuration:
+
+      - Specifies the publicly accessible URLs that contain data in files as a 
+        {+data-lake-store+}. 
+
+      - Creates a partition for each |url|.
+
+      .. code-block:: json 
+
+         {
+           "stores" : [
+             {
+               "name" : "httpStore",
+               "provider" : "http",
+               "urls" : [
+                 "https://www.datacenter-hardware.com/data.json",
+                 "https://www.datacenter-software.com/data.json"
+               ]
+             }
+           ],
+           "databases" : [ 
+             {
+               "name" : "dataCenter", 
+               "collections" : [
+                 {
+                   "name" : "inventory",
+                   "dataSources" : [
+                     {
+                       "storeName" : "httpStore",
+                       "urls" : [
+                         "https://www.datacenter-metrics.com/data.json"
+                       ]
+                     }
+                   ]
+                 }
+               ]
+             }
+           ]
+         }
+
+      .. seealso:: 
+
+         :ref:`query-http`
+
+Example Configuration for Running Federated Queries 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define mappings between your |s3|, |service| cluster, and |http|  
+{+data-lake-stores+} and {+data-lake-short+} in the storage configuration 
+to run federated queries. 
 .. example::
 
-   For the preceding sample |s3| and |service| {+data-lake-stores+}, the 
-   {+dl+} configuration for federated queries resembles the following:
+   For the preceding sample |s3|, |service| cluster, and |http| 
+   {+data-lake-stores+}, the {+dl+} configuration for federated queries 
+   resembles the following:
 
    .. code-block:: json
 
@@ -199,6 +261,14 @@ You can define mappings between your |s3| and |service| cluster
             "provider" : "atlas",
             "clusterName" : "myDataCenter",
             "projectId" : "5e2211c17a3e5a48f5497de3"
+          },
+          {
+            "name" : "httpStore",
+            "provider" : "http",
+            "urls" [
+              "https://www.datacenter-hardware.com/data.json",
+              "https://www.datacenter-software.com/data.json"
+            ]
           }
         ],
         "databases" : [ 
@@ -216,6 +286,12 @@ You can define mappings between your |s3| and |service| cluster
                     "storeName" : "atlasClusterStore",
                     "database" : "metrics",
                     "collection" : "hardware"
+                  },
+                  {
+                    "storeName" : "httpStore",
+                    "urls": [
+                      "https://www.datacenter-metrics.com/data.json"
+                    ]
                   }
                 ]
               }
@@ -227,8 +303,12 @@ You can define mappings between your |s3| and |service| cluster
 .. important:: 
 
    If the database in the storage configuration contains collections 
-   from both |s3| and |service| {+data-lake-stores+}, the query results 
-   might contain data from both the {+data-lake-stores+}.
+   from |s3|, |service|, and |http| {+data-lake-stores+}, the query results 
+   might contain data from all the {+data-lake-stores+}.
+
+.. seealso:: 
+
+   :ref:`federated-queries`
 
 .. _datalake-configuration-format:
 
@@ -323,6 +403,44 @@ The {+data-lake-short+} configuration has the following format:
              ]
            }
 
+   .. tab:: HTTP 
+      :tabid: http 
+
+      .. code-block:: json
+
+         {
+           "stores" : [
+             {
+               "name" : "<string>",
+               "provider": "<string>",
+               "urls": ["<string>"]
+             }
+           ],
+             "databases" : [
+               {
+                 "name" : "<string>",
+                 "collections" : [
+                   {
+                     "name" : "<string>",
+                     "dataSources" : [
+                       {
+                         "storeName" : "<string>",
+                         "urls" : ["<string>"]
+                       }
+                     ]
+                   }
+                 ],
+                 "views" : [ 
+                   {
+                     "name" : "<string>", 
+                     "source" : "<string>", 
+                     "pipeline" : "<string>" 
+                   }
+                 ] 
+               }
+             ]
+           }
+
 :ref:`datalake-stores-reference`
   The ``stores`` object defines each {+data-lake-store+} associated
   to the {+data-lake-short+}. {+data-lake-short+} can only access
@@ -372,12 +490,26 @@ The {+data-lake-short+} configuration has the following format:
            }
          ]
 
+   .. tab:: HTTP
+      :tabid: http
+
+      .. code-block:: json 
+
+         "stores" : [
+           {
+             "name" : "<string>",
+             "provider" : "<string>",
+             "urls" : ["<string>"]
+           }
+         ]
+
 .. datalakeconf:: stores
 
    The ``stores`` object defines an array of {+data-lake-stores+} associated 
-   with a {+data-lake-short+}. {+data-lake-store+} captures files in an S3 
-   bucket or documents in |service| cluster. An {+adl+} can only access 
-   {+data-lake-stores+} defined in the ``stores`` object.
+   with a {+data-lake-short+}. The {+data-lake-store+} captures files in an S3 
+   bucket, documents in |service| cluster, or files stored at publicly 
+   accessible |url|\s. An {+adl+} can only access {+data-lake-stores+} defined 
+   in the ``stores`` object.
 
 .. datalakeconf:: stores.[n].name
 
@@ -391,6 +523,7 @@ The {+data-lake-short+} configuration has the following format:
    
    - ``s3`` for an |aws| |s3| bucket.
    - ``atlas`` for a collection in an |service| cluster.
+   - ``http`` for data in files hosted at publicly accessible |url|\s.
 
 .. tabs:: 
    :hidden:
@@ -462,8 +595,8 @@ The {+data-lake-short+} configuration has the following format:
 
          - Adds the |s3| tags as additional partition attributes. 
 
-         - Adds new top level BSON elements that associates each tag to each document 
-           for the tagged files.
+         - Adds new top level BSON elements that associates each tag to each 
+           document for the tagged files.
 
          .. warning::
 
@@ -476,15 +609,27 @@ The {+data-lake-short+} configuration has the following format:
 
       .. datalakeconf:: stores.[n].clusterName 
 
-         Name of the |service| cluster on which the store is based. Note that the 
-         cluster must be a M10 or higher cluster and must exist in the same 
-         project as your {+dl+}. The ``source`` field on the data partition is the 
-         name of the |service| cluster.
+         Name of the |service| cluster on which the store is based. Note that 
+         the cluster must be a M10 or higher cluster and must exist in the same 
+         project as your {+dl+}. The ``source`` field on the data partition is 
+         the name of the |service| cluster.
 
       .. datalakeconf:: stores.[n].projectId 
 
-         Unique identifier of the project that contains the |service| cluster on 
-         which the store is based.
+         Unique identifier of the project that contains the |service| cluster 
+         on which the store is based.
+
+   .. tab:: HTTP  
+      :tabid: http
+
+      .. datalakeconf:: stores.[n].urls
+
+         *Optional.* Comma-separated list of publicly accessible 
+         |http| |url|\s where data is stored. You can't specify |url|\s that 
+         require authentication. If empty or omitted, the 
+         :ref:`storageGenerateConfig <datalake-storagegenconfig>` command will 
+         not generate any virtual {+adl+} databases or collections that 
+         reference the {+data-lake-store+}.
 
 .. _datalake-databases-reference:
 
@@ -547,6 +692,29 @@ The {+data-lake-short+} configuration has the following format:
            }
          ]
 
+   .. tab:: HTTP 
+      :tabid: http
+
+      .. code-block:: json
+
+         "databases" : [
+           {
+             "name" : "<string>",
+             "collections" : [
+               {
+                 "name" : "<string>",
+                 "dataSources" : [
+                   {
+                     "storeName" : "<string>",
+                     "defaultFormat" : "<string>",
+                     "urls" : ["<string>"]
+                   }
+                 ]
+               }
+             ]
+           }
+         ]
+
 .. datalakeconf:: databases
 
    Array of objects where each object represents a database, its collections, 
@@ -586,10 +754,14 @@ The {+data-lake-short+} configuration has the following format:
       .. tab:: Atlas Cluster 
          :tabid: atlas
 
-         You can generate collection names dynamically by specifying ``*`` for the 
-         collection name and omitting the 
-         :datalakeconf:`~databases.[n].collections[n].dataSources.[n].collection` 
-         field. 
+         You can generate collection names dynamically by specifying ``*`` for 
+         the collection name and omitting the 
+         :datalakeconf:`~databases.[n].collections[n].dataSources.[n].collection` field. 
+
+      .. tab:: HTTP 
+         :tabid: http
+         
+         You cannot generate wildcard ``*`` collections.
 
 .. datalakeconf:: databases.[n].collections.[n].dataSources 
 
@@ -612,10 +784,10 @@ The {+data-lake-short+} configuration has the following format:
 
          Controls how {+data-lake+} searches for and parses files in the
          :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].storeName` 
-         before mapping them to the ``<collection>``. {+data-lake-short+} prepends 
-         the :datalakeconf:`stores.[n].prefix` to the ``path`` to build the full 
-         path to search within. Specify ``/`` to capture all files and folders from 
-         the ``prefix`` path.
+         before mapping them to the ``<collection>``. {+data-lake-short+} 
+         prepends the :datalakeconf:`stores.[n].prefix` to the ``path`` to 
+         build the full path to search within. Specify ``/`` to capture all 
+         files and folders from the ``prefix`` path.
 
          For example, consider an S3 bucket ``metrics`` with the following 
          structure:
@@ -655,25 +827,7 @@ The {+data-lake-short+} configuration has the following format:
 
          .. include:: /includes/fact-path-delimiter.rst
 
-      .. datalakeconf:: databases.[n].collections.[n].dataSources.[n].defaultFormat
-
-         *Optional.* Specifies the default format {+data-lake-short+} assumes
-         if it encounters a file without an extension while searching the
-         :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].storeName`.
-
-         If omitted, {+data-lake-short+} attempts to detect the file type
-         by processing a few bytes of the file.
-
-         .. note::
-
-            If your file format is ``CSV`` or ``TSV``, you must include a
-            header row in your data. See :ref:`data-lake-csv-tsv-data` 
-            for more information.
-
-         The following values are valid for the ``defaultFormat`` field:
-
-         ``.json, .json.gz, .bson, .bson.gz, .avro, .avro.gz,
-         .tsv, .tsv.gz, .csv, .csv.gz, .parquet``
+      .. include:: /includes/extracts/param-default-format.rst
 
    .. tab:: Atlas Cluster  
       :tabid: atlas 
@@ -688,6 +842,21 @@ The {+data-lake-short+} configuration has the following format:
          Name of the collection in the |service| cluster on which the 
          {+dl+} {+data-lake-store+} is based. When creating a wildcard 
          collection, this must not be specified.
+
+   .. tab:: HTTP  
+      :tabid: http 
+
+      .. datalakeconf:: databases.[n].collections.[n].dataSources.[n].urls 
+
+         *Optional*. Comma-separated list of publicly accessible |url|\s 
+         where the data is stored. {+dl+} creates a partition for each |url|. 
+         You can specify |url|\s that are not in the 
+         :datalakeconf:`~stores.[n].urls`; however, the collection will contain 
+         a union of data from |url|\s in both the 
+         :datalakeconf:`~stores.[n].urls` and 
+         :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].urls`. 
+         If omitted, {+dl+} uses the :datalakeconf:`~stores.[n].urls` in the 
+         specified :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].storeName`.
 
 .. datalakeconf:: databases.[n].views 
 

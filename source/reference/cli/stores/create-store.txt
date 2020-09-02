@@ -31,6 +31,15 @@ source.
       This tab contains the syntax and parameters for creating a 
       {+data-lake-store+} for data in an |service| cluster.
 
+   .. tab:: HTTP 
+      :tabid: http 
+
+      This tab contains the syntax and parameters for creating a 
+      |http| {+data-lake-store+} for data in files hosted at publicly 
+      accessible |url|\s.
+
+      .. include:: /includes/extracts/fact-http-beta-message.rst
+
 .. _dl-create-store-cmd-syntax:
 
 Syntax 
@@ -52,6 +61,13 @@ Syntax
       .. code-block:: sh
 
          db.runCommand({ createStore: <store-name>, provider: <storage-provider>, clusterName: <cluster-name>, projectId: <project-id>  })
+
+   .. tab:: HTTP Configuration
+      :tabid: http 
+
+      .. code-block:: sh
+
+         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, urls: [ <url> ]  })
 
 .. _dl-create-store-cmd-params:
 
@@ -79,14 +95,15 @@ Parameters
        Value can be one of the following: 
        
        - ``s3`` for an |aws| |s3| bucket.
-       - ``atlas`` for |service|.
+       - ``atlas`` for |service| cluster.
+       - ``http`` for files hosted at publicly accessible |url|\s.
 
      - yes
 
 .. tabs:: 
    :hidden:
 
-   .. tab:: S3 Configuration 
+   .. tab:: S3 Configuration
       :tabid: s3
 
       .. list-table::
@@ -134,6 +151,21 @@ Parameters
              cluster.
            - yes
 
+   .. tab:: HTTP Configuration 
+      :tabid: http 
+
+      .. list-table::
+         :widths: 10 10 70 10 
+
+         * - ``urls`` 
+           - array of strings or an empty array
+           - One or more publicly accessible |url|\s. You 
+             can't specify |url|\s that require authentication. If empty or omitted, the :ref:`storageGenerateConfig 
+             <datalake-storagegenconfig>` command will not generate any virtual 
+             {+adl+} databases or collections that reference the 
+             {+data-lake-store+}.
+           - no
+
 .. _dl-create-store-cmd-output:
 
 Output 
@@ -176,6 +208,23 @@ fails, see :ref:`dl-create-store-cmd-errors` for recommended solutions.
 		         "provider" : "<storage-provider>",
 		         "clusterName" : "<cluster-name>",
 		         "projectId" : "<project-id>"
+	         }
+         }
+
+   .. tab:: HTTP Configuration 
+      :tabid: http 
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+	         "ok" : 1,
+	         "store" : {
+		         "name" : "<store-name>",
+		         "provider" : "<storage-provider>",
+		         "urls" : [
+			         "<url>"
+		         ]
 	         }
          }
 
@@ -236,6 +285,30 @@ The following example uses the ``createStore`` command to create a new
 		         "clusterName" : "myTestCluster",
 		         "projectId" : "<project-id>"
 	         }
+         }
+
+   .. tab:: HTTP Configuration 
+      :tabid: http 
+
+      .. code-block:: json 
+
+         use sample 
+         db.runCommand({ createStore: "myStore", provider: "http", urls: ["https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json"] })
+
+      The previous command prints the following: 
+
+      .. code-block:: json 
+         :copyable: false
+
+         {
+	        "ok" : 1,
+	        "store" : {
+		       "name" : "http-store",
+		       "provider" : "http",
+		       "urls" : [
+			      "https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json"
+		       ]
+	        }
          }
 
 .. _dl-create-store-cmd-errors:
