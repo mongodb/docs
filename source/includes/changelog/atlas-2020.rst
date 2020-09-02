@@ -1,12 +1,41 @@
+.. _atlas_20200901:
+
+01 September 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Reduces cluster pricing and introduces new storage options for
+  |service| on Azure:
+
+  - M10 clusters include 8 GB of storage
+  - M20 clusters include 16 GB of storage
+  - M40 clusters include 64 GB of storage
+
+- Allows you to scope database users to one or more specific clusters
+  and |data-lake|\s in an |service| project.
+
+|service| |data-lake|
+`````````````````````
+
+Introduces easier authorization management for S3 access:
+
+- Provides a centralized UI to authorize and view |aws| |iam| roles and
+  associated |data-lake|\s under the |service|
+  :guilabel:`Project Integrations`.
+
+- Allows you to re-use an existing |aws| |iam| role when granting
+  access to a new |service| |data-lake|.
+
 .. _atlas_20200811:
 
 12 August 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- Enhances :ref:`Performance Advisor and Query Profiler
-  <performance-advisor>` with higher volume log ingestion.
-- Improves UX for the :ref:`Real Time Performance Panel 
-  <real-time-metrics-status-tab>`, including one-minute history views.
+- Enhances
+  :ref:`Performance Advisor and Query Profiler <performance-advisor>`
+  with higher volume log ingestion.
+- Improves user experience with the
+  :ref:`Real Time Performance Panel <real-time-metrics-status-tab>`,
+  including one-minute history views.
 - Introduces predefined ``getLastErrorModes`` to enable multi-region
   write concern.
 
