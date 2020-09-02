@@ -30,12 +30,14 @@ the previous step, log into your Atlas account and navigate to the
 want to connect to as shown below.
 
 .. figure:: /includes/figures/atlas_connection_select_cluster.png
+   :alt: Atlas Connection GUI cluster selection screen
 
 Proceed to the **Connect Your Application** step and select the Java driver.
 Then, select the "Connection String Only" tab and click the **Copy**
 button to copy the *connection string* to your clipboard as shown below.
 
 .. figure:: /includes/figures/atlas_connection_copy_string.png
+   :alt: Atlas Connection GUI connection string screen
 
 Save your Atlas connection string in a safe location that you can access
 for the next step.
