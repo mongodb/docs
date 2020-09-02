@@ -10,6 +10,8 @@
 - Updates the diagnostic archive filename to include the current date
   and time of the server when generated or downloaded.
 
+- Updates JDK to AdoptOpenJDK 11.0.8+10.
+
 - Updates MongoDB Agent to 10.2.20.5991.
 
 .. _opsmgr-server-4.2.15:
@@ -125,6 +127,12 @@ Fixes
   |csrs| is being removed from the deployment.
 
 - Reduces impact of RTPP on backing MongoDB.
+
+
+Backend
+```````
+
+- Updates JDK to AdoptOpenJDK 11.0.8+10.
 
 Agents
 ``````
