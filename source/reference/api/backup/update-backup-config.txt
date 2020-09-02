@@ -19,7 +19,7 @@ Resource
 
 .. code-block:: http
 
-   PATCH /groups/{PROJECT-ID}/backupConfigs/{CLUSTER-ID}
+   PATCH /groups/{projectId}/backupConfigs/{clusterId}
 
 Request Parameters
 ------------------
@@ -28,23 +28,26 @@ Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
-   :widths: 10 10 80
+   :widths: 20 14 11 55
    :header-rows: 1
    :stub-columns: 1
 
-   * - Name
+   * - Path Parameter
      - Type
+     - Necessity
      - Description
 
-   * - PROJECT-ID
+   * - projectId
      - string
-     - *(Required.)* The unique identifier for the project that holds the cluster with
+     - Required
+     - Unique identifier for the project that holds the cluster with
        the backup configuration you want to change.
 
-   * - CLUSTER-ID
+   * - clusterId
      - string
-     - *(Required.)* The unique indentifier of the cluster whose backup configuration
-       you want to change.
+     - Required
+     - Unique indentifier of the cluster whose backup configuration you
+       want to change.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -54,502 +57,61 @@ Request Query Parameters
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. only:: onprem
+.. cond:: onprem
 
-   .. list-table::
-      :widths: 10 10 80
-      :header-rows: 1
-      :stub-columns: 1
+   .. include:: /includes/api/list-tables/backup-config/request-body-onprem.rst
 
-      * - Name
-        - Type
-        - Description
+.. cond:: cloud
 
-      * - PROJECT-ID
-        - string
-        - Unique identifier of the project that owns this backup configuration.
-
-      * - CLUSTER-ID
-        - string
-        - Unique identifier of the cluster that this backup configuration is for.
-
-      * - statusName
-        - string
-        - The current (or desired) status of the backup configuration. Possible
-          values are:
-
-          - ``INACTIVE``
-          - ``PROVISIONING``
-          - ``STARTED``
-          - ``STOPPED``
-          - ``TERMINATING``
-
-      * - storageEngineName
-        - string
-        - The storage engine used for the backup. Possible values are:
-
-          - ``MEMORY_MAPPED``
-          - ``WIRED_TIGER``
-
-      * - authMechanismName
-        - string
-        - The name of the authentication mechanism to use when
-          connecting to the sync source database. Only present when
-          using authentication. Possible values are:
-
-          .. include:: /includes/api/lists/authMechanismName-values.rst
-
-      * - username
-        - string
-        - The username to use to connect to the sync source
-          database. Only present when backing up :program:`mongod`
-          instances that require clients to authenticate.
-
-          You can send this field to |mms| only when updating the backup
-          configuration for a replica set or sharded cluster that is **not**
-          managed by |mms| Automation.
-
-      * - password
-        - string
-        - The password to use to connect to the sync source
-          database. Only present when backup the :program:`mongod`
-          instances that require clients to authenticate.
-          ``GET`` requests do *not* include this field.
-
-          You can send this field to |mms| only when updating the backup
-          configuration for a replica set or sharded cluster that is **not**
-          managed by |mms| Automation.
-
-      * - encryptionEnabled
-        - boolean
-        - Specifies whether encryption is enabled for the backup configuration.
-          You must include the ``syncSource`` field when enabling encryption
-          for a backup configuration. For existing backups in a project, enabling
-          encryption requires an initial backup sync to recreate the backups’
-          head databases.
-
-      * - sslEnabled
-        - boolean
-        - Is SSL enabled for the sync source database?
-
-      * - syncSource
-        - string
-        - The :program:`mongod` instance to get backup data
-          from. Possible values are either a specific hostname or one of:
-          ``PRIMARY`` and ``SECONDARY``. This field is only used when
-          updating a backup configuration. It is not returned by a
-          ``GET`` request.
-
-      * - provisioned
-        - boolean
-        - Reports if |mms| has provisioned the resources needed to store a backup. This
-          field is only present when the amount of data to be backed up exceeds a
-          certain threshold.
-
-      * - excludedNamespaces
-        - string array
-        - A list of database names and collection names to omit from the
-          backup. Each string is a namespace in the form of ``{database}`` or
-          ``{database}.{collection}``. If this field is present the
-          ``includedNamespaces`` field cannot be present.
-
-          You must send the new full list of excluded namespaces, including any
-          that were already listed.
-
-          If the new list removes any namespaces from the previous list, you must
-          also set the ``syncSource`` field, as the removal of an excluded
-          namespace necessitates a full resync. Without the ``syncSource`` field,
-          the request will fail.
-
-          If the new list only adds to the previous list, you do not need to set
-          ``syncSource``.
-
-      * - includedNamespaces
-        - string array
-        - A list of database names and collection names to include in the
-          backup. Each string is a namespace in the form of ``{database}``
-          or ``{database}.{collection}``. Any namespace **not listed** in this
-          array **will not be backed up**. If this field is present the
-          ``excludedNamespaces`` field cannot be present.
-
-          You must send the new full list of included namespaces, including any
-          that were already listed.
-
-          If the new list adds any namespaces to the previous list, you must
-          also set the ``syncSource`` field, as the addition of an included
-          namespace necessitates a full resync. Without the ``syncSource`` field,
-          the request will fail.
-
-          If the new list only removes namespaces from the previous list, you do
-          not need to set ``syncSource``.
-
-.. only:: cloud
-
-   .. list-table::
-      :widths: 10 10 80
-      :header-rows: 1
-      :stub-columns: 1
-
-      * - Name
-        - Type
-        - Description
-
-      * - PROJECT-ID
-        - string
-        - Unique identifier of the project that owns this backup configuration.
-
-      * - CLUSTER-ID
-        - string
-        - Unique identifier of the cluster that this backup configuration is for.
-
-      * - statusName
-        - string
-        - The current (or desired) status of the backup configuration. Possible
-          values are:
-
-          - ``INACTIVE``
-          - ``PROVISIONING``
-          - ``STARTED``
-          - ``STOPPED``
-          - ``TERMINATING``
-
-      * - storageEngineName
-        - string
-        - The storage engine used for the backup. Possible values are:
-
-          - ``MEMORY_MAPPED``
-          - ``WIRED_TIGER``
-
-      * - authMechanismName
-        - string
-        - The name of the authentication mechanism to use when connecting to the
-          sync source database. Only present when using authentication. Possible
-          values are:
-
-          .. include:: /includes/api/lists/authMechanismName-values.rst
-
-      * - username
-        - string
-        - The username to use to connect to the sync source
-          database. Only present when backing up :program:`mongod`
-          instances that require clients to authenticate.
-
-          You can send this field to |mms| only when updating the backup
-          configuration for a replica set or sharded cluster that is **not**
-          managed by |mms| Automation.
-
-      * - password
-        - string
-        - The password to use to connect to the sync source
-          database. Only present when backup the :program:`mongod`
-          instances that require clients to authenticate.
-          ``GET`` requests do *not* include this field.
-
-          You can send this field to |mms| only when updating the backup
-          configuration for a replica set or sharded cluster that is **not**
-          managed by |mms| Automation.
-
-      * - sslEnabled
-        - boolean
-        - Is SSL enabled for the sync source database?
-
-      * - syncSource
-        - string
-        - The :program:`mongod` instance to get backup data
-          from. Possible values are either a specific hostname or one of:
-          ``PRIMARY`` and ``SECONDARY``. This field is only used when
-          updating a backup configuration. It is not returned by a
-          ``GET`` request.
-
-      * - provisioned
-        - boolean
-        - Reports if |mms| has provisioned the resources needed to store a backup. This
-          field is only present when the amount of data to be backed up exceeds a
-          certain threshold.
-
-      * - excludedNamespaces
-        - string array
-        - A list of database names and collection names to omit from the
-          backup. Each string is a namespace in the form of ``{database}`` or
-          ``{database}.{collection}``. If this field is present the
-          ``includedNamespaces`` field cannot be present.
-
-          You must send the new full list of excluded namespaces, including any
-          that were already listed.
-
-          If the new list removes any namespaces from the previous list, you must
-          also set the ``syncSource`` field, as the removal of an excluded
-          namespace necessitates a full resync. Without the ``syncSource`` field,
-          the request will fail.
-
-          If the new list only adds to the previous list, you do not need to set
-          ``syncSource``.
-
-      * - includedNamespaces
-        - string array
-        - A list of database names and collection names to include in the
-          backup. Each string is a namespace in the form of ``{database}``
-          or ``{database}.{collection}``. Any namespace **not listed** in this
-          array **will not be backed up**. If this field is present the
-          ``excludedNamespaces`` field cannot be present.
-
-          You must send the new full list of included namespaces, including any
-          that were already listed.
-
-          If the new list adds any namespaces to the previous list, you must
-          also set the ``syncSource`` field, as the addition of an included
-          namespace necessitates a full resync. Without the ``syncSource`` field,
-          the request will fail.
-
-          If the new list only removes namespaces from the previous list, you do
-          not need to set ``syncSource``.
+   .. include:: /includes/api/list-tables/backup-config/request-body-cloud.rst
 
 Response
 --------
 
-.. only:: onprem
+.. cond:: onprem
 
-   .. list-table::
-      :widths: 10 10 80
-      :header-rows: 1
+   .. include:: /includes/api/list-tables/backup-config/response-body-onprem.rst
 
-      * - Name
-        - Type
-        - Description
+.. cond:: cloud
 
-      * - PROJECT-ID
-        - string
-        - Unique identifier of the project that owns this backup configuration.
-
-      * - CLUSTER-ID
-        - string
-        - Unique identifier of the cluster that this backup configuration is for.
-
-      * - statusName
-        - string
-        - The current (or desired) status of the backup configuration. Possible
-          values are:
-
-          - ``INACTIVE``
-          - ``PROVISIONING``
-          - ``STARTED``
-          - ``STOPPED``
-          - ``TERMINATING``
-
-      * - storageEngineName
-        - string
-        - The storage engine used for the backup. Possible values are:
-
-          - ``MEMORY_MAPPED``
-          - ``WIRED_TIGER``
-
-      * - authMechanismName
-        - string
-        - The name of the authentication mechanism to use when
-          connecting to the sync source database. Only present when
-          using authentication. Possible values are:
-
-          .. include:: /includes/api/lists/authMechanismName-values.rst
-
-      * - encryptionEnabled
-        - boolean
-        - Specifies whether encryption is enabled for the backup configuration.
-          You must include the ``syncSource`` field when enabling encryption
-          for a backup configuration. For existing backups in a project, enabling
-          encryption requires an initial backup sync to recreate the backups’
-          head databases.
-
-      * - sslEnabled
-        - boolean
-        - Is SSL enabled for the sync source database?
-
-      * - syncSource
-        - string
-        - The :program:`mongod` instance to get backup data
-          from. Possible values are either a specific hostname or one of:
-          ``PRIMARY`` and ``SECONDARY``. This field is only used when
-          updating a backup configuration. It is not returned by a
-          ``GET`` request.
-
-      * - provisioned
-        - boolean
-        - Reports if |mms| has provisioned the resources needed to store a backup. This
-          field is only present when the amount of data to be backed up exceeds a
-          certain threshold.
-
-      * - excludedNamespaces
-        - string array
-        - A list of database names and collection names to omit from the
-          backup. Each string is a namespace in the form of ``{database}`` or
-          ``{database}.{collection}``. If this field is present the
-          ``includedNamespaces`` field cannot be present.
-
-          You must send the new full list of excluded namespaces, including any
-          that were already listed.
-
-          If the new list removes any namespaces from the previous list, you must
-          also set the ``syncSource`` field, as the removal of an excluded
-          namespace necessitates a full resync. Without the ``syncSource`` field,
-          the request will fail.
-
-          If the new list only adds to the previous list, you do not need to set
-          ``syncSource``.
-
-      * - includedNamespaces
-        - string array
-        - A list of database names and collection names to include in the
-          backup. Each string is a namespace in the form of ``{database}``
-          or ``{database}.{collection}``. Any namespace **not listed** in this
-          array **will not be backed up**. If this field is present the
-          ``excludedNamespaces`` field cannot be present.
-
-          You must send the new full list of included namespaces, including any
-          that were already listed.
-
-          If the new list adds any namespaces to the previous list, you must
-          also set the ``syncSource`` field, as the addition of an included
-          namespace necessitates a full resync. Without the ``syncSource`` field,
-          the request will fail.
-
-          If the new list only removes namespaces from the previous list, you do
-          not need to set ``syncSource``.
-
-.. only:: cloud
-
-   .. list-table::
-      :widths: 10 10 80
-      :header-rows: 1
-
-      * - Name
-        - Type
-        - Description
-
-      * - PROJECT-ID
-        - string
-        - Unique identifier of the project that owns this backup configuration.
-
-      * - CLUSTER-ID
-        - string
-        - Unique identifier of the cluster that this backup configuration is for.
-
-      * - statusName
-        - string
-        - The current (or desired) status of the backup configuration. Possible
-          values are:
-
-          - ``INACTIVE``
-          - ``PROVISIONING``
-          - ``STARTED``
-          - ``STOPPED``
-          - ``TERMINATING``
-
-      * - storageEngineName
-        - string
-        - The storage engine used for the backup. Possible values are:
-
-          - ``MEMORY_MAPPED``
-          - ``WIRED_TIGER``
-
-      * - authMechanismName
-        - string
-        - The name of the authentication mechanism to use when connecting to the
-          sync source database. Only present when using authentication. Possible
-          values are:
-
-          .. include:: /includes/api/lists/authMechanismName-values.rst
-
-      * - sslEnabled
-        - boolean
-        - Is SSL enabled for the sync source database?
-
-      * - syncSource
-        - string
-        - The :program:`mongod` instance to get backup data
-          from. Possible values are either a specific hostname or one of:
-          ``PRIMARY`` and ``SECONDARY``. This field is only used when
-          updating a backup configuration. It is not returned by a
-          ``GET`` request.
-
-      * - provisioned
-        - boolean
-        - Reports if |mms| has provisioned the resources needed to store a backup. This
-          field is only present when the amount of data to be backed up exceeds a
-          certain threshold.
-
-      * - excludedNamespaces
-        - string array
-        - A list of database names and collection names to omit from the
-          backup. Each string is a namespace in the form of ``{database}`` or
-          ``{database}.{collection}``. If this field is present the
-          ``includedNamespaces`` field cannot be present.
-
-          You must send the new full list of excluded namespaces, including any
-          that were already listed.
-
-          If the new list removes any namespaces from the previous list, you must
-          also set the ``syncSource`` field, as the removal of an excluded
-          namespace necessitates a full resync. Without the ``syncSource`` field,
-          the request will fail.
-
-          If the new list only adds to the previous list, you do not need to set
-          ``syncSource``.
-
-      * - includedNamespaces
-        - string array
-        - A list of database names and collection names to include in the
-          backup. Each string is a namespace in the form of ``{database}``
-          or ``{database}.{collection}``. Any namespace **not listed** in this
-          array **will not be backed up**. If this field is present the
-          ``excludedNamespaces`` field cannot be present.
-
-          You must send the new full list of included namespaces, including any
-          that were already listed.
-
-          If the new list adds any namespaces to the previous list, you must
-          also set the ``syncSource`` field, as the addition of an included
-          namespace necessitates a full resync. Without the ``syncSource`` field,
-          the request will fail.
-
-          If the new list only removes namespaces from the previous list, you do
-          not need to set ``syncSource``.
-
-      * - links
-        - object array
-        - .. include:: /includes/api/links-explanation.rst
-
+   .. include:: /includes/api/list-tables/backup-config/response-body-cloud.rst
 
 Example Request
 ---------------
 
-.. only:: cloud
+.. cond:: cloud
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
-      :emphasize-lines: 5-8
+      :linenos:
+      :emphasize-lines: 6-10
 
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include --request PATCH "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/backupConfigs/{CLUSTER-ID}"
-       --data '
-       {
-         "statusName": "STOPPED"
-       }'
+      curl --user "{publicKey}:{privateKey}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include --request PATCH "https://cloud.mongodb.com/api/public/v1.0/groups/{projectId}/backupConfigs/{clusterId}"
+           --data '
+             {
+               "statusName": "STARTED",
+               "storageEngineName": "WIRED_TIGER",
+               "syncSource": "primary"
+             }'
 
-.. only:: onprem
+.. cond:: onprem
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
-      :emphasize-lines: 5-8
+      :linenos:
+      :emphasize-lines: 6-10
 
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include --request PATCH "https://{opsManagerHost}:{port}/api/public/v1.0/groups/{PROJECT-ID}/backupConfigs/{CLUSTER-ID}" \
-       --data '
-       {
-         "statusName": "STOPPED"
-       }'
+      curl --user "{publicKey}:{privateKey}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include --request PATCH "https://{+opsmgr-url+}/api/public/v1.0/groups/{projectId}/backupConfigs/{clusterId}" \
+           --data '
+             {
+               "statusName": "STARTED",
+               "storageEngineName": "WIRED_TIGER",
+               "syncSource": "primary"
+             }'
 
 
 Example Response
@@ -565,15 +127,62 @@ Response Header
 Response Body
 ~~~~~~~~~~~~~
 
-.. code-block:: json
-   :emphasize-lines: 4
+.. cond:: cloud
 
-   {
-     "clusterId" : "{CLUSTER-ID}",
-     "excludedNamespaces" : [ ],
-     "groupId" : "{PROJECT-ID}",
-     "links" : [],
-     "sslEnabled" : false,
-     "statusName" : "STOPPED",
-     "storageEngineName" : "WIRED_TIGER"
-   }
+   .. code-block:: json
+      :linenos:
+      :emphasize-lines: 21-22
+
+      {
+        "authMechanismName" : "NONE",
+        "clusterId" : "{clusterId}",
+        "encryptionEnabled" : false,
+        "excludedNamespaces" : [ ],
+        "groupId" : "{projectId}",
+        "links" : [ {
+          "href" : "http://cloud.mongodb.com/api/public/v1.0/groups/{projectId}/backupConfigs/{clusterId}",
+          "rel" : "self"
+        }, {
+          "href" : "http://cloud.mongodb.com/api/public/v1.0/groups/{projectId}/clusters/{clusterId}",
+          "rel" : "http://mms.mongodb.com/cluster"
+        }, {
+          "href" : "http://cloud.mongodb.com/api/public/v1.0/groups/{projectId}",
+          "rel" : "http://mms.mongodb.com/group"
+        }, {
+          "href" : "http://cloud.mongodb.com/api/public/v1.0/groups/{projectId}/backupConfigs/{clusterId}/snapshotSchedule",
+          "rel" : "http://mms.mongodb.com/snapshotSchedule"
+        } ],
+        "sslEnabled" : false,
+        "statusName" : "STARTED",
+        "storageEngineName" : "WIRED_TIGER"
+      }
+
+.. cond:: onprem
+
+   .. code-block:: json
+      :linenos:
+      :emphasize-lines: 21-22
+
+      {
+        "authMechanismName" : "NONE",
+        "clusterId" : "{clusterId}",
+        "encryptionEnabled" : false,
+        "excludedNamespaces" : [ ],
+        "groupId" : "{projectId}",
+        "links" : [ {
+          "href" : "http://{+opsmgr-url+}/api/public/v1.0/groups/{projectId}/backupConfigs/{clusterId}",
+          "rel" : "self"
+        }, {
+          "href" : "http://{+opsmgr-url+}/api/public/v1.0/groups/{projectId}/clusters/{clusterId}",
+          "rel" : "http://mms.mongodb.com/cluster"
+        }, {
+          "href" : "http://{+opsmgr-url+}/api/public/v1.0/groups/{projectId}",
+          "rel" : "http://mms.mongodb.com/group"
+        }, {
+          "href" : "http://{+opsmgr-url+}/api/public/v1.0/groups/{projectId}/backupConfigs/{clusterId}/snapshotSchedule",
+          "rel" : "http://mms.mongodb.com/snapshotSchedule"
+        } ],
+        "sslEnabled" : false,
+        "statusName" : "STARTED",
+        "storageEngineName" : "WIRED_TIGER"
+      }
