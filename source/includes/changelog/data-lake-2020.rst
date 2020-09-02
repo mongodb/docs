@@ -1,3 +1,20 @@
+.. _data-lake-v20200901:
+
+01 September 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports :ref:`HTTP URLs <datalake-configuration-file>` as a 
+  data source.
+- Supports |aws| |s3| `Intelligent Tiering 
+  <https://aws.amazon.com/s3/storage-classes/#Unknown_or_changing_access>`__ 
+  and `Standard-Infrequent Access
+  <https://aws.amazon.com/s3/storage-classes/#Infrequent_access>`__ storage 
+  classes.
+- Supports :pipeline:`$unionWith` aggregation stage.
+- Restricts {+adl+} :ref:`connection string <data-lake-connect>` authentication 
+  to one user at a time.
+- Includes general performance and stability improvements.
+
 .. _data-lake-v20200818:
 
 18 August 2020 Release
