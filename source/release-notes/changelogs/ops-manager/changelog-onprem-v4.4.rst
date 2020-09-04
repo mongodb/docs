@@ -1,3 +1,26 @@
+.. _opsmgr-server-4.4.2:
+
+|onprem| Server 4.4.2
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-09-03*
+
+- Fixes unexpected errors that occur when:
+
+  - Editing a blockstore with one or more dots (``.``) in its name.
+  - Trying to update
+    :ref:`Global API Keys <admin-console-general-api-keys>` via the
+    |api| with an invalid request.
+  - Trying to update a global whitelist IP.
+
+- Includes :bic:`MongoDB Business Intelligence Connector v2.14.0 </>`.
+
+- Supports file system snapshot stores with MongoDB databases running
+  |fcv-link| 4.2 or later.
+
+- Updates the MongoDB Agent to
+  :ref:`10.14.13.6423 <mongodb-10.14.13.6423>`.
+
 .. _opsmgr-server-4.4.1:
 
 |onprem| Server 4.4.1
