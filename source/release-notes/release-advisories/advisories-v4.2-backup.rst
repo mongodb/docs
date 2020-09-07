@@ -83,9 +83,9 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Supports Saving to File System Storage
-        -
-        -
-        -
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Supports Databases running MongoDB Enterprise
