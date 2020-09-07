@@ -132,10 +132,10 @@ source_constants = {
     'mdbagent': 'MongoDB Agent',
     'mdbagent-wa': 'MongoDB Agent with Automation',
     'agent-dl-deb-ubuntu-16-ppc': 'Ubuntu 16.X Power (ppc64le) - DEB',
-    'agent-dl-deb-ubuntu-16-x64': 'Debian 8/9, Ubuntu 16.X/18.X - DEB',
-    'agent-dl-deb-ubuntu-18-x64': 'Debian 8/9, Ubuntu 16.X/18.X - DEB',
-    'agent-dl-deb-debian-8-x64': 'Debian 8/9, Ubuntu 16.X/18.X - DEB',
-    'agent-dl-deb-debian-9-x64': 'Debian 8/9, Ubuntu 16.X/18.X - DEB',
+    'agent-dl-deb-ubuntu-16-x64': 'Debian 8/9/10, Ubuntu 16.X/18.X/20.x - DEB',
+    'agent-dl-deb-ubuntu-18-x64': 'Debian 8/9/10, Ubuntu 16.X/18.X/20.x - DEB',
+    'agent-dl-deb-debian-8-x64': 'Debian 8/9/10, Ubuntu 16.X/18.X/20.x - DEB',
+    'agent-dl-deb-debian-9-x64': 'Debian 8/9/10, Ubuntu 16.X/18.X/20.x - DEB',
     'agent-dl-deb-ubuntu-16-zSeries': 'Ubuntu 18.X Z-Series (s390x) - DEB',
     'agent-dl-msi-windows': 'Windows - MSI',
     'agent-dl-rpm-rhel-6-x64': 'RHEL/CentOS 6.X, Amazon Linux - RPM',
@@ -150,8 +150,8 @@ source_constants = {
     'agent-dl-tar-ubuntu-16-ppc': 'Ubuntu 16.X Power (ppc64le) - TAR',
     'opsmgr-example-url': '<OpsManagerHost>:<Port>',
     'onprem': 'Ops Manager',
-    'fcv-current' : '4.2',
-    'fcv-previous' : '4.0'
+    'fcv-current' : '4.4',
+    'fcv-previous' : '4.2'
 }
 
 languages = [

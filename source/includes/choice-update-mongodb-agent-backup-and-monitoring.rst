@@ -26,7 +26,8 @@
          .. tab:: Intel/AMD
             :tabid: x86
 
-            On x86_64 architecture running, Debian 8, Debian 9, Ubuntu 16.04, or Ubuntu 18.04:
+            On x86_64 architecture running, Debian 8, Debian 9, Ubuntu
+            16.04, Ubuntu 18.04, or Ubuntu 20.04:
 
             .. include:: /includes/steps/update-backup-to-mongodb-agent-amd64.ubuntu1604-deb.rst
 
