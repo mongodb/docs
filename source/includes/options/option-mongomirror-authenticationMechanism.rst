@@ -39,4 +39,15 @@
           `MongoDB Enterprise
           <http://www.mongodb.com/products/mongodb-enterprise?tck=docs_atlas>`_.
    
+      * - MONGODB-IAM
 
+        - *New in version 0.10.0*
+          
+          External authentication with `AWS IAM
+          <https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html>`__.
+
+          To authenticate with AWS IAM credentials, use the following options:
+
+          - :option:`--username` <aws access key id>
+          - :option:`--password` <secret access key id>
+          - :option:`--awsSessionToken` <aws session token>
