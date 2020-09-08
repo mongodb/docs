@@ -23,12 +23,10 @@ which each post processor is executed in the order provided on
 the ``SinkDocument``, and the result is stored in a MongoDB collection.
 
 Post processors perform data modification tasks such as setting
-the document ``_id`` field, key or value field projection, renaming
-fields, and redacting sensitive information. You can use the
-following pre-built post processors or implement your own by extending
-the `PostProcessor
-<https://github.com/mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/processor/PostProcessor.java>`_
-class:
+the document ``_id`` field, message key or value projection, renaming
+fields, and redacting sensitive information. You can implement your own
+post processor by extending the `PostProcessor <https://github.com/mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/processor/PostProcessor.java>`_
+class or use one of the following pre-built ones:
 
 .. list-table::
    :header-rows: 1
@@ -74,7 +72,7 @@ class:
 
    * - RenameByMapping
      - | Full Path: ``com.mongodb.kafka.connect.sink.processor.field.renaming.RenameByMapping``
-       | Renames fields that are an exact match to a specified key or value field.
+       | Renames fields that are an exact match to a specified field name in the key or value document.
 
        .. seealso:: :ref:`Renaming configuration <config-field-renaming>` and :ref:`Example <field-renaming-mapping-example>`.
 
@@ -84,7 +82,7 @@ class:
 
        .. seealso:: :ref:`Renaming configuration <config-field-renaming>` and :ref:`Example <field-renaming-regex-example>`.
 
-   
+
 You can configure the post processor chain by specifying an ordered,
 comma separated list of fully-qualified ``PostProcessor`` class names:
 
@@ -155,7 +153,7 @@ provided with this connector:
      - | Full Path: ``com.mongodb.kafka.connect.sink.processor.id.strategy.PartialValueStrategy``
        | Uses a block list or allow list projection of the value structure of the ``SinkDocument``.
        | Defaults to a blank document if no value exists.
-   
+
    * - UuidProvidedInKeyStrategy
      - | Full Path: ``com.mongodb.kafka.connect.sink.processor.id.strategy.UuidInKeyStrategy``
        | Converts the _id key field to a UUID. The value must be either a string or binary type and must conform to the `UUID format <https://en.wikipedia.org/wiki/Universally_unique_identifier#Format>`__.
@@ -463,12 +461,15 @@ This section provides example configurations for the ``RenameByMapping``
 and ``RenameByRegex`` post processors to show how they update field names
 in a sink record. The field renaming parameters specify whether to update the
 ``key`` or ``value`` document in the record using dot notation as well as
-the pattern to match and replacement string in a JSON array.
+the pattern to match. You must specify the ``RenameByMapping`` and
+``RenameByRegex`` properties with your parameters in a JSON array.
 
 The field renaming post processor examples use the following sample sink
 record:
 
-**Key document**
+.. _sample-key-document:
+
+**Sample Key Document**
 
 .. code-block:: json
 
@@ -478,7 +479,9 @@ record:
      "date_day": 17
    }
 
-**Value document**
+.. _sample-value-document:
+
+**Sample Value Document**
 
 .. code-block:: json
 
@@ -494,11 +497,13 @@ record:
 RenameByMapping Example
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``RenameByMapping`` post processor setting is an array of objects.
-Each object in the array contains the following JSON element keys:
+The ``RenameByMapping`` post processor setting specifies one or more
+objects that assigns fields matching a string to a new name in a Key or Value
+document.
 
-Each object contains the text to match in the ``oldName`` element and
-the replacement text in the ``newName`` element.
+Each object contains the text to match in the ``oldName`` element and the
+replacement text in the ``newName`` element as described in the table
+below.
 
 .. list-table::
    :header-rows: 1
@@ -509,34 +514,44 @@ the replacement text in the ``newName`` element.
      - Description
 
    * - oldName
-     - Contains a string that matches on the text to replace.
+     - Specifies whether to match a key or value document and an appended
+       string that matches the field to replace.
 
    * - newName
-     - Contains the replacement text for all matches of the string defined
+     - Contains the replacement text for all matches of the field defined
        in the ``oldName`` field.
+
+
+The following example property matches the "location" field of a Key
+document and renames it to "country":
 
 .. code-block:: properties
 
-   field.renamer.mapping=[{"oldName":"key.location","newName":"city"},{"oldName":"value.flapjacks","newName":"crepes"}]
+   field.renamer.mapping=[{"oldName":"key.location", "newName":"country"}]
 
-The record contains the following data after applying the ``RenameByMapping``
-post processor:
-
-**Key document**
+This transforms the :ref:`original key document <sample-key-document>`
+to the following one after applying the ``RenameByMapping`` post processor:
 
 .. code-block:: json
-   :emphasize-lines: 2
 
    {
-     "city": "Provence",
+     "country": "Provence",
      "date_month": "October",
      "date_day": 17
    }
 
-**Value document**
+You can perform a similar field name assignment for value documents by
+specifying ``value`` with the appended field name in the ``oldName``
+field as follows:
+
+.. code-block:: properties
+
+   field.renamer.mapping=[{"oldName":"value.location", "newName":"city"}]
+
+This transforms the :ref:`original value document <sample-value-document>`
+to the following one after applying the ``RenameByMapping`` post processor:
 
 .. code-block:: json
-   :emphasize-lines: 2
 
    {
      "crepes": {
@@ -544,6 +559,14 @@ post processor:
        "size": "large"
      }
    }
+
+You can also specify multiple mappings in the ``field.renamer.mapping``
+property by using a stringified JSON array as shown in the following
+example:
+
+.. code-block:: properties
+
+   field.renamer.mapping="[{ "oldName":"key.location", "newName":"city" }, { "oldName":"value.crepes", "newName":"flapjacks" }]"
 
 .. _field-renaming-regex-example:
 
@@ -578,21 +601,22 @@ Example
 
    field.renamer.mapping=[{"regexp":"^key\\.date.*$","pattern":"_","replace":"-"},{"regexp":"^value\\.crepes\\..*","pattern":"purchased","replace":"quantity"}]
 
-The record contains the following data after applying the ``RenameByMapping``
-post processor:
+When the post processor is applied to the :ref:`sample key document <sample-key-document>`
+and the :ref:`sample value document <sample-value-document>`, it produces the
+following output:
 
-**Key document**
+**Key Document**
 
 .. code-block:: json
    :emphasize-lines: 3,4
 
    {
-     "city": "Provence",
+     "location": "Provence",
      "date-month": "October",
      "date-day": 17
    }
 
-**Value document**
+**Value Document**
 
 .. code-block:: json
    :emphasize-lines: 3
