@@ -103,6 +103,10 @@ source_constants = {
     'odbc-driver': '`MongoDB ODBC Driver for BI Connector <https://github.com/mongodb/mongo-odbc-driver/releases/>`__',
     'bi-atlas-short': 'BI Connector for Atlas',
     'bi-short': 'BI Connector',
+    'bi-full': 'MongoDB Connector for Business Intelligence',
+    'atlas': 'MongoDB Atlas',
+    'cm-full': 'MongoDB Cloud Manager',
+    'om-full': 'MongoDB Ops Manager',
     'download-center': '`MongoDB Download Center <https://www.mongodb.com/download-center/bi-connector>`__',
     'download-center-bi': '`MongoDB Connector for BI <https://www.mongodb.com/download-center/bi-connector>`__',
     'download-center-tableau': '`MongoDB Connector for BI <https://www.mongodb.com/download-center/bi-connector?jmp=tbl>`__',
@@ -119,7 +123,9 @@ extlinks = {
     'v2.10': ('https://docs.mongodb.com/bi-connector/v2.10%s',''),
     'v3.6': ('https://docs.mongodb.com/v3.6%s', ''),
     'website': ('https://www.mongodb.com%s?jmp=docs', ''),
-    'mysql': ('https://dev.mysql.com%s', '')
+    'mysql': ('https://dev.mysql.com%s', ''),
+    'cm': ('https://docs.cloudmanager.mongodb.com%s', ''),
+    'om': ('https://docs.opsmanager.mongodb.com/current%s', ''),
 }
 
 intersphinx_mapping = {}
