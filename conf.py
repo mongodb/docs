@@ -214,7 +214,8 @@ extlinks = {
     'k8sdocs': ('https://kubernetes.io/docs%s', ''),
     'gh' : ('https://github.com%s', ''),
     'svc-cat' : ('https://svc-cat.io/docs%s', ''),
-    'datalake' : ('https://docs.mongodb.com/datalake%s', '')
+    'datalake' : ('https://docs.mongodb.com/datalake%s', ''),
+    'aws': ('http://docs.aws.amazon.com%s','')
 }
 
 intersphinx_mapping = {}
