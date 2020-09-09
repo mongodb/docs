@@ -567,3 +567,47 @@ policy through the :opsmgr:`API </reference/api/controlled-features/update-contr
    further changes through the |onprem| application. However, the
    |k8s-op-short| retains any changes you made in the |onprem|
    application while features were available.
+
+.. _k8s-debug-failed container:
+
+Debugging a Failing Container
+-----------------------------
+
+A container might fail with an error that results in |k8s| restarting
+that container in a loop.
+
+You may need to interact with that container to inspect files or run
+commands. This requires you to prevent the container from restarting.
+
+1. In your preferred text editor, open the MongoDB resource you need to
+   repair.
+
+#. To this resource, add a ``podSpec`` collection that resembles the
+   following.
+
+   .. code-block:: yaml
+
+      podSpec:
+        podTemplate:
+          spec:
+            containers:
+            - name: mongodb-enterprise-database
+              command: ['sh', '-c', 'echo "Hello!" && sleep 3600' ]
+
+   The :wikipedia:`sleep </Sleep_(command)>` command in the
+   :setting:`spec.podSpec.podTemplate.spec` instructs the container to
+   wait for the number of seconds you specify. In this example, the
+   container will wait for 1 hour.
+
+#. Apply this change to the resource.
+
+   .. code-block:: sh
+
+      kubectl apply -f <resource>.yaml
+
+#. Invoke the shell inside the container.
+
+   .. code-block:: sh
+
+      kubectl exec -it <pod-name> bash
+
