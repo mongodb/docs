@@ -29,5 +29,5 @@ Replica Sets </tutorial/build-indexes-on-replica-sets>`.
    * :manual:`2dsphereIndexVersion
      </reference/method/db.collection.createIndex#options-for-2d-indexes>`
 
-   |service| ignores these options if you specify them in the
-   :guilabel:`Options` pane.
+   If you specify any of these options in the :guilabel:`Options` pane, 
+   |service| rejects your configuration with an error message.
