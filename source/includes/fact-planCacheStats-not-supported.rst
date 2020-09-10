@@ -1,2 +1,2 @@
-|service| doesn't support the :pipeline:`$planCacheStats` and
-:expression:`$switch` aggregation pipeline stages.
+|service| doesn't support the :pipeline:`$planCacheStats` 
+aggregation pipeline stages.
