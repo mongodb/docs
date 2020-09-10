@@ -7,61 +7,55 @@
      - Type
      - Description
 
-   * - ``createdAt``
+   * - createdAt
      - string
-     - :abbr:`UTC (Coordinated Universal Time)` 
-       `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ formatted
-       point in time when |service| took the snapshot.
+     - |iso8601-time| when |service| took the snapshot.
 
-   * - ``description``
+   * - description
      - string
-     - Description of the snapshot. Only present for on-demand snapshots.
+     - Description of the snapshot. Returned for on-demand snapshots.
 
-   * - ``expiresAt``
+   * - expiresAt
      - string
-     - :abbr:`UTC (Coordinated Universal Time)` 
-       `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ formatted
-       point in time when |service| will delete the snapshot.
+     - |iso8601-time| when |service| deletes the snapshot.
 
-   * - ``id``
+   * - id
      - string
      - Unique identifier of the snapshot.
 
-   * - ``links``
+   * - links
      - array
-     - One or more links to sub-resources and/or related resources.
-       The relations between URLs are explained in the `Web Linking
-       Specification <http://tools.ietf.org/html/rfc5988>`_.
+     - .. include:: /includes/api/links-explanation.rst
 
-   * - ``masterKeyUUID``
+   * - masterKeyUUID
      - string
-     - Unique ID of the :abbr:`AWS (Amazon Web Services)` 
-       :abbr:`KMS (Key Management Service)` Customer Master Key used to 
-       encrypt the snapshot. Only visible for clusters using
+     - Unique ID of the |aws| |kms| Customer Master Key used to encrypt
+       the snapshot. Only visible for clusters using
        :ref:`Encryption at Rest via Customer KMS <security-aws-kms>`.
 
-   * - ``mongodVersion``
+   * - mongodVersion
      - string
      - Version of the MongoDB server.
-       
-   * - ``snapshotType``
+
+   * - snapshotType
      - string
-     - Specified the type of snapshot. Valid values are ``onDemand`` and
-       ``scheduled``.
-       
-   * - ``status``
+     - Specified the type of snapshot. Valid values are ``onDemand``
+       and ``scheduled``.
+
+   * - status
      - string
      - Current status of the snapshot. One of the following values:
 
        - ``queued``
        - ``inProgress``
        - ``completed``
-       - ``failed`` 
+       - ``failed``
 
-   * - ``storageSizeBytes``
-     - int
+   * - storageSizeBytes
+     - integer
      - Specifies the size of the snapshot in bytes.
-       
-   * - ``type``
+
+   * - type
      - string
-     - Specifies the type of cluster: ``replicaSet`` or ``shardedCluster``.
+     - Specifies the type of cluster: ``replicaSet`` or
+       ``shardedCluster``.
