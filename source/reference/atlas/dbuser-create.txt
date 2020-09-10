@@ -26,15 +26,17 @@ Syntax
 .. code-block:: text
 
    mongocli atlas dbuser create 
-        --username|-u <name-of-user>  
+        [ --awsIAMType <NONE|USER|ROLE> ]
+        [ --deleteAfter <date-of-deletion> ]
+        [ --ldapType <NONE|USER|GROUP>]
         [ --output|-o <output-format> ]
         [ --password|-p <password-of-user> ]
         [ --profile|-P <profile-name> ]
         [ --projectId <project-ID> ]
         --role <name-of-role>
-        [ --deleteAfter <date-of-deletion> ]
+        --username|-u <name-of-user> 
         [ --x509Type <NONE|MANAGED|CUSTOMER> ]
-        [ --awsIAMType <NONE|USER|ROLE> ]
+
 
 .. include:: /includes/fact-command-line-help.rst
 
@@ -52,34 +54,116 @@ Options
      - Description
      - Required?
 
+   * - ``--awsIAMType``
+     - string
+     - Authenticates the new database user with
+       |aws| IAM credentials. If omitted, |service| uses the default 
+       value of ``NONE``.
+
+       Accepted values are:
+
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
+
+          * - ``NONE``
+            - User doesn't authenticate with AWS IAM credentials.
+         
+              If ``--ldapType`` and ``--x509Type`` are ``NONE`` or
+              omitted, |service| authenticates this user through
+              :manual:`SCRAM-SHA </core/security-scram>`.
+          * - ``USER``
+            - User authenticates with :atlas:`AWS IAM user credentials
+              </security-add-mongodb-users/#database-user-authentication>`.
+            
+              You do not need to provide a ``--password`` for the 
+              user. 
+          * - ``ROLE``
+            - User authenticates with :atlas:`AWS IAM role credentials
+              </security-add-mongodb-users/#database-user-authentication>`.
+              
+              You do not need to provide a ``--password`` for the user.
+
+       If you set ``--awsIAMType`` to ``USER`` or ``ROLE``, you can't
+       set ``--x509Type`` or ``--ldapType`` to any value other than
+       ``NONE``.
+       
+     - no
+
+   * - ``--ldapType``
+     - string
+     - Authenticates the new database user with |ldap|. If
+       omitted, |service| uses the default value of ``NONE``.
+
+       Accepted values include:
+
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
+
+          * - ``NONE``
+            - User doesn't authenticate with |ldap|. 
+            
+              If ``--awsIAMType`` and ``--x509Type`` are ``NONE`` or
+              omitted, |service| authenticates this user through
+              :manual:`SCRAM-SHA </core/security-scram>`. 
+          * - ``USER``
+            - |ldap| server authenticates this user through the user's
+              |ldap| user.
+
+              The name you specify with ``--username`` must also be a
+              fully qualified distinguished name, as defined in
+              :rfc:`2253`.
+
+          * - ``GROUP``
+            - |ldap| server authenticates this user using their
+              |ldap| user and authorizes this user using their |ldap|
+              group. To learn more about |ldap| security, see
+              :atlas:`Set up User Authentication and Authorization with
+              LDAP </security-ldaps>`.
+
+              The name you specify with ``--username`` must also be a
+              fully qualified distinguished name, as defined in
+              :rfc:`2253`.
+
+       If you set ``--ldapType`` to ``USER`` or ``GROUP``, you can't
+       set ``--awsIAMType`` or ``--x509Type`` to any value other than
+       ``NONE``.
+     - no
+
+   * - ``--deleteAfter``
+     - date
+     - |iso8601-time| after which |service| deletes the user. The 
+       specified date must be in the future and within one week of the 
+       time you make the API request.
+
+       .. note::
+          You may include an |iso8601| time zone designator to ensure 
+          that the expiration date occurs with respect to the local 
+          time in the specified time zone. Time zones are represented 
+          as an offset from |utc|.
+
+       .. example::
+          To delete a database user on August 1st, 2020, at 12:30pm in 
+          New York (Eastern Daylight Time), use the option:
+
+          .. code-block:: sh
+             :copyable: true
+
+             --deleteAfter 2020-08-01T12:30-04:00
+     - no
+
    * - ``--output``, ``-o``
      - string 
      - .. include:: /includes/extracts/fact-basic-options-output.rst
      - no
 
-   * - ``--username``, ``-u``
-     - string
-     - Username for authenticating the user to MongoDB. 
-
-       Must be a fully qualified distinguished name, as defined in `RFC
-       2253 <https://tools.ietf.org/html/rfc2253.html>`__, if:
-
-       - ``--x509Type`` is ``CUSTOMER``.
-
-       Must be an `Amazon Resource Name (ARN)
-       <https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html>`__ if:
-       
-       - ``--awsIAMType`` is ``USER`` or ``ROLE``.
-
-     - yes
-
    * - ``--password``, ``-p``
      - string
-     - Password for authenticating the user to MongoDB. Required if:
-
-       - ``--x509Type`` and ``--awsIAMType`` are omitted or ``NONE``,
-         meaning that the database user authenticates with
-         ``SCRAM-SHA``.
+     - Password for authenticating the user to MongoDB. 
+       Required if ``--awsIAMType``, ``--ldapType``, and ``--x509Type``
+       are omitted or ``NONE``, which means that the database user
+       authenticates with ``SCRAM-SHA``.
 
      - no
 
@@ -108,71 +192,57 @@ Options
        </security-add-mongodb-users/index.html#mongodb-database-user-privileges>`.
      - yes
 
-   * - ``--deleteAfter``
-     - date
-     - |iso8601-time| after which |service| deletes the user. The 
-       specified date must be in the future and within one week of the 
-       time you make the API request.
+   * - ``--username``, ``-u``
+     - string
+     - Username for authenticating the user to MongoDB. 
 
-       .. note::
-          You may include an |iso8601| time zone designator to ensure 
-          that the expiration date occurs with respect to the local 
-          time in the specified time zone. Time zones are represented 
-          as an offset from |utc|.
+       - Must be a fully qualified distinguished name, as defined in   
+         `RFC 2253 <https://tools.ietf.org/html/rfc2253.html>`__, if:
 
-       .. example::
-          To delete a database user on August 1st, 2020, at 12:30pm in 
-          New York (Eastern Daylight Time), use the option:
+         - ``--ldapType`` is ``USER`` or ``GROUP``.
+         - ``--x509Type`` is ``CUSTOMER``.
 
-          .. code-block:: sh
-             :copyable: true
-
-             --deleteAfter 2020-08-01T12:30-04:00
-     - no
+       - Must be an `Amazon Resource Name (ARN)
+         <https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html>`__
+         if ``--awsIAMType`` is ``USER`` or ``ROLE``.
+       
+     - yes
 
    * - ``--x509Type``
      - string
-     - X.509 method by which the provided username is authenticated.
+     - Authenticates the new database user with X.509. If omitted, 
+       |service| uses the default value of ``NONE``. 
 
        Accepted values are:
 
-       - ``NONE``: User doesn't authenticate with X.509.
-       - ``MANAGED``: User authenticates with |service|-managed X.509.
-         You do not need to provide a ``--password`` for the user. 
-       - ``CUSTOMER``: User authenticates with :atlas:`self-managed
-         X.509 </security-self-managed-x509/#self-managed-x509>`. 
-         You do not need to provide a ``--password`` for the user. You
-         must include a fully qualified Distinguished Name (DN) as the
-         ``--username`` for users who authenticate with self-managed
-         X.509.
+       .. list-table::
+          :stub-columns: 1
+          :widths: 20 80
 
-       If no value is given, |service| uses the default value of
-       ``NONE``. You receive an error if the value is ``MANAGED`` or
-       ``CUSTOMER`` and ``--awsIAMType`` is ``USER`` or ``ROLE``.
-
+          * - ``NONE``
+            - User doesn't authenticate with X.509. 
+       
+              If ``--awsIAMType`` and ``--ldapType`` are ``NONE`` or
+              omitted, |service| authenticates this user through
+              :manual:`SCRAM-SHA </core/security-scram>`.
+          * - ``MANAGED``
+            - User authenticates with |service|-managed X.509.
+              You do not need to provide a ``--password`` for the user. 
+          * - ``CUSTOMER``
+            - User authenticates with :atlas:`self-managed
+              X.509 </security-self-managed-x509/#self-managed-x509>`.
+              You do not need to provide a ``--password`` for the user.
+              You must include a fully qualified Distinguished Name (DN)
+              as the ``--username`` for users who authenticate with
+              self-managed X.509.
+       
+       If you set ``--x509Type`` to ``MANAGED`` or ``CUSTOMER``, you
+       can't set ``--awsIAMType`` or ``--ldapType`` to any value other 
+       than ``NONE``.
+       
      - no
 
-   * - ``--awsIAMType``
-     - string
-     - If this value is set, the new database user authenticates with
-       |aws| IAM credentials.
 
-       Accepted values are:
-
-       - ``NONE``: User doesn't authenticate with AWS IAM credentials.
-       - ``USER``: User authenticates with :atlas:`AWS IAM user
-         credentials
-         </security-add-mongodb-users/#database-user-authentication>`.
-         You do not need to provide a ``--password`` for the user. 
-       - ``ROLE``: User authenticates with :atlas:`AWS IAM role
-         credentials
-         </security-add-mongodb-users/#database-user-authentication>`.
-         You do not need to provide a ``--password`` for the user.
-
-       If no value is given, |service| uses the default value of
-       ``NONE``. You receive an error if the value is ``USER`` or
-       ``ROLE`` and ``--x509Type`` is ``MANAGED`` or ``CUSTOMER``.
-     - no
 
 .. _dbuser-create-command-output:
 
