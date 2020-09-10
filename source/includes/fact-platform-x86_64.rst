@@ -73,6 +73,11 @@
      - Community only
      - Community only
 
+   * - Ubuntu 18.04
+     - 3.6.20+
+     -
+     -
+
    * - Ubuntu 16.04
      - |checkmark|
      - |checkmark|
