@@ -1,3 +1,16 @@
+.. _10.19.0.6566-1:
+
+MongoDB Agent 10.19.0.6566-1
+----------------------------
+
+*Released* 2020-09-01
+
+- Improves logging: only log to ``stdout/sterr`` if no other log
+  mechanism is available.
+
+- Adds additional retries if certain error conditions are encountered when
+  taking a snapshot.
+
 .. _10.17.0.6529-1:
 
 MongoDB Agent 10.17.0.6529-1
