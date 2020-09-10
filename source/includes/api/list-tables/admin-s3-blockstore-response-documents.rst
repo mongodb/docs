@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 15 10 75
+   :widths: 20 14 66
    :header-rows: 1
    :stub-columns: 1
 
@@ -7,49 +7,55 @@
      - Type
      - Description
 
-   * - ``acceptedTos``
+   * - acceptedTos
      - boolean
      - Flag indicating whether or not you accepted the terms of service
        for using |s3|\-compatible stores with |onprem|. If this is
        ``false``, the request results in an error and |onprem| doesn't
        create the |s3|\-compatible store.
 
-   * - ``assignmentEnabled``
+   * - assignmentEnabled
      - boolean
      - Flag indicating whether you can assign backup jobs to this data
        store.
 
-   * - ``awsAccessKey``
+   * - awsAccessKey
      - string
      - |aws| Access Key ID that can access the |s3| bucket specified in
-       ``<s3BucketName>``.
+       **s3BucketName**.
 
-   * - ``awsSecretKey``
+   * - awsSecretKey
      - string
      - |aws| Secret Access Key that can access the |s3| bucket
-       specified in ``<s3BucketName>``.
+       specified in **s3BucketName**.
 
-   * - ``encryptedCredentials``
+   * - disableProxyS3
      - boolean
-     - Flag indicating whether the username and password for this S3
+     - Flag indicating whether the
+       :doc:`HTTP proxy </tutorial/use-with-http-proxy>` should be
+       used when connecting to |s3|.
+
+   * - encryptedCredentials
+     - boolean
+     - Flag indicating whether the username and password for this |s3|
        blockstore were encrypted using the
        :doc:`credentialstool </tutorial/encrypt-user-credentials>`.
 
-   * - ``id``
+   * - id
      - string
      - Unique name that labels this |s3| blockstore.
 
-   * - ``labels``
+   * - labels
      - array of strings
      - Array of tags to manage which
        :term:`backup jobs <backup job>` |onprem| can assign to which
        :term:`S3 blockstores <S3 Snapshot Store>`.
 
-   * - ``links``
+   * - links
      - object array
      - .. include:: /includes/api/links-explanation.rst
 
-   * - ``loadFactor``
+   * - loadFactor
      - integer
      - Positive, non-zero integer that expresses how much backup work
        this :term:`snapshot store` performs compared to another
@@ -61,7 +67,7 @@
           To learn more about :guilabel:`Load Factor`, see
           :doc:`Edit an Existing |s3| Blockstore </tutorial/manage-s3-blockstore-storage>`
 
-   * - ``pathStyleAccessEnabled``
+   * - pathStyleAccessEnabled
      - boolean
      - Flag indicating the style of this endpoint.
 
@@ -83,7 +89,7 @@
        To review the |s3| bucket |url| conventions, see the
        :aws:`AWS S3 documentation </AmazonS3/latest/dev/UsingBucket.html#access-bucket-intro>`.
 
-   * - ``s3AuthMethod``
+   * - s3AuthMethod
      - string
      - Method used to authorize access to the |s3| bucket specified in ``s3BucketName``.
 
@@ -104,36 +110,36 @@
               ignored. To learn more, see the
               :aws:`AWS documentation </AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#attach-iam-role>`
 
-   * - ``s3BucketEndpoint``
+   * - s3BucketEndpoint
      - string
      - |url| that |onprem| uses to access this |aws| |s3| or
        |s3|\-compatible bucket.
 
-   * - ``s3BucketName``
+   * - s3BucketName
      - string
      - Name of the |s3| bucket that hosts the |s3| blockstore.
 
-   * - ``s3MaxConnections``
+   * - s3MaxConnections
      - integer
      - Positive integer indicating the maximum number of connections
        to this |s3| blockstore.
 
-   * - ``sseEnabled``
+   * - sseEnabled
      - boolean
      - Flag indicating whether this |s3| blockstore enables
        :aws:`server-side encryption </AmazonS3/latest/dev/UsingServerSideEncryption.html>`.
 
-   * - ``uri``
+   * - uri
      - string
      - Comma-separated list of hosts in the ``<hostname:port>`` format
        that can access this |s3| blockstore.
 
-   * - ``ssl``
+   * - ssl
      - boolean
      - Flag indicating whether this |s3| blockstore only accepts
        connections encrypted using |tls|.
 
-   * - ``writeConcern``
+   * - writeConcern
      - string
      - Write concern used for this blockstore.
 
