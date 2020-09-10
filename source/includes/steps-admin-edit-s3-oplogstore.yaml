@@ -2,12 +2,12 @@ stepnum: 1
 level: 4
 source:
   file: steps-source-admin-navigation.yaml
-  ref:  admin-backup-snapshot
+  ref:  admin-backup-oplog
 ---
 stepnum: 2
 level: 4
-title: "Go to the row for the |s3ss| you want to edit."
-ref: select-blockstore
+title: "Go to the row for the |s3os| you want to edit."
+ref: select-oplogstore
 ---
 stepnum: 3
 level: 4
@@ -29,12 +29,12 @@ content: |
 
      * - S3 Bucket Name
        - Required
-       - Type the name of the |s3| bucket where you want to host the
-         the |s3ss|.
+       - Enter the name of the |s3| bucket where you want to host the
+         the |s3os|.
 
      * - S3 Endpoint
        - Required
-       - Type the |url| for this |aws| |s3| or |s3|-compatible bucket.
+       - Enter the |url| for this |aws| |s3| or |s3|-compatible bucket.
 
          What |url| you write depends upon:
 
@@ -65,7 +65,7 @@ content: |
 
      * - S3 Max Connections
        - Required
-       - Type a positive integer indicating the maximum number of
+       - Enter a positive integer indicating the maximum number of
          connections to this |aws| |s3| or |s3|-compatible bucket.
 
      * - Path Style Access
@@ -108,14 +108,14 @@ content: |
 
      * - AWS Access Key
        - Conditional
-       - Type your |aws| Access Key ID.
+       - Enter your |aws| Access Key ID.
 
          |mms| displays this field when you set
          :guilabel:`S3 Authorization Mode` to :guilabel:`Keys`.
 
      * - AWS Secret Key
        - Conditional
-       - Type your |aws| Secret Access Key.
+       - Enter your |aws| Secret Access Key.
 
          |mms| displays this field when you set
          :guilabel:`S3 Authorization Mode` to :guilabel:`Keys`.
@@ -126,7 +126,7 @@ content: |
 
      * - <hostname>:<port>
        - Required
-       - Type in one or more hosts that comprise the |s3| Snapshot
+       - Enter in one or more hosts that comprise the |s3| Snapshot
          Store metadata database in the ``<hostname:port>`` format.
 
          .. important::
@@ -135,7 +135,7 @@ content: |
             have the same data as the original blockstore. Changing
             the host to a new blockstore results in data loss.
 
-         - If the |s3ss| metadata database is a Replica
+         - If the |s3os| metadata database is a Replica
            Set or Sharded Cluster, type a comma-separated list of
            |mongod| instances (for a Replica Set) or |mongos|
            instances (for a Sharded Cluster).
@@ -144,7 +144,7 @@ content: |
 
               ``host1.example.com:27017, host2.example.com:27017, host2.example.com:27018``
 
-         - If the |s3ss| metadata database is a
+         - If the |s3os| metadata database is a
            standalone MongoDB instance, type the ``hostname:port`` of
            the instance.
 
@@ -180,13 +180,13 @@ content: |
        - Select if the blockstore database only accepts connection
          encrypted using |tls|.
 
-         Beyond this checkbox, to connect this |s3ss|
+         Beyond this checkbox, to connect this |s3os|
          using |tls|, you must enable
          :manual:`TLS on the S3 blockstore database </tutorial/configure-ssl>`.
 
      * - Connection Options
        - Optional
-       - Type any additional :manual:`configuration file options
+       - Enter any additional :manual:`configuration file options
          </reference/configuration-options>` for the MongoDB instance.
          This field supports unescaped values only.
 
@@ -195,75 +195,8 @@ content: |
 
      * - Assignment Labels
        - Optional
-       - Type a comma-separated list of labels to assign the
+       - Enter a comma-separated list of labels to assign the
          S3 blockstores to specific projects.
-
-     * - Load Factor
-       - Optional
-       - Type any positive integer that expresses how much backup work
-         you want this snapshot store to perform compared to another
-         snapshot store.
-
-         .. important::
-            If you have only one snapshot store, skip this setting.
-
-         Backup work includes running backups, restoring snapshots or
-         :term:`grooming <groom>` blockstores. The term of backup work
-         ratio assigned to a single snapshot store is called its *Load
-         Factor*.
-
-         By default, |mms| assigns each snapshot store a
-         :guilabel:`Load Factor` of ``1``. This means each snapshot
-         store would perform the same amount of backup work.
-
-         As a snapshot store's :guilabel:`Load Factor` increases, it
-         performs more backup work compared to another snapshot store.
-         If the :guilabel:`Load Factor` of snapshot store ``A`` is set
-         to ``2`` and the :guilabel:`Load Factor` of snapshot store
-         ``B`` is set to ``1``, ``A`` performs two times the backup
-         work of ``B``.
-
-         .. example:: **How to estimate Load Factor**
-
-            Consider a five-shard sharded cluster with the
-            following backup storage configuration:
-
-            - File system store (``F``) manages the backup work for
-              one shard in the cluster. ``F`` is running on a single
-              two-core physical server.
-
-            - Blockstore (``B``) manages the backup work for four
-              shards in the cluster. ``B`` is running as a four-node
-              sharded cluster on four physical servers with two cores
-              on each server.
-
-            In this example, ``B`` has four times the capability of
-            ``F``. ``B`` should receive the greater part of the ratio
-            of backup work: ``4:1``. For every one backup task ``F``
-            performs, ``B`` performs ``4``.
-
-            Set the Load Factors of ``B`` to ``4`` and ``F`` to ``1``.
-
-         Snapshot stores with greater compute or storage performance
-         should be given a greater :guilabel:`Load Factor`:
-
-         - A file system store with 16-cores and 128 GB of RAM can
-           back up more databases in less time than a file system
-           store with only 2 cores and 8 GB of RAM.
-
-         - A blockstore backed by a 10-node sharded cluster can back
-           up more databases and groom more databases than a
-           blockstore backed by a single replica set.
-
-         :guilabel:`Load Factor` can be set to ``0``. When one snapshot
-         store's :guilabel:`Load Factor` is set to ``0``, it performs
-         no backup work at all. If a snapshot store's
-         :guilabel:`Load Factor` is changed while backup work is in
-         progress, all jobs or tasks running on that snapshot store
-         are allowed to finish. All future backup work then is re-
-         distributed among the remaining snapshot stores with a
-         :guilabel:`Load Factor` of ``1`` or greater and have
-         :guilabel:`Assignment Enabled` selected.
 
      * - Write Concern
        - Required
@@ -273,28 +206,30 @@ content: |
          .. include:: /includes/list-tables/write-concerns.rst
 
 ---
-title: "Select the checkbox in the :guilabel:`Assignment Enabled` column."
 stepnum: 4
 level: 4
-ref: assign-s3-blockstores
+title: "Set the S3 Oplog Store to Accept Backup Jobs."
+ref: assign-oplogstores
+optional: true
 content: |
 
-  Select if you want to enable this |s3ss| after creating
-  it. This is selected by default so the |s3ss| can be
-  assigned backup jobs. If you clear this checkbox, the |s3| Snapshot
-  Store is created but you cannot assign backups to this |s3| Snapshot
-  Store.
+  To enable this |s3os|, click the checkbox in the
+  :guilabel:`Assignment Enabled` column.
+
+  This is selected by default so the |s3os| can be assigned
+  backup jobs. If you clear this checkbox, the |s3os| is
+  created but you cannot assign backups to this |s3os|.
 
 ---
-title: "Click :guilabel:`Save`."
 stepnum: 5
 level: 4
-ref: save-s3-blockstore-changes
+title: "Click :guilabel:`Save`."
+ref: save-oplogstore-changes
 ---
 stepnum: 6
 level: 4
-title: "Restart Ops Manager instances if needed."
-ref: restart-blockstore-after-edits
+title: "Restart Ops Manager Instances If Needed."
+ref: restart-oplogstore-after-edits
 optional: true
 content: |
 
@@ -304,10 +239,10 @@ content: |
 
   .. warning::
 
-     Modifying the connection string values or the Write Concern for an
-     existing blockstore requires all |onprem| components, including
-     those only running the Backup Daemon, to be restarted to apply
-     those changes. Connection parameters include:
+     Modifying the connection string values or the Write Concern for
+     an existing blockstore requires you to restart all |onprem|
+     components, including those only running the Backup Daemon to
+     apply those changes. Connection parameters include:
 
      - :guilabel:`<hostname>:<port>`
      - :guilabel:`MongoDB Auth Username`
@@ -317,13 +252,13 @@ content: |
      - :guilabel:`Connection Options`
      - :guilabel:`Write Concern`
 
-     If you change to another blockstore host, the data on the
-     existing blockstore is not copied automatically to the other
-     blockstore.
+     If you change to another |s3os| host, the data on the
+     existing |s3os| is not copied automatically to the other
+     |s3os|.
 
   .. seealso::
 
-     For more details on the MongoDB connection string |uri|, see
+     To learn more about the MongoDB connection string |uri|, see
      :manual:`Connection String URI Format </reference/connection-string>`
      in the MongoDB Manual.
 

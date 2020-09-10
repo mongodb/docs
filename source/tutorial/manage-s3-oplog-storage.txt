@@ -1,33 +1,33 @@
-==========================
-Manage S3 Snapshot Storage
-==========================
+=======================
+Manage S3 Oplog Storage
+=======================
 
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 1
    :class: singlecol
 
-.. include:: /includes/backup/snapshot-store-options.rst
+.. include:: /includes/styles/corrections.rst
 
-This tutorial covers backing up your MongoDB databases as snapshots
-stored in |s3| and |s3|\-compatible buckets. |mms| stores the metadata
-for :term:`S3 snapshot stores <S3 Snapshot Store>` in a MongoDB
-database.
+.. include:: /includes/backup/oplog-introduction.rst
 
-.. include:: /includes/backup/add-capacity-using-multiple-stores.rst
+This tutorial covers creating additional |s3os|\s to store oplog
+entries. Like any MongoDB instance, an |s3os| can exist on any host
+running MongoDB and |s3| bucket that the |onprem| application can
+access.
 
 Considerations
 --------------
 
-Can't Move the S3 Snapshot Store
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Can't Move the S3 Oplog Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After you create an |s3ss|, you cannot move it to another |s3| bucket.
-If you need to use a different |s3| bucket to host your |s3ss|, you
-must create a new |s3ss| in that |s3| bucket.
+After you create an |s3os|, you cannot move it to another |s3| bucket.
+If you need to use a different |s3| bucket to host your |s3os|, you
+must create a new |s3os| in that |s3| bucket.
 
 Supports the Storage API
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,12 +39,12 @@ MongoDB supports endpoints for:
 
 - |aws| |s3| :aws:`API </AmazonS3/latest/API/Welcome.html>`
 - IBM `Cloud Object Storage API`_
-- Dell EMC `Elastic Cloud Storage API`_
+- Dell EMC `Elastic Cloud Storage API`_.
 
 IBM and Dell EMC support a subset of the full |aws| |s3| |api|.
 
 You can use other |s3|-compatible endpoints. |mms| attempts to validate
-these endpoints when you save the |s3ss| setup. If validation
+these endpoints when you save the |s3os| setup. If validation
 passes, |mms| saves the configuration. If validation fails, |mms|
 displays an error and doesn't save the configuration.
 
@@ -55,20 +55,15 @@ Metadata Storage Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - :doc:`Deploy the dedicated MongoDB instance(s) </tutorial/prepare-backing-mongodb-instances>`
-  to serve the :term:`S3 snapshot store <S3 Snapshot Store>` metadata
-  and :term:`Oplog Store <Oplog Store Database>`. Serve these
-  instances on the same hosts as the |onprem| host, the
-  :term:`backing databases`, or snapshot stores. Attach one or more
-  storage volumes with enough capacity to store the databases these
-  instances manage.
+  to serve the |s3os| metadata and
+  :term:`Oplog Store <Oplog Store Database>`. Serve these instances on
+  the same hosts as the |onprem| host, the :term:`backing databases`,
+  or snapshot stores. Attach one or more storage volumes with enough
+  capacity to store the databases these instances manage.
 
-- Ensure the host serving the |onprem| :term:`Backup Daemon` service
-  has enough capacity to store the :term:`head` database.
-
-- Secure the instance that stores your
-  :term:`S3 snapshot store <S3 Snapshot Store>` metadata database
+- Secure the instance that stores your |s3os| metadata database
   using :manual:`authentication </core/authentication>` and
-  :manual:`TLS </tutorial/configure-ssl/>`. |s3ss| metadata databases
+  :manual:`TLS </tutorial/configure-ssl/>`. |s3os| metadata databases
   support :urioption:`all authentication mechanisms <authMechanism>`.
 
 AWS S3 Storage Prerequisites
@@ -81,17 +76,16 @@ AWS S3 Storage Prerequisites
 #. Create your own
    `AWS access keys <https://aws.amazon.com/developers/access-keys/>`_
    for your |iam| user. This allows you to create |s3| buckets and
-   store snapshot files in them. MongoDB does not create or issue |aws|
+   store oplog files in them. MongoDB does not create or issue |aws|
    access keys.
 
 #. Create your own :aws:`S3 bucket </AmazonS3/latest/dev/UsingBucket.html#create-bucket-intro>`
-   to store your :term:`S3 snapshot store <S3 Snapshot Store>`
-   snapshots.
+   to store your |s3os|\s.
 
    .. note::
       The |iam| user for which you created the |aws| access keys must
       :aws:`own </AmazonS3/latest/user-guide/set-bucket-permissions.html>`
-      the |aws| |s3| Bucket.
+      the |aws| |s3| bucket.
 
 IBM Cloud Object Storage Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -102,7 +96,8 @@ IBM Cloud Object Storage Prerequisites
 Dell EMC Elastic Cloud Storage Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Create an Access Key and Secret Key from your `ECS User ID <https://www.delltechnologies.com/en-us/storage/ecs/index.htm>`_.
+1. Create an Access Key and Secret Key from your
+   `ECS User ID <https://www.delltechnologies.com/en-us/storage/ecs/index.htm>`__.
 #. Create your own |s3|\-compatible bucket.
 
 Other S3-Compatible Storage
@@ -118,27 +113,27 @@ Procedures
 
 .. include:: /includes/tabsets/storage-settings-selection.rst
 
-.. _add-s3-blockstore:
+.. _add-s3-oplogstore:
 
-Add One S3 Snapshot Store
+Add One S3 Oplog Store
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/admin-add-s3-oplogstore.rst
+
+.. _edit-s3-oplogstore:
+
+Edit One Existing S3 Oplog Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|onprem| lists :term:`oplog stores <Oplog Store Database>` in a table
+on the :ref:`Oplog Storage page <oplog-stores-page>`. Each row
+contains the settings for each local and |s3os|.
+
+.. include:: /includes/steps/admin-edit-s3-oplogstore.rst
+
+.. _delete-s3-oplogstore:
+
+Delete One S3 Oplog Store
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/steps/admin-add-s3-blockstore.rst
-
-.. _edit-s3-blockstore:
-
-Edit One Existing S3 Snapshot Store
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|onprem| lists |s3ss|\s in a table on the
-:ref:`Snapshot Storage page <blockstores-page>`. Each row contains the
-settings for one |s3ss|.
-
-.. include:: /includes/steps/admin-edit-s3-blockstore.rst
-
-.. _delete-s3-blockstore:
-
-Delete One S3 Snapshot Store
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/steps/admin-delete-s3-blockstore.rst
+.. include:: /includes/steps/admin-delete-s3-oplogstore.rst
