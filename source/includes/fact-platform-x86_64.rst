@@ -96,7 +96,7 @@
      - |checkmark|
      - |checkmark|
      - 4.0.1+
-     -
+     - 3.6.20+
 
    * - Ubuntu 16.04
      - |checkmark|
