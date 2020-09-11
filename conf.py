@@ -115,7 +115,6 @@ extlinks = {
     'java-async-docs': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
     'java-async-api': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', ''),
     'go-api': ('https://godoc.org/github.com/mongodb/mongo-go-driver/%s', ''),
-    'mongo-specs': ('https://github.com/mongodb/specifications/%s', ''),
     'db-tools': ('https://docs.mongodb.com/database-tools/%s', '')
 }
 
