@@ -36,5 +36,8 @@
      div.tabs > ul.tab-strip {
        width: 100%
      }
+     div.highlight > pre > span.o {
+       line-height: 16px;
+     }
    </style>
 

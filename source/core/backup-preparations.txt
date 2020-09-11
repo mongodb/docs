@@ -10,6 +10,8 @@ Backup Preparations
    :depth: 1
    :class: singlecol
 
+.. include:: /includes/styles/corrections.rst
+
 Before backing up your cluster or replica set, decide how to back up
 the data and what data to back up. This page describes items you must
 consider before starting a backup.
@@ -80,8 +82,8 @@ consider before starting a backup.
         - MongoDB Blockstore
 
       * - Snapshot Types
-        - Complete
-        - Complete
+        - Complete [1]_
+        - Complete [1]_
         - Many partial
         - Many partial
         - Many partial
@@ -127,6 +129,75 @@ consider before starting a backup.
         - Lower
         - Lower
         - Medium
+
+   .. [1] Every snapshot includes the full database path. The
+          {+mdbagent+} transfers the blocks for each incremental change
+          to the filesystem store. {+mdbagent+} writes the bytes to the
+          correct range of blocks that exist in the new snapshot.
+          |onprem| then copies the blocks of the previous full snapshot
+          into those offsets. This results in a complete backup. This
+          saves network bandwidth.
+
+          .. example::
+
+             .. list-table::
+                :widths: 50 50
+                :header-rows: 1
+
+                * - Last full snapshot
+                  - New incremental snapshot
+                * -
+
+                    ::
+
+                      ********
+                      ********
+                      ********
+
+                  -
+
+                    ::
+
+                      ********
+
+             To create a new full snapshot, |onprem|:
+
+             .. list-table::
+                :widths: 3 70 28
+
+                * - 1
+                  - Determines that the bytes of the new incremental
+                    snapshot fit into the old snapshot in these locations:
+                  -
+                    ::
+
+                      ****...*
+                      ********
+                      **.*****
+                      ****....
+
+                * - 2
+                  - Writes the incremental snapshot to free spaces in
+                    the filesystem to fit those offsets:
+                  -
+                    ::
+
+                     ....***.
+                     ........
+                     ..*.....
+                     ....****
+
+                * - 3
+                  - Copies the old snapshot into the offsets of the
+                    new incremental snapshot, resulting in this byte
+                    map:
+                  -
+                    ::
+
+                     ********
+                     ********
+                     ********
+                     ********
 
    .. topic:: When Do You Use a Particular Backup Method?
 
