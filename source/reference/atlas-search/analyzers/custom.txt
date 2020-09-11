@@ -1,0 +1,1692 @@
+.. _custom-analyzers:
+
+================
+Custom Analyzers
+================
+
+.. include:: /includes/styles/corrections.rst
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+An |fts| analyzer prepares a set of documents to be indexed by performing
+a series of operations to transform, filter, and group sequences of characters.
+You can define a custom analyzer to suit your specific indexing needs.
+
+Text analysis is a three-step process:
+
+1. :ref:`Character Filters <char-filters-ref>`
+
+   You can specify one or more character filters to use in your custom
+   analyzer. Character filters examine text one character at a time and
+   perform filtering operations.
+
+2. :ref:`Tokenizer <tokenizers-ref>`
+
+   An analyzer uses a tokenizer to split chunks of text into groups, or
+   tokens, for indexing purposes. For example, the whitespace tokenizer
+   splits text fields into individual words based on where whitespace occurs.
+
+3. :ref:`Token Filters <token-filters-ref>`
+
+   After the tokenization step, the resulting tokens can pass through one
+   or more token filters. A token filter performs operations such as:
+   
+   - Stemming, which reduces related words, such as "talking", "talked",
+     and "talks" to their root word "talk".
+   - Redaction, the removal of sensitive information from public documents.
+
+Usage
+-----
+
+A custom analyzer has the following syntax:
+
+.. code-block:: json
+
+   "analyzers": [
+     {
+       "name": "<name>",
+       "charFilters": [ <list-of-character-filters> ],
+       "tokenizer": {
+         "type": "<tokenizer-type"
+       },
+       "tokenFilters": [ <list-of-token-filters> ]
+     }
+   ]
+
+A custom analyzer has the following attributes:
+
+.. list-table::
+   :widths: 15 20 45 15
+   :header-rows: 1
+
+   * - Attribute
+     - Type
+     - Description
+     - Required?
+
+   * - ``name``
+     - string
+     - Name of the custom analyzer. Names must be unique within an index,
+       and may not start with any of the following strings:
+
+       - ``lucene.``
+       - ``builtin.``
+       - ``mongodb.``
+
+     - yes
+
+   * - ``charFilters``
+     - list of objects
+     - Array containing zero or more character filters.
+     - no
+
+   * - ``tokenizer``
+     - object
+     - Tokenizer to use.
+     - yes
+
+   * - ``tokenFilters``
+     - list of objects
+     - Array containing zero or more token filters.
+     - no
+
+To use a custom analyzer when indexing a collection, include it in the
+:ref:`index definition <ref-index-definitions>`. In the following example,
+a custom analyzer named ``htmlStrippingAnalyzer`` uses a character filter
+to remove all HTML tags except ``a`` from the text.
+
+.. code-block:: json
+
+   {
+     "analyzer": "htmlStrippingAnalyzer",
+     "mappings": {
+       "dynamic": true
+     },
+     "analyzers": [
+       {
+         "name": "htmlStrippingAnalyzer",
+         "charFilters": [
+           {
+             "type": "htmlStrip",
+             "ignoredTags": ["a"]
+           }
+         ],
+         "tokenizer": {
+           "type": "standard"
+         },
+         "tokenFilters": []
+       }
+     ]
+   }
+
+.. _char-filters-ref:
+
+Character Filters
+-----------------
+
+Character filters always require a type field, and some take additional
+options as well.
+
+.. code-block:: json
+
+   "charFilters": [
+     {
+       "type": "<filter-type>",
+       "<additional-option>": <value>
+     }
+   ]
+
+|fts| supports four types of character filters:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Type
+     - Description
+
+   * - :ref:`htmlStrip <htmlStrip-ref>`
+     - Strips out HTML constructs.
+
+   * - :ref:`icuNormalize <icuNormalize-ref>`
+     - Normalizes text with the `ICU <http://site.icu-project.org/>`__
+       Normalizer. Based on Lucene's `ICUNormalizer2CharFilter
+       <https://lucene.apache.org/core/8_3_0/analyzers-icu/org/apache/lucene/analysis/icu/ICUNormalizer2CharFilter.html>`__.
+
+   * - :ref:`mapping <mapping-ref>`
+     - Applies user-specified normalization mappings to characters. Based
+       on Lucene's `MappingCharFilter
+       <https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/charfilter/MappingCharFilter.html>`__.
+
+   * - :ref:`persian <persian-ref>`
+     - Replaces instances of `zero-width non-joiner
+       <https://en.wikipedia.org/wiki/Zero-width_non-joiner>`__ with ordinary
+       space. Based on Lucene's `PersianCharFilter
+       <https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/fa/PersianCharFilter.html>`__.
+
+.. _htmlStrip-ref:
+
+htmlStrip
+~~~~~~~~~
+
+The ``htmlStrip`` character filter has the following attributes:
+
+.. list-table::
+   :widths: 10 10 45 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this character filter. Must be ``htmlStrip``.
+     - yes
+     - 
+
+   * - ``ignoredTags``
+     - array of strings
+     - A list of HTML tags to exclude from filtering.
+     - no
+     - 
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``htmlStrippingAnalyzer``. It uses the ``htmlStrip`` character
+   filter to remove all HTML tags from the text except the ``a`` tag. It
+   uses the :ref:`standard tokenizer <standard-tokenizer-ref>` and no
+   token filters.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "htmlStrippingAnalyzer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [{
+          "name": "htmlStrippingAnalyzer",
+          "charFilters": [{
+            "type": "htmlStrip",
+            "ignoredTags": ["a"]
+          }],
+          "tokenizer": {
+            "type": "standard"
+          },
+          "tokenFilters": []
+        }]
+      }
+
+.. _icuNormalize-ref:
+
+icuNormalize
+~~~~~~~~~~~~
+
+The ``icuNormalize`` character filter has the following attribute:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this character filter. Must be ``icuNormalize``.
+     - yes
+     - 
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``normalizingAnalyzer``. It uses the ``icuNormalize`` character
+   filter, the :ref:`whitespace tokenizer <whitespace-tokenizer-ref>`
+   and no token filters.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "normalizingAnalyzer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "normalizingAnalyzer",
+            "charFilters": [
+              {
+                "type": "icuNormalize"
+              }
+            ],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+
+.. _mapping-ref:
+
+mapping
+~~~~~~~
+
+The ``mapping`` character filter has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this character filter. Must be ``mapping``.
+     - yes
+     - 
+ 
+   * - ``mappings``
+     - object
+     - An object containing a comma-separated list of mappings. A mapping
+       indicates that one character or group of characters should be
+       substituted for another, in the format ``<original> : <replacement>``.
+     - yes
+     -
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``mappingAnalyzer``. It uses the ``mapping`` character filter to
+   replace instances of ``\\`` with ``/``. It uses the :ref:`keyword
+   tokenizer <keyword-tokenizer-ref>` and no token filters.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "mappingAnalyzer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "mappingAnalyzer",
+            "charFilters": [
+              {
+                "type": "mapping",
+                "mappings": {
+                  "\\": "/"
+                }
+              }
+            ],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+
+.. _persian-ref:
+
+persian
+~~~~~~~
+
+The ``persian`` character filter has the following attribute:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this character filter. Must be ``persian``.
+     - yes
+     - 
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``persianCharacterIndex``. It uses the ``persian`` character filter,
+   the ``whitespace`` tokenizer and no token filters.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "persianCharacterIndex",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "persianCharacterIndex",
+            "charFilters": [
+              {
+                "type": "persian"
+              }
+            ],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+
+.. _tokenizers-ref:
+
+Tokenizers
+----------
+
+A custom analyzer's tokenizer determines how |fts| splits up text into
+discrete chunks for indexing.
+
+Tokenizers always require a type field, and some take additional options
+as well.
+
+.. code-block:: json
+
+   "tokenizer": {
+     "type": "<tokenizer-type>",
+     "<additional-option>": "<value>"
+   }
+
+|fts| supports the following tokenizer options:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Name
+     - Description
+
+   * - :ref:`standard <standard-tokenizer-ref>`
+     - Tokenize based on word break rules from the `Unicode Text Segmentation
+       algorithm <http://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__.
+
+   * - :ref:`keyword <keyword-tokenizer-ref>`
+     - Tokenize the entire input as a single token.
+
+   * - :ref:`whitespace <whitespace-tokenizer-ref>`
+     - Tokenize based on occurrences of whitespace between words.
+
+   * - :ref:`nGram <ngram-tokenizer-ref>`
+     - Tokenize into text chunks, or "n-grams", of given sizes.
+
+   * - :ref:`edgeGram <edgegram-tokenizer-ref>`
+     - Tokenize input from the beginning, or "edge", of a text input into
+       n-grams of given sizes.
+
+   * - :ref:`regexCaptureGroup <regexcapturegroup-tokenizer-ref>`
+     - Match a regular expression pattern to extract tokens.
+
+   * - :ref:`regexSplit <regexSplit-tokenizer-ref>`
+     - Split tokens with a regular-expression based delimiter.
+
+.. _standard-tokenizer-ref:
+
+standard
+~~~~~~~~
+
+The ``standard`` tokenizer has the following attributes:
+
+.. list-table::
+   :widths: 15 10 50 15 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this tokenizer. Must be ``standard``.
+     - yes
+     -
+
+   * - ``maxTokenLength``
+     - integer
+     - Maximum length for a single token. Tokens greater than this length
+       are split at ``maxTokenLength`` into multiple tokens.
+     - no
+     - 255
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``standardShingler``. It uses the ``standard`` tokenizer and the
+   :ref:`shingle token filter <shingle-tf-ref>`.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "standardShingler",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "standardShingler",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard",
+              "maxTokenLength": 10,
+            },
+            "tokenFilters": [
+              {
+                "type": "shingle",
+                "minSingleSize": 2,
+                "maxShingleSize": 3
+              }
+            ]
+          }
+        ]
+      }
+   
+.. _keyword-tokenizer-ref:
+
+keyword
+~~~~~~~
+
+The ``keyword`` tokenizer has the following attribute:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this tokenizer. Must be ``keyword``.
+     - yes
+     -
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``keywordTokenizingIndex``. It uses the ``keyword`` tokenizer and a
+   regular expression token filter that redacts email addresses.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "keywordTokenizingIndex",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "keywordTokenizingIndex",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": [
+              {
+                "type": "regex",
+                "pattern": "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$",
+                "replacement": "redacted",
+                "matches": "all"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _whitespace-tokenizer-ref:
+
+whitespace
+~~~~~~~~~~
+
+The ``whitespace`` tokenizer has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this tokenizer. Must be ``whitespace``.
+     - yes
+     -
+
+   * - ``maxTokenLength``
+     - integer
+     - Maximum length for a single token. Tokens greater than this length
+       are split at ``maxTokenLength`` into multiple tokens.
+     - no
+     - 255
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``whitespaceLowerer``. It uses the ``whitespace`` tokenizer and a
+   token filter that lowercases all tokens.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "whitespaceLowerer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "whitespaceLowerer",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": [
+              {
+                "type": "lowercase"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _ngram-tokenizer-ref:
+
+nGram
+~~~~~
+
+The ``nGram`` tokenizer has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this tokenizer. Must be ``nGram``.
+     - yes
+     -
+ 
+   * - ``minGram``
+     - integer
+     - Number of characters to include in the shortest token created.
+     - yes
+     - 
+ 
+   * - ``maxGram``
+     - integer
+     - Number of characters to include in the longest token created.
+     - yes
+     - 
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``ngramShingler``. It uses the ``nGram`` tokenizer to create tokens
+   between 2 and 5 characters long and the :ref:`shingle token filter
+   <shingle-tf-ref>`.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "ngramShingler",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "ngramShingler",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "nGram",
+              "minGram": 2,
+              "maxGram": 5
+            },
+            "tokenFilters": [
+              {
+                "type": "shingle",
+                "minSingleSize": 2,
+                "maxShingleSize": 3
+              }
+            ]
+          }
+        ]
+      }
+
+.. _edgegram-tokenizer-ref:
+
+edgeGram
+~~~~~~~~
+
+The ``edgeGram`` tokenizer has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this tokenizer. Must be ``edgeGram``.
+     - yes
+     -
+ 
+   * - ``minGram``
+     - integer
+     - Number of characters to include in the shortest token created.
+     - yes
+     - 
+ 
+   * - ``maxGram``
+     - integer
+     - Number of characters to include in the longest token created.
+     - yes
+     - 
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``edgegramShingler``. It uses the ``edgeGram`` tokenizer to create tokens
+   between 2 and 5 characters long starting from the first character of
+   text input and the :ref:`shingle token filter <shingle-tf-ref>`.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "edegramShingler",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "edgegramShingler",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "edgeGram",
+              "minGram": 2,
+              "maxGram": 5
+            },
+            "tokenFilters": [
+              {
+                "type": "shingle",
+                "minSingleSize": 2,
+                "maxShingleSize": 3
+              }
+            ]
+          }
+        ]
+      }
+
+.. _regexcapturegroup-tokenizer-ref:
+
+regexCaptureGroup
+~~~~~~~~~~~~~~~~~
+
+The ``regexCaptureGroup`` tokenizer has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this tokenizer. Must be ``regexCaptureGroup``.
+     - yes
+     -
+ 
+   * - ``pattern``
+     - string
+     - A regular expression to match against.
+     - yes
+     - 
+ 
+   * - ``group``
+     - integer
+     - Index of the character group within the matching expression to extract
+       into tokens. Use ``0`` to extract all character groups.
+     - yes
+     - 
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``phoneNumberExtractor``. It uses the ``regexCaptureGroup`` tokenizer
+   to creates a single token from the first US-formatted phone number
+   present in the text input.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "phoneNumberExtractor",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "phoneNumberExtractor",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "regexCaptureGroup",
+              "pattern": "^\\b\\d{3}[-.]?\\d{3}[-.]?\\d{4}\\b$",
+              "group": 0
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+
+.. _regexSplit-tokenizer-ref:
+
+regexSplit
+~~~~~~~~~~
+
+The ``regexSplit`` tokenizer has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this tokenizer. Must be ``regexSplit``.
+     - yes
+     -
+ 
+   * - ``pattern``
+     - string
+     - A regular expression to match against.
+     - yes
+     - 
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``dashSplitter``. It uses the ``regexSplit`` tokenizer
+   to create tokens from hyphen-delimited input text.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "dashSplitter",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "dashSplitter",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "regexSplit",
+              "pattern": "[-]+",
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+
+.. _token-filters-ref:
+
+Token Filters
+-------------
+
+Token Filters always require a type field, and some take additional options
+as well.
+
+.. code-block:: json
+
+   "tokenFilters": [
+     {
+       "type": "<token-filter-type>",
+       "<additional-option>": <value>
+     }
+   ]
+
+|fts| supports the following token filters:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Name
+     - Description
+
+   * - :ref:`lowercase <lowercase-tf-ref>`
+     - Normalizes token text to lowercase.
+
+   * - :ref:`length <length-tf-ref>`
+     - Removes tokens that are too short or too long.
+
+   * - :ref:`icuFolding <icufolding-tf-ref>`
+     - Applies character folding from `Unicode Technical Report #30
+       <http://www.unicode.org/reports/tr30/tr30-4.html>`__.
+
+   * - :ref:`icuNormalizer <icunormalizer-tf-ref>`
+     - Normalizes tokens using a standard `Unicode Normalization Mode
+       <https://unicode.org/reports/tr15/>`__.
+
+   * - :ref:`nGram <ngram-tf-ref>`
+     - Tokenizes input into n-grams of configured sizes.
+
+   * - :ref:`edgeGram <edgegram-tf-ref>`
+     - Tokenizes input into edge n-grams of configured sizes.
+
+   * - :ref:`shingle <shingle-tf-ref>`
+     - Constructs shingles (token n-grams) from a series of tokens.
+
+   * - :ref:`regex <regex-tf-ref>`
+     - Applies a regular expression to each token, replacing matches with
+       a specified string.
+
+   * - :ref:`snowballStemming <snowballstemming-tf-ref>`
+     - Stems tokens using a `Snowball-generated stemmer
+       <https://snowballstem.org/>`__.
+
+.. _lowercase-tf-ref:
+
+lowercase
+~~~~~~~~~
+
+The ``lowercase`` token filter has the following attribute:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``lowercase``.
+     - yes
+     -
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``lowercaser``. It uses the :ref:`standard tokenizer
+   <standard-tokenizer-ref>` with the ``lowercase`` token filter to lowercase
+   all tokens.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "lowercaser",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "lowercaser",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "lowercase"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _length-tf-ref:
+
+length
+~~~~~~
+
+The ``length`` token filter has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``length``.
+     - yes
+     -
+
+   * - ``min``
+     - integer
+     - The minimum length of a token. Must be less than or equal to ``max``.
+     - no
+     - 0
+
+   * - ``max``
+     - integer
+     - The maximum length of a token. Must be greater than or equal to ``min``.
+     - no
+     - 255
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``longOnly``. It uses the ``length`` token filter to index only tokens
+   that are at least 20 UTF-16 code units long after tokenizing with the
+   :ref:`standard tokenizer <standard-tokenizer-ref>`.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "longOnly",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "longOnly",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "length",
+                "min": 20
+              }
+            ]
+          }
+        ]
+      }
+
+.. _icufolding-tf-ref:
+
+icuFolding
+~~~~~~~~~~
+
+The ``icuFolding`` token filter has the following attribute:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``icuFolding``.
+     - yes
+     -
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``diacriticFolder``. It uses the :ref:`keyword tokenizer
+   <keyword-tokenizer-ref>` with the ``icuFolding`` token filter to apply
+   foldings from `UTR#30 Character Foldings
+   <https://unicode.org/reports/tr30/>`__. Foldings include accent
+   removal, case folding, canonical duplicates folding, and many others
+   detailed in the report.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "diacriticFolder",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "diacriticFolder",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": [
+              {
+                "type": "icuFolding",
+              }
+            ]
+          }
+        ]
+      }
+
+.. _icunormalizer-tf-ref:
+
+icuNormalizer
+~~~~~~~~~~~~~
+
+The ``icuNormalizer`` token filter has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``icuNormalizer``.
+     - yes
+     -
+
+   * - ``normalizationForm``
+     - string
+     - Normalization form to apply. Accepted values are:
+
+       - ``nfd`` (Canonical Decomposition)
+       - ``nfc`` (Canonical Decomposition, followed by Canonical Composition)
+       - ``nfkd`` (Compatibility Decomposition)
+       - ``nfkc`` (Compatibility Decomposition, followed by Canonical Composition)
+
+       For more information about the supported normalization forms, see
+       `Section 1.2: Normalization Forms, UTR#15 <https://unicode.org/reports/tr15/#Norm_Forms>`__.
+
+     - no
+     - ``nfc``
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``normalizer``. It uses the :ref:`whitespace tokenizer
+   <whitespace-tokenizer-ref>`, then normalizes
+   tokens by Canonical Decomposition, followed by Canonical Composition.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "normalizer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "normalizer",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": [
+              {
+                "type": "icuNormalizer",
+                "normalizationForm": "nfc"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _ngram-tf-ref:
+
+nGram
+~~~~~
+
+The ``nGram`` token filter has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``nGram``.
+     - yes
+     -
+
+   * - ``minGram``
+     - integer
+     - The minimum length of generated n-grams. Must be less than or equal
+       to ``maxGram``.
+     - yes
+     - 
+
+   * - ``maxGram``
+     - integer
+     - The maximum length of generated n-grams. Must be greater than or equal 
+       to ``minGram``.
+     - yes
+     - 
+
+   * - ``termNotInBounds``
+     - string
+     - Accepted values are:
+
+       - ``include``
+       - ``omit``
+
+       If ``include`` is specified, tokens shorter than ``minGram`` or
+       longer than ``maxGram`` are indexed as-is. If ``omit`` is specified,
+       those tokens are not indexed.
+     - no
+     - ``omit``
+
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``persianAutocomplete``. It functions as an autocomplete analyzer for
+   Persian and other languages that use the zero-width non-joiner
+   character. It performs the following operations:
+   
+   - Normalizes zero-width non-joiner characters with the :ref:`persian
+     character filter <persian-ref>`. 
+   - Tokenizes by whitespace with the :ref:`whitespace tokenizer
+     <whitespace-tokenizer-ref>`.
+   - Applies a series of token filters: 
+   
+     - ``icuNormalizer``
+     - ``shingle``
+     - ``nGram``
+
+   .. code-block:: json
+
+      {
+        "analyzer": "persianAutocomplete",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "persianAutocomplete",
+            "charFilters": [
+              {
+                "type": "persian"
+              }
+            ],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": [
+              {
+                "type": "icuNormalizer",
+                "normalizationForm": "nfc"
+              },
+              {
+                "type": "shingle",
+                "minShingleSize": 2,
+                "maxShingleSize": 3
+              },
+              {
+                "type": "nGram",
+                "minGram": 1,
+                "maxGram": 10
+              }
+            ]
+          }
+        ]
+      }
+
+.. _edgegram-tf-ref:
+
+edgeGram
+~~~~~~~~
+
+The ``edgeGram`` token filter has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``edgeGram``.
+     - yes
+     -
+
+   * - ``minGram``
+     - integer
+     - The minimum length of generated n-grams. Must be less than or equal
+       to ``maxGram``.
+     - yes
+     - 
+
+   * - ``maxGram``
+     - integer
+     - The maximum length of generated n-grams. Must be greater than or equal 
+       to ``minGram``.
+     - yes
+     - 
+
+   * - ``termNotInBounds``
+     - string
+     - Accepted values are:
+
+       - ``include``
+       - ``omit``
+
+       If ``include`` is specified, tokens shorter than ``minGram`` or
+       longer than ``maxGram`` are indexed as-is. If ``omit`` is specified,
+       those tokens are not indexed.
+     - no
+     - ``omit``
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``englishAutocomplete``. It performs the following operations:
+
+   - Tokenizes with the :ref:`standard tokenizer <standard-tokenizer-ref>`.
+   - Token filtering with the following filters:
+
+     - ``icuFolding``
+     - ``shingle``
+     - ``edgeGram``
+
+   .. code-block:: json
+
+      {
+        "analyzer": "englishAutocomplete",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "englishAutocomplete",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "icuFolding"
+              },
+              {
+                "type": "shingle",
+                "minShingleSize": 2,
+                "maxShingleSize": 3
+              },
+              {
+                type: "edgeGram",
+                "minGram": 1,
+                "maxGram": 10
+              }
+            ]
+          }
+        ]
+      }
+
+.. _shingle-tf-ref:
+
+shingle
+~~~~~~~
+
+The ``shingle`` token filter has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``shingle``.
+     - yes
+     -
+
+   * - ``minShingleSize``
+     - integer
+     - Minimum number of tokens per shingle. Must be less than or equal
+       to ``maxShingleSize``.
+     - yes
+     -
+
+   * - ``maxShingleSize``
+     - integer
+     - Maximum number of tokens per shingle. Must be greater than or equal
+       to ``minShingleSize``.
+     - yes
+     -
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``shingler``. It creates shingles of two and three token combinations
+   after tokenizing with the :ref:`standard tokenizer
+   <standard-tokenizer-ref>`. ``minShingleSize`` is set to ``2``, so it
+   does not index input when only one token is created from the tokenizer.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "shingler",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "shingler",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "shingle",
+                "minShingleSize": 2,
+                "maxShingleSize": 3
+              }
+            ]
+          }
+        ]
+      }
+
+.. _regex-tf-ref:
+
+regex
+~~~~~
+
+The ``regex`` token filter has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``regex``.
+     - yes
+     -
+
+   * - ``pattern``
+     - string
+     - Regular expression pattern to apply to each token.
+     - yes
+     - 
+
+   * - ``replacement``
+     - string
+     - Replacement string to substitute wherever a matching pattern
+       occurs.
+     - yes
+     - 
+
+   * - ``matches``
+     - string
+     - Acceptable values are:
+
+       - ``all``
+       - ``first``
+
+       If ``matches`` is set to ``all``, replace all matching patterns.
+       Otherwise, replace only the first matching pattern.
+
+     - yes
+     -
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``emailRedact``. It uses the :ref:`keyword tokenizer <keyword-tokenizer-ref>`.
+   It finds strings that look like email addresses and replaces them with
+   the word ``redacted``.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "emailRedact",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "emailRedact",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": [
+              {
+                "type": "regex",
+                "pattern": "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$",
+                "replacement": "redacted",
+                "matches": "all"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _snowballstemming-tf-ref:
+
+snowballStemming
+~~~~~~~~~~~~~~~~
+
+The ``snowballStemming`` token filter has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``snowballStemming``.
+     - yes
+     -
+
+   * - ``stemmerName``
+     - string
+     - The following values are valid:
+
+       - ``arabic``
+       - ``armenian``
+       - ``basque``
+       - ``catalan``
+       - ``danish``
+       - ``dutch``
+       - ``english``
+       - ``finnish``
+       - ``french``
+       - ``german``
+       - ``german2`` (Alternative German language stemmer. Handles the umlaut
+         by expanding ü to ue in most contexts.)
+       - ``hungarian``
+       - ``irish``
+       - ``italian``
+       - ``kp`` (Kraaij-Pohlmann stemmer, an alternative stemmer for Dutch.)
+       - ``lithuanian``
+       - ``lovins`` (The first-ever published "Lovins JB" stemming algorithm.)
+       - ``norwegian``
+       - ``porter`` (The original Porter English stemming algorithm.)
+       - ``portuguese``
+       - ``romanian``
+       - ``russian``
+       - ``spanish``
+       - ``swedish``
+       - ``turkish``
+     - yes
+     -
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``frenchStemmer``. It uses the ``lowercase`` token filter and the
+   :ref:`standard tokenizer <standard-tokenizer-ref>`, followed
+   by the ``french`` variant of the ``snowballStemming`` token filter.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "frenchStemmer", 
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "frenchStemmer",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "lowercase"
+              },
+              {
+                "type": "snowballStemming",
+                "stemmerName": "french"
+              }
+            ]
+          }
+        ]
+      }
+
+Query Example
+-------------
+
+A collection named ``minutes`` contains the following documents:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 1, "text" : "<head> This page deals with department meetings. </head>" }
+   { "_id" : 2, "text" : "The head of the sales department spoke first." }
+   { "_id" : 3, "text" : "<body>We'll head out to the conference room by noon.</body>" }
+
+The index definition for the ``minutes`` collection uses a custom analyzer
+with the :ref:`htmlStrip character filter <htmlStrip-ref>` to strip out
+HTML tags when searching for text specified in the ``query`` field of a
+search.
+
+.. code-block:: json
+
+   {
+     "analyzer": "htmlStrippingAnalyzer",
+     "mappings": {
+       "dynamic": true
+     },
+     "analyzers": [{
+       "name": "htmlStrippingAnalyzer",
+       "charFilters": [{
+         "type": "htmlStrip",
+         "ignoredTags": ["a"]
+       }],
+       "tokenizer": {
+         "type": "standard"
+       },
+       "tokenFilters": []
+     }]
+   }
+
+The following search operation looks for occurrences of the string ``head``
+in the ``text`` field of the ``minutes`` collection.
+
+.. code-block:: json
+
+   db.minutes.aggregate([   
+     {     
+       $search: {
+          search: {
+            query: "head",
+            path: "text"
+          }
+       }
+     }
+   ])
+
+The query returns the following results:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 2, "text" : "The head of the sales department spoke first." }
+   { "_id" : 3, "text" : "<body>We'll head out to the conference room by noon.</body>" }
+
+The document with ``_id: 1`` is not returned, because the string ``head``
+is part of the HTML tag ``<head>``. The document with ``_id: 3`` contains
+HTML tags, but the string ``head`` is elsewhere so the document is a match.
