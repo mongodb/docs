@@ -146,10 +146,10 @@
                .. tab:: 7.x
                   :tabid: v7
 
-                        Running RHEL / CentOS 7.x using the
-                        ``rpm`` package manager:
+                  Running RHEL / CentOS 7.x using the
+                  ``rpm`` package manager:
 
-                        .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
+                  .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
 
    .. tab::
       :tabid: linux
