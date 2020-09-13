@@ -1,3 +1,21 @@
+.. _opsmgr-server-4.2.17:
+
+|onprem| Server 4.2.17
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-09-13*
+
+- Fixes a bug where :ref:`editing a blockstore <edit-blockstore>` with
+  dots or periods (``.``) in its name may result in unexpected errors.
+- Fixes an unexpected error when trying to
+  :doc:`update Global API Keys via the API </reference/api/api-keys/global/update-one-global-api-key>`
+  results in an invalid request.
+- Fixes an unexpected error when trying to
+  :doc:`update a global whitelist IP </reference/api/api-keys/global/update-one-global-whitelist>`.
+- :ref:`Sets the day of the week to takes a full snapshot <edit-snapshot-schedule>`.
+  This ensures a recent complete backup.
+- Updates MongoDB Agent to :ref:`10.2.20.5992 <mongodb-10.2.20.5992>`.
+
 .. _opsmgr-server-4.2.16:
 
 |onprem| Server 4.2.16
@@ -12,7 +30,7 @@
 
 - Updates JDK to AdoptOpenJDK 11.0.8+10.
 
-- Updates MongoDB Agent to 10.2.20.5991.
+- Updates MongoDB Agent to :ref:`10.2.20.5991 <mongodb-10.2.20.5991>`.
 
 .. _opsmgr-server-4.2.15:
 
@@ -55,13 +73,13 @@ Alerts
 ``````
 
 - Fixes an issue with the ``BACKUP_AGENT_DOWN`` alert and MongoDB 4.2+
-  deployments. 
+  deployments.
 
 Backup
 ``````
 
 - Removes enforcement of a minimum oplog window size on a replica set
-  before you can enable {+bagent+}. 
+  before you can enable {+bagent+}.
 
 - Fixes an issue with snapshots of MongoDB 4.2+ running on Windows while
   the |application| runs on Linux.

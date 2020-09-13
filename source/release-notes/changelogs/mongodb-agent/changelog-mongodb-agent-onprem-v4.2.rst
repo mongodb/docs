@@ -1,3 +1,20 @@
+.. _mongodb-10.2.20.5992:
+
+MongoDB Agent 10.2.20.5992
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.17 on 2020-09-13 <opsmgr-server-4.2.17>`
+
+- Fixes a bug where the {+mdbagent+} ignored other agent
+  authentication mechanisms if ``clusterAuth``was set to ``x509``.
+
+.. _mongodb-10.2.20.5991:
+
+MongoDB Agent 10.2.20.5991
+--------------------------
+
+:ref:`Released with Ops Manager 4.2.16 on 2020-08-06 <opsmgr-server-4.2.16>`
+
 .. _mongodb-10.2.19.5989:
 
 MongoDB Agent 10.2.19.5989
