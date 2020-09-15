@@ -1,6 +1,6 @@
-======================
-Rename an Organization
-======================
+=======================
+Update One Organization
+=======================
 
 .. default-domain:: mongodb
 
@@ -10,6 +10,18 @@ Rename an Organization
    :depth: 2
    :class: singlecol
 
+.. cond:: onprem
+
+   Use this endpoint to make any of the following changes to one
+   organization:
+
+   - Change one organization's name.
+   - Map |ldap| groups to |mms| roles for one organization.
+
+.. cond:: cloud
+
+   Change one project's name.
+
 .. include:: /includes/api/base-api-uri.rst
 
 Resource
@@ -17,7 +29,7 @@ Resource
 
 .. code-block:: none
 
-   POST /orgs/{ORG-ID}
+   PATCH /orgs/{ORG-ID}
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,7 +44,7 @@ Request Path Parameters
 
    * - ``ORG-ID``
      - string
-     - The id of the organization that you want to rename.
+     - The unique identifier of the organization.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,54 +54,160 @@ Request Query Parameters
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. list-table::
-   :widths: 10 10 80
-   :header-rows: 1
+.. cond:: cloud
 
-   * - Name
-     - Type
-     - Description
+   .. list-table::
+      :widths: 10 10 10 70
+      :header-rows: 1
+      :stub-columns: 1
 
-   * - ``name``
-     - string
-     - The new name for the organization.
+      * - Name
+        - Type
+        - Necessity
+        - Description
+
+      * - name
+        - string
+        - Required
+        - The new name for the organization.
+
+.. cond:: onprem
+
+   You must include at least one of the following fields in the request
+   body:
+
+   .. list-table::
+      :widths: 10 10 10 70
+      :header-rows: 1
+      :stub-columns: 1
+
+      * - Name
+        - Type
+        - Necessity
+        - Description
+
+      * - name
+        - string
+        - Optional
+        - The new name for the organization.
+
+      * - ldapGroupMappings
+        - object array
+        - Optional
+        - For LDAP-backed |onprem|, the mappings of
+          :doc:`LDAP groups </tutorial/configure-for-ldap-authentication>`
+          to |onprem| organization roles. Only accepted for LDAP-backed
+          |onprem|.
 
 Response
 --------
 
-.. include:: /includes/rename-organization-response-document.rst
+.. cond:: cloud
+
+   .. include:: /includes/rename-organization-response-document.rst
+
+.. cond:: onprem
+
+  .. include:: /includes/rename-organization-response-document-om.rst
 
 Example Request
 ---------------
 
-.. class:: copyable-code
-.. code-block:: sh
+.. cond:: cloud
 
-   curl -X PATCH --include --user "<username:apiKey>" --digest --header "Content-Type: application/json" \
-     "https://cloud.mongo.com/api/public/v1.0/orgs/6001f2c580eef55aedbc6bb1?pretty=true" \
-     --data '{"name":"MyCloudManagerCluster"}'
+   .. code-block:: sh
+      :emphasize-lines: 6-9
+
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PATCH "https://cloud.mongodb.com/api/public/v1.0/orgs/{ORG-ID}?pretty=true" \
+       --data '
+       {
+         "name" :  "Organization Name 1"
+       }'
+
+.. cond:: onprem
+
+   .. code-block:: sh
+      :emphasize-lines: 6-14
+
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PATCH "https://{opsManagerHost}:{port}/api/public/v1.0/orgs/{ORG-ID}?pretty=true" \
+       --data '
+       {
+         "ldapGroupMappings": [{
+           "roleName": "ORG_OWNER",
+           "ldapGroups": ["org-owner"]
+         }]
+       },
+	       "name": "Organization Name 1"
+       }'
 
 Example Response
 ----------------
 
-.. class:: copyable-code
-.. code-block:: json
+.. cond:: onprem
 
-   {
-     "id" : "6001f2c580eef55aedbc6bb1",
-     "links" : [ {
-       "href" : "https://cloud.mongodb.com/api/public/v1.0/orgs/6001f2c580eef55aedbc6bb1",
-       "rel" : "self"
-     }, {
-       "href" : "https://cloud.mongodb.com/api/public/v1.0/orgs/6001f2c580eef55aedbc6bb1/groups",
-       "rel" : "http://mms.mongodb.com/groups"
-     }, {
-       "href" : "https://cloud.mongodb.com/api/public/v1.0/orgs/6001f2c580eef55aedbc6bb1/teams",
-       "rel" : "http://mms.mongodb.com/teams"
-     }, {
-       "href" : "https://cloud.mongodb.com/api/public/v1.0/orgs/6001f2c580eef55aedbc6bb1/users",
-       "rel" : "http://mms.mongodb.com/users"
-     } ],
-     "name" : "MyCloudManagerCluster"
-   }
+   .. code-block:: json
+      :linenos:
+      :copyable: false
+
+      {
+        "id": "{ORG-ID}",
+        "links": [{
+            "href": "http://{opsManagerHost}:{port}/api/public/v1.0/orgs/{ORG-ID}",
+            "rel": "self"
+          },
+          {
+            "href": "http://{opsManagerHost}:{port}/api/public/v1.0/orgs/{ORG-ID}/groups",
+            "rel": "http://mms.mongodb.com/groups"
+          },
+          {
+            "href": "http://{opsManagerHost}:{port}/api/public/v1.0/orgs/{ORG-ID}/teams",
+            "rel": "http://mms.mongodb.com/teams"
+          },
+          {
+            "href": "http://{opsManagerHost}:{port}/api/public/v1.0/orgs/{ORG-ID}/users",
+            "rel": "http://mms.mongodb.com/users"
+          }
+        ],
+        "name": "Organization Name 1",
+        "ldapGroupMappings": [{
+          "roleName": "ORG_OWNER",
+          "ldapGroups": ["org-owner"]
+        }]
+      }
+
+.. cond:: cloud
+
+   .. code-block:: json
+      :linenos:
+      :copyable: false
    
+      {
+        "id": "{ORG-ID}",
+        "isDeleted": false,
+        "links": [{
+            "href": "https://cloud-dev.mongodb.com/api/public/v1.0/orgs/{ORG-ID}",
+            "rel": "self"
+          },
+          {
+            "href": "https://cloud-dev.mongodb.com/api/public/v1.0/orgs/{ORG-ID}/groups",
+            "rel": "http://mms.mongodb.com/groups"
+          },
+          {
+            "href": "https://cloud-dev.mongodb.com/api/public/v1.0/orgs/{ORG-ID}/teams",
+            "rel": "http://mms.mongodb.com/teams"
+          },
+          {
+            "href": "https://cloud-dev.mongodb.com/api/public/v1.0/orgs/{ORG-ID}/users",
+            "rel": "http://mms.mongodb.com/users"
+          }
+        ],
+        "name": "Organization Name 1"
+      }

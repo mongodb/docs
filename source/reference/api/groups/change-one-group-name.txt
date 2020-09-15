@@ -1,6 +1,6 @@
-=========================
-Change One Project's Name
-=========================
+==================
+Update One Project
+==================
 
 .. default-domain:: mongodb
 
@@ -11,6 +11,19 @@ Change One Project's Name
    :class: singlecol
 
 .. include:: /includes/fact-groups-projects-synonyms.rst
+
+.. cond:: onprem
+
+   Use this endpoint to make any of the following changes to one
+   project:
+
+   - Change one project's name.
+   - Add and remove tags from one project.
+   - Map |ldap| groups to |mms| roles for one project.
+
+.. cond:: cloud
+
+   Change one project's name.
 
 .. include:: /includes/api/base-api-uri.rst
 
@@ -48,18 +61,65 @@ Request Query Parameters
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. list-table::
-   :widths: 10 10 80
-   :header-rows: 1
-   :stub-columns: 1
+.. cond:: cloud
 
-   * - Name
-     - Type
-     - Description
+   .. list-table::
+      :widths: 10 10 10 70
+      :header-rows: 1
+      :stub-columns: 1
 
-   * - name
-     - string
-     - The display name for the project.
+      * - Name
+        - Type
+        - Necessity
+        - Description
+
+      * - name
+        - string
+        - Required
+        - The new name for the project.
+
+.. cond:: onprem
+
+   You must include at least one of the following fields in the request
+   body:
+
+   .. list-table::
+      :widths: 10 10 10 70
+      :header-rows: 1
+      :stub-columns: 1
+
+      * - Name
+        - Type
+        - Necessity
+        - Description
+
+      * - name
+        - string
+        - Optional
+        - The new name for the project.
+
+      * - tags
+        - string array
+        - Optional
+        - The tags assigned to the project for use in programmatically
+          identifying the project.
+
+          - To view tags you must have either the
+            :ref:`Global Read Only <global-read-only-role>` or
+            :ref:`Global Owner <global-owner-role>`
+            :doc:`role </reference/user-roles>`.
+          - To create or edit tags, you must be a
+            :ref:`Global Owner <global-owner-role>`.
+
+          .. include:: /includes/requirements-tag-names.rst
+
+      * - ldapGroupMappings
+        - object array
+        - Optional
+        - For LDAP-backed |onprem|, the mappings of
+          :doc:`LDAP groups </tutorial/configure-for-ldap-authentication>`
+          to |onprem| project roles. Only accepted for LDAP-backed
+          |onprem|.
 
 Response
 --------
@@ -69,9 +129,8 @@ Response
 Example Request
 ---------------
 
-.. only:: cloud
+.. cond:: cloud
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
       :emphasize-lines: 6-9
 
@@ -82,14 +141,13 @@ Example Request
        --request PATCH "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}?pretty=true" \
        --data '
        {
-         "name" :  Project Name 1"
+         "name" :  "Project Name 1"
        }'
 
-.. only:: onprem
+.. cond:: onprem
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
-      :emphasize-lines: 6-9
+      :emphasize-lines: 6-16
 
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
        --header "Accept: application/json" \
@@ -98,7 +156,14 @@ Example Request
        --request PATCH "https://{opsManagerHost}:{port}/api/public/v1.0/groups/{PROJECT-ID}?pretty=true" \
        --data '
        {
-         "name" :  Project Name 1"
+	       "ldapGroupMappings": [{
+		       "roleName": "GROUP_OWNER",
+		       "ldapGroups": [
+			       "project-owner"
+		       ]
+	       }],
+	       "name": "Project Name 1",
+         "tags": [ "DEV", "PRODUCT" ]
        }'
 
 Example Response
@@ -114,14 +179,16 @@ Response Header
 Response Body
 +++++++++++++
 
-.. only:: cloud
+.. cond:: cloud
 
    .. code-block:: json
       :emphasize-lines: 3
+      :linenos:
+      :copyable: false
 
       {
         "id": "{PROJECT-ID}",
-        "name":  Project Name 1",
+        "name":  "Project Name 1",
         "orgId" : "{ORG-ID}",
         "hostCounts": {
           "arbiter": 2,
@@ -142,10 +209,12 @@ Response Body
       }
 
 
-.. only:: onprem
+.. cond:: onprem
 
    .. code-block:: json
-      :emphasize-lines: 3
+      :emphasize-lines: 3,20-24
+      :linenos:
+      :copyable: false
 
       {
         "id": "{PROJECT-ID}",
@@ -169,7 +238,7 @@ Response Body
         "tags": [ "DEV", "PRODUCT" ],
         "ldapGroupMappings" : [ {
           "roleName": "GROUP_OWNER",
-          "ldapGroups": [  project-owner" ]
+          "ldapGroups": [  "project-owner" ]
         }, ... ],
         "links" : []
       }
