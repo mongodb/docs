@@ -38,13 +38,13 @@ title: "Create a ConfigMap containing the Certificate Authority."
 optional: true
 content: |
 
-  You need to provide a |certauth| certificate when the |certauth| that
+  You must provide a |certauth| certificate when the |certauth| that
   signed the certificates might be not "recognized" as an official
   authority. Recognized and valid certificates can be created with
   `cert-manager <https://cert-manager.io/docs/>`__ or `HashiCorp Vault
   <https://www.vaultproject.io/>`__.
 
-  If you signed the certificates using a |k8s| certicate management
+  If you signed the certificates using a |k8s| certificate management
   tool like `cert-manager <https://cert-manager.io/docs/>`__ or
   `HashiCorp Vault <https://www.vaultproject.io/>`__, you must create a
   |k8s-configmap| containing the |certauth|\'s certificate file.
@@ -52,13 +52,39 @@ content: |
   If you output the certificate as a file, name this file ``ca-pem``.
   This simplifies creating the |k8s-configmap|.
 
-  .. code-block:: sh
+  .. include:: /includes/admonitions/warning-concatenate-download-certs.rst
 
-     kubectl create configmap appdb-ca --from-file=ca-pem
+  a. Obtain the entire |tls| certificate chain from
+     ``downloads.mongodb.com``. The following ``openssl`` command
+     outputs each certificate in the chain to your current working
+     directory, in ``.crt`` format:
 
-  This creates a |k8s-configmap| named ``appdb-ca``. This
+     .. using path to openssl to preempt macOS libressl issues
+
+     .. code-block:: sh
+
+        /usr/local/opt/openssl/bin/openssl s_client -showcerts -verify 2 \ 
+        -connect downloads.mongodb.com:443 < /dev/null \ 
+        | awk '/BEGIN/,/END/{ if(/BEGIN/){a++}; out="cert"a".crt"; print >out}'
+
+  #. Concatenate your |certauth|\'s certificate file with the
+     entire |tls| certificate chain from ``downloads.mongodb.com`` that
+     you obtained in the previous step:
+
+     .. code-block:: sh
+
+        cat cert1.crt cert2.crt cert3.crt cert4.crt  >> ca-pem
+
+  #. Create the |k8s-configmap|:
+
+     .. code-block:: sh
+
+        kubectl create configmap ca --from-file="ca-pem"
+
+  This creates a |k8s-configmap| named ``ca``. This
   |k8s-configmap| contains one entry called ``ca-pem`` with the
-  contents of the |certauth| file.
+  contents of the |certauth| file and the certificate chain for
+  ``downloads.mongodb.com``.
 
 ---
 stepnum: 0
