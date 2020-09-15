@@ -41,20 +41,51 @@ stepnum: 4
 ref: validate-tls-cert
 content: |
 
-   If your |tls| certificate is signed by a Custom Certificate
-   Authority, you must provide a :abbr:`CA (Certificate Authority)`
-   certificate to validate the |tls| certificate. To validate the
-   |tls| certificate, create a |k8s-configmap| to hold the
-   :abbr:`CA (Certificate Authority)` certificate:
+  If your |tls| certificate is signed by a Custom Certificate
+  Authority, you must provide a :abbr:`CA (Certificate Authority)`
+  certificate to validate the |tls| certificate. To validate the
+  |tls| certificate, create a |k8s-configmap| to hold the
+  :abbr:`CA (Certificate Authority)` certificate:
 
-   .. code-block:: sh
+  .. warning::
 
-      kubectl create configmap om-http-cert-ca --from-file="mms-ca.crt"
+     You must concatenate your custom |certauth| file and the entire
+     |tls| certificate chain from ``downloads.mongodb.com`` to prevent
+     |onprem| from becoming inoperable if the application database
+     restarts.
 
-   .. important::
+  .. important::
 
      The |k8s-op-short| requires that the certificate is named
      ``mms-ca.crt`` in the ConfigMap.
+
+  a. Obtain the entire |tls| certificate chain from
+     ``downloads.mongodb.com``. The following ``openssl`` command
+     outputs each certificate in the chain to your current working
+     directory, in ``.crt`` format:
+
+     .. using path to openssl to preempt macOS libressl issues
+
+     .. code-block:: sh
+
+        /usr/local/opt/openssl/bin/openssl s_client -showcerts -verify 2 \ 
+        -connect downloads.mongodb.com:443 < /dev/null \ 
+        | awk '/BEGIN/,/END/{ if(/BEGIN/){a++}; out="cert"a".crt"; print >out}'
+
+  #. Concatenate your |certauth|\'s certificate file with the
+     entire |tls| certificate chain from ``downloads.mongodb.com`` that
+     you obtained in the previous step:
+
+     .. code-block:: sh
+
+        cat cert1.crt cert2.crt cert3.crt cert4.crt  >> ca-pem
+
+  #. Create the |k8s-configmap|:
+
+     .. code-block:: sh
+
+        kubectl create configmap om-http-cert-ca --from-file="mms-ca.crt"
+
 ---
 title: "Copy the following example |onprem| |k8s| |k8s-obj|."
 stepnum: 5
