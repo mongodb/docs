@@ -66,8 +66,10 @@ rst_epilog = '\n'.join([
     '.. |bi-short| replace:: BI Connector',
     '.. |bi| replace:: MongoDB Connector for BI',
     '.. |cidr| replace:: :abbr:`CIDR (Classless Inter-Domain Routing)`',
+    '.. |csr| replace:: :abbr:`CSR (Certificate Signing Request)`',
     '.. |dsn| replace:: :abbr:`DSN (Data Source Name)`',
     '.. |epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
+    '.. |fqdn| replace:: :abbr:`FQDN (Fully Qualified Domain Name)`',
     '.. |https| replace:: :abbr:`HTTPS (Secure HyperText Transport Protocol)`',
     '.. |http| replace:: :abbr:`HTTP (HyperText Transport Protocol)`',
     '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`',
@@ -126,6 +128,9 @@ extlinks = {
     'mysql': ('https://dev.mysql.com%s', ''),
     'cm': ('https://docs.cloudmanager.mongodb.com%s', ''),
     'om': ('https://docs.opsmanager.mongodb.com/current%s', ''),
+    'atlas': ('https://docs.atlas.mongodb.com%s',''),
+    'charts': ('https://www.mongodb.com/charts%s',''),
+    'wikipedia' : ('https://en.wikipedia.org/wiki%s','')
 }
 
 intersphinx_mapping = {}

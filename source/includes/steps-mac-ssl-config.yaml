@@ -1,59 +1,59 @@
-title: Create a Certificates Directory
+title: Create a Certificates Directory.
 ref: create-certs-dir
 level: 4
 stepnum: 1
 content: |
   Create a directory to hold your certificates. This tutorial uses
   ``/opt/certs``. Your certificate directory must be readable by
-  the system user which runs the :binary:`~bin.mongod` and
-  :binary:`~bin.mongosqld` programs.
+  the system user which runs the |mongod| and
+  |mongosqld| programs.
 
   .. code-block:: sh
 
      mkdir /opt/certs
      cd /opt/certs
 ---
-title: Generate a Self-Signed Certificate Authority
+title: Generate a Self-Signed Certificate Authority.
 ref: gen-private-key
 level: 4
 stepnum: 2
 content: |
-  1. The following command generates and outputs a private key to
+  a. The following command generates and outputs a private key to
      ``mdbprivate.key``.
 
      .. code-block:: sh
 
-        openssl genrsa -out /opt/certs/mdbprivate.key -aes256 -passout pass:password
+        openssl genrsa -out /opt/certs/mdbprivate.key -aes256 \
+                       -passout pass:password
 
-  2. The following command generates and outputs a certificate
+  b. The following command generates and outputs a certificate
      authority file to ``mdbca.crt``.
 
      .. include:: /includes/fact-common-name.rst
 
      .. code-block:: sh
 
-        openssl req -x509 -new -key /opt/certs/mdbprivate.key -days 1000 \
-        -out /opt/certs/mdbca.crt -passin pass:password
+        openssl req -x509 -new -key /opt/certs/mdbprivate.key \
+                    -days 1000 -out /opt/certs/mdbca.crt \
+                    -passin pass:password
 
   We now have two files: The ``mdbca.crt`` certificate authority file,
   and the ``mdbprivate.key`` key used to sign that request.
 ---
-title: Generate a PEM Certificate for the MongoDB Server 
+title: Generate a PEM Certificate for the MongoDB Server.
 ref: gen-mongodb-key
 level: 4
 stepnum: 3
 content: |
-  The following command generates a key for the :binary:`~bin.mongod`
-  process to use and a Certificate Signing Request (CSR).
-  For this step, the ``Common Name`` response must
-  be the Fully Qualified Domain Name (FQDN) of the server where your
-  :binary:`~bin.mongod` instance runs, i.e. ``www.example.com``.
-  To determine the FQDN of your server, use ``hostname -f`` at the
-  command prompt.
+  The following command generates a key for the |mongod| process to use
+  and a Certificate Signing Request (CSR). The ``Common Name`` response
+  must be the Fully Qualified Domain Name (|fqdn|) of the host where
+  your |mongod| instance runs such as ``www.example.com``. To determine
+  the |fqdn| of your server, use ``hostname -f`` at the command prompt.
 
-  You may be prompted to enter a challenge password for the
-  ``Extra Attribute`` element. For the purposes of this tutorial,
-  you can leave this element blank.
+  You may be prompted to enter a challenge password for the ``Extra
+  Attribute`` element. For the purposes of this tutorial, you can leave
+  this element blank.
 
   .. code-block:: sh
 
@@ -61,18 +61,20 @@ content: |
      -out /opt/certs/mdb.csr
 
 ---
-title: Sign the mongodb CSR
+title: Sign the MongoDB CSR.
 ref: sign-mongodb-csr
 level: 4
 stepnum: 4
 content: |
   .. code-block:: sh
 
-      openssl x509 -CA /opt/certs/mdbca.crt -CAkey /opt/certs/mdbprivate.key \
-      -CAcreateserial -req -days 1000 -in /opt/certs/mdb.csr -out /opt/certs/mdb.crt \
-      -passin pass:password
+      openssl x509 -CA /opt/certs/mdbca.crt
+                   -CAkey /opt/certs/mdbprivate.key \
+                   -CAcreateserial -req -days 1000 \
+                   -in /opt/certs/mdb.csr -out /opt/certs/mdb.crt \
+                   -passin pass:password
 ---
-title: Create a PEM file for the MongoDB server
+title: Create a PEM file for the MongoDB server.
 ref: create-pem-file
 level: 4
 stepnum: 5
@@ -101,15 +103,15 @@ content: |
   If any are missing, go back and review the previous steps, checking
   for errors.
 ---
-title: Update ``mongod`` configuration file
+title: Update ``mongod`` configuration file.
 ref: update-conf
 level: 4
 stepnum: 6
 content: |
 
-  To configure :binary:`~bin.mongod` to require SSL for incoming
-  connections, modify your configuration file as follows.
-  Your values may vary, depending on where you created your SSL files.
+  To configure |mongod| to require |tls| for incoming connections,
+  modify your configuration file as follows. Your values may vary,
+  depending on where you created your |tls| files.
 
   .. list-table::
      :header-rows: 1
@@ -118,55 +120,53 @@ content: |
      * - Option
        - Value
 
-     * - :manual:`net.ssl.mode </reference/configuration-options/#net.ssl.mode>`
+     * - :setting:`net.ssl.mode <net.tls.mode>`
        - ``requireSSL``
 
-     * - :manual:`net.ssl.PEMKeyFile </reference/configuration-options/#net.ssl.PEMKeyFile>`
+     * - :setting:`net.ssl.PEMKeyFile <net.tls.certificateKeyFile>`
        - ``/opt/certs/mdb.pem``
 
-     * - :manual:`net.ssl.CAFile </reference/configuration-options/#net.ssl.CAFile>`
+     * - :setting:`net.ssl.CAFile <net.tls.CAFile>`
        - ``/opt/certs/mdbca.crt``
 
-     * - :manual:`net.ssl.clusterFile </reference/configuration-options/#net.ssl.clusterFile>`
+     * - :setting:`net.ssl.clusterFile <net.tls.clusterFile>`
        - ``/opt/certs/mdb.pem``
 
-     * - :manual:`security.clusterAuthmode </reference/configuration-options/#security.clusterAuthMode>`
+     * - :setting:`security.clusterAuthmode`
        - ``x509``
 
-  The following example configuration file contains directives for
-  SSL connections and :manual:`x.509 </core/security-x.509>`
-  authentication.
+  .. example::
 
-  .. note::
+     The following configuration file contains directives for |tls|
+     connections and :manual:`x.509 </core/security-x.509>`
+     authentication.
 
-     The following is an example ``mongod`` configuration file. Your
-     configuration file may require additional or different options.
+     Your configuration file may require additional or different options.
 
-  .. code-block:: sh
+     .. code-block:: sh
 
-     systemLog:
-        destination: file
-        path: '/data/mongod.log'
-        logAppend: true
-     processManagement:
-        fork: true
-        pidFilePath: '/data/mongod.pid'
-     net:
-        bindIp: localhost
-        port: 27017
-        ssl:
-           mode: requireSSL
-           PEMKeyFile: '/opt/certs/mdb.pem'
-           CAFile: '/opt/certs/mdbca.crt'
-           clusterFile: '/opt/certs/mdb.pem'
-     security:
-        clusterAuthMode: x509
-     storage:
-        dbPath: '/data'
+        systemLog:
+           destination: file
+           path: '/data/mongod.log'
+           logAppend: true
+        processManagement:
+           fork: true
+           pidFilePath: '/data/mongod.pid'
+        net:
+           bindIp: localhost
+           port: 27017
+           ssl:
+              mode: requireSSL
+              PEMKeyFile: '/opt/certs/mdb.pem'
+              CAFile: '/opt/certs/mdbca.crt'
+              clusterFile: '/opt/certs/mdb.pem'
+        security:
+           clusterAuthMode: x509
+        storage:
+           dbPath: '/data'
 
-  If you prefer to start ``mongod`` with command-line options instead
-  of a configuration file, see :binary:`~bin.mongosqld` for equivalent
-  options.
+  If you prefer to start |mongod| with command-line options instead of
+  a configuration file, see |mongosqld| for equivalent options.
 
 ---
 title: Restart your ``mongod`` server.
@@ -183,9 +183,8 @@ ref: test-connection
 level: 4
 stepnum: 8
 content: |
-  Connect to your server with the :binary:`~bin.mongo` shell to test
-  your SSL connection. Your :binary:`~bin.mongo` command needs the
-  following SSL options:
+  Connect to your server with the |mongo| shell to test your |tls|
+  connection. Your |mongo| command needs the following |tls| options:
 
   .. list-table::
      :header-rows: 1
@@ -194,46 +193,48 @@ content: |
      * - Option
        - Value
 
-     * - :manual:`--ssl </reference/program/mongo/#cmdoption-mongo-ssl>`
+     * - :manual:`--tls </reference/program/mongod/index.html#cmdoption-mongod-tlsmode>`
        - none
 
-     * - :manual:`--sslCAFile </reference/program/mongo/#cmdoption-mongo-sslCAFile>`
+     * - :manual:`--tlsCAFile </reference/program/mongod/index.html#cmdoption-mongod-tlscafile>`
        - ``/opt/certs/mdbca.crt`` (file generated in step 2.2)
 
-     * - :manual:`--sslPEMKeyFile </reference/program/mongo/#cmdoption-mongo-sslPEMKeyFile>`
+     * - :manual:`--tlsCertificateKeyFile </reference/program/mongod/index.html#cmdoption-mongod-tlscertificatekeyfile>`
        - ``/opt/certs/mdb.pem`` (file generated in step 5)
 
   .. code-block:: sh
 
-     mongo --ssl --host <step3-common-name> \
-     --sslCAFile /opt/certs/mdbca.crt --sslPEMKeyFile /opt/certs/mdb.pem
+     mongo --tls --host <step3-common-name> \
+           --tlsCAFile /opt/certs/mdbca.crt \
+           --tlsPEMKeyFile /opt/certs/mdb.pem
 
-  Edit your options appropriately. 
+  Edit your options appropriately.
 ---
-title: Create a key and a CSR for {+bi-short+}
+title: Create a key and a |csr| for {+bi-short+}.
 ref: create-key-msqld
 level: 4
 stepnum: 9
 content: |
-  The ``Common Name`` entry for this CSR should match the FQDN of the
-  server where you run :binary:`~bin.mongosqld`. To determine the FQDN
-  of your server, use ``hostname -f`` at the command prompt.
+  The ``Common Name`` entry for this |csr| should match the |fqdn| of
+  the host where you run |mongosqld|. To determine the |fqdn| of your
+  host, use ``hostname -f`` at the command prompt.
 
-  You may be prompted to enter a challenge password for the
-  ``Extra Attribute`` element. For the purposes of this tutorial,
-  you can leave this element blank.
+  You may be prompted to enter a challenge password for the ``Extra
+  Attribute`` element. For the purposes of this tutorial, you can leave
+  this element blank.
 
   .. note::
 
-     The ``Common Name`` entry for this CSR must be different from the
-     ``Common Name`` entry for the first CSR you created, in step 2.
+     The ``Common Name`` entry for this |csr| must be different from the
+     ``Common Name`` entry for the first |csr| you created, in step 2.
 
   .. code-block:: sh
 
-     openssl req -new -nodes -newkey rsa:2048 -keyout /opt/certs/bi.key \
-     -out /opt/certs/bi.csr
+     openssl req -new -nodes -newkey rsa:2048 \
+                 -keyout /opt/certs/bi.key \
+                 -out /opt/certs/bi.csr
 ---
-title: Sign the {+bi-short+} certificate
+title: Sign the {+bi-short+} certificate.
 ref: sign-msqld-cert
 level: 4
 stepnum: 10
@@ -241,12 +242,14 @@ content: |
 
   .. code-block:: sh
 
-     openssl x509 -CA /opt/certs/mdbca.crt -CAkey /opt/certs/mdbprivate.key \
-     -CAcreateserial -req -days 1000 -in /opt/certs/bi.csr -out /opt/certs/bi.crt \
-     -passin pass:password
+     openssl x509 -CA /opt/certs/mdbca.crt \
+                  -CAkey /opt/certs/mdbprivate.key \
+                  -CAcreateserial -req -days 1000 \
+                  -in /opt/certs/bi.csr -out /opt/certs/bi.crt \
+                  -passin pass:password
 
 ---
-title: Create a {+bi-short+} PEM file
+title: Create a {+bi-short+} PEM file.
 ref: create-msqld-pem
 level: 4
 stepnum: 11
@@ -257,14 +260,14 @@ content: |
      cat /opt/certs/bi.key /opt/certs/bi.crt > /opt/certs/bi.pem
 
 ---
-title: Start ``mongosqld``
+title: Start ``mongosqld``.
 ref: start-msqld
 level: 4
 stepnum: 12
 content: |
-  Your :binary:`~bin.mongosqld` configuration file requires several
-  SSL-specific options. Your values may vary, depending on where
-  you created your SSL files.
+  Your |mongosqld| configuration file requires several
+  |tls|\-specific options. Your values may vary, depending on where
+  you created your |tls| files.
 
   .. list-table::
      :header-rows: 1
@@ -291,47 +294,48 @@ content: |
      * - :option:`net.ssl.CAFile <mongosqld --sslCAFile>`
        - ``/opt/certs/mdbca.crt``
 
-  The following example :ref:`configuration file
-  <config-format>` uses files located in the
-  ``/opt/certs/`` directory. It specifies a username and password
-  which correspond to a MongoDB user with sufficient :ref:`permissions
-  <cached-sampling-user-permissions>` to
-  run :binary:`~bin.mongosqld` and read from the ``test`` database.
+  .. example::
 
-  .. code-block:: yaml
+     The following :ref:`configuration file <config-format>` uses files
+     located in the ``/opt/certs/`` directory. It specifies a username
+     and password which correspond to a MongoDB user with sufficient
+     :ref:`permissions <cached-sampling-user-permissions>` to run
+     |mongosqld| and read from the ``test`` database.
 
-     systemLog:
-       logAppend: false
-       path: './logs/mongosqld.log'
-       verbosity: 2
-     
-     security:
-       enabled: true
-     
-     mongodb:
-       net:
-         uri: <step9-common-name>
-         auth:
-           username: <username>
-           password: <password>
-         ssl:
-           enabled: true
-           PEMKeyFile: '/opt/certs/mdb.pem'
-           CAFile: '/opt/certs/mdbca.crt'
-     
-     net:
-       bindIp: localhost
-       port: 3307
-       ssl:
-         mode: 'requireSSL'
-         PEMKeyFile: '/opt/certs/bi.pem'
-         CAFile: '/opt/certs/mdbca.crt'
-     
-     schema:
-       sample:
-         namespaces: 'test.*'
+     .. code-block:: yaml
 
-  Start :binary:`~bin.mongosqld` with the
+        systemLog:
+          logAppend: false
+          path: './logs/mongosqld.log'
+          verbosity: 2
+
+        security:
+          enabled: true
+
+        mongodb:
+          net:
+            uri: <step9-common-name>
+            auth:
+              username: <username>
+              password: <password>
+            ssl:
+              enabled: true
+              PEMKeyFile: '/opt/certs/mdb.pem'
+              CAFile: '/opt/certs/mdbca.crt'
+
+        net:
+          bindIp: localhost
+          port: 3307
+          ssl:
+            mode: 'requireSSL'
+            PEMKeyFile: '/opt/certs/bi.pem'
+            CAFile: '/opt/certs/mdbca.crt'
+
+        schema:
+          sample:
+            namespaces: 'test.*'
+
+  Start |mongosqld| with the
   :option:`--config <mongosqld --config>` option to use a
   configuration file.
 
@@ -350,5 +354,5 @@ content: |
   .. code-block:: sh
 
      mysql --ssl-mode REQUIRED --ssl-ca=/opt/certs/mdbca.crt \
-     --enable-cleartext-plugin --port 3307 -u <username> -p
+           --enable-cleartext-plugin --port 3307 -u <username> -p
 ...
