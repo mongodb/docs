@@ -12,4 +12,5 @@ must:
 .. note:: 
 
    If you deploy |onprem| 4.2, you must specify a MongoDB version
-   earlier than than v4.0 in the oplog database resource definition. 
+   earlier than than 4.0 in the oplog :ref:`database resource definition
+   <k8s-specification>`. 
