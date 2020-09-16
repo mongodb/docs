@@ -215,7 +215,8 @@ extlinks = {
     'gh' : ('https://github.com%s', ''),
     'svc-cat' : ('https://svc-cat.io/docs%s', ''),
     'datalake' : ('https://docs.mongodb.com/datalake%s', ''),
-    'aws': ('http://docs.aws.amazon.com%s','')
+    'aws': ('http://docs.aws.amazon.com%s',''),
+    'wikipedia' : ('https://en.wikipedia.org/wiki%s', '')
 }
 
 intersphinx_mapping = {}

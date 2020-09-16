@@ -1,0 +1,284 @@
+.. _mcli-atlas-networking-peering-create-azure-cmd:
+
+==============================================
+mongocli atlas networking peering azure create
+==============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+The ``networking peering create azure`` command creates a peering
+connection between the |service| VNet and your Azure VNet
+for a given |service| project.
+
+The ``networking peering create azure`` command checks if a VNet exists
+in the region you specify for your |service| project. If one exists,
+this command creates the peering connection between that VNet and your
+VNet. If an |service| VNet does not exist, this command creates one and
+creates a connection between it and your VNet.
+
+Prerequisites
+-------------
+
+.. note::
+
+   For details about how |service| creates
+   :wikipedia:`Network Peering </Virtual_private_cloud>`
+   connections with Azure VNets, see the ``Azure`` tab in
+   :atlas:`Set up a Network Peering Connection
+   </security-vpc-peering/>` in the |service| documentation.
+
+You must complete the following steps before you create each Azure
+network peering connection:
+
+1. Run the following Azure CLI command to create a service principal
+   using the specified |service| peering application ID:
+
+   .. code-block:: sh
+
+      az ad sp create --id e90a1407-55c3-432d-9cb1-3638900a9d22
+
+   You only have to do this once for each subscription. If you receive
+   the following message, the service principal with the |service|
+   peering application ID already exists. Proceed to the next step.
+
+   .. code-block:: sh
+      :copyable: false
+
+      Another object with the same value for property servicePrincipalNames already exists.
+
+#. Copy the following example ``peering-role.json`` file and save it
+   to your current working directory:
+
+   .. code-block:: json
+      :linenos:
+
+      {
+        "Name":"AtlasPeering/<azureSubscriptionId>/<resourceGroupName>/<vnetName>",
+        "IsCustom":true,
+        "Description":"Grants MongoDB access to manage peering connections on network /subscriptions/<azureSubscriptionId>/resourceGroups/<resourceGroupName>/providers/Microsoft.Network/virtualNetworks/<vnetName>",
+        "Actions":[
+            "Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read",
+            "Microsoft.Network/virtualNetworks/virtualNetworkPeerings/write",
+            "Microsoft.Network/virtualNetworks/virtualNetworkPeerings/delete",
+            "Microsoft.Network/virtualNetworks/peer/action"
+        ],
+        "AssignableScopes":[
+            "/subscriptions/<azureSubscriptionId>/resourceGroups/<resourceGroupName>/providers/Microsoft.Network/virtualNetworks/<vnetName>"
+        ]
+      }
+
+#. Replace the variables in the ``peering-role.json`` with details
+   about the Azure VNet to which you want to create a peering
+   connection:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - Variable
+        - Description
+
+      * - ``azureSubscriptionId``
+        - Unique identifer of the Azure subscription in which the
+          VNet resides.
+
+      * - ``resourceGroupName``
+        - Name of your Azure resource group.
+
+      * - ``vnetName``
+        - Name of your Azure VNet.
+
+#. Run the following Azure CLI command to create the role definition
+   using the ``peering-role.json`` file:
+
+   .. code-block:: sh
+
+      az role definition create --role-definition peering-role.json
+
+#. Run the Azure CLI command shown below to assign the role you created
+   to the service principal.
+
+   Replace the variables with the same values you used in the
+   ``peering-role.json`` file.
+
+   .. code-block:: sh
+
+      az role assignment create  \
+      --role "AtlasPeering/<azureSubscriptionId>/<resourceGroupName>/<vnetName>" \
+      --assignee "e90a1407-55c3-432d-9cb1-3638900a9d22" \
+      --scope "/subscriptions/<azureSubscriptionId>/resourceGroups/<resourceGroupName>/providers/Microsoft.Network/virtualNetworks/<vnetName>"
+
+Syntax 
+------
+
+.. code-block:: text 
+
+   mongocli atlas networking peering azure create
+        [ --atlasCidrBlock <atlas-cidr-block> ]
+        --directoryId <azure-ad-tenant-id>
+        [ --output|-o <output-format> ]
+        [ --profile|-P <profile-name> ]
+        [ --projectId <project-ID> ]
+        --region <azure-region-id>
+        --resourceGroup <azure-resource-group-name>
+        --subscriptionId <azure-subscription-id>
+        --vnet <azure-vnet-name>
+
+.. include:: /includes/fact-command-line-help.rst
+
+.. _atlas-networking-peering-create-azure-options:
+
+Options 
+-------
+
+.. list-table::
+   :widths: 20 10 60 10
+   :header-rows: 1
+
+   * - Option 
+     - Type
+     - Description
+     - Required?
+
+   * - ``--atlasCidrBlock``
+     - string
+     - CIDR block that |service| uses for your clusters. Required only
+       if you do not already have an |service| VNet.
+
+       .. include:: /includes/fact-peering-azure-atlas-cidr-block.rst
+     - no
+
+   * - ``--directoryId``
+     - string
+     - Unique identifier for your Azure Active Directory tenant.
+     - yes
+
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the public and private 
+       keys for the project are saved. If omitted, uses the 
+       {+default-profile+}. To learn more about creating a 
+       profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project for which you want to add
+       the peering connection. If omitted, uses the
+       project ID in the profile or :ref:`environment variable
+       <mcli-env-var>`.
+     - no
+
+   * - ``--region``
+     - string
+     - Azure region in which the peer VPC resides. See the
+       :atlas:`Atlas documentation </reference/microsoft-azure/>` for a list
+       of supported regions.
+     - no
+
+   * - ``--resourceGroup``
+     - string
+     - Name of the Azure resource group that contains the VNet that you
+       want to peer. 
+     - yes
+
+   * - ``--subscriptionId``
+     - string
+     - Unique identifier of the Azure subscription that contains the
+       VNet that you want to peer.
+     - yes
+
+   * - ``--vnet``
+     - string
+     - Name of the VNet that you want to peer.
+     - yes
+
+.. _atlas-networking-peering-create-azure-output:
+
+Output
+------
+
+If the command succeeds, it returns the following output in the default
+format. If the command returns errors, see
+:ref:`Troubleshooting <troubleshooting>` for recommended solutions.
+
+.. code-block:: sh
+   :copyable: false
+
+   Network peering connection '<peering-connection-id>' created.
+
+.. include:: /includes/fact-default-output.rst
+
+- :atlas:`Atlas API </reference/api/vpc-create-peering-connection/#request-body-parameters>`
+
+Example
+-------
+
+.. tabs::
+
+   .. tab:: Default Output
+      :tabid: default-output
+
+      The following command creates a peering connection between the
+      |service| VNet and your Azure VNet for a project using the
+      {+default-profile+}, which contains credentials and the project
+      ID. The output is returned in the default format. 
+
+      .. code-block:: sh
+
+         mongocli atlas networking peering create azure --atlasCidrBlock 192.168.0.0/21 \ 
+         --directoryId 56657fdb-ca45-40dc-fr56-77fd8b6d2b37 \ 
+         --subscriptionId 345654f3-77cf-4084-9e06-8943a079ed75 \ 
+         --resourceGroup mongocli-test --region US_EAST_2 --vnet mongocli-test
+
+      The previous command prints the following to the terminal.
+
+      .. code-block:: sh
+         :copyable: false
+
+         Network peering connection '5f621a5669a49208c2160f40' created.
+
+   .. tab:: JSON Output
+      :tabid: json-output
+
+      The following command creates a peering connection between the
+      |service| VNet and your Azure VNet for a project using the
+      {+default-profile+}, which contains credentials and the project
+      ID. The output is returned in |json| format.
+
+      .. code-block:: sh
+
+         mongocli atlas networking peering create azure --atlasCidrBlock 192.168.0.0/21 \ 
+         --directoryId 56657fdb-ca45-40dc-fr56-77fd8b6d2b37 \ 
+         --subscriptionId 345654f3-77cf-4084-9e06-8943a079ed75 \ 
+         --resourceGroup mongocli-test --region US_EAST_2 --vnet mongocli-test \
+         --output json
+
+      The previous command prints the following to the terminal in
+      |json| format.
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           "containerId": "5f3a84b1242d9c2dc7cf244a",
+           "id": "5f621a5669a49208c2160f40",
+           "azureDirectoryId": "56657fdb-ca45-40dc-fr56-77fd8b6d2b37",
+           "azureSubscriptionId": "345654f3-77cf-4084-9e06-8943a079ed75",
+           "resourceGroupName": "mongocli-test",
+           "vnetName": "mongocli-test",
+           "status": "ADDING_PEER"
+         }
