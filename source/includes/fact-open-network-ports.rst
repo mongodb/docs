@@ -7,7 +7,7 @@ addresses.
 
 .. seealso::
 
-   To learn more about IP whitelisting, see :ref:`security-whitelist`.
+   To learn more about IP whitelisting, see :ref:`security-ip-access-list`.
 
 If your firewall blocks outbound network connections, you must also
 open outbound access from your application environment to |service|.

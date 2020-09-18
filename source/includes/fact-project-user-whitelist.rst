@@ -1,5 +1,5 @@
 The ``/groups/{GROUP-ID}/whitelist`` endpoint manages the
-:ref:`Project IP Whitelist <whitelist>`. This endpoint is
+:ref:`Project IP Whitelist <access-list>`. This endpoint is
 distinct from the
 :doc:`/users/{USER-ID}/whitelist </reference/api/whitelist-api>`
 endpoint, which manages an |service| user's 
