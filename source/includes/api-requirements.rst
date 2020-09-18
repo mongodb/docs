@@ -1,6 +1,7 @@
-The |service| API uses :ref:`HTTP Digest Authentication <api-authentication>`.
-Provide a programmatic API public key and corresponding private key as
-the username and password when constructing the HTTP request.
+The |service| |api| authenticates using
+:ref:`HTTP Digest Authentication <api-authentication>`.
+Provide a programmatic |api| public key and corresponding private key
+as the username and password when constructing the |http| request.
 
-For complete documentation on configuring API access for an |service| project,
+To learn how to configure |api| access for an |service| project,
 see :doc:`/configure-api-access`.

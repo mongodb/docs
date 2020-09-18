@@ -1,0 +1,169 @@
+=====================================
+Add Entries to Project IP Access List
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+.. include:: /includes/fact-projects-groups-synonyms.rst
+
+.. important::
+
+   .. include:: /includes/api/facts/ip-vs-user-access-lists.rst
+
+   .. include:: /includes/api/facts/synchronous-accesslist-post.rst
+
+.. include:: /includes/api-requirements.rst
+
+Syntax
+------
+
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
+
+   POST /groups/{PROJECT-ID}/accessList
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Parameter
+     - Type
+     - Necessity
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - Required
+     - Unique identifier for the :ref:`project <group-id>` to
+       which you want to add one or more Access List entries.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-list-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify an array of documents, where each document represents one
+Access List entry you want to add to the project. You must specify an
+array even if you add a single Access List entry to the project.
+
+.. admonition:: How Access List Updates Work
+   :class: important
+
+   The Access List might change depending upon what you submit in the
+   ``POST`` request. This request attempts to find an existing
+   Access List entry that has the same ``awsSecurityGroup``,
+   ``ipAddress``, or ``cidrBlock`` value. If the Access List entry:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 60
+
+      * - Access List Entry Match
+        - ``comment`` Value
+        - Access List Update
+
+      * - Yes
+        - Unchanged
+        - Makes no change.
+
+      * - No
+        - Added
+        - Appends request as new Access List entry.
+
+      * - Yes
+        - Changed
+        - Updates **comment** value in Access List entry with matching
+          **awsSecurityGroup**, **ipAddress**, or **cidrBlock** value.
+
+.. include:: /includes/api/list-tables/requests/access-list.rst
+
+Response
+--------
+
+.. include:: /includes/api/get-all-note.rst
+
+Each element in the **result** array is one Access List entry
+associated to the project IP Access List.
+
+.. include:: /includes/api/list-tables/responses/access-list.rst
+
+Example Request
+---------------
+
+.. code-block:: shell
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest --include \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{PROJECT-ID}/Access List?pretty=true" \
+        --data '
+          [
+            {
+              "ipAddress" : "192.0.2.15",
+              "comment" : "IP address for Application Server A"
+            },
+            {
+              "cidrBlock" : "203.0.113.0/24",
+              "comment" : "CIDR block for Application Server B - D"
+            },
+            {
+              "awsSecurityGroup" : "sg-0026348ec11780bd1",
+              "comment" : "Access Listed AWS Security Group"
+            }
+          ]'
+
+Example Response
+----------------
+
+Example Header
+~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/201.rst
+
+Example Body
+~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "links": [],
+     "results": [
+       {
+         "cidrBlock": "192.0.2.0/24",
+         "comment": "IP address for Application Server A",
+         "groupId": "{PROJECT-ID}",
+         "ipAddress": "192.0.2.15",
+         "links": []
+       },
+       {
+         "cidrBlock": "203.0.113.0/24",
+         "comment": "CIDR block for Application Server B - D",
+         "groupId": "{PROJECT-ID}",
+         "links": []
+       },
+       {
+         "awsSecurityGroup": "sg-0026348ec11780bd1",
+         "comment": "Access Listed AWS Security Group",
+         "groupId": "{PROJECT-ID}",
+         "links": []
+     ],
+     "totalCount": 3
+   }

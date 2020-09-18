@@ -31,7 +31,8 @@
    * - envelope
      - boolean
      - Optional
-     - Indicates whether or not to wrap the response in an envelope.
+     - Flag indicating if |service| should wrap the response in a
+       |json| envelope.
 
        Some |api| clients cannot access the |http| response headers or
        status code. To remediate this, set ``envelope=true`` in the

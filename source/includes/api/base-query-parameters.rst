@@ -1,51 +1,57 @@
 .. list-table::
-   :widths: 10 10 70 10
+   :widths: 20 14 11 45 10
+   :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
      - Default
 
-   * - ``pageNum``
+   * - pageNum
      - integer
+     - Optional
      - Page number (1-based).
      - ``1``
 
-   * - ``itemsPerPage``
+   * - itemsPerPage
      - integer
+     - Optional
      - Maximum number of items to return, up to a maximum of 100.
      - ``100``
 
-   * - ``pretty``
+   * - pretty
      - boolean
-     - Indicates whether the response body should be in a 
-       `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
+     - Optional
+     - Indicates whether the response body should be in a
+       :wikipedia:`prettyprint </Prettyprint?oldid=791126873>` format.
      - ``false``
 
-   * - ``envelope``
+   * - envelope
      - boolean
-     - Indicates whether or not to wrap the response in an 
-       envelope.
+     - Optional
+     - Flag indicating if |service| should wrap the response in a
+       |json| envelope.
 
-       Some API clients cannot access the HTTP response headers or 
-       status code. To remediate this, set ``envelope=true`` in the 
-       query. 
+       Some |api| clients cannot access the |http| response headers or
+       status code. To remediate this, set ``envelope=true`` in the
+       query.
 
-       For endpoints that return one result, response body 
+       For endpoints that return one result, the response body
        includes:
 
        .. list-table::
           :widths: 30 70
-          :header-rows: 1
           :stub-columns: 1
 
-          * - ``status``
-            - HTTP response code
-          * - ``envelope``
-            - The expected response body 
+          * - status
+            - |http| response code
+          * - envelope
+            - Expected response body
 
-       For endpoints that return a list of results, the ``results``
-       object is an envelope. |service| adds the ``status`` field to
+       For endpoints that return a list of results, the **results**
+       object is an envelope. |service| adds the **status** field to
        the response body.
-     - 
+
+     - ``false``
