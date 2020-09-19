@@ -6,16 +6,16 @@
    * - Job Type
      - Action
 
-   * - ``automated``
+   * - automated
      - |service| restores the snapshot corresponding to the
-       ``snapshotId`` to the |service| cluster corresponding to
-       the name ``targetClusterName`` in the |service| project
-       corresponding to the ``targetGroupId``.
+       **snapshotId** to the |service| cluster corresponding to
+       the name **targetClusterName** in the |service| project
+       corresponding to the **targetGroupId**.
 
-   * - ``download``
+   * - download
      - |service| generates and displays a |url| to download a
        ``.tar.gz`` of the snapshot corresponding to the
-       ``snapshotId``. The contents of the ``tar.gz`` archive
+       **snapshotId**. The contents of the **tar.gz** archive
        contain the data files for your |service| cluster.
 
        .. seealso::
@@ -27,11 +27,10 @@
        .. admonition:: Download Limitations
           :class: note
 
-          Each {+cloud-backup+} can have one download at
-          a time, and each
-          :doc:`project </tutorial/manage-projects/>` can have
+          Each {+cloud-backup+} can have one download at a time, and
+          each :doc:`project </tutorial/manage-projects/>` can have
           a maximum of 20 downloads at a time.
 
-   * - ``pointInTime``
+   * - pointInTime
      - |service| performs a
        :ref:`{+PIT-Restore+} restore <pit-restore>`.

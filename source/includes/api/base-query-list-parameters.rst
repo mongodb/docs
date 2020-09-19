@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 20 14 11 45 10
+   :widths: 20 14 11 46 10
    :header-rows: 1
    :stub-columns: 1
 
@@ -33,7 +33,7 @@
      - Optional
      - Indicates whether or not to wrap the response in an envelope.
 
-       Some API clients cannot access the HTTP response headers or
+       Some |api| clients cannot access the |http| response headers or
        status code. To remediate this, set ``envelope=true`` in the
        query.
 

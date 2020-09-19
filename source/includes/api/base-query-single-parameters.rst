@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 15 10 10 55 10
+   :widths: 20 14 11 46 10
    :header-rows: 1
    :stub-columns: 1
 
@@ -24,7 +24,7 @@
 
        This option may be needed for some |api| clients. These clients
        cannot access the |http| response headers or status code. To
-       remediate this, set ``envelope=true`` in the query.
+       remediate this, set **envelope=true** in the query.
 
        For endpoints that return one result, the response body
        includes:
