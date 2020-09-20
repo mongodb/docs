@@ -232,9 +232,9 @@ with |fcv-link| 4.2 or later, you:
 
 .. cond:: onprem
 
-   Backup and restore performance decreases for MongoDB 4.2 or later
-   replica sets with many small collections: those with tens of
-   thousands of collections with less than 1 GB of data per collection.
+   Backup and restore performance decreases for MongoDB 4.2 replica
+   sets with many small collections: those with tens of thousands of
+   collections with less than 1 GB of data per collection.
 
 .. note::
 
