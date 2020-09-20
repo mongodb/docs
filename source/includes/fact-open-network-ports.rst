@@ -1,13 +1,11 @@
-You must ensure that your application can reach your |service-fullname|
-environment. To ensure connectivity with |service|, you must whitelist
-the inbound network access from your application environment to
-|service| by either whitelisting public IP addresses, or using
-:ref:`VPC / VNet peering <vpc-peering>` to whitelist private IP
-addresses.
+Make sure your application can reach your |service-fullname|
+environment. To add the inbound network access from your application environment to |service|, do one of the following:
 
-.. seealso::
+1. Add the public IP addresses to your IP access list
+2. Use :ref:`VPC / VNet peering <vpc-peering>` to add private IP
+   addresses.
 
-   To learn more about IP whitelisting, see :ref:`security-ip-access-list`.
+.. seealso:: :ref:`security-ip-access-list`
 
 If your firewall blocks outbound network connections, you must also
 open outbound access from your application environment to |service|.

@@ -42,7 +42,7 @@
   </reference/api/third-party-integration-settings/>` like DataDog and Slack.
 
 - Enables API management for AWS security group IDs on the |service|
-  :doc:`project whitelist </reference/api/whitelist/>` when using VPC peering.
+  :doc:`project IP access list </reference/api/access-lists>` when using VPC peering.
 
 - Introduces the ``humanReadable`` field to webhook alert
   notifications. This field contains a human-readable description of
@@ -117,8 +117,8 @@
   Pre-existing clusters, and clusters in all other Azure other regions
   will continue to be deployed in *Availability Sets*.
 
-- Internal {+MongoDB-Realm+}/Charts-created database users and IP whitelist
-  entries no longer show in the Atlas UI.
+- Internal {+MongoDB-Realm+}/Charts-created database users and IP
+  access list entries no longer show in the Atlas console.
 
 - MongoDB Cloud billing authenticates credit cards for customers in the
   European Economic Area in compliance with the second Payment Services
