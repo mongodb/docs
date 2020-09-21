@@ -20,4 +20,6 @@ Download Link
 
 You must have the download link available on the customer downloads
 page that MongoDB provided to you. If you do not have this link, you
-can access the :dl:`download page <ops-manager>` for evaluation.
+can access the :dl:`download page <ops-manager>` for evaluation. You 
+can download legacy binaries from the `Release Archive 
+<https://www.mongodb.com/subscription/downloads/archived>`__.

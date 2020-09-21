@@ -57,13 +57,13 @@ The following table lists upgrade paths for all versions:
 
    * - 3.4.x
      - Use the
-       :v3.6:`v3.6 upgrade tutorial </tutorial/nav/upgrade-application>`
+       :om-v3.6:`v3.6 upgrade tutorial </tutorial/nav/upgrade-application>`
        to upgrade from |onprem| 3.4.x to version 3.6.x.
 
    * - 2.x or earlier
 
      - Use the
-       :v3.4:`v3.4 upgrade tutorial </tutorial/nav/upgrade-application>`
+       :om-v3.4:`v3.4 upgrade tutorial </tutorial/nav/upgrade-application>`
        to upgrade from |onprem| 2.x or earlier.
 
 There are no supported downgrade paths for |onprem|.
