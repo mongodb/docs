@@ -1,5 +1,5 @@
 .. list-table:: 
-   :widths: 20 80
+   :widths: 40 60
    :header-rows: 1
 
    * - Environment Variable
@@ -293,7 +293,7 @@
                      image: <operatorVersionUrl>
                      imagePullPolicy: <policyChoice>
                      env:
-                     - name: INIT_APPDB_VERSION
+                     - name: INIT_OPS_MANAGER_VERSION
                        value: latest
 
    * - ``APPDB_IMAGE_REPOSITORY``
