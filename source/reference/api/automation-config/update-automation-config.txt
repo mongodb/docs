@@ -1,0 +1,154 @@
+===================================
+Update the Automation Configuration
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+Use ``PUT`` to update a project's automation configuration. **Don't**
+use ``PATCH``.
+
+To see a tutorial on how to update an automation configuration, see
+:doc:`/tutorial/update-automation-configuration`.
+
+To make updates to the {+mdbagent+} *other than*
+``hostname``, you must do so through a different endpoint.
+
+When you submit updates, |mms| makes internal modifications to the data
+and then saves your new configuration version.
+
+.. example::
+
+   |mms| might add a field to each specified community MongoDB version
+   to indicate where the Agents download them from.
+
+The MongoDB Agents continuously poll |mms| for changes to the
+configuration and fetch configuration updates when they occur. The
+Agents then adjust the states of their live processes to match.
+
+.. _concurrent-cluster-config:
+
+.. warning::
+   There is **no protection** in the Public API to prevent
+   concurrent modifications. If two administrators both start with a
+   configuration based on the current version, make their own
+   modifications, and then submit their modifications, the later
+   modification wins.
+
+.. admonition:: Update Agent Username before Enabling Authentication
+   :class: warning
+
+   The automation configuration provides the sole means to enabling
+   authentication on your clusters using the |api|. To enable
+   authentication, first call the following endpoints with
+   **"username": "mms-automation"**:
+
+   - :doc:`Update the current backup log settings </reference/api/automation-config/update-backup-log-attributes>`
+   - :doc:`Update the current monitoring log settings  </reference/api/automation-config/update-monitoring-log-attributes>`
+
+
+Required Roles
+--------------
+
+This resource requires the :authrole:`Project Automation Admin` role.
+
+Resource
+--------
+
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
+
+   PUT /groups/{PROJECT-ID}/automationConfig
+
+Request
+-------
+
+Path Parameters
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - Required
+     - Unique identifier of the :term:`group` that owns the automation
+       configuration.
+
+Query Parameters
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Body Parameters
+~~~~~~~~~~~~~~~
+
+To review these parameters, see
+:doc:`/reference/api/automation-config/automation-config-parameters`.
+
+Response
+--------
+
+To review these parameters, see
+:doc:`/reference/api/automation-config/automation-config-parameters`.
+
+Example Request
+---------------
+
+The following replaces the automation configuration with the updated
+configuration saved in ``/Users/admin/updated-conf.json``. For an
+example of an updated configuration document, see
+:ref:`example-updated-configuration`.
+
+.. cond:: cloud
+
+   .. code-block:: sh
+
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PUT "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/automationConfig?pretty=true" \
+       --data-binary "@/Users/admin/updated-conf.json"
+
+.. cond:: onprem
+
+   .. code-block:: sh
+
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+       --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
+       --include \
+       --request PUT "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/automationConfig?pretty=true" \
+       --data-binary "@/Users/admin/updated-conf.json"
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+To review an example of this configuration, see
+:doc:`/reference/api/automation-config/automation-config-example`.

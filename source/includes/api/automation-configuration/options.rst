@@ -1,34 +1,35 @@
-The download base is the path to the directory where automatic version
-downloads will be targeted and scripts for starting processes will be created.
+|mms| downloads automatic versions and runs starting scripts in the directory set in **options.downloadBase**.
 
-.. code-block:: cfg
+.. code-block:: json
 
    "options" : {
-       "downloadBase" : <string>,
-       "downloadBaseWindows" : <string>
+     "downloadBase" : "<string>",
+     "downloadBaseWindows" : "<string>"
    }
 
 .. list-table::
-   :widths: 30 10 80
+   :widths: 20 14 11 55
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
-   * - ``options``
+   * - options
      - object
-     - The ``options`` object is required and must contain both the
-       ``downloadBase`` and ``downloadBaseWindows`` fields.
+     - Required
+     - Path for automatic downloads of new versions.
 
-   * - | ``options``
-       | ``.downloadBase``
+   * - options.downloadBase
      - string
-     - The directory on Linux and Unix (including Mac OS X) platforms for
+     - Required
+     - Directory on Linux and UNIX (including macOS) platforms for
        automatic version downloads and startup scripts.
 
-   * - | ``options``
-       | ``.downloadBaseWindows``
+   * - options.downloadBaseWindows
      - string
-     - The directory on Windows platforms for automatic version downloads and startup scripts.
+     - Required
+     - Directory on Windows platforms for automatic version downloads
+       and startup scripts.

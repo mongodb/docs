@@ -1,1 +1,1 @@
-This endpoint returns an empty JSON Object.
+This endpoint returns an empty |json| object.

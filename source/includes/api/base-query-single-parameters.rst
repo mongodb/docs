@@ -1,23 +1,26 @@
 .. list-table::
-   :widths: 20 14 56 11
+   :widths: 20 14 11 45 10
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
      - Default
 
    * - pretty
      - boolean
-     - Flag that indicates whether the response body should be in a
+     - Optional
+     - Flag indicating whether the response body should be in a
        :wikipedia:`prettyprint </Prettyprint?oldid=791126873>` format.
      - ``false``
 
    * - envelope
      - boolean
-     - Flag that indicates whether or not to wrap the response in a
-       |json| envelope.
+     - Optional
+     - Flag that indicates whether or not to wrap the response in an
+       envelope.
 
        Some |api| clients cannot access the |http| response headers or
        status code. To remediate this, set **envelope=true** in the
@@ -27,7 +30,7 @@
        includes:
 
        .. list-table::
-          :widths: 15 85
+          :widths: 30 70
           :header-rows: 1
           :stub-columns: 1
 

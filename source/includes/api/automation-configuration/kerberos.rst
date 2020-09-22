@@ -1,30 +1,33 @@
-The ``kerberos`` object is optional and defines a kerberos service name used in authentication.
+The **kerberos** object is optional and defines a kerberos service name used in authentication.
 
-.. code-block:: cfg
+.. code-block:: json
 
    "kerberos": {
-       "serviceName": <string>
+     "serviceName": "<string>"
    }
 
 .. list-table::
-   :widths: 30 10 80
+   :widths: 20 14 11 55
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
-   * - ``kerberos``
+   * - kerberos
      - object
-     - *Optional*. A key-value pair that defines the kerberos service name
+     - Optional
+     - Key-value pair that defines the kerberos service name
        agents use to authenticate via kerberos.
 
-   * - | ``kerberos``
-       | ``.serviceName``
+   * - kerberos.serviceName
      - string
-     - The service name agents use to authenticate to a :program:`mongod`
-       or :program:`mongos` via kerberos. This name is also used to set
-       the ``saslServiceName`` option in a MongoDB configuration, as
-       described on the :manual:`MongoDB Server Parameters
-       </reference/parameters/>` page in the MongoDB manual.
+     - Required
+     - Label that sets:
+
+       - The service name that the agents use to authenticate to a
+         |mongod| or |mongos| via Kerberos.
+       - The **saslServiceName** option in the
+         :manual:`MongoDB Server Parameters </reference/parameters/>`.

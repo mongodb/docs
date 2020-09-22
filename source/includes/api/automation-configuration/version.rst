@@ -1,18 +1,20 @@
 This lists the version of the automation configuration.
 
-.. code-block:: cfg
+.. code-block:: json
 
-   "version" : <integer>
+   "version" : "<integer>"
 
 .. list-table::
-   :widths: 30 10 80
+   :widths: 20 14 11 55
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
-   * - ``version``
+   * - version
      - integer
-     - The version of the configuration.
+     - Required
+     - Revision of this |onprem| configuration file.

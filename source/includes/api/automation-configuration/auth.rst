@@ -19,8 +19,8 @@
        }],
        "usersWanted": [{
          "authenticationRestrictions": [{
-           "clientSource": ["<IP | CIDR range>", "<IP | CIDR range>"],
-           "serverAddress": ["<IP | CIDR range>", "<IP | CIDR range>"]
+           "clientSource": ["(IP | CIDR range)", "(IP | CIDR range)"],
+           "serverAddress": ["(IP | CIDR range)", "(IP | CIDR range)"]
          }],
          "db": "<string>",
          "initPwd": "<string>",

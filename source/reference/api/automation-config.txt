@@ -14,15 +14,14 @@ Automation Configuration Resource
 
 .. include:: /includes/fact-groups-projects-synonyms.rst
 
-The Public API provides the ``automationConfig`` resource to let you
-manipulate your project’s
+The API provides the ``automationConfig`` resource to let you manage your project’s
 :doc:`automation configuration </reference/cluster-configuration>`.
 The configuration defines the various MongoDB clusters, replica sets
 and standalones in the deployment and defines how each process runs.
-{+aagent+} builds the deployment according to the goals specified.
-Each {+mdbagent+} using Automation is responsible for the MongoDB
-processes that run on its host. The configuration also specifies
-settings for the deployment's {+mdbagent+}s.
+{+aagent+} builds the deployment according to the goals specified. Each
+{+mdbagent+} using Automation is responsible for the MongoDB processes
+that run on its host. The configuration also specifies settings for the
+deployment's {+mdbagent+}s.
 
 When a running MongoDB process matches its defined configuration, the
 process is in "goal state". When all processes on all hosts are in goal
@@ -32,142 +31,12 @@ To update the automation configuration, you must issue the request from
 an IP address on your user account's
 :ref:`whitelist <whitelist-for-api-operations>`.
 
-Endpoints
----------
-
-Get the Automation Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Retrieve the current automation configuration for a project.
-
-.. code-block:: http
-
-   GET /groups/{PROJECT-ID}/automationConfig
-
-.. _update-automation-configuration-via-api:
-
-Update the Automation Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: http
-
-   PUT /groups/{PROJECT-ID}/automationConfig
-
-Use ``PUT`` to update a project's automation configuration. **Do not**
-use ``PATCH``. For steps for updating an automation configuration, see
-:doc:`/tutorial/update-automation-configuration`.
-
-To make updates to the {+mdbagent+} *other than*
-``hostname``, you must do so through a different endpoint.
-
-When you submit updates, |mms| makes internal modifications to the data
-and then saves your new configuration version.
-
-.. example::
-
-   |mms| might add a field to each specified community MongoDB version
-   to indicate where the Agents download them from.
-
-The MongoDB Agents continuously poll |mms| for changes to the
-configuration and fetch configuration updates when they occur. The
-Agents then adjust the states of their live processes to match.
-
-.. _concurrent-cluster-config:
-
-.. warning::
-   There is **no protection** in the Public API to prevent
-   concurrent modifications. If two administrators both start with a
-   configuration based on the current version, make their own
-   modifications, and then submit their modifications, the later
-   modification wins.
-
-.. get-monitoring-or-backup-agent-via-api:
-
-Get {+magent+} or {+bagent+} Attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|mms| provides the following endpoints to get these configurations.
-
-Get {+magent+} Attributes
-`````````````````````````
-
-.. code-block:: http
-
-   GET /groups/{PROJECT-ID}/automationConfig/monitoringAgentConfig
-
-Get {+bagent+} Attributes
-`````````````````````````
-
-.. code-block:: http
-
-   GET /groups/{PROJECT-ID}/automationConfig/backupAgentConfig
-
-.. _update-monitoring-or-backup-agent-via-api:
-
-Update {+magent+} or {+bagent+} Attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Some attributes of the ``monitoringVersions`` and ``backupVersions``
-objects cannot be updated through the ``automationConfig`` endpoint.
-|mms| provides the following endpoints to update these fields.
-
-.. important::
-
-   Do **not** use these endpoints to update the agent's host. To update
-   ``monitoringVersions.hostname`` or ``backupVersions.hostname``, use
-   the endpoint to :ref:`update the entire configuration <update-automation-configuration-via-api>`.
-
-Update {+magent+} Attributes
-````````````````````````````
-
-.. code-block:: http
-
-   PUT /groups/{PROJECT-ID}/automationConfig/monitoringAgentConfig
-
-To change these settings with the {+mdbagent+}, the body of this
-request should include one or more of these settings inside a
-``configOverrides`` object:
-
-.. include:: /includes/list-tables/config-override-monitoring-settings.rst
-
-Update {+bagent+} Attributes
-````````````````````````````
-.. code-block:: http
-
-   PUT /groups/{PROJECT-ID}/automationConfig/backupAgentConfig
-
-To change these settings with the {+mdbagent+}, the body of this
-request should include one or more of these settings inside a
-``configOverrides`` object:
-
-.. include:: /includes/list-tables/config-override-backup-settings.rst
-
-.. _update-monitoring-backup-versions:
-
-Update Agent Versions
-~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: http
-
-   POST /groups/{PROJECT-ID}/automationConfig/updateAgentVersions
-
-This endpoint updates the {+mdbagent+} and tools to the latest
-versions available at the time of the request:
-
-- :doc:`{+mdbagent+} </tutorial/nav/mongodb-agent/>`
-- :bic:`BI Connector </>`
-- :db-tools:`MongoDB Database Tools </>`
-
-After this request completes, |mms| modifies the agent configuration
-and saves the updated version. To learn more about executing
-this request, see :ref:`this example <update-agend-versions-example>`.
-
 .. _other-representations-automation-configuration:
 
-Other Representations of the Automation Configuration
------------------------------------------------------
+Additional Copies of the Automation Configuration
+-------------------------------------------------
 
-{+aagent+} stores a copy of the configuration in the
+The {+mdbagent+} stores a copy of the configuration in the
 ``mms-cluster-config-backup.json`` file. Automation stores the most
 recent version of configuration *with which Automation was able to
 reach goal state*. If an Agent is not able to process configuration
@@ -183,543 +52,64 @@ changes, it continues to store an older version of the configuration.
    representation is called the ``Raw AutomationConfig`` is viewable
    through the :guilabel:`Deployment` page.
 
-.. _automation-configuration-sample-entity:
-
-Automation Configuration Entity
--------------------------------
-
-This section describes the fields that comprise the automation
-configuration. For additional examples, please see
-`mms-api-examples <https://github.com/10gen-labs/mms-api-examples/tree/master/automation/>`_
-on GitHub.
-
-
-.. contents:: This section includes the following:
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: twocols
-
-.. _automation-config-api-config-version:
-
-Configuration Version
-~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/version.rst
-
-Download Base
-~~~~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/options.rst
-
-.. _automation-configuration-mongodb-versions-spec:
-
-MongoDB Versions Specifications
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/mongoDbVersions.rst
-
-{+aagent+}
-~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/agentVersion.rst
-
-{+magent+}
-~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/monitoringVersions.rst
-
-{+bagent+}
-~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/backupVersions.rst
-
-MongoDB Processes
-~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/processes.rst
-
-Replica Sets
-~~~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/replicaSets.rst
-
-Sharded Clusters
-~~~~~~~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/sharding.rst
-
-Cluster Balancer
-~~~~~~~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/balancer.rst
-
-Authentication
-~~~~~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/auth.rst
-
-|tls|
-~~~~~
-
-.. include:: /includes/api/automation-configuration/tls.rst
-
-MongoDB Roles
-~~~~~~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/roles.rst
-
-Kerberos
-~~~~~~~~
-
-.. include:: /includes/api/automation-configuration/kerberos.rst
-
-Indexes
-~~~~~~~
-
-.. include:: /includes/api/automation-configuration/indexConfigs.rst
-
-Examples
---------
-
-Get the Automation Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. cond:: cloud
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/automationConfig"
-
-.. cond:: onprem
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --include \
-       --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/automationConfig"
-
-Response
-````````
-
-Response Header
-+++++++++++++++
-
-.. include:: /includes/api/api-headers/401.rst
-
-.. include:: /includes/api/api-headers/200.rst
-
-Response Body
-+++++++++++++
-
-.. code-block:: json
-
-   {
-     <automation configuration>
-   }
-
-Update the Automation Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-The following replaces the automation configuration with the updated
-configuration saved in ``Users/admin/updated-conf.json``. For an
-example of an updated configuration document, see
-:ref:`example-updated-configuration`.
-
-.. cond:: cloud
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include \
-       --request PUT "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/automationConfig"
-       --data @/Users/admin/updated-conf.json
-
-.. cond:: onprem
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include \
-       --request PUT "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/automationConfig" --data @/Users/admin/updated-conf.json
-
-Response
-````````
-
-Response Header
-+++++++++++++++
-
-.. include:: /includes/api/api-headers/401.rst
-
-.. include:: /includes/api/api-headers/200.rst
-
-Response Body
-+++++++++++++
-
-.. code-block:: json
-
-   {}
-
-.. _example-updated-configuration:
-
-Example Automation Configuration
-````````````````````````````````
-
-The following example entity is passed through the
-``--data @<configuration>`` option. The exact fields included in an
-automation configuration depend on the |mms| project.
-
-The example uses ``...`` when a field has multiple entries and also in
-place of some field values. For detailed information on a field, see
-the :ref:`automation-configuration-sample-entity` section on this page.
-
-.. code-block:: json
-
-   {
-     "options" : {
-       "downloadBase" : "/var/lib/mongodb-mms-automation",
-       "downloadBaseWindows" : "C :\\MMSAutomation\\versions"
-     },
-     "mongoDbVersions" : [
-       {
-         "name" : "3.2.0",
-         "builds" : [
-           {
-             "platform" : "windows",
-             "url" : "https ://fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-3.2.0.zip",
-             "gitVersion" : "45d947729a0315accb6d4f15a6b06be6d9c19fe7",
-             "architecture" : "amd64",
-             "bits" : 64,
-             "win2008plus" : true
-           },
-           ...
-         ],
-       },
-       ...
-     ],
-     "agentVersion" : {
-     "directoryUrl" : "https://s3.amazonaws.com/mongodb-mms-build-agent/releases/prod/",
-     "name" : "2.6.4.1612-1"
-     },
-     "monitoringVersions" : [
-       {
-         "name" : "4.1.0.251-1",
-         "hostname" : "example.net",
-         "baseUrl" : null
-       },
-       ...
-     ],
-     "backupVersions" : [
-       {
-         "name" : "4.1.0.347-1",
-         "hostname" : "example.net",
-         "baseUrl" : null
-       },
-       ...
-     ],
-     "processes" : [
-       {
-         "name" : "MyCLUSTER_MySHARD_0_0",
-         "processType" : "mongod",
-         "version" : "2.6.7",
-         "hostname" : "testAutoAPI-0.dns.placeholder",
-         "logRotate" : {
-           "sizeThresholdMB" : 1000,
-           "timeThresholdHrs" : 24
-         },
-         "authSchemaVersion" : 1,
-         "args2_6" : {
-           "net" : {
-             "port" : 27017
-           },
-           "storage" : {
-             "dbPath" : "/data/MyCLUSTER_MySHARD_0_0"
-           },
-           "systemLog" : {
-             "path" : "/data/MyCLUSTER_MySHARD_0_0/mongodb.log",
-             "destination" : "file"
-           },
-           "replication" : {
-             "replSetName" : "MySHARD_0"
-           },
-           "operationProfiling" : {}
-         }
-       },
-       ...
-     ],
-     "replicaSets" : [
-       {
-         "_id" : "MySHARD_0",
-         "members" : [
-           {
-             "_id" : 0,
-             "host" : "MyCLUSTER_MySHARD_0_0",
-             "priority" : 1,
-             "votes" : 1,
-             "slaveDelay" : 0,
-             "hidden" : false,
-             "arbiterOnly" : false
-           },
-           {
-             "_id" : 1,
-             "host" : "MyCLUSTER_MySHARD_0_1",
-             "priority" : 1,
-             "votes" : 1,
-             "slaveDelay" : 0,
-             "hidden" : false,
-             "arbiterOnly" : false
-           },
-           {
-             "_id" : 2,
-             "host" : "MyCLUSTER_MySHARD_0_2",
-             "priority" : 1,
-             "votes" : 1,
-             "slaveDelay" : 0,
-             "hidden" : false,
-             "arbiterOnly" : false
-           }
-         ]
-       },
-       ...
-     ],
-     "sharding" : [
-       {
-         "name" : "myShardedCluster",
-         "configServer" : [
-           "MyCLUSTER_MyCONFIG_SERVER_6",
-           "MyCLUSTER_MyCONFIG_SERVER_7",
-           "MyCLUSTER_MyCONFIG_SERVER_8"
-         ],
-         "shards" : [
-           {
-             "_id" : "MySHARD_0",
-             "rs" : "MySHARD_0"
-           },
-           {
-             "_id" : "MySHARD_1",
-             "rs" : "MySHARD_1"
-           }
-         ]
-       }
-     ],
-     "balancer" : { ... },
-     "auth" : {
-       "authoritativeSet" : false,
-       "disabled" : true
-       "usersDeleted" : [ ],
-       "usersWanted" : [ ]
-     },
-     "tls" : { ... },
-     "roles" : [
-       {
-         "role" : ... ,
-         "db" : ... ,
-         "privileges" : [ ... ],
-         "roles" : [ ... ]
-       },
-       ...
-     ],
-     "kerberos" : {
-       "serviceName" : ...
-     },
-     "indexConfigs" : [ ]
-   }
-
-Update the {+magent+}
-~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. cond:: cloud
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include \
-       --request PUT "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/automationConfig/monitoringAgentConfig"
-       --data '
-         {
-           "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
-           "logRotate": {
-             "sizeThresholdMB": 1000,
-             "timeThresholdHrs": 12
-           }
-         }'
-
-.. cond:: onprem
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include \
-       --request PUT "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/automationConfig/monitoringAgentConfig"
-       --data '
-         {
-           "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
-           "logRotate": {
-             "sizeThresholdMB": 1000,
-             "timeThresholdHrs": 12
-           }
-         }'
-
-Response
-````````
-
-Response Header
-+++++++++++++++
-
-.. include:: /includes/api/api-headers/401.rst
-
-.. include:: /includes/api/api-headers/200.rst
-
-Response Body
-+++++++++++++
-
-.. code-block:: json
-
-   {}
-
-Update the Backup Log Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. cond:: cloud
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include \
-       --request PUT "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/automationConfig/backupAgentConfig"
-       --data '
-         {
-           "logPath": "/var/log/mongodb-mms-automation/backup-agent.log",
-           "logRotate": {
-             "sizeThresholdMB": 1000,
-             "timeThresholdHrs": 36
-           }
-         }'
-
-.. cond:: onprem
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include \
-       --request PUT "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/automationConfig/backupAgentConfig"
-       --data '
-         {
-           "logPath": "/var/log/mongodb-mms-automation/backup-agent.log",
-           "logRotate": {
-             "sizeThresholdMB": 1000,
-             "timeThresholdHrs": 36
-           }
-         }'
-
-Response
-````````
-
-Response Header
-+++++++++++++++
-
-.. include:: /includes/api/api-headers/401.rst
-
-.. include:: /includes/api/api-headers/200.rst
-
-Response Body
-+++++++++++++
-
-.. include:: /includes/api/no-response-empty-json.rst
-
-.. _update-agend-versions-example:
-
-Update Agent Versions
-~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. cond:: cloud
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-           --header "Content-Type: application/json" \
-           --include \
-           --request POST "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/automationConfig/updateAgentVersions"
-
-.. cond:: onprem
-
-   .. code-block:: sh
-
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-           --header "Accept: application/json" \
-           --header "Content-Type: application/json" \
-           --include \
-           --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/automationConfig/updateAgentVersions"
-
-Response
-````````
-
-Response Header
-+++++++++++++++
-
-.. include:: /includes/api/api-headers/401.rst
-
-.. include:: /includes/api/api-headers/200.rst
-
-Response Body
-+++++++++++++
-
-.. cond:: cloud
-
-   .. code-block:: json
-      :copyable: false
-      :linenos:
-
-      {
-        "automationAgentVersion": "{+mdbagent-version-cloud+}",
-        "backupAgentVersion" : null,
-        "biConnectorVersion" : "2.13.4",
-        "mongoDbToolsVersion" : "100.0.2",
-        "monitoringAgentVersion" : null
-      }
-
-
-.. cond:: onprem
-
-   .. code-block:: json
-      :copyable: false
-      :linenos:
-
-      {
-        "automationAgentVersion": "{+mdbagent-version-opsmgr+}",
-        "backupAgentVersion" : null,
-        "biConnectorVersion" : "2.13.4",
-        "mongoDbToolsVersion" : "100.0.2",
-        "monitoringAgentVersion" : null
-      }
+Automation Configuration Parameters
+-----------------------------------
+
+The Automation Configuration contains a large amount of information
+about your |mms| instance, agents, clusters, and security. With this
+complexity, these parameters can be found as their own
+:doc:`reference page </reference/api/automation-config/automation-config-parameters>`.
+
+To review an example of a complete automation configuration file, see
+:doc:`/reference/api/automation-config/automation-config-example`.
+
+Endpoints
+---------
+
+The following lists the endpoints available for the automation
+configuration resource.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30 60
+
+   * - Method
+     - Endpoint
+     - Description
+
+   * - ``GET``
+     - :doc:`/groups/{PROJECT-ID}/automationConfig </reference/api/automation-config/get-automation-config>`
+     - Retrieve the current automation configuration
+   * - ``PUT``
+     - :doc:`/groups/{PROJECT-ID}/automationConfig </reference/api/automation-config/update-automation-config>`
+     - Replace the current automation configuration
+   * - ``POST``
+     - :doc:`/groups/{PROJECT-ID}/automationConfig/updateAgentVersions </reference/api/automation-config/update-agent-versions>`
+     - Update the {+mdbagent+}
+   * - ``GET``
+     - :doc:`/groups/{PROJECT-ID}/automationConfig/backupAgentConfig </reference/api/automation-config/get-backup-log-attributes>`
+     - Retrieve the current backup log settings
+   * - ``PUT``
+     - :doc:`/groups/{PROJECT-ID}/automationConfig/backupAgentConfig </reference/api/automation-config/update-backup-log-attributes>`
+     - Update the current backup log settings
+   * - ``GET``
+     - :doc:`/groups/{PROJECT-ID}/automationConfig/monitoringAgentConfig </reference/api/automation-config/get-monitoring-log-attributes>`
+     - Retrieve the current monitoring log settings
+   * - ``PUT``
+     - :doc:`/groups/{PROJECT-ID}/automationConfig/monitoringAgentConfig </reference/api/automation-config/update-monitoring-log-attributes>`
+     - Update the current monitoring log settings
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /reference/api/automation-config/get-automation-config
+      /reference/api/automation-config/update-automation-config
+      /reference/api/automation-config/automation-config-parameters
+      /reference/api/automation-config/automation-config-example
+      /reference/api/automation-config/update-agent-versions
+      /reference/api/automation-config/get-backup-log-attributes
+      /reference/api/automation-config/update-backup-log-attributes
+      /reference/api/automation-config/get-monitoring-log-attributes
+      /reference/api/automation-config/update-monitoring-log-attributes

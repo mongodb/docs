@@ -1,246 +1,243 @@
-The ``sharding`` array defines the configuration of each sharded cluster.
-This field is required for deployments with sharded clusters.
+The **sharding** array defines the configuration of each sharded
+cluster. This parameter is required for deployments with sharded
+clusters.
 
-.. code-block:: cfg
+.. code-block:: json
+   :linenos:
 
    "sharding" : [
-       {
-           "managedSharding" : <boolean>,
-           "name" : <string>,
-           "configServerReplicaSet" : <string>,
-           // "configServerReplicaSet" applies if the config server is a replica set.
-           // For legacy mirrored config servers, use "configServer", which takes a
-           // string array.
-           "collections" : [
-               {
-                   "_id" : <string>,
-                   "key" : [
-                       [ shard key ],
-                       [ shard key ],
-                       ...
-                   ],
-                   "unique" : <boolean>
-               },
-               ...
+     {
+       "managedSharding" : <boolean>,
+       "name" : "<string>",
+       "configServerReplicaSet" : "<string>",
+       "collections" : [
+         {
+           "_id" : "<string>",
+           "key" : [
+             [ "shard key" ],
+             [ "shard key" ],
+             ...
            ],
-           "shards" : [
-               {
-                   "_id" : <string>,
-                   "rs" : <string>,
-                   "tags" : [ <string>, ... ]
-               },
-               ...
+           "unique" : <boolean>
+         },
+         ...
+       ],
+       "shards" : [
+         {
+           "_id" : "<string>",
+           "rs" : "<string>",
+           "tags" : [ "<string>", ... ]
+         },
+         ...
+       ],
+       "tags" : [
+         {
+           "ns" : "<string>",
+           "min" : [
+             {
+               "parameter" : "<string>",
+               "parameterType" : "<string>",
+               "value" : "<string>"
+             }
            ],
-           "tags" : [
-               {
-                   "ns" : <string>,
-                   "min" : [
-                       {
-                           "field" : <string>,
-                           "fieldType" : <string>,
-                           "value" : <string>
-                       }
-                   ],
-                   "max" : [
-                       {
-                           "field" : <string>,
-                           "fieldType" : <string>,
-                           "value" : <string>
-                       }
-                   ],
-                   "tag" : <string>
-               },
-               ...
-           ]
-       },
-       ...
+           "max" : [
+             {
+               "parameter" : "<string>",
+               "parameterType" : "<string>",
+               "value" : "<string>"
+             }
+           ],
+           "tag" : "<string>"
+         },
+         ...
+       ]
+     },
+     ...
    ]
 
 .. list-table::
-   :widths: 30 10 80
+   :widths: 20 14 11 55
    :header-rows: 1
    :stub-columns: 1
 
    * - Name
      - Type
+     - Necessity
      - Description
 
-   * - ``sharding``
-     - object array
-     - *Optional*. Objects that define the configuration of each
+   * - sharding
+     - array of objects
+     - Optional
+     - Objects that define the configuration of each
        :term:`sharded cluster`. Each object in the array contains the
-       specifications for one cluster. The {+aagent+} regularly
+       specifications for one cluster. The {+mdbagent+} regularly
        checks each cluster's state against the specifications. If the
        specification and cluster don't match, the agent will change the
        configuration of the cluster, which might cause the balancer to
        migrate chunks.
 
-   * - | ``sharding``
-       | ``.managedSharding``
+   * - sharding.managedSharding
      - boolean
-     - If ``true``, |mms| Automation manages all :manual:`sharded collections </sharding>`
-       and :manual:`tags </core/zone-sharding>` (i.e., zones) in the deployment.
+     - Conditional
+     - Flag that indicates whether |mms| Automation manages all
+       :manual:`sharded collections </sharding>`
+       and :manual:`tags </core/zone-sharding>` in the deployment
 
-   * - | ``sharding``
-       | ``.name``
+   * - sharding.name
      - string
-     - The name of the cluster. This must correspond with the value in
-       ``processes.cluster`` for a :program:`mongos`.
+     - Conditional
+     - Name of the cluster. This must correspond with the value in
+       **processes.cluster** for a |mongos|.
 
-   * - | ``sharding``
-       | ``.configServerReplica``
+   * - sharding.configServerReplica
      - string
-     - The name of the :term:`config server's <config server>` replica set.
+     - Conditional
+     - Name of the :ref:`config server replica set <csrs>`.
 
-       Use this field only for a config server that is a replica set. If you
-       use legacy mirrored config servers (config servers that are not a
-       replica set), use ``sharding.configServer``.
+       You can add this array parameter if your config server runs as a replica set.
 
-   * - | ``sharding``
-       | ``.configServer``
+       If you run legacy mirrored config servers that
+       don't run as a replica set, use **sharding.configServer**.
+
+   * - sharding.configServer
      - array of strings
-     - For legacy mirrored :term:`config servers <config server>`, an array
-       that contains the names of the config server hosts. The host names are
-       the same names used in each host's ``processes.name`` field.
+     - Conditional
+     - Names of the config server hosts. The host names match the names
+       used in each host's **processes.name** parameter.
 
-       Use this field only for legacy mirrored config servers (config servers
-       that are not a replica set), which are available only with MongoDB 3.2
-       and earlier. Otherwise use ``sharding.configServerReplica``.
+       If your sharded cluster runs MongoDB 3.4 or later, use
+       **sharding.configServerReplica**.
 
        .. important:: MongoDB 3.4 removes support for mirrored config servers.
 
-   * - | ``sharding``
-       | ``.collections``
-     - object array
+   * - sharding.collections
+     - array of objects
+     - Conditional
      - Objects that define the sharded :term:`collections <collection>`
        and their :term:`shard keys <shard key>`.
 
-   * - | ``sharding``
-       | ``.collections``
-       | ``._id``
+   * - sharding.collections._id
      - string
-     - The :term:`namespace` of the sharded collection. The namespace is
-       the combination of the database name and the name of the
-       collection. For example, ``testdb.testcoll``.
+     - Conditional
+     - :term:`namespace` of the sharded collection. The namespace
+       is the combination of the database name and the name of the
+       collection. For example, **testdb.testcoll**.
 
-   * - | ``sharding``
-       | ``.collections``
-       | ``.key``
+   * - sharding.collections.key
      - array of arrays
-     - The collection's :term:`shard keys <shard key>`. This "array of
-       arrays" contains a single array if there is a single shard key and
-       contains multiple arrays if there is a compound shard key.
+     - Conditional
+     - Collection's :term:`shard keys <shard key>`. It contains:
 
-   * - | ``sharding``
-       | ``.collections``
-       | ``.unique``
+       - One array if your cluster uses one shard key.
+       - Multiple arrays if your cluster uses a compound shard key.
+
+   * - sharding.collections.unique
      - boolean
-     - If set to ``true``, MongoDB enforces uniqueness for the shard key. For
-       more information, see the :manual:`sh.shardCollection()
-       method </reference/method/sh.shardCollection>` in
-       the MongoDB manual.
+     - Conditional
+     - Flag that indicates whether MongoDB
+       :manual:`enforces uniqueness for the shard key </reference/method/sh.shardCollection>`.
 
-   * - | ``sharding``
-       | ``.shards``
-     - object array
-     - Objects that define the cluster's :term:`shards <shard>`.
+   * - sharding.shards
+     - array of objects
+     - Conditional
+     - Cluster's :term:`shards <shard>`.
 
-   * - | ``sharding``
-       | ``.shards``
-       | ``._id``
+   * - sharding.shards._id
      - string
-     - The name of the shard.
+     - Conditional
+     - Name of the shard.
 
-   * - | ``sharding``
-       | ``.shards``
-       | ``.rs``
+   * - sharding.shards.rs
      - string
-     - The name of the shard's replica set, as specified in the
-       ``replicaSets._id`` field.
+     - Conditional
+     - Name of the shard's replica set. This is specified in the
+       **replicaSets._id** parameter.
 
-   * - | ``sharding``
-       | ``.shards``
-       | ``.tags``
+   * - sharding.shards.tags
      - array of strings
-     - If you use :manual:`zoned sharding </core/zone-sharding>`, the zones
-       assigned to the shard.
+     - Conditional
+     - Zones assigned to this shard.
 
-   * - | ``sharding``
-       | ``.tags``
-     - object array
-     - If you use :manual:`zoned sharding </core/zone-sharding>`, this array
-       defines the zones. Each object in this array defines a zone and
-       configures the shard key range for that zone.
+       You can add this array parameter if you use
+       :manual:`zoned sharding </core/zone-sharding>`.
 
-   * - | ``sharding``
-       | ``.tags``
-       | ``.ns``
+   * - sharding.tags
+     - array of objects
+     - Conditional
+     - Definition of zones for
+       :manual:`zoned sharding </core/zone-sharding>`. Each object in
+       this array defines a zone and configures the shard key range
+       for that zone.
+
+   * - sharding.tags.ns
      - string
-     - The :term:`namespace` of the collection that uses zoned sharding.
-       The namespace is the combination of the database name and the name of
-       the collection. For example, ``testdb.testcoll``.
+     - Conditional
+     - :term:`Namespace <namespace>` of the collection that uses zoned
+       sharding. The namespace combines the database name and the name
+       of the collection.
 
-   * - | ``sharding``
-       | ``.tags``
-       | ``.min``
+       .. example::
+
+          testdb.testcoll
+
+   * - sharding.tags.min
      - array
-     - The minimum value of the shard key range.
+     - Conditional
+     - Minimum value of the shard key range.
 
        .. include:: /includes/possibleValues-sharding.tags-ranges.rst
 
-   * - | ``sharding``
-       | ``.tags``
-       | ``.max``
+   * - sharding.tags.max
      - array
-     - The maximum value of the shard key range.
+     - Conditional
+     - Maximum value of the shard key range.
 
        .. include:: /includes/possibleValues-sharding.tags-ranges.rst
 
-   * - | ``sharding``
-       | ``.tags``
-       | ``.tag``
+   * - sharding.tags.tag
      - string
+     - Conditional
+     - Name of the :manual:`zone </core/zone-sharding>` associated
+       with the shard key range specified by **sharding.tags.min** and
+       **sharding.tags.max**.
 
-     - The name of the :manual:`zone </core/zone-sharding>` associated with
-       the shard key range specified by ``sharding.tags.min`` and
-       ``sharding.tags.max``.
+.. example:: The **sharding.tags** Array with Compound Shard Key
 
-.. example:: The ``sharding.tags`` Array with Compound Shard Key
+   The following example configuration defines a compound shard key
+   range with a min value of **{ a : 1, b : ab }** and a max value of
+   **{ a : 100, b : fg }**. The example defines the range on the
+   **testdb.test1** collection and assigns it to zone **zone1**.
 
-   The following example configuration defines a compound shard key range with a
-   min value of ``{ a : 1, b : ab }`` and a max value of ``{ a : 100, b : fg }``.
-   The example defines the range on the ``testdb.test1`` collection and assigns
-   it to zone ``zone1``.
-
-   .. code-block:: cfg
+   .. code-block:: json
+      :linenos:
 
       "tags" : [
-          {
-              "ns" : "testdb.test1",
-              "min" : [
-                  {
-                      "field" : "a",
-                      "fieldType" : "integer",
-                      "value" : "1"
-                  },
-                  {
-                      "field" : "b",
-                      "fieldType" : "string",
-                      "value" : "ab"
-                  }
-              ],
-              "max" : [
-                  {
-                      "field" : "a",
-                      "fieldType" : "integer",
-                      "value" : "100"
-                  },
-                  {
-                      "field" : "b",
-                      "fieldType" : "string",
-                      "value" : "fg"
-                  }
-              ],
-              "tag" : "zone1"
-          }
+        {
+          "ns" : "testdb.test1",
+          "min" : [
+            {
+              "parameter" : "a",
+              "parameterType" : "integer",
+              "value" : "1"
+            },
+            {
+              "parameter" : "b",
+              "parameterType" : "string",
+              "value" : "ab"
+            }
+          ],
+          "max" : [
+            {
+              "parameter" : "a",
+              "parameterType" : "integer",
+              "value" : "100"
+            },
+            {
+              "parameter" : "b",
+              "parameterType" : "string",
+              "value" : "fg"
+            }
+          ],
+          "tag" : "zone1"
+        }
       ]

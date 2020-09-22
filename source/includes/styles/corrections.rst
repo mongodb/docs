@@ -39,5 +39,8 @@
      div.highlight > pre > span.o {
        line-height: 16px;
      }
+     th.stub {
+       overflow-wrap: break-word;
+     }
    </style>
 

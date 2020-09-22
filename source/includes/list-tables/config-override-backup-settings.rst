@@ -1,179 +1,46 @@
 .. list-table::
-   :widths: 40 10 50
+   :widths: 20 14 11 55
    :header-rows: 1
    :stub-columns: 1
 
-   * - Backup Setting
-     - Data Type
-     - Data Entry
+   * - Parameter
+     - Type
+     - Necessity
+     - Description
 
-   * - :bsetting:`mmsGroupId`
+   * - logPath
      - string
-     -
-       .. code-block:: json
+     - Optional
+     - Absolute file path to which this {+mdbagent+} writes its logs.
+       If this is not specified, the log writes to standard error
+       (``stderr``) on UNIX- and Linux-based systems and to the Event
+       Log on Windows systems.
 
-          "configOverrides": {
-            "mmsGroupId" : "8zvbo2s2asigxvmpnkq5yexf"
-          }
+   * - logRotate
+     - object
+     - Optional
+     - Thresholds after which this {+mdbagent+} rotates the backup log.
 
-   * - :bsetting:`mmsApiKey`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "mmsApiKey" : "rgdte4w7wwbnds9nceuodx9mcte2zqem"
-          }
-
-   * - :bsetting:`mothership`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "mothership" : "opsmanager.example.com:8080"
-          }
-
-   * - :bsetting:`mothershipResponseHeaderTimeout`
+   * - | logRotate
+       | .sizeThresholdMB
      - integer
-     -
-       .. code-block:: json
+     - Optional
+     - Maximum size, in MB, of a log file before this {+mdbagent+}
+       rotates the logs.
 
-          "configOverrides": {
-            "mothershipResponseHeaderTimeout" : "5"
-          }
-
-   * - :bsetting:`https`
-     - boolean
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "https" : true
-          }
-
-   * - :bsetting:`logFile`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "logFile" : "/etc/mongodb-mms/logs/backup-agent.log"
-          }
-
-   * - :bsetting:`maxLogFileSizeBytes`
+   * - | logRotate
+       | .timeDurationHrs
      - integer
-     -
-       .. code-block:: json
+     - Optional
+     - Number of hours after which this {+mdbagent+} rotates the log
+       file.
 
-          "configOverrides": {
-            "maxLogFileSizeBytes" : "536870912"
-          }
-
-   * - :bsetting:`maxLogFileDurationHrs`
-     - float
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "maxLogFileDurationHrs" : "10.5"
-          }
-
-   * - :bsetting:`httpProxy`
+   * - username
      - string
-     -
-       .. code-block:: json
+     - Optional
+     - MongoDB user in the application database that manages the
+       backup logs.
 
-          "configOverrides": {
-            "httpProxy" : "http://proxy.example.com:8080"
-          }
-
-   * - :bsetting:`krb5Principal`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "krb5Principal" : "mmsagent/myhost@EXAMPLE.COM"
-          }
-
-   * - :bsetting:`krb5Keytab`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "krb5Keytab" : "/path/to/backup-agent.keytab"
-          }
-
-   * - :bsetting:`krb5ConfigLocation`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "krb5ConfigLocation" : "/path/to/krb_custom.conf"
-          }
-
-   * - :bsetting:`gsappiServiceName`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "gsappiServiceName" : "mongodb"
-          }
-
-   * - :bsetting:`sslClientCertificate`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "sslClientCertificate" : "<certDirectory>/sslCertificate.pem"
-          }
-
-   * - :bsetting:`sslClientCertificatePassword`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "sslClientCertificatePassword" : "password"
-          }
-
-   * - :bsetting:`sslClientCertificateSubject`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "sslClientCertificateSubject" : "CN=test,O=Test Certificate"
-          }
-
-   * - :bsetting:`sslTrustedServerCertificates`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "sslTrustedServerCertificates" : "/path/to/mongodb-certs.pem"
-          }
-
-   * - :bsetting:`sslRequireValidServerCertificates`
-     - boolean
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "sslRequireValidServerCertificates" : true
-          }
-
-   * - :bsetting:`sslTrustedMMSBackupServerCertificate`
-     - string
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "sslTrustedMMSBackupServerCertificate" : "/path/to/mms-certs.pem"
-          }
+       If you use the |api| to enable authentication for the
+       {+mdbagent+}, set this parameter to **mms-automation** when
+       executing this endpoint.

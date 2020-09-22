@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 15 10 65 10
+   :widths: 20 14 11 55
    :stub-columns: 1
    :header-rows: 1
 
