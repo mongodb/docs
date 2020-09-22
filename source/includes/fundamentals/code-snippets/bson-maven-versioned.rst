@@ -1,5 +1,4 @@
 .. code-block:: xml
-   :linenos: false
 
    <dependencies>
        <dependency>
