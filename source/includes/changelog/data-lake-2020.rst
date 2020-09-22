@@ -1,3 +1,13 @@
+.. _data-lake-v20200922:
+
+22 September 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports :ref:`killOp <terminate-running-query>` command for terminating 
+  a long-running query.
+- Adds :datalakeconf:`configuration <databases.[n].maxWildcardCollections>` 
+  for maximum number of wildcard collections for |s3| {+data-lake-stores+}.
+
 .. _data-lake-v20200901:
 
 01 September 2020 Release
