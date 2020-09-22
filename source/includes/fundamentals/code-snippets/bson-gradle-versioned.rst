@@ -1,5 +1,4 @@
 .. code-block:: groovy
-   :copyable: true
    :linenos: false
 
    dependencies {

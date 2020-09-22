@@ -1,5 +1,4 @@
 .. code-block:: xml
-   :copyable: true
    :linenos: false
 
    <dependencies>
