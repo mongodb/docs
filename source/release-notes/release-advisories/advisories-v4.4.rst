@@ -15,6 +15,15 @@ Personal API Keys
 - Can't create new Personal |api| Keys.
 - Removes support for Personal |api| Keys in |onprem| 4.6.
 
+Encryption Using ``gen.key`` File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|onprem| 4.4 requires an identical ``gen.key`` file on each server 
+hosting an |application| or :term:`Backup Daemon <Backup Daemon>`. 
+|onprem| uses the file to encrypt and decrypt |onprem|\'s backing 
+databases and user credentials. Back up the ``gen.key`` file to a 
+secure location.
+
 Platform Support Changes
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
