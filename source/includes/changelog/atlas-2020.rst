@@ -1,3 +1,32 @@
+.. _atlas_20200922:
+
+22 September 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports the following |aws| :doc:`regions </reference/amazon-aws>`:
+
+  - ``af-south-1`` (Cape Town, South Africa)
+  - ``eu-south-1`` (Milan, Italy)
+
+- Supports the following |gcp| :doc:`regions </reference/google-gcp>`:
+
+  - ``asia-southeast2`` (Jakarta, Indonesia)
+  - ``uswest3`` (Las Vegas, NV, USA)
+  - ``uswest4`` (Salt Lake City, UT, USA)
+
+- Supports the following |azure|
+  :doc:`regions </reference/microsoft-azure>`:
+
+  - ``westcentralus`` (Wyoming, USA)
+  - ``germanynorth`` (Berlin, Germany)
+
+- Updates terminology for Atlas cluster firewall management. Introduces
+  :doc:`IP Access List </security/ip-access-list>` and deprecates "IP
+  Whitelist".
+
+- Introduces new host-level monitoring metrics for total memory, total
+  memory free and total swap used.
+
 .. _atlas_20200901:
 
 01 September 2020 Release
