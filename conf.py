@@ -129,6 +129,8 @@ rst_epilog = [
     '.. |iso8601| replace:: :wikipedia:`ISO 8601 </ISO_8601?oldid=962856429>`',
     '.. |iso3166-1a2| replace:: :wikipedia:`ISO-3166-1 alpha 2 </ISO_3166-1_alpha-2?oldid=961501727>`',
     '.. |iso3166-2| replace:: :wikipedia:`ISO-3166-2 </ISO 3166-2?oldid=961501727>`',
+    '.. |jdk| replace:: :abbr:`JDK (Java Development Kit)`',
+    '.. |jre| replace:: :abbr:`JRE (Java Runtime Environment)`',
     '.. |jira| replace:: `Jira <https://jira.mongodb.org>`__',
     '.. |json| replace:: :abbr:`JSON (Javascript Object Notation)`',
     '.. |kdc| replace:: :abbr:`KDC (Key Distribution Center)`',
@@ -261,7 +263,8 @@ extlinks = {
     'adl': ('https://docs.mongodb.com/datalake%s',''),
     'guides' : ('https://docs.mongodb.com/guides%s',''),
     'osb' : ('https://docs.mongodb.com/atlas-open-service-broker/current%s',''),
-    'mdb-shell' : ('https://docs.mongodb.com/mongodb-shell%s','')
+    'mdb-shell' : ('https://docs.mongodb.com/mongodb-shell%s',''),
+    'openjdktix' : ('https://bugs.openjdk.java.net/browse/%s','')
 }
 
 # add `extlinks` for each published version.
