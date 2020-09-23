@@ -45,14 +45,6 @@ MongoDB Platform Support Changes
   - Amazon Linux 1 on the x86_64 architecture
   - Ubuntu 16.04 on the ppc64le architecture
 
-Backup Support Changes
-~~~~~~~~~~~~~~~~~~~~~~
-
-|onprem| 4.4 can't back up MongoDB |fcv-link| 4.2 or later deployments
-to Filesystem Snapshot Stores.
-
-Support will be added in a later 4.4.x release.
-
 Server Pools
 ~~~~~~~~~~~~
 
