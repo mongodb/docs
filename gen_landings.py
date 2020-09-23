@@ -17,10 +17,6 @@ SITES = [
          os.path.join(BUILD_DIR, 'tools', 'index.html'),
          'MongoDB Tools — MongoDB Documentation',
          'bi-connector-current,spark-connector-current,compass-master'),
-    Site('./src/html/announcements/login-and-access-changes.html',
-         os.path.join(BUILD_DIR, 'announcements/login-and-access-changes', 'index.html'),
-         'MongoDB Announcements — MongoDB Documentation',
-         '')
 ]
 
 
