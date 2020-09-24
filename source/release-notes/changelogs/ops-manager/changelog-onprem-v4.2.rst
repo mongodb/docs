@@ -1,3 +1,13 @@
+.. _opsmgr-server-4.2.18:
+
+|onprem| Server 4.2.18
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-09-23*
+
+- Fixes a high severity vulnerability in Ops Manager. ``CVE-2020-7927`` 
+  is allocated for this issue.
+
 .. _opsmgr-server-4.2.17:
 
 |onprem| Server 4.2.17
