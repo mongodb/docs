@@ -144,11 +144,3 @@
           "configOverrides": {
             "sslTrustedMMSBackupServerCertificate" : "/path/to/mms-certs.pem"
           }
-   * - :msetting:`enableMunin`
-     - boolean
-     -
-       .. code-block:: json
-
-          "configOverrides": {
-            "enableMunin" : true
-          }
