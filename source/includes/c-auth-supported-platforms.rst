@@ -8,7 +8,6 @@ The plugin is built and tested on the following platforms:
 
 - RHEL 7.0 (64-bit)
 
-.. admonition:: Testing Environment
-   :class: important
+.. important:: Testing Environment
 
    .. include:: /includes/fact-c-auth-compatibility.rst

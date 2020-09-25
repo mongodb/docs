@@ -11,7 +11,7 @@ database ``test``:
 
 Run :binary:`~bin.mongodrdl` to generate a schema based on this collection:
 
-.. class:: copyable-code
+
 .. code-block:: sh
 
    mongodrdl -d test -c abc -o schema.drdl
