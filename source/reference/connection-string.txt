@@ -206,12 +206,12 @@ seedlist. Using DNS to construct the available servers list allows more flexibil
 of deployment and the ability to change the servers in rotation without reconfiguring
 clients.
 
-In order to leverage the DNS seedlist, use a connection string prefix of ``mongodb+srv:`` 
-in place of the ``mongodb:`` string above.
-
-The ``+srv`` indicates to the mongo client that the hostname that follows corresponds to a 
-DNS SRV record. The client driver will then query the DNS for the record to determine the hosts that
-are running the mongod instances.
+In order to leverage the DNS seed list, use a connection string prefix of
+``mongodb+srv`` rather than the standard ``mongodb``. The ``+srv``
+indicates to the client that the hostname that follows corresponds to a
+DNS SRV record. The driver or :binary:`~bin.mongo` shell will then
+query the DNS for the record to determine which hosts are running the
+:binary:`~bin.mongod` instances.
 
 For example, to connect to a DNS-listed hostname:
 
@@ -228,13 +228,14 @@ like this:
    _mongodb._tcp.server.example.com. 86400 IN SRV   0        5      27317 mongodb1.example.com.
    _mongodb._tcp.server.example.com. 86400 IN SRV   0        5      27017 mongodb2.example.com.
 
-.. note::
-  The hostnames returned in SRV records must share the same parent domain (in this example, ``example.com``)
-  as the given hostname.
-  
-The DNS seedlist connection string can also provide options as a query string, with a trailing "/?" as in
-the standard connection string above. However, the ``+srv`` appended to the standard connection string 
-signals the driver to query the DNS for options as a configured TXT record. 
+When a client connects to a member of the :term:`seed list`, the client 
+retrieves a list of replica set members it can connect to. Clients 
+often use DNS aliases in their seed lists which means the host may
+return a server list that differs from the original seed list. If this
+happens, clients will use the hostnames provided by the replica set 
+rather than the hostnames listed in the seed list to ensure that 
+replica set members can be reached via the hostnames in the resulting
+replica set config. 
 
 Only two options are available for configuration via a TXT record -- 
 ``replicaSet`` and ``authSource``, and only one TXT record
@@ -301,7 +302,6 @@ Connection options are pairs in the following form: ``name=value``. The
    To provide backwards compatibility, drivers currently accept
    semi-colons (i.e. ``;``) as option separators.
 
-.. _replica-set-options:
 .. _replica-set-option:
 
 Replica Set Option
