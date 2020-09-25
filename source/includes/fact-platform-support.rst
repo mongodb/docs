@@ -59,29 +59,41 @@
     -
     - |checkmark|
 
+  * - SUSE 15
+    - |checkmark|
+    -
+    -
+    -
+
   * - SUSE 12
     - |checkmark|
     -
     -
-    -
-
-  * - Ubuntu 20
-    - |checkmark|
-    -
-    -
-    -
-
-  * - Ubuntu 18
-    - |checkmark|
-    - |checkmark|
-    - |checkmark|
     - |checkmark|
 
-  * - Ubuntu 16
+  * - Ubuntu 20.04
+    - |checkmark|
+    - |checkmark|
+    -
+    -
+
+  * - Ubuntu 18.04
     - |checkmark|
     - |checkmark|
     - |checkmark|
     - |checkmark|
+
+  * - Ubuntu 16.04
+    - |checkmark|
+    - |checkmark|
+    - |checkmark|
+    - |checkmark|
+
+  * - Ubuntu 14.04
+    - |checkmark|
+    -
+    -
+    -
 
   * - Windows 8 and later
     - |checkmark|
