@@ -11,11 +11,13 @@ PRODUCTION_BUCKET=docs-ruby-driver
 PROJECT=ruby-driver
 TARGET_DIR=source-${GIT_BRANCH}
 
+SOURCE_FILE_DIR=build/ruby-driver-${GIT_BRANCH}
+
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
 STABLE_BRANCH=`grep 'manual' build/docs-tools/data/${PROJECT}-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
-.PHONY: help stage fake-deploy deploy deploy-search-index check-redirects publish-build-only publish migrate clean
+.PHONY: help stage fake-deploy deploy deploy-search-index api-docs check-redirects publish-build-only publish migrate clean
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -32,6 +34,18 @@ publish-build-only: ## Builds this branch's publishable HTML and other artifacts
 
 publish: migrate ## Build publishable artifacts, and also migrates assets
 	giza make publish
+	@echo "Making api  directory in /build/public/${GIT_BRANCH}"
+	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
+	mkdir build/public/${GIT_BRANCH}/api
+
+	yard doc ${SOURCE_FILE_DIR} \
+		--exclude ${SOURCE_FILE_DIR}/.evergreen \
+		--exclude ${SOURCE_FILE_DIR}/.mod \
+		--exclude ${SOURCE_FILE_DIR}/examples \
+		--exclude ${SOURCE_FILE_DIR}/profile \
+		--exclude ${SOURCE_FILE_DIR}/release \
+		--exclude ${SOURCE_FILE_DIR}/spec \
+		--readme ${SOURCE_FILE_DIR}/README.md -o build/public/${GIT_BRANCH}/api/
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
 stage: ## Host online for review
@@ -56,6 +70,25 @@ deploy-search-index: ## Update the search index for this branch
 	else \
 		mut-index upload build/public/${GIT_BRANCH} -o docs-ruby-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
 	fi
+
+# in case you want to just generate the api-docs
+# generate the api docs
+# you must install yard
+# generate the api docs from the ruby driver project and output to the build dir
+
+api-docs:
+	@echo "Making api  directory in /build/public/${GIT_BRANCH}"
+	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
+	mkdir build/public/${GIT_BRANCH}/api
+
+	yard doc ${SOURCE_FILE_DIR} \
+		--exclude ${SOURCE_FILE_DIR}/.evergreen \
+		--exclude ${SOURCE_FILE_DIR}/.mod \
+		--exclude ${SOURCE_FILE_DIR}/examples \
+		--exclude ${SOURCE_FILE_DIR}/profile \
+		--exclude ${SOURCE_FILE_DIR}/release \
+		--exclude ${SOURCE_FILE_DIR}/spec \
+		--readme ${SOURCE_FILE_DIR}/README.md -o build/public/${GIT_BRANCH}/api/
 
 migrate: get-assets
 	@echo "Making target source directory -- doing this explicitly instead of via cp"
