@@ -1,5 +1,4 @@
-.. admonition:: Data Table Differs from Chart Visualization
-   :class: important
+.. important:: Data Table Differs from Chart Visualization
 
    Some configuration options you see reflected on a chart
    visualization are not applied to the data table. The
