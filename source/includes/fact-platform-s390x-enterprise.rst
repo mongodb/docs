@@ -4,8 +4,8 @@
       :widths: 20 80
       :class: border-table
 
-      * - RHEL 6 PPC64LE
-        - Support removed in MongoDB 4.4+.
+      * - RHEL 6 s390x
+        - Support removed in MongoDB 4.4+ Enterprise.
 
    |
 
@@ -15,32 +15,32 @@
    :class: compatibility
 
    * - Platform
-     - 4.4 Community & Enterprise
-     - 4.2 Community & Enterprise
+     - 4.4 Enterprise
+     - 4.2 Enterprise
      - 4.0 Enterprise
      - 3.6 Enterprise
 
    * - RHEL/CentOS 7
-     - Enterprise only
-     - Enterprise only
+     - |checkmark|
+     - |checkmark|
      - 4.0.6+
-     - Removed starting in 3.6.17
+     - 3.6.0 - 3.6.16
 
    * - RHEL/CentOS 6
      -
-     - Enterprise only
+     - 4.2.4+
      - |checkmark|
-     - Removed starting in 3.6.14
+     - 3.6.0 - 3.6.13
 
    * - SLES 12
-     - Enterprise only
-     - Enterprise only
+     - |checkmark|
+     - |checkmark|
      - 4.0.6+
-     - Removed starting in 3.6.17
+     - 3.6.0 - 3.6.16
 
    * - Ubuntu 18.04
      - |checkmark|
      - 4.2.1+
      - 4.0.6+
-     - 
+     - 3.6.20+
 
