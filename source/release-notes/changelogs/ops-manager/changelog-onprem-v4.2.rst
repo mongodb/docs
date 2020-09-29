@@ -1,3 +1,13 @@
+.. _opsmgr-server-4.2.19:
+
+|onprem| Server 4.2.19
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-09-25*
+
+- Fixes an issue that prevents rendering the :guilabel:`All Clusters` 
+  view for some users in |onprem| 4.2.18.
+
 .. _opsmgr-server-4.2.18:
 
 |onprem| Server 4.2.18
