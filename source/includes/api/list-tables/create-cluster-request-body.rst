@@ -731,9 +731,7 @@
        .. important::
 
           If you use ``replicationSpec``, you must specify a minimum of
-          one ``replicationSpec.<region>`` object and sort each
-          ``.<region>`` object by ``.<region>.priority`` in
-          descending order.
+          one ``replicationSpec.<region>`` object.
 
        Use the ``replicationSpecs`` parameter to create a
        :doc:`Global Cluster </global-clusters>`.
@@ -755,9 +753,7 @@
        .. important::
 
           If you use ``replicationSpec``, you must specify a minimum of
-          one ``replicationSpec.<region>`` object and sort each
-          ``.<region>`` object by ``.<region>.priority`` in
-          descending order.
+          one ``replicationSpec.<region>`` object.
 
        Select your cloud provider's tab for example cluster region
        names:
@@ -922,9 +918,7 @@
        .. important::
 
           If you use ``replicationSpecs``, you must specify a minimum
-          of one ``replicationSpecs.regionsConfig.<regionName>`` object
-          and sort each ``.<regionName>`` by ``.<regionName>.priority``
-          in descending order.
+          of one ``replicationSpecs.regionsConfig.<regionName>`` object.
 
        .. include:: /includes/fact-group-region-association.rst
 
