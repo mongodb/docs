@@ -37,35 +37,80 @@ See `Installation <https://github.com/mongodb/mongo-rust-driver#Installation>`__
 Connect to MongoDB Atlas
 ------------------------
 
+Select from the :guilabel:`Sync` or :guilabel:`Async` tabs below for
+corresponding connection code samples.
+
 .. include:: /includes/atlas-connect-blurb.rst
 
-.. code-block:: rust
+.. tabs::
 
-   use bson::doc;
-   use mongodb::{options::ClientOptions, Client};
+   .. tab:: Async
+      :tabid: rust-async
 
-   fn main() -> mongodb::error::Result<()> {
-       // Parse a connection string into an options struct.
-       let mut client_options =
-           ClientOptions::parse("mongodb+srv://<username>:<password>@<cluster-url>/test?w=majority")?;
+      The default async runtime used by the driver is ``tokio``. To use a
+      different runtime, see
+      `Configuring the async runtime <https://github.com/mongodb/mongo-rust-driver#configuring-the-async-runtime>`__.
 
-       // Manually set an option.
-       client_options.app_name = Some("Rust Demo".to_string());
+      .. code-block:: rust
 
-       // Get a handle to the deployment.
-       let client = Client::with_options(client_options)?;
+         use mongodb::{bson::doc, options::ClientOptions, Client};
 
-       client
-           .database("admin")
-           .run_command(doc! {"ping": 1}, None)?;
-       println!("Connected successfully.");
+         #[tokio::main]
+         async fn main() -> mongodb::error::Result<()> {
+             // Parse your connection string into an options struct
+             let mut client_options =
+                 ClientOptions::parse("mongodb+srv://<username>:<password>@<cluster-url>/test?w=majority")
+                     .await?;
 
-       // List the names of the databases in that deployment.
-       for db_name in client.list_database_names(None)? {
-           println!("{}", db_name);
-       }
-       Ok(())
-   }
+             // Manually set an option
+             client_options.app_name = Some("Rust Demo".to_string());
+
+             // Get a handle to the cluster
+             let client = Client::with_options(client_options)?;
+
+             // Ping the server to see if you can connect to the cluster
+             client
+                 .database("admin")
+                 .run_command(doc! {"ping": 1}, None)
+                 .await?;
+             println!("Connected successfully.");
+
+             // List the names of the databases in that cluster
+             for db_name in client.list_database_names(None, None).await? {
+                 println!("{}", db_name);
+             }
+             Ok(())
+         }
+
+   .. tab:: Sync
+      :tabid: rust-sync
+
+      Make sure you enabled the sync API. See
+      `Enabling the sync API <https://github.com/mongodb/mongo-rust-driver#enabling-the-sync-api>`__
+      for more details.
+
+      .. code-block:: rust
+
+         use mongodb::{bson::doc, sync::Client};
+
+         fn main() -> mongodb::error::Result<()> {
+             // Get a handle to the cluster
+             let client = Client::with_uri_str(
+                 "mongodb+srv://<username>:<password>@<cluster-url>/test?w=majority",
+             )?;
+
+             // Ping the server to see if you can connect to the cluster
+             client
+                 .database("admin")
+                 .run_command(doc! {"ping": 1}, None)?;
+             println!("Connected successfully.");
+
+             // List the names of the databases in that cluster
+             for db_name in client.list_database_names(None, None)? {
+                 println!("{}", db_name);
+             }
+             Ok(())
+         }
 
 Compatibility
 -------------
