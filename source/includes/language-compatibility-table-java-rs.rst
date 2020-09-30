@@ -7,7 +7,7 @@
      - Java 6
      - Java 7
      - Java 8
-     - Java 11 [*]_
+     - Java 11 [#backwards-compatible-rs]_
 
    * - 1.13
      - |checkmark|
@@ -81,4 +81,4 @@
      - |checkmark|
      - |checkmark|
 
-.. [*] Java versions 8 and above are all supported thanks to the JVM backwards compatibility promise. Only LTS versions will be explicitly listed in future.
+.. [#backwards-compatible-rs] Java versions 8 and above are all supported thanks to the JVM backwards compatibility promise. Only LTS versions will be explicitly listed in future.
