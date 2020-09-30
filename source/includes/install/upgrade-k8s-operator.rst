@@ -1,104 +1,86 @@
 The following steps depend on how your environment is configured:
 
 .. tabs::
+   
+   .. tab:: Kubernetes
 
-      tabs: 
-        - id: vank8sup
-          name: Kubernetes
-          content: |
-
-              .. tabs::
-
-                    tabs:
-                      - id: kubectlup
-                        name: Online using kubectl
-                        content: |
+      .. tabs::
+         
+         .. tab:: Online using kubectl
+            :tabid: kubectlup
  
-                          .. _upgrade-k8s-operator-kubectl:
+            .. _upgrade-k8s-operator-kubectl:
 
-                          .. include:: /includes/steps/upgrade-kubectl.rst
+            .. include:: /includes/steps/upgrade-kubectl.rst
 
-                      - id: helmonlinek8sup
-                        name: Online using Helm
-                        content: |
+         .. tab:: Online using Helm
+            :tabid: helmonlinek8sup
 
-                          .. _upgrade-k8s-operator-helm:
+            .. _upgrade-k8s-operator-helm:
 
-                          .. include:: /includes/steps/upgrade-k8s-online-helm.rst
+            .. include:: /includes/steps/upgrade-k8s-online-helm.rst
+            
+         .. tab:: Offline using Helm and Docker
+            :tabid: helmofflinek8sup
 
-                      - id: helmofflinek8sup
-                        name: Offline using Helm and Docker
-                        content: |
+            To upgrade the |k8s-op-short| on a host not connected to the
+            Internet, you have two options, you can download the
+            |k8s-op-short| files from either:
 
-                          To upgrade the |k8s-op-short| on a host not connected to the
-                          Internet, you have two options, you can download the
-                          |k8s-op-short| files from either:
+            .. note that these tabs contain the same content but I don't
+               think that's intended. separated the includes out to 
+               prepare for corrections.
 
-                          .. note that these tabs contain the same content but I don't think that's intended. separated the includes out to prepare for corrections.
+            .. tabs::
 
-                          .. tabs::
+               .. tab:: The Internet
+                  :tabid: internetk8sup
 
-                              tabs:
-                                - id: internetk8up
-                                  name: The Internet
-                                  content: |
+                  .. include:: /includes/steps/upgrade-k8s-offline-helm-internet.rst
+                  
+               .. tab:: Another Host
+                  :tabid: hostk8sup
 
-                                    .. include:: /includes/steps/upgrade-k8s-offline-helm-internet.rst
+                  .. include:: /includes/steps/upgrade-k8s-offline-helm-host.rst
 
+   .. tab:: OpenShift
+      :tabid: osup
 
-                                - id: hostk8sup
-                                  name: Another Host
-                                  content: |
+      .. tabs:: 
+      
+         .. tab:: Online using oc
+            :tabid: ocup
 
-                                    .. include:: /includes/steps/upgrade-k8s-offline-helm-host.rst
+            .. _upgrade-k8s-operator-oc:
 
-        - id: osup
-          name: OpenShift
-          content: |
+            .. include:: /includes/steps/upgrade-oc.rst
 
-              .. tabs::
+         .. tab:: Online using Helm
+            :tabid: helmonlineosup
 
-                    tabs:
-                      - id: ocup
-                        name: Online using oc
-                        content: |
+            .. _upgrade-operator-helm-oc:
 
-                          .. _upgrade-k8s-operator-oc:
+            .. include:: /includes/steps/upgrade-os-online-helm.rst
+            
+         .. tab:: Offline using Helm and Docker
+            :tabid: helmofflineosup
 
-                          .. include:: /includes/steps/upgrade-oc.rst
+            .. note that these tabs contain the same content but I don't think that's intended. separated the includes out to prepare for corrections.
 
+            To upgrade the |k8s-op-short| on a host not connected to the
+            Internet, you have two options, you can download the
+            |k8s-op-short| files from either:
 
-                      - id: helmonlineosup
-                        name: Online using Helm
-                        content: |
+            .. tabs::
 
-                          .. _upgrade-operator-helm-oc:
+               .. tab:: The Internet
+                  :tabid: internetosup
 
-                          .. include:: /includes/steps/upgrade-os-online-helm.rst
+                  .. include:: /includes/steps/upgrade-os-offline-helm-internet.rst
+                  
+               .. tab:: Another Host
+                  :tabid: hostosup
 
-                      - id: helmofflineosup
-                        name: Offline using Helm and Docker
-                        content: |
-
-                          .. note that these tabs contain the same content but I don't think that's intended. separated the includes out to prepare for corrections.
-
-                          To upgrade the |k8s-op-short| on a host not connected to the
-                          Internet, you have two options, you can download the
-                          |k8s-op-short| files from either:
-
-                          .. tabs::
-
-                              tabs:
-                                - id: internetosup
-                                  name: The Internet
-                                  content: |
-
-                                    .. include:: /includes/steps/upgrade-os-offline-helm-internet.rst
-
-                                - id: hostosup
-                                  name: Another Host
-                                  content: |
-
-                                    .. include:: /includes/steps/upgrade-os-offline-helm-host.rst
+                  .. include:: /includes/steps/upgrade-os-offline-helm-host.rst
 
 .. include:: /includes/troubleshoot-k8s.rst

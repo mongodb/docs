@@ -1,11 +1,11 @@
 ---
-ref: upgrade-oc-cd
+ref: upgrade-kubectl-cd
 inherit:
   file: steps-helm-master.yaml
   ref: helm-master-cd
 stepnum: 1
 ---
-ref: upgrade-oc-crds
+ref: upgrade-kubectl-crds
 inherit:
   file: steps-install-master.yaml
   ref: install-master-crds
@@ -14,19 +14,21 @@ replacement:
   method: "Upgrade the |k8s-crds| for MongoDB deployments."
 content: |
 
-  {{oc}}
+  {{kubectl}}
 ---
-ref: upgrade-oc-remove-old
+ref: upgrade-k8s-tls
 stepnum: 3
 inherit:
   file: steps-install-master.yaml
-  ref: upgrade-remove-old
+  ref: upgrade-to-1.7.1
 replacement:
   command: |
+    
+    .. code-block:: sh
 
-    .. code-block:: none
-
-      oc delete deployment/mongodb-enterprise-operator --namespace <namespace>
+       kubectl patch opsmanagers/<opsmgr-resource-metadata.name> \
+           --patch '{"spec": {"security": {"tls": {"ca": "<ca-configmap>"}}}}' \ 
+           --type merge
 ---
 ref: upgrade-customize-chart
 inherit:
@@ -34,16 +36,16 @@ inherit:
   ref: helm-master-customize-chart
 stepnum: 4
 content: |
-  {{osonlineupgradev161}}
+  {{k8sofflineupgrade}}
 ---
-ref: helm-os-online-ug
+ref: helm-k8s-offline-host
 inherit:
   file: steps-helm-master.yaml
   ref: helm-master-install
 stepnum: 5
 replacement:
-  method: "Upgrade the |k8s-op-short|."
+  method: "Upgrade to the latest version of the |k8s-op-short|."
 content: |
-  {{osonlineupgradev161}}
+  {{k8sofflineupgrade}}
 
 ...
