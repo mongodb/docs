@@ -14,11 +14,9 @@
                { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" }
             ]);
 
-         .. only:: website
-
-            You can run the operation in the web shell below:
-
-            .. include:: /includes/fact-mws.rst
+         .. include:: /includes/fact-mws-intro.rst
+         
+         .. include:: /includes/fact-mws.rst
 
      - id: compass
        content: |

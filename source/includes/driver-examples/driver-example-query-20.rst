@@ -14,11 +14,9 @@
                { item: "postcard", qty: 45, tags: ["blue"], dim_cm: [ 10, 15.25 ] }
             ]);
 
-         .. only:: website
-
-            You can run the operation in the web shell below:
-
-            .. include:: /includes/fact-mws.rst
+         .. include:: /includes/fact-mws-intro.rst
+         
+         .. include:: /includes/fact-mws.rst
 
      - id: compass
        content: |
