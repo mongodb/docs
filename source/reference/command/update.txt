@@ -440,86 +440,82 @@ replacement document.
 Shard Key Modification
 ``````````````````````
 
-.. container::
+.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
 
-   .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+To modify the **existing** shard key value with
+:dbcommand:`update`:
 
-   To modify the **existing** shard key value with
-   :dbcommand:`update`:
+- You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
+  issue the operation directly on the shard.
 
-   - You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
-     issue the operation directly on the shard.
+- You :red:`must` run either in a :doc:`transaction
+  </core/transactions>` or as a :doc:`retryable write
+  </core/retryable-writes>`.
 
-   - You :red:`must` run either in a :doc:`transaction
-     </core/transactions>` or as a :doc:`retryable write
-     </core/retryable-writes>`.
+- You :red:`must` specify ``multi: false``.
 
-   - You :red:`must` specify ``multi: false``.
-   
-   - You :red:`must` include an equality :ref:`query filter
-     <update-command-q>` on the full shard key.
+- You :red:`must` include an equality :ref:`query filter
+  <update-command-q>` on the full shard key.
 
-   .. tip::
+.. tip::
 
-      .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+   .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
 
-   See also :ref:`cmd-update-sharded-upsert`.
+See also :ref:`cmd-update-sharded-upsert`.
 
 .. _cmd-update-missing-shard-key:
 
 Missing Shard Key
 `````````````````
 
-.. container::
+Starting in version 4.4, documents in a sharded collection can be
+:ref:`missing the shard key fields <shard-key-missing>`. To use
+:dbcommand:`update` to set the document's
+**missing** shard key, you :red:`must` run on a
+:binary:`~bin.mongos`. Do :red:`not` issue the operation directly on
+the shard.
 
-   Starting in version 4.4, documents in a sharded collection can be
-   :ref:`missing the shard key fields <shard-key-missing>`. To use
-   :dbcommand:`update` to set the document's
-   **missing** shard key, you :red:`must` run on a
-   :binary:`~bin.mongos`. Do :red:`not` issue the operation directly on
-   the shard.
+In addition, the following requirements also apply:
 
-   In addition, the following requirements also apply:
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 30 70
+   * - 
 
-      * - 
+     - Requirements
 
-        - Requirements
+   * - To set to ``null``
 
-      * - To set to ``null``
+     - - Can specify ``multi: true``.
 
-        - - Can specify ``multi: true``.
+       - Requires equality filter on the full shard key if ``upsert:
+         true`` is specified.
 
-          - Requires equality filter on the full shard key if ``upsert:
-            true`` is specified.
+   * - To set to a non-``null`` value:
 
-      * - To set to a non-``null`` value:
+     - - :red:`Must` be performed either inside a :doc:`transaction
+         </core/transactions>` or as a :doc:`retryable write
+         </core/retryable-writes>`.
 
-        - - :red:`Must` be performed either inside a :doc:`transaction
-            </core/transactions>` or as a :doc:`retryable write
-            </core/retryable-writes>`.
+       - :red:`Must` specify ``multi: false``.
 
-          - :red:`Must` specify ``multi: false``.
+       - Requires equality filter on the full shard key if either:
 
-          - Requires equality filter on the full shard key if either:
+         - ``upsert: true``, or
 
-            - ``upsert: true``, or
+         - if using a replacement document and the new shard key
+           value belongs to a different shard.
 
-            - if using a replacement document and the new shard key
-              value belongs to a different shard.
+.. tip::
 
-   .. tip::
+   .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
 
-      .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+See also:
 
-   See also:
+- :ref:`method-update-sharded-upsert`
 
-   - :ref:`method-update-sharded-upsert`
-
-   - :ref:`shard-key-missing`
+- :ref:`shard-key-missing`
 
 Transactions
 ~~~~~~~~~~~~
@@ -537,8 +533,6 @@ Write Concerns and Transactions
 ````````````````````````````````
 
 .. include:: /includes/extracts/transactions-operations-write-concern.rst
-
-
 
 .. |operation| replace:: :dbcommand:`update`
 

@@ -50,42 +50,40 @@ that are persisted and/or update incompatible configuration settings.
 1. Namespace Length
 ~~~~~~~~~~~~~~~~~~~
 
-.. container::
+Starting in MongoDB 4.4:
 
-   Starting in MongoDB 4.4:
+  .. include:: /includes/fact-collection-namespace-limit.rst
 
-   .. include:: /includes/fact-collection-namespace-limit.rst
+  Before downgrading, resolve any collections or views with namespaces
+  that exceed the 120-byte :limit:`Namespace Length` limit for Feature
+  Compatibility Version (fCV) 4.2.
 
-   Before downgrading, resolve any collections or views with namespaces
-   that exceed the 120-byte :limit:`Namespace Length` limit for Feature
-   Compatibility Version (fCV) 4.2.
+  To determine if you have any collections or views with namespaces
+  that exceed the 120-byte limit, connect :binary:`~bin.mongo` shell
+  to the |target| and run:
 
-   To determine if you have any collections or views with namespaces
-   that exceed the 120-byte limit, connect :binary:`~bin.mongo` shell
-   to the |target| and run:
+  .. code-block:: javascript
 
-   .. code-block:: javascript
+     db.adminCommand("listDatabases").databases.forEach(function(d){
+        let mdb = db.getSiblingDB(d.name);
 
-      db.adminCommand("listDatabases").databases.forEach(function(d){
-         let mdb = db.getSiblingDB(d.name);
+        mdb.getCollectionInfos( ).forEach(function(c){
+           namespace = d.name + "." + c.name
+           namespacelenBytes =  encodeURIComponent(namespace).length
 
-         mdb.getCollectionInfos( ).forEach(function(c){
-            namespace = d.name + "." + c.name
-            namespacelenBytes =  encodeURIComponent(namespace).length
+           if (namespacelenBytes > 120) {
+              print (c.type.toUpperCase() + " namespace exceeds 120 bytes:: " + namespace )
+           }
+        } )
+     })
 
-            if (namespacelenBytes > 120) {
-               print (c.type.toUpperCase() + " namespace exceeds 120 bytes:: " + namespace )
-            }
-         } )
-      })
+  If any collection or view namespace exceeds 120 bytes, then :red:`prior` to
+  downgrading the fCV:
 
-   If any collection or view namespace exceeds 120 bytes, then :red:`prior` to
-   downgrading the fCV:
+  - Rename the collection using the :dbcommand:`renameCollection` command.
 
-   - Rename the collection using the :dbcommand:`renameCollection` command.
-
-   - For views, use :method:`db.createView()` to recreate the view
-     using a shorter name, then drop the original view.
+  - For views, use :method:`db.createView()` to recreate the view
+    using a shorter name, then drop the original view.
 
   
 .. _4.4-downgrade-feature-compatibility-rs:

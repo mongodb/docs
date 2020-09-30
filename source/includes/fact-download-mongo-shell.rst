@@ -21,29 +21,27 @@ a standalone package by following these steps:
 3. Select the :guilabel:`Package` to download according to your
    platform:
 
-   .. container::
+   .. list-table::
+     :header-rows: 1
+     :widths: 15 85
 
-      .. list-table::
-        :header-rows: 1
-        :widths: 15 85
+     * - Platform
+       - Download Package
 
-        * - Platform
-          - Download Package
+     * - *Windows*
 
-        * - *Windows*
+       - Select the ``zip`` package to download an archive which
+         includes the :binary:`~bin.mongo` shell.
 
-          - Select the ``zip`` package to download an archive which
-            includes the :binary:`~bin.mongo` shell.
+     * - *macOS*
 
-        * - *macOS*
+       - Select the ``tgz`` package to download an archive which
+         includes the :binary:`~bin.mongo` shell.
 
-          - Select the ``tgz`` package to download an archive which
-            includes the :binary:`~bin.mongo` shell.
+     * - *Linux*
 
-        * - *Linux*
-
-          - Select the ``tgz`` package to download the
-            :binary:`~bin.mongo` shell.
+       - Select the ``tgz`` package to download the
+         :binary:`~bin.mongo` shell.
 
 4. Copy the :binary:`~bin.mongo` shell from the archive to a location on
    your filesystem.

@@ -103,54 +103,41 @@ Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
 2a. Index Key Size
 ``````````````````
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-downgrade-fcv-index-key.rst
+.. include:: /includes/extracts/4.2-downgrade-fcv-index-key.rst
 
 .. _4.2-downgrade-index-name-sharded:
 
 2b. Index Name Length
 `````````````````````
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-downgrade-fcv-index-name.rst
+.. include:: /includes/extracts/4.2-downgrade-fcv-index-name.rst
 
 2c. Unique Index Version
 ````````````````````````
 
-.. container::
+.. include:: /includes/extracts/4.2-downgrade-fcv-unique-index.rst
 
-   .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index.rst
+Script to run on ``mongos``
+   .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script.rst
 
-
-   Script to run on ``mongos``
-      .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script.rst
-
-   Script to run on shards
-      .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script-local-users.rst
+Script to run on shards
+   .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script-local-users.rst
 
 2d. Remove Wildcard Indexes
 ```````````````````````````
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-downgrade-fcv-wildcard-index.rst
+.. include:: /includes/extracts/4.2-downgrade-fcv-wildcard-index.rst
 
 2e. View Definitions/Collection Validation Definitions that Include 4.2 Operators
 `````````````````````````````````````````````````````````````````````````````````
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-downgrade-view-definitions.rst
+.. include:: /includes/extracts/4.2-downgrade-view-definitions.rst
 
 
 3. Update ``tls``-Prefixed Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-changes-options-tls-ssl-downgrade.rst
+.. include:: /includes/extracts/4.2-changes-options-tls-ssl-downgrade.rst
 
 4. Prepare Downgrade from ``zstd`` Compression
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -160,189 +147,186 @@ Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
 ``zstd`` Journal Compression
 ````````````````````````````
 
-.. container::
+The :term:`zstd` compression library is available for journal data
+compression starting in version 4.2.
 
-   The :term:`zstd` compression library is available for journal data
-   compression starting in version 4.2.
+For any shard or config server member that uses :term:`zstd` library
+for its journal compressor:
 
-   For any shard or config server member that uses :term:`zstd` library
-   for its journal compressor:
-   
-   If the member uses ``zstd`` for journal compression and :ref:`downgrade-sharded-cluster-prereq-zstd`, 
-      .. include:: /includes/extracts/4.2-changes-zstd-journal-compression-config-only.rst
+If the member uses ``zstd`` for journal compression and :ref:`downgrade-sharded-cluster-prereq-zstd`, 
+   .. include:: /includes/extracts/4.2-changes-zstd-journal-compression-config-only.rst
 
-   If the member only uses ``zstd`` for journal compression only,
-      .. note::
-
-         The following procedure involves restarting the replica member as a
-         standalone without the journal.
-
-      #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
-
-         .. code-block:: javascript
-
-            db.getSiblingDB('admin').shutdownServer()
-
-      #. Update the :doc:`configuration file
-         </reference/configuration-options>` to prepare to restart as a
-         standalone:
-
-         - Set :setting:`storage.journal.enabled` to ``false``.
-
-         - Set parameter :parameter:`skipShardingConfigurationChecks` to true.
-
-         - Set parameter ``disableLogicalSessionCacheRefresh`` to
-           ``true`` in the :setting:`setParameter` section.
-                   
-         - Comment out the :ref:`replication <replication-options>`
-           settings for your deployment.
-
-         - Comment out the :setting:`sharding.clusterRole` setting.
-
-         - Set the :setting:`net.port` to the member's
-           current port, if it is not explicitly set.
-   
-         For example:
-
-         .. code-block:: none
-
-            storage:
-               journal:
-                  enabled: false
-            setParameter:
-               skipShardingConfigurationChecks: true
-               disableLogicalSessionCacheRefresh: true
-            #replication:
-            #   replSetName: shardA
-            #sharding:
-            #   clusterRole: shardsvr
-            net:
-              port: 27218
-
-         If you use command-line options instead of a configuration file, you
-         will have to update the command-line option during the restart.
-      
-      #. Restart the :binary:`~bin.mongod` instance:
-
-         - If you are using a configuration file:
-
-           .. code-block:: sh
-
-              mongod -f <path/to/myconfig.conf>
-
-         - If you are using command-line options instead of a
-           configuration file:
-           
-           - Include the :option:`--nojournal <mongod --nojournal>`
-             option.
-           
-           - Set parameter :parameter:`skipShardingConfigurationChecks` to true.
-
-           - Set parameter ``disableLogicalSessionCacheRefresh`` to
-             ``true`` in the :option:`--setParameter <mongod
-             --setParameter>` option.
-
-           - Remove any :ref:`replication command-line options
-             <cli-mongod-replica-set>` (such as :option:`--replSet
-             <mongod --replSet>`).
-
-           - Remove :option:`--shardsvr <mongod
-             --shardsvr>`/:option:`--configsvr <mongod --configsvr>` option.
-
-           - Explicitly include :option:`--port <mongod --port>` set to
-             the instance's current port.
-
-           .. code-block:: sh
-
-              mongod --nojournal --setParameter skipShardingConfigurationChecks=true --setParameter disableLogicalSessionCacheRefresh=true --port <samePort> ...
-
-      #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
-
-         .. code-block:: javascript
-
-            db.getSiblingDB('admin').shutdownServer()
-
-         Confirm that the process is no longer running.
-
-      #. Update the configuration file to prepare to restart with the new journal compressor:
-
-         - Remove the :setting:`storage.journal.enabled` setting.
-
-         - Remove the :parameter:`skipShardingConfigurationChecks` parameter setting.
-
-         - Remove the ``disableLogicalSessionCacheRefresh`` parameter
-           setting.
-
-         - Uncomment the :ref:`replication <replication-options>`
-           settings for your deployment.
-
-         - Uncomment the :setting:`sharding.clusterRole` setting.
-
-         - Remove
-           :setting:`storage.wiredTiger.engineConfig.journalCompressor` setting
-           to use the default journal compressor or specify a  new value.
-
-         For example:
-
-         .. code-block:: none
-
-            storage:
-               wiredTiger:
-                  engineConfig:
-                     journalCompressor: <newValue>
-            replication:
-               replSetName: shardA
-            sharding:
-               clusterRole: shardsvr
-            net:
-              port: 27218
-
-         If you use command-line options instead of a configuration file, you
-         will have to update the command-line options during the restart
-         below.
-
-
-      #. Restart the :binary:`~bin.mongod` instance as a replica set member:
-
-         - If you are using a configuration file:
-
-           .. code-block:: sh
-
-              mongod -f <path/to/myconfig.conf>
-
-         - If you are using command-line options instead of a configuration
-           file:
-
-           - Remove the :option:`--nojournal <mongod --nojournal>` option.
-
-           - Remove the :parameter:`skipShardingConfigurationChecks` parameter setting.
-
-           - Remove the ``disableLogicalSessionCacheRefresh`` parameter
-             setting.
-
-           - Remove the :option:`--wiredTigerJournalCompressor <mongod
-             --wiredTigerJournalCompressor>` command-line option to use
-             the default journal compressor or update to a new value.
-
-           - Include :option:`--shardsvr <mongod
-             --shardsvr>`/:option:`--configsvr <mongod --configsvr>` option.
-
-           - Include your :ref:`replication command-line options
-             <cli-mongod-replica-set>` as well as any additional
-             options for your replica set member.
-
-           .. code-block:: sh
-
-              mongod --shardsvr --wiredTigerJournalCompressor <differentCompressor|none> --replSet ...
-
+If the member only uses ``zstd`` for journal compression only,
    .. note::
 
-      If you encounter an unclean shutdown for a :binary:`~bin.mongod`
-      during the downgrade procedure such that you need to use the
-      journal files to recover, recover the
-      instance using the 4.2 :binary:`~bin.mongod` and then retry the
-      downgrade of the instance.
+      The following procedure involves restarting the replica member as a
+      standalone without the journal.
 
+   #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB('admin').shutdownServer()
+
+   #. Update the :doc:`configuration file
+      </reference/configuration-options>` to prepare to restart as a
+      standalone:
+
+      - Set :setting:`storage.journal.enabled` to ``false``.
+
+      - Set parameter :parameter:`skipShardingConfigurationChecks` to true.
+
+      - Set parameter ``disableLogicalSessionCacheRefresh`` to
+        ``true`` in the :setting:`setParameter` section.
+                
+      - Comment out the :ref:`replication <replication-options>`
+        settings for your deployment.
+
+      - Comment out the :setting:`sharding.clusterRole` setting.
+
+      - Set the :setting:`net.port` to the member's
+        current port, if it is not explicitly set.
+
+      For example:
+
+      .. code-block:: none
+
+         storage:
+            journal:
+               enabled: false
+         setParameter:
+            skipShardingConfigurationChecks: true
+            disableLogicalSessionCacheRefresh: true
+         #replication:
+         #   replSetName: shardA
+         #sharding:
+         #   clusterRole: shardsvr
+         net:
+           port: 27218
+
+      If you use command-line options instead of a configuration file, you
+      will have to update the command-line option during the restart.
+   
+   #. Restart the :binary:`~bin.mongod` instance:
+
+      - If you are using a configuration file:
+
+        .. code-block:: sh
+
+           mongod -f <path/to/myconfig.conf>
+
+      - If you are using command-line options instead of a
+        configuration file:
+        
+        - Include the :option:`--nojournal <mongod --nojournal>`
+          option.
+        
+        - Set parameter :parameter:`skipShardingConfigurationChecks` to true.
+
+        - Set parameter ``disableLogicalSessionCacheRefresh`` to
+          ``true`` in the :option:`--setParameter <mongod
+          --setParameter>` option.
+
+        - Remove any :ref:`replication command-line options
+          <cli-mongod-replica-set>` (such as :option:`--replSet
+          <mongod --replSet>`).
+
+        - Remove :option:`--shardsvr <mongod
+          --shardsvr>`/:option:`--configsvr <mongod --configsvr>` option.
+
+        - Explicitly include :option:`--port <mongod --port>` set to
+          the instance's current port.
+
+        .. code-block:: sh
+
+           mongod --nojournal --setParameter skipShardingConfigurationChecks=true --setParameter disableLogicalSessionCacheRefresh=true --port <samePort> ...
+
+   #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB('admin').shutdownServer()
+
+      Confirm that the process is no longer running.
+
+   #. Update the configuration file to prepare to restart with the new journal compressor:
+
+      - Remove the :setting:`storage.journal.enabled` setting.
+
+      - Remove the :parameter:`skipShardingConfigurationChecks` parameter setting.
+
+      - Remove the ``disableLogicalSessionCacheRefresh`` parameter
+        setting.
+
+      - Uncomment the :ref:`replication <replication-options>`
+        settings for your deployment.
+
+      - Uncomment the :setting:`sharding.clusterRole` setting.
+
+      - Remove
+        :setting:`storage.wiredTiger.engineConfig.journalCompressor` setting
+        to use the default journal compressor or specify a  new value.
+
+      For example:
+
+      .. code-block:: none
+
+         storage:
+            wiredTiger:
+               engineConfig:
+                  journalCompressor: <newValue>
+         replication:
+            replSetName: shardA
+         sharding:
+            clusterRole: shardsvr
+         net:
+           port: 27218
+
+      If you use command-line options instead of a configuration file, you
+      will have to update the command-line options during the restart
+      below.
+
+
+   #. Restart the :binary:`~bin.mongod` instance as a replica set member:
+
+      - If you are using a configuration file:
+
+        .. code-block:: sh
+
+           mongod -f <path/to/myconfig.conf>
+
+      - If you are using command-line options instead of a configuration
+        file:
+
+        - Remove the :option:`--nojournal <mongod --nojournal>` option.
+
+        - Remove the :parameter:`skipShardingConfigurationChecks` parameter setting.
+
+        - Remove the ``disableLogicalSessionCacheRefresh`` parameter
+          setting.
+
+        - Remove the :option:`--wiredTigerJournalCompressor <mongod
+          --wiredTigerJournalCompressor>` command-line option to use
+          the default journal compressor or update to a new value.
+
+        - Include :option:`--shardsvr <mongod
+          --shardsvr>`/:option:`--configsvr <mongod --configsvr>` option.
+
+        - Include your :ref:`replication command-line options
+          <cli-mongod-replica-set>` as well as any additional
+          options for your replica set member.
+
+        .. code-block:: sh
+
+           mongod --shardsvr --wiredTigerJournalCompressor <differentCompressor|none> --replSet ...
+
+.. note::
+
+   If you encounter an unclean shutdown for a :binary:`~bin.mongod`
+   during the downgrade procedure such that you need to use the
+   journal files to recover, recover the
+   instance using the 4.2 :binary:`~bin.mongod` and then retry the
+   downgrade of the instance.
 
 .. _downgrade-sharded-cluster-prereq-zstd:
 
@@ -356,25 +340,21 @@ Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
    steps *after* you perform the :ref:`prerequisite steps for the
    journal compressor <downgrade-sharded-cluster-prereq-zstd-journal>`.
    
-.. container::
+The :term:`zstd` compression library is available starting in
+version 4.2. For any config server member or shard member that has data
+stored using :term:`zstd` compression, the downgrade procedure will
+require an initial sync for that member. To prepare:
 
-   The :term:`zstd` compression library is available starting in
-   version 4.2. For any config server member or shard member that has data
-   stored using :term:`zstd` compression, the downgrade procedure will
-   require an initial sync for that member. To prepare:
+.. include:: /includes/extracts/4.2-changes-zstd-downgrade-prereq.rst
 
-   .. include:: /includes/extracts/4.2-changes-zstd-downgrade-prereq.rst
-
-   Repeat for any other members that used :term:`zstd` compression.
+Repeat for any other members that used :term:`zstd` compression.
    
 .. _downgrade-sharded-cluster-prereq-zstd-network:
 
 ``zstd`` Network Compression
 ````````````````````````````
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-changes-zstd-network-compression.rst
+.. include:: /includes/extracts/4.2-changes-zstd-network-compression.rst
 
 5. Remove Client-Side Field Level Encryption Document Validation Keywords
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

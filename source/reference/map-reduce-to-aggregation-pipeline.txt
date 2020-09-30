@@ -247,260 +247,255 @@ provide both alternatives.
 Example 1
 ~~~~~~~~~
 
-.. container::
+The  following map-reduce operation on the ``orders`` collection groups
+by the ``cust_id``, and calculates the sum of the ``price`` for each
+``cust_id``:
 
-   The  following map-reduce operation on the ``orders`` collection groups
-   by the ``cust_id``, and calculates the sum of the ``price`` for each
-   ``cust_id``:
-   
+.. code-block:: javascript
+
+   var mapFunction1 = function() {
+      emit(this.cust_id, this.price);
+   };
+
+   var reduceFunction1 = function(keyCustId, valuesPrices) {
+      return Array.sum(valuesPrices);
+   };
+
+   db.orders.mapReduce(
+      mapFunction1,
+      reduceFunction1,
+      { out: "map_reduce_example" }
+   )
+
+**Alternative 1: (Recommended)** You can rewrite the operation into
+an aggregation pipeline without translating the map-reduce function
+to equivalent pipeline stages:
+
+.. code-block:: javascript
+
+   db.orders.aggregate([
+      { $group: { _id: "$cust_id", value: { $sum: "$price" } } },
+      { $out: "agg_alternative_1" }
+   ])
+
+**Alternative 2: (For illustrative purposes only)** The
+following aggregation pipeline provides a translation of the various
+map-reduce functions, using :group:`$accumulator` to define custom
+functions:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [
+      { $project: { emit: { key: "$cust_id", value: "$price" } } },  // equivalent to the map function
+      { $group: {                                                    // equivalent to the reduce function
+            _id: "$emit.key", 
+            valuesPrices: { $accumulator: { 
+                        init: function() { return 0; },
+                        initArgs: [], 
+                        accumulate: function(state, value) { return state + value; },
+                        accumulateArgs: [ "$emit.value" ],
+                        merge: function(state1, state2) { return state1 + state2; },
+                        lang: "js"
+            } }
+      } },
+      { $out: "agg_alternative_2" }
+   ] )
+
+
+#. First, the :pipeline:`$project` stage outputs documents with an
+   ``emit`` field. The ``emit`` field is a document with the fields:
+
+   - ``key`` that contains the ``cust_id`` value for the document
+   - ``value`` that contains the ``price`` value for the document
+
    .. code-block:: javascript
+      :copyable: false
 
-      var mapFunction1 = function() {
-         emit(this.cust_id, this.price);
-      };
-   
-      var reduceFunction1 = function(keyCustId, valuesPrices) {
-         return Array.sum(valuesPrices);
-      };
-   
-      db.orders.mapReduce(
-         mapFunction1,
-         reduceFunction1,
-         { out: "map_reduce_example" }
-      )
-
-   **Alternative 1: (Recommended)** You can rewrite the operation into
-   an aggregation pipeline without translating the map-reduce function
-   to equivalent pipeline stages:
+      { "_id" : 1, "emit" : { "key" : "Ant O. Knee", "value" : 25 } }
+      { "_id" : 2, "emit" : { "key" : "Ant O. Knee", "value" : 70 } }
+      { "_id" : 3, "emit" : { "key" : "Busby Bee", "value" : 50 } }
+      { "_id" : 4, "emit" : { "key" : "Busby Bee", "value" : 25 } }
+      { "_id" : 5, "emit" : { "key" : "Busby Bee", "value" : 50 } }
+      { "_id" : 6, "emit" : { "key" : "Cam Elot", "value" : 35 } }
+      { "_id" : 7, "emit" : { "key" : "Cam Elot", "value" : 25 } }
+      { "_id" : 8, "emit" : { "key" : "Don Quis", "value" : 75 } }
+      { "_id" : 9, "emit" : { "key" : "Don Quis", "value" : 55 } }
+      { "_id" : 10, "emit" : { "key" : "Don Quis", "value" : 25 } }
+      
+#. Then, the :pipeline:`$group` uses the :expression:`$accumulator`
+   operator to add the emitted values:
 
    .. code-block:: javascript
+      :copyable: false
 
-      db.orders.aggregate([
-         { $group: { _id: "$cust_id", value: { $sum: "$price" } } },
-         { $out: "agg_alternative_1" }
-      ])
+      { "_id" : "Don Quis", "valuesPrices" : 155 }
+      { "_id" : "Cam Elot", "valuesPrices" : 60 }
+      { "_id" : "Ant O. Knee", "valuesPrices" : 95 }
+      { "_id" : "Busby Bee", "valuesPrices" : 125 }
 
-   **Alternative 2: (For illustrative purposes only)** The
-   following aggregation pipeline provides a translation of the various
-   map-reduce functions, using :group:`$accumulator` to define custom
-   functions:
-
-   .. code-block:: javascript
-
-      db.orders.aggregate( [
-         { $project: { emit: { key: "$cust_id", value: "$price" } } },  // equivalent to the map function
-         { $group: {                                                    // equivalent to the reduce function
-              _id: "$emit.key", 
-              valuesPrices: { $accumulator: { 
-                          init: function() { return 0; },
-                          initArgs: [], 
-                          accumulate: function(state, value) { return state + value; },
-                          accumulateArgs: [ "$emit.value" ],
-                          merge: function(state1, state2) { return state1 + state2; },
-                          lang: "js"
-              } }
-         } },
-         { $out: "agg_alternative_2" }
-      ] )
-
-
-   #. First, the :pipeline:`$project` stage outputs documents with an
-      ``emit`` field. The ``emit`` field is a document with the fields:
-   
-      - ``key`` that contains the ``cust_id`` value for the document
-      - ``value`` that contains the ``price`` value for the document
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { "_id" : 1, "emit" : { "key" : "Ant O. Knee", "value" : 25 } }
-         { "_id" : 2, "emit" : { "key" : "Ant O. Knee", "value" : 70 } }
-         { "_id" : 3, "emit" : { "key" : "Busby Bee", "value" : 50 } }
-         { "_id" : 4, "emit" : { "key" : "Busby Bee", "value" : 25 } }
-         { "_id" : 5, "emit" : { "key" : "Busby Bee", "value" : 50 } }
-         { "_id" : 6, "emit" : { "key" : "Cam Elot", "value" : 35 } }
-         { "_id" : 7, "emit" : { "key" : "Cam Elot", "value" : 25 } }
-         { "_id" : 8, "emit" : { "key" : "Don Quis", "value" : 75 } }
-         { "_id" : 9, "emit" : { "key" : "Don Quis", "value" : 55 } }
-         { "_id" : 10, "emit" : { "key" : "Don Quis", "value" : 25 } }
-         
-   #. Then, the :pipeline:`$group` uses the :expression:`$accumulator`
-      operator to add the emitted values:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { "_id" : "Don Quis", "valuesPrices" : 155 }
-         { "_id" : "Cam Elot", "valuesPrices" : 60 }
-         { "_id" : "Ant O. Knee", "valuesPrices" : 95 }
-         { "_id" : "Busby Bee", "valuesPrices" : 125 }
-
-   #. Finally, the :pipeline:`$out` writes the output to the collection
-      ``agg_alternative_2``. Alternatively, you could use
-      :pipeline:`$merge` instead of :pipeline:`$out`.
+#. Finally, the :pipeline:`$out` writes the output to the collection
+   ``agg_alternative_2``. Alternatively, you could use
+   :pipeline:`$merge` instead of :pipeline:`$out`.
 
 .. _mr-to-agg-examples2:
 
 Example 2
 ~~~~~~~~~
 
-.. container::
+The following map-reduce operation on the ``orders`` collection
+groups by the ``item.sku`` field and calculates the number of
+orders and the total quantity ordered for each sku. The operation
+then calculates the average quantity per order for each sku value
+and merges the results into the output collection.
 
-   The following map-reduce operation on the ``orders`` collection
-   groups by the ``item.sku`` field and calculates the number of
-   orders and the total quantity ordered for each sku. The operation
-   then calculates the average quantity per order for each sku value
-   and merges the results into the output collection.
-   
-   .. code-block:: javascript
-   
-      var mapFunction2 = function() {
-          for (var idx = 0; idx < this.items.length; idx++) {
-             var key = this.items[idx].sku;
-             var value = { count: 1, qty: this.items[idx].qty };
+.. code-block:: javascript
 
-             emit(key, value);
-          }
-      };
-      
-      var reduceFunction2 = function(keySKU, countObjVals) {
-         reducedVal = { count: 0, qty: 0 };
+   var mapFunction2 = function() {
+         for (var idx = 0; idx < this.items.length; idx++) {
+            var key = this.items[idx].sku;
+            var value = { count: 1, qty: this.items[idx].qty };
 
-         for (var idx = 0; idx < countObjVals.length; idx++) {
-             reducedVal.count += countObjVals[idx].count;
-             reducedVal.qty += countObjVals[idx].qty;
+            emit(key, value);
          }
-
-         return reducedVal;
-      };
-      
-      var finalizeFunction2 = function (key, reducedVal) {
-        reducedVal.avg = reducedVal.qty/reducedVal.count;
-        return reducedVal;
-      };
-      
-      db.orders.mapReduce(
-         mapFunction2,
-         reduceFunction2,
-         {
-           out: { merge: "map_reduce_example2" },
-           query: { ord_date: { $gte: new Date("2020-03-01") } },
-           finalize: finalizeFunction2
-         }
-       );
-
-   **Alternative 1: (Recommended)** You can rewrite the operation into
-   an aggregation pipeline without translating the map-reduce function
-   to equivalent pipeline stages:
-
-   .. code-block:: javascript
+   };
    
-      db.orders.aggregate( [
-         { $match: { ord_date: { $gte: new Date("2020-03-01") } } },
+   var reduceFunction2 = function(keySKU, countObjVals) {
+      reducedVal = { count: 0, qty: 0 };
+
+      for (var idx = 0; idx < countObjVals.length; idx++) {
+            reducedVal.count += countObjVals[idx].count;
+            reducedVal.qty += countObjVals[idx].qty;
+      }
+
+      return reducedVal;
+   };
+   
+   var finalizeFunction2 = function (key, reducedVal) {
+      reducedVal.avg = reducedVal.qty/reducedVal.count;
+      return reducedVal;
+   };
+   
+   db.orders.mapReduce(
+      mapFunction2,
+      reduceFunction2,
+      {
+         out: { merge: "map_reduce_example2" },
+         query: { ord_date: { $gte: new Date("2020-03-01") } },
+         finalize: finalizeFunction2
+      }
+      );
+
+**Alternative 1: (Recommended)** You can rewrite the operation into
+an aggregation pipeline without translating the map-reduce function
+to equivalent pipeline stages:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [
+      { $match: { ord_date: { $gte: new Date("2020-03-01") } } },
+      { $unwind: "$items" },
+      { $group: { _id: "$items.sku", qty: { $sum: "$items.qty" }, orders_ids: { $addToSet: "$_id" } }  },
+      { $project: { value: { count: { $size: "$orders_ids" }, qty: "$qty", avg: { $divide: [ "$qty", { $size: "$orders_ids" } ] } } } },
+      { $merge: { into: "agg_alternative_3", on: "_id", whenMatched: "replace",  whenNotMatched: "insert" } }
+   ] )
+
+**Alternative 2: (For illustrative purposes only)** The following
+aggregation pipeline provides a translation of the various
+map-reduce functions, using :group:`$accumulator` to define custom
+functions:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [
+         { $match: { ord_date: {$gte: new Date("2020-03-01") } } },
          { $unwind: "$items" },
-         { $group: { _id: "$items.sku", qty: { $sum: "$items.qty" }, orders_ids: { $addToSet: "$_id" } }  },
-         { $project: { value: { count: { $size: "$orders_ids" }, qty: "$qty", avg: { $divide: [ "$qty", { $size: "$orders_ids" } ] } } } },
-         { $merge: { into: "agg_alternative_3", on: "_id", whenMatched: "replace",  whenNotMatched: "insert" } }
-      ] )
+         { $project: { emit: { key: "$items.sku", value: { count: { $literal: 1 }, qty: "$items.qty" } } } },
+         { $group: {
+               _id: "$emit.key",
+               value: { $accumulator: {
+                  init: function() { return { count: 0, qty: 0 }; },
+                  initArgs: [],
+                  accumulate: function(state, value) {
+                     state.count += value.count;
+                     state.qty += value.qty;
+                     return state;
+                  },
+                  accumulateArgs: [ "$emit.value" ],
+                  merge: function(state1, state2) { 
+                     return { count: state1.count + state2.count, qty: state1.qty + state2.qty }; 
+                  },
+                  finalize: function(state) {
+                     state.avg = state.qty / state.count;
+                     return state;
+                  },
+                  lang: "js"}
+               }
+         } },
+         { $merge: {
+            into: "agg_alternative_4",
+            on: "_id",
+            whenMatched: "replace",
+            whenNotMatched: "insert"
+         } }
+   ] )
 
-   **Alternative 2: (For illustrative purposes only)** The following
-   aggregation pipeline provides a translation of the various
-   map-reduce functions, using :group:`$accumulator` to define custom
-   functions:
+#. The :pipeline:`$match` stage selects only those
+   documents with ``ord_date`` greater than or equal to ``new
+   Date("2020-03-01")``.
+
+#. The :pipeline:`$unwinds` stage breaks down the document by
+   the ``items`` array field to output a document for each array
+   element. For example:
 
    .. code-block:: javascript
+      :copyable: false
 
-      db.orders.aggregate( [
-          { $match: { ord_date: {$gte: new Date("2020-03-01") } } },
-          { $unwind: "$items" },
-          { $project: { emit: { key: "$items.sku", value: { count: { $literal: 1 }, qty: "$items.qty" } } } },
-          { $group: {
-                 _id: "$emit.key",
-                 value: { $accumulator: {
-                   init: function() { return { count: 0, qty: 0 }; },
-                   initArgs: [],
-                   accumulate: function(state, value) {
-                        state.count += value.count;
-                        state.qty += value.qty;
-                        return state;
-                   },
-                   accumulateArgs: [ "$emit.value" ],
-                   merge: function(state1, state2) { 
-                      return { count: state1.count + state2.count, qty: state1.qty + state2.qty }; 
-                   },
-                   finalize: function(state) {
-                      state.avg = state.qty / state.count;
-                      return state;
-                   },
-                   lang: "js"}
-                }
-          } },
-          { $merge: {
-             into: "agg_alternative_4",
-             on: "_id",
-             whenMatched: "replace",
-             whenNotMatched: "insert"
-          } }
-      ] )
+      { "_id" : 1, "cust_id" : "Ant O. Knee", "ord_date" : ISODate("2020-03-01T00:00:00Z"), "price" : 25, "items" : { "sku" : "oranges", "qty" : 5, "price" : 2.5 }, "status" : "A" }
+      { "_id" : 1, "cust_id" : "Ant O. Knee", "ord_date" : ISODate("2020-03-01T00:00:00Z"), "price" : 25, "items" : { "sku" : "apples", "qty" : 5, "price" : 2.5 }, "status" : "A" }
+      { "_id" : 2, "cust_id" : "Ant O. Knee", "ord_date" : ISODate("2020-03-08T00:00:00Z"), "price" : 70, "items" : { "sku" : "oranges", "qty" : 8, "price" : 2.5 }, "status" : "A" }
+      { "_id" : 2, "cust_id" : "Ant O. Knee", "ord_date" : ISODate("2020-03-08T00:00:00Z"), "price" : 70, "items" : { "sku" : "chocolates", "qty" : 5, "price" : 10 }, "status" : "A" }
+      { "_id" : 3, "cust_id" : "Busby Bee", "ord_date" : ISODate("2020-03-08T00:00:00Z"), "price" : 50, "items" : { "sku" : "oranges", "qty" : 10, "price" : 2.5 }, "status" : "A" }
+      { "_id" : 3, "cust_id" : "Busby Bee", "ord_date" : ISODate("2020-03-08T00:00:00Z"), "price" : 50, "items" : { "sku" : "pears", "qty" : 10, "price" : 2.5 }, "status" : "A" }
+      { "_id" : 4, "cust_id" : "Busby Bee", "ord_date" : ISODate("2020-03-18T00:00:00Z"), "price" : 25, "items" : { "sku" : "oranges", "qty" : 10, "price" : 2.5 }, "status" : "A" }
+      { "_id" : 5, "cust_id" : "Busby Bee", "ord_date" : ISODate("2020-03-19T00:00:00Z"), "price" : 50, "items" : { "sku" : "chocolates", "qty" : 5, "price" : 10 }, "status" : "A" }
+      ...
 
-   #. The :pipeline:`$match` stage selects only those
-      documents with ``ord_date`` greater than or equal to ``new
-      Date("2020-03-01")``.
-   
-   #. The :pipeline:`$unwinds` stage breaks down the document by
-      the ``items`` array field to output a document for each array
-      element. For example:
+#. The :pipeline:`$project` stage outputs documents with an ``emit``
+   field. The ``emit`` field is a document with the fields:
 
-      .. code-block:: javascript
-         :copyable: false
+   - ``key`` that contains the ``items.sku`` value 
+   - ``value`` that contains a document with the ``qty`` value and a ``count`` value
 
-         { "_id" : 1, "cust_id" : "Ant O. Knee", "ord_date" : ISODate("2020-03-01T00:00:00Z"), "price" : 25, "items" : { "sku" : "oranges", "qty" : 5, "price" : 2.5 }, "status" : "A" }
-         { "_id" : 1, "cust_id" : "Ant O. Knee", "ord_date" : ISODate("2020-03-01T00:00:00Z"), "price" : 25, "items" : { "sku" : "apples", "qty" : 5, "price" : 2.5 }, "status" : "A" }
-         { "_id" : 2, "cust_id" : "Ant O. Knee", "ord_date" : ISODate("2020-03-08T00:00:00Z"), "price" : 70, "items" : { "sku" : "oranges", "qty" : 8, "price" : 2.5 }, "status" : "A" }
-         { "_id" : 2, "cust_id" : "Ant O. Knee", "ord_date" : ISODate("2020-03-08T00:00:00Z"), "price" : 70, "items" : { "sku" : "chocolates", "qty" : 5, "price" : 10 }, "status" : "A" }
-         { "_id" : 3, "cust_id" : "Busby Bee", "ord_date" : ISODate("2020-03-08T00:00:00Z"), "price" : 50, "items" : { "sku" : "oranges", "qty" : 10, "price" : 2.5 }, "status" : "A" }
-         { "_id" : 3, "cust_id" : "Busby Bee", "ord_date" : ISODate("2020-03-08T00:00:00Z"), "price" : 50, "items" : { "sku" : "pears", "qty" : 10, "price" : 2.5 }, "status" : "A" }
-         { "_id" : 4, "cust_id" : "Busby Bee", "ord_date" : ISODate("2020-03-18T00:00:00Z"), "price" : 25, "items" : { "sku" : "oranges", "qty" : 10, "price" : 2.5 }, "status" : "A" }
-         { "_id" : 5, "cust_id" : "Busby Bee", "ord_date" : ISODate("2020-03-19T00:00:00Z"), "price" : 50, "items" : { "sku" : "chocolates", "qty" : 5, "price" : 10 }, "status" : "A" }
-         ...
+   .. code-block:: javascript
+      :copyable: false
 
-   #. The :pipeline:`$project` stage outputs documents with an ``emit``
-      field. The ``emit`` field is a document with the fields:
-   
-      - ``key`` that contains the ``items.sku`` value 
-      - ``value`` that contains a document with the ``qty`` value and a ``count`` value
+      { "_id" : 1, "emit" : { "key" : "oranges", "value" : { "count" : 1, "qty" : 5 } } }
+      { "_id" : 1, "emit" : { "key" : "apples", "value" : { "count" : 1, "qty" : 5 } } }
+      { "_id" : 2, "emit" : { "key" : "oranges", "value" : { "count" : 1, "qty" : 8 } } }
+      { "_id" : 2, "emit" : { "key" : "chocolates", "value" : { "count" : 1, "qty" : 5 } } }
+      { "_id" : 3, "emit" : { "key" : "oranges", "value" : { "count" : 1, "qty" : 10 } } }
+      { "_id" : 3, "emit" : { "key" : "pears", "value" : { "count" : 1, "qty" : 10 } } }
+      { "_id" : 4, "emit" : { "key" : "oranges", "value" : { "count" : 1, "qty" : 10 } } }
+      { "_id" : 5, "emit" : { "key" : "chocolates", "value" : { "count" : 1, "qty" : 5 } } }
+      ...
 
-      .. code-block:: javascript
-         :copyable: false
+#. The :pipeline:`$group` uses the :expression:`$accumulator`
+   operator to add the emitted ``count`` and ``qty`` and calculate the
+   ``avg`` field:
 
-         { "_id" : 1, "emit" : { "key" : "oranges", "value" : { "count" : 1, "qty" : 5 } } }
-         { "_id" : 1, "emit" : { "key" : "apples", "value" : { "count" : 1, "qty" : 5 } } }
-         { "_id" : 2, "emit" : { "key" : "oranges", "value" : { "count" : 1, "qty" : 8 } } }
-         { "_id" : 2, "emit" : { "key" : "chocolates", "value" : { "count" : 1, "qty" : 5 } } }
-         { "_id" : 3, "emit" : { "key" : "oranges", "value" : { "count" : 1, "qty" : 10 } } }
-         { "_id" : 3, "emit" : { "key" : "pears", "value" : { "count" : 1, "qty" : 10 } } }
-         { "_id" : 4, "emit" : { "key" : "oranges", "value" : { "count" : 1, "qty" : 10 } } }
-         { "_id" : 5, "emit" : { "key" : "chocolates", "value" : { "count" : 1, "qty" : 5 } } }
-         ...
-   
-   #. The :pipeline:`$group` uses the :expression:`$accumulator`
-      operator to add the emitted ``count`` and ``qty`` and calculate the
-      ``avg`` field:
+   .. code-block:: javascript
+      :copyable: false
 
-      .. code-block:: javascript
-         :copyable: false
+      { "_id" : "chocolates", "value" : { "count" : 3, "qty" : 15, "avg" : 5 } }
+      { "_id" : "oranges", "value" : { "count" : 7, "qty" : 63, "avg" : 9 } }
+      { "_id" : "carrots", "value" : { "count" : 2, "qty" : 15, "avg" : 7.5 } }
+      { "_id" : "apples", "value" : { "count" : 4, "qty" : 35, "avg" : 8.75 } }
+      { "_id" : "pears", "value" : { "count" : 1, "qty" : 10, "avg" : 10 } }
 
-         { "_id" : "chocolates", "value" : { "count" : 3, "qty" : 15, "avg" : 5 } }
-         { "_id" : "oranges", "value" : { "count" : 7, "qty" : 63, "avg" : 9 } }
-         { "_id" : "carrots", "value" : { "count" : 2, "qty" : 15, "avg" : 7.5 } }
-         { "_id" : "apples", "value" : { "count" : 4, "qty" : 35, "avg" : 8.75 } }
-         { "_id" : "pears", "value" : { "count" : 1, "qty" : 10, "avg" : 10 } }
-   
-   #. Finally, the :pipeline:`$merge` writes the output to the
-      collection ``agg_alternative_4``. If an existing document has the same
-      key ``_id`` as the new result, the operation overwrites the existing
-      document. If there is no existing document with the same key, the
-      operation inserts the document.
-   
+#. Finally, the :pipeline:`$merge` writes the output to the
+   collection ``agg_alternative_4``. If an existing document has the same
+   key ``_id`` as the new result, the operation overwrites the existing
+   document. If there is no existing document with the same key, the
+   operation inserts the document.
 
 .. seealso:: :doc:`/reference/aggregation-commands-comparison`
