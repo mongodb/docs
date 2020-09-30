@@ -21,6 +21,12 @@
      - 3.6 Enterprise
      - 3.4 Enterprise
 
+   * - RHEL/CentOS 8
+     - 4.2.7+
+     -
+     -
+     -
+
    * - RHEL/CentOS 7
      - |checkmark|
      - |checkmark|
