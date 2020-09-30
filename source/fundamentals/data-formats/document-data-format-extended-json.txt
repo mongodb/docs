@@ -1,0 +1,134 @@
+===================================
+Document Data Format: Extended JSON
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Overview
+--------
+
+JSON is a data format that represents data as objects that contain one or
+more key/value pairs. The **Extended JSON** format adds special syntax to
+JSON objects to represent field type information that directly corresponds 
+to each type in BSON, the format that MongoDB uses to store data.
+
+This guide explains the different variants of Extended JSON and how to
+use the BSON library to convert between Extended JSON objects and Java types.
+
+Extended JSON Formats
+---------------------
+
+
+- Description of each JSON mode
+- Example
+  - Sample data with date fields
+  - output from each mode
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+
+   * - **Extended**
+     - The canonical representation that avoids any loss of BSON type information.
+       
+       .. code-block:: json 
+       
+          {"_id": {"$oid": "573a1391f29313caabcd9637"}, "createdAt": {"$date": {"$numberLong": "1601499609"}}, numViews: { "$numberLong": "36520312" } }
+
+       .. seealso::
+
+         :manual:`MongoDB Extended JSON (v2) </reference/mongodb-extended-json/>`
+          
+   * - **Relaxed**
+     - Representation that loses type information for BSON numeric types. Uses a more human-readable representation of BSON dates.
+
+       .. code-block:: json 
+       
+          {"_id": {"$oid": "573a1391f29313caabcd9637"}, "createdAt": {“$date”:”2020-09-30T18:22:51.648Z”}, "numViews": 36520312 }
+
+       .. seealso::
+
+         :manual:`MongoDB Extended JSON (v2) </reference/mongodb-extended-json/>`
+        
+   * - **Shell**
+     - Format that the MongoDB shell can parse
+
+       .. code-block:: json
+          
+          {"_id:": ObjectId("573a1391f29313caabcd9637"), "craetedAt": ISODate("2012-12-19T06:01:17.171Z"), "numViews": NumberLong("2090845886852") }
+
+       .. seealso::
+
+         :manual:`Data Types in the mongo shell </core/shell-types/>`
+     
+   * - **Strict**
+     - Deprecated. Used as the default mode when writing JSON to ensure backwards compatibility.
+
+       .. code-block:: json
+         
+         {"_id": { "$oid": "573a1391f29313caabcd9637"}, "createdAt": "2012-12-19T06:01:17.171Z", "numViews": { "$numberLong": "2090845886852" } }
+
+       .. seealso::
+
+         :manual:`Extended JSON v1 </reference/mongodb-extended-json-v1/>`
+
+
+Read JSON
+---------
+
+You can read Extended JSON using a ``JsonReader``
+
+
+- Description; JsonReader implementation
+- How to use parse to output for a BufferedReader
+- Example
+
+The following code example shows how you can use ``JsonReader`` to convert
+an Extended JSON object containing types into Java objects:
+
+.. code-block:: java
+
+        String ejsonStr = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"}," +
+                         "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
+        
+        JsonReader jsonReader = new JsonReader(ejsonStr);
+        
+        jsonReader.readStartDocument();
+        jsonReader.readName("_id");
+        ObjectId id = jsonReader.readObjectId();
+        
+        jsonReader.readName("myNumber");
+        Long myNumber = jsonReader.readInt64();
+        jsonReader.readEndDocument();
+        
+        System.out.println(id + " is type: " + id.getClass().getName());
+        System.out.println(myNumber + " is type: " + myNumber.getClass().getName());
+
+        jsonReader.close();
+
+
+- Link to data-formats/document-data-formats-bson for BsonReaders
+
+Write JSON
+----------
+
+The BSON package includes a class called ``JsonWriter`` that converts BSON
+into JSON.
+
+- Description of JsonWriter
+- How to specify JsonWriterSettings and apply to a BufferedWriter
+- Table showing type mapping and methods that correspond
+- Example
+- Customization
+  - List and show examples of Converters
+- Link to data-formats/document-data-formats-bson for BsonWriter 
+
