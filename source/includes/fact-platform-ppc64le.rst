@@ -12,7 +12,7 @@
 
    * - RHEL/CentOS 8
      - |checkmark|
-     -
+     - 4.2.7+
      -
      -
 
@@ -21,12 +21,6 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-
-   * - Ubuntu 20.04
-     - |checkmark|
-     -
-     -
-     -
 
    * - Ubuntu 18.04
      - |checkmark|

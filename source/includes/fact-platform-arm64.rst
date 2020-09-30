@@ -17,7 +17,7 @@
 
    * - Ubuntu 18.04
      - |checkmark|
-     - Community only
+     - |checkmark|
      -
      -
 
