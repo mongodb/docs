@@ -173,104 +173,98 @@ procedure to build the index on the shard.
 C1. Stop One Secondary and Restart as a Standalone
 ``````````````````````````````````````````````````
 
-.. container::
+For an affected shard, stop the :binary:`~bin.mongod` process
+associated with one of its secondary. Restart after making the following
+configuration updates:
 
-   For an affected shard, stop the :binary:`~bin.mongod` process
-   associated with one of its secondary. Restart after making the following
-   configuration updates:
+.. tabs::
 
-   .. tabs::
+   tabs:
+      - id: config-file
+        name: Configuration File
+        content: |
 
-      tabs:
-         - id: config-file
-           name: Configuration File
-           content: |
+           If you are using a configuration file, make the following
+           configuration updates:
 
-              .. container::
+           - Change the :setting:`net.port` to a different port. [#different-port]_
+             Make a note of the original port setting as a comment.
 
-                 If you are using a configuration file, make the following
-                 configuration updates:
+           - Comment out the :setting:`replication.replSetName` option.
 
-                 - Change the :setting:`net.port` to a different port. [#different-port]_
-                   Make a note of the original port setting as a comment.
+           - Comment out the :setting:`sharding.clusterRole` option.
 
-                 - Comment out the :setting:`replication.replSetName` option.
+           - Set parameter :parameter:`skipShardingConfigurationChecks`
+             (also available for MongoDB 3.6.3+, 3.4.11+, 3.2.19+) to
+             ``true`` in the :setting:`setParameter` section.
+      
+           - Set parameter ``disableLogicalSessionCacheRefresh`` to
+             ``true`` in the :setting:`setParameter` section.
 
-                 - Comment out the :setting:`sharding.clusterRole` option.
+           For example, for a shard replica set member, the
+           updated configuration file will include content like
+           the following example:
 
-                 - Set parameter :parameter:`skipShardingConfigurationChecks`
-                   (also available for MongoDB 3.6.3+, 3.4.11+, 3.2.19+) to
-                   ``true`` in the :setting:`setParameter` section.
-            
-                 - Set parameter ``disableLogicalSessionCacheRefresh`` to
-                   ``true`` in the :setting:`setParameter` section.
+           .. code-block:: yaml
 
-                 For example, for a shard replica set member, the
-                 updated configuration file will include content like
-                 the following example:
+              net:
+                 bindIp: localhost,<hostname(s)|ip address(es)>
+                 port: 27218
+              #   port: 27018
+              #replication:
+              #   replSetName: shardA
+              #sharding:
+              #   clusterRole: shardsvr
+              setParameter:
+                 skipShardingConfigurationChecks: true
+                 disableLogicalSessionCacheRefresh: true
 
-                 .. code-block:: yaml
+           And restart:
 
-                    net:
-                       bindIp: localhost,<hostname(s)|ip address(es)>
-                       port: 27218
-                    #   port: 27018
-                    #replication:
-                    #   replSetName: shardA
-                    #sharding:
-                    #   clusterRole: shardsvr
-                    setParameter:
-                       skipShardingConfigurationChecks: true
-                       disableLogicalSessionCacheRefresh: true
+           .. code-block:: sh
 
-                 And restart:
+              mongod --config <path/To/ConfigFile>
 
-                 .. code-block:: sh
+           Other settings (e.g. :setting:`storage.dbPath`, etc.) remain the same.
 
-                    mongod --config <path/To/ConfigFile>
+      - id: command-line
+        name: Command-line Options
+        content: |
 
-              Other settings (e.g. :setting:`storage.dbPath`, etc.) remain the same.
+          If using command-line options, make the following
+          configuration updates:
 
-         - id: command-line
-           name: Command-line Options
-           content: |
+          - Modify :option:`--port <mongod --port>` to a different port. [#different-port]_
 
-              .. container::
+          - Remove :option:`--replSet <mongod --replSet>`.
 
-                 If using command-line options, make the following
-                 configuration updates:
+          - Remove :option:`--shardsvr <mongod --shardsvr>` if a
+            shard member and :option:`--configsvr <mongod
+            --configsvr>` if a config server member.
 
-                 - Modify :option:`--port <mongod --port>` to a different port. [#different-port]_
+          - Set parameter
+            :parameter:`skipShardingConfigurationChecks` (also
+            available for MongoDB 3.6.3+, 3.4.11+, 3.2.19+) to
+            ``true`` in the :option:`--setParameter <mongod
+            --setParameter>` option.
 
-                 - Remove :option:`--replSet <mongod --replSet>`.
+          - Set parameter ``disableLogicalSessionCacheRefresh``
+            to ``true`` in the :option:`--setParameter <mongod
+            --setParameter>` option.
 
-                 - Remove :option:`--shardsvr <mongod --shardsvr>` if a
-                   shard member and :option:`--configsvr <mongod
-                   --configsvr>` if a config server member.
+          For example, restart your shard replica set member
+          without the :option:`--replSet <mongod --replSet>` and
+          :option:`--shardsvr <mongod --shardsvr>` options.
+          Specify a new port number and set both the
+          :parameter:`skipShardingConfigurationChecks` and
+          ``disableLogicalSessionCacheRefresh`` parameters to
+          true:
 
-                 - Set parameter
-                   :parameter:`skipShardingConfigurationChecks` (also
-                   available for MongoDB 3.6.3+, 3.4.11+, 3.2.19+) to
-                   ``true`` in the :option:`--setParameter <mongod
-                   --setParameter>` option.
+          .. code-block:: sh
 
-                 - Set parameter ``disableLogicalSessionCacheRefresh``
-                   to ``true`` in the :option:`--setParameter <mongod
-                   --setParameter>` option.
+             mongod --port 27218 --setParameter skipShardingConfigurationChecks=true --setParameter disableLogicalSessionCacheRefresh=true
 
-                 For example, restart your shard replica set member
-                 without the :option:`--replSet <mongod --replSet>` and
-                 :option:`--shardsvr <mongod --shardsvr>` options.
-                 Specify a new port number and set both the
-                 :parameter:`skipShardingConfigurationChecks` and
-                 ``disableLogicalSessionCacheRefresh`` parameters to
-                 true:
-
-                 .. code-block:: sh
-
-                    mongod --port 27218 --setParameter skipShardingConfigurationChecks=true --setParameter disableLogicalSessionCacheRefresh=true
-
-                 Other settings (e.g. :option:`--dbpath <mongod --dbpath>`, etc.) remain the same.
+          Other settings (e.g. :option:`--dbpath <mongod --dbpath>`, etc.) remain the same.
 
 .. [#different-port] By running the :binary:`~bin.mongod` on a different
    port, you ensure that the other members of the replica set and all
@@ -282,145 +276,133 @@ C1. Stop One Secondary and Restart as a Standalone
 C2. Build the Index
 ```````````````````
 
-.. container::
+Connect directly to the :binary:`~bin.mongod` instance running as a
+standalone on the new port and create the new index for this
+instance.
 
-   Connect directly to the :binary:`~bin.mongod` instance running as a
-   standalone on the new port and create the new index for this
-   instance.
+For example, connect a :binary:`~bin.mongo` shell to the instance,
+and use the :method:`db.collection.createIndex()` method to create
+an ascending index on the ``username`` field of the ``records``
+collection:
 
-   For example, connect a :binary:`~bin.mongo` shell to the instance,
-   and use the :method:`db.collection.createIndex()` method to create
-   an ascending index on the ``username`` field of the ``records``
-   collection:
+.. code-block:: sh
 
-   .. code-block:: sh
-
-      db.records.createIndex( { username: 1 } )
+   db.records.createIndex( { username: 1 } )
 
 .. _tutorial-index-on-sharded-clusters-restart-mongod:
 
 C3. Restart the Program ``mongod`` as a Replica Set Member
 ``````````````````````````````````````````````````````````
 
-.. container::
+When the index build completes, shutdown the :binary:`~bin.mongod`
+instance. Undo the configuration changes made when starting as a
+standalone to return to its original configuration and restart.
 
-   When the index build completes, shutdown the :binary:`~bin.mongod`
-   instance. Undo the configuration changes made when starting as a
-   standalone to return to its original configuration and restart.
+.. important::
 
-   .. important::
-   
-      Be sure to remove the
-      :parameter:`skipShardingConfigurationChecks` parameter and
-      ``disableLogicalSessionCacheRefresh`` parameter.
+   Be sure to remove the
+   :parameter:`skipShardingConfigurationChecks` parameter and
+   ``disableLogicalSessionCacheRefresh`` parameter.
 
-   For example, to restart your replica set shard member:
+For example, to restart your replica set shard member:
 
-   .. tabs::
+.. tabs::
 
-      tabs:
-         - id: config-file
-           name: Configuration File
-           content: |
+   tabs:
+      - id: config-file
+        name: Configuration File
+        content: |
 
-              .. container::
+           If you are using a configuration file:
 
-                 If you are using a configuration file:
+           - Revert to the original port number.
 
-                 - Revert to the original port number.
+           - Uncomment the :setting:`replication.replSetName`.
 
-                 - Uncomment the :setting:`replication.replSetName`.
+           - Uncomment the :setting:`sharding.clusterRole`.
 
-                 - Uncomment the :setting:`sharding.clusterRole`.
+           - Remove parameter :parameter:`skipShardingConfigurationChecks`
+             in the :setting:`setParameter` section.
 
-                 - Remove parameter :parameter:`skipShardingConfigurationChecks`
-                   in the :setting:`setParameter` section.
+           - Remove parameter :parameter:`disableLogicalSessionCacheRefresh`
+             in the :setting:`setParameter` section.
 
-                 - Remove parameter :parameter:`disableLogicalSessionCacheRefresh`
-                   in the :setting:`setParameter` section.
+           .. code-block:: yaml
 
-                 .. code-block:: yaml
+              net:
+                 bindIp: localhost,<hostname(s)|ip address(es)>
+                 port: 27018
+              replication:
+                 replSetName: shardA
+              sharding:
+                 clusterRole: shardsvr
 
-                    net:
-                       bindIp: localhost,<hostname(s)|ip address(es)>
-                       port: 27018
-                    replication:
-                       replSetName: shardA
-                    sharding:
-                       clusterRole: shardsvr
+           Other settings (e.g. :setting:`storage.dbPath`, etc.) remain the same.
 
-                 Other settings (e.g. :setting:`storage.dbPath`, etc.) remain the same.
-
-                 And restart:
-                 
-                 .. code-block:: sh
-                 
-                    mongod --config <path/To/ConfigFile>
-
-         - id: command-line
-           name: Command-line Options
-           content: |
-
-              .. container::
-
-                 If you are using command-line options:
+           And restart:
            
-                 - Revert to the original port number.
+           .. code-block:: sh
            
-                 - Include :option:`--replSet <mongod --replSet>`.
-           
-                 - Include :option:`--shardsvr <mongod --shardsvr>` if
-                   a shard member or :option:`--configsvr <mongod
-                   --configsvr>` if a config server member.
+              mongod --config <path/To/ConfigFile>
 
-                 - Remove parameter
-                   :parameter:`skipShardingConfigurationChecks`.
+      - id: command-line
+        name: Command-line Options
+        content: |
 
-                 - Remove parameter ``disableLogicalSessionCacheRefresh``.
+           If you are using command-line options:
+     
+           - Revert to the original port number.
+     
+           - Include :option:`--replSet <mongod --replSet>`.
+     
+           - Include :option:`--shardsvr <mongod --shardsvr>` if
+             a shard member or :option:`--configsvr <mongod
+             --configsvr>` if a config server member.
 
-                 For example:
+           - Remove parameter
+             :parameter:`skipShardingConfigurationChecks`.
 
-                 .. code-block:: sh
+           - Remove parameter ``disableLogicalSessionCacheRefresh``.
 
-                    mongod --port 27018 --replSet shardA --shardsvr 
+           For example:
 
-                 Other settings (e.g. :option:`--dbpath <mongod --dbpath>`, etc.) remain the same.
+           .. code-block:: sh
 
-   Allow replication to catch up on this member.
+              mongod --port 27018 --replSet shardA --shardsvr 
+
+           Other settings (e.g. :option:`--dbpath <mongod --dbpath>`, etc.) remain the same.
+
+Allow replication to catch up on this member.
 
 C4. Repeat the Procedure for the Remaining Secondaries for the Shard
 ````````````````````````````````````````````````````````````````````
 
-.. container::
+Once the member catches up with the other members of the set, repeat
+the procedure one member at a time for the remaining secondary
+members for the shard:
 
-   Once the member catches up with the other members of the set, repeat
-   the procedure one member at a time for the remaining secondary
-   members for the shard:
+#. :ref:`tutorial-index-on-sharded-clusters-stop-one-member`
 
-   #. :ref:`tutorial-index-on-sharded-clusters-stop-one-member`
+#. :ref:`tutorial-index-on-sharded-clusters-build-index`
 
-   #. :ref:`tutorial-index-on-sharded-clusters-build-index`
-
-   #. :ref:`tutorial-index-on-sharded-clusters-restart-mongod`
+#. :ref:`tutorial-index-on-sharded-clusters-restart-mongod`
 
 C5. Build the Index on the Primary
 ``````````````````````````````````
 
-.. container::
+When all the secondaries for the shard have the new index, step down
+the primary for the shard, restart it as a standalone using the
+procedure described above, and build the index on the former primary:
 
-   When all the secondaries for the shard have the new index, step down
-   the primary for the shard, restart it as a standalone using the
-   procedure described above, and build the index on the former primary:
+#. Use the :method:`rs.stepDown()` method in the :binary:`~bin.mongo` shell
+   to step down the primary. Upon successful stepdown, the current primary
+   becomes a secondary and the replica set members elect a new primary.
 
-   #. Use the :method:`rs.stepDown()` method in the :binary:`~bin.mongo` shell
-      to step down the primary. Upon successful stepdown, the current primary
-      becomes a secondary and the replica set members elect a new primary.
+#. :ref:`tutorial-index-on-sharded-clusters-stop-one-member`
 
-   #. :ref:`tutorial-index-on-sharded-clusters-stop-one-member`
+#. :ref:`tutorial-index-on-sharded-clusters-build-index`
 
-   #. :ref:`tutorial-index-on-sharded-clusters-build-index`
-
-   #. :ref:`tutorial-index-on-sharded-clusters-restart-mongod`
+#. :ref:`tutorial-index-on-sharded-clusters-restart-mongod`
 
 D. Repeat for the Other Affected Shards
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

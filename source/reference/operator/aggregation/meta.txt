@@ -15,12 +15,6 @@ $meta
 Definition
 ----------
 
-.. COMMENT For now, hiding the .. projection:: $meta as part of DOCSP-9856 instead of removing since the docs would have a lot of :projection:`$meta` projection operator, etc.  Can do a cleanup later, but don't want to subject DOCSP-9856 reviewers to all those changes.
-
-.. class:: hidden
-
-   .. projection:: $meta
-
 .. expression:: $meta
 
    Returns the metadata associated with a document, e.g.
@@ -73,7 +67,7 @@ Text Score Metadata ``$meta: "textScore"``
        - The ``{ $meta: "textScore" }`` expression can be a part of the
          :term:`projection` document to include the text score metadata.
  
-       - The :projection:`$meta` expression can be present in either an
+       - The :expression:`$meta` expression can be present in either an
          inclusion or an exclusion projection.
 
        - If you set the expression to a field name that already exists
@@ -191,231 +185,227 @@ Examples
 ``$meta: "textScore"``
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+Create an ``articles`` collection with the following documents:
 
-   Create an ``articles`` collection with the following documents:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.articles.insertMany([
+      { "_id" : 1, "title" : "cakes and ale" },
+      { "_id" : 2, "title" : "more cakes" },
+      { "_id" : 3, "title" : "bread" },
+      { "_id" : 4, "title" : "some cakes" },
+      { "_id" : 5, "title" : "two cakes to go" },
+      { "_id" : 6, "title" : "pie" }
+   ])
 
-      db.articles.insertMany([
-         { "_id" : 1, "title" : "cakes and ale" },
-         { "_id" : 2, "title" : "more cakes" },
-         { "_id" : 3, "title" : "bread" },
-         { "_id" : 4, "title" : "some cakes" },
-         { "_id" : 5, "title" : "two cakes to go" },
-         { "_id" : 6, "title" : "pie" }
-      ])
+Create a :ref:`text index <create-text-index>` on the ``title`` field:
 
-   Create a :ref:`text index <create-text-index>` on the ``title`` field:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.articles.createIndex( { title: "text"} )
 
-      db.articles.createIndex( { title: "text"} )
+.. tabs::
 
-   .. tabs::
+   .. tab:: Aggregation
+      :tabid: aggregation
 
-      .. tab:: Aggregation
-         :tabid: aggregation
+      The following aggregation operation performs a text search and uses the
+      :expression:`$meta` operator to group by the text search score:
 
-         The following aggregation operation performs a text search and uses the
-         :expression:`$meta` operator to group by the text search score:
+      .. code-block:: javascript
 
-         .. code-block:: javascript
+         db.articles.aggregate(
+            [
+              { $match: { $text: { $search: "cake" } } },
+              { $group: { _id: { $meta: "textScore" }, count: { $sum: 1 } } }
+            ]
+         )
 
-            db.articles.aggregate(
-               [
-                 { $match: { $text: { $search: "cake" } } },
-                 { $group: { _id: { $meta: "textScore" }, count: { $sum: 1 } } }
-               ]
-            )
+      The operation returns the following results:
 
-         The operation returns the following results:
+      .. code-block:: javascript
+         :copyable: false
 
-         .. code-block:: javascript
-            :copyable: false
+         { "_id" : 0.75, "count" : 1 }
+         { "_id" : 0.6666666666666666, "count" : 1 }
+         { "_id" : 1, "count" : 2 }
 
-            { "_id" : 0.75, "count" : 1 }
-            { "_id" : 0.6666666666666666, "count" : 1 }
-            { "_id" : 1, "count" : 2 }
+      For more examples, see :doc:`/tutorial/text-search-in-aggregation`.
 
-         For more examples, see :doc:`/tutorial/text-search-in-aggregation`.
+   .. tab:: Find and Project
+      :tabid: find
 
-      .. tab:: Find and Project
-         :tabid: find
+      The following query performs a text search for the term ``cake`` and
+      uses the :expression:`$meta` operator in the projection document to
+      include the score assigned to each matching document:
 
-         The following query performs a text search for the term ``cake`` and
-         uses the :projection:`$meta` operator in the projection document to
-         include the score assigned to each matching document:
+      .. code-block:: javascript
 
-         .. code-block:: javascript
+         db.articles.find(
+            { $text: { $search: "cake" } },
+            { score: { $meta: "textScore" } }
+         )
 
-            db.articles.find(
-               { $text: { $search: "cake" } },
-               { score: { $meta: "textScore" } }
-            )
+      The operation returns the following documents with the text score:
 
-         The operation returns the following documents with the text score:
+      .. code-block:: javascript
+         :copyable: false
 
-         .. code-block:: javascript
-            :copyable: false
+         { "_id" : 4, "title" : "some cakes", "score" : 1 }
+         { "_id" : 1, "title" : "cakes and ale", "score" : 0.75 }
+         { "_id" : 5, "title" : "two cakes to go", "score" : 0.6666666666666666 }
+         { "_id" : 2, "title" : "more cakes", "score" : 1 }
 
-            { "_id" : 4, "title" : "some cakes", "score" : 1 }
-            { "_id" : 1, "title" : "cakes and ale", "score" : 0.75 }
-            { "_id" : 5, "title" : "two cakes to go", "score" : 0.6666666666666666 }
-            { "_id" : 2, "title" : "more cakes", "score" : 1 }
-
-         For additional examples of ``"textScore"`` projections and sorts,
-         see :ref:`ex-text-search-score`.
+      For additional examples of ``"textScore"`` projections and sorts,
+      see :ref:`ex-text-search-score`.
 
 ``$meta: "indexKey"``
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+.. note::
 
-   .. note::
+   The ``{ $meta: "indexKey" }`` expression is for debugging
+   purposes only and not for application logic. MongoDB returns the
+   value associated with the index chosen by the query system. The
+   system can choose a different index upon subsequent execution.
 
-      The ``{ $meta: "indexKey" }`` expression is for debugging
-      purposes only and not for application logic. MongoDB returns the
-      value associated with the index chosen by the query system. The
-      system can choose a different index upon subsequent execution.
-
-      For the selected index, the value returned depends on how the
-      database decides to represent values in an index and may change
-      across versions. The represented value may not be the actual
-      value for the field.
-
- 
-   Create an ``orders`` collection with the following documents:
-
-   .. code-block:: javascript
-
-      db.orders.insertMany([
-         { "item" : "abc", "price" : NumberDecimal("12"), "quantity" : 2, "type": "apparel" },
-         { "item" : "jkl", "price" : NumberDecimal("20"), "quantity" : 1, "type": "electronics" },
-         { "item" : "abc", "price" : NumberDecimal("10"), "quantity" : 5, "type": "apparel" }
-      ])
-
-   Create the following compound index on the ``type`` and ``item`` fields:
-
-   .. code-block:: javascript
-
-      db.orders.createIndex( { type: 1, item: 1 } )
-
-   .. tabs::
-
-      .. tab:: Aggregation
-         :tabid: aggregation
-
-         The following aggregation operation finds all documents with ``type``
-         equal to ``apparel`` and uses the :expression:`$meta` operator to
-         include the index key value for the matching document if an index was
-         used:
-
-         .. code-block:: javascript
-
-            db.orders.aggregate(
-               [
-                 { $match: { type: "apparel" } },
-                 { $addFields: { idxKey: { $meta: "indexKey" } } }
-               ]
-            )
-
-      .. tab:: Find and Project
-         :tabid: find
-   
-         The following operation finds all documents with ``type``
-         equal to ``apparel`` and uses the :expression:`$meta` operator to
-         include the index key value for the matching document if an index was
-         used:
-
-         .. code-block:: javascript
-
-            db.orders.find( { type: "apparel" }, { idxKey: { $meta: "indexKey" } } )
-
-   The operation returns the matching documents with their
-   corresponding index key:
-
-   .. code-block:: javascript
-      :copyable: false
-      :emphasize-lines: 7,15
-
-      {
-         "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
-         "item" : "abc",
-         "price" : NumberDecimal("12"),
-         "quantity" : 2,
-         "type" : "apparel",        
-         "idxKey" : { "type" : "apparel", "item" : "abc" }
-      }
-      {
-         "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
-         "item" : "abc",
-         "price" : NumberDecimal("10"),
-         "quantity" : 5,
-         "type" : "apparel",
-         "idxKey" : { "type" : "apparel", "item" : "abc" }
-      }
+   For the selected index, the value returned depends on how the
+   database decides to represent values in an index and may change
+   across versions. The represented value may not be the actual
+   value for the field.
 
 
-   If :red:`no` index is used, the ``{ $meta: "indexKey" }`` does not
-   return anything. 
-   
-   .. tabs::
+Create an ``orders`` collection with the following documents:
 
-      .. tab:: Aggregation
-         :tabid: aggregation
-   
-         For example, the following operation does not use
-         an index since no index exists on the ``price`` field to support the
-         match condition:
+.. code-block:: javascript
 
-         .. code-block:: javascript
+   db.orders.insertMany([
+      { "item" : "abc", "price" : NumberDecimal("12"), "quantity" : 2, "type": "apparel" },
+      { "item" : "jkl", "price" : NumberDecimal("20"), "quantity" : 1, "type": "electronics" },
+      { "item" : "abc", "price" : NumberDecimal("10"), "quantity" : 5, "type": "apparel" }
+   ])
 
-            db.orders.aggregate(
-               [
-                 { $match: { price: { $gte: NumberDecimal("10") } } },
-                 { $addFields: { idxKey: { $meta: "indexKey" } } }
-               ]
-            )
+Create the following compound index on the ``type`` and ``item`` fields:
 
-      .. tab:: Find and Project
-         :tabid: find
+.. code-block:: javascript
 
-         For example, the following operation does not use an index
-         since no index exists on the ``price`` field to support the
-         match condition:
+   db.orders.createIndex( { type: 1, item: 1 } )
 
-         .. code-block:: javascript
+.. tabs::
 
-            db.orders.find( 
-               { price: { $gte: NumberDecimal("10") } }, 
-               { idxKey: { $meta: "indexKey" } }
-            )
+   .. tab:: Aggregation
+      :tabid: aggregation
 
-   The operation returns the matching documents without the ``idxKey``
-   field:
+      The following aggregation operation finds all documents with ``type``
+      equal to ``apparel`` and uses the :expression:`$meta` operator to
+      include the index key value for the matching document if an index was
+      used:
 
-   .. code-block:: javascript
-      :copyable: false
+      .. code-block:: javascript
 
-      {
-         "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
-         "item" : "abc",
-         "price" : NumberDecimal("12"),
-         "quantity" : 2,
-         "type" : "apparel"
-      }
-      {
-         "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcdf"),
-         "item" : "jkl",
-         "price" : NumberDecimal("20"),
-         "quantity" : 1,
-         "type" : "electronics"
-      }
-      {
-         "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
-         "item" : "abc",
-         "price" : NumberDecimal("10"),
-         "quantity" : 5,
-         "type" : "apparel"
-      }
+         db.orders.aggregate(
+            [
+              { $match: { type: "apparel" } },
+              { $addFields: { idxKey: { $meta: "indexKey" } } }
+            ]
+         )
+
+   .. tab:: Find and Project
+      :tabid: find
+
+      The following operation finds all documents with ``type``
+      equal to ``apparel`` and uses the :expression:`$meta` operator to
+      include the index key value for the matching document if an index was
+      used:
+
+      .. code-block:: javascript
+
+         db.orders.find( { type: "apparel" }, { idxKey: { $meta: "indexKey" } } )
+
+The operation returns the matching documents with their
+corresponding index key:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 7,15
+
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
+      "item" : "abc",
+      "price" : NumberDecimal("12"),
+      "quantity" : 2,
+      "type" : "apparel",        
+      "idxKey" : { "type" : "apparel", "item" : "abc" }
+   }
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
+      "item" : "abc",
+      "price" : NumberDecimal("10"),
+      "quantity" : 5,
+      "type" : "apparel",
+      "idxKey" : { "type" : "apparel", "item" : "abc" }
+   }
+
+
+If :red:`no` index is used, the ``{ $meta: "indexKey" }`` does not
+return anything. 
+
+.. tabs::
+
+   .. tab:: Aggregation
+      :tabid: aggregation
+
+      For example, the following operation does not use
+      an index since no index exists on the ``price`` field to support the
+      match condition:
+
+      .. code-block:: javascript
+
+         db.orders.aggregate(
+            [
+              { $match: { price: { $gte: NumberDecimal("10") } } },
+              { $addFields: { idxKey: { $meta: "indexKey" } } }
+            ]
+         )
+
+   .. tab:: Find and Project
+      :tabid: find
+
+      For example, the following operation does not use an index
+      since no index exists on the ``price`` field to support the
+      match condition:
+
+      .. code-block:: javascript
+
+         db.orders.find( 
+            { price: { $gte: NumberDecimal("10") } }, 
+            { idxKey: { $meta: "indexKey" } }
+         )
+
+The operation returns the matching documents without the ``idxKey``
+field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
+      "item" : "abc",
+      "price" : NumberDecimal("12"),
+      "quantity" : 2,
+      "type" : "apparel"
+   }
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcdf"),
+      "item" : "jkl",
+      "price" : NumberDecimal("20"),
+      "quantity" : 1,
+      "type" : "electronics"
+   }
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
+      "item" : "abc",
+      "price" : NumberDecimal("10"),
+      "quantity" : 5,
+      "type" : "apparel"
+   }

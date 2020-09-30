@@ -59,119 +59,110 @@ Procedure
 0. Optional. Set Override Parameter on Running Members
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+The procedure requires that all members of the deployment be
+restarted. As the settings will not take into consideration until
+you restart all members, your instances may log messages until the
+procedure completes.
 
-   The procedure requires that all members of the deployment be
-   restarted. As the settings will not take into consideration until
-   you restart all members, your instances may log messages until the
-   procedure completes.
+To avoid these messages, you can set the override parameter on
+running members.
 
-   To avoid these messages, you can set the override parameter on
-   running members.
+Connect a :binary:`~bin.mongo` shell directly to each member of the
+deployment and set the :parameter:`tlsX509ClusterAuthDNOverride`
+parameter to the new certificate ``DN``:
 
-   Connect a :binary:`~bin.mongo` shell directly to each member of the
-   deployment and set the :parameter:`tlsX509ClusterAuthDNOverride`
-   parameter to the new certificate ``DN``:
+.. code-block:: javascript
 
-   .. code-block:: javascript
-
-      db.adminCommand( { setParameter: 1, tlsX509ClusterAuthDNOverride: "OU=MongoDB Server,O=MongoDB" } )
+   db.adminCommand( { setParameter: 1, tlsX509ClusterAuthDNOverride: "OU=MongoDB Server,O=MongoDB" } )
 
 1. Modify the Configuration of ALL Members
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Modify each member's configuration:
 
-.. container::
+- Update :setting:`net.tls.certificateKeyFile` to the new certificate.
 
-   Modify each member's configuration:
+- Update :setting:`net.tls.clusterFile` to the new certificate.
 
-   - Update :setting:`net.tls.certificateKeyFile` to the new certificate.
+- Set :parameter:`tlsX509ClusterAuthDNOverride` parameter to the new
+  certificate ``DN``.
 
-   - Update :setting:`net.tls.clusterFile` to the new certificate.
+For example:
 
-   - Set :parameter:`tlsX509ClusterAuthDNOverride` parameter to the new
-     certificate ``DN``.
+.. code-block:: yaml
 
-   For example:
+   net.tls.mode: requireTLS
+   net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
+   net.tls.CAFile: "./mycerts/ca.pem"
 
-   .. code-block:: yaml
+   security.clusterAuthMode: x509
 
-      net.tls.mode: requireTLS
-      net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
-      net.tls.CAFile: "./mycerts/ca.pem"
+   net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
+   net.tls.clusterCAFile: "./mycerts/ca.pem"
 
-      security.clusterAuthMode: x509
+   setParameter:
+      tlsX509ClusterAuthDNOverride: "OU=MongoDB Server,O=MongoDB"
 
-      net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
-      net.tls.clusterCAFile: "./mycerts/ca.pem"
-
-      setParameter:
-         tlsX509ClusterAuthDNOverride: "OU=MongoDB Server,O=MongoDB"
-
-   The settings will not take into consideration until you restart each
-   member (see next step).
+The settings will not take into consideration until you restart each
+member (see next step).
 
 2. Restart Each Member
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+Once you have modified the configuration for all the members,
+restart each secondaries and then the primary.
 
-   Once you have modified the configuration for all the members,
-   restart each secondaries and then the primary.
+**For each secondary member**, connect a :binary:`~bin.mongo` shell to the
+member and:
 
-   **For each secondary member**, connect a :binary:`~bin.mongo` shell to the
-   member and:
+a. Use the :method:`db.shutdownServer()` method to shut down the member:
 
-   a. Use the :method:`db.shutdownServer()` method to shut down the member:
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      use admin
+      db.shutdownServer()
 
-         use admin
-         db.shutdownServer()
+b. Restart the member. 
 
-   b. Restart the member. 
+   Ensure the member has reached :replstate:`SECONDARY` state before
+   restarting the next secondary.
 
-      Ensure the member has reached :replstate:`SECONDARY` state before
-      restarting the next secondary.
+**For the primary**, connect a :binary:`~bin.mongo` shell to the member and
 
-   **For the primary**, connect a :binary:`~bin.mongo` shell to the member and
+a. Use :method:`rs.stepDown()` to step down the member:
 
-   a. Use :method:`rs.stepDown()` to step down the member:
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      rs.stepDown()
 
-         rs.stepDown()
+#. Use the :method:`db.shutdownServer()` method to shut down the member:
 
-   #. Use the :method:`db.shutdownServer()` method to shut down the member:
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      use admin
+      db.shutdownServer()
 
-         use admin
-         db.shutdownServer()
-
-   #. Restart the member.
+#. Restart the member.
 
 3. Remove the ``tlsX509ClusterAuthDNOverride`` Setting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+Once all the members have been restarted with the new certificate,
+you can remove the ``tlsX509ClusterAuthDNOverride`` parameter from
+the configuration.
 
-   Once all the members have been restarted with the new certificate,
-   you can remove the ``tlsX509ClusterAuthDNOverride`` parameter from
-   the configuration.
-   
-   For example:
+For example:
 
-   .. code-block:: yaml
+.. code-block:: yaml
 
-      net.tls.mode: requireTLS
-      net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
-      net.tls.CAFile: "./mycerts/ca.pem"
+   net.tls.mode: requireTLS
+   net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
+   net.tls.CAFile: "./mycerts/ca.pem"
 
-      security.clusterAuthMode: x509
+   security.clusterAuthMode: x509
 
-      net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
-      net.tls.clusterCAFile: "./mycerts/ca.pem"
+   net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
+   net.tls.clusterCAFile: "./mycerts/ca.pem"
 
-   The settings will not take into consideration until you restart each
-   member.
+The settings will not take into consideration until you restart each
+member.

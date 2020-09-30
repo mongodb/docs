@@ -287,246 +287,232 @@ For example, the following aggregation performs a case-*sensitive*
 :expression:`$regexFind` on the ``description`` field. The regex
 pattern ``/line/`` does not specify any grouping:
 
-.. container::
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /line/ } } } }
+   ])
 
-      db.products.aggregate([
-         { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /line/ } } } }
-      ])
+The operation returns the following:
 
-   The operation returns the following:
+.. code-block:: javascript
+   :copyable: false
 
-   .. code-block:: javascript
-      :copyable: false
-
-      { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
-      { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "line", "idx" : 6, "captures" : [ ] } }
-      { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "line", "idx" : 23, "captures" : [ ] } }
-      { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "line", "idx" : 9, "captures" : [ ] } }
-      { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
-      { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
+   { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
+   { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "line", "idx" : 6, "captures" : [ ] } }
+   { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "line", "idx" : 23, "captures" : [ ] } }
+   { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "line", "idx" : 9, "captures" : [ ] } }
+   { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
 
 The following regex pattern ``/lin(e|k)/`` specifies a grouping
 ``(e|k)`` in the pattern:
 
-.. container::
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /lin(e|k)/ } } } }
+   ])
 
-      db.products.aggregate([
-         { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /lin(e|k)/ } } } }
-      ])
+The operation returns the following:
 
-   The operation returns the following:
+.. code-block:: javascript
+   :copyable: false
 
-   .. code-block:: javascript
-      :copyable: false
-
-      { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
-      { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "line", "idx" : 6, "captures" : [ "e" ] } }
-      { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "line", "idx" : 23, "captures" : [ "e" ] } }
-      { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "line", "idx" : 9, "captures" : [ "e" ] } }
-      { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : { "match" : "link", "idx" : 9, "captures" : [ "k" ] } }
-      { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
+   { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
+   { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "line", "idx" : 6, "captures" : [ "e" ] } }
+   { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "line", "idx" : 23, "captures" : [ "e" ] } }
+   { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "line", "idx" : 9, "captures" : [ "e" ] } }
+   { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : { "match" : "link", "idx" : 9, "captures" : [ "k" ] } }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
 
 In the return option, the ``idx`` field is the `code point
 <http://www.unicode.org/glossary/#code_point>`_ index and not the byte
 index. To illustrate, consider the following example that uses the
 regex pattern ``/tier/``:
 
-.. container::
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /tier/ } } } }
+   ])
 
-      db.products.aggregate([
-         { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /tier/ } } } }
-      ])
+The operation returns the following where only the last record
+matches the pattern and the returned ``idx`` is ``2`` (instead of 3
+if using a byte index)
 
-   The operation returns the following where only the last record
-   matches the pattern and the returned ``idx`` is ``2`` (instead of 3
-   if using a byte index)
+.. code-block:: javascript
+   :copyable: false
 
-   .. code-block:: javascript
-      :copyable: false
-
-      { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
-      { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : null }
-      { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : null }
-      { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : null }
-      { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
-      { "_id" : 6, "description" : "métier work vocation", 
-                   "returnObject" : { "match" : "tier", "idx" : 2, "captures" : [ ] } }
+   { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
+   { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : null }
+   { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : null }
+   { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : null }
+   { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
+   { "_id" : 6, "description" : "métier work vocation", 
+                "returnObject" : { "match" : "tier", "idx" : 2, "captures" : [ ] } }
 
 .. _regexFind-example-i-options:
 
 ``i`` Option
 ````````````
 
-.. container::
+.. include:: /includes/extracts/agg-regex-options-one-place-only.rst
 
-   .. include:: /includes/extracts/agg-regex-options-one-place-only.rst
+To perform case-*insensitive* pattern matching, include the :ref:`i
+<regexFind-options>` option as part of the :ref:`regex <regexFind-regex>` field or
+in the :ref:`options <regexFind-options>` field:
 
-   To perform case-*insensitive* pattern matching, include the :ref:`i
-   <regexFind-options>` option as part of the :ref:`regex <regexFind-regex>` field or
-   in the :ref:`options <regexFind-options>` field:
+.. code-block:: none
+  :copyable: false
 
-   .. code-block:: none
-     :copyable: false
+  // Specify i as part of the regex field
+  { $regexFind: { input: "$description", regex: /line/i } }
 
-     // Specify i as part of the regex field
-     { $regexFind: { input: "$description", regex: /line/i } }
+  // Specify i in the options field
+  { $regexFind: { input: "$description", regex: /line/, options: "i" } }
+  { $regexFind: { input: "$description", regex: "line", options: "i" } }
 
-     // Specify i in the options field
-     { $regexFind: { input: "$description", regex: /line/, options: "i" } }
-     { $regexFind: { input: "$description", regex: "line", options: "i" } }
+For example, the following aggregation performs a case-*insensitive*
+:expression:`$regexFind` on the ``description`` field. The regex
+pattern ``/line/`` does not specify any grouping:
 
-   For example, the following aggregation performs a case-*insensitive*
-   :expression:`$regexFind` on the ``description`` field. The regex
-   pattern ``/line/`` does not specify any grouping:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /line/i } } } }
+   ])
 
-      db.products.aggregate([
-         { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /line/i } } } }
-      ])
+The operation returns the following documents:
 
-   The operation returns the following documents:
+.. code-block:: javascript
+   :copyable: false
 
-   .. code-block:: javascript
-      :copyable: false
-
-      { "_id" : 1, "description" : "Single LINE description.", "returnObject" : { "match" : "LINE", "idx" : 7, "captures" : [ ] } }
-      { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "line", "idx" : 6, "captures" : [ ] } }
-      { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "line", "idx" : 23, "captures" : [ ] } }
-      { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "line", "idx" : 9, "captures" : [ ] } }
-      { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
-      { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
+   { "_id" : 1, "description" : "Single LINE description.", "returnObject" : { "match" : "LINE", "idx" : 7, "captures" : [ ] } }
+   { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "line", "idx" : 6, "captures" : [ ] } }
+   { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "line", "idx" : 23, "captures" : [ ] } }
+   { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "line", "idx" : 9, "captures" : [ ] } }
+   { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
    
 ``m`` Option
 ````````````
 
-.. container::
+.. include:: /includes/extracts/agg-regex-options-one-place-only.rst
 
-   .. include:: /includes/extracts/agg-regex-options-one-place-only.rst
+To match the specified anchors (e.g. ``^``, ``$``) for each line of a
+multiline string, include the :ref:`m <regexFind-options>` option as
+part of the :ref:`regex <regexFind-regex>` field or in the
+:ref:`options <regexFind-options>` field:
 
-   To match the specified anchors (e.g. ``^``, ``$``) for each line of a
-   multiline string, include the :ref:`m <regexFind-options>` option as
-   part of the :ref:`regex <regexFind-regex>` field or in the
-   :ref:`options <regexFind-options>` field:
+.. code-block:: none
+  :copyable: false
 
-   .. code-block:: none
-     :copyable: false
+  // Specify m as part of the regex field
+  { $regexFind: { input: "$description", regex: /line/m } }
 
-     // Specify m as part of the regex field
-     { $regexFind: { input: "$description", regex: /line/m } }
+  // Specify m in the options field
+  { $regexFind: { input: "$description", regex: /line/, options: "m" } }
+  { $regexFind: { input: "$description", regex: "line", options: "m" } }
 
-     // Specify m in the options field
-     { $regexFind: { input: "$description", regex: /line/, options: "m" } }
-     { $regexFind: { input: "$description", regex: "line", options: "m" } }
+The following example includes both the ``i`` and the ``m`` options to
+match lines starting with either the letter ``s`` or ``S`` for
+multiline strings:
 
-   The following example includes both the ``i`` and the ``m`` options to
-   match lines starting with either the letter ``s`` or ``S`` for
-   multiline strings:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /^s/im } } } }
+   ])
 
-      db.products.aggregate([
-         { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /^s/im } } } }
-      ])
+The operation returns the following:
 
-   The operation returns the following:
+.. code-block:: javascript
+   :copyable: false
 
-   .. code-block:: javascript
-      :copyable: false
-
-      { "_id" : 1, "description" : "Single LINE description.", "returnObject" : { "match" : "S", "idx" : 0, "captures" : [ ] } }
-      { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "s", "idx" : 12, "captures" : [ ] } }
-      { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : null }
-      { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : null }
-      { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
-      { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
+   { "_id" : 1, "description" : "Single LINE description.", "returnObject" : { "match" : "S", "idx" : 0, "captures" : [ ] } }
+   { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "s", "idx" : 12, "captures" : [ ] } }
+   { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : null }
+   { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : null }
+   { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
 
 ``x`` Option
 ````````````
 
-.. container::
+.. include:: /includes/extracts/agg-regex-options-one-place-only.rst
 
-   .. include:: /includes/extracts/agg-regex-options-one-place-only.rst
+To ignore all unescaped white space characters and comments (denoted by
+the un-escaped hash ``#`` character and the next new-line character) in
+the pattern, include the :ref:`s <regexFind-options>` option in the
+:ref:`options <regexFind-options>` field:
 
-   To ignore all unescaped white space characters and comments (denoted by
-   the un-escaped hash ``#`` character and the next new-line character) in
-   the pattern, include the :ref:`s <regexFind-options>` option in the
-   :ref:`options <regexFind-options>` field:
+.. code-block:: none
+  :copyable: false
 
-   .. code-block:: none
-     :copyable: false
+  // Specify x in the options field
+  { $regexFind: { input: "$description", regex: /line/, options: "x" } }
+  { $regexFind: { input: "$description", regex: "line", options: "x" } }
 
-     // Specify x in the options field
-     { $regexFind: { input: "$description", regex: /line/, options: "x" } }
-     { $regexFind: { input: "$description", regex: "line", options: "x" } }
+The following example includes the ``x`` option to skip unescaped white
+spaces and comments:
 
-   The following example includes the ``x`` option to skip unescaped white
-   spaces and comments:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /lin(e|k) # matches line or link/, options:"x" } } } }
+   ])
 
-      db.products.aggregate([
-         { $addFields: { returnObject: { $regexFind: { input: "$description", regex: /lin(e|k) # matches line or link/, options:"x" } } } }
-      ])
+The operation returns the following:
 
-   The operation returns the following:
+.. code-block:: javascript
+   :copyable: false
 
-   .. code-block:: javascript
-      :copyable: false
-
-      { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
-      { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "line", "idx" : 6, "captures" : [ "e" ] } }
-      { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "line", "idx" : 23, "captures" : [ "e" ] } }
-      { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "line", "idx" : 9, "captures" : [ "e" ] } }
-      { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : { "match" : "link", "idx" : 9, "captures" : [ "k" ] } }
-      { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
+   { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
+   { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : { "match" : "line", "idx" : 6, "captures" : [ "e" ] } }
+   { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "line", "idx" : 23, "captures" : [ "e" ] } }
+   { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "line", "idx" : 9, "captures" : [ "e" ] } }
+   { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : { "match" : "link", "idx" : 9, "captures" : [ "k" ] } }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
 
 ``s`` Option
 ````````````
 
-.. container::
+.. include:: /includes/extracts/agg-regex-options-one-place-only.rst
 
-   .. include:: /includes/extracts/agg-regex-options-one-place-only.rst
+To allow the dot character (i.e. ``.``) in the pattern to match all
+characters including the new line character, include the :ref:`s
+<regexFind-options>` option in the :ref:`options <regexFind-options>`
+field:
 
-   To allow the dot character (i.e. ``.``) in the pattern to match all
-   characters including the new line character, include the :ref:`s
-   <regexFind-options>` option in the :ref:`options <regexFind-options>`
-   field:
+.. code-block:: none
+  :copyable: false
 
-   .. code-block:: none
-     :copyable: false
+  // Specify s in the options field
+  { $regexFind: { input: "$description", regex: /m.*line/, options: "s" } }
+  { $regexFind: { input: "$description", regex: "m.*line", options: "s" } }
 
-     // Specify s in the options field
-     { $regexFind: { input: "$description", regex: /m.*line/, options: "s" } }
-     { $regexFind: { input: "$description", regex: "m.*line", options: "s" } }
+The following example includes the ``s`` option to allow the dot
+character (i.e. .) to match all characters including new line as well
+as the ``i`` option to perform a case-insensitive match:
 
-   The following example includes the ``s`` option to allow the dot
-   character (i.e. .) to match all characters including new line as well
-   as the ``i`` option to perform a case-insensitive match:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.aggregate([
+      { $addFields: { returnObject: { $regexFind: { input: "$description", regex:/m.*line/, options: "si"  } } } }
+   ])
 
-      db.products.aggregate([
-         { $addFields: { returnObject: { $regexFind: { input: "$description", regex:/m.*line/, options: "si"  } } } }
-      ])
+The operation returns the following:
 
-   The operation returns the following:
+.. code-block:: javascript
+   :copyable: false
 
-   .. code-block:: javascript
-      :copyable: false
-
-      { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
-      { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : null }
-      { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "Many spaces before     line", "idx" : 0, "captures" : [ ] } }
-      { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "Multiple\nline", "idx" : 0, "captures" : [ ] } }
-      { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
-      { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
+   { "_id" : 1, "description" : "Single LINE description.", "returnObject" : null }
+   { "_id" : 2, "description" : "First lines\nsecond line", "returnObject" : null }
+   { "_id" : 3, "description" : "Many spaces before     line", "returnObject" : { "match" : "Many spaces before     line", "idx" : 0, "captures" : [ ] } }
+   { "_id" : 4, "description" : "Multiple\nline descriptions", "returnObject" : { "match" : "Multiple\nline", "idx" : 0, "captures" : [ ] } }
+   { "_id" : 5, "description" : "anchors, links and hyperlinks", "returnObject" : null }
+   { "_id" : 6, "description" : "métier work vocation", "returnObject" : null }
 
 Use ``$regexFind`` to Parse Email from String
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
