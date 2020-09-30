@@ -21,7 +21,7 @@
      - 3.4 Community & Enterprise
 
    * - Ubuntu 18.04
-     - Community only
+     - |checkmark|
      -
      -
      -
