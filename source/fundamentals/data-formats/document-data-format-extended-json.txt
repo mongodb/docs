@@ -16,26 +16,26 @@ Overview
 
 JSON is a data format that represents data as objects that contain one or
 more key/value pairs. The **Extended JSON** format adds special syntax to
-JSON objects to represent field type information that directly corresponds 
+JSON objects to represent field type information that directly corresponds
 to each type in BSON, the format that MongoDB uses to store data.
 
-This guide explains the different variants of Extended JSON and how to
-use the BSON library to convert between Extended JSON objects and Java types.
+This guide explains:
+
+- the different MongoDB Extended JSON formats
+- how to use the BSON library to convert between Extended JSON and Java objects
+
+For more information on the difference between these formats, see our
+`article on JSON and BSON <https://www.mongodb.com/json-and-bson>`__.
 
 Extended JSON Formats
 ---------------------
 
-There are four MongoDB Extended JSON formats
+MongoDB Extended JSON represents BSON in different formats to handle
+specific use cases. These formats differ in the level of prioritization of
+preserving BSON type information and how closely they resemble ordinary,
+human-readable JSON.
 
-You can specify 
-- 
-
-Extended JSON 
-
-- Description of each JSON mode
-- Example
-  - Sample data with date fields
-  - output from each mode
+See the table below to see a description of each format:
 
 .. list-table::
    :header-rows: 1
@@ -44,64 +44,90 @@ Extended JSON
      - Description
 
    * - **Extended**
-     - The canonical representation that avoids any loss of BSON type information.
-       
-       .. code-block:: json 
-       
-          {
-            "_id": {"$oid": "573a1391f29313caabcd9637"}, 
-            "createdAt": {"$date": {"$numberLong": "1601499609"}}, 
-            numViews: { "$numberLong": "36520312" } 
-          }
+     - | JSON representation that avoids any loss of BSON type information. This format is also known as the "canonical" format as "Extended JSON" describes all of these formats.
+       | This format prioritizes type preservation at the loss of human-readability and interoperability with older formats.
 
        .. seealso::
 
          :manual:`MongoDB Extended JSON (v2) </reference/mongodb-extended-json/>`
-          
+
    * - **Relaxed**
-     - Representation that loses type information for BSON numeric types. Uses a more human-readable representation of BSON dates.
-
-       .. code-block:: json 
-       
-          {
-            "_id": {"$oid": "573a1391f29313caabcd9637"},
-             "createdAt": {“$date”:”2020-09-30T18:22:51.648Z”},
-             "numViews": 36520312
-          }
+     - | JSON representation that describes BSON documents with some type information loss.
+       | This format prioritizes human-readability and interoperability at the loss of certain type information.
 
        .. seealso::
 
          :manual:`MongoDB Extended JSON (v2) </reference/mongodb-extended-json/>`
-        
-   * - **Shell**
-     - Format that the MongoDB shell can parse
 
-       .. code-block:: json
-          
-          {
-            "_id:": ObjectId("573a1391f29313caabcd9637"), 
-            "createdAt": ISODate("2012-12-19T06:01:17.171Z"), 
-            "numViews": NumberLong("2090845886852") 
-          }
+   * - **Shell**
+     - | JSON representation that matches the syntax used in the MongoDB shell.
+       | This format prioritizes for compatibility with the MongoDB shell which often uses JavaScript functions to represent types.
 
        .. seealso::
 
          :manual:`Data Types in the mongo shell </core/shell-types/>`
-     
-   * - **Strict**
-     - Deprecated. Used as the default mode when writing JSON to ensure backwards compatibility.
 
-       .. code-block:: json
-         
-         {
-           "_id": { "$oid": "573a1391f29313caabcd9637"}, 
-           "createdAt": "2012-12-19T06:01:17.171Z", 
-           "numViews": { "$numberLong": "2090845886852" } 
-         }
+   * - **Strict**
+     - | Deprecated. This representation is the legacy format that fully conforms to the `JSON RFC <http://www.json.org/>`__ which allows any JSON parser to read the type information.
+       | This format prioritizes for compatibility at the loss of certain type information introduced in newer versions of BSON.
 
        .. seealso::
 
          :manual:`Extended JSON v1 </reference/mongodb-extended-json-v1/>`
+
+
+The Java driver can read and write four MongoDB Extended JSON formats.
+
+Click on the tab that corresponds to the Extended JSON format of the example
+you want to see:
+
+.. tabs::
+
+   .. tab:: Extended
+      :tabid: extended-format
+
+       .. code-block:: json
+
+          {
+            "_id": { "$oid": "573a1391f29313caabcd9637" },
+            "createdAt": { "$date": { "$numberLong": "1601499609" }},
+            numViews: { "$numberLong": "36520312" }
+          }
+
+   .. tab:: Relaxed
+      :tabid: relaxed-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+            "createdAt": { "$date": "2020-09-30T18:22:51.648Z" },
+            "numViews": 36520312
+         }
+
+   .. tab:: Shell
+      :tabid: shell-format
+
+      .. code-block:: json
+
+         {
+           "_id:": ObjectId("573a1391f29313caabcd9637"),
+           "createdAt": ISODate("2012-12-19T06:01:17.171Z"),
+           "numViews": NumberLong("2090845886852")
+         }
+
+   .. tab:: Strict
+      :tabid: strict-format
+
+
+       .. code-block:: json
+
+          {
+            "_id:": ObjectId("573a1391f29313caabcd9637"),
+            "createdAt": ISODate("2012-12-19T06:01:17.171Z"),
+            "numViews": NumberLong("2090845886852")
+          }
+
 
 
 Read JSON
@@ -120,18 +146,18 @@ an Extended JSON object containing types into Java objects:
 .. code-block:: java
 
         String ejsonStr = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"}," +
-                         "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
-        
+                          "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
+
         JsonReader jsonReader = new JsonReader(ejsonStr);
-        
+
         jsonReader.readStartDocument();
         jsonReader.readName("_id");
         ObjectId id = jsonReader.readObjectId();
-        
+
         jsonReader.readName("myNumber");
         Long myNumber = jsonReader.readInt64();
         jsonReader.readEndDocument();
-        
+
         System.out.println(id + " is type: " + id.getClass().getName());
         System.out.println(myNumber + " is type: " + myNumber.getClass().getName());
 
@@ -152,5 +178,5 @@ into JSON.
 - Example
 - Customization
   - List and show examples of Converters
-- Link to data-formats/document-data-formats-bson for BsonWriter 
+- Link to data-formats/document-data-formats-bson for BsonWriter
 
