@@ -13,7 +13,7 @@ If no ``timezone`` is provided, the result is displayed in ``UTC``.
    * - ``Format``
      - ``Examples``
 
-   * - `Olson Timezone Identifier`
+   * - ``Olson Timezone Identifier``
 
      - ::
 
@@ -21,7 +21,7 @@ If no ``timezone`` is provided, the result is displayed in ``UTC``.
          "Europe/London"
          "GMT"
 
-   * - `UTC Offset`
+   * - ``UTC Offset``
 
      - ::
 
