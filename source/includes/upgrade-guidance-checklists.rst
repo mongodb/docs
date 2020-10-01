@@ -35,4 +35,4 @@ environment.
 Downgrade Consideration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-|downgradepath|
+.. include:: /includes/downgrade-path.rst
