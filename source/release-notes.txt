@@ -20,6 +20,73 @@ Release Notes for |k8s-op-full|
       Production Notes </reference/production-notes>
       Known Issues </reference/known-issues>
 
+.. _ent-op-1.8.0:
+
+|k8s-op-full| 1.8.0
+-------------------
+
+*Released 2020-09-30*
+
+.. admonition:: Breaking Changes
+   :class: warning
+
+   The Mongodb Enterprise Database image now requires an init container. If 
+   you are using a private repository, you must set the ``INIT_DATABASE_IMAGE_REPOSITORY`` 
+   environment variable in the Operator deployment, and the new 
+   init container must exist inside this repository. 
+
+MongoDB Resource Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces new configuration fields:
+
+  - ``spec.security.authentication.requireClientTLSAuthentication`` for using 
+    the MongoDB Agent client certificate authentication in conjunction with any 
+    other authentication mechanism. 
+  - ``spec.security.authentication.agents.clientCertificateSecretRef`` for 
+    configuring the client TLS certificate used by the MongoDB Agent when 
+    enabling ClientTLSAuthentication.
+
+- Changes the default permissions of volumes created from secrets from ``0644`` 
+  to ``0640``. 
+
+Ops Manager Resource Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Allows the Application Database to be configured with SCRAM-SHA-256 authentication when using 
+  |onprem| 4.4 or newer version.
+- Changes the validation of the |onprem| :setting:`spec.version` field to 
+  allow for tags that do not match the :gh:`semver </blang/semver>` 
+  requirements. The :setting:`spec.version` field must start with the 
+  ``Major.Minor.Patch`` string that represents the |onprem| version. To learn 
+  more about this field, see :ref:`k8s-om-specification`.
+
+Bug Fixes 
+~~~~~~~~~
+
+- Fixes an issue that caused the Operator to choose an incorrect project name 
+  when creating MongoDB users.
+- Fixes an issue that caused the MongoDB |onprem| CRD to have the CA path in 
+  the incorrect location.
+- Fixes a bug where the MongoDB Agent could not correctly recognize the parameters that 
+  passed through :setting:`spec.agent.startupOptions`.
+- Fixes an issue that could cause potential deadlock when certain configuration 
+  options are modified in parallel.
+
+Known Issues 
+~~~~~~~~~~~~
+
+- When you enable queryable backup, you must manually create two additional 
+  services for: 
+
+  - Exposing the queryable backup port (default: 25999) for the |onprem| pod.
+  - The Backup Daemon pod, to ensure that it is resolvable from the |onprem| pod.
+
+- If you deploy |onprem| in :ref:`local mode <deploy-om-container-local-mode>` 
+  and upgrade from v4.4.1, you must upgrade the MongoDB tools located in the 
+  ``automation.versions.directory``, which defaults to ``/mongodb-ops-manager/mongodb-releases/``. See :ref:`deploy-om-container-local-mode` for more 
+  information.
+
 .. _ent-op-1.7.1:
 
 |k8s-op-full| 1.7.1
