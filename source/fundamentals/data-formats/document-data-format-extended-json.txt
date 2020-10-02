@@ -37,14 +37,17 @@ human-readable JSON.
 
 See the table below to see a description of each format:
 
+
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 20
 
    * - Name
      - Description
 
    * - **Extended**
-     - | JSON representation that avoids any loss of BSON type information. This format is also known as the "canonical" format as "Extended JSON" describes all of these formats.
+     - | Also known as the *canonical* format, this JSON representation avoids loss of BSON type information.
        | This format prioritizes type preservation at the loss of human-readability and interoperability with older formats.
        |
        | For more information on this format, see the server manual page on :manual:`MongoDB Extended JSON (v2) </reference/mongodb-extended-json/>`.
@@ -67,23 +70,25 @@ See the table below to see a description of each format:
        |
        | For more information on this format, see the server manaul page on :manual:`Extended JSON v1 </reference/mongodb-extended-json-v1/>`.
 
-The Java driver can read and write four MongoDB Extended JSON formats.
+Extended JSON Examples
+~~~~~~~~~~~~~~~~~~~~~~
 
-Click on the tab that corresponds to the Extended JSON format of the example
-you want to see:
+The following examples show a document containing an ObjectId, date, and long
+number field represented in each Extended JSON format. Click the tab that
+corresponds to the format of the example you want to see:
 
 .. tabs::
 
    .. tab:: Extended
       :tabid: extended-format
 
-       .. code-block:: json
+      .. code-block:: json
 
-          {
-            "_id": { "$oid": "573a1391f29313caabcd9637" },
-            "createdAt": { "$date": { "$numberLong": "1601499609" }},
-            numViews: { "$numberLong": "36520312" }
-          }
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": { "$numberLong": "1601499609" }},
+           numViews: { "$numberLong": "36520312" }
+         }
 
    .. tab:: Relaxed
       :tabid: relaxed-format
@@ -104,7 +109,7 @@ you want to see:
          {
            "_id:": ObjectId("573a1391f29313caabcd9637"),
            "createdAt": ISODate("2020-09-30T18:22:51.648Z"),
-           "numViews": NumberLong("2090845886852")
+           "numViews": NumberLong("36520312")
          }
 
    .. tab:: Strict
@@ -115,48 +120,106 @@ you want to see:
          {
            "_id": { "$oid": "573a1391f29313caabcd9637" },
            "createdAt": { "$date": "2020-09-30T18:22:51.648Z" },
-           "numViews": { "$numberLong": "2090845886852" }}
+           "numViews": { "$numberLong": "36520312" }}
          }
 
 
 Read JSON
 ---------
 
-You can read Extended JSON using a ``JsonReader``
-
-
-- Description; JsonReader implementation
-- How to use parse to output for a BufferedReader
-- Example
+You can read an Extended JSON string into Java objects with the BSON library
+by using an instance of the ``JsonReader`` class. This class contains methods
+to sequentially parse the fields and values in the Extended JSON object, and
+returns them as Java objects. The ``JsonReader`` class automatically handles
+any of the Extended JSON formats.
 
 The following code example shows how you can use ``JsonReader`` to convert
-an Extended JSON object containing types into Java objects:
+an Extended JSON string into Java objects:
 
 .. code-block:: java
 
-        String ejsonStr = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"}," +
-                          "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
+   String ejsonStr = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"}," +
+                     "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
 
-        JsonReader jsonReader = new JsonReader(ejsonStr);
+   JsonReader jsonReader = new JsonReader(ejsonStr);
 
-        jsonReader.readStartDocument();
-        jsonReader.readName("_id");
-        ObjectId id = jsonReader.readObjectId();
+   jsonReader.readStartDocument();
 
-        jsonReader.readName("myNumber");
-        Long myNumber = jsonReader.readInt64();
-        jsonReader.readEndDocument();
+   jsonReader.readName("_id");
+   ObjectId id = jsonReader.readObjectId();
+   jsonReader.readName("myNumber");
+   Long myNumber = jsonReader.readInt64();
 
-        System.out.println(id + " is type: " + id.getClass().getName());
-        System.out.println(myNumber + " is type: " + myNumber.getClass().getName());
+   jsonReader.readEndDocument();
 
-        jsonReader.close();
+   System.out.println(id + " is type: " + id.getClass().getName());
+   System.out.println(myNumber + " is type: " + myNumber.getClass().getName());
+
+   jsonReader.close();
+
+The output of this code example resembles the following:
+
+.. code-block:: none
+   :copyable: False
+
+   507f1f77bcf86cd799439011 is type: org.bson.types.ObjectId
+   4794261 is type: java.lang.Long
+
+To construct an instance of a document from Extended JSON, you can call the
+``parse()`` static factory method of the ``Document`` or ``BsonDocument``
+class. This method instantiates a ``JsonReader``, parses the Extended JSON
+string, and returns an instance of that class containing the data.
+
+The following example shows how you can use the ``Document`` class to read
+the same example Extended JSON string into a ``Document`` object using the
+``parse()`` method:
+
+.. code-block:: java
+
+   String ejsonStr = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"}," +
+                     "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
+
+   Document doc = new Document(Document.parse(ejsonStr));
+   System.out.println(doc);
+
+The output of the code above resembles the following:
+
+.. code-block:: none
+   :copyable: False
+
+   Document{{_id=507f1f77bcf86cd799439011, myNumber=4794261}}
 
 
-- Link to data-formats/document-data-formats-bson for BsonReaders
+For more information on the driver document classes, see our Fundamentals page
+on :doc:`Documents </fundamentals/data-formats/documents>`.
 
 Write JSON
 ----------
+
+You can convert Java objects into Extended JSON with the BSON library by using
+the ``JsonWriter`` class. This class contains methods to
+By default, it uses the
+strict Extended JSON format
+but can be set to
+
+
+In order to
+specify JsonWriterSettings
+with a JsonMode that corresponds
+the Extended JSON format.
+
+
+
+tie an Extended JSON string into Java objects with the BSON library
+by using an instance of the ``JsonReader`` class. This class contains methods
+to sequentially parse the fields and values in the Extended JSON object, and
+returns them as Java objects. The ``JsonReader`` class automatically handles
+any of the Extended JSON formats.
+
+The following code example shows how you can use ``JsonReader`` to convert
+an Extended JSON string into Java objects:
+
+
 
 The BSON package includes a class called ``JsonWriter`` that converts BSON
 into JSON.
