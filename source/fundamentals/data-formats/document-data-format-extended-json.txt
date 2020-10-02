@@ -165,8 +165,8 @@ The output of this code example resembles the following:
    507f1f77bcf86cd799439011 is type: org.bson.types.ObjectId
    4794261 is type: java.lang.Long
 
-To construct an instance of a document from Extended JSON, you can call the
-``parse()`` static factory method of the ``Document`` or ``BsonDocument``
+To construct an instance of a ``Document`` from Extended JSON, you can call
+the ``parse()`` static factory method of the ``Document`` or ``BsonDocument``
 class. This method instantiates a ``JsonReader``, parses the Extended JSON
 string, and returns an instance of that class containing the data.
 
@@ -196,40 +196,53 @@ Write JSON
 ----------
 
 You can convert Java objects into Extended JSON with the BSON library by using
-the ``JsonWriter`` class.
-To construct a ``JsonWriter`` pass a subclass of a Java ``Writer`` to specify
-how you want to output the Extended JSON. You can optionally pass a
-``JsonWriterSettings`` to specify options such as the Extended JSON format.
-By default, it uses the strict Extended JSON format
-but can be set to
+the ``JsonWriter`` class. To construct an instance of ``JsonWriter``, pass a
+subclass of a Java ``Writer`` to specify how you want to output the Extended
+JSON. You can optionally pass a ``JsonWriterSettings`` to specify options such
+as the Extended JSON format. By default, the ``JsonWriter`` uses the
+"Strict" Extended JSON format to guarantee backwards compatibility.
 
+The following code example shows how you can use ``JsonWriter`` to create an
+Extended JSON string and output it to ``System.out``. We specify the format
+by passing the ``outputMode()`` builder method the ``JsonMode.EXTENDED``
+constant:
 
-In order to
-specify JsonWriterSettings
-with a JsonMode that corresponds
-the Extended JSON format.
+.. code-block:: java
 
+   JsonWriterSettings settings = JsonWriterSettings.builder().outputMode(JsonMode.EXTENDED).build();
 
+   try (JsonWriter jsonWriter = new JsonWriter(new BufferedWriter(new OutputStreamWriter(System.out)), settings)) {
+       jsonWriter.writeStartDocument();
+       jsonWriter.writeObjectId("_id", new ObjectId("507f1f77bcf86cd799439012"));
+       jsonWriter.writeInt64("myNumber", 11223344);
+       jsonWriter.writeEndDocument();
+       jsonWriter.flush();
+   }
 
-tie an Extended JSON string into Java objects with the BSON library
-by using an instance of the ``JsonReader`` class. This class contains methods
-to sequentially parse the fields and values in the Extended JSON object, and
-returns them as Java objects. The ``JsonReader`` class automatically handles
-any of the Extended JSON formats.
+The output of this code example resembles the following:
 
-The following code example shows how you can use ``JsonReader`` to convert
-an Extended JSON string into Java objects:
+.. code-block:: none
+   :copyable: false
 
+   {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "myNumber": {"$numberLong": "11223344"}}
 
+To write Extended JSON from an instance of a ``Document``, you can call the
+``toJson()`` method, passing it an instance of ``JsonWriterSettings`` to
+specify the Extended JSON format. In this example, we use the "Relaxed" format.
 
-The BSON package includes a class called ``JsonWriter`` that converts BSON
-into JSON.
+.. code-block:: java
 
-- Description of JsonWriter
-- How to specify JsonWriterSettings and apply to a BufferedWriter
-- Table showing type mapping and methods that correspond
-- Example
-- Customization
-  - List and show examples of Converters
-- Link to data-formats/document-data-formats-bson for BsonWriter
+   Document myDoc = new Document();
+   myDoc.append("_id", new ObjectId("507f1f77bcf86cd799439012")).append("myNumber", 11223344);
+
+   JsonWriterSettings settings = JsonWriterSettings.builder().outputMode(JsonMode.RELAXED).build();
+   System.out.println(doc.toJson(settings));
+
+The output of this code example resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "myNumber": 11223344}
+
 
