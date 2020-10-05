@@ -121,6 +121,8 @@
        Users can acknowledge PagerDuty alerts only from the PagerDuty
        dashboard.
 
+       .. include:: /includes/fact-pagerduty-api-key-decommission.rst
+
    * - Datadog
 
      - Sends the alert to a `Datadog <https://www.datadoghq.com/alerts/>`_

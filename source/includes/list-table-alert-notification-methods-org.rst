@@ -128,6 +128,8 @@
 
        Acknowledge PagerDuty alerts from the PagerDuty dashboard.
 
+       .. include:: /includes/fact-pagerduty-api-key-decommission.rst
+
    * - Datadog
 
      - :icon:`check`
