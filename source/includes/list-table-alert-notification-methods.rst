@@ -167,6 +167,8 @@
           Users can acknowledge PagerDuty alerts only from the
           PagerDuty dashboard.
 
+          .. include:: /includes/fact-pagerduty-decommission.rst
+
       * - Webhook
         - :icon:`check`
         - :icon:`check`
@@ -345,6 +347,8 @@
 
           Users can acknowledge PagerDuty alerts only from the
           PagerDuty dashboard.
+
+          .. include:: /includes/fact-pagerduty-decommission.rst
 
       * - Webhook
 

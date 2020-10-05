@@ -226,6 +226,8 @@
        notifications. If the key later becomes invalid, |mms| sends an 
        email to the project owner and removes the key.
 
+       .. include:: /includes/fact-pagerduty-decommission.rst
+
    * - | ``notifications``
        | ``.smsEnabled``
      - boolean

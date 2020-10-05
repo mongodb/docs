@@ -132,6 +132,8 @@
  
           Users can acknowledge PagerDuty alerts only from the
           PagerDuty dashboard.
+
+          .. include:: /includes/fact-pagerduty-decommission.rst
  
       * - Webhook
         - Sends an |http| POST
@@ -280,6 +282,8 @@
    
           Users can acknowledge PagerDuty alerts only from the 
           PagerDuty dashboard.
+
+          .. include:: /includes/fact-pagerduty-decommission.rst
    
       * - Webhook
    

@@ -128,6 +128,8 @@
 
           Acknowledge PagerDuty alerts from the PagerDuty dashboard.
 
+          .. include:: /includes/fact-pagerduty-decommission.rst
+
       * - Datadog
 
         - :icon:`check`
@@ -317,7 +319,9 @@
           :alert-type:`User joined the organization <JOINED_ORG>`,
           can't use this notification method.
 
-          Acknowledge PagerDuty alerts from the PagerDuty dashboard.
+          Acknowledge PagerDuty alerts from the PagerDuty dashboard. 
+
+          .. include:: /includes/fact-pagerduty-decommission.rst
 
       * - VictorOps
 
