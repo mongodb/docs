@@ -5,14 +5,14 @@
 
 *Released 2020-09-23*
 
-- Fixes a high severity vulnerability in Ops Manager. ``CVE-2020-7927`` 
+- Fixes a high severity vulnerability in Ops Manager. ``CVE-2020-7927``
   is allocated for this issue.
 
-- Fixes an issue that can prevent alert processing for monitored 
-  clusters with partial status information. 
-  
-- Removes ``muninEnabled`` and ``muninPort`` fields from the 
-  :ref:`Hosts <hosts-public-api>` public API.
+- Fixes an issue that can prevent alert processing for monitored
+  clusters with partial status information.
+
+- Removes ``muninEnabled`` and ``muninPort`` fields from the
+  :ref:`Hosts <hosts-public-api>` |api|.
 
 - Updates the MongoDB Agent to
   :ref:`10.14.14.6427 <mongodb-10.14.14.6427>`.
