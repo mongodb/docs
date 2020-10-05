@@ -34,7 +34,7 @@ Definition
 Syntax
 ------
 
-.. versionchanged:: 4.2
+.. versionchanged:: 5.0
 
 The :dbcommand:`update` command has the following syntax:
 
@@ -47,6 +47,7 @@ The :dbcommand:`update` command has the following syntax:
             {
               q: <query>,
               u: <document or pipeline>,
+              c: <document> // Added in MongoDB 5.0,
               upsert: <boolean>,
               multi: <boolean>,
               collation: <document>,
@@ -58,7 +59,8 @@ The :dbcommand:`update` command has the following syntax:
          ordered: <boolean>,
          writeConcern: { <write concern> },
          bypassDocumentValidation: <boolean>,
-         comment: <any>
+         comment: <any>,
+         let: <document> // Added in MongoDB 5.0
       }
    )
 
@@ -139,6 +141,20 @@ The command takes the following fields:
        .. versionadded:: 4.4
 
 
+   * - :ref:`let <update-let-syntax>`
+
+     - document
+        
+     - .. _update-let-syntax:
+     
+       Optional.
+     
+       .. include:: /includes/let-syntax-generic.rst
+
+       For an example, see :ref:`update-variables-example`.
+
+       .. versionadded:: 5.0
+
 .. _update-statement-documents:
 
 Update Statements
@@ -187,6 +203,20 @@ Each document contains the following fields:
          .. include:: /includes/list-update-agg-stages.rst
 
        For details, see :ref:`update-command-behaviors`.
+
+   * - :ref:`c <update-command-c>`
+
+     - document
+
+     - .. _update-command-c:
+     
+       Optional.
+     
+       .. include:: /includes/let-syntax-generic.rst
+
+       For an example, see :ref:`update-variables-example`.
+
+       .. versionadded:: 5.0
 
    * - :ref:`upsert <update-command-upsert>`
 
@@ -1051,6 +1081,45 @@ To see the index used, run :dbcommand:`explain` on the operation:
    )
 
 The :dbcommand:`explain` does not modify the documents.
+
+.. _update-variables-example:
+
+Use Variables in ``let`` Option or ``c`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+Variables can be defined in the :ref:`let <update-let-syntax>` option or
+the :ref:`c <update-command-c>` field and accessed in the ``updates``
+array.
+
+.. include:: /includes/let-example-update-flavors.rst
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      update: db.cakeFlavors.getName(),
+      updates: [
+         { q: { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
+           u: [ { $set: { flavor: "$$newFlavor" } } ] }
+      ],
+      let : { targetFlavor: "cherry", newFlavor: "orange" }
+   } )
+
+The next example defines ``targetFlavor`` and ``newFlavor`` variables in
+``c`` and uses the variables to change the cake flavor from chocolate to
+vanilla:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      update: db.cakeFlavors.getName(),
+      updates: [
+         { q: { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
+           u: [ { $set: { flavor: "$$newFlavor" } } ],
+           c: { targetFlavor: "chocolate", newFlavor: "vanilla" } }
+       ]
+   } )
 
 .. _update-command-output:
 
