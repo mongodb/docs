@@ -133,7 +133,7 @@ the map-reduce operation without defining custom functions:
    ])
 
 #. The :pipeline:`$group` stage groups by the ``cust_id`` and
-   calculates the ``value`` field (See also :expression:`$sum`). The
+   calculates the ``value`` field (See also :group:`$sum`). The
    ``value`` field contains the total ``price`` for each ``cust_id``.
 
    The stage output the following documents to the next stage:
@@ -315,7 +315,7 @@ the map-reduce operation without defining custom functions:
    documents with ``ord_date`` greater than or equal to ``new
    Date("2020-03-01")``.
 
-#. The :pipeline:`$unwinds` stage breaks down the document by
+#. The :pipeline:`$unwind` stage breaks down the document by
    the ``items`` array field to output a document for each array
    element. For example:
 
@@ -335,11 +335,11 @@ the map-reduce operation without defining custom functions:
 #. The :pipeline:`$group` stage groups by the ``items.sku``, calculating for each sku:
 
    - The ``qty`` field. The ``qty`` field contains the
-      total ``qty`` ordered per each ``items.sku`` (See :expression:`$sum`).
+      total ``qty`` ordered per each ``items.sku`` (See :group:`$sum`).
 
    - The ``orders_ids`` array. The ``orders_ids`` field contains an
       array of distinct order ``_id``'s for the ``items.sku`` (See
-      :expression:`$addToSet`).
+      :group:`$addToSet`).
 
    .. code-block:: javascript
       :copyable: false

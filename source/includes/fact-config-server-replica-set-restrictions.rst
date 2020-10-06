@@ -7,5 +7,4 @@ for config servers:
   </core/replica-set-delayed-member>`.
 
 - Must build indexes (i.e. no member should have
-  :data:`~replSetGetConfig.members[n].buildIndexes` setting set to
-  false).
+  :rsconf:`members[n].buildIndexes` setting set to false).
