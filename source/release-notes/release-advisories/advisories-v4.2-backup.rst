@@ -52,19 +52,19 @@ Backup Features Supported at Present
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Can Restore Data to Specific Point in Time
+      * - Can Restore Data to Specific Point in Time [#]_
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Can Perform Incremental Backups [*]_
+      * - Can Perform Incremental Backups [#]_
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Supports Snapshots that use Encryption [*]_
+      * - Supports Snapshots that use Encryption [#]_
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -158,7 +158,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Can Perform Incremental Backups [*]_
+      * - Can Perform Incremental Backups [#]_
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -170,7 +170,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Supports Databases running MongoDB Community [*]_
+      * - Supports Databases running MongoDB Community [#]_
         -
         -
         -
@@ -185,7 +185,11 @@ Backup Features Supported at Present
         -
         -
 
-.. [*] |mms| requires a full backup for your first backup, after a
+.. cond:: onprem
+
+   .. [#] Performing a |pit| restore requires |onprem| 4.2.13 or later.
+
+.. [#] |mms| requires a full backup for your first backup, after a
        snapshot has been deleted, and if the blockstore block size
        has been changed. Incremental backups reduce network
        transfer and storage costs. This feature works with MongoDB
@@ -193,12 +197,12 @@ Backup Features Supported at Present
 
 .. cond:: onprem
 
-   .. [*] Querying an encrypted snapshot requires
+   .. [#] Querying an encrypted snapshot requires
           :product:`MongoDB Enterprise <enterprise>` 4.2.9 or 4.4.0.
 
 .. cond:: cloud
 
-   .. [*] |mms| grants a :doc:`special license to use MongoDB
+   .. [#] |mms| grants a :doc:`special license to use MongoDB
           Enterprise </reference/legal/cloud-manager-backup-license>`
           to :doc:`MongoDB Community users </reference/legal/cloud-manager-backup-changes>`
           for backup only.
