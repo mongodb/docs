@@ -112,3 +112,8 @@
 - Supports |aws| |iam| roles in |s3| Snapshot Store configurations.
 
 - Upgrades OpenJDK to 11.0.8+10.
+
+.. admonition:: Ops Manager Support Ends after 4.4 Series
+   :class: note
+
+   .. include:: /includes/facts/opsmgr-windows-stops-4.4.rst
