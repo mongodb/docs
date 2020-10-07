@@ -1,3 +1,14 @@
+.. _opsmgr-server-4.2.20: 
+
+|onprem| Server 4.2.20
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-10-07*
+
+- Adds a new configuration parameter (``http.proxy.nonProxyHosts``)
+  which allows the |mms| Application Server to bypass the configured
+  outgoing proxy when accessing specific hosts.
+
 .. _opsmgr-server-4.2.19:
 
 |onprem| Server 4.2.19
