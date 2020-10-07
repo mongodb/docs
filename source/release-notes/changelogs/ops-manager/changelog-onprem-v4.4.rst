@@ -1,3 +1,21 @@
+.. _opsmgr-server-4.4.4:
+
+|onprem| Server 4.4.4
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-10-07*
+
+- Adds |jvm| Arguments in the |mms| diagnostic archive.
+
+- Adds a new configuration parameter (``http.proxy.nonProxyHosts``)
+  which allows the |mms| Application Server to bypass the configured
+  outgoing proxy when accessing specific hosts.
+
+- Fixes a bug that prevents users from changing their password.
+
+- Updates the MongoDB Agent to
+  :ref:`10.14.15.6432 <mongodb-10.14.15.6432>`.
+
 .. _opsmgr-server-4.4.3:
 
 |onprem| Server 4.4.3
