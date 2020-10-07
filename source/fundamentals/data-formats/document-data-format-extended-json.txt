@@ -14,15 +14,17 @@ Document Data Format: Extended JSON
 Overview
 --------
 
-JSON is a data format that encodes the values of objects, arrays, numbers, and 
-so on. The **Extended JSON** format adds special syntax to JSON objects to 
-represent field type information that directly corresponds to each type in 
-BSON, the format that MongoDB uses to store data.
+JSON is a data format that represents the values of objects, arrays, numbers,
+strings, booleans, and nulls. The **Extended JSON** format defines a reserved
+set of keys prefixed with "``$``" to represent field type information that
+directly corresponds to each type in BSON, the format that MongoDB uses to
+store data.
 
 This guide explains the following topics:
 
 - the different MongoDB Extended JSON formats
 - how to use the BSON library to convert between Extended JSON and Java objects
+- how to create a custom conversion of BSON types
 
 For more information on the difference between these formats, see our
 `article on JSON and BSON <https://www.mongodb.com/json-and-bson>`__.
@@ -30,10 +32,13 @@ For more information on the difference between these formats, see our
 Extended JSON Formats
 ---------------------
 
-MongoDB Extended JSON represents BSON in different formats to handle
-specific use cases. These formats differ in the level of prioritization in
-preserving BSON type information and how closely they resemble ordinary,
-human-readable JSON.
+MongoDB Extended JSON features different string formats to represent BSON data.
+Each of the different formats conform to the `JSON RFC <https://tools.ietf.org/html/rfc7159>`__
+and meet specific use cases. The **extended** format, also known as the
+**canonical** format, features specific representations for every BSON type
+for bidirectional conversion without loss of information. The **relaxed**
+format is more concise and closer to ordinary JSON, but does not represent
+all the type information such as specific byte size of number fields.
 
 See the table below to see a description of each format:
 
@@ -63,11 +68,10 @@ See the table below to see a description of each format:
        |
        | For more information on this format, see the server manual page on :manual:`Data Types in the mongo shell </core/shell-types/>`.
 
-   * - **Strict**
-     - | Deprecated. This representation is the legacy format that fully conforms to the `JSON RFC <http://www.json.org/>`__ which allows any JSON parser to read the type information.
-       | This format prioritizes for compatibility at the loss of certain type information introduced in newer versions of BSON.
-       |
-       | For more information on this format, see the server manual page on :manual:`Extended JSON (v1) </reference/mongodb-extended-json-v1/>`.
+.. _extended_json_example_section:
+
+For more detailed information on these formats, see the
+`Extended JSON specification <https://github.com/mongodb/specifications/blob/master/source/extended-json.rst>`__.
 
 Extended JSON Examples
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -111,26 +115,47 @@ corresponds to the format of the example you want to see:
            "numViews": NumberLong("36520312")
          }
 
-   .. tab:: Strict
-      :tabid: strict-format
-
-      .. code-block:: json
-
-         {
-           "_id": { "$oid": "573a1391f29313caabcd9637" },
-           "createdAt": { "$date": "2020-09-30T18:22:51.648Z" },
-           "numViews": { "$numberLong": "36520312" }
-         }
-
 
 Read Extended JSON
 ------------------
 
 You can read an Extended JSON string into Java objects with the BSON library
-by using an instance of the :java-docs:`JsonReader </apidocs/bson/org/bson/json/JsonReader.html>`
-class. This class contains methods to sequentially parse the fields and values
-in the Extended JSON object, and returns them as Java objects. The
-``JsonReader`` class automatically handles any of the Extended JSON formats.
+by calling the ``parse()`` static method from either the ``Document`` or
+``BsonDocument`` class, depending on which object type you need. This method
+parses the Extended JSON string in any of the formats and returns an instance
+of that class containing the data.
+
+The following example shows how you can use the ``Document`` class to read
+an example Extended JSON string into a ``Document`` object using the
+``parse()`` method:
+
+.. code-block:: java
+
+   String ejsonStr = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"}," +
+                     "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
+
+   Document doc = new Document(Document.parse(ejsonStr));
+   System.out.println(doc);
+
+The output of the code above resembles the following:
+
+.. code-block:: none
+   :copyable: False
+
+   Document{{_id=507f1f77bcf86cd799439011, myNumber=4794261}}
+
+For more information on the driver document classes, see our Fundamentals page
+on :doc:`Documents </fundamentals/data-formats/documents>`.
+
+Read Extended JSON using the BSON Library
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also read an Extended JSON string into Java objects without using
+the MongoDB driver's document classes by using the
+:java-docs:`JsonReader </apidocs/bson/org/bson/json/JsonReader.html>` class.
+This class contains methods to sequentially parse the fields and values
+in any format of the Extended JSON string, and returns them as Java objects.
+MongoDB driver's document classes also use this class to parse Extended JSON.
 
 The following code example shows how you can use ``JsonReader`` to convert
 an Extended JSON string into Java objects:
@@ -164,32 +189,6 @@ The output of this code example resembles the following:
    507f1f77bcf86cd799439011 is type: org.bson.types.ObjectId
    4794261 is type: java.lang.Long
 
-To construct an instance of a ``Document`` from Extended JSON, you can call
-the ``parse()`` static factory method of the ``Document`` or ``BsonDocument``
-class. This method instantiates a ``JsonReader``, parses the Extended JSON
-string, and returns an instance of that class containing the data.
-
-The following example shows how you can use the ``Document`` class to read
-the same example Extended JSON string into a ``Document`` object using the
-``parse()`` method:
-
-.. code-block:: java
-
-   String ejsonStr = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"}," +
-                     "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
-
-   Document doc = new Document(Document.parse(ejsonStr));
-   System.out.println(doc);
-
-The output of the code above resembles the following:
-
-.. code-block:: none
-   :copyable: False
-
-   Document{{_id=507f1f77bcf86cd799439011, myNumber=4794261}}
-
-For more information on the driver document classes, see our Fundamentals page
-on :doc:`Documents </fundamentals/data-formats/documents>`.
 
 For additional information on the classes and methods mentioned on this
 section, see the following API documentation:
@@ -197,14 +196,39 @@ section, see the following API documentation:
 Write Extended JSON
 -------------------
 
-You can convert Java objects into Extended JSON with the BSON library by using
-the :java-docs:`JsonWriter </apidocs/bson/org/bson/json/JsonWriter.html>`
-class. To construct an instance of ``JsonWriter``, pass a
-subclass of a Java ``Writer`` to specify how you want to output the Extended
-JSON. You can optionally pass a :java-docs:`JsonWriterSettings </apidocs/bson/org/bson/json/JsonWriterSettings.html>`
+You can write an Extended JSON string from an instance of ``Document`` or
+``BsonDocument`` by calling the ``toJson()`` method, passing it an instance of
+``JsonWriterSettings`` to specify the Extended JSON format.
+
+In this example, we output the Extended JSON in the "Shell" format.
+
+.. code-block:: java
+
+   Document myDoc = new Document();
+   myDoc.append("_id", new ObjectId("507f1f77bcf86cd799439012")).append("myNumber", 11223344);
+
+   JsonWriterSettings settings = JsonWriterSettings.builder().outputMode(JsonMode.SHELL).build();
+   System.out.println(doc.toJson(settings));
+
+The output of this code example resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   {"_id": ObjectId("507f1f77bcf86cd799439011"), "myNumber": NumberLong(4794261)}
+
+Write Extended JSON using the BSON Library
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also read an Extended JSON string into Java objects without using
+the MongoDB driver's document classes by using the
+:java-docs:`JsonWriter </apidocs/bson/org/bson/json/JsonWriter.html>` class.
+To construct an instance of ``JsonWriter``, pass a subclass of a Java
+``Writer`` to specify how you want to output the Extended JSON. You can
+optionally pass a :java-docs:`JsonWriterSettings </apidocs/bson/org/bson/json/JsonWriterSettings.html>`
 instance to specify options such as the Extended JSON format. By default, the
-``JsonWriter`` uses the "Strict" Extended JSON format to guarantee backwards
-compatibility.
+``JsonWriter`` uses the "Relaxed" Extended JSON format. MongoDB driver's
+document classes also use this class to convert BSON to Extended JSON.
 
 The following code example shows how you can use ``JsonWriter`` to create an
 Extended JSON string and output it to ``System.out``. We specify the format
@@ -230,21 +254,47 @@ The output of this code example resembles the following:
 
    {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "myNumber": {"$numberLong": "11223344"}}
 
-To write Extended JSON from an instance of a ``Document``, you can call the
-``toJson()`` method, passing it an instance of ``JsonWriterSettings`` to 
-specify the Extended JSON format. In this example, we use the "Shell" format.
+
+Custom BSON Type Conversion
+---------------------------
+
+In addition to specifying the ``outputMode()`` to format the JSON output, you
+can further customize the output by adding converters to your
+``JsonWriterSettings.Builder``. These converter methods detect the Java types
+and execute the logic defined by the :java-docs:`Converter </apidocs/bson/org/bson/json/Converter.html>`
+passed to them. For a full list of converter methods, see the
+:java-docs:`API documentation </apidocs/bson/org/bson/json/JsonWriterSettings.Builder.html>`.
+
+The following sample code shows how to append converters, defined as lambda
+expressions, to simplify the "Relaxed" JSON output.
 
 .. code-block:: java
 
-   Document myDoc = new Document();
-   myDoc.append("_id", new ObjectId("507f1f77bcf86cd799439012")).append("myNumber", 11223344);
+   JsonWriterSettings settings = JsonWriterSettings.builder().outputMode(JsonMode.RELAXED)
+           .objectIdConverter((value, writer) -> writer.writeString(value.toHexString()))
+           .dateTimeConverter(
+                   (value, writer) -> {
+                       ZonedDateTime zonedDateTime = Instant.ofEpochMilli(value).atZone(ZoneOffset.UTC);
+                       writer.writeString(DateTimeFormatter.ISO_DATE_TIME.format(zonedDateTime));
+                   })
+           .build();
 
-   JsonWriterSettings settings = JsonWriterSettings.builder().outputMode(JsonMode.SHELL).build();
-   System.out.println(doc.toJson(settings));
+   Document doc = new Document()
+        .append("_id", new ObjectId("507f1f77bcf86cd799439012"))
+        .append("createdAt", Date.from(Instant.ofEpochMilli(1601499609000L)))
+        .append("myNumber", 4794261);
 
-The output of this code example resembles the following:
+   System.out.println(doc.toJson(settings)));
 
-.. code-block:: none
-   :copyable: false
+The output of this code should resemble the following:
 
-   {"_id": ObjectId("507f1f77bcf86cd799439011"), "myNumber": NumberLong(4794261)}
+.. code-block:: json
+
+   {"_id": "507f1f77bcf86cd799439012", "createdAt": "2020-09-30T21:00:09Z", "myNumber": 4794261}
+
+Without specifying the converters, the "Relaxed" JSON output resembles the
+following:
+
+.. code-block:: json
+
+   {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "createdAt": {"$date": "2020-09-30T21:00:09Z"}, "myNumber": 4794261}
