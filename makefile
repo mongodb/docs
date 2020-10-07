@@ -5,13 +5,13 @@ else
 	USER=$(STAGING_USERNAME)
 endif
 
-STAGING_URL_CLOUDMGR="https://docs-staging.cloudmanager.mongodb.com"
+STAGING_URL_CLOUDMGR="https://docs-cloudmanager-staging.mongodb.com"
 STAGING_BUCKET_CLOUDMGR=docs-cloudmanager-staging
 
 PRODUCTION_URL_CLOUDMGR="https://docs.cloudmanager.mongodb.com"
 PRODUCTION_BUCKET_CLOUDMGR=docs-cloudmanager-prod
 
-STAGING_URL_OPSMGR="https://docs-staging.opsmanager.mongodb.com"
+STAGING_URL_OPSMGR="https://docs-opsmanager-staging.mongodb.com"
 STAGING_BUCKET_OPSMGR=docs-opsmanager-staging
 
 PRODUCTION_URL_OPSMGR="https://docs.opsmanager.mongodb.com"
