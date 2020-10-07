@@ -1,0 +1,342 @@
+.. _mcli-atlas-metrics-databases-describe-cmd:
+
+=========================================
+mongocli atlas metrics databases describe
+=========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+The ``metrics databases describe`` command gets the measurements of the 
+specified database for an |service| process. 
+
+You can get the hostnames associated with a particular |service| project
+with the :ref:`process list <mcli-atlas-process-list-cmd>` command.
+
+Syntax 
+------
+
+.. code-block:: text 
+
+   mongocli atlas metrics databases describe <hostname>:<port> <db-name>
+        --granularity <time-interval>
+        --period <time-period>
+        --start <start-time>
+        --end <end-time>
+        [ --type <type-of-measurement> ]
+        [ --limit <number-of-items-per-page> ]
+        [ --output|-o <output-format> ]
+        [ --page <page-number> ]
+        [ --profile|-P <profile-name> ]
+        [ --projectId <id-of-project> ]
+
+.. include:: /includes/fact-command-line-help.rst
+
+.. _mcli-atlas-metrics-databases-describe-options:
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Option
+     - Type
+     - Description
+     - Required?
+
+   * - ``<hostname>:<port>``
+     - String
+     - The hostname of the server running the |service| MongoDB process
+       and the port to which the process listens.
+     - yes
+
+   * - ``<db-name>``
+     - String
+     - Name of the database to describe.
+     - yes
+
+   * - ``--granularity``
+     - String
+     - An |iso8601|-formatted time period that specifies the interval
+       between measurement data points. For example, ``PT1M`` specifies
+       1-minute granularity.
+   
+       The following subset of |iso8601|-formatted time periods are 
+       supported:
+   
+       - ``PT1M``
+       - ``PT5M``
+       - ``PT1H``
+       - ``P1D``
+   
+       When you specify ``granularity``, you must specify either 
+       ``period`` *or* ``start`` and ``end``.
+     - yes
+
+   * - ``--period``
+     - String
+     - An |iso8601|-formatted time period that specifies the length of 
+       time in the past to query. For example, to request the last 36 
+       hours, specify: ``--period P1DT12H``. Mutually exclusive with 
+       ``start`` and ``end``.
+     - yes
+   
+   * - ``--start``
+     - String
+     - The time at which to start retrieving metrics, as specified by an
+       |iso8601| timestamp string. If you specify ``start`` you must 
+       also specify ``end``. Mutually exclusive with ``period``.
+     - yes
+
+   * - ``--end``
+     - String
+     - The time at which to stop retrieving metrics, as specified by an
+       |iso8601| timestamp string. If you specify ``end`` you must also
+       specify ``start``. Mutually exclusive with ``period``.
+     - yes
+
+   * - ``--type``
+     - String
+     - Specifies which measurement to return. If ``type`` is not 
+       specified, all metrics are returned.
+   
+       You must specify metrics that are valid for the host. |service|
+       returns an error if any specified metrics are invalid.
+   
+       The following measurement values are valid:
+   
+       - ``DATABASE_AVERAGE_OBJECT_SIZE``
+       - ``DATABASE_COLLECTION_COUNT``
+       - ``DATABASE_DATA_SIZE``
+       - ``DATABASE_STORAGE_SIZE``
+       - ``DATABASE_INDEX_SIZE``
+       - ``DATABASE_INDEX_COUNT``
+       - ``DATABASE_EXTENT_COUNT``
+       - ``DATABASE_OBJECT_COUNT``
+       - ``DATABASE_VIEW_COUNT``
+
+     - no
+
+   * - ``--limit``
+     - integer
+     - Number of items per page, up to a maximum of 500. Defaults to    
+       ``100`` if omitted.
+     - no
+
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
+   * - ``--page``
+     - integer
+     - Page number (1-based). Defaults to ``1`` if not specified.
+     - no
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the public and private 
+       keys for the project are saved. If omitted, uses the 
+       {+default-profile+}. To learn more about creating a 
+       profile, see :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project that contains the 
+       alerts to retrieve. If omitted, uses the project ID in 
+       the profile or :ref:`environment variable <mcli-env-var>`.
+     - no
+   
+.. _mcli-atlas-metrics-databases-describe-output:
+
+Output
+------
+
+.. include:: /includes/command-output-intro.rst
+
+.. tabs::
+
+   .. tab:: Default
+      :tabid: default
+
+      .. code-block:: none
+         :copyable: false
+
+         NAME                           UNITS    TIMESTAMP                    VALUE             
+         DATABASE_AVERAGE_OBJECT_SIZE   BYTES    2020-10-06T14:47:03Z         691.96466         
+         DATABASE_COLLECTION_COUNT      SCALAR   2020-10-06T14:47:03Z         5                 
+         DATABASE_DATA_SIZE             BYTES    2020-10-06T14:47:03Z         5.2300764e+07     
+         DATABASE_STORAGE_SIZE          BYTES    2020-10-06T14:47:03Z         4.1414656e+07     
+         DATABASE_INDEX_SIZE            BYTES    2020-10-06T14:47:03Z         2.0668416e+07     
+         DATABASE_INDEX_COUNT           SCALAR   2020-10-06T14:47:03Z         9                 
+         DATABASE_EXTENT_COUNT          SCALAR   2020-10-06T14:47:03Z         0                 
+         DATABASE_OBJECT_COUNT          SCALAR   2020-10-06T14:47:03Z         75583             
+         DATABASE_VIEW_COUNT            SCALAR   2020-10-06T14:47:03Z         0
+
+   .. tab:: JSON
+      :tabid: json
+
+      The JSON response returns an object with the following fields for 
+      the database you specify:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 10 60
+      
+         * - Name
+           - Type
+           - Description
+
+         * - ``databaseName``
+           - string
+           - The name of the database to which the measurements pertain.
+      
+         * - ``end``
+           - string
+           - The end of the period for which to retrieve measurements, 
+             specified as an |iso8601| timestamp.
+      
+         * - ``granularity``
+           - string
+           - An |iso8601|-formatted
+             time period that specifies the size of the interval 
+             covered by each data point. For example, ``PT5M`` 
+             specifies a 5-minute granularity.
+      
+         * - ``groupId``
+           - string
+           - ID of the project that owns the |service| MongoDB process.
+      
+         * - ``hostId``
+           - string
+           - The hostname of the machine running the |service| MongoDB 
+             process.
+      
+         * - ``links``
+           - array
+           - An array of documents, representing a 
+             :ref:`link <api-linking>` to one or more sub-resources and/
+             or related resources such as 
+             :ref:`list pagination <api-lists>`. 
+             See :ref:`api-linking` for more information.
+      
+         * - ``measurements``
+           - array of objects
+           - An array of measurements and their data points.
+      
+         * - ``measurements.dataPoints``
+           - array of objects
+           - An array of objects, where each object represents a single 
+             data point. If there is no data point available for a 
+             particular moment in time (i.e., a timestamp), the 
+             ``value`` field is set to ``null``.
+      
+         * - ``measurements.dataPoints.timestamp``
+           - string
+           - The timestamp of the beginning of the time interval 
+             represented by this data point.
+      
+         * - ``measurements.dataPoints.value``
+           - float
+           - The value of the data point.
+      
+         * - ``measurements.name``
+           - string
+           - The name of the measurement.
+      
+         * - ``measurements.units``
+           - string
+           - How the measurement is quantified. Possible units are:
+      
+             - ``PERCENT``
+             - ``MILLISECONDS``
+             - ``BYTES``
+             - ``GIGABYTES``
+             - ``BYTES_PER_SECOND``
+             - ``MEGABYTES_PER_SECOND``
+             - ``GIGABYTES_PER_HOUR``
+             - ``SCALAR_PER_SECOND``
+             - ``SCALAR``
+      
+         * -  ``processId``
+           - string
+           - The hostname and port of the machine running the |service| 
+             MongoDB process.
+      
+         * - ``start``
+           - string
+           - The start of the period for which to retrieve measurements 
+             specified as an |iso8601| timestamp.
+
+.. _mcli-atlas-metrics-databases-describe-example:
+
+Example
+-------
+
+The following example uses the ``mongocli atlas metrics databases
+describe`` command to retrieve the ``DATABASE_AVERAGE_OBJECT_SIZE`` for 
+the database ``sample_db``, running on 
+``atlas-111xxx-shard-00-00.111xx.mongodb.net``. 
+It uses the {+default-profile+} for accessing |service| and specifying 
+a project.
+
+.. code-block:: json
+
+   mongocli atlas metrics databases describe cluster0-shard-00-00.111xx.mongodb.net:27017 sample_db --granularity PT5M --period PT1H --type DATABASE_AVERAGE_OBJECT_SIZE -o json
+
+The command prints the following fields to the terminal in JSON format. 
+To learn more about these fields, see
+:ref:`mcli-atlas-metrics-databases-describe-output`.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "end": "2020-10-06T21:05:21Z",
+     "granularity": "PT5M",
+     "groupId": "5ddab74939ffb786fa79f10f",
+     "hostId": "atlas-111xxx-shard-00-00.111xx.mongodb.net:27017",
+     "links": [
+       {
+         "rel": "self",
+         "href": "..."
+       },
+       {
+         "rel": "http://mms.mongodb.com/host",
+         "href": "..."
+       }
+     ],
+     "measurements": [
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2020-10-06T20:25:21Z",
+             "value": 691.96466
+           },
+           {
+             "timestamp": "2020-10-06T20:50:21Z",
+             "value": 691.96466
+           },
+           {
+             "timestamp": "2020-10-06T21:05:21Z",
+             "value": 691.96466
+           }
+         ],
+         "name": "DATABASE_AVERAGE_OBJECT_SIZE",
+         "units": "BYTES"
+       }
+     ],
+     "processId": "atlas-111xxx-shard-00-00.111xx.mongodb.net:27017",
+     "start": "2020-10-06T20:25:21Z",
+     "databaseName": "sample_db"
+   }
