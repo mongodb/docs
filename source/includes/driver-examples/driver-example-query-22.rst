@@ -19,6 +19,7 @@
             { tags: { $all: ["red", "blank"] } }
 
          .. figure:: /images/compass-array-match-all.png
+            :alt: Query array matching all criteria
 
      - id: python
        content: |

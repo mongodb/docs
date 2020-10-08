@@ -12,6 +12,7 @@
        content: |
 
          .. figure:: /images/compass-select-all.png
+            :alt: Compass select all documents in collection
 
      - id: python
        content: |

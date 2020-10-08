@@ -19,6 +19,7 @@
             { "size.h": { $lt: 15 } }
 
          .. figure:: /images/compass-find-nested-query-op.png
+            :alt: Query single nested field
 
      - id: python
        content: |

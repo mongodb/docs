@@ -11,6 +11,7 @@
      - id: compass
        content: |
          .. figure:: /images/compass-find-nested-array-no-match.png
+            :alt: Query for nested array element
 
      - id: python
        content: |

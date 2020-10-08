@@ -4,7 +4,7 @@
      - id: shell
        content: |
          List All Indexes for a Database
-         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
          To list all the collection indexes in a database, you can use the
          following operation in the :binary:`~bin.mongo` shell:

@@ -19,6 +19,7 @@
             { 'instock.qty': { $lte: 20 } }
 
          .. figure:: /images/compass-find-array-embedded-field-condition.png
+            :alt: Query for embedded field matching single condition
 
      - id: python
        content: |

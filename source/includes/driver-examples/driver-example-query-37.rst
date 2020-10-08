@@ -19,6 +19,7 @@
             { "instock.qty": 5, "instock.warehouse": "A" }
 
          .. figure:: /images/compass-array-match-combination-of-elements-2.png
+            :alt: Query matching quantity and warehouse location
 
      - id: python
        content: |

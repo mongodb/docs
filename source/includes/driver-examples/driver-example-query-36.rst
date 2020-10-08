@@ -19,6 +19,7 @@
             { "instock.qty": { $gt: 10,  $lte: 20 } }
 
          .. figure:: /images/compass-array-match-combination-of-elements.png
+            :alt: Query quantity value within range
 
      - id: python
        content: |

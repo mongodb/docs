@@ -11,6 +11,7 @@
      - id: compass
        content: |
          .. figure:: /images/compass-find-embedded-no-match.png
+            :alt: Query embedded field
 
      - id: python
        content: |

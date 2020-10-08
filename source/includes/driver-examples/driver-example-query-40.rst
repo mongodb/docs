@@ -20,6 +20,7 @@
             { item : { $type: 10 } }
 
          .. figure:: /images/compass-find-null-type-check.png
+            :alt: Find null type
 
      - id: python
        content: |

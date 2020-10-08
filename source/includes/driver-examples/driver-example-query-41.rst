@@ -20,6 +20,7 @@
             { item : { $exists: false } }
 
          .. figure:: /images/compass-find-null-existence-check.png
+            :alt: Query for null value
 
      - id: python
        content: |

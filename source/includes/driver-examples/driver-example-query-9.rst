@@ -19,6 +19,7 @@
             { status: "D" }
 
          .. figure:: /images/compass-find-filter-inventory.png
+            :alt: Query using equality condition
 
      - id: python
        content: |

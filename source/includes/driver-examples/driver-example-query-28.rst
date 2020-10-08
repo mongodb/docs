@@ -19,6 +19,7 @@
             { "tags": { $size: 3 } }
 
          .. figure:: /images/compass-array-query-by-size.png
+            :alt: Query for array by number of elements
 
      - id: python
        content: |

@@ -19,6 +19,7 @@
             { dim_cm: { $elemMatch: { $gt: 22, $lt: 30 } } }
 
          .. figure:: /images/compass-array-compound-multiple-criteria.png
+            :alt: Query array by multiple conditions
 
      - id: python
        content: |
