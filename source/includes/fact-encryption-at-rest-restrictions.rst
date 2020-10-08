@@ -1,19 +1,21 @@
 .. list-table::
    :header-rows: 1
-   :widths: 60 40
+   :stub-columns: 1
+   :widths: 50 50
 
    * - Parameter
      - Requirement
-   * - | ``providerSettings``
-       | ``.instanceSizeName``
+   * - providerSettings.instanceSizeName
      - ``M10`` or greater
-   * - ``backupEnabled``
-     - ``false`` or omitted
-
-For complete documentation on Encryption at Rest
-restrictions, see :ref:`security-aws-kms-restrictions`.
+   * - backupEnabled
+     - **false** or omitted
 
 You must configure encryption at rest for the |service|
 project before enabling it on any cluster in the
-project. For complete documentation on configuring
-Encryption at Rest, see :ref:`security-kms-encryption`.
+project.
+
+.. seealso::
+
+   - :ref:`security-kms-encryption`.
+   - :ref:`security-aws-kms-restrictions`.
+

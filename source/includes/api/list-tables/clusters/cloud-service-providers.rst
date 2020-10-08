@@ -1,7 +1,5 @@
-|service| accepts:
-
 .. list-table::
-   :widths: 5 95
+   :widths: 20 80
    :stub-columns: 1
 
    * - AWS

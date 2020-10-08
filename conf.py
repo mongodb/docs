@@ -104,6 +104,7 @@ rst_epilog = [
     '.. |Epoch-time| replace:: Timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |epoch-time| replace:: timestamp in the number of seconds that have elapsed since the `UNIX epoch <https://en.wikipedia.org/wiki/Unix_time?oldid=828172017>`__',
     '.. |fcv| replace:: :abbr:`FCV (Feature Compatibility Version)`',
+    '.. |fcv-link| replace:: :dbcommand:`FCV <setFeatureCompatibilityVersion>`',
     '.. |fim| replace:: :abbr:`FIM (Federated Identity Management)`',
     '.. |fmc| replace:: :abbr:`FMC (Federation Management Console)`',
     '.. |fqdn| replace:: :abbr:`FQDN (fully qualified domain name)`',
