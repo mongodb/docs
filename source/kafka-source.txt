@@ -126,19 +126,21 @@ an example source connector configuration file, see
    * - database
      - string
      - | Name of the database to watch for changes. If not set, all databases are watched.
+       |
        | **Default**: ""
        | **Accepted Values**: A single database name
 
    * - collection
      - string
-     - | Name of the collection in the database to watch for changes.
-       | The collection in the database to watch. If not set then all collections will be watched.
+     - | Name of the collection in the database to watch for changes. If not set then all collections will be watched.
+       |
        | **Default**: ""
        | **Accepted Values**: A single collection name
 
    * - publish.full.document.only
      - boolean
      - | Only publish the changed document instead of the full change stream document. Sets the ``change.stream.full.document=updateLookup`` automatically so updated documents will be included.
+       |
        | **Default**: false
        | **Accepted Values**: ``true`` or ``false``
 
@@ -162,58 +164,131 @@ an example source connector configuration file, see
    * - collation
      - string
      - | A JSON :manual:`collation document </reference/collation/#collation-document>` that contains options to use for the change stream. Append ``.asDocument().toJson()`` to the collation document to create the JSON representation.
+       |
        | **Default**: ""
        | **Accepted Values**: A valid JSON document representing a collection
 
    * - output.format.key
      - string
      - | Determines which data format the source connector outputs for the key document.
+       |
        | **Default**: ``json``
        | **Accepted Values**: ``bson``, ``json``, ``schema``
 
    * - output.format.value
      - string
      - | Determines which data format the source connector outputs for the value document.
+       |
        | **Default**: ``json``
        | **Accepted Values**: ``bson``, ``json``, ``schema``
 
    * - output.json.formatter
      - string
      - | Full class name of the JSON formatter.
+       |
        | **Default**: ``com.mongodb.kafka.connect.source.json.formatter.ExtendedJson``
-       | **Accepted Values**: 
+       | **Accepted Values**:
        | - ``com.mongodb.kafka.connect.source.json.formatter.DefaultJson``
        | - ``com.mongodb.kafka.connect.source.json.formatter.ExtendedJson``
        | - ``com.mongodb.kafka.connect.source.json.formatter.SimplifiedJson``
        | - Or other user-provided class name
 
+   * - output.schema.key
+     - string
+     - | The `Avro schema <https://avro.apache.org/docs/current/spec.html#schemas>`__ definition for the key document of the SourceRecord.
+       | **Default**:
+
+         .. code-block:: json
+
+            {
+              "type": "record",
+              "name": "keySchema",
+              "fields" : [ { "name": "_id", "type": "string" } ]"
+            }
+
+       | **Accepted Values**: A valid JSON object
+
+   * - output.schema.value
+     - string
+     - | The `Avro schema <https://avro.apache.org/docs/current/spec.html#schemas>`__ definition for the value document of the SourceRecord.
+       |
+       | **Default**:
+
+         .. code-block:: json
+
+            {
+              "name": "ChangeStream",
+              "type": "record",
+              "fields": [
+                { "name": "_id", "type": "string" },
+                { "name": "operationType", "type": ["string", "null"] },
+                { "name": "fullDocument", "type": ["string", "null"] },
+                { "name": "ns",
+                  "type": [{"name": "ns", "type": "record", "fields": [
+                            {"name": "db", "type": "string"},
+                            {"name": "coll", "type": ["string", "null"] } ]
+                           }, "null" ] },
+                { "name": "to",
+                  "type": [{"name": "to", "type": "record",  "fields": [
+                            {"name": "db", "type": "string"},
+                            {"name": "coll", "type": ["string", "null"] } ]
+                           }, "null" ] },
+                { "name": "documentKey", "type": ["string", "null"] },
+                { "name": "updateDescription",
+                  "type": [{"name": "updateDescription",  "type": "record", "fields": [
+                             {"name": "updatedFields", "type": ["string", "null"]},
+                             {"name": "removedFields",
+                              "type": [{"type": "array", "items": "string"}, "null"]
+                              }] }, "null"] },
+                { "name": "clusterTime", "type": ["string", "null"] },
+                { "name": "txnNumber", "type": ["long", "null"]},
+                { "name": "lsid", "type": [{"name": "lsid", "type": "record",
+                           "fields": [ {"name": "id", "type": "string"},
+                                         {"name": "uid", "type": "string"}] }, "null"] }
+              ]
+           }
+
+       | **Accepted Values**: A valid JSON object
+
    * - output.schema.infer.value
      - boolean
      - | Whether the connector should infer the schema for the value. Since each document is processed in isolation, multiple schemas may result. Only valid when ``schema`` is specified in the ``output.format.value`` setting.
+       |
        | **Default**: ``false``
        | **Accepted Values**: ``true`` or ``false``
+
+   * - offset.partition.name
+     - string
+     - | Custom partition name to use in which to store the offset values. The offset value stores information on where to resume processing if there is an issue that requires you to restart the connector. By choosing a new partition name, you can start processing without using a resume token. This can make it easier to restart the connector without reconfiguring the Kafka Connect service or manually deleting the old offset. The offset partition is automatically created if it does not exist.
+       |
+       | **Default**: ""
+       | **Accepted Values**: A string
 
    * - batch.size
      - int
      - | The cursor batch size.
+       |
        | **Default**: 0
        | **Accepted Values**: An integer
 
    * - change.stream.full.document
      - string
      - | Determines what to return for update operations when using a Change Stream. When set to 'updateLookup', the change stream for partial updates will include both a delta describing the changes to the document as well as a copy of the entire document that was changed from *some point in time* after the change occurred.
+       |
        | **Default**: ""
        | **Accepted Values**: "" or ``default`` or ``updateLookup``
 
    * - poll.await.time.ms
      - long
      - | The amount of time to wait before checking for new results on the change stream
+       |
        | **Default**: 5000
        | **Accepted Values**: An integer
 
    * - poll.max.batch.size
      - int
      - | Maximum number of change stream documents to include in a single batch when polling for new data. This setting can be used to limit the amount of data buffered internally in the connector.
+       |
        | **Default**: 1000
        | **Accepted Values**: An integer
 
@@ -229,12 +304,32 @@ an example source connector configuration file, see
    * - copy.existing
      - boolean
      - | Copy existing data from source collections and convert them to Change Stream events on their respective topics. Any changes to the data that occur during the copy process are applied once the copy is completed.
+       |
        | **Default**: false
        | **Accepted Values**: ``true`` or ``false``
+
+   * - copy.existing.namespace.regex
+     - string
+     - | Regular expression that matches the namespaces from which to copy
+         data. A namespace describes the database name and collection
+         separated by a period, e.g. ``databaseName.collectionName``.
+
+         .. example::
+
+            In the following example, the setting matches all collections
+            that start with "page" in the "stats" database.
+
+            .. code-block:: none
+
+               copy.existing.namespace.regex=stats\.page.*
+
+       | **Default**: ""
+       | **Accepted Values**: A valid regular expression
 
    * - copy.existing.max.threads
      - int
      - | The number of threads to use when performing the data copy. Defaults to the number of processors.
+       |
        | **Default**: defaults to the number of processors
        | **Accepted Values**: An integer
 
@@ -306,6 +401,20 @@ an example source connector configuration file, see
        |
        | **Default:** ""
        | **Accepted Values**: A valid partition name
+
+   * - heartbeat.interval.ms
+     - int
+     - | The length of time in milliseconds between sending heartbeat messages to record a post batch resume token when no source records have been published. This can improve the resumability of the connector for low volume namespaces. Use ``0`` to disable.
+       |
+       | **Default**: ``0``
+       | **Accepted Values**: An integer
+
+   * - heartbeat.topic.name
+     - string
+     - | The name of the topic to write heartbeat messages to.
+       |
+       | **Default**: ``__mongodb_heartbeats``
+       | **Accepted Values**: A valid Kafka topic name
 
 .. note::
 
