@@ -223,6 +223,10 @@
        To learn more about this connection string format, see the
        :manual:`MongoDB Server Manual </reference/connection-string/#dns-seedlist-connection-format>`
 
+   * - ``createDate`` 
+     - string
+     - |iso8601-time| when |service| created the cluster.
+
    * - ``diskSizeGB``
      - number
      - Capacity, in gigabytes, of the host's root volume. Increase this
