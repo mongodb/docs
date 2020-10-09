@@ -637,19 +637,175 @@ of the day that the ``Date`` refers to in UTC.
 Regular Expressions
 ===================
 
-Ruby regular expressions always have BSON regular expressions' equivalent of
-'m' flag on. In order for behavior to be preserved between the two, the 'm'
-option is always added when a Ruby regular expression is serialized to BSON.
+Both MongoDB and Ruby provide facilities for working with regular expressions,
+but they use regular expression engines. The following subsections detail the
+differences between Ruby regular expressions and MongoDB regular expressions
+and describe how to work with both.
 
-There is a class provided by the bson gem, ``Regexp::Raw``, to allow Ruby users
-to get around this. You can simply create a regular expression like this:
+Ruby vs MongoDB Regular Expressions
+-----------------------------------
+
+MongoDB server uses `Perl-compatible regular expressions implemented using
+the PCRE library<http://pcre.org/>`_ and `Ruby regular expressions
+<http://ruby-doc.org/core/Regexp.html>`_ are implemented using the
+`Onigmo regular expression engine <https://github.com/k-takata/Onigmo>`_,
+which is a fork of `Oniguruma <https://github.com/kkos/oniguruma>`_.
+The two regular expression implementations generally provide equivalent
+functionality but have several important syntax differences, as described
+below.
+
+Unfortunately, there is no simple way to programmatically convert a PCRE
+regular expression into the equivalent Ruby regular expression,
+and there are currently no Ruby bindings for PCRE.
+
+Options / Flags / Modifiers
+```````````````````````````
+
+Both Ruby and PCRE regular expressions support modifiers. These are
+also called "options" in Ruby parlance and "flags" in PCRE parlance.
+The meaning of ``s`` and ``m`` modifiers differs in Ruby and PCRE:
+
+- Ruby does not have the ``s`` modifier, instead the Ruby ``m`` modifier
+  performs the same function as the PCRE ``s`` modifier which is to make the
+  period (``.``) match any character including newlines. Confusingly, the
+  Ruby documentation refers to the ``m`` modifier as "enabling multi-line mode".
+- Ruby always operates in the equivalent of PCRE's multi-line mode, enabled by
+  the ``m`` modifier in PCRE regular expressions. In Ruby the ``^`` anchor
+  always refers to the beginning of line and the ``$`` anchor always refers
+  to the end of line.
+
+When writing regular expressions intended to be used in both Ruby and
+PCRE environments (including MongoDB server and most other MongoDB drivers),
+henceforth referred to as "portable regular expressions", avoid using
+the ``^`` and ``$`` anchors. The following sections provide workarounds and
+recommendations for authoring portable regular expressions.
+
+``^`` Anchor
+````````````
+
+In Ruby regular expressions, the ``^`` anchor always refers to the beginning
+of line. In PCRE regular expressions, the ``^`` anchor refers to the beginning
+of input by default and the ``m`` flag changes its meaning to the beginning
+of line.
+
+Both Ruby and PCRE regular expressions support the ``\A`` anchor to refer to
+the beginning of input, regardless of modifiers.
+
+When writing portable regular expressions:
+
+- Use the ``\A`` anchor to refer to the beginning of input.
+- Use the ``^`` anchor to refer to the beginning of line (this requires
+  setting the ``m`` flag in PCRE regular expressions). Alternatively use
+  one of the following constructs which work regardless of modifiers:
+  - ``(?:\A|(?<=\n))`` (handles LF and CR+LF line ends)
+  - ``(?:\A|(?<=[\r\n]))`` (handles CR, LF and CR+LF line ends)
+
+``$`` Anchor
+````````````
+
+In Ruby regular expressions, the ``$`` anchor always refers to the end
+of line. In PCRE regular expressions, the ``$`` anchor refers to the end
+of input by default and the ``m`` flag changes its meaning to the end
+of line.
+
+Both Ruby and PCRE regular expressions support the ``\z`` anchor to refer to
+the end of input, regardless of modifiers.
+
+When writing portable regular expressions:
+
+- Use the ``\z`` anchor to refer to the end of input.
+- Use the ``$`` anchor to refer to the beginning of line (this requires
+  setting the ``m`` flag in PCRE regular expressions). Alternatively use
+  one of the following constructs which work regardless of modifiers:
+  - ``(?:\z|(?=\n))`` (handles LF and CR+LF line ends)
+  - ``(?:\z|(?=[\n\n]))`` (handles CR, LF and CR+LF line ends)
+
+``BSON::Regexp::Raw`` Class
+---------------------------
+
+Since there is no simple way to programmatically convert a PCRE
+regular expression into the equivalent Ruby regular expression,
+bson-ruby provides the ``BSON::Regexp::Raw`` class for holding MongoDB/PCRE
+regular expressions. Instances of this class are called "BSON regular
+expressions" in this documentation.
+
+Instances of this class can be created using the regular expression text
+as a string and optional PCRE modifiers:
+
+.. code-block:: ruby
+
+  BSON::Regexp::Raw.new("^b403158")
+  # => #<BSON::Regexp::Raw:0x000055df63186d78 @pattern="^b403158", @options="">
+
+  BSON::Regexp::Raw.new("^Hello.world$", "s")
+  # => #<BSON::Regexp::Raw:0x000055df6317f028 @pattern="^Hello.world$", @options="s">
+
+The ``BSON::Regexp`` module is included in the Ruby ``Regexp`` class, such that
+the ``BSON::`` prefix may be omitted:
 
 .. code-block:: ruby
 
   Regexp::Raw.new("^b403158")
+  # => #<BSON::Regexp::Raw:0x000055df63186d78 @pattern="^b403158", @options="">
 
-This code example illustrates the difference between serializing a core Ruby
-``Regexp`` versus a ``Regexp::Raw`` object:
+  Regexp::Raw.new("^Hello.world$", "s")
+  # => #<BSON::Regexp::Raw:0x000055df6317f028 @pattern="^Hello.world$", @options="s">
+
+Regular Expression Conversion
+-----------------------------
+
+To convert a Ruby regular expression to a BSON regular expression,
+instantiate a ``BSON::Regexp::Raw`` object as follows:
+
+.. code-block:: ruby
+
+  regexp = /^Hello.world/
+  bson_regexp = BSON::Regexp::Raw.new(regexp.source, regexp.options)
+  # => #<BSON::Regexp::Raw:0x000055df62e42d60 @pattern="^Hello.world", @options=0>
+
+Note that the ``BSON::Regexp::Raw`` constructor accepts both the Ruby numeric
+options and the PCRE modifier strings.
+
+To convert a BSON regular expression to a Ruby regular expression, call the
+``compile`` method on the BSON regular expression:
+
+.. code-block:: ruby
+
+  bson_regexp = BSON::Regexp::Raw.new("^hello.world", "s")
+  bson_regexp.compile
+  # => /^hello.world/m
+
+  bson_regexp = BSON::Regexp::Raw.new("^hello", "")
+  bson_regexp.compile
+  # => /^hello.world/
+
+  bson_regexp = BSON::Regexp::Raw.new("^hello.world", "m")
+  bson_regexp.compile
+  # => /^hello.world/
+
+Note that the ``s`` PCRE modifier was converted to the ``m`` Ruby modifier
+in the first example, and the last two examples were converted to the same
+regular expression even though the original BSON regular expressions had
+different meanings.
+
+When a BSON regular expression uses the non-portable ``^`` and ``$``
+anchors, its conversion to a Ruby regular expression can change its meaning:
+
+.. code-block:: ruby
+
+  BSON::Regexp::Raw.new("^hello.world", "").compile =~ "42\nhello world"
+  # => 3
+
+When a Ruby regular expression is converted to a BSON regular expression
+(for example, to send to the server as part of a query), the BSON regular
+expression always has the ``m`` modifier set reflecting the behavior of
+``^`` and ``$`` anchors in Ruby regular expressions.
+
+Reading and Writing
+-------------------
+
+Both Ruby and BSON regular expressions implement the ``to_bson`` method
+for serialization to BSON:
 
 .. code-block:: ruby
 
@@ -659,6 +815,7 @@ This code example illustrates the difference between serializing a core Ruby
   # => #<BSON::ByteBuffer:0x007fcf20ab8028>
   _.to_s
   # => "^b403158\x00m\x00"
+  
   regexp_raw = Regexp::Raw.new("^b403158")
   # => #<BSON::Regexp::Raw:0x007fcf21808f98 @pattern="^b403158", @options="">
   regexp_raw.to_bson
@@ -666,20 +823,23 @@ This code example illustrates the difference between serializing a core Ruby
   _.to_s
   # => "^b403158\x00\x00"
 
-
-Please use the ``Regexp::Raw`` class to instantiate your BSON regular
-expressions to get the exact pattern and options you want.
-
-When regular expressions are deserialized, they return a wrapper that holds the
-raw regex string, but do not compile it. In order to get the Ruby ``Regexp``
-object, one must call ``compile`` on the returned object.
+Both ``Regexp`` and ``BSON::Regexp::Raw`` classes implement the ``from_bson``
+class method that deserializes a regular expression from a BSON byte buffer.
+Methods of both classes return a ``BSON::Regexp::Raw`` instance that
+must be converted to a Ruby regular expression using the ``compile`` method
+as described above.
 
 .. code-block:: ruby
 
+  byte_buffer = BSON::ByteBuffer.new("^b403158\x00\x00")
   regex = Regexp.from_bson(byte_buffer)
-  regex.pattern #=> Returns the pattern as a string.
-  regex.options #=> Returns the raw options as a String.
-  regex.compile #=> Returns the compiled Ruby Regexp object.
+  # => #<BSON::Regexp::Raw:0x000055df63100d40 @pattern="^b403158", @options="">
+  regex.pattern
+  # => "^b403158"
+  regex.options
+  # => ""
+  regex.compile
+  # => /^b403158/
 
 
 Key Order
