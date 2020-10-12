@@ -129,6 +129,9 @@
      -
      -
      -
+     -
+     -
+     -
      - |checkmark|
 
 - Motor 1.3 wraps PyMongo 3.6+ and adds support for CPython 3.7

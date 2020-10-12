@@ -69,7 +69,7 @@ extlinks = {
     'atlas': ('https://docs.atlas.mongodb.com%s', ''),
     'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
     'guides': ('https://docs.mongodb.com/guides%s', ''),
-    'java-docs': ('http://mongodb.github.io/mongo-java-driver/3.12/%s', ''),
+    'java-docs': ('http://mongodb.github.io/mongo-java-driver/4.1/%s', ''),
     'kafka-21-javadoc': ('https://kafka.apache.org/21/javadoc/org/apache/kafka%s', ''),
     'csharp-docs': ('http://mongodb.github.io/mongo-csharp-driver/2.10%s', ''),
     'scala-docs': ('http://mongodb.github.io/mongo-scala-driver/2.9%s', ''),
