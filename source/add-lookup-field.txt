@@ -1,0 +1,119 @@
+.. _add-lookup-field:
+
+==================
+Add a Lookup Field
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Lookup fields allow you to create a chart that joins data from multiple
+collections in the same database. A lookup field brings in documents from a
+second collection whose values correspond to a field in your chart's main
+data source.
+
+Lookup fields are useful for leveraging parent/child and primary key/foreign
+key relationships between collections, or any situation in which a field
+in one collection references a field in another collection. Lookup fields
+use :manual:`$lookup </reference/operator/aggregation/lookup>` to retrieve
+matching documents from a remote collection.
+
+Create a New Lookup Field
+-------------------------
+
+You can create a lookup field from any field in your chart's data source
+which is not an :ref:`embedded object <embedded-objects-arrays>` and which
+contains matching data with a field in another collection. The remote
+collection must be:
+
+- An existing |charts-short| data source.
+- Part of the same database as the local collection.
+
+.. note::
+
+   You can also use the local collection as a lookup field source.
+
+To add a lookup field, mouse over an existing field and click on the
+:guilabel:`ellipsis (...)` to the right of the field name. Select
+:guilabel:`Lookup field` from the dropdown menu. A modal window appears:
+
+.. figure:: /images/charts/lookup-modal.png
+   :figwidth: 350px
+   :alt: Lookup field modal window
+
+Select the desired collection and field from the dropdown menus. The remote
+field must contain at least one document with data that matches the local
+field, or the lookup field will be empty.
+
+You have the option to either return all matching documents from the foreign
+collection or only the first matching document. Returning all matching
+documents is recommended for one-to-many relationships, such as parent/child
+and primary key relationships. Returning only the first document is recommended
+for one-to-one and many-to-one relationships, such as reference data codes.
+If you want to return only the first matching document, check the
+:guilabel:`Return only first matching document` radio button.
+
+|charts-short| suggests a name for the new field, but you can enter a name
+of your choosing if you prefer. Click :guilabel:`Save` to create the new
+field.
+
+The new field appears with a :guilabel:`binoculars` icon, indicating that
+it is a lookup field.
+
+.. important::
+
+   Be sure that any field you use as a lookup field is appropriately
+   :manual:`indexed </indexes/>`. Lookup operations on an
+   unindexed field in a large collection can cause significant performance
+   issues or timeouts.
+
+To remove a lookup field from your field panel, mouse over the lookup
+field and click on the :guilabel:`ellipsis (...)` to the right of the
+field name. Select :guilabel:`Remove field` from the dropdown menu.
+
+Example
+-------
+
+The following example uses two data sources, one called ``product_catalog``
+and one called ``orders``.
+
+The ``product_catalog`` collection contains the following documents:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 76234, "item" : "21 inch monitor" }
+   { "_id" : 38921, "item" : "USB C cable" }
+   { "_id" : 21167, "item" : "keyboard" }
+   { "_id" : 90252, "item" : "60 GB external hard drive" }
+
+The ``orders`` collection contains the following documents:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 1, "sku": 38921, "quantity": 50 }
+   { "_id" : 2, "sku": 21167, "quantity": 75 }
+   { "_id" : 3, "sku": 76234, "quantity": 15 }
+   { "_id" : 4, "sku": 21167, "quantity": 20 }
+
+Records in the ``orders`` collection use the ``sku`` field to reference
+the ``_id`` field in the ``product_catalog`` collection.
+
+The goal is to create a :ref:`column chart <column-bar-chart-ref>` showing
+the number of ordered items. The following chart uses ``orders`` as its
+data source. The lookup field ``sku_lookup_product_catalog`` is created
+from the ``orders.sku`` field. It uses the ``product_catalog`` collection
+as its remote data source and ``product_catalog._id`` as its remote field.
+
+The chart uses ``product_catalog.item`` as its X axis and ``orders.quantity``
+as its Y axis.
+
+.. figure:: /images/charts/lookup-chart.png
+   :figwidth: 85%
+   :alt: Lookup field example chart
