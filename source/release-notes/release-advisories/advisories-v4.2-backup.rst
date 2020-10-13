@@ -82,7 +82,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Supports Saving to File System Storage
+      * - Supports Saving to File System Storage [#]_
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -199,6 +199,10 @@ Backup Features Supported at Present
 
    .. [#] Querying an encrypted snapshot requires
           :product:`MongoDB Enterprise <enterprise>` 4.2.9 or 4.4.0.
+
+   .. [#] Backups to a |fcv-link| 4.2 or later database to a File
+          System Store ignore
+          :setting:`File System Store Gzip Compression Level`.
 
 .. cond:: cloud
 
