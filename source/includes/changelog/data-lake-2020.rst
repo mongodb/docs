@@ -1,3 +1,16 @@
+.. _data-lake-v20201013:
+
+13 October 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports ``defaultFormat`` for files in publicly accessible |url|\s in 
+  |http| stores.
+- Limits the number of simultaneous queries to 30 per {+dl+}.
+- Supports ``bzip2`` compression format.
+- Supports ``comment`` option for the :manual:`aggregate 
+  </reference/command/aggregate>` command.
+- Includes various performance and stability improvements.
+
 .. _data-lake-v20200922:
 
 22 September 2020 Release
