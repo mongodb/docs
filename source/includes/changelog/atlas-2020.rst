@@ -1,3 +1,17 @@
+.. _atlas_20201013:
+
+13 October 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports |azure| Private Link with |service| :doc:`Private Endpoints
+  </reference/api/private-endpoints/>`.
+- Improved filtering for the :doc:`Activity Feed </tutorial/activity-feed/>`.
+- Optimizes :doc:`slow query logging </performance-advisor/>` by automatically
+  adjusting the slowMS threshold based on the workload to capture more
+  slow queries.
+- Introduces a feedback button for Index Suggestions in the :doc:`Performance
+  Advisor </performance-advisor/>`.
+
 .. _atlas_20200922:
 
 22 September 2020 Release
