@@ -2,7 +2,7 @@
    :header-rows: 1
    :widths: 15 10 75
 
-   * - Parameter
+   * - Path Parameter
      - Required/Optional
      - Description
 

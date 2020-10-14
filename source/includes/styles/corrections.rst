@@ -47,4 +47,14 @@
        font-weight: 700;
        font-size: 100%
      }
+     th.stub {
+       overflow-wrap: break-word;
+     }
+     dd > div.admonition.seealso {
+       margin-bottom: 0px;
+       padding: 2px 12px 12px 0px;
+     }
+     div.admonition ~ div.admonition {
+       margin-top: 0px
+     }
    </style>

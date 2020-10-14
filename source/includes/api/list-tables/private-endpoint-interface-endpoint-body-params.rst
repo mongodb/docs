@@ -2,7 +2,7 @@
    :widths: 15 10 10 65
    :header-rows: 1
 
-   * - Name
+   * - Body Parameter
      - Type
      - Necessity
      - Description

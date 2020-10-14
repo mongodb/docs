@@ -200,6 +200,7 @@ rst_epilog = '\n'.join(rst_epilog)
 
 source_constants = {
     'aws-pl': 'AWS PrivateLink',
+    'az-pl': 'Azure Private Link',
     'data-lake-store': 'data store',
     'data-lake-stores': 'data stores',
     'data-lake' : 'Atlas Data Lake',
