@@ -69,6 +69,12 @@
      
        Defaults to ``100``.
 
+   * - ``includeCount``
+     - Optional.
+     - Specifies whether the response returns the ``totalCount`` field.
+
+       Defaults to ``true``.
+
    * - ``envelope``
      - Optional.
      - A boolean that specifies whether or not to wrap the response in an

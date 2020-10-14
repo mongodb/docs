@@ -21,6 +21,12 @@
      - Maximum number of items to return, up to a maximum of 100.
      - ``100``
 
+   * - ``includeCount``
+     - boolean
+     - Optional
+     - Specifies whether the response returns the ``totalCount`` field.
+     - ``true``
+
    * - pretty
      - boolean
      - Optional

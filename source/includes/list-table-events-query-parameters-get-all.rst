@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 10 10 70 10
+   :widths: 15 10 65 10
    :header-rows: 1
    :stub-columns: 1
  
@@ -17,6 +17,11 @@
      - integer
      - Number of items to return per page, up to a maximum of 500.
      - ``100``
+
+   * - ``includeCount``
+     - boolean
+     - Specifies whether the response returns the ``totalCount`` field.
+     - ``true``
  
    * - ``pretty``
      - boolean

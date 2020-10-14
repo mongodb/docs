@@ -18,6 +18,11 @@
     - Number of items to return per page, up to a maximum of 500.
     - ``100``
 
+  * - ``includeCount``
+    - boolean
+    - Specifies whether the response returns the ``totalCount`` field.
+    - ``true``
+
   * - ``pretty``
     - boolean
     - Displays response in a `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
