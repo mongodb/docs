@@ -51,11 +51,31 @@
 
    * - members[n].id
      - string
-     - Unique identifier for the shard contained in this snapshot.
+     - Unique identifier for the sharded cluster snapshot.
+
+   * - members[n].replicaSetName
+     - string
+     - Label given to a shard or config server from which |service|
+       took this snapshot.
 
    * - mongodVersion
      - string
      - Version of the MongoDB server.
+
+   * - replicaSetName
+     - string
+     - Label given to the replica set from which |service| took this
+       snapshot. |service| returns this parameter when
+       **"type": "replicaSet"**.
+
+   * - snapshotIds
+     - array of strings
+     - Unique identifiers of the snapshots created for the shards and
+       config server for a sharded cluster. |service| returns this
+       parameter when **"type": "shardedCluster"**. These identifiers
+       should match those given in the **members[n].id** parameters.
+       This allows you to map a snapshot to its shard or config server
+       name.
 
    * - snapshotType
      - string

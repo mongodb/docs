@@ -47,14 +47,21 @@
        font-weight: 700;
        font-size: 100%
      }
+     div.seealso {
+       padding-bottom: 0px;
+       margin: 12px;
+     }
+     div.note > div.admonition.seealso {
+       padding-bottom: 0px !important;
+       margin: 0px !important;
+     }
+     p.first + ul.simple {
+       margin: 0px !important;
+     }
+     div.admonition > p {
+       margin-top: 12px;
+     }
      th.stub {
        overflow-wrap: break-word;
-     }
-     dd > div.admonition.seealso {
-       margin-bottom: 0px;
-       padding: 2px 12px 12px 0px;
-     }
-     div.admonition ~ div.admonition {
-       margin-top: 0px
      }
    </style>
