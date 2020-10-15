@@ -163,3 +163,19 @@ Host Measurements
    * - - ``RESTARTS_IN_LAST_HOUR``
 
      - Number of times the host restarted within the previous hour.
+
+   * - - ``SYSTEM_MEMORY_USED``
+       - ``SYSTEM_MEMORY_FREE``
+       - ``SYSTEM_MEMORY_AVAILABLE``
+
+     - Physical memory usage, in bytes.
+
+   * - - ``SYSTEM_NETWORK_BYTES_IN``
+       - ``SYSTEM_NETWORK_BYTES_OUT``
+
+     - Network throughput in bytes per second.
+
+   * - - ``SWAP_USAGE_USED``
+       - ``SWAP_USAGE_FREE``
+
+     - Total amount swap space in use.
