@@ -700,6 +700,47 @@ create your own. A custom write strategy model is a Java class that implements
 ``mongodb.writemodel.strategy`` :ref:`configuration setting
 <kafka-sink-properties>`.
 
+To create a custom ``WriteModelStrategy``:
+
+1. Create a class that implements the ``WriteModelStrategy`` interface
+   and overrides the ``createWriteModel(SinkDocument)`` method.
+
+#. Compile the class to a ``.class`` file or JAR.
+
+#. Add the class to the Class Path / Plugin Path for Kafka workers.
+   For more information about plugin paths, see the `Confluent documentation
+   <https://docs.confluent.io/current/connect/managing/community.html>`__.
+
+The following is an example of a custom write strategy. It extracts the
+value of ``fullDocument`` from the value document and returns a
+``ReplaceOne`` operation.
+
+.. code-block:: java
+
+   /**
+    * A custom write model strategy
+    *
+    * This example takes the 'fullDocument' field from a change stream and creates a
+    * ReplaceOne operation.
+    */
+
+   public class CustomWriteModelStrategy implements WriteModelStrategy {
+    
+     private static String ID = "_id";
+     @Override
+     public WriteModel<BsonDocument> createWriteModel(final SinkDocument document) {
+       BsonDocument changeStreamDocument = document.getValueDoc()
+           .orElseThrow(() -> new DataException("Missing value document"));
+    
+       BsonDocument fullDocument = changeStreamDocument.getDocument("fullDocument", new BsonDocument());
+       if (fullDocument.isEmpty()) {
+         return null; // Return null to indicate no op.
+       }
+    
+       return new ReplaceOneModel<>(Filters.eq(ID, fullDocument.get(ID)), fullDocument);
+     }
+   }
+
 .. _writemodel-strategy-business-key:
 
 WriteModel Strategy: Business Keys
