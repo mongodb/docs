@@ -55,7 +55,7 @@
        padding-bottom: 0px !important;
        margin: 0px !important;
      }
-     p.first + ul.simple {
+     dd > p.first {
        margin: 0px !important;
      }
      div.admonition > p {

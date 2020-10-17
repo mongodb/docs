@@ -1,0 +1,321 @@
+.. _create-cluster-multi-region:
+
+================================================
+High Availability and Workload Isolation Options
+================================================
+
+.. default-domain:: mongodb
+
+.. include:: /includes/styles/corrections.rst
+
+.. admonition:: Clusters Can Be Created Using Multiple Cloud Providers
+   :class: tip
+
+   |service| allows you to create multi-cloud clusters using any
+   combination of cloud providers: |aws|, |azure|, and |gcp|.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can set the nodes in your cluster to use different:
+
+- cloud providers
+- geographies
+- workload priorities
+- replication configurations
+
+How you apply these options improve the availability and workload
+balance of your cluster.
+
+To configure node-specific options for your cluster, toggle
+:guilabel:`Multi-Cloud, Multi-Region & Workload Isolation (M10+ clusters)`
+to :guilabel:`On`.
+
+.. figure:: /images/multi-cloud.png
+   :figwidth: 720px
+   :alt: Multi-Cloud Provider, Multi-Region & Workload Isolation feature
+
+.. admonition:: Multi-Region and Multi-Cloud Clusters
+   :class: important
+
+   The introduction of multi-cloud capabilities in |service| changes how |service| defines geographies for a cluster:
+
+   *multi-region* cluster
+     A cluster that may be hosted in:
+
+     - more than one region within one cloud provider or
+     - more than one cloud provider. (A cluster that spans more than
+       one cloud provider spans more than one region by design.)
+
+     - multiple regions within a single cloud provider, or
+     - multiple regions across multiple cloud providers.
+
+     As each cloud provider has its own set of regions, multi-cloud
+     clusters are also multi-region clusters.
+
+
+.. _deploy-across-multiple-regions:
+.. _deploy-across-multiple-cloud-providers:
+
+Electable Nodes for High Availability
+-------------------------------------
+
+.. include:: /includes/cluster-settings/multicloud/electable-nodes-high-avail.rst
+
+Each electable node can:
+
+- Participate in replica set elections.
+
+- Become the :term:`primary` while the majority of nodes in the
+  replica set remain available.
+
+.. _config-cloud-providers-regions:
+
+Add Electable Nodes
+~~~~~~~~~~~~~~~~~~~
+
+You can add electable nodes in one cloud provider and region from the
+:guilabel:`Electable nodes for high availability` section.
+
+To add an electable node:
+
+1. Click :guilabel:`Add a provider/region`.
+2. Select the cloud provider from the :guilabel:`Provider` dropdown.
+3. Select the region from the :guilabel:`Region` dropdown.
+
+   When you change the :guilabel:`Provider` option, the
+   :guilabel:`Region` changes to a blank option. If you don't select a
+   region, |service| displays an error when you click
+   :guilabel:`Create Cluster`.
+
+4. Specify the desired number of :guilabel:`Nodes` for the provider and
+   region.
+
+   The total number of electable nodes across all providers and regions
+   in the cluster must equal **3**, **5**, or **7**.
+
+|service| considers regions marked with a :icon-fa5:`star` as
+recommended. These regions provide higher availability compared to
+other regions.
+
+.. seealso::
+
+   - :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`.
+   - :ref:`GCP Recommended Regions <google-gcp-availability-zones>`.
+   - :ref:`Azure Recommended Regions <microsoft-azure-availability-zones>`.
+
+Remove Electable Nodes
+~~~~~~~~~~~~~~~~~~~~~~
+
+To remove a region, click the :icon:`trash-alt` icon to the right side
+of that region. You cannot remove the :guilabel:`Highest Priority`
+region.
+
+.. seealso:: :ref:`multi-region-cloud-backup`
+
+Improve the Availability of a Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To improve the redundancy and availability of a cluster, increase the
+number of electable nodes in that region. Every |service| cluster has a
+:guilabel:`Highest Priority` region. If your cluster spans multiple
+regions, you can select which cloud provider region should be the
+:guilabel:`Highest Priority`.
+
+Consider the following scenarios and how to prevent loss of
+availability and performance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Point of Failure
+     - How to Prevent this Point of Failure
+
+   * - Cloud Provider
+     - Minimum of one node set in all three cloud providers. More than
+       one node per region.
+
+   * - Region
+     - Minimum of one node set in three or more different regions. More
+       than one node per region.
+
+   * - Node
+     -
+       - Three or more electable nodes in a :guilabel:`Recommended`
+         region *or*
+       - Three or more electable nodes across two or more regions.
+
+Change the Highest Priority Provider/Region
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you change the :guilabel:`Highest Priority` provider and region in
+an active multi-region cluster, |service| performs a rolling restart on
+all nodes in that cluster. This change triggers an election. The result
+selects a new :term:`primary` node in the provider and region specified
+(assuming that the number of nodes in each provider and region remains
+the same and nothing else is modified).
+
+.. example::
+
+   If you have an active 5-node cluster with the following
+   configuration:
+
+   .. list-table::
+      :widths: 10 30 30 30
+      :header-rows: 1
+      :stub-columns: 1
+
+      * - Nodes
+        - Provider
+        - Region
+        - Priority
+
+      * - 3
+        - |aws|
+        - **us-east-1**
+        - Highest
+
+      * - 2
+        - |gcp|
+        - **us-west3**
+        -
+
+   To make the |gcp| **us-west3** nodes the
+   :guilabel:`Highest Priority`, drag its row to the first row of your
+   cluster's :guilabel:`Electable nodes`. After this change, |service|
+   performs a rolling restart on all nodes and elects a new **PRIMARY**
+   in **us-west3**. |service| doesn't start an initial sync or
+   re-provision hosts when changing this configuration.
+
+.. important::
+
+   Certain circumstances may delay an election of a new
+   :term:`primary`.
+
+   .. example::
+
+      A sharded cluster with heavy workloads on its :term:`primary`
+      shard may delay the election. This results in not having all
+      primary nodes in the same region temporarily.
+
+   To minimize these risks, avoid modifying your primary region during
+   periods of heavy workload.
+
+.. _deploy-read-only-replicas:
+
+Read-Only Nodes for Optimal Local Reads
+---------------------------------------
+
+Use read-only nodes to optimize local reads in the nodes' respective
+service areas.
+
+Add Read-Only Nodes
+~~~~~~~~~~~~~~~~~~~
+
+You can add read-only nodes from the
+:guilabel:`Read-Only Nodes for Optimal Local Reads` section.
+
+To add a read-only node in one cloud provider and region:
+
+1. Click :guilabel:`Add a provider/region`.
+2. Select the cloud provider from the :guilabel:`Provider` dropdown.
+3. Select the region from the :guilabel:`Region` dropdown.
+
+   When you change the :guilabel:`Provider` option, the
+   :guilabel:`Region` changes to a blank option. If you don't select a
+   region, |service| displays an error when you click
+   :guilabel:`Create Cluster`.
+
+4. Specify the desired number of :guilabel:`Nodes` for the provider and
+   region.
+
+|service| considers regions marked with a :icon-fa5:`star` as
+recommended. These regions provide higher availability compared to
+other regions.
+
+Read-only nodes don't provide high availability because they don't
+participate in :term:`elections <election>`. They can't become the
+:term:`primary` for their cluster. Read-only nodes have
+distinct :manual:`read preference </core/read-preference>` tags
+that allow you to direct queries to desired regions.
+
+Remove Read-Only Nodes
+~~~~~~~~~~~~~~~~~~~~~~
+
+To remove all read-only nodes in one cloud provider and region, click
+the :icon:`trash-alt` icon to the right of that cloud provider and
+region.
+
+.. _deploy-analytics-nodes:
+
+Analytics Nodes for Workload Isolation
+--------------------------------------
+
+.. include:: /includes/cluster-settings/multicloud/create-cluster-analytics-nodes.rst
+
+Add Analytics Nodes
+~~~~~~~~~~~~~~~~~~~
+
+You can add analytics nodes from the
+:guilabel:`Analytics nodes for workload isolation` section.
+
+To add analytics nodes in one cloud provider and region:
+
+1. Click :guilabel:`Add a provider/region`.
+2. Select the cloud provider from the :guilabel:`Provider` dropdown.
+3. Select the region from the :guilabel:`Region` dropdown.
+
+   When you change the :guilabel:`Provider` option, the
+   :guilabel:`Region` changes to a blank option. If you don't select a
+   region, |service| displays an error when you click
+   :guilabel:`Create Cluster`.
+
+4. Specify the desired number of :guilabel:`Nodes` for the provider and
+   region.
+
+|service| considers regions marked with a :icon-fa5:`star` as
+recommended. These regions provide higher availability compared to
+other regions.
+
+Analytics nodes don't provide high availability because they don't
+participate in :term:`elections <election>`. They can't become the
+:term:`primary` for their cluster.
+
+Remove Analytics Nodes
+~~~~~~~~~~~~~~~~~~~~~~
+
+To remove all analytics nodes in one cloud provider and region, click
+the :icon:`trash-alt` icon to the right of that cloud provider and
+region.
+
+Considerations
+--------------
+
+- .. include:: /includes/cluster-settings/node-type-topology-warning.rst
+
+- .. include:: /includes/cluster-settings/multicloud/remove-region-cross-region.rst
+
+- Having a large number of regions or having nodes spread across
+  long distances may lead to long election times or replication lag.
+
+- .. include:: /includes/fact-cross-region-limits.rst
+
+- If you plan on creating one or more |vpc| peering connections on
+  your first ``M10+`` dedicated paid cluster for the selected region
+  or regions, first review the documentation on
+  :doc:`VPC Peering Connections </security-vpc-peering>`.
+
+- |service| provides built-in custom write concerns for multi-region
+  clusters. Use these write concerns to ensure your write operations
+  propagate to a desired number of regions, thereby ensuring data
+  consistency across your regions.
+
+  .. seealso:: :ref:`built-in-custom-wc`.
+
+- .. include:: /includes/extracts/fact-no-node-restriction-base.rst
+

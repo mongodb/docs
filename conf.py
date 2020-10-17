@@ -194,6 +194,9 @@ rst_epilog = [
     '.. |vat| replace:: :abbr:`VAT (Value Added Tax)`',
     '.. |vpc| replace:: :abbr:`VPC (Virtual Private Cloud)`',
     '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`',
+    '.. |mpmr| replace:: :abbr:`MPMR (Multi-Provider, Multi-Region)`',
+    '.. |spmr| replace:: :abbr:`SPMR (Single-Provider, Multi-Region)`',
+    '.. |spsr| replace:: :abbr:`SPSR (Single-Provider, Single Region)`',
 ]
 
 rst_epilog.extend(get_replacements(conf))
