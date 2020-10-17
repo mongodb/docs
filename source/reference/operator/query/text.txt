@@ -151,7 +151,7 @@ restrictions also apply.
 .. include:: /includes/list-text-search-restrictions-in-agg.rst
 
 .. |text-object| replace:: :query:`$text`
-.. |meta-object| replace:: :projection:`$meta` projection operator
+.. |meta-object| replace:: :expression:`$meta` projection operator
 .. |sort-object| replace:: :method:`~cursor.sort()` method
 
 ``$search`` Field
@@ -373,39 +373,21 @@ The following examples assume a collection ``articles`` that has a
 
 Populate the collection with the following documents:
 
-.. only:: (not latex)
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.articles.insert(
+      [
+        { _id: 1, subject: "coffee", author: "xyz", views: 50 },
+        { _id: 2, subject: "Coffee Shopping", author: "efg", views: 5 },
+        { _id: 3, subject: "Baking a cake", author: "abc", views: 90  },
+        { _id: 4, subject: "baking", author: "xyz", views: 100 },
+        { _id: 5, subject: "Café Con Leche", author: "abc", views: 200 },
+        { _id: 6, subject: "Сырники", author: "jkl", views: 80 },
+        { _id: 7, subject: "coffee and cream", author: "efg", views: 10 },
+        { _id: 8, subject: "Cafe con Leche", author: "xyz", views: 10 }
+      ]
+   )
 
-      db.articles.insert(
-         [
-           { _id: 1, subject: "coffee", author: "xyz", views: 50 },
-           { _id: 2, subject: "Coffee Shopping", author: "efg", views: 5 },
-           { _id: 3, subject: "Baking a cake", author: "abc", views: 90  },
-           { _id: 4, subject: "baking", author: "xyz", views: 100 },
-           { _id: 5, subject: "Café Con Leche", author: "abc", views: 200 },
-           { _id: 6, subject: "Сырники", author: "jkl", views: 80 },
-           { _id: 7, subject: "coffee and cream", author: "efg", views: 10 },
-           { _id: 8, subject: "Cafe con Leche", author: "xyz", views: 10 }
-         ]
-      )
-
-.. only:: latex
-
-   .. code-block:: javascript
-
-      db.articles.insert(
-         [
-           { _id: 1, subject: "coffee", author: "xyz", views: 50 },
-           { _id: 2, subject: "Coffee Shopping", author: "efg", views: 5 },
-           { _id: 3, subject: "Baking a cake", author: "abc", views: 90  },
-           { _id: 4, subject: "baking", author: "xyz", views: 100 },
-           { _id: 5, subject: "Café Con Leche", author: "abc", views: 200 },
-           { _id: 6, subject: "", author: "jkl", views: 80 },
-           { _id: 7, subject: "coffee and cream", author: "efg", views: 10 },
-           { _id: 8, subject: "Cafe con Leche", author: "xyz", views: 10 }
-         ]
-      )
 
 Search for a Single Word
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -549,40 +531,21 @@ see :ref:`text Index Case Insensitivity
 <text-index-case-insensitivity>` and :ref:`text Index Diacritic
 Insensitivity <text-index-diacritic-insensitivity>`.
 
-.. only:: (not latex)
+The following query performs a case and diacritic insensitive text
+search for the terms ``сы́рники`` or ``CAFÉS``:
 
-   The following query performs a case and diacritic insensitive text
-   search for the terms ``сы́рники`` or ``CAFÉS``:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.articles.find( { $text: { $search: "сы́рники CAFÉS" } } )
 
-      db.articles.find( { $text: { $search: "сы́рники CAFÉS" } } )
+Using the version 3 ``text`` index, the query matches the following
+documents.
 
-   Using the version 3 ``text`` index, the query matches the following
-   documents.
+.. code-block:: javascript
 
-   .. code-block:: javascript
-
-      { "_id" : 6, "subject" : "Сырники", "author" : "jkl", "views" : 80 }
-      { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
-      { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz", "views" : 10 }
-
-.. only:: latex
-
-   The following query performs a case and diacritic insensitive text
-   search for the term ``CAFÉS``:
-
-   .. code-block:: javascript
-
-      db.articles.find( { $text: { $search: "CAFÉS" } } )
-
-   Using the version 3 ``text`` index, the query matches the following
-   documents.
-
-   .. code-block:: javascript
-
-      { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
-      { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz", "views" : 10 }
+   { "_id" : 6, "subject" : "Сырники", "author" : "jkl", "views" : 80 }
+   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
+   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz", "views" : 10 }
 
 With the previous versions of the ``text`` index, the query would not
 match any document.
@@ -742,7 +705,7 @@ Return the Text Search Score
 ````````````````````````````
 
 The following query performs a text search for the term ``cake`` and
-uses the :projection:`$meta` operator in the projection document to
+uses the :expression:`$meta` operator in the projection document to
 append the relevance score to each matching document:
 
 .. code-block:: javascript
@@ -760,7 +723,7 @@ contains the document's relevance score:
 
    { "_id" : 3, "subject" : "Baking a cake", "author" : "abc", "views" : 90, "score" : 0.75 }
 
-.. seealso:: :projection:`$meta`
+.. seealso:: :expression:`$meta`
 
 .. _ex-sort-text-search-score:
 
@@ -771,7 +734,7 @@ Sort by Text Search Score
 
 
 - In MongoDB 4.2 and earlier, to sort by the text score, include the
-  **same** :projection:`$meta` expression in **both** the projection
+  **same** :expression:`$meta` expression in **both** the projection
   document and the sort expression. The following
   query searches for the term ``coffee`` and sorts the results by the
   descending score:
@@ -785,7 +748,7 @@ Sort by Text Search Score
 
   The query returns the matching documents sorted by descending score.
 
-.. seealso:: :projection:`$meta`
+.. seealso:: :expression:`$meta`
 
 .. _ex-sort-limit-two:
 
@@ -806,7 +769,7 @@ matching documents:
       { score: { $meta: "textScore" } }
    ).sort( { score: { $meta: "textScore" } } ).limit(2)
 
-.. seealso:: :projection:`$meta`
+.. seealso:: :expression:`$meta`
 
 .. _text-operator-example-compound-sort:
 

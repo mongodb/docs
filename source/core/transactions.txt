@@ -4,8 +4,7 @@ Transactions
 
 .. default-domain:: mongodb
 
-.. role:: red(strong)
-   :class: text-danger
+
 
 .. contents:: On this page
    :local:
@@ -427,32 +426,30 @@ index to create must be on either:
 Restrictions
 ````````````
 
-.. container::
+- .. include:: /includes/extracts/transactions-cross-shard-collection-restriction.rst
 
-   - .. include:: /includes/extracts/transactions-cross-shard-collection-restriction.rst
+- For explicit creation of a collection or an index inside a
+  transaction, the transaction read concern level must be
+  :readconcern:`"local"`. Explicit creation is through:
 
-   - For explicit creation of a collection or an index inside a
-     transaction, the transaction read concern level must be
-     :readconcern:`"local"`. Explicit creation is through:
+  .. list-table::
+     :header-rows: 1
 
-     .. list-table::
-        :header-rows: 1
+     * - Command
+       - Method
 
-        * - Command
-          - Method
- 
-        * - :dbcommand:`create`
-          - :method:`db.createCollection()`
+     * - :dbcommand:`create`
+       - :method:`db.createCollection()`
 
-        * - :dbcommand:`createIndexes`
+     * - :dbcommand:`createIndexes`
 
-          - | :method:`db.collection.createIndex()`
-            | :method:`db.collection.createIndexes()`
+       - | :method:`db.collection.createIndex()`
+         | :method:`db.collection.createIndexes()`
 
-   - The parameter
-     :parameter:`shouldMultiDocTxnCreateCollectionAndIndexes` must be
-     ``true`` (the default). When setting the parameter for a sharded
-     cluster, set the parameter on all shards.
+- The parameter
+  :parameter:`shouldMultiDocTxnCreateCollectionAndIndexes` must be
+  ``true`` (the default). When setting the parameter for a sharded
+  cluster, set the parameter on all shards.
 
 .. seealso::
 
@@ -463,18 +460,14 @@ Restrictions
 Count Operation
 ~~~~~~~~~~~~~~~
 
-.. container::
-
-   .. include:: /includes/extracts/transactions-count.rst
+.. include:: /includes/extracts/transactions-count.rst
 
 .. _transactions-ops-distinct:
 
 Distinct Operation
 ~~~~~~~~~~~~~~~~~~
 
-.. container::
-
-   .. include:: /includes/extracts/transactions-distinct.rst
+.. include:: /includes/extracts/transactions-distinct.rst
 
 .. _transactions-ops-info:
 
@@ -565,57 +558,51 @@ Transactions support the following read concern levels:
 ``"local"``
 ```````````
 
-.. container::
+- Read concern :readconcern:`"local"` returns the most recent data
+  available from the node but can be rolled back.
 
-   - Read concern :readconcern:`"local"` returns the most recent data
-     available from the node but can be rolled back.
+- For transactions on sharded cluster, :readconcern:`"local"` read
+  concern cannot guarantee that the data is from the same snapshot
+  view across the shards. If snapshot isolation is required, use
+  :ref:`transactions-read-concern-snapshot` read concern.
 
-   - For transactions on sharded cluster, :readconcern:`"local"` read
-     concern cannot guarantee that the data is from the same snapshot
-     view across the shards. If snapshot isolation is required, use
-     :ref:`transactions-read-concern-snapshot` read concern.
-
-   - .. include:: /includes/extracts/transactions-create-collections-read-concern.rst
+- .. include:: /includes/extracts/transactions-create-collections-read-concern.rst
 
 ``"majority"``
 ``````````````
 
-.. container::
+- Read concern :readconcern:`"majority"` returns data that has been
+  acknowledged by a majority of the replica set members (i.e. data
+  cannot be rolled back) **if** the transaction commits with
+  :ref:`write concern "majority" <transactions-write-concern>`.
 
-   - Read concern :readconcern:`"majority"` returns data that has been
-     acknowledged by a majority of the replica set members (i.e. data
-     cannot be rolled back) **if** the transaction commits with
-     :ref:`write concern "majority" <transactions-write-concern>`.
+- If the transaction does not use :ref:`write concern "majority"
+  <transactions-write-concern>` for the commit, the
+  :readconcern:`"majority"` read concern provides **no** guarantees that
+  read operations read majority-committed data.
 
-   - If the transaction does not use :ref:`write concern "majority"
-     <transactions-write-concern>` for the commit, the
-     :readconcern:`"majority"` read concern provides **no** guarantees that
-     read operations read majority-committed data.
-
-   - For transactions on sharded cluster, :readconcern:`"majority"` read
-     concern cannot guarantee that the data is from the same snapshot
-     view across the shards. If snapshot isolation is required, use
-     :ref:`transactions-read-concern-snapshot` read concern.
+- For transactions on sharded cluster, :readconcern:`"majority"` read
+  concern cannot guarantee that the data is from the same snapshot
+  view across the shards. If snapshot isolation is required, use
+  :ref:`transactions-read-concern-snapshot` read concern.
 
 .. _transactions-read-concern-snapshot:
 
 ``"snapshot"``
 ``````````````
 
-.. container::
+- Read concern :readconcern:`"snapshot"` returns data from a
+  snapshot of majority committed data **if** the transaction commits
+  with :ref:`write concern "majority" <transactions-write-concern>`.
 
-   - Read concern :readconcern:`"snapshot"` returns data from a
-     snapshot of majority committed data **if** the transaction commits
-     with :ref:`write concern "majority" <transactions-write-concern>`.
+- If the transaction does not use :ref:`write concern "majority"
+  <transactions-write-concern>` for the commit, the
+  :readconcern:`"snapshot"` read concern provides **no** guarantee that
+  read operations used a snapshot of majority-committed data.
 
-   - If the transaction does not use :ref:`write concern "majority"
-     <transactions-write-concern>` for the commit, the
-     :readconcern:`"snapshot"` read concern provides **no** guarantee that
-     read operations used a snapshot of majority-committed data.
-
-   - For transactions on sharded clusters, the
-     :readconcern:`"snapshot"` view of the data **is** synchronized
-     across shards.
+- For transactions on sharded clusters, the
+  :readconcern:`"snapshot"` view of the data **is** synchronized
+  across shards.
 
 .. _transactions-write-concern:
 
@@ -655,48 +642,43 @@ values, including:
 ``w: 1``
 ````````
 
-.. container::
+- Write concern :writeconcern:`w: 1 <\<number\>>` returns
+  acknowledgement after the commit has been applied to the primary.
 
-   - Write concern :writeconcern:`w: 1 <\<number\>>` returns
-     acknowledgement after the commit has been applied to the primary.
+  .. important::
 
-     .. important::
+     When you commit with :writeconcern:`w: 1 <\<number\>>`, your
+     transaction can be :doc:`rolled back if there is a failover
+     </core/replica-set-rollbacks>`.
 
-        When you commit with :writeconcern:`w: 1 <\<number\>>`, your
-        transaction can be :doc:`rolled back if there is a failover
-        </core/replica-set-rollbacks>`.
+- When you commit with :writeconcern:`w: 1 <\<number\>>` write
+  concern, transaction-level :readconcern:`"majority"` read concern
+  provides **no** guarantees that read operations in the transaction
+  read majority-committed data.
 
-   - When you commit with :writeconcern:`w: 1 <\<number\>>` write
-     concern, transaction-level :readconcern:`"majority"` read concern
-     provides **no** guarantees that read operations in the transaction
-     read majority-committed data.
-
-   - When you commit with :writeconcern:`w: 1 <\<number\>>` write
-     concern, transaction-level :readconcern:`"snapshot"` read concern
-     provides **no** guarantee that read operations in the transaction
-     used a snapshot of majority-committed data.
+- When you commit with :writeconcern:`w: 1 <\<number\>>` write
+  concern, transaction-level :readconcern:`"snapshot"` read concern
+  provides **no** guarantee that read operations in the transaction
+  used a snapshot of majority-committed data.
 
 ``w: "majority"``
 `````````````````
 
-.. container::
+- Write concern :writeconcern:`w: "majority" <"majority">` returns
+  acknowledgement after the commit has been applied to a majority
+  (M) of voting members; i.e. the commit has been applied to the
+  primary and (M-1) voting secondaries.
 
-   - Write concern :writeconcern:`w: "majority" <"majority">` returns
-     acknowledgement after the commit has been applied to a majority
-     (M) of voting members; i.e. the commit has been applied to the
-     primary and (M-1) voting secondaries.
+- When you commit with :writeconcern:`w: "majority" <"majority">`
+  write concern, transaction-level :readconcern:`"majority"` read
+  concern guarantees that operations have read majority-committed
+  data. For transactions on sharded clusters, this view of the
+  majority-committed data is not synchronized across shards.
 
-   - When you commit with :writeconcern:`w: "majority" <"majority">`
-     write concern, transaction-level :readconcern:`"majority"` read
-     concern guarantees that operations have read majority-committed
-     data. For transactions on sharded clusters, this view of the
-     majority-committed data is not synchronized across shards.
-
-   - When you commit with :writeconcern:`w: "majority" <"majority">`
-     write concern, transaction-level :readconcern:`"snapshot"` read
-     concern guarantees that operations have from a synchronized
-     snapshot of majority-committed data.
-
+- When you commit with :writeconcern:`w: "majority" <"majority">`
+  write concern, transaction-level :readconcern:`"snapshot"` read
+  concern guarantees that operations have from a synchronized
+  snapshot of majority-committed data.
 
 .. note::
 

@@ -1,4 +1,4 @@
-If you include a :method:`~db.cursor.hint()` that specifies a
+If you include a :method:`~cursor.hint()` that specifies a
 :ref:`sparse index <index-type-sparse>` when you perform a
 :method:`~cursor.count()` of all documents in a collection (i.e. with
 an empty query predicate), the sparse index is used even if the sparse
@@ -11,7 +11,7 @@ index results in an incorrect count.
 
    db.collection.find().hint( { x: 1 } ).count();
 
-To obtain the correct count, do not :method:`~db.cursor.hint()` with a
+To obtain the correct count, do not :method:`~cursor.hint()` with a
 :ref:`sparse index <index-type-sparse>` when performing a count of all
 documents in a collection.
 

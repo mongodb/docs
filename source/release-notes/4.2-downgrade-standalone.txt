@@ -71,55 +71,42 @@ Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
 2a. Index Key Size
 ``````````````````
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-downgrade-fcv-index-key.rst
+.. include:: /includes/extracts/4.2-downgrade-fcv-index-key.rst
 
 .. _4.2-downgrade-index-name-standalone:
 
 2b. Index Name Length
 `````````````````````
-
-.. container::
-
-   .. include:: /includes/extracts/4.2-downgrade-fcv-index-name.rst
+.. include:: /includes/extracts/4.2-downgrade-fcv-index-name.rst
 
 2c. Unique Index Version
 ````````````````````````
 
-.. container::
+.. include:: /includes/extracts/4.2-downgrade-fcv-unique-index.rst
 
-   .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index.rst
+.. tip::
 
-   .. tip::
+   Perform this operation after you have resolved any :ref:`index
+   key size <4.2-downgrade-index-key-standalone>` and :ref:`index
+   name length <4.2-downgrade-index-name-standalone>` issues first.
 
-      Perform this operation after you have resolved any :ref:`index
-      key size <4.2-downgrade-index-key-standalone>` and :ref:`index
-      name length <4.2-downgrade-index-name-standalone>` issues first.
-
-   Script
-      .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script.rst
+Script
+   .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script.rst
 
 2d. Remove Wildcard Indexes
 ```````````````````````````
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-downgrade-fcv-wildcard-index.rst
+.. include:: /includes/extracts/4.2-downgrade-fcv-wildcard-index.rst
 
 2e. View Definitions/Collection Validation Definitions that Include 4.2 Operators
 `````````````````````````````````````````````````````````````````````````````````
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-downgrade-view-definitions.rst
+.. include:: /includes/extracts/4.2-downgrade-view-definitions.rst
 
 3. Update ``tls``-Prefixed Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-changes-options-tls-ssl-downgrade.rst
+.. include:: /includes/extracts/4.2-changes-options-tls-ssl-downgrade.rst
 
 4. Prepare Downgrade from ``zstd`` Compression
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -129,87 +116,81 @@ Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
 ``zstd`` Data Compression
 `````````````````````````
 
-.. container::
+The :term:`zstd` compression library is available starting in
+version 4.2.
 
-   The :term:`zstd` compression library is available starting in
-   version 4.2.
+If your standalone has any data using :term:`zstd` compression:
 
-   If your standalone has any data using :term:`zstd` compression:
+.. tip::
 
-   .. tip::
+   Perform this step after all the other prerequisite steps have
+   been performed.
 
-      Perform this step after all the other prerequisite steps have
-      been performed.
+#. Stop all writes to your instance.
 
-   #. Stop all writes to your instance.
+#. Create a :binary:`~bin.mongodump` of your database before
+   starting the downgrade; :binary:`~bin.mongodump` outputs
+   uncompressed data.
 
-   #. Create a :binary:`~bin.mongodump` of your database before
-      starting the downgrade; :binary:`~bin.mongodump` outputs
-      uncompressed data.
+   .. code-block:: sh
 
-      .. code-block:: sh
+      mongodump --host=<myhost> --port=<port> --out=mystandalone.uncompressed.fcv4.0
 
-         mongodump --host=<myhost> --port=<port> --out=mystandalone.uncompressed.fcv4.0
+   Include any other options, such as ``--username``, ``--password``,
+   and ``--authenticationDatabase`` if your standalone enforces
+   access control.
 
-      Include any other options, such as ``--username``, ``--password``,
-      and ``--authenticationDatabase`` if your standalone enforces
-      access control.
+#. Create a new empty :option:`data directory <mongod --dbpath>` for
+   the :binary:`~bin.mongod` instance. This directory will be used
+   in the downgrade procedure below.
 
-   #. Create a new empty :option:`data directory <mongod --dbpath>` for
-      the :binary:`~bin.mongod` instance. This directory will be used
-      in the downgrade procedure below.
+   .. important::
 
-      .. important::
+      Ensure that the user account running :binary:`~bin.mongod` has
+      read and write permissions for the new directory.
 
-         Ensure that the user account running :binary:`~bin.mongod` has
-         read and write permissions for the new directory.
+#. If you use a :doc:`configuration file
+   </reference/configuration-options>`, update the file to prepare for
+   the downgrade procedure:
 
-   #. If you use a :doc:`configuration file
-      </reference/configuration-options>`, update the file to prepare for
-      the downgrade procedure:
+   a. Delete
+      :setting:`storage.wiredTiger.collectionConfig.blockCompressor`
+      to use the default compressor (``snappy``) or
+      set to another 4.0 supported compressor.
 
-      a. Delete
-         :setting:`storage.wiredTiger.collectionConfig.blockCompressor`
-         to use the default compressor (``snappy``) or
-         set to another 4.0 supported compressor.
+   #. Update :setting:`storage.dbPath` to the new
+      data directory.
 
-      #. Update :setting:`storage.dbPath` to the new
-         data directory.
-
-      | If you use command-line options instead, you will have to update
-        the options in the procedure below.
+   | If you use command-line options instead, you will have to update
+     the options in the procedure below.
 
 .. _downgrade-standalone-prereq-zstd-journal:
 
 ``zstd`` Journal Compression
 ````````````````````````````
 
-.. container::
+The :term:`zstd` compression library is available for journal data
+compression starting in version 4.2.
 
-   The :term:`zstd` compression library is available for journal data
-   compression starting in version 4.2.
+If the :binary:`~bin.mongod` instance uses :term:`zstd` library for
+its journal compressor:
 
-   If the :binary:`~bin.mongod` instance uses :term:`zstd` library for
-   its journal compressor:
+.. include:: /includes/extracts/4.2-changes-zstd-journal-compression-config-only.rst
 
-   .. include:: /includes/extracts/4.2-changes-zstd-journal-compression-config-only.rst
+.. note::
 
-   .. note::
-
-      If you encounter an unclean shutdown for a :binary:`~bin.mongod`
-      during the downgrade procedure such that you need to use the
-      journal files to recover, recover the
-      instance using the 4.2 :binary:`~bin.mongod` and then retry the
-      downgrade of the instance.
+   If you encounter an unclean shutdown for a :binary:`~bin.mongod`
+   during the downgrade procedure such that you need to use the
+   journal files to recover, recover the
+   instance using the 4.2 :binary:`~bin.mongod` and then retry the
+   downgrade of the instance.
 
 .. _downgrade-standalone-prereq-zstd-network:
 
 ``zstd`` Network Compression
 ````````````````````````````
 
-.. container::
-
-   .. include:: /includes/extracts/4.2-changes-zstd-network-compression.rst
+.. include:: /includes/extracts/4.2-changes-zstd-network-compression.rst
 
 5. Remove Client-Side Field Level Encryption Document Validation Keywords
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

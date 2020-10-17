@@ -4,8 +4,7 @@ refineCollectionShardKey
 
 .. default-domain:: mongodb
 
-.. role:: red(strong)
-   :class: text-danger
+
 
 .. contents:: On this page
    :local:
@@ -191,132 +190,128 @@ Index Considerations
 Examples
 --------
 
-.. container::
+To set up the example in the ``test`` database:
 
-   To set up the example in the ``test`` database:
+a. Enable sharding on the database, if sharding is not already enabled:
 
-   a. Enable sharding on the database, if sharding is not already enabled:
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      sh.enableSharding("test")
 
-         sh.enableSharding("test")
+#. Use following :dbcommand:`shardCollection` operation to shard the
+   ``orders`` collection in the ``test`` database. The operation
+   uses the ``customer_id`` field as the initial :ref:`shard key
+   <shard-key>`:
 
-   #. Use following :dbcommand:`shardCollection` operation to shard the
-      ``orders`` collection in the ``test`` database. The operation
-      uses the ``customer_id`` field as the initial :ref:`shard key
-      <shard-key>`:
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      db.adminCommand( { shardCollection: "test.orders", key: { customer_id: 1 } } )
 
-         db.adminCommand( { shardCollection: "test.orders", key: { customer_id: 1 } } )
+To modify the shard key to be the ``customer_id`` field and the
+``order_id`` field ``{ customer_id: 1, order_id: 1 }``,
 
-   To modify the shard key to be the ``customer_id`` field and the
-   ``order_id`` field ``{ customer_id: 1, order_id: 1 }``,
+#. :method:`Create the index <db.collection.createIndex()>` to
+   support the new shard key if the index does not already exist.
 
-   #. :method:`Create the index <db.collection.createIndex()>` to
-      support the new shard key if the index does not already exist.
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      db.getSiblingDB("test").orders.createIndex( { customer_id: 1, order_id: 1 } )
 
-         db.getSiblingDB("test").orders.createIndex( { customer_id: 1, order_id: 1 } )
+#. Run :dbcommand:`refineCollectionShardKey` command to add the ``order_id``
+   field as a suffix:
 
-   #. Run :dbcommand:`refineCollectionShardKey` command to add the ``order_id``
-      field as a suffix:
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      db.adminCommand( { 
+         refineCollectionShardKey: "test.orders", 
+         key: { customer_id: 1, order_id: 1 }
+      } )
 
-         db.adminCommand( { 
-            refineCollectionShardKey: "test.orders", 
-            key: { customer_id: 1, order_id: 1 }
-         } )
+Upon successful completion of the command, the shard key for the
+collection has changed to ``{ customer_id: 1, order_id: 1 }``. To verify,
+you can run :method:`sh.status()`.
 
-   Upon successful completion of the command, the shard key for the
-   collection has changed to ``{ customer_id: 1, order_id: 1 }``. To verify,
-   you can run :method:`sh.status()`.
+.. tip::
 
-   .. tip::
+   After you refine the shard key, it may be that not all documents in
+   the collection have the suffix field(s). To populate the missing
+   shard key field(s), see :ref:`shard-key-missing`.
 
-      After you refine the shard key, it may be that not all documents in
-      the collection have the suffix field(s). To populate the missing
-      shard key field(s), see :ref:`shard-key-missing`.
-
-      Before refining the shard key, ensure that all or most documents in
-      the collection have the suffix fields, if possible, to avoid having
-      to populate the field afterwards.
+   Before refining the shard key, ensure that all or most documents in
+   the collection have the suffix fields, if possible, to avoid having
+   to populate the field afterwards.
 
 Collection with non-``simple`` Collation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+To set up the example in the ``test`` database:
 
-   To set up the example in the ``test`` database:
+a. Enable sharding on the database, if sharding is not already enabled:
 
-   a. Enable sharding on the database, if sharding is not already enabled:
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      sh.enableSharding("test")
 
-         sh.enableSharding("test")
+#. Create the ``cafés`` collection in the ``test`` database,
+   specifying French ``fr`` as the default :doc:`collation </reference/collation>`.
 
-   #. Create the ``cafés`` collection in the ``test`` database,
-      specifying French ``fr`` as the default :doc:`collation </reference/collation>`.
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      db.getSiblingDB("test").createCollection( "cafés", { collation: { locale: "fr" } } );
 
-         db.getSiblingDB("test").createCollection( "cafés", { collation: { locale: "fr" } } );
+#. Shard the collection using ``customer_id`` field as the initial
+   :ref:`shard key <shard-key>`. Because the collection has a default ``fr``
+   collation and not a ``simple`` collation, the
+   :dbcommand:`shardCollection` command must include a ``collation:
+   { locale: "simple" }`` option:
 
-   #. Shard the collection using ``customer_id`` field as the initial
-      :ref:`shard key <shard-key>`. Because the collection has a default ``fr``
-      collation and not a ``simple`` collation, the
-      :dbcommand:`shardCollection` command must include a ``collation:
-      { locale: "simple" }`` option:
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      db.adminCommand( { 
+         shardCollection: "test.cafés", 
+         key: { customer_id: 1 },
+         collation: { locale: "simple" } 
+      } )
 
-         db.adminCommand( { 
-            shardCollection: "test.cafés", 
-            key: { customer_id: 1 },
-            collation: { locale: "simple" } 
-         } )
+To modify the shard key to be both the ``customer_id`` field and the
+``order_id`` field ``{ customer_id: 1, order_id: 1 }``,
 
-   To modify the shard key to be both the ``customer_id`` field and the
-   ``order_id`` field ``{ customer_id: 1, order_id: 1 }``,
+#. :method:`Create the index <db.collection.createIndex()>` to
+   support the new shard key if the index does not already exist.
+   Because the collection uses a non-simple :doc:`collation
+   </reference/collation>`, the index must include the ``collation:
+   { locale: "simple" }`` option.
 
-   #. :method:`Create the index <db.collection.createIndex()>` to
-      support the new shard key if the index does not already exist.
-      Because the collection uses a non-simple :doc:`collation
-      </reference/collation>`, the index must include the ``collation:
-      { locale: "simple" }`` option.
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      db.getSiblingDB("test").cafés.createIndex( 
+         { customer_id: 1, order_id: 1 }, 
+         { collation: { locale: "simple" } } 
+      )
 
-         db.getSiblingDB("test").cafés.createIndex( 
-            { customer_id: 1, order_id: 1 }, 
-            { collation: { locale: "simple" } } 
-         )
+#. Run :dbcommand:`refineCollectionShardKey` command to add the ``order_id``
+   field as a suffix:
 
-   #. Run :dbcommand:`refineCollectionShardKey` command to add the ``order_id``
-      field as a suffix:
+   .. code-block:: javascript
 
-      .. code-block:: javascript
+      db.adminCommand( { 
+         refineCollectionShardKey: "test.cafés",
+         key: { customer_id: 1, order_id: 1 } 
+      } )
 
-         db.adminCommand( { 
-            refineCollectionShardKey: "test.cafés",
-            key: { customer_id: 1, order_id: 1 } 
-         } )
+Upon successful completion of the command, the shard key for the
+collection has changed to ``{ customer_id: 1, order_id: 1 }``. To verify,
+you can run :method:`sh.status()`.
 
-   Upon successful completion of the command, the shard key for the
-   collection has changed to ``{ customer_id: 1, order_id: 1 }``. To verify,
-   you can run :method:`sh.status()`.
-
-   .. tip::
+.. tip::
 
 
-      After you refine the shard key, it may be that not all documents in
-      the collection have the suffix field(s). To populate the missing
-      shard key field(s), see :ref:`shard-key-missing`.
+   After you refine the shard key, it may be that not all documents in
+   the collection have the suffix field(s). To populate the missing
+   shard key field(s), see :ref:`shard-key-missing`.
 
-      Before refining the shard key, ensure that all or most documents in
-      the collection have the suffix fields, if possible, to avoid having
-      to populate the field afterwards.
+   Before refining the shard key, ensure that all or most documents in
+   the collection have the suffix fields, if possible, to avoid having
+   to populate the field afterwards.
 
 .. seealso::  :doc:`/core/sharding-shard-key/`

@@ -4,8 +4,7 @@ db.collection.replaceOne()
 
 .. default-domain:: mongodb
 
-.. role:: red(strong)
-   :class: text-danger
+
 
 .. contents:: On this page
    :local:
@@ -190,102 +189,93 @@ replacement document.
 Shard Key Requirements In Replacement Document
 ``````````````````````````````````````````````
 
-.. container::
+Starting in MongoDB 4.4, the replacement document does not need to
+include the shard key. In MongoDB 4.2 and earlier, the replacement
+document must include the shard key.
 
-   Starting in MongoDB 4.4, the replacement document does not need to
-   include the shard key. In MongoDB 4.2 and earlier, the replacement
-   document must include the shard key.
-
-   .. include:: /includes/shard-key-modification-warning.rst
+.. include:: /includes/shard-key-modification-warning.rst
       
 .. _replaceOne-sharded-upsert:
 
 ``upsert`` on a Sharded Collection
 ``````````````````````````````````
 
-.. container::
+Starting in MongoDB 4.2, a :method:`db.collection.replaceOne()`
+operation that includes ``upsert: true`` on a sharded collection must
+include the full shard key in the ``filter``.
 
-   Starting in MongoDB 4.2, a :method:`db.collection.replaceOne()`
-   operation that includes ``upsert: true`` on a sharded collection must
-   include the full shard key in the ``filter``.
-
-   .. include:: /includes/extracts/missing-shard-key-equality-condition-update.rst
+.. include:: /includes/extracts/missing-shard-key-equality-condition-update.rst
 
 .. _replaceOne-shard-key-modification:
 
 Shard Key Modification
 ``````````````````````
 
-.. container::
+.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
 
-   .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+.. include:: /includes/shard-key-modification-warning.rst
 
-   .. include:: /includes/shard-key-modification-warning.rst
+To modify the **existing** shard key value with
+:method:`db.collection.replaceOne()`:
 
-   To modify the **existing** shard key value with
-   :method:`db.collection.replaceOne()`:
-   
-   - You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
-     issue the operation directly on the shard.
+- You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
+  issue the operation directly on the shard.
 
-   - You :red:`must` run either in a :doc:`transaction
-     </core/transactions>` or as a :doc:`retryable write
-     </core/retryable-writes>`. 
+- You :red:`must` run either in a :doc:`transaction
+  </core/transactions>` or as a :doc:`retryable write
+  </core/retryable-writes>`. 
 
-   - You :red:`must` include an equality :ref:`filter
-     <replace-one-filter>` on the full shard key.
-
+- You :red:`must` include an equality :ref:`filter
+  <replace-one-filter>` on the full shard key.
 
 .. _replaceOne-missing-shard-key:
 
 Missing Shard Key
 `````````````````
 
-.. container::
+Starting in version 4.4, documents in a sharded collection can be
+:ref:`missing the shard key fields <shard-key-missing>`. To use
+:method:`db.collection.replaceOne()` to set the document's
+**missing** shard key, you :red:`must` run on a
+:binary:`~bin.mongos`. Do :red:`not` issue the operation directly on
+the shard.
 
-   Starting in version 4.4, documents in a sharded collection can be
-   :ref:`missing the shard key fields <shard-key-missing>`. To use
-   :method:`db.collection.replaceOne()` to set the document's
-   **missing** shard key, you :red:`must` run on a
-   :binary:`~bin.mongos`. Do :red:`not` issue the operation directly on
-   the shard.
+In addition, the following requirements also apply:
 
-   In addition, the following requirements also apply:
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 30 70
+   * - 
 
-      * - 
+     - Requirements
 
-        - Requirements
+   * - To set to ``null``
 
-      * - To set to ``null``
+     - - Requires equality filter on the full shard key if ``upsert:
+         true`` is specified.
 
-        - - Requires equality filter on the full shard key if ``upsert:
-            true`` is specified.
+   * - To set to a non-``null`` value
 
-      * - To set to a non-``null`` value
+     - - :red:`Must` be performed either inside a :doc:`transaction
+         </core/transactions>` or as a :doc:`retryable write
+         </core/retryable-writes>`.
 
-        - - :red:`Must` be performed either inside a :doc:`transaction
-            </core/transactions>` or as a :doc:`retryable write
-            </core/retryable-writes>`.
+       - Requires equality filter on the full shard key if either:
 
-          - Requires equality filter on the full shard key if either:
+         - ``upsert: true``, or
 
-            - ``upsert: true``, or
+         - the new shard key value belongs to a different shard.
 
-            - the new shard key value belongs to a different shard.
+.. tip::
 
-   .. tip::
+   .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
 
-      .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+See also:
 
-   See also:
-   
-   - :ref:`replaceOne-sharded-upsert`
-   
-   - :ref:`shard-key-missing`
+- :ref:`replaceOne-sharded-upsert`
+
+- :ref:`shard-key-missing`
 
 Transactions
 ~~~~~~~~~~~~

@@ -34,67 +34,65 @@ Definition
 Syntax
 ------
 
-.. container::
+The :expression:`$function` operator has the following syntax:
 
-   The :expression:`$function` operator has the following syntax:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   { 
+     $function: {
+       body: <code>,
+       args: <array expression>,
+       lang: "js"
+     }
+   }
 
-      { 
-        $function: {
-          body: <code>,
-          args: <array expression>,
-          lang: "js"
-        }
-      }
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
+   * - Field
+     - Type
+     - Description
+     
 
-      * - Field
-        - Type
-        - Description
-        
+   * - :ref:`body <function-body>`
 
-      * - :ref:`body <function-body>`
+     - String or Code
 
-        - String or Code
-   
-        - .. _function-body:
+     - .. _function-body:
 
-          The function definition. You can specify the function
-          definition as either BSON type Code or String. See also
-          :ref:`lang <function-lang>`.
+       The function definition. You can specify the function
+       definition as either BSON type Code or String. See also
+       :ref:`lang <function-lang>`.
 
-          ``function(arg1, arg2, ...) { ... }``
+       ``function(arg1, arg2, ...) { ... }``
 
-          or
+       or
 
-          ``"function(arg1, arg2, ...) { ... }"``
+       ``"function(arg1, arg2, ...) { ... }"``
 
 
-      * - :ref:`args <function-args>`
+   * - :ref:`args <function-args>`
 
-        - Array
+     - Array
 
-        - .. _function-args:
+     - .. _function-args:
 
-          Arguments passed to the function :ref:`body <function-body>`.
-          If the :ref:`body <function-body>` function does not take an
-          argument, you can specify an empty array ``[ ]``.
+       Arguments passed to the function :ref:`body <function-body>`.
+       If the :ref:`body <function-body>` function does not take an
+       argument, you can specify an empty array ``[ ]``.
 
-          The array elements can be any BSON type, including Code. See
-          :ref:`function-example-where-alternative`.
+       The array elements can be any BSON type, including Code. See
+       :ref:`function-example-where-alternative`.
 
-      * - :ref:`lang <function-lang>`
+   * - :ref:`lang <function-lang>`
 
-        - String
+     - String
 
-        - .. _function-lang:
+     - .. _function-lang:
 
-          The language used in the :ref:`body <function-body>`. You
-          must specify ``lang: "js"``.
+       The language used in the :ref:`body <function-body>`. You
+       must specify ``lang: "js"``.
 
 
 Considerations
@@ -164,76 +162,74 @@ Examples
 Example 1: Usage Example
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+Create a sample collection named ``players`` with the following
+documents:
 
-   Create a sample collection named ``players`` with the following
-   documents:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.players.insertMany([
+      { _id: 1, name: "Miss Cheevous",  scores: [ 10, 5, 10 ] },
+      { _id: 2, name: "Miss Ann Thrope", scores: [ 10, 10, 10 ] },
+      { _id: 3, name: "Mrs. Eppie Delta ", scores: [ 9, 8, 8 ] }
+   ])
 
-      db.players.insertMany([
-         { _id: 1, name: "Miss Cheevous",  scores: [ 10, 5, 10 ] },
-         { _id: 2, name: "Miss Ann Thrope", scores: [ 10, 10, 10 ] },
-         { _id: 3, name: "Mrs. Eppie Delta ", scores: [ 9, 8, 8 ] }
-      ])
+The following aggregation operation uses :pipeline:`$addFields` to
+add new fields to each document:
 
-   The following aggregation operation uses :pipeline:`$addFields` to
-   add new fields to each document:
-   
-   - ``isFound`` whose value is determined by the custom
-     :expression:`$function` expression that checks whether the MD5
-     hash of the name is equal to a specified hash.
-   
-   - ``message`` whose value is determined by the custom
-     :expression:`$function` expression that format a string message
-     using a template.
+- ``isFound`` whose value is determined by the custom
+  :expression:`$function` expression that checks whether the MD5
+  hash of the name is equal to a specified hash.
 
-   .. code-block:: javascript
+- ``message`` whose value is determined by the custom
+  :expression:`$function` expression that format a string message
+  using a template.
 
-      db.players.aggregate( [
-         { $addFields:
-            {
-              isFound:
-                  { $function:
-                     {
-                        body: function(name) { 
-                           return hex_md5(name) == "15b0a220baa16331e8d80e15367677ad"
-                        },
-                        args: [ "$name" ],
-                        lang: "js"
-                     }
-                  },
-               message: 
-                  { $function:
-                     {
-                        body: function(name, scores) {
-                           let total = Array.sum(scores);
-                           return `Hello ${name}.  Your total score is ${total}.`
-                        },
-                        args: [ "$name", "$scores"],
-                        lang: "js"
-                     }
+.. code-block:: javascript
+
+   db.players.aggregate( [
+      { $addFields:
+         {
+           isFound:
+               { $function:
+                  {
+                     body: function(name) { 
+                        return hex_md5(name) == "15b0a220baa16331e8d80e15367677ad"
+                     },
+                     args: [ "$name" ],
+                     lang: "js"
                   }
-             }
+               },
+            message: 
+               { $function:
+                  {
+                     body: function(name, scores) {
+                        let total = Array.sum(scores);
+                        return `Hello ${name}.  Your total score is ${total}.`
+                     },
+                     args: [ "$name", "$scores"],
+                     lang: "js"
+                  }
+               }
           }
-      ] )
+       }
+   ] )
 
-   The operation returns the following documents:
+The operation returns the following documents:
 
-   .. code-block:: javascript
-      :copyable: false
+.. code-block:: javascript
+   :copyable: false
 
-      { "_id" : 1, "name" : "Miss Cheevous", "scores" : [ 10, 5, 10 ], "isFound" : false, "message" : "Hello Miss Cheevous.  Your total score is 25." }
-      { "_id" : 2, "name" : "Miss Ann Thrope", "scores" : [ 10, 10, 10 ], "isFound" : true, "message" : "Hello Miss Ann Thrope.  Your total score is 30." }
-      { "_id" : 3, "name" : "Mrs. Eppie Delta ", "scores" : [ 9, 8, 8 ], "isFound" : false, "message" : "Hello Mrs. Eppie Delta .  Your total score is 25." }
+   { "_id" : 1, "name" : "Miss Cheevous", "scores" : [ 10, 5, 10 ], "isFound" : false, "message" : "Hello Miss Cheevous.  Your total score is 25." }
+   { "_id" : 2, "name" : "Miss Ann Thrope", "scores" : [ 10, 10, 10 ], "isFound" : true, "message" : "Hello Miss Ann Thrope.  Your total score is 30." }
+   { "_id" : 3, "name" : "Mrs. Eppie Delta ", "scores" : [ 9, 8, 8 ], "isFound" : false, "message" : "Hello Mrs. Eppie Delta .  Your total score is 25." }
 
 .. _function-example-where-alternative:
 
 Example 2: Alternative to ``$where``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. admonition:: Aggregation Alternatives Preferred over ``$where``
-   :class: note
+.. note:: Aggregation Alternatives Preferred over ``$where``
+
 
    Starting in MongoDB 3.6, the :query:`$expr` operator allows the use
    of :ref:`aggregation expressions <aggregation-framework>` within the

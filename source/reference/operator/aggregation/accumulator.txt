@@ -46,167 +46,165 @@ Definition
 Syntax
 ------
 
-.. container::
+The :group:`$accumulator` operator has the following syntax:
 
-   The :group:`$accumulator` operator has the following syntax:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   { 
+     $accumulator: {
+       init: <code>,
+       initArgs: <array expression>,        // Optional
+       accumulate: <code>,
+       accumulateArgs: <array expression>,
+       merge: <code>,
+       finalize: <code>,                    // Optional
+       lang: <string>
+     }
+   }
 
-      { 
-        $accumulator: {
-          init: <code>,
-          initArgs: <array expression>,        // Optional
-          accumulate: <code>,
-          accumulateArgs: <array expression>,
-          merge: <code>,
-          finalize: <code>,                    // Optional
-          lang: <string>
-        }
-      }
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 10
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 40 10
+   * - Field
+     - Type
+     - Description
 
-      * - Field
-        - Type
-        - Description
+   * - :ref:`init <accumulator-init>`
 
-      * - :ref:`init <accumulator-init>`
+     - String or Code
 
-        - String or Code
+     - .. _accumulator-init:
+       
+       Function used to initialize the state. The ``init`` function
+       receives its arguments from the :ref:`initArgs
+       <accumulator-initArgs>` array expression. You can specify the
+       function definition as either BSON type Code or String.
 
-        - .. _accumulator-init:
-          
-          Function used to initialize the state. The ``init`` function
-          receives its arguments from the :ref:`initArgs
-          <accumulator-initArgs>` array expression. You can specify the
-          function definition as either BSON type Code or String.
+       The ``init`` function has the following form:
 
-          The ``init`` function has the following form:
+       .. code-block:: javascript
+          :copyable: false
 
-          .. code-block:: javascript
-             :copyable: false
+          function (<initArg1>, <initArg2>, ...) {
+            ...
+            return <initialState>
+          }
 
-             function (<initArg1>, <initArg2>, ...) {
-               ...
-               return <initialState>
-             }
+   * - :ref:`initArgs <accumulator-initArgs>`
 
-      * - :ref:`initArgs <accumulator-initArgs>`
+     - Array
 
-        - Array
+     - .. _accumulator-initArgs:
+     
+       Optional. Arguments passed to the ``init`` function.
 
-        - .. _accumulator-initArgs:
-        
-          Optional. Arguments passed to the ``init`` function.
+       ``initArgs`` has the following form:
 
-          ``initArgs`` has the following form:
+       .. code-block:: javascript
+          :copyable: false
 
-          .. code-block:: javascript
-             :copyable: false
+          [ <initArg1>, <initArg2>, ... ]
 
-             [ <initArg1>, <initArg2>, ... ]
+       .. important::
 
-          .. important::
+          When used in a :pipeline:`$bucketAuto` stage, ``initArgs``
+          cannot refer to the group key (i.e., you cannot use the
+          ``$<fieldName>`` syntax). Instead, in a
+          :pipeline:`$bucketAuto` stage, you can only specify
+          constant values in ``initArgs``.
 
-             When used in a :pipeline:`$bucketAuto` stage, ``initArgs``
-             cannot refer to the group key (i.e., you cannot use the
-             ``$<fieldName>`` syntax). Instead, in a
-             :pipeline:`$bucketAuto` stage, you can only specify
-             constant values in ``initArgs``.
+   * - :ref:`accumulate <accumulator-accumulate>`
 
-      * - :ref:`accumulate <accumulator-accumulate>`
+     - String or Code
 
-        - String or Code
+     - .. _accumulator-accumulate:
+     
+       Function used to accumulate documents. The ``accumulate``
+       function receives its arguments from the current state and
+       :ref:`accumulateArgs <accumulator-accumulateArgs>` array
+       expression. The result of the ``accumulate`` function becomes
+       the new state. You can specify the function definition as
+       either BSON type Code or String.
 
-        - .. _accumulator-accumulate:
-        
-          Function used to accumulate documents. The ``accumulate``
-          function receives its arguments from the current state and
-          :ref:`accumulateArgs <accumulator-accumulateArgs>` array
-          expression. The result of the ``accumulate`` function becomes
-          the new state. You can specify the function definition as
-          either BSON type Code or String.
+       The ``accumulate`` function has the following form:
 
-          The ``accumulate`` function has the following form:
+       .. code-block:: javascript
+          :copyable: false
 
-          .. code-block:: javascript
-             :copyable: false
+          function(state, <accumArg1>, <accumArg2>, ...) {
+            ... 
+            return <newState>
+          }
 
-             function(state, <accumArg1>, <accumArg2>, ...) {
-               ... 
-               return <newState>
-             }
+   * - :ref:`accumulateArgs <accumulator-accumulateArgs>`
 
-      * - :ref:`accumulateArgs <accumulator-accumulateArgs>`
+     - Array
 
-        - Array
+     - .. _accumulator-accumulateArgs:
+     
+       Arguments passed to the ``accumulate`` function. You can use
+       ``accumulateArgs`` to specify what field value(s) to pass to
+       the ``accumulate`` function.
 
-        - .. _accumulator-accumulateArgs:
-        
-          Arguments passed to the ``accumulate`` function. You can use
-          ``accumulateArgs`` to specify what field value(s) to pass to
-          the ``accumulate`` function.
+       ``accumulateArgs`` has the following form:
 
-          ``accumulateArgs`` has the following form:
+       .. code-block:: javascript
+          :copyable: false
 
-          .. code-block:: javascript
-             :copyable: false
+          [ <accumArg1>, <accumArg2>, ... ]
 
-             [ <accumArg1>, <accumArg2>, ... ]
+   * - :ref:`merge <accumulator-merge>`
 
-      * - :ref:`merge <accumulator-merge>`
+     - String or Code
 
-        - String or Code
+     - .. _accumulator-merge:
+     
+       Function used to merge two internal states. ``merge`` must be
+       either a String or Code BSON type. ``merge`` returns the
+       combined result of the two merged states. For information on
+       when the merge function is called, see
+       :ref:`merge-multiple-states`.
 
-        - .. _accumulator-merge:
-        
-          Function used to merge two internal states. ``merge`` must be
-          either a String or Code BSON type. ``merge`` returns the
-          combined result of the two merged states. For information on
-          when the merge function is called, see
-          :ref:`merge-multiple-states`.
+       The ``merge`` function has the following form:
 
-          The ``merge`` function has the following form:
+       .. code-block:: javascript
+          :copyable: false
 
-          .. code-block:: javascript
-             :copyable: false
+          function (<state1>, <state2>) {
+            <logic to merge state1 and state2>
+            return <newState>
+          }
 
-             function (<state1>, <state2>) {
-               <logic to merge state1 and state2>
-               return <newState>
-             }
+   * - :ref:`finalize <accumulator-finalize>`
 
-      * - :ref:`finalize <accumulator-finalize>`
+     - String or Code
 
-        - String or Code
+     - .. _accumulator-finalize:
+     
+       Optional. Function used to update the result of the accumulation.
 
-        - .. _accumulator-finalize:
-        
-          Optional. Function used to update the result of the accumulation.
+       The ``finalize`` function has the following form:
 
-          The ``finalize`` function has the following form:
+       .. code-block:: javascript
+          :copyable: false
 
-          .. code-block:: javascript
-             :copyable: false
+          function (state) {
+            ...
+            return <finalState>
+          }
 
-             function (state) {
-               ...
-               return <finalState>
-             }
+   * - :ref:`lang <accumulator-lang>`
 
-      * - :ref:`lang <accumulator-lang>`
+     - String
 
-        - String
+     - .. _accumulator-lang:
 
-        - .. _accumulator-lang:
+       The language used in the :group:`$accumulator` code.
 
-          The language used in the :group:`$accumulator` code.
+       .. important::
 
-          .. important::
-
-             Currently, the only supported value for ``lang`` is ``js``.
+          Currently, the only supported value for ``lang`` is ``js``.
 
 Behavior
 --------

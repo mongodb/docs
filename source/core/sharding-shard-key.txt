@@ -11,8 +11,7 @@ Shard Keys
 
 .. default-domain:: mongodb
 
-.. role:: red(strong)
-   :class: text-danger
+
 
 .. contents:: On this page
    :local:
@@ -89,26 +88,24 @@ For more information on the sharding method, see
 Refine a Shard Key
 ------------------
 
-.. container::
+Starting in MongoDB 4.4, you can use
+:dbcommand:`refineCollectionShardKey` to refine a collection's shard
+key. The :dbcommand:`refineCollectionShardKey` adds a suffix field
+or fields to the existing key to create the new shard key.
 
-   Starting in MongoDB 4.4, you can use
-   :dbcommand:`refineCollectionShardKey` to refine a collection's shard
-   key. The :dbcommand:`refineCollectionShardKey` adds a suffix field
-   or fields to the existing key to create the new shard key.
+For example, you may have an existing ``orders`` collection with the
+shard key ``{ customer_id: 1 }``. You can change the shard key by
+adding a suffix ``order_id`` field to the shard key so that ``{
+customer_id: 1, order_id: 1 }`` becomes the new shard key. For more
+information, see the :dbcommand:`refineCollectionShardKey` command.
 
-   For example, you may have an existing ``orders`` collection with the
-   shard key ``{ customer_id: 1 }``. You can change the shard key by
-   adding a suffix ``order_id`` field to the shard key so that ``{
-   customer_id: 1, order_id: 1 }`` becomes the new shard key. For more
-   information, see the :dbcommand:`refineCollectionShardKey` command.
+Refining a collection's shard key allows for a more fine-grained
+data distribution and can address situations where the existing key
+has led to :ref:`jumbo (i.e. indivisible) chunks <jumbo-chunks>` due
+to insufficient cardinality.
 
-   Refining a collection's shard key allows for a more fine-grained
-   data distribution and can address situations where the existing key
-   has led to :ref:`jumbo (i.e. indivisible) chunks <jumbo-chunks>` due
-   to insufficient cardinality.
-
-   In MongoDB 4.2 and earlier, the choice of shard key cannot be changed
-   after sharding.
+In MongoDB 4.2 and earlier, the choice of shard key cannot be changed
+after sharding.
 
 .. _sharding-internals-shard-key-indexes:
 .. _sharding-shard-key-indexes:
@@ -143,51 +140,48 @@ of the shard key.
 For a ranged sharded collection, only the following indexes can be
 :doc:`unique </core/index-unique>`:
 
-.. container::
+- the index on the shard key
 
-   - the index on the shard key
+- a :term:`compound index` where the shard key is a :ref:`prefix
+  <compound-index-prefix>`
 
-   - a :term:`compound index` where the shard key is a :ref:`prefix
-     <compound-index-prefix>`
+- the default ``_id`` index; **however**, the ``_id`` index only
+  enforces the uniqueness constraint per shard **if** the ``_id`` field
+  is **not** the shard key or the prefix of the shard key.
 
-   - the default ``_id`` index; **however**, the ``_id`` index only
-     enforces the uniqueness constraint per shard **if** the ``_id`` field
-     is **not** the shard key or the prefix of the shard key.
+  .. important:: Uniqueness and the ``_id`` Index
 
-     .. admonition:: Uniqueness and the ``_id`` Index
-        :class: important
+     If the ``_id`` field is not the shard key or the prefix of the
+     shard key, ``_id`` index only enforces the uniqueness constraint
+     per shard and **not** across shards.
 
-        If the ``_id`` field is not the shard key or the prefix of the
-        shard key, ``_id`` index only enforces the uniqueness constraint
-        per shard and **not** across shards.
+     For example, consider a sharded collection (with shard key ``{x:
+     1}``) that spans two shards A and B. Because the ``_id`` key is
+     not part of the shard key, the collection could have a document
+     with ``_id`` value ``1`` in shard A and another document with
+     ``_id`` value ``1`` in shard B.
 
-        For example, consider a sharded collection (with shard key ``{x:
-        1}``) that spans two shards A and B. Because the ``_id`` key is
-        not part of the shard key, the collection could have a document
-        with ``_id`` value ``1`` in shard A and another document with
-        ``_id`` value ``1`` in shard B.
+     If the ``_id`` field is not the shard key nor the prefix of the
+     shard key, MongoDB expects applications to enforce the uniqueness
+     of the ``_id`` values across the shards.
 
-        If the ``_id`` field is not the shard key nor the prefix of the
-        shard key, MongoDB expects applications to enforce the uniqueness
-        of the ``_id`` values across the shards.
+The unique index constraints mean that:
 
-   The unique index constraints mean that:
+- For a to-be-sharded collection, you cannot shard the collection if
+  the collection has other unique indexes.
 
-   - For a to-be-sharded collection, you cannot shard the collection if
-     the collection has other unique indexes.
+- For an already-sharded collection, you cannot create unique indexes
+  on other fields.
 
-   - For an already-sharded collection, you cannot create unique indexes
-     on other fields.
+- A unique index stores a null value for a document missing the
+  indexed field; that is a missing index field is treated as another
+  instance of a ``null`` index key value. For more information, see
+  :ref:`unique-index-and-missing-field`.
 
-   - A unique index stores a null value for a document missing the
-     indexed field; that is a missing index field is treated as another
-     instance of a ``null`` index key value. For more information, see
-     :ref:`unique-index-and-missing-field`.
+To enforce uniqueness on the shard key values, pass the ``unique``
+parameter as ``true`` to the :method:`sh.shardCollection()` method:
 
-   To enforce uniqueness on the shard key values, pass the ``unique``
-   parameter as ``true`` to the :method:`sh.shardCollection()` method:
-
-   .. include:: /includes/extracts/shard-collection-unique-restriction-method.rst
+.. include:: /includes/extracts/shard-collection-unique-restriction-method.rst
 
 You cannot specify a unique constraint on a :ref:`hashed index
 <index-type-hashed>`.
@@ -417,28 +411,26 @@ missing the shard key fields.
 Chunk Range and Missing Shard Key Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+Missing shard keys fall within the same chunk range as shard keys with
+null values. For example, if the shard key is on the fields ``{ x: 1, y: 1
+}``, then:
 
-   Missing shard keys fall within the same chunk range as shard keys with
-   null values. For example, if the shard key is on the fields ``{ x: 1, y: 1
-   }``, then:
+.. list-table::
+   :header-rows: 1
+   :widths: 60 60 
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 60 60 
+   * - Document Missing Shard Key
 
-      * - Document Missing Shard Key
+     - Falls into Same Range As
 
-        - Falls into Same Range As
-  
-      * - ``{ x: "hello" }``
-        - ``{ x: "hello", y: null }``
+   * - ``{ x: "hello" }``
+     - ``{ x: "hello", y: null }``
 
-      * - ``{ y: "goodbye" }``
-        - ``{ x: null, y: "goodbye" }``
+   * - ``{ y: "goodbye" }``
+     - ``{ x: null, y: "goodbye" }``
 
-      * - ``{ z: "oops" }``
-        - ``{ x: null, y: null }``
+   * - ``{ z: "oops" }``
+     - ``{ x: null, y: null }``
 
 .. _shard-key-missing-read-write-ops:
 
