@@ -23,3 +23,5 @@
 
        - :ref:`amazon-aws`
        - :ref:`microsoft-azure`
+
+       .. include:: /includes/fact-privatelink-azure-az-limitations.rst

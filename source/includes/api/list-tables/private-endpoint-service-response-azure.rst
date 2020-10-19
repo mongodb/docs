@@ -58,4 +58,7 @@
 
           * - FAILED
             - |service| failed to create the load balancer and the
-              Private Link Service.
+              Private Link service.
+
+          * - DELETING
+            - |service| is deleting the Private Link service.

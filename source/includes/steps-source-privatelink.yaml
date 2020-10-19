@@ -1,0 +1,395 @@
+---
+stepnum: 0
+level: 4
+ref: create-private-endpoint
+title: "Create a private endpoint."
+content: |
+
+  a. Click the :guilabel:`Private Endpoint` tab.
+  #. Click :guilabel:`Add Private Endpoint`.
+
+---
+stepnum: 0
+level: 4
+ref: select-cloud-provider
+title: "Choose a cloud provider."
+replacement:
+
+  aws: |
+    Click the |aws| logo, then click :guilabel:`Next`.
+
+  azure: |
+    Click the |azure| logo, then click :guilabel:`Next`.
+---
+stepnum: 0
+level: 4
+ref: select-region
+title: "Choose a region."
+content: |
+
+  a. From the :guilabel:`Atlas Region` list, select the region
+     in which you want to create the private endpoint.
+  #. Click :guilabel:`Next`.
+
+  .. note::
+     If your organization has no payment information stored, |service| 
+     prompts you to add it before continuing.
+
+---
+stepnum: 0
+level: 4
+ref: configure-private-endpoint
+title: "Configure your private endpoint."
+
+replacement:
+  aws: |
+
+    a. Enter the following details about your |aws| |vpc|:
+
+       .. list-table::
+          :widths: 20 80
+
+          * - :guilabel:`Your VPC ID`
+            - Unique identifier of the peer |aws| |vpc|. Find this value on 
+              the |vpc| dashboard in your |aws| account.
+
+          * - :guilabel:`Your Subnet IDs`
+            - Unique identifiers of the subnets your |aws| |vpc| uses. 
+              Find these values on the :guilabel:`Subnet` dashboard in your |aws| account.
+
+              .. important::
+
+                You must specify at least one subnet. If you don't, 
+                |aws| won't provision an :term:`interface endpoint` in
+                your |vpc|. An interface endpoint is required for clients 
+                in your |vpc| to send traffic to the private endpoint.
+
+    #. Copy the command the dialog displays and run it using the |aws| 
+       CLI.
+
+       .. note::
+        
+          You can't copy the command until |service| finishes
+          creating |vpc| resources in the background.
+
+          See :aws:`Creating an Interface Endpoint </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>` to perform this 
+          task using the |aws| CLI.
+      
+    #. You might receive an error like the following when you create the 
+       private endpoint:
+
+       .. code-block:: sh
+          :copyable: false
+
+          An error occurred (InvalidParameter) when calling the CreateVpcEndpoint 
+          operation: The VPC endpoint service com.amazonaws.vpce.us-east-1.vpce-svc-<...> 
+          does not support the availability zone of the subnet: subnet-<...>.
+
+       If you receive this error, |service| has deployed |vpc| 
+       resources into different availability zones than the ones to 
+       which you deployed your |vpc| subnets. Please contact |service| 
+       support for assistance resolving this error. To contact support, 
+       click :guilabel:`Support` from the left-hand navigation bar of the 
+       |service| UI.
+            
+    #. Click :guilabel:`Next`.
+
+  azure: |
+
+    a. Enter the following details about your |azure| VNet:
+
+       .. list-table::
+          :widths: 20 80
+
+          * - :guilabel:`Resource Group Name`
+            - The name of the resource group that contains the VNet that
+              you want to use to connect to |service|. Find this value
+              on the :guilabel:`Resource Group Properties` page on your
+              |azure| dashboard.
+
+          * - :guilabel:`Virtual Network Name`
+            - The name of the VNet that you want to use to connect to
+              |service|. Find this value on the :guilabel:`Virtual
+              Network` page on your |azure| dashboard.
+
+          * - :guilabel:`Subnet Name`
+            - The name of the subnet in your |azure| VNet. Find this
+              value on the :guilabel:`Virtual Network Subnets` page on
+              your |azure| dashboard.
+
+    #. Enter a unique name for your private endpoint in the
+       :guilabel:`Private Endpoint Name` field.
+
+    #. Disable private endpoint network policies by copying the ``az
+       network vnet subnet update`` command the dialog displays and
+       running it using the |azure| CLI.
+
+       For more information about this command, see the :azure:`Azure
+       documentation </private-link/disable-private-endpoint-network-policy>`.
+
+    #. Create the private endpoint in your VNet by copying the ``az
+       network private-endpoint create`` command the dialog displays and
+       running it using the |azure| CLI.
+
+       .. note::
+        
+          You can't copy the command until |service| finishes
+          creating VNet resources in the background.
+
+          For more information about this command, see the 
+          `Azure documentation <https://docs.microsoft.com/en-us/cli/azure/network/private-endpoint?view=azure-cli-latest#az_network_private_endpoint_create>`__.
+
+    #. You might receive an error like the following when you create the 
+       private endpoint:
+
+       .. code-block:: sh
+          :copyable: false
+
+          ServiceError: code: LinkedAuthorizationFailed - , The client has permission to perform action 'Microsoft.Network/privateLinkServices/PrivateEndpointConnectionsApproval/action' on scope '/subscriptions/<subscription-id>/resourceGroups/privatelink/providers/Microsoft.Network/privateEndpoints/privatelink', however the current tenant '<tenant-id>' is not authorized to access linked subscription '<tenant-id>'.
+
+       If you receive this error, you must add the ``--manual-request
+       true`` parameter to the |azure| CLI command you used to create the
+       private endpoint, then run the command again.
+            
+    #. Click :guilabel:`Next`.
+
+---
+stepnum: 0
+level: 4
+ref: finalize-private-endpoint
+title: "Finalize your private endpoint connection."
+replacement:
+  aws: |
+
+    a. Enter your :guilabel:`VPC Endpoint ID`. This is a 
+       22-character alphanumeric string that identifies your private 
+       endpoint. Find this value on the |aws| VPC Dashboard under 
+       :guilabel:`Endpoints` > :guilabel:`VPC ID`.
+
+    #. Click :guilabel:`Create`.
+
+  azure: |
+
+    a. Enter the following details about your private endpoint:
+
+       .. list-table::
+          :widths: 20 80
+
+          * - :guilabel:`Private Endpoint Resource ID`
+            - The unique identifier of the private endpoint you created
+              in your |azure| VNet. Find this value in one of the
+              following ways:
+
+              - The :guilabel:`Properties` page for your private
+                endpoint on your |azure| dashboard displays this
+                property in the :guilabel:`Resource ID` field.
+
+              - The output from the ``azure network private-endpoint
+                create`` command that you ran earlier to create the
+                private endpoint returns this value in the **id** field:
+
+                .. literalinclude:: /includes/api/responses/az-network-private-endpoint-create.json
+                   :language: json
+                   :linenos:
+                   :copyable: false
+                   :emphasize-lines: 4
+
+          * - :guilabel:`Private Endpoint IP Address`
+            - The private IP address of the private endpoint network
+              interface you created in your |azure| VNet. Find this
+              value in one of the following ways:
+
+              - Use the |azure| dashboard to retrieve this value. 
+                The :guilabel:`Overview` page for your private
+                endpoint on your |azure| dashboard displays this
+                property in the :guilabel:`Private IP` field.
+
+              - Use the |azure| CLI to retrieve this value:
+
+                i. The output from the ``azure network private-endpoint
+                   create`` command that you ran earlier to create the
+                   private endpoint includes the ID of the network
+                   interface in the **networkInterfaces.id** field:
+
+                   .. literalinclude:: /includes/api/responses/az-network-private-endpoint-create.json
+                      :language: json
+                      :linenos:
+                      :copyable: false
+                      :emphasize-lines: 33
+
+                #. Run the `az network nic show --id {networkInterface.id}
+                   <https://docs.microsoft.com/en-us/cli/azure/network/nic?view=azure-cli-latest#az_network_nic_show>`__
+                   |azure| CLI command with the value of the
+                   **networkInterfaces.id** field to retrieve the
+                   **ipConfigurations.privateIPAddress** for the private
+                   endpoint network interface. The value of this field is
+                   your :guilabel:`Private Endpoint IP Address`:
+
+                   .. code-block:: sh
+
+                      az network nic show --id /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/privatelink/providers/Microsoft.Network/networkInterfaces/privatelink.nic.00000000-0000-0000-0000-000000000000
+
+                   The response looks similar to the following:
+
+                   .. literalinclude:: /includes/api/responses/az-network-nic-show.json
+                      :language: json
+                      :linenos:
+                      :copyable: false
+                      :emphasize-lines: 25
+
+    #. Click :guilabel:`Create`.
+
+---
+title: "Configure your resources' security groups to send traffic to and 
+  receive traffic from the :term:`interface endpoint`." 
+level: 4
+ref: resource-sg-pl
+stepnum: 0
+content: |
+
+  For each resource that needs to connect to your |service| clusters
+  using {+aws-pl+}, the resource's security group must allow outbound 
+  traffic to the :term:`interface endpoint's <interface endpoint>` 
+  private IP(s) on all ports.
+
+  See :aws:`Adding Rules to a Security Group </AWSEC2/latest/UserGuide/ec2-security-groups.html#adding-security-group-rule>`
+  for more information.
+
+---
+title: "Create a security group for your interface endpoint to allow resources to access it."
+ref: attach-sg-pl
+level: 4
+stepnum: 0
+content: |
+
+  This security group must allow inbound traffic on all ports from each 
+  resource that needs to connect to your |service| clusters using 
+  {+aws-pl+}:
+
+  a. In the |aws| console, navigate to the :guilabel:`VPC Dashboard`. 
+  
+  #. Click :guilabel:`Security Groups`, then click 
+     :guilabel:`Create security group`.
+
+  #. Use the wizard to create a security group. Make sure you select 
+     your VPC from the :guilabel:`VPC` list.
+
+  #. Select the security group you just created, then click the 
+     :guilabel:`Inbound Rules` tab.
+
+  #. Click :guilabel:`Edit Rules`.
+
+  #. Add rules to allow all inbound traffic from each resource in your
+     VPC that you want to connect to your |service| cluster.
+
+  #. Click :guilabel:`Save Rules`.
+
+  #. Click :guilabel:`Endpoints`, then click the endpoint for your
+     VPC.
+
+  #. Click the :guilabel:`Security Groups` tab, then click 
+     :guilabel:`Edit Security Groups`.
+
+  #. Add the security group you just created, then click 
+     :guilabel:`Save`.
+
+  To learn more about :aws:`VPC security groups 
+  </vpc/latest/userguide/VPC_SecurityGroups.html>`, see the |aws| 
+  documentation.
+
+---
+
+title: "Verify that the private endpoint is available."
+ref: verify-active-pl-aws
+level: 4
+stepnum: 0
+content: |
+
+  You can connect to an |service| cluster using the {+aws-pl+} private 
+  endpoint when all of the resources are configured and the private
+  endpoint becomes available.
+
+  To verify that the {+aws-pl+} private endpoint is available:
+
+  a. In the :guilabel:`Security` section of the left navigation,
+     click :guilabel:`Network Access`.
+  #. On the :guilabel:`Private Endpoint` tab, verify the following 
+     statuses for the region that contains the cluster 
+     you want to connect to using {+aws-pl+}:
+
+     .. list-table::
+        :widths: 20 80
+
+        * - :guilabel:`Atlas Endpoint Service Status`
+          - Ready for connection requests
+           
+        * - :guilabel:`Endpoint Status`
+          - Available
+
+  If you do not see these statuses, see :ref:`pl-troubleshooting` for
+  additional information.
+
+---
+title: "Verify that the private endpoint is available."
+ref: verify-active-pl-azure
+level: 4
+stepnum: 0
+content: |
+
+  You can connect to an |service| cluster using the {+az-pl+} private 
+  endpoint when all of the resources are configured and the private
+  endpoint becomes available.
+
+  To verify that the {+az-pl+} private endpoint is available:
+
+  a. In the :guilabel:`Security` section of the left navigation,
+     click :guilabel:`Network Access`.
+  #. On the :guilabel:`Private Endpoint` tab, verify the following 
+     statuses for the region that contains the cluster 
+     you want to connect to using {+az-pl+}:
+
+     .. list-table::
+        :widths: 20 80
+
+        * - :guilabel:`Atlas Endpoint Service Status`
+          - Available
+           
+        * - :guilabel:`Endpoint Status`
+          - Available
+
+  If you do not see these statuses, see :ref:`pl-troubleshooting` for
+  additional information.
+---
+title: "Remove the private endpoint from |service|."
+ref: remove-private-endpoint
+level: 4
+stepnum: 0
+content: |
+
+  a. Click the :guilabel:`Private Endpoint` tab.
+  #. Next to the private endpoint you want to remove, click
+     :guilabel:`Terminate`.
+  #. To confirm, click :guilabel:`Confirm` in the dialog.
+
+replacement:
+  aws: |
+
+    .. note::
+
+       When you delete a private endpoint from a region in
+       |service|, you must manually :aws:`delete the private endpoint
+       </vpc/latest/userguide/delete-vpc-endpoint.html>` in |aws|. |aws|
+       lists the endpoint as ``rejected``. |service| can't delete this
+       resource because it lacks the required permissions.
+
+  azure: |
+
+    .. note::
+
+       When you delete a private endpoint from a region in
+       |service|, you must manually `delete the private endpoint
+       <https://docs.microsoft.com/en-us/cli/azure/network/private-endpoint?view=azure-cli-latest#az_network_private_endpoint_delete>`__.
+       in |azure|. |service| can't delete this resource because it lacks
+       the required permissions.
+
+...

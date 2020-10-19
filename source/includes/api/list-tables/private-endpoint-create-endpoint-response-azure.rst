@@ -53,3 +53,7 @@
 
          * - AVAILABLE
            - |service| approved the connection to your private endpoint.
+
+         * - DELETING
+           - |service| is removing the connection to your private
+             endpoint from the Private Link service.

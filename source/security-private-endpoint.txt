@@ -12,52 +12,100 @@ Set up a Private Endpoint
    :depth: 2
    :class: singlecol
 
+.. include:: /includes/styles/corrections.rst
+
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
-MongoDB |service| supports private endpoints on |aws| using the
-`{+aws-pl+} <https://aws.amazon.com/privatelink/>`__ feature. When you
-enable this feature, |service| creates its own |vpc| and places clusters
-within a region behind a network load balancer in the |service| |vpc|.
-Then you create resources that establish a one-way connection from your
-|vpc| to the network load balancer in the |service| |vpc| using a
-private endpoint.
+MongoDB |service| supports private endpoints on: 
+
+- |aws| using the `{+aws-pl+} <https://aws.amazon.com/privatelink/>`__
+  feature, and
+
+- |azure| using the `{+az-pl+}
+  <https://azure.microsoft.com/en-us/services/private-link/>`__ feature.
 
 .. tabs::
 
    .. tab:: {+aws-pl+}
-      :tabid: aws-pl
+      :tabid: {+aws-pl+}
 
-      .. figure:: /images/atlas-aws-privatelink.svg
-         :width: 720px
-         :alt: Image showing how {+aws-pl+} establishes connections from
-               your application VPC to resources in the |service| VPC.
+      When you enable this feature, |service| creates its own |vpc| and
+      places clusters within a region behind a network load balancer in
+      the |service| |vpc|.
 
-   .. tab:: {+aws-pl+} with Direct Connect
-      :tabid: aws-pl-directconnect
+      Then you create resources that establish a one-way connection from
+      your |vpc| to the network load balancer in the |service| |vpc|
+      using a private endpoint.
 
-      .. figure:: /images/atlas-aws-privatelink-directconnect.svg
-         :width: 720px
-         :alt: Image showing how can use |aws| Direct Connect to
-               establish a transitive connection from your data center
-               to a peered |aws| VPC to resources in the |service| VPC
-               using |aws| Direct Connect.
+      .. tabs::
 
-Connections to |service| clusters using private endpoints offer the
-following advantages over other network access management options:
+         .. tab:: {+aws-pl+}
+            :tabid: aws-pl-diagram
 
-- Connections using private endpoints are one-way. |service| |vpc|\s
-  can't initiate connections back to your |vpc|\s. This ensures your
-  network trust boundary is not extended.
+            .. figure:: /images/atlas-aws-privatelink.svg
+               :width: 720px
+               :alt: Image showing how {+aws-pl+} establishes connections from
+                     your application VPC to resources in the |service| VPC.
 
-- Connections to private endpoints within your |vpc| can be made
-  transitively from:
+         .. tab:: {+aws-pl+} with Direct Connect
+            :tabid: aws-pl-directconnect-diagram
 
-  - Another |vpc| peered to the private endpoint-connected |vpc|.
-  - An on-premises data center connected with
-    :aws:`DirectConnect </whitepapers/latest/aws-vpc-connectivity-options/aws-direct-connect-network-to-amazon.html>`
-    to the private endpoint-connected |vpc|. This enables you to
-    connect to |service| directly from your on-premises data center
-    without adding public IP addresses to the IP access list.
+            .. figure:: /images/atlas-aws-privatelink-directconnect.svg
+               :width: 720px
+               :alt: Image showing how can use |aws| Direct Connect to
+                     establish a transitive connection from your data center
+                     to a peered |aws| VPC to resources in the |service| VPC
+                     using |aws| Direct Connect.
+
+      Connections to |service| clusters using private endpoints offer the
+      following advantages over other network access management options:
+
+      - Connections using private endpoints are one-way. |service| |vpc|\s
+        can't initiate connections back to your |vpc|\s. This ensures your
+        perceived network trust boundary is not extended.
+
+      - Connections to private endpoints within your |vpc| can be made
+        transitively from:
+
+        - Another |vpc| peered to the private endpoint-connected |vpc|.
+        - An on-premises data center connected with
+          :aws:`DirectConnect </whitepapers/latest/aws-vpc-connectivity-options/aws-direct-connect-network-to-amazon.html>`
+          to the private endpoint-connected |vpc|. This enables you to
+          connect to |service| directly from your on-premises data center
+          without adding public IP addresses to the |service| 
+          :doc:`IP access list </security/ip-access-list>`.
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      When you enable this feature, |service| creates a Private Link
+      service and places clusters within a region behind a load balancer
+      in the |service| VNet.
+
+      Then you create resources that establish a one-way connection from
+      your VNet to the :azure:`Private Link service
+      </private-link/private-link-service-overview>` in the |service|
+      VNet using a private endpoint. The Private Link service routes
+      traffic to the load balancer that fronts the clusters in the
+      |service| VNet.
+
+      Connections to |service| clusters using private endpoints offer the
+      following advantages over other network access management options:
+
+      - Connections using private endpoints are one-way. |service| VNets
+        can't initiate connections back to your VNets. This ensures your
+        perceived network trust boundary is not extended.
+
+      - Connections to private endpoints within your VNet can be made
+        transitively from:
+
+        - Another VNet peered to the private endpoint-connected VNet.
+        - An on-premises data center connected with
+          `ExpressRoute <https://azure.microsoft.com/en-us/services/expressroute/>`__
+          to the private endpoint-connected VNet. This enables you to
+          connect to |service| directly from your on-premises data center
+          without adding public IP addresses to the |service| 
+          :doc:`IP access list </security/ip-access-list>`.
 
 Considerations
 --------------
@@ -65,174 +113,199 @@ Considerations
 High Availability
 ~~~~~~~~~~~~~~~~~
 
-To ensure {+aws-pl+} connections to |service| can withstand an
-availability zone outage, you should deploy |vpc| subnets to multiple
-availability zones in a region.
+.. tabs::
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      To ensure private endpoint connections to |service| can withstand
+      an availability zone outage, you should deploy subnets to multiple
+      availability zones in a region.
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      |azure| private endpoints are regional components. You don't need
+      to take additional actions to ensure that private endpoint
+      connections to |service| can withstand an availability zone
+      outage.
 
 .. _private-endpoint-connection-strings:
 
 Private Endpoint-Aware Connection Strings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you enable {+aws-pl+}, |service| generates DNS seedlist and 
-standard private-endpoint-aware connection strings. Your clients can use 
-these strings to connect to |service| clusters through
-a private endpoint.
+.. tabs::
 
-The hostname in the connection strings resolves to the 
-:term:`interface endpoints <interface endpoint>` deployed in the VPC 
-subnets you specified when you created the {+aws-pl+} connection. The 
-interface endpoints connect to the network load balancer provisioned in 
-the |service| VPC. The network load balancer assigns a unique port to 
-each |service| replica set node in the region for which you enabled 
-{+aws-pl+}.
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
 
-When you connect using {+aws-pl+}, all nodes in an |service| replica set 
-are accessible via the same hostname, with the load balancer resolving
-individual nodes by their port.
+      .. include:: /includes/aws-pl-connection-strings.rst
 
-The following example shows a |dns| lookup of the hostname in a connection 
-string for an {+aws-pl+}-enabled single-region cluster, showing three 
-unique ports defined for the ``cluster0-pl-0-k45tj.mongodb.net`` 
-hostname:
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
 
-.. code-block:: sh
-   :copyable: false
-
-   $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net
-
-   Server: 127.0.0.53
-   Address: 127.0.0.53#53
-
-   Non-authoritative answer:
-   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1026 pl-0-us-east-1-k45tj.mongodb.net.
-   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1024 pl-0-us-east-1-k45tj.mongodb.net.
-   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1025 pl-0-us-east-1-k45tj.mongodb.net.
-
-The hostname in the connection string is a |dns| Canonical Name 
-(``CNAME``) record that resolves to the endpoint-specific regional |dns| 
-name that |aws| generates for the interface endpoint. A |dns| ``ALIAS`` 
-record exists for each subnet in your VPC that you deployed the 
-interface endpoint to. Each ``ALIAS`` record contains the private IP 
-address of the :term:`interface endpoint` for that subnet.
-
-The following example shows the |dns| lookup for the hostname in the 
-connection string, including the endpoint-specific regional |dns| name 
-for the interface endpoint and its |dns| ``ALIAS`` records:
-
-.. code-block:: sh
-   :copyable: false
-
-   $ nslookup pl-0-us-east-1-k45tj.mongodb.net
-   Server: 127.0.0.53
-   Address: 127.0.0.53#53
-
-   Non-authoritative answer:
-   pl-0-us-east-1-k45tj.mongodb.net
-   canonical name = vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com.
-   
-   Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
-   Address: 10.0.30.194
-   Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
-   Address: 10.0.20.54
-
-When a client in your |vpc| connects to an |service| cluster using a
-private-endpoint-aware connection string, the client attempts to
-establish a connection to the load balancer in the |service| |vpc|
-through one of the :term:`interface endpoints <interface endpoint>`.
-Your client's |dns| resolution mechanism handles which of the interface
-endpoints the hostname resolves to. If one interface endpoint is
-unavailable the next is used. This is opaque to the driver or other
-connection mechanism. The driver is only aware of the hostname in the
-connection string, listening on one port for each node in the cluster's
-replica set.
+      .. include:: /includes/az-pl-connection-strings.rst
 
 .. seealso:: :ref:`Connect to Atlas using a Private Endpoint <connect-private-endpoint>`
 
-IP Access Lists and VPC Peering with Private Endpoints
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IP Access Lists and Network Peering Connections with Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When Private Endpoints are enabled, you can still enable access to your
 |service| clusters using other methods, such as adding public IPs to
 :doc:`IP access lists </security/ip-access-list>` and
-:doc:`VPC peering </security-vpc-peering>`.
+:doc:`network peering </security-vpc-peering>`.
 
 Clients connecting to |service| clusters using other methods use
 standard connection strings. Your clients might have to identify when
-to use private-endpoint-aware connection strings and standard
+to use private endpoint-aware connection strings and standard
 connection strings.
+
+.. _atlas-pl-limitations:
 
 Limitations
 -----------
 
-- You can use {+aws-pl+} to connect to |service| clusters running
-  MongoDB version 3.6 or later.
+.. tabs::
 
-- {+aws-pl+} must be active in all regions into which you deploy a
-  multi-region cluster. You receive an error if {+aws-pl+} is active in
-  some, but not all, targeted regions.
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
 
-- You can do only one of the following:
+      - You can use {+aws-pl+} to connect to |service| clusters running
+        MongoDB version 3.6 or later.
 
-  - Create more than one private endpoints in a single region, or
-  - Create one private endpoint in multiple regions.
+      - {+aws-pl+} must be active in all regions into which you deploy a
+        multi-region cluster. You will receive an error if {+aws-pl+} is
+        active in some, but not all, targeted regions.
 
-  If you create more than one private endpoint in a single region, you 
-  can't create private endpoints in other regions.
+      - You can do only one of the following:
 
-- To connect to |service| clusters using {+aws-pl+} from regions in 
-  which you didn't deploy a private endpoint connection, you must peer 
-  these |vpc|\s to |vpc|\s in a region in which you created a private
-  endpoint connection.
+        - Create more than one private endpoint in a single region, or
+        - Create one private endpoint in multiple regions.
 
-  To learn about inter-region |vpc| peering, see the `AWS documentation
-  <https://aws.amazon.com/answers/networking/aws-multiple-region-multi-vpc-connectivity/>`__.
+          .. important::
 
-- You can use {+aws-pl+} in |service| projects with up to 50
-  addressable targets **per region**. If you need more than 50
-  addressable targets in a region:
+             This limitation applies across cloud providers. For example,
+             if you create more than one private endpoint in a single
+             region in |aws|, you can't create private endpoints in
+             more than one region in |azure|.
 
-  - Contact :ref:`MongoDB Support <request-support>`, or 
-  - Use additional projects or regions to connect to addressable targets
-    beyond this limit.
+      - To connect to |service| clusters using {+aws-pl+} from regions in 
+        which you haven't deployed a private endpoint connection, you must peer 
+        |vpc|\s in those regions to |vpc|\s in a region in which you
+        have deployed a private endpoint connection.
 
-  Addressable targets include:
+        To learn about inter-region |vpc| peering, see the `AWS documentation
+        <https://aws.amazon.com/answers/networking/aws-multiple-region-multi-vpc-connectivity/>`__.
 
-  - Each node in a replica set, excluding nodes that comprise a shard
-    in a sharded cluster.
-  - Each |mongos| instance for sharded clusters.
-  - Each |bic| instance across all dedicated clusters in the project.
+      - You can use {+aws-pl+} in |service| projects with up to 50
+        addressable targets **per region**. If you need more than 50
+        addressable targets in a region:
 
-  .. note::
+        - Contact :ref:`MongoDB Support <request-support>`, or 
+        - Use additional projects or regions to connect to addressable targets
+          beyond this limit.
 
-     To request a one-time increase to use {+aws-pl+} with up to 100
-     addressable targets per |service| project, contact
-     :ref:`MongoDB Support <request-support>`.
+        Addressable targets include:
 
-- When you delete all {+aws-pl+} endpoints for a region in |service|,
-  you must manually
-  :aws:`delete the private endpoint </vpc/latest/userguide/delete-vpc-endpoint.html>`.
-  |aws| lists the endpoint as ``rejected``. |service| can't delete this
-  resource because it lacks the required permissions.
+        - Each node in a replica set, excluding nodes that comprise a shard
+          in a sharded cluster.
+        - Each |mongos| instance for sharded clusters.
+        - Each |bic| instance across all dedicated clusters in the project.
+
+        .. note::
+
+           To request a one-time increase to use {+aws-pl+} with up to 100
+           addressable targets per |service| project, contact
+           :ref:`MongoDB Support <request-support>`.
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      - You can use {+az-pl+} to connect to |service| clusters that run
+        MongoDB version 3.6 or later.
+
+        .. include:: /includes/fact-privatelink-azure-az-limitations.rst
+
+      - {+az-pl+} must be active in all regions into which you deploy a
+        multi-region cluster. You will receive an error if {+az-pl+} is
+        active in some, but not all, targeted regions.
+
+      - You can do only one of the following:
+
+        - Create more than one private endpoints in a single region, or
+        - Create one private endpoint in multiple regions.
+
+          .. important::
+
+             This limitation applies across cloud providers. For example,
+             if you create more than one private endpoint in a single
+             region in |azure|, you can't create private endpoints in
+             more than one region in |aws|.
+
+      - To connect to |service| clusters using {+az-pl+} from regions in 
+        which you haven't deployed a private endpoint connection, you must peer 
+        VNets in those regions to VNets in a region in which you have
+        deployed a private endpoint connection.
+
+        To learn about Global VNet peering, see the :azure:`Azure documentation
+        </virtual-network/virtual-networks-faq#can-i-create-a-peering-connection-to-a-vnet-in-a-different-region>`.
+
+      - You can use {+az-pl+} in |service| projects with up to 150
+        addressable targets **per region**. If you need more than 150
+        addressable targets in a region:
+
+        - Contact :ref:`MongoDB Support <request-support>`, or 
+        - Use additional projects or regions to connect to addressable targets
+          beyond this limit.
+
+        Addressable targets include:
+
+        - Each node in a replica set, excluding nodes that comprise a shard
+          in a sharded cluster.
+        - Each |mongos| instance for sharded clusters.
+        - Each |bic| instance across all dedicated clusters in the project.
 
 Prerequisites
 -------------
 
 To enable connections to |service| using private endpoints, you must:
 
-1. Have either the :authrole:`Project Owner` or
-   :authrole:`Organization Owner` role in |service|.
+.. tabs::
 
-#. Have an |aws| user account with an |iam| user policy that grants
-   permissions to create, modify, describe, and delete endpoints. For
-   more information on controlling the use of interface endpoints, see the
-   :aws:`AWS Documentation </vpc/latest/userguide/vpc-endpoints.html>`.
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
 
-#. **(Recommended)**:
-   :aws:`Install the AWS CLI </cli/latest/userguide/cli-chap-install.html>`.
+      1. Have either the :authrole:`Project Owner` or
+         :authrole:`Organization Owner` role in |service|.
 
-#. If you have not already done so, create your |vpc| and EC2 instances
-   in |aws|. See the :aws:`AWS documentation </index.html>` for guidance.
+      #. Have an |aws| user account with an |iam| user policy that grants
+         permissions to create, modify, describe, and delete endpoints. For
+         more information on controlling the use of interface endpoints, see the
+         :aws:`AWS Documentation </vpc/latest/userguide/vpc-endpoints.html>`.
+
+      #. **(Recommended)**:
+         :aws:`Install the AWS CLI </cli/latest/userguide/cli-chap-install.html>`.
+
+      #. If you have not already done so, create your |vpc| and EC2 instances
+         in |aws|. See the :aws:`AWS documentation </index.html>` for guidance.
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      1. Have either the :authrole:`Project Owner` or
+         :authrole:`Organization Owner` role in |service|.
+
+      #. :azure:`Install the Azure CLI </install-azure-cli>`.
+
+      #. If you have not already done so, create your VNet and Compute
+         instances in |azure|. See the :azure:`Azure documentation </>`
+         for guidance.
+
+.. I can't find a page in the azure documentation where specific policy
+   requirements are described for private endpoints. Do we need to include
+   that information here?
 
 Procedures
 ----------
@@ -245,7 +318,17 @@ Configure an |service| Private Endpoint
 Enable clients to connect to |service| clusters using private endpoints
 with the following procedure:
 
-.. include:: /includes/steps/configure-privatelink.rst
+.. tabs::
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      .. include:: /includes/steps/configure-privatelink-aws.rst
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      .. include:: /includes/steps/configure-privatelink-azure.rst
 
 .. _connect-private-endpoint:
 .. _atlas-connect-private-endpoint:
@@ -255,19 +338,102 @@ Connect to |service| using a Private Endpoint
 
 .. note::
 
-   For important considerations about private-endpoint-aware connection
+   For important considerations about private endpoint-aware connection
    strings, see
    :ref:`Private Endpoint-Aware Connection Strings <private-endpoint-connection-strings>`.
 
-Use a private-endpoint-aware connection string to connect to an
+Use a private endpoint-aware connection string to connect to an
 |service| cluster with the following procedure:
 
 .. include:: /includes/steps/connect-to-cluster-privatelink.rst
 
+Remove a Private Endpoint from |service|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      .. include:: /includes/steps/delete-privatelink-aws.rst
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      .. include:: /includes/steps/delete-privatelink-azure.rst
+
 .. _pl-troubleshooting:
 .. _atlas-troubleshoot-private-endpoint:
 
-Troubleshoot {+aws-pl+} Connection Issues
-----------------------------------------------
+Troubleshoot Private Endpoint Connection Issues
+-----------------------------------------------
 
-.. include:: /includes/steps/troubleshoot-privatelink.rst
+.. tabs::
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      .. include:: /includes/steps/troubleshoot-privatelink-aws.rst
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      .. include:: /includes/fact-private-endpoint-status-intro.rst
+
+      :guilabel:`Atlas Endpoint Service Status`
+
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Status
+           - Description
+
+         * - Creating private link
+           - |service| is creating the load balancer and VNet resources. 
+
+         * - Failed
+           - A system failure has occurred. 
+
+         * - Ready for connection requests
+           - |service| created the load balancer and {+az-pl+} Service.
+             The {+az-pl+} Service is ready to receive connection
+             requests.
+
+         * - Deleting
+           - |service| is deleting the {+az-pl+} Service.
+
+      :guilabel:`Endpoint Status`
+
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Status
+           - Description
+
+         * - Not configured
+           - |service| created the load balancer and {+az-pl+} Service,
+             but you haven't created a private endpoint yet.
+             Click :guilabel:`Edit` and complete the wizard to create
+             the private endpoint.
+
+         * - Initiating
+           - |service| has not yet accepted the connection to your
+             private endpoint.
+
+         * - Failed
+           - |azure| failed to establish a connection between |service| 
+             VNet resources and the private endpoint in your VNet. 
+             Click :guilabel:`Edit`, verify that the information you 
+             provided is correct, and then create the private endpoint 
+             again.
+
+         * - Available
+           - |service| VNet resources are connected to the private
+             endpoint in your VNet. You can connect to |service|
+             clusters in this region using {+az-pl+}.
+
+         * - Deleting
+           - |service| is removing the private endpoint connection from
+             the {+az-pl+} Service.

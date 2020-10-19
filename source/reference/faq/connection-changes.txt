@@ -33,7 +33,7 @@ addresses, you can use:
 
 - :doc:`AWS and GCP VPC Peering </security-vpc-peering>`
 - :doc:`Azure VNet Peering </security-vpc-peering>`
-- :ref:`AWS PrivateLink <private-endpoint-connection-strings>`
+- :ref:`AWS PrivateLink and Azure Private Link <private-endpoint-connection-strings>`
 
 These features all manage communication over internal IP addresses
 within secure networks.
@@ -65,11 +65,12 @@ Use this connection string with applications connecting:
 - Within an |azure| or |gcp| peered network
 - To |aws| clusters when using |aws| with custom |dns| service.
 
-|aws| clusters with |aws| 
-:ref:`PrivateLink <private-endpoint-connection-strings>`
-configured have one or more connection strings. Each string resolves
-to the IP address of an Endpoint Interface. Use these connection
-strings with applications connecting over PrivateLink.
+|aws| or |azure| clusters in regions with :ref:`private endpoints
+<private-endpoint-connection-strings>` configured have one or more
+connection strings. Each string resolves to the private IP address of a
+network interface in your |vpc| or VNet that connects directly to a load
+balancer in the |service| |vpc| or VNet. Use these connection strings
+with applications connecting with private endpoints.
 
 .. _atlas-faq-azure-gcp-peering-only:
 
@@ -192,10 +193,10 @@ Standard connection strings follow this format:
 
 .. code-block:: sh
 
-   mongodb://xyz456-shard-00-00.abc123.mongodb.net:27017
-   mongodb+srv://xyz456.abc123.mongodb.net
+   mongodb://xyz456-shard-00-00.ab123.mongodb.net:27017
+   mongodb+srv://xyz456.ab123.mongodb.net
 
-The dot before ``abc123`` *matters*. |uri|\s using this format resolve
+The dot before ``ab123`` *matters*. |uri|\s using this format resolve
 to public IP addresses *except* when connecting from inside |aws| with
 |vpc|\-peering configured.
 
@@ -211,13 +212,13 @@ to public IP addresses *except* when connecting from inside |aws| with
 
       .. code-block:: sh
 
-         mongodb+srv://xyx456-abc123.mongodb.net
+         mongodb+srv://xyx456-ab123.mongodb.net
 
       is written as this *standard connection string*:
 
       .. code-block:: sh
 
-         mongodb+srv://xyx456.abc123.mongodb.net
+         mongodb+srv://xyx456.ab123.mongodb.net
 
    For new clusters, replica sets and shards don't derive their name
    from the name of the cluster. The new names use a six alphanumeric
@@ -233,10 +234,10 @@ Private connection strings follow this format:
 
 .. code-block:: sh
 
-   mongodb://xyx456-shard-00-00-pri.abc123.mongodb.net:27017
-   mongodb+srv://xyx456-pri.abc123.mongodb.net
+   mongodb://xyx456-shard-00-00-pri.ab123.mongodb.net:27017
+   mongodb+srv://xyx456-pri.ab123.mongodb.net
 
-The ``-pri`` before ``abc123`` *matters*. |uri|\s using this format
+The ``-pri`` before ``ab123`` *matters*. |uri|\s using this format
 resolve to private IP addresses reachable within the peered network.
 
 .. important::
@@ -256,12 +257,28 @@ connection strings follow this format:
 
 .. code-block:: sh
 
-   mongodb://pl-us-east-1a.abc123.mongodb.net:1234
-   mongodb+srv://pl-us-east-1a.abc123.mongodb.net
+   mongodb://pl-0-us-east-1a.ab123.mongodb.net:1024
+   mongodb+srv://pl-0-us-east-1a.ab123.mongodb.net
 
 |uri|\s using this format can be reachable via the |aws| |vpc| where
-someone configured PrivateLink, though access can be transient from
+someone configured PrivateLink, though access can be transitive from
 other |vpc|\s peered in turn.
+
+|azure| Private Link Connection Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Azure Private Link <private-endpoint-connection-strings>`
+connection strings follow this format:
+
+.. code-block:: sh
+   :copyable: false
+
+   mongodb://pl-0-eastus2.ab123.azure.mongodb.net:1024
+   mongodb+srv://pl-0-eastus2.ab123.azure.mongodb.net
+
+|uri|\s using this format can be reachable via the |azure| VNet where
+someone configured PrivateL ink, though access can be transitive from
+other VNets peered in turn.
 
 .. _connstring-legacy:
 .. _atlas-faq-connstring-legacy:
@@ -281,24 +298,24 @@ follows:
        .. code-block:: sh
           :copyable: false
 
-          foo-shard-00-00-abc123.mongodb.net
-          foo-abc123.mongodb.net
+          foo-shard-00-00-ab123.mongodb.net
+          foo-ab123.mongodb.net
 
    * - |azure|
      -
        .. code-block:: sh
           :copyable: false
 
-          foo-shard-00-00-abc123.azure.mongodb.net
-          foo-abc123.azure.mongodb.net
+          foo-shard-00-00-ab123.azure.mongodb.net
+          foo-ab123.azure.mongodb.net
 
    * - |gcp|
      -
        .. code-block:: sh
           :copyable: false
 
-          foo-shard-00-00-abc123.gcp.mongodb.net
-          foo-abc123.gcp.mongodb.net
+          foo-shard-00-00-ab123.gcp.mongodb.net
+          foo-ab123.gcp.mongodb.net
 
 If you enabled **Private Only** mode, these hostnames resolve to peered
 network IP addresses. If you disabled that mode, hostnames resolve to
