@@ -17,6 +17,19 @@
      - .NET Core 3.0
      - .NET Core 3.1
 
+   * - Version 2.11
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
    * - Version 2.10
      - |checkmark|
      - |checkmark|
