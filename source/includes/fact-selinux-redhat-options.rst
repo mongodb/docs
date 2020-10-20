@@ -68,7 +68,7 @@ Non-Default MongoDB Directory Path(s)
 
       .. code-block:: sh
 
-         semanage fcontext -a -t <type> </some/MongoDB/directory.*>
+         sudo semanage fcontext -a -t <type> </some/MongoDB/directory.*>
 
       where specify one of the following types as appropriate:
 
@@ -86,7 +86,7 @@ Non-Default MongoDB Directory Path(s)
 
       .. code-block:: sh
 
-         chcon -Rv -u system_u -t <type> </some/MongoDB/directory>
+         sudo chcon -Rv -u system_u -t <type> </some/MongoDB/directory>
 
       where specify one of the following types as appropriate:
 
@@ -102,22 +102,19 @@ Non-Default MongoDB Directory Path(s)
 
          restorecon -R -v </some/MongoDB/directory>
 
-   For examples:
+   For example:
 
    .. tip::
 
-      - Depending on your user permission, you may need to use ``sudo``
-        to perform these operations.
-
-      - Be sure to include the ``.*`` at the end of the directory for the
-        ``semanage fcontext`` operations.
+      Be sure to include the ``.*`` at the end of the directory for the
+      ``semanage fcontext`` operations.
 
    - If using a non-default MongoDB data path of ``/mongodb/data``:
 
      .. code-block:: sh
 
-        semanage fcontext -a -t mongod_var_lib_t '/mongodb/data.*'
-        chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
+        sudo semanage fcontext -a -t mongod_var_lib_t '/mongodb/data.*'
+        sudo chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
         restorecon -R -v '/mongodb/data'
 
    - If using a non-default MongoDB log directory of ``/mongodb/log``
@@ -125,8 +122,8 @@ Non-Default MongoDB Directory Path(s)
 
      .. code-block:: sh
 
-        semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
-        chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
+        sudo semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
+        sudo chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
         restorecon -R -v '/mongodb/log' 
 
 
@@ -135,14 +132,9 @@ Non-Default MongoDB Ports
 
 .. container::
 
-  .. tip::
+   .. code-block:: sh
 
-     Depending on your user permission, you may need to use ``sudo`` to
-     perform the operation.
-
-  .. code-block:: sh
-
-     semanage port -a -t mongod_port_t -p tcp <portnumber>
+      sudo semanage port -a -t mongod_port_t -p tcp <portnumber>
 
 *Optional.* Suppress ``FTDC`` Warnings
 ++++++++++++++++++++++++++++++++++++++
