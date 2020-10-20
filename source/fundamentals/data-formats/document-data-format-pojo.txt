@@ -15,8 +15,14 @@ Overview
 
 This guide explains how you can store and retrieve MongoDB data using plain
 old Java objects (`POJOs <https://en.wikipedia.org/wiki/Plain_old_Java_object>`__).
-POJOs are classes that do not depend on any other files or frameworks, and are
-often designed for storage and access of data.
+POJOs are often used for data encapsulation, separating business logic from
+data representation.
+
+In the following sections we show:
+
+- a POJO example
+- how to configure the driver to serialize and deserialize the POJO
+- sample code to read and write documents to MongoDB using the POJO
 
 .. _fundamentals-example-pojo:
 
@@ -92,41 +98,38 @@ following sample POJO class which describes characteristics of a flower:
        }
    }
 
-.. note:: POJO Serialization
+If you are creating your own POJO for storing and retrieving data in MongoDB,
+make sure to follow the following guidelines:
 
-   Make sure your POJO properties meet the following requirements for
-   serialization:
+- The POJO class should not implement interfaces or extend classes from a
+  framework.
+- Include all the fields for which you want to store and retrieve data;
+  make sure they are not ``static`` or ``transient``.
+- If you include public getter or setter methods using the
+  `JavaBean naming conventions <https://docs.oracle.com/javase/tutorial/javabeans/writing/properties.html>`__
+  in your POJO, they get called when serializing or deserializing data.  If
+  you omit the getter or setter methods for a property field, it is accessed
+  or assigned directly.
 
-   - **public** getter methods
-   - **public** setter methods
-   - **public** fields
-
-   Also note that:
-
-   - The codec omits static and transient fields in your POJO.
-   - If your field has a corresponding getter method, the codec calls it for
-     the value of the field. Otherwise, it retrieves the value directly from
-     the field.
-   - If your field has a corresponding setter method, the codec calls it to
-     set the value of the field. Otherwise, it sets the value directly on the
-     field.
 
 Configure the Driver for POJOs
 ------------------------------
 
 To set up the driver to store and retrieve POJOs, we need to specify:
 
-- A codec provider that contains :doc:`Codecs </fundamentals/data-formats/codecs>`
-  that define how to encode/decode the data between the POJO and MongoDB
-  document, and which POJO classes or packages that the Codecs should apply to.
+- The ``PojoCodecProvider``, a codec provider that includes
+  :doc:`Codecs </fundamentals/data-formats/codecs>` that define how to
+  encode/decode the data between the POJO and MongoDB document, and which
+  POJO classes or packages that the Codecs should apply to.
 - A :java-docs:`CodecRegistry <apidocs/bson/org/bson/codecs/configuration/CodecRegistry.html>`
-  instance that contains the aforementioned information.
+  instance that contains the codec provider and other related information.
 - A ``MongoClient``, ``MongoDatabase``, or ``MongoCollection`` instance
   configured to use the ``CodecRegistry``.
 - A ``MongoCollection`` instance configured to cast to your POJO document
   class.
 
-Follow the steps below to see how to perform each of the requirements:
+Follow the steps below to see how to perform each of the configuration
+requirements:
 
 
 1. Configure the :java-docs:`PojoCodecProvider </apidocs/bson/org/bson/codecs/pojo/PojoCodecProvider.html>`,
@@ -148,7 +151,7 @@ Follow the steps below to see how to perform each of the requirements:
    on :doc:`POJO Customization </fundamentals/data-formats/pojo-customization>`.
 
 
-2. Add the ``PojoCodecProvider`` instance to a ``CodecRegistry``. The
+#. Add the ``PojoCodecProvider`` instance to a ``CodecRegistry``. The
    ``CodecRegistry`` allows you to specify one or more Codec providers to
    encode the POJO data. See the code below to see how to instantiate the
    ``CodecRegistry`` instance:
@@ -164,10 +167,11 @@ Follow the steps below to see how to perform each of the requirements:
 
       CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
 
-3. Configure our ``MongoClient``, ``MongoDatabase``, or ``MongoCollection``
+#. Configure our ``MongoClient``, ``MongoDatabase``, or ``MongoCollection``
    instance to use the Codecs in the ``CodecRegistry``. You only need to
-   configure one of these. In this example, we set it on a ``MongoDatabase``
-   called ``sample_pojos`` using the ``withCodecRegistry()`` method.
+   configure one of these. In this example, we set the ``CodecRegistry`` on a
+    ``MongoDatabase`` called ``sample_pojos`` using the ``withCodecRegistry()``
+    method.
 
    .. code-block:: java
 
@@ -176,7 +180,7 @@ Follow the steps below to see how to perform each of the requirements:
           // ...
       }
 
-4. Configure your ``MongoCollection`` instance to cast to your POJO class when
+#. Configure your ``MongoCollection`` instance to cast to your POJO class when
    retrieving documents:
 
    .. code-block:: java
