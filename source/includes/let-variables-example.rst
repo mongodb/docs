@@ -13,5 +13,5 @@ The following example:
 - retrieves the cake that has a ``salesTotal`` greater than 3000, which
   is the cake with an ``_id`` of 2
 
-- defines a ``targetTotal`` constant in ``let``, which is referenced in
+- defines a ``targetTotal`` variable in ``let``, which is referenced in
   ``$gt`` as ``$$targetTotal``
