@@ -35,8 +35,20 @@ The command has the following syntax:
    db.runCommand( { serverStatus: 1 } )
 
 The value (i.e. ``1`` above) does not affect the operation of the
-command. The :binary:`~bin.mongo` shell provides the
-:method:`db.serverStatus()` wrapper for the command.
+command. The ``db.serverStatus()`` command returns a large amount of
+data. To return a specific object or field from the output append the
+object or field name to the command.
+
+For example:
+
+.. code-block:: javascript
+
+   db.runCommand({ serverStatus: 1}).metrics
+   db.runCommand({ serverStatus: 1}).metrics.commands
+   db.runCommand({ serverStatus: 1}).metrics.commands.update
+
+The :binary:`~bin.mongo` shell provides the :method:`db.serverStatus()`
+wrapper for the :dbcommand:`serverStatus` command.
 
 .. seealso::
 
@@ -62,6 +74,30 @@ all :ref:`server-status-repl` information in the output:
 .. code-block:: javascript
 
    db.runCommand( { serverStatus: 1,  repl: 1 } )
+
+Initialization
+~~~~~~~~~~~~~~
+
+The statistics reported by :dbcommand:`serverStatus` are reset when the
+:binary:`~bin.mongod` server is restarted.
+
+This command will always return a value, even on a fresh database. The
+related command :method:`db.serverStatus()` does not always return a
+value unless a counter has started to increment for a particular
+metric.
+
+After you run an update query, ``db.serverStatus()`` and
+``db.runCommand({ serverStatus: 1})`` both return the same values.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "arrayFilters" : NumberLong(0),
+      "failed" : NumberLong(0),
+      "pipeline" : NumberLong(0),
+      "total" : NumberLong(1)
+   }
 
 Include ``mirroredReads``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -4035,7 +4071,6 @@ metrics
    ``replSetStepDown``. In earlier versions, the command
    reported only overall ``replSetStepDown`` metrics.
 
-
 .. serverstatus:: metrics.commands.<command>.failed
 
    The number of times ``<command>`` failed on this
@@ -4045,6 +4080,45 @@ metrics
 
    The number of times ``<command>`` executed on this
    :binary:`~bin.mongod`.
+
+.. serverstatus:: metrics.commands.update.pipeline
+
+   The number of times an
+   :ref:`aggregation pipeline <aggregation-pipeline-operator-reference>`
+   was used to update documents on this :binary:`~bin.mongod`. Subtract
+   this value from the total number of updates to get the number of
+   updates made with :ref:`document <update-operators-top-level>` 
+   syntax.
+
+   The ``pipeline`` counter is only available for ``update`` and
+   ``findAndModify`` operations.
+
+.. serverstatus:: metrics.commands.findAndModify.pipeline
+
+   The number of times :method:`~db.collection.findAndModify()` was 
+   used in an
+   :ref:`aggregation pipeline <aggregation-pipeline-operator-reference>`
+   to update documents on this :binary:`~bin.mongod`. 
+
+   The ``pipeline`` counter is only available for ``update`` and
+   ``findAndModify`` operations.
+
+.. serverstatus:: metrics.commands.update.arrayFilters
+
+   The number of times an :ref:`arrayFilter <findAndModify-arrayFilters>`
+   was used to update documents on this :binary:`~bin.mongod`.
+
+   The ``arrayFilters`` counter is only available for ``update`` and
+   ``findAndModify`` operations.
+
+.. serverstatus:: metrics.commands.findAndModify.arrayFilters
+
+   The number of times an :ref:`arrayFilter <findAndModify-arrayFilters>`
+   was used with :method:`~db.collection.findAndModify()` to update 
+   documents on this :binary:`~bin.mongod`.
+
+   The ``arrayFilters`` counter is only available for ``update`` and
+   ``findAndModify`` operations.
 
 .. serverstatus:: metrics.document
 
