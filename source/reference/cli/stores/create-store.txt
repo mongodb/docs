@@ -67,7 +67,7 @@ Syntax
 
       .. code-block:: sh
 
-         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, urls: [ <url> ], defaultFormat: <file-extension> })
+         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, allowInsecure: true|false, urls: [ <url> ], defaultFormat: <file-extension> })
 
 .. _dl-create-store-cmd-params:
 
@@ -179,6 +179,11 @@ Parameters
       .. list-table::
          :widths: 10 10 70 10 
 
+         * - ``allowInsecure`` 
+           - boolean 
+           - .. include:: /includes/extracts/cli-param-allow-insecure.rst
+           - no
+
          * - ``urls`` 
            - array of strings or an empty array
            - One or more publicly accessible |url|\s. You 
@@ -253,6 +258,7 @@ fails, see :ref:`dl-create-store-cmd-errors` for recommended solutions.
 	         "store" : {
 		         "name" : "<store-name>",
 		         "provider" : "<storage-provider>",
+		         "allowInsecure" : true|false,
 		         "urls" : [
 			         "<url>"
 		         ],
@@ -329,7 +335,7 @@ The following example uses the ``createStore`` command to create a new
       .. code-block:: json 
 
          use sample 
-         db.runCommand({ createStore: "myStore", provider: "http", urls: ["https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json"], defaultFormat: ".json" })
+         db.runCommand({ createStore: "myStore", provider: "http", urls: ["https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews","http://example.mongodb.com/sampleData"], allowInsecure: true, defaultFormat: ".json" })
 
       The previous command prints the following: 
 
@@ -342,9 +348,11 @@ The following example uses the ``createStore`` command to create a new
 		       "name" : "http-store",
 		       "provider" : "http",
 		       "urls" : [
-			      "https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json"
+			       "https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews",
+			       "http://example.mongodb.com/sampleData"
 		       ],
 		       "defaultFormat" : ".json"
+		       "allowInsecure" : true
 	        }
          }
 
@@ -383,3 +391,32 @@ If the command fails, it returns one of the following errors.
    }
 
 **Solution:** Ensure that you specify a valid storage provider.
+
+.. tabs:: 
+   :hidden:
+
+   .. tab:: S3 Configuration 
+      :tabid: s3
+
+   .. tab:: Atlas Configuration 
+      :tabid: atlas 
+
+   .. tab:: HTTP Configuration 
+      :tabid: http
+
+      **Reason:** One or more given |url|\s contain insecure |http| scheme. 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+	         "ok" : 0,
+	         "errmsg" : "store 'httpStore': the insecure HTTP scheme is not supported by default - please add a 'allowInsecure: true' flag to the store or datasource to query from such URLs, correlationID = 16332c6eddf7b32776fde638",
+	         "code" : 72,
+	         "codeName" : "InvalidOptions"
+         }
+
+      **Solution:** Specify |url|\s with the secure |https| scheme. If the 
+      specified |url|\s have the insecure |http| scheme, set the ``allowInsecure`` flag to ``true``. Note that setting the 
+      ``allowInsecure`` flag to ``true`` leaves your data vulnerable to 
+      man-in-the-middle attacks.
