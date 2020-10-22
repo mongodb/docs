@@ -519,26 +519,36 @@ Commands
    Lists the files in the GridFS store with names that match any
    portion of ``<string>``.
 
-.. describe:: put <filename>
+.. describe:: put <filename1[ filename2] ...>
 
-   Copy the specified file from the local file system into GridFS
-   storage.
+   Copy the specified file or files from the local file system into
+   GridFS storage. Multiple files can be specified as a space-separated 
+   list.
 
-   Here, ``<filename>`` refers to the name the object will have in
-   GridFS, and :binary:`~bin.mongofiles` assumes that this reflects the name the
-   file has on the local file system. If the local filename is
-   different use the :option:`mongofiles --local` option.
+   Each specified filename refers to the name the object will have in
+   GridFS, and :binary:`~bin.mongofiles` assumes that this reflects the
+   name the file has on the local file system. If the local filename is
+   different, use the :option:`mongofiles --local` option.
 
-.. describe:: get <filename>
+.. describe:: get <filename1[ filename2] ...>
 
-   Copy the specified file from GridFS storage to the local file
-   system.
+   Copy the specified file or files from GridFS storage to the local
+   file system.
 
-   Here, ``<filename>`` refers to the name the object will have in
-   GridFS. :binary:`~bin.mongofiles` writes the file to the local
-   file system using the file's ``filename`` in GridFS. To choose a
-   different location for the file on the local file system, use the
-   :option:`--local <mongofiles --local>` option.
+   Each specified filename refers to the name the object has in
+   GridFS, and :binary:`~bin.mongofiles` will use this filename when
+   writing to the local file system.
+   
+   If specifying *only one* ``filename`` to the ``get`` command, you can
+   use the :option:`--local <mongofiles --local>` option to specify a
+   different local filename to write to, if desired. The
+   :option:`--local <mongofiles --local>` option **cannot** be used if
+   specifying *more than one* ``filename`` to the ``get`` command.
+
+   .. note:
+
+      To copy files from GridFS storage that match a regular expression,
+      use the ``get_regex`` command instead.
 
 .. describe:: get_id "<_id>"
 
@@ -548,9 +558,28 @@ Commands
    non-ObjectId values for ``<_id>``.
    
    :binary:`~bin.mongofiles` writes the file to the local
-   file system using the file's ``filename`` in GridFS. To choose a
+   file system using the file's filename in GridFS. To choose a
    different location for the file on the local file system, use the
    :option:`--local <mongofiles --local>` option.
+
+.. describe:: get_regex <regex> --regexOptions <regex-options>
+
+   Copy the file or files, matched by the specified ``<regex>``
+   expression, from GridFS storage to the local file system. The
+   ``get_regex`` command uses Perl compatible regular expressions
+   ("PCRE") version 8.42 with UTF-8 support.
+
+   You may optionally specify one or more ``<regex-options>`` using the
+   ``--regexOptions`` flag. These can be any of the
+   :ref:`options supported by the $regex operator
+   <regex-query-options>`, which include settings such as
+   case-insensitivity. Multiple options should be provided together
+   without separators, e.g. ``--regexOptions si``
+
+   :binary:`~bin.mongofiles` writes the file or files to the local
+   file system using each file's matched filename in GridFS. You
+   **cannot** use the :option:`--local <mongofiles --local>` option with
+   the ``get_regex`` command.
 
 .. describe:: delete <filename>
 
@@ -611,7 +640,8 @@ following command:
    mongofiles -d=records search corinth
 
 To list all files in the GridFS collection in the ``records`` database
-that begin with the string ``32``, you can use the following command:
+with names that begin with the string ``32``, you can use the following
+command:
 
 .. code-block:: sh
 
@@ -623,6 +653,14 @@ database named ``32-corinth.lp``, you can use the following command:
 .. code-block:: sh
 
    mongofiles -d=records get 32-corinth.lp
+
+To fetch all files from the GridFS collection in the ``records``
+database with names beginning with the string ``32`` and ending with the
+string ``.lp``, you can use the following command:
+
+.. code-block:: sh
+
+   mongofiles -d=records get_regex 32*.lp
 
 To fetch the file from the GridFS collection in the ``records`` database
 with ``_id: ObjectId("56feac751f417d0357e7140f")``, you can use the
