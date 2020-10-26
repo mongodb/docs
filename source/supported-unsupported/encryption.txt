@@ -1,0 +1,73 @@
+.. _s3-adl-encryption-mapping: 
+
+===============================
+Configuration for S3 Encryption
+===============================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: |data-lake| encryption
+
+{+adl+} can query and analyze unencrypted data in your |aws| |s3| 
+buckets without additional configuration. However, to read encrypted 
+data or write data to your |s3| buckets using :ref:`adl-out-stage`, 
+{+dl+} might require additional permissions depending on your |s3| 
+encryption settings. 
+
+The following table describes the required configuration for your 
+{+dl+} to read encrypted data and to use :ref:`adl-out-stage` to 
+write data to |s3| for each type of |aws| |s3| encryption.
+
+.. list-table::
+   :header-rows: 1 
+   :widths: 20 80
+
+   * - |aws| |s3| Encryption Types
+     - Required {+dl+} Configuration
+
+   * - `AES-256 
+       <https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html>`__
+     - {+adl+} supports both reads and writes of data encrypted in |s3| 
+       buckets using AES-256 |aws| Managed Keys by default. No additional 
+       configuration is required.
+
+   * - `SSE with Amazon S3-Managed 
+       <https://docs.aws.amazon.com/AmazonS3/latest/dev/serv-side-encryption.html>`__
+     - {+adl+} supports both reads and writes of data encrypted in the 
+       |s3| buckets using SSE with Amazon |s3| Managed Keys by default. No 
+       additional configuration is required.
+
+   * - `Customer Managed Symmetric Customer Master Keys 
+       <https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-concepts.html#symmetric-cmks>`__
+     - {+adl+} can't access data encrypted in the |s3| buckets using SSE 
+       Customer Managed Symmetric Customer Master Keys by default. For 
+       reads and writes, you must add permissions similar to the following 
+       to the policy assigned to your IAM role: 
+
+       .. code-block:: json
+       
+          {
+             "Effect": "Allow",
+             "Action": [
+                "kms:GenerateDataKey",
+                "kms:decrypt"
+             ],
+             "Resource": [
+                "arn:aws:kms:<aws-region>:<role-ID>:key/<master-key>"
+             ]
+           }
+
+       To modify the your |aws| IAM role trust policy: 
+
+       1. Log in to your |aws| Management Console and navigate to the 
+          :guilabel:`Identity and Access Management (IAM)` service 
+          page.
+
+       #. Select :guilabel:`Roles` from the left-side navigation and 
+          click on the IAM role to modify.
+
+       #. Select the :guilabel:`Trust Relationships` tab. 
+
+       #. Click the :guilabel:`Edit trust relationship` button and edit 
+          the :guilabel:`Policy Document`.
