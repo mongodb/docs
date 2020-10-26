@@ -13,7 +13,7 @@
    response may only return a subset of these fields. See the subsequent table
    for a description of the fields and when to expect them.
    
-   .. code-block:: json
+   .. code-block:: none
    
       {
          "stage" : "<stage Name>",
@@ -21,6 +21,7 @@
          "details" : {
             "currentTimestamp" : "<BSON timestamp>",
             "latestTimestamp" : "<BSON timestamp>",
+            "lastWriteOnSourceTimestamp" : "<BSON timestamp>",
             "<namespace>" : {
                "complete" : <boolean>,
                "copiedBytes" : <integer>,
@@ -106,7 +107,8 @@
           indexes.
    
       * - ``details.currentTimestamp``
-        - The BSON timestamp value of the oplog entry most recently processed.
+        - The :manual:`BSON timestamp </reference/bson-types/#timestamps>`
+          value of the oplog entry most recently processed.
           :program:`mongomirror` only refreshes this data point every 10 seconds, so
           :program:`mongomirror` may be slightly further ahead of the reported time.
    
@@ -114,7 +116,8 @@
           stages when tailing or applying oplog entries.
    
       * - ``details.latestTimestamp``
-        - During the ``initial sync`` stage, this represents the BSON timestamp
+        - During the ``initial sync`` stage, this represents the
+          :manual:`BSON timestamp </reference/bson-types/#timestamps>`
           value of the latest oplog entry available after the initial data was
           copied during initial sync.
    
@@ -123,7 +126,20 @@
    
           Only displays during the ``initial sync`` or ``oplog sync`` stages
           when tailing or applying oplog entries.
+
+      * - | ``details``
+          | ``.lastWriteOnSourceTimestamp``
+        - The :manual:`BSON timestamp </reference/bson-types/#timestamps>`
+          value of the most recent oplog entry that is
+          not a no-op. No-op entries are generally system-level operations
+          such as heartbearts that do not write or edit data in the database.
+          :program:`mongomirror` refreshes this value every 10 seconds.
+          Operations which write or edit data in the database may not be
+          reported until the next refresh occurs.
+
+          The ``lastWriteOnSourceTimestamp`` field is useful as a
+          confirmation that no new writes are occurring on the source
+          deployment before cutting over during a migration.
    
       * - ``errorMessage``
         - A string that describes any error encountered by :program:`mongomirror`.
-
