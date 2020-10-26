@@ -2,7 +2,7 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
   --header "Accept: application/json" \
   --header "Content-Type: application/json" \
   --include \
-  --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/clusters/{CLUSTER-ID}/restoreJobs?pretty=true" \
+  --request POST "https://<OpsManagerHost>:<Port>/api/public/v1.0/groups/{PROJECT-ID}/clusters/{CLUSTER-ID}/restoreJobs?pretty=true" \
   --data '
    {
      "delivery" : {
