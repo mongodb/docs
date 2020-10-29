@@ -3916,6 +3916,7 @@ LDAP Parameters
       mode: <string>
       slowOpThresholdMs: <int>
       slowOpSampleRate: <double>
+      filter: <string>
 
 .. _configuration-profiling-mode:
 .. setting:: operationProfiling.mode
@@ -4007,8 +4008,54 @@ LDAP Parameters
       - For :binary:`~bin.mongos` instances, the setting affects the
         diagnostic log only and not the profiler since profiling is not
         available on :binary:`~bin.mongos`.
-   
 
+.. setting:: operationProfiling.filter
+
+   *Type*: string representation of a query document
+
+   A filter expression that controls which operations are profiled and
+   logged.
+   
+   When ``filter`` is set,
+   :setting:`~operationProfiling.slowOpThresholdMs` and
+   :setting:`~operationProfiling.slowOpSampleRate` are not used for
+   profiling and slow-query log lines.
+
+   When you set a profile filter in the configuration file, the filter
+   applies to all databaes in the deployment. To set a profile filter
+   for a specific database, use the :method:`db.setProfilingLevel()`
+   method.
+   
+   The option takes a string representation of a query document
+   of the form:
+   
+   .. code-block:: javascript
+   
+      { <field1>: <expression1>, ... }
+   
+   The ``<field>`` can be :ref:`any field in the profiler output
+   <profiler>`. The ``<expression>`` is a :ref:`query condition
+   expression <query-selectors>`.
+   
+   To specify a profiling filter in a :doc:`configuration file
+   </reference/configuration-options>`, you must:
+   
+   - Enclose the filter document in single quotes to pass the document
+     as a string.
+   
+   - Use the YAML format of the configuration file.
+
+   For example, the following ``filter`` configures the profiler to
+   log ``query`` operations that take longer than 2 seconds:
+
+   .. code-block:: yaml
+      :emphasize-lines: 3
+
+      operationProfiling:
+         mode: all
+         filter: '{ op: "query", millis: { $gt: 2000 } }'
+
+   .. versionadded:: 4.4.2
 
 .. _replication-options:
 
