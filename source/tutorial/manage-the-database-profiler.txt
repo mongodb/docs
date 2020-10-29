@@ -86,6 +86,22 @@ The ``"ok" : 1`` key-value pair indicates the operation succeeded:
 To verify the new setting, see the
 :ref:`database-profiling-view-status` section.
 
+Global and Per-Database Profiling Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`slowms <set-profiling-level-options-slowms>` and
+:ref:`sampleRate <set-profiling-level-options-sampleRate>` profiling
+settings are *global*. When set, these settings affect all databases in
+your process.
+
+When set via the :dbcommand:`profile` command or
+:method:`db.setProfilingLevel()` shell helper method, :ref:`profiling
+level <database-profiling-level>` and :ref:`filter
+<set-profiling-level-options-filter>` settings are set at the *database*
+level. When set as either command line or :ref:`configuration
+file <configuration-options>` options, profiling level and ``filter``
+settings affect the entire process.
+
 .. _database-profiling-specify-slowms-threshold:
 
 Specify the Threshold for Slow Operations
@@ -196,6 +212,47 @@ sampling rate for logging slow operations:
 
    See :ref:`db-profiling-sharding`.
 
+Set a Filter to Determine Profiled Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.4.2
+
+You can set a filter to control which operations are profiled and
+logged. You can set the profiling filter in one of the following ways:
+
+- Set the value of ``filter`` using the :dbcommand:`profile` command
+  or :method:`db.setProfilingLevel()` shell helper method.
+
+- Set the value of :setting:`~operationProfiling.filter` in a
+  :ref:`configuration file <configuration-options>`.
+
+For :binary:`~bin.mongod` instances, the ``filter`` affects both the
+diagnostic log and, if enabled, the profiler.
+
+For :binary:`~bin.mongos` instances, the ``filter`` affects the
+diagnostic log only and not the profiler since profiling is not
+available on :binary:`~bin.mongos`.
+
+.. note::
+
+   When a profiling ``filter`` is set, the :ref:`slowms
+   <set-profiling-level-options-slowms>` and :ref:`sampleRate
+   <set-profiling-level-options-sampleRate>` options do not affect the
+   diagnostic log or the profiler.
+
+For example, the following :method:`db.setProfilingLevel()` method sets
+for a :binary:`~bin.mongod` instance:
+
+- the :ref:`profiling level <set-profiling-level-level>` to ``2``,
+
+- the :ref:`filter <set-profiling-level-options-filter>` of
+  ``{ op: "query", millis: { $gt: 2000 } }``, which causes the profiler
+  to only log ``query`` operations that took longer than 2 seconds.
+
+.. code-block:: javascript
+  
+   db.setProfilingLevel( 2, { filter: { op: "query", millis: { $gt: 2000 } } } )
+
 .. _database-profiling-view-status:
 .. _database-profiling-check-level:
 
@@ -287,6 +344,7 @@ However, starting in MongoDB 4.0, you can set the :option:`--slowms
 --slowOpSampleRate>` on :binary:`~bin.mongos` to configure the diagnostic
 log for slow operations.
 
+
 View Profiler Data
 ------------------
 
@@ -302,7 +360,6 @@ output data, see :doc:`/reference/database-profiler`.
 
    You can use :query:`$comment` to add data to the query predicate to
    make it easier to analyze data from the profiler.
-
 
 .. _database-profiling-example-queries:
 
