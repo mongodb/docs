@@ -132,7 +132,8 @@ L
 
      - Use *login* and *logoff* as nouns or adjectives.
 
-     - Don't use *log into*; use *log in to* instead.
+     - Don't use *log into*; use *log in to*. *Log in* is a single
+       :mw:`phrasal verb`. *To* links that verb to the next word.
 
      .. list-table::
         :widths: 50 50
