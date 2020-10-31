@@ -39,6 +39,11 @@ Date()
    - ``new Date("<YYYY-mm-ddTHH:MM:ssZ>")`` specifies the
      datetime in UTC and returns the ``ISODate`` with the specified
      datetime in UTC.
+     
+   - ``new Date(<number>)`` which specifies the
+     datetime in miliseconds since Epoch Time. Returns the ``ISODate`` with the specified
+     datetime in UTC.
+     
 
    - ``new Date(<integer>)`` specifies the datetime as milliseconds
      since the :term:`Unix epoch` (Jan 1, 1970), and returns the
@@ -104,3 +109,19 @@ The following example uses ``new Date()`` to return
 .. seealso::
    :ref:`BSON Date <document-bson-type-date>`, :ref:`mongo Shell
    Date <mongo-shell-date-type>`
+   
+   Convert timestamps stored as NumberLong (Int64) into corresponding ``Date`` Objects with aggregation functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The Int64 stored values do not have the proper representation to be used in Date constructor within the aggregation functions. 
+Therefore the convertion to Double representation is needed to instantiate the corresponding ISODate object. 
+When the myTimestamp property is already stored in myCollection, this can be used to migrate the collection data and generate the correpondig myDate property using the following code:
+
+db.mycollection.aggregate(    [
+     { $project: { 
+        _id: 1,
+        myTimestamp: 1,
+        myDate: { $add: [new Date(0), {$add: ["$myTimestamp", 0]}]}
+        }
+    },
+    { $out : "my_newcollection" }
+])
