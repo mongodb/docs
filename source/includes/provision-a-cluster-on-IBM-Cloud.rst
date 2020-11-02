@@ -6,7 +6,7 @@ Step 1 provision Kubernetes Cluster
 * Select **Service** from the catalog
 * Search for **Kubernetes Service** and click on it
 
-.. image:: /docs/source/images/kubernetes-select.png
+.. image:: /source/images/kubernetes-select.png
 
 * You are now at the Kubernetes deployment page, you need to specify some details about the cluster 
 * Choose a plan **standard** or **free**, the free plan only has one worker node and no subnet, to provision a standard cluster, you will need to upgrade you account to Pay-As-You-Go 
