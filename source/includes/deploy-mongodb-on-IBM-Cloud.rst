@@ -11,11 +11,11 @@ We will deploy  MongoDB on our cluster
 
 * Please select IBM Kubernetes Service
 
-.. image:: /source/images/target-select.png
+.. image:: /source/images/cluster-select.png
 
 * On the application page Click in the _dot_ next to the cluster, you wish to use
 
-.. image:: /source/images/cluster-select.png
+.. image:: /source/images/cluster-choose.png
 
 * Click on  **Enter or Select Namespace** and choose the default Namespace or use a custom one 
 
@@ -25,7 +25,7 @@ We will deploy  MongoDB on our cluster
 
 .. image:: /source/images/details-name.png
 
-* Select which resource group you want to use, it's for access controll and billing purposes. For more information please visit [resource groups]
+* Select which resource group you want to use, it's for access controll and billing purposes. For more information please visit `resource groups <https://cloud.ibm.com/docs/account?topic=account-account_setup#bp_resourcegroups>`_.
 
 .. image:: /source/images/details-resource.png
 
