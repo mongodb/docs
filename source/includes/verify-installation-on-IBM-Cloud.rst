@@ -22,36 +22,36 @@
 
 * **Type** in the terminal, please change NAMESPACE to the namespace you choose at the deployment setup:
 
- ```sh
+::
 $ kubectl get ns
-```
+
 .. image:: /source/images/get-ns.png
 
 
- ```sh
+ ::
 $ kubectl get pod -n NAMESPACE -o wide 
-```
+
 .. image:: /source/images/get-pods.png
 
 
- ```sh
+::
 $ kubectl get service -n NAMESPACE
-```
+
 .. image:: /source/images/get-service.png
 
 
 * Enter your pod with bash , please replace PODNAME with your mariadb pod's name
 
- ```sh
+::
 $ kubectl exec --stdin --tty PODNAME -n NAMESPACE -- /bin/bash
-```
+
 .. image:: /source/images/bash.png
 
 * After you are in your pod please enter your username,password and database which you set at the deployment
 
- ```sh
+::
 $ mongo -username user -password password -authenticationDatabase database
-```
+
 .. image:: /source/images/welcome.png
 
 
