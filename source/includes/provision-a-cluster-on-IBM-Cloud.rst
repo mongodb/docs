@@ -15,11 +15,12 @@ Step 1 provision Kubernetes Cluster
   * In the console, go to Manage > Account.
   * Select Account settings, and click Add credit card.
   * Enter your payment information, click Next, and submit your information
-* Choose **classic** or **VPC**, read the [docs] and choose the most suitable type for yourself 
+* Choose **classic** or **VPC**, read the  `docs <https://cloud.ibm.com/docs/containers?topic=containers-infrastructure_providers>`_. and choose the most suitable type for yourself 
  
  .. image:: /source/images/infra-select.png
 
 * Now choose your location settings, for more information please visit  `Locations <https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones>`_.
+
   * Choose **Geography** (continent)
   
 .. image:: /source/images/location-geo.png
@@ -32,14 +33,14 @@ Step 1 provision Kubernetes Cluster
  
  .. image:: /source/images/location-worker.png
  
-    * If you wish to use Multizone please set up your account with [VRF] or [enable Vlan spanning]
+    * If you wish to use Multizone please set up your account with `VRF <https://cloud.ibm.com/docs/dl?topic=dl-overview-of-virtual-routing-and-forwarding-vrf-on-ibm-cloud>`_. or `enable Vlan spanning <https://cloud.ibm.com/docs/vlans?topic=vlans-vlan-spanning#vlan-spanning>`_.
     * If at your current location selection, there is no available Virtual LAN, a new Vlan will be created for you 
  
 * Choose a **Worker node setup** or use the preselected one, set **Worker node amount per zone**
 
 .. image:: /source/images/worker-pool.png
 
-* Choose **Master Service Endpoint**,  In VRF-enabled accounts, you can choose private-only to make your master accessible on the private network or via VPN tunnel. Choose public-only to make your master publicly accessible. When you have a VRF-enabled account, your cluster is set up by default to use both private and public endpoints. For more information visit [endpoints].
+* Choose **Master Service Endpoint**,  In VRF-enabled accounts, you can choose private-only to make your master accessible on the private network or via VPN tunnel. Choose public-only to make your master publicly accessible. When you have a VRF-enabled account, your cluster is set up by default to use both private and public endpoints. For more information visit `endpoints <https://cloud.ibm.com/docs/account?topic=account-service-endpoints-overview>`_..
 
 .. image:: /source/images/endpoints.png
 
@@ -47,7 +48,7 @@ Step 1 provision Kubernetes Cluster
 
 .. image:: /source/images/name-new.png
 
-* Give desired **tags** to your cluster, for more information visit [tags]
+* Give desired **tags** to your cluster, for more information visit `tags <https://cloud.ibm.com/docs/account?topic=account-tag>`_.
 
 .. image:: /source/images/tasg-new.png
 
