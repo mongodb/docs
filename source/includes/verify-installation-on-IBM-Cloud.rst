@@ -47,10 +47,10 @@ $ kubectl exec --stdin --tty PODNAME -n NAMESPACE -- /bin/bash
 ```
 .. image:: /source/images/bash.png
 
-* After you are in your pod please enter enter MongoDB and enter your root password after the prompt
+* After you are in your pod please enter your username,password and database which you set at the deployment
 
  ```sh
-$ mysql -u root -p
+$ mongo -username user -password password -authenticationDatabase database
 ```
 .. image:: /source/images/welcome.png
 
