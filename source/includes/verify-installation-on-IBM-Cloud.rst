@@ -1,7 +1,7 @@
  Verify MariaDB installation
  ---------------------------
 
-* Go to [Resources] in your browser 
+* Go to `Resources <http://cloud.ibm.com/resources>`_. in your browser 
 * Click on **Clusters**
 * Click on your Cluster
 
@@ -11,6 +11,7 @@
 
 
 .. image:: /source/images/cluster-main.png
+
 
 * Click **install** - wait couple of minutes 
 
