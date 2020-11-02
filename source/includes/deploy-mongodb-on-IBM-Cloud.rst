@@ -29,7 +29,7 @@ We will deploy  MongoDB on our cluster
 
 .. image:: /source/images/details-resource.png
 
-* Give **tags** to your mongoDB, for more information visit [tags]
+* Give **tags** to your mongoDB, for more information visit `tags <https://cloud.ibm.com/docs/account?topic=account-tag>`_.
 
 .. image:: /source/images/details-tags.png
 
