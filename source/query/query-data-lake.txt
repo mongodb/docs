@@ -145,7 +145,68 @@ To learn more about these settings, see :ref:`datalake-configuration-file`.
 {+dl+} automatically detects the file format and creates the virtual databases 
 and collections you specified in your {+dl+} configuration. When you 
 :doc:`connect </tutorial/connect>` to your {+dl+} and run queries, {+dl+} 
-processes your queries against the data and returns the query results.
+processes your queries against the data and returns the query results. 
+
+If you query a collection in {+adl+} that is mapped to only one |service| 
+collection, {+adl+} acts as a proxy and forwards your query to |service|. 
+When acting as a proxy, {+adl+} doesn't scan data into its virtual collection 
+to proces the query thus improving performance and reducing cost. This 
+optimization is not available for queries on {+adl+} collections that are 
+mapped to multiple |service| collections. 
+
+.. example:: 
+
+   Consider the following {+dl+} storage configuration: 
+
+   .. code-block:: json
+
+      {
+        "stores" : [
+          {
+            "name" : "atlas-store",
+            "provider": "atlas",
+            "clusterName": "myCluster", 
+            "projectId": "5e2211c17a3e5a48f5497de3"
+          }
+        ],
+        "databases" : [
+          {
+            "name" : "atlas-db",
+            "collections" : [
+              {
+                "name" : "foo",
+                "dataSources" : [
+                  {
+                    "storeName" : "atlas-store",
+                    "database" : "myFooData",
+                    "collection" : "foo" 
+                  }
+                ]
+              },
+              {
+                "name" : "barbaz",
+                "dataSources" : [
+                  {
+                    "storeName" : "atlas-store",
+                    "database" : "myBarData",
+                    "collection" : "bar" 
+                  },
+                  {
+                    "storeName" : "atlas-store",
+                    "database" : "myBazData",
+                    "collection" : "baz" 
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+
+   For the above storage configuration, {+adl+} acts as a proxy for queries 
+   on ``foo`` collection and forwards the queries to |service|. This 
+   performance and cost optimization is not available for queries on ``barbaz`` 
+   collection because ``barbaz`` is mapped to multiple |service| collections.
 
 .. _query-http:
 
