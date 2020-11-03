@@ -1,3 +1,15 @@
+.. _data-lake-v20201103:
+
+03 November 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports the :pipeline:`$geoNear` and :pipeline:`$graphLookup`   
+  :manual:`aggregation pipeline stages
+  </reference/operator/aggregation-pipeline>` in queries on {+dl+}
+  collections that reference a single |service| collection.
+- Updates summary information in :manual:`explain
+  </reference/command/explain>` output.
+
 .. _data-lake-v20201013:
 
 13 October 2020 Release
