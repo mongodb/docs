@@ -24,24 +24,9 @@ The following steps depend on how your environment is configured:
             :tabid: helmofflinek8sup
 
             To upgrade the |k8s-op-short| on a host not connected to the
-            Internet, you have two options, you can download the
-            |k8s-op-short| files from either:
+            Internet:
 
-            .. note that these tabs contain the same content but I don't
-               think that's intended. separated the includes out to 
-               prepare for corrections.
-
-            .. tabs::
-
-               .. tab:: The Internet
-                  :tabid: internetk8sup
-
-                  .. include:: /includes/steps/upgrade-k8s-offline-helm-internet.rst
-                  
-               .. tab:: Another Host
-                  :tabid: hostk8sup
-
-                  .. include:: /includes/steps/upgrade-k8s-offline-helm-host.rst
+            .. include:: /includes/steps/upgrade-k8s-offline-helm-host.rst
 
    .. tab:: OpenShift
       :tabid: osup
@@ -68,19 +53,8 @@ The following steps depend on how your environment is configured:
             .. note that these tabs contain the same content but I don't think that's intended. separated the includes out to prepare for corrections.
 
             To upgrade the |k8s-op-short| on a host not connected to the
-            Internet, you have two options, you can download the
-            |k8s-op-short| files from either:
+            Internet: 
 
-            .. tabs::
-
-               .. tab:: The Internet
-                  :tabid: internetosup
-
-                  .. include:: /includes/steps/upgrade-os-offline-helm-internet.rst
-                  
-               .. tab:: Another Host
-                  :tabid: hostosup
-
-                  .. include:: /includes/steps/upgrade-os-offline-helm-host.rst
+            .. include:: /includes/steps/upgrade-os-offline-helm-host.rst
 
 .. include:: /includes/troubleshoot-k8s.rst
