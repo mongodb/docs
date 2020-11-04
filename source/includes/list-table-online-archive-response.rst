@@ -71,4 +71,9 @@
 
        - ``true`` if the online archive is in paused state.
        - ``false`` if the online archive is in pending or active state.
-  
+
+   * - ``state``
+     - string 
+     - Status of the online archive. Valid values are: 
+
+       .. include:: /includes/fact-online-archive-statuses.rst
