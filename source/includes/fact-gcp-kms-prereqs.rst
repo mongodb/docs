@@ -1,5 +1,4 @@
-To enable customer-managed keys with |gcp| |kms| for a MongoDB
-project, you must have:
+.. include:: /includes/fact-kms-prereqs.rst
 
 - Your |gcp| Service Account Key.
 - The Key Version Resource ID associated with your Service Account Key.
@@ -13,6 +12,11 @@ project, you must have:
   .. note::
 
      The key, not the key version, handles decryption.
+
+- If your |gcp| |kms| configuration requires it, :gcp:`allow access
+  </iam/docs/conditions-attribute-reference#access-levels>`
+  from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
+  |service| can communicate with your |kms|. 
 
 .. seealso::
 

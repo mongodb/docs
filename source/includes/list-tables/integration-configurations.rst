@@ -138,6 +138,12 @@
        |service| sends an email to the project owner and eventually
        removes the Webhook settings.
 
+       .. important::
+
+          If your firewall configuration requires it, allow access
+          from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
+          |service| can communicate with your webhook. 
+
    * - :guilabel:`VictorOps Settings`
 
      - Sets an API key and Routing key for alert notifications sent

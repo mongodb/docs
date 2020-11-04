@@ -1,5 +1,4 @@
-To enable customer-managed keys with |aws| |kms| for a MongoDB
-project, you must:
+.. include:: /includes/fact-kms-prereqs.rst
 
 - Have an |aws| customer master key (|cmk|).
   To learn how to create a key, see
@@ -44,3 +43,8 @@ project, you must:
 
   |service| uses the same |iam| user credentials and |cmk| settings for
   all clusters in a project for which Encryption at Rest is enabled.
+
+- If your |aws| |kms| configuration requires it, :aws:`allow
+  access </kms/latest/developerguide/policy-conditions.html#conditions-aws-ip-address>` 
+  from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
+  |service| can communicate with your |kms|. 

@@ -1,5 +1,4 @@
-To enable customer-managed keys with Azure Key Vault for a MongoDB
-project, you must:
+.. include:: /includes/fact-kms-prereqs.rst
 
 - Have the :guilabel:`Tenant ID` (or :guilabel:`Directory ID`) for an
   Active Directory tenant.
@@ -9,7 +8,8 @@ project, you must:
   associated to the Active Directory tenant.
 
 - Have the :guilabel:`Resource Group` name for an Azure Resource Group
-  in which the Azure Application has the :guilabel:`Owner` role.
+  in which the Azure Application has the :guilabel:` Azure Key Vault
+  Reader (Preview)` role.
 
 - Have the :guilabel:`Subscription ID` and :guilabel:`Key Vault Name`
   of an Azure Key Vault. Ensure the Key Vault resource group
@@ -40,28 +40,6 @@ project, you must:
   :azure:`Azure Documentation </index>`.
 
 - If your Azure Key Vault configuration requires it, :azure:`allow
-  access </key-vault/general/network-security>` from the following IP
-  addresses so that |service| can communicate with your key vault:
-
-  .. code-block:: none
-  
-     18.214.178.145
-     18.235.30.157
-     18.235.48.235
-     18.235.145.62
-     34.193.242.51
-     34.196.151.229
-     34.200.66.236
-     34.235.52.68
-     35.153.40.82
-     35.169.184.216
-     35.171.106.60
-     35.174.179.65
-     35.174.230.146
-     35.175.93.3
-     35.175.94.38
-     35.175.95.59
-     52.71.233.234
-     52.87.98.128
-     107.20.0.247
-     107.20.107.166
+  access </key-vault/general/network-security>` from :ref:`Atlas
+  IP addresses <atlas-add-inbound-ips>` so that |service| can
+  communicate with your key vault.
