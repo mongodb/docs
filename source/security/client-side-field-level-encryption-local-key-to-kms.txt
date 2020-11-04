@@ -15,259 +15,90 @@ Client-Side Field Level Encryption: Use a KMS to Store the Master Key
 Introduction
 ------------
 
-This guide is intended to help users migrate from using Client-Side Field
+This guide shows you how to migrate from using Client-Side Field
 Level Encryption (CSFLE) with a **locally-managed master key** to one that
-uses a remote **Key Management Service** such as
-`AWS KMS <https://aws.amazon.com/kms/>`_ to prepare their implementation
-for production. This guide assumes that you have already created
-a CSFLE-enabled client, appropriate access to the MongoDB replica set and
-AWS KMS.
+uses a remote **Key Management Service** (KMS) and is intended for
+**full-stack developers**.
 
-For a detailed walkthrough on developing and configuring a CSFLE client
-with an example use case, see our `CSFLE guide
-</security/client-side-field-level-encryption-guide>`_.
+Currently, MongoDB drivers support the following Key Management Providers:
 
-Reasons to Use a KMS
---------------------
+- `Amazon Web Services KMS <https://aws.amazon.com/kms/>`__
+- `Azure Key Vault <https://azure.microsoft.com/en-us/services/key-vault/>`__
+- `Google Cloud Platform Key Management <https://cloud.google.com/security-key-management>`__
+- Local KMS provider
 
-A remote KMS for master key management offers the following advantages over
-storing it on the local filesystem:
+Once you complete the steps in this guide, you should have:
 
-- Secure storage with access auditing
+- a master key hosted by one of the supported remote Key Management Services
+- a working client application that encrypts and decrypts the data
+  encryption key using the KMS master key
+
+Prerequisites
+-------------
+
+This guide requires that you completed the following:
+
+- created a CSFLE-enabled client using our `CSFLE guide </security/client-side-field-level-encryption-guide>`_
+- decrypted any data encrypted while using a local KMS master key
+
+Reasons to Use a Remote KMS
+---------------------------
+
+Choosing a remote KMS for master key management has the following advantages
+over using your local filesystem to host the master key:
+
+- Secure storage of the key with access auditing
 - Reduced risk of access permission issues
-- Availability and distribution to remote clients
-- Automated backup and recovery
+- Availability and distribution of the key to remote clients
+- Automated key backup and recovery
 - Centralized encryption key lifecycle management
 
 Additionally, MongoDB trasmits the data encryption keys to the KMS for
 encryption and decryption, ensuring the Customer Master Key (CMK) is never
 exposed to the client.
 
-Convert to a Remote Master Key
-------------------------------
+Set up a Remote Master Key
+--------------------------
 
 .. warning:: Decrypt all encrypted field data first
 
    Before you switch from a locally-managed master key to a remote KMS,
    you must decrypt all documents containing field-encrypted data if you
    want to keep it. Your existing data encryption keys can only be decrypted
-   with the original locally-managed master key and not the CMK that AWS KMS
-   generates.
+   with the original locally-managed master key and not the CMK that the
+   KMS generates.
 
    Failure to decrypt all data at this stage may cause permanent and
    unrecoverable data loss.
 
 The following steps explain the setup and updates necessary to move from
-a local key provider to AWS KMS.
+a local key provider to a KMS. Select the tab that corresponds to your
+provider:
 
-.. _create-an-aws-iam-user:
+.. tabs::
 
-Step 1: Create an AWS IAM User
-------------------------------
+   .. tab:: AWS KMS
+      :tabid: aws-kms
 
-Create a new programmatic IAM user in the AWS management console.
-CSFLE-enabled clients authenticate with AWS KMS using the IAM user to
-encrypt and decrypt the remote master key. The IAM user must be granted
-full ``List`` and ``Read`` permissions for the KMS service.
+      .. include:: /includes/steps/fle-convert-to-a-remote-master-key-aws.rst
 
-.. note:: Client IAM User Credentials
+   .. tab:: Azure Key Vault
+      :tabid: azure-kms
 
-   The CSFLE-enabled client uses the IAM User's :guilabel:`Access Key
-   ID` and :guilabel:`Secret Access Key` as configuration values. Take
-   note of these and reference them when we update the client.
+      .. include:: /includes/steps/fle-convert-to-a-remote-master-key-azure.rst
 
-.. _create-the-master-key:
+   .. tab:: Google Cloud Key Management
+      :tabid: google-kms
 
-Step 2: Create the Master Key
------------------------------
+      .. include:: /includes/steps/fle-convert-to-a-remote-master-key-gcp.rst
 
-The following diagram shows how the **master key** is created and stored
-when using a KMS provider:
-
-.. image:: /figures/CSFLE_Master_Key_KMS.png
-   :alt: Diagram that describes creating a master key when using a KMS provider
-
-In AWS management console, create a new symmetric master key in the KMS
-section. Choose a name and description that helps you identify it; these
-fields do not affect the functionality or configuration.
-
-In the :guilabel:`Usage Permissions` step of the key generation
-process, add the full KMS ``List`` and ``Read`` permissions to the IAM
-user you created in the previous step. This authorizes the user to encrypt
-and decrypt the new master key.
-
-.. important::
-
-   The new client IAM User *should not* have administrative permissions
-   for the master key.
-
-.. _specify-the-aws-kms-provider-credentials:
-
-Step 3: Specify the AWS KMS Provider Credentials
-------------------------------------------------
-
-Unlike the local key provider, the AWS KMS provider does not read
-the master key directly from the client application. Instead,
-it accepts the :guilabel:`Access Key ID` and :guilabel:`Secret Access
-Key` configurations that point to the master key. The IAM user must have
-the permissions set up in the previous step in order for the client to
-use the KMS to encrypt and decrypt data encryption keys.
-
-Update the KMS Provider configuration in your CSFLE-enabled client
-creation code:
-
-.. tabs-drivers::
-
-   .. tab::
-      :tabid: java-sync
-
-      .. code-block:: java
-
-         BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
-         BsonString awsAccessKeyId = new BsonString("<IAM User Access Key ID>");
-         BsonString awsSecretAccessKey = new BsonString("<IAM User Secret Access Key>");
-         Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
-         Map<String, Object> providerDetails = new HashMap<String, Object>();
-
-         providerDetails.put("accessKeyId", awsAccessKeyId);
-         providerDetails.put("secretAccessKey", awsSecretAccessKey);
-         providerDetails.put("region", masterKeyRegion);
-
-         kmsProviders.put("aws", providerDetails);
-   .. tab::
-      :tabid: nodejs
-
-      .. code-block:: javascript
-
-         kmsProviders = {
-           aws: {
-             accessKeyId: '<IAM User Access Key ID>',
-             secretAccessKey: '<IAM User Secret Access Key>',
-           }
-         }
-   .. tab::
-      :tabid: python
-
-      .. code-block:: python
-
-         kms_providers = {
-             "aws": {
-                 "accessKeyId": "<IAM User Access Key ID>",
-                 "secretAccessKey": "<IAM User Secret Access Key>"
-             }
-         }
-
-.. _create-a-new-data-key:
-
-Step 4: Create a New Data Encryption Key
-----------------------------------------
-
-The following diagram shows how the **customer master key** is created and
-stored when using a KMS provider:
-
-.. image:: /figures/CSFLE_Data_Key_KMS.png
-   :alt: Diagram that describes creating a data encryption key when using a KMS provider
-
-You must generate a new **data encryption key** using the **master key**
-in the remote KMS. The original data encryption key was encrypted by
-your locally-managed master key.
-
-Specify the AWS region and `Amazon Resource Number
-<https://docs.aws.amazon.com/kms/latest/developerguide/viewing-keys.html#find-cmk-id-arn>`_
-(ARN) of the new CMK in the CSFLE-enabled client settings. Use the client
-to create a new data encryption key as follows:
-
-Once you have the required information, run the following code to
-generate the new data encryption key:
-
-.. tabs-drivers::
-
-   .. tab::
-      :tabid: java-sync
-
-      .. code-block:: Java
-
-         ClientEncryption clientEncryption = ClientEncryptions.create(ClientEncryptionSettings.builder()
-             .keyVaultMongoClientSettings(MongoClientSettings.builder()
-                 .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
-                 .build())
-             .keyVaultNamespace(keyVaultNamespace)
-             .kmsProviders(kmsProviders)
-             .build());
-
-         BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
-         BsonString masterKeyArn = new BsonString("<Master Key ARN>"); // e.g. "arn:aws:kms:us-east-2:111122223333:alias/test-key"
-         DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
-             new BsonDocument()
-                 .append("region", masterKeyRegion)
-                 .append("key", masterKeyArn));
-
-         BsonBinary dataKeyId = clientEncryption.createDataKey("aws", dataKeyOptions);
-         String base64DataKeyId = Base64.getEncoder().encodeToString(dataKeyId.getData());
-
-         System.out.println("DataKeyId [base64]: " + base64DataKeyId);
-   .. tab::
-      :tabid: nodejs
-
-      .. code-block:: javascript
-
-         const encryption = new ClientEncryption(client, {
-             keyVaultNamespace,
-             kmsProviders
-         });
-         const key = await encryption.createDataKey('aws', {
-            masterKey: {
-              key: '<Master Key ARN>', // e.g. 'arn:aws:kms:us-east-2:111122223333:alias/test-key'
-              region: '<Master Key AWS Region>', // e.g. 'us-east-1'
-            }
-         });
-
-         const base64DataKeyId = key.toString('base64');
-         console.log('DataKeyId [base64]: ', base64DataKeyId);
-   .. tab::
-      :tabid: python
-
-      .. code-block:: python
-
-         import pymongo
-         from pymongo import MongoClient
-         from pymongo.encryption_options import AutoEncryptionOpts
-         from bson.binary import STANDARD
-         from bson.codec_options import CodecOptions
-
-         connection_string = "mongodb://localhost:27017"
-         key_vault_namespace = "encryption.__keyVault"
-
-         fle_opts = AutoEncryptionOpts(
-            kms_providers, # pass in the kms_providers from the previous step
-            key_vault_namespace
-         )
-
-         client_encryption = pymongo.encryption.ClientEncryption(
-            {
-              "aws": {
-                "accessKeyId": "<IAM User Access Key ID>",
-                "secretAccessKey": "<IAM User Secret Access Key>"
-              }
-            },
-            key_vault_namespace,
-            client,
-            CodecOptions(uuid_representation=STANDARD)
-         )
-         data_key_id = client_encryption.create_data_key("aws")
-
-.. _update-the-json-schema:
-
-Step 5: Update the Automatic Encryption JSON Schema
----------------------------------------------------
-
-If you embedded the key id of your data encryption key in your
-automatic encryption rules, you will need to update the :ref:`JSON
-Schema <fle-define-a-json-schema>` with the new data encryption key id.
+Further Reading
+---------------
 
 For more information on client-side field level encryption in MongoDB,
-check out the reference docs in the server manual:
+check out the reference documentation in the MongoDB server manual:
 
 - :manual:`Client-Side Field Level Encryption </core/security-client-side-encryption>`
 - :manual:`Automatic Encryption JSON Schema Syntax </reference/security-client-side-automatic-json-schema>`
 - :manual:`Manage Client-Side Encryption Data Keys </tutorial/manage-client-side-encryption-data-keys>`
+
