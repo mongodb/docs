@@ -15,121 +15,118 @@ Modify a Cluster
 |service| Configuration Options
 -------------------------------
 
-You can modify the following properties of your |service| cluster:
+Clusters on any tier can change to another tier. All of the remaining  options require an ``M10`` or larger cluster except for sharding. Sharding options require an ``M30`` or larger cluster.
+
+You can change the following options of your |service| cluster:
 
 .. list-table::
-   :widths: 20 40
+   :widths: 20 40 40
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Setting
+     - Action
+     - Limitations
 
    * - :ref:`Global Cluster Configuration <scale-cluster-global-config>`
 
-     - You can enable global writes for your cluster or modify
-       existing global cluster configurations.
+     - Enable |global-write| for your cluster or change existing global
+       cluster configurations.
 
-       .. important::
-
-          You can't disable |global-write| for a cluster once deployed.
+     - After you enable |global-write| for a cluster, you can't disable
+       them.
 
    * - :ref:`Cloud Provider & Region <scale-cluster-cloud-provider>`
 
-     - .. include:: /includes/fact-modify-cloud-provider.rst
+     - Select a different provider to change the cloud provider for
+       your dedicated clusters. Changing to a different provider
+       changes the connection string to your new cluster.
 
-       .. note::
+       Consider scheduling a time to
+       :ref:`update your applications with the new connection string <atlas-faq-migrate-providers>`
+       to resume connectivity to the cluster. |service| migrates data
+       to the new cluster.
 
-          .. include:: /includes/fact-modify-cloud-provider-live-migrate.rst
-
-       Limited to clusters with a :guilabel:`Cluster Tier` of ``M10``
-       or larger.
-
-       .. note::
-          Adding or moving a node to a region without the primary will
-          require each newly migrated replica set member to perform an
-          :manual:`initial sync </core/replica-set-sync/>`.
+     - Adding or moving a node to a region without the primary
+       requires each newly migrated replica set member to perform an
+       :manual:`initial sync </core/replica-set-sync>`
 
    * - :ref:`Deploy or Configure a multi-cloud, multi-region cluster <scale-cluster-region>`
-     - You can deploy or modify a multi-cloud, multi-region cluster.
+     - Deploy or modify a multi-cloud, multi-region cluster.
 
-       Limited to clusters with a :guilabel:`Cluster Tier` of ``M10``
-       or larger.
+     - None
 
    * - :ref:`Cluster Tier <scale-cluster-instance>`
 
-     - You can modify the cluster tier.
+     - Change the cluster tier.
 
-       .. note::
-          Modifying clusters that use
-          :ref:`NVMe storage <nvme-storage>` requires
-          an :manual:`initial sync </core/replica-set-sync/>`.
-
-       .. important:
-          You can't downgrade from a dedicated cluster (``M10+``)  to a shared cluster
+     - If your cluster uses :ref:`NVMe storage <nvme-storage>`,
+       |service| must perform an
+       :manual:`initial sync </core/replica-set-sync>`.
 
    * - :ref:`Cluster Storage Options <create-cluster-storage>`
 
-     - You can modify the storage options for the selected cluster
+     - Change the storage options for the cluster tier.
+
+       .. include:: /includes/autoscale-oplog.rst
+
+     - Clusters using |nvme| storage have a fixed size for each cluster
        tier.
-
-       Only available for cluster with a :guilabel:`Cluster Tier`
-       of ``M10`` or larger.
-
-       .. note::
-
-          .. include:: /includes/autoscale-oplog.rst
 
    * - :ref:`Cluster Autoscaling Options <cluster-autoscaling>`
 
-     - You can modify the cluster's autoscaling options.
+     - Change the cluster's autoscaling options.
 
-       Only available for ``M10+`` clusters using the
-       :guilabel:`General` storage class.
+     - You can't set this feature on multi-cloud clusters at this time.
 
    * - :ref:`MongoDB Version <scale-cluster-version>`
 
-     - You can upgrade the major MongoDB version of the cluster.
+     - Upgrade the major MongoDB version of the cluster.
 
-       Only available for cluster with a :guilabel:`Cluster Tier`
-       of ``M10`` or larger.
-
-       .. note::
-          You can't downgrade the MongoDB version of a cluster.
+     - You can't downgrade the MongoDB version.
 
    * - :ref:`Deploy a Sharded Cluster <scale-cluster-sharding>`
 
-     - If your cluster is a replica set, you can upgrade the deployment
-       to a sharded cluster.
+     - Upgrade a replica set to a sharded cluster.
 
-       Only available for clusters with a :guilabel:`Cluster Tier` of
-       ``M30`` or larger.
+     - You can't reverse this upgrade.
 
-       .. important::
-          You can't reverse the conversion of a replica set to a
-          sharded cluster.
+       |service| allows Sharded Clusters for ``M30`` or larger
+       clusters.
 
    * - :ref:`Modify the Number of Shards <scale-cluster-shardNum>`
 
-     - You can configure the number of shards in the sharded cluster.
+     - Set the number of shards for a sharded cluster.
 
-       Only available for sharded cluster deployments.
+     - Removing a shard takes some time. Any subsequent MongoDB
+       configuration changes start after |service| removes the shard.
 
-       .. important::
-          Removing a shard takes some time. Any MongoDB configuration
-          changes requested afterwards begin only after |service|
-          removes the shard.
+       |service| allows Sharded Clusters for ``M30`` or larger
+       clusters.
 
    * - :ref:`Enable or Disable Backup <scale-cluster-backups>`
 
-     - You can enable or disable backups for the cluster. Only
-       available for clusters with a :guilabel:`Cluster Tier` of
-       ``M10`` or larger.
+     - Enable or disable backups for the cluster.
+
+     - |service| enables backups for M2 and M5 clusters automatically.
+       You can't disable backup for clusters on those tiers.
 
    * - :ref:`Enable or Disable the Business Intelligence Connector <create-cluster-enable-bi>`
 
-     - You can enable or disable the |bic| for this cluster.
+     - Enable or disable the |bic| for this cluster.
 
        .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
 
-   * - :ref:`Review and Apply Your Changes <scale-cluster-payment>`
+     - None
 
-     - Review and apply the selected changes made to your cluster.
+   * - :ref:`Manage your own encryption keys <scale-cluster-enable-encryption>`
+
+     - Enable or disable using your own encryption keys with this
+       cluster.
+
+     - None
+
+Click :ref:`Apply Changes <scale-cluster-payment>` when complete.
 
 Considerations
 --------------
@@ -239,11 +236,10 @@ Modify the :guilabel:`Global Cluster Configuration`
 You can enable global writes for your cluster or modify
 existing global cluster configurations.
 
-To learn more about global clusters, see
-:ref:`global-clusters`.
+.. seealso::
 
-To learn how to configure global clusters and map your global cluster
-zones, see :ref:`create-new-global-write-cluster`.
+   - :ref:`global-clusters`.
+   - :ref:`create-new-global-write-cluster`.
 
 .. _scale-cluster-region:
 .. _scale-cluster-cloud-provider:
@@ -305,15 +301,15 @@ From the :guilabel:`Cluster Tier` section, you can also:
 Modify :guilabel:`Additional Settings`
 --------------------------------------
 
-From the :guilabel:`Additional Settings` section, you can
+You can set the following options:
 
-- :ref:`scale-cluster-version`,
-- :ref:`scale-cluster-backups`,
-- :ref:`scale-cluster-sharding`,
-- :ref:`scale-cluster-shardNum`,
-- :ref:`scale-cluster-enable-bi`,
-- :ref:`scale-cluster-enable-encryption`, and
-- :ref:`scale-cluster-more-configuration-options`.
+- :ref:`scale-cluster-version`
+- :ref:`scale-cluster-backups`
+- :ref:`scale-cluster-sharding`
+- :ref:`scale-cluster-shardNum`
+- :ref:`scale-cluster-enable-bi`
+- :ref:`scale-cluster-enable-encryption`
+- :ref:`scale-cluster-more-configuration-options`
 
 .. _scale-cluster-version:
 
@@ -362,6 +358,8 @@ Modify the :guilabel:`Number of Shards`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/extracts/cluster-option-clusterShardingNum.rst
+
+.. seealso:: :manual:`Remove Shards from an Existing Sharded Cluster </tutorial/remove-shards-from-cluster>`
 
 .. _scale-cluster-backups:
 
