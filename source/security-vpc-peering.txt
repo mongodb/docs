@@ -25,6 +25,9 @@ Set up a Network Peering Connection
    To set up a Network Peering connection, you must have either the
    :authrole:`Project Owner` or :authrole:`Organization Owner` role.
 
+
+.. _create-network-peer-connection:
+
 Configure an |service| Network Peering Connection
 -------------------------------------------------
 
@@ -119,9 +122,8 @@ Network Peering.
                * - :guilabel:`VPC CIDR`
 
                  - |aws| |vpc| |cidr| block or subset. Must not
-                   overlap with your :guilabel:`Atlas CIDR Block` or
-                   any other Network Peering connection
-                   :guilabel:`VPC CIDR`.
+                   overlap with your :guilabel:`Atlas CIDR Block` or any
+                   other Network Peering connection :guilabel:`VPC CIDR`.
 
                    The |cidr| block must be in one of the following
                    :rfc:`private networks <1918#section-3>`:
@@ -133,7 +135,7 @@ Network Peering.
                    - ``192.168.0.0`` - ``192.168.255.255`` (192.168/16 prefix)
 
                    You can choose to add the |vpc| |cidr| block address
-                   (or a subset) to the whitelist. For Network Peering
+                   (or a subset) to the IP access list. For Network Peering
                    connections, you can also add the Security Group
                    associated with the |aws| |vpc| instead of the
                    |cidr| block. See :ref:`add-to-access-list`.
@@ -167,7 +169,7 @@ Network Peering.
 
          #. Click :guilabel:`Initiate Peering`.
 
-         #. Wait for approval of peering connection request
+         #. Wait for approval of peering connection request.
 
             The owner of the peer |vpc| must approve the |vpc| peering
             connection request. Ensure that the owner approves the
@@ -177,7 +179,7 @@ Network Peering.
 
             .. important:: Requests expire after 7 days.
 
-         #. Add to route table
+         #. Add to route table.
 
             a. In the :guilabel:`VPC Dashboard`, click
                :guilabel:`Route Tables`.
@@ -221,7 +223,7 @@ Network Peering.
             connection limitations for all existing and new
             |aws| clusters using custom |dns|. To learn more about how
             to use these new features, see the
-            :ref:`FAQ on changes to AWS network peering <atlas_20200331>`
+            :ref:`FAQ on changes to AWS network peering <atlas_20200331>`.
 
      - id: gcp
        content: |
@@ -435,3 +437,147 @@ Network Peering.
                associated with the peer VNet to the
                :ref:`whitelist <access-list>` before your network peer
                can connect to your |service| cluster.
+
+Network Peering Architectures
+------------------------------
+
+Multiple cloud-hosted applications might need to connect securely to the
+same |service| project.
+
+Network Peering between an |service| VPC and Two Virtual Networks with Identical CIDR Blocks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a case where two applications use virtual
+networks (VPC, VNet) with identical IP |cidr| blocks. You want both applications
+to securely connect to the same |service| cluster via VPC peering. To achieve this,
+create one network peering connection between each application's virtual network
+and your |service| cluster.
+
+Cloud provider virtual networks can’t peer to each other if they have
+identical CIDR blocks. However, you can peer each of the applications' virtual networks
+with the |service| virtual network if the |service| virtual network includes two 
+non-overlapping |cidr| blocks. Configure each of the peering connections to have
+non-overlapping route-back |cidr| blocks in the |service| virtual network.
+
+Follow this general process:
+
+1. Before you deploy any clusters, :ref:`create a network peering 
+   connection <create-network-peer-connection>`
+   for each virtual network that you want to peer with |service|. You
+   do this by creating a |cidr| block in the |service| virtual network
+   for each application's virtual network. 
+
+#. In the virtual network's configuration for your cloud provider, 
+   establish routing between each of your application's virtual networks
+   and their respective |service| CIDR blocks. 
+
+#. Deploy your |service| cluster.
+
+.. example::
+   
+   Consider two applications in the same |aws| account in the same region. 
+   Each application has its own |vpc|. The |vpc|\s have identical |cidr| 
+   blocks. These VPCs can't peer with each other. You must configure each 
+   application's |vpc| as a peer to the |service| |vpc|.
+   
+   .. list-table:: 
+      :header-rows: 1
+      :widths: 25 25 25
+   
+      * - Application's VPC name
+        - CIDR block
+        - Subnet
+      * - ``app-tier-vpc-1``
+        - 10.4.0.0/16
+        - ``subnet1``: 10.5.0.0./16
+      * - ``app-tier-vpc-2``
+        - 10.4.0.0/16
+        - ``subnet2``: 10.6.0.0/16
+
+   To peer each application's |vpc| to the |service| VPC before you deploy 
+   your |service| cluster:
+
+   1. Create a network peering connection to peer |service| with your 
+      first application's |vpc|.
+
+      a. Click the :guilabel:`Peering` tab.
+   
+      #. Select :guilabel:`Peering Connection`.
+   
+      #. Select :guilabel:`AWS` and click :guilabel:`Next`.
+      
+      #. Complete the |aws| |vpc| fields and enter details for the first
+         application's |vpc|:
+         
+         - :guilabel:`Account ID`
+
+         - :guilabel:`VPC ID`
+
+         - :guilabel:`VPC CIDR`
+
+         - :guilabel:`Application VPC Region`.
+        
+      #. Type the first |cidr| block, **10.5.0.0/24**, into the
+         :guilabel:`VPC CIDR` field in the :guilabel:`Atlas VPC`
+         section.
+         
+      #. Click :guilabel:`Initiate Peering`.
+
+   #. Create a network peering connection to peer |service| with your 
+      second application's |vpc|.
+
+      a. Click the :guilabel:`Peering` tab.
+   
+      #. Select :guilabel:`Peering Connection`.
+   
+      #. Select :guilabel:`AWS` and click :guilabel:`Next`.
+    
+      #. Complete the |aws| |vpc| fields and enter details for the second
+         application's |vpc|:
+
+         - :guilabel:`Account ID`
+
+         - :guilabel:`VPC ID`
+
+         - :guilabel:`VPC CIDR`
+
+         - :guilabel:`Application VPC Region`.
+      
+      #. Type the second |cidr| block, **10.6.0.0/24**, into the
+         :guilabel:`VPC CIDR` field in the :guilabel:`Atlas VPC`
+         section.
+      
+      #. Click :guilabel:`Initiate Peering`.
+      
+   #. In |aws|, configure each of your application's |vpc|\s to route 
+      back to their respective |cidr| blocks in |service|. For information,
+      see :aws:`Updating your route tables for a VPC peering connection </vpc/latest/peering/vpc-peering-routing.html>`. 
+
+      - ``app-vpc-1`` with CIDR 10.4.0.0/16 routes back to ``subnet1`` 
+        in the CIDR **10.5.0.0/24**
+      - ``app-vpc-2`` with CIDR 10.4.0.0/16 routes back to ``subnet2``
+        in the CIDR **10.6.0.0/24**
+     
+   When complete, the routes for ``app-vpc-1`` and ``app-vpc-2``
+   should match the following table:
+
+   .. list-table:: 
+      :header-rows: 1
+      :widths: 25 25 50
+
+      * - Network
+        - Destination
+        - Origin
+      * - ``app-vpc-1``
+        - 10.4.0.0/16
+        - local
+      * - 
+        - 10.5.0.0/16
+        - peer to the |service| |vpc|
+      * - ``app-vpc-2``
+        - 10.4.0.0/16
+        - local
+      * - 
+        - 10.6.0.0/16
+        - peer to the |service| |vpc|   
+
