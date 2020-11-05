@@ -7,25 +7,24 @@ Map-Reduce Examples
 .. admonition:: Aggregation Pipeline as Alternative
    :class: note
 
-   :doc:`Aggregation pipeline </core/aggregation-pipeline>`
-   provides better performance and a more coherent interface than
-   map-reduce, and various map-reduce expressions can be
-   rewritten using :doc:`aggregation pipeline operators
-   </meta/aggregation-quick-reference>`, such as :pipeline:`$group`,
-   :pipeline:`$merge`, etc. 
+   :doc:`Aggregation pipeline </core/aggregation-pipeline>` provides
+   better performance and a simpler interface than map-reduce, and
+   map-reduce expressions can be rewritten using :doc:`aggregation
+   pipeline operators </meta/aggregation-quick-reference>` such as
+   :pipeline:`$group`, :pipeline:`$merge`, and others.
    
-   For map-reduce expressions that require custom functionality,
-   MongoDB provides the :group:`$accumulator` and
-   :expression:`$function` aggregation operators starting in version
-   4.4. These operators provide users with the ability to define custom
-   aggregation expressions in JavaScript.
+   For map-reduce expressions that require custom functionality, MongoDB
+   provides the :group:`$accumulator` and :expression:`$function`
+   aggregation operators starting in version 4.4. These operators
+   provide the ability to define custom aggregation expressions in
+   JavaScript.
 
-   The example below includes aggregation pipeline alternatives without
-   custom aggregation expressions. For alternatives that use custom
-   expressions, see :ref:`Map-Reduce to Aggregation Pipeline
-   Translation Examples <mr-to-agg-examples>`.
+   The examples in this section include aggregation pipeline
+   alternatives without custom aggregation expressions. For alternatives
+   that use custom expressions, see :ref:`Map-Reduce to Aggregation
+   Pipeline Translation Examples <mr-to-agg-examples>`.
 
-Create a sample collection ``orders`` with the following documents:
+Create a sample collection ``orders`` with these documents:
 
 .. code-block:: javascript
 
@@ -61,7 +60,7 @@ by the ``cust_id``, and calculate the sum of the ``price`` for each
      map-reduce operation is processing.
 
    - The function maps the ``price`` to the ``cust_id`` for each
-     document and emits the ``cust_id`` and ``price`` pair.
+     document and emits the ``cust_id`` and ``price``.
 
    .. code-block:: javascript
 
@@ -88,7 +87,7 @@ by the ``cust_id``, and calculate the sum of the ``price`` for each
       
 #. Perform map-reduce on all documents in the ``orders`` collection
    using the ``mapFunction1`` map function and the ``reduceFunction1``
-   reduce function.
+   reduce function:
 
    .. code-block:: javascript
 
@@ -109,7 +108,7 @@ by the ``cust_id``, and calculate the sum of the ``price`` for each
 
       db.map_reduce_example.find().sort( { _id: 1 } )
 
-   The operation returns the following documents:
+   The operation returns these documents:
 
    .. code-block:: javascript
       :copyable: false
@@ -135,10 +134,10 @@ Aggregation Alternative
       ])
 
    #. The :pipeline:`$group` stage groups by the ``cust_id`` and
-      calculates the ``value`` field (See also :expression:`$sum`). The
+      calculates the ``value`` field using :expression:`$sum`. The
       ``value`` field contains the total ``price`` for each ``cust_id``.
    
-      The stage output the following documents to the next stage:
+      This stage outputs these documents to the next stage:
 
       .. code-block:: javascript
          :copyable: false
@@ -158,7 +157,7 @@ Aggregation Alternative
 
          db.agg_alternative_1.find().sort( { _id: 1 } )
 
-      The operation returns the following documents:
+      The operation returns these documents:
 
       .. code-block:: javascript
          :copyable: false
@@ -181,16 +180,24 @@ Calculate Order and Total Quantity with Average Quantity Per Item
 
 .. map-reduce-counts-begin
 
-In this example, you will perform a map-reduce operation on the
+In the following example, you will see a map-reduce operation on the
 ``orders`` collection for all documents that have an ``ord_date`` value
-greater than or equal to ``2020-03-01``. The operation groups by the
-``item.sku`` field, and calculates the number of orders and the total
-quantity ordered for each ``sku``. The operation then calculates the
-average quantity per order for each ``sku`` value and merges the
-results into the output collection. When merging results, if an
-existing document has the same key as the new result, the operation
-overwrites the existing document. If there is no existing document with
-the same key, the operation inserts the document.
+greater than or equal to ``2020-03-01``.
+
+The operation in the example:
+
+#. Groups by the ``item.sku`` field, and calculates the number of orders
+   and the total quantity ordered for each ``sku``.
+
+#. Calculates the average quantity per order for each ``sku`` value and
+   merges the results into the output collection.
+
+When merging results, if an existing document has the same key as the
+new result, the operation overwrites the existing document. If there is
+no existing document with the same key, the operation inserts the
+document.
+
+Example steps:
 
 #. Define the map function to process each input document:
 
@@ -198,8 +205,9 @@ the same key, the operation inserts the document.
      map-reduce operation is processing.
 
    - For each item, the function associates the ``sku`` with a new
-     object ``value`` that contains the ``count`` of ``1`` and the
-     item ``qty`` for the order and emits the ``sku`` and ``value`` pair.
+     object ``value`` that contains the ``count`` of ``1`` and the item
+     ``qty`` for the order and emits the ``sku`` (stored in the ``key``)
+     and the ``value``.
 
    .. code-block:: javascript
 
@@ -255,7 +263,7 @@ the same key, the operation inserts the document.
 
 #. Perform the map-reduce operation on the ``orders`` collection using
    the ``mapFunction2``, ``reduceFunction2``, and
-   ``finalizeFunction2`` functions.
+   ``finalizeFunction2`` functions:
 
    .. code-block:: javascript
 
@@ -271,7 +279,7 @@ the same key, the operation inserts the document.
 
    This operation uses the ``query`` field to select only those
    documents with ``ord_date`` greater than or equal to ``new
-   Date("2020-03-01")``. Then it output the results to a collection
+   Date("2020-03-01")``. Then it outputs the results to a collection
    ``map_reduce_example2``. 
 
    If the ``map_reduce_example2`` collection already exists, the
@@ -287,15 +295,15 @@ the same key, the operation inserts the document.
 
       db.map_reduce_example2.find().sort( { _id: 1 } )
 
-   The operation returns the following documents:
+   The operation returns these documents:
 
    .. code-block:: javascript
       :copyable: false
 
-      { "_id" : "apples", "value" : { "count" : 3, "qty" : 30, "avg" : 10 } }
+      { "_id" : "apples", "value" : { "count" : 4, "qty" : 35, "avg" : 8.75 } }
       { "_id" : "carrots", "value" : { "count" : 2, "qty" : 15, "avg" : 7.5 } }
       { "_id" : "chocolates", "value" : { "count" : 3, "qty" : 15, "avg" : 5 } }
-      { "_id" : "oranges", "value" : { "count" : 6, "qty" : 58, "avg" : 9.666666666666666 } }
+      { "_id" : "oranges", "value" : { "count" : 7, "qty" : 63, "avg" : 9 } }
       { "_id" : "pears", "value" : { "count" : 1, "qty" : 10, "avg" : 10 } }
 
 Aggregation Alternative
@@ -340,11 +348,12 @@ Aggregation Alternative
    #. The :pipeline:`$group` stage groups by the ``items.sku``, calculating for each sku:
 
       - The ``qty`` field. The ``qty`` field contains the
-        total ``qty`` ordered per each ``items.sku`` (See :expression:`$sum`).
+        total ``qty`` ordered per each ``items.sku`` using
+        :expression:`$sum`.
 
       - The ``orders_ids`` array. The ``orders_ids`` field contains an
-        array of distinct order ``_id``'s for the ``items.sku`` (See
-        :expression:`$addToSet`).
+        array of distinct order ``_id``'s for the ``items.sku`` using
+        :expression:`$addToSet`.
 
       .. code-block:: javascript
          :copyable: false
@@ -359,11 +368,13 @@ Aggregation Alternative
       mirror the map-reduce's output to have two fields ``_id`` and
       ``value``. The :pipeline:`$project` sets:
       
-      - the ``value.count`` to the size of the ``orders_ids`` array. (See :expression:`$size`.)
+      - the ``value.count`` to the size of the ``orders_ids`` array
+        using :expression:`$size`.
 
       - the ``value.qty`` to the ``qty`` field of input document.
       
-      - the ``value.avg`` to the average number of qty per order.  (See :expression:`$divide` and :expression:`$size`.) 
+      - the ``value.avg`` to the average number of qty per order
+        using :expression:`$divide` and :expression:`$size`.
 
       .. code-block:: javascript
          :copyable: false
@@ -386,7 +397,7 @@ Aggregation Alternative
 
          db.agg_alternative_3.find().sort( { _id: 1 } )
 
-      The operation returns the following documents:
+      The operation returns these documents:
 
       .. code-block:: javascript
          :copyable: false
