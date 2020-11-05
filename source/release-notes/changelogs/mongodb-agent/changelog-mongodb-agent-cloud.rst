@@ -1,3 +1,13 @@
+.. _10.21.0.6634:
+
+MongoDB Agent 10.21.0.6634
+--------------------------
+
+*Released* :ref:`2020-11-04 <cloudmanager_20201103>`
+
+- Ensures backup functions are shut down cleanly and promptly upon   
+  MongoDB Agent shutdown.
+
 .. _10.19.0.6566-1:
 
 MongoDB Agent 10.19.0.6566-1

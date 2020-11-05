@@ -1,3 +1,11 @@
+.. _cloudmanager_20201103:
+
+04 November 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces the ability to use Okta Verify mobile app for
+  :ref:`multi-factor authentication <mms-enable-mfa>`.
+
 .. _cloudmanager_20200811:
 
 12 August 2020 Release
