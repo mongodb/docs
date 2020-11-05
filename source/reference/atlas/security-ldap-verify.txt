@@ -1,0 +1,208 @@
+.. _mcli-atlas-security-ldap-verify-cmd:
+
+===================================
+mongocli atlas security ldap verify
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``security ldap verify`` command verifies an |ldap| 
+configuration for an |service| project. You 
+can also verify an |ldap| configuration for 
+an |service| project using the |service| :atlas:`API 
+</reference/api/ldaps-configuration-request-verification/>`.
+
+You can run the 
+:ref:`mcli-atlas-security-ldap-verify-status-cmd` command 
+to retrieve the status of the most recent verification 
+request. If the ``security ldap verify`` command returns 
+``Pending`` status, you can run the 
+:ref:`mcli-atlas-security-ldap-verify-status-watch-cmd` 
+command to watch for the |ldap| configuration to complete.
+
+.. _mcli-atlas-security-ldap-verify-syntax:
+
+Syntax 
+------
+
+.. code-block:: shell 
+   
+   mongocli atlas security ldap verify 
+        [ --authzQueryTemplate <LDAP-query-template> ]
+        --bindPassword <bind-password>
+        --bindUsername <bind-username>
+        [ --caCertificate <CA-certificate> ]
+        --hostname <LDAP-server-hostname>
+        [ --output|-o <output-format> ]
+        [ --port ]
+        [ --profile|-P <name-of-profile> ]
+        [ --projectId <id-of-project> ]
+
+.. include:: /includes/fact-command-line-help.rst
+
+.. _mcli-atlas-security-ldap-verify-options: 
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 55 10
+
+   * - Option 
+     - Type 
+     - Description 
+     - Required?
+
+   * - ``--authzQueryTemplate``
+     - string
+     - |ldap| query template that |service| executes to obtain the 
+       |ldap| groups to which the authenticated user belongs. The 
+       query is relative to the host specified with the ``--hostname`` 
+       option.
+
+       The query format must conform to `RFC 4515 
+       <https://tools.ietf.org/search/rfc4515>`__ and `RFC 4516 
+       <https://tools.ietf.org/html/rfc4516>`__. Use the ``{USER}`` 
+       placeholder in the |url| to substitute the authenticated 
+       username. 
+       
+       If omitted, |service| attemps to use the defautl value: 
+
+       .. code-block:: text 
+          :copyable: false 
+
+          {USER}?memberOf?base
+
+       |service| uses this for user authorization only.
+     - no
+
+   * - ``--bindPassword``
+     - string
+     - Password that |service| uses to authenticate the 
+       ``bindUsername``.
+     - yes
+
+   * - ``--bindUsername``
+     - string
+     - User distinguished name (DN) that |service| uses to connect 
+       to the |ldap| server. Value must be the full DN, such as 
+       ``CN=BindUser,CN=Users,DC=myldapserver,DC=mycompany,DC=com``.
+     - yes
+
+   * - ``--caCertificate``
+     - string
+     - CA certificate that |service| uses to verify the identity of 
+       the |ldap| server. |service| accepts self-signed certificates.
+     - no
+
+   * - ``--hostname``
+     - string
+     - Hostname or IP address of the |ldap| server. The server must be 
+       accessible from the public internet or peered to your |service| cluster 
+       with :atlas:`Network Peering </security-vpc-peering/>`.
+     - 
+
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
+   * - ``--port``
+     - int
+     - Port that the |ldap| server listens for client connections. If 
+       omitted, defaults to ``636``.
+     - no
+
+   * - ``--profile``, ``-P``
+     - string 
+     - Name of the profile to use for accessing the |service| 
+       project. If omitted, uses the {+default-profile+}.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the |service| project. 
+     - yes
+
+.. _mcli-atlas-security-ldap-verify-output: 
+
+Output 
+------
+
+If the command succeeds, it returns the following output in the default
+format. If the command returns errors, see
+:ref:`Troubleshooting <mcli-troubleshooting>` for recommended solutions.
+
+.. code-block:: sh 
+   :copyable: false 
+
+   REQUEST ID                 PROJECT ID           STATUS
+   <verification-request-ID>  <atlas-project-ID>   <verification-status>
+
+The default output contains a subset of the fields returned by this 
+command. For the complete list of |json| fields returned by the command, 
+see the :atlas:`API reference 
+</reference/api/ldaps-configuration-request-verification/#response-elements>`.
+
+.. _mcli-atlas-security-ldap-verify-egs:
+
+Example 
+-------
+
+The following example uses the ``mongocli atlas security ldap verify`` 
+command to verify an |ldap| configuration for user authentication and 
+authorization. The command uses the {+default-profile+} for accessing 
+the |service| project.
+
+.. tabs:: 
+
+   .. tab:: Default Output 
+      :tabid: default
+
+      .. code-block:: shell
+         
+         mongocli atlas security ldap verify --hostname atlas-ldaps-01.ldap.myteam.com --bindUsername "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com" --bindPassword changeMe 
+
+      The previous command prints the following to the terminal: 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         REQUEST ID                 PROJECT ID                 STATUS
+         5fa1accd0bcb85015ae351b1   5e2211c17a3e5a48f5497de3   PENDING
+
+   .. tab:: JSON Output 
+      :tabid: json
+
+      .. code-block:: shell 
+         
+         mongocli atlas security ldap verify --hostname atlas-ldaps-01.ldap.myteam.com --bindUsername "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com" --bindPassword changeMe --output json
+
+      The previous command prints the following fields to the terminal:
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         {
+           "requestId": "5fa1acd72aa32073c6e59c34",
+           "groupId": "5e2211c17a3e5a48f5497de3",
+           "request": {
+             "hostname": "atlas-ldaps-01.ldap.myteam.com",
+             "port": 636,
+             "bindUsername": "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com"
+           },
+           "status": "PENDING",
+           "links": [
+             {
+               "rel": "self",
+               "href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5e2211c17a3e5a48f5497de3/userSecurity/ldap/verify/5fa1acd72aa32073c6e59c34"
+             }
+           ]
+         }

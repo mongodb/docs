@@ -1,0 +1,243 @@
+.. _mcli-atlas-security-ldap-save-cmd:
+
+=================================
+mongocli atlas security ldap save
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``security ldap save`` command configures |service| to 
+use your own Lightweight Directory Access Protocol (|ldap|) 
+server to authenticate and authorize MongoDB users. A single 
+|ldap| over |tls| congifuration applies to all clusters in a 
+project.
+
+You can also configure user authentication and authorization 
+with |ldap| using the |service| :atlas:`UI </security-ldaps/>` 
+and :atlas:`API </reference/api/ldaps-configuration-save/>`. 
+
+You can run the :ref:`mcli-atlas-security-ldap-verify-cmd` 
+command to verify the |ldap| configuration. If the |ldap| 
+configuration status is ``Pending``, you can watch for the 
+configuration request to complete using the 
+:ref:`mcli-atlas-security-ldap-verify-status-watch-cmd` 
+command.
+
+.. _mcli-atlas-security-ldap-save-syntax:
+
+Syntax 
+------
+
+.. code-block:: text 
+
+   mongocli atlas security ldap save|create|update 
+        --authenticationEnabled true|false 
+        [ --authorizationEnabled true|false ]
+        [ --authzQueryTemplate <LDAP-query-template> ]
+        --bindPassword <bind-password>
+        --bindUsername <bind-username>
+        [ --caCertificate <CA-certificate> ]
+        --hostname <LDAP-server-hostname>
+        [ --output|-o <output-format> ]
+        [ --port ]
+        [ --profile|-P <name-of-profile> ]
+        [ --projectId <id-of-project> ]
+
+.. include:: /includes/fact-command-line-help.rst
+
+.. _mcli-atlas-security-ldap-save-options:
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 10 50 10
+
+   * - Option 
+     - Type 
+     - Description 
+     - Required?
+
+   * - ``--authenticationEnabled``
+     - string
+     - Flag to enable or diable user authentication with |ldap|. 
+       Valid values are: 
+
+       - ``true`` to enable user authentication with |ldap|
+       - ``false`` to disable user authentication with |ldap|
+
+     - yes
+
+   * - ``--authorizationEnabled``
+     - string
+     - Flag to enable or disable user authorization with |ldap|. 
+       Valid values are: 
+
+       - ``true`` to enable user authorization with |ldap|
+       - ``false`` to disable user authorization with |ldap|
+
+       To enable user authorization with |ldap|, you must also 
+       enable user authentication with |ldap|. 
+     - no
+
+   * - ``--authzQueryTemplate``
+     - string
+     - |ldap| query template to execute to obtain the |ldap| groups 
+       to which the authenticated user belongs. The query is relative 
+       to the host specified with the ``--hostname`` option.
+
+       The query format must conform to `RFC 4515 
+       <https://tools.ietf.org/search/rfc4515>`__ and `RFC 4516 
+       <https://tools.ietf.org/html/rfc4516>`__. Use the ``{USER}`` 
+       placeholder in the |url| to substitute the authenticated 
+       username. 
+       
+       If omitted, defaults to the following: 
+
+       .. code-block:: text 
+          :copyable: false 
+
+          {USER}?memberOf?base
+
+       |service| uses this for user authorization only. Specify an 
+       empty string to delete a previously assigned value. For example: 
+
+       .. code-block:: text 
+          :copyable: false
+
+          --authzQueryTemplate ""
+
+     - no
+
+   * - ``--bindPassword``
+     - string
+     - Password to use to authenticate the ``bindUsername``.
+     - yes
+
+   * - ``--bindUsername``
+     - string
+     - User distinguished name (DN) to use to connect to the |ldap| 
+       server. Value must be the full DN, such as 
+       ``CN=BindUser,CN=Users,DC=myldapserver,DC=mycompany,DC=com``.
+     - yes
+
+   * - ``--caCertificate``
+     - string
+     - CA certificate to use to verify the identity of the |ldap| 
+       server. |service| accepts self-signed certificates.
+
+       Specify an empty string to delete a previously assigned value. 
+       For example: 
+
+       .. code-block:: text 
+          :copyable: false
+
+          --caCertificate ""
+
+     - no
+
+   * - ``--hostname``
+     - string
+     - Hostname or IP address of the |ldap| server. The server must be 
+       accessible from the public internet or peered to your |service| cluster 
+       with :atlas:`Network Peering </security-vpc-peering/>`.
+     - 
+
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
+   * - ``--port``
+     - int
+     - Port that the |ldap| server listens for client connections. If 
+       omitted, defaults to ``636``.
+     - no
+
+   * - ``--profile``, ``-P``
+     - string 
+     - Name of the profile to use for accessing the |service| 
+       project. If omitted, uses the {+default-profile+}.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project for which to configure user 
+       authentication and authorization with |ldap|.
+     - yes
+
+.. _mcli-atlas-security-ldap-save-output: 
+
+Output 
+------
+
+If the command succeeds, it returns the following output in the default
+format. If the command returns errors, see
+:ref:`Troubleshooting <mcli-troubleshooting>` for recommended solutions.
+
+.. code-block:: sh 
+   :copyable: false 
+
+   HOSTNAME                 PORT             AUTHENTICATION   AUTHORIZATION
+   <LDAP-server-hostname>   <port-number>    true|false       true|false
+
+The default output contains a subset of the fields returned by this 
+command. For the complete list of |json| fields returned by the command, 
+see the :atlas:`API reference 
+</reference/api/ldaps-configuration-save/#response-elements>`.
+
+.. _mcli-atlas-security-ldap-save-egs:
+
+Example 
+-------
+
+The following example uses the ``mongocli atlas security ldap save`` 
+command to configure an LDAP server to authenticate and authorize 
+MongoDB users. The command uses the {+default-profile+} for accessing 
+the |service| project.
+
+.. tabs:: 
+
+   .. tab:: Default Output 
+      :tabid: default
+
+      .. code-block:: shell
+         
+         mongocli atlas security ldap save --authenticationEnabled true --authorizationEnabled true --hostname atlas-ldaps-01.ldap.myteam.com --bindUsername "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com" --bindPassword changeMe 
+
+      The previous command prints the following to the terminal: 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         HOSTNAME                         PORT   AUTHENTICATION   AUTHORIZATION
+         atlas-ldaps-01.ldap.myteam.com   636    true             true
+
+   .. tab:: JSON Output 
+      :tabid: json
+
+      .. code-block:: shell 
+         
+         mongocli atlas security ldap save --authenticationEnabled true --authorizationEnabled true --hostname atlas-ldaps-01.ldap.myteam.com --bindUsername "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com" --bindPassword changeMe --output json
+
+      The previous command prints the following fields to the terminal:
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         {
+           "ldap": {
+             "authenticationEnabled": true,
+             "authorizationEnabled": true,
+             "hostname": "atlas-ldaps-01.ldap.myteam.com",
+             "port": 636,
+             "bindUsername": "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com"
+           }
+         }
