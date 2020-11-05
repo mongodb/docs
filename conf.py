@@ -107,7 +107,7 @@ extlinks = {
     'snyk-vuln' : ('https://snyk.io/vuln/%s',''),
     'db-tools' : ('https://docs.mongodb.com/database-tools%s?tck=docs',''),
     'mdb-sup' : ('https://support.mongodb.com%s?tck=docs',''),
-    'mdbu' : ('https://university.mongodb.com%s?tck=docs',''),
+    'mdbu' : ('https://university.mongodb.com%s?tck=docs','')
 }
 
 source_constants = {
