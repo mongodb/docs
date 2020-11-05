@@ -1,3 +1,21 @@
+.. _opsmgr-server-4.2.21:
+
+|onprem| Server 4.2.21
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-11-05*
+
+- Adds a migration that removes ``REPLICATION_OPLOG_WINDOW_RUNNING_OUT``
+  events when upgrading to |onprem| 4.0 or 4.2. If any alerts or alert
+  configurations of event type ``REPLICATION_OPLOG_WINDOW_RUNNING_OUT``
+  exist, global alerts throw the runtime exception "Alert job failed due
+  to runtime error: No enum constant".
+
+- Updates the |jdk| to ``jdk-jdk-11.0.9.11.1``.
+
+- Updates the MongoDB Agent to :ref:`10.2.21.5995
+  <mongodb-10.2.21.5995>`.
+
 .. _opsmgr-server-4.2.20: 
 
 |onprem| Server 4.2.20
