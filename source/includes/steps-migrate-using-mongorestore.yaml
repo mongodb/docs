@@ -44,32 +44,37 @@ stepnum: 2
 level: 4
 content: |
 
-   Copy the following template to into your preferred text editor:
+   Based on the type of connection string you use, copy one of the following templates to into your preferred text editor:
 
-   .. code-block:: shell
+   .. note::
 
-      mongodump --host '<ReplicaSetName>/<HostList>' \
-                --username '<mySourceUser>' \
-                --password '<mySourcePassword>' \
-                --authenticationDatabase 'admin' \
-                --archive
+      To connect to |service| clusters, we recommend you connect with a DNS seed list connection string using the ``--uri`` option.
 
-   Replace ``<ReplicaSetName>`` with the name of the source replica
-   set. Replace ``<HostList>`` with a comma-separated list of
-   hostnames of the replica set members. You must specify
-   at least *one* member of the replica set.
+   .. tabs::
 
-   For standalone deployments, exclude ``<ReplicaSetName>/`` and
-   specify the hostname of the standalone deployment only. For
-   example, ``--host 'standalone-mongod.example.net:27017'``
+      .. tab:: Connect with a standard connection string
+         :tabid: standard_connection
 
-   Add any additional command line options as required for your
-   cluster. If your source cluster does not enforce
-   authentication, exclude the following options:
+         .. code-block:: shell
 
-   - :option:`--username <mongodump.--username>`
-   - :option:`--password <mongodump.--password>`
-   - :option:`--authenticationDatabase <mongodump.--authenticationDatabase>`
+            mongodump --uri "mongodb://username:password@mongodb0.example.com:<Port>,mongodb1.example.com:<Port1>,mongodb2.example.com:<Port2>/?replicaSet=<ReplicaSetName>&authSource=admin" \
+                      --archive
+
+         Replace the host examples with the information for your replica set members. Replace ``<ReplicaSetName>`` with the name of the source replica set.
+
+         For standalone deployments, exclude ``replicaSet=<ReplicaSetName>`` and specify the hostname of the standalone deployment only. For example, ``--uri "mongodb://standalone-mongod.example.net:27017"``
+            
+      .. tab:: Connect with a DNS seed list connection string
+         :tabid: dns_seed_list_connection
+   
+         .. code-block:: shell
+
+            mongodump --uri "mongodb+srv://username:password@cluster0.example.mongodb.net" \
+                      --archive
+
+   .. note::
+
+         If your password contains special characters, it must be percent-encoded.
 
    Do not run this command yet. Proceed to the next step once you have
    modified the template.
@@ -132,28 +137,40 @@ content: |
   and paste the template into your preferred text editor and make the
   following modifications:
 
-  - ``<atlasPassword>``: replace this with the password for the user
-    specified in ``--username``. The template includes a database user
-    for the project as the ``--username``. If you want to authenticate
-    as a different user, replace the value of ``--username`` and
-    specify the password for that user in ``--password``.
+  - ``password``: replace this with the password for the user
+    specified in ``username``. The template includes a database user
+    for the project as the ``username``. If you want to authenticate
+    as a different user, replace the value of ``username`` and
+    specify the password for that user in ``password``.
 
   - Add :option:`--nsExclude <mongorestore.--nsExclude>` and set its value to ``"admin.system.*"``.
 
   - Add :option:`--archive <mongorestore.--archive>`.
 
-  Your template should resemble the following command:
+  Based on the type of connection string you use, your template should resemble one of the following commands:
 
-  .. code-block:: shell
-     :copyable: false
+  .. tabs::
 
-     mongorestore --host myAtlasCluster/00.foo.mongodb.net:27017,01.foo.mongodb.net:27017,02.foo.mongodb.net:27017 \
-                  --ssl \
-                  --username '<myAtlasUser>' \
-                  --password '<atlasPassword>' \
-                  --authenticationDatabase admin \
-                  --archive \
-                  --nsExclude 'admin.system.*'
+      .. tab:: Connect with a standard connection string
+         :tabid: standard_connection
+
+         .. code-block:: shell
+            :copyable: false
+
+            mongorestore --uri "mongodb://username:password@00.foo.mongodb.net:27017,01.foo.mongodb.net:27017,02.foo.mongodb.net:27017/?replicaSet=myRepl&authSource=admin" \
+                         --archive \
+                         --ssl \
+                         --nsExclude "admin.system.*"
+
+      .. tab:: Connect with a DNS seed list connection string
+         :tabid: dns_seed_list_connection
+
+         .. code-block:: shell
+            :copyable: false
+
+            mongorestore --uri "mongodb+srv://username:password@cluster1.example.mongodb.net" \
+                         --archive \
+                         --nsExclude "admin.system.*"
 
 ---
 title: "Run |mongodump| and |mongorestore|."
@@ -175,23 +192,36 @@ content: |
      .. seealso:: :ref:`security-ip-access-list`
 
   In your preferred text editor, use the pipe ``|`` operator to
-  separate the |mongodump| and |mongorestore| commands. The final
-  command should resemble the following:
+  separate the |mongodump| and |mongorestore| commands. Based on the type of connection string you use, the final
+  command should resemble one of the following:
 
-  .. code-block:: sh
+  .. tabs::
 
-     mongodump --host 'sourceRS/source-host1:27017,source-host2:27017,source-host3:27017' \
-               --archive --ssl \
-               --username '<mySourceUser>' \
-               --password '<sourcePassword>' \
-               --authenticationDatabase admin \
-     | \
-     mongorestore --host myAtlasRS/atlas-host1:27017,atlas-host2:27017,atlas-host3:27017 \
-                  --archive --ssl \
-                  --username '<myAtlasAdminUser>' \
-                  --password '<atlasPassword>' \
-                  --authenticationDatabase admin \
-                  --nsExclude 'admin.system.*'
+     .. tab:: Connect with a standard connection string
+        :tabid: standard_connection
+
+        .. code-block:: sh
+
+           mongodump --uri "mongodb://username:password@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=sourceRS&authSource=admin" \
+                     --archive \
+           | \
+           mongorestore --uri "mongodb://username:password@00.foo.mongodb.net:27017,01.foo.mongodb.net:27017,02.foo.mongodb.net:27017/?replicaSet=myAtlasRS&authSource=admin" \
+                        --archive \
+                        --ssl \
+                        --nsExclude "admin.system.*"
+   
+     .. tab:: Connect with a DNS seed list connection string
+        :tabid: dns_seed_list_connection
+
+        .. code-block:: sh
+
+           mongodump --uri "mongodb+srv://username:password@cluster0.example.mongodb.net" \
+                     --archive \
+           | \
+           mongorestore --uri "mongodb+srv://username:password@cluster1.example.mongodb.net" \
+                        --archive \
+                        --nsExclude "admin.system.*"
+
 
   Run the completed command from a terminal or shell connected to a
   host machine on your source cluster.
