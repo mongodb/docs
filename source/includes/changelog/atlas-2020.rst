@@ -1,3 +1,16 @@
+.. _atlas_20201103:
+
+3 November 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces :ref:`multi-cloud clusters <create-cluster-multi-region>` 
+  and the ability to move clusters between cloud providers.
+- :ref:`Online Archive <config-online-archive>` now supports using a 
+  nested field for the archiving date and for the customer-chosen query
+  fields.
+- Introduces the ability to use the Okta Verify mobile app for  
+  :ref:`multi-factor authentication <atlas-enable-mfa>`.
+
 .. _atlas_20201013:
 
 13 October 2020 Release
