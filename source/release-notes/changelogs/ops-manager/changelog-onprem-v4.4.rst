@@ -1,3 +1,18 @@
+.. _opsmgr-server-4.4.5:
+
+|onprem| Server 4.4.5
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-11-05*
+
+- Updates the |jdk| to ``jdk-jdk-11.0.9.11.1``.
+
+- Supports viewing MongoDB Profiler entries with overlapping timestamps 
+  separately in the Visual Query Profiler.
+
+- Updates the MongoDB Agent to :ref:`10.14.16.6437
+  <mongodb-10.14.16.6437>`. 
+
 .. _opsmgr-server-4.4.4:
 
 |onprem| Server 4.4.4
