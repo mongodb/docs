@@ -1,3 +1,16 @@
+.. _opsmgr-server-4.0.20:
+
+|onprem| Server 4.0.20
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released on 2020-11-05*
+
+- Updates the |jdk| to jdk-jdk8u272b10.1.
+
+- **Upgrades Agents**: :ref:`backup-6.8.9.1030` and
+  :ref:`monitoring-6.6.4.472`. 
+
+
 .. _opsmgr-server-4.0.19:
 
 |onprem| Server 4.0.19

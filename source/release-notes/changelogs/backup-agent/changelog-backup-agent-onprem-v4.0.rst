@@ -1,3 +1,10 @@
+.. _backup-6.8.9.1030:
+
+Backup Agent 6.8.9.1030
+-----------------------
+
+:ref:`Released with Ops Manager 4.0.20 on 2020-11-05 <opsmgr-server-4.0.20>`
+
 .. _backup-6.8.8.1027:
 
 Backup Agent 6.8.8.1027
