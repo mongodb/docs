@@ -1,0 +1,90 @@
+stepnum: 1
+level: 4
+ref: nav-rbac-for-encryption-api
+inherit:
+  file: steps-enable-unified-aws-access.yaml
+  ref: aws-iam-send-post
+---
+title: Modify your AWS IAM role trust policy. 
+level: 4
+ref: modify-trust-policy
+content: |
+  1. Log in to your |aws| Management Console.
+  #. Navigate to the :guilabel:`Identity and Access Management (IAM)` service.
+  #. Select :guilabel:`Roles` from the left-side navigation.
+  #. Click on the existing IAM role you wish to use for |service| access
+     from the list of roles.
+  #. Select the :guilabel:`Trust Relationships` tab.
+  #. Click the :guilabel:`Edit trust relationship` button.
+  #. Edit the :guilabel:`Policy Document`. Add a new ``Statement`` object
+     with the following content.
+
+     .. note::
+
+        Replace the highlighted lines with values returned from the API
+        call in step 1.
+
+     .. code-block:: json
+        :emphasize-lines: 7,16
+
+        {
+          "Version": "2020-03-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "<atlasAWSAccountArn>"
+              },
+              "Action:" [
+                 "kms:Decrypt",
+                 "kms:Encrypt",
+                 "kms:DescribeKey"
+               ]
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": "<atlasAssumedRoleExternalId>"
+                }
+              }
+            }
+          ]
+        }
+
+  #. Click the :guilabel:`Update Trust Policy` button.
+---
+stepnum: 3
+level: 4
+ref: authorize-new-role-ear-api
+inherit:
+  file: steps-enable-unified-aws-access.yaml
+  ref: authorize-new-iam-role
+---
+stepnum: 4
+level: 4
+ref: enable-role-auth-project
+title: Enable AWS KMS with Role Authorization on the Project
+content: |
+  Send a ``PATCH`` request to the :doc:`encryptionAtRest
+  </reference/api/enable-configure-encryptionatrest/>` API endpoint to
+  update the ``awsKms.roleId`` field with your authorized AWS IAM role
+  ID.
+
+  .. example::
+
+     .. code-block:: none
+
+        curl --user "{public key}:{private key}" --digest \
+          --header "Accept: application/json" \
+          --header "Content-Type: application/json" \
+          --include \
+          --request PATCH \
+          "https://cloud.mongodb.com/api/atlas/v1.0/groups/{groupId}/encryptionAtRest?pretty=true&envelope=true" \
+          --data '
+           {
+               "awsKms": {
+                   "enabled": true,
+                   "roleId": "<roleId>",
+                   "customerMasterKeyID": "<master-key-id>",
+                   "region": "<aws-region>"
+               }
+           }'
+     

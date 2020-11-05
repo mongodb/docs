@@ -47,6 +47,15 @@
        .. include:: /includes/fact-aws-region-names.rst
 
    * - | ``awsKms``
+       | ``.roleId``
+     - string
+     - Optional
+     - ID of an |aws| |iam| role authorized to manage an |aws| customer
+       master key. To find the ID for an existing IAM role, send a :doc:`GET
+       request </reference/api/cloud-provider-access-get-roles>` to
+       the ``cloudProviderAccess`` API endpoint.
+
+   * - | ``awsKms``
        | ``.secretAccessKey``
      - string
      - Optional
