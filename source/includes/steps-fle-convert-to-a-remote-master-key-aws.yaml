@@ -87,6 +87,23 @@ content: |
                    "secretAccessKey": "<IAM User Secret Access Key>"
                }
            }
+
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+           var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+
+           var awsAccessKey = Environment.GetEnvironmentVariable("FLE_AWS_ACCESS_KEY");
+           var awsSecretAccessKey = Environment.GetEnvironmentVariable("FLE_AWS_SECRET_ACCESS_KEY");
+           var awsKmsOptions = new Dictionary<string, object>
+           {
+              { "accessKeyId", awsAccessKey },
+              { "secretAccessKey", awsSecretAccessKey }
+           };
+           kmsProviders.Add("aws", awsKmsOptions);
+
 ---
 title: Create a New Data Encryption Key
 ref: create-a-new-data-key
@@ -185,6 +202,32 @@ content: |
 
            To use AWS KMS, you must use `pymongocrypt <https://pypi.org/project/pymongocrypt/>`__
            version 1.0 or later in your application's environment.
+
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+            var keyVaultClient = new MongoClient(connectionString);
+            var clientEncryptionOptions = new ClientEncryptionOptions(
+                keyVaultClient: keyVaultClient,
+                keyVaultNamespace: keyVaultNamespace,
+                kmsProviders: kmsProviders);
+
+            var clientEncryption = new ClientEncryption(clientEncryptionOptions);
+            var awsKeyARN = Environment.GetEnvironmentVariable("FLE_AWS_KEY_ARN"); // e.g. "arn:aws:kms:us-east-2:111122223333:alias/test-key"
+            var awsKeyRegion = Environment.GetEnvironmentVariable("FLE_AWS_KEY_REGION");
+            var dataKeyOptions = new DataKeyOptions(
+                masterKey: new BsonDocument
+                {
+                { "region", awsKeyRegion },
+                { "key", awsKeyARN }
+                });
+
+            var dataKeyId = clientEncryption.CreateDataKey("aws", dataKeyOptions, CancellationToken.None);
+            Console.WriteLine($"AWS DataKeyId [UUID]: {dataKeyId}");
+            var dataKeyIdBase64 = Convert.ToBase64String(GuidConverter.ToBytes(dataKeyId, GuidRepresentation.Standard));
+            Console.WriteLine($"AWS DataKeyId [base64]: {dataKeyIdBase64}");
 
 ---
 title: Update the Automatic Encryption JSON Schema
