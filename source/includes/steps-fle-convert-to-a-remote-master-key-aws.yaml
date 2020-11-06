@@ -95,14 +95,22 @@ content: |
 
            var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
 
-           var awsAccessKey = Environment.GetEnvironmentVariable("FLE_AWS_ACCESS_KEY");
-           var awsSecretAccessKey = Environment.GetEnvironmentVariable("FLE_AWS_SECRET_ACCESS_KEY");
-           var awsKmsOptions = new Dictionary<string, object>
+           var azureTenantId = Environment.GetEnvironmentVariable("FLE_AZURE_TENANT_ID");
+           var azureClientId = Environment.GetEnvironmentVariable("FLE_AZURE_CLIENT_ID");
+           var azureClientSecret = Environment.GetEnvironmentVariable("FLE_AZURE_CLIENT_SECRET");
+           var azureIdentityPlatformEndpoint = Environment.GetEnvironmentVariable("FLE_AZURE_IDENTIFY_PLATFORM_ENPOINT"); // Optional, only needed if user is using a non-commercial Azure instance
+
+           var azureKmsOptions = new Dictionary<string, object>
            {
-              { "accessKeyId", awsAccessKey },
-              { "secretAccessKey", awsSecretAccessKey }
+               { "tenantId", azureTenantId },
+               { "clientId", azureClientId },
+               { "clientSecret", azureClientSecret },
            };
-           kmsProviders.Add("aws", awsKmsOptions);
+           if (azureIdentityPlatformEndpoint != null)
+           {
+               azureKmsOptions.Add("identityPlatformEndpoint", azureIdentityPlatformEndpoint);
+           }
+           kmsProviders.Add("azure", azureKmsOptions);)
 
         .. note::
 
@@ -225,11 +233,13 @@ content: |
             var clientEncryption = new ClientEncryption(clientEncryptionOptions);
             var awsKeyARN = Environment.GetEnvironmentVariable("FLE_AWS_KEY_ARN"); // e.g. "arn:aws:kms:us-east-2:111122223333:alias/test-key"
             var awsKeyRegion = Environment.GetEnvironmentVariable("FLE_AWS_KEY_REGION");
+            var awsEndpoint = Environment.GetEnvironmentVariable("FLE_AWS_ENDPOINT"); // Optional, AWS KMS URL.
             var dataKeyOptions = new DataKeyOptions(
                 masterKey: new BsonDocument
                 {
                     { "region", awsKeyRegion },
-                    { "key", awsKeyARN }
+                    { "key", awsKeyARN },
+                    { "endpoint", () => awsEndpoint, awsEndpoint != null }
                 });
 
             var dataKeyId = clientEncryption.CreateDataKey("aws", dataKeyOptions, CancellationToken.None);
