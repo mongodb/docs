@@ -1,0 +1,78 @@
+title: "Pause the online archive associated with the collection 
+       whose archived data you wish to restore."
+level: 4
+ref: oa-restore-step1
+stepnum: 1
+content: | 
+  See :ref:`pause-resume-online-archive` for more information.
+--- 
+title: "Connect to your |service| cluster and online archive using 
+       the connection string. "
+level: 4
+ref: oa-restore-step2
+stepnum: 2
+content: | 
+  See :ref:`connect-online-archive-atlas-ui` for more information.
+---
+title: "Use :pipeline:`$match` and :adl:`$out to Atlas 
+       </reference/pipeline/out>` to migrate data from the 
+       archive to a temporary collection on the |service| cluster."
+level: 4
+ref: oa-restore-step3
+stepnum: 3
+content: | 
+  Use :pipeline:`$match` to identify the documents that match the 
+  criteria for restoring and use :adl:`$out to Atlas 
+  </reference/pipeline/out>` to write the documents to a temporary 
+  collection on the |service| cluster. For example: 
+
+  .. code-block:: json 
+     
+     db.<collection>.aggregate([
+       { $match: { $expr: { <aggregation expression> } } },
+       { $out: {
+         "atlas": {
+           "projectId": "<atlas-project-ID>",
+           "clusterName": "<atlas-cluster-name>",
+           "db": "<atlas-database-name>",
+           "coll": "<atlas-collection-name"
+         }
+       } }
+     ])
+---
+title: "Use :pipeline:`$merge` to move the data from the temporary 
+       collection to the original collection."
+level: 4
+ref: oa-restore-step4
+stepnum: 4
+content: |
+  a. Close the connection you opened in step 2 to your |service| cluster 
+     and online archive.
+
+  #. :doc:`Connect </connect-to-cluster>` to your |service| cluster using 
+     the connection string.
+
+  #. Use :pipeline:`$merge` to move the data from the temporary 
+     collection to the original collection. For example: 
+
+     .. code-block:: json 
+
+        db.<collection>.aggregate([ 
+          { 
+            $merge: { 
+              into: "<collection>", 
+              on: <identifier field>, 
+              whenMatched: "<replace|merge>", 
+              whenNotMatched: "<insert|discard|fail>" 
+            } 
+          } 
+        ])
+---
+title: "Verify data in the |service| cluster and delete the 
+       online archive."
+level: 4
+ref: oa-restore-step5
+stepnum: 5
+content: | 
+  See :ref:`delete-online-archive` for more information.
+...
