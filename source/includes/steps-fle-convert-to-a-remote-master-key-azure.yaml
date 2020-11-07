@@ -99,16 +99,9 @@ content: |
      .. tab::
         :tabid: nodejs
 
-        .. code-block:: javascript
+        .. note::
 
-           // TODO: verify correctness
-           kms_providers = {
-             azure: {
-               tenantId: "<Azure account organization>",
-               clientId: "<Azure client ID>",
-               clientSecret: "<Azure client secret>"
-             }
-           }
+           Node does not currently support Azure as a remote KMS
 
      .. tab::
         :tabid: python
@@ -137,14 +130,19 @@ content: |
            var azureTenantId = Environment.GetEnvironmentVariable("FLE_AZURE_TENANT_ID");
            var azureClientId = Environment.GetEnvironmentVariable("FLE_AZURE_CLIENT_ID");
            var azureClientSecret = Environment.GetEnvironmentVariable("FLE_AZURE_CLIENT_SECRET");
+           var azureIdentityPlatformEndpoint = Environment.GetEnvironmentVariable("FLE_AZURE_IDENTIFY_PLATFORM_ENPOINT"); // Optional, only needed if user is using a non-commercial Azure instance
+
            var azureKmsOptions = new Dictionary<string, object>
            {
                { "tenantId", azureTenantId },
                { "clientId", azureClientId },
                { "clientSecret", azureClientSecret },
-
            };
-           kmsProviders.Add("azure", azureKmsOptions);
+           if (azureIdentityPlatformEndpoint != null)
+           {
+               azureKmsOptions.Add("identityPlatformEndpoint", azureIdentityPlatformEndpoint);
+           }
+           kmsProviders.Add("azure", azureKmsOptions);;
 
         .. note::
 
@@ -220,21 +218,10 @@ content: |
      .. tab::
         :tabid: nodejs
 
-        .. code-block:: javascript
+        .. note::
 
-           // TODO: update for Azure
-           const encryption = new ClientEncryption(client, {
-               keyVaultNamespace,
-               kmsProviders
-           });
-           const key = await encryption.createDataKey('aws', {
-              masterKey: {
-                key: '<Master Key ARN>', // e.g. 'arn:aws:kms:us-east-2:111122223333:alias/test-key'
-              }
-           });
+           Node does not currently support Azure as a remote KMS.
 
-           const base64DataKeyId = key.toString('base64');
-           console.log('DataKeyId [base64]: ', base64DataKeyId);
 
      .. tab::
         :tabid: python
@@ -260,14 +247,22 @@ content: |
 
         .. code-block:: csharp
 
+           var keyVaultClient = new MongoClient(_connectionString);
+           var clientEncryptionOptions = new ClientEncryptionOptions(
+               keyVaultClient: keyVaultClient,
+               keyVaultNamespace: _keyVaultNamespace,
+               kmsProviders: kmsProviders);
+
            var clientEncryption = new ClientEncryption(clientEncryptionOptions);
            var azureKeyName = Environment.GetEnvironmentVariable("FLE_AZURE_KEY_NAME");
            var azureKeyVaultEndpoint = Environment.GetEnvironmentVariable("FLE_AZURE_KEYVAULT_ENDPOINT"); // typically <azureKeyName>.vault.azure.net
+           var azureKeyVersion = Environment.GetEnvironmentVariable("FLE_AZURE_KEY_VERSION"); // Optional
            var dataKeyOptions = new DataKeyOptions(
                masterKey: new BsonDocument
                {
                    { "keyName", azureKeyName },
-                   { "keyVaultEndpoint", azureKeyVaultEndpoint }
+                   { "keyVaultEndpoint", azureKeyVaultEndpoint },
+                   { "keyVersion", () => azureKeyVersion, azureKeyVersion != null }
                });
 
            var dataKeyId = clientEncryption.CreateDataKey("azure", dataKeyOptions, CancellationToken.None);
