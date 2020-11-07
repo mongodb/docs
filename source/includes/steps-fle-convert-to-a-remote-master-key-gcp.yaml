@@ -1,50 +1,91 @@
-title: Create an AWS IAM User
-ref: create-an-aws-iam-user
+title: Create a GCP Service Account
+ref: create-a-gcp-service-account
 content: |
-  Create a new programmatic IAM user in the AWS management console.
-  CSFLE-enabled clients authenticate with AWS KMS using the IAM user to
-  encrypt and decrypt the remote master key. The IAM user must be granted
-  full ``List`` and ``Read`` permissions for the KMS service.
 
-  .. note:: Client IAM User Credentials
+  Create a service account for your client application by following the
+  official Google documentation on
+  `Creating and managing a service account <https://cloud.google.com/iam/docs/creating-managing-service-accounts#creating>`__.
 
-     The CSFLE-enabled client uses the IAM User's :guilabel:`Access Key
-     ID` and :guilabel:`Secret Access Key` as configuration values. Take
-     note of these and reference them when we update the client.
+  After you create the service account, locate and record the following
+  authentication settings for use in a later step:
+
+  - **email**
+  - **privateKey** (this value is only returned when you create the account)
+  - **endpoint**
+
 ---
 title: Create the Master Key
-ref: create-the-master-key
+ref: create-the-master-key-gcp
 content: |
 
-  The following diagram shows how the **master key** is created and stored
-  when using a KMS provider:
+  The following diagram shows the creation and storage of a  **master key**
+  on a KMS provider:
 
   .. image:: /figures/CSFLE_Master_Key_KMS.png
      :alt: Diagram that describes creating a master key when using a KMS provider
 
-  In AWS management console, create a new symmetric master key in the KMS
-  section. Choose a name and description that helps you identify it; these
-  fields do not affect the functionality or configuration.
+  Create a **symmetric key** using the official Google Cloud
+  `Creating symmetric keys guide <https://cloud.google.com/kms/docs/creating-keys>`__.
+  This is your master key which you can access from your application.
 
-  In the :guilabel:`Usage Permissions` step of the key generation
-  process, add the full KMS ``List`` and ``Read`` permissions to the IAM
-  user you created in the previous step. This authorizes the user to encrypt
-  and decrypt the new master key.
+  .. note::
+
+     If you rotate the key, either by specifying a date or manually, the
+    provider changes the content of the master key. To transition
+    to the new key:
+
+     1. Decrypt and save the data using the original data encryption key.
+     #. Generate a new data encryption key with the new master key.
+     #. Update the ``keyVersion`` parameter to the latest version of the master key.
+     #. Re-encrypt the data using the new data encryption key.
+
+  Make sure your application has appropriate roles to encrypt and decrypt
+  using the key. For example, the
+  `roles/cloudkms.cryptoKeyEncrypterDecrypter <https://cloud.google.com/kms/docs/reference/permissions-and-roles>`__
+  role has permissions to both encrypt and decrypt keys.
 
   .. important::
 
-     The new client IAM User *should not* have administrative permissions
-     for the master key.
+     The client application *should not* have administrative permissions
+     for the master key. We recommend that you follow the
+     `principle of least privilege <https://en.wikipedia.org/wiki/Principle_of_least_privilege>`__
+     to keep your data secure.
+
 ---
-title: Specify the AWS KMS Provider Credentials
-ref: specify-the-aws-kms-provider-credentials
+title: Specify your Google Cloud KMS Credentials
+ref: specify-your-gcp-kms-provider-credentials
 content: |
-  Unlike the local key provider, the AWS KMS provider does not read
+  Unlike the local key provider, the Google Cloud KMS does not read
   the master key directly from the client application. Instead,
-  it accepts the :guilabel:`Access Key ID` and :guilabel:`Secret Access
-  Key` configurations that point to the master key. The IAM user must have
-  the permissions set up in the previous step in order for the client to
-  use the KMS to encrypt and decrypt data encryption keys.
+  it retrieves the key using your service client credentials and key
+  details.
+
+  Configure your client application with the following authentication
+  credentials:
+
+  .. list-table::
+     :header-rows: 1
+     :stub-columns: 1
+
+     * - Field
+       - Required
+       - Description
+
+     * - email
+       - Yes
+       - Identifies your service account email address.
+
+     * - privateKey
+       - Yes
+       - Identifies your service account private key in either
+         `base64 string <https://en.wikipedia.org/wiki/Base64>`__ or
+         :manual:`Binary subtype 0 <reference/mongodb-extended-json/#bson.Binary>`
+         format.
+
+     * - endpoint
+       - No
+       - Specifies a hostname and port number for the authentication server.
+         Defaults to oauth2.googleapis.com.
 
   Update the KMS Provider configuration in your CSFLE-enabled client
   creation code:
@@ -55,103 +96,127 @@ content: |
         :tabid: java-sync
 
         .. code-block:: java
-           :emphasize-lines: 7-9, 11
 
-           BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
-           BsonString awsAccessKeyId = new BsonString("<IAM User Access Key ID>");
-           BsonString awsSecretAccessKey = new BsonString("<IAM User Secret Access Key>");
            Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
            Map<String, Object> providerDetails = new HashMap<String, Object>();
 
-           providerDetails.put("accessKeyId", awsAccessKeyId);
-           providerDetails.put("secretAccessKey", awsSecretAccessKey);
-           providerDetails.put("region", masterKeyRegion);
+           providerDetails.put("email", new BsonString("<GCP service account email>"));
+           providerDetails.put("privateKey", new BsonString("<GCP service account private key>"));
+           providerDetails.put("endpoint", new BsonString("<GCP authentication endpoint>"));
 
-           kmsProviders.put("aws", providerDetails);
+           kmsProviders.put("gcp", providerDetails);
+
      .. tab::
         :tabid: nodejs
 
         .. code-block:: javascript
 
+           // TODO: check correctness
            kmsProviders = {
-             aws: {
-               accessKeyId: '<IAM User Access Key ID>',
-               secretAccessKey: '<IAM User Secret Access Key>',
+             gcp: {
+               email: '<GCP service account email>',
+               privateKey: '<GCP service account private key>',
+               endpoint: '<GCP authentication endpoint>',
              }
            }
+
      .. tab::
         :tabid: python
 
         .. code-block:: python
 
-           kms_providers = {
-               "aws": {
-                   "accessKeyId": "<IAM User Access Key ID>",
-                   "secretAccessKey": "<IAM User Secret Access Key>"
+           kms_provider = {
+               "gcp": {
+                   "email": "<GCP service account email>",
+                   "privateKey": "<GCP service account private key>",
+                   "endpoint": "<GCP authentication endpoint>",
                }
            }
 ---
 title: Create a New Data Encryption Key
-ref: create-a-new-data-key
+ref: create-a-new-data-key-gcp
 content: |
-  The following diagram shows how the **customer master key** is created and
-  stored when using a KMS provider:
+  Generate a new **data encryption key** using the **master key** in the
+  remote KMS. The following diagram shows the requests you make from the
+  client application to create and store a new data encryption key:
 
   .. image:: /figures/CSFLE_Data_Key_KMS.png
      :alt: Diagram that describes creating a data encryption key when using a KMS provider
 
-  You must generate a new **data encryption key** using the **master key**
-  in the remote KMS. The original data encryption key was encrypted by
-  your locally-managed master key.
+  Provide your client with the following information to access the master key:
 
-  Specify the AWS region and `Amazon Resource Number
-  <https://docs.aws.amazon.com/kms/latest/developerguide/viewing-keys.html#find-cmk-id-arn>`_
-  (ARN) of the new CMK in the CSFLE-enabled client settings. Use the client
-  to create a new data encryption key as follows:
+  .. list-table::
+     :header-rows: 1
+     :stub-columns: 1
 
-  Once you have the required information, run the following code to
-  generate the new data encryption key:
+     * - Field
+       - Required
+       - Description
+
+     * - projectId
+       - Yes
+       - Identifier for your project in which you created the key.
+
+     * - location
+       - Yes
+       - Region specified for your key.
+
+     * - keyRing
+       - Yes
+       - Identifier for the group of keys your key belongs to.
+
+     * - keyName
+       - Yes
+       - Identifier for the symmetric master key.
+
+     * - keyVersion
+       - No
+       - Specifies the version of the named key. If not specified, the default
+         version of the key is used.
+
+     * - endpoint
+       - No
+       - Specifies the host and optional port of the Cloud KMS. The default
+         is ``cloudkms.googleapis.com``.
+
+  Once you have the required information, update and run the following code
+  to generate a new data encryption key:
 
   .. tabs-drivers::
 
      .. tab::
         :tabid: java-sync
 
+        In ``CSFLEHelpers.java``, update your call to
+        ``DataKeyOptions.masterKey()`` to include your master key data:
+
         .. code-block:: Java
-           :emphasize-lines: 9-14, 16-17
 
-           ClientEncryption clientEncryption = ClientEncryptions.create(ClientEncryptionSettings.builder()
-               .keyVaultMongoClientSettings(MongoClientSettings.builder()
-                   .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
-                   .build())
-               .keyVaultNamespace(keyVaultNamespace)
-               .kmsProviders(kmsProviders)
-               .build());
-
-           BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
-           BsonString masterKeyArn = new BsonString("<Master Key ARN>"); // e.g. "arn:aws:kms:us-east-2:111122223333:alias/test-key"
            DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
                new BsonDocument()
-                   .append("region", masterKeyRegion)
-                   .append("key", masterKeyArn));
+                   .append("provider", "gcp")
+                   .append("projectId", "<GCP project identifier>")
+                   .append("location", "<GCP region>")
+                   .append("keyRing", "<GCP key ring name>")
+                   .append("keyVersion", "<GCP key version>")
+                   .append("endpoint", "<GCP KMS API endpoint>"));
 
-           BsonBinary dataKeyId = clientEncryption.createDataKey("aws", dataKeyOptions);
-           String base64DataKeyId = Base64.getEncoder().encodeToString(dataKeyId.getData());
-
-           System.out.println("DataKeyId [base64]: " + base64DataKeyId);
+           BsonBinary dataKeyId = clientEncryption.createDataKey("gcp", dataKeyOptions);
      .. tab::
         :tabid: nodejs
 
         .. code-block:: javascript
 
-           const encryption = new ClientEncryption(client, {
-               keyVaultNamespace,
-               kmsProviders
-           });
-           const key = await encryption.createDataKey('aws', {
+           // TODO: check correctness
+           const key = await encryption.createDataKey('gcp', {
               masterKey: {
-                key: '<Master Key ARN>', // e.g. 'arn:aws:kms:us-east-2:111122223333:alias/test-key'
-                region: '<Master Key AWS Region>', // e.g. 'us-east-1'
+                provider: 'gcp',
+                projectId: '<GCP project identifier>',
+                location: '<GCP region>',
+                keyRing: '<GCP key ring name>',
+                keyName: '<GCP key name>',
+                keyVersion: '<GCP key version>',
+                endpoint: '<GCP KMS API endpoint>',
               }
            });
 
@@ -160,38 +225,29 @@ content: |
      .. tab::
         :tabid: python
 
+        In ``app.py``, define the following dictionary to pass to your call to
+        ``create_data_key()``:
+
         .. code-block:: python
 
-           import pymongo
-           from pymongo import MongoClient
-           from pymongo.encryption_options import AutoEncryptionOpts
-           from bson.binary import STANDARD
-           from bson.codec_options import CodecOptions
+           master_key = {
+                "provider": "gcp",
+                "projectId": "<GCP project identifier>",
+                "location": "<GCP region>",
+                "keyRing": "<GCP key ring name>",
+                "keyName": "<GCP key name>",
+                "keyVersion": "<GCP key version>",
+                "endpoint": "<GCP KMS API endpoint>",
+           }
 
-           connection_string = "mongodb://localhost:27017"
-           key_vault_namespace = "encryption.__keyVault"
+        .. note::
 
-           fle_opts = AutoEncryptionOpts(
-              kms_providers, # pass in the kms_providers from the previous step
-              key_vault_namespace
-           )
-
-           client_encryption = pymongo.encryption.ClientEncryption(
-              {
-                "aws": {
-                  "accessKeyId": "<IAM User Access Key ID>",
-                  "secretAccessKey": "<IAM User Secret Access Key>"
-                }
-              },
-              key_vault_namespace,
-              client,
-              CodecOptions(uuid_representation=STANDARD)
-           )
-           data_key_id = client_encryption.create_data_key("aws")
+           To use Google Cloud KMS, you must use `pymongocrypt <https://pypi.org/project/pymongocrypt/>`__
+           version 1.1 or later in your application's environment.
 
 ---
 title: Update the Automatic Encryption JSON Schema
-ref: update-the-json-schema
+ref: update-the-json-schema-gcp
 content: |
   If you embedded the key id of your data encryption key in your
   automatic encryption rules, you will need to update the :ref:`JSON
