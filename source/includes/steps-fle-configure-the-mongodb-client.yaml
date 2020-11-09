@@ -26,6 +26,13 @@ content: |
         .. code-block:: python
 
            key_vault_namespace = "encryption.__keyVault"
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+           var keyVaultNamespace = CollectionNamespace.FromFullName("encryption.__keyVault");
+
 ---
 title: Specify the Local Master Encryption Key
 ref: specify-the-local-master-encryption-key
@@ -70,6 +77,20 @@ content: |
                "key": local_master_key
              }
            }
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+           var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+           var localMasterKeyBase64 = File.ReadAllText(__localMasterKeyPath);
+           var localMasterKeyBytes = Convert.FromBase64String(localMasterKeyBase64);
+           var localOptions = new Dictionary<string, object>
+           {
+               { "key", localMasterKeyBytes }
+           };
+           kmsProviders.Add("local", localOptions);
+
 ---
 title: Map the JSON Schema to the Patients Collection
 ref: map-the-json-schema-to-the-patients-collection
@@ -107,6 +128,15 @@ content: |
            patient_schema = {
              "medicalRecords.patients": json_schema
            }
+
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+           // JsonSchemaCreator is a utility class found in the C# companion
+           // project to this guide
+           var schema = JsonSchemaCreator.CreateJsonSchema(keyIdBase64);
 ---
 title: Specify the Location of the Encryption Binary
 ref: specify-the-location-of-the-encryption-binary
@@ -184,6 +214,14 @@ content: |
               :emphasize-lines: 1
 
                extra_options['mongocryptd_bypass_spawn'] = True
+     .. tab::
+        :tabid: csharp
+
+
+        .. note:: Encryption Library
+
+           Ensure ``mongocrypt.dll` is included with your application's build
+           assets.
 
 ---
 title: Create the MongoClient
@@ -242,3 +280,17 @@ content: |
               **extra_options
            )
            client = MongoClient(connection_string, auto_encryption_opts=fle_opts)
+
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+           var clientSettings = MongoClientSettings.FromConnectionString(_connectionString);
+           var autoEncryptionOptions = new AutoEncryptionOptions(
+               keyVaultNamespace: keyVaultNamespace,
+               kmsProviders: kmsProviders,
+               schemaMap: schemaMap,
+               extraOptions: extraOptions);
+           clientSettings.AutoEncryptionOptions = autoEncryptionOptions;
+           var client = new MongoClient(clientSettings);

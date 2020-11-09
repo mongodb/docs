@@ -262,6 +262,24 @@ Additional Dependencies
              <https://pypi.org/project/pymongocrypt/>`_
            - Python wrapper for the ``libmongocrypt`` encryption library.
 
+   .. tab::
+      :tabid: csharp
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Dependency Name
+           - Description
+
+         * - x64 Support
+           - x64 support is required for CSFLE
+
+
+         * - `mongocrypt.dll
+             <https://github.com/mongodb/libmongocrypt#installing-libmongocrypt-on-windows>`__
+           - A Windows build of `mongocrypt.dll`.
+
+
 .. _fle-create-a-master-key:
 
 A. Create a Master Key
@@ -365,6 +383,33 @@ to a file with the **fully runnable code below**:
         file_bytes = os.urandom(96)
         with open(path, "wb") as f:
           f.write(file_bytes)
+
+   .. tab::
+      :tabid: csharp
+
+      The following console program generates a 96-byte locally-managed master
+      key and saves it to a file called ``master-key.txt`` in the directory
+      from which the script is executed.
+
+      .. code-block:: csharp
+
+         using System;
+         using System.IO;
+
+         class Program
+         {
+             public void Main(string []args)
+             {
+                 using (var randomNumberGenerator = System.Security.Cryptography.RandomNumberGenerator.Create())
+                 {
+                     var bytes = new byte[96];
+                     randomNumberGenerator.GetBytes(bytes);
+                     var localMasterKeyBase64 = Convert.ToBase64String(bytes);
+                     Console.WriteLine(localMasterKeyBase64);
+                     File.WriteAllText(__localMasterKeyPath, localMasterKeyBase64);
+                 }
+             }
+         }
 
 B. Create a Data Encryption Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -613,6 +658,12 @@ full `JSON Schema for the Medical Care Management System
       View the **complete runnable** `helper code in Python
       <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-json-schema-helper-and-json/json_schema_creator.py>`_.
 
+   .. tab::
+      :tabid: csharp
+
+      View the **complete runnable** `helper code in C#
+      <https://github.com/mongodb-university/csfle-guides/blob/master/dotnet/CSFLE/JsonSchemaCreator.cs>`_.
+
 D. Create the MongoDB Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -776,6 +827,53 @@ can provide configurable parameters including:
 
              | **Default**: ``60``
 
+   .. tab::
+      :tabid: csharp
+
+      .. list-table::
+         :header-rows: 1
+         :stub-columns: 1
+
+         * - Name
+           - Description
+
+
+         * - port
+           - | Listening port.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: csharp
+
+                   var extraOptions = new Dictionary<string, object>()
+                   {
+                       { "mongocryptdSpawnArgs", new [] { "--port=30000" } },
+                   };
+                   autoEncryptionOptions.With(extraOptions: extraOptions);
+
+             | **Default**: ``27020``
+
+         * - idleShutdownTimeoutSecs
+           - | Number of idle seconds in which the ``mongocryptd`` process should wait before exiting.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: csharp
+
+                   var extraOptions = new Dictionary<string, object>()
+                   {
+                       { "idleShutdownTimeoutSecs", 60 },
+                   };
+                   autoEncryptionOptions.With(extraOptions: extraOptions);
+
+
+                   auto_encryption_opts = AutoEncryptionOpts(mongocryptd_spawn_args=['--idleShutdownTimeoutSecs=75'])
+
+             | **Default**: ``60``
+
+
 .. note::
 
    If a ``mongocryptd`` process is already running on the port specified
@@ -882,6 +980,56 @@ following **code snippet**:
                'insurance': insurance
            }
            collection.insert_one(doc)
+
+   .. tab::
+      :tabid: csharp
+
+      .. code-block:: csharp
+
+         var sampleSsnValue = 145014000;
+         var sampleNameValue = "John Doe";
+
+         BsonDocument sampleDocFields =
+             new BsonDocument
+             {
+                 { "name", sampleNameValue },
+                 { "ssn", sampleSsnValue },
+                 { "bloodType", "AB-" },
+                 {
+                     "medicalRecords",
+                     new BsonArray(new []
+                     {
+                         new BsonDocument("weight", 180),
+                         new BsonDocument("bloodPressure", "120/80")
+                     })
+                 },
+                 {
+                     "insurance",
+                     new BsonDocument
+                     {
+                         { "policyNumber", 123142 },
+                         { "provider", "MaestCare" }
+                     }
+                 }
+             };
+
+            // Construct an auto-encrypting client
+            var autoEncryptingClient = CreateAutoEncryptingClient(
+                kmsKeyLocation,
+                _keyVaultNamespace,
+                schema);
+            var collection = autoEncryptingClient
+                .GetDatabase(_medicalRecordsNamespace.DatabaseNamespace.DatabaseName)
+                .GetCollection<BsonDocument>(_medicalRecordsNamespace.CollectionName);
+
+
+            // Insert a document into the collection
+            collection.UpdateOne(ssnQuery, new BsonDocument("$set", __sampleDocFields), new UpdateOptions() { IsUpsert = true });
+            Console.WriteLine("Successfully upserted the sample document!");
+
+            Console.WriteLine($"Encrypted client query by the SSN (deterministically-encrypted) field:\n {result}\n");
+
+
 
 When a CSFLE-enabled client inserts a new patient record into the Medical Care
 Management System, it automatically encrypts the fields specified in the
@@ -1046,6 +1194,11 @@ To view and download a runnable example of CSFLE, select your driver below:
 
       **GitHub:** `PyMongo CSFLE runnable example
       <https://github.com/mongodb-university/csfle-guides/tree/master/python>`_
+   .. tab::
+      :tabid: csharp
+
+      **GitHub:** `C# CSFLE runnable example
+      <https://github.com/mongodb-university/csfle-guides/tree/master/dotnet>`_
 
 Move to Production
 ~~~~~~~~~~~~~~~~~~
@@ -1090,3 +1243,8 @@ check out the reference docs in the server manual:
       For additional information on MongoDB CSFLE API, see the
       `official PyMongo driver documentation <https://pymongo.readthedocs.io/en/stable/examples/encryption.html>`__.
 
+   .. tab::
+      :tabid: csharp
+
+      For additional information on MongoDB CSFLE API, see the
+      `official C# driver documentation <https://mongodb.github.io/mongo-csharp-driver/2.11/reference/driver/crud/client_side_encryption/>`__.

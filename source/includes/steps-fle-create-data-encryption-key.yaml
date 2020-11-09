@@ -47,6 +47,14 @@ content: |
            with open(path, "rb") as f:
              local_master_key = f.read()
 
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+           string localMasterKeyBase64 = File.ReadAllText(__localMasterKeyPath);
+           var localMasterKeyBytes = Convert.FromBase64String(localMasterKeyBase64);
+
 ---
 title: Specify KMS Provider Settings
 ref: specify-kms-provider-settings
@@ -91,11 +99,23 @@ content: |
         .. code-block:: python
            :emphasize-lines: 2,3
 
-            kms_providers = {
-              "local": {
-                "key": local_master_key # local_master_key variable from the previous step
-              },
-            }
+           kms_providers = {
+             "local": {
+               "key": local_master_key # local_master_key variable from the previous step
+             },
+           }
+
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+           var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+           var localOptions = new Dictionary<string, object>
+           {
+               { "key", localMasterKeyBytes }
+           };
+           kmsProviders.Add("local", localOptions);
 
 ---
 title: Create a Data Encryption Key
@@ -104,8 +124,8 @@ level: 4
 content: |
   Construct a client with the MongoDB connection string and key vault
   namespace configuration, create a unique index on the ``keyAltNames`` field
-  in that collection, and create a data encryption key with the following 
-  **code snippet**. The key vault in this example uses the ``encryption`` 
+  in that collection, and create a data encryption key with the following
+  **code snippet**. The key vault in this example uses the ``encryption``
   database and ``__keyVault`` collection.
 
   .. tabs-drivers::
@@ -212,6 +232,23 @@ content: |
 
 
            data_key_id = create_data_encryption_key()
+
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+           var keyVaultClient = new MongoClient(_connectionString);
+           var clientEncryptionOptions = new ClientEncryptionOptions(
+               keyVaultClient: keyVaultClient,
+               keyVaultNamespace: _keyVaultNamespace,
+               kmsProviders: kmsProviders);
+           var clientEncryption = new ClientEncryption(kmsProviders);
+           var dataKeyId = clientEncryption.CreateDataKey("local", new DataKeyOptions(), CancellationToken.None);
+           Console.WriteLine($"Local DataKeyId [UUID]: {dataKeyId}");
+           var dataKeyIdBase64 = Convert.ToBase64String(GuidConverter.ToBytes(dataKeyId, GuidRepresentation.Standard));
+           Console.WriteLine($"Local DataKeyId [base64]: {dataKeyIdBase64}");
+
 
 
   The ``_id`` field of the data encryption key is represented as a **UUID**
@@ -384,6 +421,49 @@ content: |
              "status": 0,
              "masterKey": {
                "provider": "local"
+             }
+           }
+
+     .. tab::
+        :tabid: csharp
+
+        .. code-block:: csharp
+
+
+           var client = new MongoClient("mongodb://localhost:27017");
+           // dataKeyId is the UUID from the previous step that was printed
+           // to the console
+           var dataKeyId = "<paste your dataKeyId value here>"
+           var collection = client
+               .GetDatabase(_keyVaultNamespace.DatabaseNamespace.DatabaseName)
+               .GetCollection<BsonDocument>(
+                   _keyVaultNamespace.CollectionName,
+                   new MongoCollectionSettings
+                   {
+#pragma warning disable CS0618
+                       GuidRepresentation = GuidRepresentation.Standard
+#pragma warning restore CS0618
+                    });
+           var query = Builders<BsonDocument>.Filter.Eq("_id", new BsonBinaryData(dataKeyId, GuidRepresentation.Standard));
+           var keyDocument = collection
+               .Find(query)
+               .Single();
+
+           Console.WriteLine(keyDocument);
+
+        This code example should print a retrieved document that resembles the
+        following:
+
+        .. code-block:: none
+
+           {
+             "_id" : CSUUID("aae4f3b4-91b6-4cef-8867-3113a6dfb27b"),
+             "keyMaterial" : new BinData(0, "rcfTQLRxF1mg98/Jr7iFwXWshvAVIQY6JCswrW+4bSqvLwa8bQrc65w7+3P3k+TqFS+1Ce6FW4Epf5o/eqDyT//I73IRc+yPUoZew7TB1pyIKmxL6ABPXJDkUhvGMiwwkRABzZcU9NNpFfH+HhIXjs324FuLzylIhAmJA/gvXcuz6QSD2vFpSVTRBpNu1sq0C9eZBSBaOxxotMZAcRuqMA=="),
+             "creationDate" : ISODate("2020-11-08T17:58:36.372Z"),
+             "updateDate" : ISODate("2020-11-08T17:58:36.372Z"),
+             "status" : 0,
+             "masterKey" : {
+                "provider" : "local"
              }
            }
 
