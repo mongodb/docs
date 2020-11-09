@@ -28,6 +28,7 @@ Syntax
    mongocli atlas logs|log download <hostname> <log-name>
         [ --start <start-date> ]
         [ --end <end-date> ]
+        [ --force ]
         [ --out <file-destination>]
         [ --profile|-P <profile-name> ]
         [ --projectId <id-of-project> ]
@@ -55,6 +56,11 @@ Options
        messages to retrieve. Default is current timestamp.
      - no
 
+   * - ``--force``
+     -
+     - Overwrites an existing log file of the same name, if present.
+     - no
+
    * - ``<hostname>``
      - string
      - Name of the MongoDB host for which to download logs.
@@ -68,7 +74,7 @@ Options
 
    * - ``<log-name>``
      - string
-     - The name of the log file to retrieve. Valid values are:
+     - Name of the log file to retrieve. Valid values are:
 
        - :manual:`mongodb.gz </reference/program/mongod/>`
 
@@ -87,16 +93,20 @@ Options
 
    * - ``--out``
      - string
-     - Output filename or path to filename. Value must be in the 
-       following format: 
+     - Output filename, path to filename, or standard output. 
+       The filename must be in the following format: 
        
        .. code-block:: text 
           :copyable: false 
 
           <file-name>.<extension>.gz
 
-       If omitted, {+mcli+} downloads logs to your current directory as 
-       ``<log-name>.log.gz``.
+       For standard output, value must be ``/dev/stdout``. The 
+       command returns the output in compressed format, which you 
+       can decompress using an appropriate tool for you OS.
+       
+       If omitted, {+mcli+} downloads logs to your current directory 
+       as ``<log-name>.log.gz``.
      - no
 
    * - ``--profile``, ``-P``
@@ -145,10 +155,35 @@ The following example uses the ``mongocli atlas logs download`` command
 to download the ``mongodb`` logs from host 
 ``atlas-123abc-shard-00-00.111xx.mongodb.net``. It uses the {+default-profile+} to access the project.
 
-.. code-block:: text
-   :copyable: false
+.. tabs:: 
 
-   mongocli atlas logs download atlas-123abc-shard-00-00.111xx.mongodb.net mongodb.gz
+   .. tab:: Basic Example 
+      :tabid: basic 
 
-The previous command downloads the log file ``mongodb.gz`` to the 
-current directory.
+      .. code-block:: text
+         :copyable: false
+
+         mongocli atlas logs download atlas-123abc-shard-00-00.111xx.mongodb.net mongodb.gz
+
+      The previous command downloads the log file ``mongodb.gz`` to the 
+      current directory.
+
+   .. tab:: Standard Output Example 
+      :tabid: stdout 
+
+      The following command uses ``gunzip`` to decompress the output.
+
+      .. code-block:: text
+         :copyable: false
+
+         mongocli atlas logs download atlas-123abc-shard-00-00.111xx.mongodb.net mongodb.gz --out /dev/stdout --force | gunzip
+
+      The previous command prints log entries similar to the following 
+      to the terminal.
+
+      .. code-block:: text
+         :copyable: false
+
+         2020-11-06T17:16:45.801+0000 I  INDEX    [initandlisten] index build: done building index _id_ on ns local.startup_log
+         2020-11-06T17:16:45.801+0000 I  SHARDING [initandlisten] Marking collection local.startup_log as collection version: <unsharded>
+         ...
