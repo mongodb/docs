@@ -83,6 +83,10 @@ content: |
      .. tab::
         :tabid: java-sync
 
+        In ``CSFLEHelpers.java``, update the ``kmsProviders`` map that you
+        pass to ``ClientEncryptionSettings.builder().kmsProviders()`` method
+        with your Azure authentication details:
+
 
         .. code-block:: java
 
@@ -95,6 +99,11 @@ content: |
 
            Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
            kmsProviders.put("azure", providerDetails);
+
+           ClientEncryptionSettings clientEncryptionSettings = ClientEncryptionSettings.builder()
+               // ...
+               .kmsProviders(kmsProviders)
+               .build();
 
      .. tab::
         :tabid: nodejs
@@ -192,28 +201,24 @@ content: |
      .. tab::
         :tabid: java-sync
 
+        In ``CSFLEHelpers.java``, add your KMS provider and master key
+        details to your call to createDataKey() on your ``ClientEncryption``
+        instance as follows:
+
         .. code-block:: Java
 
-           // TODO: update for Azure
-           ClientEncryption clientEncryption = ClientEncryptions.create(ClientEncryptionSettings.builder()
-               .keyVaultMongoClientSettings(MongoClientSettings.builder()
-                   .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
-                   .build())
-               .keyVaultNamespace(keyVaultNamespace)
-               .kmsProviders(kmsProviders)
-               .build());
-
-           BsonString masterKeyRegion = new BsonString("<Master Key AWS Region>"); // e.g. "us-east-2"
-           BsonString masterKeyArn = new BsonString("<Master Key ARN>"); // e.g. "arn:aws:kms:us-east-2:111122223333:alias/test-key"
            DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
                new BsonDocument()
-                   .append("region", masterKeyRegion)
-                   .append("key", masterKeyArn));
+                   .append("keyName", new BsonString("<Azure key name>"))
+                   .append("keyVersion", new BsonString("<Azure key version>"))
+                   .append("keyVersion", new BsonString("<Azure key vault endpoint>")));
 
-           BsonBinary dataKeyId = clientEncryption.createDataKey("aws", dataKeyOptions);
-           String base64DataKeyId = Base64.getEncoder().encodeToString(dataKeyId.getData());
+           BsonBinary dataKeyId = clientEncryption.createDataKey("azure", dataKeyOptions);
 
-           System.out.println("DataKeyId [base64]: " + base64DataKeyId);
+        .. note::
+
+           To use the Azure Key Vault, you must use `mongodb-crypt <https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt>`__
+           version 1.1 or later in your application's environment.
 
      .. tab::
         :tabid: nodejs
