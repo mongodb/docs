@@ -3,7 +3,7 @@
 Monitoring Agent 6.6.4.472
 --------------------------
 
-:ref:`Released with Ops Manager 4.0.20 on 2020-11-05 <opsmgr-server-4.0.20>
+:ref:`Released with Ops Manager 4.0.20 on 2020-11-05 <opsmgr-server-4.0.20>`
 
 .. _monitoring-6.6.3.469:
 
