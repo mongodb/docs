@@ -62,6 +62,16 @@ Command Fields
           :binary:`~bin.mongod` started without warnings, this filter
           may return an empty array.
 
+   .. note::
+
+      Starting in MongoDB 4.4, the :dbcommand:`getLog` command no longer
+      accepts the ``rs`` value, as this categorization of message type
+      has been deprecated. Instead, log messages are now always
+      identified by their :ref:`component <log-message-components>` -
+      including *REPL* for replication messages. See
+      :ref:`log-message-parsing-example-filter-component` for log
+      parsing examples that filter on the component field.
+
 Output
 ~~~~~~
 
@@ -91,6 +101,8 @@ Starting in MongoDB 4.2, :dbcommand:`getLog` truncates any event
 that contains more than 1024 characters. In earlier versions,
 :dbcommand:`getLog` truncates after 512 characters.
 
+.. _getlog-character-escaping:
+
 Character Escaping
 ~~~~~~~~~~~~~~~~~~
 
@@ -100,6 +112,62 @@ escaped :doc:`Relaxed Extended JSON v2.0
 escape sequences to render log output as valid JSON:
 
 .. include:: /includes/fact-json-escape-sequences.rst
+
+Filtering
+---------
+
+Within the ``mongo`` Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`getLog` output can be filtered to make results more
+readable or to match on specific criteria.
+
+The following operation prints just the ``log`` field (which contains
+the array of all recent log events), and removes
+:ref:`character escaping <getlog-character-escaping>` from each log
+message:
+
+.. code-block:: javascript
+
+   db.adminCommand( { getLog:'global'} ).log.forEach(x => {print(x)})
+
+This operation presents :dbcommand:`getLog` output in the same format as
+the MongoDB :option:`log file <mongod --logpath>`.
+
+.. note::
+
+   :dbcommand:`getLog` only shows the most recent 1024 logged
+   :binary:`~bin.mongod` events, and is not a replacement for the
+   MongoDB :option:`log file <mongod --logpath>`.
+
+Outside the ``mongo`` Shell with ``jq``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-use-jq-with-structured-logging.rst
+
+To use ``jq`` with :dbcommand:`getLog` output, you must use the
+:option:`--eval <mongo --eval>` option to the :binary:`~bin.mongo`
+shell. The following operation uses ``jq`` to filter on the **REPL**
+:ref:`component <log-message-components>` to present only those log
+messages associated with replication:
+
+.. code-block:: javascript
+
+   mongo --quiet --eval "db.adminCommand( { getLog:'global'} ).log.forEach(x => {print(x)})" | jq -c '. | select(.c=="REPL")'
+
+Be sure to provide any necessary connection-specific parameters to the
+:binary:`~bin.mongo` shell as needed, such as :option:`--host
+<mongo --host>` or :option:`--port <mongo --port>`.
+
+See :ref:`log-message-parsing` for more examples of filtering log output
+using ``jq``. The ``jq`` syntax presented in each linked example can be
+used with the above ``mongo --eval`` operation with minor adjustment.
+For example, the following syntax adapts the linked "Counting Unique
+Messages" example for use with :dbcommand:`getLog`:
+
+.. code-block:: javascript
+
+   mongo --quiet --eval "db.adminCommand( { getLog:'global'} ).log.forEach(x => {print(x)})" | jq -r ".msg" | sort | uniq -c | sort -rn | head -10
 
 Examples
 --------

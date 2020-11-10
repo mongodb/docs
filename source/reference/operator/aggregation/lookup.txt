@@ -311,11 +311,11 @@ Create another collection ``inventory`` with the following documents:
 .. code-block:: javascript
 
    db.inventory.insert([
-      { "_id" : 1, "sku" : "almonds", description: "product 1", "instock" : 120 },
-      { "_id" : 2, "sku" : "bread", description: "product 2", "instock" : 80 },
-      { "_id" : 3, "sku" : "cashews", description: "product 3", "instock" : 60 },
-      { "_id" : 4, "sku" : "pecans", description: "product 4", "instock" : 70 },
-      { "_id" : 5, "sku": null, description: "Incomplete" },
+      { "_id" : 1, "sku" : "almonds", "description": "product 1", "instock" : 120 },
+      { "_id" : 2, "sku" : "bread", "description": "product 2", "instock" : 80 },
+      { "_id" : 3, "sku" : "cashews", "description": "product 3", "instock" : 60 },
+      { "_id" : 4, "sku" : "pecans", "description": "product 4", "instock" : 70 },
+      { "_id" : 5, "sku": null, "description": "Incomplete" },
       { "_id" : 6 }
    ])
 
@@ -595,22 +595,33 @@ The operation returns the following documents:
 .. code-block:: javascript
 
    { "_id" : 1, "item" : "almonds", "price" : 12, "ordered" : 2,
-      "stockdata" : [ { "warehouse" : "A", "instock" : 120 }, { "warehouse" : "B", "instock" : 60 } ] }
+      "stockdata" : [ { "warehouse" : "A", "instock" : 120 },
+      { "warehouse" : "B", "instock" : 60 } ] }
    { "_id" : 2, "item" : "pecans", "price" : 20, "ordered" : 1,
       "stockdata" : [ { "warehouse" : "A", "instock" : 80 } ] }
    { "_id" : 3, "item" : "cookies", "price" : 10, "ordered" : 60,
       "stockdata" : [ { "warehouse" : "A", "instock" : 80 } ] }
 
-The operation would correspond to the following pseudo-SQL statement:
+The operation corresponds to the following pseudo-SQL statement:
 
 .. code-block:: sql
 
    SELECT *, stockdata
    FROM orders
-   WHERE stockdata IN (SELECT warehouse, instock
-                       FROM warehouses
-                       WHERE stock_item= orders.item
-                       AND instock >= orders.ordered );
+   WHERE stockdata IN ( SELECT warehouse, instock
+                        FROM warehouses
+                        WHERE stock_item = orders.item
+                        AND instock >= orders.ordered );
+
+The :query:`$expr` operator only uses indexes on the ``from``
+collection for equality matches. For example, if the index
+``{ stock_item: 1, instock: 1 }`` exists on the ``warehouses``
+collection:
+
+   - The equality match on the ``warehouses.stock_item`` field uses the
+     index.
+   - The range part of the query on the ``warehouses.instock`` field
+     does not use the indexed field in the compound index.
 
 .. seealso:: 
 

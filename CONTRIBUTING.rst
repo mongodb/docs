@@ -19,10 +19,10 @@ pull request.
 Please review the following documents for our style, conventions,
 processes and practices for the MongoDB Documentation:
 
-- `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
-- `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
-- `Documentation Organization <http://docs.mongodb.org/manual/meta/organization>`_
-- `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
+- `Style Guide <http://docs.mongodb.org/meta/style-guide>`_
+- `Documentation Practices <http://docs.mongodb.org/meta/practices>`_
+- `Documentation Organization <http://docs.mongodb.org/meta/organization>`_
+- `Documentation Build Tools <https://docs.mongodb.com/meta/tutorials/install/>`_
 
 Do not hesitate to open a ticket in our `Jira`_ project
 or to contact the `documentation team`_
