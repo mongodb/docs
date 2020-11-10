@@ -14,7 +14,7 @@
   M30 cluster tiers. 
 
   For cross-region clusters, |service| distributes the config server
-  replia set nodes to ensure optimal availability. For example, 
+  replica set nodes to ensure optimal availability. For example, 
   |service| might deploy the config servers across three distinct 
   availability zones and three distinct regions if supported by
   the selected cloud service provider and region configuration.
