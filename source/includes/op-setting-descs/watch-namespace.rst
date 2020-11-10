@@ -5,10 +5,9 @@ the Operator's ServiceAccount :k8sdocs:`can access
 this namespace.
 
 Use **\*** to specify *all namespaces*. To watch all namespaces, you
-must also assign the `ClusterRole
-<https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole>`__
-to the ``mongodb-enterprise-operator`` ServiceAccount,
-which is the ServiceAccount used to run the |k8s-op-short|.
+must also assign the |k8s-cr| to the ``mongodb-enterprise-operator``
+ServiceAccount, which is the ServiceAccount used to run the
+|k8s-op-short|.
 
 .. include:: /includes/admonitions/fact-create-service-account-namespaces.rst
 
