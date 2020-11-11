@@ -35,6 +35,13 @@
           Setting ``dailySnapshotRetentionDays`` to ``0`` disables this
           rule.
 
+   * - ``fullIncrementalDayOfWeek``
+     - string
+     - Optional
+     - Day of the week when |mms| takes a full snapshot. This
+       ensures a recent complete backup. |mms| sets the default
+       value to a random weekday.
+
    * - ``groupId``
      - string
      - Optional

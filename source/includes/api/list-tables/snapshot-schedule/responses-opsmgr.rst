@@ -31,6 +31,12 @@
           Setting ``dailySnapshotRetentionDays`` to ``0`` disables this
           rule.
 
+   * - ``fullIncrementalDayOfWeek``
+     - string
+     - Day of the week when |mms| takes a full snapshot. This
+       ensures a recent complete backup. |mms| sets the  default
+       value to :guilabel:`SUNDAY`.
+
    * - ``groupId``
      - string
      - Unique identifier of the project that owns the backup
