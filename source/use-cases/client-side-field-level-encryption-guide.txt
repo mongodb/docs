@@ -2,8 +2,6 @@
 Client-Side Field Level Encryption Guide
 ========================================
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -13,21 +11,31 @@ Client-Side Field Level Encryption Guide
 Who Is This Guide For?
 ----------------------
 
-This use case guide is an introduction to implementing automatic
-Client-Side Field Level Encryption using supported MongoDB drivers and is
-intended for **full-stack developers**. The guide presents the following
+This guide shows you how to implement automatic Client-Side Field Level
+Encryption (CSFLE) using supported MongoDB drivers and is intended for
+**full-stack developers**. The guide presents the following
 information in the context of a real-world scenario:
 
-- **How Client-Side Field Level Encryption works** (`Introduction`_)
-- **Reasons to choose this security feature** (`Comparison of Security
-  Features`_)
-- **How to implement Client-Side Field Level Encryption with the MongoDB
-  driver** (`Implementation`_)
+- :ref:`Introduction <csfle-guide-intro>`: How Client-Side Field Level
+  Encryption works
+- :ref:`Comparison of Security Features <csfle-feature-comparison>`: Reasons
+  to choose this security feature
+- :ref:`Impelementation <csfle-implementation>`: How to implement Client-Side
+  Field Level Encryption with the MongoDB driver
 
 .. note:: Download the Code
 
    For a runnable example of all the functionality demonstrated in this guide,
    see the :ref:`Download Example Project <download-example-project>` section.
+
+Once you complete the steps in this guide, you should have:
+
+- an understanding of how client-side field level encryption works and
+  in what situations it is practical
+- a working client application that demonstrates automatic CSFLE
+- resources on how to move the sample client application to production
+
+.. _csfle-guide-intro-old:
 
 Introduction
 ------------
@@ -106,6 +114,8 @@ of the following methods:
 What can MedcoMD do to balance the functionality and access restrictions
 of their Medical Care Management System?
 
+.. _csfle-feature-comparison-old:
+
 Comparison of Security Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -161,6 +171,8 @@ privacy of their own office.
 
 Equipped with CSFLE, MedcoMD can keep their sensitive data secure and
 compliant to data privacy regulations with MongoDB.
+
+.. _csfle-implementation-old:
 
 Implementation
 --------------
@@ -248,6 +260,18 @@ Additional Dependencies
              <https://pypi.org/project/pymongocrypt/>`_
            - Python wrapper for the ``libmongocrypt`` encryption library.
 
+   .. tab::
+      :tabid: csharp
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Dependency Name
+           - Description
+
+         * - x64 Support
+           - x64 support is required for CSFLE
+
 .. _fle-create-a-master-key-old:
 
 A. Create a Master Key
@@ -277,7 +301,7 @@ encrypt and decrypt document fields, are stored in a key vault collection in
 the same MongoDB replica set as the encrypted data.
 
 
-.. warning:: Local Key Provider is not suitable for production
+.. warning:: The Local Key Provider is not suitable for production
 
    The Local Key Provider is an insecure method of storage and is therefore
    **not recommended** if you plan to use CSFLE in production. Instead,
@@ -351,6 +375,33 @@ to a file with the **fully runnable code below**:
         file_bytes = os.urandom(96)
         with open(path, "wb") as f:
           f.write(file_bytes)
+
+   .. tab::
+      :tabid: csharp
+
+      The following console program generates a 96-byte locally-managed master
+      key and saves it to a file called ``master-key.txt`` in the directory
+      from which the script is executed.
+
+      .. code-block:: csharp
+
+         using System;
+         using System.IO;
+
+         class Program
+         {
+             public void Main(string []args)
+             {
+                 using (var randomNumberGenerator = System.Security.Cryptography.RandomNumberGenerator.Create())
+                 {
+                     var bytes = new byte[96];
+                     randomNumberGenerator.GetBytes(bytes);
+                     var localMasterKeyBase64 = Convert.ToBase64String(bytes);
+                     Console.WriteLine(localMasterKeyBase64);
+                     File.WriteAllText(__localMasterKeyPath, localMasterKeyBase64);
+                 }
+             }
+         }
 
 B. Create a Data Encryption Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -599,6 +650,12 @@ full `JSON Schema for the Medical Care Management System
       View the **complete runnable** `helper code in Python
       <https://raw.githubusercontent.com/mongodb/docs-assets/DOCSP-json-schema-helper-and-json/json_schema_creator.py>`_.
 
+   .. tab::
+      :tabid: csharp
+
+      View the **complete runnable** `helper code in C#
+      <https://github.com/mongodb-university/csfle-guides/blob/master/dotnet/CSFLE/JsonSchemaCreator.cs>`_.
+
 D. Create the MongoDB Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -647,7 +704,6 @@ can provide configurable parameters including:
              .. example::
 
                 .. code-block:: java
-                   :emphasize-lines: 2,5,9
 
                    List<String> spawnArgs = new ArrayList<String>();
                    spawnArgs.add("--port=30000");
@@ -668,7 +724,6 @@ can provide configurable parameters including:
              .. example::
 
                 .. code-block:: java
-                   :emphasize-lines: 2-3,6,10
 
                    List<String> spawnArgs = new ArrayList<String>();
                    spawnArgs.add("--idleShutdownTimeoutSecs")
@@ -699,7 +754,6 @@ can provide configurable parameters including:
              .. example::
 
                 .. code-block:: javascript
-                   :emphasize-lines: 4-5
 
                    autoEncryption: {
                      ...
@@ -723,7 +777,6 @@ can provide configurable parameters including:
              .. example::
 
                 .. code-block:: javascript
-                   :emphasize-lines: 4
 
                    autoEncryption: {
                      ...
@@ -749,7 +802,6 @@ can provide configurable parameters including:
              .. example::
 
                 .. code-block:: python
-                   :emphasize-lines: 1
 
                    auto_encryption_opts = AutoEncryptionOpts(mongocryptd_spawn_args=['--port=30000'])
 
@@ -762,11 +814,55 @@ can provide configurable parameters including:
              .. example::
 
                 .. code-block:: python
-                   :emphasize-lines: 1
 
                    auto_encryption_opts = AutoEncryptionOpts(mongocryptd_spawn_args=['--idleShutdownTimeoutSecs=75'])
 
              | **Default**: ``60``
+
+   .. tab::
+      :tabid: csharp
+
+      .. list-table::
+         :header-rows: 1
+         :stub-columns: 1
+
+         * - Name
+           - Description
+
+
+         * - port
+           - | Listening port.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: csharp
+
+                   var extraOptions = new Dictionary<string, object>()
+                   {
+                       { "mongocryptdSpawnArgs", new [] { "--port=30000" } },
+                   };
+                   autoEncryptionOptions.With(extraOptions: extraOptions);
+
+             | **Default**: ``27020``
+
+         * - idleShutdownTimeoutSecs
+           - | Number of idle seconds in which the ``mongocryptd`` process should wait before exiting.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: csharp
+
+                   var extraOptions = new Dictionary<string, object>()
+                   {
+                       { "idleShutdownTimeoutSecs", 60 },
+                   };
+                   autoEncryptionOptions.With(extraOptions: extraOptions);
+
+
+             | **Default**: ``60``
+
 
 .. note::
 
@@ -875,6 +971,56 @@ following **code snippet**:
            }
            collection.insert_one(doc)
 
+   .. tab::
+      :tabid: csharp
+
+      .. code-block:: csharp
+
+         var sampleSsnValue = 145014000;
+         var sampleNameValue = "John Doe";
+
+         BsonDocument sampleDocFields =
+             new BsonDocument
+             {
+                 { "name", sampleNameValue },
+                 { "ssn", sampleSsnValue },
+                 { "bloodType", "AB-" },
+                 {
+                     "medicalRecords",
+                     new BsonArray(new []
+                     {
+                         new BsonDocument("weight", 180),
+                         new BsonDocument("bloodPressure", "120/80")
+                     })
+                 },
+                 {
+                     "insurance",
+                     new BsonDocument
+                     {
+                         { "policyNumber", 123142 },
+                         { "provider", "MaestCare" }
+                     }
+                 }
+             };
+
+            // Construct an auto-encrypting client
+            var autoEncryptingClient = CreateAutoEncryptingClient(
+                kmsKeyLocation,
+                _keyVaultNamespace,
+                schema);
+            var collection = autoEncryptingClient
+                .GetDatabase(_medicalRecordsNamespace.DatabaseNamespace.DatabaseName)
+                .GetCollection<BsonDocument>(_medicalRecordsNamespace.CollectionName);
+
+
+            // Insert a document into the collection
+            collection.UpdateOne(ssnQuery, new BsonDocument("$set", __sampleDocFields), new UpdateOptions() { IsUpsert = true });
+            Console.WriteLine("Successfully upserted the sample document!");
+
+            Console.WriteLine($"Encrypted client query by the SSN (deterministically-encrypted) field:\n {result}\n");
+
+
+
 When a CSFLE-enabled client inserts a new patient record into the Medical Care
 Management System, it automatically encrypts the fields specified in the
 JSON Schema. This operation creates a document similar to the following:
@@ -956,7 +1102,6 @@ contains the last 4 digits of the ``ssn`` field. They could then query
 on this field as a proxy for the ``ssn``.
 
 .. code-block:: json
-   :emphasize-lines: 5
 
     {
         "_id": "5d6ecdce70401f03b27448fc",
@@ -1039,6 +1184,11 @@ To view and download a runnable example of CSFLE, select your driver below:
 
       **GitHub:** `PyMongo CSFLE runnable example
       <https://github.com/mongodb-university/csfle-guides/tree/master/python>`_
+   .. tab::
+      :tabid: csharp
+
+      **GitHub:** `C# CSFLE runnable example
+      <https://github.com/mongodb-university/csfle-guides/tree/master/dotnet>`_
 
 Move to Production
 ~~~~~~~~~~~~~~~~~~
@@ -1068,13 +1218,23 @@ check out the reference docs in the server manual:
    .. tab::
       :tabid: java-sync
 
-      For additional information on MongoDB CSFLE API, see the
-      :java-docs:`official Java driver documentation
-      <driver/tutorials/client-side-encryption/>`
+      For additional information on the MongoDB CSFLE API, see the
+      :java-docs:`official Java driver documentation <driver/tutorials/client-side-encryption/>`__.
+
    .. tab::
       :tabid: nodejs
 
-      For additional information on MongoDB CSFLE API, see the `official
-      Node.js driver documentation
-      <https://www.npmjs.com/package/mongodb-client-encryption>`_
+      For additional information on the MongoDB CSFLE API, see the
+      `official Node.js driver documentation <https://www.npmjs.com/package/mongodb-client-encryption>`__.
 
+   .. tab::
+      :tabid: python
+
+      For additional information on MongoDB CSFLE API, see the
+      `official PyMongo driver documentation <https://pymongo.readthedocs.io/en/stable/examples/encryption.html>`__.
+
+   .. tab::
+      :tabid: csharp
+
+      For additional information on MongoDB CSFLE API, see the
+      `official C# driver documentation <https://mongodb.github.io/mongo-csharp-driver/2.11/reference/driver/crud/client_side_encryption/>`__.
