@@ -7,11 +7,13 @@
 
 - Updates the |jdk| to ``jdk-jdk-11.0.9.11.1``.
 
-- Supports viewing MongoDB Profiler entries with overlapping timestamps 
+- Supports viewing MongoDB Profiler entries with overlapping timestamps
   separately in the Visual Query Profiler.
 
 - Updates the MongoDB Agent to :ref:`10.14.16.6437
-  <mongodb-10.14.16.6437>`. 
+  <mongodb-10.14.16.6437>`.
+
+- Requires :db-tools:`MongoDB Database Tools 100.2.0 </>`.
 
 .. _opsmgr-server-4.4.4:
 
@@ -31,6 +33,8 @@
 - Updates the MongoDB Agent to
   :ref:`10.14.15.6432 <mongodb-10.14.15.6432>`.
 
+- Requires :db-tools:`MongoDB Database Tools 100.1.0 </>`.
+
 .. _opsmgr-server-4.4.3:
 
 |onprem| Server 4.4.3
@@ -49,6 +53,8 @@
 
 - Updates the MongoDB Agent to
   :ref:`10.14.14.6427 <mongodb-10.14.14.6427>`.
+
+- Requires :db-tools:`MongoDB Database Tools 100.1.0 </>`.
 
 .. _opsmgr-server-4.4.2:
 
@@ -73,6 +79,8 @@
 - Updates the MongoDB Agent to
   :ref:`10.14.13.6423 <mongodb-10.14.13.6423>`.
 
+- Requires :db-tools:`MongoDB Database Tools 100.1.0 </>`.
+
 .. _opsmgr-server-4.4.1:
 
 |onprem| Server 4.4.1
@@ -89,6 +97,8 @@
 - Improves |onprem| packaging.
 
 - Updates MongoDB Agent to :ref:`10.14.12.6411 <mongodb-10.14.12.6411>`.
+
+- Requires :db-tools:`MongoDB Database Tools 100.0.2 </>`.
 
 .. _opsmgr-server-4.4.0:
 
@@ -145,6 +155,8 @@
 - Supports |aws| |iam| roles in |s3| Snapshot Store configurations.
 
 - Upgrades OpenJDK to 11.0.8+10.
+
+- Requires :db-tools:`MongoDB Database Tools 100.0.2 </>`.
 
 .. admonition:: Ops Manager Support Ends after 4.4 Series
    :class: note
