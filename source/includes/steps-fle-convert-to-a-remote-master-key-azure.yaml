@@ -1,43 +1,43 @@
 title: Register an Azure Application
 ref: create-an-azure-user
 content: |
-  Register a new application in Azure Active directory if you do not already
-  have one for this CSFLE-enabled client. See the Azure documentation on
-  `Applications and service principals <https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals>`__
-  for more information.
+  1. Register a new application in Azure Active directory if you do not already
+     have one for this CSFLE-enabled client. See the Azure documentation on
+     `Applications and service principals <https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals>`__
+     for more information.
 
-  Once you register the application, take note of the following credentials
-  needed to authenticate for access to the Key Vault:
+  2. Once you register the application, take note of the following credentials
+     needed to authenticate with the Key Vault:
 
-  - **tenant id**
-  - **client id**
-  - **client secret**
-
+     - **tenant id**
+     - **client id**
+     - **client secret**
 ---
 title: Create the Master Key
 ref: create-the-master-key
 content: |
-
-  The following diagram shows the process of creating a **master key** on
-  a KMS provider:
+  The following diagram shows the steps required to create a new
+  **master key** on a KMS provider.
 
   .. image:: /figures/CSFLE_Master_Key_KMS.png
-     :alt: Diagram that describes creating a master key on a KMS provider
+     :alt: Diagram that describes creating a master key when using a KMS provider
 
-  You can create a master key with the Azure CLI by following Microsoft's
+  1. To create a master key, follow Microsoft's official
   `Secrets Guide <https://docs.microsoft.com/en-us/azure/key-vault/secrets/about-secrets>`__.
-  Follow the instructions in one of the :guilabel:`Quickstarts` sections that
-  corresponds to your preferred method to create and configure your key.
-  For example, the `Portal Quickstart <https://docs.microsoft.com/en-us/azure/key-vault/secrets/quick-create-portal>`__
-  demonstrates how to create a new vault and key.
+     Follow the instructions in one of the :guilabel:`Quickstarts` sections
+     that corresponds to your preferred method to create and configure your
+     key.  For example, the `Portal Quickstart <https://docs.microsoft.com/en-us/azure/key-vault/secrets/quick-create-portal>`__
+     demonstrates how to create a new vault and key.
 
-  Make sure you provide the ``list`` and ``read`` permissions to the
-  principal used by your client application.
+  2.  Grant the client application ``list`` and ``read`` permissions to the
+      key.
 
   .. important::
 
      The client user *should not* have administrative permissions for the
-     master key.
+     master key. We recommend that you follow the
+     `principle of least privilege <https://en.wikipedia.org/wiki/Principle_of_least_privilege>`__
+     to keep your data secure.
 ---
 title: Specify the Azure Credentials
 ref: specify-the-azure-credentials
@@ -46,240 +46,240 @@ content: |
   master key directly from the client application. Instead, it retrieves
   the key using your Azure credentials and the key vault details.
 
-  Configure your client application with the following authentication
-  credentials:
+  1. First, configure your client application with the following
+     authentication credentials on AWS:
 
-  .. list-table::
-   :header-rows: 1
-   :stub-columns: 1
+     .. list-table::
+      :header-rows: 1
+      :stub-columns: 1
 
-   * - Field
-     - Required
-     - Description
+      * - Field
+        - Required
+        - Description
 
-   * - azure.tenantId
-     - Yes
-     - Identifies the organization of the account
+      * - azure.tenantId
+        - Yes
+        - Identifies the organization of the account.
 
-   * - azure.clientId
-     - Yes
-     - Identifies the clientId to authenticate your registered application
+      * - azure.clientId
+        - Yes
+        - Identifies the clientId to authenticate your registered application.
 
-   * - azure.clientSecret
-     - Yes
-     - Used to authenticate your registered application
+      * - azure.clientSecret
+        - Yes
+        - Used to authenticate your registered application.
 
-   * - azure.identityPlatformEndpoint
-     - No
-     - Specifies a hostname and port number for the authentication server.
-       Defaults to login.microsoftonline.com and is only needed for
-       non-commercial Azure instances such as a government or China account.
+      * - azure.identityPlatformEndpoint
+        - No
+        - Specifies a hostname and port number for the authentication server.
+          Defaults to login.microsoftonline.com and is only needed for
+          non-commercial Azure instances such as a government or China account.
 
-  Update the KMS Provider configuration in your CSFLE-enabled client
-  creation code:
+  2. Next, update the KMS Provider configuration in your CSFLE-enabled client
+     creation code:
 
-  .. tabs-drivers::
+     .. tabs-drivers::
 
-     .. tab::
-        :tabid: java-sync
+        .. tab::
+           :tabid: java-sync
 
-        In ``CSFLEHelpers.java``, update the ``kmsProviders`` map that you
-        pass to ``ClientEncryptionSettings.builder().kmsProviders()`` method
-        with your Azure authentication details:
-
-
-        .. code-block:: java
-
-           Map<String, Object> providerDetails = new HashMap<String, Object>();
-
-           providerDetails.put("tenantId", new BsonString("<Azure account organization>"));
-           providerDetails.put("clientId", new BsonString("<Azure client ID>"));
-           providerDetails.put("clientSecret", new BsonString("<Azure client secret>"));
-
-           Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
-           kmsProviders.put("azure", providerDetails);
-
-           ClientEncryptionSettings clientEncryptionSettings = ClientEncryptionSettings.builder()
-               // ...
-               .kmsProviders(kmsProviders)
-               .build();
-
-        .. note::
-
-           To use the Azure Key Vault, you must use `mongodb-crypt <https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt>`__
-           version 1.1 or later in your application's environment.
+           In ``CSFLEHelpers.java``, update the ``kmsProviders`` map that you
+           pass to ``ClientEncryptionSettings.builder().kmsProviders()`` method
+           with your Azure authentication details:
 
 
-     .. tab::
-        :tabid: nodejs
+           .. code-block:: java
 
-        .. note::
+              Map<String, Object> providerDetails = new HashMap<String, Object>();
 
-           The Node.js driver does not currently support Azure KMS.
+              providerDetails.put("tenantId", new BsonString("<Azure account organization>"));
+              providerDetails.put("clientId", new BsonString("<Azure client ID>"));
+              providerDetails.put("clientSecret", new BsonString("<Azure client secret>"));
 
-     .. tab::
-        :tabid: python
+              Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
+              kmsProviders.put("azure", providerDetails);
 
-        In ``app.py``, define the following dictionary to pass to your call to
-        construct a ``ClientEncryption`` instance:
+              ClientEncryptionSettings clientEncryptionSettings = ClientEncryptionSettings.builder()
+                  // ...
+                  .kmsProviders(kmsProviders)
+                  .build();
+
+           .. note::
+
+              To use the Azure Key Vault, you must use `mongodb-crypt <https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt>`__
+              version 1.1 or later in your application's environment.
 
 
-        .. code-block:: python
+        .. tab::
+           :tabid: nodejs
 
-           kms_providers = {
-              "azure": {
-                  "tenantId": "<Azure account organization>",
-                  "clientId": "<Azure client ID>",
-                  "clientSecret": "<Azure client secret>"
+           .. note::
+
+              The Node.js driver does not currently support Azure KMS.
+
+        .. tab::
+           :tabid: python
+
+           In ``app.py``, define the following dictionary to pass to your call to
+           construct a ``ClientEncryption`` instance:
+
+
+           .. code-block:: python
+
+              kms_providers = {
+                 "azure": {
+                     "tenantId": "<Azure account organization>",
+                     "clientId": "<Azure client ID>",
+                     "clientSecret": "<Azure client secret>"
+                 }
               }
-           }
 
-        .. note::
+           .. note::
 
-           To use the Azure Key Vault, you must use ``pymongocrypt`` version
-           1.1 or later in your application's environment. Follow our guide
-           to `build libmongocrypt from source <https://github.com/mongodb/libmongocrypt/tree/master/bindings/python#installing-from-source>`__.
+              To use the Azure Key Vault, you must use ``pymongocrypt`` version
+              1.1 or later in your application's environment. Follow our guide
+              to `build libmongocrypt from source <https://github.com/mongodb/libmongocrypt/tree/master/bindings/python#installing-from-source>`__.
 
-     .. tab::
-        :tabid: csharp
+        .. tab::
+           :tabid: csharp
 
-        .. code-block:: csharp
+           .. code-block:: csharp
 
-           var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+              var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
 
-           var azureTenantId = Environment.GetEnvironmentVariable("FLE_AZURE_TENANT_ID");
-           var azureClientId = Environment.GetEnvironmentVariable("FLE_AZURE_CLIENT_ID");
-           var azureClientSecret = Environment.GetEnvironmentVariable("FLE_AZURE_CLIENT_SECRET");
-           var azureIdentityPlatformEndpoint = Environment.GetEnvironmentVariable("FLE_AZURE_IDENTIFY_PLATFORM_ENPOINT"); // Optional, only needed if user is using a non-commercial Azure instance
+              var azureTenantId = Environment.GetEnvironmentVariable("FLE_AZURE_TENANT_ID");
+              var azureClientId = Environment.GetEnvironmentVariable("FLE_AZURE_CLIENT_ID");
+              var azureClientSecret = Environment.GetEnvironmentVariable("FLE_AZURE_CLIENT_SECRET");
+              var azureIdentityPlatformEndpoint = Environment.GetEnvironmentVariable("FLE_AZURE_IDENTIFY_PLATFORM_ENPOINT"); // Optional, only needed if user is using a non-commercial Azure instance
 
-           var azureKmsOptions = new Dictionary<string, object>
-           {
-               { "tenantId", azureTenantId },
-               { "clientId", azureClientId },
-               { "clientSecret", azureClientSecret },
-           };
-           if (azureIdentityPlatformEndpoint != null)
-           {
-               azureKmsOptions.Add("identityPlatformEndpoint", azureIdentityPlatformEndpoint);
-           }
-           kmsProviders.Add("azure", azureKmsOptions);;
+              var azureKmsOptions = new Dictionary<string, object>
+              {
+                  { "tenantId", azureTenantId },
+                  { "clientId", azureClientId },
+                  { "clientSecret", azureClientSecret },
+              };
+              if (azureIdentityPlatformEndpoint != null)
+              {
+                  azureKmsOptions.Add("identityPlatformEndpoint", azureIdentityPlatformEndpoint);
+              }
+              kmsProviders.Add("azure", azureKmsOptions);;
 
-        .. note::
+           .. note::
 
-           To use the Azure KMS, you must use
-           `libmongocrypt <https://github.com/mongodb/libmongocrypt#installing-libmongocrypt-on-windows>`__ version 1.1 or later in your application's environment.
-
-
+              To use the Azure KMS, you must use
+              `libmongocrypt <https://github.com/mongodb/libmongocrypt#installing-libmongocrypt-on-windows>`__ version 1.1 or later in your application's environment.
 ---
 title: Create a New Data Encryption Key
 ref: create-a-new-data-key
 content: |
-
-  In this step, we generate a new **data encryption key** using the
-  **master key** in the remote KMS. The following diagram shows the
-  requests you make from the client application to create and store a
-  new data encryption key:
+  To encrypt your data, you need a data encryption key generated from your
+  KMS-hosted **master key**. The following diagram shows the requests you need
+  to make from the client application to create and store a new **data
+  encryption key**:
 
   .. image:: /figures/CSFLE_Data_Key_KMS.png
      :alt: Diagram that describes creating a data encryption key when using a KMS provider
 
-  Provide your client with the following information to access the master key:
+  1. First, provide your client with the following information to access the
+     master key:
 
-  .. list-table::
-   :header-rows: 1
-   :stub-columns: 1
+    .. list-table::
+     :header-rows: 1
+     :stub-columns: 1
 
-   * - Field
-     - Required
-     - Description
+     * - Field
+       - Required
+       - Description
 
-   * - keyName
-     - Yes
-     - Name of the master key
+     * - keyName
+       - Yes
+       - Name of the master key
 
-   * - keyVersion
-     - No
-     - Version of the master key
+     * - keyVersion
+       - No
+       - Version of the master key
 
-   * - keyVaultEndpoint
-     - Yes
-     - URL of the key vault. E.g. myVaultName.vault.azure.net
+     * - keyVaultEndpoint
+       - Yes
+       - URL of the key vault. E.g. myVaultName.vault.azure.net
 
-  Once you have the required information, update and run the following code
-  to generate a new data encryption key:
+  2. Once you have the required information, update and run the following code
+     to generate a new data encryption key:
 
-  .. tabs-drivers::
+     .. tabs-drivers::
 
-     .. tab::
-        :tabid: java-sync
+        .. tab::
+           :tabid: java-sync
 
-        In ``CSFLEHelpers.java``, add your KMS provider and master key
-        details to your call to createDataKey() on your ``ClientEncryption``
-        instance as follows:
+           In ``CSFLEHelpers.java``, add your KMS provider and master key
+           details to your call to createDataKey() on your ``ClientEncryption``
+           instance as follows:
 
-        .. code-block:: Java
+           .. code-block:: Java
 
-           DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
-               new BsonDocument()
-                   .append("keyName", new BsonString("<Azure key name>"))
-                   .append("keyVersion", new BsonString("<Azure key version>"))
-                   .append("keyVersion", new BsonString("<Azure key vault endpoint>")));
+              DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
+                  new BsonDocument()
+                      .append("keyName", new BsonString("<Azure key name>"))
+                      .append("keyVersion", new BsonString("<Azure key version>"))
+                      .append("keyVersion", new BsonString("<Azure key vault endpoint>")));
 
-           BsonBinary dataKeyId = clientEncryption.createDataKey("azure", dataKeyOptions);
+              BsonBinary dataKeyId = clientEncryption.createDataKey("azure", dataKeyOptions);
 
-     .. tab::
-        :tabid: nodejs
+        .. tab::
+           :tabid: nodejs
 
-        .. note::
+           .. note::
 
-           The Node.js driver does not currently support Azure KMS.
+              The Node.js driver does not currently support Azure KMS.
 
-     .. tab::
-        :tabid: python
+        .. tab::
+           :tabid: python
 
-        In ``app.py``, define the following dictionary to pass to your call to
-        ``create_data_key()``:
+           In ``app.py``, define the following dictionary to pass to your call to
+           ``create_data_key()``:
 
-        .. code-block:: python
+           .. code-block:: python
 
-           master_key = {
-             "keyName": "<Azure key name>",
-             "keyVersion": "<Azure key version>",
-             "keyVaultEndpoint": "<Azure key vault endpoint>"
-           }
+              master_key = {
+                "keyName": "<Azure key name>",
+                "keyVersion": "<Azure key version>",
+                "keyVaultEndpoint": "<Azure key vault endpoint>"
+              }
 
-     .. tab::
-        :tabid: csharp
+        .. tab::
+           :tabid: csharp
 
-        .. code-block:: csharp
+           .. code-block:: csharp
 
-           var keyVaultClient = new MongoClient(_connectionString);
-           var clientEncryptionOptions = new ClientEncryptionOptions(
-               keyVaultClient: keyVaultClient,
-               keyVaultNamespace: _keyVaultNamespace,
-               kmsProviders: kmsProviders);
+              var keyVaultClient = new MongoClient(_connectionString);
+              var clientEncryptionOptions = new ClientEncryptionOptions(
+                  keyVaultClient: keyVaultClient,
+                  keyVaultNamespace: _keyVaultNamespace,
+                  kmsProviders: kmsProviders);
 
-           var clientEncryption = new ClientEncryption(clientEncryptionOptions);
-           var azureKeyName = Environment.GetEnvironmentVariable("FLE_AZURE_KEY_NAME");
-           var azureKeyVaultEndpoint = Environment.GetEnvironmentVariable("FLE_AZURE_KEYVAULT_ENDPOINT"); // typically <azureKeyName>.vault.azure.net
-           var azureKeyVersion = Environment.GetEnvironmentVariable("FLE_AZURE_KEY_VERSION"); // Optional
-           var dataKeyOptions = new DataKeyOptions(
-               masterKey: new BsonDocument
-               {
-                   { "keyName", azureKeyName },
-                   { "keyVaultEndpoint", azureKeyVaultEndpoint },
-                   { "keyVersion", () => azureKeyVersion, azureKeyVersion != null }
-               });
+              var clientEncryption = new ClientEncryption(clientEncryptionOptions);
+              var azureKeyName = Environment.GetEnvironmentVariable("FLE_AZURE_KEY_NAME");
+              var azureKeyVaultEndpoint = Environment.GetEnvironmentVariable("FLE_AZURE_KEYVAULT_ENDPOINT"); // typically <azureKeyName>.vault.azure.net
+              var azureKeyVersion = Environment.GetEnvironmentVariable("FLE_AZURE_KEY_VERSION"); // Optional
+              var dataKeyOptions = new DataKeyOptions(
+                  masterKey: new BsonDocument
+                  {
+                      { "keyName", azureKeyName },
+                      { "keyVaultEndpoint", azureKeyVaultEndpoint },
+                      { "keyVersion", () => azureKeyVersion, azureKeyVersion != null }
+                  });
 
-           var dataKeyId = clientEncryption.CreateDataKey("azure", dataKeyOptions, CancellationToken.None);
-           Console.WriteLine($"Azure DataKeyId [UUID]: {dataKeyId}");
-           var dataKeyIdBase64 = Convert.ToBase64String(GuidConverter.ToBytes(dataKeyId, GuidRepresentation.Standard));
-           Console.WriteLine($"Azure DataKeyId [base64]: {dataKeyIdBase64}");
-
-
+              var dataKeyId = clientEncryption.CreateDataKey("azure", dataKeyOptions, CancellationToken.None);
+              Console.WriteLine($"Azure DataKeyId [UUID]: {dataKeyId}");
+              var dataKeyIdBase64 = Convert.ToBase64String(GuidConverter.ToBytes(dataKeyId, GuidRepresentation.Standard));
+              Console.WriteLine($"Azure DataKeyId [base64]: {dataKeyIdBase64}");
 ---
 title: Update the Automatic Encryption JSON Schema
 ref: update-the-json-schema
 content: |
-  Update your :ref:`JSON Schema <fle-define-a-json-schema>` to reference your
-  new data encryption key id.
+  If you previously embedded the key ID of your data encryption key in your
+  automatic encryption rules, update the :ref:`JSON Schema <fle-define-a-json-schema>`
+  with your new data encryption key ID.
+
+  Your client application is now ready to automatically encrypt your data
+  using the master key on your KMS provider.

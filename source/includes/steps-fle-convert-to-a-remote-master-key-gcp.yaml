@@ -1,52 +1,56 @@
 title: Create a GCP Service Account
 ref: create-a-gcp-service-account
 content: |
-  Create a service account for your client application by following the
-  official Google documentation on
-  `Creating and managing a service account <https://cloud.google.com/iam/docs/creating-managing-service-accounts#creating>`__.
+  1. Create a service account for your client application by following the
+     official Google documentation on
+     `Creating and managing a service account <https://cloud.google.com/iam/docs/creating-managing-service-accounts#creating>`__.
 
-  After you create the service account, locate and record the following
-  authentication settings for use in a later step:
+  2. After you create the service account, locate and record the following
+     authentication settings for use in a later step:
 
-  - **email**
-  - **privateKey** (this value is only returned when you create the account)
-  - **endpoint**
+     - **email**
+     - **privateKey** (this value is only returned when you create the account)
+     - **endpoint**
 ---
 title: Create the Master Key
 ref: create-the-master-key-gcp
 content: |
-  The following diagram shows the creation and storage of a  **master key**
-  on a KMS provider:
+  The following diagram shows the steps required to create a new
+  **master key** on a KMS provider.
 
   .. image:: /figures/CSFLE_Master_Key_KMS.png
      :alt: Diagram that describes creating a master key when using a KMS provider
 
-  Create a **symmetric key** using the official Google Cloud
-  `Creating symmetric keys guide <https://cloud.google.com/kms/docs/creating-keys>`__.
-  This is your master key which you can access from your application.
+  1. To create a master key, log into your Google Cloud account and
+     follow the steps in Google Cloud's official
+     `Creating symmetric keys guide <https://cloud.google.com/kms/docs/creating-keys>`__
+     to create a **symmetric key**.
 
-  .. note::
+     The master key is used by your application to encrypt and decrypt your
+     **data encryption key**.
 
-     If you rotate the key, either by specifying a date or manually, the
-    provider changes the content of the master key. To transition
-    to the new key:
+     .. note::
 
-     1. Decrypt and save the data using the original data encryption key.
-     #. Generate a new data encryption key with the new master key.
-     #. Update the ``keyVersion`` parameter to the latest version of the master key.
-     #. Re-encrypt the data using the new data encryption key.
+        If you rotate the master key, either by specifying a date or manually,
+        the provider changes the content of the master key. To transition
+        to the new key:
 
-  Make sure your application has appropriate roles to encrypt and decrypt
-  using the key. For example, the
-  `roles/cloudkms.cryptoKeyEncrypterDecrypter <https://cloud.google.com/kms/docs/reference/permissions-and-roles>`__
-  role has permissions to both encrypt and decrypt keys.
+         1. Decrypt and save the data using the original data encryption key.
+         #. Generate a new data encryption key with the new master key.
+         #. Update the ``keyVersion`` parameter to the latest version of the master key.
+         #. Re-encrypt the data using the new data encryption key.
 
-  .. important::
+  2. Ensure that your client application has permissions to encrypt and
+     decrypt data using the key. For example, the
+     `roles/cloudkms.cryptoKeyEncrypterDecrypter <https://cloud.google.com/kms/docs/reference/permissions-and-roles>`__
+     role has permissions to both encrypt and decrypt keys.
 
-     The client application *should not* have administrative permissions
-     for the master key. We recommend that you follow the
-     `principle of least privilege <https://en.wikipedia.org/wiki/Principle_of_least_privilege>`__
-     to keep your data secure.
+     .. important::
+
+        The client application *should not* have administrative permissions
+        for the master key. We recommend that you follow the
+        `principle of least privilege <https://en.wikipedia.org/wiki/Principle_of_least_privilege>`__
+        to keep your data secure.
 ---
 title: Specify your Google Cloud KMS Credentials
 ref: specify-your-gcp-kms-provider-credentials
@@ -56,251 +60,255 @@ content: |
   it retrieves the key using your service client credentials and key
   details.
 
-  Configure your client application with the following authentication
-  credentials:
+  1. First, identify the following authentication credentials on Google KMS:
 
-  .. list-table::
-     :header-rows: 1
-     :stub-columns: 1
+     .. list-table::
+        :header-rows: 1
+        :stub-columns: 1
 
-     * - Field
-       - Required
-       - Description
+        * - Field
+          - Required
+          - Description
 
-     * - email
-       - Yes
-       - Identifies your service account email address.
+        * - email
+          - Yes
+          - Identifies your service account email address.
 
-     * - privateKey
-       - Yes
-       - Identifies your service account private key in either
-         `base64 string <https://en.wikipedia.org/wiki/Base64>`__ or
-         :manual:`Binary subtype 0 <reference/mongodb-extended-json/#bson.Binary>`
-         format.
+        * - privateKey
+          - Yes
+          - Identifies your service account private key in either
+            `base64 string <https://en.wikipedia.org/wiki/Base64>`__ or
+            :manual:`Binary subtype 0 <reference/mongodb-extended-json/#bson.Binary>`
+            format.
 
-     * - endpoint
-       - No
-       - Specifies a hostname and port number for the authentication server.
-         Defaults to oauth2.googleapis.com.
+        * - endpoint
+          - No
+          - Specifies a hostname and port number for the authentication server.
+            Defaults to oauth2.googleapis.com.
 
-  Update the KMS Provider configuration in your CSFLE-enabled client
-  creation code:
+  2. Next, add your authentication credentials to your CSFLE-enabled client
+     code:
 
-  .. tabs-drivers::
+     .. tabs-drivers::
 
-     .. tab::
-        :tabid: java-sync
+        .. tab::
+           :tabid: java-sync
 
-        .. code-block:: java
+           .. code-block:: java
 
-           Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
-           Map<String, Object> providerDetails = new HashMap<String, Object>();
+              Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
+              Map<String, Object> providerDetails = new HashMap<String, Object>();
 
-           providerDetails.put("email", new BsonString("<GCP service account email>"));
-           providerDetails.put("privateKey", new BsonString("<GCP service account private key>"));
-           providerDetails.put("endpoint", new BsonString("<GCP authentication endpoint>"));
+              providerDetails.put("email", new BsonString("<GCP service account email>"));
+              providerDetails.put("privateKey", new BsonString("<GCP service account private key>"));
+              providerDetails.put("endpoint", new BsonString("<GCP authentication endpoint>"));
 
-           kmsProviders.put("gcp", providerDetails);
+              kmsProviders.put("gcp", providerDetails);
 
-        .. note::
+           .. note::
 
-           To use the GCP KMS, you must use
-           `mongodb-crypt <https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt>`__
-           version 1.1 or later in your application's environment.
+              To use the GCP KMS, you must use
+              `mongodb-crypt <https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt>`__
+              version 1.1 or later in your application's environment.
 
-     .. tab::
-        :tabid: nodejs
+        .. tab::
+          :tabid: nodejs
 
-        .. note::
+          .. note::
 
-           The Node.js driver does not currently support GCP KMS.
+             The Node.js driver does not currently support GCP KMS.
 
-     .. tab::
-        :tabid: python
+       .. tab::
+          :tabid: python
 
-        .. code-block:: python
+          .. code-block:: python
 
-           kms_provider = {
-               "gcp": {
-                   "email": "<GCP service account email>",
-                   "privateKey": "<GCP service account private key>",
-                   "endpoint": "<GCP authentication endpoint>",
-               }
-           }
+             kms_provider = {
+                 "gcp": {
+                     "email": "<GCP service account email>",
+                     "privateKey": "<GCP service account private key>",
+                     "endpoint": "<GCP authentication endpoint>",
+                 }
+             }
 
-        .. note::
+          .. note::
 
-           To use the GCP KMS, you must use ``pymongocrypt`` version
-           1.1 or later in your application's environment. Follow our guide
-           to `build libmongocrypt from source <https://github.com/mongodb/libmongocrypt/tree/master/bindings/python#installing-from-source>`__.
+             To use the GCP KMS, you must use ``pymongocrypt`` version
+             1.1 or later in your application's environment. Follow our guide
+             to `build libmongocrypt from source <https://github.com/mongodb/libmongocrypt/tree/master/bindings/python#installing-from-source>`__.
 
-     .. tab::
-        :tabid: csharp
+       .. tab::
+          :tabid: csharp
 
-        .. code-block:: csharp
+          .. code-block:: csharp
 
-           var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
 
-           var gcpPrivateKey = Environment.GetEnvironmentVariable("FLE_GCP_PRIVATE_KEY");
-           var gcpEmail = Environment.GetEnvironmentVariable("FLE_GCP_EMAIL");
-           var gcpEndpoint = Environment.GetEnvironmentVariable("FLE_GCP_IDENTITY_ENDPOINT"); // Optional, defaults to "oauth2.googleapis.com".
-           var gcpKmsOptions = new Dictionary<string, object>
-           {
-               { "privateKey", gcpPrivateKey },
-               { "email", gcpEmail },
-           };
-           if (gcpEndpoint != null)
-           {
-               gcpKmsOptions.Add("endpoint", gcpEndpoint);
-           }
-           kmsProviders.Add("gcp", gcpKmsOptions);
+             var gcpPrivateKey = Environment.GetEnvironmentVariable("FLE_GCP_PRIVATE_KEY");
+             var gcpEmail = Environment.GetEnvironmentVariable("FLE_GCP_EMAIL");
+             var gcpEndpoint = Environment.GetEnvironmentVariable("FLE_GCP_IDENTITY_ENDPOINT"); // Optional, defaults to "oauth2.googleapis.com".
+             var gcpKmsOptions = new Dictionary<string, object>
+             {
+                 { "privateKey", gcpPrivateKey },
+                 { "email", gcpEmail },
+             };
+             if (gcpEndpoint != null)
+             {
+                 gcpKmsOptions.Add("endpoint", gcpEndpoint);
+             }
+             kmsProviders.Add("gcp", gcpKmsOptions);
 
-        .. note::
+          .. note::
 
-           To use the GCP KMS, you must use
-           `libmongocrypt <https://github.com/mongodb/libmongocrypt#installing-libmongocrypt-on-windows>`__ version 1.1 or later in your application's environment.
+             To use the GCP KMS, you must use
+             `libmongocrypt <https://github.com/mongodb/libmongocrypt#installing-libmongocrypt-on-windows>`__ version 1.1 or later in your application's environment.
 ---
 title: Create a New Data Encryption Key
 ref: create-a-new-data-key-gcp
 content: |
-  Generate a new **data encryption key** using the **master key** in the
-  remote KMS. The following diagram shows the requests you make from the
-  client application to create and store a new data encryption key:
+  To encrypt your data, you need a data encryption key generated from your
+  KMS-hosted **master key**. The following diagram shows the requests you need
+  to make from the client application to create and store a new **data
+  encryption key**:
 
   .. image:: /figures/CSFLE_Data_Key_KMS.png
      :alt: Diagram that describes creating a data encryption key when using a KMS provider
 
-  Provide your client with the following information to access the master key:
+  1. First, provide your client with the following information to access the
+     master key:
 
-  .. list-table::
-     :header-rows: 1
-     :stub-columns: 1
+     .. list-table::
+        :header-rows: 1
+        :stub-columns: 1
 
-     * - Field
-       - Required
-       - Description
+        * - Field
+          - Required
+          - Description
 
-     * - projectId
-       - Yes
-       - Identifier for your project in which you created the key.
+        * - projectId
+          - Yes
+          - Identifier for your project in which you created the key.
 
-     * - location
-       - Yes
-       - Region specified for your key.
+        * - location
+          - Yes
+          - Region specified for your key.
 
-     * - keyRing
-       - Yes
-       - Identifier for the group of keys your key belongs to.
+        * - keyRing
+          - Yes
+          - Identifier for the group of keys your key belongs to.
 
-     * - keyName
-       - Yes
-       - Identifier for the symmetric master key.
+        * - keyName
+          - Yes
+          - Identifier for the symmetric master key.
 
-     * - keyVersion
-       - No
-       - Specifies the version of the named key. If not specified, the default
-         version of the key is used.
+        * - keyVersion
+          - No
+          - Specifies the version of the named key. If not specified, the default
+           version of the key is used.
 
-     * - endpoint
-       - No
-       - Specifies the host and optional port of the Cloud KMS. The default
-         is ``cloudkms.googleapis.com``.
+        * - endpoint
+          - No
+          - Specifies the host and optional port of the Cloud KMS. The default
+            is ``cloudkms.googleapis.com``.
 
-  Once you have the required information, update and run the following code
-  to generate a new data encryption key:
+  2. Once you have the required information, update and run the following code
+     to generate a new data encryption key:
 
-  .. tabs-drivers::
+     .. tabs-drivers::
 
-     .. tab::
-        :tabid: java-sync
+        .. tab::
+           :tabid: java-sync
 
-        In ``CSFLEHelpers.java``, update your call to
-        ``DataKeyOptions.masterKey()`` to include your master key data:
+           In ``CSFLEHelpers.java``, update your call to
+           ``DataKeyOptions.masterKey()`` to include your master key data:
 
-        .. code-block:: Java
+           .. code-block:: Java
 
-           DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
-               new BsonDocument()
-                   .append("provider", "gcp")
-                   .append("projectId", "<GCP project identifier>")
-                   .append("location", "<GCP region>")
-                   .append("keyRing", "<GCP key ring name>")
-                   .append("keyVersion", "<GCP key version>")
-                   .append("endpoint", "<GCP KMS API endpoint>"));
+              DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
+                  new BsonDocument()
+                      .append("provider", "gcp")
+                      .append("projectId", "<GCP project identifier>")
+                      .append("location", "<GCP region>")
+                      .append("keyRing", "<GCP key ring name>")
+                      .append("keyVersion", "<GCP key version>")
+                      .append("endpoint", "<GCP KMS API endpoint>"));
 
-           BsonBinary dataKeyId = clientEncryption.createDataKey("gcp", dataKeyOptions);
-     .. tab::
-        :tabid: nodejs
+              BsonBinary dataKeyId = clientEncryption.createDataKey("gcp", dataKeyOptions);
+        .. tab::
+           :tabid: nodejs
 
-        .. note::
+           .. note::
 
-           The Node.js driver does not currently support GCP KMS.
+              The Node.js driver does not currently support GCP KMS.
 
-     .. tab::
-        :tabid: python
+        .. tab::
+           :tabid: python
 
-        In ``app.py``, define the following dictionary to pass to your call to
-        ``create_data_key()``:
+           In ``app.py``, define the following dictionary to pass to your call to
+           ``create_data_key()``:
 
-        .. code-block:: python
+           .. code-block:: python
 
-           master_key = {
-                "provider": "gcp",
-                "projectId": "<GCP project identifier>",
-                "location": "<GCP region>",
-                "keyRing": "<GCP key ring name>",
-                "keyName": "<GCP key name>",
-                "keyVersion": "<GCP key version>",
-                "endpoint": "<GCP KMS API endpoint>",
-           }
+              master_key = {
+                   "provider": "gcp",
+                   "projectId": "<GCP project identifier>",
+                   "location": "<GCP region>",
+                   "keyRing": "<GCP key ring name>",
+                   "keyName": "<GCP key name>",
+                   "keyVersion": "<GCP key version>",
+                   "endpoint": "<GCP KMS API endpoint>",
+              }
 
-        .. note::
+           .. note::
 
-           To use Google Cloud KMS, you must use `pymongocrypt <https://pypi.org/project/pymongocrypt/>`__
-           version 1.1 or later in your application's environment.
+              To use Google Cloud KMS, you must use `pymongocrypt <https://pypi.org/project/pymongocrypt/>`__
+              version 1.1 or later in your application's environment.
 
-     .. tab::
-        :tabid: csharp
+        .. tab::
+           :tabid: csharp
 
-        .. code-block:: csharp
+           .. code-block:: csharp
 
-           // _connectionString is defined elsewhere as "mongodb://localhost:27017"
+              // _connectionString is defined elsewhere as "mongodb://localhost:27017"
 
-           var keyVaultClient = new MongoClient(_connectionString);
-           var clientEncryptionOptions = new ClientEncryptionOptions(
-               keyVaultClient: keyVaultClient,
-               keyVaultNamespace: _keyVaultNamespace,
-               kmsProviders: kmsProviders);
+              var keyVaultClient = new MongoClient(_connectionString);
+              var clientEncryptionOptions = new ClientEncryptionOptions(
+                  keyVaultClient: keyVaultClient,
+                  keyVaultNamespace: _keyVaultNamespace,
+                  kmsProviders: kmsProviders);
 
-           var clientEncryption = new ClientEncryption(clientEncryptionOptions);
+              var clientEncryption = new ClientEncryption(clientEncryptionOptions);
 
 
-           var gcpDataKeyProjectId = Environment.GetEnvironmentVariable("FLE_GCP_PROJ_ID");
-           var gcpDataKeyLocation = Environment.GetEnvironmentVariable("FLE_GCP_KEY_LOC"); // Optional. e.g. "global"
-           var gcpDataKeyKeyRing = Environment.GetEnvironmentVariable("FLE_GCP_KEY_RING");
-           var gcpDataKeyKeyName = Environment.GetEnvironmentVariable("FLE_GCP_KEY_NAME");
-           var gcpDataKeyKeyVersion = Environment.GetEnvironmentVariable("FLE_GCP_KEY_VERSION"); // Optional
-           var gcpDataKeyEndpoint = Environment.GetEnvironmentVariable("FLE_GCP_KMS_ENDPOINT"); // Optional, KMS URL, defaults to https://www.googleapis.com/auth/cloudkms
+              var gcpDataKeyProjectId = Environment.GetEnvironmentVariable("FLE_GCP_PROJ_ID");
+              var gcpDataKeyLocation = Environment.GetEnvironmentVariable("FLE_GCP_KEY_LOC"); // Optional. e.g. "global"
+              var gcpDataKeyKeyRing = Environment.GetEnvironmentVariable("FLE_GCP_KEY_RING");
+              var gcpDataKeyKeyName = Environment.GetEnvironmentVariable("FLE_GCP_KEY_NAME");
+              var gcpDataKeyKeyVersion = Environment.GetEnvironmentVariable("FLE_GCP_KEY_VERSION"); // Optional
+              var gcpDataKeyEndpoint = Environment.GetEnvironmentVariable("FLE_GCP_KMS_ENDPOINT"); // Optional, KMS URL, defaults to https://www.googleapis.com/auth/cloudkms
 
-           var dataKeyOptions = new DataKeyOptions(
-               masterKey: new BsonDocument
-               {
-                   { "projectId", gcpDataKeyProjectId },
-                   { "location", gcpDataKeyLocation } ,
-                   { "keyRing", gcpDataKeyKeyRing },
-                   { "keyName", gcpDataKeyKeyName },
-                   { "keyVersion", () => gcpDataKeyKeyVersion, gcpDataKeyKeyVersion != null },
-                   { "endpoint", () => gcpDataKeyEndpoint, gcpDataKeyEndpoint != null }
-               });
+              var dataKeyOptions = new DataKeyOptions(
+                  masterKey: new BsonDocument
+                  {
+                      { "projectId", gcpDataKeyProjectId },
+                      { "location", gcpDataKeyLocation } ,
+                      { "keyRing", gcpDataKeyKeyRing },
+                      { "keyName", gcpDataKeyKeyName },
+                      { "keyVersion", () => gcpDataKeyKeyVersion, gcpDataKeyKeyVersion != null },
+                      { "endpoint", () => gcpDataKeyEndpoint, gcpDataKeyEndpoint != null }
+                  });
 
-           var dataKeyId = clientEncryption.CreateDataKey("gcp", dataKeyOptions, CancellationToken.None);
-           Console.WriteLine($"DataKeyId [UUID]: {dataKeyId}");
-           var dataKeyIdBase64 = Convert.ToBase64String(GuidConverter.ToBytes(dataKeyId, GuidRepresentation.Standard));
-           Console.WriteLine($"DataKeyId [base64]: {dataKeyIdBase64}");
+              var dataKeyId = clientEncryption.CreateDataKey("gcp", dataKeyOptions, CancellationToken.None);
+              Console.WriteLine($"DataKeyId [UUID]: {dataKeyId}");
+              var dataKeyIdBase64 = Convert.ToBase64String(GuidConverter.ToBytes(dataKeyId, GuidRepresentation.Standard));
+              Console.WriteLine($"DataKeyId [base64]: {dataKeyIdBase64}");
 ---
 title: Update the Automatic Encryption JSON Schema
 ref: update-the-json-schema-gcp
 content: |
-  If you embedded the key id of your data encryption key in your
-  automatic encryption rules, you will need to update the :ref:`JSON
-  Schema <fle-define-a-json-schema>` with the new data encryption key id.
+  If you previously embedded the key ID of your data encryption key in your
+  automatic encryption rules, update the :ref:`JSON Schema <fle-define-a-json-schema>`
+  with your new data encryption key id.
+
+  Your client application is now ready to automatically encrypt your data
+  using the master key on your KMS provider.
