@@ -142,7 +142,7 @@ extlinks = {
     'dl': ('http://www.mongodb.com/download-center/%s?tck=docs_compass',''),
     'atlas': ('http://docs.atlas.mongodb.com%s', ''),
     'guides': ('https://docs.mongodb.com/guides%s', ''),
-    'db-tools': ('https://docs.mongodb.com/database-tools%s', '')
+    'dbtools': ('https://docs.mongodb.com/database-tools%s', '')
 }
 
 intersphinx_mapping = {}
