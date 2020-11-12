@@ -1,19 +1,18 @@
 curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
      --header "Content-Type: application/json" \
      --include \
-     --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/clusters?pretty=true" \
+     --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5fac2d0cd2124a40ce0cfc5c/clusters/MultiRegionCluster?pretty=true" \
      --data '
        {
-         "name": "MultiRegionCluster",
-         "diskSizeGB": 25,
-         "numShards": 1,
+         "diskSizeGB": 100,
+         "clusterType": "REPLICASET",
          "providerSettings": {
            "providerName": "AWS",
-           "instanceSizeName": "M10"
+           "instanceSizeName": "M30"
          },
-         "clusterType": "REPLICASET",
          "replicationSpecs": [
            {
+             "id": "5fac2d0cd2124a40ce0cfc5c",
              "numShards": 1,
              "regionsConfig": {
                "US_EAST_1": {
@@ -28,9 +27,7 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
                  "priority": 6,
                  "readOnlyNodes": 0
                }
-             },
-             "zoneName": "Zone 1"
+             }
            }
-         ],
-         "backupEnabled": true
+         ]
        }'

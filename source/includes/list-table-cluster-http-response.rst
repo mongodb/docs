@@ -109,6 +109,68 @@
        |service| returns the contents of this object after the
        cluster is operational, not while it builds the cluster.
 
+   * - connectionStrings.privateEndpoint
+     - array of objects
+     - :ref:`Private endpoint <private-endpoint>` connection strings.
+       Each object describes the connection strings you can use to
+       connect to this cluster through a private endpoint. |service|
+       returns this parameter only if you deployed a private endpoint to
+       all regions to which you deployed this cluster's nodes.
+
+   * - connectionStrings.privateEndpoint[n].connectionString
+     - string
+     - :ref:`Private-endpoint-aware 
+       <private-endpoint-connection-strings>`
+       **mongodb://**:manual:`connection string </reference/connection-string>`
+       for this private endpoint.
+
+   * - connectionStrings.privateEndpoint[n].endpoints
+     - array of objects
+     - Private endpoint through which you connect to |service|
+       when you use
+       **connectionStrings.privateEndpoint[n].connectionString** or 
+       **connectionStrings.privateEndpoint[n].srvConnectionString**.
+
+   * - connectionStrings.privateEndpoint[n].endpoints[n].endpointId
+     - string
+     - Unique identifier of the private endpoint.
+
+   * - connectionStrings.privateEndpoint[n].endpoints[n].providerName
+     - string
+     - Cloud provider to which you deployed the private endpoint. 
+       |service| returns **AWS** or **AZURE**.
+
+   * - connectionStrings.privateEndpoint[n].endpoints[n].region
+     - string
+     - Region to which you deployed the private endpoint.
+
+   * - connectionStrings.privateEndpoint[n].srvConnectionString
+     - string
+     - :ref:`Private-endpoint-aware <private-endpoint-connection-strings>`
+       **mongodb+srv://** :manual:`connection string </reference/connection-string>`
+       for this private endpoint.
+
+       The **mongodb+srv** protocol tells the driver to look up the
+       :ref:`seed list <connections-dns-seedlist>` of hosts in |dns|.
+       |service| synchronizes this list with the nodes in a cluster. If
+       the connection string uses this |uri| format, you don't need to:
+
+       - Append the seed list or
+       - Change the |uri| if the nodes change.
+
+       Use this |uri| format if your driver supports it. If it doesn't,
+       use **connectionStrings.privateEndpoint[n].connectionString**.
+
+       .. seealso:: :manual:`Seedlist format </reference/connection-string/#dns-seedlist-connection-format>`
+
+   * - connectionStrings.privateEndpoint[n].type
+     - string
+     - Type of MongoDB process that you connect to with the connection
+       strings. |service| returns:
+
+       - **MONGOD** for replica sets, or
+       - **MONGOS** for sharded clusters.
+
    * - connectionStrings.standard
      - string
      - Public
@@ -163,20 +225,64 @@
           unless you :doc:`enable custom DNS </reference/api/aws-custom-dns-update>`.
 
    * - connectionStrings.awsPrivateLink
-     - string
-     - :ref:`Private-endpoint-aware <private-endpoint-connection-strings>`
+     - object
+     - 
+
+       .. important::
+
+          This field is deprecated. Use
+          **connectionStrings.privateEndpoint[n].connectionString**
+          instead.
+
+       .. note::
+
+          |service| returns this parameter only if: 
+
+          - the cluster is deployed to |aws|, and
+          - you deployed a {+aws-pl+} private endpoint to
+            the same regions as all of this cluster's nodes.
+
+       :ref:`Private-endpoint-aware <private-endpoint-connection-strings>`
        **mongodb://**:manual:`connection strings </reference/connection-string>`
-       for each interface |vpc| endpoint you configured to connect to
-       this cluster. |service| returns this parameter only if you
-       created a {+aws-pl+} connection to this cluster.
+       for each {+aws-pl+} private endpoint. |service| returns this
+       parameter only if you deployed a {+aws-pl+} private endpoint to
+       the same regions as all of this cluster's nodes.
+
+       In this object:
+
+       - Each key is the unique identifier of an interface endpoint.
+       - Each value is the **mongodb://** connection string you use to
+         connect to |service| through the interface endpoint the key
+         names.
 
    * - connectionStrings.awsPrivateLinkSrv
-     - string
-     - :ref:`Private-endpoint-aware <private-endpoint-connection-strings>`
+     - object
+     - 
+
+       .. important::
+
+          This field is deprecated. Use
+          **connectionStrings.privateEndpoint[n].srvConnectionString**
+          instead.
+
+       .. note::
+
+          |service| returns this parameter only if: 
+
+          - the cluster is deployed to |aws|, and
+          - you deployed a {+aws-pl+} private endpoint to
+            the same regions as all of this cluster's nodes.
+
+       :ref:`Private-endpoint-aware <private-endpoint-connection-strings>`
        **mongodb+srv://** :manual:`connection strings </reference/connection-string>`
-       for each interface |vpc| endpoint you configured to connect to
-       this cluster. |service| returns this parameter only if you
-       created a {+aws-pl+} connection to this cluster.
+       for each {+aws-pl+} private endpoint.
+
+       In this object:
+
+       - Each key is the unique identifier of an interface endpoint.
+       - Each value is the **mongodb+srv://** connection string you use 
+         to connect to |service| through the interface endpoint the key
+         names.
 
        The **mongodb+srv** protocol tells the driver to look up the
        :ref:`seed list <connections-dns-seedlist>` of hosts in |dns|.
