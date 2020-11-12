@@ -1,5 +1,4 @@
-.. admonition:: Avoid Exposing Your Authentication Credentials
-   :class: important
+.. important:: Avoid Exposing Your Authentication Credentials
 
    To avoid exposing your authentication credentials in your
    ``connection.uri`` setting, use a
