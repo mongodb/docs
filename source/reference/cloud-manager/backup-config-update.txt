@@ -1,0 +1,301 @@
+.. _mcli-cm-backup-config-update-cmd:
+
+===========================================
+mongocli cloud-manager backup config update
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``backup config update`` command updates one backup 
+configuration. You can also update a backup configuration 
+using the :cloudmgr:`API 
+</reference/api/backup/update-backup-config/>`.
+
+.. _mcli-cm-backup-config-update-syntax: 
+
+Syntax 
+------
+
+.. code-block:: shell 
+   
+   mongocli cloud-manager|cm backup config update <cluster-ID> 
+        [ --authMechanism <authentication-mechanism> ]
+        [ --encryption ]
+        [ --excludedNamespace <excluded-namespaces> ]
+        [ --includedNamespace <included-namespaces> ]
+        [ --output|-o <command-output-format> ]
+        [ --password <sync-source-db-password> ]
+        [ --projectId <project-ID> ]
+        [ --provisioned ]
+        [ --ssl ]
+        [ --status <backup-configuration-status> ]
+        [ --storageEngine <backup-storage-engine> ]
+        [ --syncSource <sync-source-mongod-instance> ]
+        [ --username <sync-source-db-username> ]
+
+.. _mcli-cm-backup-config-update-args: 
+
+Arguments
+---------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Argument 
+     - Type 
+     - Description 
+     - Required? 
+
+   * - ``<cluser-ID>``
+     - string
+     - Unique identifier of the cluster whose backup 
+       configuration you want to update. You can use the 
+       :ref:`mcli-cm-cluster-list-command` to retrieve the 
+       ID of a cluster.
+     - yes
+
+.. _mcli-cm-backup-config-update-options:
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Option 
+     - Type 
+     - Description 
+     - Required? 
+
+   * - ``--authMechanism``
+     - string
+     - Required if the sync store uses authentication.
+
+       Authentication mechanism to use to connect to the sync source 
+       database. Valid values are: 
+
+       - ``MONGODB_CR``, which includes SCRAM-SHA-1, SCRAM-SHA-256, 
+         and MONGODB-CR and requires ``--username`` and ``--password`` 
+         options also
+       - ``GSSAPI``
+       - ``PLAIN``
+       - ``MONGODB_X509``
+       - ``NONE``
+
+     - no
+
+   * - ``--encryption``
+     - 
+     - Flag to enable encryption for the backup data. You must include 
+       the ``syncSource`` option when enabling encryption. To enable 
+       encryption for existing backups in a project, you must do an 
+       initial backup sync to recreate the backups' head databases.
+     - no
+
+   * - ``--excludedNamespace``
+     - array of strings
+     - List of :manual:`namespaces 
+       </reference/limits/#faq-dev-namespace>`, which include the 
+       database name, the dot (``.``) separator, and the collection or 
+       view name (e.g. ``<database>.<collection>``), to omit from the 
+       backup. Mutually exclusive with ``includedNamespace``. 
+       
+       The list must include both new and existing excluded namespaces. 
+       If an existing excluded namespace is omitted from the list to 
+       remove it, you must set the ``syncSource`` option for a full 
+       resyc. The ``syncSource`` is not required if the list does not 
+       remove any existing namespace.
+
+       If omitted, all namespaces are included in the backup.
+
+       This option only applies to head databases running MongoDB FCV 
+       v4.0 or earlier.
+     - no
+
+   * - ``--includedNamespace``
+     - array of strings
+     - List of :manual:`namespaces 
+       </reference/limits/#faq-dev-namespace>`, which include the 
+       database name, the dot (``.``) separator, and the collection or 
+       view name (e.g. ``<database>.<collection>``), to include in the 
+       backup. If set, |cloud-short| doesn't backup any namespace not 
+       in this list. Mutually exclusive with ``excludedNamespace``.
+
+       The list must include both new and existing included namespace. 
+       If an existing included namespace is omitted from the list to 
+       remove it, you must set the ``syncSource`` option for a full 
+       resyc. The ``syncSource`` is not required if the list does not 
+       remove any existing namespace.
+
+       If omitted, all namespaces are included in the backup.
+
+       This option only applies to head databases running MongoDB FCV 
+       v4.0 or earlier.
+     - no
+
+   * - ``--output``, ``-o``
+     - string 
+     - .. include:: /includes/extracts/fact-basic-options-output.rst
+     - no
+
+   * - ``--password``
+     - string
+     - Required if the sync source :binary:`~bin.mongod` instances 
+       require clients to authenticate.
+
+       Password to use to connect to the sync source database.
+     - conditional
+
+   * - ``--profile``, ``-P``
+     - string
+     - Name of the profile where the project ID and the |svc-api-key|\s 
+       for the project are saved. If omitted, uses the 
+       {+default-profile+}. To learn more about creating a profile, see 
+       :ref:`mcli-configure`.
+     - no
+
+   * - ``--projectId``
+     - string
+     - Unique identifier of the project that contains the cluster. 
+       If omitted, uses the project ID in the profile or 
+       :ref:`environment variable <mcli-env-var>`.
+     - no
+
+   * - ``--provisioned``
+     - 
+     - Flag to provision the resources needed to store a backup. If 
+       omitted, |cloud-short| doesn't provision the resources to store 
+       a backup.
+     - no
+
+   * - ``--ssl``
+     - 
+     - Flag to enable |tls| for the sync source database. If omitted, 
+       |cloud-short| does not enable |tls| for the sync source database.
+     - no
+
+   * - ``--status``
+     - string
+     - Desired status of the backup configuration. Valid values 
+       are: 
+
+       - ``INACTIVE``
+       - ``PROVISIONING``
+       - ``STARTED`` 
+       - ``STOPPED``
+       - ``TERMINATING``
+
+       If omitted, |cloud-short| doesn't modify the current status of 
+       the backup configuration. For more information, see 
+       :cloudmgr:`Backup Definition and Operational States 
+       </backup-overview/#backup-definition-and-operational-states>`.
+     - no
+
+   * - ``--storageEngine``
+     - string
+     - Storage engine to use for the backup. Valid values are: 
+
+       - ``MEMORY_MAPPED``
+       - ``WIRED_TIGER``, which also requires ``syncSource`` to be set.
+
+     - no
+
+   * - ``--syncSource``
+     - string
+     - Required if ``storageEngine`` is ``WIRED_TIGER``.
+     
+       :binary:`~bin.mongod` instance from which to retrieve backup
+       data. You can provide either the hostname of the ``mongod`` 
+       instance or one of the following: 
+
+       - ``PRIMARY``
+       - ``SECONDARY``
+
+     - conditional
+
+   * - ``--username``
+     - string
+     - Required if the sync source :binary:`~bin.mongod` instances 
+       require clients to authenticate or if you are updating the 
+       backup configuration of a replica set or sharded cluster that 
+       |cloud-short| doesn't manage. 
+     
+       Username to use to connect to the sync source database. 
+     - conditional
+
+.. _mcli-cm-backup-config-update-output: 
+
+Output 
+------
+
+If the command succeeds, it returns the following output in the default
+format. If the command returns errors, see :ref:`Troubleshooting 
+<mcli-troubleshooting>` for recommended solutions.
+
+.. code-block:: sh 
+   :copyable: false 
+
+   PROJECT ID     CLUSTER ID     STATUS     STORAGE ENGINE
+   <project-ID>   <cluster-ID>   <status>   <storage-engine>
+
+The default output contains a subset of the fields returned by this 
+command. For the complete list of |json| fields returned by the 
+command, see the :atlas:`API reference 
+</reference/api/backup/update-backup-config/#response>`.
+
+.. _mcli-cm-backup-config-update-egs: 
+
+Example 
+-------
+
+The following example uses the ``mongocli cloud-manager backup config 
+update`` command updates the backup configuration for the specified 
+cluster. The command uses the {+default-profile+} for accessing 
+the |service| project.
+
+.. tabs:: 
+
+   .. tab:: Default Output 
+      :tabid: default
+
+      .. code-block:: shell
+
+         mongocli cloud-manager backup config update 5fa958c2d765fe62f0aff5fc
+
+      The previous command returns the following: 
+
+      .. code-block:: shell
+         :copyable: false 
+
+         PROJECT ID                 CLUSTER ID                 STATUS     STORAGE ENGINE
+         5fa95889d765fe62f0aff52f   5fa958c2d765fe62f0aff5fc   STARTED    WIRED_TIGER
+
+   .. tab:: JSON Output 
+      :tabid: json
+
+      .. code-block:: shell
+
+         mongocli cloud-manager backup config update 5fa958c2d765fe62f0aff5fc --output json
+
+      The previous command returns the following:
+
+      .. code-block:: shell
+         :copyable: false 
+
+         {
+           "groupId": "5fa95889d765fe62f0aff52f",
+           "clusterId": "5fa958c2d765fe62f0aff5fc",
+           "statusName": "STARTED",
+           "storageEngineName": "WIRED_TIGER",
+           "authMechanismName": "NONE",
+           "encryptionEnabled": false,
+           "sslEnabled": false
+         }
