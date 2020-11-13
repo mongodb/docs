@@ -1,0 +1,44 @@
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - cidrBlock
+     - string
+     - |cidr|\-notated range of IP addresses.
+
+   * - created
+     - date
+     - |iso8601-time| when this IP address was added to the whitelist.
+
+   * - ipAddress
+     - string
+     - Whitelisted IP address.
+
+   * - lastUsed
+     - date
+     - |iso8601-time| when the most recent request that originated from
+       this IP address.
+
+       .. note::
+
+          |service| updates this parameter when it accesses an |api|
+          resource that the whitelist protects.
+
+   * - lastUsedAddress
+     - string
+     - Last call to the API was issued from this address.
+
+   * - count
+     - integer
+     - Total number of requests that originated from this IP
+       address.
+
+       .. note::
+
+          |service| updates this parameter when it accesses an |api|
+          resource that the whitelist protects.

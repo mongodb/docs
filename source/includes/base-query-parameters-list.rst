@@ -1,34 +1,53 @@
 .. list-table::
-  :widths: 10 10 70 10
-  :header-rows: 1
-  :stub-columns: 1
+   :widths: 20 14 11 46 10
+   :header-rows: 1
+   :stub-columns: 1
 
-  * - Name
-    - Type
-    - Description
-    - Default
+   * - Name
+     - Type
+     - Necessity
+     - Description
+     - Default
 
-  * - ``pageNum``
-    - integer
-    - Page number (1-based).
-    - ``1``
+   * - pageNum
+     - integer
+     - Optional
+     - Page number, starting with one, returned of the total number of
+       objects.
+     - ``1``
 
-  * - ``itemsPerPage``
-    - integer
-    - Number of items to return per page, up to a maximum of 500.
-    - ``100``
+   * - itemsPerPage
+     - integer
+     - Optional
+     - Number of items returned per page, up to a maximum of 500.
+     - ``100``
 
-  * - ``includeCount``
-    - boolean
-    - Specifies whether the response returns the ``totalCount`` field.
-    - ``true``
+   * - includeCount
+     - boolean
+     - Optional
+     - Flag that indicates whether the response returns the
+       **totalCount** field.
+     - ``true``
 
-  * - ``pretty``
-    - boolean
-    - Displays response in a `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
-    - ``false``
+   * - pretty
+     - boolean
+     - Optional
+     - Flag that indicates whether the response returned in a
+       :wikipedia:`prettyprint </Prettyprint?oldid=791126873>` format.
+     - ``false``
 
-  * - ``envelope``
-    - boolean
-    - Specifies whether or not to wrap the response in an :ref:`envelope <api-envelope>`.
-    - ``false``
+   * - envelope
+     - boolean
+     - Optional
+     - Flag that indicates whether |mms| wraps the response in an
+       :ref:`envelope <api-envelope>`.
+
+       Some |api| clients cannot access the |http| response headers or
+       status code. To remediate this, set **envelope=true** in the
+       query.
+
+       Endpoints that return a list of results use the **results**
+       object as an envelope. |service| adds the **status** field to
+       the response body.
+
+     - ``false``

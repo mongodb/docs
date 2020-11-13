@@ -12,40 +12,41 @@
    * - pageNum
      - integer
      - Optional
-     - Page number (1-based).
+     - Page number, starting with one, returned of the total number of
      - ``1``
 
    * - itemsPerPage
      - integer
      - Optional
-     - Maximum number of items to return, up to a maximum of 100.
+     - Number of items returned per page, up to a maximum of 500.
      - ``100``
 
    * - ``includeCount``
      - boolean
      - Optional
-     - Specifies whether the response returns the ``totalCount`` field.
+     - Flag that indicates whether the response returns the
+       **totalCount** field.
      - ``true``
 
    * - pretty
      - boolean
      - Optional
-     - Indicates whether the response body should be in a
+     - Flag that indicates whether the response returned in a
        :wikipedia:`prettyprint </Prettyprint?oldid=791126873>` format.
      - ``false``
 
    * - envelope
      - boolean
      - Optional
-     - Flag indicating if |service| should wrap the response in a
-       |json| envelope.
+     - Flag that indicates whether |mms| wraps the response in an
+       :ref:`envelope <api-envelope>`.
 
        Some |api| clients cannot access the |http| response headers or
        status code. To remediate this, set ``envelope=true`` in the
        query.
 
-       For endpoints that return a list of results, the **results**
-       object is an envelope. |service| adds the **status** field to
+       Endpoints that return a list of results use the **results**
+       object as an envelope. |service| adds the **status** field to
        the response body.
 
      - ``false``
