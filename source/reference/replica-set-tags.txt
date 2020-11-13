@@ -34,6 +34,8 @@ The following table describes the pre-defined replica set tags
 
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
+   :widths: 15 40 40
 
    * - Tag Name
      - Description
@@ -75,6 +77,8 @@ The following table describes the pre-defined replica set tags
 
        - ``ANALYTICS``
 
+       - ``OPERATIONAL``
+
        For more information, see :ref:`repl-set-node-types`.
 
      - ``{"nodeType" : "ANALYTICS"}``
@@ -88,31 +92,37 @@ The following table describes the possible ``nodeType`` values in your
 replica set tags.
 
 .. list-table::
-   :widths: 20 40
+   :widths: 10 40
    :header-rows: 1
+   :stub-columns: 1
 
    * - Node Type
      - Description
 
    * - ``ELECTABLE``
-     - Nodes eligible to be elected :term:`primary`. ``ELECTABLE``
-       nodes correspond to
+     - Read from nodes eligible to be elected :term:`primary`.
+       ``ELECTABLE`` nodes correspond to
        :guilabel:`Electable nodes for high availability` in the cluster
        creation UI.
 
    * - ``READ_ONLY``
-     - Read-only nodes. ``READ_ONLY`` nodes
-       correspond to :guilabel:`Read-only nodes for optimal local reads`
-       in the cluster creation UI. 
+     - Read from read-only nodes. ``READ_ONLY`` nodes correspond to
+       :guilabel:`Read-only nodes for optimal local reads` in the
+       cluster creation UI. 
 
    * - ``ANALYTICS``
-     - Read-only :term:`analytics nodes <analytics node>`.
+     - Read from read-only :term:`analytics nodes <analytics node>`.
        ``ANALYTICS`` nodes correspond to
        :guilabel:`Analytics nodes for workload isolation` in the cluster
        creation UI.
 
-To learn how to configure these node types for your cluster, see
-:ref:`create-cluster-multi-region`.
+   * - ``OPERATIONAL``
+     - Read from non-analytics nodes. These nodes may either be
+       electable or read-only nodes. Use this tag to distribute your
+       workload evenly among your non-analytics nodes.
+
+To learn how to configure electable, read-only, and analytics nodes for
+your cluster, see :ref:`create-cluster-multi-region`.
 
 .. seealso::
 
@@ -146,9 +156,7 @@ If an application performs complex or long-running operations, such as
 isolate the application's queries from the rest of your operational
 workload by connecting exclusively to analytics nodes.
 
-In this case, the following
-:manual:`connection string </reference/connection-string/>` forces
-your application to only connect to analytic nodes:
+Consider the following connection string:
 
 .. code-block:: none
 
@@ -169,33 +177,24 @@ analytic nodes.
 Isolate Normal Application Secondary Reads from Analytics Nodes
 ```````````````````````````````````````````````````````````````
 
-In conjunction with the previous example, you may want to ensure that
-normal application reads from secondary nodes are isolated from the
-workload on analytics nodes.
+In conjunction with the previous example, you may want isolate regular
+application reads from the workload on analytics nodes.
 
-In this case, the following connection string disallows the application
-from reading from analytics nodes and forces it to read from secondary
-nodes:
+Consider the following connection string:
 
 .. code-block:: none
 
-   mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=nodeType:ELECTABLE&readPreferenceTags=nodeType:READ_ONLY&readConcernLevel=local
+   mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=nodeType:OPERATIONAL&readConcernLevel=local
 
 The connection string options appear in the following order:
 
 - ``readPreference=secondary``
-- ``readPreferenceTags=nodeType:ELECTABLE``
-- ``readPreferenceTags=nodeType:READ_ONLY``
+- ``readPreferenceTags=nodeType:OPERATIONAL``
 - ``readConcernLevel=local``
 
-Order matters when using multiple ``readPreferenceTags``. The
-``readPreferenceTags`` are tried in order until a match is found. Once
-found, that specification is used to find all eligible matching members
-and any remaining ``readPreferenceTags`` are ignored.
-
-In this example, the application first tries to connect to an
-``ELECTABLE`` node. If there are no ``ELECTABLE`` nodes available, the
-application tries to connect to a ``READ_ONLY`` node.
+The specified options prevent your application from reading from
+analytics nodes. The application must read from ``operational``, or
+non-analytics, nodes.
 
 Target Local Reads for Geographically-Distributed Applications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -225,13 +224,19 @@ The connection string options appear in the following order:
 - ``readPreferenceTags=``
 - ``readConcernLevel=local``
 
-The :manual:`read preference tags </core/read-preference/#tag-sets>` of
-``{ provider : AWS }`` and corresponding ``region`` tags dictate the
-specific regions within :ref:`AWS <amazon-aws>` that the connection
-prioritizes. The final (empty) ``readPreferenceTags=`` option allows the
-application to connect to any eligible member regardless of provider or
-region, thus ensuring a fallback option if the specified |aws| regions
-are unavailable.
+|service| considers each read preference tag in the order you specify
+them. After |service| matches a node to a tag, it finds all eligible
+nodes that match that tag. |service| then ignores any following
+``readPreferenceTags``. 
+
+In this example, the application first tries to connect to a node in
+|aws| region ``US_EAST_1``. If there no nodes in that region are
+available, the application tries to connect to a node in |aws| region
+``US_EAST_2``.
+
+The final (empty) ``readPreferenceTags=`` provides a fallback option.
+With an empty ``readPreferenceTags=`` option, the application can
+connect to any available node regardless of provider or region.
 
 These options help ensure that the application connects to the closest
 geographic region for reduced latency and improved performance.
