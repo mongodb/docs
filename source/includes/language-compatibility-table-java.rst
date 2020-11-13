@@ -10,6 +10,13 @@
      - Java 8
      - Java 11 [#backwards-compatible]_
 
+   * - Version 4.1
+     -
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+
    * - Version 4.0
      -
      -
