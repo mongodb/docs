@@ -108,7 +108,7 @@ make sure to follow the following guidelines:
 - If you include public getter or setter methods using the
   `JavaBean naming conventions <https://docs.oracle.com/javase/tutorial/javabeans/writing/properties.html>`__
   in your POJO, the driver calls them when serializing or deserializing data.
-  If you omit the getter or setter methods for a public property field, the 
+  If you omit the getter or setter methods for a public property field, the
   driver accesses or assigns them directly.
 
 Configure the Driver for POJOs
@@ -124,8 +124,9 @@ To set up the driver to store and retrieve POJOs, we need to specify:
   instance that contains the codec provider and other related information.
 - A ``MongoClient``, ``MongoDatabase``, or ``MongoCollection`` instance
   configured to use the ``CodecRegistry``.
-- A ``MongoCollection`` instance configured to cast to your POJO document
-  class.
+- A ``MongoCollection`` instance created with the POJO document class
+  bound to the :java-docs:`TDocument </apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html>`__
+  generic type.
 
 Follow the steps below to see how to perform each of the configuration
 requirements:
@@ -187,8 +188,9 @@ requirements:
           // ...
       }
 
-#. Configure your ``MongoCollection`` instance to cast to your POJO class when
-   retrieving documents:
+#. Pass your POJO class to your call to ``getCollection()`` as the
+   document class parameter and specify it as the type argument of your
+   ``MongoCollection`` instance as follows:
 
    .. code-block:: java
 
@@ -199,9 +201,8 @@ Once you have configured the ``MongoCollection`` instance above, you can:
 - save an instance of the POJO to the collection
 - retrieve instances of the POJO from a query on the collection
 
-The code below shows you how you can set data in an instance of a ``Flower``,
-save it in the collection, and retrieve the data in a ``List`` of ``Flower``
-objects.
+The code below shows you how you can insert an instance of ``Flower`` into
+the collection and then retrieve it as a ``List`` of your POJO class objects:
 
 .. code-block:: java
 
@@ -211,17 +212,8 @@ objects.
    collection.insertOne(flower);
 
    // return all documents in the collection
-   List<Flower> flowers = new ArrayList<Flower>();
-
-   MongoCursor<Flower> cursor = collection.find().iterator();
-   try {
-       while(cursor.hasNext()) {
-           flowers.add(cursor.next());
-       }
-   } finally {
-       cursor.close();
-   }
-
+   List<Flower> flowers = new ArrayList<>();
+   collection.find().into(flowers);
    System.out.println(flowers);
 
 When you run this code, your output should resemble the following:
