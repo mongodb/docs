@@ -21,11 +21,10 @@ Definition
 
 .. note::
 
-   The following page discusses the :pipeline:`$merge` stage, which
-   outputs the aggregation pipeline results to a collection. For a
-   discussion of the :expression:`$mergeObjects` operator which merges
-   documents into a single document, see :expression:`$mergeObjects`
-   instead.
+   This page describes the :pipeline:`$merge` stage, which outputs the
+   aggregation pipeline results to a collection. For the
+   :expression:`$mergeObjects` operator, which merges documents into a
+   single document, see :expression:`$mergeObjects`.
 
 .. pipeline:: $merge
 
@@ -95,8 +94,8 @@ For example:
 
    { $merge: { into: "myOutput", on: "_id", whenMatched: "replace", whenNotMatched: "insert" } }
 
-If using all default options for :pipeline:`$merge` (including writing
-to a collection in the same database), you can use the simplified form:
+If using all default options for :pipeline:`$merge`, including writing
+to a collection in the same database, you can use the simplified form:
 
 .. code-block:: javascript
 
@@ -148,8 +147,8 @@ The :pipeline:`$merge` takes a document with the following fields:
 
       Optional. Field or fields that act as a unique identifier for a
       document. The identifier determines if a results document
-      :ref:`matches <merge-whenMatched>` an already existing document
-      in the output collection. Specify either:
+      :ref:`matches <merge-whenMatched>` an existing document in the
+      output collection. Specify either:
 
       - A single field name as a string. For example:
 
@@ -241,7 +240,7 @@ The :pipeline:`$merge` takes a document with the following fields:
                When performing a replace, the replacement document
                cannot result in a modification of the ``_id`` value or,
                if the output collection is sharded, the shard key
-               value. Otherwise, the operation results in an error.
+               value. Otherwise, the operation generates an error.
 
                .. tip::
                
@@ -249,7 +248,7 @@ The :pipeline:`$merge` takes a document with the following fields:
                   field does not include the ``_id`` field, remove the
                   ``_id`` field in the aggregation results to avoid the
                   error, such as with a preceding :pipeline:`$unset`
-                  stage, etc.
+                  stage, and so on.
 
            * - :ref:`"keepExisting" <merge-whenMatched-keepExisting>`
 
@@ -288,7 +287,7 @@ The :pipeline:`$merge` takes a document with the following fields:
                When performing a merge, the merged document cannot
                result in a modification of the ``_id`` value or, if the
                output collection is sharded, the shard key value.
-               Otherwise, the operation results in an error. 
+               Otherwise, the operation generates an error. 
 
                .. tip::
                
@@ -296,7 +295,7 @@ The :pipeline:`$merge` takes a document with the following fields:
                   field does not include the ``_id`` field, remove the
                   ``_id`` field in the aggregation results to avoid the
                   error, such as with a preceding :pipeline:`$unset`
-                  stage, etc.
+                  stage, and so on.
 
            * - :ref:`"fail" <merge-whenMatched-fail>`
 
@@ -330,35 +329,48 @@ The :pipeline:`$merge` takes a document with the following fields:
         To access the fields from the aggregation results documents,
         use either:
 
-        - The built-in ``$$new`` variable to access the field, i.e.
-          ``$$new.<field>``. The ``$$new`` variable is only available
-          if the :ref:`let <merge-let>` specification is omitted.
+        - The built-in ``$$new`` variable to access the field.
+          Specifically, ``$$new.<field>``. The ``$$new`` variable is
+          only available if the :ref:`let <merge-let>` specification is
+          omitted.
 
           .. include:: /includes/extracts/4.2-changes-new-variable-reserved.rst
 
         - The user-defined variables in the :ref:`let <merge-let>`
-          field, i.e. ``$$<uservariable>.<field>``.
+          field. 
+          
+          .. include:: /includes/merge-stage-variables.rst
+
+          For more examples, see :ref:`merge-variables-example`.
 
   * - :ref:`let <merge-let>`
 
     - .. _merge-let:
 
-      Optional. Specifies variables accessible for use in the
-      :ref:`whenMatched pipeline <merge-whenMatched-pipeline>`
+      Optional. Specifies variables for use in the :ref:`whenMatched
+      pipeline <merge-whenMatched-pipeline>`.
 
-      Specify a document with the variable name and value expression:
+      Specify a document with the variable names and value expressions:
 
-      ``{ <var_1>: <expression>, ..., <var_n>: <expression> }``
+      .. code-block:: javascript
+         :copyable: false
 
-      If unspecified, defaults to ``{ new: "$$ROOT" }``; i.e. the
-      :ref:`whenMatched pipeline <merge-whenMatched-pipeline>` can access
-      the ``$$new`` variable.
+         { <variable_name_1>: <expression_1>,
+           ...,
+           <variable_name_n>: <expression_n> }
+
+      If unspecified, defaults to ``{ new: "$$ROOT" }`` (see
+      :variable:`ROOT`). The :ref:`whenMatched pipeline
+      <merge-whenMatched-pipeline>` can access the ``$$new`` variable.
 
       .. include:: /includes/extracts/4.2-changes-new-variable-reserved.rst
 
-      To access the ``let`` variables in the :ref:`whenMatched pipeline
-      <merge-whenMatched-pipeline>`, use the double dollar signs ($$)
-      prefix and variable name ``$$<variable>``.
+      To access the variables in the :ref:`whenMatched pipeline
+      <merge-whenMatched-pipeline>`:
+      
+      .. include:: /includes/merge-stage-variables.rst
+      
+      For examples, see :ref:`merge-variables-example`.
 
   * - :ref:`whenNotMatched <merge-whenNotMatched>`
 
@@ -386,8 +398,8 @@ The :pipeline:`$merge` takes a document with the following fields:
 
            - ..  _merge-whenNotMatched-discard:
 
-             Discard the document; i.e. :pipeline:`$merge` does not
-             insert the document into the output collection.
+             Discard the document. Specifically, :pipeline:`$merge` does
+             not insert the document into the output collection.
 
          * - :ref:`"fail" <merge-whenNotMatched-fail>`
 
@@ -524,7 +536,7 @@ Output to a Sharded Collection
    With the sharded collection ``restaurants`` and the unique index
    created, you can use :pipeline:`$merge` to output the aggregation
    results to this collection, matching on ``[ "date", "postcode" ]``
-   as in the following example:
+   as in this example:
 
    .. code-block:: javascript
 
@@ -543,11 +555,11 @@ Output to a Sharded Collection
       The :method:`sh.shardCollection()` method can also create a
       unique index on the shard key when passed the ``{ unique: true
       }`` option if: the shard key is :doc:`range-based
-      </core/ranged-sharding>`; the collection is empty; and a unique
+      </core/ranged-sharding>`, the collection is empty, and a unique
       index on the shard key doesn't already exist.
 
-      In the example above, because the ``on`` identifier is the shard
-      key and another field, a separate operation to create the
+      In the previous example, because the ``on`` identifier is the
+      shard key and another field, a separate operation to create the
       corresponding index is required.
 
 .. _merge-behavior-replaceCollection:
@@ -582,11 +594,11 @@ Existing Documents and ``_id`` and Shard Key Values
       To avoid this error, if the :ref:`on <merge-on>` field does not
       include the ``_id`` field, remove the ``_id`` field in the
       aggregation results to avoid the error, such as with a preceding
-      :pipeline:`$unset` stage, etc.
+      :pipeline:`$unset` stage, and so on.
 
    Additionally, for a sharded collection, :pipeline:`$merge` also
-   errors if it results in a change to the shard key value of an
-   exising document.
+   generates an error if it results in a change to the shard key value
+   of an exising document.
 
    Any writes completed by the :pipeline:`$merge` before the error will
    not be rolled back.
@@ -605,8 +617,8 @@ Unique Index Constraints
    duplicate ``on`` field values.
 
    If the :pipeline:`$merge` attempts to write a document that violates
-   any unique index on the output collection, the operation errors; for
-   example:
+   any unique index on the output collection, the operation generates an
+   error. For example:
 
    - :ref:`Insert a non-matching document
      <merge-whenNotMatched-insert>` that violates a unique index other
@@ -664,8 +676,7 @@ Comparison with ``$out``
 
    With the introduction of :pipeline:`$merge`, MongoDB provides two
    stages, :pipeline:`$merge` and :pipeline:`$out`, for writing the
-   results of the aggregation pipeline to a collection. The following
-   summarizes the capabilities of the two stages:
+   results of the aggregation pipeline to a collection:
 
    .. list-table::
       :header-rows: 1
@@ -749,9 +760,9 @@ Restrictions
 
      - :doc:`View definition </core/views>` cannot include the
        :pipeline:`$merge` stage. If the view definition includes nested
-       pipeline (e.g. the view definition includes :pipeline:`$facet`
-       stage), this :pipeline:`$merge` stage restriction applies to the
-       nested pipelines as well.
+       pipeline (for example, the view definition includes
+       :pipeline:`$facet` stage), this :pipeline:`$merge` stage
+       restriction applies to the nested pipelines as well.
 
    * - :pipeline:`$lookup` stage
 
@@ -861,8 +872,7 @@ On-Demand Materialized View: Update/Replace Data
 
 .. container::
 
-   The following example refers to the collections from the previous
-   example.
+   The following example uses the collections in the previous example.
 
    The example ``salaries`` collection contains the
    employee salary and department history:
@@ -991,8 +1001,8 @@ Only Insert New Data
       { "_id" : ObjectId("5cd8c68261baa09e9f3622c0"), "employees" : [ "Bee", "Cat" ], "dept" : "Z", "fiscal_year" : 2018 }
       { "_id" : ObjectId("5cd8c68261baa09e9f3622c1"), "employees" : [ "Cat" ], "dept" : "Z", "fiscal_year" : 2017 }
 
-   The ``orgArchive`` collection has a unique compound index
-   on the ``fiscal_year`` and ``dept`` fields; i.e. there should be at
+   The ``orgArchive`` collection has a unique compound index on the
+   ``fiscal_year`` and ``dept`` fields. Specifically, there should be at
    most one record for the same fiscal year and department combination:
 
    .. code-block:: javascript
@@ -1127,8 +1137,8 @@ Merge Results from Multiple Collections
    ``purchaseorders`` collection and the ``reportedsales`` collection
    to create a new collection ``quarterlyreport``.
 
-   To create the ``quarterlyreport`` collection, you can use the
-   following pipeline:
+   To create the ``quarterlyreport`` collection, you can use this
+   pipeline:
    
    .. code-block:: javascript
 
@@ -1156,7 +1166,7 @@ Merge Results from Multiple Collections
       documents. Otherwise, the stage inserts the document. For the
       initial creation, no documents should match.
 
-   To view the documents in the collection, run the following operation:
+   To view the documents in the collection:
 
    .. code-block:: javascript
 
@@ -1200,7 +1210,7 @@ Merge Results from Multiple Collections
       the matching documents. Otherwise, the stage inserts the document.
 
    To view the documents in the ``quarterlyreport`` collection after
-   the data has been merged, run the following operation:
+   the data has been merged:
 
    .. code-block:: javascript
 
@@ -1214,22 +1224,22 @@ Merge Results from Multiple Collections
       { "_id" : "2019Q1", "sales" : 1950, "purchased" : 1200 }
       { "_id" : "2019Q2", "sales" : 500, "purchased" : 1700 }
 
-Use the Pipeline to Customize the Merge
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use a Pipeline to Customize the Merge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container::
 
    The :pipeline:`$merge` can use a :ref:`custom update pipeline
    <merge-whenMatched-pipeline>` when documents match. The
    :ref:`whenMatched pipeline <merge-whenMatched-pipeline>` can have
-   the following stages:
+   these stages:
 
    - :pipeline:`$addFields` and its alias :pipeline:`$set`
    - :pipeline:`$project` and its alias :pipeline:`$unset`
    - :pipeline:`$replaceRoot` and its alias :pipeline:`$replaceWith`
    
    An example collection ``votes`` is populated with the daily vote
-   tally. Create the collection with the following documents:s
+   tally. Create the collection with these documents:
 
    .. code-block:: javascript
 
@@ -1243,8 +1253,7 @@ Use the Pipeline to Customize the Merge
       ])
 
    Another example collection ``monthlytotals`` has the up-to-date
-   monthly vote totals. Create the collection with the following
-   document:
+   monthly vote totals. Create the collection with this document:
 
    .. code-block:: javascript
 
@@ -1307,17 +1316,17 @@ Use the Pipeline to Customize the Merge
       - This pipeline cannot directly accesses the fields from the
         results document. To access the ``thumbsup`` field and the
         ``thumbsdown`` field in the results document, the pipeline uses
-        the ``$$new`` variable; i.e. ``$$new.thumbsup`` and
+        the ``$$new`` variable. Specifically, ``$$new.thumbsup`` and
         ``$new.thumbsdown``.
 
       - This pipeline can directly accesses the ``thumbsup`` field
         and the ``thumbsdown`` field in the existing document in the
-        collection; i.e. ``$thumbsup`` and ``$thumbsdown``.
+        collection. Specifically, ``$thumbsup`` and ``$thumbsdown``.
 
       The resulting document replaces the existing document.
 
    To view documents in the ``monthlytotals`` collection after the merge
-   operation, run the following operation:
+   operation:
    
    .. code-block:: javascript
    
@@ -1329,3 +1338,183 @@ Use the Pipeline to Customize the Merge
       :copyable: false
 
       { "_id" : "2019-05", "thumbsup" : 40, "thumbsdown" : 41 }
+
+.. _merge-variables-example:
+
+Use Variables to Customize the Merge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   You can use variables in the :pipeline:`$merge` stage
+   :ref:`whenMatched <merge-whenMatched-pipeline>` field. Variables must
+   be defined before they can be used.
+
+   Define variables in one or both of the following:
+   
+   - :pipeline:`$merge` stage :ref:`let <merge-let>`
+
+   - :dbcommand:`aggregate` command
+     :ref:`let <aggregate-let-option>` (starting in MongoDB 5.0)
+
+   To use variables in :ref:`whenMatched <merge-whenMatched-pipeline>`:
+   
+   .. include:: /includes/merge-stage-variables.rst
+
+   .. container::
+
+      .. tabs::
+
+         .. tab:: Use Variables Defined in the Merge Stage
+            :tabid: merge-variables-in-merge-stage
+
+            You can define variables in the :pipeline:`$merge` stage
+            :ref:`let <merge-let>` and use the variables in the
+            :ref:`whenMatched <merge-whenMatched-pipeline>` field.
+
+            Example:
+
+            .. code-block:: javascript
+   
+               db.cakeSales.insert( [
+                  { _id: 1, flavor: "chocolate", salesTotal: 1580,
+                    salesTrend: "up" }
+               ] )
+
+               db.runCommand( {
+                  aggregate: db.cakeSales.getName(),
+                  pipeline: [ {
+                     $merge: {
+                        into: db.cakeSales.getName(),
+                        let : { year: "2020" },
+                        whenMatched: [ {
+                           $addFields: { "salesYear": "$$year" }
+                        } ]
+                     }
+                  } ],
+                  cursor: {}
+               } )
+
+               db.cakeSales.find()
+
+            The example:
+
+            - creates a collection named ``cakeSales``
+
+            - runs an :dbcommand:`aggregate` command that defines a
+              ``year`` variable in the :pipeline:`$merge` :ref:`let
+              <merge-let>` and adds the year to ``cakeSales`` using
+              :ref:`whenMatched <merge-whenMatched-pipeline>`
+   
+            - retrieves the ``cakeSales`` document
+
+            Output:
+
+            .. code-block:: javascript
+               :copyable: false
+
+               { "_id" : 1, "flavor" : "chocolate", "salesTotal" : 1580,
+                 "salesTrend" : "up", "salesYear" : "2020" }
+
+         .. tab:: Use Variables Defined in the Aggregate Command
+            :tabid: merge-variables-in-aggregate-command
+
+            .. versionadded:: 5.0
+
+            You can define variables in the :dbcommand:`aggregate`
+            command :ref:`let <aggregate-let-option>` and use the
+            variables in the :pipeline:`$merge` stage :ref:`whenMatched
+            <merge-whenMatched-pipeline>` field.
+
+            Example:
+
+            .. code-block:: javascript
+
+               db.cakeSales.insert( [
+                  { _id: 1, flavor: "chocolate", salesTotal: 1580,
+                    salesTrend: "up" }
+               ] )
+
+               db.runCommand( {
+                  aggregate: db.cakeSales.getName(),
+                     pipeline: [ {
+                        $merge: {
+                           into: db.cakeSales.getName(),
+                           whenMatched: [ {
+                              $addFields: { "salesYear": "$$year" } }
+                           ] }
+                        }
+                  ],
+                  cursor: {},
+                  let : { year: "2020" }
+               } )
+
+               db.cakeSales.find()
+
+            The example:
+
+            - creates a collection named ``cakeSales``
+
+            - runs an :dbcommand:`aggregate` command that defines a
+              ``year`` variable in the :dbcommand:`aggregate` command
+              :ref:`let <aggregate-let-option>` and adds the year to
+              ``cakeSales`` using :ref:`whenMatched
+              <merge-whenMatched-pipeline>`
+   
+            - retrieves the ``cakeSales`` document
+
+            Output:
+
+            .. code-block:: javascript
+               :copyable: false
+
+               { "_id" : 1, "flavor" : "chocolate", "salesTotal" : 1580,
+                 "salesTrend" : "up", "salesYear" : "2020" }
+
+         .. tab:: Use Variables Defined in the Merge Stage and Aggregate
+                  Command
+            :tabid: merge-variables-scope
+
+            You can define variables in the :pipeline:`$merge` stage
+            and, starting in MongoDB 5.0, the :dbcommand:`aggregate`
+            command.
+            
+            If two variables with the same name are defined in the
+            :pipeline:`$merge` stage and the :dbcommand:`aggregate`
+            command, the :pipeline:`$merge` stage variable is used.
+   
+            In this example, the ``year: "2020"`` :pipeline:`$merge`
+            stage variable is used instead of the ``year: "2019"``
+            :dbcommand:`aggregate` command variable:
+
+            .. code-block:: javascript
+
+               db.cakeSales.insert( [
+                  { _id: 1, flavor: "chocolate", salesTotal: 1580,
+                    salesTrend: "up" }
+               ] )
+
+               db.runCommand( {
+                  aggregate: db.cakeSales.getName(),
+                     pipeline: [ {
+                        $merge: {
+                           into: db.cakeSales.getName(),
+                           let : { year: "2020" },
+                           whenMatched: [ {
+                              $addFields: { "salesYear": "$$year" }
+                           } ]
+                        }
+                     } ],
+                  cursor: {},
+                  let : { year: "2019" }
+               } )
+
+               db.cakeSales.find()
+
+            Output:
+
+            .. code-block:: javascript
+               :copyable: false
+
+               { "_id" : 1, "flavor" : "chocolate", "salesTotal" : 1580,
+                 "salesTrend" : "up", "salesYear" : "2020" }
