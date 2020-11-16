@@ -14,34 +14,128 @@ Grooms
    :depth: 2
    :class: singlecol
 
-This page lists active and recent :term:`groom` jobs. Groom jobs
-remove unused :term:`blocks <block>` on
+This page lists active and recent :term:`groom` jobs.
+
+Groom jobs remove unused :term:`blocks <block>` in
 :term:`blockstores <blockstore>` and
-:term:`S3 Snapshot Stores <S3 Snapshot Store>` to reclaim storage
-space. If no existing :term:`snapshots <snapshot>` reference a given
-block, it is considered *unused*. |onprem| grooms blockstores at least
-once a year and :abbr:`S3 (Simple Storage Service)` snapshot stores at
-least every two weeks.
+:term:`S3 blockstores <S3 Snapshot Store>` to reclaim storage
+space.
 
-A groom job forces the backup process to:
+If no existing :term:`snapshots <snapshot>` reference a given
+block, |onprem| considers the block *unused* or *dead*. |onprem| grooms
+blockstores after the snapshot drops below the threshold of living
+bytes. |onprem| runs groom jobs at the following minimum intervals:
 
-1. Write all new data to a new location,
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   :stub-columns: 1
 
-2. Copy all existing, needed data from the old location to the new one,
+   * - Blockstore Location
+     - Minimum Groom Interval
+   * - MongoDB
+     - One time per year
+   * - |s3|
+     - One time every two weeks
 
-3. Update references to maintain data relationships, and
+.. _how-groom-jobs-work:
 
-4. Drop the old database.
+How Groom Jobs Work
+-------------------
+
+Groom job differ based on the snapshot store.
 
 .. admonition:: File Size Changes during Grooming
    :class: note
 
    During grooming operations, you may notice that the file sizes of
-   blockstores and :abbr:`S3 (Simple Storage Service)` snapshot stores
-   fluctuate, sometimes dramatically. This is normal during these
-   operations.
+   blockstores and |s3| snapshot stores fluctuate, sometimes
+   dramatically. This is normal during these operations.
 
-You can manually direct |onprem| to move blocks between blockstores
-through the :ref:`groom-priority-page`.
+.. _intra-blockstore-groom-job:
 
-You can also :doc:`/tutorial/configure-block-size`.
+Intra-Blockstore Groom Job
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An intra-blockstore groom job performs the following tasks:
+
+1. Writes all new blocks for ongoing snapshots to a new *target*
+   location on the blockstore.
+
+2. Copies all existing living blocks from the *source* location to the
+   new *target* location in the same blockstore.
+
+   This means two copies of the living blocks exist on the blockstore
+   at the same time. This impacts storage usage.
+
+3. Updates references to maintain data relationships.
+
+4. Drops the *source* database.
+
+.. _inter-blockstore-groom-job:
+
+Inter-Blockstore Groom Job
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An inter-blockstore groom job performs the following tasks:
+
+1. Writes all new blocks for ongoing snapshots to a different *target*
+   blockstore.
+
+2. Copies all existing living blocks from the *source* blockstore to
+   the new *target* blockstore.
+
+3. Updates references to maintain data relationships.
+
+4. Drops the database from the *source* blockstore.
+
+File System Groom Job
+~~~~~~~~~~~~~~~~~~~~~
+
+A File System Groom Job deletes the database files from the file
+system.
+
+S3 Groom Job
+~~~~~~~~~~~~
+
+An |s3| blockstore groom job performs the following tasks:
+
+1. Writes all new blocks for ongoing snapshots to temporary database
+
+2. Sends a delete request for dead blocks in source database
+
+3. Resumes writing new blocks for ongoing snapshots to source database
+
+4. Copies over new blocks from the temporary database back to the
+   source database.
+
+What Triggers a Groom Job
+-------------------------
+
+|onprem| triggers groom jobs when:
+
+- the percentage of living bytes drops below a given threshold and
+- the number of dead bytes reaches a minimum value.
+
+When grooming, Ops Manager removes all the dead bytes.
+
+
+.. list-table::
+   :widths: 30 35 35
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Blockstore Type
+     - Percentage of Living to Total Bytes
+     - Minimum Number of Dead Bytes
+
+   * - S3
+     - 75%
+     - 0
+
+   * - MongoDB
+     - 45%
+     - 2 GB
+
+You can start a groom from the
+:ref:`Grooms Priority admin page <groom-priority-page>`.

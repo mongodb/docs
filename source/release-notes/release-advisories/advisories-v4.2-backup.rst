@@ -221,6 +221,10 @@ with |fcv-link| 4.2 or later, you:
 
    - Must run :product:`MongoDB Enterprise <enterprise>`.
 
+   - Must account for the change in blockstore block size. If you
+     didn't set your block size and used the default, that block size
+     changes from 64 KB to 1 MB. This can impact storage usage.
+
 .. cond:: cloud
 
    - Must run :product:`MongoDB Enterprise <enterprise>`. MongoDB, Inc.
