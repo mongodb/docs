@@ -25,6 +25,8 @@
        Users can acknowledge PagerDuty alerts only from the PagerDuty
        dashboard.
 
+       .. include:: /includes/fact-pagerduty-api-key-decommission.rst
+
    * - :guilabel:`Flowdock Settings`
 
      - Sets default values for alert notifications sent to Flowdock.
