@@ -12,7 +12,7 @@
      - |cidr|\-notated range of IP addresses.
 
    * - created
-     - date
+     - string
      - |iso8601-time| when this IP address was added to the whitelist.
 
    * - ipAddress
@@ -20,7 +20,7 @@
      - Whitelisted IP address.
 
    * - lastUsed
-     - date
+     - string
      - |iso8601-time| when the most recent request that originated from
        this IP address.
 
