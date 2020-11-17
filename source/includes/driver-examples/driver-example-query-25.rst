@@ -19,6 +19,7 @@
             { dim_cm: { $gt: 15, $lt: 20 } }
 
          .. figure:: /images/compass-array-compound-filter.png
+            :alt: Query array using a compound filter
 
      - id: python
        content: |

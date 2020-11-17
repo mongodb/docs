@@ -19,6 +19,7 @@
             { "instock": { $elemMatch: { qty: 5, warehouse: "A" } } }
 
          .. figure:: /images/compass-array-multiple-cond-single-doc.png
+            :alt: Query for single document matching multiple conditions
 
      - id: python
        content: |

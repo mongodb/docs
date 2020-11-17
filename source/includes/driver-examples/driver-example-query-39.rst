@@ -20,6 +20,7 @@
             { item: null }
 
          .. figure:: /images/compass-find-null-field.png
+            :alt: Query null value or missing field
 
      - id: python
        content: |

@@ -19,6 +19,7 @@
             { size: { h: 14, w: 21, uom: "cm" } }
 
          .. figure:: /images/compass-match-embedded.png
+            :alt: Query embedded field
 
      - id: python
        content: |

@@ -19,6 +19,7 @@
             { status: { $in: [ "A", "D" ] } }
 
          .. figure:: /images/compass-find-filter-query-op.png
+            :alt: Query using query operators
 
      - id: python
        content: |

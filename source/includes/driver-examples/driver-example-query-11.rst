@@ -19,6 +19,7 @@
             { status: "A", qty: { $lt: 30 } }
 
          .. figure:: /images/compass-find-filter-and.png
+            :alt: Query using multiple conditions with AND
 
      - id: python
        content: |

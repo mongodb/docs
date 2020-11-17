@@ -19,6 +19,7 @@
             { $or: [ { status: "A" }, { qty: { $lt: 30 } } ] }
 
          .. figure:: /images/compass-find-filter-or.png
+            :alt: Query using OR
 
      - id: python
        content: |

@@ -19,6 +19,7 @@
             { 'instock.0.qty': { $lte: 20 } }
 
          .. figure:: /images/compass-find-array-index-embedded-doc.png
+            :alt: Query for array element matching single condition
 
      - id: python
        content: |

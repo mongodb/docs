@@ -22,6 +22,7 @@
             { status: "A", $or: [ { qty: { $lt: 30 } }, { item: /^p/ } ] }
 
          .. figure:: /images/compass-find-filter-and-or.png
+            :alt: Query using AND as well as OR
 
 
      - id: python

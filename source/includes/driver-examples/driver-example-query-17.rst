@@ -19,6 +19,7 @@
             { "size.uom": "in" }
 
          .. figure:: /images/compass-find-nested-field.png
+            :alt: Query single nested field
 
      - id: python
        content: |

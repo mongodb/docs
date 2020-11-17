@@ -17,6 +17,7 @@
      - id: compass
        content: |
          .. figure:: /images/compass-insert-document-inventory.png
+            :alt: Compass insert new document into collection
 
      - id: python
        content: |

@@ -19,6 +19,7 @@
             { dim_cm: { $gt: 25 } }
 
          .. figure:: /images/compass-array-query-op.png
+            :alt:  Query array for at least one matching element
 
      - id: python
        content: |

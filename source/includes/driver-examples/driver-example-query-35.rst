@@ -19,6 +19,7 @@
             { "instock": { $elemMatch: { qty: { $gt: 10, $lte: 20 } } } }
 
          .. figure:: /images/compass-array-multiple-cond-single-doc-2.png
+            :alt: Query for single document matching multiple conditions
 
      - id: python
        content: |

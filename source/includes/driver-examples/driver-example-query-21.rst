@@ -19,6 +19,7 @@
             { tags: ["red", "blank"] }
 
          .. figure:: /images/compass-array-match-exact.png
+            :alt: Query array matching exactly
 
      - id: python
        content: |

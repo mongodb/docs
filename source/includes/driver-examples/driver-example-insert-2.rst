@@ -11,6 +11,7 @@
      - id: compass
        content: |
          .. figure:: /images/compass-query-collection.png
+            :alt: Query for matching documents in a collection
 
          Specify a filter in the MongoDB Compass query bar and click
          :guilabel:`Find` to execute the query.

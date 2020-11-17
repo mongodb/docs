@@ -19,6 +19,7 @@
             { "instock": { warehouse: "A", qty: 5 } }
 
          .. figure:: /images/compass-find-nested-in-array.png
+            :alt: Query for nested array element
 
      - id: python
        content: |

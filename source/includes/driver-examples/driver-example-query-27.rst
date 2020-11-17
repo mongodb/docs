@@ -19,6 +19,7 @@
             { "dim_cm.1": { $gt: 25 } }
 
          .. figure:: /images/compass-array-match-by-index.png
+            :alt: Query array by index
 
      - id: python
        content: |

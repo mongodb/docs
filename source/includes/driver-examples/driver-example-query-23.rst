@@ -19,6 +19,7 @@
             { tags: "red" }
 
          .. figure:: /images/compass-array-elem-match.png
+            :alt: Query array matching multiple criteria
 
      - id: python
        content: |

@@ -15,6 +15,7 @@
             to access the :ref:`Table View <documents-table-view>`:
 
             .. figure:: /images/compass-table-btn-click-2.png
+               :alt: Compass Table View button
 
             .. raw:: html
 
@@ -32,6 +33,7 @@
                { item: "paper" }
 
             .. figure:: /images/compass-delete-paper-find.png
+               :alt: Compass Find button
 
             .. raw:: html
 
@@ -45,6 +47,7 @@
                <br>
 
             .. figure:: /images/compass-delete-button-click.png
+               :alt: Compass Delete Document button
 
             .. raw:: html
 
@@ -59,6 +62,7 @@
                <br>
 
             .. figure:: /images/compass-delete-confirm.png
+               :alt: Compass Confirm Deletion button
 
             .. raw:: html
 

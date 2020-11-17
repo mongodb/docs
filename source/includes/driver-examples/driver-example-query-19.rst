@@ -19,6 +19,7 @@
             { "size.h": { $lt: 15 }, "size.uom": "in", status: "D" }
 
          .. figure:: /images/compass-find-embedded-and.png
+            :alt: Query multiple nested fields
 
      - id: python
        content: |
