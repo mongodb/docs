@@ -74,12 +74,8 @@
           role to create a new project
           *within an existing organization*.
 
-          .. admonition:: Limited to |com| Organizations
+          .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
 
-             If you set this value, it can be for a |com|
-             organization only. If you try to use an Atlas
-             organization, the |k8s-op-short| may not work as
-             intended.
 
      - | ``5cc9b333dd3e384a625a6615``
 

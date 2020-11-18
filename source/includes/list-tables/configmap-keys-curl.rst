@@ -45,21 +45,27 @@
 
        The |k8s-op-short| creates the |mms| project if it does
        not exist. If you omit the ``projectName``, the |k8s-op-short|
-       creates a project with the same name as your |k8s| resource.
+       creates a project with the same name as your
+       |k8s| resource.
 
-       If you need or want to use an existing project, you can find
+       To use an existing project in a |com|
+       organization, locate
        the ``projectName`` by clicking the :guilabel:`All Clusters`
-       link at the top left of the screen, then either search by
-       name in the :guilabel:`Search` box or scroll to find the
-       name in the list. Each card in this list represents the
-       combination of one **Organization** and **Project**.
+       link at the top left of the |com| page, and
+       searching by name in the :guilabel:`Search`
+       box, or scrolling to find the name in the list.
+       Each card in this list represents the
+       combination of one |com| **Organization** and **Project**.
 
      - ``Development``
 
    * - ``orgId``
      - string
-     - 24 character hex string that uniquely identifies your
-       MongoDB :opsmgr:`Organization </tutorial/manage-organizations>`.
+     - 24 character hex string that uniquely
+       identifies your
+       |com| :opsmgr:`Organization </tutorial/manage-organizations>`.
+
+       .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
 
        Depending on your |k8s-op-short| :ref:`credentials
        <create-k8s-credentials>`, this field is:
@@ -75,47 +81,28 @@
              You must specify an :ref:`existing Organization
              <create-organization>`.
 
-             To find the ``orgId`` of your Organization:
-
-             1. Click the :guilabel:`Context` menu.
-             2. Select your Organization.
-             3. View the current |url| in your browser and copy the   
-                value displayed in the ``<orgId>`` placeholder below:
-
-                | ``https://ops.example.com:8443/``
-                | ``v2#/org/<orgId>/projects``
+             .. include:: /includes/steps/find-org-id.rst
 
           .. tab:: Organization API Keys
              :tabid: org
        
-             If specified, the |k8s-op-short| links to the Organization.
+             If specified, the |k8s-op-short| links to the organization.
              
-             You can find the Organization's ``orgId`` in your |onprem|
-             |url|:
+             To find the ``orgID`` of your organization:
 
-             1. Click the :guilabel:`Context` menu.
-             2. Select your Organization.
-             3. View the current |url| in your browser and copy the 
-                value displayed in the ``<orgId>`` placeholder below:
+             .. include:: /includes/steps/find-org-id.rst
 
-                | ``https://ops.example.com:8443/``
-                | ``v2#/org/<orgId>/projects``
-
-             If omitted, |onprem| creates an Organization called
+             If omitted, |onprem| creates an organization called
              ``projectName`` that contains a project also called
              ``projectName``.
-             
+
              You must have the :authrole:`Organization Project Creator`
              role to create a new project within an existing
-             organization.
+             |com| organization.
+              
+     - ``5cc9b333dde384a625a6615``
+       
 
-       .. admonition:: Limited to |com| Organizations
-          :class: important
 
-          This value must be a |com|
-          organization. The |k8s-op-short| might not work as
-          expected when set to an |service| organization.
-
-     - | ``5cc9b333dd3e384a625a6615``
 
 
