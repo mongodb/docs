@@ -55,20 +55,15 @@ User Access Control
      project cannot modify any resource within that project whether
      through the |service| UI or the |api|.
 
-|api| Network Whitelist
-  The |service| |api| supports a per-user
-  :ref:`API Whitelist <whitelist-for-api-operations>` for
-  restricting |api| access to specific IP or |cidr| addresses.
-  For |service| users with a non-empty |api| whitelist, all |api|
-  access must originate from a whitelisted IP address. An empty |api|
-  whitelist grants access to all |api| endpoints except those that
-  explicitly require whitelisting for access.
+|api| Network Access List
+  The |service| secures access to its |api| through an
+  :ref:`access list <enable-api-access-list>`. This list restricts
+  access to the |api| to specific IP or |cidr| addresses. Each
+  :doc:`Programmatic API Key </reference/api/apiKeys>` has its own
+  |api| access list. Each |api| Key must make any |api| requests from
+  an IP address on the |api| access list.
 
-  |service| supports requiring |api| whitelisting at the organization
-  level, such that any |api| activity for all projects within that
-  organization must originate from an entry on each respective
-  |service| user's |api| whitelist. To learn more, see
-  :doc:`Configure Atlas API Access </configure-api-access>`.
+  .. seealso:: :doc:`Configure Atlas API Access </configure-api-access>`
 
 .. _HTTP Digest Authentication: http://en.wikipedia.org/wiki/Digest_access_authentication
 
@@ -441,61 +436,60 @@ Authentication
 
 As previously mentioned, the |service| |api| uses |http| Digest
 Authentication. The details of digest authentication are beyond the
-scope of this document, but it essentially requires a username and a
-password which are hashed using a unique server-generated value called
-a **nonce**. The username is the |api| public key and the password is 
-the corresponding private key.
+scope of this document. Digest authentication requires a username and a
+password. The |service| hashes these values using a unique value called
+a **nonce**. The |api| public key serves as the username. Its
+corresponding |api| private key serves as the password.
 
 Keep the following points in mind:
 
-- The server-generated nonce is used by the client to hash the username
-  and password before sending them back to the server to authenticate a
-  request. The nonce is only valid for a short amount of time as per
-  the digest authentication specification. This is to prevent replay
-  attacks, so you can't cache a nonce and use it forever.
+- The |service|-generated nonce is used by the client to hash the
+  username and password before sending them back to the |service| to
+  authenticate a request. The nonce is only valid for a short amount of
+  time as per the digest authentication specification. This is to
+  prevent replay attacks, so you can't cache a nonce and use it
+  forever.
 
-- Using digest authentication in combination with |https| provides an
-  extra layer of security by ensuring that a password is never
-  transmitted back to the server.
+- Using digest authentication with |https| adds an extra layer of
+  security. The |api| request never sends the password  to the
+  |service|.
 
-- Some resource methods require even more security and are additionally
-  protected by user |api| whitelists that allow access to the resource
-  only from the IP addresses listed. Each user configures their own
-  |api| whitelist of IP addresses that allow them access to the
-  resource, in combination with their |api| keys. A user can access a
-  whitelisted resource only when the |api| key and whitelisted IP
-  address come from the same |service| user account.
+- Some resource require additional security. These resources deny
+  access to any request not made from an IP address on an |api| access
+  list. Each organization may have one or more |api| keys, each with
+  their own |api| access list. An |api| key can access an |api|
+  resource only from an IP address on its |api| access list.
 
-- |service| roles allow more fine-grained control of the operations a
-  user is allowed to perform. The |api| resources enforce the same
-  authorization rules, so the resources and methods that can be
-  accessed by an |api| key are governed by the roles granted to the
-  associated user.
+- |service| roles limit which operations an |api| key can perform. The
+  |api| resources enforce the same privileges. The resources and
+  methods that an |api| key use the same roles as |a-service| user.
 
-- Many resources are tied to a project, as evidenced by |url|\s of the
-  form ``.../api/atlas/v1.0/groups/<GROUP-ID>/...``. For these
-  resources, the user tied to the |api| key must be a member of the
-  project. Otherwise the server responds with a ``401`` error.
+- |service| binds many resources to a project. Many |api| resource
+  |url|\s follow the format of ``/api/atlas/v1.0/groups/<GROUP-ID>/``.
+  For these resources, the |api| key must be a member of the
+  organization that hosts the project. Otherwise, the |service|
+  responds with a :httpstat:`401` error.
 
 .. _api-rate-limiting:
 
 Rate Limiting
 -------------
 
-Certain resources are subject to rate limiting.
+Certain resources limit how many requests they can process per minute.
 
-For resources that are rate limited, |service| allows up to 100
-requests per minute *per project*. Keep in mind that an |api| key is
-assigned to a user, but that user may access multiple projects.
+For these resources, |service| allows up to 100 requests per minute
+*per project*. |api| keys belong to an organization, but can be granted
+access multiple projects.
 
 .. example::
 
-   Consider two users: A and B. User A belongs to project X, and user B belongs to projects X and Y.
+   Consider two users: A and B. User A belongs to project X, and user B
+   belongs to projects X and Y.
 
    - At 1:00:00pm, User A makes 50 requests to a rate limited resource
      in project X, all of which are complete by 1:00:20pm.
 
-   - At 1:00:30pm, User B attempts to make 60 requests to a rate 
+   - At 1:00:30pm, User B attempts to make 60 requests to a rate
      limited resource in project X.
 
      Since User A has already used up 50 requests within the 1:00pm
@@ -503,13 +497,14 @@ assigned to a user, but that user may access multiple projects.
      are rejected.
 
      However, User B can make requests to a rate limited resource in
-     project Y, since each project maintains a separate request counter.
+     project Y, since each project maintains a separate request
+     counter.
 
    - At 1:01:00pm, requests to project X may proceed, because the
      request counter used for rate limiting resets each minute.
 
-If you exceed the rate limit, the |api| returns a
-``429 Too Many Requests`` response code.
+If you exceed the rate limit, the |api| returns a :httpstat:`429` (Too
+Many Requests) |http| status code.
 
 .. class:: hidden
 

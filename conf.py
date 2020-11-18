@@ -273,7 +273,8 @@ extlinks = {
     'osb' : ('https://docs.mongodb.com/atlas-open-service-broker/current%s',''),
     'mdb-shell' : ('https://docs.mongodb.com/mongodb-shell%s',''),
     'openjdktix' : ('https://bugs.openjdk.java.net/browse/%s',''),
-    'datalake' : ('https://docs.mongodb.com/datalake/%s', '')
+    'datalake' : ('https://docs.mongodb.com/datalake/%s', ''),
+    'httpstat' : ('https://httpstatuses.com/%s', '')
 }
 
 # add `extlinks` for each published version.
