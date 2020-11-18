@@ -28,6 +28,11 @@
      - 3.4 Community & Enterprise
      - 3.2 Community & Enterprise
 
+   * - Amazon Linux 2
+     - 3.6.22+
+     -
+     -
+
    * - Amazon Linux 2013.03 and later
      - |checkmark|
      - |checkmark|
@@ -57,11 +62,6 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-
-   * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 8.0 and later
-     - 3.6.17+
-     -
-     -
 
    * - SLES 12
      - |checkmark|
