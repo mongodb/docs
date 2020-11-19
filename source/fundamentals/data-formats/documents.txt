@@ -15,11 +15,12 @@ Overview
 --------
 
 A MongoDB **document** is a data structure that contains key/value pairs in
-binary JSON (BSON) format and is the base unit in the MongoDB data hierarchy.
+binary JSON (BSON) format. The document is the base unit of the MongoDB
+data hierarchy: each :term:`document` belongs to a single :term:`collection`
+and each collection belongs to a single :term:`database`.
 
-Each **document** belongs to a single **collection** and each **collection**
-belongs to a single **database**. For more information, see our MongoDB manual
-entry on :manual:`Documents </core/document>`.
+For more information on terminology, structure, and limitations of documents,
+read our page on :manual:`Documents </core/document>` in the MongoDB manual.
 
 The Java driver and BSON library include the following document classes that
 help you access and manipulate the BSON data in documents:
@@ -55,18 +56,12 @@ represent dynamically structured documents of any complexity. It
 implements the ``Map<String, Object>`` interface which enables it to use
 loosely-typed values.
 
-.. warning:: Duplicate Field Names
-
-   Although a document is valid if it contains two duplicate keys, the driver
-   only sets the value of the key to the value in the last instance.
-
 Document
 --------
 
 The ``Document`` class offers a flexible representation of a BSON document.
-You can access and manipulate document data using Java types with this
-class. See the following table for mappings between frequently-used BSON
-and Java types:
+You can access and manipulate fields using Java types with this class. See
+the following table for mappings between frequently-used BSON and Java types:
 
 .. list-table::
    :header-rows: 1
@@ -92,14 +87,15 @@ and Java types:
      - ``java.lang.Long``
    * - Null
      - ``null``
-   * - ObjectId``
+   * - ObjectId
      - ``org.bson.types.ObjectId``
    * - String
      - ``java.lang.String``
 
-You can also customize the type mapping by specifying a custom codec.
-For more information on customizing mapped types, see our guide on using
-:doc:`Codecs </fundamentals/data-formats/codecs>`.
+The mapping table above shows the default mapping when working with the
+``Document`` class. You can customize the type mapping by specifying a
+custom codec. For more information on customizing mapped types, see our guide
+on using :doc:`Codecs </fundamentals/data-formats/codecs>`.
 
 In the following code snippet, we show how to instantiate and build a sample
 ``Document`` instance that contains a variety of data types:
@@ -114,13 +110,16 @@ In the following code snippet, we show how to instantiate and build a sample
            new Document("title", "Chronicle of a Death Foretold").append("yearPublished", 1981),
            new Document("title", "Love in the Time of Cholera").append("yearPublished", 1985)));
 
-You can insert this document into a collection using the following code:
+To insert this document into a collection, instantiate a collection using
+:java-doc:`getCollection()</apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String)>`
+and call the :doc:`insertOne </usage-examples/insertOne>` operation as
+follows:
 
 .. code-block:: java
 
-  // MongoClient mongoClient = ...
+  // MongoClient mongoClient = <code to instantiate your client>;
 
-  MongoDatabase database = mongoClient.getDatabase("test_data");
+  MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
   MongoCollection<Document> collection = database.getCollection("authors");
 
   InsertOneResult result = collection.insertOne(author);
@@ -131,7 +130,7 @@ data from the collection using the following code:
 .. code-block:: java
 
    import com.mongodb.client.model.Filters;
-   ...
+   // <MongoCollection setup code here>
 
    Document doc = collection.find(Filters.eq("novels.yearPublished", 1967)).first();
    if (doc != null) {
@@ -198,10 +197,10 @@ frequently-used BSON and Java BSON library types:
    * - String
      - ``org.bson.BsonString``
 
-
-You can also customize the type mapping by specifying a custom codec.
-For more information on customizing mapped types, see our guide on using
-:doc:`Codecs </fundamentals/data-formats/codecs>`.
+The mapping table above shows the default mapping when working with the
+``BsonDocument`` class. You can customize the type mapping by specifying a
+custom codec. For more information on customizing mapped types, see our guide
+on using :doc:`Codecs </fundamentals/data-formats/codecs>`.
 
 In the following code snippet, we show how to instantiate and build a sample
 ``BsonDocument`` instance that contains a variety of data types:
@@ -218,14 +217,17 @@ In the following code snippet, we show how to instantiate and build a sample
            new BsonDocument().append("title", new BsonString("Love in the Time of Cholera")).append("yearPublished", new BsonInt32(1985))
       )));
 
-You can insert this document into a collection using the following code:
+To insert this document into a collection, instantiate a collection using
+:java-doc:`getCollection()</apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String,java.lang.Class)>`,
+specifying the ``BsonDocument`` class. Then, call the
+:doc:`insertOne </usage-examples/insertOne>` operation as follows:
 
 .. code-block:: java
 
-   // MongoClient mongoClient = ...
+   // MongoClient mongoClient = <code to instantiate your client>;
 
-   MongoCollection<BsonDocument> collection = database.getCollection("authors", BsonDocument.class);
    MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
+   MongoCollection<BsonDocument> collection = database.getCollection("authors", BsonDocument.class);
 
    InsertOneResult result = collection.insertOne(author);
 
@@ -235,7 +237,8 @@ data from the collection using the following code:
 .. code-block:: java
 
    import com.mongodb.client.model.Filters;
-   ...
+
+   // <MongoCollection setup code here>
 
    BsonDocument doc = collection.find(Filters.eq("novels.yearPublished", 1967)).first();
    if (doc != null) {
@@ -291,11 +294,14 @@ In the following code snippet, we show how to instantiate and build a sample
            new BasicDBObject("title", "Chronicle of a Death Foretold").append("yearPublished", 1981),
            new BasicDBObject("title", "Love in the Time of Cholera").append("yearPublished", 1985)));
 
-You can insert this document into a collection using the following code:
+To insert this document into a collection, instantiate a collection using
+:java-doc:`getCollection()</apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String,java.lang.Class)>`,
+specifying the ``BasicDBObject`` class. Then, call the
+:doc:`insertOne </usage-examples/insertOne>` operation as follows:
 
 .. code-block:: java
 
-   // MongoClient mongoClient = ...
+   // MongoClient mongoClient = <code to instantiate your client>;
 
    MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
    MongoCollection<BasicDBObject> collection = database.getCollection("authors", BasicDBObject.class);
@@ -308,7 +314,7 @@ data from the collection using the following code:
 .. code-block:: java
 
    import com.mongodb.client.model.Filters;
-   ...
+   // <MongoCollection setup code here>
 
    BasicDBObject doc = collection.find(Filters.eq("novels.yearPublished", 1967)).first();
    if (doc != null) {
