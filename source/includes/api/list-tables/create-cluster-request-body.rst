@@ -213,9 +213,8 @@
           - Must be used when **replicationSpecs** is set.
 
        The minimum disk size for dedicated clusters is 10 GB for |aws|
-       and |gcp|, and 32 GB for |azure|. If you specify **diskSizeGB**
-       with a lower disk size, |service| defaults to the minimum disk
-       size value.
+       and |gcp|. If you specify **diskSizeGB** with a lower disk size,
+       |service| defaults to the minimum disk size value.
 
        .. important::
 
