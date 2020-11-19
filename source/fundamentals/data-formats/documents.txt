@@ -14,34 +14,348 @@ Documents
 Overview
 --------
 
-- Definition - what is a document, what format is it, where to find more info 
-- Table comparison of classes (columns for: implements Map, provides type safety, is an interface or class, compatibility with server versions
-- Recommend Document for general use and why.
-- Duplicate field name admonition (I forgot what this is)
+A MongoDB **document** is a data structure that contains key/value pairs in
+binary JSON (BSON) format and is the base unit in the MongoDB data hierarchy.
+
+Each **document** belongs to a single **collection** and each **collection**
+belongs to a single **database**. For more information, see our MongoDB manual
+entry on :manual:`Documents </core/document>`.
+
+The Java driver and BSON library include the following document classes that
+help you access and manipulate the BSON data in documents:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Package
+     - Implements Map
+     - Java Type
+     - MongoDB Server Compatibility
+
+   * - ``Document``
+     - ``org.bson``
+     - Yes
+     - Class
+     - 3.x and later (?)
+
+   * - ``BsonDocument``
+     - ``org.bson``
+     - Yes
+     - Class
+     - 3.x and later (?)
+
+   * - ``BasicDBObject``
+     - ``com.mongodb``
+     - No
+     - Class
+     - 2.x and later (?)
+
+
+While you can use any of the document classes in your application, we
+recommend that you use the ``Document`` class since it can concisely
+represent dynamically structured documents of any complexity because it is:
+
+- loosely typed
+- implements the ``Map<String, Object>`` interface
+
+.. warning:: Duplicate Field Names
+
+   Although a document is valid if it contains two duplicate keys, the driver
+   only reads the value of the second key.
 
 Document
 --------
 
-- Description
-- Chart that shows mapping between BSON and Java types (similar to the one here https://mongodb.github.io/mongo-java-driver/4.1/bson/documents/)
-- Code example of declaring one and appending fields
-- Code example of get() for various types
-- Link to Fundamentals > CRUD for more information
-- Link to API documentation
+The ``Document`` class offers a flexible representation of a BSON document.
+You can access and manipulate document data using Java types with this
+class. See the following table for mappings between frequently-used BSON
+and Java types:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - BSON type
+     - Java type
+   * - Array
+     - java.util.List
+   * - Binary
+     - org.bson.types.Binary
+   * - Boolean
+     - java.lang.Boolean
+   * - Date
+     - java.util.Date
+   * - Document
+     - org.bson.Document
+   * - Double
+     - java.lang.Double
+   * - Int32
+     - java.lang.Integer
+   * - Int64
+     - java.lang.Long
+   * - Null
+     - null
+   * - ObjectId
+     - org.bson.types.ObjectId
+   * - String
+     - java.lang.String
+
+You can also customize the type mapping by specifying a custom codec.
+For more information on customizing mapped types, see our guide on using
+:doc:`Codecs </fundamentals/data-formats/documents>`.
+
+In the following code snippet, we show how to instantiate and build a sample
+``Document`` instance that contains a variety of data types:
+
+.. code-block:: java
+   :copyable: true
+
+   Document author = new Document("_id", new ObjectId())
+       .append("name", "Gabriel García Márquez")
+       .append("lastUpdated", new Date(120, 2, 26))
+       .append("novels", Arrays.asList(
+           new Document("title", "One Hundred Years of Solitude").append("yearPublished", 1967),
+           new Document("title", "Chronicle of a Death Foretold").append("yearPublished", 1981),
+           new Document("title", "Love in the Time of Cholera").append("yearPublished", 1985)));
+
+You can insert this document into a collection using the following code:
+
+.. code-block:: java
+   :copyable: true
+
+  // MongoClient mongoClient = ...
+
+  MongoDatabase database = mongoClient.getDatabase("test_data");
+  MongoCollection<Document> collection = database.getCollection("authors");
+
+  InsertOneResult result = collection.insertOne(author);
+
+Once you perform a successful insert, you can retrieve the sample document
+data from the collection using the following code:
+
+.. code-block:: java
+   :copyable: true
+
+   import com.mongodb.client.model.Filters;
+   ...
+
+   Document doc = collection.find(Filters.eq("novels.yearPublished", 1967)).first();
+   if (doc == null) {
+       System.out.println("No results found.");
+   } else {
+       System.out.println("_id: " + doc.getObjectId("_id")
+           + ", name: " + doc.getString("name")
+           + ", lastUpdated: " + doc.getDate("lastUpdated"));
+
+       doc.getList("novels", Document.class).forEach((novel) -> {
+           System.out.println("title: " + novel.getString("title")
+               + ", yearPublished: " + novel.getInteger("yearPublished"));
+           });
+   }
+
+The output should resemble the following:
+
+.. code-block:: none
+
+   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, lastUpdated: Thu Mar 26 00:00:00 EDT 2020
+   title: One Hundred Years of Solitude, yearPublished: 1967
+   title: Chronicle of a Death Foretold, yearPublished: 1981
+   title: Love in the Time of Cholera, yearPublished: 1985
+
+For more information on retrieving and manipulating MongoDB data, see our
+:doc:`CRUD guide </fundamentals/crud>`.
+
+For more information on this class, see the
+:java-docs:`Document API documentation </apidocs/bson/org/bson/Document.html>`.
 
 BsonDocument
 ------------
 
-- Description
-- Link to Fundamentals > Document Data Formats: BSON for more information
-- Code example of declaring one and appending fields
-- Link to Fundamentals > CRUD for more information
-- Link to API documentation
+The ``BsonDocument`` class provides a typesafe API to access and manipulate
+a BSON document. You need to specify the BSON type from the Java BSON
+library for each field. See the following table for mappings between
+frequently-used BSON and Java BSON library types:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - BSON type
+     - Java BSON library type
+   * - Array
+     - org.bson.BsonArray
+   * - Binary
+     - org.bson.BsonBinary
+   * - Boolean
+     - org.bson.Boolean
+   * - Date (long value)
+     - org.bson.BsonDateTime
+   * - Document
+     - org.bson.BsonDocument
+   * - Double
+     - org.bson.BsonDouble
+   * - Int32
+     - org.bson.BsonInt32
+   * - Int64
+     - org.bson.BsonInt64
+   * - Null
+     - null
+   * - ObjectId
+     - org.bson.BsonObjectId
+   * - String
+     - org.bson.BsonString
+
+
+You can also customize the type mapping by specifying a custom codec.
+For more information on customizing mapped types, see our guide on using
+:doc:`Codecs </fundamentals/data-formats/documents>`.
+
+In the following code snippet, we show how to instantiate and build a sample
+``BsonDocument`` instance that contains a variety of data types:
+
+.. code-block:: java
+   :copyable: true
+
+   BsonDocument author = new BsonDocument()
+       .append("_id", new BsonObjectId())
+       .append("name", new BsonString("Gabriel García Márquez"))
+       .append("lastUpdated", new BsonDateTime(new Date(120, 2, 26).getTime()))
+       .append("novels", new BsonArray(Arrays.asList(
+           new BsonDocument().append("title", new BsonString("One Hundred Years of Solitude")).append("yearPublished", new BsonInt32(1967)),
+           new BsonDocument().append("title", new BsonString("Chronicle of a Death Foretold")).append("yearPublished", new BsonInt32(1981)),
+           new BsonDocument().append("title", new BsonString("Love in the Time of Cholera")).append("yearPublished", new BsonInt32(1985))
+      )));
+
+You can insert this document into a collection using the following code:
+
+.. code-block:: java
+   :copyable: true
+
+   // MongoClient mongoClient = ...
+
+   MongoCollection<BsonDocument> collection = database.getCollection("authors", BsonDocument.class);
+   MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
+
+   InsertOneResult result = collection.insertOne(author);
+
+Once you perform a successful insert, you can retrieve the sample document
+data from the collection using the following code:
+
+.. code-block:: java
+   :copyable: true
+
+   import com.mongodb.client.model.Filters;
+   ...
+
+   BsonDocument doc = collection.find(Filters.eq("novels.yearPublished", 1967)).first();
+   if (doc == null) {
+       System.out.println("No results found.");
+   } else {
+       System.out.println("_id: " + doc.getObjectId("_id").getValue()
+               + ", name: " + doc.getString("name").getValue()
+               + ", lastUpdated: " + new Date(doc.getDateTime("lastUpdated").getValue()));
+
+       doc.getArray("novels").forEach((novel) -> {
+           System.out.println("title: " + novel.asDocument().getString("title").getValue()
+                   + ", yearPublished: " + novel.asDocument().getInt32("yearPublished").getValue());
+       });
+   }
+
+The output should resemble the following:
+
+.. code-block:: none
+
+   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, lastUpdated: Thu Mar 26 00:00:00 EDT 2020
+   title: One Hundred Years of Solitude, yearPublished: 1967
+   title: Chronicle of a Death Foretold, yearPublished: 1981
+   title: Love in the Time of Cholera, yearPublished: 1985
+
+For more information on retrieving and manipulating MongoDB data, see our
+:doc:`CRUD guide </fundamentals/crud>`.
+
+For more information on this class, see the
+:java-docs:`BsonDocument API documentation </apidocs/bson/org/bson/BsonDocument.html>`.
 
 BasicDBObject
 -------------
 
-- Description
-- Code example of declaring one and appending fields
-- Link to Fundamentals > CRUD for more information
-- Link to API documentation
+The ``BasicDBObject`` class allows you to access and manipulate document data
+using Java types. We recommend that you avoid using this class unless you
+are migrating an application from that uses an older driver version. This
+class implements the ``DBObject`` interface which has the following
+limitations:
+
+- ``DBObject`` is an interface rather than a class, so its API cannot be
+  extended without breaking binary compatibility.
+- ``BasicDBObject`` does not implement ``Map<String, Object>`` and therefore
+  lacks the conveniences
+
+  you from casting directly from Map types.
+
+In the following code snippet, we show how to instantiate and build a sample
+``BasicDBObject`` instance that contains a variety of data types:
+
+.. code-block:: java
+   :copyable: true
+
+   BasicDBObject author = new BasicDBObject("_id", new ObjectId())
+       .append("name", "Gabriel García Márquez")
+       .append("lastUpdated", new Date(120, 2, 26))
+       .append("novels", Arrays.asList(
+           new BasicDBObject("title", "One Hundred Years of Solitude").append("yearPublished", 1967),
+           new BasicDBObject("title", "Chronicle of a Death Foretold").append("yearPublished", 1981),
+           new BasicDBObject("title", "Love in the Time of Cholera").append("yearPublished", 1985)));
+
+You can insert this document into a collection using the following code:
+
+.. code-block:: java
+   :copyable: true
+
+   // MongoClient mongoClient = ...
+
+   MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
+   MongoCollection<BasicDBObject> collection = database.getCollection("authors", BasicDBObject.class);
+
+   InsertOneResult result = collection.insertOne(author);
+
+Once you perform a successful insert, you can retrieve the sample document
+data from the collection using the following code:
+
+.. code-block:: java
+   :copyable: true
+
+   import com.mongodb.client.model.Filters;
+   ...
+
+   BasicDBObject doc = collection.find(Filters.eq("novels.yearPublished", 1967)).first();
+   if (doc == null) {
+       System.out.println("No results found.");
+   } else {
+       System.out.println("_id: " + doc.getObjectId("_id")
+           + ", name: " + doc.getString("name")
+           + ", lastUpdated: " + doc.getDate("lastUpdated"));
+
+       BasicDBList novels = (BasicDBList) doc.get("novels");
+       BasicDBObject[] novelArr = novels.toArray(new BasicDBObject[0]);
+       for (BasicDBObject novel : novelArr) {
+           System.out.println("title: " + novel.getString("title")
+           + ", yearPublished: " + novel.getInt("yearPublished"));
+       }
+   }
+
+The output should resemble the following:
+
+.. code-block:: none
+
+   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, lastUpdated: Thu Mar 26 00:00:00 EDT 2020
+   title: One Hundred Years of Solitude, yearPublished: 1967
+   title: Chronicle of a Death Foretold, yearPublished: 1981
+   title: Love in the Time of Cholera, yearPublished: 1985
+
+For more information on retrieving and manipulating MongoDB data, see our
+:doc:`CRUD guide </fundamentals/crud>`.
+
+For more information on this class, see the
+:java-docs:`BasicDBObject API documentation </apidocs/mongodb-driver-core/com/mongodb/BasicDBObject.html>`.
