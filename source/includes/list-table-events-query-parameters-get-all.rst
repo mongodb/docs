@@ -54,3 +54,15 @@
      - Returns events whose created date is less than or equal to the
        specified ISO-8601  ``maxDate``.
      - 
+
+   * - ``includeRaw``
+     - boolean
+     - Specifies whether to include the ``raw`` document in the output.
+       The ``raw`` document contains additional meta information about
+       the event.
+
+       .. important::
+
+         The values in the ``raw`` document are subject to change. Do
+         not rely on ``raw`` values for formal monitoring.
+     - ``false``
