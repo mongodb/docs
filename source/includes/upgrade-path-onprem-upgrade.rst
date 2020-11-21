@@ -47,12 +47,12 @@ The following table lists upgrade paths for all versions:
 
    * - 4.0.x
      - Use the
-       :v4.2:`v4.2 upgrade tutorial </tutorial/nav/upgrade-application>`
+       :om-v4.2:`v4.2 upgrade tutorial </tutorial/nav/upgrade-application>`
        to upgrade from |onprem| 4.0.x to version 4.2.x.
 
    * - 3.6.x
      - Use the
-       :v4.0:`v4.0 upgrade tutorial </tutorial/nav/upgrade-application>`
+       :om-v4.0:`v4.0 upgrade tutorial </tutorial/nav/upgrade-application>`
        to upgrade from |onprem| 3.6.x to version 4.0.x.
 
    * - 3.4.x
