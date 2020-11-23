@@ -260,6 +260,7 @@ extlinks = {
     'azure': ('https://docs.microsoft.com/en-us/azure%s',''),
     'gh' : ('https://github.com%s',''),
     'gcp': ('https://cloud.google.com%s',''),
+    'developers-google': ('https://developers.google.com%s', ''),
     'dochub': ('https://dochub.mongodb.org/core/%s', ''),
     'hardlink': ('https://docs.atlas.mongodb.com%s', ''),
     'dochub': ('https://dochub.mongodb.org/core/%s', ''),
