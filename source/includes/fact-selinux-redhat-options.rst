@@ -1,7 +1,10 @@
 .. important::
 
    If SELinux is in ``enforcing`` mode, you must customize your SELinux
-   policy for MongoDB.
+   policy for MongoDB by making the following two policy adjustments:
+
+Permit Access to ``cgroup``
++++++++++++++++++++++++++++
 
 .. container::
 
@@ -48,17 +51,65 @@
    The MongoDB process is now able to access the correct files with
    SELinux set to ``enforcing``.
 
+Permit Access to ``netstat`` for FTDC
++++++++++++++++++++++++++++++++++++++
+
+.. container::
+
+   The current SELinux Policy does not allow the MongoDB process to open
+   and read ``/proc/net/netstat``, which is required for
+   :ref:`Full Time Diagnostic Data Capture (FTDC) <ftdc-stub>`.
+   If you intend to run SELinux in
+   ``enforcing`` mode, you will need to make the following adjustment
+   to your SELinux policy:
+
+   #. Ensure your system has the ``checkpolicy`` package installed:
+
+      .. code-block:: sh
+
+         sudo yum install checkpolicy
+
+   #. Create a custom policy file :file:`mongodb_proc_net.te`:
+
+      .. code-block:: sh
+
+         cat > mongodb_proc_net.te <<EOF
+         module mongodb_proc_net 1.0;
+
+         require {
+             type proc_net_t;
+             type mongod_t;
+             class file { open read };
+         }
+
+         #============= mongod_t ==============
+         allow mongod_t proc_net_t:file { open read };
+         EOF
+
+   #. Once created, compile and load the custom policy module by
+      running these three commands:
+
+      .. code-block:: sh
+
+         checkmodule -M -m -o mongodb_proc_net.mod mongodb_proc_net.te
+         semodule_package -o mongodb_proc_net.pp -m mongodb_proc_net.mod
+         sudo semodule -i mongodb_proc_net.pp
+
 .. important::
 
-   You will also need to further customize your SELinux policy in the
-   following two cases if SELinux is in ``enforcing`` mode:
+   In addition to the above, you will also need to further customize
+   your SELinux policy in the following two cases if SELinux is in
+   ``enforcing`` mode:
 
-   - You are **not** using the default MongoDB directories (for RHEL 7.0), and/or
+   - You are using a **custom directory path** instead of using the
+     default :setting:`~storage.dbPath`, :setting:`systemLog.path`, or
+     :setting:`~processManagement.pidFilePath` in RHEL 7.0 or later,
+     and/or
 
-   - You are **not** using :doc:`default MongoDB ports
+   - You are using a **custom port** instead of using the :doc:`default MongoDB ports
      </reference/default-mongodb-port>`.
 
-Non-Default MongoDB Directory Path(s)
+Using a Custom MongoDB Directory Path
 +++++++++++++++++++++++++++++++++++++
 
 .. container::
@@ -127,58 +178,11 @@ Non-Default MongoDB Directory Path(s)
         restorecon -R -v '/mongodb/log' 
 
 
-Non-Default MongoDB Ports
-+++++++++++++++++++++++++
+Using a Custom MongoDB Port
++++++++++++++++++++++++++++
 
 .. container::
 
    .. code-block:: sh
 
       sudo semanage port -a -t mongod_port_t -p tcp <portnumber>
-
-*Optional.* Suppress ``FTDC`` Warnings
-++++++++++++++++++++++++++++++++++++++
-
-.. container::
-
-   The current SELinux Policy does not allow the MongoDB process to open
-   and read ``/proc/net/netstat`` for :ref:`param-ftdc` (FTDC). As such,
-   the audit log may include numerous messages regarding lack of access
-   to this path.
-
-   To track the proposed fix, see `<https://github.com/fedora-selinux/selinux-policy-contrib/pull/79>`__.
-
-   Optionally, as a temporary fix, you can manually adjust the SELinux
-   Policy:
-
-   #. Ensure your system has the ``checkpolicy`` package installed:
-
-      .. code-block:: sh
-
-         sudo yum install checkpolicy
-
-   #. Create a custom policy file :file:`mongodb_proc_net.te`:
-
-      .. code-block:: sh
-
-         cat > mongodb_proc_net.te <<EOF
-         module mongodb_proc_net 1.0;
-
-         require {
-             type proc_net_t;
-             type mongod_t;
-             class file { open read };
-         }
-
-         #============= mongod_t ==============
-         allow mongod_t proc_net_t:file { open read };
-         EOF
-
-   #. Once created, compile and load the custom policy module by
-      running these three commands:
-
-      .. code-block:: sh
-
-         checkmodule -M -m -o mongodb_proc_net.mod mongodb_proc_net.te
-         semodule_package -o mongodb_proc_net.pp -m mongodb_proc_net.mod
-         sudo semodule -i mongodb_proc_net.pp
