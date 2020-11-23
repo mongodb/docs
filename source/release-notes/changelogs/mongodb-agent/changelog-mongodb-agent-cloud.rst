@@ -8,6 +8,20 @@ MongoDB Agent 10.21.0.6634
 - Ensures backup functions are shut down cleanly and promptly upon   
   MongoDB Agent shutdown.
 
+.. _10.19.0.6585-1:
+
+MongoDB Agent 10.19.0.6585-1
+----------------------------
+
+*Released* 2020-09-23
+
+- Fixes an issue when configuring tags for a sharded cluster with 
+  ``FCV=4.4``. Ensures that ObjectIds are properly handled as the value 
+  for the ``_id`` field.
+
+- Fixes an issue where, in rare cases, an error during a backup initial 
+  sync could lead to a MongoDB Agent crash.
+
 .. _10.19.0.6566-1:
 
 MongoDB Agent 10.19.0.6566-1
