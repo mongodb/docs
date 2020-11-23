@@ -125,6 +125,16 @@
        If this field is present in the response, |mms| does not return
        the ``username`` field.
 
+   * - raw
+     - document
+     - Additional meta information about the event. This field only
+       appears when the ``includeRaw`` query parameter is ``true``.
+
+       .. important::
+
+          The values in the ``raw`` document are subject to change. Do
+          not rely on ``raw`` values for formal monitoring.
+
    * - remoteAddress
      - string
      - IP address associated with the |mms| user (userId) who
