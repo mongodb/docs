@@ -1,3 +1,12 @@
+.. _cloudmanager_20201123:
+
+23 November 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates terminology for API Access List management. Introduces API
+  Access List for Programmatic API Keys and deprecates :ref:`API Whitelist
+  <whitelist-for-api-operations>`.
+
 .. _cloudmanager_20201103:
 
 04 November 2020 Release
