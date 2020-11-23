@@ -8,6 +8,15 @@ MongoDB Agent 10.21.0.6634
 - Ensures backup functions are shut down cleanly and promptly upon   
   MongoDB Agent shutdown.
 
+.. _10.20.0.6609-1:
+
+MongoDB Agent 10.20.0.6609-1
+----------------------------
+
+*Released* 2020-10-14
+
+- Improves resiliency of incremental backup snapshots.
+
 .. _10.19.0.6585-1:
 
 MongoDB Agent 10.19.0.6585-1
