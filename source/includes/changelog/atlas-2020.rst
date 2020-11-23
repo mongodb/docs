@@ -1,6 +1,6 @@
-.. _atlas_20201124:
+.. _atlas_20201123:
 
-24 November 2020 Release
+23 November 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Offers self-serve customers the option to sign up for Atlas Pro support.
