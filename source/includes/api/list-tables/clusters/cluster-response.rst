@@ -414,7 +414,7 @@
 
        .. seealso:: :ref:`server-number-costs`.
 
-       |service| might return values between **1** and **12**.
+       |service| might return values between **1** and **50**.
 
        .. note::
 
