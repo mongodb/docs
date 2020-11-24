@@ -9,18 +9,24 @@ and their corresponding storage size.
 
 .. list-table::
    :header-rows: 1
-   :widths: 40 60
+   :widths: 30 30
 
    * - ``diskTypeName``
      - Storage Size
 
-   * - ``P4`` :sup:`1`
+   * - ``P2`` :sup:`1` 
+     - 8GB
+
+   * - ``P3``
+     - 16GB
+
+   * - ``P4`` :sup:`2`
      - 32GB
 
    * - ``P6``
      - 64GB
 
-   * - ``P10`` :sup:`2`
+   * - ``P10`` :sup:`3`
      - 128GB
 
    * - ``P15``
@@ -38,6 +44,8 @@ and their corresponding storage size.
    * - ``P50``
      - 4095GB
 
-:sup:`1` Default for ``M20`` and ``M30`` Azure clusters
+:sup:`1` Default for ``M10`` Azure clusters
 
-:sup:`2` Default for ``M40+`` Azure clusters
+:sup:`2` Default for ``M20`` and ``M30`` Azure clusters
+
+:sup:`3` Default for ``M40+`` Azure clusters
