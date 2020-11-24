@@ -24,9 +24,9 @@
 
 - Adds |jvm| Arguments in the |mms| diagnostic archive.
 
-- Adds a new configuration parameter (``http.proxy.nonProxyHosts``)
-  which allows the |mms| Application Server to bypass the configured
-  outgoing proxy when accessing specific hosts.
+- Adds a new configuration parameter :setting:`Non Proxy Hosts`
+  which allows the |mms| Application Server to bypass the
+  outgoing proxy you configured when accessing specific hosts.
 
 - Fixes a bug that prevents users from changing their password.
 
