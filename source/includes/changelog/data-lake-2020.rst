@@ -1,3 +1,12 @@
+.. _data-lake-v20201124:
+
+24 November 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports Parquet, CSV, and TSV formats for :pipeline:`$out` to |s3|.
+- Adds a rolling limit for cursors.
+- Improves error messages for commands that cannot be parsed.
+
 .. _data-lake-v20201103:
 
 03 November 2020 Release
