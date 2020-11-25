@@ -15,15 +15,14 @@ Overview
 --------
 
 A MongoDB **document** is a data structure that contains key/value pairs in
-binary JSON (BSON) format. The document is the base unit of the MongoDB
-data hierarchy: each document belongs to a single collection
+binary JSON (BSON) format. Each document belongs to a single collection
 and each collection belongs to a single database.
 
 For more information on terminology, structure, and limitations of documents,
 read our page on :manual:`Documents </core/document>` in the MongoDB manual.
 
-The Java driver and BSON library include the following document classes that
-help you access and manipulate the BSON data in documents:
+The Java driver and BSON library include the following classes that help you
+access and manipulate the BSON data in documents:
 
 .. list-table::
    :header-rows: 1
@@ -50,18 +49,19 @@ help you access and manipulate the BSON data in documents:
      - No
      - When you are migrating your application from a legacy driver version.
 
-While you can use any of the document classes in your application, we
-recommend that you use the ``Document`` class since it can concisely
-represent dynamically structured documents of any complexity. It
-implements the ``Map<String, Object>`` interface which enables it to use
-loosely-typed values.
+While you can use any of these classes in your application, we recommend
+that you use the ``Document`` class since it can concisely represent
+dynamically structured documents of any complexity. It implements the
+``Map<String, Object>`` interface which enables it to use loosely-typed
+values.
 
 Document
 --------
 
 The ``Document`` class offers a flexible representation of a BSON document.
-You can access and manipulate fields using Java types with this class. See
-the following table for mappings between frequently-used BSON and Java types:
+You can access and manipulate fields using Java types from the standard
+library with this class. See the following table for mappings between
+frequently-used BSON and Java types:
 
 .. list-table::
    :header-rows: 1
@@ -105,7 +105,7 @@ different field types:
 
    Document author = new Document("_id", new ObjectId())
        .append("name", "Gabriel García Márquez")
-       .append("lastUpdated", new Date(120, 2, 26))
+       .append("dateOfDeath", Date.from(LocalDate.of(2014, 4, 17).atStartOfDay(ZoneId.systemDefault()).toInstant()))
        .append("novels", Arrays.asList(
            new Document("title", "One Hundred Years of Solitude").append("yearPublished", 1967),
            new Document("title", "Chronicle of a Death Foretold").append("yearPublished", 1981),
@@ -137,7 +137,7 @@ data from the collection using the following code:
    if (doc != null) {
        System.out.println("_id: " + doc.getObjectId("_id")
            + ", name: " + doc.getString("name")
-           + ", lastUpdated: " + doc.getDate("lastUpdated"));
+           + ", dateOfDeath: " + doc.getDate("dateOfDeath"));
 
        doc.getList("novels", Document.class).forEach((novel) -> {
            System.out.println("title: " + novel.getString("title")
@@ -158,7 +158,7 @@ The output should resemble the following:
 .. code-block:: none
    :copyable: false
 
-   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, lastUpdated: Thu Mar 26 00:00:00 EDT 2020
+   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, dateOfDeath: Thu Apr 17 00:00:00 EDT 2014
    title: One Hundred Years of Solitude, yearPublished: 1967
    title: Chronicle of a Death Foretold, yearPublished: 1981
    title: Love in the Time of Cholera, yearPublished: 1985
@@ -200,16 +200,11 @@ frequently-used BSON and Java BSON library types:
    * - Int64
      - ``org.bson.BsonInt64``
    * - Null
-     - ``null``
+     - ``org.bson.BsonNull``
    * - ObjectId
      - ``org.bson.BsonObjectId``
    * - String
      - ``org.bson.BsonString``
-
-The mapping table above shows the default mapping when working with the
-``BsonDocument`` class. You can customize the type mapping by specifying a
-custom codec. For more information on customizing mapped types, see our guide
-on using :doc:`Codecs </fundamentals/data-formats/codecs>`.
 
 In the following code snippet, we show how to instantiate and build a sample
 ``BsonDocument`` instance representing a document containing several
@@ -220,7 +215,7 @@ different field types:
    BsonDocument author = new BsonDocument()
        .append("_id", new BsonObjectId())
        .append("name", new BsonString("Gabriel García Márquez"))
-       .append("lastUpdated", new BsonDateTime(new Date(120, 2, 26).getTime()))
+       .append("dateOfDeath", new BsonDateTime(LocalDate.of(2014, 4, 17).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()))
        .append("novels", new BsonArray(Arrays.asList(
            new BsonDocument().append("title", new BsonString("One Hundred Years of Solitude")).append("yearPublished", new BsonInt32(1967)),
            new BsonDocument().append("title", new BsonString("Chronicle of a Death Foretold")).append("yearPublished", new BsonInt32(1981)),
@@ -254,7 +249,7 @@ data from the collection using the following code:
    if (doc != null) {
        System.out.println("_id: " + doc.getObjectId("_id").getValue()
                + ", name: " + doc.getString("name").getValue()
-               + ", lastUpdated: " + new Date(doc.getDateTime("lastUpdated").getValue()));
+               + ", dateOfDeath: " + new Date(doc.getDateTime("dateOfDeath").getValue()));
 
        doc.getArray("novels").forEach((novel) -> {
            System.out.println("title: " + novel.asDocument().getString("title").getValue()
@@ -277,7 +272,7 @@ The output should resemble the following:
 .. code-block:: none
    :copyable: false
 
-   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, lastUpdated: Thu Mar 26 00:00:00 EDT 2020
+   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, dateOfDeath: Thu Apr 17 00:00:00 EDT 2014
    title: One Hundred Years of Solitude, yearPublished: 1967
    title: Chronicle of a Death Foretold, yearPublished: 1981
    title: Love in the Time of Cholera, yearPublished: 1985
@@ -312,7 +307,7 @@ different field types:
 
    BasicDBObject author = new BasicDBObject("_id", new ObjectId())
        .append("name", "Gabriel García Márquez")
-       .append("lastUpdated", new Date(120, 2, 26))
+       .append("dateOfDeath", Date.from(LocalDate.of(2014, 4, 17).atStartOfDay(ZoneId.systemDefault()).toInstant()))
        .append("novels", Arrays.asList(
            new BasicDBObject("title", "One Hundred Years of Solitude").append("yearPublished", 1967),
            new BasicDBObject("title", "Chronicle of a Death Foretold").append("yearPublished", 1981),
@@ -344,7 +339,7 @@ data from the collection using the following code:
    if (doc != null) {
        System.out.println("_id: " + doc.getObjectId("_id")
            + ", name: " + doc.getString("name")
-           + ", lastUpdated: " + doc.getDate("lastUpdated"));
+           + ", dateOfDeath: " + doc.getDate("dateOfDeath"));
 
        BasicDBList novels = (BasicDBList) doc.get("novels");
        if (novels != null) {
@@ -368,7 +363,7 @@ The output should resemble the following:
 .. code-block:: none
    :copyable: false
 
-   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, lastUpdated: Thu Mar 26 00:00:00 EDT 2020
+   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, dateOfDeath: Thu Apr 17 00:00:00 EDT 2014
    title: One Hundred Years of Solitude, yearPublished: 1967
    title: Chronicle of a Death Foretold, yearPublished: 1981
    title: Love in the Time of Cholera, yearPublished: 1985
@@ -382,7 +377,8 @@ For more information on this class, see the
 Summary
 -------
 
-In this guide, we covered the following topics on Java document classes:
+In this guide, we covered the following topics on classes you can use to
+work with BSON data:
 
 - Described three Java classes you can use to work with MongoDB documents and
   why you might prefer one over the other.
