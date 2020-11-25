@@ -165,6 +165,30 @@ content: |
              To use the GCP KMS, you must use
              `libmongocrypt <https://github.com/mongodb/libmongocrypt#installing-libmongocrypt-on-windows>`__ version 1.1 or later in your application's environment.
 
+       .. tab::
+          :tabid: go
+
+          In ``kms/provider.go``, update the variable declarations or define the expected environmental variables
+          in ``GCPProvider()``.
+
+          .. code-block:: go
+
+             gcpEmail := GetCheckedEnv("FLE_GCP_EMAIL")
+             gcpPrivateKey := GetCheckedEnv("FLE_GCP_PRIVATE_KEY")
+
+          The expected KMS provider map is created with struct tags.
+
+          .. code-block:: go
+
+             func (g *GCP) Credentials() map[string]map[string]interface{} {
+                 return map[string]map[string]interface{}{"gcp": structs.Map(g.credentials)}
+             }
+
+
+          .. note::
+
+             To use the GCP KMS, you must use
+             `libmongocrypt <https://github.com/mongodb/libmongocrypt>`__ version 1.1 or later in your application's environment.
 ---
 title: Create a New Data Encryption Key
 ref: create-a-new-data-key-gcp
@@ -302,10 +326,34 @@ content: |
                   });
 
               var dataKeyId = clientEncryption.CreateDataKey("gcp", dataKeyOptions, CancellationToken.None);
-              Console.WriteLine($"DataKeyId [UUID]: {dataKeyId}");
-              var dataKeyIdBase64 = Convert.ToBase64String(GuidConverter.ToBytes(dataKeyId, GuidRepresentation.Standard));
-              Console.WriteLine($"DataKeyId [base64]: {dataKeyIdBase64}");
 
+        .. tab::
+           :tabid: go
+
+           In ``kms/provider.go``, update the variable declarations or define the expected environmental variables
+           in ``GCPProvider()``.
+
+           .. code-block:: go
+
+              gcpProjectID := GetCheckedEnv("FLE_GCP_PROJ_ID")
+              gcpLocation := GetCheckedEnv("FLE_GCP_LOCATION")
+              gcpKeyRing := GetCheckedEnv("FLE_GCP_KEY_RING")
+              gcpKeyName := GetCheckedEnv("FLE_GCP_KEY_NAME")
+
+           Struct tags are used to pass these values directly to the driver for use. In ``kms/provider.go``
+
+           .. code-block:: go
+
+              func (g *GCP) DataKeyOpts() interface{} {
+                  return g.dataKeyOpts
+              }
+
+           In ``csfle/data_key.go``
+
+           .. code-block:: go
+
+              dataKeyOpts := options.DataKey().SetMasterKey(provider.DataKeyOpts())
+              dataKeyID, err := clientEnc.CreateDataKey(context.TODO(), provider.Name(), dataKeyOpts)
 ---
 title: Update the Automatic Encryption JSON Schema
 ref: update-the-json-schema-gcp
