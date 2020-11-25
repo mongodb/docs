@@ -272,6 +272,23 @@ Additional Dependencies
          * - x64 Support
            - x64 support is required for CSFLE
 
+   .. tab::
+      :tabid: go
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Dependency Name
+           - Description
+
+         * - Go version 1.10 or later
+           - A Go version of 1.10 or later is required. Go 1.11 or later is recommended for support
+             `go module support <https://blog.golang.org/using-go-modules>__`.
+
+         * - `libmongocrypt <https://github.com/mongodb/libmongocrypt#libmongocrypt>`__ version 1.1.0 or later
+           -
+
+
 .. _fle-create-a-master-key:
 
 A. Create a Master Key
@@ -402,6 +419,34 @@ to a file with the **fully runnable code below**:
                  }
              }
          }
+
+   .. tab::
+      :tabid: go
+
+      The following script generates a 96-byte locally-managed master key and
+      saves it to a file called ``master-key.txt`` in the directory
+      from which the program is executed.
+
+      .. code-block:: go
+
+         package main
+
+         import (
+             "crypto/rand"
+             "io/ioutil"
+             "log"
+         )
+
+         func main() {
+             key := make([]byte, 96)
+             if _, err := rand.Read(key); err != nil {
+                 log.Fatalf("Unable to create a random 96 byte data key: %v", err)
+             }
+             if err := ioutil.WriteFile("master-key.txt", key, 0644); err != nil {
+                 log.Fatalf("Unable to write key to file: %v", err)
+             }
+         }
+
 
 B. Create a Data Encryption Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -656,6 +701,13 @@ full `JSON Schema for the Medical Care Management System
       View the **complete runnable** `helper code in C#
       <https://github.com/mongodb-university/csfle-guides/blob/master/dotnet/CSFLE/JsonSchemaCreator.cs>`_.
 
+   .. tab::
+      :tabid: go
+
+      View the **complete runnable** `helper code in Go
+      <https://github.com/mongodb-university/csfle-guides/blob/master/schema/json_schema.go>`_.
+
+
 D. Create the MongoDB Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -863,6 +915,50 @@ can provide configurable parameters including:
 
              | **Default**: ``60``
 
+   .. tab::
+      :tabid: go
+
+      .. list-table::
+         :header-rows: 1
+         :stub-columns: 1
+
+         * - Name
+           - Description
+
+
+         * - port
+           - | Listening port.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: go
+
+                   extraOptions := map[string]interface{}{
+                       "mongocryptdSpawnArgs": []string{
+                           "--port=30000",
+                       },
+                   }
+
+             | **Default**: ``27020``
+
+         * - idleShutdownTimeoutSecs
+           - | Number of idle seconds in which the ``mongocryptd`` process should wait before exiting.
+             | Specify this value as follows:
+
+             .. example::
+
+                .. code-block:: go
+
+                   extraOptions := map[string]interface{}{
+                       "mongocryptdSpawnArgs": []string{
+                           "--idleShutdownTimeoutSecs=75",
+                       },
+                   }
+
+             | **Default**: ``60``
+
+
 
 .. note::
 
@@ -1019,6 +1115,58 @@ following **code snippet**:
 
             Console.WriteLine($"Encrypted client query by the SSN (deterministically-encrypted) field:\n {result}\n");
 
+   .. tab::
+      :tabid: go
+
+      .. code-block:: go
+
+         package patient
+
+         type medicalRecord struct {
+             Weight        int    `bson:"weight"`
+             BloodPressure string `bson:"bloodPressure"`
+         }
+
+         type insurance struct {
+             Provider     string `bson:"provider"`
+             PolicyNumber int    `bson:"policyNumber"`
+         }
+
+         type Patient struct {
+             Name           string          `bson:"name"`
+             SSN            int             `bson:"ssn"`
+             BloodType      string          `bson:"bloodType"`
+             medicalRecords []medicalRecord `bson:"medicalRecords"`
+             insurance      insurance       `bson:"insurance"`
+         }
+
+         func GetExamplePatient() Patient {
+
+             return Patient{
+                 Name:      "Jon Doe",
+                 SSN:       241014209,
+                 BloodType: "AB+",
+                 medicalRecords: []medicalRecord{{
+                     Weight:        180,
+                     BloodPressure: "120/80",
+                 }},
+                 insurance: insurance{
+                     Provider:     "MaestCare",
+                     PolicyNumber: 123142,
+                 },
+             }
+         }
+
+         doc := GetExamplePatient()
+         collection := client.Database(dbName).Collection(collName)
+         if _, err := collection.InsertOne(context.TODO(), doc); err != nil {
+             return fmt.Errorf("InsertOne error: %v", err)
+         }
+
+      .. note::
+
+         Rather than creating a raw BSON document, you can pass a struct with ``bson`` tags directly
+         to the driver for encoding.
 
 
 When a CSFLE-enabled client inserts a new patient record into the Medical Care
@@ -1190,6 +1338,12 @@ To view and download a runnable example of CSFLE, select your driver below:
       **GitHub:** `C# CSFLE runnable example
       <https://github.com/mongodb-university/csfle-guides/tree/master/dotnet>`_
 
+   .. tab::
+      :tabid: go
+
+      **GitHub:** `Go CSFLE runnable example
+      <https://github.com/mongodb-university/csfle-guides/tree/master/gocse>`_
+
 Move to Production
 ~~~~~~~~~~~~~~~~~~
 
@@ -1238,3 +1392,9 @@ check out the reference docs in the server manual:
 
       For additional information on MongoDB CSFLE API, see the
       `official C# driver documentation <https://mongodb.github.io/mongo-csharp-driver/2.11/reference/driver/crud/client_side_encryption/>`__.
+
+   .. tab::
+      :tabid: go
+
+      For additional information on the MongoDB CSFLE API, see the
+      `official Go driver documentation <https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.4.0-beta2.0.20201111202951-cdacb6473abf/mongo#hdr-Client_Side_Encryption>`__

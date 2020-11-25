@@ -32,6 +32,13 @@ content: |
         .. code-block:: csharp
 
            var keyVaultNamespace = CollectionNamespace.FromFullName("encryption.__keyVault");
+     .. tab::
+        :tabid: go
+
+        .. code-block:: go
+
+           keyVaultNamespace := "encryption.__keyVault"
+
 ---
 title: Specify the Local Master Encryption Key
 ref: specify-the-local-master-encryption-key
@@ -89,6 +96,22 @@ content: |
                { "key", localMasterKeyBytes }
            };
            kmsProviders.Add("local", localOptions);
+     .. tab::
+        :tabid: go
+
+        .. code-block:: go
+
+           localMasterKey := getMasterKey()
+           kmsProviders := map[string]map[string]interface{
+               "local":
+                   "key": localMasterKey
+           }
+
+        .. note::
+
+           In the companion project, the KMS provider information is represented by a struct.
+
+
 ---
 title: Map the JSON Schema to the Patients Collection
 ref: map-the-json-schema-to-the-patients-collection
@@ -135,6 +158,18 @@ content: |
            // JsonSchemaCreator is a utility class found in the C# companion
            // project to this guide
            var schema = JsonSchemaCreator.CreateJsonSchema(keyIdBase64);
+
+     .. tab::
+        :tabid: go
+
+        .. code-block:: go
+
+           // schema.CreateJSONSchema(dataKeyBase64) is a helper funciton found in the
+           // Go companion project to this guide
+           schema := schema.CreateJSONSchema(dataKeyBase64)
+           schemaMap := map[string]interface{}{
+               "medicalRecords.patients": schema,
+           }
 ---
 title: Specify the Location of the Encryption Binary
 ref: specify-the-location-of-the-encryption-binary
@@ -227,6 +262,33 @@ content: |
            {
                { "mongocryptdSpawnPath", $@"{MongoBinariesPath}\mongocryptd.exe" },
            };
+
+     .. tab::
+        :tabid: go
+
+        .. note::
+
+           It is only necessary to specify the spawn path if ``mongocryptd`` is not
+           present in the system path.
+
+        .. code-block:: go
+
+           extraOptions := map[string]interface{}{
+               "mongocryptdSpawnPath": "/usr/local/bin/mongocryptd",
+           }
+
+        .. note:: Encryption Binary Daemon
+
+           If the ``mongocryptd`` daemon is already running, you can
+           configure the client to skip starting it by passing the
+           following option:
+
+           .. code-block:: go
+
+              extraOptions := map[string]interface{}{
+                  "mongocryptdBypassSpawn": true,
+              }
+
 ---
 title: Create the MongoClient
 ref: create-the-mongoclient
@@ -298,3 +360,15 @@ content: |
                extraOptions: extraOptions);
            clientSettings.AutoEncryptionOptions = autoEncryptionOptions;
            var client = new MongoClient(clientSettings);
+
+     .. tab::
+        :tabid: go
+
+        .. code-block:: go
+
+           autoEncryptionOpts := options.AutoEncryption().
+               SetKmsProviders(provider.Credentials()).
+               SetKeyVaultNamespace(keyVaultNamespace).
+               SetSchemaMap(schemaMap).
+               SetExtraOptions(extraOptions)
+           client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri).SetAutoEncryptionOptions(autoEncryptionOpts))
