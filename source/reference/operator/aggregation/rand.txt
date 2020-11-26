@@ -1,0 +1,119 @@
+===================
+$rand (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $rand
+
+   .. versionadded:: 4.4.2
+
+   The :expression:`$rand` operator generates a random value between 0
+   and 1 each time it is called.
+
+Examples
+--------
+
+This code creates a small collection with 100 documents which we will
+use in these examples. (Increase the value of ``N`` if you want to
+experiment with larger data sets).
+   
+.. code-block:: javascript
+
+   N = 100
+   bulk = db.collection.initializeUnorderedBulkOp()
+   for (i = 0; i < N; i++) { bulk.insert({_id: i, r: 0}) }
+   bulk.execute()
+
+Consider the following examples:
+
+The ``$rand`` operator can be used in a pipeline to select random
+documents from a collection. In this example we use the same database
+and ``$rand`` to select about half the documents.
+
+.. code-block:: javascript
+
+   db.collection.aggregate(
+                              [
+                                { $match:
+                                  {
+                                    $expr:
+                                      {
+                                        $lt: [0.5, {$rand: {} } ]
+                                      }
+                                    }
+                                 },
+                                 {
+                                    $count: "numMatches"
+                                 }
+                              ]
+                           )
+
+.. code-block:: javascript
+      :copyable: false
+
+      // Output of 5 runs on the sample collection
+      { "numMatches" : 49 }
+      { "numMatches" : 52 }
+      { "numMatches" : 54 }
+      { "numMatches" : 48 }
+      { "numMatches" : 59 }
+
+.. note::
+
+   This example returns different results each time. Smaller datasets
+   show more variability in repeated runs. The number of documents
+   selected each time approaches the expected value (in this case 50%)
+   as the collection size grows.
+
+Update operations accept aggregation pipelines. In this example the
+``$rand`` operator is used to insert a different random number into each
+document in a collection.
+
+.. code-block:: javascript
+
+   db.collection.updateMany({}, [
+                                   {
+                                     $set:
+                                       {
+                                          "r":
+                                             {
+                                                $rand: {}
+                                             }
+                                        }
+                                   }
+                                 ]
+                           )
+
+This is brief excerpt showing the results of the update:
+
+.. code-block:: javascript
+      :copyable: false
+
+      db.collection.aggregate(
+                                 [
+                                    {
+                                      $project: {_id:0, r:1 }
+                                    }
+                                 ]
+                              )
+
+      { "r" : 0.9141450086748962 }
+      { "r" : 0.151174715006409 }
+      { "r" : 0.4311952154820518 }
+      { "r" : 0.08106914853292181 }
+       ...
+
+.. seealso::
+
+   :expression:`$let`, :query:`$rand`.
+
