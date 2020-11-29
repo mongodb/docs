@@ -34,7 +34,7 @@ consider before starting a backup.
 
    |mms| Enterprise Backup and Recovery supports five backup
    architectures, each with its own strengths and trade-offs. Consider
-   which architecture meets the data protection requirements for your
+   the architecture that meets the data protection requirements for your
    deployment before configuring and deploying your backup
    architecture.
 
@@ -53,18 +53,20 @@ consider before starting a backup.
    |mms| Enterprise Backup and recovery supports the following backup
    architectures:
 
-   - A File System on a Sophisticated |san|
-   - A File System on one or more |nas| devices
+   - A file system on a |san| with advanced features for filesystem
+     backups, such as high availability, compression, or
+     :term:`deduplication`
+   - A file system on one or more |nas| devices
    - An `AWS S3 <https://aws.amazon.com/s3>`_ :term:`Blockstore`
-   - MongoDB Blockstore in a Highly Available configuration
-   - MongoDB Blockstore in a Standalone configuration
+   - MongoDB Blockstore in a highly available configuration
+   - MongoDB Blockstore in a standalone configuration
 
    .. important::
 
-      The backup architecture features and concerns are provided as
-      guidance for developing your own data protection requirements.
-      They do not cover every scenario nor are they representative of
-      every deployment.
+      We provide the backup architecture recommendations as
+      guidance for developing your own data protection approaches.
+      Our recommendations don't cover or represent each scenario
+      or deployment.
 
    Backup Method Features
    ~~~~~~~~~~~~~~~~~~~~~~
@@ -130,103 +132,43 @@ consider before starting a backup.
         - Lower
         - Medium
 
-   .. [1] Every snapshot includes the full database path. The
-          {+mdbagent+} transfers the blocks for each incremental change
-          to the file system store. {+mdbagent+} writes the bytes to
-          the correct range of blocks that exist in the new snapshot.
-          |onprem| then copies the blocks of the previous full snapshot
-          into those offsets. This results in a complete backup. This
-          saves network bandwidth.
-
-          .. example::
-
-             .. list-table::
-                :widths: 50 50
-                :header-rows: 1
-
-                * - Last full snapshot
-                  - New incremental snapshot
-                * -
-
-                    ::
-
-                      ********
-                      ********
-                      ********
-
-                  -
-
-                    ::
-
-                      ********
-
-             To create a new full snapshot, |onprem|:
-
-             .. list-table::
-                :widths: 3 70 28
-
-                * - 1
-                  - Determines that the bytes of the new incremental
-                    snapshot fit into the old snapshot in these locations:
-                  -
-                    ::
-
-                      ****...*
-                      ********
-                      **.*****
-                      ****....
-
-                * - 2
-                  - Writes the incremental snapshot to free spaces in
-                    the file system to fit those offsets:
-                  -
-                    ::
-
-                     ....***.
-                     ........
-                     ..*.....
-                     ....****
-
-                * - 3
-                  - Copies the old snapshot into the offsets of the
-                    new incremental snapshot, resulting in this byte
-                    map:
-                  -
-                    ::
-
-                     ********
-                     ********
-                     ********
-                     ********
+   .. [1] 
+          To perform an incremental backup to a
+          :term:`File System Store`, the {+mdbagent+}
+          slices each :manual:`storage engine </core/storage-engines/>`
+          file in the path specified for backup into block(s) of
+          data and transfers only changed block(s) to |onprem|.
+          |onprem| creates a new :term:`snapshot` from received
+          block(s) and copies the remaining unchanged block(s)
+          from the previous full backup snapshot. Each incremental
+          backup snapshot stored to a file system saves
+          network I/O. Each such backup snapshot contains a full
+          copy of all required files from a backed up MongoDB
+          deployment and does not :term:`de-duplicate <deduplication>`
+          records.
 
    .. topic:: When Do You Use a Particular Backup Method?
 
-       - If you do not want to maintain separate backup systems nor do
-         you want your staff to maintain them, consider backing up to a
-         *MongoDB* or *|s3| snapshot store*.
+       - To run backups frequently on large amounts of data and
+         restore from backups, consider backing up to a file
+         system on a |san|, an AWS |s3| snapshot store, or a MongoDB
+         blockstore configured as a replica set or a
+         :term:`sharded cluster`.
 
-       - If you need to restore data without relying on MongoDB
-         database, consider backing up to a *file system on a* |san|
-         *or* |nas| *device* or an *|s3| snapshot store*.
+       - To restore data without relying on MongoDB
+         database, consider backing up to an AWS |s3| snapshot store,
+         one or more |nas| devices, or a file system on a |san| with
+         advanced features for file system backups, such as high
+         availability, compression, or :term:`deduplication`.
 
-       - If you are backing up large amounts of data or frequently need
-         to restore data, consider either a *file system on a* |san|,
-         *|s3| snapshot store* or a *MongoDB blockstore configured as a
-         replica set or sharded cluster*.
-
-       - If you want to minimize internal storage and maintenance
-         costs, consider backing up to one of the following options:
-
-         - An *|s3| snapshot store* or
-         - A *MongoDB standalone blockstore*.
-
+       - To minimize internal storage and maintenance
+         costs, consider backing up to an AWS |s3| snapshot store or
+         a MongoDB standalone blockstore.
+           
          A MongoDB standalone blockstore offers limited resilience. If
          the disk fills, this blockstore may go offline. You can
-         recover snapshots only after adding additional storage.
+         recover backup snapshots only after adding additional storage.
 
-       - If you have a |san| with advanced features like high
-         availability, compression, :term:`deduplication`, etc.,
-         consider using that |san| *for file system* backups.
 
 .. _limits-of-backup:
 
@@ -243,12 +185,12 @@ your database increases beyond 2 TB:
 These size recommendations are a best practice. They are not a
 limitation of the MongoDB database or |mms|.
 
-Backup and restore can use great amounts of CPU, memory, storage, and
+Backup and restore can use large amounts of CPU, memory, storage, and
 network bandwidth.
 
 .. example::
 
-   Your stated network throughput, like 10 Gbps or 100 Gbps, is a
+   Your stated network throughput, such as 10 Gbps or 100 Gbps, is a
    *theoretical* maximum. That value doesn't account for sharing or
    throttling of network traffic.
 
@@ -356,17 +298,17 @@ snapshot:
 
 - If the new reference time is before the current reference time, the
   next snapshot occurs at the new reference time tomorrow. See
-  the first two rows of the table below for examples.
+  the first two rows of the following table for examples.
 
 - If the new reference time is after the current reference time, and
   you make the change before the current reference time, the next
   snapshot occurs at the new reference time today. See the third row
-  of the table below for an example.
+  of the following table for an example.
 
 - If the new reference time is after the current reference time, but
   you make the change after the current reference time, the next
   snapshot occurs at the new reference time tomorrow. See the fourth
-  row of the table below for an example.
+  row of the following table for an example.
 
 .. list-table::
    :widths: 25 25 25 25
@@ -437,12 +379,14 @@ Encryption
 
    .. seealso::
 
-      To learn more about configuring backup encryption, see
       :doc:`/tutorial/encrypt-snapshots`.
 
 .. cond:: cloud
 
-   You can't store backups using WiredTiger encryption. You can store backups using the WiredTiger storage engine if you don't enable encryption. If you restore from a backup, you restore unencrypted files.
+   You can't store backups using WiredTiger encryption.
+   You can store backups using the WiredTiger storage
+   engine if you don't enable encryption. If you restore
+   from a backup, you restore unencrypted files.
 
 .. _4.2-backup-considerations:
 
@@ -521,7 +465,8 @@ want backed up.
 Storage Engine
 ~~~~~~~~~~~~~~
 
-To backup MongoDB clusters, use the :ref:`WiredTiger storage engine <storage-wiredtiger>` storage engine.
+To back up MongoDB clusters, use the
+:ref:`WiredTiger storage engine <storage-wiredtiger>` storage engine.
 
 If your current backing databases use MMAPv1, upgrade to WiredTiger:
 
@@ -586,9 +531,9 @@ impact on performance or disk use.
 
 Backup does not require checkpoints, and they are disabled by default.
 
-Restoring from a checkpoint requires |mms| to apply the oplog of
-each shard and config server to the last snapshot captured before the
-checkpoint. Restoration from a checkpoint takes longer than
+Restoring from a checkpoint requires |mms| to apply the :term:`oplog`
+of each shard and config server to the last snapshot captured before
+the checkpoint. Restoration from a checkpoint takes longer than
 restoration from a snapshot.
 
 .. _snapshot-while-balancer-enabled:
