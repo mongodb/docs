@@ -219,7 +219,7 @@
      - string
      - State of this invoice. Accepted values are:
 
-       .. include:: /includes/list-table-statusName.rst
+       .. include:: /includes/billing/list-table-statusName.rst
 
    * - ``subtotalCents``
      - number
