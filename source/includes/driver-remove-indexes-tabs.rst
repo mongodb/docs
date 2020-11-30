@@ -18,8 +18,6 @@
          For example, the following operation removes an ascending index on the
          ``tax-id`` field in the ``accounts`` collection:
 
-         .. cssclass:: copyable-code
-
          .. code-block:: javascript
 
             db.accounts.dropIndex( { "tax-id": 1 } )
@@ -58,7 +56,6 @@
          For example, the following command removes all indexes from
          the ``accounts`` collection:
 
-         .. cssclass:: copyable-code
          .. code-block:: javascript
 
             db.accounts.dropIndexes()

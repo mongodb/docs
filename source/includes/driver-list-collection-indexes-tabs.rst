@@ -13,7 +13,6 @@
          For example, to view all indexes on the ``people`` collection,
          run the following command:
 
-         .. cssclass:: copyable-code
-         .. code-block:: javascript
+                  .. code-block:: javascript
 
             db.people.getIndexes()
