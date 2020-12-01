@@ -196,9 +196,9 @@ an example source connector configuration file, see
 
    * - output.schema.key
      - string
-     - The `Avro schema <https://avro.apache.org/docs/current/spec.html#schemas>`__ 
+     - The `Avro schema <https://avro.apache.org/docs/current/spec.html#schemas>`__
        definition for the key document of the SourceRecord.
-       
+
        **Default**:
 
        .. code-block:: json
@@ -213,13 +213,13 @@ an example source connector configuration file, see
 
    * - output.schema.value
      - string
-     - The `Avro schema <https://avro.apache.org/docs/current/spec.html#schemas>`__ 
+     - The `Avro schema <https://avro.apache.org/docs/current/spec.html#schemas>`__
        definition for the value document of the SourceRecord.
 
        **Default**:
 
        .. code-block:: json
- 
+
           {
             "name": "ChangeStream",
             "type": "record",
@@ -300,8 +300,8 @@ an example source connector configuration file, see
      - string
      - | Prefix to prepend to database & collection names to generate the name of the Kafka topic to publish data to.
 
-       .. seealso:: 
-       
+       .. seealso::
+
           :ref:`Topic naming example <topic-naming-example>`.
 
        | **Default**: ""
@@ -329,6 +329,11 @@ an example source connector configuration file, see
 
              copy.existing.namespace.regex=stats\.page.*
 
+       Note that in the example above, the "\\" character in the example
+       escapes the following "." character in the regular expression.
+       For more information on how to build regular expressions, see the
+       `Java SE documentation on Patterns <https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html>`__.
+       
        | **Default**: ""
        | **Accepted Values**: A valid regular expression
 
@@ -409,9 +414,9 @@ an example source connector configuration file, see
 
    * - heartbeat.interval.ms
      - int
-     - The length of time in milliseconds between sending heartbeat messages to 
-       record a post batch resume token when no source records have been published. 
-       This can improve the resumability of the connector for low volume namespaces. 
+     - The length of time in milliseconds between sending heartbeat messages to
+       record a post batch resume token when no source records have been published.
+       This can improve the resumability of the connector for low volume namespaces.
        Use ``0`` to disable.
 
        | **Default**: ``0``
@@ -420,7 +425,7 @@ an example source connector configuration file, see
    * - heartbeat.topic.name
      - string
      - The name of the topic to write heartbeat messages to.
-       
+
        | **Default**: ``__mongodb_heartbeats``
        | **Accepted Values**: A valid Kafka topic name
 
@@ -556,6 +561,33 @@ events, and broadcast changes after any collection data is updated.
 
    database=example
    copy.existing=true
+
+You can use the ``copy.existing.namespace.regex`` setting to provide
+a regular expression that matches specific collections by their namespace
+(database and collection name, separated with a "." character).
+
+.. code-block:: properties
+
+   copy.existing.namespace.regex=stats\.page.*
+   copy.existing=true
+
+The configuration shown above matches and copies existing data from all
+collections within the ``stats`` database. E.g. it matches
+``stats.pageViews`` or ``stats.pageAverageRevenue``, but not
+``stat.pageViews`` or ``stats.uniquePages``.
+
+You can use the ``copy.existing.pipeline`` setting to provide a MongoDB
+aggregation pipeline expression that matches specific documents to include
+in the copy operation.
+
+.. code-block:: properties
+
+   copy.existing.pipeline=[ { $match: { totalUniqueViews: { $gte: 5000 }} ]
+   copy.existing=true
+
+The configuration shown above matches and copies existing documents that
+contain a field named ``totalUniqueViews`` with a value of ``5000`` or
+greater.
 
 How to Recover from An Invalid Resume Token
 -------------------------------------------
