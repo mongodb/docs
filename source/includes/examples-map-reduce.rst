@@ -347,7 +347,7 @@ the map-reduce operation without defining custom functions:
    mirror the map-reduce's output to have two fields ``_id`` and
    ``value``. The :pipeline:`$project` sets:
    
-#. The :pipeline:`$unwinds` stage breaks down the document by
+#. The :pipeline:`$unwind` stage breaks down the document by
    the ``items`` array field to output a document for each array
    element. For example:
 
@@ -368,11 +368,11 @@ the map-reduce operation without defining custom functions:
 
    - The ``qty`` field. The ``qty`` field contains the
      total ``qty`` ordered per each ``items.sku`` using
-     :expression:`$sum`.
+     :group:`$sum`.
 
    - The ``orders_ids`` array. The ``orders_ids`` field contains an
      array of distinct order ``_id``'s for the ``items.sku`` using
-     :expression:`$addToSet`.
+     :group:`$addToSet`.
 
    .. code-block:: javascript
       :copyable: false
