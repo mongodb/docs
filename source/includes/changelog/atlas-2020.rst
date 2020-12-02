@@ -1,3 +1,15 @@
+.. _atlas_20201130:
+
+30 November 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports Customer Federation Role Mappings for users of 
+  :ref:`Identity Federation with SAML <atlas-federated-authentication>`.
+- Supports passwordless :ref:`X.509 authentication <self-managed-x509>`
+  for database users on ``M0``, ``M2``, and ``M5`` clusters.
+- |service| :ref:`Online Archive <manage-online-archive>` is now 
+  generally available.
+
 .. _atlas_20201123:
 
 23 November 2020 Release
