@@ -15,6 +15,12 @@
      -
      -
 
+   * - RHEL/CentOS 8
+     - 4.4.4+
+     -
+     -
+     -
+
    * - Ubuntu 20.04
      - |checkmark|
      -
