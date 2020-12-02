@@ -117,3 +117,9 @@
        index would provide. Corresponds to :ref:`Impact
        <pa-index-ranking>` in the :ref:`Performance Advisor
        <performance-advisor>` user interface.
+
+   * - ``suggestedIndexes[n].dismissedFromAutoCreation``
+     - boolean
+     - Indicates whether this index suggestion was manually dismissed
+       from auto-creation. This field is only present when the value
+       is ``true``.

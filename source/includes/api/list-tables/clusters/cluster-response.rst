@@ -14,6 +14,13 @@
 
        .. seealso:: :ref:`cluster-autoscaling`.
 
+   * - autoScaling.autoIndexingEnabled
+     - boolean
+     - Flag that indicates whether :ref:`autopilot mode <pa-autopilot>`
+       for Performance Advisor is enabled. The default is **false**.
+
+       .. include:: /includes/fact-autopilot-early-access.rst
+
    * - autoScaling.compute
      - object
      - Collection of settings that configure how a cluster might scale
