@@ -19,7 +19,8 @@ MongoDB only supports the 64-bit versions of these platforms.
 
 MongoDB {+version+} Enterprise Edition on
 :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle also supports
-the :ref:`PPC64LE <prod-notes-supported-platforms-PPC64LE>` and
+the :ref:`ARM64 <prod-notes-supported-platforms-ARM64>`, 
+:ref:`PPC64LE <prod-notes-supported-platforms-PPC64LE>`, and
 :ref:`s390x <prod-notes-supported-platforms-s390x>` architectures on
 select platforms.
 

@@ -9,6 +9,12 @@
      - 4.2 Community & Enterprise
      - 4.0 Community & Enterprise
 
+   * - RHEL/CentOS 8
+     - |checkmark|
+     -
+     -
+     -
+
    * - Ubuntu 20.04
      - |checkmark|
      - |checkmark|
