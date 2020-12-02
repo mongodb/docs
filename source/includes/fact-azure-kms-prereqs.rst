@@ -7,9 +7,11 @@
   non-expired application :guilabel:`Password` for an Azure Application
   associated to the Active Directory tenant.
 
-- Have the :guilabel:`Resource Group` name for an Azure Resource Group
-  in which the Azure Application has the :guilabel:` Azure Key Vault
-  Reader (Preview)` role.
+- Have the :guilabel:`Resource Group` name of an :guilabel:`Azure Resource Group`
+  containing the Key Vault.
+
+- Have an :guilabel:`Active Directory Application` with the role of
+  :guilabel:`Azure key Vault Reader (Preview)` assigned to it.
 
 - Have the :guilabel:`Subscription ID` and :guilabel:`Key Vault Name`
   of an Azure Key Vault. Ensure the Key Vault resource group
