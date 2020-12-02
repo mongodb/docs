@@ -1,6 +1,7 @@
 .. list-table::
    :header-rows: 1
    :widths: 10 10 80
+   :stub-columns: 1
 
    * - Name
      - Type
@@ -10,7 +11,7 @@
      - string
      - Unique identifier for the organization.
 
-   * - ``isDeleted``
+   * - isDeleted
      - boolean
      - Flag indicating if the organization is deleted.
 
