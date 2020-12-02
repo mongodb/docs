@@ -17,7 +17,7 @@
 
    * - RHEL/CentOS 8
      - |checkmark|
-     -
+     - 4.4.4+
      -
      -
 
