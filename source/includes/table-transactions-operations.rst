@@ -61,13 +61,12 @@
 
      - :dbcommand:`findAndModify`
 
-     - For :ref:`feature compatibility version (fcv) <view-fcv>`
-       ``"4.4"`` or greater, if the update/replace operation is run
-       with ``upsert: true`` against a non-existing collection, the
+     - Starting in MongoDB 4.4, if the update or replace operation is
+       run with ``upsert: true`` on a non-existing collection, the
        collection is implicitly created.
 
-       For fcv ``"4.2"`` or less, if ``upsert: true``, the operation
-       must be run against an existing collection.
+       In MongoDB 4.2 and earlier, if ``upsert: true``, the operation
+       must be run on an existing collection.
        
        .. seealso:: :ref:`transactions-operations-ddl`
 
@@ -77,22 +76,20 @@
 
      - :dbcommand:`insert`
 
-     - For :ref:`feature compatibility version (fcv) <view-fcv>`
-       ``"4.4"`` or greater, when run against a non-existing
+     - Starting in MongoDB 4.4, if run on a non-existing
        collection, the collection is implicitly created.
        
-       For fcv ``"4.2"`` or less, can only be run against an existing
-       collection.
+       In MongoDB 4.2 and earlier, the operation must be run on an
+       existing collection.
        
        .. seealso:: :ref:`transactions-operations-ddl`
 
    * - :method:`db.collection.save()`
      - 
-     - For :ref:`feature compatibility version (fcv) <view-fcv>`
-       ``"4.4"`` or greater, if an insert against a non-existing
+     - Starting in MongoDB 4.4, if run on a non-existing
        collection, the collection is implicitly created.
        
-       With fcv ``"4.2"`` or less, if an insert, can only be run against an
+       In MongoDB 4.2 and earlier, the operation must be run on an
        existing collection.
 
        .. seealso:: :ref:`transactions-operations-ddl`
@@ -104,24 +101,21 @@
 
      - :dbcommand:`update`
 
-     - For :ref:`feature compatibility version (fcv) <view-fcv>`
-       ``"4.4"`` or greater, if run with ``upsert: true`` against a
-       non-existing collection, the collection is implicitly created.
-
-       For fcv ``"4.2"`` or less, if ``upsert: true``, the operation must be
-       run against an existing collection.
+     - Starting in MongoDB 4.4, if run on a non-existing
+       collection, the collection is implicitly created.
+       
+       In MongoDB 4.2 and earlier, the operation must be run on an
+       existing collection.
 
        .. seealso:: :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.bulkWrite()`
        | Various :doc:`/reference/method/js-bulk`
      - 
-     - For :ref:`feature compatibility version (fcv) <view-fcv>` ``"4.4"``
-       and greater, if an insert operation or update operation with
-       ``upsert: true`` is run in a transaction against a non-existing
+     - Starting in MongoDB 4.4, if run on a non-existing
        collection, the collection is implicitly created.
-
-       For fcv ``"4.2"`` or less, the collection must already exist for
-       insert and ``upsert: true`` operations.
+       
+       In MongoDB 4.2 and earlier, the operation must be run on an
+       existing collection.
        
        .. seealso:: :ref:`transactions-operations-ddl`
