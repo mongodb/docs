@@ -1,0 +1,122 @@
+====================================
+Limit the Number of Returned Results
+====================================
+
+.. default-domain:: mongodb
+
+Use ``limit`` to cap the number of documents that can be returned from a
+read operation. ``limit`` functions as a cap on the maximum number of
+documents that the operation can return, but the operation can return
+a smaller number of documents if there are not enough documents present
+to reach the limit. If ``limit`` is used with the
+:doc:`skip </fundamentals/crud/read-operations/skip>` method, the skip applies
+first and the limit only applies to the documents left over after
+the skip.
+
+Follow the instructions in the examples below to insert data into
+a collection and return only certain results from a query using a sort,
+a skip, and a limit. Consider the following collection of documents that
+describe books:
+
+.. code-block:: javascript
+
+   [
+     { "_id": 1, "name": "The Brothers Karamazov", "author": "Dostoyevsky", "length": 824 },
+     { "_id": 2, "name": "Les Misérables", "author": "Hugo", "length": 1462 },
+     { "_id": 3, "name": "Atlas Shrugged", "author": "Rand", "length": 1088 },
+     { "_id": 4, "name": "Infinite Jest", "author": "Wallace", "length": 1104 },
+     { "_id": 5, "name": "Cryptonomicon", "author": "Stephenson", "length": 918 },
+     { "_id": 6, "name": "A Dance With Dragons", "author": "Tolkein", "length": 1104 },
+   ]
+
+The following example queries the collection to return the top three
+longest books. It matches all the documents with the query, applies
+a ``sort`` on the ``length`` field to return books with longer lengths before
+books, and applies a ``limit`` to return only ``3`` results:
+
+.. code-block:: javascript
+   :emphasize-lines: 4
+
+    // define a cursor that will return the first 3 sorted items
+    MongoCursor<Document> cursor = collection.find()
+        .sort(Sorts.descending("length"))
+        .limit(3)
+        .iterator();
+
+    // print out items
+    try {
+      while (cursor.hasNext()) {
+        System.out.println(cursor.next().toJson());
+      }
+    // close the cursor
+    } finally {
+      cursor.close();
+    }
+
+
+The code example above outputs the following three documents, sorted by
+length:
+
+.. code-block:: javascript
+
+   { "_id": 2, "title": "Les Misérables", "author": "Hugo", "length": 1462 }
+   { "_id": 6, "title": "A Dance With Dragons", "author": "Martin", "length": 1104 }
+   { "_id": 4, "title": "Infinite Jest", "author": "Wallace", "length": 1104 }
+
+.. note::
+
+   The order in which you call ``limit`` and ``sort`` does not matter
+   because the driver reorders the calls to apply the sort first and the
+   limit after it. The following two calls are equivalent:
+
+   .. code-block:: java
+
+      collection.find().sort(descending("title")).limit(3);
+      collection.find().limit(3).sort(descending("title"));
+
+//TODO: figure out find options in Java
+You can also apply ``sort`` and ``limit`` by specifying them in an
+``FindOptions`` object in your call to the ``find()`` method. The following two
+calls are equivalent:
+
+.. code-block:: javascript
+
+   collection.find(query).sort({ length: -1 }).limit(3);
+   collection.find(query, { sort: { length: -1 }, limit: 3 });
+
+For more information on the ``options`` settings for the ``find()``
+method, see the
+:node-api:`API documentation on find() <Collection.html#find>`.
+
+To see the next three longest books, append the ``skip()`` method, passing
+the number of documents to skim over to the previous code snippet's call to
+``find()``:
+
+.. code-block:: java
+   :emphasize-lines: 4
+
+    MongoCursor<Document> cursor = collection.find()
+    .sort(Sorts.ascending("length"))
+    .limit(3)
+    .skip(3)
+    .iterator();
+
+    try {
+      while(cursor.hasNext()) {
+        System.out.println(cursor.next().toJson());
+      }
+    } finally {
+      cursor.close();
+    }
+
+This operation returns the documents that describe the fourth through sixth
+longest books:
+
+.. code-block:: javascript
+
+   { "_id": 3, "title": "Atlas Shrugged", "author": "Rand", "length": 1088 }
+   { "_id": 5, "title": "Cryptonomicon", "author": "Stephenson", "length": 918 }
+   { "_id": 1, "title": "The Brothers Karamazov", "author": "Dostoyevsky", "length": 824 }
+
+You can combine skip and limit in this way to implement paging for your
+collection, returning only small "slices" of the collection at once.
