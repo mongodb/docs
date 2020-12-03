@@ -46,5 +46,7 @@
 
 - If your |aws| |kms| configuration requires it, :aws:`allow
   access </kms/latest/developerguide/policy-conditions.html#conditions-aws-ip-address>` 
-  from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
-  |service| can communicate with your |kms|. 
+  from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` and the public IP addresses or DNS hostnames of your cluster nodes so that |service| 
+  can communicate with your |kms|. If the node IP addresses 
+  :ref:`change <faq-public-ip-changes>`, you must update your 
+  configuration to avoid connectivity interruptions.

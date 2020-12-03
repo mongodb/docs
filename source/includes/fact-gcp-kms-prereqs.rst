@@ -15,8 +15,11 @@
 
 - If your |gcp| |kms| configuration requires it, :gcp:`allow access
   </iam/docs/conditions-attribute-reference#access-levels>`
-  from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
-  |service| can communicate with your |kms|. 
+  from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` and the public 
+  IP addresses or DNS hostnames of your cluster nodes so that |service| 
+  can communicate with your |kms|. If the node IP addresses 
+  :ref:`change <faq-public-ip-changes>`, you must update your 
+  configuration to avoid connectivity interruptions.
 
 .. seealso::
 

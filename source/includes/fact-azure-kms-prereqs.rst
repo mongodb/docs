@@ -43,5 +43,8 @@
 
 - If your Azure Key Vault configuration requires it, :azure:`allow
   access </key-vault/general/network-security>` from :ref:`Atlas
-  IP addresses <atlas-add-inbound-ips>` so that |service| can
-  communicate with your key vault.
+  IP addresses <atlas-add-inbound-ips>` and the public IP addresses 
+  or DNS hostnames of your cluster nodes so that |service| can 
+  communicate with your key vault. If the node IP addresses 
+  :ref:`change <faq-public-ip-changes>`, you must update your 
+  configuration to avoid connectivity interruptions.
