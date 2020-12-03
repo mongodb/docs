@@ -1,3 +1,16 @@
+.. _opsmgr-server-4.2.22:
+
+|onprem| Server 4.2.22
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2020-12-03*
+
+- Fixes a bug that prevents |mms| from correctly authenticating to an 
+  :doc:`HTTP Proxy </tutorial/use-with-http-proxy/>`.
+
+- Updates the MongoDB Agent to :ref:`10.2.22.6000
+  <mongodb-10.2.22.6000>`.
+
 .. _opsmgr-server-4.2.21:
 
 |onprem| Server 4.2.21
