@@ -58,11 +58,6 @@
      - |checkmark|
      - |checkmark|
 
-   * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 8.0 and later
-     - 3.6.17+
-     -
-     -
-
    * - SLES 12
      - |checkmark|
      - |checkmark|
