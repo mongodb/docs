@@ -1,6 +1,6 @@
 .. code-block:: java
 
-   MongoCredential credential = MongoCredential.createAwsCredential("<username>", "<password>");
+   MongoCredential credential = MongoCredential.createAwsCredential("<username>", "<password>".toCharArray());
 
    MongoClient mongoClient = MongoClients.create(
        MongoClientSettings.builder()
