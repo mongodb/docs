@@ -691,17 +691,17 @@
        describes the region's priority in elections and the number and
        type of MongoDB nodes that |service| deploys to the region.
 
-   * - replicationSpecs[n].regionsConfig.analyticsNodes
+   * - replicationSpecs[n].regionsConfig.<region>.analyticsNodes
      - number
      - .. include:: /includes/fact-api-analytics-nodes-description.rst
 
-   * - replicationSpecs[n].regionsConfig.<regionName>.electableNodes
+   * - replicationSpecs[n].regionsConfig.<region>.electableNodes
      - number
      - Number of electable nodes for |service| to deploy to the region.
        Electable nodes can become the :term:`primary` and can
        facilitate local reads.
 
-   * - replicationSpecs[n].regionsConfig.<regionName>.readOnlyNodes
+   * - replicationSpecs[n].regionsConfig.<region>.readOnlyNodes
      - number
      - Number of read-only nodes for |service| to deploy to the region.
        Read-only nodes can never become the :term:`primary`, but can
@@ -710,7 +710,7 @@
        Specify **0** if you do not want any read-only nodes in the
        region.
 
-   * - replicationSpecs[n].regionsConfig.<regionName>.priority
+   * - replicationSpecs[n].regionsConfig.<region>.priority
      - number
      - Election priority of the region. If you have regions with only
        read-only nodes, set this value to **0**.

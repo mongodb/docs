@@ -605,7 +605,7 @@
      -
 
        .. admonition:: Use **replicationSpecs**
-          :class: note
+          :class: important
 
           **replicationFactor** is deprecated. Use
           **replicationSpecs**.
@@ -630,17 +630,17 @@
      -
 
        .. admonition:: Use **replicationSpecs**
-          :class: note
+          :class: important
 
           **replicationSpec** is deprecated. Use **replicationSpecs**.
 
        Configuration of each region in a multi-region cluster. Each
-       element in this document represents a region where |service|
+       element in this object represents a region where |service|
        deploys your cluster.
 
        For single-region clusters, you can either specify the
        **providerSettings.regionName** and **replicationFactor**, *or*
-       you can use the **replicationSpec** document to define a single
+       you can use the **replicationSpec** object to define a single
        region.
 
        For multi-region clusters, omit the
@@ -664,22 +664,31 @@
 
    * - replicationSpec.<region>
      - object
-     - Optional
-     - Physical location of the region. Replace **<region>** with
-       the name of the region. Each **<region>** document describes the
+     - Conditional
+     - 
+
+       .. admonition:: Use **replicationSpecs[n].<region>**
+          :class: important
+
+          **replicationSpec.<region>** is deprecated. Use
+          **replicationSpecs[n].<region>**.
+
+       Physical location of the region. Replace **<region>** with the
+       name of the region. Each **<region>** object describes the
        region's priority in elections and the number and type of
-       MongoDB nodes |service| deploys to the region. You must order
-       each **<region>** by **replicationSpec.priority** descending.
+       MongoDB nodes |service| deploys to the region.
 
-       You must specify at least one **replicationSpec.<region>**
-       document.
+       .. important::
 
-       Select your cloud provider's tab for example cluster region
-       names:
+          If you use **replicationSpec**, you must specify a minimum of
+          one **replicationSpec.<region>** object.
+
+       Select your cloud service provider's tab for example cluster
+       region names:
 
        .. include:: /includes/fact-cloud-region-name-examples.rst
 
-       For each **<region>** document, you must specify the
+       For each **<region>** object, you must specify the
        **analyticsNodes**, **electableNodes**, **priority**, and
        **readOnlyNodes** parameters.
 
@@ -691,17 +700,32 @@
      - number
      - Optional
      -
+
+       .. admonition:: Use **replicationSpecs[n].<region>.analyticsNodes**
+          :class: important
+
+          **replicationSpec.<region>.analyticsNodes** is deprecated. Use
+          **replicationSpecs[n].<region>.analyticsNodes**.
+
        .. include:: /includes/fact-api-analytics-nodes-description.rst
 
    * - replicationSpec.<region>.electableNodes
      - number
      - Optional
-     - Number of electable nodes for |service| to deploy to the
+     - 
+
+       .. admonition:: Use **replicationSpecs[n].<region>.electableNodes**
+          :class: important
+
+          **replicationSpec.<region>.electableNodes** is deprecated. Use
+          **replicationSpecs[n].<region>.electableNodes**.
+
+       Number of electable nodes for |service| to deploy to the
        region. Electable nodes can become the :term:`primary` and can
        facilitate local reads.
 
        The total number of **electableNodes** across all
-       **replicationSpec.<region>** document must be **3**, **5**, or
+       **replicationSpec.<region>** object must be **3**, **5**, or
        **7**.
 
        Specify **0** if you do not want any electable nodes in the
@@ -713,7 +737,15 @@
    * - replicationSpec.<region>.priority
      - number
      - Optional
-     - Election priority of the region. For regions with only
+     - 
+
+       .. admonition:: Use **replicationSpecs[n].<region>.priority**
+          :class: important
+
+          **replicationSpec.<region>.priority** is deprecated. Use
+          **replicationSpecs[n].<region>.priority**.
+
+       Election priority of the region. For regions with only
        **replicationSpec.<region>.readOnlyNodes**, set this value to
        **0**.
 
@@ -725,22 +757,30 @@
 
        The priority **7** region identifies the **Preferred Region** of
        the cluster. |service| places the :term:`primary` node in the
-       **Preferred Region**.  Priorities **1** through **7** are
-       exclusive - no more than one region per cluster can be assigned
-       a given priority.
+       **Preferred Region**. Priorities **1** through **7** are
+       exclusive: you can't assign a given priority to more than one
+       region per cluster.
 
-       For example, if you have three regions, their
-       priorities would be **7**, **6**, and **5** respectively.
-       If you added two more regions for supporting electable nodes,
-       the priorities of those regions would be **4** and **3**
-       respectively.
+       .. example::
+
+          If you have three regions, their priorities would be **7**,
+          **6**, and **5** respectively. If you added two more regions
+          for supporting electable nodes, the priorities of those
+          regions would be **4** and **3** respectively.
 
    * - replicationSpec.<region>.readOnlyNodes
      - number
      - Optional
-     - Number of read-only nodes for |service| to deploy to the
-       region. Read-only nodes can never become the :term:`primary`,
-       but can facilitate local-reads.
+     - 
+
+       .. admonition:: Use **replicationSpecs[n].<region>.readOnlyNodes**
+          :class: important
+
+          **replicationSpec.<region>.readOnlyNodes** is deprecated. Use **replicationSpecs[n].<region>.readOnlyNodes**.
+
+       Number of read-only nodes for |service| to deploy to the region.
+       Read-only nodes can never become the :term:`primary`, but can
+       facilitate local-reads.
 
        Specify **0** if you do not want any read-only nodes in the
        region.
@@ -764,13 +804,13 @@
              * - You are deploying
                  :doc:`Global Clusters </global-clusters>`.
                - Required
-               - Each document in the array represents a zone where
+               - Each object in the array represents a zone where
                  |service| deploys your cluster's nodes.
 
              * - You are deploying non-Global replica sets and sharded
                  clusters.
                - Optional
-               - This array has one document representing where
+               - This array has one object representing where
                  |service| deploys your cluster's nodes.
 
        You must specify all parameters in **replicationSpecs** object
@@ -816,53 +856,103 @@
    * - replicationSpecs[n].numShards
      - number
      - Required
-     - Number of shards to deploy in the specified zone. The default
+     - Number of shards to deploy in each specified zone. The default
        value is **1**.
 
    * - replicationSpecs[n].regionsConfig
      - object
      - Optional
-     - Physical location of the region. Each **regionsConfig**
-       document describes the region's priority in elections and the
-       number and type of MongoDB nodes |service| deploys to the
-       region. You must order each **regionsConfigs** document by
-       **regionsConfig.priority**, descending.
+     - Configuration for a region. Each **regionsConfig** object
+       describes the region's priority in elections and the number and
+       type of MongoDB nodes that |service| deploys to the region.
 
-       .. include:: /includes/fact-group-region-association.rst
+       .. important::
+
+          If you use **replicationSpecs**, you must specify a minimum
+          of one **replicationSpecs[n].regionsConfig.<region>**
+          string.
+
+   * - replicationSpecs[n].regionsConfig.<region>
+     - object
+     - Required
+     - Physical location of the region. Replace **<region>** with the
+       name of the region. Each **<region>** object describes the
+       region's priority in elections and the number and type of
+       MongoDB nodes |service| deploys to the region.
 
        Select your cloud service provider's tab for example cluster
        region names:
 
        .. include:: /includes/fact-cloud-region-name-examples.rst
 
-   * - replicationSpecs[n].regionsConfig.electableNodes
+       For each **<region>** object, you must specify the
+       **analyticsNodes**, **electableNodes**, **priority**, and
+       **readOnlyNodes** parameters.
+
+       .. seealso:: :ref:`mod-cluster-considerations`.
+
+       .. include:: /includes/fact-group-region-association.rst
+
+   * - replicationSpecs[n].regionsConfig.<region>.analyticsNodes
+     - number
+     - Optional
+     -
+       .. include:: /includes/fact-api-analytics-nodes-description.rst
+
+   * - replicationSpecs[n].regionsConfig.<region>.electableNodes
      - number
      - Optional
      - Number of electable nodes for |service| to deploy to the
        region. Electable nodes can become the :term:`primary` and can
        facilitate local reads.
 
-   * - replicationSpecs[n].regionsConfig.readOnlyNodes
-     - number
-     - Optional
-     - Number of read-only nodes for |service| to deploy to the
-       region. Read-only nodes can never become the :term:`primary`,
-       but can facilitate local-reads.
+       The total number of **electableNodes** across all
+       **replicationSpecs[n].regionsConfig.<region>** object must be
+       **3**, **5**, or **7**.
 
-       Specify **0** if you do not want any read-only nodes in the
+       Specify **0** if you do not want any electable nodes in the
        region.
 
-   * - replicationSpecs[n].regionsConfig.analyticsNodes
-     - number
-     - Optional
-     -
-       .. include:: /includes/fact-api-analytics-nodes-description.rst
+       You cannot create electable nodes if the
+       **replicationSpecs[n].regionsConfig.<region>.priority** is 0.
 
-   * - replicationSpecs[n].regionsConfig.priority
+   * - replicationSpecs[n].regionsConfig.<region>.priority
      - number
      - Optional
      - Election priority of the region. For regions with only
-       read-only nodes, set this value to **0**.
+       **replicationSpecs[n].regionsConfig.<region>.readOnlyNodes**, set
+       this value to **0**.
+
+       For regions where
+       **replicationSpecs[n].regionsConfig.<region>.electableNodes** is
+       at least **1**, each
+       **replicationSpecs[n].regionsConfig.<region>** must have
+       a priority of exactly one **(1)** less than the previous region.
+       The first region **must** have a priority of **7**. The lowest
+       possible priority is **1**.
+
+       The priority **7** region identifies the **Preferred Region** of
+       the cluster. |service| places the :term:`primary` node in the
+       **Preferred Region**. Priorities **1** through **7** are
+       exclusive: you can't assign a given priority to more than one
+       region per cluster.
+
+       .. example::
+
+          If you have three regions, their priorities would be **7**,
+          **6**, and **5** respectively. If you added two more regions
+          for supporting electable nodes, the priorities of those
+          regions would be **4** and **3** respectively.
+
+   * - replicationSpecs[n].regionsConfig.<region>.readOnlyNodes
+     - number
+     - Optional
+     - Number of read-only nodes for |service| to deploy to the region.
+       Read-only nodes can never become the :term:`primary`, but can
+       facilitate local-reads.
+
+       Specify **0** if you do not want any read-only nodes in the
+       region.
 
    * - replicationSpecs[n].zoneName
      - string
