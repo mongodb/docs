@@ -60,12 +60,73 @@ Definition
 Behaviors
 ---------
 
-Result Ordering
-~~~~~~~~~~~~~~~
+.. _sort-cursor-stable-sorting:
 
-Unless you specify the :method:`~cursor.sort()` method or use the
-:query:`$near` operator, MongoDB does **not** guarantee the order of
-query results.
+Sort Stability
+~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.4
+
+.. include:: /includes/fact-sort-stability.rst
+
+Consider the following ``restaurant`` collection:
+
+.. code-block:: js
+
+   db.restaurants.insertMany( [
+      { "_id" : 1, "name" : "Central Park Cafe", "borough" : "Manhattan"},
+      { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "borough" : "Queens"},
+      { "_id" : 3, "name" : "Empire State Pub", "borough" : "Brooklyn"},
+      { "_id" : 4, "name" : "Stan's Pizzaria", "borough" : "Manhattan"},
+      { "_id" : 5, "name" : "Jane's Deli", "borough" : "Brooklyn"},
+   ] );
+
+The following command uses the :method:`~cursor.sort()` method to sort
+on the ``borough`` field:
+
+.. code-block:: js
+
+   db.restaurants.find().sort( { "borough": 1 } )
+
+In this example, the sort is *unstable*, since the ``borough`` field
+contains duplicate values for both ``Manhattan`` and ``Brooklyn``.
+Documents are returned in alphabetical order by ``borough``, but the
+order of those documents with duplicate values for ``borough`` might not
+the be the same across multiple executions of the same sort. For
+example, here are the results from two different executions of the
+above command:
+
+.. code-block:: js
+   :copyable: false
+
+   { "_id" : 3, "name" : "Empire State Pub", "borough" : "Brooklyn" }
+   { "_id" : 5, "name" : "Jane's Deli", "borough" : "Brooklyn" }
+   { "_id" : 1, "name" : "Central Park Cafe", "borough" : "Manhattan" }
+   { "_id" : 4, "name" : "Stan's Pizzaria", "borough" : "Manhattan" }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "borough" : "Queens" }
+
+   { "_id" : 5, "name" : "Jane's Deli", "borough" : "Brooklyn" }
+   { "_id" : 3, "name" : "Empire State Pub", "borough" : "Brooklyn" }
+   { "_id" : 4, "name" : "Stan's Pizzaria", "borough" : "Manhattan" }
+   { "_id" : 1, "name" : "Central Park Cafe", "borough" : "Manhattan" }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "borough" : "Queens" }
+
+While the values for ``borough`` are still sorted in alphabetical order,
+the order of the documents containing duplicate values for ``borough``
+(i.e. ``Manhattan`` and ``Brooklyn``) is not the same.
+
+To achieve a *stable sort*, add a field which contains exclusively
+unique values to the sort. The following command uses the
+:method:`~cursor.sort()` method to sort on both the ``borough`` field
+and the ``_id`` field:
+
+.. code-block:: js
+
+   db.restaurants.find().sort( { "borough": 1, "_id": 1 } )
+
+Since the ``_id`` field is always guaranteed to contain exclusively
+unique values, the returned sort order will always be the same across
+multiple executions of the same sort.
 
 .. _sort-asc-desc:
 
