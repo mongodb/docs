@@ -5,7 +5,7 @@ following command on the command-line:
 
    grep ^NAME  /etc/*release
 
-The result should be **Amazon Linux**. If using a different Linux
-distribution, please see the
+The result should be **Amazon Linux** or **Amazon Linux AMI**. If using
+a different Linux distribution, please see the
 :doc:`install instructions for your platform
 </administration/install-on-linux>`.
