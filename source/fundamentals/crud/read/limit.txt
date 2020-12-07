@@ -4,18 +4,17 @@ Limit the Number of Returned Results
 
 .. default-domain:: mongodb
 
-Use ``limit`` to cap the number of documents that can be returned from a
-read operation. The ``limit`` operation functions as a cap on the maximum number of
-documents that the operation can return, but it can return
-a smaller number of documents if there are not enough present
-to reach the limit. If ``limit`` is used with the
-``skip`` (TODO: link) method, the skip applies
+Use ``limit()`` to cap the number of documents that a read operation returns. 
+The ``limit()`` instance method designates the maximum number of
+documents that the read operation can return. If there are not enough documents 
+to reach the specified limit, it can return a smaller number. 
+If you use ``limit()`` with the ``skip()`` (TODO: link) instance method, the skip applies
 first and the limit only applies to the documents left over after
 the skip.
 
-Follow the instructions in the examples below to insert data into
+The examples below demonstrate how to insert data into
 a collection and return only certain results from a query using a sort,
-a skip, and a limit. Perform the following operation to insert these documents
+a skip, and a limit. The following operation inserts documents
 representing books into a collection:
 
 .. code-block:: java
@@ -23,7 +22,7 @@ representing books into a collection:
     collection.insertMany(Arrays.asList(
         new Document().append("_id", 1)
             .append("title", "The Brothers Karamazov").append("length", 824)
-            .append("author", "Dostoyevksy"),
+            .append("author", "Dostoyevsky"),
         new Document().append("_id", 2)
             .append("title", "Les Misérables").append("length", 1462).append("author", "Hugo"),
         new Document().append("_id", 3)
@@ -37,10 +36,10 @@ representing books into a collection:
             .append("author", "Martin")
     ));
 
-The following example queries the collection to return the top three
-longest books. It matches all the documents with the query, applies
-a ``sort`` on the ``length`` field to return books with longer lengths before
-books with shorter lengths, and applies a ``limit`` to return only ``3`` results:
+The next example queries the collection to return the top three
+longest books. It first matches all the documents with the query, then sorts on the
+``length`` field to return books with longer lengths before
+books with shorter lengths. Lastly, it limits the return value to ``3`` documents:
 
 .. code-block:: java
   :emphasize-lines: 6
@@ -54,12 +53,13 @@ books with shorter lengths, and applies a ``limit`` to return only ``3`` results
         .iterator();
     // print out items
     try {
-      while (cursor.hasNext()) {
-        System.out.println(cursor.next());
-      }
+        while (cursor.hasNext()) {
+            System.out.println(cursor.next());
+        }
+    } 
     // close the cursor
-    } finally {
-      cursor.close();
+    finally {
+        cursor.close();
     }
 
 
@@ -68,13 +68,13 @@ length:
 
 .. code-block:: java
 
-   Document{{_id=2, title=Les Misérables, author=Hugo, length=1462}}
-   Document{{_id=6, title=A Dance with Dragons, author=Martin, length=1104}}
-   Document{{_id=4, title=Infinite Jest, author=Wallace, length=1104}}
+    Document{{_id=2, title=Les Misérables, author=Hugo, length=1462}}
+    Document{{_id=6, title=A Dance with Dragons, author=Martin, length=1104}}
+    Document{{_id=4, title=Infinite Jest, author=Wallace, length=1104}}
 
 .. note::
 
-   The order in which you call ``limit`` and ``sort`` does not matter
+   The order in which you call ``limit()`` and ``sort()`` does not matter
    because the driver reorders the calls to apply the sort first and the
    limit after it. The following two calls are equivalent:
 
@@ -84,9 +84,9 @@ length:
       collection.find().limit(3).sort(descending("length"));
 
 
-To see the next three longest books, append the ``skip()`` method, passing
-the number of documents to skip over to the previous code snippet's call to
-``find()``:
+To see the next three longest books, append the ``skip()`` method to your 
+``find()`` call. The integer argument passed to ``skip()`` will determine
+how many documents the find operation returns:
 
 .. code-block:: java
   :emphasize-lines: 5, 6
@@ -94,27 +94,35 @@ the number of documents to skip over to the previous code snippet's call to
     import com.mongodb.client.model.Sorts;
 
     MongoCursor<Document> cursor = collection.find()
-      .sort(ascending("length"))
-      .limit(3)
-      .skip(3)
-      .iterator();
+        .sort(ascending("length"))
+        .limit(3)
+        .skip(3)
+        .iterator();
     try {
-      while(cursor.hasNext()) {
-        System.out.println(cursor.next());
-      }
+        while(cursor.hasNext()) {
+            System.out.println(cursor.next());
+        }
     } 
     finally {
-      cursor.close();
+        cursor.close();
     }
 
 This operation returns the documents that describe the fourth through sixth
 longest books:
 
-.. code-block:: javascript
+.. code-block:: java
 
-   Document{{_id=3, title=Atlas Shrugged, author=Rand, length=1088}}
-   Document{{_id=5, title=Cryptonomicon, author=Stephenson, length=918}}
-   Document{{_id=1, title=The Brothers Karamazov, author=Dostoyevsky, length=824}}
+    Document{{_id=3, title=Atlas Shrugged, author=Rand, length=1088}}
+    Document{{_id=5, title=Cryptonomicon, author=Stephenson, length=918}}
+    Document{{_id=1, title=The Brothers Karamazov, author=Dostoyevsky, length=824}}
 
-You can combine ``skip`` and ``limit`` in this way to implement paging for your
-collection, returning only small "slices" of the collection at once.
+You can combine ``skip()`` and ``limit()`` in this way to implement paging for your
+collection, returning only small subsets (otherwise known as "slices") of the collection at one time.
+
+For additional information on the classes and methods mentioned on this
+page, see the following API documentation:
+
+- :java-sync-api:`FindIterable <com/mongodb/client/FindIterable.html>`
+- :java-sync-api:`MongoIterable <com/mongodb/client/MongoIterable.html>`
+- :java-sync-api:`MongoCursor <com/mongodb/client/MongoCursor.html>`
+- :java-sync-api:`find() <com/mongodb/client/MongoCollection.html#find()>`
