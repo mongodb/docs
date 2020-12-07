@@ -57,8 +57,8 @@
          Host is down
 
        ``OUTSIDE_METRIC_THRESHOLD``
-         Click the **Metrics** tab beneath
-         `Request Body Parameters`_.
+         Metric occurred outside of the metric threshold.
+         See :ref:`monitor-cluster-metrics`.
 
    * - Project
      -

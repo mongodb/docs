@@ -33,6 +33,17 @@
      - Specifies whether or not to wrap the response in an :ref:`envelope <api-envelope>`.
      - ``false``
  
+   * - ``clusterNames``
+     - string
+     - Returns events which occurred on the specified cluster. To return
+       events from multiple clusters, specify multiple ``clusterNames``
+       query parameters. For example:
+
+       .. code-block:: none
+
+          <Request URL>?clusterNames=Cluster1&clusterNames=Cluster2
+     - 
+   
    * - ``eventType``
      - string
      - Returns events whose event type matches the specified value.
