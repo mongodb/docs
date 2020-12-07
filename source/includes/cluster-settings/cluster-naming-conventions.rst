@@ -1,5 +1,5 @@
-.. admonition:: Cluster Tier & API Naming Conventions
-   :class: note
+.. note:: Cluster Tier & API Naming Conventions
+
 
    For purposes of management with the :ref:`Atlas API <atlas-api>`, cluster
    tier names that are prepended with ``R`` instead of an ``M`` (``R40``

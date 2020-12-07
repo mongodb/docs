@@ -17,15 +17,9 @@
        If you specify the **autoScaling** object, you must also specify
        the **providerSettings.autoScaling** object.
 
-       .. seealso:: :ref:`cluster-autoscaling`.
-       
-   * - autoScaling.autoIndexingEnabled
-     - boolean
-     - Optional
-     - Flag that indicates whether :ref:`autopilot mode <pa-autopilot>`
-       for Performance Advisor is enabled. The default is **false**.
+       .. seealso::
 
-       .. include:: /includes/fact-autopilot-early-access.rst
+          :ref:`cluster-autoscaling`.
 
    * - autoScaling.compute
      - object
@@ -145,7 +139,9 @@
        :manual:`readPreferenceTags </core/read-preference/#tag-sets>`
        options.
 
-       .. seealso:: :ref:`BI Connector Read Preferences Table <bic-read-preferences>`.
+       .. seealso::
+
+          :ref:`BI Connector Read Preferences Table <bic-read-preferences>`.
 
        .. list-table::
           :header-rows: 1
@@ -180,9 +176,8 @@
 
        .. include:: /includes/fact-conversion-sharded-clusters.rst
 
-       .. admonition:: When should you use **clusterType**?
-          :class: note
-
+       .. note:: When should you use ``clusterType``?
+       
           .. list-table::
              :header-rows: 1
              :widths: 80 20
@@ -223,8 +218,7 @@
        number to add capacity, up to a maximum possible value of
        **4096** (4 TB). This value must be a positive integer.
 
-       .. admonition:: When should you use **diskSizeGB**?
-          :class: note
+       .. note:: When should you use **diskSizeGB**?
 
           This setting:
 
@@ -525,7 +519,9 @@
        storage capacity and RAM size. The cluster you select is
        used for all the data-bearing servers in your cluster.
 
-       .. seealso:: :ref:`server-number-costs`.
+       .. seealso::
+
+          :ref:`server-number-costs`.
 
        .. tabs-cloud-providers::
 
@@ -572,8 +568,7 @@
      - string
      - Conditional
      -
-       .. admonition:: Required if setting **replicationSpecs** array to empty
-          :class: note
+       .. note:: Required if setting **replicationSpecs** array to empty
 
           This parameter is *required* if you have not set any values
           in the  **replicationSpecs** array.
@@ -604,8 +599,7 @@
      - Optional
      -
 
-       .. admonition:: Use **replicationSpecs**
-          :class: important
+       .. important:: Use **replicationSpecs**
 
           **replicationFactor** is deprecated. Use
           **replicationSpecs**.
@@ -627,12 +621,9 @@
    * - replicationSpec
      - object
      - Optional
-     -
-
-       .. admonition:: Use **replicationSpecs**
-          :class: important
-
-          **replicationSpec** is deprecated. Use **replicationSpecs**.
+     - .. deprecated:: 
+     
+          ``replicationSpec`` is deprecated. Use ``replicationSpecs``.
 
        Configuration of each region in a multi-region cluster. Each
        element in this object represents a region where |service|
@@ -692,7 +683,9 @@
        **analyticsNodes**, **electableNodes**, **priority**, and
        **readOnlyNodes** parameters.
 
-       .. seealso:: :ref:`mod-cluster-considerations`.
+       .. seealso::
+
+          :ref:`mod-cluster-considerations`.
 
        .. include:: /includes/fact-group-region-association.rst
 
@@ -790,8 +783,7 @@
      - Conditional
      - Configuration for cluster regions.
 
-       .. admonition:: When should you use **replicationSpecs**?
-          :class: note
+       .. note:: When should you use ``replicationSpecs``?
 
           .. list-table::
              :header-rows: 1
@@ -816,7 +808,7 @@
        You must specify all parameters in **replicationSpecs** object
        array.
 
-       .. admonition:: What parameters depend on **replicationSpecs**?
+       .. tip:: What parameters depend on **replicationSpecs**?
 
           If you set **replicationSpecs**, you must:
 

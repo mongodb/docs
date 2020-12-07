@@ -79,4 +79,4 @@
           * - GROUP_DATA_ACCESS_READ_WRITE
             - :authrole:`Project Data Access Read/Write`
           * - GROUP_DATA_ACCESS_READ_ONLY
-            - :authrole:`Project Data AccesRead Only`
+            - :authrole:`Project Data Access Read Only`

@@ -1,5 +1,4 @@
-.. admonition:: Collection Limit for |service| {+Old-Backup+}.
-   :class: important
+.. important:: Collection Limit for |service| {+Old-Backup+}.
 
    Your |service| cluster can backup or restore clusters with fewer
    than 100,000 files across all databases. Files include collections

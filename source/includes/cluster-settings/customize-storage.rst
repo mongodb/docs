@@ -91,4 +91,6 @@ configuration options for each cloud service provider, see:
 - :ref:`GCP Configuration Options <google-gcp-configuration-options>`
 - :ref:`Azure Configuration Options <microsoft-azure-configuration-options>`
 
-.. seealso:: :ref:`connection-limits`
+.. seealso:: 
+
+   :ref:`connection-limits`

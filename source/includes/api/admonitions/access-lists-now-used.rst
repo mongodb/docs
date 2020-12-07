@@ -1,5 +1,5 @@
-.. admonition:: Access List Replaces Whitelist
-   :class: important
+.. important:: Access List Replaces Whitelist
+
 
    This resource replaces the whitelist resource. |service| deprecated
    whitelists. The whitelist resource will be disabled in June 2021.

@@ -1,5 +1,4 @@
-.. admonition:: Maintenance Window Considerations
-   :class: important
+.. important:: Maintenance Window Considerations
 
    Urgent Maintenance Activities
      Urgent maintenance activities such as security patches cannot

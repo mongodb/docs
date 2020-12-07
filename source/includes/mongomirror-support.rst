@@ -1,5 +1,4 @@
-.. admonition:: support
-   :class: note
+.. note:: support
 
    :binary:`~bin.mongomirror` is intended to be used as a utility for performing
    a one-time migration of a dataset into a |service-fullname| cluster from a MongoDB

@@ -17,7 +17,9 @@
        If you specify the **autoScaling** object, you must also specify
        the **providerSettings.autoScaling** object.
 
-       .. seealso:: :ref:`cluster-autoscaling`.
+       .. seealso::
+
+          :ref:`cluster-autoscaling`.
 
    * - autoScaling.autoIndexingEnabled
      - boolean
@@ -134,7 +136,9 @@
        :manual:`readPreferenceTags </core/read-preference/#tag-sets>`
        options.
 
-       .. seealso:: :ref:`BI Connector Read Preferences Table <bic-read-preferences>`.
+       .. seealso::
+
+          :ref:`BI Connector Read Preferences Table <bic-read-preferences>`.
 
        .. list-table::
           :header-rows: 1
@@ -167,9 +171,8 @@
      - Conditional
      - Type of the cluster that you want to create.
 
-       .. admonition:: When should you use **clusterType**?
-          :class: note
-
+       .. note:: When should you use ``clusterType``?
+       
           .. list-table::
              :header-rows: 1
              :widths: 80 20
@@ -208,11 +211,10 @@
      - Conditional
      - Capacity, in gigabytes, of the host's root volume. Increase this
        number to add capacity, up to a maximum possible value of
-       **4096** (4 TB). This value must be a positive integer.
-
-       .. admonition:: When should you use **diskSizeGB**?
-          :class: note
-
+       ``4096`` (i.e., 4 TB). This value must be a positive integer.
+       
+       .. note:: When should you use ``diskSizeGB``?
+       
           This setting:
 
           - Cannot be used with |nvme-clusters|.
@@ -230,7 +232,9 @@
           depending on whether you choose the default value or a
           custom value.
 
-          .. seealso:: :ref:`storage-capacity`.
+          .. seealso::
+
+             :ref:`storage-capacity`.
 
        .. include:: /includes/fact-storage-limitation.rst
 
@@ -488,7 +492,9 @@
        storage capacity and RAM size. The cluster you select is
        used for all the data-bearing hosts in your cluster tier.
 
-       .. seealso:: :ref:`server-number-costs`.
+       .. seealso::
+
+          :ref:`server-number-costs`.
 
        .. important::
           If you are deploying a :doc:`Global Cluster
@@ -540,8 +546,7 @@
      - string
      - Conditional
      -
-       .. admonition:: Required if **replicationSpecs** array is empty
-          :class: note
+       .. note:: Required if ``replicationSpecs`` array is empty
 
           If you haven't set values in the  **replicationSpecs** array,
           you must set this parameter.
@@ -574,11 +579,10 @@
      - Optional
      -
 
-       .. admonition:: Use **replicationSpecs**
-          :class: important
-
-          **replicationFactor** is deprecated. Use
-          **replicationSpecs**.
+       .. deprecated:: 
+       
+          ``replicationFactor`` is deprecated. Use
+          ``replicationSpecs``.
 
        Number of :term:`replica set` members. Each member keeps a copy
        of your databases, providing high availability and data
@@ -603,11 +607,9 @@
      - object
      - Optional
      -
-
-       .. admonition:: Use **replicationSpecs**
-          :class: important
-
-          **replicationSpec** is deprecated. Use **replicationSpecs**.
+       .. deprecated:: 
+       
+          ``replicationSpec`` is deprecated. Use ``replicationSpecs``.
 
        Configuration of each region in a multi-region cluster. Each
        element in this object represents a region where |service|
@@ -667,7 +669,9 @@
        **analyticsNodes**, **electableNodes**, **priority**, and
        **readOnlyNodes** parameters.
 
-       .. seealso:: :ref:`mod-cluster-considerations`.
+       .. seealso::
+
+          :ref:`mod-cluster-considerations`.
 
        .. include:: /includes/fact-group-region-association.rst
 
@@ -765,9 +769,8 @@
      - Conditional
      - Configuration for cluster regions.
 
-       .. admonition:: When should you use **replicationSpecs**?
-          :class: note
-
+       .. note:: When should you use ``replicationSpecs``?
+       
           .. list-table::
              :header-rows: 1
              :widths: 40 20 40
@@ -791,7 +794,7 @@
        You must specify all parameters in **replicationSpecs** object
        array.
 
-       .. admonition:: What parameters depend on **replicationSpecs**?
+       .. note:: What parameters depend on ``replicationSpecs``?
 
           If you set **replicationSpecs**, you must:
 

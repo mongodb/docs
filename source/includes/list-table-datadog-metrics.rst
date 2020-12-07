@@ -91,7 +91,7 @@
      - Process
      - Measure rate of database operations on MongoDB
        :manual:`secondaries </core/replica-set-secondary/>`, as
-       collected from the MongoDB :dbCommand:`serverStatus` command's
+       collected from the MongoDB :dbcommand:`serverStatus` command's
        ``opcountersRepl`` document.
 
        You can view these metrics on the :guilabel:`Opcounters - Repl`

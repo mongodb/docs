@@ -12,7 +12,9 @@
      - Collection of settings that configures auto-scaling information
        for the cluster.
 
-       .. seealso:: :ref:`cluster-autoscaling`.
+       .. seealso::
+
+          :ref:`cluster-autoscaling`.
 
    * - autoScaling.autoIndexingEnabled
      - boolean
@@ -111,7 +113,9 @@
        Use the parameters in this object to connect your applications
        to this cluster.
 
-       .. seealso:: :doc:`Connection String Options </reference/faq/connection-changes>`
+       .. seealso::
+
+          :doc:`Connection String Options </reference/faq/connection-changes>`
 
        |service| returns the contents of this object after the
        cluster is operational, not while it builds the cluster.
@@ -190,7 +194,9 @@
        **mongodb+srv://** :manual:`connection string </reference/connection-string>`
        for this cluster.
 
-       .. seealso:: :manual:`Seedlist format </reference/connection-string/#dns-seedlist-connection-format>`
+       .. seealso::
+
+          :manual:`Seedlist format </reference/connection-string/#dns-seedlist-connection-format>`
 
    * - connectionStrings.private
      - string
@@ -224,7 +230,9 @@
        Use this |uri| format if your driver supports it. If it doesn't,
        use **connectionStrings.private**.
 
-       .. seealso:: :manual:`Seedlist format </reference/connection-string/#dns-seedlist-connection-format>`
+       .. seealso::
+
+          :manual:`Seedlist format </reference/connection-string/#dns-seedlist-connection-format>`
 
        .. note::
 
@@ -302,7 +310,9 @@
        Use this |uri| format if your driver supports it. If it doesn't,
        use **connectionStrings.awsPrivateLink**.
 
-       .. seealso:: :manual:`Seedlist format </reference/connection-string/#dns-seedlist-connection-format>`
+       .. seealso::
+
+          :manual:`Seedlist format </reference/connection-string/#dns-seedlist-connection-format>`
 
    * - createDate
      - string
@@ -314,9 +324,8 @@
        number to add capacity, up to a maximum possible value of
        **4096** (4 TB). This value must be a positive integer.
 
-       .. admonition:: When should you use **diskSizeGB**?
-          :class: note
-
+       .. note:: When should you use ``diskSizeGB``?
+       
           This setting:
 
           - Cannot be used with |nvme-clusters|
@@ -335,7 +344,9 @@
           depending on whether you choose the default value or a
           custom value.
 
-          .. seealso:: :ref:`storage-capacity`.
+          .. seealso::
+
+             :ref:`storage-capacity`.
 
        .. include:: /includes/fact-storage-limitation.rst
 
@@ -419,7 +430,9 @@
        If this is set to **2** or higher, the cluster is a sharded
        cluster with the number of shards specified.
 
-       .. seealso:: :ref:`server-number-costs`.
+       .. seealso::
+
+          :ref:`server-number-costs`.
 
        |service| might return values between **1** and **50**.
 

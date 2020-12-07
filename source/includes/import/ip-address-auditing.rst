@@ -5,10 +5,12 @@ Feed.
 To view the project's Activity Feed, click :guilabel:`Activity
 Feed` in the :guilabel:`Project` section of the left navigation pane.
 
-.. seealso:: :ref:`View All Activity <project-activity-feed>`
+.. seealso::
 
-.. admonition:: Activity Feed Considerations
-   :class: note
+   :ref:`View All Activity <project-activity-feed>`
+
+.. note:: Activity Feed Considerations
+
 
    - |service| does not report updates to a IP access list entry's
      comment in the Activity Feed.

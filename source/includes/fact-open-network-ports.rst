@@ -5,7 +5,9 @@ environment. To add the inbound network access from your application environment
 2. Use :ref:`VPC / VNet peering <vpc-peering>` to add private IP
    addresses.
 
-.. seealso:: :ref:`security-ip-access-list`
+.. seealso::
+
+   :ref:`security-ip-access-list`
 
 If your firewall blocks outbound network connections, you must also
 open outbound access from your application environment to |service|.

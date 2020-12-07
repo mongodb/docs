@@ -11,4 +11,6 @@ different cloud providers.
 |service| prioritizes nodes in this region for primary eligibility.
 Other nodes rank in the order that they appear.
 
-.. seealso:: :manual:`Member Priority </core/replica-set-elections/index.html#member-priority>`.
+.. seealso::
+
+   :manual:`Member Priority </core/replica-set-elections/index.html#member-priority>`.

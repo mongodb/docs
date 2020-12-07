@@ -95,7 +95,9 @@
          Alert condition exists but hasn't persisted beyond the
          defined notification delay.
 
-         .. seealso:: :ref:`api-alert-status`.
+         .. seealso:: 
+         
+            :ref:`api-alert-status`.
 
        - ``OPEN``
        - ``CLOSED``

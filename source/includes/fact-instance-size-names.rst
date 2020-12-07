@@ -3,8 +3,7 @@
 into a subset of available regions. The documentation for
 ``providersettings.regionName`` includes a list of these regions.
 
-.. admonition:: Cluster Tier Naming Conventions
-   :class: note
+.. note:: Cluster Tier Naming Conventions
 
    Cluster tier names that are:
 

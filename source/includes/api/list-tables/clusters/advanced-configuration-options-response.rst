@@ -65,8 +65,8 @@
 
        You can check the oplog size by connecting to your cluster
        via the |mongo| shell and authenticating as a user
-       with the :authrole:`Atlas admin` role. Run the
-       :method:`rs.printReplicationInfo() <rs.printReplicationInfo>`
+       with the :atlasrole:`Atlas admin` role. Run the
+       :method:`rs.printReplicationInfo() <rs.printReplicationInfo>` 
        method to view the current oplog size and time.
 
        This option corresponds to the

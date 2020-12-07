@@ -1,5 +1,4 @@
-.. admonition:: {+Old-Backup+} Deprecated
-   :class: important
+.. important:: {+Old-Backup+} Deprecated
 
    MongoDB deprecated the {+Old-Backup+} feature. Clusters that use
    {+Old-Backup+} can continue to use it. MongoDB recommends using

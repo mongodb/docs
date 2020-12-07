@@ -13,7 +13,7 @@
      - :icon-fa5:`check-circle`
      - :icon-fa5:`check-circle`
      - :icon-fa5:`check-circle`
-   * - M:icon-fa5:`check-circle`0
+   * - M10
      - :icon-fa5:`check-circle`
      - :icon-fa5:`check-circle`
      - :icon-fa5:`check-circle`
@@ -57,11 +57,11 @@
      - :icon-fa5:`check-circle`
      -
      -
-   * - M:icon-fa5:`check-circle`00
+   * - M100
      - :icon-fa5:`check-circle`
      -
      -
-   * - M:icon-fa5:`check-circle`40
+   * - M140
      - :icon-fa5:`check-circle`
      -
      -

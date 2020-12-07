@@ -1,6 +1,5 @@
 .. list-table::
    :header-rows: 1
-   :widths: 30 10 60
 
    * - Area
      - Metric

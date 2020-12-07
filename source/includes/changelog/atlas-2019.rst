@@ -175,7 +175,7 @@
 
 - Supports MongoDB 4.2.
 
-- Supports :xml:`<mono><ref target="fts-top-ref">$searchBeta</ref></mono>`.
+- Supports ``$searchBeta``.
 
   - Includes Memory, CPU, and Disk Usage :ref:`monitoring <monitor-cluster-metrics>`.
     For more information, see :ref:`Performance Considerations <perf-ref>`.

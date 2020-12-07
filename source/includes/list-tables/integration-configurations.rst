@@ -79,8 +79,7 @@
        the integration will display your team name and |api| token, and
        allow you to change your channel name.
 
-       .. admonition:: Legacy Token Deprecation
-          :class: important
+       .. important:: Legacy Token Deprecation
 
           Legacy tokens are deprecated and will be removed in a future
           version of |service|. You cannot edit a legacy token

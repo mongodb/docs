@@ -1,5 +1,5 @@
-.. admonition:: Access List Replaces Whitelist
-   :class: important
+.. important:: Access List Replaces Whitelist
+
 
    |service| now refers to its cluster firewall management as *IP
    Access Lists*. |service| has deprecated the whitelist resource and

@@ -23,12 +23,12 @@
           To learn more about manually restoring the downloaded
           data files, see
           :ref:`restore-cloud-provider-snapshot-download`.
-
-       .. admonition:: Download Limitations
-          :class: note
-
-          Each {+cloud-backup+} can have one download at a time, and
-          each :doc:`project </tutorial/manage-projects/>` can have
+       
+       .. note:: Download Limitations
+       
+          Each {+cloud-backup+} can have one download at
+          a time, and each
+          :doc:`project </tutorial/manage-projects/>` can have
           a maximum of 20 downloads at a time.
 
    * - pointInTime

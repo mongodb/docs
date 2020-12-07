@@ -32,5 +32,5 @@ number of :guilabel:`result` objects retrieved.
        greater than the number of objects in the :guilabel:`results`
        array if the entire result set is paginated.
 
-`results` array
-~~~~~~~~~~~~~~~
+``results`` array
+~~~~~~~~~~~~~~~~~

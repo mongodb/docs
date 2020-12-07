@@ -1,5 +1,4 @@
-.. admonition:: Retryable Writes with MongoDB 3.6
-   :class: note
+.. note:: Retryable Writes with MongoDB 3.6
 
    MongoDB 3.6+ drivers can automatically retry certain write 
    operations a single time. Retryable writes provide built-in handling 
