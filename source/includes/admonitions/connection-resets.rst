@@ -4,6 +4,6 @@
    open :manual:`sessions </reference/server-sessions>`. The following
    methods reset the connection:
 
-   ``db.auth``
-   ``Mongo.setReadPref``
-   ``Mongo.setReadConcern``
+   - ``db.auth``
+   - ``Mongo.setReadPref``
+   - ``Mongo.setReadConcern``
