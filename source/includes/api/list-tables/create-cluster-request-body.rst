@@ -644,8 +644,7 @@
      - Conditional
      - 
 
-       .. admonition:: Use **replicationSpecs[n].<region>**
-          :class: important
+       .. important:: Use **replicationSpecs[n].<region>**
 
           **replicationSpec.<region>** is deprecated. Use
           **replicationSpecs[n].<region>**.
@@ -680,8 +679,7 @@
      - Optional
      -
 
-       .. admonition:: Use **replicationSpecs[n].<region>.analyticsNodes**
-          :class: important
+       .. important:: Use **replicationSpecs[n].<region>.analyticsNodes**
 
           **replicationSpec.<region>.analyticsNodes** is deprecated. Use
           **replicationSpecs[n].<region>.analyticsNodes**.
@@ -693,8 +691,7 @@
      - Optional
      - 
 
-       .. admonition:: Use **replicationSpecs[n].<region>.electableNodes**
-          :class: important
+       .. important:: Use **replicationSpecs[n].<region>.electableNodes**
 
           **replicationSpec.<region>.electableNodes** is deprecated. Use
           **replicationSpecs[n].<region>.electableNodes**.
@@ -718,8 +715,7 @@
      - Optional
      - 
 
-       .. admonition:: Use **replicationSpecs[n].<region>.priority**
-          :class: important
+       .. important:: Use **replicationSpecs[n].<region>.priority**
 
           **replicationSpec.<region>.priority** is deprecated. Use
           **replicationSpecs[n].<region>.priority**.
@@ -752,8 +748,7 @@
      - Optional
      - 
 
-       .. admonition:: Use **replicationSpecs[n].<region>.readOnlyNodes**
-          :class: important
+       .. important:: Use **replicationSpecs[n].<region>.readOnlyNodes**
 
           **replicationSpec.<region>.readOnlyNodes** is deprecated. Use **replicationSpecs[n].<region>.readOnlyNodes**.
 

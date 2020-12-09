@@ -1,5 +1,4 @@
-.. admonition:: Multi-Cloud Low-CPU clusters
-   :class: important
+.. important:: Multi-Cloud Low-CPU clusters
 
    Low-CPU cluster tiers (R40, R50, R60, etc) are available in :ref:`multi-cloud
    cluster configurations <create-cluster-multi-region>` as long as the

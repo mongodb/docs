@@ -1,5 +1,4 @@
-.. admonition:: |service| deprecated Personal API keys
-   :class: important
+.. important:: |service| deprecated Personal API keys
 
    - You can't create new Personal |api| Keys.
    - You can't access the |api| using your existing Personal |api|

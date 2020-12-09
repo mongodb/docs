@@ -48,7 +48,7 @@ Filter by event
           :binary:`~bin.mongos` events and shard management.
 
       * - Data Lake
-        - Events related to :datalake:`Atlas Datalake </>`.
+        - Events related to `Atlas Datalake <https://docs.mongodb.com/datalake/>`__.
 
       * - Maintenance
         - Events related to maintenance windows and

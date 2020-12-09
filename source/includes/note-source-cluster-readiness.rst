@@ -1,5 +1,4 @@
-.. admonition:: Source Cluster Readiness
-   :class: important
+.. important:: Source Cluster Readiness
 
    To help ensure a smooth data migration, your source cluster should
    meet all production cluster recommendations. Check the :manual:`Operations

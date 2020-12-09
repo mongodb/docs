@@ -62,8 +62,7 @@ the cluster:
 |service| scales a cluster to the next tier when the cluster hasn't
 been scaled up in the past hour.
 
-.. admonition:: High-Speed Write Activity
-   :class: important
+.. important:: High-Speed Write Activity
 
    Scaling up to greater storage capacity requires sufficient time to
    prepare and copy data to new disks. Automatic scaling might not occur
@@ -72,8 +71,7 @@ been scaled up in the past hour.
    cluster managers should plan to scale up clusters in advance of bulk
    inserts and other instances of high-speed write activity.
 
-.. admonition:: Tier Availability
-   :class: note
+.. note:: Tier Availability
 
    Automatic scaling works on :guilabel:`General` tier clusters but
    *not* on the *Low-CPU* or *Local NVMe SSD* tier clusters.
@@ -132,71 +130,72 @@ Oplog Considerations
 
 .. include:: /includes/autoscale-oplog.rst
 
-.. topic:: Cluster Tier and Cluster Storage May Scale in Parallel
+Cluster Tier and Cluster Storage May Scale in Parallel
+``````````````````````````````````````````````````````
 
-   When |service| attempts to automatically scale your cluster storage
-   capacity, it may need to scale your storage outside of the bounds
-   supported by your current cluster tier. To help ensure that your
-   cluster does not experience any downtime, |service| will scale your
-   cluster tier (in addition to cluster storage) to accommodate the new
+When |service| attempts to automatically scale your cluster storage
+capacity, it may need to scale your storage outside of the bounds
+supported by your current cluster tier. To help ensure that your
+cluster does not experience any downtime, |service| will scale your
+cluster tier (in addition to cluster storage) to accommodate the new
+storage capacity.
+
+.. example::
+
+   The maximum storage capacity for an ``M30`` cluster is 480 GB. If
+   you have an ``M30`` cluster with maximum storage allocated and
+   your disk space used reaches 90%, a storage auto-scaling event would
+   require raising your storage capacity to 600 GB. In this case,
+   |service| scales your cluster tier up to ``M40``, because this is
+   the lowest cluster tier which can support the new required
    storage capacity.
- 
-   .. example::
 
-      The maximum storage capacity for an ``M30`` cluster is 480 GB. If
-      you have an ``M30`` cluster with maximum storage allocated and
-      your disk space used reaches 90%, a storage auto-scaling event would
-      require raising your storage capacity to 600 GB. In this case,
-      |service| scales your cluster tier up to ``M40``, because this is
-      the lowest cluster tier which can support the new required
-      storage capacity.
+In the event that your specified maximum cluster tier cannot support
+the new storage capacity, |service|:
 
-   In the event that your specified maximum cluster tier cannot support
-   the new storage capacity, |service|:
+1. Raises your maximum cluster tier to the next lowest tier that can
+   accommodate the new storage capacity.
 
-   1. Raises your maximum cluster tier to the next lowest tier that can
-      accommodate the new storage capacity.
+#. Scales your cluster tier to that new maximum tier.
 
-   #. Scales your cluster tier to that new maximum tier.
+.. note::
 
-   .. note::
+   When |service| overrides your maximum cluster tier, it also
+   disables your cluster from automatically scaling down. If you
+   want to re-enable downward auto-scaling, you must do so manually
+   from your :ref:`Cluster Settings <scale-cluster>`
 
-      When |service| overrides your maximum cluster tier, it also
-      disables your cluster from automatically scaling down. If you
-      want to re-enable downward auto-scaling, you must do so manually
-      from your :ref:`Cluster Settings <scale-cluster>`
+   .. seealso:: 
+   
+      :ref:`downward-scaling-considerations`.
 
-      .. seealso:: 
-      
-         :ref:`downward-scaling-considerations`.
+If |service| attempts to scale your cluster tier down and the target
+tier cannot support your current disk capacity, provisioned |iops|,
+or both, |service| does not scale your cluster down. In this
+scenario, |service| updates your auto-scaling settings based on the
+relationship between your current cluster tier and configured
+maximum cluster tier:
 
-   If |service| attempts to scale your cluster tier down and the target
-   tier cannot support your current disk capacity, provisioned |iops|,
-   or both, |service| does not scale your cluster down. In this
-   scenario, |service| updates your auto-scaling settings based on the
-   relationship between your current cluster tier and configured
-   maximum cluster tier:
+- If the cluster is currently at the configured maximum cluster
+  tier, |service| disables the cluster from automatically scaling
+  down because all smaller tiers would not be able to accommodate
+  the necessary storage settings. If you want to re-enable downward
+  auto-scaling, you must do so manually from your :ref:`Cluster
+  Settings <scale-cluster>`.
 
-   - If the cluster is currently at the configured maximum cluster
-     tier, |service| disables the cluster from automatically scaling
-     down because all smaller tiers would not be able to accommodate
-     the necessary storage settings. If you want to re-enable downward
-     auto-scaling, you must do so manually from your :ref:`Cluster
-     Settings <scale-cluster>`.
+- If the cluster is not currently at the configured maximum cluster
+  tier, |service| raises the minimum cluster tier to the current
+  cluster tier. In this case, |service| does not disable downward
+  auto-scaling.
 
-   - If the cluster is not currently at the configured maximum cluster
-     tier, |service| raises the minimum cluster tier to the current
-     cluster tier. In this case, |service| does not disable downward
-     auto-scaling.
+This auto-scaling logic is designed to reduce downtime incurred by
+your storage settings not matching your workload.
 
-   This auto-scaling logic is designed to reduce downtime incurred by
-   your storage settings not matching your workload.
-
-   When an auto-scaling event modifies your configured minimum or
-   maximum cluster tier, |service| sends an email to all project
-   members with information on the event. The email includes the new
-   cluster tier and information on any modified minimum or maximum tier
-   bounds.
+When an auto-scaling event modifies your configured minimum or
+maximum cluster tier, |service| sends an email to all project
+members with information on the event. The email includes the new
+cluster tier and information on any modified minimum or maximum tier
+bounds.
 
 Configure Auto-Scaling Options
 ------------------------------
