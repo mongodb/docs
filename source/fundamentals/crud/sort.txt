@@ -7,10 +7,11 @@ Sort Results
 Use ``sort()`` to change the order in which read operations return
 documents. The ``sort()`` instance method tells MongoDB to order returned documents by the
 values of one or more fields in a certain direction. To sort returned
-documents by a field in ascending (lowest first) order, use the static method ``Sorts.ascending()``.
-To sort in descending (greatest first) order instead, use the static method ``Sorts.descending()``.
-If you do not specify a sort, MongoDB does not guarantee the order of
-query results.
+documents by a field in ascending (lowest first) order, use the static method ``Sorts.ascending()``, 
+specifying the field on which to sort. To sort in descending (greatest first) order instead, 
+use the static method ``Sorts.descending()``, specifying the field on which to sort. For example,
+you can sort on ``id`` or ``name`` fields. If you do not specify a sort, MongoDB does not 
+guarantee the order of query results.
 
 Follow the instructions in the examples below to insert data into
 a collection and perform a sort on the results of a query.
@@ -36,7 +37,7 @@ insert this data into a collection, run the following operation:
             .append("author", "Martin")
     ));
 
-Call the ``sort()`` function and specify the order with ``ascends()`` to ensure that the
+Call the ``sort()`` function and specify the order with ``ascending()`` to ensure that the
 operation returns books in alphabetical order by title:
 
 .. code-block:: java
@@ -57,8 +58,7 @@ operation returns books in alphabetical order by title:
       cursor.close();
     }
 
-This operation returns the following documents when using ``sort()`` with a query 
-on ``title`` and an ascending order:
+This sample code prints the documents in ascending order on the ``title`` field as follows:
 
 .. code-block:: java
 
@@ -73,34 +73,24 @@ Sometimes, the order of two or more documents is ambiguous using a
 specified sort. Consider the case of sorting by length: in the above case, 
 both "A Dance with Dragons" and "Infinite Jest" have ``1104`` pages, so 
 the order in which ``sort()`` returns them is not guaranteed. To resolve ties in 
-your sorted results in a repeatable way, add additional parameters to the 
-``Sorts.ascending()`` function call:
+your sorted results in a repeatable way, add additional fields by which to sort to the 
+``Sorts.ascending()`` function call. 
+Call the `sort()``method, specifying ``length`` as 
+the first field by which to sort and the ``title`` field as the second field. In the event 
+that the length field comparison results in a tie, the operation compares the tied results 
+using the ``title`` field:
+
 
 .. code-block:: java
-  :emphasize-lines: 5
+  :emphasize-lines: 3
     
-    import com.mongodb.client.model.Sorts;
-
     // sort first by length, then title
     MongoCursor<Document> cursor = collection.find()
         .sort(ascending("length", "title")).iterator();
-    // print out items
-    try {
-      while (cursor.hasNext()) {
-        System.out.println(cursor.next());
-      }
-    // close the cursor
-    } finally {
-      cursor.close();
-    }
 
-With the addition of the ``title`` field to the ``sort()`` call, the
-operation sorts matching documents first by ``length`` and, in the event
-of a tie, then by ``title``. The sort operation compares matched document fields in
-the same order as they are specified in the function call. The ``sort()``
-operation returns the following ordering of documents when used on
-the documents matching the query, sorting "A Dance with Dragons" before 
-"Infinite Jest" for the two books with the same length:
+This sample code prints your query results in ascending order by length. 
+When there are two documents with the same value, it resolves the tie using the 
+title field you specified as the second parameter.
 
 .. code-block:: javascript
 
