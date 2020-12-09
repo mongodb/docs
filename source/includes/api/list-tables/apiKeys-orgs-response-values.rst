@@ -18,7 +18,7 @@
      - string
      - An array of documents, representing a :ref:`link <api-linking>`
        to one or more sub-resources and/or related resources such as
-       :ref:`list pagination <api-lists>`. See :ref:`api-linking` for
+       :ref:`list pagination <atlas-api-lists>`. See :ref:`api-linking` for
        more information.
 
    * - ``privateKey``
