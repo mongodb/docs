@@ -16,7 +16,7 @@ array of :guilabel:`link` objects, and a count of the total number of
      - Includes one object for each returned result.
    * - ``links``
      - object array
-     - Includes one or more :ref:`links <api-linking>` to 
+     - Includes one or more :ref:`links <atlas-api-linking>` to 
        sub-resources and/or related resources. The relations between 
        URLs are explained in the `Web Linking Specification
        <http://tools.ietf.org/html/rfc5988>`__.

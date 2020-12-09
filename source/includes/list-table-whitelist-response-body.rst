@@ -38,6 +38,6 @@
 
    * - ``links``
      - object array
-     - Includes a :ref:`link <api-linking>`
+     - Includes a :ref:`link <atlas-api-linking>`
        to the whitelist entry, including the HTML-escaped IP or
        :abbr:`CIDR (Classless Inter-Domain Routing)` address.

@@ -116,7 +116,7 @@
 
    * - ``links``
      - document array
-     - One or more :ref:`links <api-linking>` to sub-resources and/or
+     - One or more :ref:`links <atlas-api-linking>` to sub-resources and/or
        related resources.
 
    * - ``roles``
