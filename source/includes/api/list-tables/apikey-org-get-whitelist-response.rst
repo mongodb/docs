@@ -40,5 +40,5 @@
      - array
      - An array of documents, representing a :ref:`link <atlas-api-linking>`
        to one or more sub-resources and/or related resources such as
-       :ref:`list pagination <atlas-api-lists>`. See :ref:`api-linking` for
+       :ref:`list pagination <atlas-api-lists>`. See :ref:`atlas-api-linking` for
        more information.
