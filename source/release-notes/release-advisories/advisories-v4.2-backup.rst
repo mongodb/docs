@@ -244,7 +244,11 @@ with |fcv-link| 4.2 or later, you:
 
 .. note::
 
-   If |mms| doesn't manage your cluster,
-   :ref:`grant <edit-security-credentials>` the
-   :authrole:`backup` permission to the MongoDB user that runs
-   backups.
+   If |mms| doesn't manage your cluster:
+   
+   - :ref:`Grant <edit-security-credentials>` the
+     :authrole:`backup` permission to the MongoDB user that runs
+     backups.
+   - Ensure that the operating system user that runs the {+mdbagent+}
+     has read permission for all data files (including journal files) of 
+     the deployment.
