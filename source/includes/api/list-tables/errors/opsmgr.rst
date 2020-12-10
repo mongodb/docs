@@ -529,15 +529,6 @@
      - `400`_
      - Role ``<role>`` is invalid for group ``<group>``.
 
-   * - .. apierror:: INVALID_SERVER_POOL_SERVER_ID
-     - `400`_
-     - An invalid server pool server ID ``<ID>`` was specified.
-
-   * - .. apierror:: INVALID_SERVER_POOL_SERVER_HOSTNAME
-     - `400`_
-     - An invalid server pool server hostname ``<hostname>`` was
-       specified.
-
    * - .. apierror:: INVALID_SNAPSHOT_ID
      - `404`_
      - An invalid snapshot ID ``<ID>`` was specified.
@@ -822,20 +813,6 @@
    * - .. apierror:: ROLES_SPECIFIED_FOR_USER
      - `403`_
      - Roles specified for user.
-
-   * - .. apierror:: SERVER_POOL_SERVER_HOSTNAME_NOT_FOUND
-     - `404`_
-     - An invalid server pool server hostname ``<name>`` was
-       specified.
-
-   * - .. apierror:: SERVER_POOL_SERVER_ID_NOT_FOUND
-     - `404`_
-     - An invalid server pool server ID ``<ID>`` was specified.
-
-   * - .. apierror:: SERVER_POOL_SERVER_INVALID_STATE
-     - `409`_
-     - The specified server ``<server>`` cannot be deleted with an
-       invalid state.
 
    * - .. apierror:: SNAPSHOT_NOT_FOUND
      - `404`_

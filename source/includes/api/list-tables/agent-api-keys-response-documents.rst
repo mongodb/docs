@@ -44,5 +44,4 @@
        - ``OLD_KEY``
        - ``PROVISIONING``
        - ``ATLAS``
-       - ``SERVER_POOLS``
        - ``PUBLIC_API``
