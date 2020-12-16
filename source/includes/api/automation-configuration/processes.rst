@@ -14,6 +14,7 @@ instances. You can restore an instance using this array.
      "featureCompatibilityVersion": "<string>",
      "hostname": "<string>",
      "lastCompact" : "<dateInIso8601Format>",
+     "lastRestart" : "<dateInIso8601Format>",
      "logRotate": {
        "sizeThresholdMB": "<number>",
        "timeThresholdHrs": "<integer>",
@@ -44,7 +45,7 @@ instances. You can restore an instance using this array.
      - Contains objects that define the |mongos| and |mongod| instances
        that |mms| monitors. Each object defines a different instance.
 
-   * - processes.args2_6
+   * - processes[n].args2_6
      - object
      - Required
      - MongoDB configuration object for MongoDB versions 2.6 and later.
@@ -53,7 +54,7 @@ instances. You can restore an instance using this array.
 
           :doc:`Supported configuration options </reference/cluster-configuration-process-options>`.
 
-   * - processes.alias
+   * - processes[n].alias
      - string
      - Optional
      - Hostname alias (often a |dns| CNAME) for the host on which the
@@ -62,7 +63,7 @@ instances. You can restore an instance using this array.
        when connecting to the host. You can also specify this alias in
        **replicaSets.host** and **sharding.configServer**.
 
-   * - processes.authSchemaVersion
+   * - processes[n].authSchemaVersion
      - integer
      - Required
      - Schema version of the user credentials for MongoDB database
@@ -78,7 +79,7 @@ instances. You can restore an instance using this array.
           :manual:`Upgrade to SCRAM-SHA-1 </release-notes/3.0-scram/>`
           in the MongoDB 3.0 release notes.
 
-   * - processes.backupRestoreUrl
+   * - processes[n].backupRestoreUrl
      - string
      - Optional
      - Delivery |url| for the restore. |mms| sets this when creating a
@@ -88,7 +89,7 @@ instances. You can restore an instance using this array.
 
           :doc:`/tutorial/automate-backup-restoration-with-api`.
 
-   * - processes.cluster
+   * - processes[n].cluster
      - string
      - Conditional
      - Name of the sharded cluster. Set this value to the same value in
@@ -98,13 +99,13 @@ instances. You can restore an instance using this array.
        - *Required* for a |mongos|.
        - *Not needed* for a |mongod|.
 
-   * - processes.disabled
+   * - processes[n].disabled
      - Boolean
      - Optional
      - Flag that indicates if this process should be shut down. Set to
        **true** to shut down the process.
 
-   * - processes.featureCompatibilityVersion
+   * - processes[n].featureCompatibilityVersion
      - string
      - Required
      - Version of MongoDB with which this process has feature
@@ -124,7 +125,7 @@ instances. You can restore an instance using this array.
          </reference/command/setFeatureCompatibilityVersion/>` in the
          MongoDB Manual.
        - |mms| sets this parameter to match the MongoDB version for new
-         deployments. 
+         deployments.
        - |mms| doesn't automatically increment this parameter when you
          upgrade a host from one MongoDB version to the next.
 
@@ -132,13 +133,13 @@ instances. You can restore an instance using this array.
 
           :manual:`setFeatureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>`
 
-   * - processes.hostname
+   * - processes[n].hostname
      - string
      - Required
      - Name of the host that serves this process. This defaults to
        **localhost**.
 
-   * - processes.lastCompact
+   * - processes[n].lastCompact
      - string
      - Optional
      - |iso8601-time| when |mms| last reclaimed free space on a
@@ -170,13 +171,24 @@ instances. You can restore an instance using this array.
 
                 "processes.lastCompact" : "2020-01-28T14:43:52-06:00"
 
-   * - processes.logRotate
+   * - processes[n].lastRestart
+     - string
+     - Optional
+     - |iso8601-time| when |mms| last restarted this process.
+
+       You can set this value to the current timestamp. If you make
+       that change, |mms| forces a restart of this process after you
+       upload this configuration. If you set this parameter for
+       multiple processes in the same cluster, the |mms| restarts the
+       selected processes in a rolling fashion.
+
+   * - processes[n].logRotate
      - object
      - Optional
      - MongoDB configuration object for rotating the MongoDB logs of a
        process.
 
-   * - processes.logRotate.numTotal
+   * - processes[n].logRotate.numTotal
      - integer
      - Optional
      - Total number of log files that |mms| retains. If you don't set
@@ -184,13 +196,13 @@ instances. You can restore an instance using this array.
        |mms| bases rotation on your other **processes.logRotate**
        settings.
 
-   * - processes.logRotate.numUncompressed
+   * - processes[n].logRotate.numUncompressed
      - integer
      - Optional
      - Maximum number of total log files to leave uncompressed,
        including the current log file. The default is **5**.
 
-   * - processes.logRotate.percentOfDiskspace
+   * - processes[n].logRotate.percentOfDiskspace
      - number
      - Optional
      - Maximum percentage of total disk space that |mms| can use to
@@ -200,7 +212,7 @@ instances. You can restore an instance using this array.
 
        The default is **0.02**.
 
-   * - processes.logRotate.sizeThresholdMB
+   * - processes[n].logRotate.sizeThresholdMB
      - number
      - Required
      - Maximum size in MB for an individual log file before |mms|
@@ -208,7 +220,7 @@ instances. You can restore an instance using this array.
        the value given in either this **sizeThresholdMB** or the
        **processes.logRotate.timeThresholdHrs** limit.
 
-   * - processes.logRotate.timeThresholdHrs
+   * - processes[n].logRotate.timeThresholdHrs
      - integer
      - Required
      - Maximum duration in hours for an individual log file before the
@@ -218,7 +230,7 @@ instances. You can restore an instance using this array.
        **timeThresholdHrs** or the
        **processes.logRotate.sizeThresholdMB** limit.
 
-   * - processes.manualMode
+   * - processes[n].manualMode
      - Boolean
      - Optional
      - Flag that indicates if {+mdbagent+} automates this process.
@@ -229,25 +241,25 @@ instances. You can restore an instance using this array.
        - Set to **false** to enable Automation on this process. The
          {+mdbagent+} automates actions on this process.
 
-   * - processes.name
+   * - processes[n].name
      - string
      - Required
      - Unique name to identify the instance.
 
-   * - processes.numCores
+   * - processes[n].numCores
      - integer
      - Optional
      - Number of cores that |mms| should bind to this process. The
        {+mdbagent+} distributes processes across the cores as evenly as
        possible.
 
-   * - processes.processType
+   * - processes[n].processType
      - string
      - Required
      - Type of MongoDB process being run. |mms| accepts |mongod| or
        |mongos| for this parameter.
 
-   * - processes.version
+   * - processes[n].version
      - string
      - Required
      - Name of the **mongoDbVersions** specification used with this
