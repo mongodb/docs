@@ -1,3 +1,15 @@
+.. _10.23.0.6688-1:
+
+MongoDB Agent 10.23.0.6688-1
+----------------------------
+
+*Released* 2020-12-15
+
+- Improves resiliency during the snapshot phase for MongoDB 4.2+
+  backups.
+- Ensures that |mms| uses a healthy |mongos| when querying to determine
+  the current state of a sharded cluster.
+
 .. _10.21.0.6634:
 
 MongoDB Agent 10.21.0.6634
