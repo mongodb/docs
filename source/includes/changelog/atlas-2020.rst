@@ -1,42 +1,62 @@
+.. _atlas_20201215:
+
+15 December 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces an optional connection string for Atlas Online Archive
+  that enables querying of archived data only (instead of the union of
+  cluster and archive data).
+- Enables Multi-Cloud Clusters to be used with the following:
+
+  - :ref:`Global Clusters <global-clusters>`
+  - :ref:`Bring Your Own Key Management Service (KMS) for Encryption at Rest <security-kms-encryption>`
+  - :ref:`Low-CPU cluster tiers <storage-class-low-cpu-ui>`
+
+- Introduces improvements to the Billing Invoice Summary table
+  including a summary of usage by top line product categories.
+- Introduces Voice and |sms| Factors as options for use with Okta
+  |mfa|.
+
 .. _atlas_20201130:
 
 30 November 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports Customer Federation Role Mappings for users of 
+- Supports Customer Federation Role Mappings for users of
   :ref:`Identity Federation with SAML <atlas-federated-authentication>`.
 - Supports passwordless :ref:`X.509 authentication <self-managed-x509>`
   for database users on ``M0``, ``M2``, and ``M5`` clusters.
-- |service| :ref:`Online Archive <manage-online-archive>` is now 
-  generally available.
+- Releases |service| :ref:`Online Archive <manage-online-archive>` to
+  general availability.
 
 .. _atlas_20201123:
 
 23 November 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Offers self-serve customers the option to sign up for Atlas Pro support.
+- Offers self-serve customers the option to sign up for Atlas Pro
+  support.
 - Introduces :ref:`Low-CPU clusters <storage-class-ui>` into additional
   Google Cloud regions: ``us-east1`` (South Carolina), ``us-east4``
   (Virginia), and ``australia-southeast1`` (Sydney).
-- Introduces availability zones for new clusters in the Azure Canada Central
-  region.
-- Introduces a new project setting for advanced multi-region :ref:`private
-  endpoint <private-endpoint>` use.
+- Introduces availability zones for new clusters in the Azure Canada
+  Central region.
+- Introduces a new project setting for advanced multi-region
+  :ref:`private endpoint <private-endpoint>` use.
 
-  - The project setting requires that all clusters in a project be sharded
-    clusters. When enabled, customers are able to configure multiple
-    private endpoints in multiple regions and connect via regionalized
-    connection strings.
+  - The project setting requires that all clusters in a project be
+    sharded clusters. When enabled, customers are able to configure
+    multiple private endpoints in multiple regions and connect via
+    regionalized connection strings.
 
   - When this setting is disabled (the default), only a single private
     endpoint can be created per region for a multi-region project. (For
-    a single region project, multiple private endpoints have always been
-    supported.)
+    a single region project, multiple private endpoints have always
+    been supported.)
 
-- Updates terminology for API Access List management. Introduces API Access
-  List for Programmatic API Keys and deprecates :ref:`API whitelist
-  <whitelist-for-api-operations>`.
+- Updates terminology for API Access List management. Introduces API
+  Access List for Programmatic API Keys and deprecates
+  :ref:`API whitelist <whitelist-for-api-operations>`.
 
 .. _atlas_20201103:
 
