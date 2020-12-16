@@ -21,8 +21,10 @@ operators to display search terms as they appear in the returned
 documents, along with the adjacent text content (if any). ``highlight``
 results are returned as part of the ``$meta`` field.
 
-Definition
-----------
+.. seealso:: `stemming <https://en.wikipedia.org/wiki/Stemming>`__
+
+Syntax
+------
 
 ``highlight`` has the following syntax:
 
@@ -31,12 +33,16 @@ Definition
 
    {
      $search: {  
-       "index": <index name>, // optional, defaults to "default"
+       "index": "<index name>", // optional, defaults to "default"
        "<operator>": { // may be ``search``, ``term``, ``compound``, or ``span``
          "query": "<search-string>",
          "path": "<field-to-search>"
        },
-       "highlight": { "path": "<field-to-search>" }
+       "highlight": { 
+         "path": "<field-to-search>",
+         "maxCharsToExamine": "<number-of-chars-to-examine>", // optional, defaults to 500,000
+         "maxNumPassages": "<number-of-passages>" // optional, defaults to 5
+       }
      }
    }, 
    { 
@@ -45,26 +51,60 @@ Definition
      }
    }
 
-The ``path`` field may contain:
-
-- A string
-- An array of strings
-- A :ref:`multi analyzer <ref-multi-analyzer>` specification
-- An array containing a combination of strings and multi analyzer
-  specifications
-
-See :ref:`ref-path` for more information.
-
-The ``"$meta": "searchHighlights"`` field contains the highlighted
-results. That field isn't part of the original document, so it is
-necessary to use a :manual:`$project
-</reference/operator/aggregation/project>` pipeline stage to add it to
-the query output.
-
-Example
+Options 
 -------
 
-The following example uses a collection called ``fruit`` that contains
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Required?
+
+   * - ``path``
+     - string
+     - Document field to search. The ``path`` field may contain:
+
+       - A string
+       - An array of strings
+       - A :ref:`multi analyzer <ref-multi-analyzer>` specification
+       - An array containing a combination of strings and multi    
+         analyzer specifications
+         
+       See :ref:`ref-path` for more information.
+
+     - yes
+
+   * - ``maxCharsToExamine``
+     - int
+     - Maximum number of characters to examine on a document when 
+       performing highlighting for a field. If omitted, defaults to 
+       ``500,000``, which means that |fts| only examines the first 
+       500,000 characters in the search field in each document 
+       for highlighting. 
+     - no
+
+   * - ``maxNumPassages``
+     - int
+     - Number of high-scoring passages to return per document in the 
+       ``highlights`` results for each field. A passage is roughly the 
+       length of a sentence. If omitted, defaults to 5, which means 
+       that for each document, |fts| returns the top 5 highest-scoring 
+       passages that match the search text.
+     - no
+
+The ``"$meta": "searchHighlights"`` field contains the highlighted 
+results. That field isn’t part of the original document, so it is 
+necessary to use a :manual:`$project 
+</reference/operator/aggregation/project>` pipeline stage to add it to 
+the query output.
+
+Examples
+--------
+
+The following examples use a collection called ``fruit`` that contains 
 the following documents:
 
 .. code-block:: json
@@ -72,25 +112,31 @@ the following documents:
    {
      "_id" : 1,
      "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith."
    },
    {
      "_id" : 2,
      "type" : "banana",
      "description" : "Bananas are usually sold in bunches of five or six."
    }
+   {
+     "_id" : 3,
+     "type" : "pear",
+     "description" : "Bosc and Bartlett are the most common varieties of pears."
+   }
 
 .. note::
 
-   One useful aspect of highlighting is that it reveals the original text returned
-   by the search query, which may not be exactly the same as the search term.
-   For example, if you use a :ref:`language-specific analyzer
-   <ref-language-analyzers>`, your text searches return all the `stemmed
-   <https://en.wikipedia.org/wiki/Stemming>`__ variations of your search
-   terms.
+   One useful aspect of highlighting is that it reveals the original 
+   text returned by the search query, which may not be exactly the same 
+   as the search term. For example, if you use a 
+   :ref:`language-specific analyzer <ref-language-analyzers>`, your 
+   text searches return all the `stemmed 
+   <https://en.wikipedia.org/wiki/Stemming>`__ variations of your 
+   search terms.
 
-The ``fruit`` collection has an :ref:`index definition
-<ref-index-definitions>` that uses the :ref:`english
+The ``fruit`` collection has an :ref:`index definition 
+<ref-index-definitions>` that uses the :ref:`english 
 <ref-language-analyzers>` analyzer and dynamic field mappings.
 
 .. code-block:: json
@@ -103,88 +149,251 @@ The ``fruit`` collection has an :ref:`index definition
      }
    }
 
-The following query searches for ``variety`` and ``bunch`` in the
-``description`` field of the ``fruit`` collection, with the
-``highlight`` option enabled.
+.. tabs::  string
 
-The :manual:`$project </reference/operator/aggregation/project>` pipeline
-stage restricts the output to the ``description`` field and adds a new
-field called ``highlights``, which contains highlighting information.
+   .. tab:: Basic Example 
+      :tabid: basic 
 
-.. code-block:: javascript
+      The following query searches for ``variety`` and ``bunch`` in the
+      ``description`` field of the ``fruit`` collection, with the
+      ``highlight`` option enabled.
 
-   db.fruit.aggregate([
-     {
-       $search: {
-         "text": {
-           "path": "description",
-           "query": ["variety", "bunch"]
-         },
-         "highlight": { 
-           "path": "description"
-         }
-       }
-     }, 
-     { 
-       $project: {
-         "description": 1,
-         "_id": 0,
-         "highlights": { "$meta": "searchHighlights" }
-       }
-     }
-   ])
+      The :manual:`$project </reference/operator/aggregation/project>` 
+      pipeline stage restricts the output to the ``description`` field 
+      and adds a new field called ``highlights``, which contains 
+      highlighting information.
 
-The query returns the following results:
+      .. code-block:: json
 
-.. code-block:: json
-   :copyable: false
-
-   { 
-     "description": "Bananas are usually sold in bunches of five or six.",
-     "highlights" : [
-       { 
-         "path" : "description",
-         "texts" : [ 
-           { 
-             "value" : "Bananas are usually sold in ",
-             "type" : "text"
-           },
-           { 
-             "value" : "bunches",
-             "type" : "hit"
+         db.fruit.aggregate([
+           {
+             $search: {
+               "text": {
+                 "path": "description",
+                 "query": ["variety", "bunch"]
+               },
+               "highlight": { 
+                 "path": "description"
+               }
+             }
            }, 
            { 
-             "value" : " of five or six.",
-             "type" : "text"
+             $project: {
+               "description": 1,
+                 "_id": 0,
+                 "highlights": { "$meta": "searchHighlights" }
+             }
            }
-         ], 
-         "score" : 1.2841906547546387
-       }
-     ]
-   }
-   { 
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
-     "highlights" : [ 
-       {
-         "path" : "description",
-         "texts" : [
+         ])
+
+      The query returns the following results:
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+	         "description" : "Bananas are usually sold in bunches of five or six. ",
+	         "highlights" : [
+		         {
+			         "path" : "description",
+			         "texts" : [
+				         {
+					         "value" : "Bananas are usually sold in ",
+					         "type" : "text"
+				         },
+				         {
+					         "value" : "bunches",
+					         "type" : "hit"
+				         },
+				         {
+					         "value" : " of five or six. ",
+					         "type" : "text"
+				         }
+			         ],
+			         "score" : 1.2816506624221802
+		         }
+	         ]
+         }
+         {
+	         "description" : "Bosc and Bartlett are the most common varieties of pears.",
+	         "highlights" : [
+		         {
+			         "path" : "description",
+			         "texts" : [
+				         {
+					         "value" : "Bosc and Bartlett are the most common ",
+					         "type" : "text"
+				         },
+				         {
+					         "value" : "varieties",
+					         "type" : "hit"
+				         },
+				         {
+					         "value" : " of pears.",
+					         "type" : "text"
+				         }
+			         ],
+			         "score" : 1.2691514492034912
+		         }
+	         ]
+         }
+         {
+	         "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith. ",
+	         "highlights" : [
+		         {
+			         "path" : "description",
+			         "texts" : [
+				         {
+					         "value" : "Apples come in several ",
+					         "type" : "text"
+				         },
+				         {
+					         "value" : "varieties",
+					         "type" : "hit"
+				         },
+				         {
+					         "value" : ", including Fuji, Granny Smith, and Honeycrisp. ",
+					         "type" : "text"
+				         }
+			         ],
+			         "score" : 1.0356334447860718
+		         },
+		         {
+			         "path" : "description",
+			         "texts" : [
+				         {
+					         "value" : "The most popular ",
+					         "type" : "text"
+				         },
+				         {
+					         "value" : "varieties",
+					         "type" : "hit"
+				         },
+				         {
+					         "value" : " are McIntosh, Gala, and Granny Smith. ",
+					         "type" : "text"
+				         }
+			         ],
+			         "score" : 1.0910683870315552
+		         }
+	         ]
+         }
+
+      The search term ``bunch`` returns a match on the document with 
+      ``_id: 2``, because the ``description`` field contains the word 
+      ``bunches``. The search term ``variety`` returns a match on the 
+      documents with ``_id: 3`` and ``_id: 1``, because the 
+      ``description`` field contains the word ``varieties``. 
+
+   .. tab:: Advanced Example 
+      :tabid: advanced
+
+      The following query searches for ``variety`` and ``bunch`` in the
+      ``description`` field of the ``fruit`` collection, with the
+      ``highlight`` option enabled, maximum number of characters to 
+      examine set to ``40``, and only ``1`` high-scoring passage to 
+      return per document.
+
+      The :manual:`$project </reference/operator/aggregation/project>` 
+      pipeline stage restricts the output to the ``description`` field 
+      and adds a new field called ``highlights``, which contains 
+      highlighting information.
+
+      .. code-block:: json
+
+         db.fruit.aggregate([
            {
-             "value" : "Apples come in several ",
-             "type" : "text"
+             $search: {
+               "text": {
+                 "path": "description",
+                 "query": ["variety", "bunch"]
+               },
+               "highlight": {
+                 "path": "description",
+                 "maxNumPassages": 1,
+                 "maxCharsToExamine": 40
+               }
+             }
            },
            {
-             "value" : "varieties",
-             "type" : "hit"
-           },
-           { 
-             "value" : ", including Fuji, Granny Smith, and Honeycrisp.",
-             "type" : "text" 
-           } 
-         ],
-         "score" : 1.2178014516830444
-       }
-     ] 
-   }
+             $project: {
+               "description": 1,
+               "_id": 0,
+               "highlights": { "$meta": "searchHighlights" },
+             }
+           }
+         ])
+
+      The query returns the following results:
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           "description" : "Bananas are usually sold in bunches of five or six. ",
+           "highlights" : [
+             {
+               "path" : "description",
+               "texts" : [
+                 {
+                   "value" : "Bananas are usually sold in ",
+                   "type" : "text"
+                 },
+                 {
+                   "value" : "bunches",
+                   "type" : "hit"
+                 },
+                 {
+                   "value" : " of f",
+                   "type" : "text"
+                 }
+               ],
+               "score" : 1.313065767288208
+             }
+           ]
+         }
+         {
+           "description" : "Bosc and Bartlett are the most common varieties of pears.",
+           "highlights" : [ ]
+         }
+         {
+           "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.",
+           "highlights" : [
+             {
+               "path" : "description",
+               "texts" : [
+                 {
+                   "value" : "Apples come in several ",
+                   "type" : "text"
+                 },
+                 {
+                   "value" : "varieties",
+                   "type" : "hit"
+                 },
+                 {
+                   "value" : ", includ",
+                   "type" : "text"
+                 }
+               ],
+               "score" : 0.9093900918960571
+             }
+           ]
+         }
+         
+
+      The second document in the above results contains an empty 
+      ``highlights`` array even though the search field contains the 
+      search term ``varieties``, because |fts| only examined ``40`` 
+      characters for highlighting. Similarly, the word ``includ`` is 
+      truncated because |fts| only examined ``40`` characters in the 
+      search field for highlighting. In the third document, although 
+      multiple passages contain the search term, |fts| returns only 
+      one passage in the ``highlights`` results because the query 
+      required only ``1`` passage per document in the ``highlights`` 
+      results.
+
+Output 
+------
 
 The ``highlights`` field is an array containing the following
 output fields:
@@ -212,18 +421,14 @@ output fields:
    * - ``texts.type``
      - string
      - Returned value is either ``hit`` or ``text``. Results of type
-       ``hit`` contain the string which returned a match. Results of type
-       ``text`` contain the text content adjacent to the matching string. 
+       ``hit`` contain the string which returned a match. Results of 
+       type ``text`` contain the text content adjacent to the matching 
+       string. 
 
    * - ``score``
      - float
-     - The :ref:`score <scoring-ref>` assigned to the ``highlights`` object. The 
-       ``highlights`` score is a measure of the relevance of the ``highlights`` 
-       object to the query. If multiple ``highlights`` objects are returned, the 
-       most relevant ``highlights`` object has the highest score.
-
-The search term ``bunch`` returns a match on the document with ``_id: 2``,
-because the ``description`` field contains the word ``bunches``. The search
-term ``variety`` returns a match on the document with ``_id: 2``, because the
-``description`` field contains the word ``varieties``. See `stemming
-<https://en.wikipedia.org/wiki/Stemming>`__.
+     - The :ref:`score <scoring-ref>` assigned to the ``highlights`` 
+       object. The ``highlights`` score is a measure of the relevance 
+       of the ``highlights`` object to the query. If multiple 
+       ``highlights`` objects are returned, the most relevant 
+       ``highlights`` object has the highest score.
