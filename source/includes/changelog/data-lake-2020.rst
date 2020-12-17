@@ -1,3 +1,14 @@
+.. _data-lake-v20201216:
+
+16 December 2020 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds ``{background: true}`` option, which allows queries to 
+  run in the background for :ref:`adl-out-stage` to |s3| stage.
+- Introduces ``$queryHistory`` aggregation stage to view past 
+  queries.
+- Includes various performance and stability improvements.
+
 .. _data-lake-v20201124:
 
 24 November 2020 Release
