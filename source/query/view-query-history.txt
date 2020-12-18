@@ -1,0 +1,238 @@
+.. _adl-query-history-stage:
+
+================================
+Retrieve Data Lake Query History
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |qh| replace:: ``$queryHistory``
+
+You can retrieve details about the queries that were run in the 
+past 24 hours using |qh| (aggregation). |qh| returns documents, one per 
+query, that contain information about the :manual:`aggregate 
+</reference/command/aggregate>`, :manual:`find 
+</reference/command/find/>`, and :manual:`count 
+</reference/command/count/>` queries that were run in the past 24 
+hours. To run |qh|, use the :manual:`db.aggregate 
+</reference/method/db.aggregate/#db.aggregate>` helper. |qh| must be 
+run against the ``admin`` database.
+
+.. _adl-query-history-stage-syntax:
+
+Syntax 
+------
+
+.. code-block:: json
+
+   {
+	   $queryHistory: {
+	     allUsers: <boolean>
+	   }
+   }
+
+.. _adl-query-history-stage-fields:
+
+Fields 
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 70 10
+
+   * - Field 
+     - Type 
+     - Description 
+     - Necessity
+
+   * - ``allUsers``
+     - boolean 
+     - Indicates whether or not to fetch documents for queries run by 
+       all users. Valid values are: 
+
+       - ``true`` to fetch documents for queries run by all users
+       - ``false`` to fetch documents for queries run by the current 
+         user only
+       
+       You must have the ``viewAllHistory`` privilege on the cluster 
+       resource to use this option. If you specify this option, but do 
+       not have ``viewAllHistory`` privilege on the cluster resource, 
+       {+dl+} returns an error.
+       
+       If omitted, defaults to ``false``.
+     - Optional
+
+.. _adl-query-history-stage-output:
+
+Output 
+------
+
+Each document returned by ``$queryHistory`` contains the following 
+fields: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 80 
+
+   * - Field 
+     - Type 
+     - Description 
+
+   * - ``appName``
+     - string
+     - Name of the application that issued the query, if available.
+
+   * - ``collection``
+     - string
+     - Name of the collection on which the the query was executed.
+
+   * - ``comment``
+     - string
+     - Comment associated with the query, if available. Empty if the 
+       query did not include any comment.
+
+   * - ``db``
+     - string 
+     - Name of the database that contains the collection on which the 
+       query was executed.
+
+   * - ``endTime``
+     - :manual:`ISODate </reference/glossary/#term-isodate>`
+     - Query completion time.
+
+   * - ``error``
+     - string
+     - Error, if any, returned by the query. Note that the query status 
+       ``0`` indicates errors. Empty string if query ran successfully. 
+
+   * - ``ok``
+     - int 
+     - Status of the query. Value can be one of the following: 
+
+       - ``1``, if query ran successfully 
+       - ``0``, if there were errors when executing the query
+
+   * - ``opid``
+     - :manual:`ObjectId </reference/bson-types/#objectid>` 
+     - Unique identifier of the operation associated with the query.
+
+   * - ``startTime``
+     - :manual:`ISODate </reference/glossary/#term-isodate>` 
+     - Query start time.
+
+   * - ``query``
+     - document
+     - Query operation that was run.
+
+   * - ``user``
+     - string
+     - Username of the user who ran the query, if available, in the 
+       following format: ``<authenticationDatabase>.<username>``. Note 
+       that the authentication database for {+adl+} is always 
+       ``admin``. If the username of the user who ran the query is not 
+       available, value is empty. 
+
+.. _adl-query-history-stage-egs:
+
+Example 
+-------
+
+For the example below, suppose some of the queries described in the 
+:doc:`Getting Started tutorial 
+</tutorial/configure-database-collections/>` were run by ``user1`` on 
+the ``airbnb`` collection in the ``sample`` database. The following 
+example returns information on the queries that were run by ``user1`` 
+on the ``airbnb`` collection in the ``sample`` database.
+
+
+.. code-block:: shell 
+
+   db.aggregate([{$queryHistory: {}}]).pretty()
+
+|qh| returns one document for each query that was ran on the ``airbnb`` 
+collection in the ``sample`` database.
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+	  "_id" : ObjectId("5fdb680f6006e874ad4703fe"),
+	  "query" : {
+		 "0" : {
+			"$match" : {
+				"address.market" : "Porto",
+				"review_scores.review_scores_rating" : {
+					"$gt" : 79
+			   }
+		   }
+	    }
+	  },
+	  "comment" : "",
+	  "appName" : "MongoDB Shell",
+	  "user" : "admin.user1",
+	  "db" : "sample",
+	  "collection" : "airbnb",
+	  "opid" : ObjectId("16518699ce8f505f3639344a"),
+	  "startTime" : ISODate("2020-12-17T14:15:37.110Z"),
+	  "endTime" : ISODate("2020-12-17T14:15:43.255Z"),
+	  "ok" : 1,
+	  "error" : ""
+   }
+   {
+	  "_id" : ObjectId("5fdb681a6006e874ad470403"),
+	  "query" : {
+		 "0" : {
+			"$match" : {
+				"address.market" : "New York",
+				"price" : {
+					"$lt" : NumberDecimal("200.00")
+				}
+			}
+		 },
+		 "1" : {
+			"$sort" : {
+				"review_scores_rating" : -1
+			}
+		 }
+	  },
+	  "comment" : "",
+	  "appName" : "MongoDB Shell",
+	  "user" : "admin.user1",
+	  "db" : "sample",
+	  "collection" : "airbnb",
+	  "opid" : ObjectId("1651869c3b73f63f3639344c"),
+	  "startTime" : ISODate("2020-12-17T14:15:47.527Z"),
+	  "endTime" : ISODate("2020-12-17T14:15:54.021Z"),
+	  "ok" : 1,
+	  "error" : ""
+   }
+   {
+	  "_id" : ObjectId("5fdb68276006e874ad47040d"),
+	  "query" : {
+		 "0" : {
+			"$match" : {
+				"address.market" : "Barcelona",
+				"property_type" : "Apartment"
+			}
+		 },
+		 "1" : {
+			"$count" : "numApartments"
+		 }
+	  },
+	  "comment" : "",
+	  "appName" : "MongoDB Shell",
+	  "user" : "admin.user1",
+	  "db" : "sample",
+	  "collection" : "airbnb",
+	  "opid" : ObjectId("165186a0409f560a36393457"),
+	  "startTime" : ISODate("2020-12-17T14:16:04.794Z"),
+	  "endTime" : ISODate("2020-12-17T14:16:07.545Z"),
+	  "ok" : 1,
+	  "error" : ""
+   }
