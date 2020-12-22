@@ -1,8 +1,8 @@
-.. _mcli-om-admin-backup-sync-store-update-cmd:
+.. _mcli-om-admin-backup-sync-create-cmd:
 
-===================================================
-mongocli ops-manager admin backup sync store update
-===================================================
+=============================================
+mongocli ops-manager admin backup sync create
+=============================================
 
 .. default-domain:: mongodb
 
@@ -14,63 +14,43 @@ mongocli ops-manager admin backup sync store update
 
 .. include:: /includes/admonitions/admin-requires-global-owner.rst
 
-The ``admin backup sync store update`` command updates one
-:opsmgr:`sync store </reference/glossary/#term-sync-store>`
-configuration. You can also update a sync store configuration
-using the using the :guilabel:`Snapshot Storage` page in the
-|onprem| console.
+The ``admin backup sync create`` command creates a new
+:opsmgr:`sync store </reference/glossary/#term-sync-store>`.
+You can also create a sync store using the
+:opsmgr:`API </reference/api/admin/backup/sync/mongoConfigs/create-one-sync-store-configuration/>`.
 
-.. _mcli-om-admin-backup-sync-store-update-syntax: 
+.. _mcli-om-admin-backup-sync-create-syntax: 
 
-Syntax
+Syntax 
 ------
 
 .. code-block:: shell 
 
-   mongocli ops-manager|om admin backup sync store(s) update 
-   <sync-store-config-ID>
-           [ --assignment ]
+   mongocli ops-manager|om admin backup sync create
+        [ --assignment ]
         [ --encryptedCredentials ]
         [ --label <tags> ]
+        [ --loadFactor <number-of-backup-jobs> ]
         [ --maxCapacityGB <amount-of-data> ]
+        --name <sync-store-name>
         [ --output|-o <output-format> ]
         [ --profile|-P <profile-name> ]
         [ --ssl ]
         --uri <hosts>
         [ --writeConcern <write-concern> ]
 
-.. _mcli-om-admin-backup-sync-store-update-args: 
+.. include:: /includes/fact-command-line-help.rst
 
-Arguments
----------
+.. _mcli-om-admin-backup-sync-create-options:
 
-.. list-table::
-   :widths: 20 10 60 10
-   :header-rows: 1
-
-   * - Argument
-     - Type
-     - Description
-     - Required?
-
-   * - ``sync-store-config-ID``
-     - string
-     - Unique identifier of the sync store that you want to update.
-       You can retrieve the list of sync store IDs for
-       a project with the
-       :ref:`List Backup Sync Store Configurations <mcli-om-admin-backup-sync-store-list-cmd>` command.
-     - yes
-
-.. _mcli-om-admin-backup-sync-store-update-options: 
-
-Options
+Options 
 -------
 
 .. list-table::
    :widths: 20 10 60 10
    :header-rows: 1
 
-   * - Option 
+   * - Option
      - Type
      - Description
      - Required?
@@ -84,9 +64,9 @@ Options
 
    * - ``--encryptedCredentials``
      - 
-     - Flag that indicates whether the username and password for
-       this sync store were encrypted using the
-       :opsmgr:`credentials tool </tutorial/encrypt-user-credentials/>`.
+     - Flag that indicates whether the username and password for this
+       sync store were encrypted using the
+       :opsmgr:`credentialstool </tutorial/encrypt-user-credentials/>`.
      - no
 
    * - ``--label``
@@ -98,10 +78,24 @@ Options
        don't use labels to filter their jobs.
      - no
 
+   * - ``--loadFactor``
+     - number
+     - Required if more than one snapshot store is in use.
+   
+       Number that expresses how much backup work this snapshot store
+       should perform compared to another snapshot store. Value must be
+       a positive, non-zero integer.
+     - no
+
    * - ``--maxCapacityGB``
      - number
      - Maximum amount of data in GB that this sync store can store.
      - no
+
+  * - ``--name``
+    - string
+    - Unique name for this sync store. This is also the sync store ID.
+    - yes
 
    * - ``--output``, ``-o``
      - string 
@@ -130,7 +124,7 @@ Options
 
    * - ``--writeConcern``
      - string
-     - :manual:`Write concern </reference/write-concern/>` to use for 
+     - :manual:`Write concern </reference/write-concern/>` to use for
        this sync store. Valid values are: 
 
        - ``ACKNOWLEDGED``
@@ -140,32 +134,33 @@ Options
 
      - no
 
-.. _mcli-om-admin-backup-sync-store-update-output: 
+.. _mcli-om-admin-backup-sync-create-output: 
 
 Output 
 ------
 
-If the command succeeds, it returns the following output in the default
+If the command succeeds, it returns the following message in the default
 format. If the command returns errors, see
 :ref:`Troubleshooting <mcli-troubleshooting>` for recommended solutions.
 
 .. code-block:: sh 
    :copyable: false 
 
-   Sync store configuration '<sync-store-config-ID>' updated.
+   Sync store '<sync-store-ID>' created.
 
 The default output contains a subset of the fields returned by this
 command. For the complete list of |json| fields returned by the
 command, see the :opsmgr:`API reference 
-</reference/api/admin/backup/sync/mongoConfigs/update-one-sync-store-configuration-by/#response>`.
+</reference/api/admin/backup/sync/mongoConfigs/create-one-sync-store-configuration/#response>`.
 
-.. _mcli-om-admin-backup-sync-store-update-egs:
+.. _mcli-om-admin-backup-sync-create-egs: 
 
 Example
 -------
 
-The following ``mongocli om admin backup sync store update`` command
-updates the ``test`` sync store. The  command uses the {+default-profile+},which contains the credentials for accessing |onprem|.
+The following ``mongocli om admin backup sync create`` command
+creates the Sync store named ``test``. The command uses the
+{+default-profile+}, which contains the credentials to access |onprem|.
 
 .. tabs:: 
 
@@ -174,36 +169,33 @@ updates the ``test`` sync store. The  command uses the {+default-profile+},which
 
       .. code-block:: shell 
 
-         mongocli om admin backup sync store update test --uri mongodb://localhost:27017
+         mongocli om admin backup sync create --name test
+         --uri mongodb://localhost:27017
 
       The previous command returns the following: 
 
       .. code-block:: shell 
          :copyable: false 
 
-         Sync store configuration 'test' updated.
+         Sync store 'test' created.
 
    .. tab:: JSON Output 
       :tabid: json 
 
       .. code-block:: shell 
 
-         mongocli om admin backup sync log update test --uri mongodb://localhost:27017 --output json
+         mongocli om admin backup sync create --name test --uri mongodb://localhost:27017 --output json
 
       The previous command returns the following: 
 
       .. code-block:: shell 
          :copyable: false 
 
-         .. code-block:: shell
-         :copyable: false
-
-         {
+          {
            "id": "test",
            "uri": "mongodb://localhost:27017",
            "ssl": false,
-           "assignmentEnabled": true,
+           "assignmentEnabled": false,
            "encryptedCredentials": false,
            "loadFactor": 1
          }
-
