@@ -13,3 +13,8 @@ To set this option:
 To customize the formatting of the number in the data label, modify
 the :ref:`Number Formatting <customize-number-formats>` settings for
 the relevant field.
+
+.. note::
+
+   When used with :ref:`stacked <stacked-ref-example>` column and bar
+   charts, data labels show the sum of all series in each column or bar.
