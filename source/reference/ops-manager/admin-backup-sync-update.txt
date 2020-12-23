@@ -17,8 +17,7 @@ mongocli ops-manager admin backup sync update
 The ``admin backup sync update`` command updates one
 :opsmgr:`sync store </reference/glossary/#term-sync-store>`
 configuration. You can also update a sync store configuration
-using the using the :guilabel:`Snapshot Storage` page in the
-|onprem| console.
+using the :opsmgr:`API </reference/api/admin/backup/sync/mongoConfigs/update-one-sync-store-configuration/>`
 
 .. _mcli-om-admin-backup-sync-update-syntax: 
 
@@ -28,10 +27,11 @@ Syntax
 .. code-block:: shell 
 
    mongocli ops-manager|om admin backup sync update 
-   <sync-store-config-ID>
-           [ --assignment ]
+   <name>
+        [ --assignment ]
         [ --encryptedCredentials ]
         [ --label <tags> ]
+        [ --loadFactor <number-of-backup-jobs> ]
         [ --maxCapacityGB <amount-of-data> ]
         [ --output|-o <output-format> ]
         [ --profile|-P <profile-name> ]
@@ -39,29 +39,8 @@ Syntax
         --uri <hosts>
         [ --writeConcern <write-concern> ]
 
-.. _mcli-om-admin-backup-sync-update-args: 
 
-Arguments
----------
-
-.. list-table::
-   :widths: 20 10 60 10
-   :header-rows: 1
-
-   * - Argument
-     - Type
-     - Description
-     - Required?
-
-   * - ``sync-store-config-ID``
-     - string
-     - Unique identifier of the sync store that you want to update.
-       You can retrieve the list of sync store IDs for
-       a project with the
-       :ref:`List Backup Sync Store Configurations <mcli-om-admin-backup-sync-list-cmd>` command.
-     - yes
-
-.. _mcli-om-admin-backup-sync-update-options: 
+.. _mcli-om-admin-backup-sync-update-options:
 
 Options
 -------
@@ -98,6 +77,14 @@ Options
        don't use labels to filter their jobs.
      - no
 
+   * - ``--loadFactor``
+     - number
+     - Required if more than one snapshot store is in use.
+       Number that expresses how much backup work this snapshot store
+       should perform compared to another snapshot store. Value must be
+       a positive, non-zero integer.
+     - no
+
    * - ``--maxCapacityGB``
      - number
      - Maximum amount of data in GB that this sync store can store.
@@ -130,7 +117,7 @@ Options
 
    * - ``--writeConcern``
      - string
-     - :manual:`Write concern </reference/write-concern/>` to use for 
+     - :manual:`Write concern </reference/write-concern/>` to use for
        this sync store. Valid values are: 
 
        - ``ACKNOWLEDGED``
@@ -142,7 +129,7 @@ Options
 
 .. _mcli-om-admin-backup-sync-update-output: 
 
-Output 
+Output
 ------
 
 If the command succeeds, it returns the following output in the default
@@ -152,7 +139,7 @@ format. If the command returns errors, see
 .. code-block:: sh 
    :copyable: false 
 
-   Sync store configuration '<sync-store-config-ID>' updated.
+   Sync configuration '<name>' updated.
 
 The default output contains a subset of the fields returned by this
 command. For the complete list of |json| fields returned by the
@@ -165,7 +152,8 @@ Example
 -------
 
 The following ``mongocli om admin backup sync update`` command
-updates the ``test`` sync store. The  command uses the {+default-profile+},which contains the credentials for accessing |onprem|.
+updates the ``test`` sync store. The  command uses the {+default-profile+}, which
+contains the credentials for accessing |onprem|.
 
 .. tabs:: 
 
@@ -181,7 +169,7 @@ updates the ``test`` sync store. The  command uses the {+default-profile+},which
       .. code-block:: shell 
          :copyable: false 
 
-         Sync store configuration 'test' updated.
+         Sync configuration 'test' updated.
 
    .. tab:: JSON Output 
       :tabid: json 
@@ -190,7 +178,7 @@ updates the ``test`` sync store. The  command uses the {+default-profile+},which
 
          mongocli om admin backup sync log update test --uri mongodb://localhost:27017 --output json
 
-      The previous command returns the following: 
+      The previous command returns the following:
 
       .. code-block:: shell 
          :copyable: false 
@@ -199,11 +187,9 @@ updates the ``test`` sync store. The  command uses the {+default-profile+},which
          :copyable: false
 
          {
-           "id": "test",
+           "name": "test",
            "uri": "mongodb://localhost:27017",
            "ssl": false,
-           "assignmentEnabled": true,
-           "encryptedCredentials": false,
            "loadFactor": 1
          }
 
