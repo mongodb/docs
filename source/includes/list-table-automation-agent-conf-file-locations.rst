@@ -2,13 +2,6 @@
 
    tabs:
 
-     - id: windows
-       content: |
-
-         .. code-block:: ps1
-
-            C:\MMSData\Automation\automation-agent.config
-
      - id: macos
        content: |
 

@@ -1,14 +1,6 @@
 .. tabs-platforms::
 
    .. tab::
-      :tabid: windows
-
-      Use this procedure to enable monitoring on an application
-      database on x86_64 architecture running Microsoft Windows:
-
-      .. include:: /includes/steps/monitor-appdb-on-windows.rst
-
-   .. tab::
       :tabid: debian
 
       Use this procedure to enable monitoring on an application
