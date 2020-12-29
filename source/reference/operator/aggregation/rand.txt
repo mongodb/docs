@@ -1,0 +1,171 @@
+===================
+$rand (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $rand
+
+   .. versionadded:: 4.4.2
+
+   Returns a random float between 0 and 1 each time it is called. 
+
+   :expression:`$rand` has the following syntax:
+
+   .. code-block:: javascript
+  
+      { $rand: {} }
+
+   The :expression:`$rand` operator doesn't take any arguments. 
+
+Behavior
+--------
+Each time ``$rand`` is called it will return a floating point value 
+that has up to 17 digits after the decimal point. Trailing 0s are 
+dropped so the actual number of digits may vary.
+
+Examples
+--------
+
+This code initializes a ``randomSamples`` collection with 100 documents
+that is used in the following examples.
+
+.. code-block:: javascript
+
+   N = 100
+   bulk = db.randomSamples.initializeUnorderedBulkOp()
+   for ( i = 0; i < N; i++) { bulk.insert( {_id: i, random: 0 } ) }
+   bulk.execute()
+
+
+Usage with Update Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``$rand`` operator can be used with update query operations. In
+this example :method:`~db.collection.updateMany()` uses the ``$rand`` 
+operator to insert a different random number into each document
+in the ``randomSamples`` collection.
+
+.. code-block:: javascript
+
+   db.randomSamples.updateMany(
+      {},
+      [
+         { $set: { "random": { $rand: {} } } }
+      ]
+   )
+
+We can use :pipeline:`$project` to see the output. The
+:pipeline:`$limit` stage halts the pipeline after the third document.
+
+.. code-block:: javascript
+
+   db.randomSamples.aggregate(
+      [
+         { $project: {_id: 0, random: 1 } },
+         { $limit: 3 }       
+      ]    
+   )
+
+The output shows the random values. 
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "random" : 0.8751284485870464 }
+   { "random" : 0.515147067802108 }
+   { "random" : 0.3750004525681561 }
+
+Rounding to Control the Number of Output Digits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want a shorter random value, consider using :expression:`$round`.
+Note that the :pipeline:`$set` stage updates the document, if ``$rand``
+is called in a :pipeline:`$project` stage the underlying document is
+not modified.
+
+.. code-block:: javascript
+
+   db.randomSamples.aggregate(
+      [
+         { $match: {} }, 
+         { $set: { rounded: { $round: [ "$random", 4  ] } } }, 
+         { $out: "randomSamples" } 
+      ]
+   )
+
+The :pipeline:`$project` stage displays the original and rounded value
+for each document.
+
+.. code-block:: javascript
+
+   db.randomSamples.aggregate(
+      [
+         { $project: {_id:0, random:1, rounded: 1 } },
+         { $limit: 3 }
+      ]
+   )
+
+The update documents look like this:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "random" : 0.8751284485870464, "rounded" : 0.8751 }
+   { "random" : 0.515147067802108, "rounded" : 0.5151 }
+   { "random" : 0.3750004525681561, "rounded" : 0.375 }
+
+.. note::
+
+   Like ``$rand``, the value returned by the ``$round`` operator does
+   not include any trailing 0s so the number of digits returned may
+   vary.
+
+Selecting Random Items From a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``$rand`` operator can be used in an aggregation pipeline to select
+random documents from a collection. In this example we use ``$rand`` to
+select about half the documents in the ``randomSamples`` collection. 
+
+.. code-block:: javascript
+
+   db.randomSamples.aggregate(
+      [
+         { $match: { $expr: { $lt: [0.5, {$rand: {} } ] } } },
+         { $count: "numMatches" }
+      ]
+   )
+
+There are 100 documents in ``randomSamples``. Running the sample code 5
+times produces the following output which approaches the expected value
+of 50 matches in a collection this size.
+      
+.. code-block:: javascript
+   :copyable: false
+
+   { "numMatches" : 49 }
+   { "numMatches" : 52 }
+   { "numMatches" : 54 }
+   { "numMatches" : 48 }
+   { "numMatches" : 59 }
+
+.. note::
+
+   This example shows that the number of documents selected is
+   different each time. If you need to select an exact number of
+   documents, consider using :pipeline:`$sample` instead of ``$rand``.
+
+.. seealso::
+
+   :query:`$rand (query) <$rand>`, :pipeline:`$sample`, :expression:`$round`
+
