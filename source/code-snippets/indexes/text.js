@@ -26,7 +26,7 @@ async function run() {
     const projection = { fullplot: 1 };
     const cursor = movies
       .find(query)
-      .projection(projection);
+      .project(projection);
     // end-query
 
   } finally {
