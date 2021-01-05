@@ -1,3 +1,5 @@
+.. _schema-validation-overview:
+
 =================
 Schema Validation
 =================
@@ -202,13 +204,87 @@ collection:
 The ``contacts`` collection now has a validator with the ``moderate``
 validationLevel:
 
-- If you attempted to update the document with ``_id`` of ``1``,
-  MongoDB would apply the validation rules since the existing document
+- If you attempted to update the document with ``_id: 1``,  MongoDB
+  would apply the new validation rules since the existing document
   matches the criteria.
 
 - In contrast, MongoDB will not apply validation rules to updates to
-  the document with ``_id`` of ``2`` as it does not meet the
-  validation rules.
+  the document with ``_id: 2`` as it does not meet the validation
+  rules.
+
+Starting in MongDB version 5.0, the validator returns detailed error
+information when a validation condition isn't met. The error output is
+exhaustive - all errors are reported, not just the first one. 
+
+.. important:: 
+
+   The error output is intended for human consumption. It may change in
+   the future and should not be relied upon in scripts.   
+
+In the next example, neither of the updates is consistent with the
+validation rule we created above that requires ``name`` to be a string. 
+
+.. code-block:: javascript
+
+   db.contacts.update(
+      { _id: 1 },
+      { $set: { name: 10 } }
+   )
+
+   db.contacts.update(
+      { _id: 2 },
+      { $set: { name: 20 } }
+   )
+
+The output below shows that the document with ``_id: 1`` fails
+validation with a detailed explanation, as shown in the ``errInfo``
+object. The update succeeds for the document with ``_id: 2`` since this
+document did not meet the initial criteria when validation was added.
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 9-27
+
+   // _id: 1
+   WriteResult({
+     "nMatched" : 0,
+     "nUpserted" : 0,
+     "nModified" : 0,
+     "writeError" : {
+       "code" : 121,
+       "errmsg" : "Document failed validation",
+       "errInfo" : {
+          "failingDocumentId" : 1,
+          "details" : {
+            "operatorName" : "$jsonSchema",
+            "schemaRulesNotSatisfied" : [
+            {
+              "operatorName" : "properties",
+              "propertiesNotSatisfied" : [
+                 {
+                 "propertyName" : "name",
+                 "details" : [
+                     {
+                       "operatorName" : "bsonType",
+                       "specifiedAs" : {
+                          "bsonType" : "string"
+                           },
+                       "reason" : "type did not match",
+                       "consideredValue" : 10,
+                       "consideredType" : "double"
+                     }
+                    ]
+                  }
+                ]
+              }
+            ]
+         }
+        }
+      }
+   })
+
+   // _id: 2
+   WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
 
 To disable validation entirely, you can set ``validationLevel`` to
 ``off``.
@@ -266,11 +342,45 @@ For example, the following insert operation violates the validation rule:
 
 However, since the ``validationAction`` is ``warn`` only, MongoDB only
 logs the validation violation message and allows the operation to
-proceed:
+proceed. Run the following command to view the MongoDB logs:
+
+.. code-block:: javascript
+
+   db.adminCommand( { getLog: "global" } )
+
+Depending on collection usage, this command might return a lot of data.
+The validation error (one long line in the log, reformatted here for
+readability) contains information like this:
 
 .. code-block:: sh
+   :copyable: false
 
-   2017-12-01T12:31:23.738-05:00 W STORAGE  [conn1] Document would fail validation collection: example.contacts2 doc: { _id: ObjectId('5a2191ebacbbfc2bdc4dcffc'), name: "Amanda", status: "Updated" }
+   "{\"t\":{\"$date\":\"2021-01-20T15:59:57.305+00:00\"},
+    \"s\":\"W\",  
+    \"c\":\"STORAGE\",  
+    \"id\":20294,   
+    \"ctx\":\"conn1\",
+    \"msg\":\"Document would fail validation\",
+    \"attr\":{\"namespace\":\"test.contacts2\",
+      \"document\":{\"_id\":{\"$oid\":\"6008537d42e0d23385568881\"},
+            \"name\":\"Amanda\",
+            \"status\":\"Updated\"},
+       \"errInfo\":{\"failingDocumentId\":{\"$oid\":\"6008537d42e0d23385568881\"},
+            \"details\":{\"operatorName\":\"$jsonSchema\",
+                 \"schemaRulesNotSatisfied\":[
+                     {\"operatorName\":\"properties\",
+                       \"propertiesNotSatisfied\":[
+                           {\"propertyName\":\"status\",
+                            \"details\":[
+                                 {\"operatorName\":\"enum\",
+                                  \"specifiedAs\":{\"enum\":[
+                                       \"Unknown\",
+                                       \"Incomplete\"]},
+                             \"reason\":\"value was not found in enum\",
+                             \"consideredValue\":\"Updated\"}]}]},
+    {\"operatorName\":\"required\",
+    \"specifiedAs\":{\"required\":[\"phone\"]},
+        \"missingProperties\":[\"phone\"]}]}}}}"
 
 Restrictions
 ------------
