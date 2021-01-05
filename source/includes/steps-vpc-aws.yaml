@@ -1,0 +1,166 @@
+---
+title: "In |aws|, enable :guilabel:`DNS hostnames` and :guilabel:`DNS resolution`."
+level: 4
+ref: enable-dns-resolution-aws
+content: |
+
+  a. Log in to your |aws| account.
+
+  #. Go to the `VPC dashboard <https://console.aws.amazon.com/vpc>`_.
+
+  #. Open your list of |vpc| resources.
+
+  #. Select the |vpc| you want to peer with.
+
+  #. Enable :guilabel:`DNS hostnames` and :guilabel:`DNS
+     resolution` to ensure that the cluster's hostnames in standard
+     connection strings automatically resolve to private instead of
+     public IP addresses when the |service| cluster is accessed from
+     within the :ref:`VPC <security-vpc>`. 
+      
+     If :guilabel:`DNS hostnames` and :guilabel:`DNS resolution` are disabled 
+     and the :ref:`VPC <security-vpc>` is accessible to the internet, the |dns| 
+     resolves the cluster's hostnames to their public |ipaddr| address
+     rather than their internal |ipaddr| address. 
+      
+     To learn more about how to enable these options, see :aws:`Updating
+     DNS Support for Your VPC
+     </AmazonVPC/latest/UserGuide/vpc-dns.html#vpc-dns-updating>`.
+
+     .. note:: 
+
+        If the applications deployed within |aws| use custom |dns|
+        services and :ref:`VPC <security-vpc>` peering with |service|,
+        see :ref:`FAQ <atlas-faq-custom-dns>` for more information on
+        how to connect using private connection strings.
+---
+ref: nav-to-peering-connection
+inherit:
+  file: steps-source-project-nav.yaml
+  ref: project-nav-peering-connection
+title: "In |service|, add a new network peering connection for your project."
+stepnum: 2
+---
+ref: configure-peering-connection
+level: 4
+stepnum: 3
+title: "In |service|, configure your network peering connection."
+content: |
+
+  #. In the :guilabel:`Peering Connection` modal, select
+     :guilabel:`AWS` and click :guilabel:`Next`.
+
+  #. To create the |vpc| Peering connection, fill in the
+     requested information in the :guilabel:`Peering Connection` modal:
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 35 65
+
+        * - Field
+          - Notes
+
+        * - :guilabel:`Account ID`
+
+          - |aws| Account ID of the owner of the peer |vpc|.
+            Refer to the dialog for instructions on finding your
+            :guilabel:`AWS Account ID`.
+
+        * - :guilabel:`VPC ID`
+
+          - Unique identifier of the peer |vpc|. Refer to the
+            dialog for instructions on finding your
+            :guilabel:`VPC ID`.
+
+        * - :guilabel:`VPC CIDR`
+
+          - |aws| |vpc| |cidr| block or subset. Must not
+            overlap with your :guilabel:`Atlas CIDR Block` or any
+            other Network Peering connection :guilabel:`VPC CIDR`.
+
+            The |cidr| block must be in one of the following
+            :rfc:`private networks <1918#section-3>`:
+
+            - ``10.0.0.0`` - ``10.255.255.255``  (10/8 prefix)
+
+            - ``172.16.0.0`` - ``172.31.255.255``  (172.16/12 prefix)
+
+            - ``192.168.0.0`` - ``192.168.255.255`` (192.168/16 prefix)
+
+            You can choose to add the |vpc| |cidr| block address
+            (or a subset) to the IP access list. For Network Peering
+            connections, you can also add the Security Group
+            associated with the |aws| |vpc| instead of the
+            |cidr| block. See :ref:`add-to-access-list`.
+
+            To learn more about |cidr| blocks, see
+            :rfc:`RFC 4632 <4632>`.
+
+            .. include:: /includes/fact-vpc-cidr-block.rst
+
+        * - :guilabel:`Application VPC Region`
+
+          - |aws| region where the |aws| |vpc| resides.
+
+        * - :guilabel:`VPC CIDR`
+
+          - |aws| |vpc| |cidr| block. Must not overlap with
+            the |service| :guilabel:`VPC CIDR` block.
+
+        * - :guilabel:`Atlas VPC Region`
+
+          - |aws| region where the |service| |vpc| resides.
+            |service| creates a |vpc| for the |service| project
+            in this region if no ``M10+`` clusters or |vpc|
+            peering connections exist for the selected
+            :guilabel:`Region`.
+
+            Uncheck :guilabel:`Same as application VPC region`
+            to select a different region than where the
+            application |vpc| resides.
+
+  #. Click :guilabel:`Initiate Peering`.
+
+  #. Wait for approval of peering connection request.
+
+     The owner of the peer |vpc| must approve the |vpc| peering
+     connection request. Ensure that the owner approves the
+     request.
+
+     |service| provides instructions for approving the connection request.
+
+     .. important:: Requests expire after 7 days.
+---
+ref: configure-peering-connection-aws
+level: 4
+stepnum: 3
+title: "In |aws|, update your VPC's route table."
+content: |
+
+  a. In the :guilabel:`VPC Dashboard`, click
+     :guilabel:`Route Tables`.
+
+  #. Select the Route Table for your |vpc|.
+
+  #. Click the :guilabel:`Routes` tab.
+
+  #. Click :guilabel:`Edit Routes`.
+
+  #. Click :guilabel:`Add route`.
+
+  #. Add the |service| |vpc|\'s |cidr| block to the
+     :guilabel:`Destination` column.
+
+  #. Add the AWS Peering Connection ID to the
+     :guilabel:`Target` column.
+
+     This value is prefixed with ``pcx-``.
+
+  #. Click :guilabel:`Save`.
+
+     .. include:: /includes/fact-vpc-peering-connections-max.rst
+
+     Once set up, you can edit or terminate |vpc| peering
+     connection from the :guilabel:`Peering` table.
+
+...
