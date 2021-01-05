@@ -18,6 +18,9 @@ Definition
    The :dbcommand:`validate` command checks a collection's data and
    indexes for correctness and returns the results.
 
+   Starting in version 5.0, the :dbcommand:`validate` command can also
+   find inconsistencies in the collection and fix them if possible.
+
    .. note::
 
       The :dbcommand:`validate` command does not support :doc:`views
@@ -26,13 +29,16 @@ Definition
 Syntax
 ------
 
+.. versionchanged:: 5.0
+
 The command has the following syntax:
 
 .. code-block:: javascript
 
    db.runCommand( { 
       validate: <string>,          // Collection name
-      full: <boolean>              // Optional.
+      full: <boolean>,             // Optional
+      repair: <boolean>            // Optional, added in MongoDB 5.0
    } )
 
 The :binary:`~bin.mongo` shell also provides a wrapper
@@ -77,6 +83,13 @@ The command takes the following fields:
 
        .. include:: /includes/fact-validate-wiredtiger-full-option.rst
 
+   * - :ref:`repair <cmd-validate-repair>`
+     - boolean
+
+     - .. _cmd-validate-repair:
+
+       .. include:: /includes/fact-validate-repair-option.rst
+
 
 Behavior
 --------
@@ -105,19 +118,26 @@ with :ref:`causally consistent sessions <causal-consistency>`.
 Examples
 --------
 
-- To validate a collection ``myCollection`` using the default settings
-  (i.e. ``full: false``)
+- To validate a collection ``myCollection`` using the default validation
+  setting (specifically, :ref:`full: false <cmd-validate-full>`):
 
   .. code-block:: javascript
 
      db.runCommand( { validate: "myCollection" } )
 
-- To perform a full validation of collection ``myCollection``
+- To perform a full validation of collection ``myCollection``, specify
+  :ref:`full: true <cmd-validate-full>`:
 
   .. code-block:: javascript
 
     db.runCommand( { validate: "myCollection", full: true } )
     
+- To repair collection ``myCollection``, specify
+  :ref:`repair: true <cmd-validate-repair>`:
+
+  .. code-block:: javascript
+
+    db.runCommand( { validate: "myCollection", repair: true } )
 
 .. _validate-output:
 
@@ -198,6 +218,11 @@ Specify :ref:`full: true <cmd-validate-full>` for more detailed output.
    A boolean that is ``true`` if :dbcommand:`validate` determines that
    all aspects of the collection are valid. When ``false``, see the
    :data:`~validate.errors` field for more information.
+
+.. data:: validate.repaired
+
+   A boolean that is ``true`` if :dbcommand:`validate` repaired the
+   collection.
 
 .. data:: validate.warnings
 
