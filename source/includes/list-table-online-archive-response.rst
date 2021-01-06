@@ -39,8 +39,8 @@
 
    * - ``criteria.dateFormat``
      - enum
-     - If ``criteria.type`` is ``DATE``, the date format. Value can be 
-       one of the following: 
+     - If ``criteria.type`` is ``DATE``, the date format. Value can be one 
+       of the following: 
 
        - ``ISODATE`` - ISO-8601 format date (default)
        - ``EPOCH_SECONDS`` - Unix timestamp in seconds
