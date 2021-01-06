@@ -20,6 +20,12 @@
 
        {+data-lake-short+} only supports ``aws``.
 
+   * - ``cloudProviderConfig.externalId``
+     - string
+     - Unique identifier associated with the IAM Role that 
+       {+data-lake-short+} assumes when accessing the 
+       {+data-lake-stores+}. 
+
    * - ``cloudProviderConfig.aws.
        iamAssumedRoleARN``
      - string
