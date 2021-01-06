@@ -61,8 +61,8 @@
             db.accounts.dropIndexes()
 
          These shell helpers provide wrappers around the
-         :dbcommand:`dropIndexes` :term:`database command`. Your :ecosystem:`client
-         library </drivers>` may have a different or additional
+         :dbcommand:`dropIndexes` :term:`database command`. Your :driver:`client
+         library </>` may have a different or additional
          interface for these operations.
 
      - id: compass
