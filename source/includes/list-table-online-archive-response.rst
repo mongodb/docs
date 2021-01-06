@@ -29,6 +29,16 @@
        value of the date field specified here plus the number of days 
        specified via the ``expireAfterDays`` parameter.
 
+   * - ``criteria.dateFormat``
+     - enum
+     - Date format of the date field. Value can be one of the 
+       following: 
+
+       - ``ISODATE`` - ISO-8601 format date (default)
+       - ``EPOCH_SECONDS`` - Unix timestamp in seconds
+       - ``EPOCH_MILLIS`` - Unix timestamp in milliseconds
+       - ``EPOCH_NANOSECONDS`` - Unix timestamp in nanoseconds
+
    * - ``criteria.expireAfterDays``
      - int
      - Number of days that specifies the age limit for the data 
