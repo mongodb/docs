@@ -97,15 +97,37 @@ Request Body Parameters
      - Required
      - Criteria to use for archiving data.
 
-   * - ``criteria.dateField``
+   * - ``criteria.type``
      - string
      - Required
-     - Name of an already indexed date field from the documents. To 
-       specify a nested field, use the :manual:`dot notation 
-       </core/document/#embedded-documents>`. Data is archived when 
-       the current date is greater than the value of the date field 
-       specified here plus the number of days specified via the 
-       ``expireAfterDays`` parameter.
+     - Type of criteria. Value can be one of the following: 
+
+       - ``DATE`` - to select documents for archiving based on a date.
+       - ``CUSTOM`` - to select documents for archiving based on a custom 
+         |json| query. 
+
+   * - ``criteria.dateField``
+     - string
+     - Conditional
+     - Required if ``criteria.type`` is ``DATE``.
+     
+       Name of an already indexed date field from the documents. 
+       Data is archived when the current date is greater than the 
+       value of the date field specified here plus the number of days 
+       specified via the ``expireAfterDays`` parameter.
+
+   * - ``criteria.dateFormat``
+     - enum
+     - Optional
+     - If ``criteria.type`` is ``DATE``, the date format. Value can be 
+       one of the following: 
+
+       - ``ISODATE`` - ISO-8601 format date (default)
+       - ``EPOCH_SECONDS`` - Unix timestamp in seconds
+       - ``EPOCH_MILLIS`` - Unix timestamp in milliseconds
+       - ``EPOCH_NANOSECONDS`` - Unix timestamp in nanoseconds
+
+       If omitted, defaults to ``ISODATE``.
 
    * - ``criteria.dateFormat``
      - enum
@@ -122,12 +144,24 @@ Request Body Parameters
 
    * - ``criteria.expireAfterDays``
      - int
-     - Required
-     - Number of days that specifies the age limit for the data 
+     - Conditional
+     - Required if ``criteria.type`` is ``DATE``.
+     
+       Number of days that specifies the age limit for the data 
        in the live |service| cluster. Data is archived when the current 
        date is greater than the value of the date field specified via 
        the ``dateField`` parameter plus the number of days specified 
        here.
+
+   * - ``criteria.query``
+     - string
+     - Conditional
+     - Required if ``criteria.type`` is ``CUSTOM``.
+     
+       |json| query to use to select documents for archiving. |service| 
+       uses the specified query with the :manual:`db.collection.find(query) 
+       </reference/method/db.collection.find/>` command. The empty 
+       document ``{}`` to return all documents is not supported.
 
    * - ``partitionFields``
      - document array
@@ -170,59 +204,225 @@ Response Elements
 
 .. _api-online-archive-create-one-eg:
 
-Example 
--------
+Examples 
+--------
 
-The following example request creates an online archive for 
-an example ``people.employees`` collection in a cluster named 
-``myTestClstr``. Data in the collection will be archived based on the 
-``created`` date field and partitioned based on the ``firstName`` and 
-``lastName`` fields in the embedded ``name`` document. The criteria for 
-archiving data specifies that data should be archived when current date 
-is greater than the value of the ``created`` date field plus ``5`` days.
+Date Criteria Examples 
+~~~~~~~~~~~~~~~~~~~~~~
 
-Example Request 
-~~~~~~~~~~~~~~~
+.. tabs:: 
 
-.. code-block:: json 
+   .. tab:: Basic Example
+      :tabid: basic
+   
+      The following example request creates an online archive for 
+      an example ``people.employees`` collection in a cluster named 
+      ``myTestClstr``. Data in the collection will be archived based on the 
+      ``created`` date field and partitioned based on the ``firstName`` and 
+      ``lastName`` fields. The criteria for archiving data specifies that data 
+      should be archived when current date is greater than the value of the 
+      ``created`` date field plus ``5`` days.
+
+      **Example Request** 
+
+      .. code-block:: json 
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+         --header "Content-Type: application/json" \
+         --include \
+         --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5e2211c17a3e5a48f5497de3/clusters/myTestClstr/onlineArchives?pretty=true" \
+         --data '
+         {
+	         "dbName": "people",
+	         "collName": "employees",
+	         "partitionFields": [
+		         {
+			         "fieldType": "string",
+			         "fieldName": "firstName", 
+			         "order": 0
+		         }, 
+		         {
+			         "fieldType": "string",
+			         "fieldName": "lastName",
+			         "order": 1
+		       }], 
+	         "criteria": {
+		         "type": "DATE",
+		         "dateField": "created",
+		         "dateFormat": "ISODATE",
+		         "expireAfterDays": 5
+           }
+         }'
+
+      **Example Response** 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+           "_id": "5ebad3c1fe9c0ab8d37d61e1",
+           "clusterName": "myTestClstr",
+           "collName": "employees",
+           "criteria": {
+             "type": "DATE",
+             "dateField": "created",
+             "dateFormat": "ISODATE",
+             "expireAfterDays": 5
+           },
+           "dbName": "people",
+           "groupId": "5e2211c17a3e5a48f5497de3",
+           "partitionFields": [
+             {
+               "fieldName": "firstName",
+               "fieldType": "string",
+               "order": 0
+             },
+             {
+               "fieldName": "lastName",
+               "fieldType": "string",
+               "order": 1
+             }
+           ],
+           "paused": false,
+           "state": "PENDING"
+         }
+
+   .. tab:: Advanced Example
+      :tabid: advanced
+
+      The following example request creates an online archive for 
+      an example ``accounting.invoices`` collection in a cluster named 
+      ``myTestClstr``. Data in the collection will be archived based on the 
+      ``created`` date field. Data is partitioned based on the ``created`` 
+      field, which is moved to the first position, ``customerID`` field, and  
+      ``invoiceNumber`` field. The criteria for archiving data specifies that 
+      data should be archived when current date is greater than the value of 
+      the ``created`` date field plus ``7`` days.
+
+      **Example Request** 
+
+      .. code-block:: json 
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+         --header "Content-Type: application/json" \
+         --include \
+         --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5e2211c17a3e5a48f5497de3/clusters/myTestClstr/onlineArchives?pretty=true" \
+         --data '
+         {
+	         "dbName": "accounting",
+	         "collName": "invoices",
+	         "partitionFields": [
+		         {
+			         "fieldType": "date",
+			         "fieldName": "created", 
+			         "order": 0
+		         }, 
+		         {
+			         "fieldType": "string",
+			         "fieldName": "customerID",
+			         "order": 1
+		         },
+		         {
+			         "fieldType": "int",
+			         "fieldName": "invoiceNumber",
+			         "order": 2
+		       }], 
+	         "criteria": {
+		         "type": "DATE",
+		         "dateField": "created",
+		         "dateFormat": "ISODATE",
+		         "expireAfterDays": 7
+           }
+         }'
+
+      **Example Response** 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+           "_id": "5f9869ddb41cea31cfcb000a",
+           "clusterName": "myTestClstr",
+           "collName": "invoices",
+           "criteria": {
+             "type": "DATE",
+             "dateField": "created",
+             "dateFormat": "ISODATE",
+             "expireAfterDays": 7
+           },
+           "dbName": "accounting",
+           "groupId": "5e2211c17a3e5a48f5497de3",
+           "partitionFields": [
+             {
+               "fieldName": "created",
+               "fieldType": "date",
+               "order": 0
+             },
+             {
+               "fieldName": "customerID",
+               "fieldType": "string",
+               "order": 1
+             },
+             {
+               "fieldName": "invoiceNumber",
+               "fieldType": "int",
+               "order": 2
+             }
+           ],
+           "paused": false,
+           "state": "PENDING"
+         }
+
+Custom Criteria Example 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example request creates an online archive for an example 
+``people.employees`` collection in a cluster named ``myTestClstr``. 
+Documents in the collection will be selected for archiving based on a 
+custom query and data is partitioned based on the ``firstName`` and 
+``lastName`` fields. 
+
+**Example Request**
+
+.. code-block:: json
 
    curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
    --header "Content-Type: application/json" \
    --include \
    --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5e2211c17a3e5a48f5497de3/clusters/myTestClstr/onlineArchives?pretty=true" \
    --data '
-     {
-	   "dbName": "people",
-	   "collName": "employees",
-	   "partitionFields": [
-		 {
-			 "fieldName": "name.firstName", 
-			 "order": 0
-		 }, 
-		 {
-			 "fieldName": "name.lastName",
-			 "order": 1
-		 }], 
-	   "criteria": {
-		   "dateField": "created",
-		   "dateFormat": "ISODATE",
-		   "expireAfterDays": 5
-	   }
+   {
+        "dbName": "people",
+        "collName": "employees",
+        "partitionFields": [
+              {
+                      "fieldType": "string",
+                      "fieldName": "firstName",
+                      "order": 0
+              },
+              {
+                      "fieldType": "string",
+                      "fieldName": "lastName",
+                      "order": 1
+              }],
+        "criteria": {
+              "type": "CUSTOM",
+              "query": "{ department: engineering }"
+        }
    }'
 
-Example Response 
-~~~~~~~~~~~~~~~~
+**Example Response**
 
-.. code-block:: json 
-   :copyable: false 
+.. code-block:: json
+   :copyable: false
 
    {
-     "clusterName": "myTestClstr",
+     "_id": "5f9856146b3c0c4e454b9409",
+     "clusterName": "osTest",
      "collName": "employees",
      "criteria": {
-        "dateField": "created",
-        "dateFormat": "ISODATE",
-        "expireAfterDays": 5
+        "type": "CUSTOM",
+        "query": "{department: engineering}"
      },
      "dbName": "people",
      "groupId": "5e2211c17a3e5a48f5497de3",
@@ -236,93 +436,10 @@ Example Response
             "fieldName": "name.lastName",
             "fieldType": null,
             "order": 1
-        },
-        {
-            "fieldName": "created",
-            "fieldType": null,
-            "order": 2
         }
      ],
-     "paused": false
-   }
-
-The following example request creates an online archive for 
-an example ``accounting.invoices`` collection in a cluster named 
-``myTestClstr``. Data in the collection will be archived based on the 
-``created`` date field. Data is partitioned based on the ``customerID`` 
-field, which is moved to the first position, ``created`` field, which 
-is moved to the second postion, and  ``invoiceNumber`` field in the 
-third position. The criteria for archiving data specifies that data 
-should be archived when current date is greater than the value of 
-the ``created`` date field plus ``7`` days.
-
-Example Request 
-~~~~~~~~~~~~~~~
-
-.. code-block:: json 
-
-   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-   --header "Content-Type: application/json" \
-   --include \
-   --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5e2211c17a3e5a48f5497de3/clusters/myTestClstr/onlineArchives?pretty=true" \
-   --data '
-     {
-	   "dbName": "accounting",
-	   "collName": "invoices",
-	   "partitionFields": [
-		 {
-			 "fieldName": "customerID", 
-			 "order": 0
-		 }, 
-		 {
-			 "fieldName": "created",
-			 "order": 1
-		 },
-		 {
-			 "fieldName": "invoiceNumber",
-			 "order": 2
-		 }], 
-	   "criteria": {
-		   "dateField": "created",
-		   "dateFormat": "ISODATE",
-		   "expireAfterDays": 7
-	   }
-   }'
-
-Example Response 
-~~~~~~~~~~~~~~~~
-
-.. code-block:: json 
-   :copyable: false 
-
-   {
-     "clusterName": "myTestClstr",
-     "collName": "invoices",
-     "criteria": {
-        "dateField": "created",
-        "dateFormat": "ISODATE",
-        "expireAfterDays": 7
-     },
-     "dbName": "accounting",
-     "groupId": "5e2211c17a3e5a48f5497de3",
-     "partitionFields": [
-        {
-            "fieldName": "customerID",
-            "fieldType": null,
-            "order": 0
-        },
-        {
-            "fieldName": "created",
-            "fieldType": null,
-            "order": 1
-        },
-        {
-            "fieldName": "invoiceNumber",
-            "fieldType": null,
-            "order": 2
-        }
-     ],
-     "paused": false
+     "paused": false,
+     "state": "PENDING"
    }
 
 .. _api-online-archive-create-one-errors:

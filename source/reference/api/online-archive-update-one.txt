@@ -96,14 +96,56 @@ Request Body Parameters
        modifying the archiving criteria. Either ``criteria`` or 
        ``paused`` is required.
 
+   * - ``criteria.type``
+     - string 
+     - Required 
+     - Type of criteria. Value can be one of the following:
+     
+       - ``DATE`` - to select documents for archiving based on a date.
+       - ``CUSTOM`` - to select documents for archiving based on a 
+         custom |json| query.
+
+   * - ``criteria.dateField``
+     - string
+     - Conditional
+     - Required if ``criteria.type`` is ``DATE``. Immutable.
+     
+       Name of an already indexed date field from the documents. 
+       Data is archived when the current date is greater than the 
+       value of the date field specified here plus the number of days 
+       specified via the ``expireAfterDays`` parameter.
+
+   * - ``criteria.dateFormat``
+     - enum
+     - Conditional
+     - Required if ``criteria.type`` is ``DATE``. Immutable.
+     
+       If ``criteria.type`` is ``DATE``, the date format. Value can be 
+       one of the following: 
+
+       - ``ISODATE`` - ISO-8601 format date (default)
+       - ``EPOCH_SECONDS`` - Unix timestamp in seconds
+       - ``EPOCH_MILLIS`` - Unix timestamp in milliseconds
+       - ``EPOCH_NANOSECONDS`` - Unix timestamp in nanoseconds
+
    * - ``criteria.expireAfterDays``
      - int
      - Conditional
-     - The number of days after which the data in the live |service| 
-       cluster can be archived. Note that data is archived only when the 
-       current date is greater than the value of the date field 
-       specified via the ``dateField`` parameter plus the number of days 
-       specified here.
+     - Required if ``criteria.type`` is ``DATE``. 
+     
+       The number of days after which the data in the live |service| 
+       cluster can be archived. 
+
+   * - ``criteria.query``
+     - string
+     - Conditional
+     - Required if ``criteria.type`` is ``CUSTOM``. 
+     
+       |json| query to use to select documents to archive. |service| 
+       uses the specified query with the 
+       :manual:`db.collection.find(query) 
+       </reference/method/db.collection.find/>` command. The empty 
+       document ``{}`` to return all documents is not supported.
 
    * - ``paused``
      - boolean
@@ -136,13 +178,16 @@ Response Elements
 Examples 
 --------
 
-The following example request updates the number of days criteria for an 
-online archive from 5 days to 7 days. The example response contains the 
-updated archiving criteria for the ``people.employees`` collection in the 
-cluster named ``myTestClstr``.
+Update Date Criteria 
+~~~~~~~~~~~~~~~~~~~~
+
+The following example request updates the number of days criteria for 
+an online archive from 5 days to 7 days. The example response contains 
+the updated archiving criteria for the ``people.employees`` collection 
+in the cluster named ``myTestClstr``.
 
 Example Request 
-~~~~~~~~~~~~~~~
+```````````````
 
 .. code-block:: json 
 
@@ -153,12 +198,15 @@ Example Request
    --data '
      {
 	     "criteria": {
-		   "expireAfterDays": 7
-     }
-   }'
+         "type": "DATE",
+         "dateField": "startDate",
+         "dateFormat": "ISODATE",
+		     "expireAfterDays": 7
+       }
+     }'
 
 Example Response 
-~~~~~~~~~~~~~~~~
+````````````````
 
 .. code-block:: json 
    :copyable: false 
@@ -168,6 +216,7 @@ Example Response
      "clusterName": "onlineArchiveSbx",
      "collName": "employees",
      "criteria": {
+        "type": "DATE",
         "dateField": "startDate",
         "dateFormat": "ISODATE",
         "expireAfterDays": 7
@@ -194,13 +243,74 @@ Example Response
      "paused": false
    }
 
+Update Custom Criteria
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following example request modifies the custom query used to select 
+documents in the ``people.employees`` collection from ``engineering`` 
+department to ``sales`` and the ``lastDate`` field exists. The example 
+response contains the updated archiving criteria for the 
+``people.employees`` collection in the cluster named ``myTestClstr``.
+
+Example Request 
+```````````````
+
+.. code-block:: json 
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+   --header "Content-Type: application/json" \
+   --include \
+   --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5e2211c17a3e5a48f5497de3/clusters/myTestClstr/onlineArchives/5fca93aa94f65a28923fe0ed?pretty=true" \
+   --data '
+     {
+       "criteria": {
+         "type": "CUSTOM",
+         "query": "{\"department\":\"sales\", lastDate: { $exists: true }}"
+       }
+     }'
+
+Example Response 
+````````````````
+
+.. code-block:: json 
+   :copyable: false 
+
+   {
+     "_id": "5fca93aa94f65a28923fe0ed",
+     "clusterName": "myTestClstr",
+     "collName": "employees",
+     "criteria": {
+        "type": "CUSTOM",
+        "query": "{\"department\":\"sales\", lastDate: { $exists: true }}"
+     },
+     "dbName": "people",
+     "groupId": "5e2211c17a3e5a48f5497de3",
+     "partitionFields": [
+        {
+            "fieldName": "name.firstName",
+            "fieldType": null,
+            "order": 0
+        },
+        {
+            "fieldName": "name.lastName",
+            "fieldType": null,
+            "order": 1
+        }
+     ],
+     "paused": false,
+     "state": "PENDING"
+   }
+
+Pause Online Archive  
+~~~~~~~~~~~~~~~~~~~~
+
 The following example request pauses archiving for an online archive 
 specified by its ID. The example response contains the updated status 
 of the online archive for the ``people.employees`` collection in the 
 cluster named ``myTestClstr``. 
 
 Example Request 
-~~~~~~~~~~~~~~~
+```````````````
 
 .. code-block:: json 
 
@@ -211,7 +321,7 @@ Example Request
    --data '{ "paused": true }'
 
 Example Response 
-~~~~~~~~~~~~~~~~
+````````````````
 
 .. code-block:: json 
    :copyable: false 
@@ -221,6 +331,7 @@ Example Response
      "clusterName": "myTestClstr",
      "collName": "employees",
      "criteria": {
+        "type": "DATE",
         "dateField": "startDate",
         "dateFormat": "ISODATE",
         "expireAfterDays": 7

@@ -22,17 +22,25 @@
      - document
      - Criteria to use for archiving data.
 
+   * - ``criteria.type``
+     - string
+     - Type of criteria. Value can be one of the following: 
+
+       - ``DATE`` - to select documents for archiving based on a date.
+       - ``CUSTOM`` - to select documents for archiving based on a custom 
+         |json| query. 
+
    * - ``criteria.dateField``
      - string
-     - Name of the date field that the online archive is based on. 
-       Data is archived when the current date is greater than the 
-       value of the date field specified here plus the number of days 
-       specified via the ``expireAfterDays`` parameter.
+     - If ``criteria.type`` is ``DATE``, name of the date field that 
+       the online archive is based on. Data is archived when the 
+       current date is after the date specified here plus the number of 
+       days specified via the ``expireAfterDays`` parameter.
 
    * - ``criteria.dateFormat``
      - enum
-     - Date format of the date field. Value can be one of the 
-       following: 
+     - If ``criteria.type`` is ``DATE``, the date format. Value can be 
+       one of the following: 
 
        - ``ISODATE`` - ISO-8601 format date (default)
        - ``EPOCH_SECONDS`` - Unix timestamp in seconds
@@ -41,11 +49,18 @@
 
    * - ``criteria.expireAfterDays``
      - int
-     - Number of days that specifies the age limit for the data 
-       in the live |service| cluster. Data is archived when the current 
-       date is greater than the value of the date field specified via 
-       the ``dateField`` parameter plus the number of days specified 
-       here.
+     - If ``criteria.type`` is ``DATE``, number of days that specifies 
+       the age limit for the data in the live |service| cluster. Data is 
+       archived when the current date is greater than the value of the 
+       date field specified via the ``dateField`` parameter plus the number 
+       of days specified here.
+
+   * - ``criteria.query``
+     - int
+     - If ``criteria.type`` is ``CUSTOM``, |json| query used to select 
+       documents for archiving. The specified query is used with the 
+       :manual:`db.collection.find(query) 
+       </reference/method/db.collection.find/>` command.
 
    * - ``dbName``
      - string
