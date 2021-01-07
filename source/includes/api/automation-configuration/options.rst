@@ -4,7 +4,6 @@
 
    "options" : {
      "downloadBase" : "<string>",
-     "downloadBaseWindows" : "<string>"
    }
 
 .. list-table::
@@ -28,8 +27,3 @@
      - Directory on Linux and UNIX (including macOS) platforms for
        automatic version downloads and startup scripts.
 
-   * - options.downloadBaseWindows
-     - string
-     - Required
-     - Directory on Windows platforms for automatic version downloads
-       and startup scripts.
