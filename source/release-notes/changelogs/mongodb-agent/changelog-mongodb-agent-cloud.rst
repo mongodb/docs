@@ -1,3 +1,13 @@
+.. _10.24.0.6714-1:
+
+MongoDB Agent 10.24.0.6714-1
+----------------------------
+
+*Released* 2021-01-06
+
+- Stops adding MongoDB binaries (such as |mongod|, |mongos|, etc.)
+  to the Linux path when installing from RPM and DEB packages. 
+
 .. _10.23.0.6688-1:
 
 MongoDB Agent 10.23.0.6688-1
