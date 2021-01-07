@@ -26,22 +26,6 @@
    .. tabs-platforms::
 
       .. tab::
-         :tabid: windows
-
-         1. Log into the first host that serves a Backup Daemon.
-
-         2. Click the :guilabel:`Start` button.
-
-         3. Click :guilabel:`Administrative Tools`.
-
-         4. Click :guilabel:`Services`.
-
-         5. Right-click the :guilabel:`MongoDB Ops Manager Backup
-            Daemon Service` and select :guilabel:`Stop`.
-
-         6. Repeat steps 2 to 5 with every other Backup Daemon host.
-
-      .. tab::
          :tabid: debian
 
          1. Log into the first host that serves a Backup Daemon.

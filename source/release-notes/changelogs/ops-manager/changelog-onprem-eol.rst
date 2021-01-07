@@ -698,8 +698,8 @@ New Features
   on your provisioned hardware.
 
 - Windows support (Monitoring and Backup only). You can
-  :doc:`/tutorial/install-on-prem-windows` using MSI files. |onprem|
-  supports Windows Server 2008 R2 and above.
+  :doc:`/tutorial/nav/install-application` on Microsoft Windows using 
+  MSI files. |onprem| supports Windows Server 2008 R2 and above.
 
 - Support for MongoDB 3.0, including support for backups that use the
   :ref:`WiredTiger <considerations-backup-storage-engine>` storage
