@@ -4,25 +4,10 @@ Map-Reduce Examples
 .. map-reduce-document-examples-begin
 .. map-reduce-document-prototype-begin
 
-.. admonition:: Aggregation Pipeline as Alternative
-   :class: note
-
-   :doc:`Aggregation pipeline </core/aggregation-pipeline>` provides
-   better performance and a simpler interface than map-reduce, and
-   map-reduce expressions can be rewritten using :doc:`aggregation
-   pipeline operators </meta/aggregation-quick-reference>` such as
-   :pipeline:`$group`, :pipeline:`$merge`, and others.
-   
-   For map-reduce expressions that require custom functionality, MongoDB
-   provides the :group:`$accumulator` and :expression:`$function`
-   aggregation operators starting in version 4.4. These operators
-   provide the ability to define custom aggregation expressions in
-   JavaScript.
-
-   The examples in this section include aggregation pipeline
-   alternatives without custom aggregation expressions. For alternatives
-   that use custom expressions, see :ref:`Map-Reduce to Aggregation
-   Pipeline Translation Examples <mr-to-agg-examples>`.
+The examples in this section include aggregation pipeline alternatives
+without custom aggregation expressions. For alternatives that use custom
+expressions, see :ref:`Map-Reduce to Aggregation Pipeline Translation
+Examples <mr-to-agg-examples>`.
 
 Create a sample collection ``orders`` with these documents:
 
