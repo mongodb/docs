@@ -62,21 +62,22 @@ content: |
 ---
 stepnum: 7
 level: 4
-title: "Restore the Snapshot Data Files to the Destination Host."
+title: "Move the Snapshot Data Files to the Target Host."
 ref: copy
 content: |
+  Before moving the snapshot's data files to the target host, check
+  whether the target host contains any existing files and delete them.
+  
   Extract the snapshot archive for the :term:`config server` and for
   each :term:`shard` to a temporary location.
 
-  .. example::
+  The following commands use </path/to/snapshot/> as a temporary
+  path.
 
-     The following commands use </path/to/snapshot/> as a temporary
-     path:
+  .. code-block:: sh
 
-     .. code-block:: sh
-
-        tar -xvf <backupSnapshot>.tar.gz
-        mv <backupSnapshot> </path/to/snapshot>
+     tar -xvf <backupSnapshot>.tar.gz
+     mv <backupSnapshot> </path/to/snapshot>
 ---
 stepnum: 8
 level: 4
@@ -95,7 +96,7 @@ content: |
 ---
 stepnum: 9
 level: 4
-title: "Shut Down Running MongoDB Processes."
+title: "Stop the Running MongoDB Processes."
 ref: shutdown-mongod
 content: |
 
@@ -107,14 +108,14 @@ content: |
      :widths: 20 80
 
      * - |mongos|
-       - Run :method:`db.shutdownServer()` from the ``admin`` database:
+       - Run :method:`db.shutdownServer() <db.shutdownServer>` from the ``admin`` database:
 
          .. code-block:: javascript
 
             db.getSiblingDB("admin").shutdownServer()
 
      * - |mongod|
-       - Run :method:`db.isMaster()`:
+       - Run :method:`db.isMaster() <db.isMaster>`:
 
          .. list-table::
             :widths: 20 20 60
@@ -125,8 +126,8 @@ content: |
               - To Shut Down
             * - ``false``
               - :term:`secondary <Secondary>`
-              - Run :method:`db.shutdownServer()` from the ``admin``
-                database.
+              - Run :method:`db.shutdownServer() <db.shutdownServer>`
+                from the ``admin`` database.
 
                 .. code-block:: javascript
 
@@ -136,15 +137,14 @@ content: |
               - :term:`primary <Primary>`
               -
 
-                a. Use :method:`rs.status()` to identify the other
+                a. Use :method:`rs.status() <rs.status>` to identify the other
                    members.
                 b. Connect to each secondary and shut down their
                    |mongod| processes *first*.
                 c. After the primary detects that a majority of members
                    are offline, it steps down.
                 d. After the primary steps down (:method:`db.isMaster`
-                   returns :data:`ismaster: false
-                   <isMaster.ismaster>`), shut down the primary's
+                   returns :data:`ismaster: false`), shut down the primary's
                    |mongod|.
 
 ---
@@ -268,10 +268,10 @@ content: |
           - IP address of the host machine
 
         * - :setting:`replication.replSetName`
-          - Same value across each member in any given replica set.
+          - Same value across each member in any given replica set
 
         * - :setting:`sharding.clusterRole`
-          - Same value across each member in any given replica set.
+          - Same value across each member in any given replica set
 
 ---
 stepnum: 15
@@ -309,11 +309,13 @@ content: |
      - The ``--config`` option and the full path to the configuration
        file, and
      - The ``disableLogicalSessionCacheRefresh`` server parameter.
+       Depending on your path, you may need to specify
+       the path to the |mongod| binary.
 
        .. code-block:: sh
 
-          ./mongod --config </path/to/datafiles>/mongod.conf \
-                   --setParameter disableLogicalSessionCacheRefresh=true
+          mongod --config </path/to/datafiles>/mongod.conf \
+                 --setParameter disableLogicalSessionCacheRefresh=true
 
        If you have |mongod| configured to run as a system service,
        start it using the recommended process for your platform's
@@ -328,7 +330,9 @@ title: "Remove Replica Set-Related Collections from the ``local`` Database."
 ref: remove-replset-config-csrs
 content: |
 
-  Invoke the following commands to remove the previous replica set
+  .. include:: /includes/fact-restore-manual-user-role.rst
+  
+  Run the following commands to remove the previous replica set
   configuration and other non-oplog, replication-related collections.
 
   .. code-block:: javascript
@@ -360,8 +364,8 @@ content: |
 
   Insert the following document into the ``system.replset`` collection
   in the ``local`` database. Change
-  ``<replaceMeWithTheCSRSName>`` to the name of your Replica Set
-  and ``<port>`` to the port of your Replica Set.
+  ``<replaceMeWithTheCSRSName>`` to the name of your replica set
+  and ``<port>`` to the port of your replica set.
 
   .. code-block:: javascript
      :linenos:
@@ -412,11 +416,12 @@ content: |
 ---
 stepnum: 19
 level: 4
-title: "Set the Restore Point to the ``Restore Timestamp`` value from the ``restoreInfo`` file."
+title: "Set the Restore Point to the ``Restore Timestamp`` values from the ``restoreInfo`` file."
 ref: set-restore-point-csrs
 content: |
-  Set the ``oplogTruncateAfterPoint`` document to the Restore timestamp
-  given in the :ref:`restoreInfo.txt <com-restore-info-rs>` file.
+  Set the ``oplogTruncateAfterPoint`` document to the ``restoreTS.getTime()`` and
+  ``restoreTS.getInc()`` values provided in the
+  ``Restore Timestamp`` field of the :ref:`restoreInfo.txt <com-restore-info-rs>` file.
 
   .. code-block:: javascript
 
@@ -435,7 +440,7 @@ content: |
 
   .. note::
      Each member has its own ``restoreInfo.txt`` file, but the
-     ``restoreTs`` value should be the same in each file.
+     ``Restore Timestamp`` values should be the same in each file.
 
 ---
 stepnum: 20
@@ -444,20 +449,22 @@ title: "Restart as a Single-Node Replica Set to Recover the Oplog."
 ref: restart-special-db-csrs-1
 content: |
 
-  Start the |mongod|. The |mongod| replays the oplog up to the
+  Start the |mongod|. Depending on your path, you may need to specify
+  the path to the |mongod| binary. The |mongod| replays the oplog up to the
   ``Restore timestamp``.
-
-  .. code-block:: sh
-
-     ./mongod --dbpath </path/to/datafiles> \
-              --port <ephemeralPort> \
-              --replSet <replaceMeWithTheCSRSName> \
-              --configsvr
 
   .. important::
 
-     You must not set ``<ephemeralPort>`` in this command to the same
-     ``<port>`` you set in **Step 14**.
+     In the following command, you must use ``<ephemeralPort>``. This
+     port must differ from the ``<port>`` you set in Step 14.
+
+
+  .. code-block:: sh
+
+     mongod --dbpath </path/to/datafiles> \
+            --port <ephemeralPort> \
+            --replSet <replaceMeWithTheCSRSName> \
+            --configsvr
 
 ---
 stepnum: 21
@@ -468,9 +475,9 @@ content: |
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> \
-              --port <ephemeralPort> \
-              --shutdown
+     mongod --dbpath </path/to/datafiles> \
+            --port <ephemeralPort> \
+            --shutdown
 
 ---
 stepnum: 22
@@ -481,30 +488,27 @@ content: |
 
   a. Download the MongoDB Backup Restore Utility to your host.
 
-     .. note::
-
-        If you closed the restore panel, click :guilabel:`Backup`, then
-        :guilabel:`More` and then :guilabel:`Download MongoDB Backup
-        Restore Utility`.
+     If you closed the restore panel, click :guilabel:`Backup`, then
+     :guilabel:`More` and then :guilabel:`Download MongoDB Backup
+     Restore Utility`.
 
   #. Start a |mongod| instance without authentication
      enabled using the extracted snapshot directory as the data
-     directory.
+     directory. Depending on your path, you may need to specify
+     the path to the |mongod| binary.
 
-     .. example::
+     .. code-block:: sh
 
-        .. code-block:: sh
-
-           mongod --port <port number> \
-                  --dbpath <temp-database-path> \
-                  --setParameter ttlMonitorEnabled=false
+        mongod --port <port number> \
+               --dbpath <temp-database-path> \
+               --setParameter ttlMonitorEnabled=false
 
      .. warning::
         The MongoDB Backup Restore Utility doesn't support
         authentication, so you can't start this temporary database with
         authentication.
 
-  #. Run the MongoDB Backup Restore Utility on your destination host.
+  #. Run the MongoDB Backup Restore Utility on your target  host.
      Run it once for the replica set.
 
      .. include:: /includes/fact-pre-configured-mbru-command.rst
@@ -524,13 +528,14 @@ content: |
      ``mongodb-backup-restore-util`` command provided in
      |application|, this field is pre-configured.
 
-  #. Issue the following command:
+  #. Issue the following command. Depending on your path, you may need to specify
+     the path to the |mongod| binary.
 
      .. code-block:: sh
 
-        ./mongod --dbpath </path/to/datafiles> \
-                 --port <ephemeralPort> \
-                 --shutdown
+        mongod --dbpath </path/to/datafiles> \
+               --port <ephemeralPort> \
+               --shutdown
 
 ---
 stepnum: 23
@@ -545,13 +550,15 @@ content: |
   - ``recoverFromOplogAsStandalone``
   - ``takeUnstableCheckpointOnShutdown``
 
-  The |mongod| replays the oplog up to the ``Restore timestamp``.
+  Depending on your path, you may need to specify
+  the path to the |mongod| binary. The |mongod| replays
+  the oplog up to the ``Restore timestamp``.
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> --port <ephemeralPort> \
-              --setParameter recoverFromOplogAsStandalone=true \
-              --setParameter takeUnstableCheckpointOnShutdown=true
+     mongod --dbpath </path/to/datafiles> --port <ephemeralPort> \
+            --setParameter recoverFromOplogAsStandalone=true \
+            --setParameter takeUnstableCheckpointOnShutdown=true
 
 ---
 stepnum: 24
@@ -560,13 +567,14 @@ title: "Stop the Temporary |csrs| Standalone Used to Recover the Oplog."
 ref: stop-temp-csrs-standalone-2
 content: |
 
-  Issue the following command:
+  Issue the following command. Depending on your path, you may need to specify
+  the path to the |mongod| binary.
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> \
-              --port <ephemeralPort> \
-              --shutdown
+     mongod --dbpath </path/to/datafiles> \
+            --port <ephemeralPort> \
+            --shutdown
 
 ---
 stepnum: 25
@@ -575,11 +583,12 @@ title: "Restart as a Standalone to Clear Old Settings."
 ref: restart-special-db-2
 content: |
 
-  Start the |mongod|.
+  Start the |mongod|. Depending on your path, you may need to specify
+  the path to the |mongod| binary.
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> --port <ephemeralPort>
+     mongod --dbpath </path/to/datafiles> --port <ephemeralPort>
 
 ---
 stepnum: 26
@@ -646,14 +655,15 @@ content: |
           clusterRole: configsvr
 
   #. To change the replica set name, update the
-     :setting:`~replication.replSetName` field with the new name before
-     proceeding.
+     :setting:`replication.replSetName <replication.replSetName>` field with the new
+     name before proceeding.
 
-  #. Start the |mongod| with the updated configuration file:
+  #. Start the |mongod| with the updated configuration file. Depending on your
+     path, you may need to specify the path to the |mongod| binary.
 
      .. code-block:: sh
 
-        ./mongod --config </path/to/datafiles>/mongod.conf
+        mongod --config </path/to/datafiles>/mongod.conf
 
      If you have |mongod| configured to run as a system service, start
      it using the recommended process for your platform's service
@@ -667,7 +677,7 @@ level: 4
 title: "Initiate the New Replica Set."
 ref: initiate-csrs
 content: |
-  Initiate the replica set using :method:`rs.initiate()` with the
+  Initiate the replica set using :method:`rs.initiate() <rs.initiate>` with the
   default settings.
 
   .. code-block: javascript
@@ -680,7 +690,7 @@ content: |
        } ]
      } )
 
-  Once the operation completes, use :method:`rs.status()` to check
+  Once the operation completes, use :method:`rs.status() <rs.status>` to check
   that the member has become the :term:`primary <Primary>`.
 ---
 stepnum: 29
@@ -696,7 +706,7 @@ content: |
      successfully, connect a |mongo| shell to the primary
      replica set member.
 
-  c. From the primary, use the :method:`rs.add()` method to add each
+  c. From the primary, use the :method:`rs.add() <rs.add>` method to add each
      member of the replica set. Include the replica set name as the
      prefix, followed by the hostname and port of the member's |mongod|
      process:
@@ -708,7 +718,7 @@ content: |
 
   d. If you want to add the member with specific replica
      :rsconf:`member <members[n]>` configuration settings, you can pass
-     a document to :method:`rs.add()` that defines the member hostname
+     a document to :method:`rs.add() <rs.add>` that defines the member hostname
      and any :rsconf:`members[n]` settings your deployment requires.
 
      .. code-block:: javascript
@@ -728,9 +738,9 @@ content: |
      sync might take a while to complete.
 
   f. The replica set might elect a new primary while you add additional
-     members. You can only run :method:`rs.add()` from the primary. To
+     members. You can only run :method:`rs.add() <rs.add>` from the primary. To
      identify which member is the current primary, use
-     :method:`rs.status()`.
+     :method:`rs.status() <rs.status>`.
 
 ---
 stepnum: 30
@@ -739,11 +749,11 @@ title: "Configure Any Additional Required Replication Settings."
 ref: configure-replication-csrs
 content: |
 
-  The :method:`rs.reconfig()` method updates the replica set
+  The :method:`rs.reconfig() <rs.reconfig>` method updates the replica set
   configuration based on a configuration document passed in as a
   parameter.
 
-  a. Run :method:`~rs.reconfig()` against the primary member of the
+  a. Run :method:`rs.reconfig() <rs.reconfig>` against the primary member of the
      replica set.
 
   b. Reference the original configuration file output of the replica
@@ -761,7 +771,9 @@ content: |
      These steps appear repetitive, but cover shards instead of the
      |csrs|.
 
-  Invoke the following commands to remove the previous replica set
+  .. include:: /includes/fact-restore-manual-user-role.rst
+
+  Run the following commands to remove the previous replica set
   configuration and other non-oplog, replication-related collections.
 
   .. code-block:: javascript
@@ -810,8 +822,8 @@ content: |
 
   Insert the following document into the ``system.replset`` collection
   in the ``local`` database. Change
-  ``<replaceMeWithTheShardName>`` to the name of your Replica Set
-  and ``<port>`` to the port of your Replica Set.
+  ``<replaceMeWithTheShardName>`` to the name of your replica set
+  and ``<port>`` to the port of your replica set.
 
   .. code-block:: javascript
      :linenos:
@@ -844,7 +856,7 @@ level: 4
 title: "Set the Restore Point to the ``Restore Timestamp`` value from the ``restoreInfo`` file."
 ref: set-restore-point
 content: |
-  Set the ``oplogTruncateAfterPoint`` document to the Restore timestamp
+  Set the ``oplogTruncateAfterPoint`` document to the values in the ``Restore Timestamp`` field
   given in the :ref:`restoreInfo.txt <com-restore-info-sc>` file.
 
   .. code-block:: javascript
@@ -869,19 +881,20 @@ title: "Restart as a Single-Node Replica Set to Recover the Oplog."
 ref: restart-special-db-3
 content: |
 
-  Start the |mongod|. The |mongod| replays the oplog up to the
-  ``Restore timestamp``.
-
-  .. code-block:: sh
-
-     ./mongod --dbpath </path/to/datafiles> \
-              --port <ephemeralPort> \
-              --replSet <replaceMeWithTheShardName>
+  Start the |mongod|. Depending on your path, you may need to specify
+  the path to the |mongod| binary. The |mongod| replays the oplog up to
+  the ``Restore timestamp``.
 
   .. important::
 
-     You must not set ``<ephemeralPort>`` in this command to the same
-     ``<port>`` you set in **Step 14**.
+     This command uses ``<ephemeralPort>``. This port must differ
+     from the ``<port>`` you set in **Step 14**.
+
+  .. code-block:: sh
+
+     mongod --dbpath </path/to/datafiles> \
+            --port <ephemeralPort> \
+            --replSet <replaceMeWithTheShardName>
 
 ---
 stepnum: 36
@@ -892,9 +905,9 @@ content: |
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> \
-              --port <ephemeralPort> \
-              --shutdown
+     mongod --dbpath </path/to/datafiles> \
+            --port <ephemeralPort> \
+            --shutdown
 
 ---
 stepnum: 37
@@ -905,30 +918,27 @@ content: |
 
   a. Download the MongoDB Backup Restore Utility to your host.
 
-     .. note::
-
-        If you closed the restore panel, click :guilabel:`Backup`, then
-        :guilabel:`More` and then :guilabel:`Download MongoDB Backup
-        Restore Utility`.
+     If you closed the restore panel, click :guilabel:`Backup`, then
+     :guilabel:`More` and then :guilabel:`Download MongoDB Backup
+     Restore Utility`.
 
   #. Start a |mongod| instance without authentication
      enabled using the extracted snapshot directory as the data
-     directory.
+     directory. Depending on your path, you may need to specify
+     the path to the |mongod| binary.
 
-     .. example::
+     .. code-block:: sh
 
-        .. code-block:: sh
-
-           mongod --port <port number> \
-             --dbpath <temp-database-path> \
-             --setParameter ttlMonitorEnabled=false
+        mongod --port <port number> \
+               --dbpath <temp-database-path> \
+               --setParameter ttlMonitorEnabled=false
 
      .. warning::
         The MongoDB Backup Restore Utility doesn't support
         authentication, so you can't start this temporary database with
         authentication.
 
-  #. Run the MongoDB Backup Restore Utility on your destination host.
+  #. Run the MongoDB Backup Restore Utility on your target  host.
      Run it once for the replica set.
 
      .. include:: /includes/fact-pre-configured-mbru-command.rst
@@ -955,13 +965,14 @@ title: "Stop the Temporary Shard Standalone."
 ref: stop-temp-shard-standalone-1
 content: |
 
-  Issue the following command:
+  Issue the following command. Depending on your path, you may need to specify
+  the path to the |mongod| binary.
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> \
-              --port <ephemeralPort> \
-              --shutdown
+     mongod --dbpath </path/to/datafiles> \
+            --port <ephemeralPort> \
+            --shutdown
 
 ---
 stepnum: 39
@@ -970,11 +981,12 @@ title: "Restart as a Standalone to Clear Old Settings."
 ref: restart-special-db-4
 content: |
 
-  Start the |mongod|.
+  Start the |mongod|. Depending on your path, you may need to specify
+  the path to the |mongod| binary.
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> --port <ephemeralPort>
+     mongod --dbpath </path/to/datafiles> --port <ephemeralPort>
 
 ---
 stepnum: 40
@@ -1019,11 +1031,14 @@ title: "Stop the Temporary Document Cleaning Standalone."
 ref: stop-temp-shard-standalone-2
 content: |
 
+  Depending on your path, you may need to specify the path to the
+  |mongod| binary.
+
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> \
-              --port <ephemeralPort> \
-              --shutdown
+     mongod --dbpath </path/to/datafiles> \
+            --port <ephemeralPort> \
+            --shutdown
 ---
 stepnum: 42
 level: 4
@@ -1032,15 +1047,13 @@ ref: connect-to-instance
 content: |
 
   From the host running this |mongod| process, start the
-  |mongo| shell. To connect to the |mongod| listening to
-  localhost on port ``<port>``, invoke:
+  |mongo| shell. Depending on your path, you may need to specify
+  the path to the |mongo| shell. To connect to the |mongod| listening to
+  localhost on port ``<port>``, run:
 
   .. code-block:: sh
 
-     ./mongo --port <port>
-
-  Depending on your path, you may need to specify the path to the
-  |mongo| shell.
+     mongo --port <port>
 
   After the |mongod| starts accepting connections, continue.
 ---
@@ -1050,7 +1063,7 @@ title: Initiate the New Replica Set.
 ref: initiate-new-replset
 content: |
 
-  Run :method:`rs.initiate()` on the replica set:
+  Run :method:`rs.initiate() <rs.initiate>` on the replica set:
 
   .. code-block:: javascript
 
@@ -1144,10 +1157,13 @@ content: |
        path to the configuration file, and
      - The ``disableLogicalSessionCacheRefresh`` server parameter.
 
+     Depending on your path, you may need to specify
+     the path to the |mongod| binary.
+
       .. code-block:: sh
 
-         ./mongod --config </path/to/datafiles>/mongod.conf \
-                  --setParameter disableLogicalSessionCacheRefresh=true
+         mongod --config </path/to/datafiles>/mongod.conf \
+                --setParameter disableLogicalSessionCacheRefresh=true
 
       If you have |mongod| configured to run as a system service, start
       it using the recommended process for your platform's service
@@ -1235,14 +1251,15 @@ content: |
           clusterRole: shardsvr
 
   d. To change the replica set name, update the
-     :setting:`~replication.replSetName` field with the new name before
-     proceeding.
+     :setting:`replication.replSetName <replication.replSetName>` field with
+     the new name before proceeding.
 
-  e. Start the |mongod| with the updated configuration file:
+  e. Start the |mongod| with the updated configuration file. Depending on your
+     path, you may need to specify the path to the |mongod| binary.
 
      .. code-block:: sh
 
-        ./mongod --config </path/to/datafiles>/mongod.conf
+        mongod --config </path/to/datafiles>/mongod.conf
 
      If you have |mongod| configured to run as a system service, start
      it using the recommended process for your platform's service
@@ -1257,7 +1274,7 @@ level: 4
 title: "Initiate the New Replica Set."
 ref: initiate-shard
 content: |
-  Initiate the replica set using :method:`rs.initiate()` with the
+  Initiate the replica set using :method:`rs.initiate() <rs.initiate>` with the
   default settings.
 
   .. code-block: javascript
@@ -1270,7 +1287,7 @@ content: |
        } ]
      } )
 
-  Once the operation completes, use :method:`rs.status()` to check
+  Once the operation completes, use :method:`rs.status() <rs.status>` to check
   that the member has become the :term:`primary <Primary>`.
 ---
 stepnum: 51
@@ -1286,7 +1303,7 @@ content: |
      successfully, connect a |mongo| shell to the primary
      replica set member.
 
-  c. From the primary, use the :method:`rs.add()` method to add each
+  c. From the primary, use the :method:`rs.add() <rs.add>` method to add each
      member of the replica set. Include the replica set name as the
      prefix, followed by the hostname and port of the member's |mongod|
      process:
@@ -1298,7 +1315,7 @@ content: |
 
   d. If you want to add the member with specific replica
      :rsconf:`member <members[n]>` configuration settings, you can pass
-     a document to :method:`rs.add()` that defines the member hostname
+     a document to :method:`rs.add() <rs.add>` that defines the member hostname
      and any :rsconf:`members[n]` settings your deployment requires.
 
      .. code-block:: javascript
@@ -1318,9 +1335,9 @@ content: |
      sync might take a while to complete.
 
   f. The replica set might elect a new primary while you add additional
-     members. You can only run :method:`rs.add()` from the primary. To
-     identify which member is the current primary, use
-     :method:`rs.status()`.
+     members. You can only run :method:`rs.add() <rs.add>` from the primary.
+     To identify which member is the current primary, use
+     :method:`rs.status() <rs.status>`.
 
 ---
 stepnum: 52
@@ -1329,11 +1346,11 @@ title: "Configure Any Additional Required Replication Settings."
 ref: configure-replication-shard
 content: |
 
-  The :method:`rs.reconfig()` method updates the replica set
+  The :method:`rs.reconfig() <rs.reconfig>` method updates the replica set
   configuration based on a configuration document passed in as a
   parameter.
 
-  a. Run :method:`~rs.reconfig()` against the primary member of the
+  a. Run :method:`rs.reconfig() <rs.reconfig>` against the primary member of the
      replica set.
 
   b. Reference the original configuration file output of the replica
@@ -1397,10 +1414,11 @@ content: |
   a. Connect a |mongo| shell to one of the |mongos|
      processes for the cluster.
 
-  b. Use :method:`sh.status()` to check the overall cluster status.
+  b. Use :method:`sh.status() <sh.status>` to check the overall cluster status.
 
-     If :method:`sh.status()` indicates that the balancer is not
-     running, use :method:`sh.startBalancer()` to restart the balancer.
+     If :method:`sh.status() <sh.status>` indicates that the balancer is not
+     running, use :method:`sh.startBalancer() <sh.startBalancer>` to restart
+     the balancer.
 
   c. To confirm that you can access all shards and they are
      communicating, insert test data into a temporary sharded
@@ -1410,8 +1428,8 @@ content: |
      in your cluster.
 
      You can connect a |mongo| shell to each shard primary
-     and use :method:`db.collection.find()` to validate that the data
-     was sharded as expected.
+     and use :method:`db.collection.find() <db.collection.find>` to validate that
+     the data was sharded as expected.
 
 ...
 

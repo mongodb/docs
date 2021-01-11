@@ -42,7 +42,7 @@ ref: retrieve
 content: |
 
   |mms| creates links to the snapshot. By default, these links are
-  available for an hour and can be used just once.
+  available for an hour and you can use them just once.
 
   To download the snapshots:
 
@@ -50,7 +50,7 @@ content: |
      :guilabel:`Restore History`.
 
   b. When the restore job completes, click :guilabel:`(get link)`
-     for each :term:`replica set` appears.
+     for each :term:`replica set` that appears.
 
   c. Click:
 
@@ -61,30 +61,31 @@ content: |
 ---
 stepnum: 7
 level: 4
-title: "Restore the Snapshot Data Files to the Target Host."
-ref: copy-snapshot-files
-content: |
-
-  .. example::
-
-     .. code-block:: sh
-
-        tar -xvf <backupSnapshot>.tar.gz
-        mv <backupSnapshot> </path/to/datafiles>
----
-stepnum: 8
-level: 4
-title: "Unmanage the Replica Set."
+title: "Unmanage the Target Replica Set."
 ref: unmanage-replset
 content: |
 
   Before attempting to restore the data manually, :doc:`remove the
   replica set from Automation </tutorial/unmanage-deployment>`.
+---
+stepnum: 8
+level: 4
+title: "Stop the Target Replica Set."
+ref: stop-target-rs
+content: |
+
+  Depending on your path, you may need to specify
+  the path to the |mongo| shell. Run:
+
+  .. code-block:: sh
+
+     mongo --port <port> \
+           --eval "db.getSiblingDB('admin').shutdownServer()"
 
 ---
 stepnum: 9
 level: 4
-title: "Verify Hardware and Software Requirements."
+title: "Verify Hardware and Software Requirements on the Target Replica Set."
 ref: verify-requirements
 content: |
 
@@ -93,27 +94,96 @@ content: |
      :stub-columns: 1
 
      * - Storage Capacity
-       - The target host hardware needs enough free storage space for
-         the restored data. If you want to keep any existing sharded
-         cluster data on this host, make sure the host has enough free
-         space for both data sets.
+       - The target host's hardware needs to have sufficient free storage
+         space for storing the restored data. If you want to keep any
+         existing sharded cluster data on this host, make sure the host
+         has sufficient free space for the sharded cluster data and the
+         restored data.
 
      * - MongoDB Version
-       - The target host and source host must run the same MongoDB
+       - The target host on which you are restoring and the source host
+         from which you are restoring  must run the same MongoDB
          Server version. To check the MongoDB version, run ``mongod
          --version`` from a terminal or shell.
 
-  To learn more about installation, see :manual:`/installation`.
-
+  To learn more, see :manual:`installation`.
 
 ---
+
 stepnum: 10
+level: 4
+title: "Move the Snapshot Data Files to the Target Host."
+ref: copy-snapshot-files
+content: |
+  Before moving the snapshot's data files to the target host, check
+  whether the target host contains any existing files and delete them.
+  
+  Unpack the snapshot files and move them to the target host as follows:
+
+  .. code-block:: sh
+
+     tar -xvf <backupSnapshot>.tar.gz
+     mv <backupSnapshot> </path/to/datafiles>
+
+---
+stepnum: 11
+level: 4
+title: "Start the Temporary Standalone Instance on the Ephemeral Port."
+ref: start-as-standalone
+content: |
+
+  In this step, you start the |mongod| process in standalone mode, and not as
+  a replica set.
+
+  .. note::
+     Starting |mongod| in this way is a temporary measure. It allows you to
+     add new configuration parameters to the ``system.replset`` collection in
+     subsequent steps.
+  
+  Use the ``<ephemeralPort>`` for the temporary standalone |mongod| process
+  in all steps in this procedure  where it is mentioned. This port must differ from
+  the source and target host ports.
+
+  Run the |mongod| process as follows. Depending on your path, you may
+  need to specify the path to the |mongod| binary.
+
+  .. code-block:: sh
+
+     mongod  --dbpath </path/to/datafiles> \
+             --port <ephemeralPort> \
+
+  After the |mongod| process starts accepting connections, continue.
+
+---
+stepnum: 12
+level: 4
+title: "Connect to the Temporary Standalone Instance with the ``mongo`` Shell."
+ref: connect-on-ephemeral-port
+content: |
+
+  From the host running this |mongod| process, start the
+  |mongo| shell. Depending on your path, you may need to
+  specify the path to the |mongo| shell.
+  
+  To connect to the |mongod| listening to localhost on
+  the same ``<ephemeralPort>`` specified in the previous step, run:
+
+  .. code-block:: sh
+
+     mongo  --port <ephemeralPort>
+
+  After the ``mongo`` shell connects to |mongod|, continue.
+
+---
+stepnum: 13
 level: 4
 title: "Remove Replica Set-Related Collections from the ``local`` Database."
 ref: remove-replset-config
 content: |
 
-  Invoke the following commands to remove the previous replica set
+  .. include:: /includes/fact-restore-manual-user-role.rst
+
+  Run the following commands to remove the previous replica set
   configuration and other non-oplog, replication-related collections.
 
   .. code-block:: javascript
@@ -138,7 +208,7 @@ content: |
      WriteResult({ "nRemoved" : 1 })
 
 ---
-stepnum: 11
+stepnum: 14
 level: 4
 title: "Add a New Replica Set Configuration."
 ref: add-new-replset-config
@@ -147,9 +217,11 @@ content: |
   Insert the following document into the ``system.replset`` collection
   in the ``local`` database. Change the following variables:
 
-  - ``<replaceMeWithTheReplicaSetName>`` to the name of your Replica Set
-  - ``<host>`` to the |fqdn| of the host serving this Replica Set member
-  - ``<port>`` to the port of your Replica Set instance
+  - ``<replaceMeWithTheReplicaSetName>`` to the name of your replica set. This
+    name does not have to be the same as the old name.
+  - ``<host>`` to the host serving this replica set member.
+  - ``<ephemeralPort>`` to the ephemeral port of the replica set that you
+    specified in Step 11 of this procedure.
 
   .. code-block:: javascript
      :linenos:
@@ -157,11 +229,11 @@ content: |
      db.getSiblingDB("local").system.replset.insert({
        "_id" : "<replaceMeWithTheReplicaSetName>",
        "version" : NumberInt(1),
-       "protocolVersion" : NumberInt(1),
+       "protocolVersion" : NumberLong(1),
        "members" : [
          {
            "_id" : NumberInt(0),
-           "host" : "<host>:<port>"
+           "host" : "<host>:<ephemeralPort>"
          }
        ],
        "settings" : {
@@ -177,7 +249,7 @@ content: |
      WriteResult({ "nInserted" : 1 })
 
 ---
-stepnum: 12
+stepnum: 15
 level: 4
 title: "Insert the Minimum Valid Timestamp."
 ref: set-minvalid-timestamp
@@ -193,14 +265,41 @@ content: |
        "ts" : Timestamp(0,1)
      });
 
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     WriteResult({ "nInserted" : 1 })
+
 ---
-stepnum: 13
+stepnum: 16
 level: 4
-title: "Set the Restore Point to the ``Restore Timestamp`` Value from the ``restoreInfo`` File."
+title: "Set the Restore Point to the Values in ``Restore Timestamp`` from ``restoreInfo.txt``."
 ref: set-restore-point
 content: |
-  Set the ``oplogTruncateAfterPoint`` document to the Restore timestamp
-  given in the :ref:`restoreInfo.txt <com-restore-info-rs>` file.
+  Set the ``oplogTruncateAfterPoint`` document to the
+  values provided in the ``Restore Timestamp`` field of the
+  :ref:`restoreInfo.txt <com-restore-info-rs>` file.
+
+  The ``Restore Timestamp`` field in that file contains two
+  values. In the following example, the first value is the
+  timestamp, and the second value is the increment.
+
+  .. code-block:: sh
+     :copyable: false
+     :linenos:
+     :emphasize-lines: 2
+     
+     ...
+     Restore timestamp:  (1609947369, 2)
+     Last Oplog Applied: Wed Jan 06 15:36:09 GMT 2021 (1609947369, 1)
+     MongoDB Version: 4.2.11
+     ...
+
+  The following example code uses ``restoreTS.getTime()``
+  for the timestamp value and ``restoreTs.getInc()`` for
+  the increment value.
 
   .. code-block:: javascript
 
@@ -230,77 +329,83 @@ content: |
 
      This issue doesn't apply to MongoDB 4.4 or later snapshots.
 ---
-stepnum: 14
+stepnum: 17
 level: 4
-title: "Restart as a Single-Node Replica Set to Recover the Oplog."
+title: "Stop the Temporary Standalone Instance."
+ref: shut-down-instance
+content: |
+
+  Depending on your path, you may need to specify
+  the path to the |mongo| shell. Run:
+
+  .. code-block:: sh
+
+     mongo --port <ephemeralPort> \
+           --eval "db.getSiblingDB('admin').shutdownServer()"
+
+---
+stepnum: 18
+level: 4
+title: "Restart the Instance to Recover the Oplog."
 ref: restart-special-db
 content: |
 
-  Start the |mongod|. The |mongod| replays the oplog up to the
-  ``Restore timestamp``.
+  Start the |mongod| using the following command. The |mongod| replays
+  the oplog up to the ``Restore timestamp``.
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> \
-              --port <ephemeralPort> \
-              --replSet <replaceMeWithTheReplicaSetName>
-
-  .. important::
-
-     You must not set ``<ephemeralPort>`` in this command to the same
-     ``<port>`` you set in **Step 10**.
-
-  Once the |mongod| has started and accepting connections, you can shut
-  it down via normal mechanisms.
+     mongod  --dbpath </path/to/datafiles> \
+             --port <ephemeralPort> \
+             --replSet <replaceMeWithTheReplicaSetName>
 
 ---
-stepnum: 15
+stepnum: 19
 level: 4
-title: "Stop the Temporary Single-Node Replica Set."
-ref: stop-temp-replset
+title: "Stop the Temporary Standalone Instance on the Ephemeral Port."
+ref: stop-temp-replset-ephemeral-port
 content: |
-
-  Issue the following command:
+  Depending on your path, you may need to specify
+  the path to the |mongo| shell. Run:
 
   .. code-block:: sh
 
-     ./mongod --dbpath </path/to/datafiles> \
-              --port <ephemeralPort> \
-              --shutdown
+     mongo --port <ephemeralPort> \
+           --eval "db.getSiblingDB('admin').shutdownServer()"
 
 ---
-stepnum: 16
+
+stepnum: 20
 title: "Run the MongoDB Backup Restore Utility (Point-in-Time Restore Only)."
 level: 4
 ref: mbru-binary
 content: |
+  In this step, you download and run the MongoDB Backup Restore Utility on the
+  target instance for the replica set, and then stop the instance.
 
   a. Download the MongoDB Backup Restore Utility to your host.
-
-     .. note::
-
-        If you closed the restore panel, click :guilabel:`Backup`, then
-        :guilabel:`More` and then :guilabel:`Download MongoDB Backup
-        Restore Utility`.
+     
+     If you closed the restore panel, click :guilabel:`Backup`, then
+     :guilabel:`More` and then :guilabel:`Download MongoDB Backup
+     Restore Utility`.
 
   #. Start a :binary:`~bin.mongod` instance without authentication
      enabled using the extracted snapshot directory as the data
-     directory.
+     directory. Depending on your path, you may need to
+     specify the path to the |mongod| binary.
 
-     .. example::
+     .. code-block:: sh
 
-        .. code-block:: sh
-
-           mongod --port <port number> \
-                  --dbpath <temp-database-path> \
-                  --setParameter ttlMonitorEnabled=false
+        mongod  --port <ephemeralPort> \
+                --dbpath </path/to/datafiles> \
+                --setParameter ttlMonitorEnabled=false
 
      .. warning::
         The MongoDB Backup Restore Utility doesn't support
         authentication, so you can't start this temporary database with
         authentication.
 
-  #. Run the MongoDB Backup Restore Utility on your destination host.
+  #. Run the MongoDB Backup Restore Utility on your target host.
      Run it once for the replica set.
 
      .. include:: /includes/fact-pre-configured-mbru-command.rst
@@ -320,68 +425,116 @@ content: |
      ``mongodb-backup-restore-util`` command provided in
      |application|, this field is pre-configured.
 
+  #. Stop the :binary:`~bin.mongod` on the instance. Depending on your path,
+     you may need to specify the path to the |mongo| shell. Run:
 
+     .. code-block:: sh
+
+        mongo --port <EphemeralPort> \
+              --eval "db.getSiblingDB('admin').shutdownServer()"
 
 ---
-stepnum: 17
+stepnum: 21
 level: 4
-title: "Connect a ``mongo`` Shell to the ``mongod`` Instance."
-ref: connect-to-instance
+title: "Restart the Instance to Recover the Oplog."
+ref: restart-rs
 content: |
 
-  From the host running this |mongod| process, start the
-  |mongo| shell. To connect to the |mongod| listening to
-  localhost on port ``<port>``, invoke:
+  Start the |mongod| using the following command. The |mongod| replays the oplog
+  up to the ``Restore timestamp``. Depending on your path, you may need to specify
+  the path to the |mongod| binary.
 
   .. code-block:: sh
 
-     ./mongo --port <port>
+     mongod  --dbpath </path/to/datafiles> \
+             --port <ephemeralPort> \
+             --replSet <replaceMeWithTheReplicaSetName>
 
-  Depending on your path, you may need to specify the path to the
-  |mongo| shell.
-
-  After the |mongod| starts accepting connections, continue.
+  After you complete this step, the actual restore process is completed. In the
+  following steps, you restore the configuration of the replica set and reimport it.
 ---
-stepnum: 18
+stepnum: 22
 level: 4
-title: "Initiate the New Replica Set."
-ref: initiate-new-replset
+title: "Stop the Instance on the Ephemeral Port."
+ref: stop-temp-replset
 content: |
+  Depending on your path, you may need to specify
+  the path to the |mongo| shell. Run:
 
-  Use :method:`rs.initiate()` on the replica set:
+  .. code-block:: sh
 
-  .. code-block:: javascript
-
-     rs.initiate( {
-       _id : <replaceMeWithTheReplicaSetName>,
-       members: [ {
-         _id : 0,
-         host : <host:port>
-       } ]
-     })
-
-  MongoDB initiates a set that consists of the current member and that
-  uses the default replica set configuration.
+     mongo --port <ephemeralPort> \
+           --eval "db.getSiblingDB('admin').shutdownServer()"
 
 ---
-stepnum: 19
+stepnum: 23
 level: 4
-title: "Repeat Steps 7 to 17 for each node in the Replica Set."
+title: "Restart the Replica Set as a Standalone Instance."
+ref: restart-as-standalone-instance
+content: |
+  Start the |mongod| process as a standalone instance using the
+  following command. For ``<port>``, use the actual port on which
+  this node in the replica set is intended to run. Depending on your
+  path, you may need to specify the path to the |mongod| binary.
+
+  .. code-block:: sh
+
+     mongod  --dbpath </path/to/datafiles> \
+             --port <port> 
+
+  After the |mongod| process starts accepting connections, continue.
+---
+stepnum: 24
+level: 4
+title: "Remove the Temporary Replica Set Configuration."
+ref: remove-tmp-config
+content: |
+  Run the following command:
+
+  .. code-block:: sh
+     
+     mongo --port <port> \
+           --eval db.getSiblingDB("local").system.replset.remove({})
+
+---
+stepnum: 25
+level: 4
+title: "Stop the Standalone Instance."
+ref: stop-the-replica-set
+content: |
+  Depending on your path, you may need to specify
+  the path to the |mongo| shell. Run:
+
+  .. code-block:: sh
+
+     mongo --port <port> \
+           --eval "db.getSiblingDB('admin').shutdownServer()"
+
+---
+
+stepnum: 26
+level: 4
+title: "Repeat Steps 10 to 25 for each node in the Replica Set."
 ref: repeat-rs
 content: |
 
 ---
-stepnum: 20
+
+stepnum: 27
 level: 4
-title: "Shut Down the New Replica Set."
-ref: shutdown-new-replset
+title: "Set up Your Replica Set Configuration."
+ref: set-up-config
 content: |
-
-  .. code-block:: javascript
-
-     db.shutdownServer({});
+  
+  At this point, the data files in the replica set are in a consistent state,
+  but the replica set configuration needs to be updated so that each node is
+  aware of each other.
+  
+  :doc:`Deploy the replica set </tutorial/deploy-replica-set>` with the
+  required configuration.
 ---
-stepnum: 21
+
+stepnum: 28
 level: 4
 title: "Reimport the Replica Set."
 ref: reimport-replica-set

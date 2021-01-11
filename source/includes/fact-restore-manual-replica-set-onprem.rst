@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 20 10 55 5
+   :widths: 35 10 40 5
    :header-rows: 1
 
    * - Option
