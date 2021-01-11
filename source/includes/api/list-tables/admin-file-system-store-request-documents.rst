@@ -41,13 +41,14 @@
 
    * - mmapv1CompressionSetting
      - string
-     - Conditional
+     - Optional
      - Compression setting if you use the MMAPv1 storage engine for
        your snaphots.
 
-       |mms| accepts ``NONE`` or ``GZIP``.
+       |mms| accepts ``NONE`` or ``GZIP``. |mms| sets this value to
+       ``NONE`` by default.
 
-       If the MongoDB runs |fcv-link| 4.2 or later, |service| ignores
+       If the MongoDB runs |fcv-link| 4.2 or later, |onprem| ignores
        this setting.
 
        .. important::
@@ -62,11 +63,12 @@
 
    * - wtCompressionSetting
      - string
-     - Conditional
+     - Optional
      - Compression setting if you use the WiredTiger storage engine for
        your snaphots.
 
-       |mms| accepts ``NONE`` or ``GZIP``.
+       |mms| accepts ``NONE`` or ``GZIP``. |mms| sets this value to
+       ``GZIP`` by default.
 
-       If the MongoDB runs |fcv-link| 4.2 or later, |service| ignores
+       If the MongoDB runs |fcv-link| 4.2 or later, |onprem| ignores
        this setting.

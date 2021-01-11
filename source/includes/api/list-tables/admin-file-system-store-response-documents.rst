@@ -45,7 +45,7 @@
 
        |mms| may return ``NONE`` or ``GZIP``.
 
-       If the MongoDB runs |fcv-link| 4.2 or later, |service| ignores
+       If the MongoDB runs |fcv-link| 4.2 or later, |onprem| ignores
        this setting.
 
        .. important::
@@ -64,6 +64,6 @@
 
        |mms| may return ``NONE`` or ``GZIP``.
 
-       If the MongoDB runs |fcv-link| 4.2 or later, |service| ignores
+       If the MongoDB runs |fcv-link| 4.2 or later, |onprem| ignores
        this setting.
 
