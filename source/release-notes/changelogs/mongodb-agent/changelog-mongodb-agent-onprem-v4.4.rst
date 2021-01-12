@@ -1,3 +1,13 @@
+.. _mongodb-10.14.18.6453:
+
+MongoDB Agent 10.14.18.6453
+---------------------------
+
+:ref:`Released with Ops Manager 4.4.7 on 2021-01-11 <opsmgr-server-4.4.7>`
+
+- Fixes a bug that can crash the agent after upgrading to |mms| 4.4.6 
+  on deployments that use the |k8s-op-full|.
+
 .. _mongodb-10.14.17.6445:
 
 MongoDB Agent 10.14.17.6445
