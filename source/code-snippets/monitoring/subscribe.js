@@ -3,7 +3,7 @@ const { MongoClient } = require("mongodb");
 // Replace the following with your MongoDB deployment's connection
 // string.
 const uri =
-  "mongodb+srv://<clusterUrl>/?replicaSet=rs&w=majority";
+  "mongodb+srv://<clusterUrl>/?replicaSet=rs&writeConcern=majority";
 
 const client = new MongoClient(uri);
 

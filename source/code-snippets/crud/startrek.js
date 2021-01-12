@@ -2,7 +2,7 @@ const { MongoClient } = require("mongodb");
 
 // Replace the following string with your MongoDB deployment's connection string.
 const uri =
-  "mongodb+srv://<user>:<password>@<cluster-url>?w=majority";
+  "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
 const client = new MongoClient(uri);
 
 async function word(movies) {
