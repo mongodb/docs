@@ -9,6 +9,7 @@ which are then reflected by the component's
 This data flow is shown in the following diagram:
 
 .. figure:: /images/compass/react-diagram.png
+   :alt: React Data Flow
 
 :ref:`Stores <plugins-stores>` listen to
 :ref:`actions <plugins-actions>`.

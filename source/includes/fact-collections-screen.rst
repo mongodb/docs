@@ -14,3 +14,4 @@ To access the :guilabel:`Collections` screen for a database, from the
 
 .. figure:: /images/compass/select-database.png
    :figwidth: 750px
+   :alt: Select database
