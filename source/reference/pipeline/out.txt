@@ -94,9 +94,12 @@ Syntax
                "region": "<aws-region>",
                "filename": "<file-name>",
                "format": {
-                 "name": "json|json.gz|bson|bson.gz",
-                 "maxFileSize": "<file-size>"
-               }
+                 "name": "<file-format>",
+                 "maxFileSize": "<file-size>",
+                 "maxRowGroupSize": "<row-group-size>",
+                 "columnCompression": "<compression-type>"
+               },
+               "errorMode": "stop"|"continue"
              }
            }
          }
@@ -212,10 +215,19 @@ Fields
            - Format of the file in |s3|. Value can be one of the
              following:
 
-             - ``json``
-             - ``json.gz``
              - ``bson``
              - ``bson.gz``
+             - ``csv``
+             - ``csv.gz``
+             - ``json``
+             - ``json.gz``
+             - ``parquet``
+             - ``tsv``
+             - ``tsv.gz``
+
+             .. seealso:: 
+             
+                :ref:`Limitations <adl-out-stage-limitations>` 
 
            - Required
 
@@ -257,6 +269,63 @@ Fields
                     - ``PiB``
 
              If omitted, defaults to ``200MiB``.
+
+           - Optional
+
+         * - | ``s3``
+             | ``.format``
+             | ``.maxRowGroupSize``
+           - string 
+           - Supported for Parquet file format only.
+
+             Maximum row group size to use when writing to Parquet 
+             file. If omitted, defaults to ``1 GB`` or the value of the 
+             ``s3.format.maxFileSize``, whichever is smaller.
+           - Optional
+
+         * - | ``s3``
+             | ``.format``
+             | ``.columnCompression``
+           - string
+           - Supported for Parquet file format only.
+
+             Compression type to apply for compressing data inside a 
+             Parquet file when formatting the Parquet file. Valid 
+             values are: 
+
+             - ``gzip``
+             - ``snappy``
+             - ``uncompressed``
+
+             If omitted, defaults to ``snappy``. 
+             
+             .. seealso:: 
+             
+                :ref:`data-lake-data-formats`
+
+           - Optional
+
+         * - ``errorMode``
+           - enum
+           - Specifies how {+adl+} should proceed if there are errors 
+             when processing a document. For example, if {+adl+} 
+             encounters an array in a document when {+adl+} is writing 
+             to a CSV file, {+adl+} uses this value to determine 
+             whether or not to skip the document and process other 
+             documents. Valid values are: 
+
+             - ``continue`` to skip the document and continue 
+               processing the remaining documents. {+adl+} also writes 
+               the document that caused the error to an error file. 
+               
+               .. seealso:: 
+             
+                  :ref:`Errors <adl-out-stage-errors>`
+                
+             - ``stop`` to stop at that point and not process 
+               the remaining documents.
+
+             If omitted, defaults to ``continue``.
 
            - Optional
 
@@ -603,6 +672,8 @@ Examples
 
       **Limitations**
 
+      *String Data Type*
+
       {+dl+} interprets empty strings (``""``) as ``null`` values when
       parsing filenames. If you want {+dl+} to generate parseable
       filenames, wrap the field references that could have ``null``
@@ -642,6 +713,60 @@ Examples
               }
             }
 
+      *CSV and TSV File Format*
+
+      When writing to CSV or TSV format, {+adl+} does not support the 
+      following data types in the documents: 
+
+      - Arrays 
+      - DB pointer 
+      - JavaScript 
+      - JavaScript code with scope
+      - Minimum or maximum key data type
+
+      In a CSV file, {+adl+} represents nested documents using the dot 
+      (``.``) notation. For example, {+adl+} writes 
+      ``{ x: { a: 1, b: 2 } }`` as the following in the CSV file: 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         x.a,x.b 
+         1,2
+      
+      {+adl+} represents all other data types as strings. Therefore, 
+      the data types in MongoDB read back from the CSV file may not be 
+      the same as the data types in the original |bson| documents from 
+      which the data types were written.
+
+      *Parquet File Format*
+
+      For Parquet, {+adl+} reads back fields with null or undefined 
+      values as missing because Parquet doesn't distinguish between 
+      null or undefined values and missing values. Although {+adl+} 
+      supports all data types, for |bson| data types that do not have 
+      a direct equivalent in Parquet, such as JavaScript, regular 
+      expression, etc., it:
+             
+      - Chooses a representation that allows 
+        the resulting Parquet file to be read back using a non-MongoDB 
+        tool.
+      - Stores a MongoDB schema in the Parquet file's key/value 
+        metadata so that {+adl+} can reconstruct the original |bson| 
+        document with the correct data types if the Parquet file is 
+        read back by {+adl+}.
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+.. _adl-out-stage-errors:
+
+.. tabs::
+   :hidden:
+
+   .. tab:: S3
+      :tabid: s3
+
       **Errors**
 
       - If the filename is not of type string, {+dl+} writes documents
@@ -653,12 +778,73 @@ Examples
 
         .. example::
 
-          - ``s3://<bucket-name>/atlas-data-lake-{<CORRELATION_ID>}/$out-error-docs/1.json``
-          - ``s3://<bucket-name>/atlas-data-lake-{<CORRELATION_ID>}/$out-error-docs/2.json``
+          - ``s3://{<bucket-name>}/atlas-data-lake-{<correlation-id>}/out-error-docs/1.json``
+          - ``s3://{<bucket-name>}/atlas-data-lake-{<correlation-id>}/out-error-docs/2.json``
 
         {+dl+} returns an error message that specifies the number of
         documents that had invalid filenames and the directory where
         these documents were written.
+
+      - If {+dl+} encounters an error while processing a document, 
+        it writes the document to a special error file in your 
+        bucket. 
+
+        .. code-block:: sh
+           :copyable: false
+
+          s3://{<bucket-name>}/atlas-data-lake-{<correlation-id>}/out-error-docs/{<n>}.json
+
+        where ``n`` is the index of the document being written.
+
+        {+dl+} also writes the error message for each document to an 
+        error index file: 
+
+        .. code-block:: sh
+           :copyable: false
+
+           s3://{<bucket-name>}/atlas-data-lake-{<correlation-id>}/out-error-index/{<i>}.json
+
+        where ``i`` begins with ``1``. {+dl+} writes error messages to 
+        the file until the file reaches the ``maxFileSize`` and then, 
+        {+dl+} increments the value of ``i`` and continues writing any 
+        further error messages to the new file. 
+
+        The error messages in the error index file look similar to the 
+        following: 
+
+        .. example::
+
+           .. code-block:: json
+              :copyable: false 
+
+              {
+	              "n": 1234, 
+	              "error": "field \"foo\" is of type array, which is not supported for CSV"
+              }
+
+           where ``n`` is the index of the document which caused the error.
+
+        {+dl+} also creates an error summary file after running the entire 
+        query: 
+
+        .. code-block:: sh
+           :copyable: false
+
+           s3://{<bucket-name>}/atlas-data-lake-{<correlation-id>}/out-error-summary.json
+
+        The summary file contains a single document for each type of error 
+        and a count of the number of documents which caused that type of 
+        error. 
+
+        .. example:: 
+
+           .. code-block:: sh
+              :copyable: false
+
+              {
+	              "errorType": "field is of type array, which is not supported for CSV",
+	              "count": 10
+              }
 
    .. tab:: Atlas Cluster
       :tabid: atlas
