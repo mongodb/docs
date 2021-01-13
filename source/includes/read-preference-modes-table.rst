@@ -23,5 +23,14 @@
        members but if no :term:`secondary` members are available,
        operations read from the :term:`primary`.
    * - :readmode:`nearest`
-     - Operations read from member of the :term:`replica
-       set` with the least network latency, irrespective of the member's type.
+     - Operations read from a random eligible :term:`replica set`
+       member, irrespective of whether that member is a :term:`primary`
+       or :term:`secondary`, based on a specified latency threshold.
+       The operation considers the following when calculating latency:
+       
+       - The :urioption:`localThresholdMS` connection string option
+       - The :ref:`maxStalenessSeconds
+         <replica-set-read-preference-max-staleness>` read preference
+         option
+       - Any specified :doc:`tag sets
+        </tutorial/configure-replica-set-tag-sets>`
