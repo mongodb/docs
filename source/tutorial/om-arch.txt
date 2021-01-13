@@ -1,0 +1,220 @@
+.. _meko-om-arch:
+
+==============================
+|onprem| Architecture in |k8s|
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the |k8s-op-short| to deploy |onprem| and MongoDB resources
+to a |k8s| cluster. The |k8s-op-short| manages the lifecycle of each of
+these deployments differently.
+
+The ``MongoDBOpsManager`` Custom Resource Definition
+----------------------------------------------------
+
+The |k8s-op-short| manages |onprem| deployments using the
+``MongoDBOpsManager`` |k8s-custom-resource|. The |k8s-op-short| watches
+the custom resource's specification for changes. When the
+specification changes, the |k8s-op-short| validates the changes and
+makes the appropriate updates to the resources in the |k8s| cluster.
+
+``MongoDBOpsManager`` |k8s-custom-resource|\s specification defines the
+following |onprem| components:
+
+- the Application Database,
+- the |onprem| application, and
+- the Backup Daemon.
+
+.. figure:: /images/meko-arch.svg
+   :alt: Diagram showing the high-level architecture of the MongoDB
+         Enterprise Kubernetes Operator
+   :figwidth: 600px
+
+Application Database
+~~~~~~~~~~~~~~~~~~~~
+
+For the Application Database, the |k8s-op-short| deploys a MongoDB
+replica set as a |k8s-statefulset| to the |k8s| cluster. |k8s| creates
+one Pod in the StatefulSet for each member
+that comprises your Application Database replica set. Each Pod in
+the StatefulSet runs a {+mdbagent+} instance. 
+
+By default, each {+mdbagent+} starts the bundled |mongod| on its
+Pod in the StatefulSet. If you want to use a specific MongoDB Server
+version for the Application Database instead, specify the version that
+you want to start using the :opsmgrkube:`spec.applicationDatabase.version`
+setting. Each {+mdbagent+} downloads the |mongod| version you
+specify from the Internet and starts it on its Pod in the StatefulSet.
+
+After each {+mdbagent+} starts |mongod|\s on its Application Database
+Pod, the {+mdbagent+}\s add all |mongod| processes to the Application
+Database replica set.
+
+You configure the number of replicas in and other
+configuration options for the Application Database replica set in the
+:opsmgrkube:`spec.applicationDatabase` collection in the
+``MongoDBOpsManager`` custom resource. The |k8s-op-short| passes
+this configuration to the {+mdbagent+}\s using a |k8s-secret| that the
+|k8s-op-short| mounts to each Pod in the Application Database StatefulSet.
+
+Each time that you update
+the :opsmgrkube:`spec.applicationDatabase` collection, the
+|k8s-op-short| applies the changes to the {+mdbagent+} configuration and
+the StatefulSet specification, if applicable. If the StatefulSet
+specification changes, |k8s| upgrades the Pods in a rolling
+fashion and restarts each Pod.
+
+The |k8s-op-short| creates a |k8s-service| with ``clusterIp=none`` to
+provide connectivity to each Application Database Pod from within the
+|k8s| cluster.
+
+If you set :opsmgrkube:`spec.applicationDatabase.persistent` to
+**true**, the |k8s-op-short| creates a |k8s-pvc| for each Pod in the
+Application Database StatefulSet.
+
+.. note::
+
+   Depending on the |k8s-sc| or the environment to which you deploy the
+   |k8s-op-short|, |k8s| might create the |k8s-pvs| using
+   :k8sdocs:`dynamic volume provisioning </concepts/storage/dynamic-provisioning/>`.
+
+You can customize the |k8s-pvcs| for the Application Database Pods using
+the :opsmgrkube:`spec.applicationDatabase.podSpec.persistence.single
+<spec.applicationDatabase>` or
+:opsmgrkube:`spec.applicationDatabase.podSpec.persistence.multiple
+<spec.applicationDatabase>` options.
+
+|application|
+~~~~~~~~~~~~~
+
+After the Application Database reaches a **Running** state, the
+|k8s-op-short| starts the |application|. For |onprem|, the
+|k8s-op-short| deploys a StatefulSet to the |k8s| cluster. |k8s|
+creates one Pod in the StatefulSet for each |onprem| replica that
+you want to deploy. Each Pod contains one |application| process.
+
+.. note::
+
+   :ref:`Deploy <deploy-om-container>` multiple |onprem| replicas to
+   make your deployment highly available in the event of an |onprem| Pod
+   failure.
+
+The |k8s-op-short| creates a |k8s-service| with ``clusterIp=none`` to
+allow clients deployed to the |k8s| cluster to connect to |onprem|. To
+allow clients external to the |k8s| cluster to connect to |onprem|,
+configure the :opsmgrkube:`spec.externalConnectivity` collection in the
+specification for your |onprem| deployment.
+
+Backup Daemon
+~~~~~~~~~~~~~
+
+If :opsmgrkube:`spec.backup.enabled` is **true**, the |k8s-op-short|
+starts the Backup Daemon after the |application| reaches a **Running**
+stage. For the Backup Daemon, |k8s-op-short| deploys a StatefulSet
+to the |k8s| cluster. |k8s| creates one pod in the
+StatefulSet for the Backup Daemon. 
+
+If you enable backup, you must provide additional fields in the
+:opsmgrkube:`spec.backup <spec.backup.enabled>` collection to configure:
+the :term:`oplog store <oplog store database>` and a :term:`blockstore
+<Backup Blockstore Database>` or an |s3| :term:`snapshot store <S3
+Snapshot Store>`. 
+
+If you enable backup, the |k8s-op-short| creates a |k8s-pvc| for the
+Backup Daemon's :term:`head database`. You can
+configure the head database using the :opsmgrkube:`spec.backup.headDB`
+setting.
+
+The |k8s-op-short| invokes |onprem| APIs to ensure that the
+|application|\'s backup configuration matches the one that you define in
+the custom resource definition.
+
+Reconciling the ``MongoDBOpsManager`` Custom Resource
+-----------------------------------------------------
+
+The following diagram describes how the |k8s-op-short| reconciles
+changes to the ``MongoDBOpsManager`` |k8s-crd|.
+
+.. figure:: /images/meko-reconciliation.svg
+   :alt: Diagram describing how the MongoDB Enterprise Kubernetes
+         Operator reconciles changes to the MongoDBOpsManager 
+         Custom Resource Definition
+   :figwidth: 600px
+
+1. The |k8s-op-short| creates or updates the
+   ``<om_resource_name>-db-config`` Secret. This secret contains
+   the configurations that the {+mdbagent+} uses to start the
+   Application Database replica set.
+
+2. The |k8s-op-short| creates or updates the ``<om_resource_name>-db``
+   Application Database StatefulSet. This StatefulSet contains at
+   least three |k8s-pods|.
+
+   - Each Pod runs one {+mdbagent+} instance. Each {+mdbagent+} starts a
+     |mongod| instance on its pod.
+   - The |k8s-op-short| mounts the ``<om_resource_name>-db-config``
+     Secret to each Pod. The {+mdbagent+} uses this secret to
+     configure the Application Database replica set.
+
+3. The |k8s-op-short| creates or updates the ``<om_resource_name>``
+   StatefulSet. This StatefulSet contains one Pod for each
+   |onprem| replica. Each |onprem| replica connects to the Application
+   Database.
+
+   .. note::
+
+      Most changes to the ``MongoDBOpsManager`` |k8s-custom-resource|
+      trigger a rolling upgrade of the Pods in the
+      ``<om_resource_name>`` StatefulSet. :ref:`Enabling TLS for the
+      Application Database <secure-om-db-tls>` also triggers a rolling
+      restart because the connection string to the Application Database
+      changes.
+
+      Changes to the following ``MongoDBOpsManager``
+      |k8s-custom-resource| collections don't trigger a rolling upgrade:
+
+      - :opsmgrkube:`spec.backup <spec.backup.enabled>`
+      - :opsmgrkube:`spec.applicationDatabase`
+
+4. The |k8s-op-short| invokes |onprem| APIs to create an admin user.
+   The |k8s-op-short| saves this admin user's credentials in the
+   ``<om_resource_name>-admin-key`` Secret. The |k8s-op-short|
+   uses these credentials for all other |onprem| API invocations.
+
+   .. note::
+
+      This reconciliation step happens only once: when you use the
+      |k8s-op-short| to create an |onprem| resource. The
+      |k8s-op-short| skips this step when it updates the resource.
+
+5. The |k8s-op-short| performs a rolling upgrade of the Pods in the
+   ``<om_resource_name>-db`` Application Database StatefulSet
+   to enable |onprem| to monitor it.
+
+   .. note::
+
+      This reconciliation step happens only when you enable Monitoring
+      for an application database for the first time. This happens most
+      often when you deploy a new |onprem| resource.
+
+6. If :opsmgrkube:`spec.backup.enabled` is **true**, the |k8s-op-short|
+   creates the ``<om_resource_name>-backup-daemon`` StatefulSet or
+   verifies that it is running. The |k8s-op-short| mounts a |k8s-pv| for
+   the head database.
+
+   .. note::
+
+      The Backup Daemon connects to the same Application Database as the
+      |onprem| deployment.
+
+7. If :opsmgrkube:`spec.backup.enabled` is **true**, the |k8s-op-short|
+   invokes |onprem| APIs to ensure that the |application|\'s backup
+   configuration matches the one that you define in the custom resource
+   definition.
