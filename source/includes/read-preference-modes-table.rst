@@ -34,9 +34,17 @@
        :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters.
 
    * - :readmode:`nearest`
-     - Operations read from the member of the :term:`replica set` with
-       the least network latency, irrespective of whether that member
-       is a :term:`primary` or :term:`secondary`.
+     - Operations read from a random eligible :term:`replica set`
+       member, irrespective of whether that member is a :term:`primary`
+       or :term:`secondary`, based on a specified latency threshold.
+       The operation considers the following when calculating latency:
+       
+       - The :urioption:`localThresholdMS` connection string option
+       - The :ref:`maxStalenessSeconds
+         <replica-set-read-preference-max-staleness>` read preference
+         option
+       - Any specified :doc:`tag sets
+         </tutorial/configure-replica-set-tag-sets>`
 
        Starting in version 4.4, :readmode:`nearest` supports
        :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters
