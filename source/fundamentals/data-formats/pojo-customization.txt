@@ -20,18 +20,18 @@ provide instructions on how to convert data for one or more POJO classes
 and their properties.
 
 We show how to specify your data conversion using the :ref:`ClassModel <classmodel>`
-and :ref:`PropertyModel` classes, as well as :ref:`Advanced Configuration <pojo-advanced-configuration>`
-for more specific customization.
+and :ref:`PropertyModel <property-model>` classes. You can also learn
+about more specific customization from the section on :ref:`Advanced Configuration <pojo-advanced-configuration>`
 
 If you only need to use the pre-defined behavior to convert data between
 BSON and POJOs, you can use the **automatic** setting for the
-``PojoCodecProvider`` shown in the :doc:`Document Data Formats: POJOs guide </fundamentals/data-formats/document-data-format-pojos>`.
+``PojoCodecProvider`` shown in the :doc:`Document Data Formats: POJOs guide </fundamentals/data-formats/document-data-format-pojo>`.
 
 Customize a PojoCodecProvider
 -----------------------------
 
 This section shows you how to specify your data conversion logic and POJO
-classes using a ``PojoCodecProvider``. The ``PojoCodecProvider`` is an
+classes with a ``PojoCodecProvider``. The ``PojoCodecProvider`` is an
 implementation of the ``CodecProvider`` interface that specifies the
 Codecs to use in data conversion. Use this implementation when performing
 data conversion between BSON and POJOs.
@@ -74,8 +74,8 @@ TODO: (transition) the following sections...
 ClassModel
 ~~~~~~~~~~
 
-A ``ClassModel`` instance stores information that describes a specific POJO
-class. It contains a list of ``PropertyModel`` instances which describe
+A ``ClassModel`` instance stores data conversion information about a specific
+POJO class. It contains a list of ``PropertyModel`` instances which describe
 the property fields of the POJO, whether to convert fields, and optionally,
 ``Codecs`` to convert them with.
 
@@ -96,7 +96,7 @@ A ``ClassModel`` contains the following fields:
        By default, it requires the POJO to have an empty constructor.
 
    * - PropertyModels
-     - List of instances of the ``PropertyModel`` class that specify how to
+     - Contains a list of ``PropertyModel`` instances that specify how to
        convert data to and from BSON for a field in the POJO.
 
    * - IdPropertyModelHolder
@@ -140,20 +140,21 @@ The ``PropertyModel`` contains the following information:
    * - Field Name
      - Description
 
-   * - Property Name
-     - Identifier (TODO: what is this used for?)
+   * - Name
+     - Specifies the property name in the model.
 
    * - Read Name
-     - Name of the property to use as the key when serializing to BSON
+     - Name of the property to use as the key when serializing to BSON.
 
    * - Write Name
-     - Name of the property to use as the key when deserializing from BSON
+     - Name of the property to use as the key when deserializing from BSON.
 
    * - Type data
-     - TODO
+     - Contains an instance of ``org.bson.codecs.pojo.TypeData`` that
+       describes the data type for the field.
 
    * - Codec
-     - Optional. Specifies a codec to use to encode or decode the field.
+     - Specifies a codec to use to encode or decode the field. Optional.
 
    * - Serialization checker
      - Determines whether to serialize a value by using the criteria
@@ -162,30 +163,27 @@ The ``PropertyModel`` contains the following information:
    * - Property accessor
      - Method used to access the value of the property from the POJO
 
-   * - Discriminator flag
-     - Whether to use the discriminator
+   * - useDiscriminator
+     - Specifies whether to use the discriminator.
 
+To create a ``PropertyModel`` use a ``PropertyModelBuilder`` which you
+can instantiate by calling the ``PropertyModel.builder()`` method.
 
-
-
-contains the following
-
-- Description
-- Table of properties
-- Link to Conventions section for example of PropertyModelBuilder
+For more information, see the
+:java-docs:`PropertyModel.Builder API documentation <apidocs/bson/org/bson/codecs/pojo/PropertyModelBuilder.html>`.
 
 Conventions
 -----------
 
 The ``Convention`` interface contains configuration options that modify the
-behavior of a ``ClassModel`` instance. You can specify them in
-``PojoCodecProvider.Builder.conventions()`` or in
+behavior of a ``ClassModel`` or ``PropertyModel``. You can specify a
+``Convention`` in ``PojoCodecProvider.Builder.conventions()`` or in
 ``ClassModelBuilder.conventions()``. The builders apply ``Convention``
-instances in order, potentially overriding behavior defined in another
+instances in order which may override behavior defined in another
 ``Convention``.
 
 You can access the ``Convention`` instances defined in the BSON library
-using the following static fields:
+from the following static fields in the ``Conventions`` class:
 
 .. list-table::
    :header-rows: 1
@@ -199,10 +197,14 @@ using the following static fields:
        for your POJO.
 
    * - ``CLASS_AND_PROPERTY_CONVENTION``
-     - Sets the ... TODO
+     - Sets the following default values for the ``ClassModel`` and
+       ``PropertyModel`` instances:
+       - Discriminator key to ``_t``
+       - Discriminator value to the ``ClassModel`` simple type name
+       - Id field to ``_id`` for each ``PropertyModel``.
 
    * - ``DEFAULT_CONVENTIONS``
-     - Enables the following conventions:
+     - Enables the following Conventions:
        - ``CLASS_AND_PROPERTY_CONVENTION``
        - ``ANNOTATION_CONVENTION``
        - ``OBJECT_ID_GENERATORS``
@@ -211,33 +213,35 @@ using the following static fields:
      - Provides an empty list.
 
    * - ``OBJECT_ID_GENERATORS``
-     - TODO:
+     - Adds a default ``IdGenerator`` that adds a new ``ObjectId`` for each
+       ``ClassModel`` that use ``ObjectId`` values in the ``id`` property.
 
    * - ``SET_PRIVATE_FIELDS_CONVENTION``
-     - TODO:
+     - Enables the ClassModel to set private fields using reflection without
+       requiring a setter method.
 
    * - ``USE_GETTERS_FOR_SETTERS``
      - Enables use of getter methods as setters for ``Collection`` and ``Map``
        fields if no setter method exists.
 
-To create a custom Convention,
-implement the ``apply()`` method of the ``Convention`` interface
-from which you can access your ``ClassModelBuilder``.
+You can specify Conventions using one of the following methods:
 
+- :java-docs:`PojoCodecProvider.Builder.conventions() </apidocs/bson/org/bson/codecs/pojo/PojoCodecProvider.Builder.html>`
+- :java-docs:`ClassModelBuilder.conventions() </apidocs/bson/org/bson/codecs/pojo/ClassModelBuilder.html#conventions(java.util.List)>`
 
-- Description
-- Table of preset Conventions
-- Link to Annotations section
-- Example on how to specify a Convention
-- How to create a custom Convention
+To create a custom Convention, create a class that implements the
+``Convention`` interface and override the ``apply()`` method from which you can
+access your ``ClassModelBuilder`` instance.
 
 Annotations
 -----------
 
-You can add annotations to the getter and setter methods of a POJO class
+You can apply Java annotations to the getter and setter methods of a POJO
+class.
 
-The following annotations are available from the org.bson.codecs.pojo.annotations package:
-https://mongodb.github.io/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/package-summary.html
+The following annotations are available from the
+:java-docs:`org.bson.codecs.pojo.annotations </apidocs/bson/org/bson/codecs/pojo/annotations/package-summary.html>`
+package:
 
 .. list-table::
    :header-rows: 1
@@ -250,7 +254,8 @@ https://mongodb.github.io/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/ann
      - Marks a public constructor or a public static method as the creator for new instances of the class. Can be combined with the BsonProperty annotation to link the parameters with properties.
 
    * - ``BsonDiscriminator``
-     - Enables using a discriminator. Also allows for setting a custom discriminator key and value.
+     - Specifies a class uses a discriminator. It also allows you to set
+       a custom discriminator key and value.
 
    * - ``BsonId``
      - Marks a property to be serialized as the _id property.
