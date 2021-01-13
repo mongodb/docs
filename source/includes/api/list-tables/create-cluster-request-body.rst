@@ -211,10 +211,10 @@
      - Conditional
      - Capacity, in gigabytes, of the host's root volume. Increase this
        number to add capacity, up to a maximum possible value of
-       ``4096`` (i.e., 4 TB). This value must be a positive integer.
-       
+       ``4096`` (i.e., 4 TB). This value must be a positive number.
+
        .. note:: When should you use ``diskSizeGB``?
-       
+
           This setting:
 
           - Cannot be used with |nvme-clusters|.
