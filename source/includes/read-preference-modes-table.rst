@@ -33,4 +33,4 @@
          <replica-set-read-preference-max-staleness>` read preference
          option
        - Any specified :doc:`tag sets
-        </tutorial/configure-replica-set-tag-sets>`
+         </tutorial/configure-replica-set-tag-sets>`
