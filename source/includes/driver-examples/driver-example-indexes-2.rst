@@ -14,8 +14,8 @@
             the :doc:`Mongo Shell </mongo/>`.
 
             Refer to the
-            :hardlink:`MongoDB Compass Documentation
-            </compass/current/indexes/>` for instructions on using
+            :compass:`MongoDB Compass Documentation
+            </indexes/>` for instructions on using
             custom collation with indexes in Compass.
 
 
