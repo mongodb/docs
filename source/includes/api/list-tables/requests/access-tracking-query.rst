@@ -1,6 +1,5 @@
 .. list-table::
    :widths: 20 14 11 45 10
-   :header-rows: 1
    :stub-columns: 1
 
    * - start
@@ -20,15 +19,16 @@
    * - nLogs
      - number
      - Optional
-     - Maximum number of logs to return. Valid values range between
-       ``0`` and ``20000``.
+     - Maximum number of log entries to return. |service| accepts
+       values between ``0`` and ``20000``, inclusive.
      - ``20000``
 
    * - ipAddress
      - string
      - Optional
-     - Filters the log to return authentication attempts from the
-       specified IP address only. Maximum of one IP address.
+     - Single IP address that attempted to authenticate with the
+       database. |service| filters the returned logs to include
+       documents with only this IP address.
      -
 
    * - authResult

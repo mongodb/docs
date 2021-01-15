@@ -17,7 +17,8 @@
    * - HOST
      - string
      - Required
-     - Hostname of the machine running the |service| MongoDB process.
+     - Hostname, |fqdn|, |ipv4| address, or |ipv6| address of the
+       machine running the |service| MongoDB process.
 
    * - PORT
      - number
