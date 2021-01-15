@@ -19,7 +19,7 @@
      - Optional
      - Event type to be returned.
 
-      |service| accepts:
+       |service| accepts:
 
        .. include:: /includes/api/list-tables/alert-eventTypeNames.rst
      -

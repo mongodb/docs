@@ -22,7 +22,7 @@
 
           ``PT1M`` specifies 1-minute granularity.
 
-       |service| supports the following subset of |iso-8601|\-formatted
+       |service| supports the following subset of |iso8601|\-formatted
        time periods:
 
        - ``PT1M``
