@@ -5,8 +5,55 @@ inherit:
   file: steps-configure-kubectl-namespace.yaml
   ref: configure-kubectl-namespace
 ---
-title: "Copy the highlighted fields of this |onprem| resource."
+title: "Delete the |k8s-statefulset| that manages your |onprem| Pods."
 stepnum: 2
+level: 4
+ref: delete-sts
+content: |
+
+  In this tutorial, you update the StatefulSet that manages the |onprem| 
+  Pods in your |k8s| cluster.
+
+  You must first delete the |onprem| StatefulSet so that |k8s| can apply
+  the updates that Local Mode requires.
+
+  a. Find the name of your |onprem| StatefulSet:
+
+     .. code-block:: sh
+
+        kubectl get statefulsets
+
+     The entry in the response that matches the 
+     :opsmgrkube:`metadata.name` of your 
+
+     Your |onprem| StatefulSet is the entry in the response that matches
+     the :opsmgrkube:`metadata.name` in your |onprem| resource 
+     definition.
+
+     .. code-block:: sh
+        :copyable: false
+        :emphasize-lines: 3
+
+        kubectl get statefulsets -n mongodb
+        NAME                       READY   AGE
+        ops-manager-localmode      2/2     2m31s
+        ops-manager-localmode-db   3/3     4m46s
+        
+  #. Delete the |onprem| StatefulSet:
+
+     .. warning::
+
+        Ensure that you include the ``--cascade=false`` flag when you
+        delete your |onprem| StatefulSet. If you don't include this
+        flag, |k8s| also deletes your |onprem| Pods.
+
+     .. code-block:: sh
+
+        kubectl delete statefulset --cascade=false <ops-manager-statefulset>
+
+---
+title: "Copy the highlighted fields of this |onprem| resource."
+stepnum: 3
 level: 4
 ref: copy-k8s-example
 content: |
@@ -30,7 +77,7 @@ content: |
 
 ---
 title: "Paste the copied example section into your existing |onprem| resource."
-stepnum: 3
+stepnum: 4
 level: 4
 ref: paste-k8s-example
 content: |
@@ -39,27 +86,105 @@ content: |
   specification into the appropriate location in your resource file.
 ---
 title: "Save your |onprem| config file."
-stepnum: 4
+stepnum: 5
 level: 4
 ref: save-object-spec
 
 ---
 title: "Apply changes to your |onprem| deployment."
-stepnum: 5
+stepnum: 6
 level: 4
 ref: apply-changes-om-k8s
 content: |
 
-  Invoke the following ``kubectl`` command on the filename of the
-  |onprem| resource definition:
+  a. Invoke the following ``kubectl`` command on the filename of the
+     |onprem| resource definition:
 
-  .. code-block:: sh
+     .. code-block:: sh
 
-     kubectl apply -f <opsmgr-resource>.yaml
+        kubectl apply -f <opsmgr-resource>.yaml
+
+  #. |k8s| creates a new |onprem| StatefulSet when you apply the changes
+     to your |onprem| resource definition. Before proceeding to the next 
+     step, run the following command to ensure that the |onprem| StatefulSet
+     exists:
+
+     .. code-block:: sh
+
+        kubectl get statefulsets
+
+     The new |onprem| StatefulSet should show 0 members ready:
+
+     .. code-block:: sh
+        :copyable: false
+        :emphasize-lines: 3
+
+        kubectl get statefulsets -n mongodb
+        NAME                       READY   AGE         ops-manager-localmode      0/2     2m31s
+        ops-manager-localmode-db   3/3     4m46s
+
+---
+title: "In a rolling fashion, delete your old |onprem| Pods."
+stepnum: 7
+level: 4
+ref: delete-old-om-pods
+content: |
+
+  a. List the |onprem| Pods in your |k8s| cluster:
+
+     .. code-block:: sh
+
+        kubectl get pods
+
+  #. Delete one |onprem| Pod:
+   
+     .. code-block:: sh
+
+        kubectl delete pod <om-pod-0>
+
+  #. |k8s| recreates the |onprem| Pod you deleted. Continue to get the 
+     status of the new Pod until it is ready:
+   
+     .. code-block:: sh
+
+        kubectl get pods
+
+
+     The output looks like the following when the new Pod is 
+     initializing:
+
+     .. code-block:: sh
+        :copyable: false
+        :emphasize-lines: 3
+
+        NAME                                          READY   STATUS    RESTARTS   AGE
+        mongodb-enterprise-operator-5648d4c86-k5brh   1/1     Running   0          5m24s
+        ops-manager-localmode-0                       0/1     Running   0          0m55s
+        ops-manager-localmode-1                       1/1     Running   0          5m45s
+        ops-manager-localmode-db-0                    1/1     Running   0          5m19s
+        ops-manager-localmode-db-1                    1/1     Running   0          4m54s
+        ops-manager-localmode-db-2                    1/1     Running   0          4m12s
+
+     The output looks like the following when the new Pod is ready:
+
+     .. code-block:: sh
+        :copyable: false
+        :emphasize-lines: 4
+
+        NAME                                          READY   STATUS    RESTARTS   AGE
+        mongodb-enterprise-operator-5648d4c86-k5brh   1/1     Running   0          5m24s
+        ops-manager-localmode-0                       1/1     Running   0          3m55s
+        ops-manager-localmode-1                       1/1     Running   0          5m45s
+        ops-manager-localmode-db-0                    1/1     Running   0          5m19s
+        ops-manager-localmode-db-1                    1/1     Running   0          4m54s
+        ops-manager-localmode-db-2                    1/1     Running   0          4m12s
+
+  #. Repeat Steps **b** and **c** until you've deleted all of your 
+     |onprem| Pods and confirmed that all of the new Pods are ready.
 
 ---
 title: "Track the status of your |onprem| instance."
-stepnum: 6
+stepnum: 8
 level: 4
 ref: track-k8s-instance
 content: |
@@ -90,7 +215,7 @@ content: |
 title: "Download the MongoDB installation archive to your local machine."
 level: 4
 ref: download-mdb-archive
-stepnum: 7
+stepnum: 9
 content: |
 
   The installers that you download depend on the environment to which 
@@ -152,7 +277,7 @@ content: |
 title: "Copy the MongoDB installation archive to the |onprem| Persistent Volume for each |onprem| :opsmgrkube:`replica <spec.replicas>` you deployed."
 level: 4
 ref: copy-mdb-archive
-stepnum: 8
+stepnum: 10
 content: |
 
   The commands that you use depend on the environment to which you
@@ -258,7 +383,7 @@ content: |
 title: "Deploy a MongoDB Database Resource."
 level: 4
 ref: deploy-mdb-resource
-stepnum: 9
+stepnum: 11
 content: |
 
   a. If you have not done so already, complete the following 
