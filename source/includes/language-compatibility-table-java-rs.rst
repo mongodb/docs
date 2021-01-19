@@ -9,6 +9,18 @@
      - Java 8
      - Java 11 [#backwards-compatible-rs]_
 
+   * - 4.2
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - 4.1
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
    * - 1.13
      - |checkmark|
      - |checkmark|
