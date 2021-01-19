@@ -147,6 +147,15 @@
      - Positive integer indicating the maximum number of connections
        to this |s3| blockstore.
 
+   * - s3RegionOverride
+     - string
+     - Conditional
+     - Region where your |s3| bucket resides.
+
+       Use this field only if your |s3|\-compatible store's 
+       **s3BucketEndpoint** doesn't support region scoping. Don't use 
+       this field with |aws| |s3| buckets.
+
    * - sseEnabled
      - boolean
      - Required

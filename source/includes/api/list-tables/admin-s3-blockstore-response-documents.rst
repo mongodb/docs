@@ -124,6 +124,16 @@
      - Positive integer indicating the maximum number of connections
        to this |s3| blockstore.
 
+   * - s3RegionOverride
+     - string
+     - Region where your |s3| bucket resides. This field applies only if
+       your |s3|\-compatible store's **s3BucketEndpoint** doesn't 
+       support region scoping.
+
+       |mms| returns this field only if you included it when you
+       :ref:`created <om-create-s3-blockstore-api>` or :ref:`updated
+       <om-create-s3-blockstore-api>` this |s3| blockstore.
+
    * - sseEnabled
      - boolean
      - Flag indicating whether this |s3| blockstore enables
