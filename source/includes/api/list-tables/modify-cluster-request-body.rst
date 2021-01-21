@@ -103,7 +103,8 @@
 
        .. important::
 
-          Clusters running MongoDB |fcv-link| 4.2 or later and any newnew |service| clusters of any type do not support this
+          Clusters running MongoDB |fcv-link| 4.2 or later and any new 
+          |service| clusters of any type do not support this
           parameter. These clusters must use
           :doc:`/backup/cloud-backup/overview`:
           **providerBackupEnabled**
