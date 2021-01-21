@@ -7,76 +7,84 @@ Watch for Changes
 Open a Change Stream
 --------------------
 
-You can keep track of changes to data in MongoDB, such as changes to a
-collection, database, or deployment, by opening a **change stream**. A change
-stream allows applications to watch for changes to data and react to them.
-You can open a change stream by calling the ``watch()`` method on
-a ``Collection``, ``Db``, or ``MongoClient`` object. The change stream
-returns **change event** documents when they occur.
+You can watch for changes to a single collection, a database, or an entire deployment in MongoDB with **Change Streams**.
+Open a change stream by calling the ``watch()`` method on a ``Collection``, ``Db``, or ``MongoClient`` object. The
+change stream emits **change event** documents when they occur.
 
-The ``watch()`` method optionally takes an **aggregation pipeline**  which
-consists of an array of **stages** as the first parameter to filter and
-transform the change events output as follows:. 
+The ``watch()`` method optionally takes an **aggregation pipeline** which consists of an array of **aggregation stages**
+as the first parameter. The aggregation stages filter and transform the change events.
+
+In the example below, the ``$match`` stage will match all change event documents with a ``runtime`` value of less than
+15, filtering all others out.
 
 .. code-block:: javascript
 
-   const pipeline = [ { $match: { runtime: { $lt: 15 } }, ];
+   const pipeline = [ { $match: { runtime: { $lt: 15 } } ];
    const changeStream = await collection.watch(pipeline);
 
-The ``watch()`` method accepts an additional ``options`` object as the second
-parameter. Refer to the links at the end of this section for more
-information on the settings you can configure in this object.
+The ``watch()`` method accepts an ``options`` object as the second parameter. Refer to the links at the end of this
+section for more information on the settings you can configure with this object.
 
-The ``watch()`` method returns an instance of a ``ChangeStream``. You can
-call methods on the ChangeStream such as ``hasNext()`` to check for remaining
-documents in the stream, ``next()`` to request the next document in the
-stream, ``pause()`` to stop emitting events, ``resume()`` to continue to
-emit events, and ``close()`` to close the ChangeStream. You can also attach
-listener functions by calling the ``on()`` method on the instance. See the
-link to the ``ChangeStream`` API documentation below for more details on the
-available methods.
+The ``watch()`` method returns an instance of a :node-api:`ChangeStream </ChangeStream.html>`. You can read events from
+change streams by iterating over them or listening for events. Select the tab that corresponds to the way you want to
+read events from the change stream below.
+
+.. warning::
+
+   Avoid mixing both the iterative and event-based approach of reading from change streams as it can cause unexpected
+   behavior.
+
+.. tabs::
+
+   .. tab::
+      :tabid: Iterative
+
+      You can call methods on the ``ChangeStream`` object such as:
+
+      - ``hasNext()`` to check for remaining documents in the stream
+      - ``next()`` to request the next document in the stream
+      - ``close()`` to close the ChangeStream
+
+
+   .. tab::
+      :tabid: Event
+
+      You can attach listener functions to the ``ChangeStream``  object by calling the ``on()`` method. This method is inherited from the Javascript
+      ``EventEmitter`` class. Pass the string ``"change"`` as the first parameter and your callback function as the
+      second parameter as shown below:
+
+      .. code-block:: javascript
+
+         changeStream.on("change", (changeEvent) => { /* your callback function */ });
+
+      The callback function triggers when a change event is emitted. You can specify logic in the callback to process
+      the change event document when it is received.
+
+
+      You can control the change stream by calling ``pause()`` to stop emitting events or ``resume()`` to continue to emit events.
+
+      To stop processing change events, call the :node-api:`close() </ChangeStream.html#close>` method on the
+      ``ChangeStream`` instance. This closes the change stream and frees resources.
+
+      .. code-block:: javascript
+
+         changeStream.close();
 
 Visit the following resources for additional material on the classes and
 methods presented above:
 
-- :manual:`change streams </changeStreams/>`
-- :manual:`change events </reference/change-events/>`
-- :manual:`aggregation pipeline </reference/operator/aggregation-pipeline/>`
-- :manual:`aggregation stages </changeStreams/#modify-change-stream-output>`
-- :node-api:`ChangeStream class API documentation <api/ChangeStream.html>`
+- :manual:`Change streams </changeStreams/>`
+- :manual:`Change events </reference/change-events/>`
+- :manual:`Aggregation pipeline </reference/operator/aggregation-pipeline/>`
+- :manual:`Aggregation stages </changeStreams/#modify-change-stream-output>`
+- :node-api:`ChangeStream class API documentation </ChangeStream.html>`
 - :node-api:`Collection.watch() </Collection.html#watch>`,
-  :node-api:`Db.watch() </Db.html#watch>`,
-  :node-api:`MongoClient.watch() API documentation </MongoClient.html#watch>`
-
-Process the Change Stream Events
---------------------------------
-
-You can capture events from a change stream using a listener function. Call
-the ``watch()`` command to get a ``ChangeStream`` instance. Add your listener
-function by calling the ``on()`` method on the instance, inherited from
-the Javascript ``EventEmitter`` class. Pass the string ``"change"`` as the
-first parameter and add your callback function as the second parameter as
-shown below:
-
-.. code-block:: javascript
-
-   changeStream.on("change", (changeEvent) => { /* your callback function */ });
-
-The callback function triggers when a change event is emitted. You can
-specify logic in the callback to process the event document when it is
-received.
-
-To stop processing change events, call the
-:node-api:`close() </ChangeStream.html#close>` method on the ``ChangeStream``
-instance. This closes the change stream and frees resources.
-
-.. code-block:: javascript
-
-   changeStream.close();
+- :node-api:`Db.watch() </Db.html#watch>`,
+- :node-api:`MongoClient.watch() API documentation </MongoClient.html#watch>`
 
 .. note::
 
-   For update operation change events, change streams only return the modified
+   Change events that contain information on update operations only return the modified
    fields by default rather than the full updated document. You can configure
    your change stream to also return the most current version of the document
    by setting the ``fullDocument`` field of the options object to
