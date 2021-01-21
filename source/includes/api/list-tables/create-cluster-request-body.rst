@@ -473,17 +473,13 @@
 
    * - providerSettings.encryptEBSVolume
      - boolean
-     - Conditional
+     - Deprecated
      - Flag that indicates whether the Amazon EBS encryption feature
        encrypts the host's root volume for both data at rest within
        the volume and for data moving between the volume and the
        cluster.
 
-       .. note::
-
-          This setting is always enabled for |nvme-clusters|.
-
-       The default value is **true**.
+       |service| always sets this value to **true**.
 
    * - providerSettings.instanceSizeName
      - string
