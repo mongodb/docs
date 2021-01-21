@@ -25,6 +25,8 @@
        Users can acknowledge PagerDuty alert notifications only from
        the PagerDuty dashboard.
 
+       .. include:: /includes/admonitions/important/change-pagerduty-integration-key.rst
+
        .. include:: /includes/fact-pagerduty-decommission.rst
 
    * - :guilabel:`Flowdock Settings`
