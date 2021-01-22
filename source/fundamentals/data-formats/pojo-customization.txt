@@ -23,7 +23,14 @@ We show how to specify your data conversion using the :ref:`ClassModel <classmod
 and :ref:`PropertyModel <property-model>` classes. You can also learn
 about more specific customization from the section on :ref:`Advanced Configuration <pojo-advanced-configuration>`
 
-If you only need to use the pre-defined behavior to convert data between
+We also show you how to use helpers such as :ref:`Conventions <conventions>`
+and :ref:`Annotations <annotations>` to specify common serialization actions.
+
+If you need to implement conditional serialization, or if you need to use
+enums, generics, interface, or abstract types, see the section on
+:ref:`Advanced Configuration <pojo-advanced-configuration>`.
+
+If you only need to use the predefined behavior to convert data between
 BSON and POJOs, you can use the **automatic** setting for the
 ``PojoCodecProvider`` shown in the :doc:`Document Data Formats: POJOs guide </fundamentals/data-formats/document-data-format-pojo>`.
 
@@ -40,10 +47,10 @@ You can create a ``PojoCodecProvider`` instance using the
 ``PojoCodecProvider.builder()`` method. You can also chain methods to the
 builder to register any of the following:
 
-- Individual POJO classes
-- Package names that contain POJO classes
-- ``ClassModel`` instances that describe conversion logic for a specific POJO
-  class
+- individual POJO classes
+- package names that contain POJO classes
+- instances of ``ClassModel`` that describe conversion logic for a specific
+  POJO class
 
 The following example shows how you can specify the POJOs in a package named
 "org.example.pojos" and add the ``PojoCodecProvider`` to a ``CodecRegistry``:
@@ -65,9 +72,6 @@ The following example shows how you can specify the POJOs in a package named
 
 See the :java-docs:`PojoCodecProvider.Builder API documentation </apidocs/bson/org/bson/codecs/pojo/PojoCodecProvider.Builder.html>`
 for more information.
-
-
-TODO: (transition) the following sections...
 
 .. _classmodel:
 
@@ -199,11 +203,10 @@ from the following static fields in the ``Conventions`` class:
        package for your POJO.
 
    * - ``CLASS_AND_PROPERTY_CONVENTION``
-     - Sets the following default values for the ``ClassModel`` and
-       ``PropertyModel`` instances:
-       - Discriminator key to ``_t``
-       - Discriminator value to the ``ClassModel`` simple type name
-       - Id field to ``_id`` for each ``PropertyModel``.
+     - | Sets the following default values for the ``ClassModel`` and ``PropertyModel`` instances:
+       | - Discriminator key to ``_t``
+       | - Discriminator value to the ``ClassModel`` simple type name
+       | - Id field to ``_id`` for each ``PropertyModel``.
 
    * - ``DEFAULT_CONVENTIONS``
      - | Enables the following Conventions:
@@ -257,22 +260,23 @@ package:
 
    * - ``BsonCreator``
      - Marks a public constructor or a public static method as the creator for
-     new instances of the class. Can combine with the BsonProperty annotation to link the parameters with properties.
+       new instances of the class. You can combine this with the
+       ``BsonProperty`` annotation to link the parameters with properties.
 
    * - ``BsonDiscriminator``
-     - Specifies a class uses a discriminator. It also allows you to set a
-     custom discriminator key and value.
+     - Specifies a class uses a discriminator. You can set a custom
+       discriminator key and value.
 
    * - ``BsonId``
      - Marks a property to serialized as the _id property.
 
    * - ``BsonIgnore``
-     - Marks a property to ignore. Can configure whether to serialized and/or
-       deserialize a property.
+     - Marks a property to ignore. You can configure whether to serialized
+       and/or deserialize a property.
 
    * - ``BsonProperty``
      - Allows for an alternative document key name when converting the POJO
-       field to BSON. Also, allows a field to turn on using a discriminator
+       field to BSON. Also allows a field to turn on using a discriminator
        when storing a POJO value.
 
 The following code snippet shows a sample POJO called ``Product`` that uses
@@ -329,11 +333,10 @@ The annotations in the example POJO specify the following behavior:
   on write operations
 - convert between the POJO ``name`` field and value and the BSON ``modelName``
   field and value in the document
-- convert between the POJO ``serialNumber`` field and value the BSON docuemnt
+- convert between the POJO ``serialNumber`` field and value the BSON document
   ``_id`` field and value in the document
 - omit the ``relatedItems`` field and value when converting data
 - use the ``Product(String name)`` constructor when instantiating the POJO
-
 
 .. _pojo-discriminators:
 
@@ -355,8 +358,8 @@ following:
 
 - use the ``@BsonDiscriminator`` annotation to specify the discriminator for
   the POJO class
-- or call ``enableDiscriminator(true)`` on the ``ClassModelBuilder`` for the
-  POJO class
+- or call ``enableDiscriminator(true)`` on the ``ClassModelBuilder``
+  associated with the POJO class
 
 See the following example POJO classes that contain ``@BsonDiscriminator``
 annotations and example documents that contain the discriminator fields:
@@ -507,7 +510,7 @@ resemble the following:
 .. code-block:: json
    :copyable: false
 
-   { "_id" : ObjectId("..."), "eventDateTime" : ..., "name" : "Robinette" }
+   { "_id" : ObjectId("..."), "eventDateTime" : ..., "name" : "Galadriel" }
 
 Generics Support
 ^^^^^^^^^^^^^^^^
@@ -519,8 +522,8 @@ properties if they meet the following criteria:
 - the top-level POJO does not contain any type parameters
 
 The ``ClassModelBuilder`` inspects and saves concrete type parameters to work
-around type erasure. Classes that contain generic properties without concrete
-type parameters cannot be serialized since the JVM removes the type
+around type erasure. It cannot serialize classes that contain generic
+properties without concrete type parameters since the JVM removes the type
 parameter information.
 
 Instead, you can implement the ``PropertyCodecProvider`` interface to specify
@@ -542,7 +545,7 @@ Suppose you wanted to serialize the following POJO:
 
 You can use the following implementation of ``PropertyCodecProvider`` to
 retrieve the your custom Codec. This implementation uses the
-``TypeWithParameters`` interface to access the type information.
+``TypeWithTypeParameters`` interface to access the type information.
 
 .. code-block:: java
    :caption: Implementation of PropertyCodecProvider
@@ -605,6 +608,10 @@ and the package that contains your POJO as follows:
            .register(new OptionalPropertyCodecProvider())
            .build();
 
+See the API documentation for more information on the following:
+
+- :java-docs:`PropertyCodecProvider <apidocs/bson/org/bson/codecs/pojo/PropertyCodecProvider.html>`
+- :java-docs:`TypeWithTypeParamaters <apidocs/bson/org/bson/codecs/pojo/TypeWithTypeParameters.html>`
 
 Enum Type Support
 ^^^^^^^^^^^^^^^^^
@@ -628,7 +635,7 @@ field:
        private Integer height;
        private Family family;
 
-       // ... the rest of the Class definitiion
+       // ...
   }
 
 The following snippets show an example instantiation of the ``Penguin``
