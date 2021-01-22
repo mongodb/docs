@@ -69,10 +69,11 @@ source_constants = {
     'old-version': '4.0.14',
     'old-version-val': '``4.0.14-ent``',
     'old-version-example': '4.0.14-ent',
-    'appdb-init-version' : '1.0.4',
-    'ops-manager-init-version': '1.0.2',
-    'database-init-version': '1.0.0',
-    'mdbtools-version': '100.1.0'
+    'appdb-init-version' : '1.0.6',
+    'ops-manager-init-version': '1.0.3',
+    'database-init-version': '1.0.2',
+    'mdbtools-version': '100.1.0',
+    'appdb-agent-version': '10.2.15.5958-1_4.2.11-ent'
 }
 
 rst_epilog = '\n'.join([
