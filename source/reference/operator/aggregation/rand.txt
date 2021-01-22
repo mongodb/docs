@@ -36,134 +36,131 @@ dropped so the actual number of digits may vary.
 Examples
 --------
 
-This code initializes a ``randomSamples`` collection with 100 documents
-that is used in the following examples.
+Generate Random Data Points
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example models charitable donations. The collection starts with a
+list of donors.
 
 .. code-block:: javascript
 
-   N = 100
-   bulk = db.randomSamples.initializeUnorderedBulkOp()
-   for ( i = 0; i < N; i++) { bulk.insert( {_id: i, random: 0 } ) }
-   bulk.execute()
-
-
-Usage with Update Queries
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``$rand`` operator can be used with update query operations. In
-this example :method:`~db.collection.updateMany()` uses the ``$rand`` 
-operator to insert a different random number into each document
-in the ``randomSamples`` collection.
-
-.. code-block:: javascript
-
-   db.randomSamples.updateMany(
-      {},
+   db.donors.insertMany(
       [
-         { $set: { "random": { $rand: {} } } }
+        { donorId: 1000, amount: 0, frequency: 1 },
+        { donorId: 1001, amount: 0, frequency: 2 },
+        { donorId: 1002, amount: 0, frequency: 1 },
+        { donorId: 1003, amount: 0, frequency: 2 },
+        { donorId: 1004, amount: 0, frequency: 1 }
       ]
    )
 
-We can use :pipeline:`$project` to see the output. The
-:pipeline:`$limit` stage halts the pipeline after the third document.
+We use an aggregation pipeline to update each document with a random
+donation amount.
 
 .. code-block:: javascript
 
-   db.randomSamples.aggregate(
+   db.donors.aggregate(
       [
-         { $project: {_id: 0, random: 1 } },
-         { $limit: 3 }       
-      ]    
+         { $set: { amount: { $multiply: [ { $rand: {} }, 100 ] } } },
+         { $set: { amount: { $floor: "$amount" } } },
+         { $merge: "donors" }
+      ]
    )
 
-The output shows the random values. 
+The first :pipeline:`$set` stage updates the ``amount`` field. An
+initial value between 0 and 1 is generated using ``$rand``. Then
+:expression:`$multiply` scales it upward 100 times.
+
+The :expression:`$floor` operator in the second ``$set`` stage removes
+the decimal portion from the ``amount`` to leave an integer value.
+
+Finally, :pipeline:`$merge` writes the random value created in the
+previous steps to the ``amount`` field, updating it for each document
+in the ``donors`` collection.
+
+You can view the results with a projection stage:
+
+.. code-block:: javascript
+
+   db.donors.aggregate(
+      [
+         { $project: {_id: 0, donorId: 1, amount: 1 } }
+      ]
+   )
+
+The projection shows the scaled amounts are now random values in the
+range from 0 to 99.
 
 .. code-block:: javascript
    :copyable: false
 
-   { "random" : 0.8751284485870464 }
-   { "random" : 0.515147067802108 }
-   { "random" : 0.3750004525681561 }
+   { "donorId" : 1000, "amount" : 27 }
+   { "donorId" : 1001, "amount" : 10 }
+   { "donorId" : 1002, "amount" : 88 }
+   { "donorId" : 1003, "amount" : 73 }
+   { "donorId" : 1004, "amount" : 5 }
 
-Rounding to Control the Number of Output Digits
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Select Random Items From a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want a shorter random value, consider using :expression:`$round`.
-Note that the :pipeline:`$set` stage updates the document, if ``$rand``
-is called in a :pipeline:`$project` stage the underlying document is
-not modified.
+You can use ``$rand`` in an aggregation pipeline to select random
+documents from a collection. Consider a collection of voter records:
 
 .. code-block:: javascript
 
-   db.randomSamples.aggregate(
+   db.voters.insertMany(
       [
-         { $match: {} }, 
-         { $set: { rounded: { $round: [ "$random", 4  ] } } }, 
-         { $out: "randomSamples" } 
+        { name: "Archibald", voterId: 4321, district: 3, registered: true },
+        { name: "Beckham", voterId: 4331, district: 3, registered: true },
+        { name: "Carolin", voterId: 5321, district: 4, registered: true },
+        { name: "Debarge", voterId: 4343, district: 3, registered: false },
+        { name: "Eckhard", voterId: 4161, district: 3, registered: false },
+        { name: "Faberge", voterId: 4300, district: 1, registered: true },
+        { name: "Grimwald", voterId: 4111, district: 3, registered: true },
+        { name: "Humphrey", voterId: 2021, district: 3, registered: true },
+        { name: "Idelfon", voterId: 1021, district: 4, registered: true },
+        { name: "Justo", voterId: 9891, district: 3, registered: false }
       ]
    )
 
-The :pipeline:`$project` stage displays the original and rounded value
-for each document.
+Imagine you want to select about half of the voters in District 3 to do
+some polling.
 
 .. code-block:: javascript
 
-   db.randomSamples.aggregate(
+   db.voters.aggregate(
       [
-         { $project: {_id:0, random:1, rounded: 1 } },
-         { $limit: 3 }
-      ]
-   )
-
-The update documents look like this:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "random" : 0.8751284485870464, "rounded" : 0.8751 }
-   { "random" : 0.515147067802108, "rounded" : 0.5151 }
-   { "random" : 0.3750004525681561, "rounded" : 0.375 }
-
-.. note::
-
-   Like ``$rand``, the value returned by the ``$round`` operator does
-   not include any trailing 0s so the number of digits returned may
-   vary.
-
-Selecting Random Items From a Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``$rand`` operator can be used in an aggregation pipeline to select
-random documents from a collection. In this example we use ``$rand`` to
-select about half the documents in the ``randomSamples`` collection. 
-
-.. code-block:: javascript
-
-   db.randomSamples.aggregate(
-      [
+         { $match: { district: 3 } },
          { $match: { $expr: { $lt: [0.5, {$rand: {} } ] } } },
-         { $count: "numMatches" }
+         { $project: { _id: 0, name: 1, registered: 1 } }
       ]
    )
 
-There are 100 documents in ``randomSamples``. Running the sample code 5
-times produces the following output which approaches the expected value
-of 50 matches in a collection this size.
-      
+The first pipeline stage matches all documents where the voter is from
+district 3.
+
+The second :pipeline:`$match` stage uses ``$rand`` in a match
+expression to further refine the selection. For each document,
+``$rand`` generates a value between 0 and 1. The threshhold of ``0.5``
+in the less than :expression:`($lt)<$lt>` comparison means that
+:query:`$expr` will be true for about half the documents.
+
+In the :pipeline:`$project` stage the selected documents are filtered
+to return the ``name`` and ``registered`` fields. There are 7 voters in
+District 3, running the code selects about half of them.
+
 .. code-block:: javascript
    :copyable: false
 
-   { "numMatches" : 49 }
-   { "numMatches" : 52 }
-   { "numMatches" : 54 }
-   { "numMatches" : 48 }
-   { "numMatches" : 59 }
+   { "name" : "Archibald", "registered" : true }
+   { "name" : "Debarge", "registered" : false }
+   { "name" : "Humphrey", "registered" : true }
 
 .. note::
 
-   This example shows that the number of documents selected is
-   different each time. If you need to select an exact number of
-   documents, consider using :pipeline:`$sample` instead of ``$rand``.
+   The number of documents selected is different each time. If you need
+   to select an exact number of documents, consider using
+   :pipeline:`$sample` instead of ``$rand``.
 
 .. seealso::
 
