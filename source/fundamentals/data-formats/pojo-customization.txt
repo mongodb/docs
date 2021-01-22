@@ -172,6 +172,9 @@ can instantiate by calling the ``PropertyModel.builder()`` method.
 For more information, see the
 :java-docs:`PropertyModel.Builder API documentation <apidocs/bson/org/bson/codecs/pojo/PropertyModelBuilder.html>`.
 
+
+.. _conventions:
+
 Conventions
 -----------
 
@@ -231,6 +234,8 @@ You can specify Conventions using one of the following methods:
 To create a custom Convention, create a class that implements the
 ``Convention`` interface and override the ``apply()`` method from which you can
 access your ``ClassModelBuilder`` instance.
+
+.. _annotations:
 
 Annotations
 -----------
@@ -335,29 +340,45 @@ The annotations in the example POJO specify the following behavior:
 Discriminators
 --------------
 
-A discriminator is a property that identifies a specific document schema using
-a key which identifies a document field to use to identify the schema, and a
-value which is the value of the document field or an otherwise specified value.
+A discriminator is a property that identifies a specific document schema. The
+discriminator key identifies a document field to use to identify the schema.
+The discriminator value identifies the default value of the document field.
+
+Use discriminators to instruct the ``CodecProvider`` which object class to use
+when deserializing to different object classes from the same collection. When
+serializing the POJO to a MongoDB collection, the associated Codec sets the
+discriminator key-value field, unless otherwise specified in the POJO property
+data.
 
 You can set and enable a discriminator in a POJO by performing one of the
 following:
 
-- use the ``BsonDiscriminator`` annotation to specify the discriminator for
-  the class that contains the abstract field
-- or call ``enableDiscriminator(true)`` on the ``ClassModelBuilder``
+- use the ``@BsonDiscriminator`` annotation to specify the discriminator for
+  the POJO class
+- or call ``enableDiscriminator(true)`` on the ``ClassModelBuilder`` for the
+  POJO class
 
-See the following for an example of the ``BsonDiscriminator`` annotation:
+See the following example POJO classes that contain ``@BsonDiscriminator``
+annotations and example documents that contain the discriminator fields:
 
 .. code-block:: java
+   :caption: Sample POJO classes
 
-  @BsonDiscriminator(value="User", key="_cls")
-  public class User {
-   code content
+  @BsonDiscriminator(value="AnonymousUser", key="_cls")
+  public class AnonymousUser {
+      // class code
+  }
 
+  @BsonDiscriminator(value="RegisteredUser", key="_cls")
+  public class RegisteredUser {
+      // class code
+  }
 
 .. code-block:: json
+   :caption: Sample documents in a single MongoDB collection
 
-   { "_cls": "...", ... }
+   { "_cls": "AnonymousUser", "_id": ObjectId("<Object ID>),  ... }
+   { "_cls": "RegisteredUser", "_id": ObjectId("<Object Id>), ... }
 
 .. _pojo-advanced-configuration:
 
@@ -396,9 +417,8 @@ If the ``User`` abstract class has subclasses ``FreeUser`` and
 
    CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
 
-For more information on discriminators and specifying them, see the
-section of this guide on :ref:`Discriminators <pojo-discriminators>`.
-
+For more information on specifying discriminators, see the section of this
+guide on :ref:`Discriminators <pojo-discriminators>`.
 
 POJOs without No-Argument Constructors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -415,22 +435,79 @@ For an example of setting the ``ANNOTATION_CONVENTION``, see the
 For an example of the ``BsonCreator`` annotation, see the
 :ref:`POJO with annotation code example <bson-annotation-code-example>`.
 
+.. _pojo-serialization-customization:
+
 Serialization Customization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+By default, ``ClassModelBuilder`` attempts to serialize all the non-null
+properties in your POJO. If a property value is ``null``, the default
+``PropertySerialization`` implementation skips that field.
 
-You can change what values are serialized
-The FieldSerialization interface handles the default behavior
-You can set your custom implementation on the PropertyModelBuilder
+You can customize your POJO serialization behavior by performing one of the
+following:
 
-In the section on Annotations, we showed how you can use the
-BsonIgnore annotation to ignore a field.
-- Description, when to use
-- Examples
-- Annotation
-- PropertySerialization in PropertyModelBuilder
+- Use the ``@BsonIgnore`` annotation for a property to always skip
+  serialization. Make sure to enable annotations using the appropriate
+  :ref:`Conventions <conventions>`.
+- Create a custom class that overrides the ``shouldSerialize()`` method of the
+  ``PropertySerialization`` interface. Specify your custom implementation to
+  the ``PropertyModelBuilder`` which is accessible from the
+  ``ClassModelBuilder``.
 
+For more information on how to use the ``@BsonIgnore`` annotation in a POJO,
+see the section of this guide on :ref:`Annotations <annotations>`.
+
+The following sample code shows a custom class that implements the
+``PropertySerialization`` interface to override the default conditions
+by which to determine whether to serialize a field:
+
+.. code-block:: java
+   :emphasize-lines: 4
+
+   public class CourteousAgeSerialization implements PropertySerialization<Integer> {
+       @Override
+       public boolean shouldSerialize(Integer value) {
+           return (value < 30);
+       }
+   }
+
+The class above specifies that any integer above 29 is not serialized and
+therefore, not included in the MongoDB document. Suppose you applied this
+custom serialization behavior to the following sample POJO:
+
+.. code-block:: java
+
+   public class BirthdayInvitation {
+       private String name;
+       private Integer age;
+       private LocalDateTime eventDateTime;
+
+       // ...
+   }
+
+You can specify the custom serialization by adding the
+``CourteousAgeSerialization`` instance to the ``PropertyModelBuilder`` from
+the ``ClassModel`` property associated with the ``age`` field using the
+following code:
+
+.. code-block:: java
+
+   ClassModelBuilder<BirthdayInvitation> classModel = ClassModel.builder(BirthdayInvitation.class);
+   ((PropertyModelBuilder<Integer>) classModel.getProperty("age"))
+           .propertySerialization(new CourteousAgeSerialization());
+
+   PojoCodecProvider pojoCodecProvider = PojoCodecProvider.builder().register(classModel.build()).build();
+   CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+
+If you insert a POJO that contains a value greater than 29 in the ``age``
+field, the serialized document omits it. The resulting document should
+resemble the following:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : ObjectId("..."), "eventDateTime" : ..., "name" : "Robinette" }
 
 Generics Support
 ^^^^^^^^^^^^^^^^
@@ -441,25 +518,93 @@ properties if they meet the following criteria:
 - contain only bounded concrete type parameters
 - the top-level POJO does not contain any type parameters
 
-The ``ClassModelBuilder`` inspects and saves type parameters to work around
-type erasure. Classes that contain generic properties without type parameters
-cannot be serialized themselves because the
-JVM removes their runtime type parameter information
+The ``ClassModelBuilder`` inspects and saves concrete type parameters to work
+around type erasure. Classes that contain generic properties without concrete
+type parameters cannot be serialized since the JVM removes the type
+parameter information.
 
+Instead, you can implement the ``PropertyCodecProvider`` interface to specify
+type parameters for generic types defined in a POJO. The following code
+snippets show an example implementation of the ``PropertyCodecProvider`` that
+adds serialization compatibility to the Guava ``Optional`` class.
 
+Suppose you wanted to serialize the following POJO:
 
 .. code-block:: java
+   :caption: POJO with Optional fields
 
-   code content
+   public class ApplicationUser {
+       private Optional<Address> optionalAddress;
+       private Optional<Subscription> optionalSubscription;
 
+       // ...
+   }
 
-You can use ``PropertyCodecProvider`` to provide concrete type parameters for
-generic types defined in a POJO.
+You can use the following implementation of ``PropertyCodecProvider`` to
+retrieve the your custom Codec. This implementation uses the
+``TypeWithParameters`` interface to access the type information.
 
+.. code-block:: java
+   :caption: Implementation of PropertyCodecProvider
+   :emphasize-lines: 3
 
-- Description
- of when a POJO is not serializable
-- Example showing how to use PropertyCodecProviders to provide concrete class information
+   public class OptionalPropertyCodecProvider implements PropertyCodecProvider {
+
+       @Override
+       @SuppressWarnings({"rawtypes", "unchecked"})
+       public <T> Codec<T> get(final TypeWithTypeParameters<T> type, final PropertyCodecRegistry registry) {
+           // Check the main type and number of generic parameters
+           if (Optional.class.isAssignableFrom(type.getType()) && type.getTypeParameters().size() == 1) {
+               // Get the codec for the concrete type of the Optional, as its declared in the POJO.
+               Codec<?> valueCodec = registry.get(type.getTypeParameters().get(0));
+               return new OptionalCodec(type.getType(), valueCodec);
+           } else {
+               return null;
+           }
+       }
+
+       private static final class OptionalCodec<T> implements Codec<Optional<T>> {
+           private final Class<Optional<T>> encoderClass;
+           private final Codec<T> codec;
+
+           private OptionalCodec(final Class<Optional<T>> encoderClass, final Codec<T> codec) {
+               this.encoderClass = encoderClass;
+               this.codec = codec;
+           }
+
+           @Override
+           public void encode(final BsonWriter writer, final Optional<T> optionalValue, final EncoderContext encoderContext) {
+               if (optionalValue != null && optionalValue.isPresent()) {
+                   codec.encode(writer, optionalValue.get(), encoderContext);
+               } else {
+                   writer.writeNull();
+               }
+           }
+
+           @Override
+           public Optional<T> decode(final BsonReader reader, final DecoderContext context) {
+               return Optional.of(codec.decode(reader, context));
+           }
+
+           @Override
+           public Class<Optional<T>> getEncoderClass() {
+               return encoderClass;
+           }
+       }
+   }
+
+Register your ``OptionalPropertyCodecProvider`` in your ``PojoCodecProvider``
+and the package that contains your POJO as follows:
+
+.. code-block:: java
+   :caption: Register an instance of your OptionalPropertyCodecProvider
+   :emphasize-lines: 3
+
+   CodecProvider pojoCodecProvider = PojoCodecProvider.builder()
+           .register("org.example.pojos")
+           .register(new OptionalPropertyCodecProvider())
+           .build();
+
 
 Enum Type Support
 ^^^^^^^^^^^^^^^^^
