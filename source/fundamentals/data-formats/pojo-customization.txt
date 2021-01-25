@@ -26,8 +26,11 @@ about more specific customization from the section on :ref:`Advanced Configurati
 We also show you how to use helpers such as :ref:`Conventions <conventions>`
 and :ref:`Annotations <annotations>` to specify common serialization actions.
 
+See the section on :ref:`Discriminators <discriminators>` if you want to
+serialize multiple POJO classes to documents in the same collection.
+
 If you need to implement conditional serialization, or if you need to use
-enums, generics, interface, or abstract types, see the section on
+enums, generics, interface types, or abstract types, see the section on
 :ref:`Advanced Configuration <pojo-advanced-configuration>`.
 
 If you only need to use the predefined behavior to convert data between
@@ -107,10 +110,12 @@ A ``ClassModel`` contains the following fields:
      - Specifies the POJO field that corresponds to the document id field. Optional.
 
    * - Discriminator Key
-     - Specifies the name of the discriminator field. Optional.
+     - | Specifies the name of the discriminator field. Optional.
+       | For more information on discriminators, see the :ref:`Discriminators <discriminators>` section.
 
    * - Discriminator Value
-     - A lookup value that represents the POJO class. Optional.
+     - | Specifies the lookup value that represents the POJO class. Optional.
+       | For more information on discriminators, see the :ref:`Discriminators <discriminators>` section.
 
    * - Discriminator Flag
      - Specifies whether to serialize the discriminator, off by default. Optional.
@@ -168,7 +173,8 @@ The ``PropertyModel`` contains the following information:
      - Method used to access the value of the property from the POJO
 
    * - useDiscriminator
-     - Specifies whether to use the discriminator.
+     - | Specifies whether to use the discriminator.
+       | For more information on discriminators, see the :ref:`Discriminators <discriminators>` section.
 
 To create a ``PropertyModel`` use a ``PropertyModelBuilder`` which you
 can instantiate by calling the ``PropertyModel.builder()`` method.
@@ -185,8 +191,12 @@ Conventions
 The ``Convention`` interface contains configuration options that modify the
 behavior of a ``ClassModel`` or ``PropertyModel``. You can specify a
 ``Convention`` in a call to ``PojoCodecProvider.Builder.conventions()`` or to
-``ClassModelBuilder.conventions()``. The builders apply ``Convention``
-instances in order which may override behavior defined in one applied earlier.
+``ClassModelBuilder.conventions()``.
+
+.. note::
+
+   The builders apply ``Convention`` instances in order which may override
+   behavior defined in one applied earlier.
 
 You can access the ``Convention`` instances defined in the BSON library
 from the following static fields in the ``Conventions`` class:
@@ -200,7 +210,8 @@ from the following static fields in the ``Conventions`` class:
 
    * - ``ANNOTATION_CONVENTION``
      - Enables the annotations defined in the ``org.bson.codecs.pojo.annotations``
-       package for your POJO.
+       package for your POJO. See the section on :ref:`Annotations <annotations>`
+       for more information.
 
    * - ``CLASS_AND_PROPERTY_CONVENTION``
      - | Sets the following default values for the ``ClassModel`` and ``PropertyModel`` instances:
@@ -370,8 +381,10 @@ following:
 See the following example POJO classes that contain ``@BsonDiscriminator``
 annotations and example documents that contain the discriminator fields:
 
+   code content
+
 .. code-block:: java
-   :caption: Sample POJO classes
+   :emphasize-lines: 1,6
 
   @BsonDiscriminator(value="AnonymousUser", key="_cls")
   public class AnonymousUser {
@@ -512,8 +525,20 @@ following code:
    CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
 
 If you insert a POJO that contains a value greater than 29 in the ``age``
-field, the serialized document omits it. The resulting document should
-resemble the following:
+field, the serialized document omits it. The POJO declaration and
+resulting document could resemble the following:
+
+.. code-block:: java
+
+   // constructor with parameters for name, age, and eventDateTime, respectively
+   BirthdayInvitation invitation = new BirthdayInvitation(
+           "Galadriel",
+           7582,
+           LocalDateTime.of(2021, Month.JANUARY, 18, 30, 0)
+       );
+
+Since the ``age`` field value is greater than 29, the serialized document
+resembles the following:
 
 .. code-block:: json
    :copyable: false
@@ -527,17 +552,18 @@ You can use the POJO ``Codec`` to serialize classes that contain generic
 properties if they meet the following criteria:
 
 - contain only bounded concrete type parameters
-- the top-level POJO does not contain any type parameters
+- if it or any of its fields are part of a class hierarchy, the top-level
+  POJO does not contain any type parameters
 
 The ``ClassModelBuilder`` inspects and saves concrete type parameters to work
 around type erasure. It cannot serialize classes that contain generic
 properties without concrete type parameters since the JVM removes the type
 parameter information.
 
-Instead, you can implement the ``PropertyCodecProvider`` interface to specify
-type parameters for generic types defined in a POJO. The following code
-snippets show an example implementation of the ``PropertyCodecProvider`` that
-adds serialization compatibility to the Guava ``Optional`` class.
+To save type parameters, you can implement the ``PropertyCodecProvider``
+interface to specify them for generic types defined in a POJO. The following
+code snippets show an example implementation of the ``PropertyCodecProvider``
+that adds serialization compatibility to the Guava ``Optional`` class.
 
 Suppose you wanted to serialize the following POJO with ``Optional`` fields:
 
@@ -555,7 +581,6 @@ retrieve the your custom Codec. This implementation uses the
 ``TypeWithTypeParameters`` interface to access the type information.
 
 .. code-block:: java
-   :emphasize-lines: 3
 
    public class OptionalPropertyCodecProvider implements PropertyCodecProvider {
 
@@ -617,6 +642,9 @@ See the API documentation for more information on the following:
 
 - :java-docs:`PropertyCodecProvider <apidocs/bson/org/bson/codecs/pojo/PropertyCodecProvider.html>`
 - :java-docs:`TypeWithTypeParamaters <apidocs/bson/org/bson/codecs/pojo/TypeWithTypeParameters.html>`
+
+For more information on generics and type parameters, see the
+:`Oracle documentation on Invoking and Instantiating a Generic Type <https://docs.oracle.com/javase/tutorial/java/generics/types.html#instantiation>`__.
 
 Enum Type Support
 ^^^^^^^^^^^^^^^^^
