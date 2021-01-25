@@ -13,9 +13,10 @@
    * - Paused 
      - Indicates archiving has been temporarily stopped. In this 
        state, previously archived documents continue to be available 
-       on the cloud object storage, but the specified archiving 
-       operation on the active cluster is put on hold. You can resume 
-       archiving for paused archives at any time.
+       on the cloud object storage for querying, but the specified 
+       archiving operation on the active cluster is put on hold and 
+       additional documents are not archived. You can resume archiving 
+       for paused archives at any time.
    * - Orphaned
      - Indicates collection associated with an active or paused 
        online archive was deleted. |service| will not automatically 
