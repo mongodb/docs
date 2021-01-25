@@ -173,21 +173,25 @@ Index Build Impact on Database Performance
 ------------------------------------------
 
 Index Builds During Write-Heavy Workloads
-  Building indexes during time periods where the target collection
-  is under heavy write load can result in reduced write 
-  performance and longer index builds.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Consider designating a maintenance window during which applications
-  stop or reduce write operations against the collection. Start the
-  index build during this maintenance window to mitigate the
-  potential negative impact of the build process.
+Building indexes during time periods where the target collection
+is under heavy write load can result in reduced write 
+performance and longer index builds.
+
+Consider designating a maintenance window during which applications
+stop or reduce write operations against the collection. Start the
+index build during this maintenance window to mitigate the
+potential negative impact of the build process.
 
 Insufficient Available System Memory (RAM)
-  .. include:: /includes/fact-index-build-default-memory-limit.rst
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  If the host machine has limited available free RAM, you may need
-  to schedule a maintenance period to increase the total system RAM
-  before you can modify the :binary:`~bin.mongod` RAM usage.
+.. include:: /includes/fact-index-build-default-memory-limit.rst
+
+If the host machine has limited available free RAM, you may need
+to schedule a maintenance period to increase the total system RAM
+before you can modify the :binary:`~bin.mongod` RAM usage.
 
 .. _index-operations-replicated-build:
 
@@ -246,12 +250,18 @@ Secondary Index Builds May Stall Read and Write Operations
   build releases that lock.
 
 Secondaries Process Index Drops After Index Build Completes
-  Dropping the index on the primary before secondaries
-  complete the replicated index build does not kill the secondary index
-  builds. When the secondary replicates the index drop, it must wait
-  until *after* the index build completes to apply the drop.
-  Furthermore, since index drops are a metadata operation on the
-  collection, the index drop stalls replication on that secondary.
+  Avoid dropping an index on a collection while any index is being
+  replicated on a secondary.
+
+  If you attempt to drop an index from a collection on a :term:`primary`
+  while the collection has a background index building on the
+  :term:`secondary`, the two indexing operations will conflict with each
+  other.
+
+  As a result, reads will be halted across all namespaces and
+  replication will halt until the background index build completes.
+  When the build finishes the ``dropIndex`` action will execute, then
+  reads and replication will resume.
 
 Build Failure and Recovery
 --------------------------

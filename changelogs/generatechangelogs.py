@@ -52,7 +52,7 @@ def get_jira_issues(fixVersion):
     # Run the JIRA query
     query = "project in {0} and fixVersion = {1} and resolution = 'Fixed' ORDER BY key ASC".format(
         projects, fixVersion)
-    issues = auth_jira.search_issues(query, maxResults=200)
+    issues = auth_jira.search_issues(query, maxResults=500)
 
     logger.info("building changelog for {0} with {1} issue(s)".format(
         fixVersion, len(issues)))
