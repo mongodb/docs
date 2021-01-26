@@ -331,11 +331,8 @@
        - **4.2**
        - **4.4**
 
-       You must set this value to **4.4** if
-       **providerSettings.instanceSizeName**
-       is either **M2** or **M5**.
-
-       .. include:: /includes/admonitions/version-4.4-shared-tier-exception.rst
+       You must deploy MongoDB **4.4** if
+       **"providerSettings.instanceSizeName" : "M2"** or **"M5"**.
 
        |service| always deploys the cluster with the latest stable
        release of the specified version. You can upgrade to a newer
