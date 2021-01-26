@@ -1,3 +1,13 @@
+.. _10.25.0.6735-1:
+
+MongoDB Agent 10.25.0.6735-1
+----------------------------
+
+*Released* 2021-01-26
+
+- Improves memory management while taking snapshots of clusters running
+  MongoDB 4.2+.
+
 .. _10.24.0.6714-1:
 
 MongoDB Agent 10.24.0.6714-1
