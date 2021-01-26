@@ -10,6 +10,12 @@
    * - Idle
      - Indicates online archive is waiting for the next archival 
        :ref:`job <online-archive-job>` to start.
+   * - Pausing 
+     - Indicates that you have requested to pause archiving. In this 
+       state, |service| is finishing the running archiving operation 
+       and therefore, |service| has not yet put archiving on hold. The 
+       online archive transitions to the ``Paused`` state when the 
+       running archiving operation finishes.
    * - Paused 
      - Indicates archiving has been temporarily stopped. In this 
        state, previously archived documents continue to be available 
