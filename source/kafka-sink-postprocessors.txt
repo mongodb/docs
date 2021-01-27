@@ -650,9 +650,10 @@ The post processor applied the following changes:
    renaming step if the replacement key already exists at the current level.
 
 .. _custom-write-models:
+.. _custom-write-model-strategy:
 
-Custom Write Models
--------------------
+Custom Write Model Strategy
+---------------------------
 
 A **write model** defines the behavior of bulk write operations made on a
 MongoDB collection. The default write model for the connector is
@@ -662,8 +663,8 @@ MongoDB collection. The default write model for the connector is
 set to upsert mode.
 
 You can override the default write model by specifying a custom one in the
-``mongodb.writemodel.strategy`` configuration setting. The following
-strategies are provided with the connector:
+``writemodel.strategy`` configuration setting. The following strategies are
+provided with the connector:
 
 .. list-table::
    :header-rows: 1
@@ -699,12 +700,12 @@ strategies are provided with the connector:
      - | Add ``_insertedTS`` (inserted timestamp) and ``_modifiedTS`` (modified timestamp) fields into documents that match the filters provided by the ``document.id.strategy`` setting.
        | Set the following configuration: ``writemodel.strategy=com.mongodb.kafka.connect.sink.writemodel.strategy.UpdateOneBusinessKeyTimestampStrategy``
 
-Create Your Own Custom Write Strategy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Create Your Own Custom Write Model Strategy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If none of the pre-built write strategy models suits your needs, you can
-create your own. A custom write strategy model is a Java class that implements
-``WriteModelStrategy``.
+If none of the pre-built write strategies suits your needs, you can
+create your own. A custom write model strategy is a Java class that
+implements ``WriteModelStrategy``.
 
 To configure your Sink Connector to use the custom ``WriteModelStrategy``,
 follow the steps below:
@@ -712,13 +713,23 @@ follow the steps below:
 1. Create a class that implements the ``WriteModelStrategy`` interface
    and overrides the ``createWriteModel(SinkDocument)`` method.
 
-#. Compile the class to a ``.class`` file or JAR.
+#. Compile the class to a JAR file.
 
-#. Add the class to the Class Path / Plugin Path for Kafka workers.
+#. Add the compiled JAR to the Class Path / Plugin Path for Kafka workers.
    For more information about plugin paths, see the `Confluent documentation
    <https://docs.confluent.io/current/connect/managing/community.html>`__.
 
-#. Specify your Java class in the ``mongodb.writemodel.strategy``
+   .. note::
+
+      Plugins are loaded in isolation, so when deploying a custom write
+      strategy, both the connector JAR and the custom write model strategy
+      JAR should be on the same path as shown in the following example:
+
+      | ``mongodb-kafka-connect/lib/mongo-kafka-connect-all.jar``
+      | ``mongodb-kafka-connect/lib/custom-write-model-strategy.jar``
+
+
+#. Specify your Java class in the ``writemodel.strategy``
    :ref:`configuration setting <kafka-sink-properties>`.
 
 The following is an example of a custom write strategy. It extracts the
@@ -736,18 +747,18 @@ in the MongoDB collection that matches the ID from the value document.
     */
 
    public class CustomWriteModelStrategy implements WriteModelStrategy {
-    
+
      private static String ID = "_id";
      @Override
      public WriteModel<BsonDocument> createWriteModel(final SinkDocument document) {
        BsonDocument changeStreamDocument = document.getValueDoc()
            .orElseThrow(() -> new DataException("Missing value document"));
-    
+
        BsonDocument fullDocument = changeStreamDocument.getDocument("fullDocument", new BsonDocument());
        if (fullDocument.isEmpty()) {
          return null; // Return null to indicate no op.
        }
-    
+
        return new ReplaceOneModel<>(Filters.eq(ID, fullDocument.get(ID)), fullDocument);
      }
    }
