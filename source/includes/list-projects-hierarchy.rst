@@ -15,5 +15,3 @@ By having multiple projects within an organization, you can:
 
 - Create different alert settings. For example, configure alerts for
   Production environments differently than Development environments.
-
-- Deploy into different regions or cloud platforms.
