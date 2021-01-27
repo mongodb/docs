@@ -47,3 +47,8 @@ a standalone package by following these steps:
 
 4. Copy the :binary:`~bin.mongo` shell from the archive to a location on
    your filesystem.
+
+For additional installation guidance specific to your platform, or to
+install the :binary:`~bin.mongo` shell as part of a MongoDB Server
+installation, see the :doc:`installation guide for your platform
+</installation>`.
