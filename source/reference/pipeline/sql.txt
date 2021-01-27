@@ -28,7 +28,7 @@ Syntax
      $sql: { 			
        statement: "<SQL-statement>",
        format: "jdbc",
-       formatVersion: 1,
+       formatVersion: <version-number>,
        dialect: "mysql"
      }
    }
@@ -59,8 +59,14 @@ Fields
 
    * - ``formatVersion``
      - int
-     - Version of the requested schema format. If omitted, defaults 
-       to the latest version of the requested schema format.
+     - Version of the requested output format. {+adl+} supports the 
+       following versions for the jdbc output format: 
+
+       - ``1``
+       - ``2`` (latest)
+     
+       If omitted, defaults to the latest version of the requested 
+       output format.
      - Optional
 
    * - ``statement``
@@ -76,97 +82,242 @@ Output
 If the SQL statement is not a query or a command that returns a 
 result set, the ``$sql`` stage does not return any documents. 
 
-If the SQL statement is a query, the ``$sql`` stage returns one document 
-per row in the SQL result set. Each document includes a single array field 
-named ``values`` that contains documents representing the columns in the 
-result set and their values. For example: 
+The output differs based on the format and format version used in the 
+query.
 
-.. code-block:: json 
-   :copyable: false 
+.. tabs:: 
 
-   {
-     "values": [
-       {
-         "database": "<databaseName>",
-         "table": "<tableName>",
-         "tableAlias": "<tableAlias>",
-         "column": "<columnName>",
-         "columnAlias": "<columnAlias>",
-         "bsonType": "<bsonType>",
-         "value": "<columnValue>"
-       },
-       ...
-     ]
-   }
+   .. tab:: formatVersion 1
+      :tabid: fv1
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 10 70 
+      The ``value`` field value differs based on whether or not the 
+      result set is empty.
 
-   * - Field 
-     - Type 
-     - Description 
+      .. tabs:: 
+      
+         .. tab:: Normal Result set 
+            :tabid: normal
 
-   * - ``database``
-     - string
-     - Name of the database. For queries against ``DUAL``, the field 
-       has a ``null`` value.
+            If the SQL statement is a query, the ``$sql`` stage returns 
+            one document per row in the SQL result set. Each document 
+            includes a single array field named ``values`` that 
+            contains documents representing the columns in the result 
+            set and their values. For example: 
 
-   * - ``table``
-     - string
-     - Name of the table. For computed columns, the field has 
-       a ``null`` value. 
+            .. code-block:: json 
+               :copyable: false 
 
-   * - ``tableAlias``
-     - string
-     - Alias for the table. If the query provides no alias, value is 
-       the same as the table name. For computed columns, the field has 
-       a ``null`` value.
+               {
+                 "values": [
+                   {
+                     "database": "<databaseName>",
+                     "table": "<tableName>",
+                     "tableAlias": "<tableAlias>",
+                     "column": "<columnName>",
+                     "columnAlias": "<columnAlias>",
+                     "bsonType": "<bsonType>",
+                     "value": "<columnValue>"
+                   },
+                   ...
+                 ]
+               }
 
-   * - ``column``
-     - string
-     - Name of the column. For computed columns, the field has 
-       a ``null`` value.
+         .. tab:: Empty Result set 
+            :tabid: empty
 
-   * - ``columnAlias``
-     - string
-     - Alias for the column. If the query provides no alias, value is 
-       the same as the column name. For computed columns, the field 
-       contains the column name.
+            If the result set of the query is empty, the output 
+            includes a field ``emptyResultSet`` whose value is 
+            ``true``. The ``values`` field has all of the column 
+            metadata, but the ``value`` field value is ``null``. For 
+            example:
 
-   * - ``bsonType``
-     - string
-     - The type of value. See :ref:`sql-bson-types` for more 
-       information.
+            .. code-block:: json 
+               :copyable: false 
+               :emphasize-lines: 2, 11
 
-   * - ``value``
-     - string
-     - The column value.
+               {
+                 "emptyResultSet": true,
+                 "values": [
+                   {
+                     "database": "<databaseName>",
+                     "table": "<tableName>",
+                     "tableAlias": "<tableAlias>",
+                     "column": "<columnName>",
+                     "columnAlias": "<columnAlias>",
+                     "bsonType": "<bsonType>",
+                     "value": "null"
+                   },
+                   ...
+                 ]
+               }
 
-If the result set of the query is empty, the output includes a 
-field ``emptyResultSet`` whose value is ``true``. The ``values`` field 
-has all of the column metadata, but the ``value`` field value is ``null``. 
-For example: 
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 10 70 
 
-.. code-block:: json 
-   :copyable: false 
-   :emphasize-lines: 2, 11
+         * - Field 
+           - Type 
+           - Description 
 
-   {
-     "emptyResultSet": true,
-     "values": [
-       {
-         "database": "<databaseName>",
-         "table": "<tableName>",
-         "tableAlias": "<tableAlias>",
-         "column": "<columnName>",
-         "columnAlias": "<columnAlias>",
-         "bsonType": "<bsonType>",
-         "value": "null"
-       },
-       ...
-     ]
-   }
+         * - ``emptyResultSet``
+           - boolean
+           - Flag that indicates if the result set of the query is 
+             empty. Value is ``true`` if the result set of the query is 
+             empty. {+adl+} returns this field only if the result set 
+             of the query is empty.
+
+         * - ``values`` 
+           - array of documents 
+           - Column metadata including column values.
+
+         * - ``values[n].database``
+           - string
+           - Name of the database. For queries against ``DUAL``, the 
+             field has a ``null`` value.
+
+         * - ``values[n].table``
+           - string
+           - Name of the table. For computed columns, the field has 
+             a ``null`` value. 
+
+         * - ``values[n].tableAlias``
+           - string
+           - Alias for the table. If the query provides no alias, value 
+             is the same as the table name. For computed columns, the 
+             field has a ``null`` value.
+
+         * - ``values[n].column``
+           - string
+           - Name of the column. For computed columns, the field has 
+             a ``null`` value.
+
+         * - ``values[n].columnAlias``
+           - string
+           - Alias for the column. If the query provides no alias, 
+             value is the same as the column name. For computed 
+             columns, the field contains the column name.
+
+         * - ``values[n].bsonType``
+           - string
+           - Type of value. See :ref:`sql-bson-types` for more 
+             information.
+
+         * - ``values[n].value``
+           - |bson| data type
+           - Column value. Value is ``null`` if the result set of the 
+             query is empty.
+
+   .. tab:: formatVersion 2
+      :tabid: fv2
+
+      The number of documents in the output differs based on whether or 
+      not the result set is empty.
+
+      .. tabs:: 
+      
+         .. tab:: Normal Result set 
+            :tabid: normal
+
+            If the SQL statement is a query, the ``$sql`` stage returns 
+            the schema information in the first document. Subsequent 
+            documents, one per row in the SQL result set, include a 
+            single array field named ``values`` that contains only the 
+            values for the columns in the result set. For example: 
+
+            .. code-block:: json 
+               :copyable: false 
+
+               {
+                 "columns": [
+                   {
+                     "database": "<databaseName>",
+                     "table": "<tableName>",
+                     "tableAlias": "<tableAlias>",
+                     "column": "<columnName>",
+                     "columnAlias": "<columnAlias>",
+                     "bsonType": "<bsonType>"
+                   },
+                   ...
+                 ]
+               }
+               { "values": [<columnValue>,...] }
+               ...
+
+         .. tab:: Empty Result set 
+            :tabid: empty
+
+            If the result set of the query is empty, the output 
+            includes only one document that contains the schema 
+            information. The documents that contain the values for the 
+            columns in the result set are not in the output. For 
+            example:
+
+            .. code-block:: json 
+               :copyable: false 
+
+               {
+                 "columns": [
+                   {
+                     "database": "<databaseName>",
+                     "table": "<tableName>",
+                     "tableAlias": "<tableAlias>",
+                     "column": "<columnName>",
+                     "columnAlias": "<columnAlias>",
+                     "bsonType": "<bsonType>"
+                   },
+                   ...
+                 ]
+               }
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 10 70 
+
+         * - Field 
+           - Type 
+           - Description 
+
+         * - ``columns`` 
+           - array of documents 
+           - Information on the columns.
+
+         * - ``columns[n].database``
+           - string
+           - Name of the database. For queries against ``DUAL``, the 
+             field has a ``null`` value.
+
+         * - ``columns[n].table``
+           - string
+           - Name of the table. For computed columns, the field has 
+             a ``null`` value. 
+
+         * - ``columns[n].tableAlias``
+           - string
+           - Alias for the table. If the query provides no alias, value 
+             is the same as the table name. For computed columns, the 
+             field has a ``null`` value.
+
+         * - ``columns[n].column``
+           - string
+           - Name of the column. For computed columns, the field has 
+             a ``null`` value.
+
+         * - ``columns[n].columnAlias``
+           - string
+           - Alias for the column. If the query provides no alias, 
+             value is the same as the column name. For computed 
+             columns, the field contains the column name.
+
+         * - ``columns[n].bsonType``
+           - string
+           - Type of value. See :ref:`sql-bson-types` for more 
+             information.
+
+         * - ``values`` 
+           - array of |bson| data type 
+           - Column values for a row in the result set. Each ``values`` 
+             document corresponds to a column in the ``columns`` array. 
+             Absent if the result set of the query is empty.
 
 .. _adl-sql-eg:
 
