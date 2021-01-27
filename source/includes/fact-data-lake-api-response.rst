@@ -102,22 +102,8 @@
      - Current state of the {+data-lake+}:
 
        - ``ACTIVE`` - The {+data-lake-short+} is active and 
-         verified. You can query the
-         {+data-lake-stores+} associated to the {+data-lake+}.
-
-       - ``UNVERIFIED`` - The {+data-lake+} has an incomplete 
-         configuration *or* the provided credentials do not grant 
-         the access to the {+data-lake-stores+}. 
-
-         For |aws| specifically, the
-         provided ``cloudProviderConfig.aws.iamAssumedRoleARN`` 
-         must grant access to the |aws| S3 buckets associated with any
-         {+data-lake-stores+}.
-
-         Use the
-         :doc:`update </reference/api/dataLakes-update-one-tenant>`
-         endpoint to update the {+data-lake-store+} configuration
-         with the required settings.
+         verified. You can query the {+data-lake-stores+} associated 
+         with the {+data-lake+}.
 
    * - ``storage``
      - object
