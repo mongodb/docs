@@ -1,3 +1,21 @@
+.. _opsmgr-server-4.2.23:
+
+|onprem| Server 4.2.23
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-01-27*
+
+- Fixes a bug where |onprem| reported a server error when trying to save
+  an invalid configuration on the LDAP Admin configuration page.
+- Generates diagnostic archives that contain:
+
+  - Host ping information only for active groups.
+  - Backup logs limited by the :ref:`Backup log settings 
+    <mongodb-agent-backup-settings>`.
+
+- Fixes a medium severity vulnerability in |onprem|. ``CVE-2021-20335`` 
+  is allocated for this issue.
+
 .. _opsmgr-server-4.2.22:
 
 |onprem| Server 4.2.22
