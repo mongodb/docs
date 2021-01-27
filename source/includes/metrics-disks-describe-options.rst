@@ -71,8 +71,7 @@
 
    * - ``--projectId``
      - string
-     - Unique identifier of the project for which to retrieve events. If
-       omitted, uses the project ID listed in the profile.
+     - .. include:: /includes/extracts/fact-basic-options-project-id.rst
      - no
    
    * - ``start``

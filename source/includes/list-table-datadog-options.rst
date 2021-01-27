@@ -27,9 +27,7 @@
 
    * - ``--projectId``
      - string
-     - Unique identifier of the project. If omitted, uses the 
-       project ID in the profile or :ref:`environment variable 
-       <mcli-env-var>`.
+     - .. include:: /includes/extracts/fact-basic-options-project-id.rst
      - no
 
    * - ``--region`` 

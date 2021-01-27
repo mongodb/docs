@@ -46,7 +46,7 @@
 
    * - ``--projectId``
      - string
-     - Unique identifier of the project for which to retrieve events.
+     - .. include:: /includes/extracts/fact-basic-options-project-id.rst
      - yes
 
 .. note::
