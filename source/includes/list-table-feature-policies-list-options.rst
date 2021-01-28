@@ -2,31 +2,16 @@
    :header-rows: 1
    :widths: 20 10 60 10
 
-   * - Option 
-     - Type 
-     - Description 
-     - Required? 
+   * - Option
+     - Type
+     - Description
+     - Required?
 
    * - ``--limit``
      - integer
-     - Number of items per page, up to a maximum of 500. Defaults to ``100`` if not
-       specified.
+     - Number of items per page, up to a maximum of 500. Defaults to
+       ``100`` if not specified.
      - no
-
-   * - ``--maxDate``
-     - string
-     - Return events whose created date is less than or equal to it.
-     - no
-
-   * - ``--minDate``
-     - string
-     - Return events whose created date is greater than or equal to it.
-     - no
-
-   * - ``--orgId``
-     - string
-     - Unique identifier of the organization for which to retrieve events.
-     - yes
 
    * - ``--output``, ``-o``
      - string 
@@ -48,9 +33,4 @@
    * - ``--projectId``
      - string
      - .. include:: /includes/extracts/fact-basic-options-project-id.rst
-     - yes
-
-.. note::
-
-   The ``--orgId`` and ``--projectId`` flags are exclusive. You must use one or
-   the other, but not both.
+     - no
