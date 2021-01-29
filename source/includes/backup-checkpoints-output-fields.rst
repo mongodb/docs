@@ -10,7 +10,7 @@
    * - ``results``
      - object array
      - Includes one object for each item detailed in the
-       `results array`_ section.
+       :ref:`backup-checkpoints-output-fields-results-array`.
 
    * - ``links``
      - object array
@@ -22,6 +22,8 @@
    * - ``totalCount``
      - number
      - Count of the total number of items in the result set.
+
+.. _backup-checkpoints-output-fields-results-array:
 
 ``results`` array
 ~~~~~~~~~~~~~~~~~
