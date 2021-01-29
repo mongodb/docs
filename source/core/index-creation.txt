@@ -195,15 +195,15 @@ For sharded clusters, the index build occurs only on shards
 containing data for the collection being indexed.
 
 .. warning::
- 
-  Avoid dropping any index on a collection while an index is being 
+
+  Avoid dropping any index on a collection while an index is being
   replicated on the secondaries.
-  
-  If you attempt to drop an index from a collection on a :term:`primary` 
-  node while the collection has a background index building on the 
-  :term:`secondary` nodes, the two indexing operations will conflict 
-  with each other. 
-  
+
+  If you attempt to drop an index from a collection on a :term:`primary`
+  node while the collection has a background index building on the
+  :term:`secondary` nodes, the two indexing operations will conflict
+  with each other.
+ 
   As a result, reads will be halted across all namespaces and
   replication will halt until the background index build completes. 
   When the build finishes the dropIndex action will execute, then 
@@ -247,16 +247,26 @@ Build Failure and Recovery
 Interrupted Index Builds on a Primary ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the primary :binary:`~bin.mongod` shuts down during the index build,
-the build progress is lost. The :binary:`~bin.mongod` automatically
-recovers the index build and restarts it from the beginning.
+Starting in MongoDB 5.0, if the primary :binary:`~bin.mongod` shuts
+down cleanly during the index build and the 
+:ref:`commitQuorum <createIndexes-cmd-commitQuorum>` is set to the
+default ``votingMembers``, then the index build progress is saved to
+disk. The :binary:`~bin.mongod` automatically recovers the index build
+when it is restarted and continues from the saved checkpoint. In earler
+versions, if the index build was interrupted it had to be restarted
+from the beginning.
 
 Interrupted Index Builds on a Secondary ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If a secondary shuts down during the index build, the index build job is
-persisted. Restarting the :binary:`~bin.mongod` automatically recovers
-the index build and restarts it from the beginning.
+Starting in MongoDB 5.0, if a secondary :binary:`~bin.mongod` shuts
+down cleanly during the index build and the 
+:ref:`commitQuorum <createIndexes-cmd-commitQuorum>` is set to the
+default ``votingMembers``, then the index build progress is saved to
+disk. The :binary:`~bin.mongod` automatically recovers the index build
+when it is restarted and continues from the saved checkpoint. In earler
+versions, if the index build was interrupted it had to be restarted
+from the beginning.
 
 Prior to MongoDB 4.4, the startup process stalls behind any recovered
 index builds. The secondary could fall out of sync with the replica set
@@ -281,6 +291,12 @@ the index build.
 
 Rollbacks during Build Process
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, if a node is rolled back to a prior state
+during the index build, the index build progress is saved to disk. If
+there is still work to be done when the rollback concludes, the
+:binary:`~bin.mongod` automatically recovers the index build and
+continues from the saved checkpoint.
 
 Starting in version 4.4, MongoDB can pause an in-progress 
 index build to perform a :doc:`rollback </core/replica-set-rollbacks>`.
@@ -340,6 +356,20 @@ filter the current operations for index creation operations, see
 
 The :data:`~currentOp.msg` field includes a percentage-complete
 measurement of the current stage in the index build process. 
+
+Observe Stopped and Resumed Index Builds in the Logs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While an index is being built, progress is written to the 
+:doc:`MongoDB log</reference/log-messages>`. If an index build is
+stopped and resumed there will be log messages with fields like these:
+
+.. code-block:: sh
+   :copyable: false
+
+    "msg":"Index build: wrote resumable state to disk",
+   
+    "msg":"Found index from unfinished build",
 
 Terminate In Progress Index Builds
 ----------------------------------
