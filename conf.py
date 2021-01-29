@@ -169,7 +169,7 @@ rst_epilog = [
     '.. |saml| replace:: :abbr:`SAML (Security Assertion Markup Language)`',
     '.. |sca| replace:: :abbr:`SCA (Strong Customer Authentication)`',
     '.. |service-fullname| replace:: MongoDB Atlas',
-    '.. |service-pricing| replace:: Atlas pricing page',
+    '.. |service-pricing| replace:: `Atlas pricing page <https://www.mongodb.com/cloud/atlas/pricing?tck=docs_atlas>`__',
     '.. |service| replace:: Atlas',
     '.. |slo| replace:: :abbr:`SLO (Single Logout)`',
     '.. |sms| replace:: :abbr:`SMS (short message service)`',

@@ -16,7 +16,8 @@
        - a replica set, or
        - a sharded cluster.
 
-       To add one or more **matchers**, see `Filter Results`_.
+       To add one or more **matchers**, see `Filter Results
+       <#filter-results>`_.
 
    * - notifications
      - array of objects
@@ -25,7 +26,8 @@
        alert condition is detected. You can configure any number of
        notifications for each alert condition.
 
-       To add one or more **notifications**, see `Set Notifications`_.
+       To add one or more **notifications**, see `Set Notifications
+       <#set-notifications>`_.
 
 .. tabs::
    :hidden:
@@ -43,7 +45,8 @@
            - Threshold that triggers an alert. Don't include if
              **"eventTypeName" : "OUTSIDE_METRIC_THRESHOLD"**.
 
-             To add one **threshold**, see `Trigger Alerts`_.
+             To add one **threshold**, see `Trigger Alerts
+             <#trigger-alerts>`_.
 
    .. tab:: Metrics
       :tabid: metrics
@@ -58,6 +61,5 @@
            - Threshold for the metric that, when exceeded, triggers an
              alert.
 
-             To add one **metricThreshold**, see `Trigger Alerts`_.
-
-
+             To add one **metricThreshold**, see `Trigger Alerts
+             <#trigger-alerts>`_.
