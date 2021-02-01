@@ -23,6 +23,6 @@
        | :setting:`.tls.ca<spec.security.tls.ca>`
      - string
      - Optional
-     - If you use a custom |certauth| and have created the |k8s-secret|
-       that stores it, add the secret's name.
+     - If you use a custom |certauth| and have created the 
+       |k8s-configmap| that stores it, add the ConfigMap's name.
      - ``<custom-ca>``
