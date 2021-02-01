@@ -29,12 +29,17 @@ available in the :ref:`mcli-reference` section.
 Prerequisites 
 -------------
 
+Before you begin, review and ensure that your environment is 
+:ref:`compatible <mcli-compatibility>` for installing and using 
+{+mcli+}.
+
 This tutorial requires the following: 
 
 - A `MongoDB account <https://docs.mongodb.com/guides/cloud/account>`_ 
 - An :atlas:`Atlas </organizations-projects/>`, 
   :cloudmgr:`Cloud Manager </organizations-projects/>`, or 
-  :opsmgr:`Ops Manager </organizations-projects/>` organization and project
+  :opsmgr:`Ops Manager </organizations-projects/>` organization and 
+  project
 
 .. _quick-start-install:
 
@@ -54,9 +59,12 @@ verify installation:
 Generate Programmatic Access Keys 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-{+mcli+} uses Programmatic Access Keys to access the |service|, |cloud-short|, 
-or |mms| projects. Your |svc-api-key| must have the ``project owner`` 
-role and it must be whitelisted for your IP address or |cidr| range. 
+{+mcli+} uses Programmatic Access Keys to access the |service|, 
+|cloud-short|, or |on-prem| projects. Your |svc-api-key| must have: 
+
+- The ``project owner`` role 
+- The access list entry for your IP address or |cidr| range
+
 To learn more about generating the |svc-api-key|, see: 
 
 - :atlas:`Atlas API Access </configure-api-access>`
@@ -110,23 +118,23 @@ Procedure
 
       .. _quick-start-whitelist:
 
-      Whitelist Your IP Address
-      ~~~~~~~~~~~~~~~~~~~~~~~~~
+      Configure Your IP Access List
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       |service| only allows incoming connections to the cluster from
-      entries in the project’s whitelist. You can add individual IP
-      addresses or |cidr| blocks to the project IP whitelist. 
+      entries in the project’s access list. You can add individual IP
+      addresses or |cidr| blocks to the project IP access list. 
       
       |service| supports specifying private IP addresses with VPC peered
-      connections. For more information, see
-      :atlas:`Set up a Network Peering Connection </security-vpc-peering/index.html>`.
+      connections. For more information, see :atlas:`Set up a Network 
+      Peering Connection </security-vpc-peering/index.html>`.
       
-      Run the following command to add entries to your whitelist.
+      Run the following command to add entries to your IP access list.
       Replace the IP address with your connection IP address. 
 
       .. code-block:: sh 
          
-         mongocli atlas whitelist create <your-IP-address> --type ipAddress
+         mongocli atlas accesslist create <your-IP-address> --type ipAddress
 
       .. _quick-start-create-mdb-user:
 
@@ -154,17 +162,30 @@ Procedure
          
          mongocli atlas dbuser create --username User1 --password ChangeThisPasswordToSomethingSecure --role atlasAdmin@admin
 
+      .. _quick-start-atlas-monitor-cluster:
+
+      Determine Your Cluster Status 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Run the :ref:`mcli-atlas-cluster-watch-cmd` command to determine 
+      if the cluster is available for use. The following command uses 
+      the default profile to access the |service| project:
+
+      .. code-block:: sh 
+
+	     mongocli atlas cluster watch getStarted 
+
       .. _quick-start-atlas-retrieve-cluster:
 
       Retrieve Your Cluster 
       ~~~~~~~~~~~~~~~~~~~~~
 
-      To check your cluster's deployment status, issue the
+      To retrieve your cluster settings and status, issue the
       :ref:`mcli-atlas-cluster-describe-command` command.
 
       .. code-block:: sh 
 
-         mongocli atlas cluster describe getStarted
+         mongocli atlas cluster describe getStarted --output json
 
       Your command output should look similar to the following:
 
@@ -172,59 +193,103 @@ Procedure
          :copyable: false 
 
          {
-	       "autoScaling": {
-		     "diskGBEnabled": false
-	       },
-	       "backupEnabled": false,
-	       "biConnector": {
-		     "enabled": false,
-		     "readPreference": "secondary"
-	       },
-	       "clusterType": "REPLICASET",
-	       "diskSizeGB": 10,
-	       "encryptionAtRestProvider": "NONE",
-	       "id": "5e29cf4e7a3e5a3f46554bde",
-	       "groupId": "<project-ID>",
-	       "mongoDBVersion": "4.2.3",
-	       "mongoDBMajorVersion": "4.2",
-	       "mongoURI": "mongodb://getstarted.mongodb.example.net:27017,getstarted.mongodb.example.net:27017,getstarted.mongodb.example.net:27017",
-	       "name": "getStarted",
-	       "numShards": 1,
-	       "paused": false,
-	       "providerBackupEnabled": false,
-	       "providerSettings": {
-		     "backingProviderName": "AWS",
-		     "instanceSizeName": "M10",
-		     "providerName": "TENANT",
-		     "regionName": "US_EAST_1"
-	       },
-	       "replicationFactor": 3,
-	       "replicationSpec": {
-		      "US_EAST_1": {
-			    "analyticsNodes": 0,
-			    "electableNodes": 3,
-			    "priority": 7,
-			    "readOnlyNodes": 0
-		      }
-	       },
-	       "replicationSpecs": [
-		     {
-			    "id": "5e29cf3cf10fab4e2677c9f9",
-			    "numShards": 1,
-			    "zoneName": "Zone 1",
-			    "regionsConfig": {
-				  "US_EAST_1": {
-					"analyticsNodes": 0,
-					"electableNodes": 3,
-					"priority": 7,
-					"readOnlyNodes": 0
-				  }
-			  }
-		     }
-	       ],
-	       "srvAddress": "mongodb+srv://getstarted.mongodb.example.net",
-	       "stateName": "IDLE"
+           "autoScaling": {
+             "diskGBEnabled": false,
+             "compute": {
+               "enabled": false,
+               "scaleDownEnabled": false
+             }
+           },
+           "backupEnabled": false,
+           "biConnector": {
+             "enabled": false,
+             "readPreference": "secondary"
+           },
+           "clusterType": "REPLICASET",
+           "diskSizeGB": 0.5,
+           "encryptionAtRestProvider": "NONE",
+           "id": "5e29cf4e7a3e5a3f46554bde",
+           "groupId": "<project-ID>",
+           "mongoDBVersion": "4.2.12",
+           "mongoDBMajorVersion": "4.2",
+           "mongoURI": "mongodb://getStarted-shard-00-00.example.mongodb.net:27017,getStarted-shard-00-01.example.mongodb.net:27017,getStarted-shard-00-02.example.mongodb.net:27017",
+           "mongoURIUpdated": "2020-08-12T14:36:23Z",
+           "mongoURIWithOptions": "mongodb://getStarted-shard-00-00.example.mongodb.net:27017,getStarted-shard-00-01.example.mongodb.mongodb.net:27017,getStarted-shard-00-02.example.mongodb.net:27017/?ssl=true\u0026authSource=admin\u0026replicaSet=atlas-abcde4-shard-0",
+           "name": "getStarted",
+           "numShards": 1,
+           "paused": false,
+           "pitEnabled": false,
+           "providerBackupEnabled": false,
+           "providerSettings": {
+             "backingProviderName": "AWS",
+             "instanceSizeName": "M0",
+             "providerName": "TENANT",
+             "regionName": "US_EAST_1",
+             "autoScaling": {
+               "compute": {}
+             }
+           },
+           "replicationFactor": 3,
+           "replicationSpecs": [
+             {
+               "id": "5f33fdc96b0fb076cc13ef20",
+               "numShards": 1,
+               "zoneName": "Zone 1",
+               "regionsConfig": {
+                 "US_EAST_1": {
+                   "analyticsNodes": 0,
+                   "electableNodes": 3,
+                   "priority": 7,
+                   "readOnlyNodes": 0
+                 }
+               }
+             }
+           ],
+           "srvAddress": "mongodb+srv://getStarted.example.mongodb.net",
+           "stateName": "IDLE",
+           "connectionStrings": {
+             "standard": "mongodb://getStarted-shard-00-00.example.mongodb.net:27017,getStarted-shard-00-01.example.mongodb.net:27017,getStarted-shard-00-02.example.mongodb.net:27017/?ssl=true\u0026authSource=admin\u0026replicaSet=atlas-abcde4-shard-0",
+             "standardSrv": "mongodb+srv://getStarted.example.mongodb.net"
+           }
          }
+
+      .. _quick-start-atlas-retrieve-conection-string:
+
+      Get Your Cluster Connection String Using a Go Template 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You can also use the |mongo| shell to connect to your cluster with
+      the ``srvAddress`` and appropriate :manual:`connection string
+      options 
+      </reference/connection-string/#connection-string-options>`.
+
+      To retrieve the connection string for the ``getStarted`` cluster, 
+      run the following :ref:`mcli-atlas-cluster-describe-command` 
+      command with the template. The following command uses the default 
+      profile for accessing |service|.
+
+      .. code-block:: sh 
+
+	     mongocli atlas clusters describe getStarted -o go-template="Parse: {{.SrvAddress}}"
+
+      The previous command returns a string similar to the following: 
+
+      .. code-block:: sh 
+	     :copyable: false 
+
+	     Parse: mongodb+srv://getstarted.example.mongodb.net
+
+      Use the connection string with the |mongo| shell to connect to 
+      the ``getStarted`` cluster. This example uses the following to 
+      connect to the |service| cluster: 
+      
+      - The connection string returned by the previous command 
+      - The username and password created in this :ref:`tutorial 
+        <quick-start-create-mdb-user>` 
+
+      .. code-block:: 
+
+	     mongo "mongodb+srv://getstarted.example.mongodb.net" --username User1 --password ChangeThisPasswordToSomethingSecure
 
    .. tab:: Cloud Manager
       :tabid: cloud-manager
@@ -319,6 +384,19 @@ Procedure
 	       ]
          }
 
+      .. _quick-start-cm-watch-automation-config:
+
+      Watch Your Automation Configuration Status
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Run the :ref:`mcli-cm-automation-watch-command` command to 
+      determine if the cluster is ready for use. The following command 
+      uses the default profile to access the |cloud-short| project:
+
+      .. code-block:: sh 
+
+	     mongocli cm automation watch  
+
    .. tab:: Ops Manager
       :tabid: ops-manager 
 
@@ -366,7 +444,7 @@ Procedure
 			     "buildIndexes": true,
 			     "db_path": "/data/cluster/rs1",
 			     "featureCompatibilityVersion": "4.2",
-		        "hostname": "host1",
+			     "hostname": "host1",
 			     "log_path": "/data/cluster/rs1/mongodb.log",
 			     "name": "getStartedCluster",
 			     "port": 29010,
@@ -416,6 +494,19 @@ Procedure
 	        ]
          }
 
+      .. _quick-start-om-watch-automation-config:
+
+      Watch Your Automation Configuration Status 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Run the :ref:`mcli-om-automation-watch-command` command to 
+      determine if the cluster is ready for use. The following command 
+      uses the default profile to access the |mms| project:
+
+      .. code-block:: sh 
+
+	     mongocli om automation watch  
+
 Summary 
 -------
 
@@ -427,17 +518,20 @@ Summary
 
       .. include:: /includes/quick-start-summary.rst
 
-      You can also use the |mongo| shell connect to your cluster with
-      the ``srvAddress`` and appropriate :manual:`connection string
-      options
-      </reference/connection-string/#connection-string-options>`.
-
    .. tab:: Cloud Manager
       :tabid: cloud-manager 
 
       .. include:: /includes/quick-start-summary.rst
 
+      You can also use the |mongo| shell to connect to your cluster with
+      the appropriate :manual:`connection string options 
+      </reference/connection-string/#connection-string-options>`.
+
    .. tab:: Ops Manager
       :tabid: ops-manager 
 
       .. include:: /includes/quick-start-summary.rst
+
+      You can also use the |mongo| shell to connect to your cluster with
+      the appropriate :manual:`connection string options 
+      </reference/connection-string/#connection-string-options>`.
