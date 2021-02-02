@@ -15,27 +15,29 @@ Customer Key Management with AWS KMS
    :depth: 1
    :class: singlecol
 
-.. include:: /includes/fact-atlas-free-tier-limits.rst
+You can configure your |service| project to use an |aws| `IAM role 
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__ 
+for accessing your |aws| KMS keys for encryption at rest. You can 
+either use an existing role or create a new role when you enable 
+encryption at rest for your project.
 
-|service| uses your |aws| customer master key (CMK) in the |aws| Key
-Management Service (KMS) to encrypt and decrypt your MongoDB master
-keys. These MongoDB master keys are used to encrypt cluster database
-files and :ref:`cloud providers snapshots <backup-cloud-provider>`.
+This page covers configuring customer key management on your |service| 
+project for role-based access.
 
-.. include:: /includes/fact-atlas-key-rotation.rst
-
-|service| encrypts your data at rest using encrypted storage media.
-Using keys you manage with |aws| |kms|, |service| encrypts your data a
-second time when it writes it to the MongoDB
-:manual:`encrypted storage engine </core/security-encryption-at-rest>`.
-You use your |aws| |cmk| to encrypt the MongoDB master encryption keys.
-:term:`Oplog <oplog>` data is also encrypted with your |cmk|.
-
-This page covers configuring customer key management using |aws| |kms|
-on your |service| project.
+If you have not yet enabled encryption at rest for your new or existing 
+|service| project, follow the :ref:`aws-kms-enable-project` procedure 
+to enable encryption at rest for your |service| project. If you have an 
+|service| project for which you have already enabled encryption at rest 
+and configured credentials-based access to your encryption keys, follow 
+the :ref:`aws-kms-switch-project` procedure to switch to role-based 
+access to your encryption keys.
 
 You must configure customer key management for the |service| project
 before enabling it on clusters in that project.
+
+.. seealso:: 
+
+   - :ref:`set-up-unified-aws-access`
 
 .. _aws-ksm-prereqs:
 .. _security-aws-kms-restrictions:
@@ -48,25 +50,55 @@ project, you must:
 
 .. include:: /includes/fact-aws-kms-prereqs.rst
 
-Procedures
-----------
+.. _aws-kms-enable-project:
 
-.. _aws-kms-configure-project:
+Enable Role-Based Access to Your Encryption Key for a Project
+-------------------------------------------------------------
 
-Enable Customer-Managed Keys for a Project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. tabs::
 
-You must enable customer key management for a project before you can
-enable it on a cluster in that project.
+   .. tab:: UI
+      :tabid: ui
 
-.. include:: /includes/steps/enable-encryption-for-project.rst
+      .. include:: /includes/steps/enable-rba-encryption-for-project.rst
+
+   .. tab:: API
+      :tabid: api
+   
+      .. include:: /includes/steps/enable-rba-encryption-api.rst
+
+.. _aws-kms-switch-project:
+
+Switch to Role-Based Access to Your Encryption Key for a Project
+----------------------------------------------------------------
+
+.. important:: 
+
+   If you switch your |service| project from credentials-based access 
+   to role-based access to your encryption keys, you cannot undo the 
+   role-based access configuration and revert to credentials-based 
+   access for that project.
+
+.. tabs::
+
+   .. tab:: UI
+      :tabid: ui
+
+      .. include:: /includes/steps/migrate-rba-encryption-for-project.rst
+
+   .. tab:: API
+      :tabid: api
+   
+      To update your encryption key management with the public API, use
+      the same steps outlined in the :ref:`above procedure
+      <aws-kms-enable-project>`.
 
 .. _aws-enable-cluster-encryption-at-rest:
 
 Enable Customer Key Management for an |service| Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------
 
-After you :ref:`aws-kms-configure-project`, you must enable customer key
+After you :ref:`aws-kms-enable-project`, you must enable customer key
 management for each |service| cluster that contains data that you want
 to encrypt.
 
@@ -82,35 +114,6 @@ setting to :guilabel:`Yes` when you create the cluster.
 For existing clusters:
 
 .. include:: /includes/steps/cluster-customer-key-management.rst
-
-Disable Customer-Managed Keys for a Project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You must disable customer key management on each cluster in a project
-before you can disable the feature for the project.
-
-Alerts
-------
-
-|service| automatically creates an
-:alert:`customer master key rotation alert <AWS encryption key elapsed time since last rotation is above (n) days>`
-once you configure Encryption at Rest for a project.
-
-To reset this alert, :doc:`/tutorial/security-aws-kms-rotate-key`.
-
-Related Topics
---------------
-
-- To enable Encryption at Rest when deploying an |service| cluster,
-  see :ref:`create-cluster-enable-encryption`.
-
-- To enable Encryption at Rest for an existing |service| cluster,
-  see :ref:`scale-cluster-enable-encryption`.
-
-- To rotate the currently configured |cmk| or changing the |iam|
-  user credentials for a |service| project, see
-  :doc:`/tutorial/security-aws-kms-rotate-key`.
-
 
 .. toctree::
    :titlesonly:
