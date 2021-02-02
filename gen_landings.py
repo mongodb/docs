@@ -3,7 +3,7 @@ import collections
 import os.path
 from sys import argv
 
-Site = collections.namedtuple('Site', ('input_path', 'output_path', 'title', 'search_properties'))
+Site = collections.namedtuple('Site', ('input_path', 'output_path', 'title', 'search_properties', 'canonical'))
 
 # Build directory name will be the name of Makefile recipe
 BUILD_DIR = argv[1]
@@ -12,11 +12,13 @@ SITES = [
     Site('./src/html/cloud.html',
          os.path.join(BUILD_DIR, 'cloud', 'index.html'),
          'Cloud Products — MongoDB Documentation',
-         'atlas-master,mms-onprem-current,mms-cloud-master,stitch-master'),
+         'atlas-master,mms-onprem-current,mms-cloud-master,stitch-master',
+         'cloud'),
     Site('./src/html/tools.html',
          os.path.join(BUILD_DIR, 'tools', 'index.html'),
          'MongoDB Tools — MongoDB Documentation',
-         'bi-connector-current,spark-connector-current,compass-master'),
+         'bi-connector-current,spark-connector-current,compass-master',
+         'tools'),
 ]
 
 
@@ -37,6 +39,7 @@ def build_individual(template: str, site: Site) -> None:
     file_contents = file_contents.replace('{projectTitle}', project_title)
     file_contents = file_contents.replace('{searchProperties}', site.search_properties)
     file_contents = file_contents.replace('{body}', html)
+    file_contents = file_contents.replace('{canonical}', site.canonical)
 
     # Write the output file
     with open(site.output_path, 'w') as out_file:
