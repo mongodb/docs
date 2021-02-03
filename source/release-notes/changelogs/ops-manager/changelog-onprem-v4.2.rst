@@ -10,11 +10,38 @@
 - Generates diagnostic archives that contain:
 
   - Host ping information only for active groups.
-  - Backup logs limited by the :ref:`Backup log settings 
+  - Backup logs limited by the :ref:`Backup log settings
     <mongodb-agent-backup-settings>`.
 
-- Fixes a medium severity vulnerability in |onprem|. ``CVE-2021-20335`` 
-  is allocated for this issue.
+- Fixes a medium severity vulnerability in |onprem|.
+  :cve-id:`CVE-2021-20335` is allocated for this issue.
+
+.. topic:: CVE ID: :cve-id:`CVE-2021-20335`
+
+   .. list-table::
+      :widths: 15 85
+      :stub-columns: 1
+
+      * - Title
+        - SSL may be unexpectedly disabled during upgrade of
+          multiple-server MongoDB |onprem|
+      * - Description
+        - For MongoDB |onprem| 4.2.X with multiple OM application
+          servers, that have |ssl| turned on for their MongoDB
+          processes, the upgrade to MongoDB |onprem| 4.4.X triggers a
+          bug where Automation thinks |ssl| is being turned off, and
+          can disable |ssl| temporarily for members of the cluster.
+          This issue is temporary and eventually corrects itself
+          after MongoDB |onprem| instances have finished upgrading to
+          MongoDB |onprem| 4.4. In addition, customers must be
+          running with clientCertificateMode=OPTIONAL /
+          :setting:`allowConnectionsWithoutCertificates<net.ssl.allowConnectionsWithoutCertificates>`=true
+          to be impacted.
+      * - |cvss| score
+        - 6.7
+          :cvss-score:`CVSS:3.1/AV:A/AC:L/PR:L/UI:R/S:U/C:L/I:L/A:N`
+      * - Affected versions
+        - MongoDB |onprem| 4.2, 4.2.0 to 4.2.22
 
 .. _opsmgr-server-4.2.22:
 
@@ -23,7 +50,7 @@
 
 *Released 2020-12-03*
 
-- Fixes a bug that prevents |mms| from correctly authenticating to an 
+- Fixes a bug that prevents |mms| from correctly authenticating to an
   :doc:`HTTP Proxy </tutorial/use-with-http-proxy/>`.
 
 - Updates the MongoDB Agent to :ref:`10.2.22.6000
