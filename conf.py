@@ -230,6 +230,7 @@ extlinks = {
     'k8sdocs': ('https://kubernetes.io/docs%s', ''),
     'v1.2': ('https://docs.mongodb.com/kubernetes-operator/v1.2%s', ''),
     'gh' : ('https://github.com%s', ''),
+    'gh-meko' : ('https://github.com/mongodb/mongodb-enterprise-kubernetes%s', ''),
     'gopkg' : ('https://godoc.org%s',''),
     'npmjs' : ('https://www.npmjs.com/package%s',''),
     'osi' : ('https://opensource.org%s', ''),
@@ -237,7 +238,9 @@ extlinks = {
     'cc' : ('http://creativecommons.org/licenses%s', ''),
     'tldrl' : ('https://www.tldrlegal.com/l/%s', ''),
     'aws': ('http://docs.aws.amazon.com%s', ''),
-    'gcp': ('https://cloud.google.com%s', '')
+    'gcp': ('https://cloud.google.com%s', ''),
+    'q-mdb': ('https://quay.io/mongodb%s', ''),
+    'qr-mdb': ('https://quay.io/repository/mongodb%s', '')
 }
 
 intersphinx_mapping = {}
