@@ -1,0 +1,415 @@
+:noprevnext:
+
+.. _explain-ref:
+
+=======
+Explain
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. important:: 
+
+   You can run |fts| queries with ``explain`` in |mongo| shell. 
+   However, it is not available for |compass|.
+
+The |fts| query returns information about the ``$search`` query plan 
+and execution statistics when the query is run with the ``explain`` 
+method. When you run a query with ``explain``, |fts| returns a |bson| 
+document containing information about how the query was run. 
+
+.. seealso:: 
+
+   :manual:`explain command</reference/command/explain/>` 
+
+.. _explain-syntax:
+
+Syntax 
+------
+
+.. code-block:: json 
+   :emphasize-lines: 1
+
+   db.<myCollection>.explain("<verbosity>").aggregate([
+     {
+       $search: {
+         "<operator>": {
+           "<operator-options>"
+         }
+       }
+     }
+   ])
+
+.. _explain-verbosity:
+
+Verbosity 
+---------
+
+Verbosity mode controls the behavior of ``explain`` and the amount of 
+information returned. Value can be one of the following: 
+
+.. list-table:: 
+   :widths: 30 70 
+
+   * - :manual:`queryPlanner 
+       </reference/explain-results/#explain.queryPlanner>` (default)
+     - Information about the query plan. Does not include the 
+       ``stats`` field, which contains execution statistics for 
+       the query.
+
+   * - :manual:`executionStats 
+       </reference/explain-results/#explain.executionStats>`
+     - Information about the query plan including the ``stats`` field, 
+       which contains execution statistics for the query.
+
+   * - :manual:`allPlansExecution 
+       </reference/explain-results/#explain.executionStats>`
+     - Information about the query plan including the ``stats`` field, 
+       which contains execution statistics for the query.
+
+.. seealso:: 
+       
+   :manual:`Verbosity Modes 
+   </reference/command/explain/index.html#verbosity-modes>`
+
+.. _explain-response:
+
+Explain Response 
+----------------
+
+The ``explain`` response is a |bson| document with keys and values 
+describing the execution statistics for the query. The ``explain`` 
+document in the result set contains the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 10 65
+
+   * - Option 
+     - Type 
+     - Necessity 
+     - Purpose
+
+   * - ``path``
+     - string 
+     - Optional 
+     - Path to the operator, only if it isn't the root.
+
+   * - ``type``
+     - string 
+     - Required 
+     - Name of the Lucene Query that the |fts| operator created. See 
+       :ref:`explain-lucene-query` for more information.
+
+   * - ``analyzer``
+     - string 
+     - Optional
+     - |fts| :ref:`analyzer <analyzers-ref>` used with the query.
+
+   * - ``args``
+     - document 
+     - Required
+     - Lucene query information. See 
+       :ref:`explain-lucene-query` for more information.
+
+   * - ``stats``
+     - document
+     - Optional 
+     - :ref:`explain-timing-breakdown` for the query if ``explain`` 
+       ran with ``executionStats`` or ``allPlansExecution`` 
+       verbosity.
+
+.. _explain-egs:
+
+Examples 
+--------
+
+The following examples use the ``sample_mflix.movies`` collection. 
+
+.. tabs:: 
+
+   .. tab:: queryPlanner Example 
+      :tabid: qpeg 
+
+      The following example uses the :ref:`text-ref` operator to 
+      query the ``title`` field with the ``queryPlanner`` 
+      :ref:`verbosity <explain-verbosity>` mode. 
+
+      .. code-block:: json
+
+         db.movies.verbosity("queryPlanner").aggregate([
+           {
+             $search: {
+               "text": {
+                 "path": "title",
+                 "query": "yark",
+                 "fuzzy": {
+                   "maxEdits": 1,
+                   "maxExpansions": 100,
+                 }
+               }
+             }
+           }
+         ])
+
+      The query returns the following results. To learn more about the 
+      ``explain`` response elements, see :ref:`explain-response`.
+
+      .. code-block:: json 
+         :copyable: false
+
+         {
+           "stages" : [
+             {
+               "$_internalSearchMongotRemote" : {
+                 "mongotQuery" : {
+                   "text" : {
+                     "path" : "title",
+                     "query" : "yark",
+                     "fuzzy" : {
+                       "maxEdits" : 1,
+                       "maxExpansions" : 100
+                     }
+                   }
+                 },
+                 "explain" : {
+                   "type" : "BooleanQuery",
+                   "args" : {
+                     "must" : [ ],
+                     "mustNot" : [ ],
+                     "should" : [
+                       {
+                         "type" : "BoostQuery",
+                         "args" : {
+                           "query" : {
+                             "type" : "TermQuery",
+                             "args" : {
+                               "path" : "title",
+                               "value" : "ark"
+                             }
+                           },
+                           "boost" : 0.6666666269302368
+                         }
+                       },
+                       {
+                         "type" : "BoostQuery",
+                         "args" : {
+                           "query" : {
+                             "type" : "TermQuery",
+                             "args" : {
+                               "path" : "title",
+                               "value" : "yard"
+                             }
+                           },
+                           "boost" : 0.75
+                         }
+                       },
+                       {
+                         "type" : "BoostQuery",
+                         "args" : {
+                           "query" : {
+                             "type" : "TermQuery",
+                             "args" : {
+                               "path" : "title",
+                               "value" : "mark"
+                             }
+                           },
+                           "boost" : 0.75
+                         }
+                       },
+                       {
+                         "type" : "BoostQuery",
+                         "args" : {
+                           "query" : {
+                             "type" : "TermQuery",
+                             "args" : {
+                               "path" : "title",
+                               "value" : "park"
+                             }
+                           },
+                           "boost" : 0.75
+                         }
+                       },
+                       {
+                         "type" : "BoostQuery",
+                         "args" : {
+                           "query" : {
+                             "type" : "TermQuery",
+                             "args" : {
+                               "path" : "title",
+                               "value" : "dark"
+                             }
+                           },
+                           "boost" : 0.75
+                         }
+                       },
+                       {
+                         "type" : "BoostQuery",
+                         "args" : {
+                           "query" : {
+                             "type" : "TermQuery",
+                             "args" : {
+                               "path" : "title",
+                               "value" : "york"
+                             }
+                           },
+                           "boost" : 0.75
+                         }
+                       }
+                     ],
+                     "filter" : [ ],
+                     "minimumShouldMatch" : 0
+                   }
+                 }
+               }
+             },
+             {
+               "$_internalSearchIdLookup" : { }
+             }
+           ],
+           "serverInfo" : {
+             "host" : "atlas-example-shard-00-01.mongodb.net",
+             "port" : 27017,
+             "version" : "4.4.3",
+             "gitVersion" : "913d6b62acfbb344dde1b116f4161360acd8fd13"
+           },
+           "ok" : 1,
+           "$clusterTime" : {
+             "clusterTime" : Timestamp(1612457287, 1),
+             "signature" : {
+               "hash" : BinData(0,"kzn7hY7NOduVIqcfx+40ENKbMKQ="),
+               "keyId" : NumberLong("1234567890123456789")
+             }
+           },
+           "operationTime" : Timestamp(1612457287, 1)
+         }
+
+   .. tab:: executionStats Example 
+      :tabid: eseg 
+
+      The following example uses the :ref:`autocomplete-ref` operator 
+      to query the ``title`` field with the ``executionStats`` 
+      :ref:`verbosity <explain-verbosity>` mode. 
+
+      .. code-block:: json
+
+         db.movies.explain("executionStats").aggregate([
+           {
+             "$search": {
+               "autocomplete": {
+                 "path": "title",
+                 "query": "pre",
+                 "fuzzy": {
+                   "maxEdits": 1,
+                   "prefixLength": 1,
+                   "maxExpansions": 256
+                 }
+               }
+             }
+           }
+         ])
+
+      The query returns the following results. To learn more about the 
+      ``explain`` response elements, see :ref:`explain-response`.
+
+      .. code-block:: json 
+         :copyable: false
+
+         {
+           "stages" : [
+             {
+               "$_internalSearchMongotRemote" : {
+                 "mongotQuery" : {
+                   "autocomplete" : {
+                     "path" : "title",
+                     "query" : "pre",
+                     "fuzzy" : {
+                       "maxEdits" : 1,
+                       "prefixLength" : 1,
+                       "maxExpansions" : 256
+                     }
+                   }
+                 },
+                 "explain" : {
+                   "type" : "MultiTermQueryConstantScoreWrapper",
+                   "args" : {
+                     "queries" : [
+                       {
+                         "type" : "DefaultQuery",
+                         "args" : {
+                           "queryType" : "AutomatonQuery"
+                         },
+                         "stats" : {
+                           "context" : {
+                             "nanosElapsed" : NumberLong(0)
+                           },
+                           "match" : {
+                             "nanosElapsed" : NumberLong(0)
+                           },
+                           "score" : {
+                             "nanosElapsed" : NumberLong(0)
+                           }
+                         }
+                       }
+                     ]
+                   },
+                   "stats" : {
+                     "context" : {
+                       "nanosElapsed" : NumberLong(816418),
+                       "invocationCounts" : {
+                         "createWeight" : NumberLong(1),
+                         "createScorer" : NumberLong(2)
+                       }
+                     },
+                     "match" : {
+                       "nanosElapsed" : NumberLong(3849778),
+                       "invocationCounts" : {
+                         "nextDoc" : NumberLong(656)
+                       }
+                     },
+                     "score" : {
+                       "nanosElapsed" : NumberLong(35349),
+                       "invocationCounts" : {
+                         "score" : NumberLong(655)
+                       }
+                     }
+                   }
+                 }
+               },
+               "nReturned" : NumberLong(0),
+               "executionTimeMillisEstimate" : NumberLong(20)
+             },
+             {
+               "$_internalSearchIdLookup" : { },
+               "nReturned" : NumberLong(0),
+               "executionTimeMillisEstimate" : NumberLong(20)
+             }
+           ],
+           "serverInfo" : {
+             "host" : "atlas-example-shard-00-01.mongodb.net",
+             "port" : 27017,
+             "version" : "4.4.3",
+             "gitVersion" : "913d6b62acfbb344dde1b116f4161360acd8fd13"
+           },
+           "ok" : 1,
+           "$clusterTime" : {
+             "clusterTime" : Timestamp(1612454116, 1),
+             "signature" : {
+               "hash" : BinData(0,"OY+SMPmdK//g6rFZkvSCQr3c3hM="),
+               "keyId" : NumberLong("1234567890123456789")
+             }
+           },
+           "operationTime" : Timestamp(1612454116, 1)
+         }
+
+.. toctree::
+   :titlesonly:
+
+   /reference/atlas-search/explain-lucene-query
+   /reference/atlas-search/explain-timing-breakdown
