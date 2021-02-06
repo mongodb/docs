@@ -1,3 +1,12 @@
+.. _opsmgr-server-4.4.8:
+
+|onprem| Server 4.4.8
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-02-05*
+
+- Improves backup snapshot performance.
+
 .. _opsmgr-server-4.4.7:
 
 |onprem| Server 4.4.7
@@ -5,21 +14,18 @@
 
 *Released 2021-01-11*
 
-- Fixes a bug that causes |mms| :doc:`Backup 
-  </tutorial/nav/backup-use/>` process to require excess memory when 
-  terminating the backup job.
-- Fixes a bug that causes the backup process to fail to take new 
-  snapshots when using a :term:`File System Store` during a 
-  :doc:`backup </tutorial/nav/backup-deployments/>` of a MongoDB 
+- Fixes a bug that causes the |mms|
+  :doc:`Backup </tutorial/nav/backup-use/>` process to require excess
+  memory when terminating the backup job.
+- Fixes a bug that causes the backup process to fail to take new
+  snapshots when using a :term:`File System Store` during a
+  :doc:`backup </tutorial/nav/backup-deployments/>` of a MongoDB
   deployment on version 4.2 or later.
-- Includes host ping information from active groups only when 
-  generating the :doc:`diagnostic archives 
-  </tutorial/retrieve-debug-diagnostics/>` file.
-- Limits backup logs based on the ``limit`` option when generating the 
-  :doc:`diagnostic archives 
-  </reference/api/diagnostics/get-project-diagnostic-archive/>`.
-- Updates the MongoDB Agent to :ref:`10.14.18.6453
-  <mongodb-10.14.18.6453>`.
+- Limits host ping information from active groups to when
+  generating the :doc:`diagnostic archives </tutorial/retrieve-debug-diagnostics/>` file.
+- Limits backup logs based on the ``limit`` option when generating the
+  :doc:`diagnostic archives </reference/api/diagnostics/get-project-diagnostic-archive/>`.
+- Updates the MongoDB Agent to :ref:`10.14.18.6453 <mongodb-10.14.18.6453>`.
 
 .. _opsmgr-server-4.4.6:
 
