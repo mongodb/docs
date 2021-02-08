@@ -45,7 +45,7 @@
 
    * - Amazon Linux 2
      - |checkmark|
-     -
+     - 3.6.22+
      -
 
    * - Amazon Linux 2013.03 and later
