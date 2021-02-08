@@ -1,4 +1,5 @@
 .. index:: changeStreams notification
+.. _change-events:
 
 =============
 Change Events
@@ -37,7 +38,11 @@ stream response document can have.
       "documentKey" : { "_id" : <value> },
       "updateDescription" : {
          "updatedFields" : { <document> },
-         "removedFields" : [ "<field>", ... ]
+         "removedFields" : [ "<field>", ... ],
+         "truncatedArrays" : [
+            { "field" : <field>, "newSize" : <integer> },
+            ...
+         ]
       }
       "clusterTime" : <Timestamp>,
       "txnNumber" : <NumberLong>,
@@ -170,6 +175,29 @@ following table describes each field in the change stream response document:
      - array
      - An array of fields that were removed by the update operation.
 
+   * - ``updateDescription.truncatedArrays``
+     - array
+     - An array of documents which record array truncations performed
+       with pipeline-based updates using one or more of the following
+       stages:
+
+       - :pipeline:`$addFields`
+       - :pipeline:`$set`
+       - :pipeline:`$replaceRoot`
+       - :pipeline:`$replaceWith`
+
+       .. note::
+
+          If the entire array is replaced, the truncations will be
+          reported under ``updateDescription.updatedFields``.
+
+   * - ``updateDescription.truncatedArrays.field``
+     - string
+     - The name of the truncated field.
+
+   * - ``updateDescription.truncatedArrays.newSize``
+     - integer
+     - The number of elements in the truncated array.
    * - ``clusterTime``
 
      - Timestamp
@@ -268,10 +296,14 @@ The following example illustrates an ``update`` event:
          updatedFields: {
             email: 'alice@10gen.com'
          },
-         removedFields: ['phoneNumber']
+         removedFields: ['phoneNumber'],
+         truncatedArrays: [ {
+            "field" : "vacation_time",
+            "newSize" : 36
+         } ]
       }
    }
-   
+
 The following example illustrates an ``update`` event for change streams
 opened with the ``fullDocument : updateLookup`` option:
 
@@ -292,7 +324,11 @@ opened with the ``fullDocument : updateLookup`` option:
          updatedFields: {
             email: 'alice@10gen.com'
          },
-         removedFields: ['phoneNumber']
+         removedFields: ['phoneNumber'],
+         truncatedArrays: [ {
+            "field" : "vacation_time",
+            "newSize" : 36
+         } ]
       },
       fullDocument: { 
          _id: ObjectId("58a4eb4a30c75625e00d2820"),
