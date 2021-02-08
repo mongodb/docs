@@ -1,2 +1,2 @@
-|url| of the MongoDB Enterprise Database image that the |k8s-op-short|
+|url| of the {+mdb-ent-db+} image that the |k8s-op-short|
 deploys.

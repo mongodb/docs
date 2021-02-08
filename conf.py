@@ -73,7 +73,9 @@ source_constants = {
     'ops-manager-init-version': '1.0.3',
     'database-init-version': '1.0.2',
     'mdbtools-version': '100.1.0',
-    'appdb-agent-version': '10.2.15.5958-1_4.2.11-ent'
+    'appdb-agent-version': '10.2.15.5958-1_4.2.11-ent',
+    'mdb-ent-db': "MongoDB Enterprise Database",
+    'mdb-ent-db-version': "2.0.0"
 }
 
 rst_epilog = '\n'.join([
