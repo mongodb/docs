@@ -12,14 +12,10 @@
      :query:`$expr` allows the use of aggregation expressions
      inside of the :pipeline:`$match` syntax.
 
-     Without the use of the :query:`$expr` operator, :pipeline:`$match`
-     can refer to fields in a document but cannot access variables
-     defined by a :pipeline:`$lookup` :ref:`let <lookup-join-let>`
-     clause.
-
-     The :query:`$expr` operator only uses indexes on the ``from``
-     collection for equality matches. Non-equality match queries, such
-     as range queries, cannot use indexes on the ``from`` collection.
+     The :query:`$expr` operator only uses indexes on the joined
+     ``from`` collection for equality matches. Non-equality match
+     queries, such as range queries, cannot use indexes on the joined
+     ``from`` collection.
 
    - Other (non-:pipeline:`$match`) stages in the :ref:`pipeline
      <lookup-join-pipeline>` do not
