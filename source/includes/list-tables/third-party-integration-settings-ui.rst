@@ -156,7 +156,13 @@
           `<https://app.datadoghq.com/signup>`__.
 
           - Datadog API Key
-          - API Region (United States or Europe)
+
+          .. important::
+          
+             If you use the ``EU`` API Datadog region or if you have
+             deployed Datadog locally, you must
+             configure the base Datadog API |url| with the
+             :setting:`datadog.api.url` |onprem| configuration setting.
 
        .. cond:: cloud
 
