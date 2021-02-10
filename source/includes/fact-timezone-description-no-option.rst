@@ -1,4 +1,4 @@
-The timezone of the operation result. ``<tzExpression>`` must be a 
+The timezone to carry out the operation. ``<tzExpression>`` must be a
 valid :ref:`expression <aggregation-expressions>` that resolves to a
 string formatted as either an `Olson Timezone Identifier
 <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>`_ or a
