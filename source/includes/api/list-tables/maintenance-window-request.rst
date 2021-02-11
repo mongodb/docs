@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 25 10 10 65
+   :widths: 20 14 11 55
    :header-rows: 1
    :stub-columns: 1
 
@@ -8,7 +8,7 @@
      - Necessity
      - Description
 
-   * - ``dayOfWeek``
+   * - dayOfWeek
      - number
      - Required
      - Day of the week that you want the maintenance window to
@@ -22,29 +22,35 @@
             - Integer
 
           * - Sunday
-            - ``1``
+            - **1**
 
           * - Monday
-            - ``2``
+            - **2**
 
           * - Tuesday
-            - ``3``
+            - **3**
 
           * - Wednesday
-            - ``4``
+            - **4**
 
           * - Thursday
-            - ``5``
+            - **5**
 
           * - Friday
-            - ``6``
+            - **6**
 
           * - Saturday
-            - ``7``
+            - **7**
 
-   * - ``hourOfDay``
+   * - hourOfDay
      - number
      - Required
      - Hour of the day that you want the maintenance window to
        start. This parameter uses the 24-hour clock, where midnight is
-       ``0`` and noon is ``12``.
+       **0** and noon is **12**.
+
+   * - autoDeferOnceEnabled
+     - boolean
+     - Optional
+     - Flag that indicates whether you want to defer all
+       maintenance windows one week they would be triggered.
