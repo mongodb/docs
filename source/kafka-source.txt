@@ -117,7 +117,7 @@ an example source connector configuration file, see
    * - connection.uri
      - string
      - | A :manual:`MongoDB connection URI string </reference/connection-string/#standard-connection-string-format>`.
-       
+
        .. code-block:: none
 
           mongodb://username:password@localhost/
@@ -192,7 +192,7 @@ an example source connector configuration file, see
 
    * - output.json.formatter
      - string
-     - | Full class name of the JSON formatter. You can also provide your own custom JSON formatter. 
+     - | Full class name of the JSON formatter. You can also provide your own custom JSON formatter.
        |
        | **Default**: ``com.mongodb.kafka.connect.source.json.formatter.DefaultJson``
        | **Accepted Values**:
@@ -311,14 +311,71 @@ an example source connector configuration file, see
 
    * - topic.prefix
      - string
-     - | Prefix to prepend to database & collection names to generate the name of the Kafka topic to publish data to.
+     - | Prefix to prepend to database and collection names to generate the name of the Kafka topic to publish data to.
 
        .. seealso::
 
-          :ref:`Topic naming example <topic-naming-example>`.
+          :ref:`Topic naming example <topic-naming-prefix-example>`.
 
        | **Default**: ""
        | **Accepted Values**: A string
+
+   * - topic.suffix
+     - string
+     - | Suffix to append to database and collection names to generate the name of the Kafka topic to publish data to.
+
+       .. seealso::
+
+          :ref:`Topic naming example <topic-naming-suffix-example>`.
+
+       | **Default**: ""
+       | **Accepted Values**: A string
+
+   * - topic.namespace.map
+     - string
+     - | JSON object that maps change stream document namespaces to
+         topics.
+
+       .. example::
+
+          The following configuration specifies the following two mappings:
+
+          - All change documents in the ``myDb.myColl`` are sent to the ``topicTwo`` topic
+          - All other change documents in the ``myDb`` database are sent to the ``topicOne`` topic
+
+          .. code-block:: properties
+             :copyable: false
+
+             topic.namespace.map={"myDb": "topicOne", "myDb.myColl\": "topicTwo"}
+
+
+       You can also use the "*" wildcard character to match namespaces.
+
+       .. example::
+
+          The following configuration specifies a mapping from all of the
+          change stream document namespaces to the ``topicThree`` topic:
+
+          .. code-block:: properties
+             :copyable: false
+
+             topic.namespace.map={"*": "topicThree"}
+
+       .. seealso::
+
+          :ref:`Topic naming example <topic-naming-namespace-map-example>`.
+
+       | **Default**: ""
+       | **Accepted Values**: A valid JSON object
+
+   * - topic.mapper
+     - string
+     - | Full class name of the class that specifies custom topic mapping logic.
+       |
+       | **Default**: ``com.mongodb.kafka.connect.source.topic.mapping.DefaultTopicMapper``
+       | **Accepted Values**: Valid full class name of an implementation
+         of the `TopicMapper <https://github.com/mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/source/topic/mapping/TopicMapper.java>`__
+         class.
 
    * - copy.existing
      - boolean
@@ -535,19 +592,28 @@ ones in the collection named "customers":
 For more information on how to build regular expressions, see the
 `Java SE documentation on Patterns <https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html>`__.
 
-.. _topic-naming-example:
 
-Topic Naming Example
---------------------
 
-The MongoDB Kafka Source connector publishes the changed data events to
-a Kafka topic that consists of the database and collection name from which
-the change originated. For example, if an insert was performed on the
+Topic Naming Examples
+---------------------
+
+By default, the MongoDB Kafka Source connector publishes the change data
+events to a Kafka topic that consists of the database and collection name --
+also known as a :manual:`namespace </reference/limits/#faq-dev-namespace>` --
+from which the change originated. For example, if an insert was performed on the
 ``test`` database and ``data`` collection, the connector will publish the
 data to a topic named ``test.data``.
 
-If the ``topic.prefix`` configuration is set to **true**, the Kafka topic
-name will be prepended with the specified value. For example:
+The following examples show how you can configure the topic name for
+change data events.
+
+.. _topic-naming-prefix-example:
+
+Topic Prefix Example
+~~~~~~~~~~~~~~~~~~~~
+
+If you specify a value in the ``topic.prefix`` configuration setting, the
+connector prepends that value to the Kafka topic name. For example:
 
 .. code-block:: properties
 
@@ -555,6 +621,51 @@ name will be prepended with the specified value. For example:
 
 Once set, any data changes to the ``data`` collection in the ``test`` database
 are published to a topic named ``mongo.test.data``.
+
+.. _topic-naming-suffix-example:
+
+Topic Suffix Example
+~~~~~~~~~~~~~~~~~~~~
+
+If you specify a value in the ``topic.suffix`` configuration setting, the
+connector appends that value to the Kafka topic name. For example:
+
+.. code-block:: properties
+
+   topic.suffix=mongo
+
+Once set, any data changes to the ``data`` collection in the ``test`` database
+are published to a topic named ``test.data.mongo``.
+
+.. _topic-naming-namespace-map-example:
+
+Topic Namespace Map Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you specify mappings in the ``topic.namespace.map`` configuration
+setting, the connector publishes using the default topic naming scheme
+unless otherwise specified by the mapping.
+
+Any mapping that includes both database and collection takes precedence
+over mappings that only specify the source database name. The following
+configuration example shows mappings for the ``carDb`` database as well as the
+``carDb.ev`` namespace:
+
+.. code-block:: properties
+
+   topic.namespace.map={"carDb": "automobiles", "carDb.ev": "electricVehicles"}
+
+Since the ``carDb.ev`` takes precedence over the ``carDb`` mapping, the
+connector performs the following:
+
+- If the change document is from the database ``carDb`` and collection ``ev``,
+  change documents are sent to the ``electricVehicles`` topic.
+- Any change documents from the database ``carDb`` that are *not* from the
+  collection ``ev`` are sent to the ``automobiles`` topic.
+- If the change document is from any database other than ``carDb``, the
+  connector sends it to the topic determined by the default namespace naming
+  scheme which includes any value specified in the ``topic.prefix`` or
+  ``topic.suffix`` setting.
 
 Existing Data Copy Example
 --------------------------
