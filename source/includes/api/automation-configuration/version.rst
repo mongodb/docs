@@ -17,4 +17,4 @@ This lists the version of the automation configuration.
    * - version
      - integer
      - Required
-     - Revision of this |onprem| configuration file.
+     - Revision of this automation configuration file.

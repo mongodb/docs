@@ -23,35 +23,35 @@
    * - ``externalManagementSystem``
      - object
      - Identifying parameters for the external system that manages this
-       |onprem| Project.
+       |mms| Project.
 
    * - | ``externalManagementSystem``
        | ``.name``
      - string
      - Identifying label for the external system that manages this
-       |onprem| Project.
+       |mms| Project.
 
    * - | ``externalManagementSystem``
        | ``.systemId``
      - string
      - Unique identifier of the external system that manages this
-       |onprem| Project.
+       |mms| Project.
 
    * - | ``externalManagementSystem``
        | ``.version``
      - string
-     - Active release of the external system that manages this |onprem|
+     - Active release of the external system that manages this |mms|
        Project.
 
    * - ``policies``
      - array
      - List of policies that the external system applies to this
-       |onprem| Project.
+       |mms| Project.
 
    * - | ``policies``
        | ``.policy[n]``
      - object
-     - Single policy set for this |onprem| Project. This parameter can
+     - Single policy set for this |mms| Project. This parameter can
        be set one or more times in the ``policies`` array.
 
        Possible values are:
@@ -65,7 +65,7 @@
             - Purpose
 
           * - ``EXTERNALLY_MANAGED_LOCK``
-            - Users can't use |onprem| to manage other settings given
+            - Users can't use |mms| to manage other settings given
               in the ``policies.policy[n]`` array. These same users may
               use a configured external system, like the |k8s-op-short|
               to manage these settings.
