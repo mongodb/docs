@@ -187,33 +187,40 @@ The following read concern levels are available:
 
    * - :readconcern:`"snapshot"`
 
-     - | If the transaction is not part of a :ref:`causally consistent
+     - | If a transaction is not part of a :ref:`causally consistent
          session <sessions>`, upon transaction commit with write
          concern :writeconcern:`"majority"`, the transaction operations
          are guaranteed to have read from a snapshot of
          majority-committed data.
 
-       | If the transaction is part of a :ref:`causally consistent
+       | If a transaction is part of a :ref:`causally consistent
          session <sessions>`, upon transaction commit with write
          concern :writeconcern:`"majority"`, the transaction operations
          are guaranteed to have read from a snapshot of
          majority-committed data that provides causal consistency with
          the operation immediately preceding the transaction start.
 
-       Availability:
-           - Read concern :readconcern:`"snapshot"` is only available
-             for use with multi-document transactions.
-             
-           - For transactions on a sharded cluster, if any operation in
-             the transaction involves a shard that has :ref:`disabled
-             read concern "majority" <disable-read-concern-majority>`,
-             you cannot use read concern :readconcern:`"snapshot"` for
-             the transaction. You can only use read concern
-             :readconcern:`"local"` or :readconcern:`"majority"` for the
-             transaction.
+       **Availability:**
 
-         
-        
+       Read concern :readconcern:`"snapshot"` is available for
+
+       - All read operations inside multi-document transactions with the
+         read concern set at the transaction level.
+       - The following methods outside of multi-document
+         transactions:
+
+         - :dbcommand:`find`
+         - :dbcommand:`aggregate`
+         - :dbcommand:`distinct` (on unsharded collections)
+
+         All other read operations prohibit
+         :readconcern:`"snapshot"`.
+
+       .. important::
+
+          .. include:: /includes/fact-readConcern-snapshot-disable-majority.rst
+
+
 
 .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
 
@@ -296,14 +303,10 @@ Causally Consistent Sessions and Available Read Concerns
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For operations in a :ref:`causally consistent session
-<causal-consistency>`, :readconcern:`"local"` and
-:readconcern:`"majority"` levels are available. However, to guarantee
-causal consistency, you must use :readconcern:`"majority"`. For
-details, see :ref:`causal-consistency`.
-
-If a multi-document transaction is associated with a causally
-consistent session, :readconcern:`"snapshot"` is also available for the
-the transaction.
+<causal-consistency>`, :readconcern:`"local"`,
+:readconcern:`"majority"`, and :readconcern:`"snapshot"` levels are
+available. However, to guarantee causal consistency, you must use
+:readconcern:`"majority"`. For details, see :ref:`causal-consistency`.
 
 .. _read-concern-operations:
 
@@ -402,9 +405,10 @@ The following operations support read concern:
 .. [#distinct]
 
    Read concern :readconcern:`"snapshot"` is available only for
-   multi-document transactions. In a transaction, you cannot use the
-   ``distinct`` command or its helpers on a sharded collection.
-   
+   certain read operations and for multi-document transactions. In a
+   transaction, you cannot use the ``distinct`` command or its helpers
+   on a sharded collection.
+
 The following write operations can also accept a read concern if part
 of a multi-document transaction:
 
@@ -494,10 +498,10 @@ of a multi-document transaction:
 .. [#snapshot]
 
    Read concern :readconcern:`"snapshot"` is available only for
-   multi-document transactions, and for transactions, you set the read
-   concern at the transaction level. The operations that support
-   :readconcern:`"snapshot"` correspond to the CRUD operations
-   available in transactions. For more information, see
+   certain read operations and multi-document transactions. For transactions, you
+   set the read concern at the transaction level. The transaction
+   operations that support :readconcern:`"snapshot"` correspond to the
+   CRUD operations available in transactions. For more information, see
    :ref:`transactions-read-concern`.
 
 Read Concern not Supported on ``local`` Database
@@ -580,6 +584,13 @@ with causally consistent sessions.
    advance the operation time and the cluster time for the session,
    such as to be consistent with the operations of another client
    session. For an example, see :ref:`causal-consistency-examples`.
+
+.. note::
+
+   It is not possible to specify :ref:`atClusterTime <atClusterTime>` in
+   conjunction with ``afterClusterTime``. To use :ref:`atClusterTime
+   <atClusterTime>` with read concern `"snapshot"` you have to disable
+   :ref:`causally consistent sessions <sessions>`.
 
 To satisfy a read request with an ``afterClusterTime`` value of ``T``,
 a :binary:`~bin.mongod` must perform the request after its oplog
