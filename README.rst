@@ -1,6 +1,6 @@
-=================================
-MongoDB for VS Code Documentation
-=================================
+=====================
+mongosh Documentation
+=====================
 
 This repository contains documentation for the MongoDB shell.
 
