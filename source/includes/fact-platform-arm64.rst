@@ -9,6 +9,12 @@
      - 4.0 Community & Enterprise
      - 3.6 Community & Enterprise
 
+   * - Amazon Linux 2
+     - 4.4.4+
+     -
+     -
+     -
+
    * - Ubuntu 20.04
      - |checkmark|
      -
