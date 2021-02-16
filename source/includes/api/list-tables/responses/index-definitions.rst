@@ -48,3 +48,14 @@
      - string
      - :ref:`analyzer <analyzers-ref>` to use when searching the
        index.
+
+   * - ``status``
+     - string
+     - Status of the index. Value can be one of the following statuses: 
+
+       - ``IN_PROGRESS`` - |service| is building or re-building the 
+         index after an edit.
+       - ``STEADY`` - Index is ready to use.
+       - ``FAILED`` - |service| could not build the index.
+       - ``MIGRATING`` - |service| cluster tier is being upgraded and 
+         indexes are migrating. 
