@@ -9,6 +9,12 @@
      - 4.2 Community & Enterprise
      - 4.0 Community & Enterprise
 
+   * - Amazon Linux 2
+     - |checkmark|
+     - 4.4.4+
+     -
+     -
+
    * - RHEL/CentOS 8
      - |checkmark|
      -
