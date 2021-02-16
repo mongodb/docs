@@ -20,6 +20,12 @@
      - 3.6 Community & Enterprise
      - 3.4 Community & Enterprise
 
+   * - Amazon Linux 2
+     - 4.2.13+
+     -
+     -
+     -
+
    * - Ubuntu 18.04
      - |checkmark|
      -

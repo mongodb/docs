@@ -8,4 +8,8 @@ MongoDB {+version+} Enterprise Edition supports the following
 
 MongoDB only supports the 64-bit versions of these platforms.
 
+MongoDB {+version+} Enterprise Edition on Amazon Linux also supports the
+:ref:`ARM64 <prod-notes-supported-platforms-ARM64>` architecture on
+select platforms.
+
 See :ref:`prod-notes-supported-platforms` for more information.
