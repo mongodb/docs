@@ -12,6 +12,6 @@
    .. admonition::  Legacy Backup and Monitoring Agent has been removed
       :class: important
 
-      :doc:`Update </tutorial/update-mongodb-agent-from-backup-and-monitoring-agent/>`
-      from your self-managed legacy Backup and Monitoring Agents to the
+      This Agent has been updated from your self-managed legacy Backup
+      and Monitoring Agents to the
       :doc:`MongoDB Agent </tutorial/nav/mongodb-agent/>`.
