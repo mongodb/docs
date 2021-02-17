@@ -1,0 +1,359 @@
+.. _mdb-resources-arch:
+
+======================================
+MongoDB Database Architecture in |k8s|
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the |k8s-op-short| and |com| to deploy MongoDB database
+resources to a |k8s| cluster. You can use an existing |com|, or deploy
+|onprem| in |k8s| to manage your databases.
+
+The |k8s-op-short| uses |com| to manage the following MongoDB database custom resources:
+
+- ``MongoDB``
+- ``MongoDBUser``
+
+Your |k8s-custom-resource| specifications define these resources in the |k8s-op-short|.
+The |k8s-op-short| monitors these resources. When you update the
+resource's specification, the |k8s-op-short| pushes these changes to
+|com|, which make changes to the MongoDB deployment's configuration.
+
+.. _mdb-resources-definition:
+
+The ``MongoDB`` Custom Resource Definition
+------------------------------------------
+
+The |k8s-op-short| manages MongoDB database deployments
+which are defined by MongoDB custom resources.
+
+The MongoDB database |k8s-custom-resource| specification defines the
+following types of the MongoDB database custom resources:
+
+- ``Standalone``
+- ``ReplicaSet``
+- ``ShardedCluster``
+
+The following diagram illustrates the composition of each type of the MongoDB
+resource in the |k8s-op-short|.
+
+.. figure:: /images/mdb-resources-arch.svg
+   :alt: Diagram showing the high-level architecture of the MongoDB resources in
+         the MongoDB Enterprise Kubernetes Operator
+   :figwidth: 600px
+
+.. _mdb-resources-standalone:
+
+Standalone
+~~~~~~~~~~
+
+For the ``Standalone`` type of the MongoDB database resource, the |k8s-op-short|
+deploys a replica set with a single member to the |k8s| cluster as a
+|k8s-statefulset|.
+
+The |k8s-op-short| creates the StatefulSet, which contains the Pod
+specification with the number of Pods to create. The |k8s-op-short|
+relies on the |k8s| StatefulSet Controller to create a Pod for this
+standalone MongoDB database instance.
+
+.. important::
+
+   In |k8s|, a ``Standalone`` resource is equivalent to a ``ReplicaSet``
+   resource with only one member. We recommend that you deploy
+   a ``ReplicaSet`` with one member instead of a ``Standalone``
+   because a replica set allows you to add members to it in
+   the future.
+
+.. _mdb-resources-rs:
+
+Replica Set
+~~~~~~~~~~~
+
+For the ``ReplicaSet`` type of the MongoDB resource, the |k8s-op-short|
+deploys a replica set to the |k8s| cluster as a |k8s-statefulset|, with
+a number of members equal to the value of :setting:`spec.members`.
+
+The |k8s-op-short| relies on the |k8s| StatefulSet Controller to create
+one Pod in the StatefulSet for each member of the replica set.
+
+Each Pod in the StatefulSet runs a {+mdbagent+} instance.
+
+.. _mdb-resources-sharded:
+
+Sharded Cluster
+~~~~~~~~~~~~~~~
+
+The ``ShardedCluster`` type of the MongoDB resource consists of one or more
+Config Servers, |mongos| instances, and shard members.
+
+For the ``ShardedCluster`` resource, the |k8s-op-short| deploys:
+
+- One StatefulSet for all Config Servers
+- One StatefulSet for all |mongos| instances
+- One StatefulSet for each Shard Member
+
+The |k8s-op-short| relies on the |k8s| StatefulSet Controller to
+create one Pod in each of the StatefulSets created for the sharded cluster.
+
+.. _mdb-resources-reconcile:
+
+Reconciling the ``MongoDB`` Custom Resource
+-------------------------------------------
+
+When you apply a MongoDB custom resource specification,
+the |k8s-op-short| deploys each resource as a |k8s-statefulset|
+to the |k8s| cluster.
+
+The |k8s-op-short|:
+
+- Watches the custom resource's specification and associated
+  |k8s-configmap-def| or |k8s-secret| for changes.
+- Validates the changes when the specification file, the ConfigMap,
+  or the secret change.
+- Makes the appropriate updates to the MongoDB database resources
+  in the |k8s| cluster.
+- Pushes the changes to |com|, which make changes to the MongoDB
+  deployment's configuration.
+
+.. _mdb-resources-diagram-rs:
+
+Diagram of a Replica Set Reconciliation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram describes how the |k8s-op-short| behaves
+if you make changes to the ``MongoDB`` custom resource specification,
+or to the associated |k8s-configmap-def| or |k8s-secret|,
+for a replica set.
+
+.. figure:: /images/mdb-resources-replica-set-reconciliation.svg
+   :alt: Diagram describing how the MongoDB Enterprise Kubernetes
+         Operator makes changes to the MongoDB Custom Resource Definition
+         for a replica set
+   :figwidth: 600px
+
+.. _mdb-resources-diagram-sharded:
+
+Diagram of a Sharded Cluster Reconciliation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram describes how the |k8s-op-short| behaves if
+you make changes to the ``MongoDB`` custom resource specification,
+or to the associated |k8s-configmap-def| or |k8s-secret|,
+for a sharded cluster.
+
+.. figure:: /images/mdb-resources-sharded-reconciliation.svg
+   :alt: Diagram describing how the MongoDB Enterprise Kubernetes
+         Operator makes changes to the MongoDB Custom Resource Definition
+         for a sharded cluster
+   :figwidth: 600px
+
+Reconciliation Workflow
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When you create or change a MongoDB resource specification, or when you make
+changes to an associated |k8s-configmap-def| or |k8s-secret|, the |k8s-op-short|
+performs the following actions to reconcile the changes:
+
+1. Reads the required organization and project configuration
+   from the :ref:`ConfigMap <example-k8s-configmap>`
+   that you used to create or connect to a project in the |k8s-op-short|.
+
+   If you change your resource specification, the |k8s-op-short| identifies
+   that the change took place, and checks the specification for the ConfigMap
+   specified in :setting:`spec.opsManager.configMapRef.name`.
+
+   .. note::
+      
+      When you configure the |k8s-op-short| for MongoDB resources,
+      you :ref:`create a ConfigMap <example-k8s-configmap>` to connect
+      or create your |com| project. The {+mdbagent+} uses this ConfigMap
+      to start or make changes to the deployment for the MongoDB resource.
+
+2. Reads the authentication configuration for |com| from
+   the secret specified in :setting:`spec.credentials` in the
+   resource specification. This secret stores the
+   :cloudmgr:`Cloud Manager API keys </reference/api/agentapikeys/create-one-agent-api-key>`
+   or the :opsmgr:`Ops Manager API Keys </tutorial/manage-agent-api-key/>`
+   required for the |k8s-op-short| to authenticate to |com|.
+   
+   .. note::
+      
+      When you configure the |k8s-op-short| for MongoDB resources,
+      you :ref:`create this secret <create-k8s-secret>`.
+
+3. The |k8s-op-short| connects to |com| and performs the following actions:
+
+   - Reads the organization specified in the ``OrgId`` field in the ConfigMap,
+     or uses the organization that has the same name as the project in |com|.
+
+   - Reads a project name specified in the ``projectName`` field in the
+     ConfigMap, or creates this project in |com| if it doesn't exist.
+
+   - Checks that the ``<project-id>-group-secret`` secret
+     created by the |k8s-op-short| for the {+mdbagent+} exists.
+     The |k8s-op-short| reads the secret, or, creates it with
+     :opsmgr:`Ops Manager API keys
+     </reference/api/agentapikeys/create-one-agent-api-key>`
+     or :cloudmgr:`Cloud Manager API keys
+     </reference/api/agentapikeys/create-one-agent-api-key>`.
+     
+   - Registers itself as a watcher of the ConfigMap and this secret.
+     This enables the |k8s-op-short| to react to changes that you make
+     to the ConfigMap or the secret.
+
+4. The |k8s-op-short| verifies any :ref:`TLS and X.509 certificates <k8s-secure-resources>`.
+      
+   - If :ref:`TLS <secure-tls>` is enabled for a replica set, the
+     |k8s-op-short| looks for certificates provided in the
+     ``<resource-name>-cert`` secret.
+     
+   - If :ref:`TLS <secure-tls>` is enabled for a sharded cluster, the
+     |k8s-op-short| looks for certificates in these secrets:
+      
+     - ``<resource-name>-x-cert`` for each shard member.
+     - ``<resource-name>-config-cert`` for all config servers.
+     - ``<resource-name>-mongos-cert`` for all |mongos| instances.
+
+   - If :ref:`X.509 <create-x509-certs>` or
+     :ref:`internal authentication with X.509 and  TLS <secure-internal-auth>`
+     are enabled, the |k8s-op-short| checks that their certificates
+     contain the required configuration.
+
+5. The |k8s-op-short| locates and updates the necessary StatefulSets,
+   or creates new StatefulSets if they don't exist. The number of
+   StatefulSets depends on the type of the MongoDB resource.
+
+   - For ``ReplicaSet`` or ``Standalone`` resources,
+     the |k8s-op-short| creates a single StatefulSet.
+
+   - For a ``ShardedCluster`` resource, the |k8s-op-short| creates:
+    
+     - One StatefulSet for all config servers.
+     - One StatefulSet for all |mongos| instances.
+     - One StatefulSet for each shard member.
+   
+     At this point, each Pod runs at least one {+mdbagent+} instance,
+     but does not yet contain |mongod| instances.
+        
+   - Each {+mdbagent+} instance starts polling |com| to receive the
+     MongoDB automation configuration.
+     
+     .. note::
+        When the {+mdbagent+} receives the configuration for the first
+        time, it downloads the MongoDB binaries with the version
+        specified in :setting:`spec.version` from the Internet, or
+        from |onprem|, if the {+mdbagent+} is configured in the local mode.
+     
+   - After the {+mdbagent+} receives the automation configuration, it starts a
+     |mongod| instance on the corresponding Pod.
+
+   - For each Pod of each StatefulSet that the MondoDB custom resource creates,
+     except for |Mongos| StatefulSets, the |k8s-op-short| generates a |k8s-pvc|.
+     You can override this behavior by setting :setting:`spec.persistent` to
+     ``false`` in the resource specification.
+
+6. The |k8s-op-short| updates the automation configuration it received from the
+   {+mdbagent+} with changes from the specifications and sends it to |com|.
+
+   - Each {+mdbagent+} for each Pod polls |com| again and receives the
+     updated automation configuration.
+
+   - If you change any field in the specification, the |k8s-op-short|
+     performs a |k8s-rolling-update| of the StatefulSets to start new Pods
+     matching the new specification.
+     
+   - The |k8s-op-short| waits for each {+mdbagent+} to report that it reached
+     the ready state.
+
+   .. note::
+
+      If you change the :ref:`security configuration <k8s-secure-resources>`
+      of a database resource, or :k8sdocs:`scale down
+      </tasks/run-application/scale-stateful-set/>`
+      an existing StatefulSet, the |k8s-op-short| runs step 6 before it
+      runs  step 5.
+
+7. The |k8s-op-short| updates the |k8s| services, or for a new MongoDB
+   resource, creates the services required for each new StatefulSet.
+
+   For the |k8s-service-type| ``ClusterIP``, the |k8s-op-short| sets
+   ``ClusterIP`` to ``None``, and performs these actions:
+
+   - Creates this service if it doesn't exist.
+  
+   - For ``ReplicaSet`` or ``Standalone`` resources, the |k8s-op-short|
+     names the service with the custom resource's name  with ``-svc``
+     appended to it.
+   - For a ``ShardedCluster`` resource, the |k8s-op-short| uses these
+     naming conventions:
+  
+     - For |mongos| instances, the |k8s-op-short| uses the name specified in
+       :setting:`spec.service`, or the resource's name  with ``-svc``
+       appended to it.
+     - For the config servers, the |k8s-op-short| uses the resource's name
+       with ``-cs`` appended to it.
+     - For each shard, the |k8s-op-short| uses the resource's name
+       with ``-sh`` appended to it.
+
+   - For the port, the |k8s-op-short| uses the default port 27017, or
+     the :manual:`.net.port </reference/configuration-options/#net.port>`
+     specified in :setting:`spec.additionalMongodConfig`.
+
+.. _mdb-user-resource-reconcile:
+
+Reconciling the ``MongoDBUser`` Custom Resource
+-----------------------------------------------
+
+If the user authentication method is set to :ref:`SCRAM
+<add-db-user-scram>`,
+the ``MongoDBUser`` custom resource depends
+on the |k8s-secret| that stores the user credentials. You specify the
+secret in the ``spec.passwordSecretKeyRef`` settings in the ``MongoDBUser``
+resource specification.
+
+The |k8s-op-short| watches the secret for changes. If you make changes
+to the secret's configuration, the |k8s-op-short| reconciles the
+changes. It takes the following actions:
+
+1. Determines the MongoDB user's resource based on the value
+   specified in the ``spec.MongoDBResourceRef.name`` setting in the
+   ``MongoDBUser`` resource specification.
+
+2. Connects to |com|:
+
+   - Reads the organization's name from ``OrgId`` in the ConfigMap, or
+     uses the same name for the organization as the project's name in |com|.
+   - Reads a project's name from ``projectName`` in the ConfigMap,
+     or creates this project in |com| if it doesn't exist.
+   - Checks that the ``<project-id>-group-secret`` created by the
+     |k8s-op-short| for the {+mdbagent+} exists.
+     The |k8s-op-short| reads the secret, or, creates it with
+     :opsmgr:`Ops Manager API keys
+     </reference/api/agentapikeys/create-one-agent-api-key>`
+     or :cloudmgr:`Cloud Manager API keys
+     </reference/api/agentapikeys/create-one-agent-api-key>`.
+     
+3. Updates the user's credentials in |com|, or creates a new user if it doesn't exist.
+   
+   - If the user authentication method is :ref:`SCRAM <add-db-user-scram>`,
+     reads the password from the secret.
+   - Reads the user name. If the user name has changed, the |k8s-op-short|
+     removes the old name and adds a new one.
+   - Ensures that the user exists in |com|.
+
+The following diagram describes how the |k8s-op-short| behaves if you make
+changes to the user secret or the ``MongoDBUser``
+custom resource specification.
+
+.. figure:: /images/mdb-user-resource-reconciliation.svg
+   :alt: Diagram describing how the MongoDB Enterprise Kubernetes
+         Operator reconciles changes to the MongoDBUser
+         Custom Resource Definition
+   :figwidth: 600px
