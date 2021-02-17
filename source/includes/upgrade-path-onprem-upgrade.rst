@@ -23,7 +23,7 @@ upgrade path you must take to upgrade to Ops Manager 4.2 or later.
 The following table lists upgrade paths for all versions:
 
 .. list-table::
-   :widths: 20 80
+   :widths: 15 85
    :header-rows: 1
 
    * - Existing Version
@@ -42,13 +42,17 @@ The following table lists upgrade paths for all versions:
           :ref:`section on chronological order <om-upgrade-con-release-date>`.
 
    * - 4.2.x
-     - Use this tutorial to upgrade from |onprem| 4.2.x to the latest
-       patch version of 4.4.
+     - Use this tutorial to upgrade from |onprem| 4.2.x to 4.2.23 or
+       later *first*, then to the latest patch version of 4.4.
+
+       .. include:: /includes/facts/upgrade-to-om-4-2-23.rst
 
    * - 4.0.x
      - Use the
        :om-v4.2:`v4.2 upgrade tutorial </tutorial/nav/upgrade-application>`
-       to upgrade from |onprem| 4.0.x to version 4.2.x.
+       to upgrade from |onprem| 4.0.x to version 4.2.23 or later.
+
+       .. include:: /includes/facts/upgrade-to-om-4-2-23.rst
 
    * - 3.6.x
      - Use the
