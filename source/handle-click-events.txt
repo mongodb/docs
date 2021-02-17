@@ -1,0 +1,289 @@
+.. _handle-click-events:
+
+===================
+Handle Click Events
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. note:: 
+
+   Click Events in the `Charts Embedding SDK
+   <https://github.com/mongodb-js/charts-embed-sdk>`__ is available as 
+   a beta feature. It is only available with Charts Embedding 
+   JavaScript SDK v1.2.0-beta.1.
+
+The Charts Embedding JavaScript SDK includes a click event handler that 
+allows you to subscribe to click events. When you click on a particular 
+element on your chart, the click event handler captures details of the 
+element that you clicked. Use this feature to build interactive 
+experiences similar to the following in your application:
+
+- Click on an element on a chart and open a pane with more details on 
+  the clicked element. 
+- Create a filter for another chart.
+
+.. _click-event-prereqs:
+
+Prerequisites 
+-------------
+
+Before you begin, :ref:`install <embedding-charts-sdk>` the Charts 
+Embedding JavaScript SDK. 
+
+.. _click-event-syntax:
+
+Click Event Syntax 
+------------------
+
+The event handler takes an event type, ``click``, and a callback 
+function that contains information about the click event and the 
+clicked element as a single :ref:`payload <click-event-payload>` 
+object. The click event handler syntax looks similar to the following:
+
+.. code-block:: sh 
+   :copyable: false 
+
+   chart.addEventListener("click", callback); 
+
+.. _click-event-payload:
+
+Payload 
+-------
+
+You can use the click event payload to construct a custom filter that 
+you can apply on another chart or charts in your application. The 
+syntax of the payload object for the callback function looks similar to 
+the following: 
+
+.. code-block:: sh 
+   :copyable: false 
+
+   chart.addEventListener("click", (payload) => { 
+       // handle events
+   }
+
+The following example payload object shows the elements inside the 
+payload:
+
+.. example:: 
+
+   .. code-block:: sh 
+      :copyable: false 
+
+      chart.addEventListener("click", (payload) => {
+        "chartId": "xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "event": { // information about the mouse event. For example:
+          "type": "click", // event type 
+
+          "altKey": false, // modifier keys
+          "ctrlKey": false,
+          "shiftKey": false,
+          "metaKey": false,
+
+          "offsetX": 152, // element coordinates
+          "offsetY": 176,
+
+          "clientX": 172, // coordinates from application viewpoint
+          "clientY": 241,
+
+          "pageX": 172, // coordinates relative to the page
+          "pageY": 241,
+
+          "screenX": 172, // coordinates relative to screen
+          "screenY": 312
+        },
+        "data": { // information about the clicked chart element. For example:
+          "y": {
+            "label": "unwind array 'genres'",
+            "value": "Adventure"
+          },
+          "x": {
+            "label": "count ( _id )",
+            "value": 659
+          },
+          "color": {
+            "label": "year",
+            "value": "2000 - 2010",
+            "lowerBound": 2000,
+            "upperBound": 2010
+          }
+        },
+        selectionFilter: {
+          // category data expressed as MQL filter query that  
+          // interactive filters would output to filter other charts. 
+          // For example:
+
+          genres: 'Adventure', 
+          year: {
+            $gte: 2000,
+            $lt: 2010,
+          },
+        },
+        "target": { // information about the clicked target. For example:
+          "type": "rect", // type of mark, such as rect, line, etc.
+          "role": "mark", // role of mark, such as mark, legend, etc.
+          "fill": "#8CB6F2" // fill color of the mark
+        },
+        "apiVersion": 1 // API version of event payload
+      }); 
+
+To learn more about the elements inside the payload object, see: 
+
+- :ref:`click-event-payload-event`
+- :ref:`click-event-payload-data`
+- :ref:`click-event-payload-selection-filter`
+- :ref:`click-event-payload-target`
+
+.. _click-event-payload-event:
+
+``event`` Element 
+~~~~~~~~~~~~~~~~~
+
+The ``event`` element of the :ref:`payload <click-event-payload>` 
+contains information about the mouse event including: 
+
+- The type of mouse event, which must be ``click``
+- The modifier keys used to trigger a click event such as ``altKey``, 
+  ``ctrlKey``, ``shiftKey``, ``metaKey``
+- The ``X`` and ``Y`` coordinates:
+
+  - Relative to the canvas element of the chart 
+  - From the application viewpoint
+  - Relative to the page
+  - Relative to the screen
+
+.. _click-event-payload-data:
+
+``data`` Element 
+~~~~~~~~~~~~~~~~
+
+The ``data`` element of the :ref:`payload <click-event-payload>` 
+contains information about the clicked chart element. For each encoded 
+data field (``x``, ``y``, ``series``, ``intensity``, ``color``, 
+``shape``, ``size``, ``label``, ``arc``, ``value``, ``target``, 
+``number``, ``display``, ``text``, ``location``), the ``data`` element 
+contains:
+
+- The channel ``label``
+- The ``value`` of the clicked element
+- The lower bound for numeric or date binning only
+
+.. _click-event-payload-selection-filter:
+
+``selectionFilter`` Element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``selectionFilter`` element of the :ref:`payload 
+<click-event-payload>` must contain a valid :abbr:`MQL (MongoDB Query 
+Language)` filter document, which represents the filter that 
+corresponds to the clicked mark's category channels or ``x`` value 
+channel on a continuous chart. You can modify or implement your own 
+``selectionFilter``.
+
+The filter object represents a single clicked item: 
+
+- A string or unbinned number or date, which becomes an equality match 
+  query ``({field: value})`` or a query using ``$eq``, ``$ne``, ``$in``, or ``$nin`` operators.
+- A binned number or date, which becomes a query using ``gt``, 
+  ``$gte``, ``$lt``, or ``lte`` operators. Periodic dates are ignored.
+
+.. example::
+
+   .. code-block:: sh 
+      :copyable: false 
+
+      { field: 'value' } 
+      { field1: 'value1', field2: 'value2' }
+      { field: { $in: [ 'a', 'b', 'c' ] } }
+      { field: { $nin: [ 'x', 'y', 'z' ] } }
+      { field: { $gt: 10 } }
+      { field: { $gt: 13, $lte: 30 } }
+      { field: { $gt: Date("2020-01-01"), $lt: Date("2020-03-31") } }
+
+The ``selectionFilter`` document can have several key and value 
+filters. For example, if a mark of a multi-series chart is clicked, the 
+filter document contains both the category and series filter pairs. 
+Each filter must reference the actual data source fields used and not 
+their labels.
+
+.. _click-event-payload-target:
+
+``target`` Element 
+~~~~~~~~~~~~~~~~~~
+
+The ``target`` element of the :ref:`payload <click-event-payload>` 
+contains information about the clicked target including: 
+
+- The type of mark, such as ``rect``, ``line``, ``arc``, ``symbol``, 
+  etc.
+- The role of mark, such as ``mark``, ``legend``, ``axis-label``, etc.
+- The fill color of the mark
+
+.. _click-event-egs:
+
+Examples 
+--------
+
+The Charts Embedding JavaScript SDK includes examples that demonstrate 
+common uses for click events in an application. The first example shows 
+basic click events and payload handling. The second example shows 
+interactive filtering of clicked chart elements. 
+
+To learn more about installing the Embedding SDK and running the 
+example app with your own data or sample data, see `MongoDB Charts 
+Embedding Example for Click Events on GitHub
+<https://github.com/mongodb-js/charts-embed-sdk/tree/master/examples/click-events-basic>`__. 
+Each example app is configured with a chart ID and base URL which are 
+particular to the app. Be sure to configure your own apps with the 
+correct chart ID and base URL. 
+
+.. _click-event-eg-basic:
+
+Basic Handling of Click Events  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the `example app 
+<https://codesandbox.io/s/github/mongodb-js/charts-embed-sdk/tree/master/examples/click-events-basic>`__ 
+for basic handling of click events, when you click on an element on the 
+``Movie Genres`` chart, the click event handler displays data based on 
+the clicked element. 
+
+Each time you click on an element in the chart, the click event 
+listener refreshes the ``payload`` to reflect data from the ``x`` and 
+``y`` axis. When you click on an element that represents a specific 
+genre and decade in the ``Movie Genres`` chart, the ``Clicked Element`` 
+and ``Full Event Payload`` displays details on that movie genre and 
+decade including: 
+
+- Fields that represent data for the clicked element.
+- Mark type, role, and fill color. 
+
+Refer to the example app to view the full event payload.
+
+.. _click-event-eg-interactive:
+
+Interactive Filtering for Click Events 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the `example app
+<https://codesandbox.io/s/github/mongodb-js/charts-embed-sdk/tree/master/examples/click-events-filtering>`__ 
+for interactive filtering, when you click on an element on the ``Movie 
+Genres`` chart, the embedding SDK generates a filter based on the 
+element on which you clicked and then applies the filter to a second 
+chart. 
+
+The click event listener generates a filter based on the ``y`` axis, 
+which represents the movie genres, and the lower and upper bound range, 
+which represents the decade. Each time you click on an element that 
+represents a specific genre and decade on the ``Movie Genres`` chart, 
+the ``Movie Details`` data table is filtered by the clicked element and 
+changes to display the movies available in that genre and decade. 
+
+Refer to the example app to view the full event payload.
