@@ -13,7 +13,7 @@ axes on supported chart types. To toggle smart labels on and off:
    to :guilabel:`Off`, toggle it to :guilabel:`On`.
 
 .. figure:: /images/charts/smart-label-switch.png
-   :figwidth: 220px
+   :figwidth: 251px
    :alt: Smart label toggle switch
 
 .. note::
