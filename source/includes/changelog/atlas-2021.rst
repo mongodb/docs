@@ -1,3 +1,19 @@
+.. _atlas_20210217:
+
+17 February 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces additional Asia Pacific Live Migrations regions in Singapore, Mumbai, and Tokyo.
+- Makes the M400 |nvme| cluster tier available in all major |aws| regions.
+- Introduces availability zones for new clusters in the following Azure regions:
+  
+  - Germany West Central
+  - South Africa North
+  - Australia East
+  
+- Supports cluster tier auto-scaling for multi-cloud clusters.
+- Improves Data Explorer load times.
+
 .. _atlas_20210126:
 
 26 January 2021 Release
