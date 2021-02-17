@@ -23,8 +23,8 @@
      - Flag that indicates if encryption is enabled for the backup
        configuration. You must include the **syncSource** field when
        enabling encryption for a backup configuration. For existing
-       backups in a project, enabling encryption requires an initial
-       backup sync to recreate the backups’ head databases.
+       backups in a project, enabling encryption requires an 
+       :term:`initial sync` to recreate the backups’ head databases.
 
    * - excludedNamespaces
      - array of strings
@@ -37,6 +37,10 @@
      - List of database names and collection names to include in
        the backup. Each string is a namespace in the form of
        **{database}** or **{database}.{collection}**.
+
+   * - preferredMember
+     - string
+     - .. include:: /includes/fact-preferred-member.rst
 
    * - projectId
      - string

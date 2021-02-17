@@ -23,7 +23,7 @@
        configuration. You must include the **syncSource** parameter
        when enabling encryption for a backup configuration. For
        existing backups in a project, enabling encryption requires an
-       initial backup sync to recreate the backups’ head databases.
+       :term:`initial sync` to recreate the backups’ head databases.
 
    * - excludedNamespaces
      - array of strings
@@ -93,6 +93,11 @@
      - Password to use to connect to the sync source database. |mms|
        requires this parameter when the sync store |mongod| instances
        require clients to authenticate.
+
+   * - preferredMember
+     - string
+     - Optional
+     - .. include:: /includes/fact-preferred-member.rst
 
    * - provisioned
      - boolean

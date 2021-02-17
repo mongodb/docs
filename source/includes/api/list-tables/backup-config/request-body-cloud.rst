@@ -85,6 +85,11 @@
        requires this parameter when the sync store |mongod| instances
        require clients to authenticate.
 
+   * - preferredMember
+     - string
+     - Optional
+     - .. include:: /includes/fact-preferred-member.rst
+
    * - provisioned
      - boolean
      - Conditional

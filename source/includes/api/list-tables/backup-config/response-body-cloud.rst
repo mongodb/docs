@@ -34,6 +34,10 @@
      - object array
      - .. include:: /includes/api/links-explanation.rst
 
+   * - preferredMember
+     - string
+     - .. include:: /includes/fact-preferred-member.rst 
+
    * - projectId
      - string
      - Unique identifier of the project that owns this backup
