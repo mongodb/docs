@@ -12,25 +12,89 @@ Kafka Sink Change Data Capture
    :depth: 1
    :class: singlecols
 
-Change Data Capture Mode
-------------------------
+Overview
+--------
 
 Change data capture (CDC) is an architecture that converts changes in
-a database into event streams. The MongoDB Kafka sink connector can
-process event streams using `Debezium <https://debezium.io/>`_ as an event
-producer for the following source databases:
+a source database into event streams. You can capture CDC events with the
+MongoDB Kafka sink connector and perform corresponding insert, update, and
+delete operations to a destination MongoDB cluster.
 
-* `MongoDB <http://debezium.io/docs/connectors/mongodb/>`_
-* `MySQL <http://debezium.io/docs/connectors/mysql/>`_
-* `PostgreSQL <http://debezium.io/docs/connectors/postgresql/>`_
+You can also handle CDC using the following event producers:
 
-CDC Handler Configuration
--------------------------
+- :ref:`Debezium <cdc-debezium>`
+- Qlik Replicate (coming soon)
+
+Change Data Capture Using the MongoDB Sink Connector
+----------------------------------------------------
+
+To configure your MongoDB Kafka sink connector to handle CDC events from
+a Kafka topic, update your configuration to include the following:
+
+.. code-block:: properties
+
+   change.data.capture.handler=com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler
+
+The ``ChangeStreamHandler`` class instructs the sink connector to process
+change events that are in the :manual:`change stream response document format </reference/change-events/#change-stream-output>`.
+You can use a :doc:`MongoDB Kafka source connector </kafka-source>` to
+configure the change stream data that you want to publish to specific topics.
+
+Remember to specify the topic and the destination in the following
+configuration properties:
+
+- ``topics``
+- ``connection.uri``
+- ``database``
+- ``collection``
+
+For more information on the properties above, see our guide on
+:doc:`Kafka Sink Connector Configuration Properties </kafka-sink-properties>`.
+
+
+ChangeStreamHandler Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following sample JSON payload instantiates a new connector that uses
+the ``ChangeStreamHandler`` with a specified CDC configuration when posted
+to the `Kafka Connect REST endpoint <https://docs.confluent.io/current/connect/references/restapi.html>`__:
+
+.. code-block:: json
+
+   {
+     "name": "mongo-sink-changestreamhandler-cdc",
+     "config": {
+       "connection.uri": "mongodb://<hostname>:27017/kafkaconnect?w=1&journal=true",
+       "topics": "myreplset.kafkaconnect.mongosrc",
+       "change.data.capture.handler": "com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler",
+       "connector.class": "com.mongodb.kafka.connect.sink.MongoSinkConnector",
+       "key.converter": "io.confluent.connect.avro.AvroConverter",
+       "key.converter.schema.registry.url": "http://<schema-registry-hostname>:8081",
+       "value.converter": "io.confluent.connect.avro.AvroConverter",
+       "value.converter.schema.registry.url": "http://<schema-registry-hostname>:8081",
+       "collection": "mongosink"
+     }
+   }
+
+.. include:: /includes/externalize-secrets.rst
+
+.. _cdc-debezium:
+
+Change Data Capture Using Debezium
+----------------------------------
+
+The MongoDB Kafka sink connector can also process event streams using
+`Debezium <https://debezium.io/>`__ as an event producer for the following
+source databases:
+
+* `MongoDB <http://debezium.io/docs/connectors/mongodb/>`__
+* `MySQL <http://debezium.io/docs/connectors/mysql/>`__
+* `PostgreSQL <http://debezium.io/docs/connectors/postgresql/>`__
 
 You can configure the sink connector to process data from a CDC stream
 using one of the included handlers for Debezium or a custom handler that
 extends the abstract class `CdcHandler
-<https://github.com/mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/CdcHandler.java>`_.
+<https://github.com/mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/CdcHandler.java>`__.
 
 To create a CDC handler, specify the following configuration information:
 
@@ -40,31 +104,32 @@ To create a CDC handler, specify the following configuration information:
 - Topics on which the connector should listen for data in the ``topics``
   property.
 - MongoDB collection to write data to in the ``collection`` property.
-- The :doc:`converters </kafka-sink-data-formats>` required to
-  handle data formats in the ``[key|value].converter`` properties. Both
-  JSON + Schema and AVRO formats are supported.
-- Any :doc:`post processors </kafka-sink-postprocessors>` necessary
-  to modify the record before saving it to MongoDB.
 
-The following sample JSON payload instantiates a new connector with
-a specified CDC configuration when posted to the `Kafka Connect REST endpoint
-<https://docs.confluent.io/current/connect/references/restapi.html>`_:
+.. _cdc-debezium-example:
+
+Debezium Example
+~~~~~~~~~~~~~~~~
+
+The following sample JSON payload instantiates a new connector using
+Debezium with a specified CDC configuration when posted to the
+`Kafka Connect REST endpoint <https://docs.confluent.io/current/connect/references/restapi.html>`__:
 
 .. code-block:: json
 
    {
      "name": "mongo-sink-debezium-cdc",
      "config": {
-       "connection.uri": "mongodb://mongodb:27017/kafkaconnect?w=1&journal=true",
+       "connection.uri": "mongodb://<mongodb-hostname>:27017/kafkaconnect?w=1&journal=true",
        "topics": "myreplset.kafkaconnect.mongosrc",
        "change.data.capture.handler": "com.mongodb.kafka.connect.sink.cdc.debezium.mongodb.MongoDbHandler",
        "connector.class": "com.mongodb.kafka.connect.sink.MongoSinkConnector",
        "key.converter": "io.confluent.connect.avro.AvroConverter",
-       "key.converter.schema.registry.url": "http://localhost:8081",
+       "key.converter.schema.registry.url": "http://<schema-registry-hostname>:8081",
        "value.converter": "io.confluent.connect.avro.AvroConverter",
-       "value.converter.schema.registry.url": "http://localhost:8081",
+       "value.converter.schema.registry.url": "http://<schema-registry-hostname>:8081",
        "collection": "mongosink"
      }
    }
 
 .. include:: /includes/externalize-secrets.rst
+
