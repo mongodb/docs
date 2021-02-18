@@ -1,3 +1,14 @@
+.. _10.26.0.6757:
+
+MongoDB Agent 10.26.0.6757
+----------------------------
+
+*Released* 2021-02-17
+
+- Fixes a bug that ensures fixed ordering of index options for all nodes
+  in a rolling index build.
+
+
 .. _10.25.0.6735-1:
 
 MongoDB Agent 10.25.0.6735-1
