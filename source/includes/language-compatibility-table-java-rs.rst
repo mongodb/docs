@@ -4,10 +4,10 @@
    :class: compatibility-large
 
    * - Java Reactive Streams Driver Version
-     - Java 6
-     - Java 7
-     - Java 8
      - Java 11 [#backwards-compatible-rs]_
+     - Java 8
+     - Java 7
+     - Java 6
 
    * - 4.2
      - |checkmark|

@@ -5,40 +5,41 @@
    :class: compatibility-large
 
    * - Motor (Python async) Driver
-     - Python 2.5
-     - Python 2.6
-     - Python 2.7
-     - Python 3.3
-     - Python 3.4
-     - Python 3.5
      - Python 3.6
-     
+     - Python 3.5
+     - Python 3.4
+     - Python 3.3
+     - Python 2.7
+     - Python 2.6
+     - Python 2.5
+
    * - 1.2
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     - |checkmark|
      -
      -
-     - |checkmark|
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+
 
    * - 1.1
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
 
    * - 1.0
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
 
    * - 0.7
      -
@@ -69,39 +70,39 @@
 
    * - 0.4
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
      -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
      -
 
    * - 0.3
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
      -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
      -
 
    * - 0.2
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
      -
      -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
      -
 
    * - 0.1
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
      -
      -
      -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
 - Motor 1.1 wraps PyMongo 3.4+
 - Motor 1.0 wraps PyMongo 3.3+
