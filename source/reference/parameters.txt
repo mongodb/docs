@@ -3377,6 +3377,37 @@ Sharding Parameters
 Storage Parameters
 ~~~~~~~~~~~~~~~~~~
 
+.. parameter:: honorSystemUmask
+
+   .. versionadded:: 3.6
+
+   |mongod-only|
+
+   *Default*: ``false``
+
+   If :parameter:`honorSystemUmask` is set to ``true``, new files
+   created by MongoDB have permissions in accordance with the
+   user's ``umask`` settings. You cannot set :parameter:`processUmask`
+   if :parameter:`honorSystemUmask` is set to ``true``.
+
+   If :parameter:`honorSystemUmask` is set to ``false``, new files
+   created by MongoDB have permissions set to ``600``, which gives
+   read and write permissions only to the owner. New directories have
+   permissions set to ``700``. You can use :parameter:`processUmask`
+   to override the default permissions for groups and other users on
+   all new files created by MongoDB.
+
+   You can only set this parameter during start-up and cannot change
+   this setting using the :dbcommand:`setParameter` database command.
+
+   .. code-block:: sh
+
+      mongod --setParameter honorSystemUmask=true
+
+   .. note::
+
+      :parameter:`honorSystemUmask` is not available on Windows systems.
+
 .. parameter:: journalCommitInterval
 
    |mongod-only|
@@ -3392,6 +3423,64 @@ Storage Parameters
       db.adminCommand( { setParameter: 1, journalCommitInterval: 200 } )
 
    .. seealso:: :setting:`storage.journal.commitIntervalMs`
+
+.. parameter:: minSnapshotHistoryWindowInSeconds
+
+   ..versionadded:: 5.0
+
+   |mongod-only|
+
+   The minimum time window in seconds for which the storage engine keeps
+   the snapshot history. If you query data using read concern
+   :readconcern: snapshot and specify an
+   :ref:`atClusterTime <atClusterTime>` value older than the specified
+   ``minSnapshotHistoryWindowInSeconds``, :binary:`~bin.mongod` returns
+   a ``SnapshotTooOld`` error.
+
+   Specify an integer greater than or equal to (``>=``) 1.
+
+   Consider the following example which sets the
+   ``minSnapshotHistoryWindowInSeconds`` to ``600`` seconds:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, minSnapshotHistoryWindowInSeconds: 600 } )
+
+   .. seealso::
+      - Read concern :readconcern:`"snapshot"`
+      - :ref:`Snapshots and Checkpoints
+        <storage-wiredtiger-checkpoints>`
+
+.. parameter:: processUmask
+
+   .. versionadded:: 4.4
+
+   |mongod-only|
+
+   Overrides the default permissions used for groups and other users
+   when :parameter:`honorSystemUmask` is set to ``false``. By default,
+   when :parameter:`honorSystemUmask` is set to ``false``, new files
+   created by MongoDB have permissions set to ``600``. Use the
+   ``processUmask`` parameter to override this default with a custom
+   ``umask`` value. The file owner inherits permissions from the system
+   ``umask``.
+
+   You cannot set this parameter if :parameter:`honorSystemUmask` is set
+   to ``true``. You can only set this parameter during start-up and cannot
+   change this setting using the :dbcommand:`setParameter` database
+   command.
+
+   Consider the following example, which sets the permissions for groups
+   and other users to read/write only and retains the system ``umask``
+   settings for the owner:
+
+   .. code-block:: sh
+
+      mongod --setParameter processUmask=011
+
+   .. note::
+
+      :parameter:`processUmask` is not available on Windows systems.
 
 .. parameter:: syncdelay
 
@@ -3410,71 +3499,9 @@ Storage Parameters
 
       db.adminCommand( { setParameter: 1, syncdelay: 60 } )
 
-   .. seealso:: 
+   .. seealso::
       - :parameter:`journalCommitInterval`
       - :setting:`storage.syncPeriodSecs`
-
-.. parameter:: honorSystemUmask
-
-   .. versionadded:: 3.6
-
-   |mongod-only|
-
-   *Default*: ``false``
-
-   If :parameter:`honorSystemUmask` is set to ``true``, new files
-   created by MongoDB have permissions in accordance with the
-   user's ``umask`` settings. You cannot set :parameter:`processUmask` 
-   if :parameter:`honorSystemUmask` is set to ``true``.
-
-   If :parameter:`honorSystemUmask` is set to ``false``, new files
-   created by MongoDB have permissions set to ``600``, which gives
-   read and write permissions only to the owner. New directories have
-   permissions set to ``700``. You can use :parameter:`processUmask` 
-   to override the default permissions for groups and other users on 
-   all new files created by MongoDB.
-
-   You can only set this parameter during start-up and cannot change
-   this setting using the :dbcommand:`setParameter` database command.
-
-   .. code-block:: sh
-
-      mongod --setParameter honorSystemUmask=true
-
-   .. note::
-
-      :parameter:`honorSystemUmask` is not available on Windows systems.
-
-.. parameter:: processUmask
-
-   .. versionadded:: 4.4
-
-   |mongod-only|
-
-   Overrides the default permissions used for groups and other users 
-   when :parameter:`honorSystemUmask` is set to ``false``. By default, 
-   when :parameter:`honorSystemUmask` is set to ``false``, new files 
-   created by MongoDB have permissions set to ``600``. Use the 
-   ``processUmask`` parameter to override this default with a custom 
-   ``umask`` value. The file owner inherits permissions from the system 
-   ``umask``. 
- 
-   You cannot set this parameter if :parameter:`honorSystemUmask` is set 
-   to ``true``. You can only set this parameter during start-up and cannot 
-   change this setting using the :dbcommand:`setParameter` database 
-   command.
-
-   Consider the following example, which sets the permissions for groups 
-   and other users to read/write only and retains the system ``umask`` 
-   settings for the owner: 
-
-   .. code-block:: sh
-
-      mongod --setParameter processUmask=011
-
-   .. note::
-
-      :parameter:`processUmask` is not available on Windows systems.
 
 WiredTiger Parameters
 ~~~~~~~~~~~~~~~~~~~~~
