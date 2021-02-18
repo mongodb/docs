@@ -5,9 +5,15 @@
 
 Building indexes in a rolling fashion reduces the performance impact of
 building indexes on :term:`replica sets <replica set>` and
-:term:`sharded clusters <sharded cluster>`. To maintain cluster
-availability, |service| removes one node from the cluster at a time
-starting with a :term:`secondary <secondary>`.
+:term:`sharded clusters <sharded cluster>`. 
+
+To maintain cluster availability:
+
+- |service| removes one node from the cluster at a time
+  starting with a :term:`secondary <secondary>`.
+
+- More than one node can go down at a time, but |service| always keeps 
+  a majority of the nodes online.
 
 To learn more about rebuilding indexes, see :manual:`Build Indexes on
 Replica Sets </tutorial/build-indexes-on-replica-sets>`.
