@@ -289,7 +289,7 @@
        In this object:
 
        - Each key is the unique identifier of an interface endpoint.
-       - Each value is the **mongodb+srv://** connection string you use 
+       - Each value is the **mongodb+srv://** connection string you use
          to connect to |service| through the interface endpoint the key
          names.
 
@@ -342,7 +342,7 @@
 
              :ref:`storage-capacity`.
 
-       .. include:: /includes/fact-storage-limitation.rst
+       .. include:: /includes/cluster-settings/storage-limitation.rst
 
    * - encryptionAtRestProvider
      - string
@@ -587,7 +587,7 @@
      - string
      - Name of the cluster tier used for the |service| cluster.
 
-       .. include:: /includes/fact-instance-size-names.rst
+       .. include:: /includes/cluster-settings/instance-size-names.rst
 
        .. tabs-cloud-providers::
 
@@ -606,7 +606,7 @@
 
              .. include:: /includes/list-tables/instance-types/azure.rst
 
-       .. include:: /includes/fact-m2-m5-multi-tenant.rst
+       .. include:: /includes/cluster-settings/multi-tenant.rst
 
    * - replicationFactor
      - number
@@ -700,7 +700,7 @@
 
    * - replicationSpecs[n].regionsConfig.<region>.analyticsNodes
      - number
-     - .. include:: /includes/fact-api-analytics-nodes-description.rst
+     - .. include:: /includes/cluster-settings/api-analytics-nodes-description.rst
 
    * - replicationSpecs[n].regionsConfig.<region>.electableNodes
      - number

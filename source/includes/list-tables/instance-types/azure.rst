@@ -14,67 +14,69 @@
      - 5 GB
      - Shared
 
-   * - M10
+   * - M10 :icon-fa5:`star`
      - 32 GB
      - 2 GB
 
-   * - M20
+   * - M20 :icon-fa5:`star`
      - 32 GB
      - 4 GB
 
-   * - M30
+   * - M30 :icon-fa5:`star`
      - 32 GB
      - 8 GB
 
-   * - M40
+   * - M40 :icon-fa5:`star`
      - 128 GB
      - 16 GB
 
-   * - M40 Low-CPU (R40)
+   * - R40 :icon-fa5:`star`
      - 128 GB
      - 16 GB
 
-   * - M50
+   * - M50 :icon-fa5:`star`
      - 128 GB
      - 32 GB
 
-   * - M50 Low-CPU (R50)
+   * - R50 :icon-fa5:`star`
      - 128 GB
      - 32 GB
 
-   * - M60
+   * - M60 :icon-fa5:`star`
      - 128 GB
      - 64 GB
 
-   * - M60 Low-CPU (R60)
+   * - R60 :icon-fa5:`star`
      - 128 GB
      - 64 GB
 
-   * - M80
+   * - M80 :icon-fa5:`star`
      - 256 GB
      - 128 GB
 
-   * - M80 Low-CPU (R80)
+   * - R80 :icon-fa5:`star`
      - 256 GB
      - 128 GB
 
-   * - M200
+   * - M200 :icon-fa5:`star`
      - 256 GB
      - 256 GB
 
-   * - M200 Low-CPU (R200)
+   * - R200 :icon-fa5:`star`
      - 256 GB
      - 256 GB
 
-   * - M300 Low-CPU (R300) :sup:`1`
+   * - R300 :icon-fa4:`times-circle` :icon-fa5:`star`
      - 512 GB
      - 384 GB
 
-   * - M400 Low-CPU (R400)
+   * - R400 :icon-fa5:`star`
      - 512 GB
      - 432 GB
 
-:sup:`1` Not available in the following regions:
+:icon-fa5:`star` Can use this tier for a multi-cloud cluster.
+
+:icon-fa4:`times-circle` Not available in the following regions:
 
 - **germanywestcentral**
 - **switzerlandnorth**

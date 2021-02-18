@@ -8,8 +8,4 @@
      - Google Cloud Platform
    * - AZURE
      - Microsoft Azure
-   * - TENANT
-     - **M2** or **M5** multi-tenant cluster
 
-       Use **providerSettings.backingProviderName** to set the
-       cloud service provider.

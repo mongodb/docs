@@ -76,7 +76,7 @@
        - Set to **true** to enable disk auto-scaling.
        - Set to **false** to disable disk auto-scaling.
 
-       .. include:: /includes/fact-ram-to-storage-ratio.rst
+       .. include:: /includes/cluster-settings/ram-to-storage-ratio.rst
 
    * - backupEnabled
      - boolean
@@ -246,7 +246,7 @@
           whether you choose the default value or a custom value. For
           details, see :ref:`storage-capacity`.
 
-       .. include:: /includes/fact-storage-limitation.rst
+       .. include:: /includes/cluster-settings/storage-limitation.rst
 
        .. note::
 
@@ -268,7 +268,7 @@
              |service| project |aws| Key Management System settings.
              The cluster must meet the following requirements:
 
-             .. include:: /includes/fact-encryption-at-rest-restrictions.rst
+             .. include:: /includes/cluster-settings/encryption-at-rest-restrictions.rst
 
           .. tab:: GCP
              :tabid: gcp
@@ -279,7 +279,7 @@
              settings. The cluster must meet the following
              requirements:
 
-             .. include:: /includes/fact-encryption-at-rest-restrictions.rst
+             .. include:: /includes/cluster-settings/encryption-at-rest-restrictions.rst
 
           .. tab:: Azure
              :tabid: azure
@@ -290,7 +290,7 @@
              settings. The cluster must meet the following
              requirements:
 
-             .. include:: /includes/fact-encryption-at-rest-restrictions.rst
+             .. include:: /includes/cluster-settings/encryption-at-rest-restrictions.rst
 
           .. tab:: NONE
              :tabid: none
@@ -305,7 +305,7 @@
 
        Each key and value has a maximum length of 255 characters.
 
-       .. include:: /includes/fact-example-labels.rst
+       .. literalinclude:: /includes/cluster-settings/example-labels.json
 
        .. note::
 
@@ -376,7 +376,7 @@
          **clusterType** of **REPLICASET**, |service| deploys a
          :term:`replica set`.
 
-       .. include:: /includes/fact-single-shard-cluster-warning.rst
+       .. include:: /includes/cluster-settings/single-shard-cluster-warning.rst
 
        For more information on sharded clusters, see
        :manual:`Sharding </sharding>` in the MongoDB manual.
@@ -476,7 +476,7 @@
 
        |service| accepts the following values:
 
-       .. include:: /includes/api/list-tables/clusters/cloud-service-providers.rst
+       .. include:: /includes/api/list-tables/clusters/cloud-service-providers-no-tenant.rst
 
    * - providerSettings.diskIOPS
      - number
@@ -484,9 +484,9 @@
      - Disk |iops| setting for |aws| storage. Set only if you selected
        |aws| as your cloud service provider.
 
-       .. include:: /includes/providerSettings-diskIOPS.rst
+       .. include:: /includes/cluster-settings/providerSettings/diskIOPS.rst
 
-       .. include:: /includes/fact-aws-minimum-iops.rst
+       .. include:: /includes/cluster-settings/minimum-iops.rst
 
    * - providerSettings.diskTypeName
      - string
@@ -528,7 +528,7 @@
 
              .. include:: /includes/list-tables/instance-types/aws.rst
 
-             .. include:: /includes/fact-instance-size-names.rst
+             .. include:: /includes/cluster-settings/instance-size-names.rst
 
           .. tab::
              :tabid: gcp
@@ -540,7 +540,7 @@
 
              .. include:: /includes/list-tables/instance-types/azure.rst
 
-       .. include:: /includes/fact-m2-m5-multi-tenant.rst
+       .. include:: /includes/cluster-settings/multi-tenant.rst
 
    * - providerSettings.providerName
      - string
@@ -549,18 +549,7 @@
 
        .. include:: /includes/api/list-tables/clusters/cloud-service-providers.rst
 
-       .. list-table::
-          :widths: 20 80
-          :stub-columns: 1
-
-          * - TENANT
-            - **M2** or **M5** multi-tenant cluster.
-
-              See **providerSettings.backingProviderName** for the
-              cloud service provider where |service| provisioned the
-              host serving the cluster.
-
-       .. include:: /includes/fact-m2-m5-multi-tenant.rst
+       .. include:: /includes/cluster-settings/multi-tenant.rst
 
    * - providerSettings.regionName
      - string
@@ -577,12 +566,12 @@
        Do *not* specify this parameter when creating a multi-region
        cluster using the **replicationSpec** document.
 
-       .. include:: /includes/fact-group-region-association.rst
+       .. include:: /includes/cluster-settings/group-region-association.rst
 
        Select your cloud provider's tab for example cluster region
        names:
 
-       .. include:: /includes/fact-cloud-region-name-examples.rst
+       .. include:: /includes/cluster-settings/cloud-region-name-examples.rst
 
    * - providerSettings.volumeType
      - string
@@ -590,7 +579,7 @@
      - Disk |iops| setting for |aws| storage. Set only if you selected
        |aws| as your cloud service provider.
 
-       .. include:: /includes/providerSettings-volumeType.rst
+       .. include:: /includes/cluster-settings/providerSettings/volumeType.rst
 
    * - replicationFactor
      - number
@@ -674,7 +663,7 @@
        Select your cloud service provider's tab for example cluster
        region names:
 
-       .. include:: /includes/fact-cloud-region-name-examples.rst
+       .. include:: /includes/cluster-settings/cloud-region-name-examples.rst
 
        For each **<region>** object, you must specify the
        **analyticsNodes**, **electableNodes**, **priority**, and
@@ -684,7 +673,7 @@
 
           :ref:`mod-cluster-considerations`.
 
-       .. include:: /includes/fact-group-region-association.rst
+       .. include:: /includes/cluster-settings/group-region-association.rst
 
    * - replicationSpec.<region>.analyticsNodes
      - number
@@ -696,7 +685,7 @@
           **replicationSpec.<region>.analyticsNodes** is deprecated. Use
           **replicationSpecs[n].<region>.analyticsNodes**.
 
-       .. include:: /includes/fact-api-analytics-nodes-description.rst
+       .. include:: /includes/cluster-settings/api-analytics-nodes-description.rst
 
    * - replicationSpec.<region>.electableNodes
      - number
@@ -868,7 +857,7 @@
        Select your cloud service provider's tab for example cluster
        region names:
 
-       .. include:: /includes/fact-cloud-region-name-examples.rst
+       .. include:: /includes/cluster-settings/cloud-region-name-examples.rst
 
        For each **<region>** object, you must specify the
        **analyticsNodes**, **electableNodes**, **priority**, and
@@ -876,13 +865,13 @@
 
        .. seealso:: :ref:`mod-cluster-considerations`.
 
-       .. include:: /includes/fact-group-region-association.rst
+       .. include:: /includes/cluster-settings/group-region-association.rst
 
    * - replicationSpecs[n].regionsConfig.<region>.analyticsNodes
      - number
      - Optional
      -
-       .. include:: /includes/fact-api-analytics-nodes-description.rst
+       .. include:: /includes/cluster-settings/api-analytics-nodes-description.rst
 
    * - replicationSpecs[n].regionsConfig.<region>.electableNodes
      - number

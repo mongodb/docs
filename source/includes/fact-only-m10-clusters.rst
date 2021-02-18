@@ -1,1 +1,1 @@
-Applicable only for ``M10+`` clusters.
+This applies to dedicated clusters, **M10** or greater, only.

@@ -14,23 +14,23 @@
      - 5 GB
      - Shared
 
-   * - M10
+   * - M10 :icon-fa5:`star`
      - 10 GB
      - 2 GB
 
-   * - M20
+   * - M20 :icon-fa5:`star`
      - 20 GB
      - 4 GB
 
-   * - M30
+   * - M30 :icon-fa5:`star`
      - 40 GB
      - 8 GB
 
-   * - M40
+   * - M40 :icon-fa5:`star`
      - 80 GB
      - 16 GB
 
-   * - M40 Low-CPU (R40)
+   * - R40 :icon-fa5:`star`
      - 80 GB
      - 16 GB
 
@@ -38,11 +38,11 @@
      - 380 GB
      - 15.25 GB
 
-   * - M50
+   * - M50 :icon-fa5:`star`
      - 160 GB
      - 32 GB
 
-   * - M50 Low-CPU (R50)
+   * - R50 :icon-fa5:`star`
      - 160 GB
      - 32 GB
 
@@ -50,11 +50,11 @@
      - 760 GB
      - 30.5 GB
 
-   * - M60
+   * - M60 :icon-fa5:`star`
      - 320 GB
      - 64 GB
 
-   * - M60 Low-CPU (R60)
+   * - R60 :icon-fa5:`star`
      - 320 GB
      - 64 GB
 
@@ -62,11 +62,11 @@
      - 1.6 TB
      - 61 GB
 
-   * - M80
+   * - M80 :icon-fa5:`star`
      - 760 GB
      - 131 GB
 
-   * - M80 Low-CPU (R80)
+   * - R80 :icon-fa5:`star`
      - 750 GB
      - 122 GB
 
@@ -78,15 +78,15 @@
      - 1 TB
      - 160 GB
 
-   * - M140 :sup:`1`
+   * - M140 :icon-fa4:`times-circle`
      - 1 TB
      - 192 GB
 
-   * - M200
+   * - M200 :icon-fa5:`star`
      - 1.5 TB
      - 256 GB
 
-   * - M200 Low-CPU (R200)
+   * - R200 :icon-fa5:`star`
      - 1.5 TB
      - 256 GB
 
@@ -94,29 +94,31 @@
      - 3.1 TB
      - 244 GB
 
-   * - M300 :sup:`1`
+   * - M300 :icon-fa4:`times-circle` :icon-fa5:`star`
      - 2 TB
      - 384 GB
 
-   * - M300 Low-CPU (R300)
+   * - R300 :icon-fa5:`star`
      - 2 TB
      - 384 GB
 
-   * - M400 Low-CPU (R400)
+   * - R400 :icon-fa5:`star`
      - 3 TB
      - 488 GB
 
-   * - M400_NVME :sup:`2`
+   * - M400_NVME :icon-fa4:`exclamation-circle`
      - 4 TB
      - 512 GB
 
-   * - M700 Low-CPU (R700)
+   * - R700
      - 4 TB
      - 768 GB
 
-:sup:`1` Unavailable in the **AP_SOUTHEAST_2** region.
+:icon-fa5:`star` Can use this tier for a multi-cloud cluster.
 
-:sup:`2` Availability limited to the following regions:
+:icon-fa4:`times-circle` Unavailable in the **AP_SOUTHEAST_2** region.
+
+:icon-fa4:`exclamation-circle` Availability limited to the following regions:
 
 - **US_EAST_1**
 - **US_EAST_2**

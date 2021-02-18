@@ -11,5 +11,5 @@
    * - TENANT
      - **M2** or **M5** multi-tenant cluster
 
-       Use **providerSettings.backingProviderName** to set the
-       cloud service provider.
+       Use **replicationSpecs[n].regionConfigs[m].backingProviderName**
+       to set the cloud service provider.
