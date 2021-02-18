@@ -1,3 +1,13 @@
+.. _mongodb-10.14.20.6466:
+
+MongoDB Agent 10.14.20.6466
+---------------------------
+
+:ref:`Released with Ops Manager 4.4.9 on 2021-02-17 <opsmgr-server-4.4.9>`
+
+- Fixes a bug that ensures fixed ordering of index options for all nodes
+  in a rolling index build.
+
 .. _mongodb-10.14.18.6453:
 
 MongoDB Agent 10.14.18.6453

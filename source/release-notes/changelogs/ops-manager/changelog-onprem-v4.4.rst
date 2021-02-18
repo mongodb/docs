@@ -1,3 +1,14 @@
+.. _opsmgr-server-4.4.9:
+
+|onprem| Server 4.4.9
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-02-17*
+
+- Fixes a regression introduced in |onprem| 4.4.8 that prevents the MongoDB
+  Version Manifest from being updated.
+- Updates the MongoDB Agent to :ref:`10.14.20.6466 <mongodb-10.14.20.6466>`.
+
 .. _opsmgr-server-4.4.8:
 
 |onprem| Server 4.4.8
