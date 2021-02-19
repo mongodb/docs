@@ -1,3 +1,11 @@
+.. _data-lake-v20210216:
+
+16 February 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds :ref:`SQL schema generation <query-with-sql>` for wildcard collections.
+- Fixes stability and performance issues.
+
 .. _data-lake-v20210126:
 
 26 January 2021 Release
