@@ -1570,3 +1570,124 @@ relevant for the operation:
       The total time this operation has waited to acquire a ticket.
 
       .. versionadded:: 4.2
+
+.. data:: $currentOp.totalOperationTimeElapsed
+
+   The total time elapsed, in seconds, for the current resharding
+   operation. The time is set to 0 when a new resharding operation
+   starts.
+
+   Only present if a resharding operation is taking place.
+
+   .. versionadded:: 5.0
+
+.. data:: $currentOp.remainingOperationTimeEstimated
+
+   The estimated time remaining in seconds for the current resharding
+   operation. The time is set to -1 when a new resharding operation
+   starts.
+
+   Only present when a resharding operation is taking place.
+
+   .. versionadded:: 5.0
+
+.. data:: $currentOp.coordinatorState
+
+   The state of the resharding coordinator for the current resharding
+   operation. The resharding coordinator is an operation that runs on
+   the :doc:`config server </core/sharded-cluster-config-servers>`
+   primary. The state is set to ``unused`` when a new resharding
+   operation starts.
+
+   Only present on the coordinating config server.
+
+   .. list-table::
+      :widths: 20 80
+      :header-rows: 1
+
+      * - State
+        - Description
+
+      * - ``unused``
+        - The resharding operation is about to start.
+
+      * - ``initializing``
+        - The resharding coordinator has inserted the coordinator
+          document into ``config.reshardingOperations`` and has added
+          the ``reshardingFields`` to the ``config.collections`` entry
+          for the original collection.
+
+      * - ``preparing-to-donate``
+        - The resharding coordinator
+
+          - has created a ``config.collections`` entry for the temporary
+            resharding collection.
+          - has inserted entries into ``config.chunks`` for ranges based
+            on the new shard key.
+          - has inserted entries into ``config.tags`` for any zones
+            associated with the new shard key.
+
+          The coordinator informs participants shards to begin the
+          resharding operation. The coordinator then waits until all
+          donor shards have picked a ``minFetchTimestamp`` and are ready
+          to donate.
+
+      * - ``cloning``
+        - The resharding coordinator informs donor shards to donate data
+          to recipient shards. The coordinator waits for all recipients
+          to finish cloning the data from the donor.
+
+      * - ``applying``
+        - The resharding coordinator informs recipient shards to modify
+          their copies of data based on new incoming writes from donor
+          shards. The coordinator waits for all recipients to finish
+          applying :term:`oplog` entries.
+
+      * - ``mirroring``
+        - The resharding coordinator informs donor shards to prevent new
+          incoming write operations to the collection being resharded.
+          The coordinator then waits for all recipients to have all data
+          changes.
+
+      * - ``decision-persisted``
+        - The resharding coordinator removes the ``config.collections``
+          entry for the temporary resharding collection. The coordinator
+          then adds the ``recipientFields`` to the source collection's
+          entry.
+
+      * - ``done``
+        - The resharding operation is complete.
+
+      * - ``error``
+        - An error occurred during the resharding operation.
+
+   .. versionadded:: 5.0
+
+.. data:: $currentOp.opStatus
+
+   The current state of a resharding operation.
+
+   Only present if a resharding operation is taking place. Once the
+   operation has completed, the operation is removed from ``currentOp``
+   output.
+
+   .. list-table::
+      :widths: 20 80
+      :header-rows: 1
+
+      * - State
+        - Description
+
+      * - ``actively running``
+        - The resharding operation is actively running.
+
+      * - ``success``
+        - The resharding operation has succeeded.
+
+      * - ``failure``
+        - The resharding operation has failed.
+
+      * - ``canceled``
+        - The resharding operation was canceled.
+
+   .. versionadded:: 5.0
