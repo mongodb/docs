@@ -158,3 +158,88 @@ Open a shell session to a running container in your database resource
       > 120
 
 .. seealso:: :manual:`Operating System Configuration </administration/production-checklist-operations/#linux>` in the MongoDB Manual.
+
+Build Custom Images with Dockerfile Templates
+---------------------------------------------
+
+You can modify MongoDB Dockerfile templates to create custom 
+|k8s-op-short| images that suit your use case. To build a 
+custom image, you need:
+
+- Your custom Dockerfile, modified from a MongoDB template.
+
+- The MongoDB-provided context image for your template.
+
+MongoDB Dockerfile Templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Dockerfiles used to build container images are publicly 
+available from the 
+`MongoDB Enterprise Kubernetes GitHub repository <https://github.com/mongodb/mongodb-enterprise-kubernetes/tree/master/dockerfiles>`__.
+
+The Dockerfile directory is organized by resource name, version and 
+distribution:
+
+.. code-block:: sh
+   :copyable: false
+
+   ├── <resource name>
+   │   └── <image version>
+   │       └── <base distribution>
+   │           └── Dockerfile template
+
+Copy the template you want to use to your own Dockerfile and modify as 
+desired.
+
+Context Images
+~~~~~~~~~~~~~~
+
+To build an image from any MongoDB Dockerfile template, you must supply 
+its context image. 
+
+Each Dockerfile template has one associated context image, retrievable 
+from the same `Quay.io <https://quay.io/>`__ registry as the original 
+images. Context image are always tagged in the format 
+``quay.io/mongodb/<resource-name>:<image-version>-context``.
+
+To supply a context image to ``docker build``, include the 
+``--build-arg`` option with the ``imagebase`` variable set to a 
+Quay.io tag, where ``<resource-name>`` and ``<image-version>`` match 
+your Dockerfile template.
+
+.. example::
+   If you want to build the ``mongodb-enterprise-database`` version 
+   2.0.0 image for any distribution, include:
+   
+   .. code-block:: sh
+      :copyable: false
+
+      --build-arg imagebase=quay.io/mongodb/mongodb-enterprise-database:2.0.0-context
+
+``docker build`` Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Ubuntu distribution for ``mongodb-enterprise-operator`` version 
+1.9.1 is based on ``ubuntu:1604`` by default. In this example, that 
+base Dockerfile template is modified to use ``ubuntu:1804`` and 
+saved as ``myDockerfile``.
+
+The following command builds the custom image and gives it the tag 
+``1.9.1-ubuntu-1804``:
+ 
+.. code-block:: sh
+   :copyable: false
+ 
+   cat myDockerfile | docker build --build-arg imagebase=quay.io/mongodb/mongodb-enterprise-operator:1.9.1-context \
+   --tag mongodb-enterprise-operator:1.9.1-ubuntu-1804 -
+
+.. note::
+
+   Include a hyphen (``-``) at the end of ``docker build`` to read 
+   the output of ``cat myDockerfile`` instead of providing a 
+   local directory as build context.
+      
+.. seealso::
+   
+   To learn more about ``docker build``, see the 
+   `Docker documentation <https://docs.docker.com/engine/reference/commandline/build/>`__.
