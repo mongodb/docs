@@ -1,0 +1,101 @@
+---
+title: "Launch the ``mongosh`` Shell."
+ref: launch-mongosh-shell
+level: 4
+content: |
+
+  Create a ``mongosh`` session without connecting to a running database
+  by using the :option:`--nodb` option:
+
+  .. code-block:: javascript
+
+     mongosh --nodb
+
+---
+title: "Generate an Encryption Key."
+ref: generate-local-key
+level: 4
+content: |
+
+  To configure client-side field level encryption for a locally managed
+  key, you must specify a base64-encoded 96-byte string with no line
+  breaks. Run the following command in ``mongosh`` to generate a key
+  matching these requirements:
+
+  .. code-block:: javascript
+
+     crypto.randomBytes(96).toString('base64')
+
+  You will need this key in the next step.
+
+---
+title: "Create the Encryption Configuration."
+ref: create-encryption-configuration
+level: 4
+content: |
+
+  In ``mongosh``, create a new
+  :ref:`ClientSideFieldLevelEncryptionOptions` variable for storing the
+  client-side field level encryption configuration, replacing
+  ``MY_LOCAL_KEY`` with the key generated in step 1:
+
+  .. code-block:: javascript
+
+     var ClientSideFieldLevelEncryptionOptions = {
+       "keyVaultNamespace" : "encryption.__dataKeys",
+       "kmsProviders" : {
+         "local" : {
+           "key" : BinData(0, "MY_LOCAL_KEY")
+         }
+       }
+     }
+
+---
+title: "Connect with Encryption Support."
+ref: connect-with-encryption
+level: 4
+content: |
+
+  In ``mongosh``, use the :method:`Mongo()<Mongo()>` constructor to
+  establish a database connection to the target cluster. Specify the
+  :ref:`ClientSideFieldLevelEncryptionOptions` document as the second
+  parameter to the :method:`Mongo()<Mongo()>` constructor to configure
+  the connection for client-side field level encryption:
+
+  .. code-block:: javascript
+
+     csfleDatabaseConnection = Mongo(
+       "mongodb://replaceMe.example.net:27017/?replicaSet=myMongoCluster",
+       ClientSideFieldLevelEncryptionOptions
+     )
+
+---
+title: "Create the Key Vault Object."
+ref: create-keyvault-object
+level: 4
+content: |
+
+  Create the ``keyVault`` object using the :method:`getKeyVault()
+  <getKeyVault()>` shell method:
+
+  .. code-block:: javascript
+
+     keyVault = csfleDatabaseConnection.getKeyVault();
+---
+title: "Create the Encryption Key."
+ref: create-encryption-key
+level: 4
+content: |
+
+  Create the data encryption key using the
+  :method:`createKey() <KeyVault.createKey()>` shell method:
+
+  .. code-block:: javascript
+
+      keyVault.createKey(
+        "local",
+        ["keyAltName"]
+      )
+
+  .. include:: /includes/fact-getkey-options.rst
+...
