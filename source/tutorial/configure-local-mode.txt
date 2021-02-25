@@ -12,72 +12,88 @@ Configure Deployment to Have Limited Internet Access
 
 .. meta::
    :description: How does Ops Manager download binaries with partial or no Internet access?
-   :keywords: local mode, hybrid mode
+   :keywords: remote mode, local mode, hybrid mode
 
 .. |company| replace:: MongoDB, Inc.
 
-In a default configuration, the {+mdbagent+}s and Backup Daemons
-access MongoDB binaries over the internet from |company|
+By default, |onprem|, {+mdbagent+}, and Backup Daemon hosts download
+MongoDB installation binaries over the public internet from |company|
 
-If your environment prevents granting all hosts in your MongoDB
-deployment access to the internet, you have two options:
+If your environment restricts which hosts can access the public
+internet, |onprem|, {+mdbagent+}, and Backup Daemon hosts can download
+MongoDB installation binaries from other locations. You can configure 
+the following download modes:
+
+Remote Mode
+-----------
+
+Choose **Remote Mode** when the |onprem|, MongoDB deployment, and Backup Daemon
+hosts can access the public internet or can access an HTTP(s) endpoint
+that hosts the MongoDB installation binaries.
+
+The |onprem|, {+mdbagent+}, and Backup Daemon hosts access MongoDB 
+installation binaries over the internet from |company| or from another 
+HTTP(s) endpoint that the hosts can access.
+
+.. note::
+
+   If your MongoDB deployments run |fcv| 4.2 or later, you don't need to
+   deploy Backup Daemons. Only your MongoDB deployments require access
+   to the public internet or an HTTP(s) endpoint that hosts the
+   MongoDB installation binaries to run |onprem| in Remote Mode.
+
+This is the default configuration when you deploy |onprem|. 
+If your |onprem|, MongoDB deployment, and Backup Daemon
+hosts can access the public internet, no additional configuration is
+necessary.
+
+If you want your |onprem|, {+mdbagent+}, and Backup Daemon hosts to
+download the MongoDB installation binaries from an HTTP(s) endpoint,
+specify the endpoint using the :setting:`Base URL` |onprem| 
+configuration setting.
 
 Hybrid Mode
-   Only |onprem| has internet access.
-   Configure |onprem| to download installers from the internet.
-   Configure Backup Daemons and managed MongoDB hosts to download
-   installers only from |onprem|.
+-----------
+
+Choose **Hybrid Mode** when only the |onprem| hosts in your 
+deployment can access the public internet.
+|onprem| hosts download MongoDB installer binaries from the
+internet. MongoDB hosts with {+mdbagent+}s download these
+installers from the |onprem| hosts and then install or upgrade
+MongoDB deployments.
+
+To manage MongoDB hosts without internet access, you must
+specify that the 
+:guilabel:`Source for agents to download MongoDB binaries` is
+:guilabel:`hybrid`.
 
 Local Mode
-   No hosts have internet access.
-   Upload the installers to |onprem|. 
-   Configure Backup Daemons an Managed MongoDB hosts to download
-   installers only from |onprem|.
+----------
 
-.. tabs::
+Choose **Local Mode** when none of the hosts in your deployment can
+access the public internet. 
 
-   .. tab:: Hybrid Mode
-      :tabid: hybrid
+For Backup Daemons or {+mdbagent+}s to install or upgrade MongoDB
+deployments, you must:
 
-      To manage MongoDB hosts without internet access, you must
-      specify that the
-      :guilabel:`Source for agents to download MongoDB binaries` is
-      :guilabel:`hybrid`.
+- Use another internet-connected device to download the
+   :dl:`MongoDB Server <enterprise>` and
+   :dl:`MongoDB Database Tools  <database-tools>` installer
+   binaries for each edition, version, and platform you need to
+   support from another internet-connected device.
 
-      |onprem| hosts download MongoDB installer binaries from the
-      internet. MongoDB hosts with {+mdbagent+}s download these
-      installers from the |onprem| hosts and then install or upgrade
-      MongoDB deployments.
+   Check the :doc:`release notes </release-notes/application>` for 
+   which version of the MongoDB Tools you should install.
 
-      The following tutorial outlines the steps to run |onprem| with
-      internet access when MongoDB hosts do not have internet access.
+- Load the MongoDB Server and MongoDB Database Tools installer
+   binaries to each |onprem| host into the
+   :setting:`Versions Directory`.
+- Update the :term:`version manifest`.
 
-   .. tab:: Local Mode
-      :tabid: local
-
-      To manage MongoDB hosts and run |onprem| without internet
-      access, you must specify that the
-      :guilabel:`Source for agents to download MongoDB binaries` is
-      :guilabel:`local`.
-
-      For Backup Daemons or {+mdbagent+}s to install or upgrade MongoDB
-      deployments, you must:
-
-      - Use another internet-connected device to download the
-        :dl:`MongoDB Server <enterprise>` and
-        :dl:`MongoDB Database Tools  <database-tools>` installer
-        binaries for each edition, version, and platform you need to
-        support from another internet-connected device.
-
-        Check the :doc:`release notes </release-notes/application>` for which version of the MongoDB Tools you should install.
-
-      - Load the MongoDB Server and MongoDB Database Tools installer
-        binaries to each |onprem| host into the
-        :setting:`Versions Directory`.
-      - Update the :term:`version manifest`.
-
-      The following tutorial outlines the steps to run |onprem|
-      without internet access.
+To manage MongoDB hosts and run |onprem| without internet
+access, you must specify that the
+:guilabel:`Source for agents to download MongoDB binaries` is
+:guilabel:`local`.
 
 Considerations
 --------------
@@ -120,7 +136,6 @@ dependencies, see the instructions for the appropriate host platform:
 .. include:: /includes/list-links-per-os-for-enterprise-dependencies.rst
 
 .. tabs::
-   :hidden:
 
    .. tab:: Hybrid Mode
       :tabid: hybrid
@@ -211,7 +226,6 @@ dependencies, see the instructions for the appropriate host platform:
            .. include:: /includes/install/db-tools-separate-from-server.rst
 
 .. tabs::
-   :hidden:
 
    .. tab:: Hybrid Mode
       :tabid: hybrid
