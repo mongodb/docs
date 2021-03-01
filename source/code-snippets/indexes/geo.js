@@ -12,8 +12,8 @@ async function run() {
     await client.connect();
 
     // begin-idx
-    const db = client.db("sample_mflix");
-    const movies = db.collection("movies");
+    const database = client.db("sample_mflix");
+    const movies = database.collection("movies");
 
     // Create a 2dsphere index on the "location.geo" field in the "theaters" collection.
     const result = await movies.createIndex({ "location.geo": "2dsphere" });

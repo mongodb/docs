@@ -11,10 +11,10 @@ async function run() {
   try {
     await client.connect();
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
 
     // open a Change Stream on the "movies" collection
-    changeStream = collection.watch();
+    changeStream = movies.watch();
 
     // set up a listener when change events are emitted
     changeStream.on("change", next => {
@@ -26,7 +26,7 @@ async function run() {
     // operation is called.
     await new Promise(resolve => {
       setTimeout(async () => {
-        await collection.insertOne({
+        await movies.insertOne({
           test: "sample movie document",
         });
         // wait to close `changeStream` after the listener receives the event

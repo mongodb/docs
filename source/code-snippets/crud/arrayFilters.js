@@ -12,11 +12,11 @@ async function loadData() {
     await client.connect();
 
     const database = client.db("test");
-    const collection = database.collection("pizza");
+    const pizza = database.collection("pizza");
 
-    await collection.drop();
+    await pizza.drop();
 
-    await collection.insertMany([
+    await pizza.insertMany([
       {
         name: "Steve Lobsters",
         address: "731 Yexington Avenue",
@@ -64,9 +64,9 @@ async function loadData() {
           },
         ]
       }
-    );
+    ]);
 
-    console.log(JSON.stringify(await (await collection.find()).toArray()));
+    console.log(JSON.stringify(await (await pizza.find()).toArray()));
   } finally {
     await client.close();
   }
@@ -79,19 +79,19 @@ async function runAllArrayElements() {
     await client.connect();
 
     const database = client.db("test");
-    const collection = database.collection("pizza");
+    const pizza = database.collection("pizza");
 
-    console.log(JSON.stringify(await (await collection.find()).toArray()));
+    console.log(JSON.stringify(await (await pizza.find()).toArray()));
 
     // start allArrayElement example
     const query = { "name": "Popeye" };
     const updateDocument = {
       $push: { "items.$[].toppings": "fresh mozzarella" }
     };
-    const result = await collection.updateOne(query, updateDocument);
+    const result = await pizza.updateOne(query, updateDocument);
     // end allArrayElement example
     console.log(result.modifiedCount);
-    console.log(JSON.stringify(await (await collection.find()).toArray()));
+    console.log(JSON.stringify(await (await pizza.find()).toArray()));
   } finally {
     await client.close();
   }
@@ -102,19 +102,19 @@ async function runFirstArrayElement() {
     await client.connect();
 
     const database = client.db("test");
-    const collection = database.collection("pizza");
+    const pizza = database.collection("pizza");
 
-    console.log(JSON.stringify(await (await collection.find()).toArray()));
+    console.log(JSON.stringify(await (await pizza.find()).toArray()));
 
     // start firstArrayElement example
     const query = { name: "Steve Lobsters", "items.type": "pizza" };
     const updateDocument = {
       $set: { "items.$.size": "extra large" }
     };
-    const result = await collection.updateOne(query, updateDocument);
+    const result = await pizza.updateOne(query, updateDocument);
     // end firstArrayElement example
     console.log(result.modifiedCount);
-    console.log(JSON.stringify(await (await collection.find()).toArray()));
+    console.log(JSON.stringify(await (await pizza.find()).toArray()));
   } finally {
     await client.close();
   }
@@ -126,9 +126,9 @@ async function arrayFiltersOne() {
     await client.connect();
 
     const database = client.db("test");
-    const collection = database.collection("pizza");
+    const pizza = database.collection("pizza");
 
-    console.log(JSON.stringify(await (await collection.find()).toArray()));
+    console.log(JSON.stringify(await (await pizza.find()).toArray()));
 
     // start arrayFiltersOne example
     const query = { name: "Steve Lobsters" };
@@ -142,11 +142,11 @@ async function arrayFiltersOne() {
       }]
     };
 
-    const result = await collection.updateMany(query, updateDocument, options);
+    const result = await pizza.updateMany(query, updateDocument, options);
     // end arrayFiltersOne example
 
     console.log(result.modifiedCount);
-    console.log(JSON.stringify(await (await collection.find()).toArray()));
+    console.log(JSON.stringify(await (await pizza.find()).toArray()));
   } finally {
     await client.close();
   }
@@ -157,9 +157,9 @@ async function arrayFiltersTwo() {
     await client.connect();
 
     const database = client.db("test");
-    const collection = database.collection("pizza");
+    const pizza = database.collection("pizza");
 
-    console.log(JSON.stringify(await (await collection.find()).toArray()));
+    console.log(JSON.stringify(await (await pizza.find()).toArray()));
 
     // start arrayFiltersTwo example
     const query = { name: "Steve Lobsters" };
@@ -174,11 +174,11 @@ async function arrayFiltersTwo() {
         },
       ],
     };
-    const result = await collection.updateOne(query, updateDocument, options);
+    const result = await pizza.updateOne(query, updateDocument, options);
     // end arrayFiltersTwo example
     console.log(result.modifiedCount);
 
-    collection.insertOne({
+    pizza.insertOne({
       name: "Steve Lobsters",
       address: "731 Yexington Avenue",
       items: [
@@ -211,7 +211,7 @@ async function arrayFiltersTwo() {
       ],
     });
 
-    console.log(JSON.stringify(await (await collection.find()).toArray()));
+    console.log(JSON.stringify(await (await pizza.find()).toArray()));
   } finally {
     await client.close();
   }

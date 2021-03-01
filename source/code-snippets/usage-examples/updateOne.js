@@ -11,7 +11,7 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
 
     // create a filter for a movie to update
     const filter = { title: "Blacksmith Scene" };
@@ -27,7 +27,7 @@ async function run() {
       },
     };
 
-    const result = await collection.updateOne(filter, updateDoc, options);
+    const result = await movies.updateOne(filter, updateDoc, options);
     console.log(
       `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`,
     );

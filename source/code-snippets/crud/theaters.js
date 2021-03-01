@@ -63,10 +63,10 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("theaters");
+    const theaters = database.collection("theaters");
 
-    await proximity(collection);
-    await range(collection);
+    await proximity(theaters);
+    await range(theaters);
   } finally {
     await client.close();
   }

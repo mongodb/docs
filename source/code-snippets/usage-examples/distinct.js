@@ -12,7 +12,7 @@ async function run() {
 
     // define a database and collection on which to run the method
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
 
     // specify the document field
     const fieldName = "year";
@@ -20,7 +20,7 @@ async function run() {
     // specify an optional query document
     const query = { directors: "Barbra Streisand" };
 
-    const distinctValues = await collection.distinct(fieldName, query);
+    const distinctValues = await movies.distinct(fieldName, query);
 
     console.log(distinctValues);
   } finally {

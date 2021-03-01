@@ -100,12 +100,12 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
 
-    await word(collection);
-    await phrase(collection);
-    await negation(collection);
-    await relevance(collection);
+    await word(movies);
+    await phrase(movies);
+    await negation(movies);
+    await relevance(movies);
   } finally {
     await client.close();
   }

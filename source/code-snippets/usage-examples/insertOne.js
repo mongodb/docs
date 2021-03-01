@@ -11,10 +11,10 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
     // create a document to be inserted
     const doc = { name: "Red", town: "kanto" };
-    const result = await collection.insertOne(doc);
+    const result = await movies.insertOne(doc);
 
     console.log(
       `${result.insertedCount} documents were inserted with the _id: ${result.insertedId}`,

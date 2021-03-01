@@ -12,8 +12,8 @@ async function run() {
     await client.connect();
 
     // begin-idx
-    const db = client.db("sample_mflix");
-    const movies = db.collection("movies");
+    const database = client.db("sample_mflix");
+    const movies = database.collection("movies");
 
     // Create an ascending index on the "title" field in the
     // "movies" collection.

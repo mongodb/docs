@@ -11,7 +11,7 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
 
     // Query for a movie that has the title 'The Room'
     const query = { title: "The Room" };
@@ -23,7 +23,7 @@ async function run() {
       projection: { _id: 0, title: 1, imdb: 1 },
     };
 
-    const movie = await collection.findOne(query, options);
+    const movie = await movies.findOne(query, options);
 
     // since this method returns the matched document, not a cursor, print it directly
     console.log(movie);

@@ -11,7 +11,7 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
 
     // create a filter to update all movies with a 'G' rating
     const filter = { rated: "G" };
@@ -22,7 +22,7 @@ async function run() {
         num_mflix_comments: 2,
       },
     };
-    const result = await collection.updateMany(filter, updateDoc);
+    const result = await movies.updateMany(filter, updateDoc);
     console.log(result);
   } finally {
     await client.close();

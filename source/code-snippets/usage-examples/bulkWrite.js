@@ -11,9 +11,9 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("theaters");
+    const theaters = database.collection("theaters");
 
-    const result = await collection.bulkWrite([
+    const result = await theaters.bulkWrite([
       { insertOne:
         {
           "document": {

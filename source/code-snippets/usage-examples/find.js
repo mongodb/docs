@@ -11,7 +11,7 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
 
     // query for movies that have a runtime less than 15 minutes
     const query = { runtime: { $lt: 15 } };
@@ -23,7 +23,7 @@ async function run() {
       projection: { _id: 0, title: 1, imdb: 1 },
     };
 
-    const cursor = collection.find(query, options);
+    const cursor = movies.find(query, options);
 
     // print a message if no documents were found
     if ((await cursor.count()) === 0) {

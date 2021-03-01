@@ -11,7 +11,7 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
 
     // create an array of documents to insert
     const docs = [
@@ -23,7 +23,7 @@ async function run() {
     // this option prevents additional documents from being inserted if one fails
     const options = { ordered: true };
 
-    const result = await collection.insertMany(docs, options);
+    const result = await movies.insertMany(docs, options);
     console.log(`${result.insertedCount} documents were inserted`);
   } finally {
     await client.close();

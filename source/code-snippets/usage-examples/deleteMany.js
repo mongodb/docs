@@ -11,11 +11,11 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const collection = database.collection("movies");
+    const movies = database.collection("movies");
     // Query for all movies with the title "Santa Claus"
     const query = { title: "Santa Claus" };
 
-    const result = await collection.deleteMany(query);
+    const result = await movies.deleteMany(query);
     console.log("Deleted " + result.deletedCount + " documents");
   } finally {
     await client.close();
