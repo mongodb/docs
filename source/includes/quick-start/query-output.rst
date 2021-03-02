@@ -1,5 +1,5 @@
 When you run the ``QuickStart`` class, it should output the details of the 
-movie from the sample dataset which resembles the following:
+movie from the sample dataset which will look something like this:
 
 .. code-block:: json
 

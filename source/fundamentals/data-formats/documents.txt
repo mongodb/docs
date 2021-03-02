@@ -45,6 +45,11 @@ access and manipulate the BSON data in documents:
      - Yes, implements ``Map<String, BsonValue>``
      - When you need a type-safe API.
 
+   * - ``JsonObject``
+     - ``org.bson.json``
+     - No
+     - When you only want to work with JSON strings.
+
    * - ``BasicDBObject``
      - ``com.mongodb``
      - No
@@ -154,7 +159,7 @@ data from the collection using the following code:
    method specified by the ``Map`` interface to retrieve field values as
    type ``Object`` and to skip type checking.
 
-The output should resemble the following:
+The output should look something like this:
 
 .. code-block:: none
    :copyable: false
@@ -225,7 +230,7 @@ different field types:
 
 To insert this document into a collection, instantiate a collection using
 :java-docs:`getCollection()</apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String,java.lang.Class)>`,
-specifying the ``BsonDocument`` class. Then, call the
+specifying the ``BsonDocument`` class as the ``documentClass`` parameter. Then, call the
 :doc:`insertOne </usage-examples/insertOne>` operation as follows:
 
 .. code-block:: java
@@ -268,7 +273,7 @@ data from the collection using the following code:
    type :java-docs:`BsonValue </apidocs/bson/org/bson/BsonValue.html>` and to
    skip type checking.
 
-The output should resemble the following:
+The output should look something like this:
 
 .. code-block:: none
    :copyable: false
@@ -278,11 +283,124 @@ The output should resemble the following:
    title: Chronicle of a Death Foretold, yearPublished: 1981
    title: Love in the Time of Cholera, yearPublished: 1985
 
-For more information on retrieving and manipulating MongoDB data, see our
-:doc:`CRUD guide </fundamentals/crud>`.
-
 For more information on this class, see the
 :java-docs:`BsonDocument API documentation </apidocs/bson/org/bson/BsonDocument.html>`.
+
+JsonObject
+-------------
+
+The ``JsonObject`` class acts as a wrapper for JSON strings.
+If you only want to work with JSON data, you can use ``JsonObject``
+to avoid unnecessary data conversion to a ``Map`` object.
+
+By default, ``JsonObject`` stores :manual:`Extended JSON </reference/mongodb-extended-json/>`.
+You can customize the format of JSON in ``JsonObject`` by specifying a
+:java-docs:`JsonObjectCodec</apidocs/bson/org/bson/codecs/JsonObjectCodec.html>`
+and passing it a
+:java-docs:`JsonWriterSettings</apidocs/bson/org/bson/json/JsonWriterSettings.html>`
+object. For more information on JSON formats, see
+our :doc:`Extended JSON guide </fundamentals/data-formats/document-data-format-extended-json/>`.
+For more information on specifying codecs, see our 
+:doc:`Codecs guide </fundamentals/data-formats/codecs>`.
+
+In the following code snippet, we show how to instantiate a sample ``JsonObject`` 
+instance wrapping an Extended JSON string containing different types of key value pairs:
+
+.. code-block:: java
+
+   String ejsonStr = "{\"_id\": {\"$oid\": \"6035210f35bd203721c3eab8\"},"
+           + "\"name\": \"Gabriel Garc\\u00eda M\\u00e1rquez\","
+           + "\"dateOfDeath\": {\"$date\": \"2014-04-17T04:00:00Z\"},"
+           + "\"novels\": ["
+           + "{\"title\": \"One Hundred Years of Solitude\",\"yearPublished\": 1967},"
+           + "{\"title\": \"Chronicle of a Death Foretold\",\"yearPublished\": 1981},"
+           + "{\"title\": \"Love in the Time of Cholera\",\"yearPublished\": 1985}]}";
+   JsonObject author = new JsonObject(ejsonStr);
+
+To insert this document into a collection, instantiate a collection using
+:java-docs:`getCollection() </apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String,java.lang.Class)>`,
+specifying the ``JsonObject`` class as the ``documentClass`` parameter. Then, call the
+:doc:`insertOne </usage-examples/insertOne>` operation as follows:
+
+.. code-block:: java
+
+   // MongoClient mongoClient = <code to instantiate your client>;
+
+   MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
+   MongoCollection<JsonObject> collection = database.getCollection("authors", JsonObject.class);
+
+   InsertOneResult result = collection.insertOne(author);
+
+Once you perform a successful insert, you can retrieve the sample JSON data from the 
+collection. While you can use any class that extends ``Bson`` to specify your query,
+here is how to query your data using a ``JsonObject``:
+
+.. code-block:: java
+
+   // MongoClient mongoClient = <code to instantiate your client>;
+
+   JsonObject query = new JsonObject("{\"name\": \"Gabriel Garc\\u00eda M\\u00e1rquez\"}");
+   JsonObject jsonResult = collection.find(query).first();
+   if (jsonResult != null) {
+       System.out.println("query result in extended json format: " + jsonResult.getJson());
+   }
+
+The output should look something like this:
+
+.. code-block:: none
+
+   query result in extended json format: {"_id": {"$oid": "6035210f35bd203721c3eab8"}, "name": "Gabriel García Márquez", "dateOfDeath": {"$date": "2014-04-17T04:00:00Z"}, "novels": [{"title": "One Hundred Years of Solitude", "yearPublished": 1967}, {"title": "Chronicle of a Death Foretold", "yearPublished": 1981}, {"title": "Love in the Time of Cholera", "yearPublished": 1985}]}
+
+.. example::
+   
+   If you would like to work with other formats of JSON strings
+   in your application, you can use the ``JsonObjectCodec`` class
+   along with ``JsonWriterSettings`` to specify your desired JSON
+   format.
+   
+   Below is a code example where we read and write
+   to our MongoDB instance using 
+   :manual:`Relaxed mode JSON </reference/mongodb-extended-json/>`
+   strings and output ``ObjectId`` instances as hex strings:
+
+   .. code-block:: java
+  
+      import static org.bson.codecs.configuration.CodecRegistries.fromCodecs;
+ 
+      // MongoClient mongoClient = <code to instantiate your client>;
+      
+      MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
+      MongoCollection<JsonObject> collection = database.getCollection("authors", JsonObject.class)
+              .withCodecRegistry(
+                      fromCodecs(
+                              // define a JsonObjectCodec with a JsonWriterSettings in Relaxed mode
+                              new JsonObjectCodec(JsonWriterSettings
+                                      .builder()
+                                      .outputMode(JsonMode.RELAXED)
+                                      .objectIdConverter((objectId, strictJsonWriter) -> {
+                                          strictJsonWriter.writeString(objectId.toHexString());
+                                      })
+                                      .build())));
+      JsonObject author = new JsonObject("{\"_id\": \"6035210f35bd203721c3eab8\", "
+              + "\"name\": \"Gabriel García Márquez\", "
+              + "\"dateOfDeath\": {\"$date\": \"2014-04-17T04:00:00Z\"}, "
+              + "\"novels\": [{\"title\": \"One Hundred Years of Solitude\", \"yearPublished\": 1967}, {\"title\": \"Chronicle of a Death Foretold\", \"yearPublished\": 1981}, "
+              + "{\"title\": \"Love in the Time of Cholera\", \"yearPublished\": 1985}]}\n");
+      collection.insertOne(author);
+      JsonObject query = new JsonObject("{\"name\": \"Gabriel Garc\\u00eda M\\u00e1rquez\"}");
+      JsonObject jsonResult = collection.find(query).first();
+      if (jsonResult != null) {
+          System.out.println("query result in relaxed json format: " + jsonResult.getJson());
+      }
+ 
+   The output of this code should look something like this:
+ 
+   .. code-block:: none
+
+      query result in relaxed json format: {"_id": "6035210f35bd203721c3eab8", "name": "Gabriel García Márquez", "dateOfDeath": {"$date": "2014-04-17T04:00:00Z"}, "novels": [{"title": "One Hundred Years of Solitude", "yearPublished": 1967}, {"title": "Chronicle of a Death Foretold", "yearPublished": 1981}, {"title": "Love in the Time of Cholera", "yearPublished": 1985}]}
+
+For more information on this class, see the
+:java-docs:`JsonObject API documentation <apidocs/bson/org/bson/json/JsonObject.html>`.
 
 BasicDBObject
 -------------
@@ -316,7 +434,7 @@ different field types:
 
 To insert this document into a collection, instantiate a collection using
 :java-docs:`getCollection()</apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String,java.lang.Class)>`,
-specifying the ``BasicDBObject`` class. Then, call the
+specifying the ``BasicDBObject`` class as the ``documentClass`` parameter. Then, call the
 :doc:`insertOne </usage-examples/insertOne>` operation as follows:
 
 .. code-block:: java
@@ -359,7 +477,7 @@ data from the collection using the following code:
    You can call the :java-docs:`get() </apidocs/bson/org/bson/BasicBSONObject.html?is-external=true#get(java.lang.String)>`
    method to retrieve values as type type ``Object`` and to skip type checking.
 
-The output should resemble the following:
+The output should look something like this:
 
 .. code-block:: none
    :copyable: false
@@ -368,9 +486,6 @@ The output should resemble the following:
    title: One Hundred Years of Solitude, yearPublished: 1967
    title: Chronicle of a Death Foretold, yearPublished: 1981
    title: Love in the Time of Cholera, yearPublished: 1985
-
-For more information on retrieving and manipulating MongoDB data, see our
-:doc:`CRUD guide </fundamentals/crud>`.
 
 For more information on this class, see the
 :java-docs:`BasicDBObject API documentation </apidocs/mongodb-driver-core/com/mongodb/BasicDBObject.html>`.
@@ -386,4 +501,3 @@ work with BSON data:
 - Provided usage examples for each class on building documents containing
   multiple types, inserting them into a collection, and
   retrieving/accessing their typed fields.
-
