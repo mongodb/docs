@@ -62,9 +62,9 @@ extlinks = {
 }
 
 source_constants = {
-    'current-version': '3.0.0',
-    'spark-core-version': '3.0.0',
-    'spark-sql-version': '3.0.0'
+    'current-version': '3.0.1',
+    'spark-core-version': '3.0.1',
+    'spark-sql-version': '3.0.1'
 }
 
 intersphinx_mapping = {}
