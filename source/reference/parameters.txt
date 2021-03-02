@@ -2898,46 +2898,96 @@ Sharding Parameters
 .. parameter:: ShardingTaskExecutorPoolReplicaSetMatching
 
    .. versionadded:: 4.2
+   .. versionchanged:: 4.4.5 (*Also starting in 4.2.13*)
 
    Type: string
 
-   Default: "matchPrimaryNode"
+   Default: "automatic"
 
    |both|
-   
-   The policy that determines the minimum size limit of the
-   :binary:`~bin.mongos` instance's connection pools to the sharded
-   cluster's replica set secondaries.
+
+   On a :binary:`~bin.mongos` instance, this parameter sets the policy
+   that determines the minimum size limit of its connection pools to
+   nodes within replica sets.
+
+   On a :binary:`~bin.mongod` instance, this parameter sets the policy
+   that determines the minimum size limit of its connection pools to
+   nodes within *other* replica sets.
+
+   Note that this parameter only manages connections for operations that
+   are directly related to user requests and CRUD operations.
 
    Available values are:
-   
+
    .. list-table::
       :header-rows: 1
       :widths: 15 85
-      
+
       * - Matching Policy
         - Description
 
-      * - ``"matchPrimaryNode"`` (Default)
-      
-        - For each replica set in the sharded cluster (i.e. shard
-          replica set and config servers), the minimum size limit of
-          the :binary:`~bin.mongos` instance's connection pool to each
-          secondary of that replica set is equal to the size of its
-          connection pool to the primary.
+      * - ``"automatic"`` (Default)
 
-          In case of primary stepdown, ``matchPrimaryNode`` ensures
+        - Starting in 4.4.5 (and 4.2.13), ``"automatic"`` is the
+          new default value.
+
+          When set for a :binary:`~bin.mongos`, the instance follows the
+          behavior specified for the ``"matchPrimaryNode"`` option.
+
+          When set for a :binary:`~bin.mongod`, the instance follows the
+          behavior specified for the ``"disabled"`` option.
+
+          .. note::
+
+             If the
+             :parameter:`ShardingTaskExecutorPoolReplicaSetMatching` is
+             set to ``"automatic"``, the
+             :data:`~connPoolStats.replicaSetMatchingStrategy` still
+             describes the actual policy being used, not
+             ``"automatic"``. To find the value of the
+             :parameter:`ShardingTaskExecutorPoolReplicaSetMatching`,
+             use :dbcommand:`getParameter` which returns the value of
+             the server parameter.
+
+      * - ``"matchPrimaryNode"``
+
+        - When set for a :binary:`~bin.mongos`, the minimum size limit
+          of the instance's connection pool to each secondary of a
+          replica set in the sharded cluster (specifically, shard
+          replica set and config servers) is equal to the size of its
+          connection pool to that replica set's primary.
+
+          When set for a :binary:`~bin.mongod`, the minimum size limit
+          of the instance's connection pool to each secondary of
+          another replica set in the sharded cluster (specifically,
+          shard replica set and config servers) is equal to the size of
+          its connection pool to that replica set's primary.
+
+          .. warning::
+
+             If multiple shard servers in your topology can experience a
+             rapid influx of cross-shard operations, do not set this
+             option on your :binary:`~bin.mongod` instances.
+
+          In case of a primary stepdown, ``matchPrimaryNode`` ensures
           that any secondary that becomes the primary can handle the
           current level of primary reads and writes.
 
       * - ``"matchBusiestNode"``
 
-        - For each replica set in the sharded cluster (i.e. shard
-          replica set and config servers), the minimum size limit of
-          the :binary:`~bin.mongos` instance's connection pool to each
-          member of that replica set is equal to the largest among
-          the active connections counts to the primary and each
-          secondary members.
+        - When set for a :binary:`~bin.mongos`, the instance's minimum
+          size limit of the connection pool to each member of a replica
+          set in the sharded cluster (specifically, shard replica set
+          and config servers) is equal to the largest among the active
+          connection counts to the primary and each secondary member of
+          that replica set.
+
+          When set for a :binary:`~bin.mongod`, the instance's minimum
+          size limit of the connection pool to each member of another
+          replica set in the sharded cluster (specifically, shard
+          replica set and config servers) is equal to the largest among
+          the active connection counts to the primary and each
+          secondary member of that replica set.
 
           With ``"matchBusiestNode"``, :binary:`~bin.mongos` maintains
           enough connections to each secondary to handle the current
@@ -2947,26 +2997,32 @@ Sharding Parameters
 
       * - ``"disabled"``
 
-        - For each replica set in the sharded cluster (i.e. shard
-          replica set and config servers), the minimum number of
-          connections in the :binary:`~bin.mongos` instance's
-          connection pool to each secondary is equal to the
-          :parameter:`ShardingTaskExecutorPoolMinSize`.
+        - When set for a :binary:`~bin.mongos`, the instance's minimum
+          number of connections in the instance's connection pool to
+          each node of a replica set in the sharded clusterv
+          (specifically, shard replica set and config servers) is equal
+          to the :parameter:`ShardingTaskExecutorPoolMinSize`.
+
+          When set for a :binary:`~bin.mongod`, the instance's minimum
+          number of connections in the instance's connection pool to
+          each node of another replica set in the sharded cluster
+          (specifically, shard replica set and config servers) is equal
+          to the :parameter:`ShardingTaskExecutorPoolMinSize`.
 
    The following example sets the
    :parameter:`ShardingTaskExecutorPoolReplicaSetMatching` to
-   ``"matchBusiestNode"`` during startup:
+   ``"automatic"`` during startup:
 
    .. code-block:: sh
 
-      mongod --setParameter ShardingTaskExecutorPoolReplicaSetMatching="matchBusiestNode"
+      mongod --setParameter ShardingTaskExecutorPoolReplicaSetMatching="automatic"
 
    During runtime, you can also set the parameter with the
    :dbcommand:`setParameter` command:
 
    .. code-block:: javascript
 
-      db.adminCommand( { setParameter: 1,  ShardingTaskExecutorPoolReplicaSetMatching: "matchBusiestNode" } )
+      db.adminCommand( { setParameter: 1,  ShardingTaskExecutorPoolReplicaSetMatching: "automatic" } )
 
 .. parameter:: taskExecutorPoolSize
 
