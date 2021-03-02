@@ -37,15 +37,7 @@ async function manualIteration(collection) {
 async function streamAPI(collection) {
   // start stream cursor example
   const cursor = collection.find({});
-  cursor.pipe(
-    new stream.Writable({
-      objectMode: true,
-      write: function(doc, _, callback) {
-        console.log(doc);
-        callback();
-      },
-    }),
-  );
+  cursor.stream().on("data", doc => console.log(doc));
   // end stream cursor example
 }
 
