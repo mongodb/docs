@@ -1,6 +1,6 @@
 .. topic:: EOL Notice
 
-   - MongoDB 5.0 Community Edition removes support
+   - MongoDB 5.0 Community Edition removes support for
      Ubuntu 18.04 on :ref:`s390x <prod-notes-supported-platforms-s390x>`
 
 MongoDB {+version+} Community Edition supports the following

@@ -4,6 +4,9 @@
       :widths: 40 60
       :class: border-table
 
+      * - SLES 12 s390x
+        - Support removed in MongoDB Community 5.0+.
+
       * - Ubuntu 18.04 s390x
         - Support removed in MongoDB Community 5.0+.
 
@@ -33,7 +36,7 @@
      - 4.0.0 - 4.0.13
 
    * - SLES 12
-     - |checkmark|
+     -
      - |checkmark|
      - 4.2.0 - 4.2.9
      - 4.0.6 - 4.0.13
