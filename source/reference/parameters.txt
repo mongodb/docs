@@ -319,6 +319,8 @@ Authentication Parameters
 
    .. versionadded:: 3.6
 
+   *Available on Linux only*
+
    .. versionchanged:: 4.0
 
       With the use of native TLS/SSL libraries, the parameter
@@ -328,15 +330,24 @@ Authentication Parameters
 
    Specify the cipher string for OpenSSL when using TLS/SSL encryption.
    For a list of cipher strings, see
-   `<https://www.openssl.org/docs/man1.0.2/apps/ciphers.html#CIPHER-STRINGS>`_
+   `<https://www.openssl.org/docs/man1.0.2/apps/ciphers.html#CIPHER-STRINGS>`_.
+   Multiple cipher strings can be provided as a colon-separated list.
 
-   You can only set :parameter:`opensslCipherConfig` during start-up, and
-   cannot change this setting using the :dbcommand:`setParameter`
+   .. note::
+
+      This parameter is only for use with TLS 1.2 or earlier. To specify
+      cipher suites for use with TLS 1.3, use the
+      :parameter:`opensslCipherSuiteConfig` parameter.
+
+   You can only set :parameter:`opensslCipherConfig` during start-up,
+   and cannot change this setting using the :dbcommand:`setParameter`
    database command.
 
    For version 4.2 and greater, the use of ``TLS`` options is preferred
    over ``SSL`` options. The TLS options have the same functionality as
-   the ``SSL`` options.
+   the ``SSL`` options. For example, the following configures a
+   :binary:`~bin.mongod` with a :parameter:`opensslCipherConfig`
+   cipher string of ``'HIGH:!EXPORT:!aNULL@STRENGTH'`` in MongoDB 4.2:
 
    .. code-block:: sh
 
@@ -348,6 +359,36 @@ Authentication Parameters
 
       mongod --setParameter opensslCipherConfig='HIGH:!EXPORT:!aNULL@STRENGTH' --sslMode requireSSL --sslPEMKeyFile Certs/server.pem
 
+.. parameter:: opensslCipherSuiteConfig
+
+   .. versionadded:: 5.0
+
+   *Available on Linux only*
+
+   Specify the list of supported cipher suites OpenSSL should permit
+   when using TLS 1.3 encryption.
+
+   For a list of cipher suites for use with TLS 1.3, see
+   `<https://www.openssl.org/docs/man1.1.1/man3/SSL_CTX_set_cipher_list.html>`_.
+   Multiple cipher suites can be provided as a colon-separated list.
+
+   .. note::
+
+      This parameter is only for use with TLS 1.3. To specify cipher
+      strings for use with TLS 1.2 or earlier, use the
+      :parameter:`opensslCipherConfig` parameter.
+
+   You can only set :parameter:`opensslCipherSuiteConfig` during
+   start-up, and cannot change this setting using the
+   :dbcommand:`setParameter` database command. For example, the
+   following configures a :binary:`~bin.mongod` with a
+   :parameter:`opensslCipherSuiteConfig` cipher suite of
+   ``'TLS_AES_256_GCM_SHA384'`` for use with TLS 1.3:
+
+   .. code-block:: sh
+
+      mongod --setParameter opensslCipherSuiteConfig='TLS_AES_256_GCM_SHA384' --tlsMode requireTLS --tlsCertificateKeyFile Certs/server.pem
+
 .. parameter:: opensslDiffieHellmanParameters
 
    .. versionadded:: 3.6
@@ -355,9 +396,11 @@ Authentication Parameters
    *Available on Linux only*
 
    Specify the path to the PEM file that contains the OpenSSL
-   Diffie-Hellman parameters. Specifying the OpenSSL Diffie-Hellman
-   parameters enables support for :ref:`dhe` cipher suites during
-   TLS/SSL encryption.
+   Diffie-Hellman parameters when using TLS 1.2 or previous. Specifying
+   the OpenSSL Diffie-Hellman parameters enables support for :ref:`dhe`
+   cipher suites during TLS/SSL encryption.
+
+   This parameter is not supported for use with TLS 1.3.
    
    Ephemeral Diffie-Hellman (DHE) cipher suites (and Ephemeral Elliptic
    Curve Diffie-Hellman (ECDHE) cipher suites) provide
@@ -371,7 +414,7 @@ Authentication Parameters
    
       Starting in MongoDB 4.2, if
       :parameter:`opensslDiffieHellmanParameters` is unset but
-      :ref:`ECDHE is enabled <ecdhe>`, MongoDB enables DHE using
+      :ref:`ECDHE <ecdhe>` is enabled, MongoDB enables DHE using the
       ``ffdhe3072`` Diffie-Hellman parameter, as defined in
       :rfc:`7919#appendix-A.2`. The ``ffdhe3072`` is a strong parameter
       (specifically, size is greater than 1024). Strong parameters are
