@@ -4,6 +4,9 @@
       :widths: 40 60
       :class: border-table
 
+      * - RHEL/CentOS 7 s390x
+        - Support removed in MongoDB Enterprise 5.0+.
+
       * - SLES 12 s390x
         - Support removed in MongoDB Enterprise 5.0+.
 
@@ -24,7 +27,7 @@
      - 4.0 Enterprise
 
    * - RHEL/CentOS 7
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - 4.0.6+
