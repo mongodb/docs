@@ -1,7 +1,7 @@
 The number of operations in each group cannot exceed the value of
 the :limit:`maxWriteBatchSize <Write Command Batch Limit Size>` of
 the database. As of MongoDB 3.6, this value is ``100,000``.
-This value is shown in the :data:`isMaster.maxWriteBatchSize` field.
+This value is shown in the :data:`hello.maxWriteBatchSize` field.
 
 This limit prevents issues with oversized error messages. If a group
 exceeds this :limit:`limit <Write Command Batch Limit Size>`,
