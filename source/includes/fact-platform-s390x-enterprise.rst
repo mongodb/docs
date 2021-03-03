@@ -1,3 +1,14 @@
+.. topic:: Platform Support EOL Notice
+
+   .. list-table::
+      :widths: 40 60
+      :class: border-table
+
+      * - Ubuntu 18.04 s390x
+        - Support removed in MongoDB Enterprise 5.0+.
+
+   |
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -29,7 +40,7 @@
 
 
    * - Ubuntu 18.04
-     - |checkmark|
+     -
      - |checkmark|
      - 4.2.1+
      - 4.0.6+
