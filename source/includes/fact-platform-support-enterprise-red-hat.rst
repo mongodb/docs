@@ -1,9 +1,3 @@
-.. topic:: EOL Notice
-
-   - MongoDB 4.4 Enterprise Edition removes support for
-     :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 6
-     on :ref:`s390x <prod-notes-supported-platforms-s390x>`
-
 MongoDB {+version+} Enterprise Edition supports the following
 :red:`64-bit` versions of Red Hat Enterprise Linux (RHEL), CentOS Linux,
 and Oracle Linux [#oracle-linux]_ on 

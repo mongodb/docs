@@ -1,14 +1,3 @@
-.. topic:: EOL Notice
-
-   - MongoDB 4.4 Community Edition removes support for Windows 8.1 /
-     Server 2012 R2
-
-   - MongoDB 4.4 Community Edition removes support for Windows 8 /
-     Server 2012
-
-   - MongoDB 4.4 Community Edition removes support for Windows 7 /
-     Server 2008 R2
-
 MongoDB {+version+} Community Edition supports the following
 :red:`64-bit` versions of Windows on 
 :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
