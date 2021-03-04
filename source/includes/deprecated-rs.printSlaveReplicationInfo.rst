@@ -1,2 +1,2 @@
-*Deprecated since version 3.6.21:* Use
+*Deprecated since version 4.4.1:* Use
 :method:`rs.printSecondaryReplicationInfo()` instead.
