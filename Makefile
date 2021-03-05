@@ -42,6 +42,7 @@ build:
 	mkdir -p $@/tools
 
 	@# Copy CSS and JS files to output directories
+	cp static/sitemap-index.xml $@/sitemap-index.xml
 	cp static/favicon.png $@/favicon.ico
 	for prefix in $@/ $@/tools $@/cloud; do \
 		mkdir -p $$prefix/js || exit 1; \
