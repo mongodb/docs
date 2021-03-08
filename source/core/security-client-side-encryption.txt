@@ -168,16 +168,21 @@ driver and each encryption component:
   and is only available with MongoDB Enterprise. ``mongocryptd`` does
   not perform cryptographic functions.
 
-- The key vault is a MongoDB collection that stores all data encryption
-  keys used to encrypt values. Data encryption keys are themselves
-  encrypted using a Customer Master Key (CMK) prior to storage in the
-  collection. The key vault may reside on a different MongoDB cluster
-  than the one storing the encrypted data. See
-  :ref:`field-level-encryption-keyvault` for more information.
+- The :ref:`Key Vault <field-level-encryption-keyvault>` is a MongoDB
+  collection that stores all data encryption keys used to encrypt
+  values. Data encryption keys are themselves encrypted using a Customer
+  Master Key (CMK) prior to storage in the collection. The key vault may
+  reside on a different MongoDB cluster than the one storing the
+  encrypted data.
 
-- The Key Management System stores the Customer Master Key used to
-  encrypt data encryption keys. See :ref:`field-level-encryption-kms`
-  for more information.
+- The :ref:`Key Management Service (KMS) <field-level-encryption-kms>`
+  stores the Customer Master Key (CMK) used to encrypt data encryption
+  keys. MongoDB supports the following KMS providers:
+
+  - :ref:`Amazon Web Services KMS <field-level-encryption-aws-kms>`
+  - :ref:`Azure Key Vault <field-level-encryption-azure-keyvault>`
+  - :ref:`Google Cloud Platform KMS <field-level-encryption-gcp-kms>`
+  - :ref:`Locally Managed Key <field-level-encryption-local-kms>`
 
 - The MongoDB cluster which stores the encrypted data may also
   enforce client-side field level encryption. See
@@ -252,8 +257,9 @@ Automatic Field Decryption
 The :bsontype:`BinData <Binary>` blob metadata includes the data
 encryption key ``_id`` and encryption algorithm used to encrypt the
 binary data. The 4.2-compatible drivers and 4.2 :binary:`~bin.mongo`
-shell use this metadata to attempt automatic decryption ``BinData`` type
-6 values. The automatic decryption process works as follows:
+shell use this metadata to attempt automatic decryption of
+:bsontype:`BinData <Binary>` subtype 6 objects. The automatic
+decryption process works as follows:
 
 1. Check the :bsontype:`BinData <Binary>` blob metadata for the
    data encryption key and encryption algorithm used to encrypt the
@@ -265,17 +271,22 @@ shell use this metadata to attempt automatic decryption ``BinData`` type
    the ``BinData`` blob.
    
 #. Check the data encryption key metadata for the Customer Master Key
-   used to encrypt the key material. 
+   (CMK) used to encrypt the key material. 
 
-#. For the Amazon Web Services KMS, send the data encryption key to the
-   KMS service for decryption. If the CMK does not exist *or* if the
-   connection configuration does not grant access to the CMK, 
-   decryption fails and the driver returns the ``BinData`` blob.
+#. For the :ref:`Amazon Web Services KMS
+   <field-level-encryption-aws-kms>`, :ref:`Azure Key Vault
+   <field-level-encryption-azure-keyvault>`, or
+   :ref:`Google Cloud Platform KMS <field-level-encryption-gcp-kms>`,
+   send the data encryption key to the KMS provider for decryption. If
+   the CMK does not exist *or* if the connection configuration does not
+   grant access to the CMK, decryption fails and the driver returns the
+   ``BinData`` blob.
 
-   For the Locally Managed Key, retrieve the local key and decrypt the
-   data encryption key. If the local key specified in the database
-   configuration was not used to encrypt the data encryption key,
-   decryption fails and the driver returns the ``BinData`` blob.
+   For the :ref:`Locally Managed Key
+   <field-level-encryption-local-kms>`, retrieve the local key and
+   decrypt the data encryption key. If the local key specified in the
+   database configuration was not used to encrypt the data encryption
+   key, decryption fails and the driver returns the ``BinData`` blob.
 
 #. Decrypt the :bsontype:`BinData <Binary>` value using the decrypted
    data encryption key and appropriate algorithm.
