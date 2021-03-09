@@ -109,6 +109,7 @@ extlinks = {
     'cvss-score' : ('https://www.first.org/cvss/calculator/3.1#%s',''),
     'snyk-vuln' : ('https://snyk.io/vuln/%s',''),
     'db-tools' : ('https://docs.mongodb.com/database-tools%s?tck=docs',''),
+    'mdb-shell' : ('https://docs.mongodb.com/mongodb-shell%s',''),
     'mdb-sup' : ('https://support.mongodb.com%s?tck=docs',''),
     'mdbu' : ('https://university.mongodb.com%s?tck=docs',''),
     'twilio-sup' : ('https://support.twilio.com/hc/en-us/articles%s',''),
