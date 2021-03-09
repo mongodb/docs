@@ -1,11 +1,34 @@
+.. _atlas_20210309:
+
+09 March 2021 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces a new {+data-lake+} 
+  :adl:`onboarding experience </tutorial/getting-started/>`.
+- Adds |api| support for multi-cloud clusters.
+- Incorporates database and collection name drop-down menus
+  in the {+fts+} :ref:`index builder <fts-tutorial-ref>`.
+- Supports recommendations to remove redundant indexes in 
+  :ref:`performance-advisor`.
+- Adds alert options for Disk IOPS and Disk Latency on Atlas.
+- Disables the ability to deploy new MongoDB 3.6 clusters.
+- Adds the ability to proactively change a cluster's 
+  :ref:`TLS certificate root CA <config-tls-cert-root>` in order to 
+  test readiness ahead of the Let's Encrypt planned root CA change from 
+  IdenTrust to ISRG. All |service| clusters' certificates will be 
+  migrated to the ISRG root CA between May and September of this year.
+
 .. _atlas_20210217:
 
 17 February 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Introduces additional Asia Pacific Live Migrations regions in Singapore, Mumbai, and Tokyo.
-- Makes the M400 |nvme| cluster tier available in all major |aws| regions.
-- Introduces availability zones for new clusters in the following Azure regions:
+- Introduces additional Asia Pacific Live Migrations regions in 
+  Singapore, Mumbai, and Tokyo.
+- Makes the M400 |nvme| cluster tier available in all major |aws| 
+  regions.
+- Spreads newly deployed clusters in the following Azure regions across 
+  three availability zones:
   
   - Germany West Central
   - South Africa North
