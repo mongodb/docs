@@ -14,7 +14,7 @@ members:
 
 A :ref:`delayed member <replica-set-delayed-members>` may show as ``0``
 seconds behind the primary when the inactivity period on the primary is
-greater than the :rsconf:`members[n].slaveDelay` value.
+greater than the :rsconf:`members[n].secondaryDelaySecs` value.
 
 A member may show a negative time value behind the primary when |method|
 is run. This is expected if |method| is run after a secondary replicates

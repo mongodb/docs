@@ -20,7 +20,7 @@ include only a subset of these settings:
          hidden: <boolean>,
          priority: <number>,
          tags: <document>,
-         slaveDelay: <int>,
+         secondaryDelaySecs: <int>,
          votes: <number>
        },
        ...
