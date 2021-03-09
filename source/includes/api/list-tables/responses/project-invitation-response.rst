@@ -20,6 +20,15 @@
           Users have 30 days to accept an invitation to an |service|
           project.
 
+   * - groupId
+     - string
+     - Unique 24-hexadecimal digit string that identifies the
+       :ref:`project <group-id>`.
+
+   * - groupName
+     - string
+     - Name of the project.
+
    * - id
      - string
      - Unique 24-hexadecimal digit string that identifies the
@@ -27,29 +36,15 @@
 
    * - inviterUserName
      - string
-     - |service| user who invited **username** to the organization.
-
-   * - orgId
-     - string
-     - Unique 24-hexadecimal digit string that identifies the
-       organization.
-
-   * - orgName
-     - string
-     - Name of the organization.
+     - |service| user who invited **username** to the project.
 
    * - roles
      - array of strings
-     - |service| :ref:`roles <organization-roles>` to assign to the 
+     - |service| :ref:`roles <project-roles>` to assign to the 
        invited user.
 
        If the user accepts the invitation, |service| assigns these roles
-       to them.
-
-   * - teamId
-     - array of strings
-     - Unique 24-hexadecimal digit strings that identify the teams
-       that the user was invited to join.
+       to them. 
 
    * - username
      - string
