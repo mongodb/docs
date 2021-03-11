@@ -1,6 +1,7 @@
 .. list-table::
    :widths: 20 60 20
    :header-rows: 1
+   :stub-columns: 1
 
    * - Server Intention
      - Environment Purpose
@@ -55,3 +56,16 @@
      - Provides any combination of servers for any environment purpose.
      - One license for any number of servers up to the maximum of
        the total GB of RAM you purchased across these servers.
+
+.. cond:: onprem
+
+   .. list-table::
+      :stub-columns: 1
+      :widths: 20 60 20
+
+      * - Backing Database
+        - Hosts your |onprem| backing database.
+          :ref:`enable-application-database-monitoring` to enable this
+          option.
+        - None
+
