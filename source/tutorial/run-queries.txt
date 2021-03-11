@@ -1,5 +1,7 @@
 :noprevnext:
 
+.. _gst-run-queries:
+
 ============================================
 Run Queries Against Your {+data-lake-short+}
 ============================================
@@ -15,79 +17,141 @@ Run Queries Against Your {+data-lake-short+}
 *Estimated completion time: 5 minutes*
 
 You can run operations using the MongoDB Query Language (MQL) which
-includes most, but not all standard server commands. In particular,
-the {+data-lake+} is currently a read-only service. MQL operations
-can run in parallel to enhance performance even for large and complex
-queries. However, {+data-lake-short+} is designed for analytics-type
-workloads and is not intended for day-to-day operational workloads.
-To learn which MQL operations are supported, see the
-:ref:`MQL Support <data-lake-mql-support>` documentation.
+includes most, but not all standard server commands. To learn which MQL 
+operations are supported, see the :ref:`MQL Support 
+<data-lake-mql-support>` documentation. 
+
+.. note:: 
+
+   The {+data-lake+} sample datasets are read-only.
 
 Prerequisites
 -------------
 
 To complete this part of the tutorial, you will need to have completed:
 
-- **Part 1:** :doc:`Upload sample data to your S3 bucket </tutorial/load-sample-data>`
-- **Part 2:** :doc:`/tutorial/deploy`
-- **Part 3:** :doc:`/tutorial/connect`
-- **Part 4:** :doc:`/tutorial/configure-database-collections`
+- **Part 1:** :doc:`/tutorial/deploy`
+- **Part 2:** :doc:`/tutorial/connect`
+- **Part 3:** :doc:`/tutorial/configure-database-collections`
 
-You must be connected to your {+data-lake-short+} with the
-:binary:`~bin.mongo` shell before running the following queries.
+You must be :ref:`connected <data-lake-connect>` to your {+dl+} with the
+:binary:`~bin.mongo` shell before running the following queries. 
 
 Queries
 -------
 
-.. _adl-sample-query1:
+Before running the queries, switch to ``Database0`` database: 
 
-Find instances in the weather data where pressure is higher than 900
-millibars. Sort by timestamp and limit the number of documents returned: 
+.. code-block:: json 
 
-.. code-block:: sh
+   use Database0
 
-   db.data.find({"pressure": {$gt: 900}}).limit(5).sort({ "ts": 1})
+The following queries use the paths that you added to your {+dl+} 
+during :ref:`deployment <gst-deploy-adl>`. If you added all the paths 
+to the sample datasets, you can run all the queries in the following 
+tabs. If you only added some paths, click and run the queries in the 
+appropriate tabs for the sample dataset paths that you added.
 
-.. _adl-sample-query2:
+.. tabs:: 
 
-Find AirBnB offerings in Porto with a high review score:
+   .. tab:: AirBnb 
+      :tabid: airbnb
 
-.. code-block:: sh
+      .. _adl-sample-query1:
 
-   db.listingsAndReviews.find( { "address.market" : "Porto", "review_scores.review_scores_rating": {$gt: 79}})
+      Find the number of AirBnB offerings with ``3`` bedrooms and a 
+      high review score:
 
-.. _adl-sample-query3:
+      .. code-block:: sh
 
-Find properties in New York for less than $200 per night, and sort the
-returned documents by customer review rating:
+         db.Collection0.aggregate([{$match: {"bedrooms" : 3, "review_scores.review_scores_rating": {$gt: 79}} },{ $count: "numProperties"}])
 
-.. code-block:: sh
+      .. _adl-sample-query2:
 
-   db.listingsAndReviews.find({ "address.market" : "New York", "price": {$lt: NumberDecimal("200.00")} } ).sort({review_scores_rating: -1})
+      Find properties with ``3`` bedrooms and sort the returned 
+      documents by customer review rating. Limit the number of 
+      documents returned to ``5``:
 
-.. _adl-sample-query4:
+      .. code-block:: sh
 
-Find the average cost of accommodation in Porto by accommodation type:
+         db.Collection0.find({"bedrooms" : 3} ).sort({review_scores_rating: -1}).limit(5)
 
-.. code-block:: sh
+   .. tab:: Analytics 
+      :tabid: analytics
 
-   db.listingsAndReviews.aggregate([{ $match: { "address.market" : "Porto" } },{ $group : {"_id" : "$property_type", avgPrice: {$avg: "$price"}}}])
+      .. _adl-sample-query3:
 
-.. _adl-sample-query5:
+      Find users who have purchased ``Commodity`` with a limit of 
+      ``10000``. Limit the number of documents returned to ``5``: 
 
-Find the average price per night of an apartment in Sydney:
+      .. code-block:: sh
 
-.. code-block:: sh
+         db.Collection0.find({"limit": {$eq: 10000}, "products": "Commodity"}).limit(5)
 
-   db.listingsAndReviews.aggregate([{ $match: { "address.market" : "Sydney", "property_type" : "Apartment" } }, { $group : {"_id" : "$property_type", avgPrice: {$avg: "$price"}}}])
+      .. _adl-sample-query4:
 
-.. _adl-sample-query6:
+      Find customers whose birthdate is before ``1990-01-01`` and 
+      limit the number of documents returned to ``5``: 
 
-Find the number of apartments available to rent in Barcelona.
+      .. code-block:: sh
 
-.. code-block:: sh
+         db.Collection0.find({"birthdate": {$lt: ISODate("1990-01-01T22:15:34.000+00:00")}}, {"name": 1, "birthdate": 1, "email": 1}).limit(5)
 
-   db.listingsAndReviews.aggregate([{ $match: { "address.market" : "Barcelona" , "property_type": "Apartment"} },{ $count: "numApartments"}])
+      .. _adl-sample-query5:
+
+      Find transaction details for user whose account ID is ``557378`` 
+      and use the :pipeline:`$sort` stage to sort on the 
+      ``transactions.symbol`` field:
+
+      .. code-block:: sh
+
+         db.Collection0.aggregate([ { $match: {"account_id": 557378}},{$sort: {"transactions.symbol": -1}} ])
+
+   .. tab:: Mflix 
+      :tabid: mflix
+
+      .. _adl-sample-query6:
+
+      Find comments on movies submitted after ``2018-01-01`` and sort 
+      the results by the ``_id`` field:
+
+      .. code-block:: sh
+
+         db.Collection0.find({"date": {$gt: ISODate("2018-01-01T23:20:16.000+00:00")}}).sort({"_id": 1})
+
+      .. _adl-sample-query7:
+      
+      Find all movies between the years 2010 and 2015 and include only 
+      the ``_id``, ``title``, and ``year`` fields in the results.
+      
+      .. code-block:: sh 
+
+         db.Collection0.find({"type": "movie", "year": {$gt: 2010, $lt: 2015} }, {"title": 1, "year": 1 })
+
+      .. _adl-sample-query8:
+      
+      Find the sessions details for user specified by ID.
+
+      .. code-block:: sh 
+
+         db.Collection0.find({"user_id": "t3qulfeem@kwiv5.6ur"})
+
+      .. _adl-sample-query9:
+      
+      Find the theater specified by its ``id`` and ``zipcode``.
+
+      .. code-block:: sh 
+
+         db.Collection0.findOne({$and: [{"_id": ObjectId("59a47286cfa9a3a73e51e763")}, {"location.address.zipcode": "93933"}] })
+
+      .. _adl-sample-query10:
+      
+      Find all users whose last name is ``Lannister`` and limit the 
+      number of documents returned to ``10``.
+
+      .. code-block:: sh 
+
+         db.Collection0.find({ name: /Lannister/ }).limit(10)
 
 Summary
 -------
