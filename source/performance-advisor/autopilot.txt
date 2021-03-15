@@ -1,3 +1,10 @@
+.. This page is hidden from the TOC and from Google/Marian search indexing.
+
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
 .. _pa-autopilot:
 
 ======================================
@@ -12,13 +19,6 @@ Autopilot Mode for Performance Advisor
    :depth: 1
    :class: singlecol
 
-.. note:: Early Access Feature
-
-   Autopilot mode for Performance Advisor is currently only available as
-   an Early Access feature. Only Early Access participants can enable
-   autopilot mode. For more information on autopilot limitations, see
-   :ref:`autopilot-limitations`.
-
 Autopilot mode for Performance Advisor periodically checks for index
 recommendations and automatically creates indexes deemed to have a high
 impact on cluster performance.
@@ -31,13 +31,11 @@ Autopilot Mode Availability
 You can enable autopilot mode for your cluster if all of
 the following criteria are met:
 
-- You are enrolled in the Early Access program.
-
 - Your cluster is running MongoDB 4.4.
 
 - Your cluster is between tiers ``M10`` and ``M30`` (inclusive).
 
-You cannot enable autopilot mode on sharded clusters.
+- Your cluster is **not** a sharded cluster.
 
 How Autopilot Mode Creates Indexes
 ----------------------------------
@@ -58,22 +56,88 @@ created automatically.
 Enable Autopilot Mode
 ---------------------
 
-Autopilot mode is off by default. To enable autopilot mode:
+Autopilot mode is off by default. You can enable autopilot mode for
+your cluster through either the |service| UI or |service| |api|.
 
-1. Open :guilabel:`Performance Advisor`.
+.. tabs::
 
-#. In the :guilabel:`Create Indexes` panel, toggle
-   :guilabel:`Autopilot Mode` to on.
+   tabs:
+     - id: ui
+       name: Atlas UI
+       content: |
 
-Alternatively, if you click :guilabel:`View Recommendations`, you can
-enable autopilot mode from the individual recommendations view.
+         To enable autopilot mode for your cluster:
 
-You can also enable autopilot mode via the |api| using the
-:ref:`create-one-cluster-ref` and :ref:`modify-one-cluster-ref`
-endpoints.
+         1. Open :guilabel:`Performance Advisor`.
 
-Once you enable autopilot mode, |service| immediately begins creating
-high impact indexes if they are suggested.
+         #. In the :guilabel:`Create Indexes` panel, toggle
+            :guilabel:`Autopilot Mode` to on.
+
+         Alternatively, if you click :guilabel:`View Recommendations`, you can
+         enable autopilot mode from the individual recommendations view.
+
+         Once you enable autopilot mode, |service| immediately begins creating
+         high impact indexes if they are suggested.
+
+     - id: api
+       name: Atlas API
+       content: |
+
+         To create a new cluster with autopilot mode enabled, submit a
+         request to the :ref:`Create One Cluster
+         <create-one-cluster-ref>` endpoint.
+
+         To enable autopilot mode on an existing cluster, submit a
+         request to the :ref:`Modify One Cluster
+         <modify-one-cluster-ref>` endpoint.
+
+         The request body must set the
+         ``autoScaling.autoIndexingEnabled`` field to ``true``.
+
+         The following example request creates a new single region
+         cluster with autopilot mode enabled:
+
+         .. code-block:: sh
+            :emphasize-lines: 8-11
+
+            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+            --header "Content-Type: application/json" \
+            --include \
+            --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/clusters?pretty=true" \
+            --data '
+               {
+                  "name": "SingleRegionCluster",
+                  "autoScaling": {
+                     "autoIndexingEnabled": true
+                  }
+                  "diskSizeGB": 100,
+                  "numShards": 1,
+                  "providerSettings": {
+                  "providerName": "AWS",
+                  "diskIOPS": 300,
+                  "instanceSizeName": "M40",
+                  "regionName": "US_EAST_1"
+                  },
+                  "clusterType" : "REPLICASET",
+                  "replicationFactor": 3,
+                  "replicationSpecs": [{
+                  "numShards": 1,
+                  "regionsConfig": {
+                     "US_EAST_1": {
+                        "analyticsNodes": 0,
+                        "electableNodes": 3,
+                        "priority": 7,
+                        "readOnlyNodes": 0
+                     }
+                  },
+                  "zoneName": "Zone 1"
+                  }],
+                  "backupEnabled": false,
+                  "providerBackupEnabled" : true,
+                  "autoScaling": {
+                  "diskGBEnabled": true
+                  }
+               }'
 
 Review Automatically Created Indexes
 ------------------------------------
