@@ -5,6 +5,9 @@ MongoDB Agent 10.27.0.6799
 
 *Released* :ref:`2021-03-09 <cloudmanager_20210309>`
 
+- Improves handling of |tls| state transitions if a process 
+  unexpectedly crashes.
+
 .. _10.26.0.6757:
 
 MongoDB Agent 10.26.0.6757
