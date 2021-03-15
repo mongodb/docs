@@ -29,6 +29,11 @@ KMIP server for key management, you can rotate the master key.
 Rotate a Replica Set Member
 ---------------------------
 
+.. note::
+
+   To prevent changing the write quorum, never rotate more than one
+   replica set member at a time.
+
 For a replica set, to rotate out a member:
 
 #. Start a new :binary:`~bin.mongod` instance, configured to use a new key.
@@ -39,56 +44,24 @@ For a replica set, to rotate out a member:
    .. code-block:: sh
 
       mongod --replSet myReplSet --enableEncryption \
-      --kmipServerName <KMIP Server HostName> \ 
+      --kmipServerName <KMIP Server HostName> \
       --kmipServerCAFile ca.pem --kmipClientCertificateFile client.pem
 
 #. Connect a :binary:`~bin.mongo` shell to the replica set's primary.
 
-#. Add the instance to the replica set, initially adding the member as
-   a :ref:`non-voting <replica-set-non-voting-members>`, :doc:`priority 0
-   </core/replica-set-priority-0-member>` member:
+#. Add the instance to the replica set:
 
    .. code-block:: javascript
 
-      rs.add( { host: <host:port>, priority: 0, votes: 0 } )
+      rs.add( { host: <host:port> } )
 
-   .. tip::
+   .. warning::
 
       .. include:: /includes/tip-repl-set-add-members.rst
 
    During the initial sync process, the re-encryption of the data with
    an entirely new set of database keys as well as a new system key
    occurs.
-
-#. Ensure that the new member has reached :replstate:`SECONDARY` state.
-   To check the state of the replica set members, run
-   :method:`rs.status()`:
-
-   .. cssclass:: copyable-code
-   .. code-block:: javascript
-
-      rs.status()
-
-#. Once the new node completes its initial sync process, use
-   :method:`rs.reconfig()` to update the newly added secondary's vote and
-   priority settings. See :ref:`rs-add-member-configuration-document` for
-   details:
-
-
-   .. cssclass:: copyable-code
-   .. code-block:: javascript
-
-      var cfg = rs.conf();
-
-      cfg.members[n].priority = 1;  // Substitute the correct array index for the new member
-      cfg.members[n].votes = 1;     // Substitute the correct array index for the new member
-
-      rs.reconfig(cfg)
-
-   where ``n`` is the array index of the new member in the
-   :rsconf:`members` array.
-
-   .. include:: /includes/warning-rs-reconfig.rst
 
 #. Remove the old node from the replica set and delete all its data.
    For instructions, see :doc:`/tutorial/remove-replica-set-member`

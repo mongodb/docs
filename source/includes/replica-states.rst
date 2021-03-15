@@ -17,7 +17,7 @@
 
    * - 1
      - :replstate:`PRIMARY`
-     
+
      - The member in state :doc:`primary </core/replica-set-primary>`
        is the only member that can accept write operations. Eligible to
        vote.
@@ -38,8 +38,14 @@
 
    * - 5
      - :replstate:`STARTUP2`
-     - The member has joined the set and is running an initial sync. Eligible to
-       vote.
+     - The member has joined the set and is running an initial sync.
+       Eligible to vote.
+
+       .. note::
+
+          Starting in MongoDB 5.0, if the member was newly added to the
+          replica set, it is not eligible to vote and cannot be elected
+          during the initial sync process.
 
    * - 6
      - :replstate:`UNKNOWN`
