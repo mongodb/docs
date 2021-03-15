@@ -11,3 +11,308 @@ Projections Builders
    :class: singlecol
 
 .. _projections-builders:
+
+Overview
+--------
+
+MongoDB supports **field projection**, specifying which fields to include and exclude when returning results from a
+query. Projection in MongoDB follows some basic rules:
+
+- The ``_id`` field is **always** included unless explicitly excluded
+- Specifying a field for inclusion implicitly excludes all other fields **except** the ``_id`` field
+- Specifying a field for exclusion removes **only** that field in a query result
+
+Find more information about projection mechanics :manual:`here </tutorial/project-fields-from-query-results/>`.
+
+The :java-core-api:`Projections <com/mongodb/client/model/Projections.html>` class provides static factory methods for
+all the MongoDB projection operators. Each method returns an instance of the :ref:`Bson <bson>` type which you can pass
+to any method that expects a projection.
+
+.. tip::
+
+   For brevity, you may choose to import the methods of the ``Projections`` class statically:
+
+   .. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+      :start-after: begin static import
+      :end-before: end static import
+      :language: java
+      :dedent:
+
+   The examples below assume this static import.
+
+The collection is set up with the following documents:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin collection setup
+   :end-before: end collection setup
+   :language: java
+   :dedent:
+
+Inclusion
+---------
+
+Use the ``include()`` method to specify the inclusion of one or more fields.
+
+The following example includes the ``year`` field and (implicitly) the ``_id`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin include single field
+   :end-before: end include single field
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "6042edc9f2b56342164e0790"}, "year": 2018}
+   {"_id": {"$oid": "6042edc9f2b56342164e0791"}, "year": 2019}
+
+
+The following example includes the ``year`` and ``type`` fields and (implicitly) the ``_id`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin include multiple fields
+   :end-before: end include multiple fields
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "6042edc9f2b56342164e0790"}, "year": 2018, "type": "even number but not a leap year"}
+   {"_id": {"$oid": "6042edc9f2b56342164e0791"}, "year": 2019, "type": "odd number, can't be a leap year"}
+
+Exclusion
+---------
+
+Use the ``exclude()`` method to specify the exclusion of one or more fields.
+
+The following example excludes the ``temperatures`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin exclude one field
+   :end-before: end exclude one field
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "6042edc9f2b56342164e0790"}, "year": 2018, "type": "even number but not a leap year"}
+   {"_id": {"$oid": "6042edc9f2b56342164e0791"}, "year": 2019, "type": "odd number, can't be a leap year"}
+
+The following example excludes the ``type`` and ``temperatures`` fields:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin exclude multiple fields
+   :end-before: end exclude multiple fields
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "6042edc9f2b56342164e0790"}, "year": 2018}
+   {"_id": {"$oid": "6042edc9f2b56342164e0791"}, "year": 2019}
+
+
+Combining Projections
+---------------------
+
+Use the ``fields()`` method to combine multiple projections.
+
+The following example includes the ``year`` and ``type`` fields and excludes the
+``_id`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin show fields
+   :end-before: end show fields
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {"year": 2018, "type": "even number but not a leap year"}
+   {"year": 2019, "type": "odd number, can't be a leap year"}
+
+Exclusion of ``_id``
+--------------------
+
+Use the ``excludeId()`` convenience method to specify the exclusion of the ``_id`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin exclude id
+   :end-before: end exclude id
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {"year": 2018, "type": "even number but not a leap year"}
+   {"year": 2019, "type": "odd number, can't be a leap year"}
+
+
+Project an Array Element Match
+------------------------------
+
+Use the ``elemMatch(String, Bson)`` method variant to specify an array projection that will include the first
+element of an array that matches a supplied query filter. This filtering occurs **after** all documents matching the
+query filter (if supplied) are retrieved.
+
+.. note::
+
+   Only the first element that matches the specified query filter will be included, regardless of how many matches there
+   may be.
+
+The following example projects the first element of the ``temperatures`` array where the ``avg`` field is
+greater that ``10.1``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin elemMatch no filter
+   :end-before: end elemMatch no filter
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "6042edc9f2b56342164e0790"}, "year": 2018}
+   {"_id": {"$oid": "6042edc9f2b56342164e0791"}, "year": 2019, "temperatures": [{"month": "March", "avg": 10.43}]}
+
+
+
+When you've specified matching criteria in the **query** portion of your operation, use the ``elemMatch(String)`` method
+variant to specify a :manual:`positional projection </reference/operator/projection/positional/#projection/>` to include
+the first element of an array. Only documents that match the query filter will be retrieved.
+
+.. warning::
+
+   In MongoDB versions < 4.4, the specified array field must appear in the query document. Beginning in MongoDB 4.4,
+   you can use a positional project on an array field that does not appear in the query document.
+
+
+The following example projects the first element of the ``temperatures`` array:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin elemMatch with filter
+   :end-before: end elemMatch with filter
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "6042edc9f2b56342164e0791"}, "year": 2019, "temperatures": [{"month": "March", "avg": 10.43}]}
+
+Slice
+-----
+
+Use the ``slice()`` method to project a :manual:`slice </reference/operator/projection/slice/>` of an array.
+
+The following example projects the first **6** elements of the ``temperatures`` array:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin slice no skip
+   :end-before: end slice no skip
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": {
+       "$oid": "6042f1bc8ee6fa2a84d2be69"
+     },
+     "year": 2018,
+     "type": "even number but not a leap year",
+     "temperatures": [
+         ... <January-June temperature subdocuments>
+     ]
+   }
+   {
+     "_id": {
+       "$oid": "6042f1bc8ee6fa2a84d2be6a"
+     },
+     "year": 2019,
+     "type": "odd number, can't be a leap year",
+     "temperatures": [
+         ... <January-June temperature subdocuments>
+     ]
+   }
+
+The following example skips the first **6** elements of the ``temperatures`` array and projects the next **6**:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin slice with skip
+   :end-before: end slice with skip
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": {
+       "$oid": "6042f1bc8ee6fa2a84d2be69"
+     },
+     "year": 2018,
+     "type": "even number but not a leap year",
+     "temperatures": [
+         ... <July-December temperature subdocuments>
+     ]
+   }
+   {
+     "_id": {
+       "$oid": "6042f1bc8ee6fa2a84d2be6a"
+     },
+     "year": 2019,
+     "type": "odd number, can't be a leap year",
+     "temperatures": [
+         ... <July-December temperature subdocuments>
+     ]
+   }
+
+Text Score
+----------
+
+Use the ``metaTextScore()`` method to specify a projection of
+:manual:`score of a text query </reference/operator/query/text/#return-the-text-search-score/>`
+
+The following example projects the text score as the value of the ``score`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/Projections.java
+   :start-after: begin meta text score
+   :end-before: end meta text score
+   :language: java
+   :dedent:
+
+The following code shows the output from this projection:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "6042f1bc8ee6fa2a84d2be69"}, "year": 2018, "score": 1.25}
+   {"_id": {"$oid": "6042f1bc8ee6fa2a84d2be6a"}, "year": 2019, "score": 0.625}
