@@ -9,7 +9,363 @@ Set Up a Private Endpoint
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-Placeholder page.
+|govcloud| supports private endpoints on |aws| using the 
+`{+aws-pl+} <https://aws.amazon.com/privatelink/>`__ feature.
+
+When you enable this feature, |govcloud-short| creates its own |vpc| and
+places clusters within a region behind a network load balancer in
+the |govcloud-short| |vpc|.
+
+Then you create resources that establish a one-way connection
+from your |vpc| to the network load balancer in the |govcloud-short|
+|vpc| using a private endpoint.
+
+.. tabs::
+
+   .. tab:: {+aws-pl+}
+      :tabid: aws-pl-diagram
+
+      .. figure:: /images/aws-privatelink.svg
+         :width: 100%
+         :alt: Image showing how {+aws-pl+} establishes connections 
+               from your application VPC to resources in the 
+               |govcloud-short| VPC.
+
+   .. tab:: {+aws-pl+} with Direct Connect
+      :tabid: aws-pl-directconnect-diagram
+
+      .. figure:: /images/aws-privatelink-directconnect.svg
+         :width: 100%
+         :alt: Image showing how can use |aws| Direct Connect to 
+               establish a transitive connection from your data center 
+               to a peered |aws| VPC to resources in the 
+               |govcloud-short| VPC using |aws| Direct Connect.
+
+Connections to |govcloud-short| clusters using private endpoints offer
+the following advantages over other network access management
+options:
+
+- Connections using private endpoints are one-way. |govcloud-short|
+  |vpc|\s can't initiate connections back to your |vpc|\s. This
+  ensures your perceived network trust boundary is not extended.
+
+- Connections to private endpoints within your |vpc| can be made
+  transitively from:
+
+  - Another |vpc| peered to the private endpoint-connected |vpc|.
+
+  - An on-premises data center connected with
+    :aws:`DirectConnect </whitepapers/latest/aws-vpc-connectivity-options/aws-direct-connect-network-to-amazon.html>`
+    to the private endpoint-connected |vpc|. This enables you to
+    connect to |govcloud-short| directly from your on-premises data 
+    center without adding public IP addresses to the |govcloud-short| 
+    IP access list.
+
+    .. seealso:: |service| documentation
+
+       :atlas:`Configure IP Access List Entries </security/ip-access-list/>`
+
+Considerations
+--------------
+
+High Availability
+~~~~~~~~~~~~~~~~~
+
+To ensure private endpoint connections to |govcloud-short| can withstand
+an availability zone outage, you should deploy subnets to multiple 
+availability zones in a region.
+
+.. _private-endpoint-connection-strings:
+
+Private Endpoint-Aware Connection Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you configure a private endpoint, |govcloud-short| generates DNS
+seedlist and standard private endpoint-aware connection strings:
+
+- DNS seedlist connection
+
+  .. code-block:: none
+     :copyable: false
+
+     mongodb+srv://cluster0-pl-0-k45tj.mongodb.net
+
+- Standard connection string
+
+  .. code-block:: none
+     :copyable: false
+
+     mongodb://pl-0-us-east-1-k45tj.mongodb.net:1024,pl-0-us-east-1-k45tj.mongodb.net:1025,pl-0-us-east-1-k45tj.mongodb.net:1026/?ssl=true&authSource=admin&replicaSet=Cluster0-shard-0-shard-0
+
+When a client in your |vpc| connects to a |govcloud-short| cluster 
+using one of these private endpoint-aware connection strings, the 
+client attempts to establish a connection to the load balancer in the 
+|govcloud-short| |vpc| through one of the interface endpoints.
+
+Your client's |dns| resolution mechanism handles which of the interface
+endpoints the hostname resolves to. If one interface endpoint is
+unavailable the next is used. This is opaque to the driver or other
+connection mechanism. The driver is only aware of the hostname in the
+SRV record or in the connection string.
+
+.. seealso:: |service| documentation
+
+   :term:`Interface endpoints <interface endpoint>`
+
+**SRV Record for DNS Seedlist Private Endpoint-Aware Connection Strings**
+
+The following example shows the SRV record for an {+aws-pl+}-enabled
+single-region cluster, showing three unique ports defined for
+``pl-0-us-east-1-k45tj.mongodb.net``:
+
+.. code-block:: sh
+   :copyable: false
+
+   $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net
+
+   Server: 127.0.0.53
+   Address: 127.0.0.53#53
+
+   Non-authoritative answer:
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1026 pl-0-us-east-1-k45tj.mongodb.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1024 pl-0-us-east-1-k45tj.mongodb.net.
+   _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1025 pl-0-us-east-1-k45tj.mongodb.net.
+
+.. tip::
+
+   In the preceding example:
+
+   - ``_mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net`` is the SRV
+     record that the ``mongodb+srv://cluster0-pl-0-k45tj.mongodb.net``
+     connection string references.
+
+   - ``pl-0-us-east-1-k45tj.mongodb.net`` is the hostname for each
+     node in one |govcloud-short| cluster in one region for which you 
+     have configured {+aws-pl+}.
+
+   - ``1024``, ``1025``, and ``1026`` are unique ports that 
+     |govcloud-short|
+     assigns on the load balancer for each replica set node in
+     the region for which you enabled {+aws-pl+}. All nodes in an
+     |govcloud-short| replica set are accessible via the same hostname, 
+     with the load balancer resolving individual nodes by their unique 
+     port.
+
+**Hostname DNS Resolution in Private Endpoint-Aware Connection Strings and SRV Records**
+
+The hostname in the SRV record and the standard connection string is a
+|dns| Canonical Name (``CNAME``) record that resolves to the
+endpoint-specific regional |dns| name that |aws| generates for the
+interface endpoint. A |dns| ``ALIAS`` record exists for each subnet in
+your |vpc| that you deployed the interface endpoint to. Each ``ALIAS``
+record contains the private IP address of the interface endpoint
+for that subnet.
+
+The following example shows the |dns| lookup for the hostname in the 
+SRV record and in the standard connection string, including the
+endpoint-specific regional |dns| name for the interface endpoint and its
+|dns| ``ALIAS`` records:
+
+.. code-block:: sh
+   :copyable: false
+
+   $ nslookup pl-0-us-east-1-k45tj.mongodb.net
+   Server: 127.0.0.53
+   Address: 127.0.0.53#53
+
+   Non-authoritative answer:
+   pl-0-us-east-1-k45tj.mongodb.net
+   canonical name = vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com.
+   
+   Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
+   Address: 10.0.30.194
+   Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
+   Address: 10.0.20.54
+
+IP Access Lists and Network Peering Connections with Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When Private Endpoints are enabled, you can still enable access to your
+|govcloud-short| clusters using other methods, such as adding public IPs to IP access lists and network peering.
+
+.. seealso:: |service| documentation
+
+   - :atlas:`IP access lists </security/ip-access-list>`
+   - :atlas:`Network peering </security-vpc-peering>`
+
+Clients connecting to |govcloud-short| clusters using other methods use
+standard connection strings. Your clients may have to identify when
+to use private endpoint-aware connection strings and standard
+connection strings.
+
+.. _privatelink-regionalized:
+
+Regionalized Private Endpoints for Multi-Region Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For multi-region and global sharded clusters, you can deploy multiple
+private endpoints to a region if you need to connect to 
+|govcloud-short| using a private endpoint from networks that can't be 
+peered with one another.
+
+You can deploy any number of private endpoints to regions that you
+deployed your cluster to. Each regional private endpoint connects to the
+|mongos| instances in that region.
+
+.. warning::
+   
+   Your connection strings to existing multi-region and global sharded 
+   clusters change when you enable this setting.
+
+   You must update your applications to use new connections strings. 
+   This may require downtime.
+
+You can enable this setting only if your |govcloud-short| project 
+contains no replica sets.
+
+You can't disable this setting if you have:
+
+- More than one private endpoint in more than one region, or
+
+- More than one private endpoint in one region and one private endpoint 
+  in one or more regions.
+
+To use this feature, you must enable the regionalized private endpoint
+setting:
+
+.. include:: /includes/privatelink/steps/enable-regionalized-private-endpoints.rst
+
+.. _privatelink-limitations:
+
+Limitations
+-----------
+
+- You cannot deploy clusters across government and commercial regions.
+
+- {+aws-pl+} must be active in all regions into which you deploy
+  a multi-region cluster. You will receive an error if {+aws-pl+}
+  is active in some, but not all, targeted regions.
+
+- You can do only one of the following:
+
+  - Create more than one private endpoint in a single region, or
+
+  - Create one private endpoint in multiple regions.
+
+  See :ref:`privatelink-regionalized` for an exception for
+  multi-region and global sharded clusters.
+
+- If this is the first private endpoint that you deploy to a   
+  region, you must first resume any paused clusters in your
+  project with nodes deployed to that region.
+  This limitation doesn't apply for additional private endpoints
+  that you deploy to the same region.
+
+- To connect to |govcloud-short| clusters using {+aws-pl+} from 
+  regions in which you haven't deployed a private endpoint 
+  connection, you must peer |vpc|\s in those regions to |vpc|\s 
+  in a region in which you have deployed a private endpoint 
+  connection.
+
+  To learn about inter-region |vpc| peering, see the `AWS
+  documentation
+  <https://aws.amazon.com/answers/networking/
+  aws-multiple-region-multi-vpc-connectivity/>`__.
+
+- You can use {+aws-pl+} in |govcloud-short| projects with up to 
+  50 addressable targets **per region**. If you need more than 50
+  addressable targets in a region:
+
+  - Contact :ref:`MongoDB Support <request-support>`, or 
+
+  - Use additional projects or regions to connect to addressable
+    targets beyond this limit.
+
+  Addressable targets include:
+
+  - Each node in a replica set, excluding nodes that comprise a
+    shard in a sharded cluster.
+
+  - Each |mongos| instance for sharded clusters.
+
+  - Each |bic| instance across all dedicated clusters in the
+    project.
+
+  .. note::
+
+     To request a one-time increase to use {+aws-pl+} with up to
+     100 addressable targets per |govcloud-short| project, contact
+     :ref:`MongoDB Support <request-support>`.
+
+.. _privatelink-prerequisites:
+
+Prerequisites
+-------------
+
+To enable connections to |govcloud-short| using private endpoints, 
+you must:
+
+1. Have either the ``Project Owner`` or
+   ``Organization Owner`` role in |govcloud-short|.
+
+   .. seealso:: |service| documentation
+      
+      |govcloud-short| user roles are the same as 
+      :atlas:`Atlas user roles </reference/user-roles/>`.
+
+#. Have an |aws| user account with an |iam| user policy that
+   grants permissions to create, modify, describe, and delete
+   endpoints. For more information on controlling the use of
+   interface endpoints, see the
+   :aws:`AWS Documentation </vpc/latest/userguide/vpc-endpoints.html>`.
+
+#. **(Recommended)**:
+   :aws:`Install the AWS CLI </cli/latest/userguide/cli-chap-install.html>`.
+
+#. If you have not already done so, create your |vpc| and EC2
+   instances in |aws|. See the 
+   :aws:`AWS documentation </index.html>` for guidance.
+
+Procedures
+----------
+
+.. _privatelink-configure:
+
+Configure an |govcloud-short| Private Endpoint
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enable clients to connect to |govcloud-short| clusters using private 
+endpoints with the following procedure:
+
+.. include:: /includes/privatelink/steps/configure-privatelink-aws.rst
+
+.. _privatelink-connect:
+
+Connect to |govcloud-short| using a Private Endpoint
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   For important considerations about private endpoint-aware connection
+   strings, see
+   :ref:`Private Endpoint-Aware Connection Strings <private-endpoint-connection-strings>`.
+
+Use a private endpoint-aware connection string to connect to an
+|govcloud-short| cluster with the following procedure:
+
+.. include:: /includes/privatelink/steps/connect-to-cluster-privatelink.rst
+
+Remove a Private Endpoint from |govcloud-short|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/privatelink/steps/delete-privatelink-aws.rst
+
+.. _privatelink-troubleshooting:
+
+Troubleshoot Private Endpoint Connection Issues
+-----------------------------------------------
+
+.. include:: /includes/privatelink/steps/troubleshoot-privatelink-aws.rst
