@@ -11,3 +11,471 @@ Filters Builders
    :class: singlecol
 
 .. _filters-builders:
+
+Overview 
+--------
+In this guide, we show you how to use **builders** to specify
+**filters** for your queries.
+
+Builders are classes provided by the MongoDB Java driver that allow you
+to use the builder pattern to interact with your MongoDB instance. The
+builders provided by the MongoDB Java driver can improve the readability
+of your code.  See the :doc:`Builders </fundamentals/builders/>` page
+for a list of Builders available in the Java driver. 
+
+Filters are the operations MongoDB uses to limit your results to what
+you want to see. 
+
+Some places we use filters are:
+
+- find
+- match stage of aggregation
+- deleteOne/deleteMany
+- updateOne/updateMany
+
+Some examples of results from queries with filters are: 
+
+- Items that cost $0 to $25
+- A hotel with amenities that include an indoor swimming pool and free parking
+- A food critic review that mentions "spicy" 
+
+This guide shows you how to use builders with examples of the following
+types of operators: 
+
+- :ref:`Comparison <comparison>`
+- :ref:`Logical <logical>`
+- :ref:`Arrays <arrays>`
+- :ref:`Elements <elements>`
+- :ref:`Evaluation <evaluation>`
+- :ref:`Bitwise <bitwise>`
+- :ref:`Geospatial <geospatial>`
+
+The :java-core-api:`Filters <com/mongodb/client/model/Filters.html>`
+class provides static factory methods for all the MongoDB query
+operators. Each method returns an instance of the :ref:`Bson <bson>`
+type, which you can pass to any method that expects a query filter. 
+
+.. tip::
+
+   For brevity, you may choose to import all methods of the
+   :java-core-api:`Filters <com/mongodb/client/model/Filters.html>`
+   class statically: 
+
+   .. code-block:: java
+
+      import static com.mongodb.client.model.Filters.*;
+
+   The examples below assume this static import.
+
+The Filter examples in this guide use the following sample collections:
+
+Collection: ``paint_purchases``
+
+.. code-block:: json
+
+   { "_id": 1, "color": "red", "qty": 5, "vendor": ["A"] }
+   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+   { "_id": 3, "color": "blue", "qty": 8, "vendor": ["B", "A"] }
+   { "_id": 4, "color": "white", "qty": 6, "vendor": ["D"] }
+   { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+   { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+   { "_id": 7, "color": "green", "qty": 8,"vendor": ["B", "C"] }
+   { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
+
+Collection: ``binary_numbers``
+
+.. code-block:: json
+
+   { "_id": 9, "a": 54, "binaryValue": "00110110" }
+   { "_id": 10, "a": 20, "binaryValue": "00010100" }
+   { "_id": 11, "a": 68, "binaryValue": "1000100" }
+   { "_id": 12, "a": 102, "binaryValue": "01100110" }
+
+Collection: ``geo_points``
+
+.. code-block:: json
+
+   { "_id": 13, "coordinates": { "type": "Point", "coordinates": [2.0, 2.0] } }
+   { "_id": 14, "coordinates": { "type": "Point", "coordinates": [5.0, 6.0] } }
+   { "_id": 15, "coordinates": { "type": "Point", "coordinates": [1.0, 3.0] } }
+   { "_id": 16, "coordinates": { "type": "Point", "coordinates": [4.0, 7.0] } }
+
+.. _comparison:
+
+Comparison 
+----------
+
+The comparison filters include all operators that compare the value in a
+document to a specified value. 
+
+The comparison operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Comparison Method
+     - Matches
+      
+   * - :java-core-api:`eq() <com/mongodb/client/model/Filters.html#eq(java.lang.String,TItem)>`
+     - values equal to a specified value.
+
+   * - :java-core-api:`gt() <com/mongodb/client/model/Filters.html#gt(java.lang.String,TItem)>`
+     - values greater than a specified value.
+      
+   * - :java-core-api:`gte() <com/mongodb/client/model/Filters.html#gte(java.lang.String,TItem)>`
+     - values greater than or equal to a specified value.
+
+   * - :java-core-api:`lt() <com/mongodb/client/model/Filters.html#lt(java.lang.String,TItem)>`
+     - values less than a specified value.
+
+   * - :java-core-api:`lte() <com/mongodb/client/model/Filters.html#lte(java.lang.String,TItem)>`
+     - values less than or equal to a specified value.
+
+   * - :java-core-api:`ne() <com/mongodb/client/model/Filters.html#ne(java.lang.String,TItem)>`
+     - values not equal to a specified value.
+
+   * - :java-core-api:`in() <com/mongodb/client/model/Filters.html#in(java.lang.String,java.lang.Iterable)>`
+     - any of the values specified in an array.
+
+   * - :java-core-api:`nin() <com/mongodb/client/model/Filters.html#nin(java.lang.String,java.lang.Iterable)>`
+     - none of the values specified in an array.
+
+   * - :java-core-api:`empty() <com/mongodb/client/model/Filters.html#empty()>`
+     - all the documents.
+
+The following example creates a filter that matches all documents where
+the value of the ``qty`` field equals "5" in the ``paint_purchases`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
+   :language: java
+   :dedent:
+   :start-after: begin equalComparison
+   :end-before: end equalComparison
+
+The following shows the output of the query using the operator specified above:
+
+.. code-block:: json
+   :copyable: false
+   
+   { "_id": 1, "color": "red", "qty": 5, "vendor": ["A"] }
+   { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+
+The following example creates a filter that matches all documents where
+the value of the ``qty`` field is greater than or equal to "10" in the
+``paint_purchases`` collection: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
+   :language: java
+   :dedent:
+   :start-after: begin gteComparison
+   :end-before: end gteComparison
+
+The following shows the output of the query using the operator specified above:
+
+.. code-block:: json
+   :copyable: false
+   
+   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+   { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+
+The following example creates a filter that matches all documents in
+the ``paint_purchases`` collection because the predicate is empty: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
+   :language: java
+   :dedent:
+   :start-after: begin emptyComparison
+   :end-before: end emptyComparison
+
+The output of the query using the operator specified above consists of
+all the documents in the collection.
+
+.. code-block:: json
+   :copyable: false
+      
+   { "_id": 1, "color": "red", "qty": 5, "vendor": ["A"] }
+   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+   { "_id": 3, "color": "blue", "qty": 8, "vendor": ["B", "A"] } 
+   ...
+
+.. _logical:
+
+Logical
+-------
+The logical operators perform logical operations based on the conditions of the specified method.
+
+The logical operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Logical Method
+     - Matches
+      
+   * - :java-core-api:`and() <com/mongodb/client/model/Filters.html#and(java.lang.Iterable)>`
+     - documents with the conditions of all the filters. This operator joins filters with a logical ``AND``.
+
+   * - :java-core-api:`or() <com/mongodb/client/model/Filters.html#or(org.bson.conversions.Bson...)>`
+     - documents with the conditions of either filter. This operator joins filters with a logical ``OR``.
+      
+   * - :java-core-api:`not() <com/mongodb/client/model/Filters.html#not(org.bson.conversions.Bson)>`
+     - documents that do not match the filter.
+     
+   * - :java-core-api:`nor() <com/mongodb/client/model/Filters.html#nor(org.bson.conversions.Bson...)>`
+     - documents that fail to match both filters. This operator joins filters with a logical ``NOR``.
+
+The following example creates a filter that matches documents where
+the value of the ``qty`` field is greater than "8" or the value
+of the ``color`` field equals "pink" in the ``paint_purchases`` collection: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
+   :language: java
+   :dedent:
+   :start-after: begin orComparison
+   :end-before: end orComparison
+
+The following shows the output of the query using the operator specified above:
+   
+.. code-block:: json
+   :copyable: false
+      
+   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+   { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+   { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+
+.. _arrays:
+
+Arrays
+------
+
+The array operators evaluate the array field in a document.
+
+The array operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Array Method
+     - Matches
+      
+   * - :java-core-api:`all() <com/mongodb/client/model/Filters.html#all(java.lang.String,java.lang.Iterable)>`
+     - documents if the array field contains every element specified in the query.
+
+   * - :java-core-api:`elemMatch() <com/mongodb/client/model/Filters.html#elemMatch(java.lang.String,org.bson.conversions.Bson)>`
+     - documents if an element in the array field matches all the specified conditions.
+      
+   * - :java-core-api:`size() <com/mongodb/client/model/Filters.html#size(java.lang.String,int)>`
+     - documents if the array field is a specified number of elements.
+
+The following example matches documents with a ``vendors`` array
+containing both "A" and "D" in the ``paint_purchases`` collection: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
+   :language: java
+   :dedent:
+   :start-after: begin allComparison
+   :end-before: end allComparison
+
+The following shows the output of the query using the operator specified above:
+   
+.. code-block:: json
+   :copyable: false
+      
+   { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
+
+.. _elements:
+
+Elements
+--------
+
+The elements operators evaluate the nature of a specified field.
+
+The elements operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Elements Method
+     - Matches
+      
+   * - :java-core-api:`exists() <com/mongodb/client/model/Filters.html#exists(java.lang.String)>`
+     - documents that have the specified field.
+
+   * - :java-core-api:`type() <com/mongodb/client/model/Filters.html#type(java.lang.String,java.lang.String)>`
+     - documents if a field is of the specified type.
+
+The following example matches documents that have a ``qty`` field and
+its value does not equal "5" or "8" in the ``paint_purchases`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
+   :language: java
+   :dedent:
+   :start-after: begin existsComparison
+   :end-before: end existsComparison
+
+The following shows the output of the query using the operator specified above:
+   
+.. code-block:: json
+   :copyable: false
+      
+   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+   { "_id": 4, "color": "white", "qty": 6, "vendor": ["D"]}
+   { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+   { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
+
+.. _evaluation:
+
+Evaluation
+----------
+
+The evaluation operators evaluate the value of any field in a document.
+
+The evaluation operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Evaluation Method
+     - Matches
+      
+   * - :java-core-api:`mod() <com/mongodb/client/model/Filters.html#mod(java.lang.String,long,long)>`
+     - documents where a modulo operation on the value of a field contain a specified result.
+
+   * - :java-core-api:`regex() <com/mongodb/client/model/Filters.html#regex(java.lang.String,java.lang.String)>`
+     - documents where values contain a specified regular expression.
+      
+   * - :java-core-api:`text() <com/mongodb/client/model/Filters.html#text(java.lang.String)>`
+     - documents which contain a specified full-text search expression.
+     
+   * - :java-core-api:`where() <com/mongodb/client/model/Filters.html#where(java.lang.String)>`
+     - documents which contain a specified JavaScript expression.
+
+The following example matches documents that have a ``color`` field
+starting with the letter "p" in the ``paint_purchases`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
+   :language: java
+   :dedent:
+   :start-after: begin regexComparison
+   :end-before: end regexComparison
+
+The following shows the output of the query using the operator specified above:
+   
+.. code-block:: json
+   :copyable: false
+      
+   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+   { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+
+.. _bitwise:
+
+Bitwise
+-------
+
+The bitwise operators convert a number into its binary value to
+evaluate its bits.
+
+The bitwise operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Bitwise Method
+     - Matches
+      
+   * - :java-core-api:`bitsAllSet() <com/mongodb/client/model/Filters.html#bitsAllSet(java.lang.String,long)>`
+     - documents when the specified bits of a field are set (i.e. "1").
+
+   * - :java-core-api:`bitsAllClear() <com/mongodb/client/model/Filters.html#bitsAllClear(java.lang.String,long)>`
+     - documents when the specified bits of a field are clear (i.e. "0").
+      
+   * - :java-core-api:`bitsAnySet() <com/mongodb/client/model/Filters.html#bitsAnySet(java.lang.String,long)>`
+     - documents when at least one of the specified bits of a field are set (i.e. "1").
+     
+   * - :java-core-api:`bitsAnyClear() <com/mongodb/client/model/Filters.html#bitsAnyClear(java.lang.String,long)>`
+     - documents when at least one of the specified bits of a field are clear (i.e. "0").
+
+The following example matches documents that have a ``bitField`` field
+with bits set at positions of the corresponding bitmask "34" (i.e.
+"00100010") in the ``binary_numbers`` collection: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
+   :language: java
+   :dedent:
+   :start-after: begin bitsComparison
+   :end-before: end bitsComparison
+
+The following shows the output of the query using the operator specified above:
+   
+.. code-block:: json
+   :copyable: false
+      
+   { "_id": 9, "a": 54, "binaryValue": "00110110" }
+   { "_id": 12, "a": 102, "binaryValue": "01100110" }
+
+.. _geospatial:
+
+Geospatial
+----------
+
+The geospatial operators evaluate a specified coordinate and its
+relation to a shape or location. 
+
+The geospatial operator methods include:
+
+.. list-table::
+   :widths: 30, 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Geospatial Method 
+     - Matches
+      
+   * - :java-core-api:`geoWithin() <com/mongodb/client/model/Filters.html#geoWithin(java.lang.String,org.bson.conversions.Bson)>`
+     - documents containing a GeoJSON geometry value that falls within a bounding GeoJSON geometry.
+
+   * - :java-core-api:`geoWithinBox() <com/mongodb/client/model/Filters.html#geoWithinBox(java.lang.String,double,double,double,double)>`
+     - documents containing a coordinates value that exist within the specified box.
+      
+   * - :java-core-api:`geoWithinPolygon() <com/mongodb/client/model/Filters.html#geoWithinPolygon(java.lang.String,java.util.List)>`
+     - documents containing a coordinates value that exist within the specified polygon.
+
+   * - :java-core-api:`geoWithinCenter() <com/mongodb/client/model/Filters.html#geoWithinCenter(java.lang.String,double,double,double)>`
+     - documents containing a coordinates value that exist within the specified circle.
+
+   * - :java-core-api:`geoWithinCenterSphere() <com/mongodb/client/model/Filters.html#geoWithinCenterSphere(java.lang.String,double,double,double)>`
+     - geometries containing a geospatial data value (GeoJSON or legacy coordinate pairs) that exist within the specified circle, using spherical geometry.
+
+   * - :java-core-api:`geoIntersects() <com/mongodb/client/model/Filters.html#geoIntersects(java.lang.String,org.bson.conversions.Bson)>`
+     - geometries that intersect with a GeoJSON geometry. The 2dsphere index supports ``$geoIntersects``.
+
+   * - :java-core-api:`near() <com/mongodb/client/model/Filters.html#near(java.lang.String,org.bson.conversions.Bson,java.lang.Double,java.lang.Double)>`
+     - geospatial objects in proximity to a point. Requires a geospatial index. The 2dsphere and 2d indexes support ``$near``.
+
+   * - :java-core-api:`nearSphere() <com/mongodb/client/model/Filters.html#nearSphere(java.lang.String,org.bson.conversions.Bson,java.lang.Double,java.lang.Double)>`
+     - geospatial objects in proximity to a point on a sphere. Requires a geospatial index. The 2dsphere and 2d indexes support ``$nearSphere``.
+
+The following example creates a filter that matches documents in which
+the ``point`` field contains a GeoJSON geometry that falls within
+the given :manual:`Polygon </reference/geojson/index.html#polygon>` 
+in the ``geo_points`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
+   :language: java
+   :dedent:
+   :start-after: begin geoWithinComparison
+   :end-before: end geoWithinComparison
+
+The following shows the output of the query using the operator specified above:
+   
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 13, "coordinates": {"type": "Point", "coordinates": [2.0, 2.0]} }
+   { "_id": 15, "coordinates": {"type": "Point", "coordinates": [1.0, 3.0]} }
