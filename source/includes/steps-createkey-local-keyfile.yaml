@@ -12,33 +12,43 @@ content: |
      mongosh --nodb
 
 ---
+title: "Generate an Encryption Key."
+ref: generate-local-key
+level: 4
+content: |
+
+  To configure client-side field level encryption for a locally managed
+  key, you must specify a base64-encoded 96-byte string with no line
+  breaks. Run the following command in ``mongosh`` to generate a key
+  matching these requirements:
+
+  .. code-block:: javascript
+
+     crypto.randomBytes(96).toString('base64')
+
+  You will need this key in the next step.
+
+---
 title: "Create the Encryption Configuration."
 ref: create-encryption-configuration
 level: 4
 content: |
 
-  Configuring client-side field level encryption for the GCP KMS
-  requires your GCP Email and its associated Private Key.
-  
   In ``mongosh``, create a new
   :ref:`ClientSideFieldLevelEncryptionOptions` variable for storing the
-  client-side field level encryption configuration, which contains these
-  credentials:
+  client-side field level encryption configuration, replacing
+  ``MY_LOCAL_KEY`` with the key generated in step 1:
 
   .. code-block:: javascript
 
      var ClientSideFieldLevelEncryptionOptions = {
        "keyVaultNamespace" : "encryption.__dataKeys",
        "kmsProviders" : {
-         "gcp" : {
-           "email" : "YOUR_GCP_EMAIL",
-           "privateKey" : "YOUR_GCP_PRIVATEKEY"
+         "local" : {
+           "key" : BinData(0, "MY_LOCAL_KEY")
          }
        }
      }
-
-  Fill in the values for ``YOUR_GCP_EMAIL`` and
-  ``YOUR_GCP_PRIVATEKEY`` as appropriate.
 
 ---
 title: "Connect with Encryption Support."
@@ -58,9 +68,6 @@ content: |
        "mongodb://replaceMe.example.net:27017/?replicaSet=myMongoCluster",
        ClientSideFieldLevelEncryptionOptions
      )
-
-  Replace the ``replaceMe.example.net`` :ref:`URI <mongodb-uri>` with
-  the connection string for the target cluster.
 
 ---
 title: "Create the Key Vault Object."
@@ -85,24 +92,22 @@ content: |
 
   .. code-block:: javascript
 
-     keyVault.createKey(
-       "gcp",
-       { projectId: "projectid",
-         location: "locationname",
-         keyRing: "keyringname",
-         keyName: "keyname"
-       }
-     )
+      keyVault.createKey(
+        "local",
+        [ "keyAlternateName" ]
+      )
 
   Where:
-  
-  - ``projectid`` is the name of your GCP project, such as
-    ``my-project``
-  - ``locationname`` is the location of the KMS keyring, such as
-    ``global``
-  - ``keyringname`` is the name of the KMS keyring, such as
-    ``my-keyring``
-  - ``keyname`` is the name of your key.
+
+  - The first parameter *must* be ``local`` to specify the configured
+    Locally Managed Key.
+
+  - The second parameter *may* be an array of one or more
+    ``keyAltNames`` for the data encryption key. Each key alternate
+    name *must* be unique. :method:`getKeyVault()` creates a unique
+    index on ``keyAltNames`` to enforce uniqueness on the field if
+    one does not already exist. Key alternate names facilitate data
+    encryption key findability.
 
   .. include:: /includes/fact-getkey-options.rst
 ...
