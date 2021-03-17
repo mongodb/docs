@@ -2,8 +2,8 @@
    :header-rows: 1
    :widths: 40  30
 
-   * - Commands
-     - Descriptions
+   * - Command
+     - Description
 
    * - :dbcommand:`abortTransaction`
 

@@ -10,8 +10,8 @@ If no ``timezone`` is provided, the result is displayed in ``UTC``.
    :header-rows: 1
    :widths: 30 70
 
-   * - ``Format``
-     - ``Examples``
+   * - Format
+     - Examples
 
    * - ``Olson Timezone Identifier``
 
