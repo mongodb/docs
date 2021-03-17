@@ -7,10 +7,12 @@
      - macOS
      - Windows
      - Linux
+
    * - Supported?
      - |checkmark|
      - |checkmark|
      -
+
    * - OS Version
      - 10.10+
      - 7+

@@ -23,22 +23,23 @@ a standalone package by following these steps:
 
    .. list-table::
      :header-rows: 1
+     :stub-columns: 1
      :widths: 15 85
 
      * - Platform
        - Download Package
 
-     * - *Windows*
+     * - Windows
 
        - Select the ``zip`` package to download an archive which
          includes the :binary:`~bin.mongo` shell.
 
-     * - *macOS*
+     * - macOS
 
        - Select the ``tgz`` package to download an archive which
          includes the :binary:`~bin.mongo` shell.
 
-     * - *Linux*
+     * - Linux
 
        - Select the ``tgz`` package to download the
          :binary:`~bin.mongo` shell.
