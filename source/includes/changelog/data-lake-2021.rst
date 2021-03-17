@@ -1,9 +1,21 @@
+.. _data-lake-v20210309:
+
+09 March 2021 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Includes new onboarding and storage configuration interface.
+- Improved SQL schema error message.
+- Support query pushdown to collections comprised of multiple Atlas
+  collections
+- Improves stability and performance.
+
 .. _data-lake-v20210216:
 
 16 February 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Adds :ref:`SQL schema generation <query-with-sql>` for wildcard collections.
+- Adds :ref:`SQL schema generation <query-with-sql>` for wildcard
+  collections.
 - Fixes stability and performance issues.
 
 .. _data-lake-v20210126:
@@ -17,8 +29,8 @@
 - Adds ``"verbosity": "queryPlannerExtended"`` support to the
   :manual:`explain </reference/command/explain>` command to filter out
   non-matching partitions.
-- Adds support for :manual:`$$NOW
-  </reference/aggregation-variables/#variable.NOW>`.
+- Adds support for
+  :manual:`$$NOW </reference/aggregation-variables/#variable.NOW>`.
 - Reports {+adl+} as MongoDB version 4.4 to tools.
 
 .. _data-lake-v20210105:
@@ -26,7 +38,7 @@
 5 January 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- Adds support for the background option on the :ref:`$out to Atlas
-  <adl-out-stage>` aggregation stage.
+- Adds support for the background option on the
+  :ref:`$out to Atlas <adl-out-stage>` aggregation stage.
 - Includes stability and performance improvements.
 
