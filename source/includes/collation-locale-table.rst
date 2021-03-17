@@ -222,7 +222,7 @@
             - ``unihan``
 
      - .. list-table::
-          :header-rows: 1
+
 
           * - Language
             - Locale

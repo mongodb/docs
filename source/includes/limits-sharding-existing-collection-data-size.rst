@@ -46,21 +46,25 @@ using the formulas described above:
      - 256 bytes
      - 128 bytes
      - 64 bytes
+
    * - Maximum Number of Splits
      - 32,768
      - 65,536
      - 131,072
      - 262,144
+
    * - Max Collection Size (64 MB Chunk Size)
      - 1 TB
      - 2 TB
      - 4 TB
      - 8 TB
+
    * - Max Collection Size (128 MB Chunk Size)
      - 2 TB
      - 4 TB
      - 8 TB
      - 16 TB
+
    * - Max Collection Size (256 MB Chunk Size)
      - 4 TB
      - 8 TB
