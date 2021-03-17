@@ -16,15 +16,15 @@ To install |tool-binary| as a standalone installation:
 
        - Package
 
-     * - *Linux* 
+     * - Linux
 
        - ``tgz`` package
 
-     * - *Windows*
+     * - Windows
 
        - ``zip`` package
 
-     * - *macOS*
+     * - macOS
 
        - ``tgz`` package 
 

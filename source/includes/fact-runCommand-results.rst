@@ -5,8 +5,9 @@
    * - Field
      - Description
 
-   * - Result fields specific to the command
-     -
+   * - *<command result>*
+
+     - Result fields specific to the ``command`` that was run.
 
    * - ``ok``
 

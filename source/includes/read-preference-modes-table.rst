@@ -4,6 +4,7 @@
 
    * - Read Preference Mode
      - Description
+
    * - :readmode:`primary`
      - Default mode. All operations read from the current replica set
        :term:`primary`.
