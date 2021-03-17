@@ -204,10 +204,10 @@ use for document level locking storage engines:
 
 .. _faq-concurrency-database-lock:
 
-Which administrative commands lock the database?
-------------------------------------------------
+Which administrative commands lock a database?
+----------------------------------------------
 
-Some administrative commands can exclusively lock the database for
+Some administrative commands can exclusively lock a database for
 extended time periods. For large database deployments, you may consider
 taking the :binary:`~bin.mongod` instance offline so that clients are
 not affected. For example, if a :binary:`~bin.mongod` is part of a
@@ -225,33 +225,66 @@ database level for extended periods:
 - :dbcommand:`collMod` command
 - :dbcommand:`compact` command
 - :dbcommand:`convertToCapped` command
-- :dbcommand:`renameCollection` command and corresponding
-  :method:`db.collection.renameCollection()` shell method (see below).
-       
-  .. versionchanged:: 4.2
 
-     If renaming a collection within the same database, the operation
-     takes an exclusive (W) lock on the source and target collections.
-     Prior to MongoDB 4.2, the operation takes an exclusive (W) lock on
-     the database when renaming within the same database.
+In addition, the :dbcommand:`renameCollection` command and corresponding
+:method:`db.collection.renameCollection()` shell method take the
+following locks depending on the version of MongoDB:
 
-     (For :dbcommand:`renameCollection` *only*) If the target namespace
-     is in a different database as the source collection, the locking
-     behavior is version dependent:
+.. list-table::
+   :header-rows: 1
 
-     - *(MongoDB 4.2.2 and later)* The operation takes an exclusive
-       (W) lock on the target database when renaming a collection
-       across databases and blocks other operations on that database
-       until it finishes.
+   * - Command
 
-     - *(MongoDB 4.2.1 and earlier)* The operation takes a global
-       exclusive (W) lock when renaming a collection across
+     - MongoDB 4.2.2 or later
+
+     - MongoDB 4.2.0 - 4.2.1
+
+     - MongoDB 4.0.X and previous
+
+
+   * - :dbcommand:`renameCollection`
+
+     - If renaming a collection within the same database, the
+       :dbcommand:`renameCollection` command takes an exclusive (W) lock
+       on the source and target collections.
+
+       If the target namespace is in a different database as the source
+       collection, The :dbcommand:`renameCollection` command takes an
+       exclusive (W) lock on the target database when renaming a
+       collection across databases and blocks other operations on that
+       database until it finishes.
+
+     - If renaming a collection within the same database, the
+       :dbcommand:`renameCollection` command takes an exclusive (W) lock
+       on the source and target collections.
+
+       If the target namespace is in a different database as the source
+       collection, The :dbcommand:`renameCollection` command takes a
+       global exclusive (W) lock when renaming a collection across
        databases and blocks other operations until it finishes.
+
+     - Prior to MongoDB 4.2, the :dbcommand:`renameCollection` command
+       takes an exclusive (W) lock on the database when renaming within
+       the same database.
+
+
+   * - :method:`~db.collection.renameCollection()`
+
+     - If renaming a collection within the same database, the
+       :method:`~db.collection.renameCollection()` method takes an
+       exclusive (W) lock on the source and target collections.
+
+     - (same behavior as MongoDB 4.2.2 or later)
+
+     - Prior to MongoDB 4.2, the
+       :method:`~db.collection.renameCollection()` method takes an
+       exclusive (W) lock on the database when renaming within the same
+       database.
 
 Administrative Commands Taking Brief Locks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These administrative operations lock the database but only hold
+These administrative operations lock a database but only hold
 the lock for a very short time:
 
 - :dbcommand:`authenticate` command and corresponding
@@ -260,9 +293,7 @@ the lock for a very short time:
 - :dbcommand:`createUser` command and corresponding
   :method:`db.createUser()` shell method
 
-.. seealso::
-
-   :ref:`faq-concurrency-lock-multiple-dbs`
+  :ref:`faq-concurrency-lock-multiple-dbs`
 
 .. _faq-concurrency-collection-lock:
 
@@ -289,54 +320,52 @@ collection level:
   :method:`db.collection.dropIndex()` and
   :method:`db.collection.dropIndexes()` shell methods
 
-- :dbcommand:`renameCollection` command and corresponding
-  :method:`db.collection.renameCollection()` shell method (see below)
-       
-  .. versionchanged:: 4.2
+- the :dbcommand:`renameCollection` command and corresponding
+  :method:`db.collection.renameCollection()` shell method take the
+  following locks, depending on version:
   
-     If renaming a collection within the same database, the operation
-     takes an exclusive (W) lock on the source and target collections.
-     Prior to MongoDB 4.2, the operation takes an exclusive (W) lock
-     on the database when renaming within the same database.
+  - For :dbcommand:`renameCollection` and
+    :method:`db.collection.renameCollection()`: If renaming a
+    collection within the same database, the operation takes an
+    exclusive (W) lock on the source and target collections.
+    Prior to MongoDB 4.2, the operation takes an exclusive (W) lock
+    on the database when renaming within the same database.
 
-     (:dbcommand:`renameCollection` *only*) If the target namespace is
-     in a different database as the source collection, the locking
-     behavior is version dependent:
+  - For :dbcommand:`renameCollection` *only*:: If the target namespace
+    is in a different database as the source collection, the locking
+    behavior is version dependent:
 
-     - *MongoDB 4.2.2 and later* The operation takes an exclusive
-       (W) lock on the target database when renaming a collection
-       across databases and blocks other operations on that database
-       until it finishes.
+    - *MongoDB 4.2.2 and later* The operation takes an exclusive
+      (W) lock on the target database when renaming a collection
+      across databases and blocks other operations on that database
+      until it finishes.
 
-     - *MongoDB 4.2.1 and earlier* The operation takes a global
-       exclusive (W) lock when renaming a collection across
-       databases and blocks other operations until it finishes.
+    - *MongoDB 4.2.1 and earlier* The operation takes a global
+      exclusive (W) lock when renaming a collection across
+      databases and blocks other operations until it finishes.
 
-- :dbcommand:`reIndex` command and corresponding
-  :method:`db.collection.reIndex()` shell method (see below)
+- the :dbcommand:`reIndex` command and corresponding
+  :method:`db.collection.reIndex()` shell method take the following
+  locks, depending on version:
+  
+  - For MongoDB 4.2.2 and later, these operations obtain an exclusive
+    (W) lock on the collection and block other operations on the
+    collection until finished.
 
-  .. versionchanged:: 4.2
+  - For MongoDB 4.0.0 through 4.2.1, these operations take a
+    global exclusive (W) lock and block other operations until
+    finished.
 
-     - For MongoDB 4.2.2 and later, these operations obtain an
-       exclusive
-       (W) lock on the collection and block other operations on the
-       collection until finished.
+- the :dbcommand:`replSetResizeOplog` command takes the following locks,
+  depending on version:
 
-     - For MongoDB 4.0.0 through 4.2.1, these operations take a
-       global exclusive (W) lock and block other operations until
-       finished.
+  - For MongoDB 4.2.2 and later, this operation takes an exclusive 
+    (W) lock on the :data:`oplog <local.oplog.rs>` collection and 
+    blocks other operations on the collection until it finishes.
 
-- :dbcommand:`replSetResizeOplog` command (see below)
-
-  .. versionchanged:: 4.2
-          
-     - For MongoDB 4.2.2 and later, this operation takes an exclusive 
-       (W) lock on the :data:`oplog <local.oplog.rs>` collection and 
-       blocks other operations on the collection until it finishes.
-
-     - For MongoDB 4.2.1 and earlier, this operation takes a global
-       exclusive (W) lock and blocks other operations until it
-       finishes.
+  - For MongoDB 4.2.1 and earlier, this operation takes a global
+    exclusive (W) lock and blocks other operations until it
+    finishes.
 
 Prior to MongoDB 4.2, these operations took an exclusive lock on the
 database, blocking all operations on the database *and* its collections
