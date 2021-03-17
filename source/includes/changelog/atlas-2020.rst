@@ -56,7 +56,7 @@
 
 - Updates terminology for API Access List management. Introduces API
   Access List for Programmatic API Keys and deprecates
-  :ref:`API whitelist <whitelist-for-api-operations>`.
+  :ref:`API whitelist <enable-api-access-list>`.
 
 .. _atlas_20201103:
 
