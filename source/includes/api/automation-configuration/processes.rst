@@ -1,5 +1,10 @@
 The **processes** array determines the configuration of your MongoDB
-instances. You can restore an instance using this array.
+instances. Using this array, you can:
+
+- Restore an instance.
+- Start an :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`
+  process on one or more MongoDB instances.
+
 
 .. code-block:: yaml
    :linenos:
@@ -15,6 +20,7 @@ instances. You can restore an instance using this array.
      "hostname": "<string>",
      "lastCompact" : "<dateInIso8601Format>",
      "lastRestart" : "<dateInIso8601Format>",
+     "lastResync" : "<dateInIso8601Format>",
      "logRotate": {
        "sizeThresholdMB": "<number>",
        "timeThresholdHrs": "<integer>",
@@ -30,7 +36,7 @@ instances. You can restore an instance using this array.
    }]
 
 .. list-table::
-   :widths: 20 14 11 55
+   :widths: 12 10 10 68
    :header-rows: 1
    :stub-columns: 1
 
@@ -45,7 +51,8 @@ instances. You can restore an instance using this array.
      - Contains objects that define the |mongos| and |mongod| instances
        that |mms| monitors. Each object defines a different instance.
 
-   * - processes[n].args2_6
+   * - processes[n].
+       args2_6
      - object
      - Required
      - MongoDB configuration object for MongoDB versions 2.6 and later.
@@ -54,7 +61,8 @@ instances. You can restore an instance using this array.
 
           :doc:`Supported configuration options </reference/cluster-configuration-process-options>`.
 
-   * - processes[n].alias
+   * - processes[n].
+       alias
      - string
      - Optional
      - Hostname alias (often a |dns| CNAME) for the host on which the
@@ -63,7 +71,8 @@ instances. You can restore an instance using this array.
        when connecting to the host. You can also specify this alias in
        **replicaSets.host** and **sharding.configServer**.
 
-   * - processes[n].authSchemaVersion
+   * - processes[n].
+       authSchemaVersion
      - integer
      - Required
      - Schema version of the user credentials for MongoDB database
@@ -79,7 +88,8 @@ instances. You can restore an instance using this array.
           :manual:`Upgrade to SCRAM-SHA-1 </release-notes/3.0-scram/>`
           in the MongoDB 3.0 release notes.
 
-   * - processes[n].backupRestoreUrl
+   * - processes[n].
+       backupRestoreUrl
      - string
      - Optional
      - Delivery |url| for the restore. |mms| sets this when creating a
@@ -89,7 +99,8 @@ instances. You can restore an instance using this array.
 
           :doc:`/tutorial/automate-backup-restoration-with-api`.
 
-   * - processes[n].cluster
+   * - processes[n].
+       cluster
      - string
      - Conditional
      - Name of the sharded cluster. Set this value to the same value in
@@ -99,13 +110,15 @@ instances. You can restore an instance using this array.
        - *Required* for a |mongos|.
        - *Not needed* for a |mongod|.
 
-   * - processes[n].disabled
+   * - processes[n].
+       disabled
      - Boolean
      - Optional
      - Flag that indicates if this process should be shut down. Set to
        **true** to shut down the process.
 
-   * - processes[n].featureCompatibilityVersion
+   * - processes[n].
+       featureCompatibilityVersion
      - string
      - Required
      - Version of MongoDB with which this process has feature
@@ -133,18 +146,20 @@ instances. You can restore an instance using this array.
 
           :manual:`setFeatureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>`
 
-   * - processes[n].hostname
+   * - processes[n].
+       hostname
      - string
      - Required
      - Name of the host that serves this process. This defaults to
        **localhost**.
 
-   * - processes[n].lastCompact
+   * - processes[n].
+       lastCompact
      - string
      - Optional
      - |iso8601-time| when |mms| last reclaimed free space on a
        cluster's disks. During certain operations, MongoDB might move
-       or delete data but it doesn't free the now unused space. |mms|
+       or delete data but it doesn't free the currently unused space. |mms|
        reclaims the disk space in a rolling fashion across members of
        the replica set or shards.
 
@@ -156,39 +171,79 @@ instances. You can restore an instance using this array.
          reclaims the space after the current time passes the provided
          timestamp.
 
-       .. note::
+       To remove any ambiguity as to when you intend to reclaim the
+       space on the cluster's disks, specify a time zone with your
+       |iso8601| timestamp. For example, to set
+       **processes.lastCompact**
+       to 28 January 2021 at  2:43:52 PM US Central Standard Time, use
+       ``"processes.lastCompact" : "2021-01-28T14:43:52-06:00"``
 
-          Make sure to specify a time zone with your |iso8601|
-          timestamp. This removes any ambiguity as to when you intend
-          to compact the cluster.
-
-          .. example::
-
-             To set **processes.lastCompact** to 28 January 2020 at
-             2:43:52 PM US Central Standard Time, you would write:
-
-             .. code-block:: json
-
-                "processes.lastCompact" : "2020-01-28T14:43:52-06:00"
-
-   * - processes[n].lastRestart
+   * - processes[n].
+       lastRestart
      - string
      - Optional
-     - |iso8601-time| when |mms| last restarted this process.
+     - |iso8601-time| when |mms| last restarted this process. If you
+       set this parameter to the current timestamp, |mms| forces a
+       restart of this process after you upload this configuration.
+       If you set this parameter for multiple processes in the same
+       cluster, the |mms| restarts the selected processes in a rolling
+       fashion across members of the replica set or shards.
 
-       You can set this value to the current timestamp. If you make
-       that change, |mms| forces a restart of this process after you
-       upload this configuration. If you set this parameter for
-       multiple processes in the same cluster, the |mms| restarts the
-       selected processes in a rolling fashion.
+   * - processes[n].
+       lastResync
+     - string
+     - Optional
+     - |iso8601-time| of the last
+       :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`
+       process that |mms| performed on the node.
+       
+       To trigger the init sync process on the node immediately, set this value to the
+       current time as an |iso8601| timestamp.
 
-   * - processes[n].logRotate
+       .. warning::
+
+          Use this parameter with caution. During
+          :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`,
+          Automation removes the entire contents of the node's
+          :setting:`dbPath` directory.
+
+       If you set this parameter:
+
+       - On the secondary node, the {+mdbagent+} checks whether the
+         specified timestamp is later than the time of the last resync,
+         and if confirmed, starts init sync on this node.
+         
+         For example, to set **processes.lastResync** on the secondary node to
+         28 May 2021 at 2:43:52 PM US CentralStandard Time, use:
+         ``"processes.lastResync" : "2021-05-28T14:43:52-06:00"``. If
+         the {+mdbagent+} confirms that this timestamp is later than
+         the recorded time of the last resync, it starts init sync on the node.
+
+       - On the primary node, the {+mdbagent+} waits until you ask the primary
+         node to become the secondary with the :method:`rs.stepDown` method, and
+         then starts init sync on this node.
+
+       - On all of the nodes in the same cluster, including the primary,
+         the {+mdbagent+} checks whether the specified timestamp is later
+         than the time of the last resync, and if confirmed, starts init
+         sync on the secondary nodes in a rolling fashion. The {+mdbagent+} waits
+         until you ask the primary node to become the secondary with
+         the :method:`rs.stepDown` method, and then starts init sync on this node.
+
+       .. seealso::
+
+          :manual:`Initial Sync </core/replica-set-sync/#replica-set-initial-sync>`
+
+   * - processes[n].
+       logRotate
      - object
      - Optional
      - MongoDB configuration object for rotating the MongoDB logs of a
        process.
 
-   * - processes[n].logRotate.numTotal
+   * - processes[n].
+       logRotate.
+       numTotal
      - integer
      - Optional
      - Total number of log files that |mms| retains. If you don't set
@@ -196,13 +251,17 @@ instances. You can restore an instance using this array.
        |mms| bases rotation on your other **processes.logRotate**
        settings.
 
-   * - processes[n].logRotate.numUncompressed
+   * - processes[n].
+       logRotate.
+       numUncompressed
      - integer
      - Optional
      - Maximum number of total log files to leave uncompressed,
        including the current log file. The default is **5**.
 
-   * - processes[n].logRotate.percentOfDiskspace
+   * - processes[n].
+       logRotate.
+       percentOfDiskspace
      - number
      - Optional
      - Maximum percentage of total disk space that |mms| can use to
@@ -212,7 +271,9 @@ instances. You can restore an instance using this array.
 
        The default is **0.02**.
 
-   * - processes[n].logRotate.sizeThresholdMB
+   * - processes[n].
+       logRotate.
+       sizeThresholdMB
      - number
      - Required
      - Maximum size in MB for an individual log file before |mms|
@@ -220,7 +281,9 @@ instances. You can restore an instance using this array.
        the value given in either this **sizeThresholdMB** or the
        **processes.logRotate.timeThresholdHrs** limit.
 
-   * - processes[n].logRotate.timeThresholdHrs
+   * - processes[n].
+       logRotate.
+       timeThresholdHrs
      - integer
      - Required
      - Maximum duration in hours for an individual log file before the
@@ -230,7 +293,8 @@ instances. You can restore an instance using this array.
        **timeThresholdHrs** or the
        **processes.logRotate.sizeThresholdMB** limit.
 
-   * - processes[n].manualMode
+   * - processes[n].
+       manualMode
      - Boolean
      - Optional
      - Flag that indicates if {+mdbagent+} automates this process.
@@ -241,25 +305,29 @@ instances. You can restore an instance using this array.
        - Set to **false** to enable Automation on this process. The
          {+mdbagent+} automates actions on this process.
 
-   * - processes[n].name
+   * - processes[n].
+       name
      - string
      - Required
      - Unique name to identify the instance.
 
-   * - processes[n].numCores
+   * - processes[n].
+       numCores
      - integer
      - Optional
      - Number of cores that |mms| should bind to this process. The
        {+mdbagent+} distributes processes across the cores as evenly as
        possible.
 
-   * - processes[n].processType
+   * - processes[n].
+       processType
      - string
      - Required
      - Type of MongoDB process being run. |mms| accepts |mongod| or
        |mongos| for this parameter.
 
-   * - processes[n].version
+   * - processes[n].
+       version
      - string
      - Required
      - Name of the **mongoDbVersions** specification used with this
