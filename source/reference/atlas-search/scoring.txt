@@ -9,7 +9,7 @@ Scoring
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Every document returned by an |fts| query is assigned a score based
@@ -61,7 +61,7 @@ More information about the Lucene scoring algorithm can be found in the
 Score Modifiers
 ---------------
 
-Two score modifying options are available to the
+The following score modifying options are available to the
 :ref:`search <search-ref>` and :ref:`term <term-ref>` operators.
 
 .. _scoring-boost:
@@ -104,6 +104,10 @@ multiplied by 3 from its base value:
 
    { "title" : "Kites Over Helsinki", "score" : 12.247001647949219 }
    { "title" : "Helsinki-Naples All Night Long", "score" : 9.568056106567383 }
+
+.. note::
+
+   The ``boost`` and ``constant`` options may not be used together.
 
 .. _scoring-constant:
 
@@ -152,4 +156,592 @@ replaced with the specified ``constant`` value:
 
 .. note::
 
-   The ``boost`` and ``constant`` options may not be used together.
+   The ``constant`` and ``boost`` options may not be used together.
+
+.. _scoring-function:
+
+``function`` 
+~~~~~~~~~~~~
+
+The ``function`` option allows the value of a numeric field to alter 
+the final score of the document. You can specify the numeric field for 
+computing the final score through an :ref:`expression 
+<function-score-expression>`.
+
+.. _function-score-expression:
+
+Expressions
+###########
+
+.. tabs:: 
+
+   .. tab:: Arithmetic
+      :tabid: arithmetic
+
+      An arithmetic expression adds or multiplies a series of numbers. 
+      It must include one of the following options: 
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 10 15 75 
+
+         * - Option
+           - Type
+           - Description
+
+         * - ``add`` 
+           - array of :ref:`expressions <function-score-expression>`
+           - Adds a series of numbers. Takes an array of 
+             :ref:`expressions <function-score-expression>`, which can 
+             have negative values. Array length must be greater than or 
+             equal to ``2``. 
+
+             .. example:: 
+
+                .. code-block:: json 
+                   :copyable: false 
+
+                   "function": {
+                     "add": [
+                       {"path": "rating"},
+                       {"score": "relevance"}
+                     ]
+                   }
+
+                |fts| uses the ``path`` and ``score`` expressions to 
+                add the following: 
+                
+                - Numeric value of the ``rating`` field or ``0``, if 
+                  the ``rating`` field is not present in the document
+                - Relevance score, which is the score |fts| assigns 
+                  based on relevance
+
+         * - ``multiply``
+           - array of :ref:`expressions <function-score-expression>`
+           - Multiplies a series of numbers. Takes an array of   
+             :ref:`expressions <function-score-expression>`, which can 
+             have negative values. Array length must be greater than or 
+             equal to ``2``. 
+
+             .. example:: 
+
+                .. code-block:: json 
+                   :copyable: false 
+
+                   "function": {
+                     "multiply": [
+                       {
+                         "path": {
+                           "value": "popularity",
+                           "undefined": 2.5
+                         }
+                       },
+                       {"score": "relevance"},
+                       {"constant": 0.75}
+                     ]
+                   }
+
+                |fts| uses the ``path``, ``score``, and ``constant`` 
+                expressions to alter the final score of the document. 
+                It multiplies the following: 
+              
+                - Numeric value of the path expression, which is the 
+                  numeric value of the ``popularity`` field or 
+                  ``2.5``, if the ``popularity`` field is not present 
+                  in the document
+                - Relevance score, which is the score |fts| assigns 
+                  based on relevance
+                - Constant value of ``0.75``
+
+      .. note:: 
+       
+         You can't replace an arithmetic expression that evaluates to 
+         ``undefined`` with a constant value.
+
+   .. tab:: Constant
+      :tabid: constant 
+
+      A constant expression allows a :ref:`constant <scoring-constant>` 
+      number in the function score. It must include the following 
+      option: 
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 10 15 60  
+
+         * - Option
+           - Type
+           - Description
+
+         * - ``constant``
+           - float
+           - Value of the constant. |fts| supports negative values.
+
+      .. example:: 
+
+         .. code-block:: sh 
+            :copyable: false 
+
+            {
+              "function": {
+                "constant": -23.78
+              }
+            } 
+
+         |fts| replaces the final score of the document with the 
+         constant value of ``-23.78``.  
+
+   .. tab:: Path
+      :tabid: path 
+
+      A path expression incorporates an indexed numeric field value 
+      into a function score. It can either be a ``string`` or an 
+      ``object``. 
+       
+      If ``string``, the value is the name of the numeric field to 
+      search over for the path expression. 
+
+      .. example:: 
+
+         .. code-block:: sh 
+            :copyable: false 
+
+            {
+              "function": {
+                "path": "description"
+              }
+            }
+
+         |fts| incorporates the numeric value of the ``description`` 
+         field in the final score of the document.
+       
+      If ``object``, the path expression takes the following options: 
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 15 10 15 70 
+
+         * - Option
+           - Type
+           - Necessity
+           - Description
+
+         * - ``value``
+           - string
+           - Required
+           - Name of numeric field. Field can contain negative numeric 
+             values.
+
+         * - ``undefined``
+           - float
+           - Optional
+           - Value to use if the numeric field specified using 
+             ``value`` is missing in the document. If omitted, defaults 
+             to ``0``.
+
+      .. example:: 
+
+         .. code-block:: sh 
+            :copyable: false 
+
+            {
+              "function": {
+                "path": {"value": "quantity", "undefined": 2}
+              }
+            }
+
+         |fts| incorporates numeric value of the ``quantity`` field 
+         or ``2``, if the ``quantity`` field is not present in the 
+         document, in the final score of the document.
+       
+      A path expression can't be an ``array`` and can't contain 
+      :ref:`regex-ref` or :ref:`wildcard-ref` in the ``path``. 
+
+   .. tab:: Score
+      :tabid: score 
+
+      A score expression represents the relevance score, which is the 
+      score |fts| assigns documents based on relevance, of the query. 
+      It is the same as the current score of the document. It must 
+      include the following option: 
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 10 15 60
+
+         * - Option
+           - Type
+           - Description
+
+         * - ``score``
+           - string
+           - Value of relevance score of the query. Value must be 
+             ``relevance``. 
+
+      .. example:: 
+
+         .. code-block:: sh 
+            :copyable: false 
+
+            {
+              "function": {
+                "score": "relevance"
+              }
+            }
+
+   .. tab:: Unary
+      :tabid: unary 
+
+      A unary expression calculates the log10 of a number. It must 
+      include one of the following options:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 10 15 60
+
+         * - Option
+           - Type
+           - Description
+
+         * - ``log``
+           - :ref:`expression <function-score-expression>`
+           - Calculates the log10 of a number. 
+
+             .. example:: 
+
+                .. code-block:: json 
+                   :copyable: false 
+
+                   {
+                     "function": {
+                       "log": {
+                         "multiply": [
+                           {"path": "popularity"},
+                           {"constant": 0.5},
+                           {"score": "relevance"}
+                         ]
+                       }
+                     }
+                   }
+
+                The preceding example uses the arithmetic expression 
+                ``multiply`` option. |fts| calculates the log10 of the 
+                arithmetic expression.
+              
+             If the specified expression evaluates to lesser than or 
+             equal to ``0``, then the ``log`` evaluates to undefined. 
+            
+             .. example:: 
+
+                .. code-block:: json 
+                   :copyable: false 
+
+                   {
+                     "function": {
+                       "log": {
+                         "constant": -5.1
+                       }
+                     }
+                   }  
+
+                In the preceding example, log10 of ``-5.1``, specified 
+                using a constant expression, evaluates to undefined. 
+                Therefore, the final score of the document is ``0``.
+
+         * - ``log1p``
+           - :ref:`expression <function-score-expression>`
+           - Adds ``1`` to the number and then calculates its log10. 
+             For example: 
+
+             .. code-block:: json 
+                :copyable: false 
+
+                {
+                  "function": {
+                    "log1p": {
+                      "path": {
+                        "value": "rating",
+                        "undefined": 4
+                      }
+                    }
+                  }
+                }
+
+             The preceding example uses the path expression. |fts| adds 
+             ``1`` to the numeric value of the path expression and then 
+             calculates the log10.
+
+.. _function-score-egs:
+
+Examples
+########
+
+The following examples use the default index on the 
+``sample_mflix.movies`` collection to query the ``title`` field. The 
+sample queries include a ``$limit`` stage to limit the output to ``5`` 
+results and a ``$project`` stage to exclude all fields except ``title`` 
+and ``score``.
+
+.. tabs:: 
+
+   .. tab:: Arithmetic
+      :tabid: arithmetic
+
+      .. example:: 
+
+         In this example, the :ref:`text-ref` operator uses ``score`` 
+         with the ``function`` option to multiply the following: 
+
+         - Numeric value of the path expression, which is the value of 
+           the ``imdb.rating`` field in the documents or ``2``, if the 
+           ``imdb.rating`` field is not in the document
+         - Relevance score, or the current score of the document
+
+         .. code-block:: json 
+
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function":{
+                      "multiply":[
+                        {
+                          "path": { 
+                            "value": "imdb.rating",   
+                            "undefined": 2 
+                          }
+                        },
+                        {
+                          "score": "relevance"
+                        }
+                      ]
+                    }
+                  } 
+                }   
+              }
+            },
+            {
+              $limit: 5
+            },
+            {
+              $project: {
+                "_id": 0,
+                "title": 1,
+                "score": { "$meta": "searchScore" }
+              }
+            }])
+
+         The preceding query returns the following results, in which 
+         the score is replaced with the specified ``function`` value:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { "title" : "Men...", "score" : 23.431293487548828 }
+            { "title" : "12 Angry Men", "score" : 22.080968856811523 }
+            { "title" : "X-Men", "score" : 21.34803581237793 }
+            { "title" : "X-Men", "score" : 21.34803581237793 }
+            { "title" : "Matchstick Men", "score" : 21.05954933166504 }
+
+   .. tab:: Constant
+      :tabid: constant 
+
+      .. example:: 
+
+         In this example, the :ref:`text-ref` operator uses ``score`` 
+         with the ``function`` option to replace the current score of 
+         the document with the constant numeric value of ``3``.
+
+         .. code-block:: json 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "men",
+                    "score": {
+                      "function":{
+                        "constant": 3 
+                      }
+                    } 
+                  }   
+                }
+              },
+              {
+                $limit: 5
+              },
+              {
+                $project: {
+                  "_id": 0,
+                  "title": 1,
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
+
+         The preceding query returns the following results, in which 
+         the score is replaced with the specified ``function`` value:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { "title" : "Men Without Women", "score" : 3 }
+            { "title" : "One Hundred Men and a Girl", "score" : 3 }
+            { "title" : "Of Mice and Men", "score" : 3 }
+            { "title" : "All the King's Men", "score" : 3 }
+            { "title" : "The Men", "score" : 3 }
+
+   .. tab:: Path
+      :tabid: path 
+
+      .. example:: 
+
+         In this example, the :ref:`text-ref` operator uses ``score`` 
+         with the ``function`` option to replace the relevance score 
+         of the query with the value of the numeric field 
+         ``imdb.rating`` or ``4.6``, if the ``imdb.rating`` field is 
+         not present in the documents.
+
+         .. code-block:: json
+
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function":{
+                      "path": { 
+                        "value": "imdb.rating", 
+                        "undefined": 4.6 
+                      }
+                    }
+                  } 
+                }   
+              }
+            },
+            {
+              $limit: 5
+            },
+            {  
+              $project: {
+                "_id": 0,
+                "title": 1,
+                "score": { "$meta": "searchScore" }
+              }
+            }])
+
+         The preceding query returns the following results, in which 
+         the score is replaced with the specified ``function`` value:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { "title" : "12 Angry Men", "score" : 8.899999618530273 }
+            { "title" : "The Men Who Built America", "score" : 8.600000381469727 }
+            { "title" : "No Country for Old Men", "score" : 8.100000381469727 }
+            { "title" : "X-Men: Days of Future Past", "score" : 8.100000381469727 }
+            { "title" : "The Best of Men", "score" : 8.100000381469727 }
+
+   .. tab:: Score
+      :tabid: score 
+
+      .. example:: 
+
+         In this example, the :ref:`text-ref` operator uses ``score`` 
+         with the ``function`` option to return the relevance score, 
+         which is the same as the current score, of the documents.
+
+         .. code-block:: json 
+           
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function":{
+                      "score": "relevance" 
+                    }
+                  } 
+                }   
+              }
+            },
+            {
+              $limit: 5
+            },
+            {
+              $project: {
+                "_id": 0,
+                "title": 1,
+                "score": { "$meta": "searchScore" }
+              }
+            }])
+
+         The preceding query returns the following results, in which 
+         the score is replaced with the specified ``function`` value:
+
+         .. code-block:: json 
+            :copyable: false
+
+            { "title" : "Men...", "score" : 3.4457783699035645 }
+            { "title" : "The Men", "score" : 2.8848698139190674 }
+            { "title" : "Simple Men", "score" : 2.8848698139190674 }
+            { "title" : "X-Men", "score" : 2.8848698139190674 }
+            { "title" : "Mystery Men", "score" : 2.8848698139190674 }
+
+   .. tab:: Unary
+      :tabid: unary 
+
+      .. example:: 
+
+         In this example, the :ref:`text-ref` operator uses ``score`` 
+         with the ``function`` option to calculate the log10 of the 
+         ``imdb.rating`` field or ``10``, if the ``imdb.rating`` field 
+         is not present in the document.
+
+         .. code-block:: json 
+
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function": {
+                      "log": { 
+                        "path": { 
+                          "value": "imdb.rating", 
+                          "undefined": 10 
+                        }
+                      }
+                    }
+                  } 
+                }   
+              }
+            },
+            {
+              $limit: 5
+            },
+            {
+              $project: {
+                "_id": 0,
+                "title": 1,
+                "score": { "$meta": "searchScore" }
+              }
+            }])
+
+         The preceding query returns the following results, in which 
+         the score is replaced with the specified ``function`` value:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { "title" : "12 Angry Men", "score" : 0.9493899941444397 }
+            { "title" : "The Men Who Built America", "score" : 0.9344984292984009 }
+            { "title" : "No Country for Old Men", "score" : 0.9084849953651428 }
+            { "title" : "X-Men: Days of Future Past", "score" : 0.9084849953651428 }
+            { "title" : "The Best of Men", "score" : 0.9084849953651428 }
