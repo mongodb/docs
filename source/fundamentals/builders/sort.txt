@@ -11,3 +11,332 @@ Sorts Builders
    :class: singlecol
 
 .. _sorts-builders:
+
+Overview
+--------
+
+In this guide, we show you how to specify **sort criteria** for your
+queries using **builders**.
+
+Sort criteria are the rules MongoDB uses to sort your data. Some
+examples of sort criteria are:
+
+* Smallest number to largest number
+* Earliest time of day to latest time of day
+* Alphabetical order by first name 
+
+Builders are classes provided by the MongoDB Java driver that help you construct 
+:java-docs:`Bson <apidocs/bson/org/bson/conversions/Bson.html>` objects. 
+To learn more, see our :doc:`guide on builders </fundamentals/builders/>`.
+
+You should read this guide if you would like to:
+
+* Use builders to specify sort criteria for your queries.
+* Perform ascending sorts and descending sorts.
+* Combine sort criteria.
+* Sort on the text score of a
+  :manual:`text search </core/text-search-operators/>`.
+
+If you want to learn the fundamentals of sorting in the MongoDB Java
+driver, consider reading our
+:doc:`guide on sorting </fundamentals/crud/read-operations/sort/>`.
+
+The Sorts Class
+---------------
+
+The :java-docs:`Sorts </apidocs/mongodb-driver-core/com/mongodb/client/model/Sorts.html>`
+class is a builder that provides static factory methods for all sort criteria
+operators supported by MongoDB. These methods return a
+:java-docs:`Bson </apidocs/bson/org/bson/conversions/Bson.html>`
+object that you can pass to the 
+:java-docs:`sort() </apidocs/mongodb-driver-sync/com/mongodb/client/FindIterable.html#sort(org.bson.conversions.Bson)>`
+method of a ``FindIterable`` instance or to 
+:java-docs:`Aggregates.sort() </apidocs/mongodb-driver-core/com/mongodb/client/model/Aggregates.html#sort(org.bson.conversions.Bson)>`.
+If you want to learn more about ``Aggregates``, see our 
+:doc:`guide on the Aggregates builder </fundamentals/builders/aggregates>`.
+
+
+.. _sorts-builders-sort-example:
+
+The following examples show you how to use the methods
+provided by the ``Sorts`` class to sort your queries. The examples use a
+sample collection, ``sort_example``, that contains the following documents:
+
+.. code-block:: json
+
+   {"_id": 1, "letter": "c", "food": "coffee with milk"}
+   {"_id": 3, "letter": "a", "food": "maple syrup"}
+   {"_id": 4, "letter": "b", "food": "coffee with sugar"}
+   {"_id": 5, "letter": "a", "food": "milk and cookies"}
+   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
+   {"_id": 6, "letter": "c", "food": "maple donut"}
+
+
+Sorting Direction
+-----------------
+
+The ``Sorts`` class provides methods for specifying the direction of your sort.
+The direction of your sort can either be **ascending** or **descending**.
+An ascending sort orders your results from smallest to largest. A
+descending sort orders your results from largest to smallest.
+
+Here are some examples of data sorted in ascending order:
+
+* Numbers: 1, 2, 3, 43, 43, 55, 120
+* Dates: 1990-03-10, 1995-01-01, 2005-10-30, 2005-12-21 
+* Words (ASCII): Banana, Dill, carrot, cucumber, hummus
+
+Here are some examples of data sorted in descending order:
+
+* Numbers: 100, 30, 12, 12, 9, 3, 1
+* Dates: 2020-01-01, 1998-12-11, 1998-12-10, 1975-07-22 
+* Words (reverse ASCII): pear, grapes, apple, Cheese
+
+The following subsections show how to specify these sorts using
+the ``Sorts`` class.
+
+Ascending
+~~~~~~~~~
+
+To specify an ascending sort, use the ``Sorts.ascending()`` static
+factory method. Pass ``Sorts.ascending()``
+the name of the field you need to sort on.
+
+The ``ascending()`` method can be used as follows:
+
+.. code-block:: java
+
+   import static com.mongodb.client.model.Sorts.ascending;
+
+   // <MongoCollection setup code here>
+
+   collection.find().sort(ascending("<field name>"));
+
+The above ``sort()`` method returns a 
+:java-docs:`FindIterable </apidocs/mongodb-driver-sync/com/mongodb/client/FindIterable.html>`
+object containing the documents in your collection, sorted from smallest
+to largest on the specified field name. 
+
+In the following code example, we use the ``ascending()`` method to sort the
+:ref:`sort_example collection <sorts-builders-sort-example>`  
+by the ``_id`` field:
+
+.. code-block:: java
+
+   import static com.mongodb.client.model.Sorts.ascending;
+
+   // <MongoCollection setup code here>
+   
+   Bson idSort = ascending("_id");
+   List<Document> results = new ArrayList<>();
+   collection.find().sort(idSort).into(results);
+   for (Document result : results) {
+         System.out.println(result.toJson());
+   }
+
+The output of the code example above should look something like this: 
+
+.. code-block:: json
+
+   {"_id": 1, "letter": "c", "food": "coffee with milk"}
+   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
+   {"_id": 3, "letter": "a", "food": "maple syrup"}
+      ...
+
+Descending
+~~~~~~~~~~
+
+To specify a descending sort, use the ``Sorts.descending()`` static factory
+method. Pass ``Sorts.descending()`` the name of the field you need to sort on.
+
+The following code snippet shows how to specify a descending sort on the
+``_id`` field: 
+
+.. code-block:: java
+   
+   import static com.mongodb.client.model.Sorts.descending;
+
+   // <MongoCollection setup code here>
+   
+   collection.find().sort(descending("_id"));
+
+
+The code snippet above returns the documents in the
+:ref:`sort_example collection <sorts-builders-sort-example>`  
+in the following order: 
+
+.. code-block:: json
+
+   {"_id": 6, "letter": "c", "food": "maple donut"}
+   {"_id": 5, "letter": "a", "food": "milk and cookies"}
+   {"_id": 4, "letter": "b", "food": "coffee with sugar"}
+   ...
+
+Handling Ties
+~~~~~~~~~~~~~
+
+A tie occurs when two or more documents have a field with identical values.
+MongoDB does not guarantee sort order in the event of ties. For example, suppose
+we encounter a tie when applying a sort to the
+:ref:`sort_example collection <sorts-builders-sort-example>` using the following
+code:
+
+.. code-block:: java
+
+   import static com.mongodb.client.model.Sorts.ascending;
+
+   // <MongoCollection setup code here>
+   
+   collection.find().sort(ascending("letter"));
+
+Since multiple documents contain "a" on the field we are sorting on, the first
+document returned could be any of the following documents:
+
+.. code-block:: json
+
+   {"_id": 3, "letter": "a", "food": "maple syrup"}
+   {"_id": 5, "letter": "a", "food": "milk and cookies"}
+   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
+
+If you need guaranteed sort order for documents that
+have fields with identical values, you can specify additional fields to sort
+on in the event of a tie.
+
+We can specify an ascending sort on the ``letter`` field followed by the
+``_id`` field as follows:
+
+.. code-block:: java
+
+   import static com.mongodb.client.model.Sorts.ascending;
+
+   // <MongoCollection setup code here>
+   
+   collection.find().sort(ascending("letter", "_id"));
+
+The code snippet above returns the documents in the
+:ref:`sort_example collection <sorts-builders-sort-example>`  
+in the following order: 
+
+.. code-block:: json
+
+   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
+   {"_id": 3, "letter": "a", "food": "maple syrup"}
+   {"_id": 5, "letter": "a", "food": "milk and cookies"}
+   {"_id": 4, "letter": "b", "food": "coffee with sugar"}
+   {"_id": 1, "letter": "c", "food": "coffee with milk"}
+   {"_id": 6, "letter": "c", "food": "maple donut"}
+
+Combining Sort Criteria
+-----------------------
+
+To combine sort criteria, use the ``Sorts.orderBy()`` static factory
+method. The ``orderBy()`` method builds sort criteria that apply passed 
+in sort criteria from left to right in the event of ties. 
+
+In the following code snippet, we use the ``orderBy()`` method to combine a
+descending sort on the ``letter`` field with an ascending sort on the
+``_id`` field.
+
+.. code-block:: java
+
+   import static com.mongodb.client.model.Sorts.orderBy;
+   import static com.mongodb.client.model.Sorts.ascending;
+   import static com.mongodb.client.model.Sorts.descending;
+
+   // <MongoCollection setup code here>
+
+   Bson orderBySort = orderBy(descending("letter"), ascending("_id"));
+   collection.find().sort(orderBySort);
+
+The code snippet above returns the documents in the
+:ref:`sort_example collection <sorts-builders-sort-example>`
+in the following order: 
+
+.. code-block:: json
+
+   {"_id": 1, "letter": "c", "food": "coffee with milk"}
+   {"_id": 6, "letter": "c", "food": "maple donut"}
+   {"_id": 4, "letter": "b", "food": "coffee with sugar"}
+   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
+   {"_id": 3, "letter": "a", "food": "maple syrup"}
+   {"_id": 5, "letter": "a", "food": "milk and cookies"}
+
+Text Search
+-----------
+
+You can specify the order of the results of a 
+:manual:`text search </text-search/>` by how closely they match your
+search string. Each of your search results has a
+:manual:`text score </reference/operator/aggregation/meta/#exp._S_meta>`, a
+numerical value indicating how well that result matches your search. 
+Use the ``Sorts.metaTextScore()`` static factory method to build your sort
+criteria to sort by the text score.
+
+.. warning:: Make Sure to Create a Text Index
+
+   You need a :manual:`text index </core/index-text/>` on your collection to perform a text search. See the server manual documentation for more
+   information on how to
+   :manual:`create a text index </core/index-text/#create-text-index>`.
+
+In the following code example, we show how you can use the
+``Sorts.metaTextScore()`` method to sort the results of a text
+search on the :ref:`sort_example collection <sorts-builders-sort-example>`.
+The code example uses the :doc:`Filters </fundamentals/builders/filters>`,
+:doc:`Indexes </fundamentals/builders/indexes>`, and
+:doc:`Projections </fundamentals/builders/projections>` builders.
+The code example performs the following actions:
+
+#. Creates a text index for your
+   :ref:`sort_example collection <sorts-builders-sort-example>`
+   on the ``food`` field.
+#. Runs your text search for the phrase "maple donut".
+#. Projects text scores into your query results as the
+   ``score`` field. This projection is optional if your MongoDB instance is
+   running MongoDB 4.4 or later. 
+#. Sorts your results by text score (best match first).
+
+.. code-block:: java
+
+   import com.mongodb.client.model.Sorts;
+   import com.mongodb.client.model.Projections;
+   import com.mongodb.client.model.Filters;
+   import com.mongodb.client.model.Indexes;
+
+   // <MongoCollection setup code here>
+   
+   collection.createIndex(Indexes.text("food"));
+   Bson metaTextScoreSort = Sorts.metaTextScore("score");
+   Bson metaTextScoreProj = Projections.metaTextScore("score");
+   String searchTerm = "maple donut";
+   Bson searchQuery = Filters.text(searchTerm);
+   collection.find(searchQuery)
+            .projection(metaTextScoreProj)
+            .sort(metaTextScoreSort)
+            .into(results);
+   for (Document result : results) {
+         System.out.println(result.toJson());
+   }
+
+The output of the code example above should look something like this: 
+
+.. code-block:: json
+
+   {"_id": 6, "letter": "c", "food": "maple donut", "score": 1.5}
+   {"_id": 2, "letter": "a", "food": "donuts and coffee", "score": 0.75}
+   {"_id": 3, "letter": "a", "food": "maple syrup", "score": 0.75}
+
+.. note:: MongoDB 4.4 or later ``$meta`` Behavior
+
+  When using MongoDB 4.4 or later, projecting ``Projections.metaTextScore()`` 
+  into your ``FindIterable`` instance is not necessary to sort on the text
+  score. In addition, MongoDB 4.4 or later disregards the field name you specify
+  in a ``$meta`` text score aggregation operation used in a sort. This means
+  that the field name argument you pass to ``Sorts.metaTextScore()`` is ignored
+  in MongoDB 4.4 or later.
+
+For more information, see the
+:java-docs:`Sorts class API documentation </apidocs/mongodb-driver-core/com/mongodb/client/model/Sorts.html>`.
+See the server manual documentation for more information on the :manual:`$text </reference/operator/query/text/>`
+query operator and the
+:manual:`$meta </reference/operator/aggregation/meta/>`
+aggregation pipeline operator.
