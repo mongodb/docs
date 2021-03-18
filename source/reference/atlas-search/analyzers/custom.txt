@@ -449,6 +449,19 @@ as well.
    * - :ref:`regexSplit <regexSplit-tokenizer-ref>`
      - Split tokens with a regular-expression based delimiter.
 
+   * - :ref:`uaxUrlEmail <uaxUrlEmail-tokenizer-ref>`
+     - Tokenize :abbr:`URLs (Uniform Resource Locator)` and email 
+       addresses. Although :ref:`<uaxUrlEmail-tokenizer-ref>` tokenizer 
+       tokenizes based on word break rules from the `Unicode Text 
+       Segmentation algorithm 
+       <http://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__, 
+       we recommend using :ref:`<uaxUrlEmail-tokenizer-ref>` 
+       tokenizer only when the indexed field value includes :abbr:`URLs 
+       (Uniform Resource Locator)` and email addresses. For fields that 
+       do not include :abbr:`URLs (Uniform Resource Locator)` or email 
+       addresses, use the :ref:`<standard-tokenizer-ref>` tokenizer to 
+       create tokens based on word break rules.
+
 .. _standard-tokenizer-ref:
 
 standard
@@ -457,7 +470,7 @@ standard
 The ``standard`` tokenizer has the following attributes:
 
 .. list-table::
-   :widths: 15 10 50 15 10
+   :widths: 20 10 50 10 10
    :header-rows: 1
 
    * - Name
@@ -882,13 +895,73 @@ The ``regexSplit`` tokenizer has the following attributes:
         ]
       }
 
+.. _uaxUrlEmail-tokenizer-ref:
+
+uaxUrlEmail
+~~~~~~~~~~~
+
+The ``uaxUrlEmail`` tokenizer has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type`` 
+     - string 
+     - The type of this tokenizer. Must be ``uaxUrlEmail``.
+     - yes 
+     - 
+
+   * - ``maxTokenLength``
+     - int 
+     - The maximum number of characters in one token. 
+     - no 
+     - ``255``
+
+.. example:: 
+
+   The following example index definition uses a custom analyzer named
+   ``emailUrlExtractor``. It uses the ``uaxUrlEmail`` tokenizer to 
+   create tokens up to ``200`` characters long each for all text, 
+   including email addresses and :abbr:`URLs (Uniform Resource 
+   Locator)`, in the input. It converts all text to lowercase using the 
+   :ref:`lowercase <lowercase-tf-ref>` token filter.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "emailUrlExtractor",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "emailUrlExtractor",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "uaxUrlEmail",
+              "maxTokenLength": "200",
+            },
+            "tokenFilters": [
+              "type": "lowercase"
+            ]
+          }
+        ]
+      }
+
 .. _token-filters-ref:
 
 Token Filters
 -------------
 
-Token Filters always require a type field, and some take additional options
-as well.
+Token Filters always require a type field, and some take additional 
+options as well.
 
 .. code-block:: json
 
@@ -907,6 +980,22 @@ as well.
 
    * - Name
      - Description
+
+   * - :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>`
+     - Creates tokens for words that sound the same based on 
+       `Daitch-Mokotoff Soundex <https://en.wikipedia.org/wiki/Daitch%E2%80%93Mokotoff_Soundex>`__ 
+       phonetic algorithm. This filter can generate multiple encodings 
+       for each input, where each encoded token is a 6 digit number. 
+
+       .. note:: 
+
+          Do not use :ref:`<daitchmokotoffsoundex-tf-ref>` token filter 
+          in operators where ``fuzzy`` is enabled. |fts| supports the 
+          ``fuzzy`` option for the following operators: 
+
+          - :ref:`autocomplete-ref`
+          - :ref:`term-ref` 
+          - :ref:`text-ref`
 
    * - :ref:`lowercase <lowercase-tf-ref>`
      - Normalizes token text to lowercase.
@@ -932,12 +1021,87 @@ as well.
      - Constructs shingles (token n-grams) from a series of tokens.
 
    * - :ref:`regex <regex-tf-ref>`
-     - Applies a regular expression to each token, replacing matches with
-       a specified string.
+     - Applies a regular expression to each token, replacing matches 
+       with a specified string.
 
    * - :ref:`snowballStemming <snowballstemming-tf-ref>`
      - Stems tokens using a `Snowball-generated stemmer
        <https://snowballstem.org/>`__.
+
+   * - :ref:`trim <trim-tf-ref>`
+     - Trims leading and trailing whitespace from tokens.
+
+.. _daitchmokotoffsoundex-tf-ref: 
+
+daitchMokotoffSoundex
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``daitchMokotoffSoundex`` token filter has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``daitchMokotoffSoundex``.
+     - yes
+     -
+
+   * - ``originalTokens`` 
+     - string 
+     - Specifies whether to include or omit the original tokens in the 
+       output of the token filter. Value can be one of the following: 
+
+       - ``include`` - to include the original tokens with the encoded 
+         tokens in the output of the token filter. We recommend this 
+         value if you want queries on both the original tokens as well 
+         as the encoded forms. 
+       - ``omit`` - to omit the original tokens and include only the 
+         encoded tokens in the output of the token filter. Use this 
+         value if you want to only query on the encoded forms of the 
+         original tokens. 
+
+     - no 
+     - ``include``
+
+.. example:: 
+
+   The following example index definition uses a custom analyzer named
+   ``dmsAnalyzer``. It uses the :ref:`standard tokenizer
+   <standard-tokenizer-ref>` with the ``daitchMokotoffSoundex`` token 
+   filter to index and query for words that sound the same and their 
+   encoded forms.
+
+   .. code-block:: json 
+
+      {
+        "analyzer": "dmsAnalyzer",
+        "searchAnalyzer": "dmsAnalyzer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "dmsAnalyzer",
+            "tokenFilters": [
+              {
+                "originalTokens": "include",
+                "type": "daitchMokotoffSoundex"
+              }
+            ],
+            "tokenizer": {
+              "type": "standard"
+            }
+          }
+        ]
+      }
 
 .. _lowercase-tf-ref:
 
@@ -1620,6 +1784,60 @@ The ``snowballStemming`` token filter has the following attributes:
               {
                 "type": "snowballStemming",
                 "stemmerName": "french"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _trim-tf-ref:
+
+trim
+~~~~
+
+The ``trim`` token filter has the following attribute:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``trim``.
+     - yes
+     -
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``tokenTrimmer``. It uses the ``trim`` token filter after the 
+   :ref:`keyword tokenizer <keyword-tokenizer-ref>` to remove leading 
+   and trailing whitespace in the tokens created by the :ref:`keyword 
+   tokenizer <keyword-tokenizer-ref>`.
+
+   .. code-block:: json
+
+      
+        "analyzer": "tokenTrimmer", 
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "tokenTrimmer",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": [
+              {
+                "type": "trim"
               }
             ]
           }
