@@ -13,6 +13,8 @@ $avg (aggregation)
 Definition
 ----------
 
+.. versionchanged:: 5.0
+
 .. group:: $avg
 
    Returns the average value of the numeric values. :group:`$avg`
@@ -20,12 +22,18 @@ Definition
 
    .. include:: /includes/extracts/fact-aggregation-accumulator-avg.rst
 
-   When used in the :pipeline:`$group` stage, :group:`$avg` has the
-   following syntax and returns the collective average of all the numeric
-   values that result from applying a specified expression to each
-   document in a group of documents that share the same group by key:
+   When used in the :pipeline:`$group` or :pipeline:`$setWindowFields`
+   stage, :group:`$avg` has the following syntax and respectively
+   returns the collective average of all the numeric values from
+   applying an expression to each document in a:
 
-   .. code-block:: javascript
+   - Group of documents that share the same group by key.
+
+   - Set of documents defined by a :ref:`window
+     <setWindowFields-window>`.
+
+   .. code-block:: none
+      :copyable: false
 
       { $avg: <expression> }
 
@@ -35,14 +43,16 @@ Definition
 
    - :group:`$avg` has one specified expression as its operand:
 
-     .. code-block:: javascript
+     .. code-block:: none
+        :copyable: false
 
         { $avg: <expression> }
 
    - :group:`$avg` has a list of specified expressions as its
      operand:
 
-     .. code-block:: javascript
+     .. code-block:: none
+        :copyable: false
 
         { $avg: [ <expression1>, <expression2> ... ]  }
 
@@ -105,6 +115,7 @@ average quantity for each grouping.
 The operation returns the following results:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : "xyz", "avgAmount" : 37.5, "avgQuantity" : 7.5 }
    { "_id" : "jkl", "avgAmount" : 20, "avgQuantity" : 1 }
@@ -134,9 +145,71 @@ average lab scores, and the average of the final and the midterm:
 The operation results in the following documents:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : 1, "quizAvg" : 7.666666666666667, "labAvg" : 6.5, "examAvg" : 77.5 }
    { "_id" : 2, "quizAvg" : 9.5, "labAvg" : 8, "examAvg" : 87.5 }
    { "_id" : 3, "quizAvg" : 4.666666666666667, "labAvg" : 5.5, "examAvg" : 74 }
 
-.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-avg.rst
+Use in ``$setWindowFields`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+This example uses :group:`$avg` in the :pipeline:`$setWindowFields`
+stage to output the moving average for the cake sales ``quantity`` for
+each ``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               averageQuantityForState: {
+                  $avg: "$quantity",
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }         
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-date.rst
+
+- ``output`` sets the ``averageQuantityForState`` field to the moving
+  average ``quantity`` using :group:`$avg` for the documents in a
+  :ref:`documents <setWindowFields-documents>` window.
+
+  The :ref:`window <setWindowFields-window>` contains documents between
+  an ``unbounded`` lower limit and the ``current`` document in the
+  output. This means :group:`$avg` returns the moving average
+  ``quantity`` for the documents between the beginning of the partition
+  and the current document.
+
+In this output, the moving average ``quantity`` for ``CA`` and ``WA``
+is shown in the ``averageQuantityForState`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "averageQuantityForState" : 162 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "averageQuantityForState" : 141 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "averageQuantityForState" : 142.33333333333334 }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "averageQuantityForState" : 134 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "averageQuantityForState" : 119 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "averageQuantityForState" : 126 }

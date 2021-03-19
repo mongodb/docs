@@ -13,6 +13,8 @@ $min (aggregation)
 Definition
 ----------
 
+.. versionchanged:: 5.0
+
 .. group:: $min
 
    Returns the minimum value. :group:`$min` compares both value and
@@ -21,12 +23,18 @@ Definition
 
    .. include:: /includes/extracts/fact-aggregation-accumulator-min.rst
 
-   When used in the :pipeline:`$group` stage, :group:`$min` has the
-   following syntax and returns the minimum value that results
-   from applying an expression to each document in a group of documents
-   that share the same group by key:
+   When used in the :pipeline:`$group` or :pipeline:`$setWindowFields`
+   stage, :group:`$min` has the following syntax and respectively
+   returns the minimum value that results from applying an
+   :ref:`expression <aggregation-expressions>` to each document in a
+   group of documents that:
 
-   .. code-block:: javascript
+   - Share the same group by key.
+
+   - Are in the same :ref:`window <setWindowFields-window>`.
+
+   .. code-block:: none
+      :copyable: false
 
       { $min: <expression> }
 
@@ -36,14 +44,16 @@ Definition
 
    - :group:`$min` has one specified expression as its operand:
 
-     .. code-block:: javascript
+     .. code-block:: none
+        :copyable: false
 
         { $min: <expression> }
 
    - :group:`$min` has a list of specified expressions as its
      operand:
 
-     .. code-block:: javascript
+     .. code-block:: none
+        :copyable: false
 
         { $min: [ <expression1>, <expression2> ... ]  }
 
@@ -68,9 +78,9 @@ operator returns ``null`` for the minimum value.
 Array Operand
 ~~~~~~~~~~~~~
 
-In the :pipeline:`$group` stage, if the expression resolves to an
-array, :group:`$min` does not traverse the array and compares the array
-as a whole.
+In the :pipeline:`$group` and :pipeline:`$setWindowFields` stages, if
+the expression resolves to an array, :group:`$min` does not traverse the
+array and compares the array as a whole.
 
 .. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-min.rst
 
@@ -111,6 +121,7 @@ minimum quantity for each grouping.
 The operation returns the following results:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : "xyz", "minQuantity" : 5 }
    { "_id" : "jkl", "minQuantity" : 1 }
@@ -140,9 +151,71 @@ minimum lab scores, and the minimum of the final and the midterm:
 The operation results in the following documents:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : 1, "quizMin" : 6, "labMin" : 5, "examMin" : 75 }
    { "_id" : 2, "quizMin" : 9, "labMin" : 8, "examMin" : 80 }
    { "_id" : 3, "quizMin" : 4, "labMin" : 5, "examMin" : 70 }
 
-.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-min.rst
+Use in ``$setWindowFields`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+This example uses :group:`$min` in the :pipeline:`$setWindowFields`
+stage to output the minimum ``quantity`` of cake sales for each
+``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               minimumQuantityForState: {
+                  $min: "$quantity",
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }         
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-date.rst
+
+- ``output`` sets the ``minimumQuantityForState`` field to the minimum
+  ``quantity`` value using :group:`$min` that is run in a
+  :ref:`documents <setWindowFields-documents>` window.
+  
+  The :ref:`window <setWindowFields-window>` contains documents between
+  an ``unbounded`` lower limit and the ``current`` document in the
+  output. This means :group:`$min` returns the minimum
+  ``quantity`` for the documents between the beginning of the partition
+  and the current document.
+
+In this output, the minimum ``quantity`` for ``CA`` and ``WA`` is shown
+in the ``minimumQuantityForState`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "minimumQuantityForState" : 162 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "minimumQuantityForState" : 120 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "minimumQuantityForState" : 120 }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "minimumQuantityForState" : 134 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "minimumQuantityForState" : 104 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "minimumQuantityForState" : 104 }

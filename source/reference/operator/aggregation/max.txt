@@ -13,6 +13,8 @@ $max (aggregation)
 Definition
 ----------
 
+.. versionchanged:: 5.0
+
 .. group:: $max
 
    Returns the maximum value. :group:`$max` compares both value and
@@ -21,12 +23,18 @@ Definition
 
    .. include:: /includes/extracts/fact-aggregation-accumulator-max.rst
 
-   When used in the :pipeline:`$group` stage, :group:`$max` has the
-   following syntax and returns the maximum value that results
-   from applying an expression to each document in a group of documents
-   that share the same group by key:
+   When used in the :pipeline:`$group` or :pipeline:`$setWindowFields`
+   stage, :group:`$max` has the following syntax and respectively
+   returns the maximum value that results from applying an
+   :ref:`expression <aggregation-expressions>` to each document in a
+   group of documents that:
 
-   .. code-block:: javascript
+   - Share the same group by key.
+
+   - Are in the same :ref:`window <setWindowFields-window>`.
+
+   .. code-block:: none
+      :copyable: false
 
       { $max: <expression> }
 
@@ -36,14 +44,16 @@ Definition
 
    - :group:`$max` has one specified expression as its operand:
 
-     .. code-block:: javascript
+     .. code-block:: none
+        :copyable: false
 
         { $max: <expression> }
 
    - :group:`$max` has a list of specified expressions as its
      operand:
 
-     .. code-block:: javascript
+     .. code-block:: none
+        :copyable: false
 
         { $max: [ <expression1>, <expression2> ... ]  }
 
@@ -68,9 +78,9 @@ operator returns ``null`` for the maximum value.
 Array Operand
 ~~~~~~~~~~~~~
 
-In the :pipeline:`$group` stage, if the expression resolves to an
-array, :group:`$max` does not traverse the array and compares the array
-as a whole.
+In the :pipeline:`$group` and :pipeline:`$setWindowFields` stages, if
+the expression resolves to an array, :group:`$max` does not traverse the
+array and compares the array as a whole.
 
 .. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-max.rst
 
@@ -112,6 +122,7 @@ maximum quantity for each group of documents.
 The operation returns the following results:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : "xyz", "maxTotalAmount" : 50, "maxQuantity" : 10 }
    { "_id" : "jkl", "maxTotalAmount" : 20, "maxQuantity" : 1 }
@@ -141,9 +152,71 @@ maximum lab scores, and the maximum of the final and the midterm:
 The operation results in the following documents:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : 1, "quizMax" : 10, "labMax" : 8, "examMax" : 80 }
    { "_id" : 2, "quizMax" : 10, "labMax" : 8, "examMax" : 95 }
    { "_id" : 3, "quizMax" : 5, "labMax" : 6, "examMax" : 78 }
 
-.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-max.rst
+Use in ``$setWindowFields`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+This example uses :group:`$max` in the :pipeline:`$setWindowFields`
+stage to output the maximum ``quantity`` of cake sales for each
+``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               maximumQuantityForState: {
+                  $max: "$quantity",
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }         
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-date.rst
+
+- ``output`` sets the ``maximumQuantityForState`` field to the maximum
+  ``quantity`` value using :group:`$max` that is run in a
+  :ref:`documents <setWindowFields-documents>` window.
+  
+  The :ref:`window <setWindowFields-window>` contains documents between
+  an ``unbounded`` lower limit and the ``current`` document in the
+  output. This means :group:`$max` returns the maximum
+  ``quantity`` for the documents between the beginning of the partition
+  and the current document.
+
+In this output, the maximum ``quantity`` for ``CA`` and ``WA`` is shown
+in the ``maximumQuantityForState`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "maximumQuantityForState" : 162 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "maximumQuantityForState" : 162 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "maximumQuantityForState" : 162 }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "maximumQuantityForState" : 134 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "maximumQuantityForState" : 134 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "maximumQuantityForState" : 140 }

@@ -15,37 +15,51 @@ Definition
 
 .. group:: $sum
 
-   Calculates and returns the sum of numeric values. :group:`$sum`
-   ignores non-numeric values.
+   .. versionchanged:: 5.0
+
+   Calculates and returns the collective sum of numeric values.
+   :group:`$sum` ignores non-numeric values.
 
    .. include:: /includes/extracts/fact-aggregation-accumulator-sum.rst
 
-   When used in the :pipeline:`$group` stage, :group:`$sum` has the
-   following syntax and returns the collective sum of all the numeric
-   values that result from applying a specified expression to each
-   document in a group of documents that share the same group by key:
+   When used in the :pipeline:`$group` or :pipeline:`$setWindowFields`
+   stage, :group:`$sum` has the following syntax and respectively
+   returns the collective sum of all the numeric values that result from
+   applying a specified :ref:`expression <aggregation-expressions>` to
+   each document in a group of documents that:
 
-   .. code-block:: javascript
+   - Share the same group by key. For an example, see
+     :ref:`sum-group-example`.
+
+   - Are in the same :ref:`window <setWindowFields-window>`. For an
+     example, see :ref:`sum-window-example`.
+
+   .. code-block:: none
+      :copyable: false
 
       { $sum: <expression> }
 
    When used in the other supported stages, :group:`$sum` returns the
-   sum of the specified expression or list of expressions for each
-   document and has one of two syntaxes:
+   collective sum of the specified expression or list of expressions for
+   each document and has one of two syntaxes:
 
    - :group:`$sum` has one specified expression as its operand:
 
-     .. code-block:: javascript
+     .. code-block:: none
+        :copyable: false
 
         { $sum: <expression> }
 
    - :group:`$sum` has a list of specified expressions as its
      operand:
 
-     .. code-block:: javascript
+     .. code-block:: none
+        :copyable: false
 
         { $sum: [ <expression1>, <expression2> ... ]  }
 
+   For an example, see :ref:`sum-project-example`.
+     
    For more information on expressions, see
    :ref:`aggregation-expressions`.
 
@@ -79,27 +93,6 @@ If used on a field that does not exist in any document in the collection,
 
 If all operands are non-numeric, :group:`$sum` returns ``0``.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 28 39 33
-
-   * - Example
-     - Field Values
-     - Results
-
-   * - ``{ $sum : <field> }``
-     - ``Numeric``
-     - ``Sum of Values``
-
-   * - ``{ $sum : <field> }``
-     - ``Numeric and Non-Numeric``
-     - ``Sum of Numeric Values``
-
-   * - ``{ $sum : <field> }``
-     - ``Non-Numeric or Non-Existent``
-     - ``0``
-
-
 Array Operand
 ~~~~~~~~~~~~~
 
@@ -110,6 +103,8 @@ array, :group:`$sum` treats the operand as a non-numerical value.
 
 Examples
 --------
+
+.. _sum-group-example:
 
 Use in ``$group`` Stage
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -146,6 +141,7 @@ total amount and the count for each group of documents.
 The operation returns the following results:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : { "day" : 46, "year" : 2014 }, "totalAmount" : 150, "count" : 2 }
    { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 45, "count" : 2 }
@@ -172,6 +168,7 @@ The following operation attempts to :group:`$sum` on ``qty``:
 The operation returns:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : { "day" : 46, "year" : 2014 }, "totalAmount" : 0, "count" : 2 }
    { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 0, "count" : 2 }
@@ -183,6 +180,8 @@ The :group:`$count` aggregation accumulator can be used in place of
 .. seealso:: 
    
    :group:`$count (aggregation accumulator) <$count>`
+
+.. _sum-project-example:
 
 Use in ``$project`` Stage
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -214,9 +213,73 @@ total lab scores, and the total of the final and the midterm:
 The operation results in the following documents:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : 1, "quizTotal" : 23, "labTotal" : 13, "examTotal" : 155 }
    { "_id" : 2, "quizTotal" : 19, "labTotal" : 16, "examTotal" : 175 }
    { "_id" : 3, "quizTotal" : 14, "labTotal" : 11, "examTotal" : 148 }
 
-.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-sum.rst
+.. _sum-window-example:
+
+Use in ``$setWindowFields`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+This example uses :group:`$sum` in the :pipeline:`$setWindowFields`
+stage to output the sum of the ``quantity`` of cakes sold in each
+``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               sumQuantityForState: {
+                  $sum: "$quantity",
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }         
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-date.rst
+
+- ``output`` sets the ``sumQuantityForState`` field to the sum of the
+  ``quantity`` values using :group:`$sum` that is run in a
+  :ref:`documents <setWindowFields-documents>` window.
+  
+  The :ref:`window <setWindowFields-window>` contains documents between
+  an ``unbounded`` lower limit and the ``current`` document in the
+  output. This means :group:`$sum` returns the sum of the ``quantity``
+  values for the documents between the beginning of the partition and
+  the current document.
+
+In this output, the sum of the ``quantity`` values for ``CA`` and ``WA``
+is shown in the ``sumQuantityForState`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "sumQuantityForState" : 162 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "sumQuantityForState" : 282 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "sumQuantityForState" : 427 }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "sumQuantityForState" : 134 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "sumQuantityForState" : 238 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "sumQuantityForState" : 378 }
