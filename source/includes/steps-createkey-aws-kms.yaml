@@ -12,43 +12,35 @@ content: |
      mongosh --nodb
 
 ---
-title: "Generate an Encryption Key."
-ref: generate-local-key
-level: 4
-content: |
-
-  To configure client-side field level encryption for a locally managed
-  key, you must specify a base64-encoded 96-byte string with no line
-  breaks. Run the following command in ``mongosh`` to generate a key
-  matching these requirements:
-
-  .. code-block:: javascript
-
-     crypto.randomBytes(96).toString('base64')
-
-  You will need this key in the next step.
-
----
 title: "Create the Encryption Configuration."
 ref: create-encryption-configuration
 level: 4
 content: |
 
+  Configuring client-side field level encryption for the AWS KMS
+  requires an AWS Access Key ID and its associated Secret Access Key.
+  The AWS Access Key must correspond to an IAM user with all *List* and
+  *Read* permissions for the KMS service.
+  
   In ``mongosh``, create a new
   :ref:`ClientSideFieldLevelEncryptionOptions` variable for storing the
-  client-side field level encryption configuration, replacing
-  ``MY_LOCAL_KEY`` with the key generated in step 1:
+  client-side field level encryption configuration, which contains these
+  credentials:
 
   .. code-block:: javascript
 
      var ClientSideFieldLevelEncryptionOptions = {
        "keyVaultNamespace" : "encryption.__dataKeys",
        "kmsProviders" : {
-         "local" : {
-           "key" : BinData(0, "MY_LOCAL_KEY")
+         "aws" : {
+           "accessKeyId" : "YOUR_AWS_ACCESS_KEY_ID",
+           "secretAccessKey" : "YOUR_AWS_SECRET_ACCESS_KEY"
          }
        }
      }
+
+  Fill in the values for ``YOUR_AWS_ACCESS_KEY_ID`` and
+  ``YOUR_AWS_SECRET_ACCESS_KEY`` as appropriate.
 
 ---
 title: "Connect with Encryption Support."
@@ -68,6 +60,9 @@ content: |
        "mongodb://replaceMe.example.net:27017/?replicaSet=myMongoCluster",
        ClientSideFieldLevelEncryptionOptions
      )
+
+  Replace the ``replaceMe.example.net`` :ref:`URI <mongodb-uri>` with
+  the connection string for the target cluster.
 
 ---
 title: "Create the Key Vault Object."
@@ -92,10 +87,31 @@ content: |
 
   .. code-block:: javascript
 
-      keyVault.createKey(
-        "local",
-        ["keyAltName"]
-      )
+     keyVault.createKey(
+       "aws",
+       { region: "regionname", key: "awsarn" },
+       [ "keyAlternateName" ]
+     )
+
+  Where:
+
+  - The first parameter *must* be ``"aws"`` to specify the configured
+    Amazon Web Services KMS.
+
+  - The second parameter *must* be a document containing the following:
+
+    - the AWS region you are connecting to, such as ``us-west-2``
+
+    - the `Amazon Resource Name (ARN)
+      <https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html>`__
+      to the AWS customer master key (CMK).
+
+  - The third parameter *may* be an array of one or more
+    ``keyAltNames`` for the data encryption key. Each key alternate
+    name *must* be unique. :method:`getKeyVault()` creates a
+    :ref:`unique index <index-type-unique>` on ``keyAltNames`` to
+    enforce uniqueness on the field if one does not already exist. Key
+    alternate names facilitate data encryption key findability.
 
   .. include:: /includes/fact-getkey-options.rst
 ...
