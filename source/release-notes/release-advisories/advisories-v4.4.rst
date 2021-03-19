@@ -59,6 +59,11 @@ hosting an |application| or :term:`Backup Daemon <Backup Daemon>`.
 databases and user credentials. Back up the ``gen.key`` file to a
 secure location.
 
+Backup Changes for FCV 4.2 and later
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/facts/fcv-backup-considerations.rst
+
 Platform Support Changes
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

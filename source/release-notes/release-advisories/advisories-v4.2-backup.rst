@@ -64,10 +64,16 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Supports Snapshots that use Encryption [#]_
+      * - Supports Snapshots that use |kmip| Encryption [#]_
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
+        - :icon:`check-circle`
+        - :icon:`check-circle`
+      * - Supports Snapshots that use Local Key Encryption [#]_
+        -
+        -
+        -
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Supports Saving to Blockstore Snapshot Storage
@@ -198,7 +204,11 @@ Backup Features Supported at Present
 .. cond:: onprem
 
    .. [#] Querying an encrypted snapshot requires
-          :product:`MongoDB Enterprise <enterprise>` 4.2.9 or 4.4.0.
+          :product:`MongoDB Enterprise <enterprise>` 4.2.9 and later
+          or 4.4.0 and later.
+
+   .. [#] |fcv-link| 4.2 and later backups don't support
+          :ref:`local key encryption <encrypt-local-key-mgmt>`.
 
    .. [#] Backups to a |fcv-link| 4.2 or later database to a File
           System Store ignore
