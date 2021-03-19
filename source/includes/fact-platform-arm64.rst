@@ -12,7 +12,7 @@
    * - Amazon Linux 2
      - |checkmark|
      - 4.4.4+
-     -
+     - 4.2.13+
      -
 
    * - RHEL/CentOS 8
