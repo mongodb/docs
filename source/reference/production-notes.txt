@@ -13,71 +13,90 @@
 This page details system configuration recommendations for the
 |k8s-op-full| when running in production.
 
+- All sizing and performance recommendations for common MongoDB deployments
+  through the |k8s-op-short| in this section are subject to change. Do
+  not treat these recommendations as guarantees or limitations of any kind.
+
+- These recommendations reflect performance testing findings and represent
+  our suggestions for production deployments. We ran the tests on a cluster
+  comprised of seven AWS EC2 instances of type ``t2.2xlarge`` and a master node of
+  type ``t2.medium``.
+
+- The recommendations in this section do not take into account individual
+  characteristics of any deployment. Numerous factors might make your
+  deployment's characteristics differ from the assumptions made to
+  create these recommendations. Contact MongoDB support for further
+  assistance with sizings.
+
+Deploy the Recommended Number of MongoDB Replica Sets
+-----------------------------------------------------
+
+We recommend that you use a single instance of the |k8s-op-short|
+to deploy up to 20 replica sets in parallel.
+
+You **may** increase this number to 50 and expect a reasonable
+increase in the time that the |k8s-op-short| takes to download,
+install, deploy, and reconcile its resources.
+
+For 50 replica sets, the time to deploy varies and might take up to
+40 minutes. This time depends on the network bandwidth of the |k8s|
+cluster and the time it takes each {+mdbagent+} to download MongoDB
+installation binaries from the Internet for each MongoDB cluster member.
+
+To deploy more than 50 MongoDB replica sets in parallel,
+use multiple instances of the |k8s-op-short|.
+
 Ensure Proper Persistence Configuration
 ---------------------------------------
 
-You use a |k8s-op-short| to ensure stateful configurations of |k8s|
-deployments. The storage of your |k8s| deployment must persist, so
-verify that the |k8s-pvcs| are configured to meet your storage needs.
+The |k8s| deployments orchestrated by the |k8s-op-short| are
+stateful. The |k8s| container uses |k8s-pvs| to maintain the
+cluster state between restarts.
 
-.. note::
+To satisfy the statefulness requirement, the |k8s-op-short| performs
+the following actions:
 
-   The |k8s-op-short|:
+- Creates |k8s-pvs| for your MongoDB deployment.
+- Mounts storage devices to one or more directories
+  called mount points.
+- Creates one persistent volume for each MongoDB mount point.
+- Sets the default path in each |k8s| container to ``/data``.
 
-   - Supports mounting storage devices to one or more directories
-     called mount points.
-   - Creates one |k8s-pvc| per MongoDB mount point.
-   - Sets the default path in each container to ``/data``.
+To meet your MongoDB cluster's storage needs, make the following
+changes in your configuration for each replica set deployed with
+the |k8s-op-short|:
+
+- Verify that persistent volumes are enabled in
+  :setting:`spec.persistent`. This setting defaults to ``true``.
+- Specify a sufficient amount of storage for the |k8s-op-short|
+  to allocate for each of the volumes. The volumes store the data
+  and the logs.
+
+  - To set multiple volumes, each for data, logs, and the ``oplog``, use
+    :setting:`spec.podSpec.persistence.multiple.data`.
+  - To set a single volume to store data, logs, and the ``oplog``,
+    use :setting:`spec.podSpec.persistence.single`.
+
+The following abbreviated example shows recommended persistent storage
+sizes.
 
 .. code-block:: yaml
    :linenos:
-   :emphasize-lines: 16, 46-52
+   :emphasize-lines: 8, 13-19
+   
 
    apiVersion: mongodb.com/v1
    kind: MongoDB
    metadata:
-     name: my-sharded-cluster
+     name: my-replica-cluster
    spec:
-     shardCount: 2
-     mongodsPerShardCount: 3
-     mongosCount: 2
-     configServerCount: 3
-     version: "4.0.14"
-     service: my-service
-     featureCompatibilityVersion: "3.6"
-     project: my-project
-     credentials: my-credentials
-     type: ShardedCluster
+     
+     ...
      persistent: true
-     configSrvPodSpec:
-       cpu: "0.5"
-       memory: "512M"
-       podAntiAffinityTopologyKey: kubernetes.io/hostname
-       podAffinity:
-         requiredDuringSchedulingIgnoredDuringExecution:
-         - labelSelector:
-             matchExpressions:
-             - key: security
-               operator: In
-               values:
-               - S1
-           topologyKey: failure-domain.beta.kubernetes.io/zone
-     mongosPodSpec:
-       cpu: "0.8"
-       memory: "1Gi"
-       podAntiAffinityTopologyKey: rackId
-       nodeAffinity:
-         preferredDuringSchedulingIgnoredDuringExecution:
-         - weight: 1
-           preference:
-             matchExpressions:
-             - key: another-node-label-key
-               operator: In
-               values:
-               - another-node-label-value
+     
+     
      shardPodSpec:
-       cpu: "0.6"
-       memory: "3Gi"
+     ...
        persistence:
          multiple:
            data:
@@ -85,7 +104,13 @@ verify that the |k8s-pvcs| are configured to meet your storage needs.
            logs:
              storage: "4Gi"
              storageClass: standard
-       podAntiAffinityTopologyKey: kubernetes.io/hostname
+
+For a full example of persistent volumes configuration, see
+:gh-meko:`replica-set-persistent-volumes.yaml </blob/master/samples/mongodb/persistent-volumes/replica-set-persistent-volumes.yaml>`
+in the :gh-meko:`Persistent Volumes Samples
+</tree/master/samples/mongodb/persistent-volumes>` directory. This
+directory also contains sample persistent volumes configurations for
+sharded clusters and standalone deployments.
 
 .. seealso::
 
@@ -96,10 +121,11 @@ verify that the |k8s-pvcs| are configured to meet your storage needs.
 Name Your MongoDB Service with its Purpose
 ------------------------------------------
 
-If using your own MongoDB Service, set the ``spec.service`` parameter
-to something that helps you identify this deployment's purpose.
+Set the :setting:`spec.service` parameter to a value that identifies
+this deployment's purpose, as illustrated in the following example.
 
 .. code-block:: yaml
+   :copyable: false
    :linenos:
    :emphasize-lines: 8
 
@@ -109,23 +135,69 @@ to something that helps you identify this deployment's purpose.
      name: my-replica-set
    spec:
      members: 3
-     version: "4.0.14"
+     version: "4.4.0-ent"
      service: drilling-pumps-geosensors
-     featureCompatibilityVersion: "3.6"
+     featureCompatibilityVersion: "4.0"
 
-Specify Resource Requirements
------------------------------
+.. seealso::
 
-For the replica sets, sharded clusters, and config servers you create
-using the |k8s-op-short|, set the resource utilization bounds for both
-compute and memory. |k8s| refers to the lower bound of a resource as a
-*request* and the upper bound as a *limit*.
+   :setting:`spec.service`
 
-- Set :k8sdocs:`CPU requests and limits</tasks/configure-pod-container/assign-cpu-resource/>`
-  to guarantee the CPU allocation and resource reporting.
-- Set :k8sdocs:`Memory requests and limits</tasks/configure-pod-container/assign-memory-resource/>`
-  to guarantee the requested memory allocation for the WiredTiger
-  cache and resource reporting.
+Specify CPU and Memory Resource Requirements
+--------------------------------------------
+
+In |k8s|, each Pod includes parameters that allow you
+to specify :k8sdocs:`CPU resources </tasks/configure-pod-container/assign-cpu-resource/>`
+and :k8sdocs:`memory resources
+</tasks/configure-pod-container/assign-memory-resource/>` for each
+container in the Pod.
+
+To indicate resource bounds, |k8s| uses the :k8sdocs:`requests and limits
+</concepts/configuration/manage-resources-containers/#requests-and-limits>`
+parameters, where:
+  
+- *request* indicates a lower bound of a resource.
+- *limit* indicates an upper bound of a resource.
+
+The following sections illustrate how to:
+
+- :ref:`set CPU and Memory for the Operator Pod <operator_pod_resources>`.
+- :ref:`set CPU and Memory for MongoDB Pods <mdb_pods_resources>`.
+
+For the Pods hosting |onprem|, use the
+:gh-meko:`default resource limits configurations
+</blob/master/samples/ops-manager/ops-manager-pod-spec.yaml#L38-L46>`.
+
+.. _operator_pod_resources:
+
+Set CPU and Memory Utilization Bounds for the |k8s-op-short| Pod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you deploy replica sets with the |k8s-op-short|, CPU usage for
+Pod used to host the |k8s-op-short| is initially high during the
+reconciliation process, however, by the time the deployment completes,
+it lowers.
+
+For production deployments, to satisfy deploying up to 50 MongoDB
+replica sets or sharded clusters in parallel with the |k8s-op-short|,
+set the CPU and memory resources and limits for the |k8s-op-short| Pod
+as follows:
+
+- ``spec.template.spec.containers.resources.requests.cpu`` to 500m
+- ``spec.template.spec.containers.resources.limits.cpu`` to 1100m
+- ``spec.template.spec.containers.resources.requests.memory`` to 200Mi
+- ``spec.template.spec.containers.resources.limits.memory`` to 1Gi
+
+If you don't include the unit of measurement for CPUs, |k8s| interprets
+it as the number of cores. If you specify ``m``, such as 500m, |k8s|
+interprets it as ``millis``. To learn more, see
+:k8sdocs:`Meaning of CPU </concepts/configuration/manage-resources-containers/#meaning-of-cpu>`.
+  
+The following abbreviated example shows the configuration with
+recommended CPU and memory bounds for the |k8s-op-short| Pod in your
+deployment of 50 replica sets or sharded clusters. If you are
+deploying fewer than 50 MongoDB clusters, you may use lower
+numbers in the configuration file for the |k8s-op-short| Pod.
 
 .. note::
 
@@ -135,62 +207,137 @@ compute and memory. |k8s| refers to the lower bound of a resource as a
 .. example::
 
    .. code-block:: yaml
+      :copyable: false
       :linenos:
-      :emphasize-lines: 18-19, 31-32, 44-45
+      :emphasize-lines: 24-25, 34-40
 
-      apiVersion: mongodb.com/v1
-      kind: MongoDB
+      apiVersion: apps/v1
+      kind: Deployment
       metadata:
-        name: my-sharded-cluster
+       name: mongodb-enterprise-operator
+       namespace: mongodb
       spec:
-        shardCount: 2
-        mongodsPerShardCount: 3
-        mongosCount: 2
-        configServerCount: 3
-        version: "4.0.14"
-        service: my-service
-        featureCompatibilityVersion: "3.6"
-        project: my-project
-        credentials: my-credentials
-        type: ShardedCluster
-        persistent: true
-        configSrvPodSpec:
-          cpu: "0.5"
-          memory: "512M"
-          podAntiAffinityTopologyKey: kubernetes.io/hostname
-          podAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                - key: security
-                  operator: In
-                  values:
-                  - S1
-              topologyKey: failure-domain.beta.kubernetes.io/zone
-        mongosPodSpec:
-          cpu: "0.8"
-          memory: "1Gi"
-          podAntiAffinityTopologyKey: rackId
-          nodeAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 1
-              preference:
-                matchExpressions:
-                - key: another-node-label-key
-                  operator: In
-                  values:
-                  - another-node-label-value
-        shardPodSpec:
-          cpu: "0.6"
-          memory: "3Gi"
-          persistence:
-            multiple:
-              data:
-                storage: "20Gi"
-              logs:
-                storage: "4Gi"
-                storageClass: standard
-          podAntiAffinityTopologyKey: kubernetes.io/hostname
+       replicas: 1
+       selector:
+        matchLabels:
+           app.kubernetes.io/component: controller
+           app.kubernetes.io/name: mongodb-enterprise-operator
+           app.kubernetes.io/instance: mongodb-enterprise-operator
+       template:
+        metadata:
+         labels:
+           app.kubernetes.io/component: controller
+           app.kubernetes.io/name: mongodb-enterprise-operator
+           app.kubernetes.io/instance: mongodb-enterprise-operator
+         spec:
+           serviceAccountName: mongodb-enterprise-operator
+           securityContext:
+             runAsNonRoot: true
+             runAsUser: 2000
+           containers:
+           - name: mongodb-enterprise-operator
+             image: quay.io/mongodb/mongodb-enterprise-operator:1.9.2
+             imagePullPolicy: Always
+             args:
+              - "-watch-resource=mongodb"
+              - "-watch-resource=opsmanagers"
+              - "-watch-resource=mongodbusers"
+             command:
+              - "/usr/local/bin/mongodb-enterprise-operator"
+             resources:
+               limits:
+                 cpu: 1100m
+                 memory: 1Gi
+               requests:
+                 cpu: 500m
+                 memory: 200Mi
+
+For a full example of CPU and memory utilization resources and limits
+for the |k8s-op-short| Pod that satisfy parallel deployment of up to
+50 MongoDB replica sets, see the :gh-meko:`mongodb-enterprise.yaml </blob/master/mongodb-enterprise.yaml#L219-L235>`
+file.
+
+.. seealso::
+
+   - :k8sdocs:`Requests and Limits </concepts/configuration/manage-resources-containers/#requests-and-limits>`
+   - :k8sdocs:`Assign CPU Resources to Containers and Pods </tasks/configure-pod-container/assign-cpu-resource/>`
+
+
+.. _mdb_pods_resources:
+
+Set CPU and Memory Utilization Bounds for MongoDB Pods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The values for Pods hosting replica sets or sharded clusters map
+to the :k8sdocs:`requests field </reference/generated/kubernetes-api/v1.20/#resourcerequirements-v1-core>`
+for CPU and memory for the created Pod. These values are consistent
+with :manual:`considerations </administration/production-notes#allocate-sufficient-ram-and-cpu>`
+stated for MongoDB hosts.
+
+The |k8s-op-short| uses its allocated memory for processing, for the
+WiredTiger cache, and for storing packages during the deployments.
+
+For production deployments, set the CPU and memory resources and limits
+for the MongoDB Pod as follows:
+
+- ``spec.podSpec.podTemplate.spec.containers.resources.requests.cpu`` to 0.25
+- ``spec.podSpec.podTemplate.spec.containers.resources.limits.cpu`` to 0.25
+- ``spec.podSpec.podTemplate.spec.containers.resources.requests.memory`` to 512M
+- ``spec.podSpec.podTemplate.spec.containers.resources.limits.memory`` to 512M
+
+If you don't include the unit of measurement for CPUs, |k8s| interprets
+it as the number of cores. If you specify ``m``, such as 500m, |k8s|
+interprets it as``millis``. To learn more, see
+:k8sdocs:`Meaning of CPU </concepts/configuration/manage-resources-containers/#meaning-of-cpu>`.
+
+The following abbreviated example shows the configuration with
+recommended CPU and memory bounds for each Pod hosting a MongoDB
+replica set member in your deployment.
+
+.. example::
+
+  .. code-block:: yaml
+     :linenos:
+     :emphasize-lines: 5, 12-20
+     :copyable: false
+
+     apiVersion: mongodb.com/v1
+     kind: MongoDB
+     metadata:
+     name: my-replica-set
+     spec:
+       members: 3
+       version: 4.0.0-ent
+       service: my-service
+       ...
+
+       persistent: true
+       podSpec:
+         podTemplate:
+           spec:
+             containers:
+             - name: mongodb-enterprise-database
+               resources:
+                 limits:
+                   cpu: "0.25"
+                   memory: 512M
+
+For a full example of CPU and memory utilization resources and limits
+for Pods hosting MongoDB replica set members, see the
+:gh-meko:`replica-set-podspec.yaml </blob/master/samples/mongodb/podspec/replica-set-podspec.yaml#L38-L45>`
+file in the the :gh-meko:`MongoDB Podspec Samples </tree/master/samples/mongodb/podspec>` directory.
+
+This directory also contains sample CPU and memory limits
+configurations for Pods used for:
+
+- A sharded cluster, in the :gh-meko:`sharded-cluster-podspec.yaml <blob/master/samples/mongodb/podspec/sharded-cluster-podspec.yaml#L62-91>`.
+- Standalone MongoDB deployments, in the :gh-meko:`standalone-podspec.yaml <blob/master/samples/mongodb/podspec/standalone-podspec.yaml#L36-39>`.
+
+.. seealso::
+
+   - :setting:`spec.podSpec.podTemplate.spec`
+   - :k8sdocs:`Requests and Limits </concepts/configuration/manage-resources-containers/#requests-and-limits>`
+   - :k8sdocs:`Assign CPU Resources to Containers and Pods </tasks/configure-pod-container/assign-cpu-resource/>`
 
 Use Multiple Availability Zones
 -------------------------------
@@ -199,132 +346,155 @@ Set the |k8s-op-short| and |k8s-statefulsets| to distribute all members
 of one replica set to different |k8s-nodes| to ensure high
 availability.
 
+The following abbreviated example shows affinity and multiple
+availability zones configuration.
 
 .. example::
 
    .. code-block:: yaml
+      :copyable: false
       :linenos:
-      :emphasize-lines: 20-29, 33-42, 53
 
       apiVersion: mongodb.com/v1
       kind: MongoDB
       metadata:
-        name: my-sharded-cluster
+        name: my-replica-set
       spec:
-        shardCount: 2
-        mongodsPerShardCount: 3
-        mongosCount: 2
-        configServerCount: 3
-        version: "4.0.14"
+        members: 3
+        version: 4.2.1-ent
         service: my-service
-        featureCompatibilityVersion: "3.6"
-        project: my-project
-        credentials: my-credentials
-        type: ShardedCluster
-        persistent: true
-        configSrvPodSpec:
-          cpu: "0.5"
-          memory: "512M"
-          podAntiAffinityTopologyKey: kubernetes.io/hostname
+        ...
+          podAntiAffinityTopologyKey: nodeId
           podAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
-                matchExpressions:
-                - key: security
-                  operator: In
-                  values:
-                  - S1
+              matchExpressions:
+              - key: security
+                operator: In
+                values:
+                - S1
               topologyKey: failure-domain.beta.kubernetes.io/zone
-        mongosPodSpec:
-          cpu: "0.8"
-          memory: "1Gi"
-          podAntiAffinityTopologyKey: rackId
+
           nodeAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 1
-              preference:
-                matchExpressions:
-                - key: another-node-label-key
-                  operator: In
-                  values:
-                  - another-node-label-value
-        shardPodSpec:
-          cpu: "0.6"
-          memory: "3Gi"
-          persistence:
-            multiple:
-              data:
-                storage: "20Gi"
-              logs:
-                storage: "4Gi"
-                storageClass: standard
-          podAntiAffinityTopologyKey: kubernetes.io/hostname
+             requiredDuringSchedulingIgnoredDuringExecution:
+               nodeSelectorTerms:
+               - matchExpressions:
+                 - key: kubernetes.io/e2e-az-name
+                 operator: In
+                 values:
+                 - e2e-az1
+                 - e2e-az2
+
+See the full example of multiple availability zones configuration in
+:gh-meko:`replica-set-affinity.yaml </blob/master/samples/mongodb/affinity/replica-set-affinity.yaml>`
+in the :gh-meko:`Affinity Samples </tree/master/samples/mongodb/persistent-volumes>`
+directory.
+
+This directory also contains sample affinity and multiple zones
+configurations for sharded clusters and standalone MongoDB deployments.
+
+.. seealso::
+
+   :k8sdocs:`Running in Multiple Zones </setup/best-practices/multiple-zones/>`
 
 Co-locate ``mongos`` Pods with Your Applications
 ------------------------------------------------
 
-The lightweight ``mongos`` instance can be run in the same |k8s-node|
+You can run the lightweight ``mongos`` instance on the same |k8s-node|
 as your apps using MongoDB. The |k8s-op-short| supports standard |k8s|
-:k8sdocs:`node-affinity and node anti-affinity </concepts/configuration/assign-pod-node/#affinity-and-anti-affinity>`
+:k8sdocs:`node affinity and anti-affinity </concepts/configuration/assign-pod-node/#affinity-and-anti-affinity>`
 features. Using these features, you can force install the ``mongos``
-on the same pod as your application.
+on the same Pod as your application.
+
+The following abbreviated example shows affinity and multiple
+availability zones configuration.
+
+The ``podAffinity`` key determines whether to install an application
+on the same Pod, node, or data center as another application.
+
+To specify Pod affinity:
+
+1. Add a label and value in the ``spec.podSpec.podTemplate.metadata.labels``
+   |yaml| collection to tag the deployment. See
+   :setting:`spec.podSpec.podTemplate.metadata`,
+   and the
+   :k8sdocs:`Kubernetes PodSpec v1 core API </reference/generated/kubernetes-api/{+k8s-api-version+}/#podspec-v1-core>`.
+
+#. Specify which label the ``mongos`` uses in the
+   ``spec.mongosPodSpec.podAffinity``
+   ``.requiredDuringSchedulingIgnoredDuringExecution.labelSelector``
+   |yaml| collection. The ``matchExpressions`` collection defines the
+   ``label`` that the |k8s-op-short| uses to identify the Pod for hosting
+   the ``mongos``.
 
 .. example::
 
-   The ``podAffinity`` key determines if an application should be
-   installed on the same pod, node, or data center as another
-   application.
-
-   You add a label and value in the ``spec.template.metadata.labels``
-   |yaml| collection to tag the deployment.
-
-   | You can then specify which label the ``mongos`` uses in the
-   | ``mongosPodSpec.podAffinity``
-   | ``.requiredDuringSchedulingIgnoredDuringExecution.labelSelector``
-   | |yaml| collection. The ``matchExpressions`` collection defines the
-   | ``label`` the Operator uses to target on which pod the ``mongos``
-   | should be installed.
-
-   In this example, the ``web-store`` value for the ``app`` key labels
-   the pod on which the ``web-server`` is installed. The
-   ``labelSelector`` key declares that the ``mongos`` app must be
-   installed on the same pod that has its ``app`` label set to be
-   ``In`` values that include ``web-store``.
-
    .. code-block:: yaml
+      :copyable: false
       :linenos:
-      :emphasize-lines: 9-10, 12-20
 
-      apiVersion: apps/v1
-      kind: Deployment
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
       metadata:
-        name: web-server
+        name: my-replica-set
       spec:
-        replicas: 3
-        template:
-          metadata:
-            labels:
-              app: web-store
+        members: 3
+        version: 4.2.1-ent
+        service: my-service
 
-      mongosPodSpec:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
+        ...
+          podAntiAffinityTopologyKey: nodeId
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
               matchExpressions:
-              - key: app
+              - key: security
                 operator: In
                 values:
-                - web-store
+                - S1
+              topologyKey: failure-domain.beta.kubernetes.io/zone
 
-Manage Multitenancy with Labels
--------------------------------
+          nodeAffinity:
+             requiredDuringSchedulingIgnoredDuringExecution:
+               nodeSelectorTerms:
+               - matchExpressions:
+                 - key: kubernetes.io/e2e-az-name
+                 operator: In
+                 values:
+                 - e2e-az1
+                 - e2e-az2
 
-If you need to physically separate different MongoDB resources (such
-as ``test`` and ``staging`` environments) or want to place |k8s-pods|
-on some specific nodes (such as |ssd| support) use the
-:k8sdocs:`pod affinity </concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity>` |k8s| feature.
+See the full example of multiple availability zones and node affinity
+configuration in
+:gh-meko:`replica-set-affinity.yaml </blob/master/samples/mongodb/affinity/replica-set-affinity.yaml>`
+in the :gh-meko:`Affinity Samples </tree/master/samples/mongodb/persistent-volumes>`
+directory.
+
+This directory also contains sample affinity and multiple
+zones configurations for sharded clusters and standalone
+MongoDB deployments.
+
+.. seealso::
+
+   - :k8sdocs:`Assigning Pods to Nodes </concepts/scheduling-eviction/assign-pod-node/#nodeselector>`
+   - :k8sdocs:`Node affinity and anti-affinity </concepts/configuration/assign-pod-node/#affinity-and-anti-affinity>`
+   - :k8sdocs:`Kubernetes PodSpec v1 core API </reference/generated/kubernetes-api/{+k8s-api-version+}/#podspec-v1-core>`
+
+Use Labels to Differentiate Between Deployments
+-----------------------------------------------
+
+Use the :k8sdocs:`Pod affinity
+</concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity>`
+|k8s| feature to:
+
+- Separate different MongoDB resources, such as ``test``, ``staging``,
+  and ``production`` environments.
+
+- Place |k8s-pods| on some specific nodes to take advantage of
+  features such as |ssd| support.
 
 .. code-block:: yaml
+   :copyable: false
    :linenos:
 
    mongosPodSpec:
@@ -332,50 +502,104 @@ on some specific nodes (such as |ssd| support) use the
        requiredDuringSchedulingIgnoredDuringExecution:
          - labelSelector:
            matchExpressions:
-           - key: app
+           - key: security
              operator: In
              values:
-             - web-store
+             - S1
+           topologyKey: failure-domain.beta.kubernetes.io/zone
+
+.. seealso::
+
+  :k8sdocs:`Pod affinity </concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity>`
 
 Enable TLS
 ----------
 
-The |k8s-op-short| supports |tls| encryption. Use |tls| with your
-MongoDB deployment to encrypt your data over the network.
+The |k8s-op-short| supports :ref:`TLS <secure-tls>` encryption.
+Use |tls| with your MongoDB deployment to encrypt your data over
+the network.
+
+The configuration in the following example enables |tls| for the replica
+set. When |tls| is enabled, all traffic between members of the replica
+set and clients is encrypted using |tls| certificates.
+
+The |k8s-op-short| generates |tls| certificates using the |k8s|
+Certificate Authority. To learn more, see
+:k8sdocs:`Managing TLS in Kubernetes
+</tasks/tls/managing-tls-in-a-cluster/>`.
+
+The default |tls| mode is ``requireTLS``. You can customize it using the
+the :setting:`spec.additionalMongodConfig.net.ssl.mode` configuration
+parameter, as shown in the following abbreviated example.
 
 .. code-block:: yaml
+   :copyable: false
+   :emphasize-lines: 16-18,21-24
    :linenos:
-   :emphasize-lines: 11-17
-
+   
    apiVersion: mongodb.com/v1
    kind: MongoDB
    metadata:
-     name: my-tls-enabled-rs
+   name: my-tls-enabled-rs
    spec:
      type: ReplicaSet
-     members: 3
-     version: "4.0.14"
-     project: my-project
-     credentials: my-credentials
-     security:
-       tls:
-         enabled: true
-     additionalMongodConfig:
-       net:
-         ssl:
-           mode: "preferSSL"
+
+   members: 3
+   version: 4.0.4-ent
+
+   opsManager:
+    configMapRef:
+      name: my-project
+   credentials: my-credentials
+
+   security:
+     tls:
+       enabled: true
+
+   ...
+   additionalMongodConfig:
+     net:
+       ssl:
+        mode: "preferSSL"
+
+See the full |tls| configuration example in
+:gh-meko:`replica-set.yaml </tree/master/samples/mongodb/tls/replica-set>`
+in the :gh-meko:`TLS </tree/master/samples/mongodb/tls>`
+samples directory. This directory also contains sample |tls| configurations for
+sharded clusters and standalone deployments.
+
+.. seealso::
+
+   - :setting:`spec.additionalMongodConfig.net.ssl.mode`
+   - :ref:`Secure MongoDB Enteprise Kubernetes Operator Deployments Using TLS <secure-tls>`
 
 Enable Authentication
 ---------------------
 
-The |k8s-op-short| supports X.509 user authentication. You must create
-an additional |k8s-crd| for your MongoDB users and the MongoDB Agents.
-The Operator generates and distributes the certificate.
+The |k8s-op-short| supports :ref:`X.509 <create-x509-certs>`, LDAP,
+and :ref:`SCRAM <add-db-user-scram>` user authentication.
+
+.. note::
+   For LDAP configuration, see the
+   :setting:`spec.security.authentication.ldap.automationLdapGroupDN`
+   setting.
+   
+You must create an additional |k8s-crd| for your
+MongoDB users and the {+mdbagent+} instances.
+The |k8s-op-short| generates and distributes the certificate.
+
+See the full X.509 certificates configuration examples in the
+:gh-meko:`x509 Authentication
+</tree/master/samples/mongodb/authentication/x509>` directory in
+the :gh-meko:`Authentication </tree/master/samples/mongodb/authentication>`
+samples directory. This directory also contains sample LDAP and SCRAM configurations.
 
 Example Deployment CRD
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: yaml
+   :copyable: false
+   :emphasize-lines: 14-17
    :linenos:
 
    apiVersion: mongodb.com/v1
@@ -385,7 +609,7 @@ Example Deployment CRD
    spec:
      type: ReplicaSet
      members: 3
-     version: "4.0.14"
+     version: "4.0.4-ent"
      project: my-project
      credentials: my-credentials
      security:
@@ -400,6 +624,7 @@ Example User CRD
 ~~~~~~~~~~~~~~~~
 
 .. code-block:: yaml
+   :copyable: false
    :linenos:
 
    apiVersion: mongodb.com/v1
@@ -413,3 +638,9 @@ Example User CRD
      roles:
        - db: "admin"
          name: "clusterAdmin"
+
+.. seealso::
+
+   - :setting:`spec.security.authentication.ldap.automationLdapGroupDN`
+   - :ref:`Manage Database Users Using X.509 Authentication <create-x509-certs>`
+   - :ref:`Manage Database Users Using SCRAM Authentication <add-db-user-scram>`
