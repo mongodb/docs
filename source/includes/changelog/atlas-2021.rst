@@ -3,19 +3,19 @@
 09 March 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- Introduces a new {+data-lake+} 
+- Introduces a new {+data-lake+}
   :adl:`onboarding experience </tutorial/getting-started/>`.
 - Adds |api| support for multi-cloud clusters.
 - Incorporates database and collection name drop-down menus
   in the {+fts+} :ref:`index builder <fts-tutorial-ref>`.
-- Supports recommendations to remove redundant indexes in 
+- Supports recommendations to remove redundant indexes in
   :ref:`performance-advisor`.
 - Adds alert options for Disk IOPS and Disk Latency on Atlas.
 - Disables the ability to deploy new MongoDB 3.6 clusters.
-- Adds the ability to proactively change a cluster's 
-  :ref:`TLS certificate root CA <config-tls-cert-root>` in order to 
-  test readiness ahead of the Let's Encrypt planned root CA change from 
-  IdenTrust to ISRG. All |service| clusters' certificates will be 
+- Adds the ability to proactively change a cluster's
+  :ref:`TLS certificate root CA <config-tls-cert-root>` in order to
+  test readiness ahead of the Let's Encrypt planned root CA change from
+  IdenTrust to ISRG. All |service| clusters' certificates will be
   migrated to the ISRG root CA between May and September of this year.
 
 .. _atlas_20210217:
@@ -23,17 +23,23 @@
 17 February 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Introduces additional Asia Pacific Live Migrations regions in 
+- Introduces additional Asia Pacific Live Migrations regions in
   Singapore, Mumbai, and Tokyo.
-- Makes the M400 |nvme| cluster tier available in all major |aws| 
+- Makes the M400 |nvme| cluster tier available in all major |aws|
   regions.
-- Spreads newly deployed clusters in the following Azure regions across 
+- Enhances Maintenance Windows:
+
+  - Can auto-defer maintenance by one week.
+  - Displays the current and target maintenance database version when
+    maintenance includes a version upgrade.
+
+- Spreads newly deployed clusters in the following Azure regions across
   three availability zones:
-  
+
   - Germany West Central
   - South Africa North
   - Australia East
-  
+
 - Supports cluster tier auto-scaling for multi-cloud clusters.
 - Improves Data Explorer load times.
 
@@ -47,28 +53,28 @@
 - |service| free- (**M0**) and shared-tier (**M2**/**M5**) clusters
   upgraded to MongoDB 4.4.
 - Defaults new clusters to MongoDB 4.4.
-- Introduces custom archiving rules for |service| :ref:`Online Archive 
+- Introduces custom archiving rules for |service| :ref:`Online Archive
   <manage-online-archive>`.
 - Introduces the ability to use an |aws| |iam| role to authorize
-  |service| to access: 
+  |service| to access:
   - |aws| |kms| encryption keys for customer key management, or
   - |s3| buckets for {+data-lake+}\s.
-- Introduces the ability to peer to |service| VPCs on |gcp| with a 
-  smaller |cidr| block. When you create the network peering container 
-  using the |service| :ref:`API <atlas-create-peering-container-api>`, 
+- Introduces the ability to peer to |service| VPCs on |gcp| with a
+  smaller |cidr| block. When you create the network peering container
+  using the |service| :ref:`API <atlas-create-peering-container-api>`,
   you can specify a |cidr| block between ``/21`` and ``/24``, inclusive,
-  insead of the default, ``/18``. 
+  insead of the default, ``/18``.
 - Adds the ability to specify an |aws| |arn| with a compound path when
   you create an |aws| IAM-authenticated :ref:`database user
-  <mongodb-users>`. 
+  <mongodb-users>`.
 
 .. _atlas_20210106:
 
 06 January 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Changes the cluster-level navigation UI so that |fts| is now a top 
+- Changes the cluster-level navigation UI so that |fts| is now a top
   level tab.
-- Introduces a visual editor for :ref:`creating <ref-create-index>` 
+- Introduces a visual editor for :ref:`creating <ref-create-index>`
   an |fts| index.
 - Allows users of the |bic| to download |bic-short| logs.
