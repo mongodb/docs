@@ -121,10 +121,7 @@ parameters:
 
      - .. _update-upsert:
 
-       Optional. If set to ``true``, creates a new document when no
-       document matches the query criteria. The default value is
-       ``false``, which does *not* insert a new document when no match
-       is found.
+       .. include:: /includes/extracts/update-upsert-behavior-method.rst
 
    * - :ref:`multi <update-multi>`
 
@@ -776,6 +773,14 @@ When you specify the option :ref:`upsert: true <update-upsert>`:
 - If no document matches the query criteria,
   :method:`db.collection.update()` inserts a *single* document.
 
+  .. note::
+
+     If multiple, identical :term:`upserts <upsert>` are issued at
+     roughly the same time, it is possible for
+     :method:`~db.collection.update()` used with :ref:`upsert: true
+     <update-upsert>` to create duplicate documents. See
+     :ref:`update-with-unique-indexes` for more information.
+
 If you specify ``upsert: true`` on a sharded collection, you must
 include the full shard key in the ``filter``. For additional
 :method:`db.collection.update()` behavior on a sharded collection, see
@@ -1077,51 +1082,10 @@ include the full shard key in the ``filter``. For additional
 
 .. _update-with-unique-indexes:
 
-Use Unique Indexes
-``````````````````
+Upsert with Unique Index
+````````````````````````
 
-.. warning:: To avoid inserting the same document more than once,
-   only use ``upsert: true`` if the ``query`` field is uniquely
-   indexed.
-
-Given a collection named ``people`` where no documents have
-a ``name`` field that holds the value ``Andy``, consider when multiple
-clients issue the following :method:`db.collection.update()` with
-``upsert: true`` at the same time:
-
-.. code-block:: javascript
-
-   db.people.update(
-      { name: "Andy" },   // Query parameter
-      {                   // Update document
-         name: "Andy",
-         rating: 1,
-         score: 1
-      },
-      { upsert: true }    // Options
-   )
-
-If all :method:`db.collection.update()` operations complete the
-``query`` portion before any client successfully inserts data, **and**
-there is no unique index on the ``name`` field, then each update
-operation may result in an insert.
-
-To prevent MongoDB from inserting the same document more than once,
-create a :ref:`unique index <index-type-unique>` on the ``name`` field.
-With a unique index, if multiple applications issue the same update
-with ``upsert: true``, *exactly one*
-:method:`db.collection.update()` would successfully insert a new
-document.
-
-The remaining operations would either:
-
-- update the newly inserted document, or
-
-- fail when they attempted to insert a duplicate.
-
-  If the operation fails because of a duplicate index key error,
-  applications may retry the operation which will succeed as an update
-  operation.
+.. include:: /includes/extracts/upsert-unique-index-update-method.rst
 
 .. seealso::
 

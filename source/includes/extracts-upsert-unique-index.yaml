@@ -1,0 +1,129 @@
+ref: _upsert-unique-index-base
+content: |
+
+   When using the {{upsert}} option with the {{command}}
+   {{commandOrMethod}}, **and not** using a :ref:`unique index
+   <index-type-unique>` on the query field(s), multiple
+   instances of {{aOrAn}} {{command}} operation with similar query
+   field(s) could result in duplicate documents being inserted in
+   certain circumstances.
+
+   Consider an example where no document with the name ``Andy`` exists
+   and multiple clients issue the following command at roughly the same
+   time:
+
+   {{codeExample}}
+
+   If all {{command}} operations finish the query phase
+   before any client successfully inserts data, **and** there is no
+   :ref:`unique index <index-type-unique>` on the ``name`` field, each
+   {{command}} operation may result in an insert, creating multiple
+   documents with ``name: Andy``.
+
+   To ensure that only one such document is created, and the other
+   {{command}} operations update this new document instead, create a
+   :ref:`unique index <index-type-unique>` on the ``name`` field. This
+   guarantees that only one document with ``name: Andy`` is permitted
+   in the collection.
+   
+   With this unique index in place, the multiple {{command}} operations
+   now exhibit the following behavior:
+
+   - Exactly one {{command}} operation will successfully insert a new
+     document.
+
+   - All other {{command}} operations will update the newly-inserted
+     document, incrementing the ``score`` value.
+
+---
+ref: upsert-unique-index-findAndModify-command
+source:
+  file: extracts-upsert-unique-index.yaml
+  ref: _upsert-unique-index-base
+replacement:
+  command: ":dbcommand:`findAndModify`"
+  commandOrMethod: "command"
+  aOrAn: "a"
+  upsert: "``upsert: true``"
+  codeExample: |
+
+    .. code-block:: javascript
+
+       db.runCommand(
+          {
+            findAndModify: "people",
+            query: { name: "Andy" },
+            update: { $inc: { score: 1 } },
+            upsert: true
+          }
+       )
+
+---
+ref: upsert-unique-index-findAndModify-method
+source:
+  file: extracts-upsert-unique-index.yaml
+  ref: _upsert-unique-index-base
+replacement:
+  command: ":method:`~db.collection.findOneAndUpdate()`"
+  commandOrMethod: "method"
+  aOrAn: "a"
+  upsert: "``upsert: true``"
+  codeExample: |
+
+    .. code-block:: javascript
+
+       db.people.findAndModify(
+          {
+            query: { name: "Andy" },
+            update: { $inc: { score: 1 } },
+            upsert: true
+          }
+       )
+
+---
+ref: upsert-unique-index-update-command
+source:
+  file: extracts-upsert-unique-index.yaml
+  ref: _upsert-unique-index-base
+replacement:
+  command: ":dbcommand:`update`"
+  commandOrMethod: "command"
+  aOrAn: "an"
+  upsert: ":ref:`upsert: true <update-command-upsert>`"
+  codeExample: |
+
+    .. code-block:: javascript
+
+       db.runCommand(
+          {
+            update: "people",
+            updates: [
+              { q: { name: "Andy" }, u: { $inc: { score: 1 } }, multi: true, upsert: true }
+            ]
+          }
+       )
+
+---
+ref: upsert-unique-index-update-method
+source:
+  file: extracts-upsert-unique-index.yaml
+  ref: _upsert-unique-index-base
+replacement:
+  command: ":method:`~db.collection.update()`"
+  commandOrMethod: "method"
+  aOrAn: "a"
+  upsert: ":ref:`upsert: true <update-upsert>`"
+  codeExample: |
+
+    .. code-block:: javascript
+
+       db.people.update(
+          { name: "Andy" },
+          { $inc: { score: 1 } },
+          {
+            upsert: true,
+            multi: true
+          }
+       )
+
+...
