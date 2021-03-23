@@ -149,7 +149,7 @@ Definition
    
         - boolean
    
-        - .. include:: /includes/extracts/findAndModify-behavior-method.rst
+        - .. include:: /includes/extracts/findAndModify-behavior-command.rst
           
           
    
@@ -328,49 +328,12 @@ following:
 Behavior
 --------
 
-Upsert and Unique Index
-~~~~~~~~~~~~~~~~~~~~~~~
+.. _upsert-and-unique-index-dbcommand:
 
-When the :dbcommand:`findAndModify` command includes the ``upsert:
-true`` option **and** the query field(s) is not uniquely indexed, the
-command could insert a document multiple times in certain circumstances.
+Upsert with Unique Index
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider an example where no document with the name ``Andy`` exists and
-multiple clients issue the following command:
-
-.. code-block:: javascript
-
-   db.runCommand(
-      {
-        findAndModify: "people",
-        query: { name: "Andy" },
-        sort: { rating: 1 },
-        update: { $inc: { score: 1 } },
-        upsert: true
-      }
-    )
-
-If all the commands finish the ``query`` phase before any command
-starts the ``modify`` phase, **and** there is no unique index on the
-``name`` field, the commands may each perform an upsert, creating
-multiple duplicate documents.
-
-To prevent the creation of multiple duplicate documents,
-create a :ref:`unique index <index-type-unique>` on
-the ``name`` field. With the unique index in place, then the multiple
-:dbcommand:`findAndModify` commands will exhibit one of the
-following behaviors:
-
-- Exactly one :dbcommand:`findAndModify` successfully inserts a
-  new document.
-
-- Zero or more :dbcommand:`findAndModify` commands update the
-  newly inserted document.
-
-- Zero or more :dbcommand:`findAndModify` commands fail when
-  they attempt to insert a duplicate. If the command fails due to
-  a unique index constraint violation, you can retry the command.
-  Absent a delete of the document, the retry should not fail.
+.. include:: /includes/extracts/upsert-unique-index-findAndModify-command.rst
 
 Sharded Collections
 ~~~~~~~~~~~~~~~~~~~
