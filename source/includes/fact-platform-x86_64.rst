@@ -1,3 +1,14 @@
+.. note:: Platform Support EOL Notice
+
+   .. list-table::
+      :widths: 40 60
+      :class: border-table
+
+      * - macOS 10.13
+        - Support removed in MongoDB 5.0+.
+
+   |
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -111,8 +122,14 @@
      - |checkmark|
      - |checkmark|
 
-   * - macOS 10.13 and later
+   * - macOS 10.14 and later
      - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - macOS 10.13
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
