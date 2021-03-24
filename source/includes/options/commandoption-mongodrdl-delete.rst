@@ -19,7 +19,7 @@
    
       * - ``--name``
         - The name of the schema. To learn more about naming schemas,
-          see the :commandoption:`name-schema <mongodrdl --name-schema>`
+          see the :commandoption:`name-schema <name-schema>`
           command.
    
           *Required* if ``--schema`` is not specified.
