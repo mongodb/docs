@@ -22,7 +22,7 @@
    
    .. note::
    
-      Instead of specifying a ``username`` and ``password`` in
+      Instead of specifying a :urioption:`username` and :urioption:`password` in
       your connection string, run :program:`mongosqld` with the :option:`--auth` option to
       direct :program:`mongosqld` to pass the authentication credentials provided by the
       SQL client to the MongoDB server.
