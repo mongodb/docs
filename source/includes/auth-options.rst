@@ -17,7 +17,7 @@ username as URI-style query parameters:
 
        For authentication mechanisms such as ``PLAIN`` (LDAP) or
        ``GSSAPI`` (Kerberos) that delegate credential storage to other
-       services, set the :urioption:`source` value to ``$external``.
+       services, set the ``source`` value to ``$external``.
 
        Not required if :setting:`~security.defaultSource` is set in your
        |bi| :ref:`configuration file <config-format>`.

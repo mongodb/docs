@@ -20,7 +20,7 @@
    
    .. note::
    
-      On UNIX and macOS platforms, you can issue a `SIGUSR1` signal to
+      On UNIX and macOS platforms, you can issue a ``SIGUSR1`` signal to
       restart the ``mongosqld`` process and rotate the logs.
    
 
