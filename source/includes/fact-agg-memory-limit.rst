@@ -1,35 +1,40 @@
-.. For any pipeline stage that has a memory limit, the operation
-   will produce an error if exceeds its memory limit. Currently, only
-   $sort and $group have a limit.
-
 .. FYI -- 2.5.3 introduced the limit to $group and changed the limit for
    $sort from 10% to 100 MB.
 
-Pipeline stages have a limit of 100 MiB (100 * 1024 * 1024 bytes) of
-RAM. If a stage exceeds this limit, MongoDB will produce an error. To
-allow for the handling of large datasets, you can set the
-:ref:`allowDiskUse <method-aggregate-allowDiskUse>` option in the
-:method:`~db.collection.aggregate()` method. The :ref:`allowDiskUse
-<method-aggregate-allowDiskUse>` option enables most aggregation
-pipeline operations to write data to a temporary file. The exceptions
-to the :ref:`allowDiskUse <method-aggregate-allowDiskUse>` option are the
-following aggregation operations; these operations must stay within the
-memory restriction limit:
+Each individual pipeline stage has a limit of 100 megabytes of RAM. By
+default, if a stage exceeds this limit, MongoDB produces an error. For
+some pipeline stages you can allow pipeline processing to take up more
+space by using the :ref:`allowDiskUse <aggregate-cmd-allowDiskUse>`
+option to enable aggregation pipeline stages to write data to temporary
+files.
 
-- :pipeline:`$graphLookup` stage
+Examples of stages that can spill to disk when :ref:`allowDiskUse
+<aggregate-cmd-allowDiskUse>` is ``true`` are:
 
-- :group:`$addToSet` accumulator expression used in the
-  :pipeline:`$group` stage (Starting in version 4.2.3, 4.0.14, 3.6.17)
-  
-- :group:`$push` accumulator expression used in the
-  :pipeline:`$group` stage (Starting in version 4.2.3, 4.0.14, 3.6.17)
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$group`
+- :pipeline:`$sort` when the sort operation is not supported by an
+  index
+- :pipeline:`$sortByCount`
 
-If the pipeline includes other stages that observe :ref:`allowDiskUse:
-true <method-aggregate-allowDiskUse>` in the
-:method:`~db.collection.aggregate()` operation, :ref:`allowDiskUse:
-true <method-aggregate-allowDiskUse>` option is in effect for these
-other stages.
+.. note::
+
+   Pipeline stages operate on streams of documents with each pipeline
+   stage taking in documents, processing them, and then outputing the
+   resulting documents.
+
+   Some stages can't output any documents until they have processed all
+   incoming documents. These pipeline stages must keep their stage
+   output in RAM until all incoming documents are processed. As a
+   result, these pipeline stages may require more space than the 100 MB
+   limit.
+
+If the results of one of your :pipeline:`$sort` pipeline stages exceed
+the limit, consider :ref:`adding a $limit stage <sort-limit-sequence>`.
+
+.. versionchanged:: 3.4
+
+   .. include:: /includes/fact-graphlookup-memory-restrictions.rst
 
 .. include:: /includes/extracts/4.2-changes-usedDisk.rst
-
-.. seealso:: :ref:`sort-memory-limit` and :ref:`group-memory-limit`.
