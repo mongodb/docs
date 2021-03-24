@@ -202,23 +202,28 @@ documents. See :expression:`$meta` for more information.
 ``$sort`` and Memory Restrictions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :pipeline:`$sort` stage has a limit of 100 megabytes of RAM. By
-default, if the stage exceeds this limit, :pipeline:`$sort` will
-produce an error. To allow for the handling of large datasets, set the
-``allowDiskUse`` option to ``true`` to enable :pipeline:`$sort`
-operations to write to temporary files. See the ``allowDiskUse``
-option in :method:`db.collection.aggregate()` method and the
-:dbcommand:`aggregate` command for details.
+The :pipeline:`$sort` stage has a limit of 100 megabytes of RAM for
+in-memory sorts. By default, if the stage exceeds this limit,
+:pipeline:`$sort` produces an error. To allow pipeline processing to
+take up more space, use the :ref:`allowDiskUse
+<aggregate-cmd-allowDiskUse>` option to enable aggregation pipeline
+stages to write data to temporary files.
+
+.. seealso::
+
+   :doc:`/core/aggregation-pipeline-limits`
 
 ``$sort`` Operator and Performance
 ----------------------------------
 
-:pipeline:`$sort` operator can take advantage of an index as long as it
-is not preceded by a :pipeline:`$project`, :pipeline:`$unwind`, or
-:pipeline:`$group` stage.
+The :pipeline:`$sort` operator can take advantage of an index if it's
+used in the first stage of a pipeline or if it's only preceeded by a
+:pipeline:`$match` stage.
 
-.. todo:: if a sort precedes the first $group in a sharded system,
-   all documents must go to the mongos for sorting.
+When you use the :pipeline:`$sort` on a sharded cluster, each shard
+sorts its result documents using an index where available. Then the
+:binary:`~bin.mongos` or one of the shards performs a streamed merge
+sort.
 
 .. seealso::
 
