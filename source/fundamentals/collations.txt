@@ -8,17 +8,30 @@ Overview
 --------
 
 This guide shows you how to use **collations** with MongoDB to order your
-query or aggregate results by string values. Collations are a set of string
-ordering rules that apply to specific languages and locales.
+query or aggregate results by string values. Collations are a set of
+character ordering and matching rules that apply to specific languages and
+locales.
+
+You can read more about collations in the following sections:
+
+- :ref:`Collations in MongoDB <collations-mongodb>`
+- :ref:`How to Specify Collations <collations-specify>`
+- :ref:`Collation Options <collations-options>`
+- :ref:`Collation Code Examples <collations-examples>`
+
+.. _collations-mongodb:
+
+Collations in MongoDB
+---------------------
 
 MongoDB sorts strings using **binary collation** by default. This collation
 method uses the :wikipedia:`ASCII standard <ASCII>` character values to
 compare and order strings. Certain languages and locales have specific
 character ordering conventions that differ from the ASCII character values.
 
-For example, in Canadian French, the right-most accented character determines
-the ordering for strings when all preceding characters are the same. Consider
-the following Canadian French words:
+For example, in Canadian French, the right-most accented character
+(diacritic) determines the ordering for strings when all preceding characters
+are the same. Consider the following Canadian French words:
 
 - cote
 - coté
@@ -28,16 +41,18 @@ the following Canadian French words:
 When using binary collation, MongoDB sorts them in the following order:
 
 .. code-block:: none
+   :copyable: false
 
    cote
    coté
    côte
    côté
 
-When using the Canadian French collation, MongoDB sorts them in the
-following order:
+When using the Canadian French collation, MongoDB sorts them in a different
+order as shown below:
 
 .. code-block:: none
+   :copyable: false
 
    cote
    côte
@@ -48,98 +63,224 @@ For a complete list of collations that MongoDB supports, see our server
 manual page on
 :manual:`Collation Languages and Locales </reference/collation-locales-defaults/#collation-languages-locales>`.
 
-Usage
------
+.. _collations-specify:
 
-You can set a default collation when you create a new collection or index. You
-can also specify a collation for :doc:`CRUD operations </fundamentals/crud>`
-and aggregations. See :manual:`Operations that Support Collations` for a
-complete list.
+How to Specify Collations
+-------------------------
 
-When you create a new collection with an associated collation, any of the
-supported operations called on the collection use it for ordering by default.
-You can override the collation for an operation by specifying a different one.
+MongoDB supports collations on most :doc:`CRUD operations </fundamentals/crud>`
+and aggregations. For a complete list of supported operations, see the
+:manual:`Operations that Support Collations </reference/collation/#operations-that-support-collation>`
+server manual page. See the following sections to learn how to specify
+collations:
+
+- collection
+- index
+- operation
+
+.. _collations-collection:
+
+Collection
+~~~~~~~~~~
+
+You can set a default collation when you create a collection. When you
+create a collection with a specified collation, all supported operations
+that scan that collection apply the rules of the collation.
+
+The following snippet shows how to specify the "en_US" locale collation
+when creating a new collection called "items":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start createCollectionOptions
+   :end-before: end createCollectionOptions
+
+To check whether you created the collation successfully, retrieve a list
+of the indexes on that collection as follows:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start listIndexes
+   :end-before: end listIndexes
+
+The output of your code should contain the following:
+
+.. code-block:: none
+   :copyable: false
+
+   { ...
+     "collation": { "locale": "en_US", ... }
+     ...
+   }
 
 .. note::
 
-   You cannot create a new collation on an existing collection. To use
-   collations with an existing collection, create an index with the collation
-   and specify the same collation in your operations on it.
+   You can only assign a default collation to a collection when you create
+   that collection. To use collations for supported operations on an
+   existing collection, create an index with the collation and specify the
+   same collation in your operations on it.
 
-When you create an index with a collation, you specify the sort order for
-operations that use that index. To use the collation in the index, your
-operation must meet the following criteria:
+.. _collations-index:
 
-- Include a matching collation in the operation
-- Perform the operation on the index containing the collation
+Index
+~~~~~
 
-While most index types support collation, the following types support only
-binary comparison:
+You can specify a collation when you create a new index on a collection. In
+order for your operations to use the collation, your operation must meet the
+following criteria:
+
+- you must pass the same collation that is specified in the index
+- the operation is covered by the index containing the collation
+
+The following code snippet shows how you can create an ascending index on the
+"name" field with the "en_US" locale collation.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start createIndex
+   :end-before: end createIndex
+
+
+To check whether you created the collation successfully, retrieve a list
+of the indexes on that collection as follows:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start listIndexes
+   :end-before: end listIndexes
+
+The output of of the code above should contain the following:
+
+.. code-block:: none
+   :copyable: false
+
+   { ...
+     "collation": { "locale": "en_US", ... }
+     ...
+   }
+
+The following code snippet shows an example operation that specifies the
+same collation and is covered by the index we created above:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start indexOperation
+   :end-before: end indexOperation
+
+Operation
+~~~~~~~~~
+
+You can override the default collation on a collection by passing the
+new collation as a parameter to one of the supported operations. However,
+since the operation does not use an index, the operation may not perform
+as well as one that is covered by an index. For more information on the
+disadvantages of sorting operations not covered by an index, see the server
+manual page on :manual:`Use Indexes to Sort Query Results </tutorial/sort-results-with-indexes/>`.
+
+The following code snippet shows an example query operation that specifies
+the Icelandic ("is") collation that is not covered by the default collation
+we created in the :ref:`collections section <collations-collections>`:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start customCollationOperation
+   :end-before: end customCollationOperation
+
+Index Types That Do Not Support Collations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While most MongoDB index types support collation, the following types support
+only binary comparison:
 
 - :manual:`text </reference/method/db.collection.createIndex/#options-for-text-indexes>`
 - :manual:`2d </reference/method/db.collection.createIndex/#options-for-2dsphere-indexes>`
 - :manual:`geoHaystack </reference/method/db.collection.createIndex/#options-for-geohaystack-indexes>`
 
-Collation Parameters
-~~~~~~~~~~~~~~~~~~~~
 
-The collation object contains the following parameters:
+.. _collations-options:
 
-.. code-block:: java
+Collation Options
+-----------------
 
-   // TODO
+This section covers various collation options and how to specify them to
+further refine the ordering and matching behavior.
 
-You must specify the ``locale`` field in the collation; all other fields
-are optional. For a complete list of supported locales and the default values
-for the ``locale`` fields, see :manual:`Supported Languages and Locales
-</reference/collation-locales-defaults/#supported-languages-and-locales>`.
-For descriptions of each field, see the :manual:`Collation Document MongoDB
-manual entry </reference/collation/#collation-document>`.
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
 
-------------------
+   * - Collation Option
+     - Builder Method
+     - Description
+
+   * - Backwards
+     - ``backwards()``
+     - Whether to consider diacritics from the end of the string first.
+
+   * - Case-sensitivity
+     - ``caseLevel()``
+     - Whether to consider case (upper or lower) as different values.
+
+   * - Alternate
+     - ``collationAlternate()``
+     - Whether to consider spaces and punctuation.
+
+   * - Case first
+     - ``collationCaseFirst()``
+     - Whether to consider uppercase or lowercase first.
+
+   * - Max Variable
+     - ``collationMaxVariable()``
+     - Whether to ignore whitespace or both whitespace and punctuation.
+       This setting is only valid when the alternate setting is "shifted".
+
+   * - Strength
+     - ``collationStrength()``
+     - ICU level of comparison. The default value is "tertiary". For more
+       information on each level, see the `ICU Comparison Levels <http://userguide.icu-project.org/collation/concepts#TOC-Comparison-Levels>`__.
+
+   * - Locale
+     - ``locale()``
+     - **Required**. The ICU locale code for language and variant.
+
+   * - Normalization
+     - ``normalization()``
+     - Whether to perform unicode normalization on the text as needed. For more
+       information on unicode normalization, see `Unicode Normalization
+       Forms <https://unicode.org/reports/tr15/>`__.
+
+   * - Numeric Ordering
+     - ``numericOrdering()``
+     - Whether to order numbers according to numeric value rather than
+       collation order.
+
+You can use the ``Collation.Builder`` class to specify values for the
+collation options above. You can call the ``build()`` method construct a
+``Collation`` object as shown in the following code snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start collationBuilder
+   :end-before: end collationBuilder
+
+For more information on the corresponding methods and parameters they
+take, see the API documentation for :java-docs:`Collation.Builder
+<apidocs/mongodb-driver-core/com/mongodb/client/model/Collation.Builder.html>`.
+
+For a complete list of supported locales, see our server manual page on
+:manual:`Supported Languages and Locales </reference/collation-locales-defaults/#supported-languages-and-locales>`.
+
+.. _collation-examples:
+
 Collation Examples
 ------------------
-
-Set a Default Collation on a Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the following example, we create a new collection called ``souvenirs`` and
-assign a default collation with the "``fr_CA``" locale. The collation applies
-to all :manual:`operations that support collation
-</reference/collation/#operations-that-support-collation>` performed on that
-collection.
-
-TODO
-
-Any of the operations that support collations automatically apply the collation
-defined on the collection. The query below searches the ``souvenirs``
-collection and applies the "``fr_CA``" locale collation:
-
-TODO
-
-You can specify a different collation as a parameter in an operation that
-supports collations. The following query specifies the "``is``" Iceland locale
-and ``caseFirst`` optional parameter with the value "``upper``":
-
-TODO
-
-Assign a Collation to an Index
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the following example, we create a new index on the ``title`` field of
-a collection with a collation set to the "``en_US``" locale.
-
-TODO
-
-The following query uses the index we created:
-
-TODO
-
-The following queries **do not** use the index that we created.  The first
-query does not include a collation and the second contains a different
-strength value than the collation on the index.
-
-TODO
 
 Collation Query Examples
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,9 +293,8 @@ MongoDB manual for a full list of :manual:`operations that support collation
 find() and sort() Example
 `````````````````````````
 
-The following example calls both ``find()`` and ``sort()`` on a collection
-that uses the default binary collation. We use the German collation by
-setting the value of the ``locale`` parameter to ``de``.
+The following example calls ``find()`` and ``sort()`` on a collection
+that uses a collation for the "de" locale.
 
 TODO
 
