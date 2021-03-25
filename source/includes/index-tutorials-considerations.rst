@@ -5,5 +5,5 @@ more information on the index build process, see
 :ref:`index-operations-replicated-build` section.
 
 Some drivers may specify indexes, using ``NumberLong(1)`` rather than
-``1`` as the specification. This does not have any affect on the
+``1`` as the specification. This does not have any effect on the
 resulting index.
