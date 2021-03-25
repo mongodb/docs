@@ -10,6 +10,9 @@ databases.
 Compatible MongoDB Tools
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+If |onprem| manages your MongoDB Tools, the tool versions are upgraded 
+when you upgrade |onprem|.
+
 If you run |onprem| 4.4.0 in
 :doc:`local mode </tutorial/configure-local-mode>`, you must
 :dl:`download and install a compatible version of the MongoDB Tools <database-tools>`.
@@ -87,3 +90,11 @@ Server Pools
 |onprem| 4.4 removes support for Server Pools.
 
 .. include:: /release-notes/release-advisories/advisories-chronological-releases.rst
+
+BI Connector
+~~~~~~~~~~~~
+
+If you use an |onprem|-managed 
+:ref:`BI Connector <deploy-bi-connector>`, the BI Connector version 
+is upgraded when you upgrade |onprem|. You cannot select a different 
+version.
