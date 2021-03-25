@@ -1,7 +1,7 @@
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
-   :widths: 15 10 10 65
+   :widths: 15 10 15 60
 
    * - Name
      - Type
@@ -11,17 +11,17 @@
    * - ``analyzer``
      - string
      - Optional
-     - :ref:`analyzer <analyzers-ref>` to use when creating the
+     - :ref:`Analyzer <analyzers-ref>` to use when creating the
        index. Defaults to :ref:`lucene.standard <ref-standard-analyzer>`.
 
    * - ``collectionName``
      - string
-     - Required
+     - Optional
      - Name of the collection the index is on.
 
    * - ``database``
      - string
-     - Required
+     - Optional
      - Name of the database the collection is in.
 
    * - ``mappings``
@@ -33,24 +33,29 @@
    * - | ``mappings``
        | ``.dynamic``
      - boolean
-     - Required
-     - Indicates whether the index uses dynamic or static mappings.
+     - Conditional
+     - Required if ``mappings.fields`` is omitted.
+     
+       Indicates whether the index uses dynamic or static mappings. For 
+       dynamic mapping, set the value to ``true``. For static mapping, 
+       specify the fields to index using ``mappings.fields``. 
 
    * - | ``mappings``
        | ``.fields``
      - object
-     - Optional
-     - Object containing one or more field specifications. Required if
-       ``mappings.dynamic`` is set to ``false``.
+     - Conditional
+     - Required if ``mappings.dynamic`` is ``false`` or is omitted.
+     
+       Object containing one or more field specifications.
 
    * - ``name``
      - string
-     - Required
+     - Optional
      - Name of the index.
 
    * - ``searchAnalyzer``
      - string
      - Optional
-     - :ref:`analyzer <analyzers-ref>` to use when searching the
+     - :ref:`Analyzer <analyzers-ref>` to use when searching the
        index. Defaults to :ref:`lucene.standard <ref-standard-analyzer>`.
 

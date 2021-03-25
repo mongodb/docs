@@ -9,7 +9,7 @@
 
    * - ``analyzer``
      - Optional
-     - :ref:`analyzer <analyzers-ref>` to use when creating the
+     - :ref:`Analyzer <analyzers-ref>` to use when creating the
        index.
 
    * - ``collectionName``
@@ -46,7 +46,7 @@
 
    * - ``searchAnalyzer``
      - string
-     - :ref:`analyzer <analyzers-ref>` to use when searching the
+     - :ref:`Analyzer <analyzers-ref>` to use when searching the
        index.
 
    * - ``status``
