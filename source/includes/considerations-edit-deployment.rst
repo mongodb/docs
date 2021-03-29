@@ -150,3 +150,10 @@ state in which a minority of its members are available.
 .. include:: /includes/admonitions/warning/force-reconfigure-rollback.rst
 
 .. seealso:: :manual:`Reconfigure a Replica Set with Unavailable Members </tutorial/reconfigure-replica-set-with-unavailable-members/>` in the MongoDB Manual.
+
+Removing a Shard
+~~~~~~~~~~~~~~~~
+
+*For Sharded Clusters Only*
+
+.. include:: /includes/fact-remove-shard.rst
