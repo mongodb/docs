@@ -20,5 +20,3 @@ role creation.
 When creating a role, specify each privilege in its own :ref:`resource
 document <resource-document>` in :data:`~admin.system.roles.privileges`
 array.
-
-For more information, see :doc:`/tutorial/define-roles`.
