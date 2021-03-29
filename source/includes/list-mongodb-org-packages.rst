@@ -21,8 +21,8 @@ repository, and contains the following officially-supported packages:
       script, and a :ref:`configuration file
       <conf-file>` (``/etc/mongod.conf``). You
       can use the initialization script to start :binary:`~bin.mongod`
-      with the configuration file. For details, see `Run MongoDB
-      Community Edition`_.
+      with the configuration file. For details, see the "Run MongoDB
+      Community Edition" section, above.
 
   * - ``{+package-name-org+}-mongos``
     - Contains the :binary:`~bin.mongos` daemon.
