@@ -5,6 +5,5 @@ the full key, not a single field.
 
 .. see:: 
 
-   :ref:`shard-key-arbitrary-uniqueness`
-   for an alternate approach.
-   
+   :ref:`shard-key-arbitrary-uniqueness` for an alternate approach.
+
