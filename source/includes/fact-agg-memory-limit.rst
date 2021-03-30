@@ -18,5 +18,6 @@ aggregation pipeline stages to write data to temporary files.
 
 .. seealso::
 
-   :ref:`sort-memory-limit` and :ref:`group-memory-limit`.
+   - :ref:`sort-memory-limit`
+   - :ref:`group-memory-limit`
 
