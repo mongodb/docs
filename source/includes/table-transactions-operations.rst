@@ -71,7 +71,7 @@
        
        .. seealso::
 
-   :ref:`transactions-operations-ddl`
+          :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.insertMany()`
        | :method:`db.collection.insertOne()`
@@ -88,7 +88,7 @@
        
        .. seealso::
 
-   :ref:`transactions-operations-ddl`
+          :ref:`transactions-operations-ddl`
 
    * - :method:`db.collection.save()`
      - 
@@ -101,7 +101,7 @@
 
        .. seealso::
 
-   :ref:`transactions-operations-ddl`
+          :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.updateOne()`
        | :method:`db.collection.updateMany()`
@@ -119,7 +119,7 @@
 
        .. seealso::
 
-   :ref:`transactions-operations-ddl`
+          :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.bulkWrite()`
        | Various :doc:`/reference/method/js-bulk`
@@ -134,4 +134,4 @@
        
        .. seealso::
 
-   :ref:`transactions-operations-ddl`
+          :ref:`transactions-operations-ddl`
