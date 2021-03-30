@@ -1,3 +1,14 @@
+.. _cloudmanager_20210330:
+
+30 March 2021 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces the ability to :ref:`trigger initial sync for a process <trigger-resync-for-a-process>`
+  in the |service| user interface.
+
+- Updates {+mdbagent+} to :ref:`10.28.0.6828-1 <10.28.0.6828-1>`.
+
+
 .. _cloudmanager_20210309:
 
 09 March 2021 Release
