@@ -1,4 +1,4 @@
-.. topic:: EOL Notice
+.. note:: EOL Notice
 
    - MongoDB 5.0 Community Edition removes support for
      SLES12 on :ref:`s390x <prod-notes-supported-platforms-s390x>`

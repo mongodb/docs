@@ -1,4 +1,4 @@
-.. topic:: EOL Notice
+.. note:: EOL Notice
 
    - MongoDB 5.0 Enterprise Edition removes support for
      Ubuntu 18.04 on :ref:`s390x <prod-notes-supported-platforms-s390x>`

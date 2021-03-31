@@ -1,4 +1,4 @@
-.. topic:: EOL Notice
+.. note:: EOL Notice
 
    - MongoDB 5.0 Community Edition removes support for
      :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7 on
