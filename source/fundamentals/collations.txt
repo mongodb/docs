@@ -65,8 +65,6 @@ order as shown below:
    coté
    côté
 
-For a complete list of supported locales, see our server manual page on
-:manual:`Supported Languages and Locales </reference/collation-locales-defaults/#supported-languages-and-locales>`.
 
 .. _collations-specify:
 
@@ -76,12 +74,40 @@ How to Specify Collations
 MongoDB supports collations on most :doc:`CRUD operations </fundamentals/crud>`
 and aggregations. For a complete list of supported operations, see the
 :manual:`Operations that Support Collations </reference/collation/#operations-that-support-collation>`
-server manual page. See the following sections to learn how to specify
-collations:
+server manual page.
 
-- collection
-- index
-- operation
+You can specify the locale and variant in the following string format:
+
+.. code-block:: none
+   :copyable: false
+
+   "<locale code>@collation=<variant code>"
+
+The ``locale code`` placeholder specifies the locale and the ``variant code``
+placeholder specifies an available variant for that locale. The following
+example specifies the "de" locale code and "phonebook" variant code:
+
+.. code-block:: none
+   :copyable: false
+
+   "de@collation=phonebook"
+
+If you do not need to specify a variant, omit everything after the locale
+code as follows:
+
+.. code-block:: none
+
+   "de"
+
+For a complete list of supported locales, see our server manual page on
+:manual:`Supported Languages and Locales </reference/collation-locales-defaults/#supported-languages-and-locales>`.
+
+The following sections show you different ways to apply collations in
+MongoDB:
+
+- :ref:`Collection <collations-collection>`
+- :ref:`Index <collations-index>`
+- :ref:`Operation <collations-operation>`
 
 .. _collations-collection:
 
@@ -132,22 +158,23 @@ The output of your code should contain the following:
 Index
 ~~~~~
 
-You can specify a collation when you create a new index on a collection. In
-order for your operations to use the collation, your operation must meet the
-following criteria:
+You can specify a collation when you create a new index on a collection.
+The index stores an ordered representation of the documents in the
+collection so your operation does not need to perform the ordering
+in-memory. In order to use the index, your operation must meet the following
+criteria:
 
-- you must pass the same collation that is specified in the index
-- the operation is covered by the index containing the collation
+- The operation uses the same collation that is specified in the index.
+- The operation is covered by the index containing the collation.
 
-The following code snippet shows how you can create an ascending index on the
-"name" field with the "en_US" locale collation.
+The following code snippet shows how you can create an index on the "name"
+field with the "en_US" locale collation in ascending order:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
    :language: java
    :dedent:
    :start-after: start createIndex
    :end-before: end createIndex
-
 
 To check whether you created the collation successfully, retrieve a list
 of the indexes on that collection as follows:
@@ -176,6 +203,8 @@ same collation and is covered by the index we created above:
    :dedent:
    :start-after: start indexOperation
    :end-before: end indexOperation
+
+.. _collations-operation:
 
 Operation
 ~~~~~~~~~
@@ -206,7 +235,6 @@ only binary comparison:
 - :manual:`text </reference/method/db.collection.createIndex/#options-for-text-indexes>`
 - :manual:`2d </reference/method/db.collection.createIndex/#options-for-2dsphere-indexes>`
 - :manual:`geoHaystack </reference/method/db.collection.createIndex/#options-for-geohaystack-indexes>`
-
 
 .. _collations-options:
 
@@ -280,58 +308,92 @@ take, see the API documentation for :java-docs:`Collation.Builder
 Collation Examples
 ------------------
 
-Collation Query Examples
-~~~~~~~~~~~~~~~~~~~~~~~~
+This section contains examples that demonstrate how to use a selection of
+MongoDB operations that support collations. For each example, assume that
+you start with the following collection of documents:
 
-Operations that read, update, and delete documents from a collection can use
-collations. This section includes examples of a selection of these. See the
-MongoDB manual for a full list of :manual:`operations that support collation
-</reference/collation/#operations-that-support-collation>`.
+.. _collation-example-collection:
 
-find() and sort() Example
-`````````````````````````
+.. code-block:: json
 
-The following example calls ``find()`` and ``sort()`` on a collection
-that uses a collation for the "de" locale.
-
-TODO
-
-findOneAndUpdate() Example
-``````````````````````````
-
-The following example calls the ``findOneAndUpdate()`` operation on a
-collection that uses the default binary collation. The collection contains the
-following documents:
-
-.. code-block:: none
-
-  { "_id" : 1, "first_name" : "Hans" }
+  { "_id" : 1, "first_name" : "Klara" }
   { "_id" : 2, "first_name" : "Gunter" }
   { "_id" : 3, "first_name" : "Günter" }
   { "_id" : 4, "first_name" : "Jürgen" }
+  { "_id" : 5, "first_name" : "Hannah" }
 
-Consider the following ``findOneAndUpdate()`` operation on this collection
-which **does not** specify a collation:
+In the following examples, we specify the "de@collation=phonebook" locale and
+variant collation. This contains rules for prioritizing proper nouns,
+identified by capitalization of the first letter. In an ascending order
+sort, the collation also orders characters with umlauts before the same
+characters without them.
 
-TODO
+find() and sort() Example
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Since "Gunter" is the first sorted result when using a binary collation, none
-of the documents come lexically before and match the ``$lt`` comparison
-operator in the query document. As a result, the operation does not update any
-documents.
+The following example demonstrates how you can apply a collation when
+retrieving sorted results from the sample collection. To perform this
+operation, call ``find()`` on the example collection and chain the
+``collation()`` and ``sort()`` methods to specify the order in which we want
+to receive the results.
 
-Consider the same operation with a collation specified with the locale set to
-``de@collation=phonebook``. This locale specifies the ``collation=phonebook``
-option which contains rules for prioritizing proper nouns, identified by
-capitalization of the first letter. The ``de@collation=phonebook`` locale and
-option sorts characters with umlauts before the same characters without
-umlauts.
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start findAndSort
+   :end-before: end findAndSort
 
-TODO
+When we perform this operation on our :ref:`example collection <collation-example-collection>`,
+the output should resemble the following:
 
-Since "Günter" lexically comes before "Gunter" using the
-``de@collation=phonebook`` collation specified in ``findOneAndUpdate()``,
-the operation returns the following updated document:
+.. code-block:: json
+   :copyable: false
+
+   {"_id": 3, "first_name": "Günter"}
+   {"_id": 2, "first_name": "Gunter"}
+   {"_id": 5, "first_name": "Hannah"}
+   {"_id": 4, "first_name": "Jürgen"}
+   {"_id": 1, "first_name": "Klara"}
+
+For more information on the methods used in this section, see the following
+API documentation pages:
+
+- `find()`
+- `sort()`
+- `Sorts`
+
+findOneAndUpdate() Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section demonstrates how you can specify a collation in an
+operation that updates the first match from your query. To specify the
+collation for this operation, instantiate a ``FindOneAndUpdateOptions``
+object, set a collation on it, and pass it as a parameter to your call to
+the ``findOneAndUpdate()`` method.
+
+In this example, we demonstrate the following:
+
+- Retrieve the first document in our :ref:`example collection <collation-example-collection>`
+  that precedes "Gunter" in an ascending order.
+- Set options for operation including the "de@collation=phonebook"
+  collation.
+- Add a new field "verified" with the value "true".
+- Retrieve and print the updated document.
+
+.. note::
+
+   The following code example uses imports from the
+   ``import com.mongodb.client.model`` package for convenience.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start findOneAndUpdate
+   :end-before: end findOneAndUpdate
+
+Since "Günter" is lexicographically ordered before "Gunter" using the
+``de@collation=phonebook`` collation in ascending order, the operation returns
+the following update document:
 
 .. code-block:: none
 
@@ -341,64 +403,96 @@ the operation returns the following updated document:
     ok: 1
   }
 
+For more information on the methods used in this section, see the following
+API documentation pages:
+
+- :java-docs:`findOneAndUpdate <apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#findOneAndUpdate(org.bson.conversions.Bson,java.util.List,com.mongodb.client.model.FindOneAndUpdateOptions)>`
+- :java-docs:`findOneAndUpdateOptions <apidocs/mongodb-driver-core/com/mongodb/client/model/FindOneAndUpdateOptions.html>`
+
 findOneAndDelete() Example
-``````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example calls the ``findOneAndDelete()`` operation on a
-collection that uses the default binary collation and contains the following
-documents:
+This section demonstrates how you can specify a numerical ordering of
+strings in a collation in an operation that deletes the first match from your
+query. To specify the collation for this operation, instantiate
+a ``FindOneAndDeleteOptions`` object, set a numeric ordering collation on
+it, and pass it as a parameter to your call to the ``findOneAndDelete()``
+method.
 
-.. code-block:: none
-
-  { "_id" : 1, "a" : "16" }
-  { "_id" : 2, "a" : "84" }
-  { "_id" : 3, "a" : "179" }
-
-In this example, we set the ``numericOrdering`` collation parameter to ``true``
-to sort numeric strings based on their numerical order instead of their
-lexical order.
-
-TODO
-
-After you run the operation above, the collection contains the following
-documents:
-
-.. code-block:: none
-
-  { "_id" : 1, "a" : "16" }
-  { "_id" : 2, "a" : "84" }
-
-If you perform the same operation without collation on the original
-collection of three documents, it matches documents based on the lexical value
-of the strings ("``16``", "``84``", and "``179``"), and deletes the first
-document it finds that matches the query criteria.
-
-TODO
-
-Since all the documents contain lexical values in the ``a`` field that
-match the criteria (greater than the lexical value of "``100``"), the operation
-removes the first result. After you run the operation above, the collection
+This example calls the ``findOneAndDelete()`` operation on a collection that
 contains the following documents:
 
+.. code-block:: json
+
+  { "_id" : 1, "a" : "16 apples" }
+  { "_id" : 2, "a" : "84 oranges" }
+  { "_id" : 3, "a" : "179 bananas" }
+
+In the collation, we set the ``locale`` option to "en" and the
+``numericOrdering`` option to "true" in order to sort strings based on their
+numerical order.
+
+.. note::
+
+   The following code example uses imports from the
+   ``import com.mongodb.client.model`` package for convenience.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start findOneAndDelete
+   :end-before: end findOneAndDelete
+
+After you run the operation above, your output should resemble the
+following:
+
 .. code-block:: none
 
-   { "_id" : 2, "a" : "84" }
-   { "_id" : 3, "a" : "179" }
+   Deleted document: {"_id": 3, "a": "179 bananas"}
+
+The numeric value of the string "179" is greater than the number 100, so
+the above document is the only match.
+
+If we perform the same operation without the numerical ordering collation
+on the original collection of three documents, the filter matches all of
+our documents since "100" comes before "16", "84", and "179" when ordering
+by binary collation.
+
+For more information on the methods used in this section, see the following
+API documentation pages:
+
+- :java-docs:`findOneAndDelete <apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#findOneAndDelete(org.bson.conversions.Bson)>`
+- :java-docs:`FindOneAndDeleteOptions <apidocs/mongodb-driver-core/com/mongodb/client/model/FindOneAndDeleteOptions.html>`
 
 Aggregation Example
 ```````````````````
 
-To use collation with the aggregate operation, pass the collation document in
-the options field, after the array of pipeline stages.
+This section demonstrates how you can specify a collation in an aggregation
+operation. In an aggregation operation, you can specify a series of data
+aggregation operations or stages which is collectively called the
+aggregation pipeline. To perform an aggregation, call the ``aggregate()``
+method on a ``MongoCollection`` object.
 
-The following example shows an aggregation pipeline on a collection that uses
-the default binary collation. The aggregation groups the ``first_name`` field,
-counts the total number of results in each group, and sorts the results by
-the German phonebook (``de@collation=phonebook`` locale) order.
+To specify a collation for an aggregate operation, call the ``collation()``
+method on the ``AggregateIterable`` returned by the aggregation operation.
+Make sure to specify a sort aggregation stage on which to apply the
+collation in your aggregation pipeline.
 
-.. note::
+The following example shows an aggregation pipeline on the
+:ref:`example collection <collation-example-collection>`
+that uses the default binary collation. The aggregation specifies
+a ``$group`` stage to identify each document by the ``first_name`` field
+and appends a field that shows the total number of instances of the value
+of the matching ``first_name`` field. We sort the results, in ascending
+order using the values of the ``_id`` field and apply the German phonebook
+collation:
 
-   You can specify only one collation on an aggregation.
+.. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
+   :language: java
+   :dedent:
+   :start-after: start aggregationExample
+   :end-before: end aggregationExample
 
-TODO
+- :java-docs:`aggregate() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#aggregate(java.util.List)>`
+- :java-docs:`AggregateIterable <apidocs/mongodb-driver-sync/com/mongodb/client/AggregateIterable.html>`
 
