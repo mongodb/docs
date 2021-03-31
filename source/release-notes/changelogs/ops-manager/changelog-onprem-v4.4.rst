@@ -201,7 +201,7 @@
     You now see the :doc:`Profiler </tutorial/profile-database>`. |mms|
     sources the data points from your
     :ref:`slow query logs <pa-slow-queries>`. These
-    :ref:`data points <configuration-profiling-slowOpThresholdMs>` have
+    :manual:`data points </reference/configuration-options/#operationprofiling-options>` have
     been logged since |onprem| 4.2 through the
     :ref:`Performance Advisor <pa-slow-queries>`.
 
@@ -210,7 +210,7 @@
     from your :ref:`slow query logs <pa-slow-queries>`  rather than
     through the
     :doc:`MongoDB Profiler entries </tutorial/profile-database>`.
-    (These entries continue to be ingested.) The MongoDB profiler
+    (These entries continue to be ingested.) The MongoDB Profiler
     entries contain more detailed information than the slow query
     logs. To revert to using the profiler entries, toggle the
     Project's feature flag :guilabel:`Profiler Nds` to ``OFF``.

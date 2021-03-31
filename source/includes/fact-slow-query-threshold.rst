@@ -1,6 +1,6 @@
 The Performance Advisor recognizes a query as slow if it takes longer
 to execute than the value of
-:ref:`slowOpThresholdMs <configuration-profiling-slowOpThresholdMs>`.
+:manual:`slowOpThresholdMs </reference/configuration-options/#operationprofiling-options>`.
 By default, this value is ``100`` milliseconds. You can change the
 threshold with either the
 :manual:`profile </reference/command/profile>`
