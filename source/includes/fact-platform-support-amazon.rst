@@ -1,4 +1,4 @@
-.. topic:: EOL Notice
+.. note:: EOL Notice
 
    - MongoDB 4.4 Community Edition removes support for Amazon Linux
      2013.03 on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>`

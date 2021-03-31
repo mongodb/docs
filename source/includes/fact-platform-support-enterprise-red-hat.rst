@@ -1,4 +1,4 @@
-.. topic:: EOL Notice
+.. note:: EOL Notice
 
    - MongoDB 4.4 Enterprise Edition removes support for
      :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 6
