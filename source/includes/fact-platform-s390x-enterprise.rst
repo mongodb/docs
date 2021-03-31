@@ -1,4 +1,4 @@
-.. topic:: Platform Support EOL Notice
+.. note:: Platform Support EOL Notice
 
    .. list-table::
       :widths: 20 80

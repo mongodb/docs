@@ -1,4 +1,4 @@
-.. topic:: EOL Notice
+.. note:: EOL Notice
 
    - MongoDB 4.4 Community Edition removes support for Windows 8.1 /
      Server 2012 R2
