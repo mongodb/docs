@@ -1,0 +1,110 @@
+=====================
+Skip Returned Results
+=====================
+
+.. default-domain:: mongodb
+
+In this guide, we show you how to skip a specified number of returned results.
+
+You can skip results on the returned results of a query by using the
+``skip()`` method. You can also skip documents at a specific stage in an
+aggregation pipeline by specifying a ``$skip`` aggregation stage.
+
+The ``skip()`` method takes an integer that specifies the number of documents
+to omit from the beginning of the list of documents returned by the
+:java-docs:`FindIterable </apidocs/mongodb-driver-sync/com/mongodb/client/FindIterable.html#skip(int)>`. 
+
+You can use the ``skip()`` method to skip the first two documents as follows:
+
+.. code-block:: java
+
+   collection.find().skip(2); 
+
+:java-docs:`Aggregates.skip() </apidocs/mongodb-driver-core/com/mongodb/client/model/Aggregates.html#skip(int)>`
+is an optional stage in the aggregation pipeline that specifies how many
+documents to omit from the beginning of the results of the prior stage. 
+
+You can use the ``Aggregates.skip()`` method to skip the first two documents as follows:
+
+.. code-block:: java
+
+   import com.mongodb.client.model.Aggregates;
+
+   collection.aggregate(Arrays.asList(Aggregates.match(), Aggregates.skip(2))); 
+
+Examples
+~~~~~~~~
+
+The following example is about a paint store that sells eight different
+colors of paint.  The best colors sell quicker than the other colors.
+One day, a customer asks what the three best-selling (lowest inventory)
+colors are. The paint store keeps track of inventory in the ``qty``
+field in their ``paint_inventory`` collection: 
+
+.. code-block:: json
+
+   { "_id": 1, "color": "red", "qty": 5 }
+   { "_id": 2, "color": "purple", "qty": 10 }
+   { "_id": 3, "color": "blue", "qty": 9 }
+   { "_id": 4, "color": "white", "qty": 6 }
+   { "_id": 5, "color": "yellow", "qty": 11 }
+   { "_id": 6, "color": "pink", "qty": 3 }
+   { "_id": 7, "color": "green", "qty": 8 }
+   { "_id": 8, "color": "orange", "qty": 7 }
+
+
+To address the scenario, the paint store needs to query the
+``paint_inventory`` collection with an empty filter, sort the documents
+by ``qty`` field and omit the first five results.
+
+Using the ``skip()`` method:
+````````````````````````````
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Skip.java
+   :language: java
+   :dedent:
+   :start-after: begin skipExample
+   :end-before: end skipExample
+
+- The ``find()`` method returns all documents.  
+- The ``sort()`` method specifies documents to display from highest to lowest based on the ``qty`` field.
+- The ``skip()`` method specifies to omit the first five documents. 
+
+Using ``Aggregates.skip()``:
+````````````````````````````
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Skip.java
+   :language: java
+   :dedent:
+   :start-after: begin skipAggregateExample
+   :end-before: end skipAggregateExample
+
+- The ``match()`` stage returns all documents.  
+- The ``sort()`` stage specifies documents to display from highest to lowest based on the ``qty`` field.
+- The ``skip()`` stage specifies to omit the first five documents. 
+
+The following shows the output of both queries specified above:
+
+.. code-block:: json
+   :copyable: false
+   
+   { "_id": 4, "color": "white", "qty": 6 }
+   { "_id": 1, "color": "red", "qty": 5 }
+   { "_id": 6, "color": "pink", "qty": 3 }
+
+After the paint store runs the query, they find the three best-selling colors are pink,
+red, and white. 
+
+.. note::
+   If the value of skip is greater than or equal to the number of matched
+   documents for a query, that query returns no documents.
+
+   If the ``skip()`` method from the example above skips the first nine
+   documents, no results would return since the specified quantity
+   exceeds the number of matched documents. 
+
+   .. literalinclude:: /includes/fundamentals/code-snippets/Skip.java
+      :language: java
+      :dedent:
+      :start-after: begin noResultsExample
+      :end-before: end noResultsExample
