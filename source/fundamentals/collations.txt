@@ -149,10 +149,10 @@ The output of your code should contain the following:
 
 .. note::
 
-   You can assign a default collation to a collection only when you create
-   that collection. To use collations for supported operations on an
-   existing collection, create an index with the collation and specify the
-   same collation in your operations on it.
+   You can only assign a default collation to a collection when you
+   create that collection. However, you can specify a collation in a new
+   index on an existing collection. See the :ref:`Index <collations-index>`
+   section of this guide for more information.
 
 .. _collations-index:
 
@@ -166,7 +166,7 @@ in-memory. To use the index, your operation must meet the following
 criteria:
 
 - The operation uses the same collation as the one specified in the index.
-- The operation is covered by the index containing the collation.
+- The operation is covered by the index that contains the collation.
 
 The following code snippet shows how you can create an index on the "name"
 field with the "en_US" locale collation in ascending order:
@@ -217,9 +217,15 @@ as well as one that is covered by an index. For more information on the
 disadvantages of sorting operations not covered by an index, see the server
 manual page on :manual:`Use Indexes to Sort Query Results </tutorial/sort-results-with-indexes/>`.
 
-The following code snippet shows an example query operation that specifies
-the Icelandic ("is") collation that is not covered by the default collation
-we created in the :ref:`Collection section <collations-collection>`:
+The following code snippet shows an example query operation with the
+following characteristics:
+
+- The referenced collection contains the default collation "en_US" similar to
+  the one specified in the :ref:`Collection <collations-collection>`` section.
+- The query specifies the Icelandic ("is") collation which is not covered
+  by the collection's default collation index.
+- Since the specified collation is not covered by an index, the sort
+  operation is performed in-memory.
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
    :language: java
@@ -265,7 +271,7 @@ further refine the ordering and matching behavior.
      - | Whether to consider spaces and punctuation.
        | :java-docs:`collationAlternate() <apidocs/mongodb-driver-core/com/mongodb/client/model/Collation.Builder.html#collationAlternate(com.mongodb.client.model.CollationAlternate)>` API documentation
 
-   * - Case first
+   * - Case First
      - | Whether to consider uppercase or lowercase first.
        | :java-docs:`collationCaseFirst() <apidocs/mongodb-driver-core/com/mongodb/client/model/Collation.Builder.html#collationCaseFirst(com.mongodb.client.model.CollationCaseFirst)>` API documentation
 
@@ -290,7 +296,7 @@ further refine the ordering and matching behavior.
        | :java-docs:`numericOrdering() <apidocs/mongodb-driver-core/com/mongodb/client/model/Collation.Builder.html#numericOrdering(java.lang.Boolean)>` API documentation
 
 You can use the ``Collation.Builder`` class to specify values for the
-collation options above. You can call the ``build()`` method construct a
+collation options above. You can call the ``build()`` method to construct a
 ``Collation`` object as shown in the following code snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
@@ -324,18 +330,20 @@ you start with the following collection of documents:
   { "_id" : 5, "first_name" : "Hannah" }
 
 In the following examples, we specify the "de@collation=phonebook" locale and
-variant collation. This contains rules for prioritizing proper nouns,
-identified by capitalization of the first letter. In an ascending order
-sort, the collation also orders characters with umlauts before the same
-characters without them.
+variant collation. The "de" part of the collation specifies the German
+locale and the "collation=phonebook" part specifies a variant. The
+"de" locale collation contains rules for prioritizing proper nouns,
+identified by capitalization of the first letter. In the
+"collation=phonebook" variant, characters with umlauts are ordered before
+the same characters without them in an ascending sort.
 
 find() and sort() Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example demonstrates how you can apply a collation when
-retrieving sorted results from the sample collection. To perform this
+retrieving sorted results from a collection. To perform this
 operation, call ``find()`` on the example collection and chain the
-``collation()`` and ``sort()`` methods to specify the order in which we want
+``collation()`` and ``sort()`` methods to specify the order in which you want
 to receive the results.
 
 .. note::
@@ -480,12 +488,12 @@ Aggregation Example
 ```````````````````
 
 This section demonstrates how you can specify a collation in an aggregation
-operation. In an aggregation operation, you can specify a series of data
-aggregation operations or stages which is collectively called the
-aggregation pipeline. To perform an aggregation, call the ``aggregate()``
-method on a ``MongoCollection`` object.
+operation. In an aggregation operation, you can specify a series
+aggregation stages which is collectively called the aggregation pipeline. To
+perform an aggregation, call the ``aggregate()`` method on a
+``MongoCollection`` object.
 
-To specify a collation for an aggregate operation, call the ``collation()``
+To specify a collation for an aggregation operation, call the ``collation()``
 method on the ``AggregateIterable`` returned by the aggregation operation.
 Make sure to specify a sort aggregation stage on which to apply the
 collation in your aggregation pipeline.
@@ -494,14 +502,14 @@ The following example shows how we can construct an aggregation pipeline on
 the :ref:`example collection <collation-example-collection>` and apply
 a collation by specifying the following:
 
-- A group aggregation stage using the ``Aggregates.group() helper to
+- A group aggregation stage using the ``Aggregates.group()`` helper to
   identify each document by the ``first_name`` field and use that value as
   the ``_id`` of the result.
 - An accumulator in the group aggregation stage to sum the number of
   instances of matching values in the ``first_name`` field.
 - Apply an ascending sort to the ``_id`` field of the output documents of
   the prior aggregation stage.
-- Construct a collation object with German phonebook collation.
+- Construct a collation object with the German phonebook collation.
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CollationCollectionExample.java
    :language: java
