@@ -5,11 +5,6 @@ MongoDB Agent 10.28.0.6828-1
 
 *Released* :ref:`2021-03-30 <cloudmanager_20210330>`
 
-- Supports Go 1.15.
-- Updates {+mdbagent+} to allow continued connection to MongoDB deployments using |tls|
-  certificates without a Subject Alternative Name (SAN). The ability to
-  manage MongoDB deployments using |tls| certificates without a SAN will
-  be removed completely in an upcoming release.
 - Improves support for the upcoming MongoDB 5.0 release.
 
 .. _10.27.0.6799:
