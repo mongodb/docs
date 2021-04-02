@@ -69,45 +69,145 @@ The following score modifying options are available to the
 ``boost``
 ~~~~~~~~~
 
-The ``boost`` option multiplies a result's base score by a given
-number. In the following example, the :ref:`text <text-ref>`
-operator uses ``score`` with the ``boost`` option to multiply the score
-results by ``3``.
-
-.. code-block:: javascript
-   :linenos:
-
-   db.movies.aggregate([
-     {
-       $search: {
-         "text": {
-           "query": "Helsinki",
-           "path": "title",
-           "score": { "boost": { "value": 3 } }
-         }
-       }
-     },
-     {
-       $project: {
-         "_id": 0,
-         "title": 1,
-         "score": { "$meta": "searchScore" }
-       }
-     }
-   ])
-
-The above query returns the following results, in which the score is
-multiplied by 3 from its base value:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "title" : "Kites Over Helsinki", "score" : 12.247001647949219 }
-   { "title" : "Helsinki-Naples All Night Long", "score" : 9.568056106567383 }
+The ``boost`` option multiplies a result's base score by a given number 
+or the value of a numeric field in the documents. 
 
 .. note::
 
-   The ``boost`` and ``constant`` options may not be used together.
+   - The ``boost`` and ``constant`` options can't be used together.
+   - The ``boost`` option with ``path`` is the same as multiplying 
+     using :ref:`function <scoring-function>` option with :ref:`path 
+     expression <function-score-expression>`.
+
+Fields 
+``````
+
+The ``boost`` option takes the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 10 15 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description 
+
+   * - ``value`` 
+     - float 
+     - Conditional 
+     - Number to multiply the default base score by. Value must be a 
+       positive number. Either ``value`` or ``path`` is required, but 
+       you can't specify both.
+
+   * - ``path`` 
+     - string 
+     - Conditional 
+     - Name of the numeric field whose value to multiply the default 
+       base score by. Either ``path`` or ``value`` is required, but you 
+       can't specify both.
+
+   * - ``undefined`` 
+     - float 
+     - Optional 
+     - Numeric value to substitute for ``path`` if the numeric field 
+       specified through ``path`` is not found in the documents. If 
+       omitted, defaults to ``0``. You can specify this only if you 
+       specify ``path``.
+
+Examples 
+````````
+
+The following examples use the default index on the 
+``sample_mflix.movies`` collection to query the ``title`` field. The 
+sample queries include a ``$project`` stage to exclude all fields 
+except ``title`` and ``score``.
+
+.. tabs:: 
+
+   .. tab:: Number Example 
+      :tabid: number
+
+      In the following example, the :ref:`text <text-ref>` operator 
+      uses ``score`` with the ``boost`` option to multiply the score 
+      results by ``3``.
+
+      .. code-block:: json
+         :linenos:
+
+         db.movies.aggregate([
+           {
+             $search: {
+               "text": {
+                 "query": "Helsinki",
+                 "path": "title",
+                 "score": { "boost": { "value": 3 } }
+               }
+             }
+           },
+           {
+             $project: {
+               "_id": 0,
+               "title": 1,
+               "score": { "$meta": "searchScore" }
+             }
+           }
+         ])
+
+      The above query returns the following results, in which the score 
+      is multiplied by ``3`` from its base value:
+
+      .. code-block:: json
+         :copyable: false
+
+         { "title" : "Kites Over Helsinki", "score" : 12.247001647949219 }
+         { "title" : "Helsinki-Naples All Night Long", "score" : 9.568056106567383 }
+
+   .. tab:: Path Example 
+      :tabid: patheg
+
+      In the following example, the :ref:`text <text-ref>` operator 
+      uses ``score`` option with the numeric field ``imdb.rating`` in 
+      ``path`` or ``3``, if the numeric field is not found in the 
+      documents, to multiply the score of the documents.
+
+      .. code-block:: json 
+         :linenos:
+
+         db.movies.aggregate([
+           {
+             $search: {
+               "text": {
+                 "query": "Helsinki",
+                 "path": "title",
+                 "score": { 
+                   "boost": { 
+                     "path": "imdb.rating",
+                     "undefined": 3
+                   } 
+                 }
+               }
+             }
+           },
+           {
+             $project: {
+               "_id": 0,
+               "title": 1,
+               "score": { "$meta": "searchScore" }
+             }
+           }
+         ])
+
+      The above query returns the following results, in which the score 
+      is multiplied from its base value by the value of the numeric 
+      field ``imdb.rating`` or ``3``, if the field could not be found 
+      in the documents:
+
+      .. code-block:: json 
+         :copyable: false 
+
+         { "title" : "Kites Over Helsinki", "score" : 24.902257919311523 }
+         { "title" : "Helsinki-Naples All Night Long", "score" : 20.411907196044922 }
 
 .. _scoring-constant:
 
@@ -171,7 +271,7 @@ computing the final score through an :ref:`expression
 .. _function-score-expression:
 
 Expressions
-###########
+```````````
 
 .. tabs:: 
 
@@ -474,7 +574,7 @@ Expressions
 .. _function-score-egs:
 
 Examples
-########
+````````
 
 The following examples use the default index on the 
 ``sample_mflix.movies`` collection to query the ``title`` field. The 
