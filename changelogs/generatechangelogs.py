@@ -90,9 +90,13 @@ def get_issue_structure(config, issues):
             if c.name not in groups:
                 logger.error(
                     "undefined component %s. update configuration before continuing", c.name)
+                    
+        # format issue summary to remove backticks
+        # (necessary for next-gen)
 
-        issue_pair = (issue.key.encode("utf-8"),
-                      issue.fields.summary.encode("utf-8"))
+        issue_summary = issue.fields.summary.encode("utf-8").replace('`', '')
+        
+        issue_pair = (issue.key.encode("utf-8"), issue_summary)
 
         if len(components) == 0:
             # if there isn't a component put this in the last grouping.
