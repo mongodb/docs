@@ -196,10 +196,14 @@ Backup Features Supported at Present
    .. [#] Performing a |pit| restore requires |onprem| 4.2.13 or later.
 
 .. [#] |mms| requires a full backup for your first backup, after a
-       snapshot has been deleted, and if the blockstore block size
-       has been changed. Incremental backups reduce network
-       transfer and storage costs. This feature works with MongoDB
-       4.2.6 or later.
+       snapshot has been deleted, and if the blockstore block size has
+       been changed. Incremental backups reduce network transfer and
+       storage costs.
+
+       This feature works with:
+
+       - MongoDB 4.0 and earlier.
+       - MongoDB 4.2.6 or later if running |fcv-link| 4.2 or later.
 
 .. cond:: onprem
 
