@@ -1,3 +1,16 @@
+.. _data-lake-v20210330:
+
+30 March 2021 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Generates storage configuration automatically for the first time 
+  after user authentication.
+- Returns connection ID through the ``hello`` command.
+- Supports ``$geoNear`` on {+adl+} collections that span multiple 
+  |service| clusters.
+- Includes various performance improvements.
+- Includes improved error messages for terminated queries.
+
 .. _data-lake-v20210309:
 
 09 March 2021 Release
@@ -6,7 +19,7 @@
 - Includes new onboarding and storage configuration interface.
 - Improved SQL schema error message.
 - Support query pushdown to collections comprised of multiple Atlas
-  collections
+  collections.
 - Improves stability and performance.
 
 .. _data-lake-v20210216:
