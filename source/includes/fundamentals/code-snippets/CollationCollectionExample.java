@@ -1,7 +1,5 @@
 package fundamentals;
 
-import static com.mongodb.client.model.Aggregates.group;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,17 +35,16 @@ public class CollationCollectionExample {
 
     private static void aggregatesExample(MongoCollection<Document> collection) {
         // start aggregationExample
-        Bson groupStage = group("$first_name", Accumulators.sum("nameCount", 1));
+        Bson groupStage = Aggregates.group("$first_name", Accumulators.sum("nameCount", 1));
         Bson sortStage = Aggregates.sort(Sorts.ascending("_id"));
         AggregateIterable<Document> results = collection
                 .aggregate(Arrays.asList(groupStage, sortStage))
-                .collation(Collation.builder().locale("de@collation=phonebook").build());
+                .collation(Collation.builder().locale("de").collationStrength(CollationStrength.PRIMARY).build());
         if (results != null) {
             results.forEach(doc -> System.out.println(doc.toJson()));
         }
         // end aggregationExample
     }
-
 
     private static void findAndSortExample(MongoCollection<Document> collection) {
         // start findAndSort
@@ -159,7 +156,13 @@ public class CollationCollectionExample {
         idxOptions.collation(Collation.builder().locale("en_US").build());
         collection.createIndex(Indexes.ascending("name"), idxOptions);
         // end createIndex
+    }
 
+    private static void createPhonebookIndex(MongoDatabase database) {
+        MongoCollection<Document> collection = database.getCollection("phonebook");
+        IndexOptions idxOptions = new IndexOptions();
+        idxOptions.collation(Collation.builder().locale("de@collation=search").collationStrength(CollationStrength.PRIMARY).collationAlternate(CollationAlternate.SHIFTED).build());
+        collection.createIndex(Indexes.ascending("first_name"), idxOptions);
     }
 
     private static void indexOperation(MongoCollection collection) {
@@ -190,12 +193,13 @@ public class CollationCollectionExample {
 
     public static void main(String[] args) {
 
-        String uri = "<MongoDB connection URI>";
+        String uri = "mongodb://localhost:27017";
 
         try (MongoClient mongoClient = MongoClients.create(uri)) {
 
             MongoDatabase database = mongoClient.getDatabase("fundamentals_example");
-//            MongoCollection<Document> collection = database.getCollection("phonebook");
+            // MongoCollection<Document> collection = database.getCollection("phonebook");
+
         }
     }
 
