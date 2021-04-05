@@ -5,11 +5,12 @@
 
 *Released 2021-03-04*
 
-- Allows you to choose to redact sensitive information from the server 
-  usage report. If you choose to redact, |onprem| redacts before it 
+- Allows you to choose to redact sensitive information from the server
+  usage report. If you choose to redact, |onprem| redacts before it
   generates the report for download.
-- Updates the MongoDB Agent to 
+- Updates the MongoDB Agent to
   :ref:`10.14.21.6476 <mongodb-10.14.21.6476>`.
+- Requires :db-tools:`MongoDB Database Tools 100.3.0 </>`.
 
 .. _opsmgr-server-4.4.9:
 
@@ -20,7 +21,9 @@
 
 - Fixes a regression introduced in |onprem| 4.4.8 that prevents the MongoDB
   Version Manifest from being updated.
-- Updates the MongoDB Agent to :ref:`10.14.20.6466 <mongodb-10.14.20.6466>`.
+- Updates the MongoDB Agent to
+  :ref:`10.14.20.6466 <mongodb-10.14.20.6466>`.
+- Requires :db-tools:`MongoDB Database Tools 100.2.0 </>`.
 
 .. _opsmgr-server-4.4.8:
 
@@ -30,6 +33,7 @@
 *Released 2021-02-05*
 
 - Improves backup snapshot performance.
+- Requires :db-tools:`MongoDB Database Tools 100.2.0 </>`.
 
 .. _opsmgr-server-4.4.7:
 
@@ -49,7 +53,9 @@
   generating the :doc:`diagnostic archives </tutorial/retrieve-debug-diagnostics/>` file.
 - Limits backup logs based on the ``limit`` option when generating the
   :doc:`diagnostic archives </reference/api/diagnostics/get-project-diagnostic-archive/>`.
-- Updates the MongoDB Agent to :ref:`10.14.18.6453 <mongodb-10.14.18.6453>`.
+- Updates the MongoDB Agent to
+  :ref:`10.14.18.6453 <mongodb-10.14.18.6453>`.
+- Requires :db-tools:`MongoDB Database Tools 100.2.0 </>`.
 
 .. _opsmgr-server-4.4.6:
 
@@ -58,11 +64,11 @@
 
 *Released 2020-12-03*
 
-- Fixes a bug that prevents |mms| from correctly authenticating to 
-  an :doc:`HTTP Proxy </tutorial/use-with-http-proxy/>`.
-
-- Updates the MongoDB Agent to :ref:`10.14.17.6445
-  <mongodb-10.14.17.6445>`
+- Fixes a bug that prevents |mms| from correctly authenticating to an
+  :doc:`HTTP Proxy </tutorial/use-with-http-proxy/>`.
+- Updates the MongoDB Agent to
+  :ref:`10.14.17.6445 <mongodb-10.14.17.6445>`
+- Requires :db-tools:`MongoDB Database Tools 100.2.0 </>`.
 
 .. _opsmgr-server-4.4.5:
 
@@ -76,8 +82,8 @@
 - Supports viewing MongoDB Profiler entries with overlapping timestamps
   separately in the Visual Query Profiler.
 
-- Updates the MongoDB Agent to :ref:`10.14.16.6437
-  <mongodb-10.14.16.6437>`.
+- Updates the MongoDB Agent to
+  :ref:`10.14.16.6437 <mongodb-10.14.16.6437>`.
 
 - Requires :db-tools:`MongoDB Database Tools 100.2.0 </>`.
 

@@ -21,25 +21,26 @@ If you run |onprem| 4.4.0 in
    :widths: 40 60
    :header-rows: 1
 
-   * - Ops Manager Server Version
+   * - Ops Manager Server Versions
      - Compatible MongoDB Database Tools Version
 
-   * - :ref:`4.4.5 <opsmgr-server-4.4.5>`
+   * - :ref:`4.4.10 <opsmgr-server-4.4.10>`
+     - :dl:`100.3.0 <database-tools>`
+
+   * - :ref:`4.4.5 <opsmgr-server-4.4.5>`,
+       :ref:`4.4.6 <opsmgr-server-4.4.6>`,
+       :ref:`4.4.7 <opsmgr-server-4.4.7>`,
+       :ref:`4.4.8 <opsmgr-server-4.4.8>`,
+       :ref:`4.4.9 <opsmgr-server-4.4.9>`
      - :dl:`100.2.0 <database-tools>`
 
-   * - :ref:`4.4.4 <opsmgr-server-4.4.4>`
+   * - :ref:`4.4.2 <opsmgr-server-4.4.2>`,
+       :ref:`4.4.3 <opsmgr-server-4.4.3>`,
+       :ref:`4.4.4 <opsmgr-server-4.4.4>`
      - :dlarch:`100.1.0 <database-tools>`
 
-   * - :ref:`4.4.3 <opsmgr-server-4.4.3>`
-     - :dlarch:`100.1.0 <database-tools>`
-
-   * - :ref:`4.4.2 <opsmgr-server-4.4.2>`
-     - :dlarch:`100.1.0 <database-tools>`
-
-   * - :ref:`4.4.1 <opsmgr-server-4.4.1>`
-     - :dlarch:`100.0.2 <database-tools>`
-
-   * - :ref:`4.4.0 <opsmgr-server-4.4.0>`
+   * - :ref:`4.4.0 <opsmgr-server-4.4.0>`,
+       :ref:`4.4.1 <opsmgr-server-4.4.1>`
      - :dlarch:`100.0.2 <database-tools>`
 
 To access older versions of the MongoDB Tools, click
