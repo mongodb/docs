@@ -31,7 +31,7 @@
 - Fixes a bug in the MongoDB usage report where |onprem|  could potentially
   find duplicate hosts based on network aliases.
 - Fixes a bug that causes some MongoDB versions to be considered as
-  custom builds when validating the {+aagent+) configuration.
+  custom builds when validating the {+aagent+} configuration.
 - Fixes a bug that disallows configuring |ldap| group names longer
   than 100 characters.
 - Updates the {+mdbagent+} to :ref:`10.14.22.6489 <mongodb-10.14.22.6489>`.
