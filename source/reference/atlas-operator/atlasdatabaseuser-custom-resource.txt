@@ -35,17 +35,21 @@ the configuration in |k8s|.
 - Creates a new database user.
 - If the databse user already exists, updates the existing user.
 
-Connection Secrets
-------------------
-
 Before you create a database user, you must create a |k8s-secret| with 
 a password to log into the |service| cluster database.
+
+.. note::
+
+   You must create the secret in the same |k8s-ns| where the ``AtlasDatabaseUser`` custom resource is located.
 
 The following example creates a secret:
 
 .. code-block:: sh
 
    kubectl create secret generic the-user-password --from-literal="password=P@@sword%"
+
+Connection Secrets
+------------------
 
 After |ak8so| successfully creates or updates the database user in 
 |service|, |ak8so| creates or updates the connection secrets in 
@@ -63,7 +67,7 @@ connect to the |service| clusters including the following parameters:
      - Description
 
    * - ``connectionString.standard``
-     - Public ``mongodb:\\`` connection |uri|.
+     - Public ``mongodb://`` connection |uri|.
   
    * - ``connectionstring.standardSrv``
      - Public ``mongodb+srv://`` connection |uri|.
@@ -75,20 +79,9 @@ connect to the |service| clusters including the following parameters:
      - Password of the database user.
 
 Applications running in |k8s| can use this information to connect to 
-|service| clusters. You can mount the |k8s-secrets| to the application 
+|service| clusters. You can mount the secrets to the application 
 pods as files and the application process can read these files to get 
 data.
-
-.. note::
-
-   You can find the secret name that |ak8so| creates in the 
-   ``AtlasDatabaseUser`` properties. ``status.connectionSecrets`` 
-   contains references to the created secrets. You can also run the 
-   following command:
-
-   .. code-block:: sh
-
-   kubectl get atlasdatabaseuser atlas-cluster-admin-user -n my-cluster -o=jsonpath='{.status.connectionSecrets}'
 
 The following example shows mounting the secret as an environment 
 variable:
@@ -120,7 +113,7 @@ The following example shows mounting the secret as files:
        secret:
          secretName: project-cluster-basic-theuser
 
-By default, |ak8so| creates the database user connection |k8s-secret| 
+By default, |ak8so| creates the database user connection secret
 for each cluster in the same project that the ``AtlasDatabaseUser`` 
 references. You can change this behavior with the ``spec.scopes`` 
 parameter. This parameter restricts the clusters where the database 
@@ -197,7 +190,7 @@ specification with ``spec.scopes`` omitted:
       name: the-user-password 
 
 After you create this custom resource, |ak8so| creates the following 
-|k8s-secrets|:
+secrets:
 
 - ``p1-aws-cluster-theuser``
 - ``p1-gcp-cluster-theuser``
@@ -229,7 +222,7 @@ specification scoped to the |gcp| cluster only:
 
 After you update this custom resource, |ak8so| removes ``theuser`` from 
 the ``aws-cluster``. It also removes the ``p1-aws-cluster-theuser`` 
-|k8s-secret| from the |k8s| cluster.
+secret from the |k8s| cluster.
 
 Parameters
 ----------
@@ -248,7 +241,8 @@ For the configuration parameters available from the |api|, see the
 |service| :doc:`API </reference/api/database-users-create-a-user>`. 
    
 Currently, |ak8so| does not support the following parameters 
-available from the |service| :doc:`API </reference/api/database-users-create-a-user>`:
+available from the |service| :doc:`API 
+</reference/api/database-users-create-a-user>`:
    
 - ``x509Type``
    
