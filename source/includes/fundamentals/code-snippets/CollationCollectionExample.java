@@ -193,12 +193,12 @@ public class CollationCollectionExample {
 
     public static void main(String[] args) {
 
-        String uri = "mongodb://localhost:27017";
+        String uri = "<MongoDB connection URI>";
 
         try (MongoClient mongoClient = MongoClients.create(uri)) {
 
             MongoDatabase database = mongoClient.getDatabase("fundamentals_example");
-            // MongoCollection<Document> collection = database.getCollection("phonebook");
+//            MongoCollection<Document> collection = database.getCollection("phonebook");
 
         }
     }
