@@ -1,0 +1,185 @@
+.. _atlascluster-custom-resource:
+
+================================
+``AtlasCluster`` Custom Resource
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasCluster`` custom resource configures your MongoDB cluster in 
+|service|. When you create the ``AtlasCluster`` custom resource, 
+|ak8so| tries to create or update a cluster in |service|.
+   
+|ak8so| does one of the following actions using the |service| :doc:`API 
+</reference/api/clusters>`:
+   
+- Creates a new cluster.
+- Updates an existing cluster.
+
+Creating or updating a cluster can take up to 10 minutes. |ak8so| 
+monitors the update process.
+
+You can run the following command to check on the status:
+
+.. code-block:: sh
+
+   kubectl get atlascluster -o yaml
+
+The following example shows the status section of a cluster that is
+provisioning:
+
+.. code-block:: sh
+
+   status:
+     conditions:
+     - lastTransitionTime: "2021-03-18T16:32:43Z"
+       status: "False"
+       type: ClusterReady
+       reason: ClusterCreating 
+       message: Cluster is provisioning
+
+The ``ClusterReady`` status will change to ``True`` when the cluster is 
+ready.
+
+If you remove the ``AtlasCluster`` resource from your |k8s| cluster, 
+|ak8so| removes the cluster from |service|.
+
+Examples
+--------
+
+Status Example
+~~~~~~~~~~~~~~
+
+The following example shows the ``AtlasCluster`` resource with a  
+``ClusterReady`` status of ``True``:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasCluster
+   metadata:
+     name: my-atlas-cluster
+     namespace: default
+   spec:
+     name: test-cluster
+     projectRef:
+       name: my-project
+     providerSettings:
+       instanceSizeName: M10
+       providerName: AWS
+       regionName: US_EAST_1
+   status:
+     conditions:
+     - lastTransitionTime: "2021-03-18T16:32:43Z"
+       status: "True"
+       type: Ready
+     - lastTransitionTime: "2021-03-18T16:32:43Z"
+       status: "True"
+       type: ClusterReady
+     connectionStrings:
+       standard: mongodb://test-cluster-shard-00-00.kpc8f.mongodb.net:27017,test-cluster-shard-00-01.kpc8f.mongodb.net:27017,test-cluster-shard-00-02.kpc8f.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-1gm1pv-shard-0
+       standardSrv: mongodb+srv://test-cluster.kpc8f.mongodb.net
+     mongoDBVersion: 4.4.4
+     mongoURIUpdated: "2021-03-12T12:21:41Z"
+     observedGeneration: 1
+     stateName: IDLE
+
+ Configuration Example
+ ~~~~~~~~~~~~~~~~~~~~~
+     
+The following example shows an ``AtlasCluster`` custom resource 
+specification configured for auto-scaling multi-region clusters:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasCluster
+   metadata:
+     name: test-cluster-name
+     namespace: mongodb-atlas-system
+   spec:
+     autoScaling:
+       compute:
+         enabled: true
+         scaleDownEnabled: true
+     clusterType: REPLICASET
+     name: service-name
+     projectRef:
+       name: development
+     providerBackupEnabled: true
+     providerSettings:
+       autoScaling:
+         compute:
+           maxInstanceSize: M40
+           minInstanceSize: M30
+       instanceSizeName: M30
+       providerName: GCP
+     replicationSpecs:
+       - numShards: 1
+         regionsConfig:
+           EASTERN_US:
+             analyticsNodes: 0
+             electableNodes: 1
+             priority: 6
+             readOnlyNodes: 0
+           SOUTH_AMERICA_EAST_1:
+             analyticsNodes: 0
+             electableNodes: 2
+             priority: 7
+             readOnlyNodes: 0
+         zoneName: Zone 1
+
+
+Parameters
+----------
+
+This section describes the ``AtlasCluster`` custom resource parameters:
+
+.. setting:: spec.projectRef.name
+
+   *Type*: string
+
+   *Required*
+
+   Name of the project where the cluster belongs. You must specify an 
+   existing :ref:`atlasproject-custom-resource`.
+
+.. setting:: status.connectionStrings
+
+   *Type*: string
+
+   *Required*
+
+   Connection URL for accessing the cluster. This parameter appears 
+   after a cluster is created or updated.
+   
+   .. note::
+
+      You cannot use this connection URL directly. |service| clusters 
+      require authentication. You must create at least one 
+      ``AtlasDatabaseUser`` custom resource before an application can 
+      connect to the |service| cluster. |ak8so| creates a special 
+      |k8s-secret| for each cluster and database user combination in 
+      the project. The application can use this |k8s-secret| to connect 
+      to the |service| cluster. The ``spec.scopes`` parameter in the 
+      ``AtlasDatabaseUser`` custom resource restricts the clusters that 
+      create the database user.
+
+For the configuration parameters available from the |api|, see the 
+|service| :doc:`API </reference/api/clusters-create-one>`. 
+
+.. note::
+   
+   The following parameters are deprecated in the |service| :doc:`API 
+   </reference/api/clusters-create-one>` and |ak8so| does not support 
+   them:
+   
+   - ``replicationSpec``
+
+   - ``replicationFactor``

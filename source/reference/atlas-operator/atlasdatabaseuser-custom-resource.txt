@@ -1,0 +1,265 @@
+.. _atlasdatabaseuser-custom-resource:
+
+=====================================
+``AtlasDatabaseUser`` Custom Resource
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasDatabaseUser`` custom resource configures the database user 
+in an |service| project. You create database users per project, not per 
+cluster. So, the ``AtlasDatabaseUser`` custom resource configuration 
+contains a reference to the :ref:`atlasproject-custom-resource`. Create 
+the :ref:`atlasproject-custom-resource` beforehand.
+
+The following example shows a reference to the 
+:ref:`atlasproject-custom-resource`:
+
+.. code-block:: sh
+
+   spec:
+     projectRef:
+       name: my-project
+
+|ak8so| ensures the database user configuration in |service| matches 
+the configuration in |k8s|.
+
+|ak8so| does one of the following actions:
+   
+- Creates a new database user.
+- If the databse user already exists, updates the existing user.
+
+Connection Secrets
+------------------
+
+Before you create a database user, you must create a |k8s-secret| with 
+a password to log into the |service| cluster database.
+
+The following example creates a secret:
+
+.. code-block:: sh
+
+   kubectl create secret generic the-user-password --from-literal="password=P@@sword%"
+
+After |ak8so| successfully creates or updates the database user in 
+|service|, |ak8so| creates or updates the connection secrets in 
+the same namespace where the ``AtlasDatabaseUser`` custom resource 
+is located.
+ 
+Connection secrets contain all the information required to 
+connect to the |service| clusters including the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Parameter
+     - Description
+
+   * - ``connectionString.standard``
+     - Public ``mongodb:\\`` connection |uri|.
+  
+   * - ``connectionstring.standardSrv``
+     - Public ``mongodb+srv://`` connection |uri|.
+  
+   * - ``username``
+     - Name that identifies the database user.
+  
+   * - ``password``
+     - Password of the database user.
+
+Applications running in |k8s| can use this information to connect to 
+|service| clusters. You can mount the |k8s-secrets| to the application 
+pods as files and the application process can read these files to get 
+data.
+
+.. note::
+
+   You can find the secret name that |ak8so| creates in the 
+   ``AtlasDatabaseUser`` properties. ``status.connectionSecrets`` 
+   contains references to the created secrets. You can also run the 
+   following command:
+
+   .. code-block:: sh
+
+   kubectl get atlasdatabaseuser atlas-cluster-admin-user -n my-cluster -o=jsonpath='{.status.connectionSecrets}'
+
+The following example shows mounting the secret as an environment 
+variable:
+
+.. code-block:: sh
+
+   spec:
+   containers:
+   - name: test-app
+     env:
+       - name: "CONNECTIONSTRING"
+         valueFrom:
+           secretKeyRef:
+             name: project-cluster-basic-theuser
+             key: connectionString.standardSrv
+
+The following example shows mounting the secret as files:
+
+.. code-block:: sh
+
+   spec:
+   containers:
+   - name: test-app
+     volumeMounts:
+     - mountPath: /var/secrets/
+       name: theuser-connection
+   volumes:
+     - name: theuser-connection
+       secret:
+         secretName: project-cluster-basic-theuser
+
+By default, |ak8so| creates the database user connection |k8s-secret| 
+for each cluster in the same project that the ``AtlasDatabaseUser`` 
+references. You can change this behavior with the ``spec.scopes`` 
+parameter. This parameter restricts the clusters where the database 
+user gets created. The name of the connection secret uses the following 
+format: ``<project_name>-<cluster_name>-<db_user_name>``.
+
+Examples
+--------
+
+Project and Clusters
+~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an |service| project and the clusters that 
+reference it:
+
+.. code-block:: sh
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+    name: my-project
+   spec:
+    name: p1
+    projectIpAccessList:
+      - ipAddress: "192.0.2.15"
+        comment: "IP address for Application Server A"
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasCluster
+   metadata:
+    name: my-aws-cluster
+   spec:
+    name: aws-cluster
+    projectRef:
+      name: my-project
+    providerSettings:
+      instanceSizeName: M10
+      providerName: AWS
+      regionName: US_EAST_1
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasCluster
+   metadata:
+    name: my-gcp-cluster
+   spec:
+    name: gcp-cluster
+    projectRef:
+      name: my-project
+    providerSettings:
+      instanceSizeName: M10
+      providerName: GCP
+      regionName: EASTERN_US
+
+Database User without Scopes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDatabaseUser`` custom resource 
+specification with ``spec.scopes`` omitted:
+
+.. code-block:: sh
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDatabaseUser
+   metadata:
+    name: my-database-user
+   spec:
+    roles:
+      - roleName: readWriteAnyDatabase
+        databaseName: admin
+    projectRef:
+      name: my-project
+    username: theuser
+    passwordSecretRef:
+      name: the-user-password 
+
+After you create this custom resource, |ak8so| creates the following 
+|k8s-secrets|:
+
+- ``p1-aws-cluster-theuser``
+- ``p1-gcp-cluster-theuser``
+
+Database User with Scopes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDatabaseUser`` custom resource 
+specification scoped to the |gcp| cluster only:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDatabaseUser
+   metadata:
+    name: my-database-user
+   spec:
+    roles:
+      - roleName: "readWriteAnyDatabase"
+        databaseName: "admin"
+    projectRef:
+      name: my-project
+    username: theuser
+    passwordSecretRef:
+      name: the-user-password
+    scopes:
+      - type: CLUSTER
+        name: gcp-cluster
+
+After you update this custom resource, |ak8so| removes ``theuser`` from 
+the ``aws-cluster``. It also removes the ``p1-aws-cluster-theuser`` 
+|k8s-secret| from the |k8s| cluster.
+
+Parameters
+----------
+
+.. setting:: spec.passwordSecretRef
+
+   *Type*: string
+
+   *Required*
+
+   Reference to the |k8s-secret| that contains the password. The only 
+   supported authentication method, :manual:`SCRAM-SHA 
+   </core/security-scram>`, requires this parameter.
+
+For the configuration parameters available from the |api|, see the 
+|service| :doc:`API </reference/api/database-users-create-a-user>`. 
+   
+Currently, |ak8so| does not support the following parameters 
+available from the |service| :doc:`API </reference/api/database-users-create-a-user>`:
+   
+- ``x509Type``
+   
+- ``awsIAMType``
+   
+- ``ldapAuthType``
+  
+Do not specify the following parameters:
+
+- ``groupId``
+
+- ``password``
+
+  Specify :setting:`spec.passwordSecretRef` instead.

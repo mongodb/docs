@@ -1,0 +1,132 @@
+stepnum: 1
+ref: register-or-log-in-helm
+source:
+  file: steps-ak8so-quick-start.yaml
+  ref: register-or-log-in-ak8so
+
+---
+
+stepnum: 2
+ref: create-api-keys-helm
+source:
+  file: steps-ak8so-quick-start.yaml
+  ref: create-api-keys-ak8so
+
+---
+
+stepnum: 3
+title: "Deploy |ak8so|."
+ref: deploy-ak8so-helm
+content: |
+
+  Run one of the following sets of commands:
+  
+  - If you want |ak8so| to watch all |k8s-nss| in the |k8s| 
+    cluster, run the following commands:
+
+    .. code-block:: sh
+
+       helm repo add mongodb https://mongodb.github.io/helm-charts
+       helm install atlas-operator --namespace=atlas-operator --create-namespace mongodb/mongodb-atlas-operator
+  
+  - If you want |ak8so| to watch only its own |k8s-ns|, set the 
+    ``--watchNamespaces`` flag to its own |k8s-ns|, and run the 
+    following command:
+
+    .. note::
+
+       You can set the ``--watchNamespaces`` flag only to its 
+       own |k8s-ns|. Setting the ``--watchNamespaces`` flag to any 
+       other |k8s-ns| is currently unsupported. 
+
+    .. code-block:: sh
+
+       helm install atlas-operator --namespace=atlas-operator --set watchNamespaces=atlas-operator --create-namespace mongodb/mongodb-atlas-operator
+
+---
+
+stepnum: 4
+title: "Deploy the |service| cluster."
+ref: deploy-cluster-helm
+content: |
+
+  Run the following command:
+
+  .. note::
+     
+     The ``--set`` flags in the following example override the 
+     ``Values.yaml`` file values with your |service| project name, 
+     organization ID, and API keys. Alternatively, you can edit the 
+     ``Values.yaml`` file directly.
+
+  .. code-block:: sh
+
+     helm install atlas-cluster \
+     --namespace=my-cluster \
+     --create-namespace \
+     --set project.atlasProjectName='My Project' \
+     --set atlas.orgId='<orgid>' \
+     --set atlas.publicApiKey='<publicKey>' \
+     --set atlas.privateApiKey='<privateApiKey>'
+
+---
+stepnum: 5
+title: "Check the status of your database user."
+ref: check-database-user-status-helm
+content: |
+
+  Run the following command until you recieve a ``True`` response, 
+  which indicates the database user is ready:
+  
+  .. note::
+
+     The :ref:`atlasdatabaseuser-custom-resource` waits until the 
+     cluster is ready. Creating a new cluster can take up to 10 minutes.
+  
+  .. code-block:: sh
+
+     kubectl get atlasdatabaseusers atlas-cluster-admin-user -o=jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+
+---
+stepnum: 6
+title: "Retrieve the secret that |ak8so| created to connect to the cluster."
+ref: retrieve-ak8so-secret-helm
+content: |
+
+  Run the following command:
+  
+  .. important::
+     
+     The following command requires ``jq`` 1.6 or higher.
+  
+  .. code-block:: sh
+
+     kubectl get secret my-project-atlas-atlas-cluster-admin-user -o json | jq -r '.data | with_entries(.value |= @base64d)';
+
+  .. note::
+     
+     Your connection strings will differ from the following example.
+
+  .. code-block:: sh
+
+     {
+        "connectionString.standard": "mongodb://admin-user:%25SomeLong%25password$foradmin@atlas-cluster-shard-00-00.nlrvs.mongodb.net:27017,atlas-cluster-shard-00-01.nlrvs.mongodb.net:27017,atlas-cluster-shard-00-02.nlrvs.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-11q9bn-shard-0",
+        "connectionString.standardSrv": "mongodb+srv://admin-user:%25SomeLong%25password$foradmin@atlas-cluster.nlrvs.mongodb.net",
+        "password": "%SomeLong%password$foradmin",
+        "username": "admin-user"
+     }
+
+  You can use this |k8s-secret| in your application:
+
+  .. code-block:: sh
+
+     containers:
+      - name: test-app
+        env:
+          - name: "CONNECTION_STRING"
+            valueFrom:
+              secretKeyRef:
+                name: my-project-atlas-atlas-cluster-admin-user
+                key: connectionString.standardSrv
+
+...

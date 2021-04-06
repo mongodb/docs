@@ -1,0 +1,116 @@
+.. _atlasproject-custom-resource:
+
+================================
+``AtlasProject`` Custom Resource
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasProject`` custom resource configures the project in 
+|service|. When you create the ``AtlasProject`` custom resource, 
+|ak8so| tries to create a new project in |service|.
+   
+|ak8so| does one of the following actions:
+   
+- Creates a new project in the organization that the connection 
+  |k8s-secret| configures.
+- Reuses an existing project. In this case, |ak8so| verifies 
+  whether a project with ``spec.name`` exists. If the project exists, 
+  |ak8so| skips creation. After the reconciliation, |ak8so| updates 
+  the ``status.id`` field with the id of the project.
+
+The ``AtasProject`` custom resouce has an optional 
+:setting:`spec.connectionSecretRef.name` parameter. This parameter 
+overrides the default ``global`` connection |k8s-secret|. To 
+:ref:`connect <ak8so-access-to-atlas-ref>` to the |service| |api|, 
+|ak8so| reads the organization ID and :ref:`API keys 
+<about-org-app-api-keys>` from |ak8so| |k8s-secrets|.
+   
+You can also edit the ``AtlasProject`` custom resource specification to 
+configure an :ref:`IP access list <add-to-access-list>` with the 
+:setting:`spec.projectIpAccessList` parameter. This IP access list 
+grants network access to |service| clusters in the project.
+   
+If you remove the ``AtlasProject`` resource from your |k8s| cluster, 
+|ak8so| removes the project from |service|. You must remove all the 
+clusters in the project beforehand. Otherwise, |service| rejects the 
+delete request.
+
+Example
+-------
+
+The following example shows an ``AtlasProject`` custom resource 
+specification:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+    name: my-project
+   spec:
+    name: Test project
+    connectionSecretRef:
+      name: my-atlas-key
+    projectIpAccessList:
+      - ipAddress: "192.0.2.15"
+        comment: "IP address for Application Server A"
+      - cidrBlock: "203.0.113.0/24"
+        comment: "CIDR block for Application Server B - D"
+   status:
+     conditions:
+     - lastTransitionTime: "2021-03-18T16:32:19Z"
+       status: "True"
+       type: Ready
+     - lastTransitionTime: "2021-03-18T16:32:19Z"
+       status: "True"
+       type: ProjectReady
+     - lastTransitionTime: "2021-03-18T16:32:19Z"
+       status: "True"
+       type: IPAccessListReady
+     id: 604a47de73cdsfh1977239021
+     observedGeneration: 1
+
+Parameters
+----------
+
+This section describes the ``AtlasProject`` custom resource parameters:
+
+.. setting:: spec.name
+
+   *Type*: string
+
+   *Required*
+
+   Name of the project created or updated in |service|. The name 
+   length must not exceed 64 characters. The name can contain only 
+   letters, numbers, spaces, dashes, and underscores.
+
+.. setting:: spec.connectionSecretRef.name
+
+   *Type*: string
+
+   *Optional*
+
+   Name of the |k8s-secret| with the organization ID and :ref:`API keys 
+   <about-org-app-api-keys>` that |ak8so| uses to :ref:`connect 
+   <ak8so-access-to-atlas-ref>` to |service|. 
+   If unspecified, |ak8so| uses the default ``global`` secret.
+
+.. setting:: spec.projectIpAccessList
+
+   *Type*: array
+
+   *Required*
+
+   IP access list that grants network access to |service| clusters in 
+   the project. You can specify the following body parameters:
+
+   .. include:: /includes/api/list-tables/requests/access-list.rst
+ 

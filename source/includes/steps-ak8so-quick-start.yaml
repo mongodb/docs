@@ -1,0 +1,229 @@
+stepnum: 1
+title: "Register for an |service| account or log in."
+ref: register-or-log-in-ak8so
+content: |
+
+  :ref:`atlas-register-account` or :ref:`atlas-account-login`.
+
+---
+
+stepnum: 2
+title: "Create API keys for your organization."
+ref: create-api-keys-ak8so
+content: |
+
+  :ref:`about-org-app-api-keys`.
+
+  .. note::
+  
+     You need this information and the organization ID to 
+     configure |ak8so| access to |service|.
+
+---
+
+stepnum: 3
+title: "Deploy |ak8so|."
+ref: deploy-ak8so
+content: |
+
+  Run one of the following sets of commands:
+  
+  - If you want |ak8so| to watch all the |k8s-nss| in the |k8s| 
+    cluster, run the following command:
+
+    .. code-block:: sh
+
+       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/main/deploy/all-in-one.yaml
+  
+  - If you want |ak8so| to watch only its |k8s-ns|, you must install 
+    the configuration files from the ``deploy/namespaced`` directory:
+
+    .. code-block:: sh
+
+       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/main/deploy/namespaced/crds.yaml
+       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/main/deploy/namespaced/namespaced-config.yaml
+
+---
+
+stepnum: 4
+title: "Create a secret with your API keys and organization ID."
+ref: create-ak8so-api-key-secret
+content: |
+
+  To create a |k8s-secret|, run the following command with your API keys and organization ID:
+  
+  .. code-block:: sh
+
+     kubectl create secret generic mongodb-atlas-operator-api-key \
+         --from-literal="orgId=<atlas_organization_id>" \
+         --from-literal="publicApiKey=<atlas_api_public_key>" \
+         --from-literal="privateApiKey=<atlas_api_private_key>" \
+         -n mongodb-atlas-system
+
+---
+
+stepnum: 5
+title: "Create the ``AtlasProject`` custom resource."
+ref: create-atlasproject
+content: |
+
+  Run the following command:
+  
+  .. note::
+
+     The following example does not specify 
+     :setting:`spec.connectionSecretRef.name`. If unspecified, |ak8so| 
+     uses the default connection |k8s-secret| previously set with your 
+     API keys and organization ID.
+  
+  .. code-block:: sh
+
+     cat <<EOF | kubectl apply -f -
+     apiVersion: atlas.mongodb.com/v1
+     kind: AtlasProject
+     metadata:
+       name: my-project
+     spec:
+       name: Test Atlas Operator Project
+       projectIpAccessList:
+         - ipAddress: "0.0.0.0/0"
+           comment: "Allowing access to database from everywhere (only for Demo!)"
+     EOF
+
+  .. warning::
+    
+     The IP address in the example, ``0.0.0.0/0``, allows any client to 
+     connect to the |service| cluster. Do not use this IP address in 
+     production.
+
+---     
+stepnum: 6
+title: "Create the ``AtlasCluster`` custom resource."
+ref: create-atlascluster
+content: |
+
+  Run the following command:
+  
+  .. code-block:: sh
+
+     cat <<EOF | kubectl apply -f -
+     apiVersion: atlas.mongodb.com/v1
+     kind: AtlasCluster
+     metadata:
+       name: my-atlas-cluster
+     spec:
+       name: "Test-cluster"
+       projectRef:
+         name: my-project
+       providerSettings:
+         instanceSizeName: M10
+         providerName: AWS
+         regionName: US_EAST_1
+     EOF
+
+---     
+stepnum: 7
+title: "Create a secret with a password to log into the |service| cluster database."
+ref: create-ak8so-password-secret
+content: |
+
+  Replace ``P@@ssword%`` with your password and run the following 
+  command:
+  
+  .. code-block:: sh
+
+     kubectl create secret generic the-user-password --from-literal="password=P@@sword%"
+
+---
+
+stepnum: 8
+title: "Create the ``AtlasDatabaseUser`` custom resource."
+ref: create-atlasdatabaseuser
+content: |
+
+  Run the following command:
+  
+  .. note::
+
+     :setting:`spec.passwordSecretRef` must reference the password that 
+     you created previously.
+  
+  .. code-block:: sh
+
+     cat <<EOF | kubectl apply -f -
+     apiVersion: atlas.mongodb.com/v1
+     kind: AtlasDatabaseUser
+     metadata:
+       name: my-database-user
+     spec:
+       roles:
+         - roleName: "readWriteAnyDatabase"
+           databaseName: "admin"
+       projectRef:
+         name: my-project
+       username: theuser
+       passwordSecretRef:
+         name: the-user-password
+     EOF
+
+---
+stepnum: 9
+title: "Check the status of your database user."
+ref: check-database-user-status
+content: |
+
+  Run the following command until you recieve a ``True`` response, 
+  which indicates the database user is ready:
+  
+  .. note::
+
+     The :ref:`atlasdatabaseuser-custom-resource` waits until the 
+     cluster is ready. Creating a new cluster can take up to 10 minutes.
+  
+  .. code-block:: sh
+
+     kubectl get atlasdatabaseusers my-database-user -o=jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+
+---
+stepnum: 10
+title: "Retrieve the secret that |ak8so| created to connect to the cluster."
+ref: retrieve-ak8so-secret
+content: |
+
+  Run the following command:
+  
+  .. important::
+     
+     The following command requires ``jq`` 1.6 or higher.
+  
+  .. code-block:: sh
+
+     kubectl get secret test-atlas-operator-project-test-cluster-theuser -o json | jq -r '.data | with_entries(.value |= @base64d)';
+
+  .. note::
+     
+     Your connection strings will differ from the following example.
+
+  .. code-block:: sh
+
+     {
+        "connectionString.standard": "mongodb://theuser:P%40%40sword%25@test-cluster-shard-00-00.peqtm.mongodb.net:27017,test-cluster-shard-00-01.peqtm.mongodb.net:27017,test-cluster-shard-00-02.peqtm.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-pk82fl-shard-0",
+        "connectionString.standardSrv": "mongodb+srv://theuser:P%40%40sword%25@test-cluster.peqtm.mongodb.net",
+        "password": "P@@sword%",
+        "username": "theuser"
+      }
+
+  You can use this |k8s-secret| in your application:
+
+  .. code-block:: sh
+
+     containers:
+      - name: test-app
+        env:
+         - name: "CONNECTION_STRING"
+           valueFrom:
+             secretKeyRef:
+               name: test-atlas-operator-project-test-cluster-theuser
+               key: connectionString.standardSrv
+
+...
