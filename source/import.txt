@@ -4,271 +4,31 @@ Migrate or Import Data into Your Cluster
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: singlecol
+You can bring data from existing MongoDB deployments, ``JSON``, or ``CSV`` files
+into |service| using either live migration tools where |service| assists you, or
+tools for a self-guided migration of data into |service|.
 
-Data Import Tools
------------------
+:doc:`migration-to-atlas-choosing`
+   Choose between different tools for data import and migration based on
+   common cluster configurations.
 
-You can bring data from existing MongoDB deployments or JSON/CSV files
-into |service| using one of the following:
+:doc:`migration-live-atlas-managed`
+   Use the |service|-managed tools to bring data into |service|.
+   |service| guides you through the process and ensures the migration
+   can proceed only when all conditions are met.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 35 65
+:doc:`migration-self-managed`
+   Use |mongomirror|, |mongorestore|, |mongoimport|, or
+   :compass:`MongoDB Compass </import-export/>`,
+   to bring data into |service|. With these tools, you manage the migration
+   process outside of |service|.
 
-   * - Tools
-     - Use Case
 
-   * - :doc:`Live Migrate a replica set </import/live-import>`.
-
-     - To migrate from a MongoDB *replica set*
-       into an |service| replica set cluster.
-
-       |service| replica set live migration supports the following
-       migration paths:
-
-       .. include:: /includes/list-tables/mongomirror-upgrade-path.rst
-
-       See :doc:`replica set live migration </import/live-import>`
-       documentation for complete prerequisites and instructions.
-
-   * - :doc:`Live Migrate a sharded cluster </import/live-import-sharded>`.
-
-     - To migrate from a MongoDB sharded cluster to an |service|
-       sharded cluster. |service|
-       :doc:`global clusters </global-clusters>` are not valid
-       destinations for Live Migration.
-
-       .. include:: /includes/list-tables/mongomirror-upgrade-path-sharded.rst
-
-       See :doc:`sharded cluster live migration </import/live-import-sharded>`
-       documentation for complete prerequisites and instructions.
-
-   * - Live Migrate a standalone MongoDB node.
-
-     - :manual:`Convert </tutorial/convert-standalone-to-replica-set>`
-       the standalone MongoDB node to a single-node replica set and
-       then use the :doc:`Live Migration </import/live-import>`
-       service.
-
-   * - :doc:`mongomirror </import/mongomirror>`
-
-     - To migrate from a MongoDB *replica set* into an |service|
-       cluster.
-
-       :doc:`mongomirror </import/mongomirror>` does not require you to
-       shut down your existing replica set or applications.
-
-       .. list-table::
-          :header-rows: 1
-          :widths: 45 70
-
-          * - | Source Replica Set
-              | MongoDB Version
-            - | Destination |service| Replica Set
-              | MongoDB Version
-
-          * - 2.6
-            - 3.6, 4.0
-
-          * - 3.0
-            - 3.6, 4.0
-
-          * - 3.2
-            - 3.6, 4.0
-
-          * - 3.4
-            - 3.6, 4.0
-
-          * - 3.6
-            - 3.6, 4.0
-
-          * - 4.0
-            - 4.0
-
-          * - 4.2
-            - 4.2
-
-       .. important::
-
-          :doc:`mongomirror </import/mongomirror>` does not import
-          user/role data or copy the ``config`` database.
-
-       See the tutorial :doc:`/import/mongomirror`.
-
-   * - :doc:`mongorestore </import/mongorestore>`
-
-     - To seed an |service| cluster with a BSON dump backup of an
-       existing MongoDB deployment.
-
-       .. important::
-
-          :doc:`mongorestore </import/mongorestore>` does not restore
-          ``system.profile`` collection data.
-
-       See the tutorial :doc:`/import/mongorestore`.
-
-   * - :doc:`mongoimport </import/mongoimport>`
-
-     - To load data from a ``JSON`` or a ``CSV`` file into an |service|
-       cluster.
-
-       .. important::
-
-          :binary:`mongoimport` uses :manual:`strict mode
-          representation for certain BSON types
-          </reference/mongodb-extended-json>`
-
-       See the tutorial :doc:`/import/mongoimport`.
-
-   * - :compass:`MongoDB Compass </import-export/>`
-
-     - To use a :abbr:`GUI (Graphical User Interface)` to load data
-       from a ``JSON`` or a ``CSV`` file into an |service| cluster.
-
-       See the tutorial
-       :compass:`Import and Export Data in MongoDB Compass </import-export>`.
-
-You can also restore from an |service| cluster backup data to another
-|service| cluster. For information, see :doc:`/backup/legacy-backup/restore`.
-
-.. _import-strategies:
-
-Import Strategies for Common Cluster Configurations
----------------------------------------------------
-
-The following table covers the best import strategy for common cluster
-configurations.
-
-.. note::
-
-   If you have a source cluster with authentication and wish to use an
-   import strategy which includes using :binary:`mongorestore
-   <bin.mongorestore>` with the :option:`--oplogReplay
-   <mongorestore.--oplogReplay>` option, you must delete the ``admin``
-   directory from the ``dump`` directory created by :binary:`mongodump
-   <bin.mongodump>`. The ``admin`` directory contains database user
-   information that you can't add to a |service| cluster with
-   ``mongorestore``.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 45 55
-
-   * - Cluster Configuration
-     - Import Strategy
-
-   * - A :term:`replica set`.
-
-     - Use :doc:`Live Migrate </import/live-import>`.
-
-       You must provide the hostname of the :term:`primary` to the Live
-       Migrate tool.
-
-       If the cluster is running a MongoDB version earlier than 2.6,
-       you must first upgrade it to at least MongoDB 2.6.
-
-       You must have access to the primary node's :term:`oplog`. If the
-       cluster runs with authentication, you must have credentials that
-       provide read access to the primary and its :term:`oplog`.
-
-       See :ref:`live-import-migration-validation` for the full
-       list of migration requirements.
-
-   * - A sharded cluster with multiple shards.
-
-     - If your application can tolerate a short period of downtime, use
-       :doc:`Live Migrate </import/live-import-sharded>`. The source
-       cluster must run MongoDB 3.6. If the sharded cluster is not
-       running MongoDB 3.6, you must upgrade it to MongoDB 3.6.
-
-       If the source cluster enforces authentication, specify a user to
-       |service| that exists on every shard *and* the config server
-       replica set. The user must have permission to:
-
-       - Stop or start the sharded cluster balancer.
-       - Read all databases and collections on the host.
-       - Read the oplog on the host.
-
-       See :ref:`live-import-sharded-migration-validation` for the full
-       list of migration requirements.
-
-       If near-continuous uptime is a requirement, please contact
-       MongoDB. From the |service| UI, click :guilabel:`Support`. Fill
-       out a Support ticket, noting your uptime requirements and cluster
-       configuration in the :guilabel:`More details` text entry.
-
-       If some downtime is OK and your sharded cluster does not run a
-       supported MongoDB version, you may use :binary:`mongodump` and
-       :binary:`mongorestore`. See :doc:`/import/mongorestore` and
-       :manual:`Backup Sharded Cluster with Database Dumps
-       </tutorial/backup-sharded-cluster-with-database-dumps>`.
-
-   * - A "single :term:`shard`" :term:`sharded cluster` in ``Compose``.
-       This is the standard configuration for new MongoDB deployments
-       in ``Compose``.
-
-     - Use :doc:`Live Migrate </import/live-import>`.
-
-       You must `enable the oplog proxy <https://www.compose.com/articles/connecting-to-the-oplog-on-the-new-mongodb/>`_.
-
-       You must specify the hostname and credentials for the oplog
-       proxy when connecting from Live Migrate.
-
-       See :ref:`live-import-migration-validation` for the full
-       list of migration requirements.
-
-       .. seealso::
-
-          `Migrate from Compose to MongoDB Atlas <https://docs.mongodb.com/guides/cloud/migrate-from-compose/>`_
-
-   * - A standalone MongoDB node.
-
-     - :manual:`Convert </tutorial/convert-standalone-to-replica-set>`
-       the standalone MongoDB node to a single-node replica set and
-       then use the :doc:`Live Migration </import/live-import>`
-       service.
-
-       If the standalone is running a MongoDB version earlier than 2.6,
-       you must first upgrade it to at least MongoDB 2.6.
-
-       If you are running with authentication enabled, you must have
-       credentials that provide read access to the primary and its oplog.
-
-       If you can't convert the standalone to a replica set, use
-       :binary:`mongodump` and :binary:`mongorestore`. See
-       :doc:`/import/mongorestore`.
-
-   * - A shared multi-tenant cluster, or a cluster where you have no oplog
-       access.
-
-     - Use :binary:`mongodump` and :binary:`mongorestore`. See
-       :doc:`/import/mongorestore`.
-
-       If you are running with authentication enabled, you must have
-       credentials that provide read access to the primary.
-
-
-|service| has built-in support for :doc:`scaling </scale-cluster>` an ``M0``
-Free Tier cluster to an ``M10+`` paid cluster. Alternatively, use
-:binary:`mongodump` and :binary:`mongorestore` to copy data from an ``M0``
-Free Tier cluster to an ``M10+`` cluster. See :doc:`/import/mongorestore`.
 
 .. toctree::
    :titlesonly:
 
-   /import/live-import
-   /import/live-import-sharded
-   Live Migrate from AWS to Atlas <https://docs.mongodb.com/guides/cloud/migrate-from-aws-to-atlas/>
-   Live Migrate from Compose to Atlas <https://docs.mongodb.com/guides/cloud/migrate-from-compose/>
-   Live Migrate from mLab to Atlas <https://docs.mongodb.com/guides/cloud/migrate-from-mlab/>
-   /import/live-import-troubleshooting
-   Migrate from ObjectRocket to Atlas <https://docs.mongodb.com/guides/cloud/migrate-from-object-rocket-to-atlas/>
-   /import/mongomirror
-   /import/mongorestore
-   /import/mongoimport
-   Import Data with MongoDB Compass <https://docs.mongodb.com/compass/current/import-export/>
+   /migration-to-atlas-choosing
+   /migration-live-atlas-managed
+   /migration-self-managed
+
