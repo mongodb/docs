@@ -45,8 +45,8 @@
           * - :guilabel:`Org Name`
 
             - The Flowdock organization name in lower-case letters.
-              This is the name that appears after
-              ``www.flowdock.com/app/`` in the |url| string.
+              This name appears after ``www.flowdock.com/app/`` in the
+              |url| string.
 
           * - :guilabel:`Flow Name`
 
@@ -58,33 +58,33 @@
           * - :guilabel:`API Token`
 
             - Your Flowdock "personal API token" found on the
-              `<https://www.flowdock.com/account/tokens>`_ page of your
-              Flowdock account.
+              `Tokens page <https://www.flowdock.com/account/tokens>`__
+              of your Flowdock account.
 
    * - :guilabel:`Slack Settings`
 
      - Sets a team name, |api| token and a channel name for
-       alert notifications sent to a Slack account. You can
-       configure a Slack integration with OAuth2 by clicking
+       alert notifications sent to a Slack account. To
+       configure a Slack integration with OAuth2, click
        :guilabel:`Configure` and then :guilabel:`Sign in with Slack`.
 
        When you sign in, you are taken to a Slack landing page where
        you may select a workspace and configure permissions. After
        configuring Slack to connect to |service|, your |api| token is
-       automatically generated and maintained. You will be redirected
+       automatically generated and maintained. |service| redirects you
        back to the :guilabel:`Integrations page`.
 
        After initially configuring Slack with |service|, you can
-       :guilabel:`Edit` or :guilabel:`Remove` the integration. Editing
-       the integration will display your team name and |api| token, and
-       allow you to change your channel name.
+       :guilabel:`Edit` or :guilabel:`Remove` the integration. When you
+       edit the integration, |service| displays your team name and
+       |api| token, and allow you to change your channel name.
 
        .. important:: Legacy Token Deprecation
 
-          Legacy tokens are deprecated and will be removed in a future
-          version of |service|. You cannot edit a legacy token
-          integration. Instead, you must reconfigure your Slack
-          integration with OAuth2.
+          |service| deprecated legacy tokens. They will be removed in a
+          future version of |service|. You cannot edit a legacy token
+          integration. You must reconfigure your Slack integration with
+          OAuth2.
 
    * - :guilabel:`Webhook Settings`
 
@@ -128,7 +128,7 @@
 
        If you specify a key in the :guilabel:`Webhook Secret` field,
        |service| adds the ``X-MMS-Signature`` request header. This
-       header contains the base64-encoded |hmac|-SHA-1 signature of the
+       header contains the Base64-encoded |hmac|-SHA-1 signature of the
        request body. |service| creates the signature using the provided
        secret.
 
@@ -141,23 +141,25 @@
 
        .. important::
 
-          If your firewall configuration requires it, allow access
-          from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
-          |service| can communicate with your webhook. 
+          If your firewall configuration requires it, allow access from
+          :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
+          |service| can communicate with your webhook.
 
    * - :guilabel:`VictorOps Settings`
 
-     - Sets an API key and Routing key for alert notifications sent
-       to a VictorOps account. This will be used as the default
-       VictorOps settings when configuring alerts.
+     - Sets an API key and Routing key for alert notifications sent to
+       a Splunk On-Call (formerly VictorOps) account. |service| uses
+       this information as the default settings when configuring
+       alerts.
 
-       Enter the following information from your VictorOps account. If
-       you do not have an existing VictorOps account, you can sign up
-       using
-       `<https://help.victorops.com/knowledge-base/new-user-sign/>`_.
+       - If you have a Splunk On-Call account, enter the following
+         information:
 
-       - VictorOps API Key
-       - VictorOps Routing Key (optional)
+         - `Splunk On-Call API Key <https://help.victorops.com/knowledge-base/api/>`__
+         - `Splunk On-Call Routing Key <https://help.victorops.com/knowledge-base/routing-keys/>`__ (optional)
+
+       - If you don't have a Splunk On-Call account,
+         `sign up for one <https://www.splunk.com/en_us/download/on-call.html>`__.
 
 
    * - :guilabel:`OpsGenie API Key`
@@ -166,12 +168,14 @@
        account. This will be used as the default OpsGenie API key when
        configuring alerts.
 
-       Enter the following information from your OpsGenie account. If
-       you do not have an existing OpsGenie account, you can sign up
-       using `<https://www.opsgenie.com/signup>`_ :
+       - If you have an OpsGenie account, enter the following
+         information:
 
-       - OpsGenie API Key
-       - API Region (United States or Europe)
+         - OpsGenie API Key
+         - API Region (United States or Europe)
+
+       - If you don't have an OpsGenie account,
+         `sign up for one <https://www.opsgenie.com/signup>`__.
 
    * - :guilabel:`New Relic Settings`
 
@@ -182,14 +186,16 @@
        New Relic the same metric data as displayed in |service|
        :doc:`cluster metrics </monitor-cluster-metrics>`.
 
-       Enter the following information from your New Relic account. If
-       you do not have an existing New Relic account, you can sign up
-       using `<http://newrelic.com/mongodb>`_.
+       - If you have a New Relic account, enter the following
+         information:
 
-       - Account ID
-       - License Key
-       - Insights API Insert Key
-       - Insights API Query Key
+         - Account ID
+         - License Key
+         - Insights API Insert Key
+         - Insights API Query Key
+
+       - If you don't have a New Relic account,
+         `sign up for one <https://newrelic.com/signup?via=login>`__.
 
        If any of the keys later become invalid, |service| sends an
        email to the project owner and eventually removes the invalid
@@ -199,14 +205,15 @@
 
      - Configures |service| to send metric data about your deployment
        to |datadog|. You can view these metrics in your Datadog
-       dashboards. For a detailed list of all |service| metrics
-       that Datadog tracks, refer to the
+       dashboards. To discover the detailed list of all |service|
+       metrics that Datadog tracks, refer to the
        :ref:`Datadog Integration <datadog-integration>` page.
 
-       Enter the following information from your Datadog account to
-       have Datadog begin tracking your |service| metric data. If you
-       do not have an existing Datadog account, you can sign up at
-       `<https://app.datadoghq.com/signup>`__.
+       - If you have a Datadog account, use Datadog begin tracking your
+         |service| metric data.
+
+       - If you do not have an existing Datadog account,
+         `sign up for one <https://app.datadoghq.com/signup>`__.
 
        - Datadog API Key
        - API Region (United States or Europe)
