@@ -17,7 +17,7 @@ number of **result** objects retrieved.
    * - results
      - array of objects
      - One object for each item detailed in the
-       `results Embedded Document <#results-embedded-document>`_ 
+       `results Embedded Document <#results-embedded-document>`_
        section.
 
    * - links
