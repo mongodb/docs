@@ -7,7 +7,7 @@ the ``service`` command).
 If you are unsure which init system your platform uses, run the
 following command:
 
-.. code-block:: sh
+.. code-block:: bash
 
    ps --no-headers -o comm 1
 

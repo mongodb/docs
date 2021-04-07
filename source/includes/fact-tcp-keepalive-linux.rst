@@ -1,13 +1,13 @@
 - To view the keepalive setting on Linux, use one of the following
   commands:
 
-  .. code-block:: sh
+  .. code-block:: bash
 
      sysctl net.ipv4.tcp_keepalive_time
 
   Or:
 
-  .. code-block:: sh
+  .. code-block:: bash
 
      cat /proc/sys/net/ipv4/tcp_keepalive_time
 
@@ -21,13 +21,13 @@
 - To change the ``tcp_keepalive_time`` value, you can use one of the
   following commands, supplying a *<value>* in seconds:
 
-  .. code-block:: sh
+  .. code-block:: bash
 
      sudo sysctl -w net.ipv4.tcp_keepalive_time=<value>
 
   Or:
 
-  .. code-block:: sh
+  .. code-block:: bash
 
      echo <value> | sudo tee /proc/sys/net/ipv4/tcp_keepalive_time
 
@@ -35,7 +35,7 @@
   the setting, add the following line to ``/etc/sysctl.conf``,
   supplying a *<value>* in seconds, and reboot the machine:
 
-  .. code-block:: sh
+  .. code-block:: bash
 
      net.ipv4.tcp_keepalive_time = <value>
 
