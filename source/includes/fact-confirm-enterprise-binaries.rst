@@ -1,7 +1,7 @@
 To verify that you are using MongoDB Enterprise, pass the ``--version``
 command line option to the :binary:`~bin.mongod` or :binary:`~bin.mongos`:
 
-.. code-block:: sh
+.. code-block:: bash
 
    mongod --version
 

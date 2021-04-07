@@ -1,6 +1,6 @@
 - To view the keepalive setting on macOS, issue the following command:
 
-  .. code-block:: sh
+  .. code-block:: bash
 
      sysctl net.inet.tcp.keepidle
 
@@ -11,7 +11,7 @@
 - To change the ``net.inet.tcp.keepidle`` value, you can use the
   following command, supplying a *<value>* in milliseconds:
 
-  .. code-block:: sh
+  .. code-block:: bash
 
      sudo sysctl net.inet.tcp.keepidle=<value>
 
