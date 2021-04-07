@@ -11,3 +11,9 @@
    :datalakeconf:`databases` in your {+dl+} storage configuration and 
    then :ref:`update <datalake-setstorageconfig>` your {+dl+} storage 
    configuration with the old configuration.
+
+   {+dl+} doesn't automatically generate or update schemas when you 
+   update the storage configuration from the |service| UI. If you 
+   update your {+dl+} storage configuration through the UI, you must 
+   manually update schemas using the :ref:`sqlgenerateschema-cmd` 
+   command.
