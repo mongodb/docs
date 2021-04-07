@@ -1,0 +1,222 @@
+---
+title: "Deploy a replica set with the |k8s-op-short|."
+stepnum: 1
+level: 4
+optional: true
+ref: pre-deploy-replica-set-openshift
+source:
+  file: steps-enable-split-horizon.yaml
+  ref: pre-deploy-replicaset
+
+---
+title: "Configure services to ensure connectivity."
+stepnum: 2
+level: 4
+ref: configure-replica-set-services-openshift
+content: |
+
+  a. Paste the following example services into a text editor:
+
+     .. literalinclude:: /reference/k8s/example-openshift-service.yaml
+        :linenos:
+        :lineno-start: 1
+        :emphasize-lines: 12-13, 26-27, 40-41 
+  
+     .. note::
+         
+        If the `spec.selector` has entries that target headless 
+        services or applications, OpenShift may create a software 
+        firewall rule explicitly dropping connectivity.  Review the 
+        selectors carefully and consider targeting the stateful set pod 
+        members directly as seen in the example.  Routes in OpenShift 
+        offer port 80 or port 443. This example service uses 
+        port 443.
+
+  #. Change the settings to your preferred values.
+
+  #. Save this file with a ``.yaml`` file extension.
+
+  #. To create the services, invoke the following ``kubectl`` command 
+     on the services file you created:
+
+     .. code-block:: sh
+
+        kubectl apply -f <my-external-services>.yaml
+
+---
+title: "Configure routes to ensure |tls| terminination passthrough."
+stepnum: 3
+level: 4
+ref: configure-replica-set-routes-openshift
+content: |
+
+  a. Paste the following example routes into a text editor:
+
+     .. literalinclude:: /reference/k8s/example-openshift-route.yaml
+        :linenos:
+        :lineno-start: 1
+        :emphasize-lines: 7, 11-12, 19, 23-24, 31, 35-36
+  
+     .. note::
+         
+        To ensure the |tls| |sni| negotiation with |mongod| necessary
+        for |mongod| to respond with the correct horizon replica set 
+        topology for the drivers to use, you must set |tls| 
+        termination passthrough.
+
+  #. Change the settings to your preferred values.
+
+  #. Save this file with a ``.yaml`` file extension.
+
+  #. To create the routes, invoke the following ``kubectl`` command on 
+     the routes file you created:
+
+     .. code-block:: sh
+
+        kubectl apply -f <my-external-routes>.yaml
+
+---
+title: "Add Subject Alternate Names to your |tls| certificates."
+level: 4
+stepnum: 4
+optional: true
+ref: remove-tls-existing-replica-sets-openshift
+source:
+  file: steps-enable-split-horizon.yaml
+  ref: remove-tls-existing-replicasets
+
+---
+title: "Open your replica set resource |yaml| file."
+level: 4
+stepnum: 5
+ref: open-replica-set-resource-openshift
+
+---
+title: "Configure your replica set resource |yaml| file."
+stepnum: 6
+level: 4
+ref: configure-replica-set-resource-openshift
+content: |
+
+  Use the following example to edit your replica set resource |yaml| 
+  file:
+
+  .. literalinclude:: /reference/k8s/example-openshift-replica-set.yaml
+     :linenos:
+     :lineno-start: 1
+     :emphasize-lines: 16-33
+  
+  .. note::
+         
+     OpenShift clusters require localhost horizons if you intend to use 
+     the |k8s-op-short| to create each |csr|. If you manually create 
+     your |tls| certificates, ensure you include localhost in 
+     the |san-dns| list.
+
+---
+title: "Change the settings to your preferred values."
+level: 4
+stepnum: 7
+ref: change-replset-resource-openshift
+source:
+  file: steps-enable-split-horizon.yaml
+  ref: change-replset-resource
+
+---
+level: 4
+stepnum: 8
+ref: save-object-spec-rs-openshift
+source:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: save-object-spec-update
+replacement:
+  k8sResource: :term:`replica set`
+
+---
+title: "Create the necessary |tls| certificates and |k8s| secrets."
+stepnum: 9
+level: 4
+optional: true
+ref: create-certs-openshift
+content: |
+
+  :ref:`Configure TLS for your replica set 
+  <tls-for-replica-set>`. Create one secret for the MongoDB replica set 
+  and one for the certificate authority. The |k8s-op-short| uses these 
+  secrets to place the |tls| files in the pods for MongoDB to use.
+
+---
+title: "Approve |csr| requests."
+stepnum: 10
+level: 4
+optional: true
+ref: approve-csr-requests-openshift
+content: |
+
+  a. If you do not manually create the |tls| certificates for the 
+     deployment, check for pending |csr| approval requests:
+  
+     .. code-block:: sh
+
+        oc get csr
+  
+  #. When the requests come through, approve them:
+
+     .. code-block:: sh
+
+        oc adm certificate approve {certificate-0}.{namespace} ... {certificate-n}.{namespace}
+
+---
+level: 4
+stepnum: 11
+ref: restart-k8s-deployment-rs-openshift
+source:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: restart-k8s-deployment
+replacement:
+  k8sResource: :term:`replica set`
+  k8sResourceType: replica-set
+
+---
+title: Test the connection to the replica set.
+level: 4
+stepnum: 12
+ref: k8s-ext-rs-test-conn-openshift
+content: |
+
+  The |k8s-op-short| should deploy the MongoDB replica set, 
+  configured with the horizon routes created for ingress. After 
+  the |k8s-op-short| completes the deployment, you may connect with the 
+  horizon using |tls| connectivity.  If the certificate authority is 
+  not present on your workstation, you can view and copy it from a 
+  MongoDB pod using the following command:
+
+  .. code-block:: sh  
+  
+     oc exec -it my-external-0 -- cat /mongodb-automation/ca.pem
+
+  To test the connections, run the following command:
+
+  .. note::
+     
+     In the following example, use your replica set names and replace ``{redacted}`` with the domain that you manage.
+
+  .. code-block:: sh
+
+     mongo --host my-external/my-external-0.{redacted}:443,my-external-1.{redacted}:443,my-external-2.{redacted}:443 \
+           --tls \
+           --tlsAllowInvalidCertificates
+
+  .. warning::
+
+     Don't use the ``--tlsAllowInvalidCertificates`` flag in production.
+     In production, share the |k8s| |certauth| files with client tools
+     or applications.
+
+  If the connection succeeds, you should see:
+
+  .. code-block:: javascript
+
+     MongoDB Enterprise <my-replica-set>:PRIMARY
+
+...    
