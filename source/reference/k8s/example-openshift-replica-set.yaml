@@ -1,0 +1,35 @@
+---
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: my-external
+  namespace: mongodb
+spec:
+  type: ReplicaSet
+  members: 3
+  version: 4.2.2-ent
+  opsManager:
+    configMapRef:
+      name: {redacted}
+  credentials: {redacted}
+  persistent: false
+  security:
+    tls:
+      # TLS must be enabled to allow external connectivity
+      enabled: true
+    authentication:
+      enabled: true
+      modes: ["SCRAM","X509"]
+  connectivity:
+    # The "localhost" routes are there just to make sure the localhost 
+    # TLS SAN is created in the CSR, per OpenShift route requirements.
+    # "ocroute" is the configured route in openshift
+    replicaSetHorizons:
+      - "ocroute": "my-external-0.{redacted}:443"
+        "localhost": "localhost:27017"
+      - "ocroute": "my-external-1.{redacted}:443"
+        "localhost": "localhost:27018"
+      - "ocroute": "my-external-2.{redacted}:443"
+        "localhost": "localhost:27019"
+
+...
