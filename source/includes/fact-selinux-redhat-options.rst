@@ -14,13 +14,13 @@ to your SELinux policy:
 
 #. Ensure your system has the ``checkpolicy`` package installed:
 
-   .. code-block:: sh
+   .. code-block:: bash
 
       sudo yum install checkpolicy
 
 #. Create a custom policy file :file:`mongodb_cgroup_memory.te`:
 
-   .. code-block:: sh
+   .. code-block:: bash
 
       cat > mongodb_cgroup_memory.te <<EOF
       module mongodb_cgroup_memory 1.0;
@@ -40,7 +40,7 @@ to your SELinux policy:
 #. Once created, compile and load the custom policy module by
    running these three commands:
 
-   .. code-block:: sh
+   .. code-block:: bash
 
       checkmodule -M -m -o mongodb_cgroup_memory.mod mongodb_cgroup_memory.te
       semodule_package -o mongodb_cgroup_memory.pp -m mongodb_cgroup_memory.mod
@@ -61,13 +61,13 @@ to your SELinux policy:
 
 #. Ensure your system has the ``checkpolicy`` package installed:
 
-   .. code-block:: sh
+   .. code-block:: bash
 
       sudo yum install checkpolicy
 
 #. Create a custom policy file :file:`mongodb_proc_net.te`:
 
-   .. code-block:: sh
+   .. code-block:: bash
 
       cat > mongodb_proc_net.te <<EOF
       module mongodb_proc_net 1.0;
@@ -85,7 +85,7 @@ to your SELinux policy:
 #. Once created, compile and load the custom policy module by
    running these three commands:
 
-   .. code-block:: sh
+   .. code-block:: bash
 
       checkmodule -M -m -o mongodb_proc_net.mod mongodb_proc_net.te
       semodule_package -o mongodb_proc_net.pp -m mongodb_proc_net.mod
@@ -111,7 +111,7 @@ Using a Custom MongoDB Directory Path
 #. Update the SELinux policy to allow the ``mongod`` service
    to use the new directory:
 
-   .. code-block:: sh
+   .. code-block:: bash
 
       sudo semanage fcontext -a -t <type> </some/MongoDB/directory.*>
 
@@ -129,7 +129,7 @@ Using a Custom MongoDB Directory Path
 
 #. Update the SELinux user policy for the new directory:
 
-   .. code-block:: sh
+   .. code-block:: bash
 
       sudo chcon -Rv -u system_u -t <type> </some/MongoDB/directory>
 
@@ -143,7 +143,7 @@ Using a Custom MongoDB Directory Path
 
 #. Apply the updated SELinux policies to the directory:
 
-   .. code-block:: sh
+   .. code-block:: bash
 
       restorecon -R -v </some/MongoDB/directory>
 
@@ -156,7 +156,7 @@ For example:
 
 - If using a non-default MongoDB data path of ``/mongodb/data``:
 
-  .. code-block:: sh
+  .. code-block:: bash
 
      sudo semanage fcontext -a -t mongod_var_lib_t '/mongodb/data.*'
      sudo chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
@@ -165,7 +165,7 @@ For example:
 - If using a non-default MongoDB log directory of ``/mongodb/log``
   (e.g. if the log file path is ``/mongodb/log/mongod.log``):
 
-  .. code-block:: sh
+  .. code-block:: bash
 
      sudo semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
      sudo chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
@@ -175,6 +175,6 @@ For example:
 Using a Custom MongoDB Port
 +++++++++++++++++++++++++++
 
-.. code-block:: sh
+.. code-block:: bash
 
    sudo semanage port -a -t mongod_port_t -p tcp <portnumber>
