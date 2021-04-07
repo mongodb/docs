@@ -10,8 +10,9 @@ Troubleshoot Connection Issues
    :depth: 1
    :class: singlecol
 
-This page outlines common connection issues and possible resolutions. To
-learn more about connecting to an |service| cluster, see the
+This page outlines common connection issues and possible resolutions.
+
+To learn more about connecting to an |service| cluster, see the
 :ref:`Get Started with Atlas <gswa-connect>` tutorial.
 
 .. note::
@@ -38,19 +39,6 @@ Before connecting to your |service| cluster, check that you added your
 host's IP address to the :ref:`IP access list <access-list>` for your
 cluster's project. |service| allows client connections only from IP
 addresses and |cidr| address ranges in the IP access list.
-
-Incorrect connection string format
-----------------------------------
-
-The :manual:`connection string format </reference/connection-string/>`
-you use to connect to |service| depends on several factors, including:
-
-- Your ``mongo`` shell version. To learn more, see
-  :doc:`mongo-shell-connection`.
-- Your driver version. To learn more, see :doc:`/driver-connection/`.
-
-Verify your connection string in a test environment before putting
-it into production.
 
 Authentication to the cluster failed
 ------------------------------------
@@ -101,37 +89,81 @@ Possible solutions
   :urioption:`maxPoolSize` connection string option to limit the
   number of connections in the connection pool.
 
-For more details on fixing this issue, see
+To learn how to fix this issue, see
 :doc:`/reference/alert-resolutions/connection-alerts`.
 
 Attempting to connect to a cluster from behind a firewall
 ---------------------------------------------------------
 
 |service| clusters operate on port ``27017``. You must be able to reach
-this port to connect to your clusters. Additionally, ensure that 
-the appropriate ports are open for the following:
+this port to connect to your clusters. Additionally, ensure that the
+appropriate ports are open for the following:
 
 - For sharded clusters, grant access to port 27016.
 
 - For :doc:`BI Connector </bi-connection>`, grant access to port 27015.
 
-You can check your ability to reach a port using the third-party 
-:guilabel:`Outgoing port tester`. For example, to check your ability to 
-reach port 27017, visit http://portquiz.net:27017. 
+You can check your ability to reach a port using the third-party
+:guilabel:`Outgoing port tester`.
+
+.. example::
+
+   To check your ability to reach port 27017, visit
+   http://portquiz.net:27017.
 
 If you can't access these ports, check your system firewall settings
 and ensure that they are not blocking access to these ports.
 
+Cluster Availability
+--------------------
+
+If you are using a ``mongodb+srv://`` :manual:`connection string
+</reference/connection-string>` and your driver or shell can't find the
+DNS host of the |service| cluster, the cluster might be paused or
+deleted. Check that the cluster exists and then :ref:`resume
+<resume-cluster>` the cluster if necessary.
+
+.. note::
+
+   |service| automatically pauses idle ``M0`` clusters after 60 days
+   with no connections.
+
+MongoDB Compass Troubleshooting
+-------------------------------
+
+If you use |compass| to connect to your cluster, refer to
+the :compass:`Compass Connection Errors </troubleshooting/connection-errors/>`
+for additional resources.
+
+**See also:** :ref:`atlas-connection-refused-srv`
+
+.. _atlas-connection-string-troubleshooting:
+
+Connection String Issues
+------------------------
+
+Incorrect Connection String Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :manual:`connection string format </reference/connection-string/>`
+you use to connect to |service| depends on several factors, including:
+
+- Your ``mongo`` shell version. To learn more, see
+  :doc:`mongo-shell-connection`.
+- Your driver version. To learn more, see :doc:`/driver-connection/`.
+
+Verify your connection string in a test environment before putting
+it into production.
+
 .. _special-pass-characters:
 
-Special characters in connection string password
-------------------------------------------------
+Special Characters in Connection String Password
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you have special characters in your password, you must encode those
-characters if using your password in a connection string URI. For a
-complete list of special characters and their corresponding encodings,
-see the `ASCII Codes Table <https://ascii.cl/>`__. Use the corresponding
-:guilabel:`Hex` value for your characters.
+characters if using your password in a connection string URI.
+
+.. include:: /includes/facts/characters-not-allowed-auth.rst
 
 You can also use an online tool to encode your connection string,
 such as https://www.urlencoder.org/.
@@ -152,8 +184,8 @@ such as https://www.urlencoder.org/.
    your password outside of a connection string URI (for example,
    pasting it into the ``mongo`` shell or MongoDB Compass).
 
-Connection string incompatible with driver version
---------------------------------------------------
+Connection String Incompatible with Driver Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you see this error message, your driver is likely out of date. For
 instructions on updating your driver, refer to your specific
@@ -161,72 +193,75 @@ instructions on updating your driver, refer to your specific
 
 .. _atlas-connection-blocked-by-isp-dns:
 
-Connection string blocked by DNS from your Internet Service Provider
---------------------------------------------------------------------
+Internet Service Provider DNS Blocks Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you use the :ref:`DNS seed list connection string format <connections-dns-seedlist>`
 to connect to |service|, you might see the following error:
 
 .. code-block:: none
    :copyable: false
- 
+
    DNSHostNotFound: Failed to look up service “<MongoDB service name>”
 
-This error might occur because the settings that your ISP uses in the Dynamic
-Host Configuration Protocol (DHCP) may block the |service| address.
-To resolve the issue, change your Domain Name System (DNS) configuration
-to use a 
-:wikipedia:`public DNS server </Public_recursive_name_server>`.
+This error may occur when using the default |dns| server that your
+|isp| provides. That |dns| server might not support |srv| lookups that
+the |dns| seed list connection string format uses.
 
-For example, you can `configure your network settings to use Google
-Public DNS
-<https://developers.google.com/speed/public-dns/docs/using>`__ instead
-of your ISP's DNS servers.
+To resolve the issue, you can try changing your |dns| configuration to
+use a :wikipedia:`public DNS server </Public_recursive_name_server>`.
 
-After you update your network settings to use a public DNS server,
+.. This might introduce issues using services that your |isp| provides.
+.. The |isp|'s |dns| servers may advertise these unique services to
+.. users of those |dns| services. Verify that |isp| services that you
+.. use regularly still work as expected if you change |dns| servers.
+
+.. example::
+
+   You can configure your network settings to
+   :google:`use Google Public DNS </speed/public-dns/docs/using>`
+   instead of your |isp|'s |dns| servers.
+
+After you update your network settings to use a public |dns| server,
 :ref:`connect to the cluster <connect-to-cluster>`.
 
-Connection string error with DB Tools on Ubuntu 18.04
------------------------------------------------------
+Connection String Error with DB Tools on Ubuntu 18.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If running Ubuntu 18.04 and using the
-:ref:`DNS seed list connection string format <connections-dns-seedlist>`
-(in the  form ``mongodb+srv://``) to connect to |service| from one of
-the `MongoDB Database Tools <https://docs.mongodb.com/database-tools>`__
+:ref:`DNS seed list connection string <connections-dns-seedlist>`
+format (``mongodb+srv://``) to connect to |service| from one of
+the :dbtools:`MongoDB Database Tools </database-tools>`
 (``mongodump``, ``mongorestore``, etc), you might see the following
 error:
 
 .. code-block:: none
    :copyable: false
- 
+
    lookup nta8e.mongodb.net on 123.45.67.8:27017: cannot unmarshal DNS message
 
 If so, use one of the following connection options instead:
 
-- use the ``--uri`` option with a :ref:`non-SRV connection string
-  <connections-standard-connection-string-format>` (in the form
-  ``mongodb://``)
-- use the ``--host`` option to specify the host to connect to
-  directly
+- use the ``--uri`` option with a
+  :ref:`non-SRV connection string <connections-standard-connection-string-format>` (``mongodb://``).
+- use the ``--host`` option to specify the host to connect.
 
-Cluster availability
---------------------
+.. _atlas-connection-refused-srv:
 
-If you are using a ``mongodb+srv://`` :manual:`connection string
-</reference/connection-string>` and your driver or shell can't find the
-DNS host of the |service| cluster, the cluster might be paused or
-deleted. Check that the cluster exists and then :ref:`resume
-<resume-cluster>` the cluster if necessary.
+Connection Refused using SRV Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
+When using the
+:ref:`DNS seed list connection string <connections-dns-seedlist>`
+format (``mongodb+srv://``) with a driver or Compass, you may
+receive in the following error:
 
-   |service| automatically pauses idle ``M0`` clusters after 60 days
-   with no connections.
+.. code-block:: none
+   :copyable: false
 
-MongoDB Compass Troubleshooting
--------------------------------
+   Error: querySrv ECONNREFUSED _mongodb._tcp.<SRV Record>
 
-If you are using |compass| to connect to your cluster, you can visit
-the :compass:`Compass Connection Errors
-</troubleshooting/connection-errors/>` page for additional
-troubleshooting resources.
+To remedy this issue, use the
+:ref:`Standard Connection String format <connections-standard-connection-string-format>`
+with Compass or that driver. With Compass, don't set the **SRV Record**
+value, set the **Hostname** and **Port** values instead.
