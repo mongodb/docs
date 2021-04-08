@@ -2,10 +2,94 @@
 Insert or Update in a Single Operation
 ======================================
 
-.. default-domain:: mongodb
+Applications use insert and update operations to store and modify data.
+Sometimes, you need to choose between an insert and update depending on
+whether the document exists. MongoDB simplifies this decision for us
+with an ``upsert`` option.  
 
-If your application stores and modifies data in MongoDB, you probably use
-insert and update operations. In certain workflows, you may need to choose
-between an insert and update depending on whether the document exists.
-In these cases, you can streamline your application logic by using the
-``upsert`` option available in the following methods:
+An ``upsert``:
+
+- Updates documents that match your query filter 
+- Inserts a document if there are no matches to your query filter
+
+Specify an Upsert:
+------------------
+
+To specify an upsert with the ``updateOne()`` or ``updateMany()``
+methods, pass ``true`` to :java-docs:`UpdateOptions.upsert()
+</apidocs/mongodb-driver-core/com/mongodb/client/model/UpdateOptions.html#upsert(boolean)>`.
+
+To specify an upsert with the ``replaceOne()`` method, pass ``true`` to
+:java-docs:`ReplaceOptions.upsert()
+</apidocs/mongodb-driver-core/com/mongodb/client/model/ReplaceOptions.html#upsert(boolean)>`.
+
+In the following example, a paint store sells eight different
+colors of paint. The store had their annual online sale. Their
+``paint_inventory`` collection now shows the following documents: 
+
+.. code-block:: json
+
+    { "_id": { "$oid": "606b4cfbcd83be7518b958da" }, "color": "red", "qty": 5 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958db" }, "color": "purple", "qty": 8 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958dc" }, "color": "blue", "qty": 0 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958dd" }, "color": "white", "qty": 0 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958de" }, "color": "yellow", "qty": 6 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958df" }, "color": "pink", "qty": 0 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958e0" }, "color": "green", "qty": 0 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958e1" }, "color": "black", "qty": 8 }
+
+The store received a fresh shipment and needs to update their inventory.
+The first item in the shipment is ten cans of orange paint.
+
+To update the inventory, query the ``paint_inventory`` collection
+where the ``color`` is ``"orange"``, specify an update to ``increment`` the
+``qty`` field by ``10``, and specify ``true`` to
+``UpdateOptions.upsert()``: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/InsertUpdate.java
+   :language: java
+   :dedent:
+   :start-after: begin updateOneExample
+   :end-before: end updateOneExample
+
+The method returns:
+
+.. code-block:: json   
+
+    AcknowledgedUpdateResult{ matchedCount=0, modifiedCount=0, upsertedId=BsonObjectId{ value=606b4cfc1601f9443b5d6978 }} 
+
+This ``AcknowledgedUpdateResult`` tells us:
+
+- Zero documents matched our query filter
+- Zero documents in our collection got modified 
+- A document with an ``_id`` of  ``606b4cfc1601f9443b5d6978`` got upserted
+
+The following shows the documents in the ``paint_inventory`` collection:
+
+.. code-block:: json   
+
+    { "_id": { "$oid": "606b4cfbcd83be7518b958da" }, "color": "red", "qty": 5 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958db" }, "color": "purple", "qty": 8 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958dc" }, "color": "blue", "qty": 0 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958dd" }, "color": "white", "qty": 0 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958de" }, "color": "yellow", "qty": 6 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958df" }, "color": "pink", "qty": 0 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958e0" }, "color": "green", "qty": 0 }
+    { "_id": { "$oid": "606b4cfbcd83be7518b958e1" }, "color": "black", "qty": 8 }
+    { "_id": { "$oid": "606b4cfc1601f9443b5d6978" }, "color": "orange", "qty": 10 }]
+
+.. note::
+
+    Not including ``UpdateOptions`` results in no change to the collection.
+
+    .. literalinclude:: /includes/fundamentals/code-snippets/InsertUpdate.java
+        :language: java
+        :dedent:
+        :start-after: begin updateOneAttemptExample
+        :end-before: end updateOneAttemptExample
+
+    The method returns:
+
+    .. code-block:: json  
+    
+        AcknowledgedUpdateResult{ matchedCount=0, modifiedCount=0, upsertedId=null }
