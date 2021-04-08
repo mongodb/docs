@@ -23,7 +23,7 @@ delete operations to a destination MongoDB cluster.
 You can also handle CDC using the following event producers:
 
 - :ref:`Debezium <cdc-debezium>`
-- Qlik Replicate (coming soon)
+- :ref:`Qlik Replicate <cdc-qlik>`
 
 Change Data Capture Using the MongoDB Sink Connector
 ----------------------------------------------------
@@ -95,15 +95,10 @@ You can configure the sink connector to process data from a CDC stream
 using one of the included handlers for Debezium or a custom handler that
 extends the abstract class `CdcHandler
 <https://github.com/mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/CdcHandler.java>`__.
+The included handlers for Debezium can be found in the
+`MongoDB Kafka connector repository here <https://github.com/mongodb/mongo-kafka/tree/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/debezium>`__.
 
-To create a CDC handler, specify the following configuration information:
-
-- Full class name of the CDC handler in the
-  ``change.data.capture.handler`` property. Once this configuration
-  setting is specified, the connector will run in **CDC operation mode**.
-- Topics on which the connector should listen for data in the ``topics``
-  property.
-- MongoDB collection to write data to in the ``collection`` property.
+.. include:: /includes/create-cdc-handler.rst
 
 .. _cdc-debezium-example:
 
@@ -133,3 +128,52 @@ Debezium with a specified CDC configuration when posted to the
 
 .. include:: /includes/externalize-secrets.rst
 
+.. _cdc-qlik:
+
+Change Data Capture Using Qlik Replicate
+----------------------------------------
+
+The MongoDB Kafka sink connector can also process event streams using
+`Qlik Replicate <https://www.qlik.com/us/products/qlik-replicate>`__ as an event
+producer for several of data sources including:
+
+- Oracle 
+- Postgres
+- Microsoft SQL Server
+
+For a complete list of supported sources for Qlik Replicate CDC events, see the
+`Qlik Replicate Source Endpoint Support Matrix <https://help.qlik.com/en-US/replicate/November2020-SR1/Content/Replicate/Main/Support%20Matrix/supported_source_endpoints.htm>`__.
+
+You can configure the sink connector to process data from a CDC stream
+using the included handler for Qlik Replicate or a custom handler that
+extends the abstract class 
+`CdcHandler <https://github.com/mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/CdcHandler.java>`__.
+The included handler for Qlik Replicate can be found in the
+`MongoDB Kafka connector repository here <https://github.com/mongodb/mongo-kafka/tree/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/qlik>`__.
+
+.. include:: /includes/create-cdc-handler.rst
+
+.. _cdc-qlik-example:
+
+Qlik Replicate Example
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following sample JSON payload instantiates a new connector using
+Qlik Replicate with a specified CDC configuration when posted to the
+`Kafka Connect REST endpoint <https://docs.confluent.io/current/connect/references/restapi.html>`__:
+
+.. code-block:: json
+
+   {
+     "name": "mongo-sink-qlik-replicate-cdc",
+     "config": {
+       "connector.class": "com.mongodb.kafka.connect.sink.MongoSinkConnector",
+       "connection.uri": "mongodb://<mongodb-hostname>:27017/kafkaconnect?w=1&journal=true",
+       "collection": "mongosink",
+       "topics": "myreplset.kafkaconnect.rdbmssrc",
+       "change.data.capture.handler": "com.mongodb.kafka.connect.sink.cdc.qlik.rdbms.RdbmsHandler",
+       "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+     }
+   }
+
+.. include:: /includes/externalize-secrets.rst
