@@ -173,6 +173,7 @@ provided with this connector:
      - | Full Path: ``com.mongodb.kafka.connect.sink.processor.id.strategy.UuidStrategy``
        | Generates a random UUID as a string.
 
+
 You can assign the ``document.id.strategy`` property as follows:
 
 .. code-block:: properties
@@ -449,6 +450,10 @@ specified.
    [key|value].projection.type=BlockList
    [key|value].projection.list=**.high
 
+The record contains the following data after applying the projection:
+
+.. code-block:: json
+
    {
      "city": "Springfield",
      "population: {
@@ -504,7 +509,7 @@ RenameByMapping Example
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``RenameByMapping`` post processor setting specifies one or more
-objects that assigns fields matching a string to a new name in a Key or Value
+objects that assign fields matching a string to a new name in a Key or Value
 document.
 
 Each object contains the text to match in the ``oldName`` element and the
@@ -683,11 +688,20 @@ provided with the connector:
 
        .. seealso::
 
-          Example of usage in :ref:`writemodel-strategy-business-key`.
+          Example of usage in :ref:`ReplaceOneBusinessKey example <replaceonebusinesskey-example>`.
+
    * - DeleteOneDefaultStrategy
      - | Deletes at most one document that matches the id specified by the ``document.id.strategy`` setting, only when the document contains a null value record.
        | Implicitly specified when the configuration setting ``mongodb.delete.on.null.values=true`` is set.
        | You can set this explicitly with the following configuration: ``writemodel.strategy=com.mongodb.kafka.connect.sink.writemodel.strategy.DeleteOneDefaultStrategy``
+
+   * - DeleteOneBusinessKeyStrategy
+     - | Deletes at most one document that matches filters provided in the ``document.id.strategy`` setting.
+       | Set the following configuration: ``writemodel.strategy=com.mongodb.kafka.connect.sink.writemodel.strategy.DeleteOneBusinessKeyStrategy``
+
+       .. seealso::
+
+          Example of usage in :ref:`DeleteOneBusinessKey example <deleteonebusinesskey-example>`.
 
    * - UpdateOneTimestampsStrategy
      - | Add ``_insertedTS`` (inserted timestamp) and ``_modifiedTS`` (modified timestamp) fields into documents.
@@ -695,7 +709,8 @@ provided with the connector:
 
        .. seealso::
 
-          Example of usage in :ref:`writemodel-strategy-timestamps`.
+          Example of usage in :ref:`WriteModel Strategy: Inserted and Modified Timestamps<writemodel-strategy-timestamps>`.
+
    * - UpdateOneBusinessKeyTimestampStrategy
      - | Add ``_insertedTS`` (inserted timestamp) and ``_modifiedTS`` (modified timestamp) fields into documents that match the filters provided by the ``document.id.strategy`` setting.
        | Set the following configuration: ``writemodel.strategy=com.mongodb.kafka.connect.sink.writemodel.strategy.UpdateOneBusinessKeyTimestampStrategy``
@@ -768,11 +783,19 @@ in the MongoDB collection that matches the ID from the value document.
 WriteModel Strategy: Business Keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A business key is a value comprised of data within the sink record that
-identifies it as a unique document. This example defines a business key
-using data contained within multiple fields in the record as well as
-instructs the post processor to generate *BSON ObjectIds* for inserts,
-but not for updates.
+A **business key** is a value comprised of data within the sink record that
+identifies it as a unique document. The following examples demonstrate
+WriteModel strategies that define business keys using one or more fields
+from the sink record.
+
+.. _replaceonebusinesskey-example:
+
+ReplaceOneBusinessKeyStrategy Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In this example, we assemble a business key from multiple fields of a
+record and instruct the post processor to generate BSON **ObjectId**
+instances for inserts, but not for updates.
 
 Follow the steps below to configure this strategy:
 
@@ -784,7 +807,7 @@ Follow the steps below to configure this strategy:
 #. In the connector configuration, specify the
    ``ReplaceOneBusinessKeyStrategy`` writemodel strategy.
 
-For this example, we track airplane capacity by the flight number and
+Suppose our task is to track airplane capacity by the flight number and
 airport location represented by ``flight_no`` and ``airport_code``,
 respectively. An example message contains the following:
 
@@ -802,7 +825,7 @@ respectively. An example message contains the following:
 To implement the strategy, we first create a unique index on the
 ``flight_no`` and ``airport_code`` fields in the MongoDB shell:
 
-.. code-block:: none
+.. code-block:: javascript
 
    db.collection.createIndex({ "flight_no": 1, "airport_code": 1}, { unique: true })
 
@@ -849,6 +872,86 @@ values without changing the ``_id`` field.
        "occupied": 95
      }
    }
+
+.. _deleteonebusinesskey-example:
+
+DeleteOneBusinessKeyStrategy Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In this example, we show how to use the ``DeleteOneBusinessKeyStrategy``
+to do the following:
+
+- Assemble a business key from a single field from a record.
+- Instruct the post processor to delete a document in the target
+  collection that contains a value matching the one in the business key.
+
+Suppose our task is to track airline passenger ticket reservations and
+cancellations. We can use the ``DeleteOneBusinessKeyStrategy`` to delete
+reservations when customers cancel or when reservations go unclaimed.
+
+The following MongoDB document represents a ticket reservation in the
+``tickets`` database and ``reservations`` collection:
+
+.. code-block:: json
+
+   {
+     "_id": ObjectId('5db0b81199b7fbcc89631d07'),
+     "flight_no": "Z920",
+     "airport_code": "CDG",
+     "reservation_no": "RT211583W"
+   }
+
+The following steps show how we can configure the value of the
+``reservation_no`` field as the business key and create the delete
+strategy:
+
+#. Create a :manual:`unique index </core/index-unique>` that corresponds to
+   your business key in your target MongoDB collection.
+#. In the connector configuration, specify the ``PartialValueStrategy``
+   as the id strategy to identify the field that you want to use as the
+   business key.
+#. In the connector configuration, specify the
+   ``DeleteOneBusinessKeyStrategy`` writemodel strategy.
+#. Specify the source topic and target MongoDB database and collection.
+
+To implement the ``DeleteOneBusinessKeyStrategy`` with our connector, first
+we create a unique index on the ``reservation_no`` field in the MongoDB shell:
+
+.. code-block:: javascript
+
+   db.collection.createIndex({ "reservation_no": 1 }, { unique: true })
+
+Next, we specify the ``PartialValueStrategy`` strategy as the id strategy
+and use the ``projection`` setting to consider only the ``reservation_no``
+field with the following configuration:
+
+.. code-block:: properties
+
+   document.id.strategy=com.mongodb.kafka.connect.sink.processor.id.strategy.PartialValueStrategy
+   document.id.strategy.partial.value.projection.list=reservation_no
+   document.id.strategy.partial.value.projection.type=AllowList
+
+We specify the strategy in the configuration as follows:
+
+.. code-block:: properties
+
+   writemodel.strategy=com.mongodb.kafka.connect.sink.writemodel.strategy.DeleteOneBusinessKeyStrategy
+
+We define the Kafka topic from which we receive cancellations and the
+target ticket reservation database and collection in the configuration
+file as follows:
+
+.. code-block:: properties
+
+   topics=ReservationCancellations
+   database=tickets
+   collection=reservations
+
+When the connector receives sink data from the "ReservationCancellations"
+topic, it extracts the business key using the strategy configuration
+settings and performs a delete operation on the target collection. If the
+``reservation_no`` field contains a value of "RT211583W", the connector
+deletes deletes the matching document from the collection.
 
 .. _writemodel-strategy-timestamps:
 
@@ -904,11 +1007,10 @@ The MongoDB document inserted after processing the initial message for the
 train includes the following data:
 
 .. code-block:: json
-   :emphasize-lines: 3-4
 
    {
      "_id": "MN-1234",
-     "_insertedTS": ISODate('2019-10-23T15:08:000Z"),
+     "_insertedTS": ISODate("2019-10-23T15:08:000Z"),
      "_modifiedTS": ISODate("2019-10-23T15:08:000Z"),
      "start": "Beacon",
      "destination": "Grand Central"
@@ -919,13 +1021,13 @@ After an hour, the train reports its current location along its route. The
 ``position`` and ``_modifiedTS`` fields are updated:
 
 .. code-block:: json
-   :emphasize-lines: 4,7
 
    {
      "_id": "MN-1234",
-     "_insertedTS": ISODate('2019-10-23T15:08:000Z"),
+     "_insertedTS": ISODate("2019-10-23T15:08:000Z"),
      "_modifiedTS": ISODate("2019-10-23T16:08:000Z"),
      "start": "Beacon",
      "destination": "Grand Central"
      "position": [ 41.156, -73.870 ]
    }
+
