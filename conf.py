@@ -59,7 +59,7 @@ pygments_style = 'sphinx'
 source_constants = {
     'version': version,
     'k8s-op-short': 'Kubernetes Operator',
-    'k8s-api-version': 'v1.20',
+    'k8s-api-version': 'v1.21',
     'aagent': 'MongoDB Agent or legacy Automation Agent',
     'aagents': 'MongoDB Agents or legacy Automation Agents',
     'mdbagent': 'MongoDB Agent',

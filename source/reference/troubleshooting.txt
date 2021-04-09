@@ -35,7 +35,7 @@ invoke one of the following commands:
 
   .. note::
 
-     The ``opsManager`` controller watches the database resources
+     The |com| controller watches the database resources
      defined in the following settings:
 
      - :opsmgrkube:`spec.backup.opLogStores`
@@ -581,8 +581,8 @@ policy through the :opsmgr:`API </reference/api/controlled-features/update-contr
 
 .. _k8s-debug-failed container:
 
-Debugging a Failing Container
------------------------------
+Debug a Failing Container
+-------------------------
 
 A container might fail with an error that results in |k8s| restarting
 that container in a loop.
@@ -621,4 +621,40 @@ commands. This requires you to prevent the container from restarting.
    .. code-block:: sh
 
       kubectl exec -it <pod-name> bash
+
+Verify Corrrectness of Domain Names in TLS Certificates
+-------------------------------------------------------
+
+A MongoDB replica set or sharded cluster may fail to reach
+the ``READY`` state if the |tls| certificate is invalid.
+
+When you :ref:`configure TLS
+<secure-tls>` for MongoDB replica sets or sharded clusters, verify
+that you specify a valid certificate.
+
+If you don't specify the correct Domain Name for each |tls| certificate,
+the |k8s-op-short| logs may contain an error message similar to the
+following, where ``foo.svc.local`` is the incorrectly-specified Domain
+Name for the cluster member's Pod:
+
+.. code-block:: sh
+   :copyable: false
+
+   TLS attempt failed : x509: certificate is valid for foo.svc.local,
+   not mongo-0-0.mongo-0.mongodb.svc.cluster.local
+
+.. include:: /includes/prereqs/pem-file-domain-name.rst
+
+To check whether you have correctly configured |tls| certificates:
+
+1. Run:
+
+   .. code-block:: sh
+
+      kubectl logs -f <pod_name>
+
+2. Check for |tls|-related messages in the |k8s-op-short| log files.
+
+To learn more about |tls| certificate requirements, see
+:ref:`TLS prerequisites <secure-tls-prerequisites>`.
 

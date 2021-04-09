@@ -14,3 +14,7 @@
   .. include:: /includes/prereqs/pem-file-description.rst
 
   .. include:: /includes/prereqs/custom-ca-prereqs-naming-conventions.rst
+  
+  .. admonition:: About the Domain Names in certificates
+  
+     .. include:: /includes/prereqs/pem-file-domain-name.rst
