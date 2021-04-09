@@ -10,8 +10,7 @@ Downgrade |newversion| Sharded Cluster to |oldversion|
    :depth: 1
    :class: singlecol
 
-.. role:: red(strong)
-   :class: text-danger
+
 
 .. include:: /includes/4.4-upgrade-replacements.rst
 
@@ -46,52 +45,50 @@ configuration settings.
 1. Namespace Length
 ~~~~~~~~~~~~~~~~~~~
 
-.. container::
+Starting in MongoDB 4.4:
 
-   Starting in MongoDB 4.4:
+.. include:: /includes/fact-collection-namespace-limit.rst
 
-   .. include:: /includes/fact-collection-namespace-limit.rst
+Before downgrading, resolve any collections or views with namespaces
+that exceed the 120-byte :limit:`Namespace Length` limit for Feature
+Compatibility Version (fCV) 4.2.
 
-   Before downgrading, resolve any collections or views with namespaces
-   that exceed the 120-byte :limit:`Namespace Length` limit for Feature
-   Compatibility Version (fCV) 4.2.
+To determine if you have any collections or views with namespaces
+that exceed the 120-byte limit, connect :binary:`~bin.mongo` shell
+to a |target| and run:
 
-   To determine if you have any collections or views with namespaces
-   that exceed the 120-byte limit, connect :binary:`~bin.mongo` shell
-   to a |target| and run:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.adminCommand("listDatabases").databases.forEach(function(d){
+      let mdb = db.getSiblingDB(d.name);
 
-      db.adminCommand("listDatabases").databases.forEach(function(d){
-         let mdb = db.getSiblingDB(d.name);
+      mdb.getCollectionInfos( ).forEach(function(c){
+         namespace = d.name + "." + c.name
+         namespacelenBytes =  encodeURIComponent(namespace).length
 
-         mdb.getCollectionInfos( ).forEach(function(c){
-            namespace = d.name + "." + c.name
-            namespacelenBytes =  encodeURIComponent(namespace).length
+         if (namespacelenBytes > 120) {
+            print (c.type.toUpperCase() + " namespace exceeds 120 bytes:: " + namespace )
+         }
+      } )
+   })
 
-            if (namespacelenBytes > 120) {
-               print (c.type.toUpperCase() + " namespace exceeds 120 bytes:: " + namespace )
-            }
-         } )
-      })
+If any collection or view namespace exceeds 120 bytes, then :red:`prior` to
+downgrading the fCV:
 
-   If any collection or view namespace exceeds 120 bytes, then :red:`prior` to
-   downgrading the fCV:
+- For unsharded collections, rename the collections using the
+  :dbcommand:`renameCollection` command.
 
-   - For unsharded collections, rename the collections using the
-     :dbcommand:`renameCollection` command.
+- For sharded collections:
 
-   - For sharded collections:
+  - Use :pipeline:`$merge` to a new sharded collection with a shorter
+    name, then drop the original collection.
 
-     - Use :pipeline:`$merge` to a new sharded collection with a shorter
-       name, then drop the original collection.
+  - Use :binary:`~bin.mongoexport` and :binary:`~bin.mongoimport` into
+    a new collection with a shorter name, then drop the original collection.
 
-     - Use :binary:`~bin.mongoexport` and :binary:`~bin.mongoimport` into
-       a new collection with a shorter name, then drop the original collection.
-
-   - For views, use :method:`db.createView()` to recreate the view
-     using a shorter name, then drop the original view.
-     
+- For views, use :method:`db.createView()` to recreate the view
+  using a shorter name, then drop the original view.
+  
 .. _4.4-downgrade-feature-compatibility-sharded-cluster:
 
 2. Downgrade Feature Compatibility Version (fCV)
@@ -203,43 +200,41 @@ include but are not limited to:
 5. Update Missing Shard Keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+In MongoDB 4.4, shard key fields can be :ref:`missing from documents
+<shard-key-missing>` in a sharded collection. 
 
-   In MongoDB 4.4, shard key fields can be :ref:`missing from documents
-   <shard-key-missing>` in a sharded collection. 
-   
-   If you downgrade to 4.2 and a sharded collection contains documents
-   missing shard key fields, 4.2 :binary:`~bin.mongos` instances do not
-   return documents that are missing the shard key fields. To avoid
-   this situation, update the documents to includes the missing shard
-   key fields before you downgrade.
+If you downgrade to 4.2 and a sharded collection contains documents
+missing shard key fields, 4.2 :binary:`~bin.mongos` instances do not
+return documents that are missing the shard key fields. To avoid
+this situation, update the documents to includes the missing shard
+key fields before you downgrade.
 
-   To find documents that are missing any part of the shard key, use the
-   :query:`$exists` operator. 
+To find documents that are missing any part of the shard key, use the
+:query:`$exists` operator. 
 
-   For example, if the collection ``contacts`` has the shard key ``{
-   zipcode: 1 }``, to find documents without the ``zipcode`` field:
+For example, if the collection ``contacts`` has the shard key ``{
+zipcode: 1 }``, to find documents without the ``zipcode`` field:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.contacts.find( { zipcode: { $exists: false } } )
+   db.contacts.find( { zipcode: { $exists: false } } )
 
-   To set the missing shard key field to ``null`` for these documents,
-   you can use the :method:`db.collection.updateMany()` method:
+To set the missing shard key field to ``null`` for these documents,
+you can use the :method:`db.collection.updateMany()` method:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.contacts.updateMany( { zipcode: { $exists: false } }, { $set: { zipcode: null } } )
+   db.contacts.updateMany( { zipcode: { $exists: false } }, { $set: { zipcode: null } } )
 
-   If setting the missing shard key field to a non-``null`` value, you
-   cannot use the :method:`db.collection.updateMany()` method and you
-   must perform the update within a transaction or as a retryable
-   write. For details, see :ref:`shard-key-missing-set`.
+If setting the missing shard key field to a non-``null`` value, you
+cannot use the :method:`db.collection.updateMany()` method and you
+must perform the update within a transaction or as a retryable
+write. For details, see :ref:`shard-key-missing-set`.
 
 6. Update Shard Keys That Exceed 512 bytes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. container::
+.. versionchanged:: 4.4   
 
    In version 4.4, MongoDB removes the 512-byte limit on the shard key
    size. However, for MongoDB 4.2 and earlier, a shard key cannot

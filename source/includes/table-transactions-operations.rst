@@ -68,7 +68,9 @@
        In MongoDB 4.2 and earlier, if ``upsert: true``, the operation
        must be run on an existing collection.
        
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+          :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.insertMany()`
        | :method:`db.collection.insertOne()`
@@ -82,7 +84,9 @@
        In MongoDB 4.2 and earlier, the operation must be run on an
        existing collection.
        
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+          :ref:`transactions-operations-ddl`
 
    * - :method:`db.collection.save()`
      - 
@@ -92,7 +96,9 @@
        In MongoDB 4.2 and earlier, the operation must be run on an
        existing collection.
 
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+          :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.updateOne()`
        | :method:`db.collection.updateMany()`
@@ -107,7 +113,9 @@
        In MongoDB 4.2 and earlier, the operation must be run on an
        existing collection.
 
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+          :ref:`transactions-operations-ddl`
 
    * - | :method:`db.collection.bulkWrite()`
        | Various :doc:`/reference/method/js-bulk`
@@ -118,4 +126,6 @@
        In MongoDB 4.2 and earlier, the operation must be run on an
        existing collection.
        
-       .. seealso:: :ref:`transactions-operations-ddl`
+       .. seealso::
+
+          :ref:`transactions-operations-ddl`

@@ -16,4 +16,8 @@ aggregation pipeline stages to write data to temporary files.
 
 .. include:: /includes/extracts/4.2-changes-usedDisk.rst
 
-.. seealso:: :ref:`sort-memory-limit` and :ref:`group-memory-limit`.
+.. seealso::
+
+   - :ref:`sort-memory-limit`
+   - :ref:`group-memory-limit`
+

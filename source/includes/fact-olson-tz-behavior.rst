@@ -19,7 +19,6 @@ offset for the Olson Timezone Identifier. The example uses the
 :expression:`$hour` and :expression:`$minute` operators to return the
 corresponding portions of the ``date`` field:
 
-.. cssclass:: copyable-code
 .. code-block:: javascript
 
    db.sales.aggregate([

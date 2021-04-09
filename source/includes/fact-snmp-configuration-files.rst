@@ -30,9 +30,9 @@ Enterprise installation, as follows:
      :header-rows: 1
      :widths: 20 80
 
-     * - **Platform**
+     * - Platform
 
-       - **Path**
+       - Path
 
      * - RHEL / CentOS
 

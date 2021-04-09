@@ -22,7 +22,7 @@ When the :limit:`Index Key Limit` applies:
 
 - .. include:: /includes/fact-index-key-length-operation-behaviors.rst
      :start-after: index-field-limit-rs-secondary
-     :end-before: .. index-field-limit-chunk-migration
+     :end-before: index-field-limit-chunk-migration
 
 - .. include:: /includes/fact-index-key-length-operation-behaviors.rst
      :start-after: index-field-limit-chunk-migration

@@ -2,8 +2,13 @@ The privileges of the following built-in roles no longer apply to the
 ``local`` and ``config`` databases:
 
 .. list-table::
+   :header-rows: 1
    :widths: 30 70
-   
+
+   * - Role
+
+     - Change
+ 
    * - :authrole:`readAnyDatabase`
 
      - Starting in 3.4, to provide ``read`` privileges on the ``local``

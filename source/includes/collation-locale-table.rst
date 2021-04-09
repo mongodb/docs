@@ -1,5 +1,4 @@
 .. list-table::
-   :class: index-table index-table-less-padding
 
    * - .. list-table::
           :header-rows: 1
@@ -223,7 +222,7 @@
             - ``unihan``
 
      - .. list-table::
-          :header-rows: 1
+
 
           * - Language
             - Locale

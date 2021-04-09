@@ -5,27 +5,25 @@ If the backup data includes :data:`system.profile
 :option:`--oplogReplay <mongorestore.--oplogReplay>`, you need
 additional privileges:
 
-.. container::
+.. list-table::
+   :widths: 20 80
 
-   .. list-table::
-      :widths: 20 80
+   * - ``system.profile``
 
-      * - ``system.profile``
+     - .. include:: /includes/fact-restore-role-system.profile.rst
 
-        - .. include:: /includes/fact-restore-role-system.profile.rst
+       Both the built-in roles :authrole:`dbAdmin` and
+       :authrole:`dbAdminAnyDatabase` provide the additional privileges.
 
-          Both the built-in roles :authrole:`dbAdmin` and
-          :authrole:`dbAdminAnyDatabase` provide the additional privileges.
+   * - ``--oplogReplay``
 
-      * - ``--oplogReplay``
+     - To run with :option:`--oplogReplay
+       <mongorestore.--oplogReplay>`, create a 
+       :ref:`user-defined role <create-user-defined-role>` that has
+       :authaction:`anyAction` on :ref:`resource-anyresource`.
 
-        - To run with :option:`--oplogReplay
-          <mongorestore.--oplogReplay>`, create a 
-          :ref:`user-defined role <create-user-defined-role>` that has
-          :authaction:`anyAction` on :ref:`resource-anyresource`.
-
-          Grant only to users who must run :binary:`~bin.mongorestore`
-          with :option:`--oplogReplay <mongorestore.--oplogReplay>`.
+       Grant only to users who must run :binary:`~bin.mongorestore`
+       with :option:`--oplogReplay <mongorestore.--oplogReplay>`.
 
 .. COMMENT per the following commit, choosing the anyAction/anyResource
    over the __system role.
