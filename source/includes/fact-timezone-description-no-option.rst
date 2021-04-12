@@ -9,21 +9,21 @@ If no ``timezone`` is provided, the result is displayed in ``UTC``.
    :header-rows: 1
    :widths: 30 70
 
-   * - ``Format``
-     - ``Examples``
+   * - Format
+     - Examples
 
-   * - `Olson Timezone Identifier`
+   * - Olson Timezone Identifier
 
-     - ::
+     - .. code-block:: bash
 
-         "America/New_York"
-         "Europe/London"
-         "GMT"
+          "America/New_York"
+          "Europe/London"
+          "GMT"
 
-   * - `UTC Offset`
+   * - UTC Offset
 
-     - ::
+     - .. code-block:: bash
 
-         +/-[hh]:[mm], e.g. "+04:45"
-         +/-[hh][mm], e.g. "-0530"
-         +/-[hh], e.g. "+03"
+          +/-[hh]:[mm], e.g. "+04:45"
+          +/-[hh][mm], e.g. "-0530"
+          +/-[hh], e.g. "+03"
