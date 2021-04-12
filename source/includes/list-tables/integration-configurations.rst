@@ -179,7 +179,9 @@
 
    * - :guilabel:`New Relic Settings`
 
-     - Configures |service| to send metric data about your deployment
+     - .. include:: /includes/fact-new-relic-deprecated.rst
+      
+       Configures |service| to send metric data about your deployment
        to `New Relic <http://newrelic.com/>`_ for viewing through the
        New Relic MongoDB plugin. You can also use Insights for New
        Relic to run analytics on the collected data. |service| sends
