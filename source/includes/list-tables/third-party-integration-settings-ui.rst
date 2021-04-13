@@ -124,7 +124,9 @@
 
    * - :guilabel:`New Relic Settings`
 
-     - Configuration |mms| uses to send metric data about your 
+     - .. include:: /includes/fact-new-relic-deprecated.rst
+
+       Configuration |mms| uses to send metric data about your 
        deployment to `New Relic <http://newrelic.com/>`__ for viewing 
        through the New Relic MongoDB plugin. You can also use Insights 
        for New Relic to run analytics on the collected data.
