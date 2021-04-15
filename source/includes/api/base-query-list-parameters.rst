@@ -35,7 +35,7 @@
      - Optional
      - Flag that indicates whether |service| returns the |json|
        response in the
-       :wikipedia:`prettyprint </Prettyprint?oldid=791126873>` format.
+       :wikipedia:`prettyprint <Prettyprint?oldid=791126873>` format.
      - ``false``
 
    * - envelope

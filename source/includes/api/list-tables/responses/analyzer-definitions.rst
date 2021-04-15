@@ -27,7 +27,7 @@
 
    * - ``stemExclusionSet``
      - array of strings
-     - Words to exclude from :wikipedia:`stemming </Stemming>`
+     - Words to exclude from :wikipedia:`stemming <Stemming>`
        by the language analyzer.
 
    * - ``stopwords``

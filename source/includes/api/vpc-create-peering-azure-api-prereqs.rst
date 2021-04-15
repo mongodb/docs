@@ -1,7 +1,7 @@
 .. note::
 
    For details about how |service| creates
-   :wikipedia:`Network Peering </Virtual_private_cloud>`
+   :wikipedia:`Network Peering <Virtual_private_cloud>`
    connections with Azure |vpc|\s, see the ``Azure`` tab in
    :ref:`vpc-peering`.
 
