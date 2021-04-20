@@ -13,55 +13,116 @@ Best Practices Connecting from AWS Lambda
    :depth: 1
    :class: singlecol
 
-MongoDB recommends the following best practices to optimize connection times
-between `AWS Lambda <https://docs.aws.amazon.com/lambda/latest/dg/welcome.html>`_
+Use the following best practices to improve connections
+between :aws:`AWS Lambda </lambda/latest/dg/welcome.html>`
 and |service|:
 
-* Define the MongoDB client connection to the MongoDB server outside
-  the `AWS Lambda handler function <https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-handler.html>`_.
+- Define and cache the client connection to the MongoDB server outside 
+  the :aws:`AWS Lambda handler function </lambda/latest/dg/nodejs-prog-model-handler.html>`.
 
-  This makes the database connection available between invocations
-  of the AWS Lambda function for the duration of the lifecycle of
-  the function.
+  Don't define a new MongoClient object each time you invoke your
+  function. Doing so causes the driver to create a new database
+  connection with each function call. This can be expensive. As an
+  alternative, do the following:
 
-* Set the ``callbackWaitsForEmptyEventLoop`` on the AWS `Context <https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html#nodejs-prog-model-context-properties>`_
-  object to ``false``.
+  1. Create the MongoClient object once.
+  2. Store the object so your function can reuse the MongoClient while
+     it runs.
 
-  By default, the callback waits until the runtime event loop is empty
-  before freezing the process and returning the results to the caller.
-  Setting this property to false requests that AWS Lambda freeze the
-  process soon after the callback is invoked, even if there are events
-  in the event loop. AWS Lambda will freeze the process, any state
-  data, and the events in the event loop. Any remaining events in the
-  event loop are processed when the Lambda function is next invoked, if
-  AWS Lambda chooses to use the frozen process.
+  The :ref:`Connection Example <lambda-aws-example>` reuses existing 
+  database connections to:
+  
+  1. Speed up communication with the database.
+  2. Keep connection counts on the database at a reasonable level with 
+     respect to application traffic.
 
-* Set up a :doc:`Network Peering Connection </security-vpc-peering>` between
-  your |service| cluster and your |aws| Lambda function.
+- If your handler takes a callback as its last argument, set the 
+  ``callbackWaitsForEmptyEventLoop`` property on the :aws:`AWS Lambda
+  Context
+  </lambda/latest/dg/nodejs-context.html#nodejs-prog-model-context-properties>`
+  object to **false**.
+
+  .. code-block:: java
+      
+     context.callbackWaitsForEmptyEventLoop = false;
+
+  This allows a Lambda function to return its result to the caller
+  without requiring that the MongoDB database connection be closed.
+  Setting this property is not applicable for `async handlers
+  <https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html>`_.
+
+- Set up a :doc:`Network Peering Connection </security-vpc-peering>` 
+  between your |service| cluster and your |aws| Lambda function.
 
   .. note::
 
-     If you do not set up a Network Peering connection, you must
-     :doc:`add </security/ip-access-list>` 0.0.0.0/0 to the access list
-     for your |service| cluster. In addition, you will be charged for
-     communication between |service| and |aws|.
+     If you don't :doc:`set up a Network Peering connection
+     </security-vpc-peering>`, :doc:`add </security/ip-access-list>`
+     ``0.0.0.0/0`` to the access list for your |service| cluster.
 
-Consideration
--------------
+.. _lambda-aws-example:
 
-Lambda has made major strides such that even cold starts where the
-Lambda function is invoked for the first time today typically happen in
-under 1 second. Subsequent connections will be significantly faster for
-the duration of the lifecycle of the Lambda function.
+Connection Example
+------------------
 
-Example
--------
+The following Node.js example files, ``index.js`` and
+``connect-to-mongodb.js``, display these best practices:
 
-The following Node.js example demonstrates these best practices:
+.. code-block:: javascript
+   :caption: index.js
+   :linenos:
 
-.. First line of code renders off to the left unless it is pushed to the right.  Caused by quotation marks?
+   // Import dependency.
+   const { connectToDatabase } = require('./connect-to-mongodb');
 
-.. literalinclude:: includes/connect-aws-lambda.js
-   :emphasize-lines: 7-20, 34
+   // Handler
+   module.exports.handler = async function(event, context) {
 
-For more information, see `Optimizing AWS Lambda performance with MongoDB Atlas and Node.js <https://www.mongodb.com/blog/post/optimizing-aws-lambda-performance-with-mongodb-atlas-and-nodejs>`_.
+     // Get a MongoClient.
+     const client = await connectToDatabase();
+
+     // Use the connection to return the name of the connected database.
+     return client.db().databaseName;
+   }
+
+.. code-block:: javascript
+   :caption: connect-to-mongodb.js
+   :linenos:
+
+   "use strict";
+
+   // Import dependency.
+   const { MongoClient } = require('mongodb');
+
+   // Connection string to the database
+   const uri = process.env.MONGODB_URI;
+
+   // Validate that the database connection string has been configured.
+   if (!uri) {
+     throw new Error(
+       'The MONGODB_URI environment variable must be configured with the connection string ' +
+         'to the database.'
+     );
+   }
+
+   // Cached connection promise
+   let cachedPromise = null;
+
+   // Function for connecting to MongoDB, returning a new or cached database connection
+   module.exports.connectToDatabase = async function connectToDatabase() {
+
+     if (!cachedPromise) {
+       // If no connection promise is cached, create a new one. We cache the promise instead
+       // of the connection itself to prevent race conditions where connect is called more than
+       // once. The promise will resolve only once.
+
+       // Node.js driver docs can be found at http://mongodb.github.io/node-mongodb-native/.
+       cachedPromise =
+         MongoClient.connect(uri, { useNewUrlParser: true,  useUnifiedTopology: true });
+     }
+
+     // await on the promise. This resolves only once.
+     const client = await cachedPromise;
+
+     return client;
+   }
