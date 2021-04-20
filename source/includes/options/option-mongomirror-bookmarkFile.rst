@@ -1,6 +1,6 @@
 .. option:: --bookmarkFile <file>
 
-   *Default*: mongomirror.timestamp
+   *Default*: mongomirror.bookmark
 
    
    Name of the oplog timestamp bookmark file.
