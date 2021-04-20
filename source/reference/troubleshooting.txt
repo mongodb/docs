@@ -633,9 +633,9 @@ When you :ref:`configure TLS
 that you specify a valid certificate.
 
 If you don't specify the correct Domain Name for each |tls| certificate,
-the |k8s-op-short| logs may contain an error message similar to the
-following, where ``foo.svc.local`` is the incorrectly-specified Domain
-Name for the cluster member's Pod:
+the |k8s-op-short| :ref:`logs <review-k8s-op-logs>` may contain an error
+message similar to the following, where ``foo.svc.local`` is the
+incorrectly-specified Domain Name for the cluster member's Pod:
 
 .. code-block:: sh
    :copyable: false
@@ -658,3 +658,46 @@ To check whether you have correctly configured |tls| certificates:
 To learn more about |tls| certificate requirements, see
 :ref:`TLS prerequisites <secure-tls-prerequisites>`.
 
+Verify the MongoDB Version when Running in Local Mode
+-----------------------------------------------------
+
+MongoDB ``CustomResource`` may fail to reach a ``Running`` state
+if |onprem| is running in :ref:`Local Mode
+<deploy-om-container-local-mode>` and you specify either a version of MongoDB
+that doesn't exist, or a valid version of MongoDB for which
+|onprem| deployed in local mode did not download a corresponding MongoDB archive.
+
+If you specify a MongoDB version that doesn't exist, or a valid MongoDB
+version for which |onprem| coud not download a MongoDB archive, then
+even though the Pods can reach the ``READY`` state,
+the |k8s-op-short| :ref:`logs <review-k8s-op-logs>` contain an
+error message similar to the following:
+
+.. code-block:: sh
+   :copyable: false
+
+   Failed to create/update (Ops Manager reconciliation phase):
+   Status: 400 (Bad Request), Detail:
+   Invalid config: MongoDB version 4.10.1 is not available.
+
+This may mean that the {+mdbagent+} could not successfully download a
+corresponding MongoDB binary to the :file:`/var/lib/mongodb-mms-automation`
+directory. In cases when the {+mdbagent+} can download the MongoDB
+binary for the specified MongoDB version successfully, this directory
+contains a MongoDB binary folder, such as :file:`mongodb-linux-x86_64-4.4.0`.
+
+To check whether a MongoDB binary folder is present:
+
+1. Specify the Pod's name to this command:
+
+   .. code-block:: sh
+
+      kubectl exec --stdin --tty $<pod_name> /bin/sh
+
+2. Check whether a MongoDB binary folder is present in the
+   :file:`/var/lib/mongodb-mms-automation` directory.
+
+3. If you cannot locate a MongoDB binary folder,
+   `copy the MongoDB archive 
+   <../tutorial/deploy-om-container-local-mode.html#copy-the-mongodb-archive-to-the-onprem-persistent-volume>`__
+   into the |onprem| Persistent Volume for each deployed |onprem| replica set.
