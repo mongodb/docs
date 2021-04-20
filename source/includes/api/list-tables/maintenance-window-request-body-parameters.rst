@@ -9,7 +9,7 @@
      - Description
    
    * - ``alertTypeNames``
-     - string
+     - array of strings
      - Required
      - Alert types to silence during maintenance window. For example:
        ``HOST``, ``REPLICA_SET``, ``CLUSTER``, ``AGENT``, ``BACKUP``
