@@ -1,0 +1,215 @@
+:orphan:
+
+.. _cloud-provider-snapshot-export:
+
+================================
+Export {+Cloud-Backup+} Snapshot
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| lets you export your {+Cloud-Backup+} snapshots to an |aws| 
+|s3| bucket. 
+
+How |service| Exports Snapshots 
+-------------------------------
+
+You can  manually export individual snapshots or set up an export 
+policy for automatic export of your snapshots. For automatic exports, 
+you must specify a frequency in your export policy. |service|  
+automatically exports any snapshot that matches this frequency. 
+
+|service| exports snapshots for collections one at a time. As the 
+export progresses, you may see partial results in your |s3| bucket. 
+|service| queues any new job if |service| is currently exporting 5 or 
+more replica sets. For sharded clusters, |service| always exports the 
+snapshots of all the shards simultaneously, regardless of the number 
+of shards. 
+
+After |service| finishes exporting, |service| uploads a metadata file 
+named ``.complete`` in the following path on your |s3| bucket: 
+
+.. code-block:: shell
+   :copyable: false
+
+   /exported_snapshots/<orgName>/<projectName>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
+
+The ``.complete`` metadata file is in |json| format and contains the 
+following fields: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65 
+
+   * - Field
+     - Description 
+
+   * - ``orgId``
+     - Unique identifier of the |service| organization.
+
+   * - ``orgName``
+     - Name of the |service| organization.
+
+   * - ``groupId``
+     - Unique identifier of the |service| project.
+
+   * - ``groupName``
+     - Name of the |service| project.
+
+   * - ``clusterUniqueId``
+     - Unique identifier of the |service| cluster.
+
+   * - ``clusterName``
+     - Name of the |service| project.
+
+   * - ``snapshotInitiationDate``
+     - Date when snapshot was taken.
+
+   * - ``totalFiles``
+     - Total number of files uploaded to the |s3| bucket.
+
+   * - ``labels``
+     - Labels of the cluster whose snapshot was exported.
+
+   * - ``customData``
+     - Custom data, if any, that you specified when creating the export 
+       job.
+
+.. example:: 
+
+   .. code-block:: json 
+      :copyable: false 
+
+      {
+        "orgId": "60512d6f65e4047fe0842095",
+        "orgName": "org1",
+        "groupId": "60512dac65e4047fe084220f",
+        "groupName": "group1",
+        "clusterUniqueId": "60512dac65e4047fe0842212",
+        "clusterName": "cluster0",
+        "snapshotInitiationDate": "2020-04-03T05:50:29.321Z"
+        "totalFiles": 23,
+        "labels": [
+          {
+            "key": "key1",
+            "value": "xyz"
+          },
+          {
+            "key": "key2",
+            "value": "xyzuio"
+          }
+        ],
+        "customData": [
+          {
+            "key": "key1",
+            "value": "xyz"
+          },
+          {
+            "key": "key2",
+            "value": "xyzuio"
+          }
+        ]
+      }
+
+If an export job fails: 
+
+- |service| doesn't automatically try to export again.
+- |service| doesn't remove any partial data in your |s3| bucket.
+
+Exported Data Format
+--------------------
+
+|service| uploads the contents of your database to |s3| in ``.gz`` 
+format with documents in extended |json| format within. The path 
+to the files on |s3| is: 
+
+.. code-block:: sh 
+   :copyable: false 
+
+   /exported_snapshots/<orgName>/<projectName>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/<dbName>/<collectionName>/<shardName>.<increment>.gz
+
+Where: 
+
+.. list-table:: 
+   :widths: 35 65
+
+   * - ``<orgName>``
+     - Name of your |service| organization.
+
+   * - ``<projectName>``
+     - Name of your |service| project.
+
+   * - ``<clusterName>``
+     - Name of your |service| cluster.
+
+   * - ``<initiationDateOfSnapshot>``
+     - Date when snapshot was taken.
+
+   * - ``<timestamp>``
+     - Timestamp when the export job was created.
+
+   * - ``<dbName>``
+     - Name of the database in the |service| cluster.
+
+   * - ``<collectionName>``
+     - Name of the |service| collection.
+
+   * - ``<shardName>``
+     - Name of the replica set.
+
+   * - ``<increment>``
+     - Count that is incremented as chunks are uploaded. Starts at 
+       ``0``.
+
+Limitations 
+-----------
+
+The following limitations apply:
+
+- You can only export to |aws| |s3| buckets.
+- You can't export :ref:`fallback snapshots <cps-failback-snapshots>`.
+- You can have only one active export per snapshot. 
+
+Pre-requisites 
+--------------
+
+To export your {+Cloud-Backup+} snapshots to an |aws| |s3| bucket, you 
+will need the following:
+
+1. ``M10`` or higher |service| cluster with {+Cloud-Backup+} 
+   :ref:`enabled <backup-cloud-provider>`.
+#. |aws| `IAM role <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__ 
+   with ``STS:AssumeRole`` that grants |service| access to your |aws| 
+   resources. To learn more about configuring |aws| access for 
+   |service|, see :ref:`set-up-unified-aws-access`.
+#. |aws| `IAM role policy <https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html>`__ 
+   that grants |service| write access or the ``S3:PutObject`` and 
+   ``S3:GetBucketLocation`` permissions to your |aws| resources. To 
+   learn more about configuring write access to |aws| resources, see 
+   :ref:`set-up-unified-aws-access`.
+
+Export Management 
+-----------------
+
+Use the following APIs to: 
+
+- Manage export policy including :doc:`modifying 
+  </reference/api/cloud-backup/schedule/modify-one-schedule>` and 
+  :doc:`retrieving 
+  </reference/api/cloud-backup/schedule/get-all-schedules/>` snapshot 
+  policy for :ref:`exporting <cps-backup-snapshot-export>`.
+- :ref:`Manage <snapshot-export-buckets>` export buckets including 
+  :ref:`creating <create-backup-export-bucket>`, :ref:`retrieving 
+  <get-all-backup-export-bucket>`, and :ref:`deleting 
+  <delete-one-backup-export-bucket>` export buckets.
+- :ref:`Manage <snapshot-export-jobs>` export jobs including 
+  :ref:`creating <cps-backup-snapshot-export-create>` and 
+  :ref:`retrieving <cps-backup-snapshot-export-get-all>` export jobs.

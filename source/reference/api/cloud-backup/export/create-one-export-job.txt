@@ -1,0 +1,211 @@
+:orphan:
+
+.. _cps-backup-snapshot-export-create:
+
+=============================================
+Create a {+Cloud-Backup+} Snapshot Export Job
+=============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``/backup/exports`` resource enables you to export one backup 
+snapshot for an ``M10`` or higher |service| cluster with 
+:ref:`backup-cloud-provider` enabled to an |aws| bucket.
+
+.. include:: /includes/fact-projects-groups-synonyms.rst
+
+.. include:: /includes/api-requirements.rst
+
+.. _backup-snapshot-export-create-syntax:
+
+Resource 
+--------
+
+.. include:: /includes/api-base-url.rst
+
+.. code-block:: http
+
+   POST /groups/{GROUP-ID}/clusters/{CLUSTER-NAME}/backup/exports/
+
+.. _backup-snapshot-export-create-path-params:
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Path Parameter
+     - Type
+     - Necessity
+     - Description
+
+   * - GROUP-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the 
+       :ref:`project <group-id>` which contains the |service| cluster 
+       whose snapshot you want to export.
+
+   * - CLUSTER-NAME
+     - string
+     - Required
+     - Name of the |service| cluster whose snapshot you want to
+       export.
+
+.. _backup-snapshot-export-create-query-params:
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-list-parameters.rst
+
+.. _backup-snapshot-export-create-body-params:
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``snapshotId``
+     - string
+     - Required
+     - Unique identifier of the {+Cloud-Backup+} snasphot to export. If 
+       necessary, use the :doc:`Get All {+Cloud-Backup+}s 
+       </reference/api/cloud-backup/backup/get-all-backups/>` API to 
+       retrieve the list of snapshot IDs for a cluster.
+
+   * - ``exportBucketId``
+     - string
+     - Required
+     - Unique identifier of the |aws| bucket to export the 
+       {+Cloud-Backup+} snasphot to. If necessary, use the :doc:`Get 
+       All Snapshot Export Buckets 
+       </reference/api/cloud-backup/export/get-all-export-buckets/>` 
+       API to retrieve the IDs of all available export buckets for a 
+       project.
+
+   * - ``customData`` 
+     - array of documents 
+     - Optional 
+     - Custom data to include in the metadata file named ``.complete`` 
+       that |service| uploads to the bucket when the export job 
+       finishes. Custom data can be specified as key and value pairs.
+
+   * - ``customData.key`` 
+     - string 
+     - Required 
+     - Required if you want to include custom data using ``customData`` 
+       in the metadata file uploaded to the bucket.
+     
+       Key to include in the metadata file that |service| uploads to 
+       the bucket when the export job finishes. 
+
+   * - ``customData.value`` 
+     - string 
+     - Required 
+     - Required if you specify ``customData.key``.
+     
+       Value for the key specified using ``customData.key``.
+
+.. _backup-snapshot-export-create-response:
+
+Response
+--------
+
+.. include:: /includes/api/list-tables/cloud-backup-snapshot-export/response.rst
+
+Example Request
+---------------
+
+.. code-block:: shell 
+   :linenos:
+
+   curl --user "{publicApiKey}:{privateApiKey}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-NAME}/backup/exports/" \
+        --data '{
+                 "snapshotId" : "{SNAPSHOT-ID}"
+                   "exportBucketId" : "{BUCKET-ID}",
+                   "customData": [
+                     {
+                       "key": "exported by",
+                       "value": "myName"
+                     }
+                  ]
+               }'
+
+Example Response
+----------------
+
+.. tabs:: 
+
+   .. tab:: Replica Set 
+      :tabid: replicaset 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+           "createdAt": "2021-03-25T16:49:23Z",
+           "customData": [
+             {
+               "key": "exported by",
+               "value": "myName"
+             }
+           ],
+           "exportBucketId": "{BUCKET-ID}",
+           "id": "605ccba3c1c7613f423e1585",
+           "prefix": "/exported_snapshots/{ORG-NAME}/{PROJECT-NAME}/{CLUSTER-NAME}/2021-03-25T1649+0000/1616694179",
+           "snapshotId": "{SNAPSHOT-ID}",
+           "state": "InProgress"
+         }
+
+   .. tab:: Sharded Cluster 
+      :tabid: shard 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+           "components": [
+             {
+               "exportId": "6067615fc37241327a558541",
+               "replicaSetName": "atlas-xxxxxx-shard-0"
+             },
+             {
+               "exportId": "6067615fc37241327a558543",
+               "replicaSetName": "atlas-xxxxxx-shard-1"
+             }
+           ],
+           "createdAt": "2021-04-02T18:24:31Z",
+           "customData": [
+             {
+               "key": "exported by",
+               "value": "myName"
+             }
+           ],
+           "exportBucketId": "604f6322dc786a5341d4f7fb",
+           "id": "6067615fc37241327a558540",
+           "prefix": "/exported_snapshots/{ORG-NAME}/{PROJECT-NAME}/{CLUSTER-NAME}/2021-04-02T1742/1617387870",
+           "snapshotId": "6067566a0d97065aabbe5634",
+           "state": "Queued"
+         }
