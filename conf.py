@@ -152,7 +152,7 @@ html_theme_options = {
     'nav_excluded': sconf.theme.nav_excluded,
     'upcoming': conf.version.upcoming,
     'eol': True,
-    'eol_msg': 'This version has reached end of life on October 2016.  <a href="https://www.mongodb.com/blog/post/mongodb-2-6-end-of-life">Learn more</a> about upgrading your version of MongoDB.',
+    'eol_msg': 'This version of the manual is no longer supported.'
 }
 
 html_sidebars = sconf.sidebars
