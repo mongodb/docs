@@ -30,7 +30,7 @@ public class FindOne {
 
             Document doc = collection.find(eq("title", "The Room"))
                     .projection(projectionFields)
-                    .sort(Sorts.descending("rating"))
+                    .sort(Sorts.descending("imdb.rating"))
                     .first();
 
             if (doc == null) {
