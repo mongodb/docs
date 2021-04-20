@@ -147,7 +147,9 @@ html_theme_options = {
     'active_branches': conf.version.active,
     'stable': conf.version.stable,
     'sitename': sconf.theme.sitename,
-    'nav_excluded': sconf.theme.nav_excluded
+    'nav_excluded': sconf.theme.nav_excluded,
+    'eol': True,
+    'eol_msg': 'This version of the manual is no longer supported.'
 }
 
 html_sidebars = sconf.sidebars
