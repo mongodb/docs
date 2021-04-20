@@ -156,8 +156,7 @@ html_theme_options = {
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
     'eol': True,
-    'eol_msg': 'This version of the manual is no longer supported. <a href="https://www.mongodb.com/upgrade-from-3-0?jmp=docs">Learn more</a> about upgrading your version of MongoDB.',
-    
+    'eol_msg': 'This version of the manual is no longer supported.'
 }
 
 html_sidebars = sconf.sidebars
