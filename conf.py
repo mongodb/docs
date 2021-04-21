@@ -76,7 +76,8 @@ extlinks = {
     'mms-docs': ('https://docs.cloudmanager.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
-    'products': ('https://www.mongodb.com/products%s', '')
+    'products': ('https://www.mongodb.com/products%s', ''),
+    'v2.2': ('https://docs.mongodb.com/v2.2%s', '')
 }
 
 ## add `extlinks` for each published version.
