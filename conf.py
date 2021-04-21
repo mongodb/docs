@@ -97,7 +97,12 @@ extlinks = {
     'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
     'java-async-docs': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
     'java-async-api': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', ''),
-    'atlas' : ('https://docs.atlas.mongodb.com%s','')
+    'atlas' : ('https://docs.atlas.mongodb.com%s',''),
+    'v3.2': ('https://docs.mongodb.com/v3.2%s', ''),
+    'v3.0': ('https://docs.mongodb.com/v3.0%s', ''),
+    'v2.6': ('https://docs.mongodb.com/v2.6%s', ''),
+    'v2.4': ('https://docs.mongodb.com/v2.4%s', ''),
+    'v2.2': ('https://docs.mongodb.com/v2.2%s', '')
 }
 source_constants = {
     'package-branch': '3.4',
@@ -109,8 +114,8 @@ source_constants = {
 }
 
 ## add `extlinks` for each published version.
-for i in conf.git.branches.published:
-    extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
+#for i in conf.git.branches.published:
+#    extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
 
 intersphinx_mapping = {}
 for i in conf.system.files.data.intersphinx:
