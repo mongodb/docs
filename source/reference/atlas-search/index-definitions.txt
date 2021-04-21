@@ -1,15 +1,15 @@
 .. _ref-index-definitions:
 
-=================
-Index Definitions
-=================
+=============
+|fts| Indexes 
+=============
 
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 3
    :class: singlecol
 
 When you configure an |fts| index, you can specify that certain fields
@@ -20,57 +20,131 @@ fields in a collection.
 
 .. include:: /includes/atlas-search-out-agg.rst
 
+.. _index-definition-syntax:
+
+Syntax 
+------
+
+.. code-block:: json 
+   
+   { 
+     "name": "index-name>", 
+     "analyzer": "<analyzer-for-index>", 
+     "searchAnalyzer": "<analyzer-for-query>", 
+     "mappings": { 
+       "dynamic": <boolean>, 
+       "fields": { <field-definition> } 
+     }, 
+     "analyzers": [ <custom-analyzer> ]
+   } 
+
+.. _index-definition-options:
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 15 55
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``analyzer``
+     - string 
+     - Optional 
+     - Specifies the :ref:`analyzer <analyzers-ref>` to apply to 
+       string fields when indexing. If omitted, defaults to 
+       :ref:`ref-standard-analyzer`.
+
+   * - ``analyzers``
+     - array of :ref:`custom-analyzers` 
+     - Optional 
+     - Specifies the :ref:`custom-analyzers` to use in this index.
+
+   * - ``mappings``
+     - :ref:`Document Field Definition <bson-data-types-document>`
+     - Required
+     - Specifies how to index fields at different paths for this 
+       index.
+
+   * - ``mappings.dynamic``
+     - boolean
+     - Optional
+     - Enables or disables dynamic mapping of fields for this index.
+     
+       If set to ``true``, |fts| automatically indexes all fields 
+       except:
+
+       - Fields of certain data types. To learn more, see 
+         :ref:`bson-data-chart`.
+       - Any fields explicitly excluded by the ``mappings.fields`` 
+         parameter.
+
+       If set to ``false``, you must specify individual fields to index 
+       using ``mappings.fields``.
+
+       If omitted, defaults to ``true``.
+
+       See :ref:`index configuration example <index-config-example>` on 
+       this page.
+
+   * - ``mappings.fields``
+     - document
+     - Conditional
+     - Required only if dynamic mapping is disabled. 
+     
+       Specifies the fields that you would like to index. See the 
+       :ref:`example <index-config-example>` on this page. 
+
+   * - ``name``
+     - string 
+     - Optional 
+     - Specifies a name for the index. In each :manual:`namespace 
+       </reference/limits/#faq-dev-namespace>`, names of all indexes in 
+       the namespace must be unique. If omitted, defaults to 
+       ``default``.
+
+   * - ``searchAnalyzer``
+     - string 
+     - Optional
+     - Specifies the :ref:`analyzer <analyzers-ref>` to apply to query 
+       text before searching with it. If omitted, defaults to 
+       :ref:`ref-standard-analyzer`.
+
 .. _static-dynamic-mappings:
 
-Static and Dynamic Mappings
+Static and Dynamic Mappings 
 ---------------------------
 
-Individual field mappings that you configure when you create the index
-are called *static mappings*.
+For **Static mappings**, set ``mappings.dynamic`` to ``false`` and 
+specify the fields to index using ``mappings.fields``. |fts| only 
+indexes the specified fields with specific options. 
 
-Mappings that are automatically assigned when new data is
-inserted into a field are called *dynamic mappings*. Dynamic mappings
-are useful if you have a dynamic schema and you don't know ahead of
-time all the fields that a collection may contain. You can configure
-an entire index to use dynamic mappings, or specify individual fields
-to be dynamically mapped.
-
-.. note::
-
-   Dynamically mapped indexes occupy more disk space than static
-   mappings and may be less performant.
-
-See the :ref:`index configuration example
-<index-config-example>`.
-
-.. _default-index-definition:
-
-Defining an Index
------------------
+Use static mappings to configure index options for fields that should 
+not be indexed dynamically, or to configure a single field 
+independently from others in an index.
 
 .. note:: 
 
-   .. include:: /includes/fact-fts-required-roles.rst
+   You must specify static mappings when ``mappings.dynamic`` is 
+   ``false``.
 
-When you create a new |fts| index, choose a configuration method. 
+For **Dynamic mappings**, set ``mappings.dynamic`` to ``true``. |fts| 
+automatically indexes the fields of :ref:`supported types 
+<bson-data-chart>` in each document. 
 
-.. figure:: /images/create-fts-index.png
-     :alt: Screenshot of Create an Atlas Search Index modal window
-     :figwidth: 650px
-     :border:
+Use dynamic mappings if your schema changes regularly or is unknown, or 
+when experimenting with |fts|. You can configure an entire index to use 
+dynamic mappings, or specify individual fields, such as fields of type 
+``document``, to be dynamically mapped.
 
-You can use either the default index defintion or specify a custom
-definition for the index. The default index definition will work with 
-any collection. If you wish to create a custom index definition, you 
-can specify which fields should be indexed with which analyzer and as 
-which data type. 
+.. note::
 
-.. include:: /includes/fact-fts-index-field-order.rst
-
-.. include:: /includes/default-fts-index-name.rst
-
-See :ref:`Create an Atlas Search Index <ref-create-index>` for complete 
-instructions on creating a new |fts| index.
+   Dynamically mapped indexes occupy more disk space than statically 
+   mapped indexes and may be less performant.
 
 .. _index-config-example:
 
@@ -229,28 +303,58 @@ Field Mapping Examples
            }
          }
 
+.. _default-index-definition:
+
+Defining Indexes
+----------------
+
+.. note:: 
+
+   .. include:: /includes/fact-fts-required-roles.rst
+
+When you create a new |fts| index, choose a configuration method. 
+
+.. figure:: /images/create-fts-index.png
+     :alt: Screenshot of Create an Atlas Search Index modal window
+     :figwidth: 650px
+     :border:
+
+You can use either the default index defintion or specify a custom
+definition for the index. The default index definition is dynamic 
+mapping of fields in the documents and will work with any collection. 
+If you wish to create a custom index definition for static mapping, you 
+can specify which fields to index with which analyzer and as which data 
+type. 
+
+.. include:: /includes/fact-fts-index-field-order.rst
+
+.. include:: /includes/default-fts-index-name.rst
+
+To learn more about creating a new |fts| index, see :ref:`Create an 
+Atlas Search Index <ref-create-index>` for complete instructions.
+
 Custom Analyzers
 ~~~~~~~~~~~~~~~~
 
 You can also define a :ref:`custom analyzer <custom-analyzers>` within
-an index definition. Custom analyzers allow you to create an |fts| mechanism
-tailored to your specific needs.
+an index definition. Custom analyzers allow you to create an |fts| 
+mechanism tailored to your specific needs.
 
 .. _bson-data-chart:
 
 BSON Data Types
----------------
+~~~~~~~~~~~~~~~
 
 The table below enumerates all the :manual:`BSON data types
-</reference/bson-types/>` and whether they are included in an |fts| index
-with :ref:`dynamic mappings <static-dynamic-mappings>`. 
+</reference/bson-types/>` and indicates whether they are included in an 
+|fts| index with :ref:`dynamic mappings <static-dynamic-mappings>`. 
 
 .. list-table::
    :header-rows: 1
 
    * - BSON Type
-     - Dynamic Index?
-     - Atlas Search Data Type
+     - Included in Dynamic Index?
+     - Atlas Search Field Type
 
    * - Double
      - yes
@@ -322,75 +426,77 @@ with :ref:`dynamic mappings <static-dynamic-mappings>`.
 
 .. _bson-data-types:
 
-Atlas Search Data Types
------------------------
+|fts| Field Types
+~~~~~~~~~~~~~~~~~
 
 .. _bson-data-types-autocomplete:
 
 ``autocomplete`` 
-~~~~~~~~~~~~~~~~
+````````````````
 
-The ``autocomplete`` type is for indexing text values for autocompletion. The 
-indexed fields can only be queried with the :ref:`autocomplete 
-<autocomplete-ref>` operator. 
+The ``autocomplete`` type is used for indexing text values for 
+autocompletion. You can only query the indexed fields with the 
+:ref:`autocomplete <autocomplete-ref>` operator. 
 
 .. note:: 
 
-   The ``autocomplete`` type can't be used to index fields whose value is 
-   an array of strings.
+   You can't use the ``autocomplete`` type to index fields whose value 
+   is an array of strings.
 
 The ``autocomplete`` type takes the following options: 
 
 .. list-table::
-   :widths: 20 10 50 10 10
+   :widths: 18 9 8 54 11
    :header-rows: 1
 
    * - Option
      - Type
-     - Purpose
      - Necessity
+     - Purpose
      - Default
 
    * - ``type``
      - string 
-     - The type of field. Value must be ``autocomplete``.
      - required
+     - The type of field. Value must be ``autocomplete``.
      - 
 
    * - ``maxGrams``
      - int
+     - optional
      - The maximum number of characters per indexed sequence. The 
        value limits the character length of indexed tokens. When you 
-       search for terms longer than the ``maxGrams`` value, tokens are 
-       truncated to the ``maxGrams`` length.
-     - optional
+       search for terms longer than the ``maxGrams`` value, |fts| 
+       truncates the tokens to the ``maxGrams`` length.
      - ``15``
 
    * - ``minGrams``
      - int
-     - The minimum number of characters per indexed sequence. The 
-       recommend minimum value is ``4``. A value that is less 
-       than ``4`` could impact performance because the size of the 
-       index can become very large. The default value of ``2`` is 
-       only recommended for ``edgeGram``.
      - optional
+     - The minimum number of characters per indexed sequence. We 
+       recommend ``4`` for the minimum value. A value that is less 
+       than ``4`` could impact performance because the size of the 
+       index can become very large. We recommend the default value of 
+       ``2`` for ``edgeGram`` only.
      - ``2``
 
    * - ``tokenization``
      - enum
+     - optional
      - The tokenization strategy to use when indexing the field for 
        autocompletion. Value can be one of the following: 
 
        - ``edgeGram`` - to create indexable tokens, referred to as 
-         ``grams``, from variable-length character sequences starting at 
-         the beginning of the words and delimited by whitespace. 
+         ``grams``, from variable-length character sequences starting 
+         at the beginning of the words and delimited by whitespace. 
 
-       - ``nGram`` - to create indexable tokens, referred to as ``grams``, 
-         by sliding a variable-length character window over a word. |fts| 
-         creates more tokens for ``nGram`` than ``edgeGram`` and because 
-         of this, ``nGram`` takes more space and time to index the field. 
-         This is better suited for querying languages with long, compound 
-         words or languages that don't use spaces.
+       - ``nGram`` - to create indexable tokens, referred to as 
+         ``grams``, by sliding a variable-length character window over 
+         a word. |fts| creates more tokens for ``nGram`` than 
+         ``edgeGram``. Therefore, ``nGram`` takes more space and time 
+         to index the field. ``nGram`` is better suited for querying 
+         languages with long, compound words or languages that don't 
+         use spaces.
 
        For example, consider the following sentence: 
          
@@ -400,11 +506,12 @@ The ``autocomplete`` type takes the following options:
           The quick brown fox jumps over the lazy dog. 
 
        When tokenized with ``minGrams`` value of ``2`` and ``maxGrams`` 
-       value of ``5``, the following sequence of characters are indexed: 
+       value of ``5``, |fts| indexes the following sequence of 
+       characters: 
     
        .. tabs:: 
 
-          .. tab:: edgeGram Tokenization Strategy
+          .. tab:: edgeGram 
              :tabid: edgeGram
          
              .. code-block:: none
@@ -420,7 +527,7 @@ The ``autocomplete`` type takes the following options:
                 quick
                 ...
 
-          .. tab:: nGram Tokenization Strategy  
+          .. tab:: nGram   
              :tabid: nGram
 
              .. code-block:: none 
@@ -452,14 +559,14 @@ The ``autocomplete`` type takes the following options:
 
           Indexing a field for autocomplete with ``edgeGram`` or 
           ``nGram`` tokenization strategy is more computationally  
-          expensive and takes more space than indexing a regular 
-          string field.
+          expensive than indexing a string field. The index takes more 
+          space than an index with regular string fields.
 
-     - optional
      - ``edgeGram``
 
    * - ``foldDiacritics``
      - boolean
+     - optional
      - The setting to indicate whether diacritics should be 
        included or removed from the indexed text. Value can be 
        one of the following: 
@@ -467,7 +574,6 @@ The ``autocomplete`` type takes the following options:
        - ``true`` - to remove diacritic marks 
        - ``false`` - to include diacritic marks 
 
-     - optional
      - ``true``
 
 .. example::
@@ -495,23 +601,25 @@ The ``autocomplete`` type takes the following options:
 .. _boolean-ref:
 
 ``boolean``
-~~~~~~~~~~~
+```````````
 
-The ``boolean`` data type is for indexing ``true`` and ``false`` values. It
-works in conjunction with the :ref:`equals <equals-ref>` operator.
+The ``boolean`` data type is used for indexing ``true`` and ``false`` 
+values. It works in conjunction with the :ref:`equals <equals-ref>` 
+operator.
 
 .. note::
 
-   Fields of type ``boolean`` cannot be dynamically indexed. They must be
-   specifically indexed as part of a static mapping.
+   Fields of type ``boolean`` cannot be dynamically indexed. You must 
+   index fields of type ``boolean`` using :ref:`static mappings 
+   <static-dynamic-mappings>`.
 
 .. _boolean-objectid-example:
 
 .. example::
 
-   The following example index definition maps a field named ``verified_user``
-   with the ``boolean`` data type and field named ``teammates`` with the
-   ``objectId`` data type.
+   The following example index definition maps a field named 
+   ``verified_user`` to the ``boolean`` data type and a field named 
+   ``teammates`` to the ``objectId`` data type.
 
    .. code-block:: json
 
@@ -529,221 +637,199 @@ works in conjunction with the :ref:`equals <equals-ref>` operator.
         }
       }
 
-.. _objectId-ref:
+.. _bson-data-types-date:
 
-``objectId``
-~~~~~~~~~~~~
+``date``
+````````
 
-The ``objectId`` data type is for indexing :manual:`ObjectId
-</reference/bson-types/#objectid>` fields. It works in conjunction with the
-:ref:`equals <equals-ref>` operator.
-
-.. note::
-
-   Fields of type ``objectId`` cannot be dynamically indexed. They must be
-   specifically indexed as part of a static mapping. See the :ref:`example
-   <boolean-objectid-example>` in the :ref:`boolean <boolean-ref>` section
-   on this page.
-
-.. _bson-data-types-string:
-
-``string``
-~~~~~~~~~~
-
-The ``string`` data type takes the following parameters:
-
-.. list-table::
-   :widths: 20 10 60 10
-   :header-rows: 1
-
-   * - Option
-     - Type
-     - Purpose
-     - Default
-
-   * - ``analyzer``
-     - string
-     - Name of a built-in or overridden :ref:`analyzer <analyzers-ref>`
-       to use for indexing the field.
-     - ``lucene.standard``
-
-   * - ``searchAnalyzer``
-     - string
-     - Analyzer to use when querying the field.
-     - ``lucene.standard``
-
-   * - ``indexOptions``
-     - string
-     - Specifies the amount of information to store for the indexed 
-       field. Value can be one of the following:
-
-       - ``docs`` - Only indexes documents. The frequency and position of 
-         the indexed term are ignored. Only a single occurence of the 
-         term is reflected in the :ref:`score <scoring-ref>`.
-       - ``freqs`` - Only indexes documents and term frequency. The position 
-         of the indexed term is ignored. 
-       - ``positions`` - Indexes documents, term frequency, and term positions. 
-       - ``offsets`` - (Default) Indexes documents, term frequency, term 
-         positions, and term offsets. This is required for :ref:`highlight-ref`.
-
-     - ``offsets``
-
-   * - ``store``
-     - boolean
-     - Specifies whether or not to store the exact document text as well as 
-       the analyzed values in the index. Value can be ``true`` or ``false``. 
-       The value for this must be ``true`` for :ref:`highlight-ref`.
-     - ``true``
-
-   * - ``ignoreAbove``
-     - int
-     - Do not index if the field value is greater than the specified
-       number of characters.
-     - None
-
-   * - ``multi``
-     - string
-     - The string field to index with the name of the alternate analyzer 
-       specified in the ``multi`` object. 
-       
-       .. example::
-       
-          The following index definition for a ``library.books`` collection 
-          indexes string values in the field ``text`` with the 
-          ``lucene.english`` and ``lucene.french`` analyzers in addition to 
-          the default ``lucene.standard`` analyzer:
-
-          .. code-block:: json 
-             :copyable: false
-
-             {
-               "mappings": {
-                 "dynamic": false,
-                 "fields": {
-                   "text": {
-                     "type": "string",
-                     "multi": {
-                       "english": {
-                         "type": "string",
-                         "analyzer": "lucene.english"
-                       },
-                       "french": {
-                         "type": "string",
-                         "analyzer": "lucene.french"
-                       }
-                     }
-                   }
-                 }
-               }
-             }
-
-     - None
-
-   * - ``norms``
-     - string
-     - Specifies whether to include or omit the field length in 
-       the result when scoring. The length of the field is determined 
-       by the number of tokens produced by the analyzer for the field. Value 
-       can be one of the following: 
- 
-       - ``include`` - to include the field length when scoring.
-       - ``omit`` - to omit the field length when scoring.
-      
-       If value is ``include``, |fts| uses the length of the field to determine 
-       the higher score when scoring. For example, if two documents match an 
-       |fts| query, the document with the shorter field length will score higher 
-       than the document with the longer field length.
-
-       If value is ``omit``, |fts| ignores the field length when scoring. 
-
-     - ``include``
+The ``date`` type is used for indexing date values. It takes the 
+``type`` option. The value of ``type`` must be ``date``. A  date can't 
+be indexed if it is part of an array. 
 
 .. _bson-data-types-document:
 
 ``document``
-~~~~~~~~~~~~
+````````````
 
-The ``document`` data type is for fields with embedded documents.
+The ``document`` data type is used for fields with embedded documents.
 It takes the following parameters:
 
 .. list-table::
-   :widths: 20 10 60 10
+   :widths: 15 10 15 50 10
    :header-rows: 1
 
    * - Option
      - Type
+     - Necessity
      - Purpose
      - Default
 
    * - ``type``
      - string
-     - Must be ``document``.
-     - none
+     - Required
+     - The type of field. Value must be ``document``.
+     - 
 
    * - ``dynamic``
      - boolean
-     - If set to ``true``, |fts| indexes all fields in the collection except:
+     - Conditional
+     - If set to ``true``, |fts| indexes all fields in the collection 
+       except:
 
-       - :ref:`geo <bson-data-types-geo>` fields.
-       - Any fields explicitly excluded by the ``fields`` parameter.
+       - Fields of certain data types. To learn more, see 
+         :ref:`bson-data-chart`.
+       - Any fields that you explicitly exclude using the ``fields`` 
+         parameter.
 
-       If set to ``false``, you must specify individual fields to index.
+       If omitted or set to ``false``, you must specify individual 
+       fields to index.
 
      - true
 
    * - ``fields``
      - document
-     - Maps document field names to field definitions. See the :ref:`example
-       <index-config-example>` on this page.
-     - none
+     - Conditional
+     - Maps document field names to field definitions. To learn more, 
+       see an :ref:`example <index-config-example>`. This is required 
+       if ``dynamic`` is omitted or set to ``false``. 
+     - 
 
-.. _bson-data-types-date:
+.. _bson-data-types-geo:
 
-``date``
-~~~~~~~~
+``geo``
+```````
 
-The ``date`` type is for indexing date values. A  date cannot be 
-indexed if it is part of an array. It takes the ``type`` 
-option. The value of ``type`` must be ``date``. 
-
-.. _bson-data-types-number:
-
-``number``
-~~~~~~~~~~
-
-The ``number`` type is for fields with numeric values of ``int32``, 
-``int64``, and ``double`` data types. The ``number`` type has the 
-following options: 
+The ``geo`` type is used for indexing geographic point and shape 
+coordinates. For this type, the indexed field must be a 
+:manual:`GeoJSON </reference/geojson/>` object.
 
 .. list-table::
-   :widths: 30 60 10
+   :widths: 20 10 10 50 10
    :header-rows: 1
 
    * - Option
+     - Type 
+     - Necessity
      - Purpose
      - Default
 
    * - ``type``
+     - string 
+     - Required
+     - The type of field. Value must be ``geo``.
+     - 
+
+   * - ``indexShapes`` 
+     - boolean 
+     - Optional
+     - Specifies whether or not to index shapes. By default, |fts|: 
+
+       - Indexes points, even when nested.
+       - Does not index shape geometries such as lines and polygons.
+
+       Value can be: 
+
+       - ``true`` to index shapes and points 
+       - ``false`` to index only points
+
+     - ``false``
+
+.. example:: 
+
+   .. code-block:: json 
+      :emphasize-lines: 7-8
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "type": "document",
+            "<field-name>": {
+              "indexShapes": true|false,
+              "type": "geo"
+            }
+          }
+        }
+      }
+
+.. _bson-data-types-number:
+
+``number``
+``````````
+
+The ``number`` type is used for fields with numeric values of 
+``int32``, ``int64``, and ``double`` data types. The ``number`` type 
+has the following options: 
+
+.. list-table::
+   :widths: 20 10 10 50 10
+   :header-rows: 1
+
+   * - Option
+     - Type 
+     - Necessity
+     - Purpose
+     - Default
+
+   * - ``type``
+     - string 
+     - Required
      - The type of field. Value must be ``number``.
      - 
 
    * - ``representation``
-     - The data type of the field to index. Valid values are:
+     - string 
+     - Optional
+     - The data type of the field to index. Values are:
 
-       - ``int64`` - for indexing large integers without loss of precision 
-         and for rounding double values to integers. This cannot be used to 
-         index large double values.
+       - ``int64`` - for indexing large integers without loss of 
+         precision and for rounding double values to integers. You 
+         can't use this type to index large double values.
        - ``double`` - for indexing large double values without rounding.
 
-       .. example::
+       To learn more, see :ref:`example <number-egs>` below.
+
+     - ``double``
+
+   * - ``indexIntegers``
+     - boolean 
+     - Optional
+     - Indicates whether to index or omit indexing ``int32`` and 
+       ``int64`` type values. Value can be ``true`` or ``false``.
+       To learn more, see :ref:`example <number-egs>` below.
+
+     - ``true``
+
+   * - ``indexDoubles``
+     - boolean 
+     - Optional
+     - Indicates whether to index or omit indexing ``double`` type 
+       values. Value can be ``true`` or ``false``. To learn more, 
+       see :ref:`example <number-egs>` below.
+
+     - ``true``
+
+.. _number-egs:
+
+Examples 
+++++++++
+
+.. tabs:: 
+
+   .. tab:: representation 
+      :tabid: rep
+
+      .. example::
 
           The following index definition for the 
           ``sample_analytics.accounts`` collection in the :ref:`sample 
-          dataset <available-sample-datasets>` indexes the ``account_id`` 
-          field with 64 bit integer values. The following example also 
-          indexes all other integer and small double type values in the 
-          ``id`` field after rounding any decimal values in the double 
-          type before indexing.
+          dataset <available-sample-datasets>` indexes the 
+          ``account_id`` field with 64-bit integer values. The 
+          following example also: 
+          
+          - Indexes all other integer values in the ``account_id`` field
+          - Rounds any decimal values and indexes small double type 
+            values in the ``account_id`` field
 
           .. code-block:: json
              :copyable: false
@@ -760,19 +846,17 @@ following options:
                 }
              }
 
-     - ``double``
+   .. tab:: indexIntegers 
+      :tabid: indexint
 
-   * - ``indexIntegers``
-     - Index or omit ``int32`` and ``int64`` type values. Value can be 
-       ``true`` or ``false``.
-
-       .. example::
+      .. example::
 
           The following index definition for the 
-          ``sample_airbnb.listingsAndReviews`` collection in the :ref:`sample 
-          dataset <available-sample-datasets>` omits the ``bathrooms`` 
-          field with 32 and 64 bit integer values. The following example 
-          will index the ``bathrooms`` field with double type values.
+          ``sample_airbnb.listingsAndReviews`` collection in the 
+          :ref:`sample dataset <available-sample-datasets>` omits the 
+          ``bathrooms`` field with 32-bit and 64-bit integer values. 
+          The following example will index the ``bathrooms`` field with 
+          ``double`` type values.
 
           .. code-block:: json 
              :copyable: false
@@ -789,13 +873,10 @@ following options:
                 }
              }
 
-     - ``true``
+   .. tab:: indexDoubles 
+      :tabid: indexdoubles
 
-   * - ``indexDoubles``
-     - Index or omit ``double`` type values. Value can be ``true`` or 
-       ``false``.
-
-       .. example::
+      .. example::
 
           The following index definition for the
           ``sample_analytics.accounts`` collection in the 
@@ -820,62 +901,188 @@ following options:
                 }
              }
 
-     - ``true``
+.. _objectId-ref:
 
-.. _bson-data-types-geo:
+``objectId``
+````````````
 
-``geo``
-~~~~~~~
+The ``objectId`` data type is used for indexing :manual:`ObjectId
+</reference/bson-types/#objectid>` fields. It works in conjunction with 
+the :ref:`equals <equals-ref>` operator.
 
-The ``geo`` type is for indexing geographic point and shape coordinates. For 
-this type, the indexed field must be a :manual:`GeoJSON </reference/geojson/>` 
-object.
+.. note::
+
+   Fields of type ``objectId`` can't be dynamically indexed. You must  
+   index fields of type ``objectId`` using :ref:`static mappings 
+   <static-dynamic-mappings>`. To learn more, see the :ref:`example
+   <boolean-objectid-example>` in the :ref:`boolean <boolean-ref>` 
+   section on this page.
+
+.. _bson-data-types-string:
+
+``string``
+``````````
+
+The ``string`` data type takes the following parameters:
 
 .. list-table::
-   :widths: 30 60 10
+   :widths: 20 10 10 40 20
    :header-rows: 1
 
    * - Option
+     - Type
+     - Necessity
      - Purpose
      - Default
 
    * - ``type``
-     - The type of field. Value must be ``geo``.
+     - string
+     - Required
+     - The type of field. Value must be ``string``.
      - 
 
-   * - ``indexShapes`` 
-     - Specifies whether or not to index shapes. By default: 
+   * - ``analyzer``
+     - string
+     - Optional
+     - The name of a built-in or overridden :ref:`analyzer 
+       <analyzers-ref>` to use for indexing the field.
+     - ``lucene.standard``
 
-       - Shape geometries such as lines and polygons are not indexed.
-       - Points are indexed, even when nested.
+   * - ``searchAnalyzer``
+     - string
+     - Optional
+     - The analyzer to use when querying the field.
+     - ``lucene.standard``
 
-       Value can be: 
+   * - ``indexOptions``
+     - string
+     - Optional 
+     - Specifies the amount of information to store for the indexed 
+       field. Value can be one of the following:
 
-       - ``true`` to index shapes and points 
-       - ``false`` to index only points
+       - ``docs`` - Only indexes documents. The frequency and position 
+         of the indexed term are ignored. Only a single occurence of 
+         the term is reflected in the :ref:`score <scoring-ref>`.
+       - ``freqs`` - Only indexes documents and term frequency. The 
+         position of the indexed term is ignored. 
+       - ``positions`` - Indexes documents, term frequency, and term 
+         positions. 
+       - ``offsets`` - (Default) Indexes documents, term frequency, 
+         term positions, and term offsets. This option is required for 
+         :ref:`highlight-ref`.
 
-     - ``false``
+     - ``offsets``
+
+   * - ``store``
+     - boolean
+     - Optional
+     - Specifies whether or not to store the exact document text as 
+       well as the analyzed values in the index. Value can be ``true`` 
+       or ``false``. The value for this option must be ``true`` for 
+       :ref:`highlight-ref`.
+     - ``true``
+
+   * - ``ignoreAbove``
+     - int
+     - Optional
+     - The maximum number of characters in the value of the field to 
+       index. |fts| doesn't index if the field value is greater than 
+       the specified number of characters.
+     - 
+
+   * - ``multi``
+     - String Field Definition
+     - Optional 
+     - The string field to index with the name of the alternate 
+       analyzer specified in the ``multi`` object. To learn more about 
+       specifying the ``multi`` object, see :ref:`example <multi-eg>` 
+       below.
+
+     - 
+
+   * - ``norms``
+     - string
+     - Optional
+     - Specifies whether to include or omit the field length in 
+       the result when scoring. The length of the field is determined 
+       by the number of tokens produced by the analyzer for the field. 
+       Value can be one of the following: 
+ 
+       - ``include`` - to include the field length when scoring.
+       - ``omit`` - to omit the field length when scoring.
+      
+       If value is ``include``, |fts| uses the length of the field to 
+       determine the higher score when scoring. For example, if two 
+       documents match an |fts| query, the document with the shorter 
+       field length scores higher than the document with the longer 
+       field length.
+
+       If value is ``omit``, |fts| ignores the field length when 
+       scoring. 
+
+     - ``include``
+
+.. _multi-eg:
+
+``multi`` Example 
++++++++++++++++++
 
 .. example:: 
+       
+   The following index definition for a ``library.books`` collection 
+   indexes string values in the field ``text`` with the 
+   ``lucene.english`` and ``lucene.french`` analyzers in addition to 
+   the default ``lucene.standard`` analyzer:
 
    .. code-block:: json 
-      :emphasize-lines: 7-8
+      :copyable: false
 
       {
         "mappings": {
           "dynamic": false,
           "fields": {
-            "type": "document",
-            "<field-name>": {
-              "indexShapes": true|false
-              "type": "geo"
+            "text": {
+              "type": "string",
+              "multi": {
+                "english": {
+                  "type": "string",
+                  "analyzer": "lucene.english"
+                },
+                "french": {
+                  "type": "string",
+                  "analyzer": "lucene.french"
+                }
+              }
             }
           }
         }
       }
 
 Limitation
-----------
+~~~~~~~~~~
 
-|fts| cannot index numeric, date, or boolean values if they are part of 
-an array.
+.. include:: /includes/fact-fts-index-limitation.rst
+
+.. _ref-index-management:
+
+Managing Indexes in |service| 
+-----------------------------
+
+You can create, edit, and delete |fts| indexes from the |service| User 
+Interface and :ref:`API <atlas-search-api-ref>`. 
+
+- :ref:`ref-create-index`
+- :ref:`ref-edit-index`
+- :ref:`ref-delete-index`
+
+.. note:: 
+
+   .. include:: /includes/fact-fts-required-roles.rst
+
+.. toctree::
+   :titlesonly:
+
+   /reference/atlas-search/create-index
+   /reference/atlas-search/edit-index
+   /reference/atlas-search/delete-index
+
