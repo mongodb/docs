@@ -81,8 +81,8 @@ extlinks = {
 }
 
 ## add `extlinks` for each published version.
-for i in conf.git.branches.published:
-    extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
+#for i in conf.git.branches.published:
+#    extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
 
 intersphinx_mapping = {}
 for i in conf.system.files.data.intersphinx:
