@@ -5,7 +5,7 @@
    :class: compatibility-large no-padding
 
    * - C#/.NET Driver Version
-     - .NET 5
+     - .NET 5 [#atlas-connection]_
      - .NET Core 3.1
      - .NET Core 3.0
      - .NET Core 2.2
@@ -190,3 +190,5 @@
 
 Versions 1.10 and 1.11 of the driver are compatible with .NET 3.5
 through 4.8 only.
+
+.. [#atlas-connection] When using .NET 5, you can't connect to Atlas clusters running MongoDB 4.0 due to a certificate issue.
