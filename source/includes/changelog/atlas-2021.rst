@@ -1,3 +1,17 @@
+.. _atlas_20210421:
+
+21 April 2021 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Adds more IOPS and more consistent throughput to standard storage for 
+  |service| clusters on |aws| at no extra cost.
+- Supports using |charts| with :ref:`multi-cloud clusters 
+  <create-cluster-multi-region>`.
+- Introduces trial version of the :ref:`MongoDB Atlas Kubernetes 
+  Operator <ak8so-quick-start-ref>`.
+- Adds an easy `MongoDB CLI quickstart command
+  <https://docs.mongodb.com/mongocli/stable/quick-start/#configure-an-service-cluster>`__ 
+  to get started with |service|.
 
 .. _atlas_20210330:
 
