@@ -47,7 +47,7 @@ Warning Output
 
 .. code-block:: none
 
-    Warning: upgradeCheck only supports V1 indexes. Skipping index: <indexSpec>
+   Warning: upgradeCheck only supports V1 indexes. Skipping index: <indexSpec>
 
 To resolve, remove the invalid index and recreate the index omitting
 the version specification, or reindex the collection. Reindex operation
