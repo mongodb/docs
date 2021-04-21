@@ -4,7 +4,7 @@
    :stub-columns: 1
    :class: compatibility-large
 
-   * - Scala Driver
+   * - Scala Driver Version
      - MongoDB 4.4
      - MongoDB 4.2
      - MongoDB 4.0

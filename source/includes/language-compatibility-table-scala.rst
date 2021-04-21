@@ -4,7 +4,7 @@
    :stub-columns: 1
    :class: compatibility
 
-   * - Scala Driver
+   * - Scala Driver Version
      - Scala 2.13
      - Scala 2.12
      - Scala 2.11

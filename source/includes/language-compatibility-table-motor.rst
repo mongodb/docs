@@ -4,7 +4,7 @@
    :stub-columns: 1
    :class: compatibility-large
 
-   * - Motor (Python async) Driver
+   * - Motor (Python async) Driver Version
      - Python 3.9
      - Python 3.8
      - Python 3.7

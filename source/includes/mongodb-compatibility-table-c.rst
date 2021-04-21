@@ -13,7 +13,7 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
-   * - Version 1.17
+   * - 1.17
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -23,7 +23,7 @@
      - |checkmark|
      -
 
-   * - Version 1.16
+   * - 1.16
      -
      - |checkmark|
      - |checkmark|
@@ -33,7 +33,7 @@
      - |checkmark|
      -
 
-   * - Version 1.15
+   * - 1.15
      -
      - |checkmark|
      - |checkmark|
@@ -43,7 +43,7 @@
      - |checkmark|
      -
 
-   * - Version 1.14
+   * - 1.14
      -
      -
      - |checkmark|
@@ -53,7 +53,7 @@
      - |checkmark|
      -
 
-   * - Version 1.13
+   * - 1.13
      -
      -
      - |checkmark|
@@ -63,7 +63,7 @@
      - |checkmark|
      -
 
-   * - Version 1.12
+   * - 1.12
      -
      -
      - |checkmark|
@@ -73,7 +73,7 @@
      - |checkmark|
      -
 
-   * - Version 1.11
+   * - 1.11
      -
      -
      - |checkmark|
@@ -83,7 +83,7 @@
      - |checkmark|
      -
 
-   * - Version 1.10
+   * - 1.10
      -
      -
      -
@@ -93,7 +93,7 @@
      - |checkmark|
      -
 
-   * - Version 1.9
+   * - 1.9
      -
      -
      -
@@ -103,7 +103,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.8
+   * - 1.8
      -
      -
      -
@@ -113,7 +113,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.7
+   * - 1.7
      -
      -
      -
@@ -123,7 +123,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.6
+   * - 1.6
      -
      -
      -
@@ -133,7 +133,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.5
+   * - 1.5
      -
      -
      -
@@ -143,7 +143,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.4
+   * - 1.4
      -
      -
      -
@@ -153,7 +153,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.3
+   * - 1.3
      -
      -
      -
@@ -163,7 +163,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.2
+   * - 1.2
      -
      -
      -
@@ -173,7 +173,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.1
+   * - 1.1
      -
      -
      -
@@ -183,7 +183,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.0
+   * - 1.0
      -
      -
      -

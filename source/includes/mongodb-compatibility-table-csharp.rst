@@ -15,7 +15,7 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
-   * - Version 2.12
+   * - 2.12
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -26,7 +26,7 @@
      - |checkmark|
 
 
-   * - Version 2.11
+   * - 2.11
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -36,7 +36,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.10
+   * - 2.10
      -
      - |checkmark|
      - |checkmark|
@@ -46,7 +46,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.9
+   * - 2.9
      -
      - |checkmark|
      - |checkmark|
@@ -56,7 +56,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.8
+   * - 2.8
      -
      -
      - |checkmark|
@@ -66,7 +66,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.7
+   * - 2.7
      -
      -
      - |checkmark|
@@ -76,7 +76,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.6
+   * - 2.6
      -
      -
      -
@@ -86,7 +86,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.5
+   * - 2.5
      -
      -
      -
@@ -96,7 +96,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.4
+   * - 2.4
      -
      -
      -
@@ -106,7 +106,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.3
+   * - 2.3
      -
      -
      -
@@ -116,7 +116,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.2
+   * - 2.2
      -
      -
      -
@@ -126,7 +126,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 2.0
+   * - 2.0
      -
      -
      -
@@ -136,7 +136,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - Version 1.11
+   * - 1.11
      -
      -
      -
@@ -147,7 +147,7 @@
      - |checkmark|
 
 
-   * - Version 1.10
+   * - 1.10
      -
      -
      -

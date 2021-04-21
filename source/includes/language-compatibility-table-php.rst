@@ -5,7 +5,7 @@
    :stub-columns: 1
    :class: compatibility-large
 
-   * - PHP Driver
+   * - PHP Driver Versions
      - PHP 8.0
      - PHP 7.4
      - PHP 7.3

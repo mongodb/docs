@@ -7,7 +7,7 @@ Python 2 Compatibility
    :stub-columns: 1
    :class: compatibility
 
-   * - Python Driver
+   * - Python Driver Version
      - Python 2.7, PyPy
      - Python 2.6 
      - Python 2.5, Jython 2.5
@@ -112,7 +112,7 @@ Python 3 Compatibility
    :stub-columns: 1
    :class: compatibility-large
 
-   * - Python Driver
+   * - Python Driver Version
      - Python 3.9
      - Python 3.8
      - Python 3.7

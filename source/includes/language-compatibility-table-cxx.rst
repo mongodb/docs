@@ -9,12 +9,12 @@
      - C++11
      - C++03
 
-   * - mongocxx-3.x
+   * - 3.x
      - |checkmark|
      - |checkmark|
      -
 
-   * - legacy-1.x
+   * - 1.x
      - |checkmark|
      - |checkmark|
      - |checkmark|

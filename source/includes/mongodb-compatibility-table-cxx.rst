@@ -15,7 +15,7 @@
      - MongoDB 2.6
      - MongoDB 2.4
 
-   * - mongocxx 3.6
+   * - 3.6
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -26,7 +26,7 @@
      -
      -
 
-   * - mongocxx 3.5
+   * - 3.5
      -
      -
      - |checkmark|
@@ -37,7 +37,7 @@
      -
      -
 
-   * - mongocxx 3.4
+   * - 3.4
      -
      -
      - |checkmark|
@@ -48,7 +48,7 @@
      -
      -
 
-   * - mongocxx 3.3
+   * - 3.3
      -
      -
      -
@@ -59,7 +59,7 @@
      -
      -
 
-   * - mongocxx 3.2
+   * - 3.2
      -
      -
      -
@@ -70,7 +70,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - mongocxx 3.1
+   * - 3.1
      -
      -
      -
@@ -81,7 +81,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - mongocxx 3.0
+   * - 3.0
      -
      -
      -
