@@ -3,7 +3,7 @@
    :stub-columns: 1
    :class: compatibility-large
 
-   * - Node.js Driver
+   * - Node.js Driver Version
      - Node.js v14.x.x
      - Node.js v12.x.x
      - Node.js v10.x.x
