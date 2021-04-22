@@ -171,6 +171,7 @@ rst_epilog = '\n'.join([
     '.. |k8s-webhook| replace:: `Webhook <https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#what-are-admission-webhooks>`__',
     '.. |k8s| replace:: Kubernetes',
     '.. |kdc| replace:: :abbr:`KDC (Key Distribution Center)`',
+    '.. |kind| replace:: :abbr:`Kind (Kubernetes in Docker)`',
     '.. |kmip| replace:: :abbr:`KMIP (Key Management Interoperability)`',
     '.. |kms| replace:: :abbr:`KMS (Key Management Service)`',
     '.. |kubectl| replace:: :xml:`<mono><link target="https://kubernetes.io/docs/reference/kubectl/kubectl/">kubectl</link></mono>`',
