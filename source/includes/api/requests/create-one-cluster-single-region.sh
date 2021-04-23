@@ -9,7 +9,6 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
          "numShards": 1,
          "providerSettings": {
            "providerName": "AWS",
-           "diskIOPS": 300,
            "instanceSizeName": "M40",
            "regionName": "US_EAST_1"
          },
