@@ -1,3 +1,15 @@
+.. _data-lake-v20210423:
+
+21 April 2021 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Improves stability and performance.
+- Includes improved support for Parquet.
+- Supports ``M0``, ``M2``, & ``M5`` |service| clusters as data sources.
+- Adds :ref:`regex pattern matching <datalake-databases-reference>` 
+  option for wildcard collections from |service| Clusters.
+- Includes updated error messages for query execution limit.
+
 .. _data-lake-v20210330:
 
 30 March 2021 Release
