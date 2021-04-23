@@ -1,3 +1,16 @@
+.. _10.29.0.6856-1:
+
+MongoDB Agent 10.29.0.6856-1 
+----------------------------
+
+*Released* 2021-04-21 
+
+- Uses Go 1.15 to build the {+mdbagent+}. Before upgrading to this version,
+  ensure that all |tls| certificates used in your MongoDB deployment
+  contain a Subject Alternative Name. For more information, see 
+  :ref:`Troubleshooting <tls-cert-no-san>`.
+- Improves logging.
+
 .. _10.28.0.6828-1:
 
 MongoDB Agent 10.28.0.6828-1
