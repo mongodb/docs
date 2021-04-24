@@ -5,4 +5,158 @@ Access Data From a Cursor
 .. default-domain:: mongodb
 
 Read operations that return multiple documents do not immediately return
-all values matching the query.
+all values matching the query. Because a query can potentially match
+large number of documents, we need to be able to access or store the
+matched documents. 
+
+This page uses an initiating method, ``find()`` to show how to access
+data from a :java-docs:`FindIterable
+<apidocs/mongodb-driver-sync/com/mongodb/client/FindIterable.html>` . 
+
+.. note::
+
+   The ways to access and store data mentioned below applies equally to
+   other iterables such as an :java-docs:`AggregateIterable
+   <apidocs/mongodb-driver-sync/com/mongodb/client/AggregateIterable.html>`.
+
+The ``find()`` method iterates through all the documents in your
+collection to find documents that match your query and returns an
+instance of a ``FindIterable``. 
+
+A ``FindIterable`` consists of documents matched by your search criteria
+and allows you to further specify which documents to see by setting
+paramaters though methods. 
+
+Terminal Methods
+----------------
+
+Terminal methods execute an operation on the MongoDB server after
+configuring all parameters of an ``Iterable`` instance controlling the
+operation. 
+
+First
+~~~~~
+
+Use the :java-docs:`first() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoIterable.html#first()>`
+method to retireve the first document in your query results:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Cursor.java
+   :language: java
+   :dedent:
+   :start-after: begin firstExample
+   :end-before: end firstExample
+
+This method is often used when your query filter will match one
+document, such as when filtering by a unique index. 
+
+Into
+~~~~
+
+Use the :java-docs:`into() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoIterable.html#into(A)>`
+method to store your query results in a ``List``: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Cursor.java
+   :language: java
+   :dedent:
+   :start-after: begin intoExample
+   :end-before: end intoExample
+   
+This method is often used when your query filter returns a small number
+of documents that can fit into available memory. 
+
+Cursor
+~~~~~~
+
+Use the :java-docs:`cursor() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoIterable.html#cursor()>`
+method to iterate through fetched documents and ensure that the cursor
+closes if there is an early termination:
+
+.. code-block:: java
+   :copyable: true
+   
+   MongoCursor<Document> cursor = collection.find().cursor();
+
+For more information on how to ensure a cursor closes, see the :ref:`cursor cleanup section <cursor_cleanup>`.
+
+Usage Patterns
+--------------
+
+A ``MongoCursor`` and ``FindIterable`` allow you to access query results
+one document at a time, abstracting away network and caching logic. 
+
+Functional Iteration
+~~~~~~~~~~~~~~~~~~~~~
+
+Pass a function to the 
+`forEach() <https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Iterable.html?is-external=true#forEach(java.util.function.Consumer)>`_ 
+method of a ``FindIterable`` to iterate through results in a functional style:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Cursor.java
+   :language: java
+   :dedent:
+   :start-after: begin forEachIteration
+   :end-before: end forEachIteration
+
+.. warning::
+
+   Initiating methods implement the Iterable interface which allows you
+   to iterate using iterator methods. Sometimes, we use an enhanced
+   for-each loop to iterate through results: 
+
+   .. code-block:: java
+
+      for (Document cur : collection.find()) {
+         ...
+      }
+
+   Iterating this way is not preferable because if an exception is
+   thrown before the loop completes, the cursor will not close. Using a
+   ``MongoCursor`` allows us to ensure the cursor closes as shown in the
+   :ref:`cursor cleanup section <cursor_cleanup>`.
+
+Conditional Iteration
+~~~~~~~~~~~~~~~~~~~~~
+
+Use the :java-docs:`hasNext() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoCursor.html#hasNext()>`
+method to check if there are any documents available in the cursor, and then use the
+:java-docs:`next() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoCursor.html#next()>`
+method to retrieve the next available document from the cursor:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Cursor.java
+   :language: java
+   :dedent:
+   :start-after: begin manualIteration
+   :end-before: end manualIteration
+
+.. _cursor_cleanup:
+
+Cursor Cleanup
+--------------
+
+Close
+~~~~~
+
+Use the
+:java-docs:`close() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoCursor.html#close()>`
+method in a finally block to free up a cursor's consumption of resources
+in both the client application and the MongoDB server:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Cursor.java
+   :language: java
+   :dedent:
+   :start-after: begin closeExample
+   :end-before: end closeExample
+   
+Try with Resources Statement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use a `try-with-resources statement
+<https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html>`_
+to automatically free up a cursor's consumption of resources in both the
+client application and the MongoDB server:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Cursor.java
+   :language: java
+   :dedent:
+   :start-after: begin tryWithResourcesExample
+   :end-before: end tryWithResourcesExample
