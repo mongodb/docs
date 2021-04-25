@@ -68,7 +68,8 @@ rst_epilog = '\n'.join([
     '.. |hardlink| replace:: {0}/{1}'.format(conf.project.url, conf.git.branches.current),
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
     '.. |bi| replace:: MongoDB Connector for BI',
-    '.. |mdbsg| replace:: MongoDB Style Guide'
+    '.. |mdbsg| replace:: MongoDB Style Guide',
+    '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`'
 ])
 
 pygments_style = 'sphinx'
@@ -122,6 +123,7 @@ source_constants = {
     'package-version': '4.4.0',
     'package-name-org': 'mongodb-org',
     'version': '4.0',
+    'docsteam': 'MongoDB Documentation Group'
 }
 
 ## add `extlinks` for each published version.
