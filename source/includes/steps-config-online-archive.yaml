@@ -77,13 +77,14 @@ ref: oa-config-query
 ---
 level: 4
 stepnum: 7
-title: "(Optional) Enter up to two most commonly queried fields from 
-       the collection in the :guilabel:`Second most commonly queried field` 
-       and :guilabel:`Third most commonly queried field` fields 
-       respectively."   
+title: "(Optional) Specify the two most frequently queried fields in 
+       your collection to create partitions in your online archive."   
 ref: oa-config-additional-fields  
 content: |
-  To specify nested fields, use the :manual:`dot notation 
+  Enter up to two most commonly queried fields from the collection in 
+  the :guilabel:`Second most commonly queried field` and 
+  :guilabel:`Third most commonly queried field` fields respectively. To 
+  specify nested fields, use the :manual:`dot notation 
   </core/document/#embedded-documents>`.
 
   The specified fields are used to partition your archived data. 
@@ -181,6 +182,55 @@ content: |
   documents, which will take longer and increase your costs. To learn 
   more about how partitions improve your query performance in Data 
   Lake, see `Data Structure in S3 <https://docs.mongodb.com/datalake/admin/optimize-query-performance#data-structure-in-s3>`__.
+
+  To determine an approximate number of partitions that can be created 
+  for the specified fields, connect to your cluster and run the 
+  following query on the collection for which you are configuring the 
+  online archive: 
+
+  .. code-block:: json 
+     :emphasize-lines: 1, 5-6
+     
+     db.<COLLECTION_NAME>.aggregate([
+       {
+         $group: { 
+           _id:"uniqueValues", 
+           uniqueValues1: {$addToSet:"$<QUERY_FIELD_1>"},
+           uniqueValues2: {$addToSet:"$<QUERY_FIELD_2>"}
+         }
+       },
+       { 
+         $project: { 
+           uniqueValue1Count: {$size:"$uniqueValues1"},
+           uniqueValue2Count: {$size:"$uniqueValues2"},
+           numberOfPartitions: { 
+             $multiply: [ 
+               {$size:"$uniqueValues1"}, 
+               {$size:"$uniqueValues2"}
+             ] 
+           }
+         }
+       }
+     ])
+  
+  Replace: 
+
+  - ``<COLLECTION_NAME>`` with your collection name.
+  - ``<QUERY_FIELD_[n]>`` with the name of your query field.
+
+  For example, when using the ``movies`` collection  as the 
+  ``<COLLECTION_NAME>``, ``released`` as ``<QUERY_FIELD_1>``, and 
+  ``title`` as ``<QUERY_FIELD_2>``, the preceding query returns the 
+  following output: 
+
+  .. code-block:: sh 
+     :copyable: false 
+
+     { "_id" : "uniqueValues", "uniqueValue1Count" : 9448, "uniqueValue2Count" : 21641, "numberOfPartitions" : 204464168 }
+
+  The total number of partitions is based on how frequently data is 
+  archived, especially for date partitions, and the value of the fields 
+  in the documents that qualify for archiving.
 ---
 level: 4
 stepnum: 8
