@@ -43,6 +43,10 @@ M
      providers. Capitalize when referring to it as a MongoDB
      offering.
 
+   master
+     :icon-fa4:`times-circle` Don't use. Use *primary* as an adjective
+     or noun.
+
    matrixes
      As the plural of *matrix*, use *matrixes* rather than
      *matrices*.
