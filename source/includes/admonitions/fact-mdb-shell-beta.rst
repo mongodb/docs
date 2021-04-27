@@ -1,5 +1,4 @@
-.. admonition:: Beta
-   :class: note
+.. note:: Beta Release
 
    The |mdb-shell| (``mongosh``) is currently available as a **Beta**
    release. The product, its features, and the corresponding
