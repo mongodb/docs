@@ -95,6 +95,26 @@ W
             setup.
           -
 
+   whitelist
+     :icon-fa4:`times-circle` Don't use. Use *access list* as a noun and *add to an access list* as a verb.
+
+     .. list-table::
+        :widths: 50 50
+        :header-rows: 1
+
+        * - Recommended
+          - Not Recommended
+
+        * - To add an entry to the access list, click
+            **Go to Global Access List**.
+          - To add a whitelist entry, click
+            **Go to Global Whitelist**.
+        * - You can search for an access list entry, add entries to the
+            access list, and edit or remove existing entries in the
+            access list.
+          - You can search for a whitelist entry, add whitelist
+            entries, and edit or delete existing whitelist entries.
+
    white paper
      Use as two words.
 
@@ -134,11 +154,11 @@ W
         * - Recommended
           - Not Recommended
 
-        * - On the Rule Type page of the New Inbound Rule Wizard, select
-            **Port** and then click **Next**.
+        * - On the Rule Type page of the New Inbound Rule Wizard,
+            select **Port** and then click **Next**.
 
-            Use the OSCommerce installation wizard to update any required
-            permissions on the site's files.
+            Use the OSCommerce installation wizard to update any
+            required permissions on the site's files.
           -
 
    work around

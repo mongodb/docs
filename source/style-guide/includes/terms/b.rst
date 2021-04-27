@@ -172,6 +172,28 @@ B
      *every two weeks*, *every two months*, *twice a week*, and *twice
      a month*.
 
+   blacklist
+     :icon-fa4:`times-circle` Don't use. Use *access list* as a noun
+     and *remove from an access list* as a verb. Use *blocked* as an
+     adjective.
+
+     .. list-table::
+        :widths: 50 50
+        :header-rows: 1
+
+        * - Recommended
+          - Not Recommended
+
+        * - To remove an entry to the access list, click
+            **Go to Global Access List**.
+          - To add a blacklist entry, click
+            **Go to Global Blacklist**.
+        * - You can search for an access list entry, add entries to the
+            access list, and edit or remove existing entries in the
+            access list.
+          - You can search for a blacklist entry, add blacklist
+            entries, and edit or delete existing blacklist entries.
+
    Boolean
      Always use with an initial capital letter.
 

@@ -151,6 +151,10 @@ S
      :icon-fa5:`trash-alt` Use *slash* to refer to the / character,
      and use *backslash* to refer to \\ the character.
 
+   slave
+     :icon-fa4:`times-circle` Don't use. Use *secondary* as an
+     adjective or noun.
+
    software as a service (SaaS)
      Note the capitalization of the spelled-out term and the
      abbreviation. On first occurrence, use the spelled-out term and
