@@ -101,28 +101,6 @@ Definition
        
           .. versionadded:: 4.4
 
-
-Output
-------
-
-:dbcommand:`listDatabases` returns a document that contains:
-
-- A field named ``databases`` whose value is an array of documents, one
-  document for each database. Each document contains:
-
-  - A ``name`` field with the database name.
-
-  - A ``sizeOnDisk`` field with the total size of the database files on
-    disk in bytes.
-
-  - An ``empty`` field specifying whether the database has any data.
-
-  - For sharded clusters, a ``shards`` field that includes the shard
-    and the size in bytes of the database on disk for each shard.
-
-- A field named ``totalSize`` whose value is the sum of all the
-  ``sizeOnDisk`` fields in bytes.
-
 .. _listDatabases-behavior:
 
 Behavior
@@ -130,8 +108,7 @@ Behavior
 
 When :doc:`authentication </core/authentication>` is enabled:
 
-.. note:: show dbs
-
+.. note::
  
    For :binary:`~bin.mongo` shell version 4.0.6+ connected to earlier
    versions of MongoDB deployment (e.g. 3.6.10), 
@@ -238,6 +215,7 @@ The following is an example of a :dbcommand:`listDatabases` result:
          }
       ],
       "totalSize" : 251658240,
+      "totalSizeMb" : 251,
       "ok" : 1
    }
 
@@ -289,6 +267,8 @@ name matches the specified :query:`regular expression <$regex>`:
 .. code-block:: javascript
 
    db.adminCommand( { listDatabases: 1, filter: { "name": /^rep/ } } )
+
+.. _listDatabases-sharded-clusters:
 
 Sharded Clusters
 ~~~~~~~~~~~~~~~~
@@ -345,9 +325,66 @@ For example:
      "ok" : 1
    }
 
-.. seealso::
-
-   :doc:`/tutorial/use-database-commands`.
-
+.. seealso:: :doc:`/tutorial/use-database-commands`.
 
 .. |checkmark| unicode:: U+2713
+
+Output
+------
+
+.. data:: listDatabases.databases
+
+   *Type: Array*
+
+   Array of documents, each containing information on a single
+   database.
+   
+.. data:: listDatabases.databases.name
+ 
+   *Type: String*
+
+   Name of the database.
+
+.. data:: listDatabases.databases.sizeOnDisk
+
+   *Type: Integer*
+
+   Total size of the database files on disk, expressed in bytes.
+
+.. data:: listDatabases.databases.empty
+
+   *Type: Boolean*
+   
+   Specifies whether the database is empty.
+   
+.. data:: listDatabases.databases.shards
+
+   *Type: Document*
+
+   Each element in the ``shards`` document consists of a field whose key 
+   gives the name of a collection on that shard, and whose value 
+   represents the collection's size in bytes.
+
+   ``shards`` only appears in the output if ``nameOnly: false``.
+
+   See :ref:`Sharded Clusters <listDatabases-sharded-clusters>`
+   for details.
+
+.. data:: listDatabases.totalSize
+
+   *Type: Integer*
+
+   Sum of all the ``sizeOnDisk`` fields in bytes.
+
+.. data:: listDatabases.totalSizeMb
+
+   *Type: Integer*
+
+   Sum of all the ``sizeOnDisk`` fields, expressed in megabytes.
+
+.. data:: listDatabases.ok
+
+   *Type: Integer*
+
+   Return value for the command. A value of ``1`` indicates
+   success.
