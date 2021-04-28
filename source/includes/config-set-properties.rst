@@ -17,6 +17,10 @@
    * - ``private_api_key`` 
      - Private key for programmatic access. 
 
+   * - ``mongosh_path`` 
+     - Path to the |mongo| shell on your system. The default value is 
+       ``/usr/local/bin/mongosh``.
+
    * - ``ops_manager_url`` 
      - **Ops Manager only.**  |mms| base URL. The |url| must end with a 
        forward slash (i.e. ``/``).
