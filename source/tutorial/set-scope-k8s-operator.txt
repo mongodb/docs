@@ -1,0 +1,342 @@
+:noprevnext:
+
+.. _k8s-deployment-scopes:
+
+======================================
+Set Scope for |k8s-op-full| Deployment
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/styles/corrections.rst
+
+Before you install the |k8s-op-short|, you can set the scope of the
+|k8s-op-short| deployment. The scopes depend on the namespaces in
+which you choose to deploy |onprem| and |k8s-mdbrscs|.
+
+|k8s-op-short| Deployment Scopes
+--------------------------------
+
+You can set one of these scopes:
+
+- :ref:`ns-scope-same-ns` *(Default)*
+- :ref:`ns-scope-different-ns`
+- :ref:`cluster-wide-scope`
+
+.. _ns-scope-same-ns:
+
+Operator Uses Same Namespace as Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set the scope for the |k8s-op-short| to use the same |k8s-ns| as
+resources. In this case, the |k8s-op-short| watches |onprem| and
+|k8s-mdbrscs| in that same |k8s-ns|.
+
+When you :ref:`install <install-k8s-operator>` the |k8s-op-short|, it
+uses the default namespace.
+
+.. _ns-scope-different-ns:
+
+Operator Uses Different Namespace than Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set the scope for the |k8s-op-short| to use a different |k8s-ns|
+than its resources. In this case, the |k8s-op-short| watches |onprem|
+and |k8s-mdbrscs| in a |k8s-ns| that you specify.
+
+You can use ``helm`` to install the |k8s-op-short| with this scope.
+Follow the relevant :ref:`installation instructions
+<install-k8s-operator>` for ``helm``, but use the following command to
+set the namespace for the |k8s-op-short| to watch:
+
+.. code-block:: sh
+
+   helm install <chart-name> helm_chart \
+        --set operator.watchNamespace=<namespace> \
+
+Setting the namespace ensures that:
+
+- The namespace you want the |k8s-op-short| to watch has the correct
+  |k8s-cr| and |k8s-crb|. The ``clusterRole`` and ``clusterRoleBinding``
+  are included in the default configuration files that you apply during
+  the installation. To create the ``clusterRole`` and
+  ``clusterRoleBinding``, you must have
+  :k8sdocs:`cluster-admin privileges </reference/access-authn-authz/rbac/#user-facing-roles>`.
+- The |k8s-op-short| can watch and create resources in this namespace.
+
+.. _cluster-wide-scope:
+
+Operator Uses Cluster-Wide Scope
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set the scope for the |k8s-op-short| to the |k8s| cluster.
+In this case, the |k8s-op-short| watches |onprem| and |k8s-mdbrscs|
+in all |k8s-nss| in the |k8s| cluster.
+
+.. important::
+
+   You can deploy only one instance of the |k8s-op-short| with a
+   cluster-wide scope per |k8s| cluster.
+
+To set a cluster-wide scope for the |k8s-op-short|, follow the
+instructions for your preferred installation method.
+
+.. tabs::
+
+   .. tab:: Kubernetes
+      :tabid: cwidek8s
+
+      .. tabs::
+
+         .. tab:: Using kubectl
+            :tabid: k8s-no-helm
+
+            Before you deploy the |k8s-op-short|, configure the following items:
+
+            1. Use the :github:`mongodb-enterprise.yaml
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
+               sample |yaml| file from the :github:`MongoDB Enterprise Kubernetes Operator GitHub repository
+               </mongodb/mongodb-enterprise-kubernetes>`.
+            #. Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE`` in
+               :github:`mongodb-enterprise.yaml
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml#L239>`
+               to ``*``.
+            #. In :github:`mongodb-enterprise.yaml
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml#L56>`,
+               change:
+
+               .. code-block:: sh
+
+                  kind:  Role 
+                  apiVersion: rbac.authorization.k8s.io/v1
+                  metadata:
+                   name: mongodb-enterprise-operator
+
+               to:
+
+               .. code-block:: sh
+
+                  kind: ClusterRole
+                  apiVersion: rbac.authorization.k8s.io/v1
+                  metadata:
+                   name: mongodb-enterprise-operator
+
+            #. Add the following code to the ``ClusterRole`` that you
+               have just modified:
+
+               .. code-block:: sh
+                   
+                  - apiGroups:
+                    - ""
+                    resources:
+                    - namespaces
+                    verbs:
+                    - list
+                    - watch
+            
+            #. In :github:`mongodb-enterprise.yaml
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml#L122-134>`,
+               change:
+              
+               .. code-block:: sh
+
+                  kind:  RoleBinding
+                  apiVersion: rbac.authorization.k8s.io/v1
+                  metadata:
+                   name: mongodb-enterprise-operator
+                   namespace: mongodb
+                  roleRef:
+                   apiGroup: rbac.authorization.k8s.io
+                   kind: Role
+                   name: mongodb-enterprise-operator
+                  subjects:
+                   - kind: ServiceAccount
+                   name: mongodb-enterprise-operator
+                   namespace: mongodb
+
+               to:
+
+               .. code-block:: sh
+
+                  kind:  ClusterRoleBinding
+                  apiVersion: rbac.authorization.k8s.io/v1
+                  metadata:
+                   name: mongodb-enterprise-operator
+                   namespace: mongodb
+                  roleRef:
+                   apiGroup: rbac.authorization.k8s.io
+                   kind: ClusterRole
+                   name: mongodb-enterprise-operator
+                  subjects:
+                   - kind: ServiceAccount
+                   name: mongodb-enterprise-operator
+                   namespace: mongodb
+
+            #. Create all required local |k8s| service accounts and secrets.
+            #. In the following sample |yaml| file, replace ``<namespace>`` with the
+               namespace in which you want the |k8s-op-short| to deploy resources.
+        
+               .. literalinclude:: /includes/service-accounts-and-secrets-cluster-wide-no-helm.yaml
+                  :language: yaml
+                  :linenos:
+
+         .. tab:: Using Helm
+            :tabid: k8s-with-helm
+
+            Before you deploy the |k8s-op-short|, configure the following items:
+
+            1. Configure the |k8s-op-short| to watch all namespaces:
+
+               .. code-block:: sh
+
+                  helm install <chart-name> helm_chart \
+                  --set operator.watchNamespace=*
+
+            #. Create the required service accounts for each namespace where you
+               want to deploy |onprem| and |k8s-mdbrscs|:
+
+               .. code-block:: sh
+
+                  helm template --set namespace=<namespace> \
+                  helm_chart --show-only templates/database-roles.yaml | kubectl
+                  apply -f -
+
+
+   .. tab:: OpenShift
+      :tabid: os
+
+      .. tabs::
+
+         .. tab:: Using oc
+            :tabid: openshift-no-helm
+
+            Before you deploy the |k8s-op-short|, configure the following items:
+
+            1. Use the :github:`mongodb-enterprise-openshift.yaml
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml>`
+               sample |yaml| file from the :github:`MongoDB Enterprise Kubernetes Operator GitHub repository
+               </mongodb/mongodb-enterprise-kubernetes>`.
+
+            #. Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE`` in
+               :github:`mongodb-enterprise-openshift.yaml
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml#L236>`
+               to ``*``.
+
+            #. In :github:`mongodb-enterprise-openshift.yaml
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml#L56>`,
+               change:
+
+               .. code-block:: sh
+
+                  kind: Role
+                  apiVersion: rbac.authorization.k8s.io/v1
+                  metadata:
+                   name: enterprise-operator
+
+               to:
+
+               .. code-block:: sh
+
+                  kind: ClusterRole
+                  apiVersion: rbac.authorization.k8s.io/v1
+                  metadata:
+                   name: enterprise-operator
+            
+            #. Add the following code to the ``ClusterRole`` that you
+               have just modified:
+   
+               .. code-block:: sh
+                      
+                  - apiGroups:
+                    - ""
+                    resources:
+                    - namespaces
+                    verbs:
+                    - list
+                    - watch
+                
+            #. In :github:`mongodb-enterprise-openshift.yaml
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml#L122-134>`,
+               change:
+
+               .. code-block:: sh
+
+                  kind:  RoleBinding
+                  apiVersion: rbac.authorization.k8s.io/v1
+                  metadata:
+                   name: enterprise-operator
+                   namespace: mongodb
+                  roleRef:
+                   apiGroup: rbac.authorization.k8s.io
+                   kind: Role
+                   name: enterprise-operator
+                  subjects:
+                   - kind: ServiceAccount
+                   name: enterprise-operator
+                   namespace: mongodb
+
+               to:
+
+               .. code-block:: sh
+
+                  kind:  ClusterRoleBinding
+                  apiVersion: rbac.authorization.k8s.io/v1
+                  metadata:
+                   name: enterprise-operator
+                   namespace: mongodb
+                  roleRef:
+                   apiGroup: rbac.authorization.k8s.io
+                   kind: ClusterRole
+                   name: enterprise-operator
+                  subjects:
+                   - kind: ServiceAccount
+                   name: enterprise-operator
+                   namespace: mongodb
+
+            #. Create all required local |k8s| service accounts and secrets.
+            #. In the following sample |yaml| file, replace ``<namespace>`` with the
+               namespace in which you want the |k8s-op-short| to deploy
+               resources. Use |oc| or the OpenShift Container Platform user
+               interface to apply the resulting |yaml| file.
+
+               .. literalinclude:: /includes/service-accounts-and-secrets-cluster-wide-no-helm.yaml
+                  :language: yaml
+                  :linenos:
+
+         .. tab:: Using Helm
+            :tabid: openshift-helm
+
+            Before you deploy the |k8s-op-short|, configure the following items:
+
+            1. Configure the |k8s-op-short| to watch all namespaces:
+
+               .. code-block:: sh
+
+                  helm install <chart-name> helm_chart \
+                  --set operator.watchNamespace=* \
+                  --values helm_chart/values-openshift.yaml
+
+            #. Create the required service accounts for each namespace where you
+               want to deploy |onprem| and |k8s-mdbrscs|:
+
+               .. code-block:: sh
+
+                  helm template --set namespace=<namespace> \
+                  helm_chart --show-only templates/database-roles.yaml | oc
+                  apply -f -
+
+
+Next Steps
+----------
+
+After setting up the scope for the |k8s-op-full|, you can:
+
+- Read the :ref:`Considerations <k8s-considerations>`.
+- Complete the :ref:`Prerequisites <k8s-prerequisites>`.
+- :ref:`Install the Kubernetes Operator <install-k8s-operator>`.
