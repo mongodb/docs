@@ -39,9 +39,14 @@ Definition
 
    .. code-block:: javascript
 
-      db.createCollection( <name>, 
+      db.createCollection( <name>,
          {
            capped: <boolean>,
+           timeseries: {                  // Added in MongoDB 5.0
+              timeField: <string>,        // required for time series collections
+              metaField: <string>
+           },
+           expireAfterSeconds: <number>,
            autoIndexId: <boolean>,
            size: <number>,
            max: <number>,
@@ -53,7 +58,7 @@ Definition
            viewOn: <string>,              // Added in MongoDB 3.4
            pipeline: <pipeline>,          // Added in MongoDB 3.4
            collation: <document>,         // Added in MongoDB 3.4
-           writeConcern: <document> 
+           writeConcern: <document>
          }
       )
 
@@ -108,9 +113,46 @@ Definition
         - Optional. To create a :term:`capped collection`,
           specify ``true``. If you specify ``true``, you must also set a maximum
           size in the ``size`` field.
-          
-          
-   
+
+
+
+      * - ``timeseries.timeField``
+
+        - string
+
+        - Required when creating a :term:`time series collection`. The
+          name of the field which contains the date in each time series
+          document. Documents in a time series collection must have a
+          valid BSON date as the value for the ``timeField``.
+
+
+
+      * - ``timeseries.metaField``
+
+        - string
+
+        - Optional. The name of the field which contains metadata in
+          each time series document. The metadata in the specified field
+          should be data that is used to label a unique series of
+          documents. The metadata should rarely, if ever, change.
+
+          The name of the specified field may not be ``_id`` or the same
+          as the ``timeseries.timeField``. The field can be of any type
+          except array.
+
+
+
+      * - ``expireAfterSeconds``
+
+        - number
+
+        - Optional. Enable the automatic deletion of documents in a
+          :term:`time series collection` by specifying the number of
+          seconds after which documents expire. MongoDB deletes expired
+          documents automatically.
+
+
+
       * - ``autoIndexId``
    
         - boolean
@@ -379,6 +421,25 @@ megabytes and a maximum of 5000 documents.
 
 See :doc:`/core/capped-collections` for more
 information about capped collections.
+
+Create a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a :term:`time series collection` that captures weather data
+for the past 24 hours, issue this command:
+
+.. code-block:: javascript
+
+   db.createCollection(
+       "weather24h",
+       {
+          timeseries: {
+             timeField: "timestamp",
+             metaField: "data"
+          },
+          expireAfterSeconds: 86400
+       }
+   )
 
 Create a Collection with Document Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

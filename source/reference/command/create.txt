@@ -15,14 +15,14 @@ Definition
 
 .. dbcommand:: create
 
-   Explicitly creates a collection or view. 
-   
+   Explicitly creates a collection or view.
+
    .. note::
 
       The view created by this command does not refer to materialized
       views. For discussion of on-demand materialized views, see
       :pipeline:`$merge` instead.
-      
+
    :dbcommand:`create` has the following form:
 
    .. note:: Starting in MongoDB 4.2
@@ -36,6 +36,11 @@ Definition
       {
         create: <collection or view name>,
         capped: <true|false>,
+        timeseries: {
+           timeField: <string>,
+           metaField: <string>
+        },
+        expireAfterSeconds: <number>,
         autoIndexId: <true|false>,
         size: <max_size>,
         max: <max_documents>,
@@ -57,32 +62,69 @@ Definition
    .. list-table::
       :header-rows: 1
       :widths: 20 20 80
-   
+
       * - Field
-   
+
         - Type
-   
+
         - Description
-   
+
       * - ``create``
-   
+
         - string
-   
+
         - The name of the new collection or view. See
           :ref:`restrictions-on-db-names`.
-          
-          
-   
+
+
+
       * - ``capped``
-   
+
         - boolean
-   
+
         - Optional. To create a :term:`capped collection`,
           specify ``true``. If you specify ``true``, you must also set a maximum
           size in the ``size`` field.
-          
-          
-   
+
+
+
+      * - ``timeseries.timeField``
+
+        - string
+
+        - Required when creating a :term:`time series collection`. The
+          name of the field which contains the date in each time series
+          document. Documents in a time series collection must have a
+          valid BSON date as the value for the ``timeField``.
+
+
+
+      * - ``timeseries.metaField``
+
+        - string
+
+        - Optional. The name of the field which contains metadata in
+          each time series document. The metadata in the specified field
+          should be data that is used to label a unique series of
+          documents. The metadata should rarely, if ever, change.
+
+          The name of the specified field may not be ``_id`` or the same
+          as the ``timeseries.timeField``. The field can be of any type
+          except array.
+
+
+
+      * - ``expireAfterSeconds``
+
+        - number
+
+        - Optional. Enable the automatic deletion of documents in a
+          :term:`time series collection` by specifying the number of
+          seconds after which documents expire. MongoDB deletes expired
+          documents automatically.
+
+
+
       * - ``autoIndexId``
    
         - boolean
@@ -358,6 +400,32 @@ the command in the following form:
 
    db.runCommand( { create: "collection", capped: true, size: 64 * 1024 } )
 
+Create a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a :term:`time series collection` that captures weather data
+for the past 24 hours, issue this command:
+
+.. code-block:: javascript
+
+   db.createCollection(
+       "weather24h",
+       {
+          timeseries: {
+             timeField: "timestamp",
+             metaField: "data",
+          },
+          expireAfterSeconds: 86400
+       }
+   )
+
+.. note::
+
+   In this example ``expireAfterSeconds`` is specified as ``86400``
+   which means documents expire ``86400`` seconds after the
+   ``timestamp`` value and will then be deleted. See
+   :ref:`manual-timeseries-automatic-removal`.
+
 Create a View
 ~~~~~~~~~~~~~
 
@@ -366,7 +434,7 @@ Create a View
    The view created by this command does not refer to materialized
    views. For discussion of on-demand materialized views, see
    :pipeline:`$merge` instead.
-      
+
 .. versionchanged:: 4.2
 
 .. include:: /includes/extracts/views-restriction-output-to-disk.rst
