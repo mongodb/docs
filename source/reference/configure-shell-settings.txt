@@ -1,0 +1,168 @@
+.. _mongosh-shell-settings:
+
+=====================
+Configure ``mongosh``
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+
+The ``config`` API provides methods to examine and update the
+:mongosh:`mongosh </>` configuration. Updates made using ``config``
+persist between sessions.
+
+.. note::
+
+   The ``config`` API can be used within the ``mongosh`` command line
+   interface. It has no effect in the
+   :compass:`embedded Compass shell </embedded-shell>`.
+
+Syntax
+------
+
+Print the current ``mongosh`` configuration:
+
+.. code-block:: javascript
+
+   config 
+
+Return the current value for ``<property>``:
+
+.. code-block:: javascript
+
+   config.get( "<property>" )
+
+Change the current setting of ``<property>`` to ``<value>``:
+
+.. code-block:: javascript
+
+   config.set( "<property>", <value> )
+
+Supported ``property`` parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 10 50
+
+   * - Key
+     - Type
+     - Default
+     - Description
+
+   * - ``batchSize``
+     - integer
+     - 20
+     - The number of items displayed per cursor iteration
+
+   * - ``enableTelemetry``
+     - boolean
+     - true
+     - Enables sending anonymized tracking and diagnostic data to
+       MongoDB. 
+
+   * - ``historyLength``
+     - integer
+     - 1000
+     - The number of items to store in ``mongosh`` REPL's history file.
+
+   * - ``inspectDepth``
+     - integer or Infinity
+     - 6
+     - The depth to which objects are printed. Setting ``inspectDepth``
+       to ``Infinity`` (the javascript object) prints all nested
+       objects to their full depth. 
+
+   * - ``showStackTraces``
+     - boolean
+     - false
+     - Controls display of a stack trace along with error messages.
+     
+
+Examples
+--------
+
+Update Number of Items Returned by a Cursor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider viewing a collection with a large number of documents. You can
+update the ``batchSize`` to limit the number of items returned by a
+cursor.
+
+.. code-block:: javascript
+
+   config.set("batchSize", 3) 
+
+
+Future ``db.collection.find()`` operations will only return 3 documents
+per cursor iteration.
+
+Turn On Stack Traces
+~~~~~~~~~~~~~~~~~~~~
+
+Enable stack traces to see more detailed error reporting. 
+
+.. code-block:: javascript
+
+   config.set("showStackTraces", true)
+
+The output differs like this: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   // showStackTraces set to 'false'
+   Enterprise> db.orders.find( {}, { $thisWontWork: 1 } )
+   MongoError: FieldPath field names may not start with '$'.
+
+   // showStackTraces set to 'true'
+   Enterprise> db.orders.find( {}, { $thisWontWork: 1 } )
+   Uncaught:
+   MongoError: FieldPath field names may not start with '$'.
+       at MessageStream.messageHandler (/usr/bin/mongosh:58878:20)
+       at MessageStream.emit (events.js:315:20)
+       at MessageStream.EventEmitter.emit (domain.js:548:15)
+       at processIncomingData (/usr/bin/mongosh:57954:12)
+       at MessageStream._write (/usr/bin/mongosh:57850:5)
+       at writeOrBuffer (_stream_writable.js:352:12)
+       at MessageStream.Writable.write (_stream_writable.js:303:10)
+       at Socket.ondata (_stream_readable.js:719:22)
+       at Socket.emit (events.js:315:20)
+       at Socket.EventEmitter.emit (domain.js:548:15)
+
+Call ``config`` API from outside the ``mongosh``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can call the ``config`` API from the command line using
+:option:`--eval` with ``mongosh``. In this case the
+:option:`--nodb` option means ``mongosh`` will update without
+connecting to a MongoDB database.
+
+.. important::
+
+   You must use different quotation marks for the :option:`--eval`
+   expression and the ``config`` property. That is, single quotes for
+   one and double quotes for the other. 
+
+.. code-block::
+
+   mongosh --nodb --eval 'config.set("enableTelemetry", true)' 
+
+``mongosh`` returns additional information along with the result of the
+API call. 
+
+.. code-block::
+   :copyable: false
+
+   Current Mongosh Log ID:	609583b730e14918fa0d363f
+   Using MongoDB:		undefined
+   Using Mongosh Beta:	0.12.1
+
+   For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+   Setting "enableTelemetry" has been changed
+
