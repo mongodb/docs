@@ -492,6 +492,10 @@
      - `400`_
      - The username ``<username>`` is not a valid MongoDB login.
 
+   * - .. apierror:: INVALID_MONITORING_STATE
+     - `409`_
+     - Monitoring data for this process is not available.
+
    * - .. apierror:: INVALID_MONTHLY_SNAPSHOT_RETENTION_PERIOD
      - `400`_
      - Monthly snapshot retention period must be between 1 and 36
