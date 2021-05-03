@@ -1,14 +1,11 @@
-.. note:: Retryable Writes with MongoDB 3.6
+.. note:: Retryable Writes with MongoDB 3.6 and later
 
-   MongoDB 3.6+ drivers can automatically retry certain write 
-   operations a single time. Retryable writes provide built-in handling 
-   of automatic failovers and elections. The cluster must run MongoDB 
-   3.6 or greater to support retryable writes. See 
-   :manual:`retryable writes </core/retryable-writes/>` for complete 
-   documentation and requirements. 
+   MongoDB drivers can automatically retry certain write
+   operations a single time. Retryable writes provide built-in handling
+   of automatic failovers and elections. To learn more, See
+   :manual:`retryable writes </core/retryable-writes/>`.
  
    To enable this feature, add
    :manual:`retryWrites=true </reference/connection-string/#urioption.retryWrites>`
-   to your |service| URI connection string. See 
-   :doc:`/driver-connection` for details on connecting to a |service| 
-   cluster using a URI connection string.
+   to your |service| URI connection string. To learn more, see
+   :doc:`/driver-connection`.

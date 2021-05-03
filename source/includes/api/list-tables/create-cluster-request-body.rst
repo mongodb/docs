@@ -304,10 +304,9 @@
      - Version of the cluster to deploy. |service| supports the
        following MongoDB versions for **M10+** clusters:
 
-       - **3.6**
-       - **4.0**
-       - **4.2**
-       - **4.4**
+       - 4.0
+       - 4.2
+       - 4.4
 
        If omitted, |service| deploys a cluster that runs MongoDB 4.4.
 
