@@ -387,6 +387,11 @@ availability zones configuration.
                  - e2e-az1
                  - e2e-az2
 
+In this example, the |k8s-op-short| schedules the Pods deployment to
+the nodes which have the label ``kubernetes.io/e2e-az-name`` in ``e2e-az1`` or
+``e2e-az2`` availability zones. Change ``nodeAffinity`` to
+schedule the deployment of Pods to the desired availability zones.
+
 See the full example of multiple availability zones configuration in
 :github:`replica-set-affinity.yaml </mongodb/mongodb-enterprise-kubernetes/blob/master/samples/mongodb/affinity/replica-set-affinity.yaml>`
 in the :github:`Affinity Samples </mongodb/mongodb-enterprise-kubernetes/tree/master/samples/mongodb/persistent-volumes>`
@@ -397,7 +402,8 @@ configurations for sharded clusters and standalone MongoDB deployments.
 
 .. seealso::
 
-   :k8sdocs:`Running in Multiple Zones </setup/best-practices/multiple-zones/>`
+   - :k8sdocs:`Running in Multiple Zones </setup/best-practices/multiple-zones/>`
+   - :k8sdocs:`Node affinity </concepts/scheduling-eviction/assign-pod-node/#node-affinity>`
 
 Co-locate ``mongos`` Pods with Your Applications
 ------------------------------------------------
@@ -512,7 +518,93 @@ Use the :k8sdocs:`Pod affinity
 
 .. seealso::
 
-  :k8sdocs:`Pod affinity </concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity>`
+  :k8sdocs:`Pod affinity
+  </concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity>`
+
+Verify Permissions
+------------------
+
+Objects in the |k8s-op-short| configuration  use the following
+default permissions.
+
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Kubernetes Resources
+     - Verbs
+
+   * - Configmaps
+     - Require the following permissions:
+  
+       - ``get``, ``list``, ``watch``. The |k8s-op-short| reads the organization
+         and project data from the specified ``configmap``.
+ 
+       - ``create``, ``update``. The |k8s-op-short| creates and updates ``configmap``
+         objects for configuring the :ref:`appdb-om-arch` instances.
+  
+       - ``delete``. The |k8s-op-short| needs the ``delete`` ``configmap`` permission
+         to support its :ref:`older versions <k8s-support-lifecycle>`.
+         This permission will be deleted when older versions reach their
+         End of Life Date.
+
+   * - Secrets
+     - Require the following permissions:
+  
+       - ``get``, ``list``, ``watch``. The |k8s-op-short| reads secret objects to
+         retrieve sensitive data, such as :ref:`TLS <secure-tls>` or
+         :ref:`X.509 <create-x509-certs>` access information. For example, it
+         reads the credentials from a secret object to connect to the |onprem|.
+
+       - ``create``, ``update``. The |k8s-op-short| creates secret
+         objects holding :ref:`TLS <secure-tls>` or
+         :ref:`X.509 <create-x509-certs>` access information.
+    
+       - ``delete``. The |k8s-op-short| deletes secret objects (containing passwords)
+         related to the :ref:`appdb-om-arch`.
+    
+   * - Services
+     - Require the following permissions:
+   
+       - ``get``, ``list``, ``watch``. The |k8s-op-short| reads and watches
+         MongoDB services. For example, to communicate with the Ops Manager service,
+         the |k8s-op-short| needs ``get``, ``list`` and ``watch``
+         permissions to use the |onprem| service's URL.
+ 
+       - ``create``, ``update``. To communicate with services, the |k8s-op-short|
+         creates and updates service objects corresponding to |onprem|
+         and MongoDB custom resources.
+    
+   * - StatefulSets
+     - Require the following permissions:
+  
+       - ``get``, ``list``, ``watch``. The |k8s-op-short| reacts to the changes in the
+         StatefulSets it creates for the MongoDB custom resources. It also reads
+         the fields of  the StatefulSets it manages.
+
+       - ``create``, ``update``. The |k8s-op-short| creates and updates StatefulSets
+         corresponding to the mongoDB custom resources.
+    
+       - ``delete``. The |k8s-op-short| needs permissions to delete the StatefulSets
+         when you delete the MongoDB custom resource.
+
+   * - Pods
+     - Require the following permissions:
+  
+       - ``get``, ``list``, ``watch``. The |k8s-op-short| queries the
+         Application Database Pods to get information about its state.
+  
+   * - Namespaces
+     - Require the following permissions:
+  
+       - ``list``, ``watch``. When you run the |k8s-op-short| in the cluster-wide mode,
+         it needs ``list`` and ``watch`` permissions to all namespaces
+         for the MongoDB custom resources.
+
+.. seealso::
+
+   :ref:`meko-om-arch`
 
 Enable TLS
 ----------
