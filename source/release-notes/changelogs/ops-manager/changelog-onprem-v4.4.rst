@@ -14,22 +14,24 @@
   important |onprem| configuration.
 
   - For upgrades that use the ``.deb`` package,
-    the :ref:`upgrade process <upgrade-on-prem-with-deb>` prompts you to
-    choose which version of the :file:`conf-mms.properties` file
+    the :ref:`upgrade process <upgrade-on-prem-with-deb>` prompts you
+    to choose which version of the :file:`conf-mms.properties` file
     |onprem| should use. Choose the current :file:`conf-mms.properties`
     file.
 
   - For upgrades that use the ``rpm`` package,
     the :ref:`upgrade process <upgrade-on-prem-with-rpm>` saves
-    the :file:`conf-mms.properties` file as the :file:`conf-mms.properties.rpmsave`
-    file. Use the ``mv`` command to rename :file:`conf-mms.properties.rpmsave`
+    the :file:`conf-mms.properties` file as the
+    :file:`conf-mms.properties.rpmsave`
+    file. Use the ``mv`` command to rename
+    :file:`conf-mms.properties.rpmsave`
     to :file:`conf-mms.properties`. This ensures that |onprem| uses the
     current file after the upgrade.
 
 - Fixes a bug in the MongoDB usage report where backing databases are
   not correctly identified.
-- Fixes a bug in the MongoDB usage report where |onprem|  could potentially
-  find duplicate hosts based on network aliases.
+- Fixes a bug in the MongoDB usage report where |onprem|  could
+  potentially find duplicate hosts based on network aliases.
 - Fixes a bug that causes some MongoDB versions to be considered as
   custom builds when validating the {+aagent+} configuration.
 - Fixes a bug that disallows configuring |ldap| group names longer
@@ -144,6 +146,8 @@
 
 - Updates the MongoDB Agent to
   :ref:`10.14.15.6432 <mongodb-10.14.15.6432>`.
+
+- Adds support for Ubuntu 20.04.
 
 - Requires :db-tools:`MongoDB Database Tools 100.1.0 </>`.
 

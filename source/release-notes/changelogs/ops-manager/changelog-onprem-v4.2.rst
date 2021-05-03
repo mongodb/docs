@@ -92,8 +92,10 @@
 
 *Released 2020-09-25*
 
-- Fixes an issue that prevents rendering the :guilabel:`All Clusters` 
+- Fixes an issue that prevents rendering the :guilabel:`All Clusters`
   view for some users in |onprem| 4.2.18.
+
+- Adds support for Debian 10.
 
 .. _opsmgr-server-4.2.18:
 
@@ -102,7 +104,7 @@
 
 *Released 2020-09-23*
 
-- Fixes a high severity vulnerability in Ops Manager. ``CVE-2020-7927`` 
+- Fixes a high severity vulnerability in Ops Manager. ``CVE-2020-7927``
   is allocated for this issue.
 
 .. _opsmgr-server-4.2.17:
