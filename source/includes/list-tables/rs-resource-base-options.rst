@@ -17,7 +17,7 @@
 
           - :setting:`metadata.name`
           - Kubernetes documentation on
-            :k8sdocs:`names </docs/concepts/overview/working-with-objects/names/>`.
+            :k8sdocs:`names </concepts/overview/working-with-objects/names/>`.
 
      - ``myproject``
 
