@@ -25,7 +25,7 @@ STABLE_BRANCH=`grep 'manual' build/docs-tools/data/mms-published-branches.yaml |
 
 ## I doubt that we'll ever have files named stage-cloud,
 ## fake-deploy-cloud, ... but eh
-.PHONY: help html publish publish-cloud publish-onprem stage-cloud fake-deploy-cloud deploy-cloud stage-onprem fake-deploy-onprem deploy-onprem deploy-opsmgr-current deploy-opsmgr-upcoming deploy-cloud-search-index deploy-opsmgr-search-index
+.PHONY: help html publish publish-cloud publish-onprem stage-cloud fake-deploy-cloud deploy-cloud stage-onprem fake-deploy-onprem deploy-onprem deploy-onprem-current deploy-onprem-upcoming deploy-cloud-search-index deploy-onprem-search-index
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -33,7 +33,7 @@ help: ## Show this help message
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
-stage: stage-cloud stage-opsmgr ## Stage both Cloud and On-Prem
+stage: stage-cloud stage-onprem ## Stage both Cloud and On-Prem
 
 ##########################################################
 ####                                                  ####
@@ -51,7 +51,7 @@ html:
 	giza make html
 
 ## Build Ops Manager HTML files
-html-opsmgr:
+html-onprem:
 	giza make html-onprem
 
 ## Build Cloud Manager HTML files
@@ -69,7 +69,7 @@ clean-html:
 	giza make html
 
 ## Build Ops Manager HTML files to a fresh build directory
-clean-html-opsmgr:
+clean-html-onprem:
 	rm -rf build/${GIT_BRANCH}
 	giza make html-onprem
 
@@ -165,12 +165,12 @@ endif
 
 ## Deploy artifacts from the working branch of Ops Manager
 ## to the staging S3 bucket / EC2 for review
-stage-opsmgr:
+stage-onprem:
 	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${PREFIX} --stage --all-subdirectories ${ARGS}
 	@echo "\n\nHosted at ${STAGING_URL_OPSMGR}/${USER}/${GIT_BRANCH}/index.html"
 
 ## Create a fake deployment in the staging bucket
-fake-deploy-opsmgr: build/public/onprem
+fake-deploy-onprem: build/public/onprem
 	@echo "Copying over fullsize images "
 	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
 
@@ -183,7 +183,7 @@ fake-deploy-opsmgr: build/public/onprem
 ##########################################################
 
 ## Deploy Ops Manager to the production S3 bucket
-deploy-opsmgr: build/public/onprem
+deploy-onprem: build/public/onprem
 	@echo "Copying over fullsize images "
 	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
 
@@ -191,10 +191,10 @@ deploy-opsmgr: build/public/onprem
 
 	@echo "\n\nHosted at ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH}/index.html"
 
-	$(MAKE) deploy-opsmgr-search-index
+	$(MAKE) deploy-onprem-search-index
 
 ## Update the Ops Manager search index
-deploy-opsmgr-search-index:
+deploy-onprem-search-index:
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
 		mut-index upload build/public/onprem/${GIT_BRANCH} -o mms-onprem-current.json --aliases mms-onprem-${GIT_BRANCH} -u ${PRODUCTION_URL_OPSMGR}/current -g -s; \
 	else \
