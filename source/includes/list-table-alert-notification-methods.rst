@@ -86,9 +86,14 @@
         -
         - .. include:: /includes/alert-notifications/webhook.rst
 
-          To use this method at the Global level, configure the
-          :guilabel:`Webhook` settings on the Administration
-          :ref:`Alerts tab <om-admin-alerts-tab>` for Global alerts.
+          To use this method at the Global level:
+
+          1. Navigate to the :guilabel:`Ops Manager Config`
+             :guilabel:`Miscellaneous` tab of the
+             :guilabel:`Administration console`.
+
+          2. Update the :setting:`Webhook URL` and
+             :setting:`Webhook Secret` settings.
 
           .. include:: /includes/facts/alert-webhook-mms-event-header.rst
 
