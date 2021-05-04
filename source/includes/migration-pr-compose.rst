@@ -35,7 +35,7 @@
 * Your current deployment is a MongoDB replica set or sharded cluster.
 
   If your deployment is currently a standalone instance, you must first
-  :manual:`convert it to a replica set </tutorial/convert-standalone-to-replica-set>`.
+  :manual:`convert it to a replica set </tutorial/convert-standalone-to-replica-set/>`.
   
   Live migration of data from sharded clusters is not supported. Your destination
   cluster may be sharded, but your source cluster must be an unsharded replica
@@ -44,7 +44,7 @@
 * (Optional) Enabled authentication on your source deployment.
 
   The migration process requires that authentication is enabled on your
-  source cluster. See :manual:`Enable Auth </tutorial/enable-authentication>`
+  source cluster. See :manual:`Enable Auth </tutorial/enable-authentication/>`
   for instructions on enabling authentication.
   You can verify that authentication is enabled on your source cluster
   using the :manual:`mongo </reference/program/mongo/>` command:
@@ -57,7 +57,7 @@
    
   The user must have the :authrole:`clusterMonitor` and :authrole:`backup` roles. To verify
   that the database user that you intend to use for migration has the appropriate
-  roles, run the :manual:`db.getUser() </reference/method/db.getUser>` command against the admin database.
+  roles, run the :manual:`db.getUser() </reference/method/db.getUser/>` command against the admin database.
 
   .. code-block:: javascript
 

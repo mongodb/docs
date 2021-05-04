@@ -72,7 +72,7 @@ source_constants = {
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'manual': ('http://docs.mongodb.com/manual%s', ''),
+    'manual': ('https://docs.mongodb.com/manual%s', ''),
     'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
     'node-docs': ('http://mongodb.github.io/node-mongodb-native/3.0/%s', ''),
     'node-api': ('http://mongodb.github.io/node-mongodb-native/3.0/api/%s', ''),
@@ -84,7 +84,7 @@ extlinks = {
     'java-async-api': ('http://mongodb.github.io/mongo-java-driver/3.7/javadoc/%s', ''),
     'java-sync-api': ('http://mongodb.github.io/mongo-java-driver/3.7/javadoc/%s', ''),
     'atlas': ('https://docs.atlas.mongodb.com%s', ''),
-    'stitch': ('https://docs.mongodb.com/stitch%s', ''),
+    'stitch': ('https://docs.mongodb.com/realm%s', ''),
 }
 
 intersphinx_mapping = {}
