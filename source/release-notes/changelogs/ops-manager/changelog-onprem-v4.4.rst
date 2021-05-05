@@ -1,3 +1,18 @@
+.. _opsmgr-server-4.4.12:
+
+|onprem| Server 4.4.12
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-05-06*
+
+- Fixed a bug that caused the :guilabel:`User Authentication Method` 
+  field on the :guilabel:`Ops Manager Config` page to not display a 
+  visual indicator that the setting is overwritten in the configuration 
+  file.
+
+- Updates the MongoDB Agent to
+  :ref:`10.14.23.6498 <mongodb-10.14.23.6498>`.
+
 .. _opsmgr-server-4.4.11:
 
 |onprem| Server 4.4.11
