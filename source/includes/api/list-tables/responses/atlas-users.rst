@@ -1,92 +1,82 @@
 .. list-table::
-   :widths: 20 14 11 55
+   :widths: 20 14 66
    :header-rows: 1
    :stub-columns: 1
 
    * - Response Parameter
      - Type
-     - Required
      - Description
 
    * - country
      - string
-     - Required
-     - |iso3166-1a2| country code of the |service| user's country of
-       residence.
+     - |iso3166-1a2| country code of the country in which the |service|
+       user resides.
 
    * - emailAddress
      - string
-     - Required
-     - |service| user's email address.
+     - Email address that the |service| user possesses.
 
    * - firstName
      - string
-     - Required
-     - |service| user's first name.
+     - First or given name that identifies the |service| user.
 
    * - id
      - string
-     - Required
-     - Unique identifier for the |service| user.
+     - Unique 24-hexidecimal digit string that identifies the |service|
+       user.
 
    * - lastName
      - string
-     - Required
-     - |service| user's last name.
+     - Last name, family name, or surname that identifies the |service|
+       user.
 
    * - links
-     - array of objects
-     - Required
+     - array
      - .. include:: /includes/links-explanation.rst
 
    * - mobileNumber
      - string
-     - Required
-     - |service| user's mobile or cell phone number, if it is listed in
-       the user's profile.
+     - Mobile or cell phone number that the |service| user possesses.
 
    * - password
      - string
-     - Required
-     - Password. |service| doesn't return this parameter except in
-       response to creating a new user.
+     - String of eight or more characters that authenticates the
+       |service| user specified with **username**. |service| doesn't
+       return this parameter except in response to creating a new user.
 
-       You cannot update the password via API once set. The user
-       must log into |service| and update their password from the
-       |service| console.
+       You can't update the password after it has been created. The
+       user must log into |service| to
+       :doc:`update their password </security/manage-your-mongodb-atlas-account>`.
 
    * - roles
-     - array of objects
-     - Required
-     - Each object in the array represents either an |service|
-       :ref:`organization <organizations>` or
-       :ref:`project <projects>` the |service| user is assigned to
-       *and* the |service| :ref:`role <user-roles>` has for
-       the associated organization or project. You can specify *either*
-       **roles.orgId** or **roles.groupId** per object.
+     - array
+     - List of |service| :ref:`organizations` or :ref:`projects` to
+       which you assigned the |service| user *and* the |service|
+       :ref:`role <user-roles>` has for the associated organization or
+       project. You can specify *either* **roles.orgId** or
+       **roles.groupId** per entry.
 
    * - roles.groupId
      - string
-     - Required
-     - unique identifier of the project in which the user has the
-       specified **roles.roleName**.
+     - Unique 24-hexidecimal digit string that identifies the project
+       in which the user has the specified **roles.roleName**.
 
    * - roles.orgId
      - string
-     - Required
-     - unique identifier of the organization in which the user has the
-       specified **roles.roleName**.
+     - Unique 24-hexidecimal digit string that identifies the
+       organization in which the user has the specified
+       **roles.roleName**.
 
    * - roles.roleName
      - string
-     - Required
-     - name of the role.
+     - Label that identifies the assigned grouping of |service|
+       privileges.
 
        When associated to **roles.orgId**, the valid roles and their
-       mappings are:
+       mappings include:
 
        .. list-table::
-          :widths: 20 80
+          :widths: 40 60
           :header-rows: 1
           :stub-columns: 1
 
@@ -105,10 +95,10 @@
             - :authrole:`Organization Member`
 
        When associated to **roles.groupId**, the valid roles and their
-       mappings are:
+       mappings include:
 
        .. list-table::
-          :widths: 20 80
+          :widths: 40 60
           :header-rows: 1
           :stub-columns: 1
 
@@ -127,14 +117,14 @@
             - :authrole:`Project Data Access Read/Write`
           * - GROUP_DATA_ACCESS_READ_ONLY
             - :authrole:`Project Data Access Read Only`
+
    * - teamIds
-     - array of strings
-     - Required
+     - array
      - Unique identifiers for each :ref:`team <manage-teams>` to which
        the user belongs.
 
    * - username
      - string
-     - Required
-     - |service| username. Must use email address formatting. You
-       cannot modify the username once set.
+     - Email address that identifies the |service| user in
+       :rfc:`RFC 5322 format <5322#section-3.4.1>` You can't modify the
+       username after it has been created.
