@@ -1,3 +1,27 @@
+.. _opsmgr-server-4.2.24:
+
+|onprem| Server 4.2.24
+~~~~~~~~~~~~~~~~~~~~~~
+*Released 2021-05-05*
+
+- Fixes an issue where the MongoDB usage report might find duplicate 
+  hosts based on network aliases.
+  
+- Updates an outdated comment 
+  in the ``conf-mms.properties`` file that comes with |onprem|. When 
+  you upgrade to this version, you receive a notification that the 
+  configuration file changed. For example, on Redhat systems: 
+  ``/opt/mongodb/mms/conf/conf-mms.properties`` saves as 
+  ``/opt/mongodb/mms/conf/conf-mms.properties.rpmsave``. You can 
+  disregard this notification and keep using the existing or current 
+  configuration file. No new parameters are added.
+
+- Adds further protections against `CVE-2021-20335 
+  <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-20335>`_.
+
+- Updates the MongoDB Agent to :ref:`10.2.24.6007
+  <mongodb-10.2.24.6007>`.
+
 .. _opsmgr-server-4.2.23:
 
 |onprem| Server 4.2.23
