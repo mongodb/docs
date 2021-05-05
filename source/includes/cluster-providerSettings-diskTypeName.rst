@@ -15,16 +15,16 @@ and their corresponding storage size.
    * - ``P2`` :sup:`1` 
      - 8GB
 
-   * - ``P3``
+   * - ``P3`` :sup:`2`
      - 16GB
 
-   * - ``P4`` :sup:`2`
+   * - ``P4`` :sup:`3`
      - 32GB
 
-   * - ``P6``
+   * - ``P6`` :sup:`4`
      - 64GB
 
-   * - ``P10`` :sup:`3`
+   * - ``P10``
      - 128GB
 
    * - ``P15``
@@ -44,6 +44,8 @@ and their corresponding storage size.
 
 :sup:`1` Default for ``M10`` Azure clusters
 
-:sup:`2` Default for ``M20`` and ``M30`` Azure clusters
+:sup:`2` Default for ``M20`` Azure clusters
 
-:sup:`3` Default for ``M40+`` Azure clusters
+:sup:`3` Default for ``M30`` Azure clusters
+
+:sup:`4` Default for ``M40+`` Azure clusters

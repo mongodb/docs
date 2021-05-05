@@ -15,11 +15,11 @@
      - Shared
 
    * - M10 :icon-fa5:`star`
-     - 32 GB
+     - 8 GB
      - 2 GB
 
    * - M20 :icon-fa5:`star`
-     - 32 GB
+     - 16 GB
      - 4 GB
 
    * - M30 :icon-fa5:`star`
@@ -27,7 +27,7 @@
      - 8 GB
 
    * - M40 :icon-fa5:`star`
-     - 128 GB
+     - 64 GB
      - 16 GB
 
    * - R40 :icon-fa5:`star`

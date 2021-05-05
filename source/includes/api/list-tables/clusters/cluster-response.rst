@@ -548,13 +548,19 @@
           * - diskTypeName
             - Storage Size
 
+          * - P2 [#]_ 
+            - 8GB
+
+          * - P3 [#]_
+            - 16GB
+
           * - P4 [#]_
             - 32GB
 
-          * - P6
+          * - P6 [#]_
             - 64GB
 
-          * - P10 [#]_
+          * - P10
             - 128GB
 
           * - P15
@@ -572,9 +578,13 @@
           * - P50
             - 4095GB
 
-       .. [#] Default for **M20** and **M30** Azure cluster tiers
+       .. [#] Default for **M10** Azure clusters
 
-       .. [#] Default for **M40+** Azure cluster tiers
+       .. [#] Default for **M20** Azure clusters
+       
+       .. [#] Default for **M30** Azure clusters
+
+       .. [#] Default for **M40+** Azure clusters
 
    * - providerSettings.encryptEBSVolume
      - boolean
