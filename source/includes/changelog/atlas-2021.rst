@@ -5,8 +5,6 @@
 
 - Adds more IOPS and more consistent throughput to standard storage for 
   |service| clusters on |aws| at no extra cost.
-- Supports using |charts| with :ref:`multi-cloud clusters 
-  <create-cluster-multi-region>`.
 - Introduces trial version of the :ref:`MongoDB Atlas Kubernetes 
   Operator <ak8so-quick-start-ref>`.
 - Adds an easy `MongoDB CLI quickstart command
