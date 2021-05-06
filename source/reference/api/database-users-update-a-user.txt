@@ -12,73 +12,68 @@ Update a Database User
 
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
-.. include:: /includes/api-base-url.rst
-
 .. include:: /includes/extracts/fact-api-requirements-owner.rst
 
-Syntax
-------
+.. include:: /includes/api/tabsets/db-auth-mech.rst
 
-Send only those fields where you will change the value.
+Send only those parameters that you want to change.
 
-.. code-block:: none
+Resource
+--------
 
-  PATCH /groups/{GROUP-ID}/databaseUsers/{databaseName}/{USERNAME}
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
+
+   PATCH /groups/{GROUP-ID}/databaseUsers/{databaseName}/{USERNAME}
 
 Behavior
 ~~~~~~~~
 
-You can update a user's roles and password. Additionally, for temporary
-users, you can update the user's expiration date or set the user to be
-permanent. You cannot update the user's name or
-:ref:`authentication database <authentication-database>`, which is
-``admin``. You also cannot update permanent users to be temporary.
+- For permanent database users, you can change their roles and password.
+  You can't change their name, their :ref:`authentication database
+  <authentication-database>`, or their user status to temporary.
+
+- For temporary database users, you can change their expiration date,
+  their user status to permanent, or both.
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 14 11 55
 
    * - Parameter
-     - Required/Optional
+     - Type
+     - Necessity
      - Description
 
-   * - ``GROUP-ID``
+   * - GROUP-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal string that identifies the
+       :ref:`project <group-id>`.
 
-     - Required.
+   * - DATABASE-NAME
+     - string
+     - Required
+     - :ref:`Database <authentication-database>` against which the
+       database user authenticates. Database users must provide both a
+       username and authentication database to log into MongoDB.
 
-     - The unique identifier for the :ref:`project <group-id>`.
+       You may set this parameter value as:
 
-   * - ``databaseName``
-     - Required.
-     - The user's :ref:`authentication database
-       <authentication-database>`.
-       
-       Accepted values include:
+       .. include:: /includes/api/tabsets/db-name.rst
 
-       - ``$external`` if the user is authenticated using X.509 
-         certificates, |ldap| or AWS IAM.
-       - ``admin`` users authenticated using
-         :manual:`SCRAM-SHA </core/security-scram>`.
+   * - USERNAME
+     - string
+     - Required
+     - Username that this resource updates in the MongoDB database. This
+       username should be formatted as:
 
-         This is the default authentication scheme in |service|.        
-
-   * - ``USERNAME``
-
-     - Required.
-
-     - The username to update.
-
-       Must be a fully qualified distinguished name, as defined in 
-       :rfc:`2253`, if:
-
-       - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
-       - ``x509Type`` is ``CUSTOMER``.
-
-       Must be an URL-encoded |aws| :abbr:`ARN (Amazon Resource Name)` if:
-
-       - ``awsIAMType`` is ``USER`` or ``ROLE``.
+       .. include:: /includes/api/tabsets/db-username.rst
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -90,17 +85,22 @@ Request Body Parameters
 
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 14 11 55
 
    * - Name
+     - Type
+     - Necessity
      - Description
 
-   * - ``deleteAfterDate``
-     - *Optional* `ISO-8601
-       <https://en.wikipedia.org/wiki/ISO_8601>`_-formatted UTC date
-       after which |service| deletes the user. The
-       specified date must be in the future and within one week of the
-       time you make the API request. To update a  temporary user to be
-       permanent, set the value of this field to ``null``.
+   * - deleteAfterDate
+     - string
+     - Optional
+     - :wikipedia:`ISO-8601 <ISO_8601>`-formatted |utc| date after
+       which |service| deletes the user. The specified date must be in
+       the future and within one week of the time you make the |api|
+       request. To update a  temporary user to be permanent, set the
+       value of this field to ``null``.
 
        .. note::
 
@@ -110,201 +110,198 @@ Request Body Parameters
 
        .. important::
 
-          You can only modify the expiration date for a user
-          if an expiration date was specified when creating the user.
-          You cannot assign a ``deleteAfterDate`` to a permanent
-          user.
+          You can only modify the expiration date for a user if an
+          expiration date was specified when creating the user. You
+          cannot assign a ``deleteAfterDate`` to a permanent user.
 
-   * - ``labels``
-     - Array of documents containing key-value pairs that tag and categorize 
-       the database user.
+   * - labels
+     - array
+     - Optional
+     - List that contains key-value pairs that tag and categorize the
+       database user.
 
        Each key and value has a maximum length of 255 characters.
 
-       .. literalinclude:: /includes/cluster-settings/example-labels.json        
+       .. literalinclude:: /includes/cluster-settings/example-labels.json
 
-   * - ``roles``
+   * - roles
+     - array
+     - Required
      - .. include:: /includes/fact-database-user-role.rst
 
        .. include:: /includes/fact-subset-privilege-actions.rst
 
        .. important::
 
-          If a user is assigned a :ref:`custom role
-          <mongodb-roles>`, they cannot be assigned any other roles.
+          If a user is assigned a :ref:`custom role <mongodb-roles>`,
+          they cannot be assigned any other roles.
 
-   * - ``roles.databaseName``
-     - Database on which the user has the specified role. A role
-       on the ``admin`` database can include privileges that apply to
-       the other databases.
+   * - roles.databaseName
+     - string
+     - Optional
+     - Database on which the user has the specified role. A role on the
+       ``admin`` database can include privileges that apply to the
+       other databases.
 
-   * - ``roles.collectionName``
-
+   * - roles.collectionName
+     - string
+     - Optional
      - Collection for which the role applies.
 
-       You can specify a collection for the
-       ``read`` and ``readWrite`` roles. If you do not specify a
-       collection for ``read`` and ``readWrite``, the role applies to
-       all collections in the database (excluding some collections in
-       the ``system.`` database).
+       You can specify a collection for the ``read`` and ``readWrite``
+       roles. If you do not specify a collection for ``read`` and
+       ``readWrite``, the role applies to all collections in the
+       database (excluding some collections in the ``system.``
+       database).
 
        .. note::
 
           .. include:: /includes/fact-read-read-write-actions.rst
 
-   * - ``roles.roleName``
-     - Name of the role. This value can either be a
-       :manual:`built-in role </reference/built-in-roles/>` or a
-       :ref:`custom role <mongodb-roles>`.
+   * - roles.roleName
+     - string
+     - Required
+     - .. include:: /includes/api/facts/db-user-role-list.rst
 
-       The following accepted values of ``role`` are restricted to the
-       ``admin`` database:
-
-       - :atlasrole:`atlasAdmin <Atlas admin>`
-       - :authrole:`readWriteAnyDatabase`
-       - :authrole:`readAnyDatabase`
-       - :authrole:`clusterMonitor`
-       - :authrole:`backup`
-       - :authrole:`dbAdminAnyDatabase`
-       - ``enableSharding``
-
-         This role is specific to MongoDB databases managed by
-         |service|. The role allows the user to enable sharding on a
-         database and to shard a collection.
-
-       The following accepted values of ``role`` can be applied to a
-       specific database:
-
-       - :authrole:`dbAdmin`
-       - ``read``
-       - ``readWrite``
-
-       The following accepted values of ``role`` can be applied to a
-       specific collection:
-
-       - ``read``
-       - ``readWrite``
-
-       If you do not specify a collection for the ``read`` and
-       ``readWrite`` roles, the roles apply to all collections
-       (excluding some ``system.`` collections) in the database.
-
-       .. note::
-
-          If you specify a :ref:`custom role <mongodb-roles>` name in
-          this field, the ``roles.databaseName`` field must be
-          ``admin``.
-
-   * - ``scopes``
-     - Array of clusters and {+data-lake+}\s that the user has 
-       access to. If array is empty, |service| grants the user access 
-       to all the clusters and {+data-lake+}\s in the project by default.
+   * - scopes
+     - array
+     - Optional
+     - List of clusters and {+data-lake+}\s that this user can access.
+       Returns an empty array if the database user has access to all
+       the clusters and {+data-lake+}\s in the project. |service|
+       grants database users access to all resources by default.
 
        .. include:: /includes/fact-dbuser-scopes-format.rst
 
-   * - ``scopes.name``
-     - Name of the cluster or {+data-lake+} that this user can 
-       access.
+   * - scopes.name
+     - string
+     - Required
+     - Name of the cluster or {+data-lake+} that this user can access.
 
-   * - ``scopes.type``
-     - Type of resource that this user has access to. Valid values 
-       are: 
+   * - scopes.type
+     - string
+     - Required
+     - Type of resource that this user has access to. Valid values are:
 
        - ``CLUSTER``
        - ``DATA_LAKE``
 
-   * - ``password``
-     - The user's password. This field is NOT included in the entity
-       returned from the server.
+   * - password
+     - string
+     - Required
+     - Alphanumeric string that authenticates the database user
+       against the database specified in **databaseName**.
 
 Response Elements
 ~~~~~~~~~~~~~~~~~
 
-If you set the query element ``envelope`` to ``true``, the response is wrapped
-by the ``content`` object.
+If you set the query element ``"envelope" : true``, this resource wraps
+the response in a ``content`` object.
 
 .. include:: /includes/api/list-tables/database-users-get-response.rst
 
-Examples
---------
-
-Request
-~~~~~~~
+Example Request
+---------------
 
 .. tabs::
 
-   tabs:
-     - id: scram
-       name: SCRAM-SHA
-       content: |
+   .. tab:: SCRAM-SHA
+      :tabid: scram
 
-         Update one database user that |service| authenticates using
-         :manual:`SCRAM-SHA </core/security-scram>` and the ``admin`` 
-         database.
+      Update one database user that |service| authenticates using
+      :manual:`SCRAM-SHA </core/security-scram>` and the ``admin``
+      database.
 
-         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-         .. code-block:: none
+      .. code-block:: sh
+         :linenos:
 
-            curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest -X PATCH \
-              "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/david" \
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
               --header "Accept: application/json" \
               --header "Content-Type: application/json" \
-              --data '
-              {
-                "roles" : [ {
-                  "databaseName" : "service",
-                  "roleName" : "read"
-                } ]
-              }'
+              --include \
+              --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/david" \
+              --data '{
+                       "roles" : [ {
+                         "databaseName" : "service",
+                         "roleName" : "read"
+                       } ]
+                     }'
 
-     - id: ldap
-       name: X.509 and LDAP
-       content: |
+   .. tab:: X.509
+      :tabid: x509
 
-         Update one database user that |service| authenticates using
-         X.509 or |ldap| and the ``$external`` database.
+      Update one database user that |service| authenticates using
+      X.509 and the **$external** database.
 
-         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-         .. code-block:: none
+      .. code-block:: sh
+         :linenos:
 
-            curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest -X PATCH \
-              "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/\$external/CN=david@example.com,OU=users,DC=example,DC=com" \
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
               --header "Accept: application/json" \
               --header "Content-Type: application/json" \
-              --data '
-              {
-                "roles" : [ {
-                  "databaseName" : "service",
-                  "roleName" : "read"
-                } ]
-              }'
+              --include \
+              --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/\$external/CN=david@example.com,OU=users,DC=example,DC=com" \
+              --data '{
+                       "roles" : [ {
+                         "databaseName" : "service",
+                         "roleName" : "read"
+                       } ]
+                     }'
 
-     - id: aws-iam
-       name: AWS IAM
-       content: |
+   .. tab:: LDAP
+      :tabid: ldap
 
-         Update one database user that |service| authenticates using
-         AWS IAM credentials and the ``$external`` database.
+      Update one database user that |service| authenticates using
+      X.509 or |ldap| and the **$external** database.
 
-         .. note::
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-            The ``/`` character must be replaced with ``%2F`` in the AWS
-            :abbr:`ARN (Amazon Resource Name)`.  
+      .. code-block:: sh
+         :linenos:
 
-         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --header "Content-Type: application/json" \
+              --include \
+              --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/\$external/CN=david@example.com,OU=users,DC=example,DC=com" \
+              --data '{
+                       "roles" : [ {
+                         "databaseName" : "service",
+                         "roleName" : "read"
+                       } ]
+                     }'
 
-         .. code-block:: none
+   .. tab:: AWS IAM
+      :tabid: aws-iam
 
-            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+      Update one database user that |service| authenticates using
+      |aws| |iam| credentials and the **$external** database.
+
+      .. note::
+
+         The ``/`` character must be replaced with ``%2F`` in the
+         |aws| |arn|.
+
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
+
+      .. code-block:: sh
+         :linenos:
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
               --header "Accept: application/json" \
               --header "Content-Type: application/json" \
               --include \
               --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5dd5a6b8f10fab1d71a58495/databaseUsers/\$external/arn:aws:iam::358363220050:user%2Fmongodb-aws-iam-auth-test-user" \
               --data '{
-                        "roles": [ { "databaseName": "admin", "roleName": "read" } ]
-                      }'
+                       "roles": [ { "databaseName": "admin",   "roleName": "read" } ]
+                     }'
+
+Example Response
+----------------
 
 Response Header
 ~~~~~~~~~~~~~~~
@@ -317,82 +314,80 @@ Response Body
 ~~~~~~~~~~~~~
 
 .. tabs::
+   :hidden:
 
-   hidden: true
+   .. tab:: SCRAM-SHA
+      :tabid: scram
 
-   tabs:
-     - id: scram
-       name: SCRAM-SHA
-       content: |
+      .. code-block:: json
+         :linenos:
+         :copyable: false
 
-         .. code-block:: json
-            :copyable: false
+         {
+           "databaseName" : "admin",
+           "groupId" : "5356823b3794dee37132bb7b",
+           "labels" [],
+           "links" : [ ... ],
+           "roles" : [ {
+             "databaseName" : "service",
+             "roleName" : "read"
+           } ],
+           "scopes": [{
+             "name": "myCluster",
+             "type": "CLUSTER"
+           }],
+           "username" : "david",
+           "awsIAMType" : "NONE",
+           "x509Type" : "NONE",
+           "ldapAuthType" : "NONE"
+         }
 
-            {
-              "databaseName" : "admin",
-              "groupId" : "5356823b3794dee37132bb7b",
-              "labels" [],
-              "links" : [ ... ],
-              "roles" : [ {
-                "databaseName" : "service",
-                "roleName" : "read"
-              } ],
-              "scopes": [{
-                "name": "myCluster",
-                "type": "CLUSTER"
-              }],
-              "username" : "david",
-              "awsIAMType" : "NONE",
-              "x509Type" : "NONE",
-              "ldapAuthType" : "NONE"
-            }
+   .. tab:: X.509 and LDAP
+      :tabid: ldap
 
-     - id: ldap
-       name: X.509 and LDAP
-       content: |
+      .. code-block:: json
+         :linenos:
+         :copyable: false
 
-         .. code-block:: json
-            :copyable: false
+         {
+           "awsIAMType" : "NONE",
+           "databaseName" : "$external",
+           "groupId" : "5356823b3794dee37132bb7b",
+           "labels" [],
+           "links" : [ ... ],
+           "roles" : [ {
+             "databaseName" : "service",
+             "roleName" : "read"
+           } ],
+           "scopes": [{
+             "name": "myCluster",
+             "type": "CLUSTER"
+           }],
+           "username" : "CN=david@example.com,OU=users,DC=example,DC=com"
+         }
 
-            {
-              "awsIAMType" : "NONE",
-              "databaseName" : "$external",
-              "groupId" : "5356823b3794dee37132bb7b",
-              "labels" [],
-              "links" : [ ... ],
-              "roles" : [ {
-                "databaseName" : "service",
-                "roleName" : "read"
-              } ],
-              "scopes": [{
-                "name": "myCluster",
-                "type": "CLUSTER"
-              }],
-              "username" : "CN=david@example.com,OU=users,DC=example,DC=com"
-            }
-     
-     - id: aws-iam
-       name: AWS IAM
-       content: |
+   .. tab:: AWS IAM
+      :tabid: aws-iam
 
-         .. code-block:: json
-            :copyable: false
+      .. code-block:: json
+         :linenos:
+         :copyable: false
 
-            {
-              "awsIAMType" : "USER",
-              "databaseName" : "$external",
-              "groupId" : "5356823b3794dee37132bb7b",
-              "labels" [],
-              "links" : [ ... ],
-              "roles" : [ {
-                "databaseName" : "admin",
-                "roleName" : "read"
-              } ],
-              "scopes": [{
-                "name": "myCluster",
-                "type": "CLUSTER"
-              }],
-              "username" : "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user",
-              "ldapAuthType" : "NONE",
-              "x509Type" : "NONE"
-            }
+         {
+           "awsIAMType" : "USER",
+           "databaseName" : "$external",
+           "groupId" : "5356823b3794dee37132bb7b",
+           "labels" [],
+           "links" : [ ... ],
+           "roles" : [ {
+             "databaseName" : "admin",
+             "roleName" : "read"
+           } ],
+           "scopes": [{
+             "name": "myCluster",
+             "type": "CLUSTER"
+           }],
+           "username" : "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user",
+           "ldapAuthType" : "NONE",
+           "x509Type" : "NONE"
+         }

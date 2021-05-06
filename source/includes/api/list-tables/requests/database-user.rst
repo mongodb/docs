@@ -1,74 +1,121 @@
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
-   :widths: 20 14 66
+   :widths: 20 14 11 55
 
-   * - Response Element
+   * - Body Parameter
      - Type
+     - Necessity
      - Description
 
    * - databaseName
      - string
+     - Required
      - :ref:`Database <authentication-database>` against which the
        database user authenticates. Database users must provide both a
        username and authentication database to log into MongoDB.
 
-       This resource returns:
+       You may set this parameter value as:
 
        .. include:: /includes/api/tabsets/db-name.rst
 
    * - deleteAfterDate
      - string
+     - Optional
      - |iso8601-time| after which |service| deletes the database user.
-       This resource returns this parameter if you set an expiration
-       date when creating the entry.
+       The specified date must be in the future and within one week of
+       the time you make the |api| request.
 
-   * - groupId
-     - string
-     - Unique 24-hexadecimal string that identifies the
-       :ref:`project <group-id>` to which the database user belongs.
+       .. note::
+
+          You may include an |iso8601| time zone designator to ensure
+          that the expiration date occurs with respect to the local
+          time in the specified time zone.
 
    * - labels
      - array
+     - Optional
      - List that contains key-value pairs that tag and categorize the
        database user.
 
-   * - links
-     - array
-     - .. include:: /includes/api/links-explanation.rst
+       Each key and value has a maximum length of 255 characters.
+
+       .. literalinclude:: /includes/cluster-settings/example-labels.json
+
+       .. note::
+
+          The **labels** you define are not visible in the |service|
+          console. They are returned in the response body when you use
+          the |service| |api| to
+          :doc:`get one </reference/api/database-users-get-single-user/>`,
+          :doc:`get all </reference/api/database-users-get-all-users/>`, or
+          :doc:`update </reference/api/database-users-update-a-user/>`
+          one database user.
+
+   * - groupId
+     - string
+     - Required
+     - Unique 24-hexadecimal string that identifies the
+       :ref:`project <group-id>` to which the database user belongs.
 
    * - roles
      - array
+     - Required
      - .. include:: /includes/fact-database-user-role.rst
+
+       .. include:: /includes/fact-subset-privilege-actions.rst
+
+       .. important::
+
+          If a user is assigned a :ref:`custom role
+          <mongodb-roles>`, they cannot be assigned any other roles.
 
    * - roles.collectionName
      - string
+     - Optional
      - Collection on which the database user has the specified role.
+
+       You can specify a collection for the ``read`` and ``readWrite``
+       roles. If you do not specify a collection for ``read`` and
+       ``readWrite``, the role applies to all collections in the
+       database (excluding some collections in the ``system.``
+       database).
+
+       .. note::
+
+          .. include:: /includes/fact-read-read-write-actions.rst
 
    * - roles.databaseName
      - string
+     - Optional
      - Database on which the database user has the specified role. A
-       role on the **admin** database can include privileges that apply
+       role on the ``admin`` database can include privileges that apply
        to the other databases.
 
    * - roles.roleName
      - string
+     - Required
      - .. include:: /includes/api/facts/db-user-role-list.rst
 
    * - scopes
      - array
+     - Optional
      - List of clusters and {+data-lake+}\s that this user can access.
        Returns an empty array if the database user has access to all
        the clusters and {+data-lake+}\s in the project. |service|
        grants database users access to all resources by default.
 
+       .. include:: /includes/fact-dbuser-scopes-format.rst
+
    * - scopes.name
      - string
+     - Required
      - Name of the cluster or {+data-lake+} that the database user can
        access.
 
    * - scopes.type
      - string
+     - Required
      - Type of resource that the database user can access. This
        parameter returns one of the following values:
 
@@ -77,8 +124,9 @@
 
    * - username
      - string
+     - Required
      - Username needed to authenticate to the MongoDB database or
-       collection. This resource returns:
+       collection.
 
        .. include:: /includes/api/tabsets/db-username.rst
 
@@ -87,6 +135,17 @@
 
    .. tab:: SCRAM-SHA
       :tabid: scram
+
+      .. list-table::
+         :stub-columns: 1
+         :widths: 20 14 11 55
+
+         * - password
+           - string
+           - Conditional
+           - Alphanumeric string that authenticates the database user
+             against the database specified in **databaseName**.
+
 
    .. tab:: X.509
       :tabid: x509

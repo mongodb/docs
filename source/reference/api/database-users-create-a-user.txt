@@ -12,14 +12,16 @@ Create a Database User
 
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
-.. include:: /includes/api-base-url.rst
-
 .. include:: /includes/extracts/fact-api-requirements-owner.rst
 
 .. include:: /includes/fact-database-user-limits.rst
 
-Syntax
-------
+.. include:: /includes/api/tabsets/db-auth-mech.rst
+
+Resource
+--------
+
+.. include:: /includes/api/base-api-uri.rst
 
 .. code-block:: http
 
@@ -29,7 +31,7 @@ Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
-   :widths: 15 10 10 65
+   :widths: 20 14 11 55
    :header-rows: 1
    :stub-columns: 1
 
@@ -38,10 +40,11 @@ Request Path Parameters
      - Necessity
      - Description
 
-   * - ``GROUP-ID``
+   * - GROUP-ID
      - string
      - Required
-     - Unique identifier for the :ref:`project <group-id>`.
+     - Unique 24-hexadecimal string that identifies the
+       :ref:`project <group-id>`.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,414 +54,122 @@ Request Query Parameters
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. list-table::
-   :header-rows: 1
-   :widths: 15 10 10 65
-
-   * - Body Parameter
-     - Type
-     - Necessity
-     - Description
-
-   * - ``databaseName``
-     - string
-     - Required
-     - :ref:`Database <authentication-database>` against which
-       |service| authenticates the user. A user must provide both a
-       username and authentication database to log into MongoDB.
-
-       Accepted values include:
-
-       - ``admin`` if ``ldapAuthType``, ``x509Type`` and ``awsIAMType``
-         are omitted or ``NONE``.
-       - ``$external`` if:
-
-         - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
-         - ``x509Type`` is ``MANAGED`` or ``CUSTOMER``.
-         - ``awsIAMType`` is ``USER`` or ``ROLE``.
-
-   * - ``deleteAfterDate``
-     - string
-     - Optional
-     - |iso8601-time| after which |service| deletes the user. The
-       specified date must be in the future and within one week of the
-       time you make the |api| request.
-
-       .. note::
-
-          You may include an |iso8601| time zone designator to ensure
-          that the expiration date occurs with respect to the local
-          time in the specified time zone.
-
-   * - ``labels``
-     - array of documents
-     - Optional
-     - Array containing key-value pairs that tag and categorize the
-       database user.
-
-       Each key and value has a maximum length of 255 characters.
-
-       .. literalinclude:: /includes/cluster-settings/example-labels.json
-
-       .. note::
-
-          The ``labels`` you define are not visible in the |service| UI.
-          They are returned in the response body when you use the
-          |service| API to :doc:`get one
-          </reference/api/database-users-get-single-user/>`, :doc:`get
-          all </reference/api/database-users-get-all-users/>`, or
-          :doc:`update </reference/api/database-users-update-a-user/>` a
-          database user.
-
-   * - ``ldapAuthType``
-     - string
-     - Optional
-     - Method by which the provided ``username`` is authenticated. If
-       no value is given, |service| uses the default value of ``NONE``.
-
-       Accepted values include:
-
-       .. list-table::
-          :stub-columns: 1
-          :widths: 20 80
-
-          * - ``NONE``
-            - |service| authenticates this user through
-              :manual:`SCRAM-SHA </core/security-scram>`, not |ldap|.
-          * - ``USER``
-            - |ldap| server authenticates this user through the user's
-              |ldap| user.
-
-              ``username`` must also be a fully qualified distinguished
-              name, as defined in :rfc:`2253`.
-
-          * - ``GROUP``
-            - |ldap| server authenticates this user using their
-              |ldap| user and authorizes this user using their |ldap|
-              group. To learn more about |ldap| security, see
-              :doc:`/security-ldaps`.
-
-              ``username`` must also be a fully qualified distinguished
-              name, as defined in :rfc:`2253`.
-
-   * - ``x509Type``
-     - string
-     - Optional
-     - X.509 method by which the provided ``username`` is
-       authenticated. If no value is given, |service| uses the default 
-       value of ``NONE``.
-
-       The accepted types are:
-
-       .. list-table::
-          :stub-columns: 1
-          :widths: 20 80
-
-          * - ``NONE``
-            - User doesn't use X.509 authentication.
-
-          * - ``MANAGED``
-            - User to be used with |service|-managed
-              X.509.
-
-              Externally authenticated users must be created on the
-              ``$external`` database.
-
-          * - ``CUSTOMER``
-            - User is being created for use with
-              :ref:`Self-Managed X.509 <self-managed-x509>`. Users 
-              created with this ``x509Type`` require a 
-              Common Name (CN) in the ``username`` field. For more 
-              information, see :rfc:`2253`.
-
-              Externally authenticated users must be created on the
-              ``$external`` database.
-
-   * - ``awsIAMType``
-     - string
-     - Optional
-     - If this value is set, the new database user :doc:`authenticates
-       </security-add-mongodb-users>` with |aws| IAM credentials.
-       If no value is given, |service| uses the default value of ``NONE``.
-
-       The accepted types are:
-
-       .. list-table::
-          :stub-columns: 1
-          :widths: 20 80
-          
-          * - ``NONE``
-            - The user does not use AWS IAM credentials.
-
-          * - ``USER``
-            - New database user has AWS IAM user credentials.
-          
-          * - ``ROLE``
-            - New database user has credentials associated with an AWS
-              IAM role.
-
-   * - ``groupId``
-     - string
-     - Required
-     - Unique identifier of the |service| project to which the user
-       belongs.
-
-   * - ``roles``
-     - array of documents
-     - Required
-     - .. include:: /includes/fact-database-user-role.rst
-
-       .. include:: /includes/fact-subset-privilege-actions.rst
-
-       .. important::
-
-          If a user is assigned a :ref:`custom role
-          <mongodb-roles>`, they cannot be assigned any other roles.
-
-   * - | ``roles``
-       | ``.collectionName``
-     - string
-     - Required
-     - Collection for which the role applies.
-
-       You can specify a collection for the ``read`` and ``readWrite``
-       roles. If you do not specify a collection for ``read`` and
-       ``readWrite``, the role applies to all collections in the
-       database (excluding some collections in the ``system.``
-       database).
-
-       .. note::
-
-          .. include:: /includes/fact-read-read-write-actions.rst
-
-   * - | ``roles``
-       | ``.databaseName``
-     - string
-     - Required
-     - Database on which the user has the specified role. A role
-       on the ``admin`` database can include privileges that apply to
-       the other databases.
-
-   * - | ``roles``
-       | ``.roleName``
-     - string
-     - Required
-     - Name of the role. This value can either be a
-       :manual:`built-in role </reference/built-in-roles/>` or a
-       :ref:`custom role <mongodb-roles>`.
-
-       The following accepted values of ``role`` are restricted to the
-       ``admin`` database:
-
-       - :atlasrole:`atlasAdmin <Atlas admin>`
-       - :authrole:`readWriteAnyDatabase`
-       - :authrole:`readAnyDatabase`
-       - :authrole:`clusterMonitor`
-       - :authrole:`backup`
-       - :authrole:`dbAdminAnyDatabase`
-       - ``enableSharding``
-
-         This role is specific to MongoDB databases that |service|
-         managed. The role allows the user to enable sharding on a
-         database and to shard a collection.
-
-       The following accepted values of ``role`` can be applied to a
-       specific database:
-
-       - :authrole:`dbAdmin`
-       - ``read``
-       - ``readWrite``
-
-       The following accepted values of ``role`` can be applied to a
-       specific collection:
-
-       - ``read``
-       - ``readWrite``
-
-       If you do not specify a collection for the ``read`` and
-       ``readWrite`` roles, the roles apply to all collections
-       (excluding some ``system.`` collections) in the database.
-
-       .. note::
-
-          If you specify a :ref:`custom role <mongodb-roles>` name in
-          this field, the ``roles.databaseName`` field must be
-          ``admin``.
-
-   * - ``scopes``
-     - array of documents
-     - Optional
-     - Array of clusters and {+data-lake+}\s that this user has 
-       access to. If omitted, |service| grants the user access to all 
-       the clusters and {+data-lake+}\s in the project by default.
-
-       .. include:: /includes/fact-dbuser-scopes-format.rst
-
-   * - ``scopes.name``
-     - string
-     - Required
-     - Name of the cluster or {+data-lake+} that the user has 
-       access to.
-
-   * - ``scopes.type``
-     - string
-     - Required
-     - Type of resource that the user has access to. Valid values 
-       are: 
-
-       - ``CLUSTER``
-       - ``DATA_LAKE``
-
-   * - ``password``
-     - string
-     - Conditional
-     - User's password. Required if:
-     
-       - ``x509Type``, ``ldapAuthType``, and ``awsIAMType`` are ``NONE``,
-         meaning that the database user authenticates with ``SCRAM-SHA``.
-       
-       This field is *not* included in the server
-       response.
-
-   * - ``username``
-     - string
-     - Required
-     - Username for authenticating to MongoDB.
-
-       Must be a fully qualified distinguished name, as defined in
-       :rfc:`2253`, if:
-
-       - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
-       - ``x509Type`` is ``CUSTOMER``.
-
-       Must be an `Amazon Resource Name (ARN) 
-       <https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html>`__
-       if:
-
-       - ``awsIAMType`` is ``USER`` or ``ROLE``.
+.. include:: /includes/api/list-tables/requests/database-user.rst
 
 Response Elements
 ~~~~~~~~~~~~~~~~~
 
-If you set the query element ``envelope`` to ``true``, the response is
-wrapped by the ``content`` object.
+If you set the query element ``"envelope" : true``, this resource wraps the response in a ``content`` object.
 
 .. include:: /includes/api/list-tables/database-users-get-response.rst
 
-Examples
---------
-
-Request
-~~~~~~~
+Example Request
+---------------
 
 .. tabs::
 
-   tabs:
-     - id: scram
-       name: SCRAM-SHA
-       content: |
+   .. tab:: SCRAM-SHA
+      :tabid: scram
 
-         Create a database user that |service| authenticates using
-         :manual:`SCRAM-SHA </core/security-scram>` and the ``admin`` 
-         database.
+      Create a database user that |service| authenticates using
+      :manual:`SCRAM-SHA </core/security-scram>` and the ``admin``
+      database.
 
-         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-         .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-scram.sh
-            :language: sh
-            :linenos:
-            :emphasize-lines: 7-22
+      .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-scram.sh
+         :language: sh
+         :linenos:
+         :emphasize-lines: 7-22
 
-     - id: x509
-       name: X.509
-       content: |
+   .. tab:: X.509
+      :tabid: x509
 
-         Create a database user that |service| authenticates using
-         X.509 certificates and the ``$external`` database.
+      Create a database user that |service| authenticates using
+      X.509 certificates and the **$external** database.
 
-         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-         .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-x509.sh
-            :language: sh
-            :linenos:
-            :emphasize-lines: 7-22
+      .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-x509.sh
+         :language: sh
+         :linenos:
+         :emphasize-lines: 7-22
 
-     - id: ldap
-       name: LDAP
-       content: |
+   .. tab:: LDAP
+      :tabid: ldap
 
-         Create a database user that |service| authenticates using
-         :doc:`LDAP </security-ldaps>` and the ``$external``
-         database.
+      Create a database user that |service| authenticates using
+      :doc:`LDAP </security-ldaps>` and the **$external**
+      database.
 
-         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-         .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-ldap.sh
-            :language: sh
-            :linenos:
-            :emphasize-lines: 7-22
+      .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-ldap.sh
+         :language: sh
+         :linenos:
+         :emphasize-lines: 7-22
 
-     - id: aws-iam
-       name: AWS IAM
-       content: |
+   .. tab:: AWS IAM
+      :tabid: aws-iam
 
-         Create a database user that |service| authenticates using AWS IAM
-         credentials and the ``$external`` database.
+      Create a database user that |service| authenticates using |aws|
+      |iam| credentials and the **$external** database.
 
-         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-         .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-aws-iam.sh
-            :language: sh
-            :linenos:
-            :emphasize-lines: 7-22
+      .. literalinclude:: /includes/api/requests/database-create-users-create-a-user-aws-iam.sh
+         :language: sh
+         :linenos:
+         :emphasize-lines: 7-22
+
+Example Response
+----------------
 
 Response Header
 ~~~~~~~~~~~~~~~
 
 .. include:: /includes/api/api-headers/401.rst
 
-.. include:: /includes/api/api-headers/201.rst
+.. include:: /includes/api/api-headers/200.rst
 
 Response Body
 ~~~~~~~~~~~~~
 
 .. tabs::
+   :hidden:
 
-   hidden: true
+   .. tab:: SCRAM-SHA
+      :tabid: scram
 
-   tabs:
-     - id: scram
-       name: SCRAM-SHA
-       content: |
+      .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-scram.json
+         :language: json
+         :linenos:
+         :copyable: false
+         :emphasize-lines: 2, 12-23
 
-         .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-scram.json
-            :language: json
-            :copyable: false
-            :emphasize-lines: 2, 12-23
+   .. tab:: X.509
+      :tabid: x509
 
-     - id: x509
-       name: X.509
-       content: |
+      .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-x509.json
+         :language: json
+         :linenos:
+         :copyable: false
+         :emphasize-lines: 2, 12-23
 
-         .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-x509.json
-            :language: json
-            :copyable: false
-            :emphasize-lines: 2, 12-23
+   .. tab:: LDAP
+      :tabid: ldap
 
-     - id: ldap
-       name: LDAP
-       content: |
+      .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-ldap.json
+         :language: json
+         :linenos:
+         :copyable: false
+         :emphasize-lines: 2, 5, 12-22
 
-         .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-ldap.json
-            :language: json
-            :copyable: false
-            :emphasize-lines: 2, 5, 12-22
+   .. tab:: AWS-IAM
+      :tabid: aws-iam
 
-     - id: aws-iam
-       name: AWS-IAM
-       content: |
-
-         .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-aws-iam.json
-            :language: json
-            :copyable: false
-            :emphasize-lines: 2, 5, 12-22
+      .. literalinclude:: /includes/api/responses/database-create-users-create-a-user-aws-iam.json
+         :language: json
+         :linenos:
+         :copyable: false
+         :emphasize-lines: 2, 5, 12-22

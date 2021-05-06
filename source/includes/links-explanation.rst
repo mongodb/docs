@@ -1,3 +1,3 @@
-One or more links to sub-resources and/or related resources. The
-relation-types between |url|\s are explained in the
-:rfc:`Web Linking Specification <5988>`.
+One or more uniform resource locators that link to sub-resources and/or
+related resources. The :rfc:`Web Linking Specification <5988>` explains
+the relation-types between |urls|.

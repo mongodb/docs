@@ -12,14 +12,16 @@ Delete a Database User
 
 .. include:: /includes/fact-projects-groups-synonyms.rst
 
-.. include:: /includes/api-base-url.rst
-
 .. include:: /includes/extracts/fact-api-requirements-owner.rst
 
-Syntax
-------
+.. include:: /includes/api/tabsets/db-auth-mech.rst
 
-.. code-block:: none
+Resource
+--------
+
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
 
    DELETE /groups/{GROUP-ID}/databaseUsers/{databaseName}/{USERNAME}
 
@@ -28,42 +30,39 @@ Request Path Parameters
 
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 14 11 55
 
    * - Parameter
-     - Required/Optional
+     - Type
+     - Necessity
      - Description
 
-   * - ``GROUP-ID``
+   * - GROUP-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal string that identifies the
+       :ref:`project <group-id>`.
 
-     - Required.
+   * - DATABASE-NAME
+     - string
+     - Required
+     - :ref:`Database <authentication-database>` against which the
+       database user authenticates. Database users must provide both a
+       username and authentication database to log into MongoDB.
 
-     - Unique identifier for the :ref:`project <group-id>`.
+       You may set this parameter value as:
 
-   * - ``databaseName``
-     - Required.
-     - The user's :ref:`authentication database
-       <authentication-database>`.
-       
-       Accepted values include:
+       .. include:: /includes/api/tabsets/db-name.rst
 
-       - ``$external`` if the user is authenticated using X.509 
-         certificates or |ldap|.
-       - ``admin`` users authenticated using
-         :manual:`SCRAM-SHA </core/security-scram>`.
+   * - USERNAME
+     - string
+     - Required
+     - Username that this resource deletes from the MongoDB database.
+       This username should be formatted as:
 
-         This is the default authentication scheme in |service|.     
+       .. include:: /includes/api/tabsets/db-username.rst
 
-   * - ``USERNAME``
-
-     - Required.
-
-     - Username to delete.
-
-       Must be a fully qualified distinguished name, as defined in 
-       :rfc:`2253`, if:
-
-       - ``ldapAuthType`` is ``USER`` or ``GROUP``, or
-       - ``x509Type`` is ``CUSTOMER``.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,55 +72,90 @@ Request Query Parameters
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/no-body-parameters.rst
+.. include:: /includes/api/no-body-parameters.rst
 
 Response Elements
 ~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/no-response-elements.rst
 
-Examples
---------
-
-Request
-~~~~~~~
+Example Request
+---------------
 
 .. tabs::
 
-   tabs:
-     - id: scram
-       name: SCRAM-SHA
-       content: |
+   .. tab:: SCRAM-SHA
+      :tabid: scram
 
-         Delete one database user that |service| authenticates using
-         :manual:`SCRAM-SHA </core/security-scram>` and the ``admin`` 
-         database.
+      Delete one database user that |service| authenticates using
+      :manual:`SCRAM-SHA </core/security-scram>` and the **admin**
+      database.
 
-         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-         .. code-block:: none
+      .. code-block:: sh
 
-            curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest -X DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/ellen"
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --include \
+              --request DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/ellen"
 
-     - id: ldap
-       name: X.509 and LDAP
-       content: |
+   .. tab:: X.509
+      :tabid: x509
 
-         Delete one database user that |service| authenticates using
-         X.509 or |ldap| and the ``$external`` database.
+      Delete one database user that |service| authenticates using
+      X.509 or |ldap| and the **$external** database.
 
-         .. include:: /includes/extracts/fact-api-requirements-modify.rst
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
 
-         .. code-block:: none
+      .. code-block:: sh
 
-            curl -i -u "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest -X DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/\$external/CN=ellen@example.com,OU=users,DC=example,DC=com"
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --include \
+              --request DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/\$external/CN=ellen@example.com,OU=users,DC=example,DC=com"
+
+   .. tab:: LDAP
+      :tabid: ldap
+
+      Delete one database user that |service| authenticates using
+      |ldap| and the **$external** database.
+
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --include \
+              --request DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/\$external/CN=ellen@example.com,OU=users,DC=example,DC=com"
+
+   .. tab:: AWS IAM
+      :tabid: aws-iam
+
+      Delete one database user that |service| authenticates using
+      |aws| |iam| credentials and the ``$external`` database.
+
+      .. note::
+
+         The ``/`` character must be replaced with ``%2F`` in the
+         |aws| |arn|.
+
+      .. include:: /includes/extracts/fact-api-requirements-modify.rst
+
+      .. code-block:: sh
+         :linenos:
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --include \
+              --request DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5dd5a6b8f10fab1d71a58495/databaseUsers/\$external/arn:aws:iam::358363220050:user%2Fmongodb-aws-iam-auth-test-user"
+
+Example Response
+----------------
 
 Response Header
 ~~~~~~~~~~~~~~~
 
 .. include:: /includes/api/api-headers/401.rst
 
-.. include:: /includes/api/api-headers/204.rst
+.. include:: /includes/api/api-headers/200.rst
 
 Response Body
 ~~~~~~~~~~~~~
