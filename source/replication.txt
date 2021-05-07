@@ -200,27 +200,37 @@ MongoDB, see :doc:`/core/read-isolation-consistency-recency`.
 Mirrored Reads
 ~~~~~~~~~~~~~~
 
-Starting in version 4.4, MongoDB provides mirrored reads to pre-warm
-the cache of electable secondary members (i.e. members with
-:rsconf:`priority greater than 0 <members[n].priority>`). With mirrored
-reads (which is enabled by default), the primary can mirror a subset of
-:ref:`operations <mirrored-reads-supported-operations>` that it
-receives and send them to a subset of electable secondaries. The size
-of the subset is :ref:`configurable <mirrored-reads-parameters>`.
+Mirrored reads reduce the impact of primary elections following an
+outage or planned maintenance. After a :term:`failover` in a replica
+set, the secondary that takes over as the new primary updates its cache
+as new queries come in. While the cache is warming up performance can be
+impacted.
+
+Starting in version 4.4, mirrored reads pre-warm the caches of
+:rsconf:`electable <members[n].priority>` secondary replica set members.
+To pre-warm the caches of electable secondaries, the primary mirrors a
+sample of the :ref:`supported operations
+<mirrored-reads-supported-operations>` it receives to electable
+secondaries.
+
+The size of the subset of :rsconf:`electable <members[n].priority>`
+secondary replica set members that receive mirrored reads can be
+configured with the :parameter:`mirrorReads <mirrorReads>`
+parameter. See :ref:`Enable/Disable Support for Mirrored Reads
+<mirrored-reads-parameters>` for further details.
 
 .. note::
 
-   The primary's response to the client is not affected by the mirror
-   reads. The mirrored reads are "fire-and-forget" operations by the
-   primary; i.e., the primary does not await the response for the
-   mirrored reads.
+   Mirrored reads do not affect the primary's response to the client.
+   The reads that the primary mirrors to secondaries are
+   "fire-and-forget" operations. The primary doesn't await responses.
 
 .. _mirrored-reads-supported-operations:
 
 Supported Operations
 ````````````````````
 
-Mirrored reads are supported for the following operations:
+Mirrored reads support the following operations:
 
 - :dbcommand:`count`
 
@@ -239,36 +249,56 @@ Mirrored reads are supported for the following operations:
 Enable/Disable Support for Mirrored Reads
 `````````````````````````````````````````
 
-With MongoDB 4.4, mirrored reads are enabled by default and use a
-default :parameter:`sampling rate <mirrorReads>` of ``0.01``.
-That is, the primary mirrors :ref:`reads
-<mirrored-reads-supported-operations>` to each electable (i.e.
-:rsconf:`priority greater than 0 <members[n].priority>`) secondary at
-the sampling rate of 1 percent.
+Starting in MongoDB 4.4, mirrored reads are enabled by default and use a
+default :parameter:`sampling rate <mirrorReads>` of ``0.01``. To disable
+mirrored reads, set the :parameter:`mirrorReads` parameter to ``{
+samplingRate: 0.0 }``:
 
-For example, given a replica set with a primary and two electable
-secondaries and a sampling rate of ``0.01``, if the primary receives
-``100`` operations that can be mirrored, the sampling may result in
-``1`` reads being mirrored to one secondary and ``0`` reads to the
-other or ``0`` to each, etc.
+.. code-block:: javascript
 
-To modify the sampling rate, use the :parameter:`mirrorReads` parameter:
+   db.adminCommand( {
+     setParameter: 1,
+     mirrorReads: { samplingRate: 0.0 }
+   } )
 
-- A sampling rate value of ``0.0`` disables mirrored reads. 
+With a sampling rate greater than ``0.0``, the primary mirrors
+:ref:`supported reads <mirrored-reads-supported-operations>` to a subset
+of :rsconf:`electable <members[n].priority>` secondaries. With a
+sampling rate of ``0.01``, the primary mirrors one percent of the
+supported reads it receives to each electable secondary.
 
-- A sampling rate greater than ``0.0`` enables mirrored reads.
+Consider a replica set that consists of one primary and two electable
+secondaries. If the primary receives ``1000`` operations that can be
+mirrored and the sampling rate is ``0.01``, the primary sends
+about ``10`` reads to electable secondaries. Each electable secondary
+receives only a fraction of the 10 reads. Each read that is mirrored, is
+sent to a randomly chosen non-empty selection of electable secondaries.
 
-- A sampling rate cannot be greater than ``1.0``.
+Change the Sampling Rate for Mirrored Reads
+```````````````````````````````````````````
+
+To change the sampling rate for mirrored reads, set the
+:parameter:`mirrorReads` parameter to a number between ``0.0`` and
+``1.0``:
+
+- A sampling rate of ``0.0`` disables mirrored reads.
+- A sampling rate of a number between ``0.0`` and ``1.0`` results in
+  the primary forwarding a random sample of the :ref:`supported reads
+  <mirrored-reads-supported-operations>` at the specified sample rate to
+  electable secondaries.
+- A sampling rate of ``1.0`` results in the primary forwarding all
+  :ref:`supported reads <mirrored-reads-supported-operations>` to
+  electable secondaries.
 
 For details, see :parameter:`mirrorReads`.
 
 Mirrored Reads Metrics
 ``````````````````````
 
-Starting in MongoDB 4.4, the command :dbcommand:`serverStatus` and its
-corresponding :binary:`~bin.mongo` shell method
-:method:`db.serverStatus()` return :serverstatus:`mirroredReads` if you
-specify the field's inclusion in the operation.  For example, 
+Starting in MongoDB 4.4, the :dbcommand:`serverStatus` command and the
+:method:`db.serverStatus()` shell method return
+:serverstatus:`mirroredReads` metrics if you specify the field in the
+operation:
 
 .. code-block:: javascript
 
