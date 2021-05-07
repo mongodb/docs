@@ -9,19 +9,19 @@
 
    * - ``components`` 
      - array of documents 
-     - *Returned only for sharded clusters.* 
+     - *Returned for sharded clusters only.* 
 
        Export job details for each replica set in the sharded cluster.
 
    * - ``components.exportId``
      - string 
-     - *Returned only for sharded clusters.* 
+     - *Returned for sharded clusters only.* 
 
        Unique identifier of the export job for the replica set.
 
    * - ``components.replicaSetName`` 
      - string 
-     - *Returned only for sharded clusters.* 
+     - *Returned for sharded clusters only.* 
 
        Name of the replica set.
 
@@ -49,6 +49,24 @@
    * - ``exportBucketId``
      - string
      - Unique identifier of the bucket. 
+
+   * - ``exportStatus`` 
+     - document 
+     - *Returned for replica set only.*
+     
+       Status of the export job.
+
+   * - ``exportStatus.exportedCollections`` 
+     - int 
+     - *Returned for replica set only.* 
+
+       Number of collections that have been exported.
+
+   * - ``exportStatus.totalCollections``
+     - int 
+     - *Returned for replica set only.*
+
+       Total number of collections to export.
 
    * - ``finishedAt`` 
      - string 
