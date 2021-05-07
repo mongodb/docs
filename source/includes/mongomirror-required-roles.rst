@@ -21,6 +21,7 @@
     the following commands:
     
     .. code-block:: javascript
+    
        use admin
        db.createRole(
             {
@@ -43,6 +44,7 @@
     have, at a minimum, the :authrole:`readAnyDatabase` role. For example:
     
     .. code-block:: javascript
+
        use admin
           db.createUser(
             {
