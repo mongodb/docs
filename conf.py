@@ -88,7 +88,7 @@ html_logo = ".static/logo-mongodb.png"
 
 html_copy_source = False
 html_domain_indices = True
-html_use_index = True
+html_use_index = False
 html_split_index = False
 html_show_sourcelink = False
 html_show_sphinx = True
