@@ -11,7 +11,7 @@
          .. note::
 
             The following examples illustrate indexes and collation in
-            the :doc:`Mongo Shell </mongo/>`.
+            :mongosh:`mongosh </>`.
 
             Refer to the
             :compass:`MongoDB Compass Documentation
