@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 20 14 66
    :header-rows: 1
    :stub-columns: 1
 
@@ -7,32 +7,148 @@
      - Type
      - Description
 
-   * - ``id``
-     - string
-     - Unique identifier of the log collection request job.
+   * - childJobs
+     - array
+     - List of child jobs associated with this request. Included in the
+       response if you set tthe **verbose** query parameter to
+       ``true``.
 
-   * - ``groupId``
+   * - childJobs[n].errorMessage
      - string
-     - Unique identifier of the :term:`project` that the log
-       collection request is associated with.
+     - Error message showing why this child job failed, if applicable.
 
-   * - ``userId``
+   * - childJobs[n].finishDate
      - string
-     - Unique identifier of the user executing the request.
+     - |iso8601-time| when this child job finished.
 
-   * - ``creationDate``
+   * - childJobs[n].hostName
      - string
-     - |Epoch-time| when the log collection request job was
-       created.
+     - Name of the host from whom the child job collects the logs.
 
-   * - ``expirationDate``
+   * - childJobs[n].logCollectionType
+     - string
+     - Type of log this child job collects. Returns one of the
+       following values:
+
+       - ``AUTOMATION_AGENT``
+       - ``BACKUP_AGENT``
+       - ``MONITORING_AGENT``
+       - ``MONGODB``
+       - ``FTDC``
+
+   * - childJobs[n].path
+     - string
+     - Path to the process in the deployment for which this child job
+       collects logs. |service| uses these paths to build the directory
+       hierarchy in the compressed archive file.
+
+       .. list-table::
+          :widths: 40 60
+          :header-rows: 1
+          :stub-columns: 1
+
+          * - logCollectionType
+            - Path
+          * - AUTOMATION_AGENT
+            - ``<hostname>/automation_agent``
+          * - BACKUP_AGENT
+            - ``<hostname>/automation_agent``
+          * - MONITORING_AGENT
+            - ``<hostname>/automation_agent``
+          * - MONGODB
+            - ``<hostname>/<port>/<mongodb>``
+          * - FTDC
+            - ``<hostname>/<port>/<ftdc>``
+
+
+   * - childJobs[n].startDate
+     - string
+     - |iso8601-time| when this child job started.
+
+   * - childJobs[n].status
+     - string
+     - Status of this child job. This resource returns one of the
+       following values:
+
+       - ``SUCCESS``
+       - ``FAILURE``
+       - ``IN_PROGRESS``
+       - ``MARKED_FOR_EXPIRY``
+       - ``EXPIRED``
+
+   * - childJobs[n].uncompressedDiskSpaceBytes
+     - number
+     - Total uncompressed disk space in bytes that this child job uses.
+
+   * - creationDate
+     - string
+     - |Epoch-time| when you created the log collection request job.
+
+   * - expirationDate
      - string
      - |Epoch-time| when the log collection request job expires.
 
-   * - ``status``
+   * - groupId
      - string
-     - Status of the log collection request job. Will be one of the
-       following values:
+     - Unique 24-hexadecimal digit string that identifies the
+       :term:`project` associated with log collection request.
+
+   * - id
+     - string
+     - Unique 24-hexadecimal digit string that identifies the log
+       collection request job.
+
+   * - logTypes
+     - array
+     - List of log types included in this request. This resource
+       returns one or more of the following values:
+
+       - ``AUTOMATION_AGENT``
+       - ``BACKUP_AGENT``
+       - ``MONITORING_AGENT``
+       - ``MONGODB``
+       - ``FTDC``
+
+   * - redacted
+     - boolean
+     - Flag that indicates whether the request replaces emails,
+       hostnames, IP addresses, and namespaces in the response with
+       random string values.
+
+   * - resourceName
+     - string
+     - Name of the resource for which you requested logs.
+
+   * - resourceType
+     - string
+     - Type of resource for which you requested logs. This resource
+       returns one of the following values:
+
+       - ``CLUSTER``
+       - ``PROCESS``
+       - ``REPLICA_SET``
+
+   * - rootResourceName
+     - string
+     - Name of the complete deployment if you made the log request to a
+       part of a deployment. Part of the deployment could be a replica
+       set in a cluster or one shard of a sharded cluster.
+
+   * - rootResourceType
+     - string
+     - Type of the part of the complete deployment if you made the log
+       request to a part of a deployment. Part of the deployment could
+       be a replica set in a cluster or one shard of a sharded cluster.
+       This resource returns one of the following values:
+
+       - ``CLUSTER``
+       - ``PROCESS``
+       - ``REPLICA_SET``
+
+   * - status
+     - string
+     - Status of the log collection request job. This resource returns
+       one of the following values:
 
        - ``SUCCESS``
        - ``FAILURE``
@@ -40,123 +156,21 @@
        - ``MARKED_FOR_EXPIRY``
        - ``EXPIRED``
 
-   * - ``sizeRequestedPerFileBytes``
+   * - sizeRequestedPerFileBytes
      - number
      - Size for each log file in bytes.
 
-   * - ``resourceType``
-     - string
-     - Type of resource for which logs were requested. Will be one
-       of the following values:
-
-       - ``CLUSTER``
-       - ``PROCESS``
-       - ``REPLICA_SET``
-
-   * - ``resourceName``
-     - string
-     - Name of the resource for which logs were requested.
-
-   * - ``redacted``
-     - boolean
-     - If ``true``, emails, hostnames, IP addresses, and namespaces
-       in the response are replaced with random string values.
-
-   * - ``rootResourceName``
-     - string
-     - If the request is made to a part of a deployment, such as one
-       replica set in a cluster, this is the name of the *complete*
-       deployment.
-
-   * - ``rootResourceType``
-     - string
-     - If the request is made to a part of a deployment, such as one
-       replica set in a cluster, this is the type of the *complete*
-       deployment. Will be one of the following values:
-
-       - ``CLUSTER``
-       - ``PROCESS``
-       - ``REPLICA_SET``
-
-   * - ``uncompressedSizeTotalBytes``
+   * - uncompressedSizeTotalBytes
      - number
-     - Total uncompressed size of the log data returned by this
-       request in bytes.
+     - Total uncompressed size of the log data in bytes that this
+       request returns.
 
-   * - ``logTypes``
-     - array
-     - Array of log types included in this request. Will contain
-       one or more of the following values:
-
-       - ``AUTOMATION_AGENT``
-       - ``BACKUP_AGENT``
-       - ``MONITORING_AGENT``
-       - ``MONGODB``
-       - ``FTDC``
-
-   * - ``url``
+   * - userId
      - string
-     - URL to download the logs from this request.
+     - Unique 24-hexadecimal digit string that identifies the user
+       executing the request.
 
-   * - ``childJobs``
-     - array
-     - Array of child jobs associated with this request. Included
-       in the response if the ``verbose`` query parameter is set
-       to ``true``.
-
-   * - | ``childJobs[n]``
-       | ``.uncompressedDiskSpaceBytes``
-     - number
-     - Total uncompressed disk space in bytes used by this child job.
-
-   * - | ``childJobs[n]``
-       | ``.status``
+   * - url
      - string
-     - Status of this child job. Returns one of the following
-       values:
-
-       - ``SUCCESS``
-       - ``FAILURE``
-       - ``IN_PROGRESS``
-       - ``MARKED_FOR_EXPIRY``
-       - ``EXPIRED``
-
-   * - | ``childJobs[n]``
-       | ``.startDate``
-     - date
-     - |iso8601-time| when this child job started.
-
-   * - | ``childJobs[n]``
-       | ``.finishDate``
-     - date
-     - |iso8601-time| when this child job finished.
-
-   * - | ``childJobs[n]``
-       | ``.hostName``
-     - string
-     - Name of the host from whom the child job collects the logs.
-       job.
-
-   * - | ``childJobs[n]``
-       | ``.logCollectionType``
-     - string
-     - The type of log this child job collects. Returns one of the
-       following values:
-
-       - ``AUTOMATION_AGENT``
-       - ``BACKUP_AGENT``
-       - ``MONITORING_AGENT``
-       - ``MONGODB``
-       - ``FTDC``
-
-   * - | ``childJobs[n]``
-       | ``.errorMessage``
-     - string
-     - Error message showing why this child job failed, if
-       applicable.
-
-   * - | ``childJobs[n]``
-       | ``.path``
-     - string
-     - Path to the process in the deployment for which this child
-       job collects logs.
+     - Internet address from which you download the logs from this
+       request.
