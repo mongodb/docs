@@ -1,0 +1,206 @@
+==============
+Retrieve Data
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to retrieve data from your MongoDB
+database. To retrieve data, use read operations.
+
+Read operations allow you to do the following:
+
+- Retrieve a subset of documents from your collection using a :ref:`find operation <retrieve-find>` 
+- Perform transformations on retrieved documents from your collection using an :ref:`aggregate operation <retrieve-aggregate>`
+- Monitor real-time changes to your database using a :ref:`change stream <retrieve-watch>` 
+
+.. _retrieve-paint-order-collection:
+
+Sample Data for Examples
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following sections feature examples of how the owner of a paint
+store manages their customers' orders. For each order, the owner keeps
+track of the color and quantity, which corresponds to the ``color`` and
+``qty`` fields in their ``paint_order`` collection: 
+
+.. code-block:: json
+
+   { "_id": 1, "color": "purple", "qty": 10 }
+   { "_id": 2, "color": "green", "qty": 8 }
+   { "_id": 3, "color": "purple", "qty": 4 }
+   { "_id": 4, "color": "green", "qty": 11 }
+
+.. _retrieve-find:
+
+Find Operation
+--------------
+
+Use the find operation to retrieve a subset of your existing data in
+MongoDB. You can specify what data to return including which documents
+to retrieve, in what order to retrieve them and how many to retrieve. 
+
+To perform a find operation, call the ``find()`` method on an instance
+of a ``MongoCollection``. This method searches a collection for documents that
+match the query filter you provide. For more information on how to
+specify a query, see our :doc:`Specify a Query
+</fundamentals/crud/query-document>` guide. 
+
+Example
+~~~~~~~
+
+The owner would like to know which orders contain greater than three, but
+less than nine cans of paint from their :ref:`paint_order collection <retrieve-paint-order-collection>`.
+
+To address this scenario, the owner finds orders to match the criteria:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Retrieve.java
+   :language: java
+   :dedent:
+   :start-after: begin findExample
+   :end-before: end findExample
+
+For more information how to build filters, see our :doc:`Filters Builders
+</fundamentals/builders/filters>` guide.
+
+The following shows the output of the query specified above:
+
+.. code-block:: json
+
+   { "_id": 2, "color": "green", "qty": 8 }
+   { "_id": 3, "color": "purple", "qty": 4 }
+
+After the owner runs this query, they find two orders that matched the
+criteria. 
+
+For a runnable ``find()`` example, see our :doc:`Find Multiple
+Documents </usage-examples/find>` page. 
+
+.. _retrieve-aggregate:
+
+Aggregate Operation
+-------------------
+
+Use the aggregate operation to perform the stages in an aggregation
+pipeline.  An aggregation pipeline is a multi-staged transformation that
+produces an aggregated result. 
+
+To perform an aggregate operation, call the ``aggregate()`` method on an
+instance of a ``MongoCollection``. This method accepts aggregation
+expressions to run in sequence. To perform aggregations, you can
+define aggregation stages that specify how to match documents, rename
+fields and group values. For more information, see our
+:doc:`Aggregation </fundamentals/aggregation>` guide.
+
+Example
+~~~~~~~
+
+The owner would like to know which paint color is the most purchased
+(highest quantity sold) from their :ref:`paint_order collection <retrieve-paint-order-collection>`.
+
+To address the scenario, the owner creates an aggregation pipeline that:
+
+- Matches all the documents in the ``paint_order`` collection
+- Groups orders by colors 
+- Sums up the quantity field by color
+- Orders the results by highest-to-lowest quantity
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Retrieve.java
+   :language: java
+   :dedent:
+   :start-after: begin aggregateExample
+   :end-before: end aggregateExample
+
+The following shows the output of the aggregation specified above:
+
+.. code-block:: json
+
+   { "_id": "green", "qty": 19 }
+   { "_id": "purple", "qty": 14 }
+
+After the owner runs the aggregation, they find that "green" is the most
+purchased color.
+
+For more information on how to construct an aggregation pipeline, see
+the MongoDB server manual page on :manual:`Aggregation </aggregation>`.
+
+.. _retrieve-watch:
+
+Change Streams
+--------------
+
+Open a change stream to monitor real-time changes to a collection.
+Change streams can subscribe to specific types of data changes and 
+immediately produce change events. For more information on change
+streams, see the MongoDB server manual page on :manual:`Change Streams
+</changeStreams>`. 
+
+To open a change stream, call the ``watch()`` method on an instance of a
+``MongoCollection``, ``MongoDatabase`` or ``MongoClient``. 
+You can pass an aggregation pipeline to this method to notify you as
+soon as a change occurs.
+
+.. note::
+
+   Change streams don't support standalone MongoDB instances because
+   they don't have an oplog. 
+
+The instance you call the ``watch()`` method on determines the scope of
+events which the change stream listens for. If you call ``watch()`` on a
+``MongoCollection``, the method monitors a collection. If you call
+``watch()`` on a ``MongoDatabase``, the method monitors all the
+collections in the database. If you call ``watch()`` on a
+``MongoClient``, the method monitors a standalone MongoDB instance, a
+replica set, or a sharded cluster. 
+
+Example
+~~~~~~~
+
+The owner would like to receive notifications for when customers submit new
+orders or update their orders from thier :ref:`paint_order collection <retrieve-paint-order-collection>`.
+
+To address this scenario, the owner:
+
+- Creates an aggregation pipeline that filters for "insert" and "update" operation types
+- Creates a change stream on the aggregation pipeline
+- Prints changes picked up by the change stream
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Retrieve.java
+   :language: java
+   :dedent:
+   :start-after: begin watchExample
+   :end-before: end watchExample
+
+After creating the change stream, the owner gets notifications for
+future inserts or updates to their collection.
+
+An insert notification looks similar to the following:
+
+.. code-block::
+
+   Received a change to the collection: ChangeStreamDocument{
+      operationType=OperationType{value='insert'},
+      resumeToken={"_data": "825EC..."},
+      namespace=database.collection,
+      ...
+   }
+
+For a runnable ``watch()`` example, see our :doc:`Watch For
+Changes </usage-examples/watch>` page.
+
+For additional information on the methods mentioned on this page, see
+the following API documentation: 
+
+- :java-sync-api:`MongoCollection.find() <com/mongodb/client/MongoCollection.html#find()>`
+- :java-sync-api:`MongoCollection.aggregate() <com/mongodb/client/MongoCollection.html#aggregate(java.util.List)>`
+- :java-sync-api:`MongoCollection.watch() <com/mongodb/client/MongoCollection.html#watch()>`
+- :java-sync-api:`MongoDatabase.watch() <com/mongodb/client/MongoDatabase.html#watch()>`
+- :java-sync-api:`MongoClient.watch() <com/mongodb/client/MongoClient.html#watch()>`
