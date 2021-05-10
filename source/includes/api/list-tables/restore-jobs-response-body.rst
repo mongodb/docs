@@ -13,7 +13,9 @@
 
    * - createdAt
      - string
-     - |iso8601-time| when |service| created the restore job.
+     - |iso8601-time| when |service| created the restore job. |service| 
+       sorts the ``results`` document in descending order based on this 
+       date.
 
    * - components
      - array of objects

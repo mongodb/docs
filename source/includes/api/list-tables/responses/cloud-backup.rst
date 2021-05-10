@@ -14,7 +14,8 @@
 
    * - createdAt
      - string
-     - |iso8601-time| when |service| took the snapshot.
+     - |iso8601-time| when |service| took the snapshot. |service| sorts 
+       the ``results`` document in descending order based on this date.
 
    * - description
      - string
