@@ -301,12 +301,30 @@ backups on |aws| clusters use standard |aws| |s3| encryption.
    on |aws| |s3|, including clusters backed by Azure and |gcp|.
 
 The following actions cause all existing oplog backups to be deleted.
-All existing snapshots remain intact, but previously preserved oplog
-data is removed:
+All existing snapshots remain intact, but |service| removes previously
+preserved oplog data when:
 
-- Disabling {+pit-restore+}s for your cluster.
-- Changing the :ref:`highest priority region <deploy-across-multiple-regions>`
+- You disable {+pit-restore+}s for your cluster.
+- You change the
+  :ref:`highest priority region <deploy-across-multiple-regions>`
   on your cluster.
+- The oplog receives an excessive number of writes. So many writes come
+  to the oplog that it rolls over before the next snapshot.
+
+  .. example::
+
+     1. You sized your oplog for one hour of its usual write traffic,
+        say 1,000 operations.
+
+     #. Database activity results in a large number of writes to the
+        oplog, say 2,000 operations.
+
+     #. The number of writes result in the oplog dropping older
+        records. This example would lose 1,000 operations.
+
+     #. Backup should read operation #1, but it reads #1,001 instead.
+
+- Perform a restore into the cluster.
 
 .. _cloud-provider-backup-schedule:
 .. _cloud-provider-retention-policy:
