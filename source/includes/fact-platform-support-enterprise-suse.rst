@@ -9,11 +9,6 @@ MongoDB {+version+} Enterprise Edition supports the following
 
 MongoDB only supports the 64-bit versions of these platforms.
 
-MongoDB {+version+} Enterprise Edition on
-:abbr:`SLES (SUSE Linux Enterprise Server)` also supports the
-:ref:`s390x<prod-notes-supported-platforms-s390x>` architecture on
-select platforms.
-
 See :ref:`prod-notes-supported-platforms` for more information.
 
 .. include:: /includes/admonition-wsl.rst
