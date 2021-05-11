@@ -12,10 +12,11 @@
    :depth: 2
    :class: singlecol
 
-``$collStats`` returns statistics for a given collection. ``$collstats`` must 
-be the first stage in the aggregation pipeline. For more information, 
-see :manual:`$collStats </reference/operator/aggregation/collStats/>`. In  
-{+data-lake+}, ``$collStats`` can only be used to retrieve information about the 
+``$collStats`` returns statistics for a given collection. 
+``$collstats`` must be the first stage in the aggregation pipeline. For 
+more information, see :manual:`$collStats 
+</reference/operator/aggregation/collStats/>`. In  {+dl+}, 
+``$collStats`` can only be used to retrieve information about the 
 partitions for a given collection or view.
 
 .. _adl-collstats-syntax: 
@@ -23,21 +24,42 @@ partitions for a given collection or view.
 Syntax 
 ------
 
-In {+adl+}, :manual:`$collStats </reference/operator/aggregation/collStats/>` 
-accepts an empty document. It does not support any of the optional fields 
-supported by the MongoDB server and returns an error if an unsupported option 
-is specified.
+In {+adl+}, :manual:`$collStats 
+</reference/operator/aggregation/collStats/>` accepts an empty 
+document. It supports the optional field ``count`` only and returns 
+an error if an unsupported option is specified.
 
 .. code-block:: sh 
 
-   db.<collection-name>|<view-name>.aggregate([{ "$collStats" : {} }])
+   db.<collection-name>|<view-name>.aggregate([{ "$collStats" : { "count" : {} } }])
+
+.. _adl-collstats-fields:
+
+Fields 
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10  10 70 10
+
+   * - Field 
+     - type
+     - Description 
+     - Necessity
+
+   * - ``count``
+     - document
+     - Adds the total number of documents in the partitions to the 
+       return document. 
+     - Optional
 
 .. _adl-collstats-output:
 
 Output 
 ------
 
-``$collStats`` returns the following fields in the document for each partition: 
+``$collStats`` returns the following fields in the document for each 
+partition: 
 
 .. list-table::
    :header-rows: 1
@@ -47,6 +69,11 @@ Output
      - Type 
      - Description 
 
+   * - ``count``
+     - number
+     - The total number of documents in the partition. This is returned 
+       only if you specify the ``count`` option.
+
    * - ``ns``
      - string
      - The namespace of the current collection or view in the format 
@@ -54,22 +81,23 @@ Output
 
    * - ``partition``
      - document
-     - The details about the partition such as the source, format, size, and 
-       :ref:`partition attributes <datalake-path-attribute-types>`, if any.
+     - The details about the partition such as the source, format, 
+       size, and :ref:`partition attributes 
+       <datalake-path-attribute-types>`, if any.
 
    * - ``partition.format``
      - string
      - The format of the file. Value can be any of the  
-       :ref:`data-lake-data-formats` for data in |s3| bucket or ``MONGO`` for 
-       data in the |service| cluster.
+       :ref:`data-lake-data-formats` for data in |s3| bucket or 
+       ``MONGO`` for data in the |service| cluster.
 
    * - ``partition.attributes``
      - document
-     - The :ref:`partition attributes <datalake-path-attribute-types>` for this 
-       partition defined in the 
-       :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path` for 
-       |s3| partitions. An empty document indicates that there are no partition 
-       attributes in the partition's data source.
+     - The :ref:`partition attributes <datalake-path-attribute-types>` 
+       for this partition defined in the 
+       :datalakeconf:`~databases.[n].collections.[n].dataSources.[n].
+       path` for |s3| partitions. An empty document indicates that 
+       there are no partition attributes in the partition's data source.
 
    * - ``partition.size``
      - int
@@ -77,7 +105,8 @@ Output
 
    * - ``partition.source``
      - string
-     - The source for the partition. The value can be one of the following:
+     - The source for the partition. The value can be one of the 
+       following:
      
        - The path to the file on |s3|.
        - The cluster name for partitions on |service|.
@@ -87,41 +116,65 @@ Output
 Examples 
 --------
 
-The following example shows :manual:`$collStats 
-</reference/operator/aggregation/collStats/>` syntax for retrieving the 
-partitions from a ``s3Db.abc`` collection with 3 files in an |s3| 
-{+data-lake-store+}:
+.. tabs:: 
 
-.. code-block:: sh 
+   .. tab:: Basic Example 
+      :tabid: basic
 
-   use s3Db
-   db.abc.aggregate([ {$collStats: {}} ])
+      The following example shows :manual:`$collStats  
+      </reference/operator/aggregation/collStats/>` syntax for  
+      retrieving the partitions from a ``s3Db.abc`` collection with 3 
+      files in an |s3| {+data-lake-store+}:
 
-The preceding command returns the following output:
+      .. code-block:: sh 
 
-.. code-block:: json 
-   :copyable: false 
+         use s3Db
+         db.abc.aggregate([ {$collStats: {}} ])
 
-   { "ns" : "s3Db.abc", "partition" : { "format" : "JSON", "attributes" : { "year" : NumberLong(2018) }, "size" : 139, "source" : "s3://my-bucket/s3Db/abc/2018/1.json?delimiter=%2F&region=us-east-1" } }
-   { "ns" : "s3Db.abc", "partition" : { "format" : "JSON", "attributes" : { "year" : NumberLong(2017) }, "size" : 124, "source" : "s3://my-bucket/s3Db/abc/2017/1.json?delimiter=%2F&region=us-east-1" } }
-   { "ns" : "s3Db.abc", "partition" : { "format" : "JSON", "attributes" : { "year" : NumberLong(2017) }, "size" : 130, "source" : "s3://my-bucket/s3Db/abc/2017/2.json?delimiter=%2F&region=us-east-1" } }
+      The preceding command returns the following output:
 
-The following example shows :manual:`$collStats 
-</reference/operator/aggregation/collStats/>` syntax for retrieving the 
-partitions from the ``atlasDb.sampleColl`` collection in the |service| cluster 
-named ``mySandboxCluster``: 
+      .. code-block:: json 
+         :copyable: false 
 
-.. code-block:: sh 
+         { "ns" : "s3Db.abc", "partition" : { "format" : "JSON", "attributes" : { "year" : NumberLong(2018) }, "size" : 139, "source" : "s3://my-bucket/s3Db/abc/2018/1.json?delimiter=%2F&region=us-east-1" } }
+         { "ns" : "s3Db.abc", "partition" : { "format" : "JSON", "attributes" : { "year" : NumberLong(2017) }, "size" : 124, "source" : "s3://my-bucket/s3Db/abc/2017/1.json?delimiter=%2F&region=us-east-1" } }
+         { "ns" : "s3Db.abc", "partition" : { "format" : "JSON", "attributes" : { "year" : NumberLong(2017) }, "size" : 130, "source" : "s3://my-bucket/s3Db/abc/2017/2.json?delimiter=%2F&region=us-east-1" } }
 
-   use atlasDb
-   db.sampleColl.aggregate([ {$collStats: {}} ])
+      The following example shows :manual:`$collStats 
+      </reference/operator/aggregation/collStats/>` syntax for 
+      retrieving the partitions from the ``atlasDb.sampleColl`` 
+      collection in the |service| cluster named ``mySandboxCluster``: 
 
-The preceding command returns the following output: 
+      .. code-block:: sh 
 
-.. code-block:: json 
-   :copyable: false 
+         use atlasDb
+         db.sampleColl.aggregate([ {$collStats: {}} ])
 
-   { "ns" : "atlasDb.sampleColl", "partition" : { "format" : "MONGO", "attributes" : {  }, "size" : 94362191, "source" : "mySandboxCluster" } }
+      The preceding command returns the following output: 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         { "ns" : "atlasDb.sampleColl", "partition" : { "format" : "MONGO", "attributes" : {  }, "size" : 94362191, "source" : "mySandboxCluster" } }
+
+   .. tab:: Count Example 
+      :tabid: count
+
+      The following example shows :manual:`$collStats  
+      </reference/operator/aggregation/collStats/>` syntax for 
+      retrieving the total number of documents in the partitions.
+
+      .. code-block:: sh 
+
+         use s3Db
+         db.abc.aggregate([ {$collStats: {"count" : {} }} ])
+
+      The preceding command returns the following output: 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         { "ns" : "atlasDb.sampleColl", "partition" : { "format" : "MONGO", "attributes" : {  }, "size" : 94362191, "source" : "mySandboxCluster" }, "count" : 23530}
 
 .. _adl-collstats-errors:
 
@@ -129,8 +182,9 @@ Errors
 ------
 
 An error similar to the following is returned if the :manual:`collStats 
-</reference/operator/aggregation/collStats/>` argument document contains 
-any of the options allowed by the MongoDB server but not by {+adl+}.
+</reference/operator/aggregation/collStats/>` argument document 
+contains any of the options allowed by the MongoDB server but not by 
+{+adl+}.
 
 .. code-block:: json 
    :copyable: false 
