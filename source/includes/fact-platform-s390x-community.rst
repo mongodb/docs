@@ -1,3 +1,14 @@
+.. note:: Platform Support EOL Notice
+
+   .. list-table::
+      :widths: 20 80
+      :class: border-table
+
+      * - SLES 12 s390x
+        - Support removed in MongoDB Community 4.4.7.
+
+   |
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -22,7 +33,7 @@
      -
 
    * - SLES 12
-     - |checkmark|
+     - Removed starting in 4.4.7
      - 4.2.0 - 4.2.9
      - 4.0.6 - 4.0.13
      -

@@ -5,7 +5,10 @@
       :class: border-table
 
       * - RHEL 6 s390x
-        - Support removed in MongoDB 4.4+ Enterprise.
+        - Support removed in MongoDB Enterprise 4.4+.
+
+      * - SLES 12 s390x
+        - Support removed in MongoDB Enterprise 4.4.7.
 
    |
 
@@ -33,7 +36,7 @@
      - 3.6.0 - 3.6.13
 
    * - SLES 12
-     - |checkmark|
+     - Removed starting in 4.4.7
      - |checkmark|
      - 4.0.6+
      - 3.6.0 - 3.6.16
