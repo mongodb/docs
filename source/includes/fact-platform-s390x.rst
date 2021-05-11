@@ -4,6 +4,18 @@
      Please upgrade to MongoDB 4.2 for s390x support for the Community
      Edition.
 
+   .. list-table::
+      :widths: 20 80
+      :class: border-table
+
+      * - RHEL 6 s390x
+        - Support removed in MongoDB Enterprise 4.0.25.
+
+      * - SLES 12 s390x
+        - Support removed in MongoDB Enterprise 4.0.25.
+
+   |
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -21,12 +33,12 @@
      - Removed starting in 3.4.14
 
    * - RHEL/CentOS 6
-     - |checkmark|
+     - Removed starting in 4.0.25
      - Removed starting in 3.6.14
      - Removed starting in 3.4.22
 
    * - SLES12
-     - 4.0.6+
+     - 4.0.6 - 4.0.24
      - Removed starting in 3.6.17
      - Removed starting in 3.4.13
 
