@@ -11,15 +11,15 @@
          .. tab:: Intel/AMD
             :tabid: x86
 
-            On x86_64 architecture running, Debian 8, Debian 9, Ubuntu
-            16.04, Ubuntu 18.04, or Ubuntu 20.04:
+            On x86_64 architecture running, Debian 8, Debian 9,
+            Ubuntu 18.04, or Ubuntu 20.04:
 
             .. include:: /includes/steps/monitor-appdb-on-amd64.ubuntu1604-deb.rst
 
          .. tab:: PowerPC
             :tabid: ppc
 
-            On PowerPC architecture running Ubuntu 16.x (managing
+            On PowerPC architecture running Ubuntu 18.04 (managing
             MongoDB 3.4 or later deployments only):
 
             .. tabs::
@@ -41,7 +41,7 @@
          .. tab:: IBM zSeries
             :tabid: s390x
 
-            On zSeries architecture running Ubuntu 16.x using a ``deb``
+            On zSeries architecture running Ubuntu 18.04 using a ``deb``
             package:
 
             .. include:: /includes/steps/monitor-appdb-on-s390x.ubuntu1804-deb.rst
@@ -64,7 +64,7 @@
                .. tab:: RHEL/CentOS 6.x, Amazon Linux
                   :tabid: v6
 
-                  Running RHEL / CentOS 6.x or Amazon Linux 1 using an
+                  Running RHEL / CentOS 6.x using an
                   ``rpm`` package:
 
                   .. include:: /includes/steps/monitor-appdb-on-x86-64-rpm.rst

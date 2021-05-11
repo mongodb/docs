@@ -26,8 +26,8 @@
          .. tab:: Intel/AMD
             :tabid: x86
 
-            On x86_64 architecture running, Debian 8, Debian 9, Ubuntu
-            16.04, Ubuntu 18.04, or Ubuntu 20.04:
+            On x86_64 architecture running, Debian 8, Debian 9,
+            Ubuntu 18.04, or Ubuntu 20.04:
 
             .. include:: /includes/steps/update-monitoring-to-mongodb-agent-amd64.ubuntu1604-deb.rst
 
@@ -78,8 +78,7 @@
                .. tab:: RHEL/CentOS 6.x, Amazon Linux
                   :tabid: v6
 
-                  Running RHEL / CentOS 6.x or Amazon Linux 1
-                  using an ``rpm`` package:
+                  Running RHEL / CentOS 6.x using an ``rpm`` package:
 
                   .. include:: /includes/steps/update-monitoring-to-mongodb-agent-x86-64-rpm.rst
 
