@@ -13,6 +13,7 @@
        "deploymentAuthMechanisms": ["<string>", "<string>"],
        "key": "<string>",
        "keyfile": "<string>",
+       "newAutoPwd": "<string>",
        "usersDeleted": [{
          "user": "<string>",
          "dbs": ["<string>", "<string>"]
