@@ -1,3 +1,14 @@
+.. _10.30.0.6882-1:
+
+MongoDB Agent 10.30.0.6882-1
+----------------------------
+
+*Released* 2021-05-11
+
+- Improves logging when removing a shard.
+- Fixes problems rotating the |kmip| master key for MongoDB deployments 
+  running on Windows.
+
 .. _10.29.0.6856-1:
 
 MongoDB Agent 10.29.0.6856-1 
