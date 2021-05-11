@@ -1,0 +1,190 @@
+.. _k8s-config-mdb-res:
+
+===================================================
+Configure Kubernetes for Deploying MongoDB Resource 
+===================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the Kubernetes Operator to deploy MongoDB resources such as 
+:k8s:`a replica set </tutorial/deploy-replica-set>`, :k8s:`a sharded 
+cluster </tutorial/deploy-sharded-cluster>`, or :k8s:`a standalone 
+instance </tutorial/deploy-standalone>` using an `object 
+<https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/>`__. 
+|mms| can generate the YAML files you need to configure your Kubernetes 
+environment for deploying a MongoDB Database resource. 
+
+To generate the YAML files:
+
+- :ref:`k8s-config-mdb-res-roles`
+- :ref:`k8s-config-mdb-res-nav`
+- :ref:`k8s-config-mdb-res-create-procedure`
+
+.. _k8s-config-mdb-res-roles:
+
+Verify Permissions 
+------------------
+
+You must have one of the following roles to access the |mms| UI for 
+setting up Kubernetes: 
+
+- :authrole:`Organization Owner`
+- :authrole:`Project Owner`
+- :authrole:`Project Data Access Admin`
+
+.. _k8s-config-mdb-res-nav:
+
+Navigate to the Kubernetes Setup Page in the |mms| UI 
+-----------------------------------------------------
+
+To access the :guilabel:`Kubernetes Setup` page in the |mms| UI: 
+
+.. include:: /includes/steps/k8s-setup-nav.rst 
+
+If you are a :authrole:`Global Owner` or :authrole:`Organization 
+Owner`, you can access the Kubernetes Setup page in the |mms| UI 
+by doing the following also: 
+
+.. include:: /includes/steps/k8s-setup-nav-global-org-owner.rst 
+
+.. _k8s-config-mdb-res-create-procedure:
+
+Set Up Kubernetes for a MongoDB Resource
+----------------------------------------
+
+The |k8s-op-full| requires a Kubernetes ConfigMap to create or link 
+your |mms| project. 
+
+.. only::  onprem
+
+   Using the Kubernetes ConfigMap, you can either connect to a 
+   HTTPS-enabled |mms| that is using a custom CA or link to a |mms| 
+   project that isn't using a custom CA. 
+
+You can use the |mms| :guilabel:`Kubernetes Setup` page to 
+automatically generate the ConfigMap. The generated YAML file for the 
+ConfigMap looks similar to the following: 
+
+.. only:: cloud 
+
+   .. code-block:: yaml 
+         
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: my-project
+        namespace: mongodb
+      data:
+        baseUrl: https://cloud.mongodb.com
+
+        # Optional Parameters
+        # projectName: <your-project-name>
+
+        orgId: <your-org-id>
+
+.. only:: onprem
+
+   .. tabs:: 
+
+      .. tab:: Using a Custom CA
+         :tabid: connect 
+
+         .. code-block:: yaml 
+
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: my-project
+              namespace: mongodb
+            data:
+              baseUrl: https://cloud.mongodb.com
+
+              # Optional Parameters
+              # projectName: <your-project-name>
+
+              orgId: <your-org-id>
+
+              sslMMSCAConfigMap: <root-ca-configmap-name>
+              sslRequireValidMMSServerCertificates: ‘true’
+
+      .. tab:: Not Using a Custom CA 
+         :tabid: link 
+
+         .. code-block:: yaml 
+         
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: my-project
+              namespace: mongodb
+            data:
+              baseUrl: https://cloud.mongodb.com
+
+              # Optional Parameters
+              # projectName: <your-project-name>
+
+              orgId: <your-org-id>
+
+You need to store your :ref:`Programmatic API Key <mms-prog-api-key>` 
+as a Kubernetes secret to create or update Kubernetes `objects 
+<https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/>`__ 
+in your |mms| project. A Kubernetes secret stores authentication 
+credentials so only Kubernetes can access them. 
+
+.. only:: cloud
+
+   You can specify your existing API keys or generate new API keys to 
+   create the Kubernetes secret in the |mms| :guilabel:`Kubernetes 
+   Setup` page. The generated YAML file for the secret looks similar to 
+   the following: 
+
+.. code-block:: shell 
+
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: organization-secret
+     namespace: mongodb
+   stringData:
+     user: <private-key>
+     publicApiKey: <public-api-key>
+
+.. only:: onprem
+
+   Setting up Template files and Configuration Parameters
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   To generate the YAML files, you must do the following: 
+
+   .. include:: /includes/steps/k8s-setup-custom-ca.rst
+
+.. _k8s-config-mdb-res-procedure:
+
+Generating the YAML Files  
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To setup Kubernetes for a MongoDB resource:
+
+.. only:: cloud 
+
+   .. include:: /includes/steps/k8s-setup.rst 
+
+.. only:: onprem
+
+   .. tabs:: 
+
+      .. tab:: Using a Custom CA
+         :tabid: connect
+
+         .. include:: /includes/steps/k8s-setup-om.rst 
+
+      .. tab:: Not Using a Custom CA
+         :tabid: link
+
+         .. include:: /includes/steps/k8s-setup.rst 
