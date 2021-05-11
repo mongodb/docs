@@ -1,3 +1,20 @@
+.. _data-lake-v20210511:
+
+11 May 2021 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Supports selecting read preference, read tags, and max staleness 
+  through the :ref:`storage configuration <datalake-configuration-file>` for Atlas Cluster stores.
+- Rejects commands sent with a Versioned API set.
+- Enables the ``count`` parameter in the {+data-lake-short+} 
+  :ref:`adl-collstats-stage` aggregation stage.
+- No longer permits :ref:`adl-collstats-stage` in ``$facet`` 
+  sub-pipelines.
+- Enforces maximum document size for ``$facet`` after processing each 
+  item.
+- Improves performance for ``$match`` stages.
+- Improves error messaging.
+
 .. _data-lake-v20210423:
 
 21 April 2021 Release
