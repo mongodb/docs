@@ -54,7 +54,7 @@
        | ``.policyItems[]``
      - array
      - Required
-     - Array of backup policy items.
+     - Array of backup policy items. Array can be empty, but not null.
 
    * - | ``policies[i]``
        | ``.policyItems[n]``
