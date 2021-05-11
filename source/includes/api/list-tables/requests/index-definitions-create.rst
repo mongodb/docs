@@ -11,8 +11,13 @@
    * - ``analyzer``
      - string
      - Optional
-     - :ref:`analyzer <analyzers-ref>` to use when creating the
+     - :ref:`Analyzer <analyzers-ref>` to use when creating the
        index. Defaults to :ref:`lucene.standard <ref-standard-analyzer>`.
+
+   * - ``analyzers``
+     - array of |bson| objects
+     - Optional
+     - :ref:`Custom analyzers <custom-analyzers>` to use in this index. 
 
    * - ``collectionName``
      - string
@@ -56,6 +61,7 @@
    * - ``searchAnalyzer``
      - string
      - Optional
-     - :ref:`analyzer <analyzers-ref>` to use when searching the
-       index. Defaults to :ref:`lucene.standard <ref-standard-analyzer>`.
+     - :ref:`Analyzer <analyzers-ref>` to use when searching the
+       index. Defaults to :ref:`lucene.standard 
+       <ref-standard-analyzer>`.
 

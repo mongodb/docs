@@ -9,8 +9,11 @@
 
    * - ``analyzer``
      - Optional
-     - :ref:`Analyzer <analyzers-ref>` to use when creating the
-       index.
+     - :ref:`Analyzer <analyzers-ref>` used when creating the index.
+
+   * - ``analyzers``
+     - Optional
+     - :ref:`Custom analyzers <custom-analyzers>` used in this index.
 
    * - ``collectionName``
      - string
