@@ -135,7 +135,7 @@ Request Opcodes
 The following are the supported ``opCode``:
 
 .. list-table::
-   :widths: 15 20 65
+   :widths: 25 10 65
    :header-rows: 1
 
    * - Opcode Name
@@ -165,6 +165,9 @@ The following are the supported ``opCode``:
    * - ``OP_KILL_CURSORS``
      - 2007
      - Notify database that the client has finished with the cursor.
+   * - ``OP_COMPRESSED``
+     - 2012
+     - Wraps other opcodes using compression
    * - ``OP_MSG``
      - 2013
      - Send a message using the format introduced in MongoDB 3.6.
@@ -609,6 +612,98 @@ If a cursor is read until exhausted (read until :ref:`OP_QUERY <wire-op-query>`
 or :ref:`OP_GET_MORE <wire-op-get-more>` returns zero
 for the cursor id), there is no need to kill the cursor.
 
+.. _wire-op-compressed:
+
+OP_COMPRESSED
+~~~~~~~~~~~~~
+
+.. versionadded:: MongoDB 3.4
+
+Any opcode can be compressed and wrapped in an OP_COMPRESSED header.
+The OP_COMPRESSED message contains the original compressed opcode
+message alongside the metadata necessary to process and decompress it.
+
+The format of the OP_COMPRESSED message is:
+
+.. code-block:: bash
+
+   struct {
+       MsgHeader header;            // standard message header
+       int32  originalOpcode;     // value of wrapped opcode
+       int32  uncompressedSize;   // size of deflated compressedMessage, excluding MsgHeader
+       uint8  compressorId;       // ID of compressor that compressed message
+       char    *compressedMessage;  // opcode itself, excluding MsgHeader
+   }
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``MsgHeader``
+
+     - Message header, as described in :ref:`wp-message-header`.
+
+   * - ``originalOpcode``
+
+     - Contains the value of the wrapped opcode.
+
+   * - ``uncompressedSize``
+
+     - The size of the deflated ``compressedMessage``, which excludes
+       the ``MsgHeader``.
+
+   * - ``compressorId``
+
+     - The ID of the compressor that compressed the message. A list of
+       ``compressorId`` values is provided below.
+
+   * - ``compressedMessage``
+
+     - The opcode itself, excluding the ``MsgHeader``.
+
+Each compressor is assigned a predefined compressor ID as follows:
+
+.. list-table::
+   :widths: 15 25 60
+   :header-rows: 1
+
+   * - compressorId
+     - Handshake Value
+     - Description
+
+   * - ``0``
+
+     - noop
+
+     - The content of the message is uncompressed. This is used for
+       testing.
+
+   * - ``1``
+
+     - snappy
+
+     - The content of the message is compressed using snappy.
+
+   * - ``2``
+
+     - zlib
+
+     - The content of the message is compressed using zlib.
+
+   * - ``3``
+
+     - zstd
+
+     - The content of the message is compressed using zstd.
+
+   * - ``4-255``
+
+     - reserved
+
+     - Reserved for future use.
 
 .. _wire-op-msg:
 
