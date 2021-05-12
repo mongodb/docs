@@ -9,7 +9,7 @@ clusters.
      {
        "managedSharding" : <boolean>,
        "name" : "<string>",
-       "configServerReplicaSet" : "<string>",
+       "configServerReplica" : "<string>",
        "collections" : [
          {
            "_id" : "<string>",
