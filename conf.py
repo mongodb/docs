@@ -110,7 +110,6 @@ html_theme_options = {
     'stable': conf.version.stable,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
-    'is_private': False,
 }
 
 html_sidebars = sconf.sidebars
