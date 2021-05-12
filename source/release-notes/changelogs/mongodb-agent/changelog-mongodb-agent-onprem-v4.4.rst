@@ -5,6 +5,11 @@ MongoDB Agent 10.14.23.6498
 
 :ref:`Released with Ops Manager 4.4.12 on 2020-05-06 <opsmgr-server-4.4.12>`
 
+- Uses Go 1.15 to build the {+mdbagent+}. Before upgrading to this 
+  version, ensure that all |tls| certificates used in your MongoDB 
+  deployment contain a Subject Alternative Name. For more information, 
+  see :ref:`Troubleshooting Automation <tls-cert-no-san>`.
+
 .. _mongodb-10.14.22.6489:
 
 MongoDB Agent 10.14.22.6489
