@@ -8,17 +8,17 @@ Atlas account, free tier MongoDB cluster, load datasets, and
 interact with the data.
 
 After completing the steps in the Atlas guide, you should have a new MongoDB
-cluster deployed in Atlas, a new database user, and sample datasets loaded
-into your cluster.
+cluster deployed in Atlas, a new database user, and
+:atlas:`sample datasets loaded </sample-data/>` into your cluster.
 
 Connect to your Cluster
 -----------------------
 
-In this step, we create and run an application that uses the Go MongoDB
+In this step, you will create and run an application that uses the Go
 driver to connect to your MongoDB cluster and run a query on the sample
 data.
 
-We pass instructions to the driver on where and how to connect to your
+You pass instructions to the driver on where and how to connect to your
 MongoDB cluster in a string called the *connection string*. This string
 includes information on the hostname or IP address and port of your
 cluster, authentication mechanism, user credentials when applicable, and
