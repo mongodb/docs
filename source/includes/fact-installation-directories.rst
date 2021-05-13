@@ -1,8 +1,8 @@
-By default, MongoDB instance stores:
+By default, a MongoDB instance stores:
 
 - its data files in |mongod-datadir|
 
-- its log files in ``/var/log/mongodb`` 
+- its log files in ``/var/log/mongodb``
 
 If you installed via the package manager, these default directories are
 created during the installation.
