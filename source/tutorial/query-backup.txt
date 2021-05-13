@@ -100,7 +100,233 @@ Prerequisites
    :doc:`local mode </tutorial/configure-local-mode>` if you
    run MongoDB Enterprise 4.2.9 or later.
 
-.. include:: /includes/extracts/queryable-backup-prerequisites.rst
+   MongoDB Version Compatibility between Snapshot and Target Database
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   You can query snapshots made from :term:`replica sets <replica set>`
+   or :term:`sharded clusters <sharded cluster>` with |csrs| running
+   MongoDB 3.2 or later.
+
+   For a queryable backup to succeed, the MongoDB instance that is the
+   target of a restore must run a compatible MongoDB version.
+   The following table lists the compatibility requirements for each
+   deployment type and MongoDB version.
+
+   Sharded Clusters
+   ````````````````
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 40 30
+
+      * - Snapshot Data MongoDB Version
+        - Compatible MongoDB Version for Target Database
+        - Platform
+
+      * - 4.4.x
+        - 4.4.0 Enterprise or later
+        - Any
+
+      * - 4.2.x
+        - 4.2.0 Enterprise or later
+        - Any
+
+      * - 4.0.x
+        - 4.0.0 Enterprise or later
+        - Any
+
+      * - 3.6.x
+        - 3.6.5 Enterprise or later
+        - Any
+
+      * - 3.4.x
+        - 3.4.11 Enterprise or later
+        - Windows
+
+      * - 3.4.x
+        - 3.4.2 Enterprise or later
+        - Linux or macOS
+
+   Replica Sets
+   ````````````
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Snapshot Data MongoDB Version
+        - Compatible MongoDB Version for Target Database
+        - Platform
+
+      * - 4.4.x
+        - 4.4.0 Enterprise or later
+        - Any
+
+      * - 4.2.x
+        - 4.2.0 Enterprise or later
+        - Any
+
+      * - 4.0.x
+        - 4.0.0 Enterprise or later
+        - Any
+
+      * - 3.6.x
+        - 3.4.11 Enterprise or later
+        - Windows
+
+      * - 3.6.x
+        - 3.4.2 Enterprise or later
+        - Linux or macOS
+
+      * - 3.4.x
+        - 3.4.11 Enterprise or later
+        - Windows
+
+      * - 3.4.x
+        - 3.4.2 Enterprise or later
+        - Linux or macOS
+
+      * - 3.2
+        - 3.4.11 Enterprise or later
+        - Windows
+
+      * - 3.2.x
+        - 3.4.2 Enterprise or later
+        - Linux or macOS
+
+   Authentication and Authorization
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. important::
+
+      .. include:: /includes/fact-out-of-scope-ssl-certs.rst
+
+   |onprem| needs a separate |pem| file to authenticate and authorize
+   use of Queryable Backup. This |pem| file:
+
+   - Must belong to the same platform user and group that owns the
+     |onprem| process. On Linux, the ``mongodb-mms:mongodb-mms`` user
+     and group owns this PEM file. On Windows, use the ``SYSTEM`` user.
+
+   - Must be readable by the platform user only.
+
+   - Must be saved in the same location on every |onprem| host if your
+     deployment :doc:`uses high availability </tutorial/configure-application-high-availability>`.
+
+   - Must be different than the one used for |https| connections to
+     |onprem| (:setting:`HTTPS PEM Key File`).
+
+   - Should use a key length greater than 512-bit. Using a 2048-bit RSA
+     key is recommended.
+
+   - Should use a message digest stronger than ``sha1``, such as
+     ``sha256``.
+
+   At minimum, the |pem| file consists of:
+
+   - A server certificate / key pair and
+   - A Certificate Authority certificate
+
+   These pairs are merged to create a |pem| file that Queryable Backup
+   can use. The pairs have the following requirements:
+
+   Certificate Authority Certificate
+   `````````````````````````````````
+
+   The |certauth| must sign any other certs and keys to be used in the
+   PEM file. The |certauth| can be one of the following:
+
+   - A private |certauth| (self signed; recommended for test purposes).
+
+   - An intermediate |certauth| certificate from a
+     :wikipedia:`certificate provider
+     </Certificate_authority#Providers>`.
+
+   - A |certauth| that your company security team issued.
+
+   Server Certificate / Key Pair
+   `````````````````````````````
+
+   The |certauth| that you selected must sign this server certificate.
+
+   The Common Name setting of the server certificate/key pair depends
+   on how many hosts your |onprem| deployment uses:
+
+   - For a single |onprem| host, the Subject Alternative Name (or,
+     absent the |san-dns|, the Common Name) in the pair must match the
+     |fqdn| of the |onprem| host.
+
+   - For high availability, the |san-dns| (or, absent the |san-dns|,
+     the Common Name) in the pair must match the |fqdn| of the load
+     balancer |url|.
+
+   Concatenate the server certificate / key pair and the certificate
+   chain to create the Proxy Server PEM Key.
+
+   PEM File Location
+   `````````````````
+
+   For the queryable backup host, you must specify the location of the
+   PEM file (which contains both a public key certificate and its
+   associated private key) using the :setting:`Proxy Server PEM File`
+   setting. If you have not already set up the queryable backup
+   settings:
+
+   #. Click on :guilabel:`Admin` on the upper-right hand corner. From
+      the :guilabel:`Admin` screen, click on :guilabel:`General`
+      :icon:`arrow-right` :guilabel:`Ops Manager Config`
+      :icon:`arrow-right` :guilabel:`Backup`.
+
+   #. Scroll to the :guilabel:`Queryable Snapshot Configuration` and
+      specify the :setting:`Proxy Server PEM File` that the tunnel or
+      clients can use to connect to the queryable :program:`mongod`
+      instance.
+
+      If the file is encrypted, specify the
+      :setting:`Proxy Server PEM File Password`.
+
+   #. *Optional.* Update other queryable snapshot settings as
+      appropriate. For description of the settings, see
+      :ref:`queryable-snapshot-settings`.
+
+      .. include:: /includes/extracts/queryable-backup-proxy-requirements.rst
+
+   Open Ports for App Server
+   ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The app server requires that ports 27700-27719 be open for
+   communication with queryable backup snapshots.
+
+   If you use a load balancer, it must pass the |tcp| connection
+   through the value in the :setting:`Proxy Port`.
+
+   To learn more about port requirements, see
+   :doc:`Firewall Configuration </reference/firewall-configuration>`.
+
+
+   Sufficient Workers for the |mms| Backup Daemon
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/extracts/queryable-backup-workers.rst
+
+   Hostname
+   ~~~~~~~~
+
+   The |fqdn| that hosts the :binary:`~bin.mongod` for the queryable
+   backup must match the one found the :guilabel:`Daemons` page. To
+   find that hostname, click the :guilabel:`Admin` link, then click
+   :guilabel:`Backup`, and then click :guilabel:`Daemons`.
+
+   Queryable Backup Requires Enterprise Downloads
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   If |onprem| can connect to the internet, set
+   :guilabel:`Backup Versions Auto Download Enterprise Builds` to
+   **TRUE**. Queryable Backups require MongoDB Enterprise.
+
+.. cond:: cloud
+
+   Queryable backups are available for MongoDB 3.2 or later replica
+   sets or MongoDB 3.2 or later sharded clusters with |csrs|.
 
 .. _query-via-tunnel:
 
