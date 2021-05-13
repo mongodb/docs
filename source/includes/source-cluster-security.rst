@@ -14,7 +14,3 @@ Various built-in roles provide sufficient privileges.  For example:
 
 Specify the user name and password to |service| when prompted by
 the Live Migration procedure.
-
-If the source cluster uses a different authentication mechanism, to connect
-you can use the :doc:`/import/mongomirror` tool to migrate data from the
-source cluster to the destination |service| cluster.
