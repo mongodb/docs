@@ -1,8 +1,3 @@
-.. _atlas-add-inbound-ips:
-
-Allow Access to or from the |service| Control Pane
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 If you use any of the following |service| features, you might have to
 add |service| IP addresses to your network's IP access list:
 
@@ -10,7 +5,7 @@ add |service| IP addresses to your network's IP access list:
 - :ref:`security-kms-encryption`
 
 Required Outbound Access
-````````````````````````
+------------------------
 
 If your network allows outbound HTTP requests only to specific IP
 addresses, you must allow access to the following IP addresses so that
@@ -45,7 +40,7 @@ your API requests can reach the |service| control plane:
    99.83.223.45
 
 Required Inbound Access
-```````````````````````
+-----------------------
 
 If your network allows inbound HTTP requests only from specific IP
 addresses, you must allow access from the following IP addresses so that
