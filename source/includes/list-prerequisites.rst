@@ -6,4 +6,4 @@
 
 - Spark 2.4.x.
 
-- Scala 2.11.x or 2.12.x
+- Scala 2.12.x
