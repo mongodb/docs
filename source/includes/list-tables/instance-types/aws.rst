@@ -106,7 +106,7 @@
      - 3 TB
      - 488 GB
 
-   * - M400_NVME :icon-fa4:`exclamation-circle`
+   * - M400_NVME
      - 4 TB
      - 512 GB
 
@@ -117,12 +117,3 @@
 :icon-fa5:`star` Can use this tier for a multi-cloud cluster.
 
 :icon-fa4:`times-circle` Unavailable in the **AP_SOUTHEAST_2** region.
-
-:icon-fa4:`exclamation-circle` Availability limited to the following regions:
-
-- **US_EAST_1**
-- **US_EAST_2**
-- **US_WEST_2**
-- **EU_WEST_1**
-- **EU_CENTRAL_1**
-- **AP_NORTHEAST_1**
