@@ -1,0 +1,103 @@
+title: "Copy the data in the |s3| bucket to a folder using the |aws| 
+       CLI and extract the data."
+level: 4
+ref: import-s3-archived-data-step1
+stepnum: 1
+content: | 
+
+  .. code-block:: shell 
+        
+     aws s3 cp s3://<bucketName>/<prefix> <downloadFolder> --recursive 
+     gunzip -r <downloadFolder>
+
+  where: 
+
+  .. list-table:: 
+     :widths: 30 70 
+
+     * - ``<bucketName>`` 
+       - Name of the |aws| |s3| bucket.
+
+     * - ``<prefix>``
+       - Path to archived data in the bucket. The path has the 
+         following format:
+
+         .. code-block:: shell 
+            :copyable: false 
+
+            /exported_snapshots/<orgName>/<projectName>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
+
+     * - ``<downloadFolder>``
+       - Path to the local folder where you want to copy the archived 
+         data.
+
+  For example, run a command similar to the following: 
+
+  .. example:: 
+
+     .. code-block:: shell 
+        :copyable: false
+
+        aws s3 cp s3://export-test-bucket/exported_snapshots/myOrg/myProj/export-me-sharded-cluster/2021-04-24T0013/1619224539 mybucket --recursive
+        gunzip -r mybucket
+
+--- 
+title: "Copy and store the following script in a file named 
+       ``massimport.sh``."
+level: 4
+ref: import-s3-archived-data-step2
+stepnum: 2
+content: | 
+
+  .. code-block:: shell 
+        
+     #!/bin/bash
+     regex='/(.+)/(.+)/.+'
+     dir=${1%/}
+     find $dir -type f -not -path '*/\.*' | while read line ; do
+       [[ $line =~ $regex ]]
+       db_name=${BASH_REMATCH[1]}
+       col_name=${BASH_REMATCH[2]}
+       mongoimport --mode=upsert -d $db_name -c $col_name --file $line --type json --port $2
+     done
+
+
+  Here, ``--mode=upsert`` enables |mongoimport| to handle duplicate 
+  documents from an archive. 
+
+---
+title: "Run the ``massimport.sh`` utility to import the archived data 
+       into your collection using |mongoimport|."
+level: 4
+ref: import-s3-archived-data-step3
+stepnum: 1
+content: | 
+
+  .. code-block:: shell 
+        
+     sh massimport.sh <downloadFolder> <mongodbPort>
+
+
+  where: 
+
+  .. list-table:: 
+     :widths: 30 70 
+
+     * - ``<downloadFolder>``
+       - Path to the local folder where you copied the archived data.
+
+     * - ``<mongodbPort>``
+       - Port of the running |mongod| instance where you want to import 
+         the archived data.
+
+
+  For example, run a command similar to the following: 
+
+  .. example:: 
+
+     .. code-block:: shell 
+        :copyable: false
+        
+        sh massimport.sh mybucket/ 40000
+
+...
