@@ -93,3 +93,62 @@ specified for the operation:
 
 In the legacy ``mongo`` shell, these operations use the specified read
 preference.
+
+Numeric Values
+--------------
+
+The legacy ``mongo`` shell stored numerical values as ``doubles`` by
+default. In ``mongosh`` numbers are stored as 32 bit ``int`` types when
+possible or else as ``double``. 
+
+.. warning::
+
+   Data types may be stored inconsistently if you connect to the same
+   collection using both ``mongosh`` and the legacy ``mongo`` shell. 
+
+Consider the ``typeExample`` collection. This collection consists of
+two identical documents, ``{ "a": 1 }``. The first document was created
+in the legacy ``mongo`` shell, the second document was created in
+``mongosh``. 
+
+We can use the :expression:`$type` operator in an aggregation pipeline
+to see the type that was assigned in each shell. 
+
+.. code-block:: javascript
+
+   db.typeExample.aggregate( 
+     [ 
+       {
+          $project: 
+            { 
+              "valueType": 
+                {
+                  "$type": "$a"
+                },
+              "_id": 0
+            }
+       }
+     ]
+   )
+
+In the first document, created in the legacy ``mongo`` shell, the value
+was stored as a ``double``. In the ``mongosh`` document the value was
+stored as type ``int``.
+
+.. code-block:: javascript
+   .. :copyable: false
+
+   [
+     { 
+        valueType: 'double'  // inserted in legacy mongo shell
+     },
+     {
+        valueType: 'int'     // inserted in mongosh
+     }
+   ]
+
+.. seealso::
+
+   For more information on managing types, refer to the
+   :manual:`schema validation overview </core/schema-validation>`.
+
