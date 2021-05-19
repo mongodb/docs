@@ -4,33 +4,37 @@ For the following |onprem| release series, you may run its
 .. list-table:: Supported Versions of MongoDB for Backing Databases on Each Version of |onprem|
    :header-rows: 1
    :stub-columns: 1
-   :widths: 25 15 15 15 15 15
+   :widths: 22 13 13 13 13 13 13
 
-   * - |onprem| Release Series
+   * - |onprem| Release
      - MongoDB 3.4
      - MongoDB 3.6
      - MongoDB 4.0
      - MongoDB 4.2
      - MongoDB 4.4
-
-   * - |onprem| 4.0
-     - :icon-fa5:`check`
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
-     -
-     -
+     - MongoDB 5.0
 
    * - |onprem| 4.2
-     -
-     - :icon-fa5:`check`
+     - :icon-fa5:`check-circle`
+     - :icon-fa5:`check-circle`
      - :icon-fa5:`check-circle`
      - :icon-fa5:`check-circle`
      -
+     - 
 
    * - |onprem| 4.4
-     -
-     -
      - :icon-fa5:`check`
+     - :icon-fa5:`check-circle`
+     - :icon-fa5:`check-circle`
+     - :icon-fa5:`check-circle`
+     - :icon-fa5:`check-circle`
+     - 
+
+   * - |onprem| 4.9, 5.0
+     - 
+     - :icon-fa5:`check`
+     - :icon-fa5:`check-circle`
+     - :icon-fa5:`check-circle`
      - :icon-fa5:`check-circle`
      - :icon-fa5:`check-circle`
 
