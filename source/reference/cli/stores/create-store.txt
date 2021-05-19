@@ -60,7 +60,7 @@ Syntax
 
       .. code-block:: sh
 
-         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, clusterName: <cluster-name>, projectId: <project-id>  })
+         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, clusterName: <cluster-name>, projectId: <project-id>, readPreference: {mode: <read-preference-mode>, tagSets: [[{name: <name>, value: <value>},...],...], maxStalenessSeconds: <number-of-seconds>} })
 
    .. tab:: HTTP Configuration
       :tabid: http 
@@ -76,7 +76,7 @@ Parameters
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 10 70 10 
+   :widths: 27 10 53 10 
 
    * - Parameter 
      - Type 
@@ -107,33 +107,34 @@ Parameters
       :tabid: s3
 
       .. list-table::
-         :widths: 10 10 70 10 
+         :widths: 27 10 53 10 
 
          * - ``region``
            - string
-           - Region in which the ``bucket`` is hosted. For a list of valid 
-             region names, see :atlas:`Amazon Web 
+           - Region in which the ``bucket`` is hosted. For a list of 
+             valid region names, see :atlas:`Amazon Web 
              Services (AWS) </reference/amazon-aws/#amazon-aws>`.
            - yes
 
          * - ``bucket`` 
            - string 
-           - Name of the bucket in which data is stored. Must exactly match the 
-             name of an |s3| bucket which {+data-lake-short+} can access given 
-             the configured |aws| |iam| credentials.
+           - Name of the bucket in which data is stored. Must exactly 
+             match the name of an |s3| bucket which {+data-lake-short+} 
+             can access given the configured |aws| |iam| credentials.
            - yes
 
          * - ``additionalStorageClasses`` 
            - array of strings 
            - Array of |aws| |s3| `storage classes 
-             <https://aws.amazon.com/s3/storage-classes/>`__. {+adl+} will 
-             include the files in these storage classes in the query results. 
-             Valid values are: 
+             <https://aws.amazon.com/s3/storage-classes/>`__. {+adl+} 
+             will include the files in these storage classes in the 
+             query results. Valid values are: 
 
-             - ``INTELLIGENT_TIERING`` to include files in the `Intelligent 
-               Tiering <https://aws.amazon.com/s3/storage-classes/#Unknown_or_changing_access>`__ 
+             - ``INTELLIGENT_TIERING`` to include files in the 
+             `Intelligent Tiering <https://aws.amazon.com/s3/storage-classes/#Unknown_or_changing_access>`__ 
                storage class.
-             - ``STANDARD_IA`` to include files in the `Standard-Infrequent Access 
+             - ``STANDARD_IA`` to include files in the 
+               `Standard-Infrequent Access 
                <https://aws.amazon.com/s3/storage-classes/#Infrequent_access>`__ 
                storage class.
 
@@ -147,20 +148,21 @@ Parameters
 
          * - ``delimiter`` 
            - string 
-           - Character used to separate path segments in the {+data-lake-store+}. 
-             If ommitted, defaults to ``"/"``.
+           - Character used to separate path segments in the 
+             {+data-lake-store+}. If ommitted, defaults to ``"/"``.
            - no
 
          * - ``prefix`` 
            - string 
-           - Value prepended to the ``path``. If ommitted, defaults to ``""``.
+           - Value prepended to the ``path``. If ommitted, defaults to 
+             ``""``.
            - no
 
    .. tab:: Atlas Configuration 
       :tabid: atlas 
 
       .. list-table::
-         :widths: 10 10 70 10 
+         :widths: 27 10 53 10 
 
          * - ``clusterName`` 
            - string 
@@ -169,15 +171,51 @@ Parameters
 
          * - ``projectId`` 
            - string 
-           - Unique identifier of the project that contains the |service| 
-             cluster.
+           - Unique identifier of the project that contains the 
+             |service| cluster.
            - yes
+
+         * - ``readPreference``
+           - document 
+           - Cluster :manual:`read preference 
+             </core/read-preference/>`, which describes how to route 
+             read requests to the cluster.
+           - no 
+
+         * - ``readPreference.mode``
+           - string
+           - :manual:`Read preference mode 
+             </core/read-preference/#read-preference-modes>` that 
+             specifies which replica set member to route the read 
+             requests to. Value can be one of the following:
+
+             .. include:: /includes/fact-read-preference-modes.rst
+           - no
+
+         * - ``readPreference.tagSets``
+           - array of strings 
+           - Arrays of :manual:`tag sets </core/read-preference-tags/>` 
+             or tag specification documents that contain name and value 
+             pairs for the replica set member. If specified, {+adl+} 
+             routes read requests to replica set member or members that 
+             are associated with the specified tags. To learn more, see 
+             :manual:`Read Preference Tag Sets 
+             </manual/core/read-preference-tags/>`.
+           - no 
+
+         * - ``readPreference.maxStalenessSeconds``
+           - int 
+           - Maximum replication lag, or “staleness”, for reads from 
+             secondaries. To learn more about ``maxStalenessSeconds``, 
+             see :manual:`Read Preference maxStalenessSeconds 
+             </core/read-preference-staleness/>`. 
+           - no
 
    .. tab:: HTTP Configuration 
       :tabid: http 
 
       .. list-table::
-         :widths: 10 10 70 10 
+         :widths: 27 10 53 10 
 
          * - ``allowInsecure`` 
            - boolean 
@@ -187,18 +225,19 @@ Parameters
          * - ``urls`` 
            - array of strings or an empty array
            - One or more publicly accessible |url|\s. You 
-             can't specify |url|\s that require authentication. If empty or omitted, the :ref:`storageGenerateConfig 
-             <datalake-storagegenconfig>` command will not generate any virtual 
-             {+adl+} databases or collections that reference the 
-             {+data-lake-store+}.
+             can't specify |url|\s that require authentication. If 
+             empty or omitted, the :ref:`storageGenerateConfig 
+             <datalake-storagegenconfig>` command will not generate any 
+             virtual {+adl+} databases or collections that reference 
+             the {+data-lake-store+}.
            - no
 
          * - ``defaultFormat`` 
            - string
            - .. include:: /includes/extracts/cli-param-default-format.rst
 
-             If included, the specified format only applies to the |url|\s in 
-             the store.
+             If included, the specified format only applies to the 
+             |url|\s in the store.
            - no
 
 .. _dl-create-store-cmd-output:
@@ -243,7 +282,12 @@ fails, see :ref:`dl-create-store-cmd-errors` for recommended solutions.
 		         "name" : "<store-name>",
 		         "provider" : "<storage-provider>",
 		         "clusterName" : "<cluster-name>",
-		         "projectId" : "<project-id>"
+		         "projectId" : "<project-id>",
+		         "readPreference" : {
+			        "mode" : "<read-preference-mode>",
+			        "tagSets" : [[{"name": "<name>", "value": "<value>"},...],...],
+			        "maxStalenessSeconds" : <number-of-seconds>
+		         }
 	         }
          }
 
@@ -312,7 +356,7 @@ The following example uses the ``createStore`` command to create a new
       .. code-block:: json 
 
          use sample
-         db.runCommand({ createStore: "myStore", provider: "atlas", clusterName: "myTestCluster", projectId: "<project-id>" })
+         db.runCommand({ createStore: "myStore", provider: "atlas", clusterName: "myTestCluster", projectId: "<project-id>", "readPreference": {"mode": "secondary", "tagSets": [[{"name": "provider", "value": "AWS" }, {"name": "region", "value": "US_EAST_1"}]], "maxStalenessSeconds": 120} })
 
       The previous command prints the following: 
 
@@ -325,7 +369,12 @@ The following example uses the ``createStore`` command to create a new
 		         "name" : "myStore",
 		         "provider" : "atlas",
 		         "clusterName" : "myTestCluster",
-		         "projectId" : "<project-id>"
+		         "projectId" : "<project-id>",
+		         "readPreference" : {
+			        "mode" : "secondary",
+			        "tagSets": [[{"name": "provider", "value": "AWS" }, {"name": "region", "value": "US_EAST_1"}]],
+			        "maxStalenessSeconds" : 120
+		         }
 	         }
          }
 
