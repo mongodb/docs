@@ -29,7 +29,8 @@ for more information.
 
 .. note::
 
-   Change streams require a replicaSet or a sharded cluster using replicaSets.
+   Change streams require a replicaSet or a sharded cluster using replicaSets. A
+   standalone MongoDB instance cannot produce a change stream.
 
 Message Delivery Guarantee
 --------------------------
@@ -488,7 +489,10 @@ an example source connector configuration file, see
          change stream. The connector sends heartbeat messages when
          source records are not published in the specified interval.
          This improves the resumability of the connector for low volume
-         namespaces. Use ``0`` to disable. 
+         namespaces. See the 
+         :ref:`Invalid Resume Token section <source-invalid-resume-token>`
+         of this page for more information on the problem this feature can help
+         solve. Use ``0`` to disable. 
        | **Default**: ``0``
        | **Accepted Values**: An integer
 
@@ -716,11 +720,13 @@ The configuration shown above matches and copies existing documents that
 contain a field named ``totalUniqueViews`` with a value of ``5000`` or
 greater.
 
+.. _source-invalid-resume-token:
+
 How to Recover from An Invalid Resume Token
 -------------------------------------------
 
 In the event your Connector pauses or shuts down long enough for the Change
-Stream resume token to expire from the
+Stream resume token (also referred to as the ``postBatchResumeToken``) to expire from the
 :manual:`MongoDB Oplog </core/replica-set-oplog/>`, you may encounter an error
 that prevents you from starting up the Connector. If you encounter this
 condition, you must delete the topic data referenced by
@@ -729,3 +735,13 @@ file referenced by the ``offset.storage.file.filename`` setting (e.g.
 ``/tmp/connect.offsets``) if you are using the Standalone mode. After you
 delete the appropriate data, you should be able to start your Connector
 workers and listen to the change stream.
+
+.. tip:: Consider Enabling Heartbeats
+
+   If you encounter an invalid resume token error due to your source
+   MongoDB namespace being infrequently updated, consider enabling the heartbeat
+   feature. This feature periodically updates the Change stream resume token to the current entry in
+   your MongoDB Oplog if no updates occurred in your source MongoDB namespace.
+   To learn how to enable heartbeats, see the 
+   :ref:`Source Connector Configuration Properties section <source-connector-configuration-properties>`.
+   
