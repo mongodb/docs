@@ -84,18 +84,6 @@
 
           :ref:`transactions-operations-ddl`
 
-   * - :method:`db.collection.save()`
-     - 
-     - Starting in MongoDB 4.4, if run on a non-existing
-       collection, the collection is implicitly created.
-       
-       In MongoDB 4.2 and earlier, the operation must be run on an
-       existing collection.
-
-       .. seealso::
-
-          :ref:`transactions-operations-ddl`
-
    * - | :method:`db.collection.updateOne()`
        | :method:`db.collection.updateMany()`
        | :method:`db.collection.replaceOne()`
