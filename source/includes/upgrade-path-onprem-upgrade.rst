@@ -42,17 +42,17 @@ The following table lists upgrade paths for all versions:
           :ref:`section on chronological order <om-upgrade-con-release-date>`.
 
    * - 4.2.x
-     - Use this tutorial to upgrade from |onprem| 4.2.x to 4.2.23 or
+     - Use this tutorial to upgrade from |onprem| 4.2.x to 4.2.24 or
        later *first*, then to the latest patch version of 4.4.
 
-       .. include:: /includes/facts/upgrade-to-om-4-2-23.rst
+       .. include:: /includes/facts/upgrade-to-om-4-2-24.rst
 
    * - 4.0.x
      - Use the
        :om-v4.2:`v4.2 upgrade tutorial </tutorial/nav/upgrade-application>`
-       to upgrade from |onprem| 4.0.x to version 4.2.23 or later.
+       to upgrade from |onprem| 4.0.x to version 4.2.24 or later.
 
-       .. include:: /includes/facts/upgrade-to-om-4-2-23.rst
+       .. include:: /includes/facts/upgrade-to-om-4-2-24.rst
 
    * - 3.6.x
      - Use the
