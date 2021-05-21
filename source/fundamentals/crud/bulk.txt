@@ -1,0 +1,302 @@
+===============
+Bulk Operations
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you will learn how to use **bulk operations** in the
+MongoDB Java Driver. 
+
+To perform a create, replace, update or delete (CRUD) operation, you
+use their corresponding method. For example, to insert one document,
+update multiple documents, and delete one document in your collection,
+you use the ``insertOne()``, ``updateMany()`` and ``deleteOne()`` methods. 
+
+The ``MongoClient`` performs these operations by making a call for each
+operation to the database. You can reduce the number of calls to the
+database to one by using bulk operations. 
+
+Performing Bulk Operations
+--------------------------
+
+Bulk operations consist of a large number of CRUD operations. To perform
+the bulk operation, pass a ``List`` of ``WriteModel`` documents  to the
+``bulkWrite()`` method. A ``WriteModel`` is a model that represents any
+of the CRUD operations. 
+
+The following sections show how to create and use each ``WriteModel``
+document. The examples in each section contain the following documents
+in a collection: 
+
+.. code-block:: json
+
+   { "_id": 1 }
+   { "_id": 2 }
+
+For additional information on the classes and method mentioned in this
+section, see the following resources: 
+
+- :java-sync-api:`bulkWrite() <com/mongodb/client/MongoCollection.html#bulkWrite(java.util.List,com.mongodb.client.model.BulkWriteOptions)>` API Documentation
+- :java-core-api:`WriteModel <com/mongodb/client/model/WriteModel.html>` API Documentation
+- :java-core-api:`BulkWriteOptions <com/mongodb/client/model/BulkWriteOptions.html>` API Documentation
+
+Insert Operation
+~~~~~~~~~~~~~~~~
+
+To perform an insert operation, create an ``InsertOneModel`` specifying
+the document you want to insert. To insert multiple documents, you must
+create an ``InsertOneModel`` for each document you want to insert.
+
+Example
+```````
+
+The following example creates an ``InsertOneModel`` for two documents
+where the ``_id`` is "3" and "4": 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: begin insertDocumentsExample
+   :end-before: end insertDocumentsExample
+
+.. note::
+
+   When performing a ``bulkWrite()``, the ``InsertOneModel`` cannot
+   insert a document with an ``_id`` that already exists in the
+   collection. Instead, the method throws a ``MongoBulkWriteException``.
+
+   The following example tries to insert two documents where the ``_id`` is
+   "1" and "3":
+   
+   .. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+      :language: java
+      :dedent:
+      :start-after: begin insertExceptionExample
+      :end-before: end insertExceptionExample
+
+   The following shows the output of the code above:
+
+   .. code-block:: shell
+
+      A MongoBulkWriteException occured with the following message:  
+      Bulk write operation error on server sample-shard-00-02.pw0q4.mongodb.net:27017. 
+      Write errors: [BulkWriteError{index=0, code=11000, message='E11000 duplicate key 
+      error collection: crudOps.bulkWrite index: _id_ dup key: { _id: 1 }', details={}}].
+
+   To see why the document with the ``_id`` of "3" didn't insert, see
+   the :ref:`Order of Execution <orderOfExecution>` section.
+
+For additional information on the class mentioned in this
+section, see the following resource: 
+
+- :java-core-api:`InsertOneModel <com/mongodb/client/model/InsertOneModel.html>` API Documentation
+
+Replace Operation
+~~~~~~~~~~~~~~~~~
+
+To perform a replace operation, create a ``ReplaceOneModel`` specifying
+a query filter for document you want to replace with the replacement
+document. 
+
+.. note::
+
+   When performing a ``bulkWrite()``, the ``ReplaceOneModel`` cannot
+   make changes to a document that violate unique index constraints on
+   the collection, and the model does not replace a document if there
+   are no matches to your query filter. 
+
+Example
+```````
+
+The following example creates a ``ReplaceOneModel`` to
+replace a document where the ``_id`` is "1" with a document that
+contains an additional field: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: begin replaceDocumentsExample
+   :end-before: end replaceDocumentsExample
+
+For additional information on the class and concept mentioned in this
+section, see the following resources: 
+
+- :java-core-api:`ReplaceOneModel <com/mongodb/client/model/ReplaceOneModel.html>` API Documentation
+- :manual:`Unique indexes </core/index-unique/>` Server Manual Explanation
+
+Update Operation
+~~~~~~~~~~~~~~~~
+
+To perform an update operation, create an ``UpdateOneModel`` or an
+``UpdateManyModel`` specifying a query filter for documents you want to
+update with what the updates are.
+
+The ``UpdateOneModel`` updates the first document that matches your query
+filter and the ``UpdateManyModel`` updates all the documents that
+match your query filter. 
+
+.. note::
+
+   When performing a ``bulkWrite()``, the ``UpdateOneModel`` and
+   ``UpdateManyModel`` cannot make changes to a document that violate
+   unique index constraints on the collection, and the models do not
+   update any documents if there are no matches to your query filter. 
+
+Example
+```````
+
+The following example creates an ``UpdateOneModel`` to update
+a document where the ``_id`` is "2" to a document that
+contains an additional field: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: begin updateDocumentsExample
+   :end-before: end updateDocumentsExample
+
+For additional information on the classes and concept mentioned in this
+section, see the following resources: 
+
+- :java-core-api:`UpdateOneModel <com/mongodb/client/model/UpdateOneModel.html>` API Documentation
+- :java-core-api:`UpdateManyModel <com/mongodb/client/model/UpdateManyModel.html>` API Documentation
+- :manual:`unique indexes </core/index-unique/>` Server Manual Explanation
+
+Delete Operation
+~~~~~~~~~~~~~~~~
+
+To perform a delete operation, create a ``DeleteOneModel`` or a
+``DeleteManyModel`` specifying a query filter for documents you want to
+delete. 
+
+The ``DeleteOneModel`` deletes the first document that matches your query
+filter and the ``DeleteManyModel`` deletes all the documents that
+match your query filter. 
+
+.. note::
+
+   When performing a ``bulkWrite()``, the ``DeleteOneModel`` and
+   ``DeleteOneModel`` do not delete any documents if there are no matches
+   to your query filter. 
+
+Example
+```````
+
+The following example creates a ``DeleteOneModel`` to delete
+a document where the ``_id`` is "1":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: begin deleteDocumentsExample
+   :end-before: end deleteDocumentsExample
+
+For additional information on the classes mentioned in this
+section, see the following resources: 
+
+- :java-core-api:`DeleteOneModel <com/mongodb/client/model/DeleteOneModel.html>` API Documentation
+- :java-core-api:`DeleteManyModel <com/mongodb/client/model/DeleteManyModel.html>` API Documentation
+
+.. _orderOfExecution:
+
+Order of Execution
+------------------
+
+The ``bulkWrite()`` method accepts an optional ``BulkWriteOptions`` as
+a second parameter to specify if you want to execute the bulk operations
+as ordered or unordered. 
+
+Ordered Execution
+~~~~~~~~~~~~~~~~~
+
+By default, the ``bulkWrite()`` method executes bulk operations in
+order. This means that the bulk operations execute in the order you
+added them to the list until an error occurs, if any. 
+
+Example 
+```````
+
+The following example performs these bulk operations:
+
+- An insert operation for a document where the ``_id`` is "3"
+- A replace operation for a document where the ``_id`` is "1" with a document that contains an additional field
+- An update operation for a document where the ``_id`` is "3" to a document that contains an additional field
+- A delete operation for all documents that contain the field ``x`` with the value "2"
+
+.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: begin bulkWriteExample
+   :end-before: end bulkWriteExample
+
+After running this example, your collection contains the following 
+document:
+
+.. code-block:: json
+   :copyable: false
+   
+   { "_id": 2 }
+
+Unordered Execution
+~~~~~~~~~~~~~~~~~~~
+
+You can also execute bulk operations in any order by specifying "false"
+to the ``order()`` method on ``BulkWriteOptions``. This means that
+all the bulk operations execute regardless if an error occurs and
+reports the errors at the end, if any. 
+
+Adding to the example above, including the following specifies the bulk
+operations to execute in any order: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: begin bulkWriteNotOrderedExample
+   :end-before: end bulkWriteNotOrderedExample
+
+.. note::
+
+   Unordered bulk operations do not guarantee order of execution. The
+   order may differ from the way you list them to optimize the runtime.
+   
+   In the exampel above, if the ``bulkWrite()`` method decided to
+   perform the insert operation after the update operation, nothing
+   changes with the update operation because the document does not exist
+   at that point in time. Your collection then contains the following
+   documents: 
+   
+   .. code-block:: json
+      :copyable: false
+   
+      { "_id": 2 }
+      { "_id": 3 }
+
+For additional information on the class and method mentioned in this
+section, see the following resources: 
+
+- :java-core-api:`BulkWriteOptions <com/mongodb/client/model/BulkWriteOptions.html>` API Documentation
+- :java-core-api:`ordered() <com/mongodb/client/model/BulkWriteOptions.html#ordered(boolean)>` API Documentation
+
+Summary
+-------
+
+To perform a bulk operation, you create and pass a list of
+``WriteModel`` documents to the ``bulkWrite()`` method. 
+
+There are 6 different ``WriteModel`` documents: ``InsertOneModel``,
+``ReplaceOneModel``, ``UpdateOneModel``, ``UpdateManyModel``,
+``DeleteOneModel`` and ``DeleteManyModel``. 
+
+There are two ways to execute the ``bulkWrite()`` method: 
+
+- Ordered, which performs the bulk operations in order until an error occurs, if any
+- Unordered, which performs all the bulk operations in any order and reports errors at the end, if any
