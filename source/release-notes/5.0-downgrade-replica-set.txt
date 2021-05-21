@@ -1,0 +1,121 @@
+==================================================
+Downgrade |newversion| Replica Set to |oldversion|
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/5.0-upgrade-replacements.rst
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+.. |downgrading| replace:: downgrading
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade-path.rst
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Access Control
+--------------
+
+If your replica set has access control enabled, your downgrade user
+privileges must include privileges to list and manage indexes across
+databases. A user with :authrole:`root` role has the required
+privileges.
+
+Prerequisites
+-------------
+
+To downgrade from |newversion| to |oldversion|, you must remove
+incompatible features that are persisted and/or update incompatible
+configuration settings.
+
+.. |target| replace:: primary
+
+.. _5.0-downgrade-feature-compatibility-rs:
+
+1. Downgrade Feature Compatibility Version (fCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+
+   - Ensure that no initial sync is in progress. Running
+     :dbcommand:`setFeatureCompatibilityVersion` command while an
+     initial sync is in progress will cause the initial sync to restart.
+
+   - Ensure that no replica set member is in :replstate:`ROLLBACK` or
+     :replstate:`RECOVERING` state.
+
+To downgrade the ``featureCompatibilityVersion`` of your replica set:
+
+#. Connect a :binary:`~bin.mongo` shell to the |target|.
+
+#. .. include:: /includes/5.0-downgrade-fcv.rst
+
+#. To ensure that all members of the replica set reflect the updated
+   ``featureCompatibilityVersion``, connect to each replica set member and
+   check the ``featureCompatibilityVersion``:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+   All members should return a result that includes:
+
+   .. code-block:: javascript
+
+      "featureCompatibilityVersion" : { "version" : "4.4" }
+
+   If any member returns a ``featureCompatibilityVersion`` of |newfcv|,
+   wait for the member to reflect version |oldfcv| before proceeding.
+
+For more information on the returned ``featureCompatibilityVersion``
+value, see :ref:`view-fcv`.
+
+2. Remove fCV |newversion| Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps are necessary only if fCV has ever been set to
+|newfcv|.
+
+Remove all persisted |newversion| |features| that are incompatible with
+|oldversion|. These include:
+
+- No persisted features currently.
+
+.. |binary| replace:: any replica set member
+
+3. Remove |newversion| Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Remove all persisted features that use |newversion| features. These
+include but are not limited to:
+
+- No persisted features currently.
+
+Procedure
+---------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that all
+   replica set members, including delayed replica set members, reflect
+   the prerequisite changes. That is, check the
+   ``featureCompatibilityVersion`` and the removal of incompatible
+   features for each node before downgrading.
+
+.. include:: /includes/steps/5.0-downgrade-replica-set.rst
+
+
