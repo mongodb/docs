@@ -768,7 +768,8 @@
    * - stateName
      - string
      - Condition in which the |api| resource finds the cluster when you
-       called the resource. The possible states are:
+       called the resource. The resource returns one of the following
+       states:
 
        - **IDLE**
        - **CREATING**
@@ -776,3 +777,8 @@
        - **DELETING**
        - **DELETED**
        - **REPAIRING**
+
+   * - versionReleaseSystem
+     - string
+     - Method by which this cluster maintains the MongoDB versions. The
+       resource returns **CONTINUOUS** or **LTS** (Long Term Support).

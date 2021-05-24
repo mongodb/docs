@@ -183,6 +183,11 @@
        version of MongoDB when you :doc:`modify a cluster
        </reference/api/clusters-modify-one>`.
 
+       If you set a value to this parameter and set
+       **"versionReleaseSystem" : "CONTINUOUS"**, the resource returns
+       an error. Either clear this parameter or set
+       **"versionReleaseSystem" : "LTS"**.
+
    * - name
      - string
      - Required
@@ -639,3 +644,14 @@
      - string
      - Optional
      - .. include:: /includes/cluster-settings/rootcert.rst
+
+   * - versionReleaseSystem
+     - string
+     - Optional
+     - Method by which this cluster maintains the MongoDB versions. The
+       resource accepts **CONTINUOUS** or **LTS** (Long Term Support).
+
+       This parameter defaults to **LTS**.
+
+       If you set this parameter to **CONTINUOUS** and set any value
+       for **mongoDBMajorVersion**, this resource returns an error.

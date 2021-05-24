@@ -179,8 +179,8 @@
 
        If omitted, |service| deploys a cluster that runs MongoDB 4.4.
 
-       If **"replicationSpecs[n].regionConfigs[m].<type>Specs.instanceSize":
-       "M2"** or **"M5"**, deploy MongoDB **4.4**.
+       If **"replicationSpecs[n].regionConfigs[m].<type>
+       Specs.instanceSize": "M2"** or **"M5"**, deploy MongoDB **4.4**.
 
        |service| always deploys the cluster with the latest stable
        release of the specified version. You can upgrade to a newer
@@ -188,6 +188,11 @@
        </reference/api/clusters-modify-one>`.
 
        You can't downgrade this version to an earlier version.
+
+       If you set a value to this parameter and set
+       **"versionReleaseSystem" : "CONTINUOUS"**, the resource returns
+       an error. Either clear this parameter or set
+       **"versionReleaseSystem" : "LTS"**.
 
    * - paused
      - Boolean
@@ -652,3 +657,13 @@
      - Optional
      - .. include:: /includes/cluster-settings/rootcert.rst
 
+   * - versionReleaseSystem
+     - string
+     - Optional
+     - Method by which this cluster maintains the MongoDB versions. The
+       resource accepts **CONTINUOUS** or **LTS** (Long Term Support).
+
+       This parameter defaults to **LTS**.
+
+       If you set this parameter to **CONTINUOUS** and set any value
+       for **mongoDBMajorVersion**, this resource returns an error.
