@@ -9,14 +9,14 @@
 
    * - acceptedTos
      - boolean
-     - Flag that indicates whether or not you accepted the terms of 
-       service for using |s3|\-compatible stores with |onprem|. You must
-       set this to ``true`` to create an |s3|\-compatible store. 
+     - Flag that indicates whether or not you accepted the terms of
+       service for using |s3|\-compatible stores with |onprem|. You
+       must set this to ``true`` to create an |s3|\-compatible store.
 
    * - assignmentEnabled
      - boolean
-     - Flag that indicates whether you can assign backup jobs to this data
-       store.
+     - Flag that indicates whether you can assign backup jobs to this
+       data store.
 
    * - awsAccessKey
      - string
@@ -36,8 +36,8 @@
 
    * - encryptedCredentials
      - boolean
-     - Flag that indicates whether the username and password for this |s3|
-       blockstore were encrypted using the
+     - Flag that indicates whether the username and password for this
+       |s3| blockstore were encrypted using the
        :doc:`credentialstool </tutorial/encrypt-user-credentials>`.
 
    * - id
@@ -125,8 +125,8 @@
 
    * - s3RegionOverride
      - string
-     - Region where your |s3| bucket resides. This field applies only if
-       your |s3|\-compatible store's **s3BucketEndpoint** doesn't 
+     - Region where your |s3| bucket resides. This field applies only
+       if your |s3|\-compatible store's **s3BucketEndpoint** doesn't
        support region scoping.
 
        |mms| returns this field only if you included it when you
@@ -138,15 +138,17 @@
      - Flag that indicates whether this |s3| blockstore enables
        :aws:`server-side encryption </AmazonS3/latest/dev/UsingServerSideEncryption.html>`.
 
-   * - uri
-     - string
-     - Comma-separated list of hosts in the ``<hostname:port>`` format
-       that can access this |s3| blockstore.
-
    * - ssl
      - boolean
      - Flag that indicates whether this |s3| blockstore only accepts
        connections encrypted using |tls|.
+
+   * - uri
+     - string
+     - :manual:`Connection String </reference/connection-string/>`
+       that connects to the metadata database for this |s3| blockstore.
+       This database stores the locations of the blocks in the |aws|
+       |s3| bucket.
 
    * - writeConcern
      - string

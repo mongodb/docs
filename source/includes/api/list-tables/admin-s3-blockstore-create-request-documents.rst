@@ -11,10 +11,10 @@
    * - acceptedTos
      - boolean
      - Required
-     - Flag that indicates whether or not you accepted the terms of service
-       for using |s3|\-compatible stores with |onprem|. You must set this to
-       ``true`` to create an |s3|\-compatible store. 
-       
+     - Flag that indicates whether or not you accepted the terms of
+       service for using |s3|\-compatible stores with |onprem|. You
+       must set this to ``true`` to create an |s3|\-compatible store.
+
        If you set this to ``false``, |onprem| returns an error. The
        error states that |onprem| can't create the |s3|\-compatible
        store.
@@ -165,17 +165,19 @@
      - Flag that indicates whether this |s3| blockstore enables
        :aws:`server-side encryption </AmazonS3/latest/dev/UsingServerSideEncryption.html>`.
 
-   * - uri
-     - string
-     - Required
-     - Comma-separated list of hosts in the ``<hostname:port>`` format
-       that can access this |s3| blockstore.
-
    * - ssl
      - boolean
      - Optional
      - Flag that indicates whether this |s3| blockstore only accepts
        connections encrypted using |tls|.
+
+   * - uri
+     - string
+     - Required
+     - :manual:`Connection String </reference/connection-string/>`
+       that connects to the metadata database for this |s3| blockstore.
+       This database stores the locations of the blocks in the |aws|
+       |s3| bucket.
 
    * - writeConcern
      - string
