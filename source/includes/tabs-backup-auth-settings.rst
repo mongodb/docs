@@ -1,4 +1,5 @@
 .. tabs::
+   :hidden:
 
    .. tab:: SCRAM-SHA
       :tabid: scramsha
