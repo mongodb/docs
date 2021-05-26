@@ -14,7 +14,7 @@
      - MongoDB 3.2
      - MongoDB 3.0
      - MongoDB 2.6
-
+     
    * - 4.2
      - |checkmark|
      - |checkmark|
@@ -46,7 +46,7 @@
      - |checkmark|
 
    * - 3.12
-     -
+     - |checkmark| [#3.12-driver-support]_
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -184,7 +184,7 @@
      -
      -
      -
-     - |checkmark|  [#driver-support]_
+     - |checkmark| [#2.14-driver-support]_
      - |checkmark|
      - |checkmark|
 
@@ -208,7 +208,9 @@
      -
      - |checkmark|
 
-.. [#driver-support] The 2.14 driver does not support all MongoDB 3.2 features (e.g.,
-   read concern); however, if you are currently on a version 2.x driver
+.. [#3.12-driver-support] The 3.12 driver does not support all MongoDB 4.4 features
+
+.. [#2.14-driver-support] The 2.14 driver does not support all MongoDB 3.2 features
+   such as read concern. However, if you are currently on a version 2.x driver
    and would like to run against MongoDB 3.2 but cannot upgrade to driver
    version 3.2, use the 2.14 driver.
