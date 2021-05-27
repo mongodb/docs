@@ -1,6 +1,6 @@
-===============
-Model Time Data
-===============
+==============
+Model IoT Data
+==============
 
 .. default-domain:: mongodb
 
@@ -10,48 +10,37 @@ Model Time Data
    :depth: 1
    :class: singlecol
 
-Overview
---------
+The Internet of Things (IoT) is a network of physical objects that are
+connected to the internet. Many of these devices, like sensors, generate
+data.
 
-MongoDB :ref:`stores times in UTC <document-bson-type-date>` by default, and will convert
-any local time representations into this form. Applications that must operate or
-report on some unmodified local time value may store the time zone alongside the
-UTC timestamp, and compute the original local time in their application logic.
-
-Example
--------
-
-In the MongoDB shell, you can store both the current date and the current
-client's offset from UTC.
-
-.. code-block:: javascript
-
-   var now = new Date();
-   db.data.save( { date: now,
-                   offset: now.getTimezoneOffset() } );
-
-You can reconstruct the original local time by applying the saved offset:
-
-.. code-block:: javascript
-
-   var record = db.data.findOne();
-   var localNow = new Date( record.date.getTime() -  ( record.offset * 60000 ) );
-
-Use Buckets for Time Series Data
---------------------------------
-
-A common method to organize time series data is to group the data
-into buckets where each bucket represents a uniform unit of time such
-as a day or year. Bucketing organizes specific groups of data to help:
-
-- Discover historical trends,
-
-- Forecast future trends, and
-
-- Optimze storage usage.
+To store and retrieve this data efficiently, you can use the bucket
+pattern.
 
 The Bucket Pattern
-~~~~~~~~~~~~~~~~~~
+------------------
+
+A common method to organize IoT data is to group the data
+into buckets. Bucketing organizes specific groups of data to help:
+
+- Discover historical trends,
+- Forecast future trends, and
+- Optimize storage usage.
+
+Common parameters to group data by are:
+
+- time
+- data source (if you have multiple data sets)
+- customer
+- type of data (for example, transaction type in financial data)
+
+.. note::
+
+   Starting in MongoDB 5.0, :ref:`time series collections
+   <manual-timeseries-collection>` are the recommended collection type
+   for time series data. Do **not** use the bucket pattern in
+   conjunction with time series collections as this can degrade
+   performance.
 
 Consider a collection that stores temperature data obtained from a
 sensor. The sensor records the temperature every minute and
@@ -144,14 +133,31 @@ for the specific temperature at 2:03 PM. Bucketing and pre-computing
 certain values allows the application to more readily provide that
 information.
 
-Sample Use Cases
-~~~~~~~~~~~~~~~~
+Time Representations in MongoDB
+-------------------------------
 
-In addition to time series data, the Bucket pattern is useful for
-Internet of Things projects where you have multiple datasets
-coming from many different sources. It can be helpful to bucket
-that data into groups (e.g. based on device type or system) to more
-easily retrieve and parse the data.
+MongoDB :ref:`stores times in UTC <document-bson-type-date>` by default,
+and converts any local time representations into this form.
+Applications that must operate or report on some unmodified local time
+value may store the time zone alongside the UTC timestamp, and compute
+the original local time in their application logic.
 
-The Bucket pattern is also commonly used in financial applications to
-group transactions by type, date, or customer.
+Example
+-------
+
+In the MongoDB shell, you can store both the current date and the
+current client's offset from UTC.
+
+.. code-block:: javascript
+
+   var now = new Date();
+   db.data.save( { date: now,
+                   offset: now.getTimezoneOffset() } );
+
+You can reconstruct the original local time by applying the saved
+offset:
+
+.. code-block:: javascript
+
+   var record = db.data.findOne();
+   var localNow = new Date( record.date.getTime() -  ( record.offset * 60000 ) );
