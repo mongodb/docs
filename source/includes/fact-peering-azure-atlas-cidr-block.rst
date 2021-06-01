@@ -1,7 +1,7 @@
 |service| uses the specified |cidr| block for all other Network Peering
 connections created in the project. The |service| |cidr| block must be
 at least ``/24`` and at most ``/21`` in one  of the following
-:rfc:`private networks <1918#section-3>`.
+:rfc:`private networks <rfc1918#section-3>`.
 
 .. list-table::
    :header-rows: 1
