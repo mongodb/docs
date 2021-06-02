@@ -4,12 +4,148 @@ FAQ
 
 .. default-domain:: mongodb
 
-Frequently Asked Questions
-
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-Lorem ipsum.
+General
+-------
+
+Why are there two types of ``MongoClient`` in the Java driver? 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are two types of ``MongoClient`` because we wanted a cleaner API
+for new users that didn't have the confusion of including multiple CRUD
+API's. We wanted to ensure that the new CRUD API was available in a Java
+package structure that would work well with Java module support
+introduced in Java 9. 
+
+Which type of ``MongoClient`` should I use?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+New applications should generally use the
+``com.mongodb.client.MongoClient`` interface, which supports: 
+
+- Configuration with ``MongoClientSettings`` and ``ConnectionString``.  You can create instances of this interface via factory methods defined in the ``com.mongodb.client.MongoClients`` class. 
+- CRUD API using ``MongoDatabase``, and from there, ``MongoCollection``
+
+You should use ``com.mongodb.MongoClient`` class if you require support for the legacy API, which supports:
+
+- Configuration with ``MongoClientOptions`` and ``MongoClientURI``
+- CRUD API using ``DB``, and from there, ``DBCollection``.  You can access this API via the ``getDB()`` method.
+
+For applications that require a mix of the new and legacy APIs, ``com.mongodb.MongoClient`` also supports: 
+
+- Configuration with ``MongoClientSettings`` and ``ConnectionString``, the only difference being that you create instances via constructors instead of a factory class.
+- CRUD API using ``MongoDatabase``, and from there, ``MongoCollection``.  You can access this API via the ``getDatabase()`` method.
+
+POJOs
+-----
+
+Do I have to specify an ID field value myself?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Imagine you have the following entity:
+
+.. code-block:: java
+
+   public class Entity {
+      public final ObjectId id;
+      public String value;
+
+      public Entity(){ }
+   }
+
+Can the ID field be a compound key?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes. For an example of this, see `our implementation <https://github.com/niccottrell/mongo-java-tests/blob/master/src/test/PojoCompoundIdTest.java>`_
+
+Can I use polymorphism in a POJO accessor?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes, by using a discriminator.
+
+What is the discriminator?
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The discriminator is for cases where you want to use inheritance, and
+store multiple types of documents within the same collection or parent
+document (in case you embed sub-documents). 
+
+For example, if you have an ``Event`` class, that you extend in Java (e.g.
+``MachineEvent`` or ``NetworkEvent``), using the discriminator identifies
+which class the PojoCodec should use to serialize/deserialize the
+document. 
+
+Can I control serialization of ``LocalDate``?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes, the 3.7 Java driver adds native support for ``JSR-310 Instant``,
+``LocalDate`` & ``LocalDateTime``. 
+
+Can I serialize a ``java.util.Date`` as a string in format **yyyy-mm-dd**?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes, you can build your own codec for this class and add it to the registry. 
+
+Add the codec to the top your registry before the ``DefaultCodecRegister``
+and before the ``PojoCodecProvider``: 
+
+.. code-block:: java
+
+   static final CodecRegistry CODEC_REGISTRY = fromRegistries(
+      CodecRegistries.fromCodecs(
+                        new MyDateAsStringCodec()),
+                        MongoClient.getDefaultCodecRegistry(),
+                        fromProviders(pojoCodecProvider));
+
+Can I make POJOs read/write directly to the field and not use the getters/setters at all?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure the PojoCodecProvider to use the
+``SET_PRIVATE_FIELDS_CONVENTION``, which sets a private field through
+reflection if no public setter is available.
+
+Can I mix private, protected and public setters and getters?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+No. The native POJO codec assumes that getters/setters have the same
+modifiers for each field.  
+
+For example, the following methods throws an exception during encoding:
+
+.. code-block:: java
+   
+   private String getField();
+   public String setField(String x); 
+
+How do I fix: org.bson.codecs.configuration.CodecConfigurationException: Can't find a codec for class X .? 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This exception means you need to register a codec for the class since
+there is none at the moment. 
+
+How do I specify the collection name for a particular POJO class? Is there an annotation?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is no annotation. We recommend adding a static in your class as shown:
+
+.. code-block:: java
+
+   public class Person {
+      public static final String COLLECTION_NAME = "people"; 
+   }
+
+The following snippet specifies the collection name for a particular
+POJO class: 
+
+.. code-block:: java
+
+   database.getCollection(Person.COLLECTION_NAME, Person.class);
+
+If you are unable to find the answer to your question here, try our forums and
+support channels listed in the :doc:`Issues and Help <issues-and-help>`
+section.
