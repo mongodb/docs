@@ -14,12 +14,6 @@
                { item: "postcard", instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] }
             ]);
 
-         .. only:: website
-
-            You can run the operation in the web shell below:
-
-            .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. code-block:: javascript

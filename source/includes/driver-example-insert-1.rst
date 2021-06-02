@@ -10,12 +10,6 @@
                { item: "canvas", qty: 100, tags: ["cotton"], size: { h: 28, w: 35.5, uom: "cm" } }
             )
 
-         .. only:: website
-
-            You can run the operation in the web shell below:
-
-            .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. figure:: /images/compass-insert-document-inventory.png
