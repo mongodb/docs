@@ -1,8 +1,8 @@
 ==========================================
-MongoDB Cloud for Government Documentation
+MongoDB Atlas for Government Documentation
 ==========================================
 
-This repository contains documentation for MongoDB Cloud for Government.
+This repository contains documentation for MongoDB Atlas for Government.
 
 Building
 --------
