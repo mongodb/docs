@@ -1,3 +1,14 @@
+.. note:: Platform Support EOL Notice
+
+   .. list-table::
+      :widths: 40 60
+      :class: border-table
+
+      * - Ubuntu 16.04
+        - Support removed in MongoDB 5.0+.
+
+   |
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1

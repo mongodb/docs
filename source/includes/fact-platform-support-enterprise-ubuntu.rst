@@ -1,6 +1,9 @@
 .. note:: EOL Notice
 
    - MongoDB 5.0 Enterprise Edition removes support for
+     Ubuntu 16.04 on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>`
+
+   - MongoDB 5.0 Enterprise Edition removes support for
      Ubuntu 18.04 on :ref:`s390x <prod-notes-supported-platforms-s390x>`
 
    - MongoDB 5.0 Enterprise Edition removes support for

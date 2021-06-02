@@ -4,6 +4,12 @@
       :widths: 40 60
       :class: border-table
 
+      * - RHEL / CentOS 6
+        - Support removed in MongoDB 5.0+.
+
+      * - Ubuntu 16.04
+        - Support removed in MongoDB 5.0+.
+
       * - macOS 10.13
         - Support removed in MongoDB 5.0+.
 
@@ -57,7 +63,7 @@
      - |checkmark|
 
    * - RHEL/CentOS/Oracle Linux [#oracle-linux]_ 6.2 and later
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -87,7 +93,7 @@
      - 4.0.1+
 
    * - Ubuntu 16.04
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
