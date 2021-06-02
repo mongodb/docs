@@ -1,6 +1,10 @@
 .. note:: EOL Notice
 
    - MongoDB 5.0 Community Edition removes support for
+     :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 6 on
+     :ref:`x86_64 <prod-notes-supported-platforms-x86_64>`
+
+   - MongoDB 5.0 Community Edition removes support for
      :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7 on
      :ref:`s390x <prod-notes-supported-platforms-s390x>`
 
