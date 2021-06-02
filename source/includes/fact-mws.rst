@@ -1,3 +1,2 @@
-.. raw:: html
-
-   <iframe class="mws-root" allowfullscreen sandbox="allow-scripts allow-same-origin" width=600 height=280 src="https://mws.mongodb.com/?version=3.6"></iframe>
+The web shell for MongoDB v3.6 is no longer available. Please see a
+more recent version of the MongoDB Manual for a supported web shell.

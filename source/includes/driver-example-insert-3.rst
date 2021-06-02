@@ -11,12 +11,6 @@
                { item: "mat", qty: 85, tags: ["gray"], size: { h: 27.9, w: 35.5, uom: "cm" } },
                { item: "mousepad", qty: 25, tags: ["gel", "blue"], size: { h: 19, w: 22.85, uom: "cm" } }
             ])
-          
-         .. only:: website
-
-            You can run the operation in the web shell below:
-
-            .. include:: /includes/fact-mws.rst
 
      - id: python
        content: |
