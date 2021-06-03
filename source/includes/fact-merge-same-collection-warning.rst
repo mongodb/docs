@@ -8,4 +8,4 @@
    changes, :pipeline:`$merge` may view it as an entirely new document,
    resulting in additional updates. For more information on this
    behavior, see `Halloween Problem
-   <https://en.wikipedia.org/w/index.php?title=Halloween_Problem&oldid=738886300>`__.
+   <https://en.wikipedia.org/wiki/Halloween_Problem>`__.
