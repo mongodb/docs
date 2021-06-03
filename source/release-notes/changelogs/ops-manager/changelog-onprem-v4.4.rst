@@ -1,3 +1,23 @@
+.. _opsmgr-server-4.4.13:
+
+|onprem| Server 4.4.13
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-06-03*
+
+- Upgrades |jdk| to ``jdk-11.0.11+9``.
+- Disables |tls| versions 1.0 and 1.1.
+- Fixes a bug that would re-enable |mms| instances for API writes 
+  during an upgrade of |mms|.
+- Fixes a date formatting issue when listing logs in the ``admin`` 
+  user interface.
+- Adds MongoDB server for RHEL 8.1 running on PowerPC to |mms|\'s 
+  :ref:`version manifest <admin-console-general-version-manifest>`.
+- Caches the computed list of MongoDB binaries available on disk in 
+  :doc:`Local Mode </tutorial/configure-local-mode>`.
+- Updates the MongoDB Agent to :ref:`10.14.24.6508
+  <mongodb-10.14.24.6508>`.
+
 .. _opsmgr-server-4.4.12:
 
 |onprem| Server 4.4.12
