@@ -1,7 +1,24 @@
+.. _opsmgr-server-4.2.25:
+
+|onprem| Server 4.2.25
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-06-03*
+
+- Upgrades |jdk| to ``jdk-11.0.11+9``.
+- Disables |tls| versions 1.0 and 1.1.
+- Fixes a bug that would re-enable |mms| instances for API writes 
+  during an upgrade of |mms|.
+- Caches the computed list of MongoDB binaries available on disk in 
+  :doc:`Local Mode </tutorial/configure-local-mode>`.
+- Updates the MongoDB Agent to :ref:`10.2.25.6010
+  <mongodb-10.2.25.6010>`.
+
 .. _opsmgr-server-4.2.24:
 
 |onprem| Server 4.2.24
 ~~~~~~~~~~~~~~~~~~~~~~
+
 *Released 2021-05-05*
 
 - Fixes an issue where the MongoDB usage report might find duplicate 
