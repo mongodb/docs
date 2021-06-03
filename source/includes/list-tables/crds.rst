@@ -6,13 +6,13 @@
      - Description
 
    * - ``mongodb``
-     - Install the CustomResourceDefinitions for the database resources and also
-       watch those resources.
+     - Install the CustomResourceDefinitions for database resources
+       and watch those resources.
 
    * - ``mongodbusers``
-     - Install the CustomResourceDefinitions for the MongoDB user resources and
-       also watch those resources.
+     - Install the CustomResourceDefinitions for MongoDB user resources
+       and watch those resources.
 
    * - ``opsmanagers``
-     - Install the CustomResourceDefinitions for the |onprem| resources and also
-       watch those resources.
+     - Install the CustomResourceDefinitions for |onprem| resources
+       and watch those resources.
