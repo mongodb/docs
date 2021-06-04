@@ -17,4 +17,10 @@
    * - 1.9.x
      - Ubuntu 16.04, Red Hat UBI 8 Base Image [1]_
 
+   * - 1.10.x
+     - Ubuntu 16.04, Red Hat UBI 8 Base Image [1]_
+
+   * - 1.11.x
+     - Ubuntu 16.04, Red Hat UBI 8 Base Image [1]_
+
 .. [1] Most commonly used for OpenShift deployments
