@@ -18,7 +18,15 @@
        distribution` to specify whether to perform initial chunk 
        creation and distribution for an empty or non-existing 
        collection based on the defined zones and zone ranges for the 
-       collection. You can also specify the minimum number of chunks to 
-       create initially when sharding an empty collection with a 
-       :manual:`hashed shard key </core/hashed-sharding/>`. By default, 
-       |service| creates a minimum of two chunks per shard initially. 
+       collection. 
+       
+       If you select the :guilabel:`Pre-split data for even 
+       distribution` option, you can also specify the minimum number of 
+       chunks to create initially when sharding an empty collection 
+       with a :manual:`hashed shard key </core/hashed-sharding/>`. 
+       Initial chunk distribution allows |service| to setup zoned 
+       sharding quickly. The number of chunks the |service| creates 
+       depends on the number of zones that you define. By default, 
+       |service| creates one chunk per location code and distributes 
+       chunks evenly across all shards. 
+

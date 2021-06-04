@@ -55,10 +55,10 @@
        </core/hashed-sharding/#std-label-sharding-hashed>`. |service| 
        then creates and balances chunks across the cluster. The 
        ``numInitialChunks`` must be less than ``8192`` per shard. If 
-       omitted, defaults to ``2``. To learn more, see 
-       :manual:`sh.shardCollection() 
-       </reference/method/sh.shardCollection/>`. This is only available 
-       for |service| clusters with MongoDB v4.4 and later.
+       omitted, defaults to ``2``. To learn more, see :doc:`Global 
+       Cluster Sharding Reference 
+       </global-cluster-sharding>`. This is only available for 
+       |service| clusters with MongoDB v4.4 and later.
 
    * - ``presplitHashedZones``
      - boolean
