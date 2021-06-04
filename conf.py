@@ -91,6 +91,7 @@ rst_epilog = '\n'.join([
     '.. |2fa| replace:: :abbr:`2FA (Two Factor Authentication)`',
     '.. |cloud| replace:: MongoDB Cloud Manager',
     '.. |cloud-short| replace:: Cloud Manager',
+    '.. |cloud-link| replace:: :cloudmgr:`Cloud Manager </>`',
     '.. |api| replace:: :abbr:`API (Application Programming Interface)`',
     '.. |aws| replace:: :abbr:`AWS (Amazon Web Services)`',
     '.. |bic-full| replace:: :bic:`MongoDB Connector for BI </>`',
