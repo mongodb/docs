@@ -17,49 +17,117 @@ Motor (Async Driver)
 Introduction
 ------------
 
-**Motor (Python async)** is the recommended asynchronous Python driver for MongoDB.
-It is compatible with `Tornado <http://www.tornadoweb.org/>`_ and
-`asyncio <https://docs.python.org/3/library/asyncio.html>`_.
+**Motor** is the recommended asynchronous Python driver for MongoDB.
+It is compatible with `Tornado <http://www.tornadoweb.org/>`__ and
+`asyncio <https://docs.python.org/3/library/asyncio.html>`__. We recommend
+that you use this driver if you need to run asynchronous operations. If
+you do not need to access MongoDB in a non-blocking manner or from
+co-routines, we recommend that you use the :doc:`PyMongo </pymongo>`
+driver instead.
 
-- `Tutorial <http://motor.readthedocs.org/en/stable/tutorial.html>`_
+Follow the links below to learn more about how to use the Motor driver:
 
-- `Documentation <http://motor.readthedocs.org/>`_
+- `Tutorial on using Motor with Tornado <http://motor.readthedocs.org/en/stable/tutorial-tornado.html>`__
+
+- `Tutorial on using Motor with asyncio <https://motor.readthedocs.io/en/stable/tutorial-asyncio.html>`__
+
+- `Motor Documentation <http://motor.readthedocs.org/>`__
 
 - `Changelog <http://motor.readthedocs.org/en/stable/changelog.html>`__
 
 - `Source Code <https://github.com/mongodb/motor/>`__
 
-- `Porting From PyMongo To Motor <http://emptysqua.re/blog/porting-from-pymongo-to-motor/>`_
+Follow the links below to read blog posts that describe specific use cases
+for the Motor driver:
 
-- `Refactoring Tornado Coroutines <http://emptysqua.re/blog/refactoring-tornado-coroutines/>`_
+- `Porting From PyMongo To Motor <http://emptysqua.re/blog/porting-from-pymongo-to-motor/>`__
 
-- `All Motor articles on A. Jesse Jiryu Davis's blog <http://emptysqua.re/blog/category/motor/>`_
+- `Refactoring Tornado Coroutines <http://emptysqua.re/blog/refactoring-tornado-coroutines/>`__
 
+- `All Motor articles on A. Jesse Jiryu Davis's blog <http://emptysqua.re/blog/category/motor/>`__
 
 Installation
 ------------
 
-We recommend using `pip <http://pypi.python.org/pypi/pip>`__ to install
-Motor on all platforms:
+You must install the Motor driver module to make it available to your Python
+application. We recommend using `pip <http://pypi.python.org/pypi/pip>`__
+to install Motor.
+
+The following command demonstrates how you can install the latest version of
+the module using the command line:
 
 .. code-block:: sh
 
-   $ pip install motor
+   $ python -m pip install motor
 
+For more information on requirements and other methods of installation,
+see the `Motor Installation <https://motor.readthedocs.io/en/stable/installation.html>`__
+documentation.
 
 Connect to MongoDB Atlas
 ------------------------
 
 .. include:: /includes/atlas-connect-blurb.rst
 
+If you are using the ``asyncio`` asynchronous framework, you can use the
+following code to connect:
+
 .. code-block:: python
 
+   import asyncio
+   import motor.motor_asyncio
+
+   async def get_server_info():
+
+       # replace this with your MongoDB connection string
+       conn_str = "<your MongoDB Atlas connection string>"
+
+       # set a 5-second connection timeout
+       client = motor.motor_asyncio.AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
+
+       try:
+           print(await client.server_info())
+       except Exception:
+           print("Unable to connect to the server.")
+
+   loop = asyncio.get_event_loop()
+   loop.run_until_complete(get_server_info())
+
+If you are using the ``tornado`` asynchronous library, you can use the
+following code to connect:
+
+.. code-block:: python
+
+   import tornado
    import motor
 
-   client = motor.motor_tornado.MotorClient(
-      "mongodb+srv://<username>:<password>@<cluster-url>/test?retryWrites=true&w=majority")
-   db = client.test
+   async def get_server_info():
 
+       # replace this with your MongoDB connection string
+       conn_str = "<your MongoDB Atlas connection string>"
+
+       # set a 5-second connection timeout
+       client = motor.motor_tornado.MotorClient(conn_str, serverSelectionTimeoutMS=5000)
+
+       try:
+           print(await client.server_info())
+       except Exception:
+           print("Unable to connect to the server.")
+
+   tornado.ioloop.IOLoop.current().run_sync(get_server_info)
+
+If the connection succeeds before a five-second timeout, you will see a
+dictionary containing information about the server you connected to.
+
+If the connection fails, you should see the following message:
+
+.. code-block:: console
+   :copyable: false
+
+   Unable to connect to the server.
+
+For more information on the connection string, see the MongoDB Server
+Manual entry on :manual:`Connection String URI Format </reference/connection-string/>`.
 
 Compatibility
 -------------
