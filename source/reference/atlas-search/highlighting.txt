@@ -21,7 +21,9 @@ operators to display search terms as they appear in the returned
 documents, along with the adjacent text content (if any). ``highlight``
 results are returned as part of the ``$meta`` field.
 
-.. seealso:: `stemming <https://en.wikipedia.org/wiki/Stemming>`__
+.. seealso:: 
+
+   `Stemming <https://en.wikipedia.org/wiki/Stemming>`__
 
 Syntax
 ------
@@ -29,7 +31,7 @@ Syntax
 ``highlight`` has the following syntax:
 
 .. code-block:: javascript
-   :emphasize-lines: 8, 13 
+   :emphasize-lines: 8-12 
 
    {
      $search: {  
@@ -56,7 +58,7 @@ Options
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 10 60 10
+   :widths: 25 10 55 10
 
    * - Field
      - Type
@@ -72,6 +74,7 @@ Options
        - A :ref:`multi analyzer <ref-multi-analyzer>` specification
        - An array containing a combination of strings and multi    
          analyzer specifications
+       - A wildcard character ``*`` 
          
        See :ref:`ref-path` for more information.
 
@@ -101,6 +104,8 @@ necessary to use a :manual:`$project
 </reference/operator/aggregation/project>` pipeline stage to add it to 
 the query output.
 
+.. _highlight-egs:
+
 Examples
 --------
 
@@ -111,17 +116,20 @@ the following documents:
 
    {
      "_id" : 1,
-     "type" : "apple",
+     "type" : "fruit",
+     "summary" : "Apple varieties",
      "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith."
    },
    {
      "_id" : 2,
-     "type" : "banana",
+     "type" : "fruit",
+     "summary" : "Banana",
      "description" : "Bananas are usually sold in bunches of five or six."
-   }
+   },
    {
      "_id" : 3,
-     "type" : "pear",
+     "type" : "fruit",
+     "summary" : "Pear varieties",
      "description" : "Bosc and Bartlett are the most common varieties of pears."
    }
 
@@ -134,6 +142,13 @@ the following documents:
    text searches return all the `stemmed 
    <https://en.wikipedia.org/wiki/Stemming>`__ variations of your 
    search terms.
+
+   Another useful aspect of highlighting is that it can be used to 
+   highlight any field, inside or outside of the query ``path``. For 
+   example, when you search for a term, you can perform highlighting 
+   for the query term on the query field and any other fields that you 
+   specify using the ``highlight`` option. To learn more, see 
+   :ref:`Multi-Field Example <highlight-egs>` below.
 
 The ``fruit`` collection has an :ref:`index definition 
 <ref-index-definitions>` that uses the :ref:`english 
@@ -180,8 +195,8 @@ The ``fruit`` collection has an :ref:`index definition
            { 
              $project: {
                "description": 1,
-                 "_id": 0,
-                 "highlights": { "$meta": "searchHighlights" }
+               "_id": 0,
+               "highlights": { "$meta": "searchHighlights" }
              }
            }
          ])
@@ -192,91 +207,91 @@ The ``fruit`` collection has an :ref:`index definition
          :copyable: false
 
          {
-	         "description" : "Bananas are usually sold in bunches of five or six. ",
-	         "highlights" : [
-		         {
-			         "path" : "description",
-			         "texts" : [
-				         {
-					         "value" : "Bananas are usually sold in ",
-					         "type" : "text"
-				         },
-				         {
-					         "value" : "bunches",
-					         "type" : "hit"
-				         },
-				         {
-					         "value" : " of five or six. ",
-					         "type" : "text"
-				         }
-			         ],
-			         "score" : 1.2816506624221802
-		         }
-	         ]
+           "description" : "Bananas are usually sold in bunches of five or six. ",
+           "highlights" : [
+             {
+               "path" : "description",
+               "texts" : [
+                 {
+                   "value" : "Bananas are usually sold in ",
+                   "type" : "text"
+                 },
+                 {
+                   "value" : "bunches",
+                   "type" : "hit"
+                 },
+                 {
+                   "value" : " of five or six. ",
+                   "type" : "text"
+                 }
+               ],
+               "score" : 1.2841906547546387
+             }
+           ]
          }
          {
-	         "description" : "Bosc and Bartlett are the most common varieties of pears.",
-	         "highlights" : [
-		         {
-			         "path" : "description",
-			         "texts" : [
-				         {
-					         "value" : "Bosc and Bartlett are the most common ",
-					         "type" : "text"
-				         },
-				         {
-					         "value" : "varieties",
-					         "type" : "hit"
-				         },
-				         {
-					         "value" : " of pears.",
-					         "type" : "text"
-				         }
-			         ],
-			         "score" : 1.2691514492034912
-		         }
-	         ]
+           "description" : "Bosc and Bartlett are the most common varieties of pears.",
+           "highlights" : [
+             {
+               "path" : "description",
+               "texts" : [
+                 {
+                   "value" : "Bosc and Bartlett are the most common ",
+                   "type" : "text"
+                 },
+                 {
+                   "value" : "varieties",
+                   "type" : "hit"
+                 },
+                 {
+                   "value" : " of pears.",
+                   "type" : "text"
+                 }
+               ],
+               "score" : 1.2691514492034912
+             }
+           ]
          }
          {
-	         "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith. ",
-	         "highlights" : [
-		         {
-			         "path" : "description",
-			         "texts" : [
-				         {
-					         "value" : "Apples come in several ",
-					         "type" : "text"
-				         },
-				         {
-					         "value" : "varieties",
-					         "type" : "hit"
-				         },
-				         {
-					         "value" : ", including Fuji, Granny Smith, and Honeycrisp. ",
-					         "type" : "text"
-				         }
-			         ],
-			         "score" : 1.0356334447860718
-		         },
-		         {
-			         "path" : "description",
-			         "texts" : [
-				         {
-					         "value" : "The most popular ",
-					         "type" : "text"
-				         },
-				         {
-					         "value" : "varieties",
-					         "type" : "hit"
-				         },
-				         {
-					         "value" : " are McIntosh, Gala, and Granny Smith. ",
-					         "type" : "text"
-				         }
-			         ],
-			         "score" : 1.0910683870315552
-		         }
-	         ]
+           "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith. ",
+           "highlights" : [
+             {
+               "path" : "description",
+               "texts" : [
+                 {
+                   "value" : "Apples come in several ",
+                   "type" : "text"
+                 },
+                 {
+                   "value" : "varieties",
+                   "type" : "hit"
+                 },
+                 {
+                   "value" : ", including Fuji, Granny Smith, and Honeycrisp. ",
+                   "type" : "text"
+                 }
+               ],
+               "score" : 1.0330637693405151
+             },
+             {
+               "path" : "description",
+               "texts" : [
+                 {
+                   "value" : "The most popular ",
+                   "type" : "text"
+                 },
+                 {
+                   "value" : "varieties",
+                   "type" : "hit"
+                 },
+                 {
+                   "value" : " are McIntosh, Gala, and Granny Smith. ",
+                   "type" : "text"
+                 }
+               ],
+               "score" : 1.0940992832183838
+             }
+           ]
          }
 
       The search term ``bunch`` returns a match on the document with 
@@ -319,7 +334,7 @@ The ``fruit`` collection has an :ref:`index definition
              $project: {
                "description": 1,
                "_id": 0,
-               "highlights": { "$meta": "searchHighlights" },
+               "highlights": { "$meta": "searchHighlights" }
              }
            }
          ])
@@ -392,6 +407,256 @@ The ``fruit`` collection has an :ref:`index definition
       required only ``1`` passage per document in the ``highlights`` 
       results.
 
+   .. tab:: Multi-Field Example 
+      :tabid: multi
+
+      The following query searches for ``varieties`` in the
+      ``description`` field of the ``fruit`` collection, with the
+      ``highlight`` option enabled for both the ``description`` 
+      and ``summary`` fields. 
+
+      The :manual:`$project </reference/operator/aggregation/project>` 
+      pipeline stage adds a new field called ``highlights``, which 
+      contains highlighting information for the query term across 
+      all fields in the ``highlight`` option. 
+
+      .. code-block:: json
+
+         db.fruit.aggregate([
+           {
+             $search: {
+               "text": {
+                 "path": "description",
+                 "query": "varieties"
+               },
+               "highlight": {
+                 "path": ["description", "summary" ]
+               }
+             }
+           },
+           {
+             $project: {
+               "description": 1,
+               "summary": 1,
+               "_id": 0,
+               "highlights": { "$meta": "searchHighlights" }
+             }
+           }
+         ])
+
+      The query returns the following results:
+
+      .. code-block:: json
+         :copyable: false
+         :emphasize-lines: 6, 19, 43, 57, 75
+
+         { 
+           "summary" : "Pear varieties", 
+           "description" : "Bosc and Bartlett are the most common varieties of pears.", 
+           "highlights" : [ 
+             { 
+               "path" : "summary", 
+               "texts" : [ 
+                 { 
+                   "value" : "Pear ", 
+                   "type" : "text" 
+                 }, 
+                 { 
+                   "value" : "varieties", 
+                   "type" : "hit" 
+                 } 
+               ], 
+               "score" : 1.3891443014144897 }, 
+             { 
+               "path" : "description", 
+               "texts" : [ 
+                 { 
+                   "value" : "Bosc and Bartlett are the most common ", 
+                   "type" : "text" 
+                 }, 
+                 { 
+                   "value" : "varieties", 
+                   "type" : "hit" 
+                 }, 
+                 { 
+                   "value" : " of pears.", 
+                   "type" : "text" 
+                 } 
+               ], 
+               "score" : 1.2691514492034912 
+             } 
+           ] 
+         }
+         { 
+           "summary" : "Apple varieties", 
+           "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.", 
+           "highlights" : [ 
+             {  
+               "path" : "summary", 
+               "texts" : [ 
+                 { 
+                   "value" : "Apple ", 
+                   "type" : "text" 
+                 }, 
+                 { 
+                   "value" : "varieties", 
+                   "type" : "hit" 
+                 } 
+               ], 
+               "score" : 1.3859853744506836 
+             }, 
+             { 
+               "path" : "description", 
+               "texts" : [ 
+                 { 
+                   "value" : "Apples come in several ", 
+                   "type" : "text" 
+                 }, 
+                 { 
+                   "value" : "varieties", 
+                   "type" : "hit" 
+                 }, 
+                 { 
+                   "value" : ", including Fuji, Granny Smith, and Honeycrisp. ", 
+                   "type" : "text" 
+                 } 
+               ], 
+               "score" : 1.0330637693405151 
+             }, 
+             { 
+               "path" : "description", 
+               "texts" : [ 
+                 { 
+                   "value" : "The most popular ", 
+                   "type" : "text" 
+                 }, 
+                 { 
+                   "value" : "varieties", 
+                   "type" : "hit" 
+                 }, 
+                 { 
+                   "value" : " are McIntosh, Gala, and Granny Smith.", 
+                   "type" : "text" 
+                 } 
+               ], 
+               "score" : 1.0940992832183838 
+             } 
+           ] 
+         }
+
+      The search term ``varieties`` returns a match on documents with 
+      ``_id: 1`` and ``_id: 3`` because the query field ``description`` 
+      in both documents contains the query term ``varieties``. In 
+      addition, the ``highlights`` array includes the ``summary`` field 
+      because the field contains the query term ``varieties``.
+
+   .. tab:: Wildcard Example 
+      :tabid: wildcard
+
+      The following query searches for the term ``varieties`` in fields 
+      that begin with ``des`` in the ``fruit`` collection, with the 
+      ``highlight`` option enabled for fields that begin with ``des``. 
+
+      The :manual:`$project </reference/operator/aggregation/project>` 
+      pipeline stage adds a new field called ``highlights``, which 
+      contains highlighting information. 
+
+      .. code-block:: json
+
+         db.fruit.aggregate([
+           {
+             $search: {
+               "text": {
+                 "path": {"wildcard": "des*"},
+                 "query": ["variety"]
+               },
+               "highlight": { 
+                 "path": {"wildcard": "des*"}
+               }
+             }
+           }, 
+           { 
+             $project: {
+               "description": 1,
+               "_id": 0,
+               "highlights": { "$meta": "searchHighlights" }
+             }
+           }
+         ])
+
+      The query returns the following results:
+
+      .. code-block:: json
+         :copyable: false
+         :emphasize-lines: 5, 27, 45
+
+         { 
+           "description" : "Bosc and Bartlett are the most common varieties of pears.", 
+           "highlights" : [ 
+             { 
+               "path" : "description", 
+               "texts" : [ 
+                 { 
+                   "value" : "Bosc and Bartlett are the most common ", 
+                   "type" : "text" 
+                 }, 
+                 { 
+                   "value" : "varieties", 
+                   "type" : "hit" 
+                 }, 
+                 { 
+                   "value" : " of pears.", 
+                   "type" : "text" 
+                 } 
+               ], 
+               "score" : 1.2691514492034912 } 
+           ] 
+         }
+         { 
+           "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.", 
+           "highlights" : [ 
+             { 
+               "path" : "description", 
+               "texts" : [ 
+                 { 
+                   "value" : "Apples come in several ", 
+                   "type" : "text" 
+                 }, 
+                 { 
+                   "value" : "varieties", 
+                   "type" : "hit" 
+                 }, 
+                 { 
+                   "value" : ", including Fuji, Granny Smith, and Honeycrisp. ", 
+                   "type" : "text" 
+                 } 
+               ], 
+               "score" : 1.0330637693405151 
+             }, 
+             { 
+               "path" : "description", 
+               "texts" : [ 
+                 { 
+                   "value" : "The most popular ", 
+                   "type" : "text" 
+                 }, 
+                 { 
+                   "value" : "varieties", 
+                   "type" : "hit" 
+                 }, 
+                 { 
+                   "value" : " are McIntosh, Gala, and Granny Smith.", 
+                   "type" : "text" 
+                 } 
+               ], 
+               "score" : 1.0940992832183838 
+             } 
+           ] 
+         }
+
+      The documents in the above results contain highlight for fields 
+      that begin with ``des``. 
+
 Output 
 ------
 
@@ -400,6 +665,7 @@ output fields:
 
 .. list-table::
    :header-rows: 1
+   :widths: 20 10 70
 
    * - Field
      - Type
