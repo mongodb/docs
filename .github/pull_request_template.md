@@ -15,3 +15,7 @@ https://docs-mongodborg-staging.corp.mongodb.com/NNNNNNN/java/docsworker-xlarge/
 - [ ] Are all the links working?
 - [ ] Are the staging links in the PR description updated?
 
+### If your page documents a concept, does it meet the following criteria?
+
+- [ ] Target the [Jasmin persona](https://drive.google.com/file/d/14FbBOLCVxwSP6M9BK4Nz1Ir9tzxT8_02/view)
+- [ ] Target the [Lucas persona](https://drive.google.com/file/d/1J2vqJxo7ldv7OP_obA9Q-avf0o_ju4Lk/view)
