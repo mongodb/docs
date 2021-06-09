@@ -1,6 +1,6 @@
-=========================
-Data Types in ``mongosh``
-=========================
+======================
+``mongosh`` Data Types
+======================
 
 .. default-domain:: mongodb
 
@@ -10,22 +10,24 @@ Data Types in ``mongosh``
    :depth: 2
    :class: singlecol
 
-MongoDB :term:`BSON` provides support for additional data types than
-:term:`JSON`. :ecosystem:`Drivers </drivers>` provide native support for
-these data types in host languages and ``mongosh`` also provides several
-helper classes to support the use of these data types. See the
-:manual:`Extended JSON </reference/mongodb-extended-json>` reference for
-additional information.
-
 .. _mongo-shell-data-type:
 
-Types
------
+MongoDB Server stores data using the
+:manual:`BSON </reference/bson-types>` format which supports some
+additional data types that are not available using the :term:`JSON`
+format. Compared to the legacy ``mongo`` shell, MongoDB Shell
+(``mongosh``) has type handling which is better aligned with the
+default types used by the MongoDB :ecosystem:`drivers </drivers>`. 
+
+This document highlights changes in type usage between ``mongosh`` and
+the legacy ``mongo`` shell. See the 
+:manual:`Extended JSON </reference/mongodb-extended-json>` reference for
+additional information on supported types.
 
 .. _mongo-shell-date-type:
 
 Date
-~~~~
+----
 
 ``mongosh`` provides various methods to return the date, either as a
 string or as a ``Date`` object:
@@ -38,8 +40,135 @@ string or as a ``Date`` object:
 - ``ISODate()`` constructor which returns a ``Date`` object using the
   ``ISODate()`` wrapper.
 
+
+ObjectId
+--------
+
+``mongosh`` provides the ``ObjectId()`` wrapper class around the
+:ref:`objectid` data type. To generate a new ObjectId, use the following
+operation in ``mongosh``:
+
+.. code-block:: javascript
+
+   new ObjectId
+
+.. seealso::
+
+   :method:`ObjectId` 
+
+.. _shell-type-int:
+
+Int32
+-----
+
+If a number can be converted to a 32-bit integer, ``mongosh`` will
+store it as ``Int32``. If not, ``mongosh`` defaults to storing the
+number as a ``Double``. Numerical values that are stored as ``Int32``
+in ``mongosh`` would have been stored by default as ``Double`` in the
+``mongo`` shell.
+
+The :node-api:`Int32() <Int32.html>` constructor can be used to
+explicitly specify 32-bit integers.
+
+.. code-block:: javascript
+
+      db.types.insertOne(
+         {
+             "_id": 1,
+             "value": Int32("1"),
+             "expectedType": "Int32" 
+         }
+      )
+
+.. warning::
+
+   Default ``Int32`` and ``Double`` types may be stored inconsistently
+   if you connect to the same collection using both ``mongosh`` and the
+   legacy ``mongo`` shell. 
+
+.. _shell-type-long:
+
+Long
+----
+
+The :node-api:`Long() <Long.html>` constructor can be used to
+explicitly specify a 64-bit integer.
+
+.. code-block:: javascript
+
+      db.types.insertOne(
+         {
+            "_id": 3,
+            "value": Long("1"),
+            "expectedType": "Long" 
+         }
+      )
+
+.. note::
+
+   In the legacy :binary:`~bin.mongo` shell ``NumberLong()`` accepted
+   either a string or integer value. In ``mongosh``, ``NumberLong()``
+   only accepts string values. :node-api:`Long() <Long.html>` provides
+   methods to manage conversions to and from 64-bit values. 
+
+.. _shell-type-decimal:
+
+Decimal128
+----------
+
+:node-api:`Decimal128() <Decimal128.html>` values are  128-bit
+decimal-based floating-point numbers that emulate decimal rounding with
+exact precision. 
+
+This functionality is intended for applications that handle
+:manual:`monetary data </tutorial/model-monetary-data>`, such as
+financial, tax, and scientific computations. 
+
+The ``Decimal128`` :manual:`BSON type </reference/bson-types>`
+uses the IEEE 754 decimal128 floating-point numbering format which
+supports 34 decimal digits (i.e. significant digits) and an exponent
+range of −6143 to +6144.
+
+.. code-block:: javascript
+
+      db.types.insertOne(
+         {
+             "_id": 5,
+             "value": Decimal128("1"),
+             "expectedType": "Decimal128" 
+         }
+      )
+
+
+.. note:: To use the ``Decimal128`` data type with a
+   :ecosystem:`MongoDB driver </drivers/>`, be sure to use a driver
+   version that supports it.
+
+Equality and Sort Order
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Values of the ``Decimal128`` type are compared and sorted with other
+numeric types based on their actual numeric value.  Numeric values
+of the binary-based ``Double`` type generally have approximate
+representations of decimal-based values and may not be exactly
+equal to their decimal representations.
+
+.. _check-types-in-shell:
+      
+Type Checking
+-------------
+
+Use the :query:`$type` query operator to determine types. The
+Javascript ``instanceof`` and ``typeof`` operators are not reliable
+in ``mongosh``. For example, ``instanceof`` assigns BSON values in a
+server response to a different base class than user supplied values. 
+
+
+Examples
+--------
+
 Return Date as a String
-```````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~
 
 To return the date as a string, use the ``Date()`` method, as in the
 following example:
@@ -58,6 +187,7 @@ shell, as in the following:
 The result is the value of ``myDateString``:
 
 .. code-block:: javascript
+   :copyable: false
 
    Wed Dec 19 2012 01:03:25 GMT-0500 (EST)
 
@@ -70,7 +200,7 @@ To verify the type, use the ``typeof`` operator, as in the following:
 The operation returns ``string``.
 
 Return ``Date``
-```````````````
+~~~~~~~~~~~~~~~
 
 ``mongosh`` wraps objects of ``Date`` type with the
 ``ISODate`` helper; however, the objects remain of type ``Date``.
@@ -97,266 +227,264 @@ The result is the ``Date`` value of ``myDate`` wrapped in the
 ``ISODate()`` helper:
 
 .. code-block:: javascript
+   :copyable: false
 
    ISODate("2012-12-19T06:01:17.171Z")
 
-To verify the type, use the ``instanceof`` operator, as in the
-following:
+To verify the type:
 
 .. code-block:: javascript
 
-   myDate instanceof Date
-   myDateInitUsingISODateWrapper instanceof Date
+   var myDate = ISODate("2021-03-21T06:00:00.171Z")
+   Object.prototype.toString.call(myDate) === "[object Date]"
 
-The operation returns ``true`` for both.
+The operation returns ``true``.
 
-ObjectId
-~~~~~~~~
-
-``mongosh`` provides the ``ObjectId()`` wrapper class around the
-:ref:`objectid` data type. To generate a new ObjectId, use the following
-operation in ``mongosh``:
-
-.. code-block:: javascript
-
-   new ObjectId
-
-.. seealso::
-
-   :method:`ObjectId`
-
-.. _shell-type-long:
-
-NumberLong
-~~~~~~~~~~
-
-If a number can be converted to a 32-bit ``int``, ``mongosh`` will
-store it in that form. If not, ``mongosh`` defaults to storing the
-number as a ``double``. The ``NumberLong()`` wrapper can convert the
-type to a 64-bit integer.
-
-The ``NumberLong()`` wrapper accepts the long as a string:
-
-.. code-block:: javascript
-
-   NumberLong("2090845886852")
-
-The following examples use the ``NumberLong()`` wrapper to write to the
-collection:
-
-.. code-block:: javascript
-
-   db.collection.insertOne( { _id: 10, calc: NumberLong("2090845886852") } )
-   db.collection.updateOne( { _id: 10 },
-                         { $set:  { calc: NumberLong("2555555000000") } } )
-   db.collection.updateOne( { _id: 10 },
-                         { $inc: { calc: NumberLong("5") } } )
-
-Retrieve the document to verify:
-
-.. code-block:: javascript
-
-   db.collection.findOne( { _id: 10 } )
-
-In the returned document, the ``calc`` field contains a
-``NumberLong`` object:
-
-.. code-block:: sh
-
-   { "_id" : 10, "calc" : NumberLong("2555555000005") }
-
-If you use the :update:`$inc` to increment the value of a field that
-contains a ``NumberLong`` object by a **float**, the data type changes
-to a floating point value, as in the following example:
-
-#. Use :update:`$inc` to increment the ``calc`` field by ``5``, which
-   ``mongosh`` treats as a float:
-
-   .. code-block:: javascript
-
-      db.collection.updateOne( { _id: 10 },
-                            { $inc: { calc: 5 } } )
-
-#. Retrieve the updated document:
-
-   .. code-block:: javascript
-
-      db.collection.findOne( { _id: 10 } )
-
-   In the updated document, the ``calc`` field contains a floating
-   point value:
-
-   .. code-block:: sh
-
-      { "_id" : 10, "calc" : 2555555000010 }
-
-.. note::
-
-   In the legacy :binary:`~bin.mongo` shell, ``NumberLong`` can accept
-   either a string or integer value. In ``mongosh``, ``NumberLong`` can
-   only accept a string value.
-
-.. _shell-type-int:
-
-NumberInt
-~~~~~~~~~
-
-If a number can be converted to a 32-bit ``int``, ``mongosh`` will
-store it in that form. If not, ``mongosh`` defaults to storing the
-number as a ``double``. The ``NumberInt()`` constructor can be used to
-explicitly specify 32-bit integers.
-
-.. _shell-type-decimal:
-
-NumberDecimal
+Numeric Types
 ~~~~~~~~~~~~~
 
-If a number can be converted to a 32-bit ``int``, ``mongosh`` will
-store it in that form. If not, ``mongosh`` defaults to storing the
-number as a ``double``. The ``NumberDecimal()`` constructor can be
-used to explicitly specify 128-bit decimal-based floating-point values
-that are capable of emulating decimal rounding with exact precision. 
-
-This functionality is intended for applications that handle
-:manual:`monetary data </tutorial/model-monetary-data>`, such as
-financial, tax, and scientific computations. 
-
-The ``decimal`` :manual:`BSON type </reference/bson-types>`
-uses the IEEE 754 decimal128 floating-point numbering format which
-supports 34 decimal digits (i.e. significant digits) and an exponent
-range of −6143 to +6144.
-
-The ``NumberDecimal()`` constructor accepts the ``decimal`` value as a
-string:
+Consider the  ``types`` collection:
 
 .. code-block:: javascript
 
-   NumberDecimal("1000.55")
-   
-The value is stored in the database as follows:
+   { _id: 1, value: 1, expectedType: 'Int32' },
+   { _id: 2, value: Long("1"), expectedType: 'Long' },
+   { _id: 3, value: 1.01, expectedType: 'Double' },
+   { _id: 4, value: Decimal128("1.01"), expectedType: 'Decimal128' },
+   { _id: 5, value: 3200000001, expectedType: 'Double' }
 
-.. code-block:: javascript
-
-   NumberDecimal("1000.55")
-
-.. note::
-
-   In the legacy :binary:`~bin.mongo` shell, ``NumberLong`` can accept
-   either a string or double value. In ``mongosh``, ``NumberLong`` can
-   only accept a string value.
-
-.. note:: To use the ``decimal`` data type with a
-   :ecosystem:`MongoDB driver </drivers/>`, be sure to use a driver
-   version that supports it.
-
-Equality and Sort Order
-```````````````````````
-
-Values of the ``decimal`` type are compared and sorted with other
-numeric types based on their actual numeric value.  Numeric values
-of the binary-based ``double`` type generally have approximate
-representations of decimal-based values and may not be exactly
-equal to their ``decimal`` representations, so use the
-``NumberDecimal()`` constructor when checking the equality of
-``decimal`` values. Consider the following examples with the following
-documents in the ``numbers`` collection:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "val" : NumberDecimal( "9.99" ), "description" : "Decimal" }
-   { "_id" : 2, "val" : 9.99, "description" : "Double" }
-   { "_id" : 3, "val" : 10, "description" : "Int" }
-   { "_id" : 4, "val" : NumberLong("10"), "description" : "Long" }
-   { "_id" : 5, "val" : NumberDecimal( "10.0" ), "description" : "Decimal" }
-
-When the queries from the table below are plugged into the
-``db.numbers.find(<query>)`` method, the following results are
-returned:
+This table shows the results of the ``db.types.find( <QUERY> )``
+command for the corresponding ``<QUERY>``. The type names and aliases
+are given on the :manual:`BSON types </reference/bson-types>` page.
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 70
+   :widths: 40 60
 
    * - Query
      - Results
 
-   * - **{ "val": 9.99 }**
-     - **{ "_id": 2, "val": 9.99, "description": "Double" }**
+   * -  .. code-block:: javascript
+           :copyable: false
+
+           {
+              "value":
+                 {
+                    $type: "int"
+                 }
+           }
+
+     -  .. code-block:: javascript
+           :copyable: false
+
+           {
+              _id: 1,
+              value: 1,
+              expectedType: 'Int32'
+           }
      
-   * - **{ "val": NumberDecimal( "9.99" ) }**
-     - **{ "_id": 1, "val": NumberDecimal( "9.99" ), "description": "Decimal" }**
+   * - .. code-block:: javascript
+          :copyable: false
 
-   * - **{ val: 10 }**
-     - | **{ "_id": 3, "val": 10, "description": "Int" }**
-       | **{ "_id": 4, "val": 10, "description": "Long" }**
-       | **{ "_id": 5, "val": NumberDecimal( "10.0" ), "description": "Decimal" }**
+          {
+             "value":
+                {
+                   $type: "long"
+                }
+          }
 
-   * - **{ val: NumberDecimal( "10" ) }**
-     - | **{ "_id": 3, "val": 10, "description": "Int" }**
-       | **{ "_id": 4, "val": 10, "description": "Long" }**
-       | **{ "_id": 5, "val": NumberDecimal( "10.0" ), "description": "Decimal" }**
+     -  .. code-block:: javascript
+           :copyable: false
+
+           {
+              _id: 2,
+              value: Long("1"),
+              expectedType: 'Long'
+           }
+
+   * -  .. code-block:: javascript
+           :copyable: false
+
+           {
+              "value":
+                 {
+                    $type: "decimal"
+                 }
+           }
+
+     -  .. code-block:: javascript
+           :copyable: false
+
+           {
+              _id: 4,
+              value: Decimal128("1"),
+              expectedType: 'Decimal128'
+           }
+
+   * -  .. code-block:: javascript
+           :copyable: false
+
+           {
+              "value":
+                 {
+                    $type: "double"
+                 }
+           }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          {
+             _id: 3,
+             value: 1.01,
+             expectedType: 'Double'
+          }
+          {
+             _id: 5,
+             value: 3200000001,
+             expectedType: 'Double'
+          }
+
+   * -  .. code-block:: javascript
+           :copyable: false
+
+           {
+              "value":
+                 {
+                    $type: "number"
+                 }
+           }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          {
+              _id: 1,
+              value: 1,
+              expectedType: 'Int32'
+          }
+          {
+              _id: 2,
+              value: Long("1"),
+              expectedType: 'Long'
+          }
+          {
+              _id: 3,
+              value: 1.01,
+              expectedType: 'Double'
+          }
+          {
+              _id: 4,
+              value: Decimal128("1.01"),
+              expectedType: 'Decimal128'
+          }
+          {
+              _id: 5,
+              value: 3200000001,
+              expectedType: 'Double'
+          }
+ 
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+              "value": 1.01 
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          { 
+              _id: 3,
+              value: 1.01,
+              expectedType: 'Double'
+          }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { 
+              "value": 1
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+          
+          { 
+              _id: 1,
+              value: 1,
+              expectedType: 'Int32'
+          }
+          {
+              _id: 2,
+              value: Long("1"),
+              expectedType: 'Long'
+          }
+
+The query ``{ "value": 1.01 }`` implicitly searches for the
+``Double`` representation of ``1.01``. Document ``_id: 4`` is a 
+``Decimal128`` so it is not selected. 
+
+Note, however, that ``{ "value": 1 }`` returns both ``Int32`` and
+``Long`` types.
+
+Default Numeric Type Consistency
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the ``typeExample`` collection. This collection consists of
+two identical documents, ``{ "a": 1 }``. The first document was created
+in the legacy ``mongo`` shell, the second document was created in
+``mongosh``. 
+
+We can use the :expression:`$type` operator in an aggregation pipeline
+to see the type that was assigned in each shell. 
+
+.. code-block:: javascript
+
+   db.typeExample.aggregate( 
+     [ 
+       {
+          $project: 
+            { 
+              "valueType": 
+                {
+                  "$type": "$a"
+                },
+              "_id": 0
+            }
+       }
+     ]
+   )
+
+In the first document, created in the legacy ``mongo`` shell, the value
+was stored as a ``double``. In the ``mongosh`` document the value was
+stored as type ``int``.
+
+.. code-block:: javascript
+   .. :copyable: false
+
+   [
+     { 
+        valueType: 'double'  // inserted in legacy mongo shell
+     },
+     {
+        valueType: 'int'     // inserted in mongosh
+     }
+   ]
 
 
-The first query, ``{ "val": 9.99 }``, implicitly searches for the
-``double`` representation of ``9.99`` which is not equal to the
-``decimal`` representation of the value.
+Type Checking, ``$type()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``NumberDecimal()`` constructor is used to query for the document
-with the ``decimal`` representation of ``9.99``. Values of the
-``double`` type are excluded because they do not match the exact value
-of the ``decimal`` representation of ``9.99``.
+The :query:`$type` query operator accepts either a string alias or a
+numeric code corresponding to the data type. See
+:manual:`BSON Types</reference/bson-types>` for a list of BSON data
+types and their corresponding numeric codes.
 
-Matching values of all numeric types are returned when querying for
-whole numbers. For example, querying for a ``double`` representation of
-``10`` will include a ``decimal`` representation of ``10.0`` in the
-results and vice versa.
-
-Checking for ``decimal`` Type
-`````````````````````````````
-
-To test for ``decimal`` type, use the :query:`$type` operator with the
-string alias ``"decimal"`` or ``19``, the numeric code for the
-``decimal`` type.
+For example, these checks for the ``Decimal128`` type are equivalent:
  
 .. code-block:: javascript
 
-   db.inventory.find( { price: { $type: "decimal" } } )
+   db.types.find( { "value": { $type: "decimal" } } )
+   db.types.find( { "value": { $type: 19 } } )
 
-.. _check-types-in-shell:
-      
-Check Types in the MongoDB Shell, ``mongosh``
----------------------------------------------
-
-To determine the type of fields, ``mongosh`` provides the ``instanceof``
-and ``typeof`` operators.
-
-
-``instanceof``
-~~~~~~~~~~~~~~
-
-``instanceof`` returns a boolean to test if a value is an instance of
-some type.
-
-For example, the following operation tests whether the ``_id`` field is
-an instance of type ``ObjectId``:
-
-.. code-block:: javascript
-
-   mydoc._id instanceof ObjectId
-
-The operation returns ``true``.
-
-``typeof``
-~~~~~~~~~~
-
-``typeof`` returns the type of a field.
-
-For example, the following operation returns the type of the ``_id``
-field:
-
-.. code-block:: javascript
-
-   typeof mydoc._id
-
-In this case ``typeof`` will return the more generic ``object`` type
-rather than ``ObjectId`` type.
