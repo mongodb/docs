@@ -1,5 +1,13 @@
 .. _data-lake-v20210511:
 
+8 June 2021 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Improves stability and performance.
+- Supports public S3 data stores with the ``public`` configuration flag.
+- Supports Zstandard compression.
+- Adds ``db`` field to ``dbStats`` result.
+
 11 May 2021 Release
 ~~~~~~~~~~~~~~~~~~~
 
