@@ -1,4 +1,4 @@
-When you run the ``QuickStart`` class, it should output the details of the 
+When you run the ``QuickStart`` class, it should output the details of the
 movie from the sample dataset which will look something like this:
 
 .. code-block:: json
@@ -14,4 +14,4 @@ movie from the sample dataset which will look something like this:
 
 If you receive no output or an error, check whether you included the proper
 connection string in your Java class, and whether you loaded the sample dataset
-in your MongoDB Atlas cluster
+into your MongoDB Atlas cluster.
