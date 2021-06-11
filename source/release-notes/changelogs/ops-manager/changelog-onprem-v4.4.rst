@@ -1,3 +1,13 @@
+.. _opsmgr-server-4.4.14:
+
+|onprem| Server 4.4.14
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-06-10*
+
+- Fixes a bug that caused restore to fail due to an invalid tar header 
+  for filesystem stores.
+
 .. _opsmgr-server-4.4.13:
 
 |onprem| Server 4.4.13
