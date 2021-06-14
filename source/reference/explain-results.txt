@@ -21,9 +21,22 @@ query plans, MongoDB provides:
 
 - the :dbcommand:`explain` command.
 
+This page shows the output for the explain results in different versions
+of MongoDB.
+
+.. note::
+
+   - Only the most important output fields are shown on this page.
+
+   - The output is subject to change.
+
+Explain Output Structure
+------------------------
+
 The ``explain`` results present the query plans as a tree of stages.
 
 .. code-block:: javascript
+   :copyable: false
 
    "winningPlan" : {
       "stage" : <STAGE1>,
@@ -56,18 +69,218 @@ Stages are descriptive of the operation; e.g.
 
 - ``SHARDING_FILTER`` for filtering out orphan documents from shards
 
-Explain Output
---------------
+.. _explain-results-enhanced-execution:
 
-The following sections presents a list of some key fields returned by
-the ``explain`` operation.
+Explain Output for MongoDB 5.1 and Later
+----------------------------------------
+
+.. versionadded:: 5.1
+
+This section shows the ``explain`` output for MongoDB 5.1 and later.
+
+Starting in MongoDB 5.1, if
+:parameter:`internalQueryEnableSlotBasedExecutionEngine` parameter is:
+
+- ``true`` (the default):
+
+  - Enhanced query execution is used if possible.
+
+  - If enhanced query execution is used, the ``explain`` output has
+    the structure shown in this section. If not used, the output is the
+    same as if :parameter:`internalQueryEnableSlotBasedExecutionEngine`
+    is ``false``.
+
+- ``false``:
+
+  - Enhanced query execution is not used.
+
+  - The ``explain`` output has the structure shown in
+    :ref:`explain-results-4.4` with these exceptions in MongoDB 5.1:
+    
+    .. include:: /includes/explain-results-exceptions.rst
+
+.. include:: /includes/explainVersion.rst
+
+.. tabs::
+
+   tabs:
+
+      - id: unsharded
+        name: "Unsharded Collections"
+        content: |
+
+            .. code-block:: javascript
+               :copyable: false
+
+               "explainVersion" : <string>, // Starting in MongoDB 5.1
+               "queryPlanner" : {
+                  ...
+                  "winningPlan" : {
+                     "queryPlan" : { // Starting in MongoDB 5.1
+                        "stage" : <STAGE1>,
+                        "planNodeId" : <int>, // Starting in MongoDB 5.1
+                        ...
+                     },
+                     "slotBasedPlan" : { // Starting in MongoDB 5.1
+                        ...
+                     }
+                  },
+                  ...
+               },
+               "executionStats" : {
+                  ...
+                  "executionStages" : {
+                     ...
+                     "inputStage" : {
+                        "stage" : <STAGE2>,
+                        "planNodeId" : <int>, // Starting in MongoDB 5.1
+                        ...
+                        "inputStage" : {
+                           "stage" : <STAGE3>,
+                           "planNodeId" : <int>, // Starting in MongoDB 5.1
+                           ...
+                        },
+                        ...
+                     }
+                  }
+               }
+
+      - id: sharded
+        name: "Sharded Collections"
+        content: |
+
+            .. code-block:: javascript
+               :copyable: false
+
+               "queryPlanner" : {
+                  ...
+                  "winningPlan" : {
+                     "stage" : <STAGE1>,
+                     "shards" : [
+                        {
+                           ...
+                           "winningPlan" : {
+                              "queryPlan" : { // Starting in MongoDB 5.1
+                                 "stage" : <STAGE2>,
+                                 "planNodeId" : <int>, // Starting in MongoDB 5.1
+                                 ...
+                              },
+                              "slotBasedPlan" : { // Starting in MongoDB 5.1
+                                 ...
+                              },
+                              ...
+                           },
+                           ...
+                        },
+                        ...
+                     ]
+                  }
+               },
+               "executionStats" : {
+                  ...
+                  "executionStages" : {
+                     "stage" : <STAGE1>,
+                     ...
+                     "shards" : [
+                        {
+                           ...
+                           "executionStages" : {
+                              "stage" : <STAGE2>,
+                              "planNodeId" : <int>, // Starting in MongoDB 5.1
+                              ...
+                              "inputStage" : {
+                                 "stage" : <STAGE3>,
+                                 "planNodeId" : <int>, // Starting in MongoDB 5.1
+                                 ...
+                                 "inputStage" : {
+                                    "stage" : <STAGE4>,
+                                    "planNodeId" : <int>, // Starting in MongoDB 5.1
+                                    ...
+                                 },
+                                 ...
+                              },
+                              ...
+                           }
+                        }
+                     ]
+                  }
+               }
+
+.. data:: explain.explainVersion
+
+   Integer field with the explain planner version.
+
+   .. include:: /includes/explainVersion.rst
+
+   .. versionadded:: 5.1
+
+.. data:: explain.queryPlanner.winningPlan.queryPlan
+
+   A document that details the plan selected by the :doc:`query
+   optimizer </core/query-plans>`. MongoDB presents the plan as a tree
+   of stages.
+
+   .. versionadded:: 5.1
+
+   .. data:: explain.queryPlanner.winningPlan.queryPlan.stage
+
+      A string that denotes the name of the stage.
+
+      Each stage consists of information specific to the stage. For
+      instance, an ``IXSCAN`` stage will include the index bounds
+      along with other data specific to the index scan.
+
+   .. data:: explain.queryPlanner.winningPlan.queryPlan.planNodeId
+
+      Unique integer field that identifies each stage in the execution
+      plan. Field is included in all stages throughout the ``explain``
+      results.
+
+      .. versionadded:: 5.1
+
+.. data:: explain.queryPlanner.winningPlan.slotBasedPlan
+
+   Document with information about the enhanced query execution plan
+   tree and stages.
+
+   .. versionadded:: 5.1
+
+.. _explain-results-4.4:
+
+Explain Output for MongoDB 4.4 and Earlier
+------------------------------------------
+
+This section shows the ``explain`` output for MongoDB 4.4 and earlier.
 
 .. note::
 
-   - The list of fields is not meant to be exhaustive, but is meant to
-     highlight some key field changes from earlier versions of explain.
+   Starting in MongoDB 5.1, if
+   :parameter:`internalQueryEnableSlotBasedExecutionEngine` parameter
+   is:
+   
+   - ``false``:
+   
+     - Enhanced query execution is not used.
+   
+     - The ``explain`` results have the structure shown in this section
+       with these exceptions:
 
-   - The output format is subject to change between releases.
+       .. include:: /includes/explain-results-exceptions.rst
+
+       .. include:: /includes/explainVersion.rst
+
+   - ``true`` (the default):
+   
+     - Enhanced query execution is used if possible.
+   
+     - If enhanced query execution is used, the ``explain`` output has
+       the structure shown in :ref:`explain-results-enhanced-execution`.
+       If not used, the output is the same as if
+       :parameter:`internalQueryEnableSlotBasedExecutionEngine` is
+       ``false``.
+
+The following sections presents a list of some key fields returned by
+the ``explain`` operation.
 
 .. _queryPlanner:
 
@@ -88,7 +301,8 @@ the :doc:`query optimizer </core/query-plans>`.
             For unsharded collections, ``explain`` returns the following
             ``queryPlanner`` information:
 
-            .. code-block:: none
+            .. code-block:: javascript
+               :copyable: false
 
                "queryPlanner" : {
                   "plannerVersion" : <int>,
@@ -124,7 +338,8 @@ the :doc:`query optimizer </core/query-plans>`.
             query planner and server information for each accessed
             shard in the ``shards`` field:
 
-            .. code-block:: none
+            .. code-block:: javascript
+               :copyable: false
 
                "queryPlanner" : {
                   "mongosPlannerVersion" : <int>,
@@ -303,7 +518,8 @@ execution of the winning plan. In order to include
             For unsharded collections, ``explain`` returns the following
             ``executionStats`` information:
 
-            .. code-block:: none
+            .. code-block:: javascript
+               :copyable: false
 
                "executionStats" : {
                   "executionSuccess" : <boolean>,
@@ -315,6 +531,8 @@ execution of the winning plan. In order to include
                      "stage" : <STAGE1>
                      "nReturned" : <int>,
                      "executionTimeMillisEstimate" : <int>,
+                     "opens" : <int>, // Starting in MongoDB 5.1
+                     "closes" : <int>, // Starting in MongoDB 5.1
                      "works" : <int>,
                      "advanced" : <int>,
                      "needTime" : <int>,
@@ -326,6 +544,9 @@ execution of the winning plan. In order to include
                      "inputStage" : {
                         "stage" : <STAGE2>,
                         "nReturned" : <int>,
+                        ...
+                        "numReads" : <int>, // Starting in MongoDB 5.1
+                        ...
                         "executionTimeMillisEstimate" : <int>,
                         ...
                         "inputStage" : {
@@ -365,6 +586,7 @@ execution of the winning plan. In order to include
             statistics for each accessed shard.
 
             .. code-block:: javascript
+               :copyable: false
 
                "executionStats" : {
                   "nReturned" : <int>,
@@ -375,6 +597,8 @@ execution of the winning plan. In order to include
                      "stage" : <STAGE1>
                      "nReturned" : <int>,
                      "executionTimeMillis" : <int>,
+                     "opens" : <int>, // Starting in MongoDB 5.1
+                     "closes" : <int>, // Starting in MongoDB 5.1
                      "totalKeysExamined" : <int>,
                      "totalDocsExamined" : <int>,
                      "totalChildMillis" : <NumberLong>,
@@ -390,6 +614,8 @@ execution of the winning plan. In order to include
                               "chunkSkips" : <int>,
                               "inputStage" : {
                                  "stage" : <STAGE3>,
+                                 ...
+                                 "numReads" : <int>, // Starting in MongoDB 5.1
                                  ...
                                  "inputStage" : {
                                     ...
@@ -491,12 +717,29 @@ execution of the winning plan. In order to include
       stages; i.e. a stage can have an ``inputStage`` or multiple
       ``inputStages``.
 
+      Starting in MongoDB 5.1, if
+      :parameter:`internalQueryEnableSlotBasedExecutionEngine` is
+      ``true``, a stage can have these input stages: ``thenStage``,
+      ``elseStage``, ``innerStage``, and ``outerStage``.
+
       Each stage consists of execution information specific to the
       stage.
 
       .. data:: explain.executionStats.executionStages.executionTimeMillisEstimate
 
          The estimated amount of time in milliseconds for query execution.
+
+      .. data:: explain.executionStats.executionStages.opens
+
+         The number of times a stage was opened during query execution.
+
+         .. include:: /includes/executionStages-included-field.rst
+
+      .. data:: explain.executionStats.executionStages.closes
+
+         The number of times a stage was closed during query execution.
+
+         .. include:: /includes/executionStages-included-field.rst
 
       .. data:: explain.executionStats.executionStages.works
 
@@ -507,10 +750,14 @@ execution of the winning plan. In order to include
          projection to a single document, or doing a piece of internal
          bookkeeping.
 
+         .. include:: /includes/executionStages-omitted-field.rst
+
       .. data:: explain.executionStats.executionStages.advanced
 
          The number of intermediate results returned, or *advanced*, by
          this stage to its parent stage.
+
+         .. include:: /includes/executionStages-omitted-field.rst
 
       .. data:: explain.executionStats.executionStages.needTime
 
@@ -523,10 +770,14 @@ execution of the winning plan. In order to include
          :data:`explain.executionStats.executionStages.needTime` rather
          than :data:`explain.executionStats.executionStages.advanced`.
 
+         .. include:: /includes/executionStages-omitted-field.rst
+
       .. data:: explain.executionStats.executionStages.needYield
 
          The number of times that the storage layer requested that the
          query stage suspend processing and yield its locks.
+
+         .. include:: /includes/executionStages-omitted-field.rst
 
       .. data:: explain.executionStats.executionStages.saveState
 
@@ -599,6 +850,18 @@ execution of the winning plan. In order to include
 
          The number of times that we had to seek the index cursor to
          a new position in order to complete the index scan.
+
+      .. data:: explain.executionStats.executionStages.inputStage.numReads
+
+         .. versionadded:: 5.1
+
+         The number of documents scanned or index keys examined during
+         the query execution stage. Included for ``scan``, ``seek``,
+         ``ixscan``, and ``ixseek`` stages.
+
+         Starting in MongoDB 5.1, if
+         :parameter:`internalQueryEnableSlotBasedExecutionEngine` is
+         ``true``, this field is included.
 
    .. data:: explain.executionStats.allPlansExecution
 
@@ -690,7 +953,8 @@ The other fields are:
             For unsharded collections, ``explain`` returns the following
             ``serverInfo`` information for the MongoDB instance:
 
-            .. code-block:: none
+            .. code-block:: javascript
+               :copyable: false
 
                "serverInfo" : {
                   "host" : <string>,
@@ -707,7 +971,8 @@ The other fields are:
            ``serverInfo`` for each accessed shard, and a top-level
            ``serverInfo`` object for the :binary:`~bin.mongos`.
 
-           .. code-block:: none
+           .. code-block:: javascript
+              :copyable: false
 
               "queryPlanner" : {
                  ...
@@ -737,17 +1002,10 @@ The other fields are:
                }
                ...
 
-3.0 Format Change
------------------
-
-Starting in MongoDB 3.0, the format and fields of the ``explain``
-results have changed from previous versions. The following lists some
-key differences.
-
 .. _explain-output-collection-scan:
 
-Collection Scan vs. Index Use
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Collection Scan
+---------------
 
 If the query planner selects a collection scan, the explain result
 includes a ``COLLSCAN`` stage.
@@ -756,20 +1014,13 @@ If the query planner selects an index, the explain result includes a
 ``IXSCAN`` stage. The stage includes information such as the index
 key pattern, direction of traversal, and index bounds.
 
-In previous versions of MongoDB, ``cursor.explain()`` returned the
-``cursor`` field with the value of:
-
-- ``BasicCursor`` for collection scans, and
-
-- ``BtreeCursor <index name> [<direction>]`` for index scans.
-
-For more information on execution statistics of collection scans versus
-index scans, see :doc:`/tutorial/analyze-query-plan`.
+For more information on execution statistics of collection scans, see
+:doc:`/tutorial/analyze-query-plan`.
 
 .. _explain-output-covered-queries:
 
 Covered Queries
-~~~~~~~~~~~~~~~
+---------------
 
 When an index covers a query, MongoDB can both match the query
 conditions **and** return the results using only the index keys; i.e.
@@ -781,13 +1032,10 @@ stage that is **not** a descendant of a ``FETCH`` stage, and in the
 :ref:`executionStats`, the :data:`~explain.executionStats.totalDocsExamined` 
 is ``0``.
 
-In earlier versions of MongoDB, ``cursor.explain()`` returned the
-``indexOnly`` field to indicate whether the index covered a query.
-
 .. _explain-output-index-intersection:
 
 Index Intersection
-~~~~~~~~~~~~~~~~~~
+------------------
 
 For an :doc:`index intersection plan </core/index-intersection>`, the
 result will include either an ``AND_SORTED`` stage or an ``AND_HASH``
@@ -795,6 +1043,7 @@ stage with an :data:`~explain.queryPlanner.winningPlan.inputStages` array that
 details the indexes; e.g.:
 
 .. code-block:: javascript
+   :copyable: false
 
    {
       "stage" : "AND_SORTED",
@@ -810,14 +1059,10 @@ details the indexes; e.g.:
       ]
    }
 
-In previous versions of MongoDB, ``cursor.explain()`` returned the
-``cursor`` field with the value of ``Complex Plan`` for index
-intersections.
-
 .. _explain-output-or-expression:
 
 ``$or`` Expression
-~~~~~~~~~~~~~~~~~~
+------------------
 
 If MongoDB uses indexes for an :query:`$or` expression, the result will
 include the ``OR`` stage with an
@@ -825,6 +1070,7 @@ include the ``OR`` stage with an
 details the indexes; e.g.:
 
 .. code-block:: javascript
+   :copyable: false
 
    {
       "stage" : "OR",
@@ -904,7 +1150,7 @@ additional output.
 .. _explain-output-sort:
 
 Sort Stage
-~~~~~~~~~~
+----------
 
 If MongoDB cannot use an index or indexes to obtain the sort order, the
 results include a ``SORT`` stage indicating a blocking sort operation.
@@ -921,7 +1167,3 @@ on disk to store data exceeding the 100 megabyte system memory limit
 while processing a blocking sort operation. If the explain plan does not
 contain an explicit ``SORT`` stage, then MongoDB can use an index to
 obtain the sort order.
-
-Prior to MongoDB 3.0, ``cursor.explain()`` returned the
-``scanAndOrder`` field to specify whether MongoDB could use the index
-order to return sorted results.
