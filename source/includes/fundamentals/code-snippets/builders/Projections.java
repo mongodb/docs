@@ -164,6 +164,7 @@ public class Projections {
 
     private void setupCollection() {
         System.out.println("setting up collection");
+        collection.drop();
         // begin collection setup
         // The global average temperature, by month, from 2018 and 2019. Units are in
         // Celsius.
@@ -197,7 +198,6 @@ public class Projections {
                     new Document("month", "November").append("avg", 9.84),
                     new Document("month", "December").append("avg", 10.366))));
 
-        collection.drop();
         collection.insertMany(demoDocuments);
         collection.createIndex(Indexes.text("type"));
         // end collection setup
