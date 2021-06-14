@@ -157,27 +157,27 @@ consider before starting a backup.
           Stores using GZIP compression fail in previous |onprem|
           versions.
 
-   .. topic:: When Do You Use a Particular Backup Method?
+   .. note:: **When Do You Use a Particular Backup Method?**
 
-       - To run backups frequently on large amounts of data and
-         restore from backups, consider backing up to a file
-         system on a |san|, an AWS |s3| snapshot store, or a MongoDB
-         blockstore configured as a replica set or a
-         :term:`sharded cluster`.
+      - To run backups frequently on large amounts of data and
+        restore from backups, consider backing up to a file
+        system on a |san|, an AWS |s3| snapshot store, or a MongoDB
+        blockstore configured as a replica set or a
+        :term:`sharded cluster`.
 
-       - To restore data without relying on MongoDB
-         database, consider backing up to an AWS |s3| snapshot store,
-         one or more |nas| devices, or a file system on a |san| with
-         advanced features for file system backups, such as high
-         availability, compression, or :term:`deduplication`.
+      - To restore data without relying on MongoDB
+        database, consider backing up to an AWS |s3| snapshot store,
+        one or more |nas| devices, or a file system on a |san| with
+        advanced features for file system backups, such as high
+        availability, compression, or :term:`deduplication`.
 
-       - To minimize internal storage and maintenance
-         costs, consider backing up to an AWS |s3| snapshot store or
-         a MongoDB standalone blockstore.
+      - To minimize internal storage and maintenance
+        costs, consider backing up to an AWS |s3| snapshot store or
+        a MongoDB standalone blockstore.
 
-         A MongoDB standalone blockstore offers limited resilience. If
-         the disk fills, this blockstore may go offline. You can
-         recover backup snapshots only after adding additional storage.
+        A MongoDB standalone blockstore offers limited resilience. If
+        the disk fills, this blockstore may go offline. You can
+        recover backup snapshots only after adding additional storage.
 
 
 .. _limits-of-backup:
@@ -185,51 +185,35 @@ consider before starting a backup.
 Backup Sizing Recommendation
 ----------------------------
 
-When sizing the backup of your data, keep the :term:`replica set` size
-to 2 TB or less of :data:`uncompressed data <~dbStats.dataSize>`. If
-your database increases beyond 2 TB:
+The backup recommendation depends on the |fcv-fulllink| of the database 
+that you want to back up.
 
-- Shard the database
-- Keep each shard to 2 TB or less of uncompressed data
+.. tabs::
 
-These size recommendations are a best practice. They are not a
-limitation of the MongoDB database or |mms|.
+   .. tab:: FCV of 4.0 or earlier
+      :tabid: fcv40
 
-Backup and restore can use large amounts of CPU, memory, storage, and
-network bandwidth.
+      When sizing the backup of your data, keep the :term:`replica set` 
+      size to 2 TB or less of :manual:`uncompressed data 
+      </reference/command/dbStats/#mongodb-data-dbStats.dataSize>`. If 
+      your database increases beyond 2 TB of uncompressed data:
 
-.. example::
+      - Shard the database
+      - Keep each shard to 2 TB or less of uncompressed data
+  
+      .. include:: /includes/fact-backup-sizing-recommendation.rst
 
-   Your stated network throughput, such as 10 Gbps or 100 Gbps, is a
-   *theoretical* maximum. That value doesn't account for sharing or
-   throttling of network traffic.
+   .. tab:: FCV of 4.2 or later
+      :tabid: fcv42
 
-   Consider the following scenario:
+      When sizing the backup of your data, keep the :term:`replica set` 
+      size to 2 TB or less of compressed data. If your database 
+      increases beyond 2 TB of compressed data:
 
-   - You want to back up a 2 TB database.
-   - Your hosts support a 10 Gbps TCP connection from |mms| to its
-     backup storage.
-   - The network connection has very low packet loss and a low round
-     trip delay time.
+      - Shard the database
+      - Keep each shard to 2 TB or less of compressed data
 
-   A *full* backup of your data would take *more than 30 hours to
-   complete*. [*]_
-
-   This doesn't account for disk read and write speeds, which can be,
-   at most, 3 Gbps reads and 1 Gbps writes for a single or mirrored
-   NVMe storage device.
-
-   The time required to complete each successive incremental backup
-   depends on write load.
-
-   If you :doc:`shard this database </tutorial/convert-replica-set-to-sharded-cluster>`
-   into 4 shards, each shard runs its backup separately. This results
-   in a backup that takes less than 8 hours to complete.
-
-   .. [*]
-      These throughput figures were calculated using the `Network
-      Throughput Calculator <https://wintelguy.com/wanperf.pl>`__ and
-      assume no additional network compression.
+      .. include:: /includes/fact-backup-sizing-recommendation.rst
 
 .. _snapshot-frequency-and-retention:
 
@@ -304,9 +288,9 @@ You can change a backed-up deployment's schedule through its
 and retention through the
 :doc:`snapshotSchedule resource in the API </reference/api/snapshot-schedule>`.
 
-.. cond:: onprem
+.. _changing-reference-time:
 
-   .. _changing-reference-time:
+.. cond:: onprem
 
    Changing the reference time changes the time of the next scheduled
    snapshot:
@@ -375,8 +359,6 @@ and retention through the
    :doc:`/tutorial/delete-backup-snapshots`.
 
 .. cond:: cloud
-
-   .. _changing-reference-time:
 
    You can't change the reference time for a snapshot in |mms|.
 
