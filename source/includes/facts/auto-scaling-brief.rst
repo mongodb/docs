@@ -1,5 +1,5 @@
-|servicegov| clusters support :ref:`Cluster Auto-Scaling
-<cluster-autoscaling>`. When auto-scaling is enabled, |servicegov-short|
+|cloudgov| clusters support :ref:`Cluster Auto-Scaling
+<cluster-autoscaling>`. When auto-scaling is enabled, |cloudgov-short|
 automatically scales your cluster tier, storage capacity, or both in
 response to cluster usage. Consider enabling auto-scaling to allow your
 cluster to adapt to your current workload and reduce the need to make

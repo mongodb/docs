@@ -4,7 +4,7 @@
 
    * - Feature
      - Commercial |service|
-     - |servicegov-short|
+     - |cloudgov-short|
 
    * - Free/ shared tier clusters
      - :icon-fa5:`check`
@@ -73,10 +73,10 @@
 
 .. [#fr-moderate-backup]
 
-   |servicegov-short| backups for |aws-fr-moderate| deployments are 
+   |cloudgov-short| backups for |aws-fr-moderate| deployments are 
    stored in |aws-fr-moderate| regions.
 
 .. [#govcloud-backup]
 
-   |servicegov-short| backups for |aws-fr-high| deployments are stored 
+   |cloudgov-short| backups for |aws-fr-high| deployments are stored 
    in |aws-fr-high| regions.
