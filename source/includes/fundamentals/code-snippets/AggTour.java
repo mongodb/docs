@@ -6,6 +6,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.ExplainVerbosity;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
@@ -22,7 +23,7 @@ public class AggTour {
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
         final String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
-
+        
         MongoClient mongoClient = MongoClients.create(uri);
         MongoDatabase database = mongoClient.getDatabase("aggregation");
         MongoCollection<Document> collection = database.getCollection("restaurants");
@@ -52,6 +53,24 @@ public class AggTour {
             )
         ).forEach(doc -> System.out.println(doc.toJson()));
         // end aggregation one
+        // begin aggregation three
+        Document explanation = collection.aggregate(
+            Arrays.asList(
+                    Aggregates.match(Filters.eq("categories", "bakery")),
+                    Aggregates.group("$stars", Accumulators.sum("count", 1))
+            )
+        ).explain(ExplainVerbosity.EXECUTION_STATS);
+
+        List<Document> stages = explanation.get("stages", List.class);
+        List<String> keys = Arrays.asList("queryPlanner", "winningPlan");
+
+        for (Document stage : stages) {
+            Document cursorStage = stage.get("$cursor", Document.class);
+            if (cursorStage != null) {
+                System.out.println(cursorStage.getEmbedded(keys, Document.class).toJson());
+            }
+        }
+        // end aggregation three
         // begin aggregation two
         collection.aggregate(
             Arrays.asList(
