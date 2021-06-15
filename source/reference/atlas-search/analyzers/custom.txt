@@ -15,9 +15,10 @@ Custom Analyzers
 Overview
 --------
 
-An |fts| analyzer prepares a set of documents to be indexed by performing
-a series of operations to transform, filter, and group sequences of characters.
-You can define a custom analyzer to suit your specific indexing needs.
+An |fts| analyzer prepares a set of documents to be indexed by 
+performing a series of operations to transform, filter, and group 
+sequences of characters. You can define a custom analyzer to suit your 
+specific indexing needs.
 
 Text analysis is a three-step process:
 
@@ -33,16 +34,19 @@ Text analysis is a three-step process:
 
    An analyzer uses a tokenizer to split chunks of text into groups, or
    tokens, for indexing purposes. For example, the whitespace tokenizer
-   splits text fields into individual words based on where whitespace occurs.
+   splits text fields into individual words based on where whitespace 
+   occurs.
 
 3. :ref:`Token Filters <token-filters-ref>`
 
-   After the tokenization step, the resulting tokens can pass through one
-   or more token filters. A token filter performs operations such as:
+   After the tokenization step, the resulting tokens can pass through 
+   one or more token filters. A token filter performs operations such 
+   as:
    
    - Stemming, which reduces related words, such as "talking", "talked",
      and "talks" to their root word "talk".
-   - Redaction, the removal of sensitive information from public documents.
+   - Redaction, the removal of sensitive information from public 
+     documents.
 
 Usage
 -----
@@ -75,8 +79,8 @@ A custom analyzer has the following attributes:
 
    * - ``name``
      - string
-     - Name of the custom analyzer. Names must be unique within an index,
-       and may not start with any of the following strings:
+     - Name of the custom analyzer. Names must be unique within an 
+       index, and may not start with any of the following strings:
 
        - ``lucene.``
        - ``builtin.``
@@ -100,32 +104,52 @@ A custom analyzer has the following attributes:
      - no
 
 To use a custom analyzer when indexing a collection, include it in the
-:ref:`index definition <ref-index-definitions>`. In the following example,
-a custom analyzer named ``htmlStrippingAnalyzer`` uses a character filter
-to remove all HTML tags except ``a`` from the text.
+:ref:`index definition <ref-index-definitions>`. This page contains 
+sample index defintions and query examples for character filters, 
+tokenizers, and token filters. The query examples use a sample 
+``minutes`` collection with the following documents:
 
 .. code-block:: json
 
-   {
-     "analyzer": "htmlStrippingAnalyzer",
-     "mappings": {
-       "dynamic": true
+   { 
+     "_id": 1, 
+     "page_updated_by": {
+       "last_name": "AUERBACH",
+       "first_name": "Siân",
+       "email": "auerbach@example.com",
+       "phone": "123-456-7890"
      },
-     "analyzers": [
-       {
-         "name": "htmlStrippingAnalyzer",
-         "charFilters": [
-           {
-             "type": "htmlStrip",
-             "ignoredTags": ["a"]
-           }
-         ],
-         "tokenizer": {
-           "type": "standard"
-         },
-         "tokenFilters": []
-       }
-     ]
+     "text" : "<head> This page deals with department meetings. </head>"
+   }
+   { 
+     "_id": 2, 
+     "page_updated_by": {
+       "last_name": "OHRBACH",
+       "first_name": "Noël",
+       "email": "ohrback@example.com",
+       "phone": "123-456-0987"
+     },
+     "text" : "The head of the sales department spoke first."
+   }
+   { 
+     "_id": 3, 
+     "page_updated_by": {
+       "last_name": "LEWINSKY",
+       "first_name": "Brièle",
+       "email": "lewinsky@example.com",
+       "phone": "123-456-9870"
+     },
+     "text" : "<body>We'll head out to the conference room by noon.</body>" 
+   }
+   { 
+     "_id": 4, 
+     "page_updated_by": {
+       "last_name": "LEVINSKI",
+       "first_name": "François",
+       "email": "levinski@example.com",
+       "phone": "123-456-8907"
+     },
+     "text" : "<body>The page has been updated with the items on the agenda.</body>" 
    }
 
 .. _char-filters-ref:
@@ -163,14 +187,14 @@ options as well.
        <https://lucene.apache.org/core/8_3_0/analyzers-icu/org/apache/lucene/analysis/icu/ICUNormalizer2CharFilter.html>`__.
 
    * - :ref:`mapping <mapping-ref>`
-     - Applies user-specified normalization mappings to characters. Based
-       on Lucene's `MappingCharFilter
+     - Applies user-specified normalization mappings to characters. 
+       Based on Lucene's `MappingCharFilter
        <https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/charfilter/MappingCharFilter.html>`__.
 
    * - :ref:`persian <persian-ref>`
      - Replaces instances of `zero-width non-joiner
-       <https://en.wikipedia.org/wiki/Zero-width_non-joiner>`__ with ordinary
-       space. Based on Lucene's `PersianCharFilter
+       <https://en.wikipedia.org/wiki/Zero-width_non-joiner>`__ with 
+       ordinary space. Based on Lucene's `PersianCharFilter
        <https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/fa/PersianCharFilter.html>`__.
 
 .. _htmlStrip-ref:
@@ -204,31 +228,76 @@ The ``htmlStrip`` character filter has the following attributes:
 
 .. example::
 
-   The following example index definition uses a custom analyzer named
-   ``htmlStrippingAnalyzer``. It uses the ``htmlStrip`` character
-   filter to remove all HTML tags from the text except the ``a`` tag. It
-   uses the :ref:`standard tokenizer <standard-tokenizer-ref>` and no
-   token filters.
+   .. tabs:: 
 
-   .. code-block:: json
+      .. tab:: Index Definition 
+         :tabid: index
 
-      {
-        "analyzer": "htmlStrippingAnalyzer",
-        "mappings": {
-          "dynamic": true
-        },
-        "analyzers": [{
-          "name": "htmlStrippingAnalyzer",
-          "charFilters": [{
-            "type": "htmlStrip",
-            "ignoredTags": ["a"]
-          }],
-          "tokenizer": {
-            "type": "standard"
-          },
-          "tokenFilters": []
-        }]
-      }
+         The following example index definition uses a custom analyzer 
+         named ``htmlStrippingAnalyzer``. It uses the ``htmlStrip`` 
+         character filter to remove all HTML tags from the text except 
+         the ``a`` tag in the ``minutes`` collection. It uses the 
+         :ref:`standard tokenizer <standard-tokenizer-ref>` and no 
+         token filters.
+
+         .. code-block:: json
+
+            {
+              "analyzer": "htmlStrippingAnalyzer",
+              "mappings": {
+                "dynamic": true
+              },
+              "analyzers": [{
+                "name": "htmlStrippingAnalyzer",
+                "charFilters": [{
+                  "type": "htmlStrip",
+                  "ignoredTags": ["a"]
+                }],
+                "tokenizer": {
+                  "type": "standard"
+                },
+                "tokenFilters": []
+              }]
+            }
+
+      .. tab:: Query Results 
+         :tabid: query
+         
+         The following search operation looks for occurrences of the 
+         string ``head`` in the ``text`` field of the ``minutes`` 
+         collection.
+
+         .. code-block:: json
+
+            db.minutes.aggregate([   
+              {     
+                $search: {
+                  text: {
+                    query: "head",
+                    path: "text"
+                  }
+                }
+              },
+              {
+                $project: {
+                  "_id": 1,
+                  "text": 1
+                }
+              }
+            ])
+
+         The query returns the following results:
+
+         .. code-block:: json
+            :copyable: false
+            
+            { "_id" : 2, "text" : "The head of the sales department spoke first." }
+            { "_id" : 3, "text" : "<body>We'll head out to the conference room by noon.</body>" }
+
+         The document with ``_id: 1`` is not returned, because the 
+         string ``head`` is part of the HTML tag ``<head>``. The 
+         document with ``_id: 3`` contains HTML tags, but the string 
+         ``head`` is elsewhere so the document is a match.
 
 .. _icuNormalize-ref:
 
@@ -308,9 +377,10 @@ The ``mapping`` character filter has the following attributes:
  
    * - ``mappings``
      - object
-     - An object containing a comma-separated list of mappings. A mapping
-       indicates that one character or group of characters should be
-       substituted for another, in the format ``<original> : <replacement>``.
+     - An object containing a comma-separated list of mappings. A 
+       mapping indicates that one character or group of characters 
+       should be substituted for another, in the format 
+       ``<original> : <replacement>``.
      - yes
      -
 
@@ -346,6 +416,11 @@ The ``mapping`` character filter has the following attributes:
           }
         ]
       }
+
+   .. seealso:: 
+   
+      The :ref:`shingle-tf-ref` token filter for a sample index 
+      definition and query. 
 
 .. _persian-ref:
 
@@ -427,8 +502,8 @@ as well.
      - Description
 
    * - :ref:`standard <standard-tokenizer-ref>`
-     - Tokenize based on word break rules from the `Unicode Text Segmentation
-       algorithm <http://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__.
+     - Tokenize based on word break rules from the `Unicode Text 
+       Segmentation algorithm <http://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__.
 
    * - :ref:`keyword <keyword-tokenizer-ref>`
      - Tokenize the entire input as a single token.
@@ -440,8 +515,8 @@ as well.
      - Tokenize into text chunks, or "n-grams", of given sizes.
 
    * - :ref:`edgeGram <edgegram-tokenizer-ref>`
-     - Tokenize input from the beginning, or "edge", of a text input into
-       n-grams of given sizes.
+     - Tokenize input from the beginning, or "edge", of a text input 
+       into n-grams of given sizes.
 
    * - :ref:`regexCaptureGroup <regexcapturegroup-tokenizer-ref>`
      - Match a regular expression pattern to extract tokens.
@@ -487,8 +562,8 @@ The ``standard`` tokenizer has the following attributes:
 
    * - ``maxTokenLength``
      - integer
-     - Maximum length for a single token. Tokens greater than this length
-       are split at ``maxTokenLength`` into multiple tokens.
+     - Maximum length for a single token. Tokens greater than this 
+       length are split at ``maxTokenLength`` into multiple tokens.
      - no
      - 255
 
@@ -523,6 +598,11 @@ The ``standard`` tokenizer has the following attributes:
           }
         ]
       }
+
+   .. seealso:: 
+   
+      The :ref:`regex-tf-ref` token filter for a sample index 
+      definition and query. 
    
 .. _keyword-tokenizer-ref:
 
@@ -604,8 +684,8 @@ The ``whitespace`` tokenizer has the following attributes:
 
    * - ``maxTokenLength``
      - integer
-     - Maximum length for a single token. Tokens greater than this length
-       are split at ``maxTokenLength`` into multiple tokens.
+     - Maximum length for a single token. Tokens greater than this 
+       length are split at ``maxTokenLength`` into multiple tokens.
      - no
      - 255
 
@@ -637,6 +717,11 @@ The ``whitespace`` tokenizer has the following attributes:
           }
         ]
       }
+
+   .. seealso:: 
+   
+      The :ref:`shingle-tf-ref` token filter for a sample index 
+      definition and query. 
 
 .. _ngram-tokenizer-ref:
 
@@ -807,8 +892,8 @@ The ``regexCaptureGroup`` tokenizer has the following attributes:
  
    * - ``group``
      - integer
-     - Index of the character group within the matching expression to extract
-       into tokens. Use ``0`` to extract all character groups.
+     - Index of the character group within the matching expression to 
+       extract into tokens. Use ``0`` to extract all character groups.
      - yes
      - 
 
@@ -1077,35 +1162,79 @@ The ``daitchMokotoffSoundex`` token filter has the following attributes:
 
 .. example:: 
 
-   The following example index definition uses a custom analyzer named
-   ``dmsAnalyzer``. It uses the :ref:`standard tokenizer
-   <standard-tokenizer-ref>` with the ``daitchMokotoffSoundex`` token 
-   filter to index and query for words that sound the same and their 
-   encoded forms.
+   .. tabs:: 
 
-   .. code-block:: json 
+      .. tab:: Index Defintion 
+         :tabid: index
 
-      {
-        "analyzer": "dmsAnalyzer",
-        "searchAnalyzer": "dmsAnalyzer",
-        "mappings": {
-          "dynamic": true
-        },
-        "analyzers": [
-          {
-            "name": "dmsAnalyzer",
-            "tokenFilters": [
-              {
-                "originalTokens": "include",
-                "type": "daitchMokotoffSoundex"
-              }
-            ],
-            "tokenizer": {
-              "type": "standard"
+         The following example index definition uses a custom analyzer 
+         named ``dmsAnalyzer``. It uses the :ref:`standard tokenizer
+         <standard-tokenizer-ref>` with the ``daitchMokotoffSoundex`` 
+         token filter to index and query for words that sound the same 
+         as their encoded forms.
+
+         .. code-block:: json 
+
+            {
+              "analyzer": "dmsAnalyzer",
+              "searchAnalyzer": "dmsAnalyzer",
+              "mappings": {
+                "dynamic": true
+              },
+              "analyzers": [
+                {
+                  "name": "dmsAnalyzer",
+                  "tokenFilters": [
+                    {
+                      "type": "daitchMokotoffSoundex",
+                      "originalTokens": "include"
+                    }
+                  ],
+                  "tokenizer": {
+                    "type": "standard"
+                  }
+                }
+              ]
             }
-          }
-        ]
-      }
+
+      .. tab:: Query Results
+         :tabid: query
+
+         The following query searches for terms that sound similar to 
+         ``AUERBACH`` in the ``page_updated_by.last_name`` field of 
+         the ``minutes`` collection.
+
+         .. code-block:: json 
+
+            db.minutes.aggregate([
+              {
+                $search: {
+                  "index": "default",
+                  "text": {
+                    "query": "AUERBACH",
+                    "path": "page_updated_by.last_name"
+                  }
+                }
+              },
+              {
+                $project: {
+                  "_id": 1,
+                  "page_updated_by.last_name": 1
+                }
+              }
+            ])
+
+         The query returns the following results: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { "_id" : 1, "page_updated_by" : { "last_name" : "AUERBACH" } }
+            { "_id" : 2, "page_updated_by" : { "last_name" : "OHRBACH" } }
+
+         |fts| returns documents with ``_id: 1`` and ``_id: 2`` 
+         because the terms in both documents are phonetically similar, 
+         and are coded using the same six digit ``097500``.
 
 .. _lowercase-tf-ref:
 
@@ -1131,11 +1260,11 @@ The ``lowercase`` token filter has the following attribute:
      -
 
 .. example::
-
-   The following example index definition uses a custom analyzer named
-   ``lowercaser``. It uses the :ref:`standard tokenizer
-   <standard-tokenizer-ref>` with the ``lowercase`` token filter to lowercase
-   all tokens.
+         
+   The following example index definition uses a custom analyzer named 
+   ``lowercaser``. It uses the :ref:`standard tokenizer 
+   <standard-tokenizer-ref>` with the ``lowercase`` token filter to 
+   lowercase all tokens.
 
    .. code-block:: json
 
@@ -1159,6 +1288,11 @@ The ``lowercase`` token filter has the following attribute:
           }
         ]
       }
+
+   .. seealso:: 
+   
+      The :ref:`regex-tf-ref` token filter for a sample index 
+      definition and query. 
 
 .. _length-tf-ref:
 
@@ -1185,22 +1319,24 @@ The ``length`` token filter has the following attributes:
 
    * - ``min``
      - integer
-     - The minimum length of a token. Must be less than or equal to ``max``.
+     - The minimum length of a token. Must be less than or equal to 
+       ``max``.
      - no
      - 0
 
    * - ``max``
      - integer
-     - The maximum length of a token. Must be greater than or equal to ``min``.
+     - The maximum length of a token. Must be greater than or equal to 
+       ``min``.
      - no
      - 255
 
 .. example::
 
    The following example index definition uses a custom analyzer named
-   ``longOnly``. It uses the ``length`` token filter to index only tokens
-   that are at least 20 UTF-16 code units long after tokenizing with the
-   :ref:`standard tokenizer <standard-tokenizer-ref>`.
+   ``longOnly``. It uses the ``length`` token filter to index only 
+   tokens that are at least 20 UTF-16 code units long after tokenizing 
+   with the :ref:`standard tokenizer <standard-tokenizer-ref>`.
 
    .. code-block:: json
 
@@ -1253,8 +1389,8 @@ The ``icuFolding`` token filter has the following attribute:
 
    The following example index definition uses a custom analyzer named
    ``diacriticFolder``. It uses the :ref:`keyword tokenizer
-   <keyword-tokenizer-ref>` with the ``icuFolding`` token filter to apply
-   foldings from `UTR#30 Character Foldings
+   <keyword-tokenizer-ref>` with the ``icuFolding`` token filter to 
+   apply foldings from `UTR#30 Character Foldings
    <https://unicode.org/reports/tr30/>`__. Foldings include accent
    removal, case folding, canonical duplicates folding, and many others
    detailed in the report.
@@ -1275,7 +1411,7 @@ The ``icuFolding`` token filter has the following attribute:
             },
             "tokenFilters": [
               {
-                "type": "icuFolding",
+                "type": "icuFolding"
               }
             ]
           }
@@ -1310,9 +1446,11 @@ The ``icuNormalizer`` token filter has the following attributes:
      - Normalization form to apply. Accepted values are:
 
        - ``nfd`` (Canonical Decomposition)
-       - ``nfc`` (Canonical Decomposition, followed by Canonical Composition)
+       - ``nfc`` (Canonical Decomposition, followed by Canonical 
+         Composition)
        - ``nfkd`` (Compatibility Decomposition)
-       - ``nfkc`` (Compatibility Decomposition, followed by Canonical Composition)
+       - ``nfkc`` (Compatibility Decomposition, followed by Canonical 
+         Composition)
 
        For more information about the supported normalization forms, see
        `Section 1.2: Normalization Forms, UTR#15 <https://unicode.org/reports/tr15/#Norm_Forms>`__.
@@ -1376,15 +1514,15 @@ The ``nGram`` token filter has the following attributes:
 
    * - ``minGram``
      - integer
-     - The minimum length of generated n-grams. Must be less than or equal
-       to ``maxGram``.
+     - The minimum length of generated n-grams. Must be less than or 
+       equal to ``maxGram``.
      - yes
      - 
 
    * - ``maxGram``
      - integer
-     - The maximum length of generated n-grams. Must be greater than or equal 
-       to ``minGram``.
+     - The maximum length of generated n-grams. Must be greater than or 
+       equal to ``minGram``.
      - yes
      - 
 
@@ -1396,8 +1534,8 @@ The ``nGram`` token filter has the following attributes:
        - ``omit``
 
        If ``include`` is specified, tokens shorter than ``minGram`` or
-       longer than ``maxGram`` are indexed as-is. If ``omit`` is specified,
-       those tokens are not indexed.
+       longer than ``maxGram`` are indexed as-is. If ``omit`` is 
+       specified, those tokens are not indexed.
      - no
      - ``omit``
 
@@ -1482,15 +1620,15 @@ The ``edgeGram`` token filter has the following attributes:
 
    * - ``minGram``
      - integer
-     - The minimum length of generated n-grams. Must be less than or equal
-       to ``maxGram``.
+     - The minimum length of generated n-grams. Must be less than or 
+       equal to ``maxGram``.
      - yes
      - 
 
    * - ``maxGram``
      - integer
-     - The maximum length of generated n-grams. Must be greater than or equal 
-       to ``minGram``.
+     - The maximum length of generated n-grams. Must be greater than or 
+       equal to ``minGram``.
      - yes
      - 
 
@@ -1502,8 +1640,8 @@ The ``edgeGram`` token filter has the following attributes:
        - ``omit``
 
        If ``include`` is specified, tokens shorter than ``minGram`` or
-       longer than ``maxGram`` are indexed as-is. If ``omit`` is specified,
-       those tokens are not indexed.
+       longer than ``maxGram`` are indexed as-is. If ``omit`` is 
+       specified, those tokens are not indexed.
      - no
      - ``omit``
 
@@ -1512,7 +1650,8 @@ The ``edgeGram`` token filter has the following attributes:
    The following example index definition uses a custom analyzer named
    ``englishAutocomplete``. It performs the following operations:
 
-   - Tokenizes with the :ref:`standard tokenizer <standard-tokenizer-ref>`.
+   - Tokenizes with the :ref:`standard tokenizer 
+     <standard-tokenizer-ref>`.
    - Token filtering with the following filters:
 
      - ``icuFolding``
@@ -1543,7 +1682,7 @@ The ``edgeGram`` token filter has the following attributes:
                 "maxShingleSize": 3
               },
               {
-                type: "edgeGram",
+                "type": "edgeGram",
                 "minGram": 1,
                 "maxGram": 10
               }
@@ -1551,6 +1690,11 @@ The ``edgeGram`` token filter has the following attributes:
           }
         ]
       }
+
+   .. seealso:: 
+   
+      The :ref:`shingle-tf-ref` token filter for a sample index 
+      definition and query. 
 
 .. _shingle-tf-ref:
 
@@ -1584,43 +1728,138 @@ The ``shingle`` token filter has the following attributes:
 
    * - ``maxShingleSize``
      - integer
-     - Maximum number of tokens per shingle. Must be greater than or equal
-       to ``minShingleSize``.
+     - Maximum number of tokens per shingle. Must be greater than or 
+       equal to ``minShingleSize``.
      - yes
      -
 
 .. example::
 
-   The following example index definition uses a custom analyzer named
-   ``shingler``. It creates shingles of two and three token combinations
-   after tokenizing with the :ref:`standard tokenizer
-   <standard-tokenizer-ref>`. ``minShingleSize`` is set to ``2``, so it
-   does not index input when only one token is created from the tokenizer.
+   .. tabs:: 
 
-   .. code-block:: json
+      .. tab:: Index Definition 
+         :tabid: index
+         
+         The following example index definition uses two custom 
+         analyzers, ``emailAutocompleteIndex`` and 
+         ``emailAutocompleteSearch``, to implement autocomplete-like 
+         functionality. |fts| uses the ``emailAutocompleteIndex`` 
+         analyzer during index creation to:
+         
+         - Replace ``@`` characters in a field with ``AT``
+         - Create tokens with the :ref:`whitespace 
+           <whitespace-tokenizer-ref>` tokenizer
+         - Shingle tokens 
+         - Create :ref:`edgegram-tf-ref` of those shingled tokens
 
-      {
-        "analyzer": "shingler",
-        "mappings": {
-          "dynamic": true
-        },
-        "analyzers": [
-          {
-            "name": "shingler",
-            "charFilters": [],
-            "tokenizer": {
-              "type": "standard"
-            },
-            "tokenFilters": [
+         |fts| uses the ``emailAutocompleteSearch`` analyzer during a 
+         search to:
+
+         - Replace ``@`` characters in a field with ``AT``
+         - Create tokens with the :ref:`whitespace tokenizer 
+           <whitespace-tokenizer-ref>` tokenizer
+         
+         .. code-block:: json
+            :emphasize-lines: 34-38
+
+            {
+              "analyzer": "lucene.keyword",
+              "mappings": {
+                "dynamic": true,
+                "fields": {
+                  "page_updated_by": {
+                    "type": "document",
+                    "fields": {
+                      "email": {
+                        "type": "string",
+                        "analyzer": "emailAutocompleteIndex",
+                        "searchAnalyzer": "emailAutocompleteSearch",
+                      }
+                    }
+                  }
+                }
+              },
+              "analyzers": [
+                {
+                  "name": "emailAutocompleteIndex",
+                  "charFilters": [
+                    {
+                      "mappings": {
+                        "@": "AT"
+                      },
+                      "type": "mapping"
+                    }
+                  ],
+                  "tokenizer": {
+                    "maxTokenLength": 15,
+                    "type": "whitespace"
+                  },
+                  "tokenFilters": [
+                    {
+                      "maxShingleSize": 3,
+                      "minShingleSize": 2,
+                      "type": "shingle"
+                    },
+                    {
+                      "maxGram": 15,
+                      "minGram": 2,
+                      "type": "edgeGram"
+                    }
+                  ]
+                },
+                {
+                  "name": "emailAutocompleteSearch",
+                  "charFilters": [
+                    {
+                      "mappings": {
+                        "@": "AT"
+                      },
+                      "type": "mapping"
+                    }
+                  ],
+                  "tokenizer": {
+                    "maxTokenLength": 15,
+                    "type": "whitespace"
+                  }
+                }
+              ]
+            }
+
+      .. tab:: Query Results 
+         :tabid: query
+
+         The following query searches for an email address in the 
+         ``page_updated_by.email`` field of the ``minutes`` collection:
+
+         .. code-block:: json 
+
+            db.minutes.aggregate([
               {
-                "type": "shingle",
-                "minShingleSize": 2,
-                "maxShingleSize": 3
+                $search: {
+                  "index": "default",
+                  "text": {
+                    "query": "auerbach@ex",
+                    "path": "page_updated_by.email"
+                  }
+                }
               }
-            ]
-          }
-        ]
-      }
+            ])
+
+         The query returns the following results:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            { 
+              "_id" : 1, 
+              "page_updated_by" : { 
+                "last_name" : "AUERBACH", 
+                "first_name" : "Siân", 
+                "email" : "auerbach@example.com", 
+                "phone" : "123-456-7890" 
+              }, 
+              "text" : "<head> This page deals with department meetings. </head>" 
+            }
 
 .. _regex-tf-ref:
 
@@ -1673,36 +1912,85 @@ The ``regex`` token filter has the following attributes:
 
 .. example::
 
-   The following example index definition uses a custom analyzer named
-   ``emailRedact``. It uses the :ref:`keyword tokenizer <keyword-tokenizer-ref>`.
-   It finds strings that look like email addresses and replaces them with
-   the word ``redacted``.
+   .. tabs:: 
 
-   .. code-block:: json
+      .. tab:: Index Definition 
+         :tabid: index
+         
+         The following index definition uses a custom analyzer named 
+         ``emailRedact`` for indexing the ``page_updated_by.email`` 
+         field in the ``minutes`` collection. It uses the 
+         :ref:`standard tokenizer <standard-tokenizer-ref>`. It first 
+         applies the lowercase token filter to turn uppercase 
+         characters in the field to lowercase and then finds strings 
+         that look like email addresses and replaces them with the word 
+         ``redacted``.
 
-      {
-        "analyzer": "emailRedact",
-        "mappings": {
-          "dynamic": true
-        },
-        "analyzers": [
-          {
-            "name": "emailRedact",
-            "charFilters": [],
-            "tokenizer": {
-              "type": "keyword"
-            },
-            "tokenFilters": [
+         .. code-block:: json
+
+            {
+              "analyzer": "lucene.standard",
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "page_updated_by": {
+                    "type": "document",
+                    "fields": {
+                      "email": {
+                        "type": "string",
+                        "analyzer": "emailRedact"
+                      }
+                    }
+                  }
+                }
+              },
+              "analyzers": [
+                {
+                  "charFilters": [],
+                  "name": "emailRedact",
+                  "tokenizer": {
+                    "type": "standard"
+                  },
+                  "tokenFilters": [
+                    {
+                      "type": "lowercase"
+                    },
+                    {
+                      "matches": "all",
+                      "pattern": "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$",
+                      "replacement": "redacted",
+                      "type": "regex"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      .. tab:: Query Results 
+         :tabid: query 
+
+         The following query searches for the term ``example`` in the 
+         ``page_updated_by.email`` field of the ``minutes`` collection. 
+
+         .. code-block:: 
+
+            db.minutes.aggregate([
               {
-                "type": "regex",
-                "pattern": "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$",
-                "replacement": "redacted",
-                "matches": "all"
+                $search: {
+                  "index": "default",
+                  "text": {
+                    "query": "example",
+                    "path": "page_updated_by.email"
+                  }
+                }
               }
-            ]
-          }
-        ]
-      }
+            ])
+
+         |fts| doesn't return any results for the query because the 
+         ``page_updated_by.email`` field does not contain any instances 
+         of the word ``example`` that are not in an email address. 
+         |fts| replaces strings that match the regular expression 
+         provided in the custom analyzer with the word ``redacted``.
 
 .. _snowballstemming-tf-ref:
 
@@ -1741,14 +2029,16 @@ The ``snowballStemming`` token filter has the following attributes:
        - ``finnish``
        - ``french``
        - ``german``
-       - ``german2`` (Alternative German language stemmer. Handles the umlaut
-         by expanding ü to ue in most contexts.)
+       - ``german2`` (Alternative German language stemmer. Handles the 
+         umlaut by expanding ü to ue in most contexts.)
        - ``hungarian``
        - ``irish``
        - ``italian``
-       - ``kp`` (Kraaij-Pohlmann stemmer, an alternative stemmer for Dutch.)
+       - ``kp`` (Kraaij-Pohlmann stemmer, an alternative stemmer for 
+         Dutch.)
        - ``lithuanian``
-       - ``lovins`` (The first-ever published "Lovins JB" stemming algorithm.)
+       - ``lovins`` (The first-ever published "Lovins JB" stemming 
+         algorithm.)
        - ``norwegian``
        - ``porter`` (The original Porter English stemming algorithm.)
        - ``portuguese``
@@ -1851,7 +2141,8 @@ The ``stopword`` token filter has the following attributes:
 
    .. code-block:: json
 
-      "analyzer": "tokenTrimmer", 
+      {  
+        "analyzer": "tokenTrimmer", 
         "mappings": {
           "dynamic": true
         },
@@ -1925,68 +2216,3 @@ The ``trim`` token filter has the following attribute:
           }
         ]
       }
-
-Query Example
--------------
-
-A collection named ``minutes`` contains the following documents:
-
-.. code-block:: json
-   :copyable: false
-
-   { "_id" : 1, "text" : "<head> This page deals with department meetings. </head>" }
-   { "_id" : 2, "text" : "The head of the sales department spoke first." }
-   { "_id" : 3, "text" : "<body>We'll head out to the conference room by noon.</body>" }
-
-The index definition for the ``minutes`` collection uses a custom analyzer
-with the :ref:`htmlStrip character filter <htmlStrip-ref>` to strip out
-HTML tags when searching for text specified in the ``query`` field of a
-search.
-
-.. code-block:: json
-
-   {
-     "analyzer": "htmlStrippingAnalyzer",
-     "mappings": {
-       "dynamic": true
-     },
-     "analyzers": [{
-       "name": "htmlStrippingAnalyzer",
-       "charFilters": [{
-         "type": "htmlStrip",
-         "ignoredTags": ["a"]
-       }],
-       "tokenizer": {
-         "type": "standard"
-       },
-       "tokenFilters": []
-     }]
-   }
-
-The following search operation looks for occurrences of the string 
-``head`` in the ``text`` field of the ``minutes`` collection.
-
-.. code-block:: json
-
-   db.minutes.aggregate([   
-     {     
-       $search: {
-          text: {
-            query: "head",
-            path: "text"
-          }
-       }
-     }
-   ])
-
-The query returns the following results:
-
-.. code-block:: json
-   :copyable: false
-
-   { "_id" : 2, "text" : "The head of the sales department spoke first." }
-   { "_id" : 3, "text" : "<body>We'll head out to the conference room by noon.</body>" }
-
-The document with ``_id: 1`` is not returned, because the string ``head``
-is part of the HTML tag ``<head>``. The document with ``_id: 3`` contains
-HTML tags, but the string ``head`` is elsewhere so the document is a match.
