@@ -230,6 +230,8 @@ Multikey indexes behave differently from non-multikey indexes in terms of query 
 sort behavior. For a full explanation of multikey indexes, including a discussion of their behavior and limitations,
 refer to the :manual:`Multikey Indexes page </core/index-multikey>` in the MongoDB manual.
 
+.. _text-indexes:
+
 Text Indexes
 ~~~~~~~~~~~~
 
@@ -242,13 +244,12 @@ language as an option when creating the index.
    Text indexes differ from the more powerful :atlas:`Atlas full text search indexes </atlas-search/>` Atlas users
    should use Atlas search.
 
-.. warning::
-
-   Collections are limited to one text index. Keep in mind that a text index can cover multiple fields.
-
 .. common-content-end
 
 .. driver-content-begin
+
+Single Field
+++++++++++++
 
 The following example creates a text index on the ``plot`` field:
 
@@ -270,8 +271,25 @@ omitted because text indexes do not contain sort order.
 .. driver-content-end
 .. common-content-begin
 
-For a full explanation of text search with MongoDB, refer to :manual:`Text Indexes </core/index-text>` in the MongoDB
-manual.
+Multiple Fields
++++++++++++++++
+
+A collection can only contain one text index. If you want to create a
+text index for multiple text fields, you need to create a compound
+index. A text search runs on all the text fields within the compound
+index. 
+
+The following snippet creates a compound text index for the ``title`` and ``genre``
+fields:
+
+.. code-block:: java
+   
+   collection.createIndex(Indexes.compoundIndex(Indexes.text("title"), Indexes.text("genre")));
+   
+For more information, see the following Server Manual Entries:
+
+- :manual:`Compound Text Index Restrictions <core/index-text/#std-label-text-index-compound>`
+- :manual:`Text Indexes </core/index-text>` 
 
 Geospatial Indexes
 ~~~~~~~~~~~~~~~~~~
@@ -371,3 +389,102 @@ The following example creates a unique, descending index on the ``theaterId`` fi
 
 Refer to the :manual:`Unique Indexes page </core/index-unique>` in the MongoDB server manual for more information.
 .. driver-content-end
+
+Remove an Index
+---------------
+
+You can remove any unused index except the default unique index on the
+``_id`` field. 
+
+The following sections show the ways to remove indexes:
+
+- Using an index specification document
+- Using an indexed name field
+- Using a wildcard character to remove all indexes
+
+Remove an Index Using an Index Specification Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pass an **index specification document** to the ``dropIndex()`` method to
+remove an index from a collection. An index specification document is
+a ``Bson`` instance that specifies the type of index on a
+specified field. 
+
+The following snippet removes an ascending index on the ``title`` field
+in a collection:
+
+.. code-block:: java
+
+   collection.dropIndex(Indexes.ascending("title"));
+
+.. important::
+
+   If you want to drop a text index, you must use the name of the index
+   instead. See the :ref:`Remove an Index Using a Name Field
+   <name_field>` section for details. 
+
+.. _name_field:
+
+Remove an Index Using a Name Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pass the ``name`` field of the index to the ``dropIndex()`` method to
+remove an index from a collection.
+
+If you need to find the name of your index, use the ``listIndexes()``
+method to see the value of the ``name`` fields in your indexes. 
+
+The following snippet retrieves and prints all the indexes in a
+collection: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/SearchText.java
+   :language: java
+   :dedent:
+   :start-after: begin listIndex
+   :end-before: end listIndex
+
+If you call ``listIndex()`` on a collection that contains a text index,
+the output might resemble the following: 
+
+.. code-block:: json
+
+   { "v": 2, "key": {"_id": 1}, "name": "_id_" }
+   { "v": 2, "key": {"_fts": "text", "_ftsx": 1}, "name": "title_text", "weights": {"title": 1}, 
+   "default_language": "english", "language_override": "language", "textIndexVersion": 3 }
+
+This output tells us the names of the existing indexes are "_id" and
+"title_text". 
+
+The following snippet removes the "title_text" index from the collection:
+
+.. code-block:: java
+
+   collection.dropIndex("title_text");
+
+.. note:: 
+
+   You cannot remove a single field from a compound text index. You must
+   drop the entire index and create a new one to update the indexed
+   fields.
+
+Remove an Index Using a Wildcard Character
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting with MongoDB 4.2, you can drop all indexes by calling the
+``dropIndexes()`` method on your collection: 
+
+.. code-block:: java
+
+   collection.dropIndexes();
+
+For prior versions of MongoDB, pass "*" as a parameter to your call to
+``dropIndex()`` on your collection:
+
+.. code-block:: java
+
+   collection.dropIndex("*");
+
+For more information on the methods in this section, see the following API documentation:
+
+- :java-docs:`dropIndex() <apidocs/mongodb-driver-sync//com/mongodb/client/MongoCollection.html#dropIndex(java.lang.String)>`
+- :java-docs:`dropIndexes() <apidocs/mongodb-driver-sync//com/mongodb/client/MongoCollection.html#dropIndexes()>`
