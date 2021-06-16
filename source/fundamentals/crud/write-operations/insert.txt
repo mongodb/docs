@@ -7,82 +7,202 @@ Insert a Document
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 1
    :class: singlecol
    
 Overview
 --------
 
-In this section, we show you how to call the write operations to **insert**
-documents from a collection in your MongoDB database.
+In this guide, you can learn how to insert documents into MongoDB.
 
-Insert
-------
+You can use MongoDB to retrieve, update and delete information. To
+perform any of those operations, that information, such as user profiles
+and orders, needs to exist in MongoDB. For that information to exist,
+you need to first perform an **insert operation**. 
 
-To add new documents to a collection, you can use
-the ``insertOne()`` or the ``insertMany()`` methods. These methods accept
-single or multiple documents, respectively. The driver automatically
-generates a unique ``_id`` field for documents unless specified.
+An insert operation inserts a single or multiple documents in MongoDB
+using the ``insertOne()``, ``insertMany()`` and ``bulkWrite()`` methods.
 
-The following examples use a collection called ``pizzaCollection``,
-which contains documents with the name and shape of a pizza.
+The following sections focus on ``insertOne()`` and ``insertMany()``. For an
+example on how to use the ``bulkWrite()`` method, see our runnable :doc:`Bulk
+Operations Example </usage-examples/bulkWrite>`. 
 
-Insert a Document
-~~~~~~~~~~~~~~~~~
+A Note About ``_id``
+--------------------
 
-You can specify a document in a JSON object as follows:
+When inserting a document, MongoDB enforces one constraint on your
+documents by default. Each document *must* contain a unique ``_id``
+field. 
+
+There are two ways to manage this field:
+
+- You can manage this field yourself, ensuring each value you use is unique.
+- You can let the driver automatically generate unique ObjectId values.
+
+Unless you have provided strong guarantees for uniqueness, we recommend
+you let the driver automatically generate ``_id`` values. 
+
+.. note::
+
+   Duplicate ``_id`` values violate unique index constraints, resulting
+   in a ``WriteError``. 
+ 
+For additional information about ``_id``, see the Server Manual Entry on
+:manual:`Unique Indexes </core/index-unique/>`.
+
+Insert a Single Document
+------------------------
+
+Use the ``insertOne()`` method when you want to insert a single
+document. 
+
+On successful insertion, the method returns an
+``InsertOneResult`` instance representing the ``_id`` of
+the new document. 
+
+Example
+~~~~~~~
+
+The following example creates and inserts a document using the
+``insertOne()`` method: 
 
 .. code-block:: javascript
 
-   const pizzaDocument = {
-     name: "Neapolitan pizza",
-     shape: "round"
-   };
+   const doc = { name: "Neapolitan pizza", shape: "round" };
+   const result = await collection.insertOne(doc);
+   console.log(
+      `A document was inserted with the _id: ${result.insertedId}`,
+   );
 
-To insert this document into ``pizzaCollection``, pass ``pizzaDocument``
-as the first parameter to the ``insertOne()`` method as shown below: 
+Your output should look something like this:
 
-.. code-block:: javascript
+.. code-block:: 
+   :copyable: false
 
-   const result = await pizzaCollection.insertOne(pizzaDocument);
+   A document was inserted with the _id: 60c79c0f4cc72b6bb31e3836
 
-You can print the number of documents inserted by accessing the
-``insertedCount`` field of the operation result as follows:
+For additional information on the classes and methods mentioned in this
+section, see the following resources: 
 
-.. code-block:: javascript
-
-   console.dir(result.insertedCount); // should print 1 on successful insert
-
-For a runnable example, see the :doc:`insertOne() </usage-examples/insertOne>`
-usage example.
+- API Documentation on :node-api-4.0:`insertOne() </classes/collection.html#insertone>` 
+- API Documentation on :node-api-4.0:`InsertOneResult </interfaces/insertoneresult.html>`
+- Server Manual Entry on :manual:`insertOne() </reference/method/db.collection.insertOne/>`
+- Runnable :doc:`Insert a Document Example </usage-examples/insertOne>`
 
 Insert Multiple Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
-You can specify multiple documents in an array of JSON objects as follows:
+Use the ``insertMany()`` method when you want to insert multiple
+documents. This method inserts documents in the order specified until an
+exception occurs, if any.
+
+For example, assume you want to insert the following documents:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 1, "color": "red" }
+   { "_id": 2, "color": "purple" }
+   { "_id": 1, "color": "yellow" }
+   { "_id": 3, "color": "blue" }
+
+If you attempt to insert these documents, a ``WriteError`` occurs at the
+third document and the documents prior to the error get inserted into
+your collection. 
+
+.. note::
+
+   Use a try-catch block to get an acknowledgment for successfully
+   processed documents before the error occurs:
+
+   .. code-block:: javascript
+      
+      try {
+         const docs = [
+            { "_id": 1, "color": "red"},
+            { "_id": 2, "color": "purple"},
+            { "_id": 1, "color": "yellow"},
+            { "_id": 3, "color": "blue"}
+         ];
+        
+         const insertManyresult = await collection.insertMany(docs);
+         let ids = insertManyresult.insertedIds;
+
+         console.log(`${insertManyresult.insertedCount} documents were inserted.`);
+         for (let id of Object.values(ids)) {
+            console.log(`Inserted a document with id ${id}`);
+         }
+      } catch(e) {
+         console.log(`A MongoBulkWriteException occurred, but there are successfully processed documents.`);
+         let ids = e.result.result.insertedIds;
+         for (let id of Object.values(ids)) {
+            console.log(`Processed a document with id ${id._id}`);
+         }
+         console.log(`Number of documents inserted: ${e.result.result.nInserted}`);
+      }
+   
+   The output consists of documents MongoDB can process and should look
+   something like this:
+
+   .. code-block:: 
+      :copyable: false
+      
+      A MongoBulkWriteException occurred, but there are successfully processed documents. 
+      Processed a document with id 1
+      Processed a document with id 2
+      Processed a document with id 1
+      Processed a document with id 3
+      Number of documents inserted: 2
+   
+   If you look inside your collection, you see the following documents:
+   
+   .. code-block:: json
+      :copyable: false
+
+      { "_id": 1, "color": "red" }
+      { "_id": 2, "color": "purple" }
+
+On successful insertion, the method returns an
+``InsertManyResult`` instance representing the number of
+documents inserted and the ``_id`` of the new document. 
+
+Example
+~~~~~~~
+
+The following example creates and adds three documents using the
+``insertMany()`` method: 
 
 .. code-block:: javascript
 
-   const pizzaDocuments = [
-     { name: "Sicilian pizza", shape: "square" },
-     { name: "New York pizza", shape: "round" },
-     { name: "Grandma pizza", shape: "square" }
+   const docs = [
+      { name: "Sicilian pizza", shape: "square" },
+      { name: "New York pizza", shape: "round" },
+      { name: "Grandma pizza", shape: "square" }
    ];
+    
+   const insertManyresult = await collection.insertMany(docs);
+   let ids = insertManyresult.insertedIds;
 
-To insert these documents into ``pizzaCollection``, pass
-``pizzaDocuments`` as the first parameter to the ``insertMany()`` method
-as shown below: 
+   console.log(`${insertManyresult.insertedCount} documents were inserted.`);
+    
+   for (let id of Object.values(ids)) {
+      console.log(`Inserted a document with id ${id}`);
+   }
 
-.. code-block:: javascript
+Your output should look something like this:
 
-   const result = await pizzaCollection.insertMany(pizzaDocuments);
+.. code-block::
+   :copyable: false
 
-You can print the number of documents inserted by accessing the
-``insertedCount`` field of the operation result as follows:
+   3 documents were inserted.
+   Inserted a document with id 60ca09f4a40cf1d1afcd93a2
+   Inserted a document with id 60ca09f4a40cf1d1afcd93a3
+   Inserted a document with id 60ca09f4a40cf1d1afcd93a4
 
-.. code-block:: javascript
+For additional information on the classes and methods mentioned in this
+section, see the following resources: 
 
-   console.dir(result.insertedCount); // should print 3 on successful insert
-
-For a runnable example, see the :doc:`insertMany() </usage-examples/insertMany>`
-usage example.
+- API Documentation on :node-api-4.0:`insertMany() </classes/collection.html#insertmany>`
+- API Documentation on :node-api-4.0:`InsertManyResult </interfaces/insertmanyresult.html>`
+- Server Manual Entry on :manual:`insertMany() </reference/method/db.collection.insertMany/>`
+- Runnable :doc:`Insert Multiple Documents Example </usage-examples/insertMany>`
