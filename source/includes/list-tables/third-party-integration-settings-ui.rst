@@ -1,21 +1,23 @@
+.. _`alert configuration`: /manage-alert-configurations
+
 .. list-table::
    :widths: 30 70
    :header-rows: 1
+   :stub-columns: 1
 
    * - Setting
 
      - Description
 
-   * - :guilabel:`PagerDuty Integration Key`
+   * - PagerDuty Integration Key
 
      - Default service key for alert notifications sent to a
        `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`__
        account. |mms| enters the key by default when you add a
-       PagerDuty notification to an :doc:`alert configuration
-       </tutorial/manage-alert-configurations>`. If you add PagerDuty
-       notifications and if the key used to send the notifications
-       becomes invalid, |mms| sends an email to the project owner and
-       eventually removes the key.
+       PagerDuty notification to an `alert configuration`_. If you add
+       PagerDuty notifications and if the key used to send the
+       notifications becomes invalid, |mms| sends an email to the
+       project owner and eventually removes the key.
 
        You can add PagerDuty notifications only for alerts that require
        user acknowledgement. Informational alerts, such as the alert
@@ -29,12 +31,11 @@
 
        .. include:: /includes/fact-pagerduty-decommission.rst
 
-   * - :guilabel:`Flowdock Settings`
+   * - Flowdock Settings
 
      - Default values for alert notifications sent to Flowdock.
        |mms| enters the values by default when you add a Flowdock
-       notification to an :doc:`alert configuration
-       </tutorial/manage-alert-configurations>`. If you add Flowdock
+       notification to an `alert configuration`_ If you add Flowdock
        notifications, and if credentials to send notifications become
        invalid, |mms| sends an email to the project owner and
        eventually removes the credentials.
@@ -42,34 +43,34 @@
        Set the following:
 
        - :guilabel:`Org Name`: The Flowdock organization name in
-         lower-case letters. This is the name that appears after
-         ``www.flowdock.com/app/`` in the URL string.
+         lower-case letters. This name appears after
+         ``www.flowdock.com/app/`` in the |url| string.
 
        - :guilabel:`Flow Name`: The flow name in lower-case letters.
-         The flow name appears after the org name in the URL string:
+         The flow name appears after the org name in the |url| string:
          ``www.flowdock.com/app/<org-name>/<flow-name>``.
 
        - :guilabel:`API Token`: Your Flowdock "personal API token"
-         found on the `<https://www.flowdock.com/account/tokens>`_ page
+         found on the
+         `Tokens page <https://www.flowdock.com/account/tokens>`_
          of your Flowdock account.
 
-   * - :guilabel:`HipChat Settings`
+   * - HipChat Settings
 
      - .. cond:: onprem
 
-          Default room and API token for alert notifications
-          sent to a HipChat account. |mms| enters the values by default
-          when you add a HipChat notification to an :doc:`alert
-          configuration </tutorial/manage-alert-configurations>`. If
-          you add HipChat notifications and the token used to send
+          Default room and |api| token for alert notifications sent to
+          a HipChat account. |mms| enters the values by default when
+          you add a HipChat notification to an `alert configuration`_.
+          If you add HipChat notifications and the token used to send
           notifications becomes invalid, |mms| sends an email to the
-          project owner and eventually removes the token.
+          :authrole:`Project Owner` and eventually removes the token.
 
        .. cond:: cloud
 
-          HipChat is not supported with |mms|.
+          |mms| doesn't support HipChat.
 
-   * - :guilabel:`Slack Settings`
+   * - Slack Settings
 
      - Team name, API token and a channel name for
        alert notifications sent to a Slack account. You can
@@ -84,7 +85,7 @@
 
        After initially configuring Slack with |mms|, you can
        :guilabel:`Edit` or :guilabel:`Remove` the integration. Editing
-       the integration will display your team name and API token, and
+       the integration will display your team name and |api| token, and
        allow you to change your channel name.
 
        .. admonition:: Legacy Token Deprecation
@@ -95,45 +96,44 @@
           integration. Instead, you must reconfigure your Slack
           integration with OAuth2.
 
-   * - :guilabel:`VictorOps Settings`
+   * - VictorOps Settings
 
-     - API key and Routing key for alert notifications sent
+     - |api| key and Routing key for alert notifications sent
        to a VictorOps account. |mms| uses these values as the default
        VictorOps settings when configuring alerts.
 
        Enter the following information from your VictorOps account. If
-       you do not have an existing VictorOps account, you can sign up
-       using
-       `<https://help.victorops.com/knowledge-base/new-user-sign/>`__.
+       you do not have an existing VictorOps account, you can
+       `sign up <https://help.victorops.com/knowledge-base/new-user-sign/>`__.
 
        - VictorOps API Key
        - VictorOps Routing Key (optional)
 
-   * - :guilabel:`Opsgenie API Key`
+   * - Opsgenie API Key
 
-     - API key for alert notifications sent to an Opsgenie
-       account. |mms| uses this value as the default Opsgenie API key 
+     - |api| key for alert notifications sent to an Opsgenie
+       account. |mms| uses this value as the default Opsgenie API key
        when configuring alerts.
 
        Enter the following information from your Opsgenie account. If
-       you do not have an existing Opsgenie account, you can sign up
-       using `<https://www.opsgenie.com/signup>`_ :
+       you do not have an existing Opsgenie account, you can
+       `sign up <https://www.opsgenie.com/signup>`__:
 
        - Opsgenie API Key
-       - API Region (United States or Europe)
+       - API Region (United States only)
 
-   * - :guilabel:`New Relic Settings`
+   * - New Relic Settings
 
      - .. include:: /includes/fact-new-relic-deprecated.rst
 
-       Configuration |mms| uses to send metric data about your 
-       deployment to `New Relic <http://newrelic.com/>`__ for viewing 
-       through the New Relic MongoDB plugin. You can also use Insights 
+       Configuration |mms| uses to send metric data about your
+       deployment to `New Relic <http://newrelic.com/>`__ for viewing
+       through the New Relic MongoDB plugin. You can also use Insights
        for New Relic to run analytics on the collected data.
 
        Enter the following information from your New Relic account. If
-       you do not have an existing New Relic account, you can sign up
-       using `<http://newrelic.com/mongodb>`_.
+       you do not have an existing New Relic account, you can
+       `sign up <http://newrelic.com/mongodb>`_.
 
        - Account ID
        - License Key
@@ -144,45 +144,45 @@
        email to the project owner and eventually removes the invalid
        credentials.
 
-   * - :guilabel:`Datadog Settings`
+   * - Datadog Settings
 
      - .. cond:: onprem
 
-          Configuration |mms| uses to send metric data about your 
-          deployment to Datadog. You can view these metrics in your 
+          Configuration |mms| uses to send metric data about your
+          deployment to Datadog. You can view these metrics in your
           Datadog dashboards.
 
           Enter the following information from your Datadog account to
           have Datadog begin tracking your |mms| metric data. If you
           do not have an existing Datadog account, you can sign up at
-          `<https://app.datadoghq.com/signup>`__.
+          `DataDog <https://app.datadoghq.com/signup>`__.
 
           - Datadog API Key
 
           .. important::
-          
-             If you use the ``EU`` API Datadog region or if you have
-             deployed Datadog locally, you must
-             configure the base Datadog API |url| with the
-             :setting:`datadog.api.url` |onprem| configuration setting.
+
+             If you use the ``EU`` |api| Datadog region or if you have
+             deployed Datadog locally, you must configure the base
+             Datadog |api| |url| with the :setting:`datadog.api.url`
+             |onprem| configuration setting.
 
        .. cond:: cloud
 
           Datadog is not supported with |mms|.
 
-   * - :guilabel:`Webhook Settings`
+   * - Webhook Settings
 
-     - :guilabel:`Webhook URL` endpoint to which |mms| can send
-       alert notifications for programmatic processing. |mms| sends an
-       alert notification as an |http| POST request in which the
-       request body contains a |json| document that uses the same
-       format as the |mms| |api| :doc:`Alerts resource </reference/api/alerts>`.
+     - :guilabel:`Webhook URL` endpoint to which |mms| can send alerts
+       for programmatic processing. |mms| sends an alert as an |http|
+       POST request in which the request body contains a |json|
+       document that uses the same format as the |mms| |api|
+       :doc:`Alerts resource </reference/api/alerts>`.
 
        .. include:: /includes/facts/alert-webhook-mms-event-header.rst
 
        To send alert notifications to a Webhook, select the Webhook
        notification option when creating or editing an
-       :doc:`alert configuration </tutorial/manage-alert-configurations>`.
-       If you add a Webhook notification and the URL or optional key
-       becomes invalid, |mms| sends an email to the project owner and
-       eventually removes the Webhook settings.
+       `alert configuration`_. If you add a Webhook notification and
+       the |url| or optional key becomes invalid, |mms| sends an email
+       to the :authrole:`Project Owner` and eventually removes the
+       Webhook settings.
