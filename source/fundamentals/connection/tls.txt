@@ -214,3 +214,87 @@ object to the builder in the ``applyToSslSettings()`` lambda:
                 })
         .build();
    MongoClient client = MongoClients.create(settings);
+
+Online Certificate Status Protocol (OCSP)
+-----------------------------------------
+
+OCSP is a standard used to check whether X.509 certificates have been
+revoked. A certificate authority can add an X.509 certificate to the
+Certificate Revocation List (CRL) prior to the expiry time to invalidate
+the certificate. When a client sends an X.509 certificate during the TLS
+handshake, the CA's revocation server checks the CRL and returns a status
+of "good", "revoked", or "unknown".
+
+The driver supports the following variations of OCSP:
+
+- **Client-Driven OCSP**
+- **OCSP Stapling**
+
+The following sections describe the differences between them and how to enable
+them for your application.
+
+.. note::
+
+   The Java driver uses the JVM arguments configured for the application
+   and cannot be overridden for a specific ``MongoClient`` instance.
+
+Client-Driven OCSP
+~~~~~~~~~~~~~~~~~~
+
+In client-driven OCSP, the client sends the certificate in an OCSP request to
+an OCSP responder after receiving the certificate from the server. The OCSP
+responder checks the status of the certificate with a certificate
+authority (CA) and reports whether it's valid in a response sent to the
+client.
+
+To enable client-driven OCSP for your application, set the following JVM
+system properties:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Property
+     - Value
+
+   * - ``com.sun.net.ssl.checkRevocation``
+     - Set this property to ``true`` to enable revocation checking.
+
+   * - ``ocsp.enable``
+     - Set this property to ``true`` to enable client-driven OCSP.
+
+.. warning::
+
+   If the OCSP responder is unavailable, the TLS support provided by the
+   JDK reports a "hard fail". This differs from the "soft fail" behavior of
+   the MongoDB Shell and some other drivers.
+
+OCSP Stapling
+~~~~~~~~~~~~~
+
+OCSP stapling is a mechanism in which the server must obtain the signed
+certificate from the certificate authority (CA) and include it in a
+time-stamped OCSP response to the client.
+
+To enable OCSP stapling for your application, set the following JVM system
+properties:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Property
+     - Description
+
+   * - ``com.sun.net.ssl.checkRevocation``
+     - Set this property to ``true`` to enable revocation checking.
+
+   * - ``jdk.tls.client.enableStatusRequestExtension``
+     - | Set this property to ``true`` to enable OCSP stapling.
+       |
+       | If unset or set to ``false``, the connection can proceed regardless of the presence or status of the certificate revocation response.
+
+For additional information about OCSP, check out the following resources:
+
+- Java SE 8 Documentation on `how to enable OCSP for an application <https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/ocsp.html>`__
+- :rfc:`Official IETF specification for OCSP (RFC 6960) <6960>`
