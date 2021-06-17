@@ -27,27 +27,81 @@ following factors:
 Data Structure in |s3|
 ----------------------
 
-For easier management, make sure that your data is
-logically grouped into partitions. You can leverage partitions to
-improve {+data-lake-short+} performance by mapping them to partition
-attributes in your :doc:`configuration 
-</reference/format/data-lake-configuration>`.
+For easier management, ensure that your data is logically grouped 
+into partitions. {+adl+} utilizes partitions you create with the field 
+values that you specify in your :ref:`partition syntax 
+<datalake-path-syntax>`. You can improve your {+dl+}\'s performance by 
+ensuring that your partition structure maps to your query patterns and 
+the partition structure is defined in your 
+:datalakeconf:`databases.[n].collections.[n].dataSources.[n].path`. For 
+the partition, choose fields that you query frequently and order them 
+from the most frequently queried in the first position to the least 
+queried field in the last position.
 
-You can improve your {+data-lake-short+}\'s performance by ensuring that
-your partition structure maps to your query patterns and that it is
-defined in your :doc:`configuration 
-</reference/format/data-lake-configuration>`. By mapping your *partition
-attributes* (the parts of your |s3| prefix that looks like a folder) to
-a query attribute, {+data-lake-short+} can selectively open the files
-that contain data related to your query. This both reduces the amount of
-time a query takes and decreases cost, since {+data-lake-short+} reads
-and downloads less files from |aws|.
+The order of fields listed in the 
+:datalakeconf:`databases.[n].collections.[n].dataSources.[n].path` is 
+important in the same way as it is in :manual:`Compound Indexes 
+</core/index-compound/>`. The specified path corresponds to data that 
+is partitioned first by the value of the first field, and then by the 
+value of the next field, and so on. 
+
+.. example::
+
+   Consider a collection with the ``software``, ``computer``, and 
+   ``OS`` fields and partitions on the |s3| bucket named ``metrics`` 
+   first for the ``software`` field, followed by  the ``computer`` 
+   field, and then the ``OS`` field. 
+   
+   .. code-block:: text
+      :copyable: false
+
+      metrics
+      |--software
+         |--computer
+            |--OS
+
+   {+adl+} uses the partitions for queries on the these fields:
+   
+   - the ``software`` field,
+   - the ``software`` field and the ``computer`` field,
+   - the ``software`` field and the ``computer`` field and the 
+     ``OS`` field.
+
+   {+adl+} can use the partitions to support a query on the 
+   ``software`` and ``OS`` fields. However, in this case, {+adl+} is 
+   not as efficient for the query as it would be if the query was on 
+   the ``software`` and ``computer`` fields only. Partitions are parsed 
+   in order; if a query omits a particular partition, {+adl+} is less 
+   efficient in making use of any partitions that follow the partition. 
+   Because a query on ``software`` and ``OS`` omits ``computer``, 
+   {+adl+} uses the ``software`` partition more efficiently than the 
+   ``OS`` partition to support this query. 
+   
+   {+adl+} can't use the partitions to support queries on fields not 
+   specified in the 
+   :datalakeconf:`databases.[n].collections.[n].dataSources.[n].path`. 
+   Also, {+adl+} can't use the partitions to support queries that 
+   include the following fields without the ``software`` field:
+   
+   - the ``computer`` field,
+   - the ``OS`` field, or
+   - the ``computer`` and ``OS`` fields.
+
+You can use partitions to improve {+dl+} performance by mapping 
+them to partition attributes in your :doc:`configuration 
+</reference/format/data-lake-configuration>`. By mapping your 
+*partition attributes* (the parts of your |s3| prefix that looks like a 
+folder) to a query attribute, {+adl+} can selectively open the files 
+that contain data related to your query. This reduces the amount of 
+time a query takes and decreases cost, because {+dl+} reads and 
+downloads less files from |aws|.
 
 .. example::
 
    Consider an |s3| bucket ``metrics`` with the following structure:
 
    .. code-block:: text
+      :copyable: false
 
       metrics
       |--hardware
@@ -66,9 +120,9 @@ and downloads less files from |aws|.
    your configuration . If you issue a query that contains
    ``{metric_type: software, software_type: computer}``,
    {+data-lake-short+} ignores files with the prefix ``/phone``.
-   
+
 For more information on mapping partition attributes to a collection
-:datalakeconf:`~databases.[n].collections.[n].dataSources.[n].path`, see
+:datalakeconf:`databases.[n].collections.[n].dataSources.[n].path`, see
 :ref:`datalake-path-syntax`.
 
 Data File Size
