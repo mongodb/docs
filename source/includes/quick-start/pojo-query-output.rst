@@ -1,5 +1,5 @@
 When you run the ``QuickStartPojoExample`` class, it should output the details of the
-movie from the sample dataset which will look something like this:
+movie from the sample dataset which should look something like this:
 
 .. code-block:: none
 
