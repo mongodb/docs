@@ -7,23 +7,39 @@
      - Type
      - Description
 
-   * - ``failIndexKeyTooLong``
+   * - defaultReadConcern
+     - string
+     - :manual:`Default level of acknowledgment requested from MongoDB for read operations </reference/read-concern/>`
+       set for this cluster.
+
+       MongoDB 4.4 clusters default to :manual:`available </reference/read-concern-available>`.
+
+       .. MongoDB 5.0 clusters default to :manual:`/reference/read-concern-local`.
+
+   * - defaultWriteConcern
+     - string
+     - :manual:`Default level of acknowledgment requested from MongoDB for write operations </reference/write-concern/>`
+       set for this cluster.
+
+       MongoDB 4.4 clusters default to :manual:`1 </reference/write-concern>`.
+
+       .. MongoDB 5.0 clusters default to :manual:`majority </reference/write-concern>`.
+
+   * - failIndexKeyTooLong
      - boolean
-     - When ``true``, documents can only be updated or inserted if, for
-       all indexed fields on the target collection, the corresponding
-       index entries do not exceed 1024 bytes. When ``false``, |mongod|
-       writes documents that breach the limit but does *not* index
-       them.
+     - Flag that indicates whether you can insert or update documents
+       where all indexed entries don't exceed 1024 bytes. If you set
+       this to ``false``, |mongod| writes documents that exceed this
+       limit but *doesn't* index them.
 
        This option corresponds to the
        :parameter:`failIndexKeyTooLong <param.failIndexKeyTooLong>`
        |mongod| parameter.
 
-   * - ``javascriptEnabled``
+   * - javascriptEnabled
      - boolean
-     - When ``true``, the cluster allows execution of operations that
-       perform server-side executions of JavaScript. When ``false``,
-       the cluster disables execution of those operations.
+     - Flag that indicates whether the cluster allows execution of
+       operations that perform server-side executions of JavaScript.
 
        - If your cluster runs a MongoDB version less than 4.4, this
          option corresponds to modifying the
@@ -35,55 +51,58 @@
          :setting:`security.javascriptEnabled` configuration file
          option for each |mongod| and |mongos| in the cluster.
 
-   * - ``minimumEnabledTlsProtocol``
+   * - minimumEnabledTlsProtocol
      - string
-     - The minimum Transport Layer Security (TLS) version the
-       cluster accepts for incoming connections.
+     - Minimum Transport Layer Security (TLS) version that the cluster
+       accepts for incoming connections. Clusters using |tls| 1.0 or
+       1.1 should consider setting |tls| 1.2 as the minimum |tls|
+       protocol version.
 
-       Clusters using TLS 1.0 or 1.1 should consider setting |tls| 1.2
-       as the minimum |tls| protocol version. To learn more, see
-       :ref:`faq-tls-1.0-deprecation`.
+       To learn more, see :ref:`faq-tls-1.0-deprecation`.
 
        This option corresponds to the
        :setting:`net.ssl.disabledProtocols` |mongod|
        configuration file option.
 
-   * - ``noTableScan``
+   * - noTableScan
      - boolean
-     - When ``true``, the cluster disables the execution of any query
-       that requires a collection scan to return results. When
-       ``false``, the cluster allows the execution of those operations.
+     - Flag that indicates whether the cluster disables executing any
+       query that requires a collection scan to return results.
 
        This option corresponds to the
-       :parameter:`notablescan <param.notablescan>`
-       |mongod| parameter.
+       :parameter:`notablescan <param.notablescan>` |mongod| parameter.
 
-   * - ``oplogSizeMB``
+   * - oplogSizeMB
      - integer
-     - The custom oplog size of the cluster. A value of ``null``
-       indicates that the cluster uses the default oplog size calculated by |service|.
+     - Storage limit of cluster's oplog expressed in megabytes. A value
+       of ``null`` indicates that the cluster uses the default oplog
+       size that |service| calculates.
 
-       You can check the oplog size by connecting to your cluster
-       via the |mongo| shell and authenticating as a user
-       with the :atlasrole:`Atlas admin` role. Run the
-       :method:`rs.printReplicationInfo() <rs.printReplicationInfo>` 
-       method to view the current oplog size and time.
+       To check the oplog size:
+
+       1. Connect to your cluster via the |mongo| shell.
+       2. Authenticate as a user with the :atlasrole:`Atlas admin` role.
+       3. Run the
+          :method:`rs.printReplicationInfo() <rs.printReplicationInfo>`
+          method to view the current oplog size and time.
 
        This option corresponds to the
        :setting:`replication.oplogSizeMB <replication.oplogSizeMB>`
        |mongod| configuration file option.
 
-   * - ``sampleSizeBIConnector``
+   * - sampleSizeBIConnector
      - integer
      - Number of documents per database to sample when gathering
        schema information.
 
-       This element corresponds to the :bic:`sampleSize </reference/mongosqld/#cmdoption-mongosqld-sampleSize>` :bic:`mongosqld </reference/mongosqld>` option.
+       This parameter corresponds to the :bic:`sampleSize </reference/mongosqld/#cmdoption-mongosqld-sampleSize>` :bic:`mongosqld </reference/mongosqld>` option.
 
-   * - ``sampleRefreshIntervalBIConnector``
+   * - sampleRefreshIntervalBIConnector
      - integer
-     - Interval in seconds at which the :bic:`mongosqld process
-       </reference/mongosqld/>` re-samples data to create its
-       relational schema.
+     - Interval in seconds at which the
+       :bic:`mongosqld process </reference/mongosqld/>` re-samples data
+       to create its relational schema.
 
-       This element corresponds to the :bic:`sampleRefreshIntervalSecs </reference/mongosqld/#cmdoption-mongosqld-sampleRefreshIntervalSecs>` ``mongosqld`` option.
+       This parameter corresponds to the
+       :bic:`sampleRefreshIntervalSecs </reference/mongosqld/#cmdoption-mongosqld-sampleRefreshIntervalSecs>`
+       :bic:`mongosqld </reference/mongosqld>` option.
