@@ -66,10 +66,18 @@
      - :icon-fa5:`check`
      -   
 
+   * - MongoDB Realm
+     - :icon-fa5:`check`
+     - 
+
+   * - MongoDB Charts
+     - :icon-fa5:`check`
+     - 
+
 .. [#cross-region]
    
    You cannot deploy clusters across government 
-   and commercial regions in the same project.
+   and standard regions in the same project.
 
 .. [#fr-moderate-backup]
 
