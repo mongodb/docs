@@ -98,7 +98,7 @@ public class IndexPage {
     private void textIndex() {
         System.out.println("text index");
         // begin text index
-        // create a text index of the "fullplot" field in the "movies" collection
+        // create a text index of the "plot" field in the "movies" collection
         // if a text index already exists with a different configuration, this will
         // error
         try {

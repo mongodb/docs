@@ -19,7 +19,7 @@ public class JMXMonitoring {
                         .build();
         MongoClient mongoClient = MongoClients.create(settings);
         try {
-            System.out.println("Navigate to JConcole to see your connection pools...");
+            System.out.println("Navigate to JConsole to see your connection pools...");
             Thread.sleep(Long.MAX_VALUE);
         } catch (Exception e) {
             e.printStackTrace();
