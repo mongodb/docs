@@ -2,6 +2,7 @@ When you run the ``QuickStartPojoExample`` class, it should output the details o
 movie from the sample dataset which should look something like this:
 
 .. code-block:: none
+   :copyable: false
 
    Movie [
      plot=A young man is accidentally sent 30 years into the past...,

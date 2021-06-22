@@ -2,6 +2,7 @@ When you run the ``QuickStart`` class, it should output the details of the
 movie from the sample dataset which will look something like this:
 
 .. code-block:: json
+   :copyable: false
 
    {
      _id: ...,
