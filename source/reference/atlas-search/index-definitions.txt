@@ -1,8 +1,8 @@
 .. _ref-index-definitions:
 
-=============
-|fts| Indexes 
-=============
+====================
+Define |fts| Indexes 
+====================
 
 .. default-domain:: mongodb
 
@@ -12,13 +12,18 @@
    :depth: 3
    :class: singlecol
 
-When you configure an |fts| index, you can specify that certain fields
+When you define an |fts| index, you can specify that certain fields
 should be indexed with a particular analyzer or with multiple
 analyzers. You can also specify that certain fields should be indexed
 while others are left unindexed, or you can dynamically index all the
 fields in a collection.
 
 .. include:: /includes/atlas-search-out-agg.rst
+
+Limitation
+----------
+
+.. include:: /includes/fact-fts-index-limitation.rst
 
 .. _index-definition-syntax:
 
@@ -150,200 +155,6 @@ dynamic mappings, or specify individual fields, such as fields of type
    Dynamically mapped indexes occupy more disk space than statically 
    mapped indexes and may be less performant.
 
-.. _index-config-example:
-
-Field Mapping Examples
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. tabs:: 
-
-   .. tab:: Static Mapping Example 
-      :tabid: static
-
-      The following example index definition uses static mappings.
-
-      - The default index analyzer is :ref:`lucene.standard
-        <ref-standard-analyzer>`.
-      - The default search analyzer is :ref:`lucene.standard
-        <ref-standard-analyzer>`. You can change the search analyzer 
-        if you want the query term to be parsed differently than how it 
-        is stored in your |fts| index.
-      - The index specifies static field mappings (``dynamic``: 
-        ``false``), which means fields that are not explicitly 
-        mentioned are not indexed. So, the index definition includes:
-
-        - The ``address`` field, which is of type ``document``. It has 
-          two embedded sub-fields, ``city`` and ``state``.
-          
-          The ``city`` sub-field uses the :ref:`lucene.simple
-          <ref-simple-analyzer>` analyzer by default for queries.
-          It uses the ``ignoreAbove`` option to ignore any string of
-          more than 255 bytes in length.
-          
-          The ``state`` sub-field uses the :ref:`lucene.english
-          <ref-language-analyzers>` analyzer by default for queries.
-
-        - The ``company`` field, which is of type ``string``. It uses 
-          the :ref:`lucene.whitespace <ref-whitespace-analyzer>` 
-          analyzer by default for queries. It has a ``multi`` analyzer 
-          named ``mySecondaryAnalyzer`` which uses the 
-          :ref:`lucene.french <ref-language-analyzers>` analyzer by 
-          default for queries.
-
-          For more information on ``multi`` analyzers, see :ref:`Path 
-          Construction <ref-path>`.
-
-        - The ``employees`` field, which is an array of strings. It 
-          uses the :ref:`lucene.standard <ref-keyword-analyzer>` 
-          analyzer by default for queries. For indexing arrays, |fts| 
-          only requires the data type of the array elements. You don't 
-          have to specify that the data is contained in an array in the 
-          index definition.
-
-      .. code-block:: json
-
-         {
-           "analyzer": "lucene.standard",
-           "searchAnalyzer": "lucene.standard",
-           "mappings": {
-             "dynamic": false,
-             "fields": {
-               "address": {
-                 "type": "document",
-                 "fields": {
-                   "city": {
-                     "type": "string",
-                     "analyzer": "lucene.simple",
-                     "ignoreAbove": 255
-                   },
-                   "state": {
-                     "type": "string",
-                     "analyzer": "lucene.english"
-                   }
-                 }
-               },
-               "company": {
-                 "type": "string",
-                 "analyzer": "lucene.whitespace",
-                 "multi": {
-                   "mySecondaryAnalyzer": {
-                     "type": "string",
-                     "analyzer": "lucene.french"
-                   }
-                 }
-               },
-               "employees": {
-                 "type": "string", 
-                 "analyzer": "lucene.standard"
-               }
-             }
-           }
-         }
-
-   .. tab:: Combined Mapping Example 
-      :tabid: Combined
-
-      The following example index definition uses both static 
-      and dynamic mappings.
-
-      - The default index analyzer is :ref:`lucene.standard
-        <ref-standard-analyzer>`.
-      - The default search analyzer is :ref:`lucene.standard
-        <ref-standard-analyzer>`. You can change the search analyzer 
-        if you want the query term to be parsed differently than how it 
-        is stored in your |fts| index.
-      - The index specifies static field mappings (``dynamic``: 
-        ``false``), which means fields that are not explicitly 
-        mentioned are not indexed. So, the index definition includes:
-
-        - The ``company`` field, which is of type ``string``. It uses 
-          the :ref:`lucene.whitespace <ref-whitespace-analyzer>` 
-          analyzer by default for queries. It has a ``multi`` analyzer 
-          named ``mySecondaryAnalyzer`` which uses the 
-          :ref:`lucene.french <ref-language-analyzers>` analyzer by 
-          default for queries. For more information on ``multi`` 
-          analyzers, see :ref:`Path Construction <ref-path>`.
-        - The ``employees`` field, which  is an array of strings. It 
-          uses the :ref:`lucene.standard <ref-keyword-analyzer>` 
-          analyzer by default for queries. For indexing arrays, |fts| 
-          only requires the data type of the array elements. You don't 
-          have to specify that the data is contained in an array in the 
-          index definition.
-        - The ``address`` field, which is of type ``document``. It has 
-          two embedded sub-fields, ``city`` and ``state``. Instead of 
-          explicitly mentioning each nested field in the document, the 
-          index definition enables dynamic mapping for all the 
-          sub-fields in the document. It uses the :ref:`lucene.standard 
-          <ref-keyword-analyzer>` analyzer by default for queries.
-
-      .. code-block:: json
-
-         {
-           "analyzer": "lucene.standard",
-           "searchAnalyzer": "lucene.standard",
-           "mappings": {
-             "dynamic": false,
-             "fields": {
-               "company": {
-                 "type": "string",
-                 "analyzer": "lucene.whitespace",
-                 "multi": {
-                   "mySecondaryAnalyzer": {
-                     "type": "string",
-                     "analyzer": "lucene.french"
-                   }
-                 }
-               },
-               "employees": {
-                 "type": "string",
-                 "analyzer": "lucene.standard"
-               },
-               "address": {
-                 "type": "document",
-                 "dynamic": true,
-                 "analyzer": "lucene.standard"
-               }
-             }
-           }
-         }
-
-.. _default-index-definition:
-
-Defining Indexes
-----------------
-
-.. note:: 
-
-   .. include:: /includes/fact-fts-required-roles.rst
-
-When you create a new |fts| index, choose a configuration method. 
-
-.. figure:: /images/create-fts-index.png
-     :alt: Screenshot of Create an Atlas Search Index modal window
-     :figwidth: 650px
-     :border:
-
-You can use either the default index definition or specify a custom
-definition for the index. The default index definition is dynamic 
-mapping of fields in the documents and will work with any collection. 
-If you wish to create a custom index definition for static mapping, you 
-can specify which fields to index with which analyzer and as which data 
-type. 
-
-.. include:: /includes/fact-fts-index-field-order.rst
-
-.. include:: /includes/default-fts-index-name.rst
-
-To learn more about creating a new |fts| index, see :ref:`Create an 
-Atlas Search Index <ref-create-index>` for complete instructions.
-
-Custom Analyzers
-~~~~~~~~~~~~~~~~
-
-You can also define a :ref:`custom analyzer <custom-analyzers>` within
-an index definition. Custom analyzers allow you to create an |fts| 
-mechanism tailored to your specific needs.
-
 .. _bson-data-chart:
 
 BSON Data Types
@@ -435,8 +246,8 @@ The table below enumerates all the :manual:`BSON data types
 
 .. _bson-data-types-autocomplete:
 
-``autocomplete`` 
-````````````````
+autocomplete
+````````````
 
 The ``autocomplete`` type is used for indexing text values for 
 autocompletion. You can only query the indexed fields with the 
@@ -511,53 +322,49 @@ The ``autocomplete`` type takes the following options:
 
        When tokenized with ``minGrams`` value of ``2`` and ``maxGrams`` 
        value of ``5``, |fts| indexes the following sequence of 
-       characters: 
-    
-       .. tabs:: 
+       characters based on the ``tokenization`` value you choose: 
 
-          .. tab:: edgeGram 
-             :tabid: edgeGram
-         
-             .. code-block:: none
-                :copyable: false 
+       **edgeGram**
 
-                Th
-                The
-                The{SPACE}
-                The q 
-                qu
-                qui
-                quic
-                quick
-                ...
+       .. code-block:: none
+          :copyable: false 
 
-          .. tab:: nGram   
-             :tabid: nGram
+          Th
+          The
+          The{SPACE}
+          The q 
+          qu
+          qui
+          quic
+          quick
+          ...
 
-             .. code-block:: none 
-                :copyable: false 
+       **nGram**
 
-                Th
-                The 
-                The{SPACE}  
-                The q
-                he 
-                he{SPACE}   
-                he q
-                he qu
-                e{SPACE} 
-                e q
-                e qu
-                e qui
-                {SPACE}q
-                {SPACE}qu
-                {SPACE}qui
-                {SPACE}quic
-                qu
-                qui
-                quic
-                quick
-                ...
+       .. code-block:: none 
+          :copyable: false 
+
+          Th
+          The 
+          The{SPACE}  
+          The q
+          he 
+          he{SPACE}   
+          he q
+          he qu
+          e{SPACE} 
+          e q
+          e qu
+          e qui
+          {SPACE}q
+          {SPACE}qu
+          {SPACE}qui
+          {SPACE}quic
+          qu
+          qui
+          quic
+          quick
+          ...
 
        .. note:: 
 
@@ -604,8 +411,8 @@ The ``autocomplete`` type takes the following options:
 
 .. _boolean-ref:
 
-``boolean``
-```````````
+boolean
+```````
 
 The ``boolean`` data type is used for indexing ``true`` and ``false`` 
 values. It works in conjunction with the :ref:`equals <equals-ref>` 
@@ -643,17 +450,17 @@ operator.
 
 .. _bson-data-types-date:
 
-``date``
-````````
+date
+````
 
 The ``date`` type is used for indexing date values. It takes the 
 ``type`` option. The value of ``type`` must be ``date``. A  date can't 
-be indexed if it is part of an array. 
+be indexed if it is part of an array.
 
 .. _bson-data-types-document:
 
-``document``
-````````````
+document
+````````
 
 The ``document`` data type is used for fields with embedded documents.
 It takes the following parameters:
@@ -700,8 +507,8 @@ It takes the following parameters:
 
 .. _bson-data-types-geo:
 
-``geo``
-```````
+geo
+```
 
 The ``geo`` type is used for indexing geographic point and shape 
 coordinates. For this type, the indexed field must be a 
@@ -758,8 +565,8 @@ coordinates. For this type, the indexed field must be a
 
 .. _bson-data-types-number:
 
-``number``
-``````````
+number
+``````
 
 The ``number`` type is used for fields with numeric values of 
 ``int32``, ``int64``, and ``double`` data types. The ``number`` type 
@@ -815,100 +622,95 @@ has the following options:
 
 .. _number-egs:
 
-Examples 
-++++++++
+``representation`` Example
+++++++++++++++++++++++++++
 
-.. tabs:: 
+.. example::
 
-   .. tab:: representation 
-      :tabid: rep
+   The following index definition for the 
+   ``sample_analytics.accounts`` collection in the :ref:`sample 
+   dataset <available-sample-datasets>` indexes the 
+   ``account_id`` field with 64-bit integer values. The 
+   following example also: 
+    
+   - Indexes all other integer values in the ``account_id`` field
+   - Rounds any decimal values and indexes small double type 
+     values in the ``account_id`` field
 
-      .. example::
+   .. code-block:: json
+      :copyable: false
 
-          The following index definition for the 
-          ``sample_analytics.accounts`` collection in the :ref:`sample 
-          dataset <available-sample-datasets>` indexes the 
-          ``account_id`` field with 64-bit integer values. The 
-          following example also: 
-          
-          - Indexes all other integer values in the ``account_id`` field
-          - Rounds any decimal values and indexes small double type 
-            values in the ``account_id`` field
-
-          .. code-block:: json
-             :copyable: false
-
-             {
-                "mappings": {
-                    "dynamic": false,
-                    "fields": {
-                       "account_id": {
-                          "type": "number",
-                          "representation": "int64"
-                       }
-                    }
+      {
+        "mappings": {
+            "dynamic": false,
+            "fields": {
+                "account_id": {
+                  "type": "number",
+                  "representation": "int64"
                 }
-             }
+            }
+        }
+      }
 
-   .. tab:: indexIntegers 
-      :tabid: indexint
+``indexIntegers`` Example
++++++++++++++++++++++++++
 
-      .. example::
+.. example::
 
-          The following index definition for the 
-          ``sample_airbnb.listingsAndReviews`` collection in the 
-          :ref:`sample dataset <available-sample-datasets>` omits the 
-          ``bathrooms`` field with 32-bit and 64-bit integer values. 
-          The following example will index the ``bathrooms`` field with 
-          ``double`` type values.
+   The following index definition for the 
+   ``sample_airbnb.listingsAndReviews`` collection in the 
+   :ref:`sample dataset <available-sample-datasets>` omits the 
+   ``bathrooms`` field with 32-bit and 64-bit integer values. 
+   The following example will index the ``bathrooms`` field with 
+   ``double`` type values.
 
-          .. code-block:: json 
-             :copyable: false
+   .. code-block:: json 
+      :copyable: false
 
-             {
-                "mappings": {
-                   "dynamic": false,
-                   "fields": {
-                      "bathrooms": {
-                         "type": "number",
-                         "indexIntegers": false
-                      }
-                   }
-                }
-             }
+      {
+        "mappings": {
+            "dynamic": false,
+            "fields": {
+              "bathrooms": {
+                  "type": "number",
+                  "indexIntegers": false
+              }
+            }
+        }
+      }
 
-   .. tab:: indexDoubles 
-      :tabid: indexdoubles
+``indexDoubles`` Example
+++++++++++++++++++++++++
 
-      .. example::
+.. example::
 
-          The following index definition for the
-          ``sample_analytics.accounts`` collection in the 
-          :ref:`sample dataset <available-sample-datasets>`:
-       
-          - Indexes the ``account_id`` field with integer values.
-          - Omits the ``account_id`` field with doubles values.
+   The following index definition for the
+   ``sample_analytics.accounts`` collection in the 
+   :ref:`sample dataset <available-sample-datasets>`:
+  
+   - Indexes the ``account_id`` field with integer values.
+   - Omits the ``account_id`` field with doubles values.
 
-          .. code-block:: json
-             :copyable: false
+   .. code-block:: json
+      :copyable: false
 
-             {
-                "mappings": {
-                   "dynamic": false,
-                   "fields": {
-                      "account_id": {
-                         "type": "number",
-                         "representation": "int64",
-                         "indexDoubles": false
-                      }
-                   }
-                }
-             }
+      {
+        "mappings": {
+            "dynamic": false,
+            "fields": {
+              "account_id": {
+                  "type": "number",
+                  "representation": "int64",
+                  "indexDoubles": false
+              }
+            }
+        }
+      }
 
 .. _objectId-ref:
 
-``objectId``
-````````````
+objectId
+````````
 
 The ``objectId`` data type is used for indexing :manual:`ObjectId
 </reference/bson-types/#objectid>` fields. It works in conjunction with 
@@ -924,8 +726,8 @@ the :ref:`equals <equals-ref>` operator.
 
 .. _bson-data-types-string:
 
-``string``
-``````````
+string
+``````
 
 The ``string`` data type takes the following parameters:
 
@@ -1062,31 +864,165 @@ The ``string`` data type takes the following parameters:
         }
       }
 
-Limitation
-~~~~~~~~~~
+.. _index-config-example:
 
-.. include:: /includes/fact-fts-index-limitation.rst
+Examples
+--------
 
-.. _ref-index-management:
+Static Mapping Example 
+~~~~~~~~~~~~~~~~~~~~~~
 
-Managing Indexes in |service| 
------------------------------
+The following example index definition uses static mappings.
 
-You can create, edit, and delete |fts| indexes from the |service| User 
-Interface and :ref:`API <atlas-search-api-ref>`. 
+- The default index analyzer is :ref:`lucene.standard
+  <ref-standard-analyzer>`.
+- The default search analyzer is :ref:`lucene.standard
+  <ref-standard-analyzer>`. You can change the search analyzer 
+  if you want the query term to be parsed differently than how it 
+  is stored in your |fts| index.
+- The index specifies static field mappings (``dynamic``: 
+  ``false``), which means fields that are not explicitly 
+  mentioned are not indexed. So, the index definition includes:
 
-- :ref:`ref-create-index`
-- :ref:`ref-edit-index`
-- :ref:`ref-delete-index`
+  - The ``address`` field, which is of type ``document``. It has 
+    two embedded sub-fields, ``city`` and ``state``.
+    
+    The ``city`` sub-field uses the :ref:`lucene.simple
+    <ref-simple-analyzer>` analyzer by default for queries.
+    It uses the ``ignoreAbove`` option to ignore any string of
+    more than 255 bytes in length.
+    
+    The ``state`` sub-field uses the :ref:`lucene.english
+    <ref-language-analyzers>` analyzer by default for queries.
 
-.. note:: 
+  - The ``company`` field, which is of type ``string``. It uses 
+    the :ref:`lucene.whitespace <ref-whitespace-analyzer>` 
+    analyzer by default for queries. It has a ``multi`` analyzer 
+    named ``mySecondaryAnalyzer`` which uses the 
+    :ref:`lucene.french <ref-language-analyzers>` analyzer by 
+    default for queries.
 
-   .. include:: /includes/fact-fts-required-roles.rst
+    For more information on ``multi`` analyzers, see :ref:`Path 
+    Construction <ref-path>`.
+
+  - The ``employees`` field, which is an array of strings. It 
+    uses the :ref:`lucene.standard <ref-keyword-analyzer>` 
+    analyzer by default for queries. For indexing arrays, |fts| 
+    only requires the data type of the array elements. You don't 
+    have to specify that the data is contained in an array in the 
+    index definition.
+
+.. code-block:: json
+
+   {
+     "analyzer": "lucene.standard",
+     "searchAnalyzer": "lucene.standard",
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "address": {
+           "type": "document",
+           "fields": {
+             "city": {
+               "type": "string",
+               "analyzer": "lucene.simple",
+               "ignoreAbove": 255
+             },
+             "state": {
+               "type": "string",
+               "analyzer": "lucene.english"
+             }
+           }
+         },
+         "company": {
+           "type": "string",
+           "analyzer": "lucene.whitespace",
+           "multi": {
+             "mySecondaryAnalyzer": {
+               "type": "string",
+               "analyzer": "lucene.french"
+             }
+           }
+         },
+         "employees": {
+           "type": "string", 
+           "analyzer": "lucene.standard"
+         }
+       }
+     }
+   }
+
+Combined Mapping Example 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example index definition uses both static 
+and dynamic mappings.
+
+- The default index analyzer is :ref:`lucene.standard
+  <ref-standard-analyzer>`.
+- The default search analyzer is :ref:`lucene.standard
+  <ref-standard-analyzer>`. You can change the search analyzer 
+  if you want the query term to be parsed differently than how it 
+  is stored in your |fts| index.
+- The index specifies static field mappings (``dynamic``: 
+  ``false``), which means fields that are not explicitly 
+  mentioned are not indexed. So, the index definition includes:
+
+  - The ``company`` field, which is of type ``string``. It uses 
+    the :ref:`lucene.whitespace <ref-whitespace-analyzer>` 
+    analyzer by default for queries. It has a ``multi`` analyzer 
+    named ``mySecondaryAnalyzer`` which uses the 
+    :ref:`lucene.french <ref-language-analyzers>` analyzer by 
+    default for queries. For more information on ``multi`` 
+    analyzers, see :ref:`Path Construction <ref-path>`.
+  - The ``employees`` field, which  is an array of strings. It 
+    uses the :ref:`lucene.standard <ref-keyword-analyzer>` 
+    analyzer by default for queries. For indexing arrays, |fts| 
+    only requires the data type of the array elements. You don't 
+    have to specify that the data is contained in an array in the 
+    index definition.
+  - The ``address`` field, which is of type ``document``. It has 
+    two embedded sub-fields, ``city`` and ``state``. Instead of 
+    explicitly mentioning each nested field in the document, the 
+    index definition enables dynamic mapping for all the 
+    sub-fields in the document. It uses the :ref:`lucene.standard 
+    <ref-keyword-analyzer>` analyzer by default for queries.
+
+.. code-block:: json
+
+   {
+     "analyzer": "lucene.standard",
+     "searchAnalyzer": "lucene.standard",
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "company": {
+           "type": "string",
+           "analyzer": "lucene.whitespace",
+           "multi": {
+             "mySecondaryAnalyzer": {
+               "type": "string",
+               "analyzer": "lucene.french"
+             }
+           }
+         },
+         "employees": {
+           "type": "string",
+           "analyzer": "lucene.standard"
+         },
+         "address": {
+           "type": "document",
+           "dynamic": true,
+           "analyzer": "lucene.standard"
+         }
+       }
+     }
+   }
 
 .. toctree::
    :titlesonly:
 
    /reference/atlas-search/create-index
+   /reference/atlas-search/view-index
    /reference/atlas-search/edit-index
    /reference/atlas-search/delete-index
-   /reference/atlas-search/view-index
