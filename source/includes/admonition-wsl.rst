@@ -1,4 +1,4 @@
-.. warning:: Windows Subsystem for Linux (WSL) - Unsupported
+.. note:: Windows Subsystem for Linux (WSL) Support
 
 
-   MongoDB does not support the Windows Subsystem for Linux (WSL).
+   To run MongoDB in Windows Subsystem for Linux (WSL), refer to the `WSL documentation <https://docs.microsoft.com/windows/wsl/tutorials/wsl-database#install-mongodb>`.
