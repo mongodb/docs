@@ -7,10 +7,6 @@
      - Type
      - Description
 
-   * - ``apiKey``
-     - string
-     - Personal |API| Key of the new |mms| user.
-
    * - ``programmaticApiKey``
      - object
      - Details of the first programmatic |api| key created in |mms|.

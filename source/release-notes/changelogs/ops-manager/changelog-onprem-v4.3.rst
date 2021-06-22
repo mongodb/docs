@@ -92,7 +92,7 @@ Upgrades Agent: :ref:`mongodb-10.5.2.5949`.
 *Released 2019-10-03*
 
 - Includes various minor bug fixes and improvements.
-- Deprecates :ref:`Personal API Keys <mms-personal-api-key>`. Use
+- Deprecates personal API keys. Use
   :ref:`Programmatic API Keys <mms-prog-api-key>` to access the |onprem|
   API.
 

@@ -7,11 +7,6 @@
      - Type
      - Description
 
-   * - ``apiKey``
-     - string
-     - Thirty-one alphanumeric characters and dashes that serve as the
-       password for the personal |api| Key of the first |mms| user.
-
    * - ``programmaticApiKey``
      - object
      - Details of the first programmatic |api| key created in |mms|.
