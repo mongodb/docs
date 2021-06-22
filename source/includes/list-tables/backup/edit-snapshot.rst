@@ -34,7 +34,11 @@
    * - Store monthly snapshots for
 
      - Sets the number of months that |mms| retains monthly snapshots.
-
+       
+       .. note:: 
+          
+          |onprem| takes monthly snapshots every 28 days, not by calendar month.
+     
    * - Day of Week for Full Snapshot
 
      - Sets the day of the week when |mms| takes a full snapshot. This
