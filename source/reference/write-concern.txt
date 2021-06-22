@@ -76,6 +76,40 @@ available:
    * - Value
      - Description
 
+   * - .. writeconcern:: "majority"
+
+     - Requests acknowledgment that write operations have propagated to
+       the :ref:`calculated majority <calculating-majority-count>` of
+       the data-bearing voting members (i.e. primary and secondaries
+       with :rsconf:`members[n].votes` greater than ``0``).
+       ``w: majority`` is the default write concern for *most* MongoDB
+       configurations. See :ref:`wc-default-behavior`.
+
+       For example, consider a replica set with 3 voting members,
+       Primary-Secondary-Secondary (P-S-S). For this replica set,
+       :ref:`calculated majority <calculating-majority-count>` is two, and
+       the write must propagate to the primary and one secondary to
+       acknowledge the write concern to the client.
+
+       .. note:: 
+
+          :ref:`Hidden <replica-set-hidden-members>`,
+          :ref:`delayed <replica-set-delayed-members>`,
+          and :ref:`priority 0 <replica-set-secondary-only-members>`
+          members with :rsconf:`members[n].votes` greater than ``0``
+          can acknowledge :writeconcern:`"majority"` write operations.
+
+          Delayed secondaries can return write acknowledgment no earlier
+          than the configured :rsconf:`~members[n].secondaryDelaySecs`. 
+
+       After the write operation returns with a :writeconcern:`w:
+       "majority" <"majority">` acknowledgment to the client, the
+       client can read the result of that write with a
+       :readconcern:`"majority"` readConcern.
+
+       See :ref:`wc-ack-behavior` for when :binary:`~bin.mongod` instances
+       acknowledge the write.
+   
    * - .. writeconcern:: <number>
 
      - Requests acknowledgment that the write operation has propagated
@@ -85,8 +119,7 @@ available:
        ``w: 1``
          Requests acknowledgment that the write operation has
          propagated to the standalone :binary:`~bin.mongod` or the primary
-         in a replica set. ``w: 1`` is the default write concern for
-         MongoDB. Data can be :ref:`rolled back <rollback-avoid>`
+         in a replica set. Data can be :ref:`rolled back <rollback-avoid>`
          if the primary steps down before the write operations have
          replicated to any of the secondaries.
 
@@ -125,38 +158,6 @@ available:
        See :ref:`wc-ack-behavior` for when :binary:`~bin.mongod` instances
        acknowledge the write.
 
-   * - .. writeconcern:: "majority"
-
-     - Requests acknowledgment that write operations have propagated to
-       the :ref:`calculated majority <calculating-majority-count>` of the
-       data-bearing voting members (i.e. primary and secondaries with
-       :rsconf:`members[n].votes` greater than ``0``).
-
-       For example, consider a replica set with 3 voting members,
-       Primary-Secondary-Secondary (P-S-S). For this replica set,
-       :ref:`calculated majority <calculating-majority-count>` is two, and
-       the write must propagate to the primary and one secondary to
-       acknowledge the write concern to the client.
-
-       .. note:: 
-
-          :ref:`Hidden <replica-set-hidden-members>`,
-          :ref:`delayed <replica-set-delayed-members>`,
-          and :ref:`priority 0 <replica-set-secondary-only-members>`
-          members with :rsconf:`members[n].votes` greater than ``0``
-          can acknowledge :writeconcern:`"majority"` write operations.
-
-          Delayed secondaries can return write acknowledgment no earlier
-          than the configured :rsconf:`~members[n].secondaryDelaySecs`. 
-
-       After the write operation returns with a :writeconcern:`w:
-       "majority" <"majority">` acknowledgment to the client, the
-       client can read the result of that write with a
-       :readconcern:`"majority"` readConcern.
-
-       See :ref:`wc-ack-behavior` for when :binary:`~bin.mongod` instances
-       acknowledge the write.
-
    * - .. writeconcern:: <custom write concern name>
 
      - Requests acknowledgment that the write operations have
@@ -166,7 +167,7 @@ available:
        :ref:`configure-custom-write-concern`.
        
        Data can be :ref:`rolled back <rollback-avoid>` if the custom
-       write concern only requires acknowledgement from the primary and
+       write concern only requires acknowledgment from the primary and
        the primary steps down before the write operations have
        replicated to any of the secondaries.
 
@@ -233,6 +234,13 @@ If you do not specify the ``wtimeout`` option and the level of write
 concern is unachievable, the write operation will block indefinitely.
 Specifying a ``wtimeout`` value of ``0`` is equivalent to a write
 concern without the ``wtimeout`` option.
+
+.. _wc-default-behavior:
+
+Implicit Default Write Concern
+------------------------------
+
+.. include:: /includes/5.0-default-wc.rst
 
 .. _wc-ack-behavior:
 
