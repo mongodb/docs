@@ -51,14 +51,21 @@
          GCP encryption key elapsed time since last rotation is...
 
    * - Host
-     -
-
+     - 
        ``HOST_DOWN``
          Host is down
 
        ``OUTSIDE_METRIC_THRESHOLD``
          Metric occurred outside of the metric threshold.
          See :ref:`monitor-cluster-metrics`.
+
+       ``MONGOT_CRASHING_OOM``
+         Search process (``mongot``) ran out of memory.
+         To learn more and troubleshoot the issue that triggered this 
+         alert, see :ref:`Atlas Search alerts <atlas-search-alerts>`.
+
+       ``MONGOT_NOT_CRASHING_OOM``
+         Search process (``mongot``) has enough memory.
 
    * - Project
      -
