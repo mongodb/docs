@@ -13,11 +13,11 @@ Best Practices Connecting from AWS Lambda
    :depth: 1
    :class: singlecol
 
-Use the following best practices to manage connections
+Use the following best practices to properly manage connections
 between :aws:`AWS Lambda </lambda/latest/dg/welcome.html>`
 and |service|:
 
-- Define the client to the MongoDB server outside 
+- Define the client to the MongoDB server outside
   the :aws:`AWS Lambda handler function </lambda/latest/dg/nodejs-prog-model-handler.html>`.
 
   Don't define a new MongoClient object each time you invoke your
@@ -27,7 +27,7 @@ and |service|:
   As an alternative, do the following:
 
   1. Create the MongoClient object once.
-  2. Store the object so your function can reuse the MongoClient for all
+  2. Store the object so your function can reuse the MongoClient across
      function invocations.
 
   The :ref:`Connection Example <lambda-aws-example>` reuses existing
@@ -47,15 +47,21 @@ and |service|:
   This allows a Lambda function to return its result to the caller
   without requiring that the MongoDB database connection be closed.
   Setting this property is not applicable for `async handlers
-  <https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html>`_.
+  <https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html>`__.
 
-- Restrict network access to your |service| cluster. Connect to your
-  |service| cluster over private networking using a
+- Restrict network access to your |service| cluster.
+  
+  Connect to your |service| cluster over private networking using a
   :doc:`Network Peering connection </security-vpc-peering>` 
-  between your |service| cluster and your |aws| Lambda function, or
-  a :doc:`VPC endpoint </security-private-endpoint/>`,
+  between your |service| cluster and your |aws| Lambda function, or,
+  alternatively, a :doc:`private endpoint </security-private-endpoint/>`,
   so that you can allow only private IP addresses to your
   :doc:`IP access list </security/ip-access-list/>`.
+
+  If private networking is not an option, consider connecting to your
+  |service| cluster via a `NAT gateway <https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html>`__
+  with a mapped Elastic IP address. Otherwise, you must
+  allow all IP addresses (0.0.0.0/0) to access your service cluster.
 
 .. _lambda-aws-example:
 
@@ -64,13 +70,13 @@ Connection Examples
 
 This section includes examples for two approaches:
 
-- In the first example, the Node.js file shows how to reuse ``Mongoclient.connect``
-  across many function invocations.
-- In the second example, two Node.js files, index.js and mongodb-client.js,
-  show how to isolate the call to ``MongoClient.connect`` into its own
-  module so that the connections can be reused across functions. Use
-  this approach if you package multiple logical functions together
-  in a single Lambda handler function.
+- In the first Node.js example, the ``index.js`` file shows how to reuse
+  ``Mongoclient.connect`` across function invocations.
+- In the second Node.js example, the ``index.js`` and
+  ``mongodb-client.js`` files show how to isolate the call to
+  ``MongoClient.connect`` into its own module so that the connections
+  can be reused across functions. Use this approach if you package
+  multiple logical functions together in a single Lambda handler function.
 
 
 The following example shows the best practice of defining the
@@ -83,30 +89,26 @@ outside the handler so it can be reused across function invocations.
 
    "use strict";
 
-   // Import dependency.
+   // Import the dependency.
    const { MongoClient } = require('mongodb');
 
    // Create a module-scoped connection promise.
-   // CRITICAL: You must call the connect function outside the handler
-   // so that the client can be reused across function invocations.
-   // Use the constructor when using the driver. Before connecting,
-   // enable monitoring by attaching the event listeners to the client.
-   // This will allow you to get all the events if you run into issues.
-
-   const client = new MongoClient(process.env.MONGODB_URI,
+   // CRITICAL: You must call connect outside the handler so that the client
+   // can be reused across function invocations.
+   const clientPromise = MongoClient.connect(process.env.MONGODB_URI,
       { useNewUrlParser: true,  useUnifiedTopology: true });
-   const clientPromise = client.connect();
-   
+
    // Handler
    module.exports.handler = async function(event, context) {
 
-     // Get the MongoClient by calling await on the connection promise. Because
-     // this is a promise, it will only resolve once.
-     const client = await clientPromise;
+      // Get the MongoClient by calling await on the connection promise. Because
+      // this is a promise it will only resolve once.
+      const client = await clientPromise;
 
-     // Use the client to return the name of the connected database.
-     return client.db().databaseName;
+      // Use the client to return the name of the connected database.
+      return client.db().databaseName;
    }
+
 
 Some serverless frameworks that run on top of Lambda allow for
 multiple logical functions to be packaged together in a single
@@ -125,36 +127,33 @@ In the following code examples:
    :caption: mongodb-client.js
    :linenos:
 
-
    "use strict";
 
-   // Import dependency.
+   // Import the dependency.
    const { MongoClient } = require('mongodb');
 
    // Export a module-scoped connection promise. By doing this in a separate
-   // module, the client can be shared across functions. Use the constructor
-   // when using the driver.
+   // module, the client can be shared across functions.
+   module.exports = MongoClient.connect(process.env.MONGODB_URI,
+     { useNewUrlParser: true,  useUnifiedTopology: true });
 
-   const client = new MongoClient(process.env.MONGODB_URI,
-      { useNewUrlParser: true,  useUnifiedTopology: true });
-   module.exports = client.connect();
 
 .. code-block:: javascript
    :caption: index.js
    :linenos:
 
    "use strict";
-   // Import dependency.
+
+   // Import the dependency.
    const clientPromise = require('./mongodb-client');
-   
+
    // Handler
    module.exports.handler = async function(event, context) {
-   
-     // Get the MongoClient by calling await on the connection promise. Because
-     // this is a promise, it will only resolve once.
-     const client = await clientPromise;
-   
-     // Use the connection to return the name of the connected database.
-     return client.db().databaseName;
+
+      // Get the MongoClient by calling await on the connection promise. Because
+      // this is a promise, it will only resolve once.
+      const client = await clientPromise;
+
+      // Use the connection to return the name of the connected database.
+      return client.db().databaseName;
    }
-   
