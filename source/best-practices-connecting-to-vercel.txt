@@ -1,0 +1,109 @@
+.. This page is hidden from the TOC (but not from search indexing).
+
+:orphan:
+
+.. _best-practices-connect-from-vercel:
+
+=====================================
+Best Practices Connecting from Vercel
+=====================================
+
+
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: vercel connection
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+`Vercel <https://vercel.com/>`_ is a cloud platform for static frontends
+and serverless functions. Applications deployed to Vercel can connect to
+|service| clusters using serverless functions that use the
+:driver:`MongoDB Node.js driver </node/current/>` or the
+`Mongoose ODM library <https://mongoosejs.com/>`_.
+
+Use the following best practices to properly manage connections between
+Vercel and |service|. Following these best practices will help you avoid
+accumulating connections on the database, preventing you from
+potentially exceeding connection limits.
+
+- Define the client to the MongoDB server outside of the handler function
+  in its own JavaScript module.
+
+- Don't define a new ``MongoClient`` object each time you invoke your function.
+  Doing so causes the :driver:`MongoDB Node.js driver </node/current/>`
+  to create a new database connection with each function call. Instead,
+  do the following:
+
+  1. Create the ``MongoClient`` object once.
+  2. Store the object so that your function can reuse the ``MongoClient`` across
+     function invocations and across functions.
+
+  The :ref:`Connection Example <vercel-example>` reuses existing
+  database connections to speed up communication with the database
+  and keep connection counts to the database at a reasonable level
+  with respect to application traffic.
+
+- Use a global variable to hold the ``MongoClient`` object so that in
+  development mode it persists across module reloads initiated by
+  Vercel's HMR (hot module replacement) capabilities.
+
+.. note::
+   It is not possible to determine `the IP addresses of Vercel deployments
+   <https://vercel.com/support/articles/how-to-allowlist-deployment-ip-address>`_.
+   To connect to |service|, you must add all IP addresses (0.0.0.0/0) to the
+   :doc:`IP access list </security/ip-access-list/>` of your |service| cluster.
+
+   .. _vercel-example:
+
+Connection Example
+------------------
+
+In the following Node.js example, the ``index.js`` and ``mongodb-client.js``
+files show these best practices:
+
+.. code-block:: javascript
+   :caption: index.js
+   :linenos:
+
+   "use strict";
+
+   // Import the dependency.
+   const clientPromise = require('./mongodb-client');
+
+   // Handler
+   module.exports = async (req, res) => {
+
+      // Get the MongoClient by calling await on the promise. Because it is a
+      // promise, it will only resolve once.
+      const client = await clientPromise;
+
+      // Use the client to return the name of the connected database.
+      return client.db().databaseName;
+   }
+
+
+.. code-block:: javascript
+   :caption: mongodb-client.js
+   :linenos:
+
+   "use strict";
+
+   // Import the dependency.
+   const { MongoClient } = require('mongodb');
+
+   // Use a global variable so that in development mode the value is preserved
+   // across module reloads caused by HMR (hot module replacement).
+   if (global._mongoClientPromise == null) {
+     global._mongoClientPromise = MongoClient.connect(process.env.MONGODB_URI,
+       { useNewUrlParser: true,  useUnifiedTopology: true });
+   }
+
+   // Export a module-scoped promise. By doing this in a separate module, the
+   // client can be shared across functions.
+   module.exports = global._mongoClientPromise;
