@@ -1,3 +1,15 @@
+.. _11.1.0.6961:
+
+MongoDB Agent 11.1.0.6961
+-------------------------
+
+*Released* 2021-06-23
+
+- Improves support for the upcoming release of MongoDB 5.0.
+- Improves logging for RHEL, CentOS, and SUSE hosts that use
+  `systemd <https://freedesktop.org/wiki/Software/systemd>`__.
+
+
 .. _10.30.0.6882-1:
 
 MongoDB Agent 10.30.0.6882-1

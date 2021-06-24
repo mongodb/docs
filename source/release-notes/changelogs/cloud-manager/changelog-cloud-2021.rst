@@ -1,3 +1,11 @@
+.. _cloudmanager_20210623:
+
+23 June 2021 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`11.1.0.6961 <11.1.0.6961>`.
+
+
 .. _cloudmanager_20210511:
 
 11 May 2021 Release
