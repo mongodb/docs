@@ -35,7 +35,7 @@
      - Mobile number of the |mms| user.
 
    * - ``roles``
-     - object array
+     - empty array
      - Role assigned to the |mms| user.
 
    * - | ``roles``
