@@ -1,3 +1,13 @@
+.. _atlas_20210623:
+
+23 June 2021 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Removes Personal API keys. Personal API Keys reached End of Life (EOL)
+  on March 1, 2021. Communications sent beginning 2 years before this
+  date notified users. We encourage you to use :ref:`Programmatic API Keys <about-org-api-keys>`.
+
+
 .. _atlas_20210511:
 
 11 May 2021 Release
