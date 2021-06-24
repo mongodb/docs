@@ -14,8 +14,8 @@ the following command:
 
 .. code-block:: sh
 
-    git clone https://github.com/10gen/govcloud-docs.git
-    cd govcloud-docs/
+    git clone https://github.com/10gen/cloudgov-docs.git
+    cd cloudgov-docs/
     make build
 
 View ``build/master/html/index.html`` to view your current build of the
