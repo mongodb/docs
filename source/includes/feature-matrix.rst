@@ -54,23 +54,27 @@
      -
      - :icon-fa5:`check` [#govcloud-backup]_
 
-   * - |service| Search
+   * - |service| Data Lake
      - :icon-fa5:`check`
-     - :icon-fa5:`check`
+     -   
 
    * - |service| Online Archives
      - :icon-fa5:`check`
      - 
 
-   * - |service| Data Lake
+   * - |service| Search
      - :icon-fa5:`check`
-     -   
+     - :icon-fa5:`check`
 
-   * - MongoDB Realm
+   * - |service| Triggers
      - :icon-fa5:`check`
      - 
 
    * - MongoDB Charts
+     - :icon-fa5:`check`
+     - 
+
+   * - MongoDB Realm
      - :icon-fa5:`check`
      - 
 
