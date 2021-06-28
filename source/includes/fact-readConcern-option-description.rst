@@ -1,14 +1,12 @@
 Possible read concern levels are:
 
 - :readconcern:`"local"`. This is the default read concern level for
-  read operations against primary and read operations against
-  secondaries when associated with :ref:`causally consistent sessions
-  <causal-consistency>`.
+  read operations against the primary and secondaries.
 
-- :readconcern:`"available"`. This is the default for reads against
-  secondaries when when not associated with :ref:`causally consistent
-  sessions <causal-consistency>`. The query returns the instance's most
-  recent data.
+- :readconcern:`"available"`. Available for read operations against
+  the primary and secondaries. :readconcern:`"available"` behaves the 
+  same as :readconcern:`"local"` against the primary and non-sharded
+  secondaries. The query returns the instance's most recent data.
 
 - :readconcern:`"majority"`. Available for replica sets that use
   :ref:`WiredTiger storage engine <storage-wiredtiger>`.
