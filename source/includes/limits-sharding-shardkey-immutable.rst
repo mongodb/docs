@@ -1,4 +1,4 @@
-If you must change a shard key:
+In MongoDB 4.2 and earlier, to change a shard key:
 
 - Dump all data from MongoDB into an external format.
 

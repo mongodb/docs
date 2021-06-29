@@ -1,4 +1,4 @@
-For clusters with high insert volumes, a shard keys with
+For clusters with high insert volumes, a shard key with
 monotonically increasing and decreasing keys can affect insert
 throughput. If your shard key is the ``_id`` field, be aware that
 the default values of the ``_id`` fields are :term:`ObjectIds
