@@ -15,9 +15,9 @@
 
 - Introduces a search tester UI to run queries and see results  
   for :ref:`{+fts+} <fts-top-ref>`.
-- Introduces |service| :ref:`Global Clusters <global-clusters>` support 
-  for using a unique compound index as a shard key and using a compound 
-  shard with a compound shard with a hashed second field.
+- Introduces |service| :ref:`Global Clusters <de-shard-collection-for-global-writes>`
+  support for using a unique compound index as a shard key and using a
+  compound shard with a hashed second field.
 - Introduces the ability for :adl:`{+data-lake+} <>` to target cluster 
   :ref:`analytics nodes <deploy-analytics-nodes>` for federated queries.
 
