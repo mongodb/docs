@@ -21,17 +21,20 @@ The :doc:`event auditing feature </core/auditing>` can record events in
 JSON format. To configure auditing output, see
 :doc:`/tutorial/configure-auditing`.
 
+.. versionchanged:: 5.0
+
 The recorded JSON messages have the following syntax:
 
 .. code-block:: none
 
    {
-     atype: <String>,
-     ts : { "$date": <timestamp> },
-     local: { ip: <String>, port: <int> },
-     remote: { ip: <String>, port: <int> },
-     users : [ { user: <String>, db: <String> }, ... ],
-     roles: [ { role: <String>, db: <String> }, ... ],
+     atype: <string>,
+     ts : { $date: <timestamp> },
+     uuid : { $binary: <string>, $type: <string> },
+     local: { ip: <string>, port: <int> || isSystemUser: <boolean> || unix: <string> },
+     remote: { ip: <string>, port: <int> || isSystemUser: <boolean> || unix: <string> },
+     users : [ { user: <string>, db: <string> }, ... ],
+     roles: [ { role: <string>, db: <string> }, ... ],
      param: <document>,
      result: <int>
    }
@@ -64,23 +67,54 @@ The recorded JSON messages have the following syntax:
        
        
 
-   * - ``local``
+   * - .. _audit-message-uuid:
+   
+       ``uuid``
 
      - document
 
-     - Document that contains the local ``ip`` address and the ``port``
+     - Document that contains a universally unique identifier (UUID) for
+       the audit message. The ``$type`` field specifies the BSON subtype
+       for the ``$binary`` field. The ``$type`` value of ``04``
+       specifies that the ``$binary`` field contains a UUID.
+
+       .. versionadded:: 5.0
+
+
+
+   * - .. _audit-message-local:
+   
+       ``local``
+
+     - document
+
+     - A document that contains the ``ip`` address and the ``port``
        number of the running instance.
-       
-       
+
+       .. include:: /includes/audit-local-remote.rst
+
+       .. note::
+
+          Starting in MongoDB 5.0, the ``local`` field is deprecated.
+          Use the ``localEndpoint`` field in the :ref:`clientMetadata
+          <audit-message-clientMetadata>` audit message instead.
+
+       .. versionchanged:: 5.0
+
+
 
    * - ``remote``
 
      - document
 
-     - Document that contains the remote ``ip`` address and the ``port`` number of
-       the incoming connection associated with the event.
-       
-       
+     - A document that contains the ``ip`` address and the ``port``
+       number of the incoming connection associated with the event.
+
+       .. include:: /includes/audit-local-remote.rst       
+
+       .. versionchanged:: 5.0
+
+
 
    * - ``users``
 
@@ -141,7 +175,10 @@ associated ``param`` details and the ``result`` values, if any.
 
      - ``result``
 
-   * - :authaction:`authenticate`
+
+   * - .. _audit-message-authenticate:
+
+       :authaction:`authenticate`
 
      - .. code-block:: none
           :copyable: false
@@ -152,12 +189,25 @@ associated ``param`` details and the ``result`` values, if any.
             mechanism: <mechanism>
           }
 
+       Starting in MongoDB 5.0, :authaction:`authenticate`:
+
+       - Is logged for incomplete authentication attempts.
+       
+       - Includes the principle name and identifier in
+         ``mechanism`` for external authentication mechanisms such as
+         :ref:`x.509 <security-auth-x509>` and Amazon Web Services
+         Identity and Access Management (AWS-IAM) (see
+         :urioption:`authMechanism`).
+
+       .. versionchanged:: 5.0
 
      - | ``0`` - Success
        | ``18`` - Authentication Failed
        | ``334`` - Mechanism Unavailable
 
-   * - :authaction:`authCheck`
+   * - .. _audit-message-authCheck:
+
+       :authaction:`authCheck`
 
      - .. code-block:: none
           :copyable: false
@@ -171,23 +221,92 @@ associated ``param`` details and the ``result`` values, if any.
        | ``ns`` field is optional.
        | ``args`` field may be redacted.
 
+       By default, the auditing system logs only the authorization
+       failures. To enable the system to log authorization successes,
+       use the :parameter:`auditAuthorizationSuccess` parameter.
+       
+       .. include:: /includes/fact-auditAuthorizationSuccess-performance-impact.rst
+
+       Starting in MongoDB 5.0, :authaction:`authCheck` is not logged
+       for actions that are generated internally.
+
+       .. versionchanged:: 5.0
+
      - | ``0`` - Success
        | ``13`` - Unauthorized to perform the operation.
 
-       By default, the auditing system logs only the authorization
-       failures. To enable the system to log authorization successes, use
-       the :parameter:`auditAuthorizationSuccess` parameter. [#performance]_
 
+   * - .. _audit-message-clientMetadata:
 
-   * - :authaction:`createCollection`
+       :authaction:`clientMetadata`
 
      - .. code-block:: none
           :copyable: false
 
-          { ns: <database>.<collection> }
+          {
+             localEndpoint : {
+                ip : <IP address of running instance>,
+                port : <port of running instance>
+             } || {
+                unix : <MongoDB socket file path if connecting through
+                        a Unix domain socket>
+             },
+             clientMetadata : {
+                driver : {
+                   name : <client driver name>,
+                   version : <client driver version>
+                },
+                os : {
+                   type : <client operating system type>,
+                   name : <client operating system name>,
+                   architecture : <client operating system architecture>,
+                   version : <client operating system version>
+                },
+                platform : <client platform name>,
+                application : {
+                   name : <client application name>
+                }
+             }
+          }
 
+       Contains the client metadata. Logged when the client runs the
+       :dbcommand:`hello` command.
+
+       .. seealso::
+       
+          :ref:`log-messages-client-data`
+       
+       .. versionadded:: 5.0
 
      - ``0`` - Success
+
+
+   * - .. _audit-message-createCollection:
+
+       :authaction:`createCollection`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+             ns: <database>.<collection || view>,
+             viewOn: <database>.<collection>,
+             pipeline: [ <pipeline definition> ]
+          }
+
+       Logged when a:
+       
+       - Collection is created.
+       
+       - :ref:`View <3.4-reference-views>` is created, with the view
+         name logged in the ``ns`` field.
+
+       .. include:: /includes/collection-audit-event.rst
+
+       .. versionchanged:: 5.0
+
+     - ``0`` - Success
+
 
    * - :authaction:`createDatabase`
 
@@ -199,7 +318,10 @@ associated ``param`` details and the ``result`` values, if any.
 
      - ``0`` - Success
 
-   * - :authaction:`createIndex`
+
+   * - .. _audit-message-createIndex:
+
+       :authaction:`createIndex`
 
      - .. code-block:: none
           :copyable: false
@@ -217,6 +339,21 @@ associated ``param`` details and the ``result`` values, if any.
        - ``IndexBuildSucceeded``
        - ``IndexBuildAborted``
 
+       Starting in MongoDB 5.0, :authaction:`createIndex` audit events
+       are:
+       
+       - Logged at the start and end of index creation, and includes a
+         message indicating if the index was successfully created or
+         not.
+
+       - Attributed to the originating user for the action that
+         caused the :authaction:`createIndex` audit event.
+
+       - Logged for a :authaction:`createCollection` event if the
+         collection has an index.
+
+       .. versionchanged:: 5.0
+
      - | ``0`` - Success
        | ``276`` - Index build aborted.
 
@@ -226,6 +363,31 @@ associated ``param`` details and the ``result`` values, if any.
        code ``0`` for :authaction:`createIndex` audit events with
        ``IndexBuildState`` set to ``IndexBuildStarted`` or
        ``IndexBuildSucceeded``.
+
+
+   * - .. _audit-message-directAuthMutation:
+
+       :authaction:`directAuthMutation`
+
+     - .. code-block:: none
+          :copyable: false
+
+          {
+             document: {
+                <collection modifications>
+             },
+             ns: <database>.<collection>,
+             operation: <database operation>
+          }
+
+       Logged when a database operation directly modifies the contents
+       of the :data:`admin.system.users` or :data:`admin.system.roles`
+       collections.
+
+       .. versionadded:: 5.0
+
+     - ``0`` - Success
+
 
    * - :authaction:`renameCollection`
 
@@ -240,21 +402,34 @@ associated ``param`` details and the ``result`` values, if any.
 
      - ``0`` - Success
 
-   * - :authaction:`dropCollection`
+
+   * - .. _audit-message-dropCollection:
+
+       :authaction:`dropCollection`
 
      - .. code-block:: none
           :copyable: false
 
           {
-             ns: <database>.<collection>,
+             ns: <database>.<collection || view>,
              viewOn: <database>.<collection>,
-             pipeline: []
+             pipeline: [ <pipeline definition> ]
           }
 
-       Starting in MongoDB v5.0 ``dropCollection`` adds an audit event
-       when a :ref:`view <3.4-reference-views>` is dropped as well as
-       when a :term:`collection` is dropped.  The ``pipeline``
-       parameter defines the ``view`` referenced in ``viewOn``.
+       Logged when a:
+       
+       - Collection is dropped.
+       
+       - :ref:`View <3.4-reference-views>` is dropped, with the view
+         name logged in the ``ns`` field.
+
+       .. include:: /includes/collection-audit-event.rst
+
+       In addition, starting in MongoDB 5.0, a
+       :authaction:`dropCollection` audit event is logged when a
+       :authaction:`dropDatabase` event occurs.
+
+       .. versionchanged:: 5.0
 
      - | ``0`` - Success
        | ``26`` - ``NamespaceNotFound``
@@ -682,8 +857,11 @@ associated ``param`` details and the ``result`` values, if any.
 
 
      - ``0`` - Success
-   
-   * - :authaction:`logout`
+
+
+   * - .. _audit-message-logout:
+
+       :authaction:`logout`
 
      - .. code-block:: none
           :copyable: false
@@ -714,7 +892,10 @@ associated ``param`` details and the ``result`` values, if any.
 
      - ``0`` - Success
 
-   * - :authaction:`startup`
+
+   * - .. _audit-message-startup:
+   
+       :authaction:`startup`
 
      - .. code-block:: none
           :copyable: false
@@ -728,8 +909,3 @@ associated ``param`` details and the ``result`` values, if any.
 
 
      - ``0`` - Success
-
-.. [#performance]
-
-   .. include:: /includes/fact-auditAuthorizationSuccess-performance-impact.rst
-
