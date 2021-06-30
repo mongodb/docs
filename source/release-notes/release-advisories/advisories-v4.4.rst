@@ -86,7 +86,7 @@ MongoDB Platform Support Changes
   platforms:
 
   - Amazon Linux 1 on the x86_64 architecture
-  - Ubuntu 16.04 on the ppc64le architecture
+  - Ubuntu 18.x on the ppc64le architecture
 
 Server Pools
 ~~~~~~~~~~~~

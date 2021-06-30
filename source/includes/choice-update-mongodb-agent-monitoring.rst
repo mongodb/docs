@@ -34,8 +34,8 @@
          .. tab:: PowerPC
             :tabid: ppc
 
-            On PowerPC architecture running Ubuntu 16.x
-            (managing MongoDB 3.4 or later deployments only):
+            On PowerPC architecture running Ubuntu 18.x
+            (managing MongoDB 3.6 or later deployments only):
 
             .. tabs::
 
@@ -56,7 +56,7 @@
          .. tab:: IBM ZSeries
             :tabid: s390x
 
-            On zSeries architecture running Ubuntu 16.x using a
+            On zSeries architecture running Ubuntu 18.x using a
             ``deb`` package:
 
             .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.ubuntu1804-deb.rst

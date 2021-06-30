@@ -39,6 +39,8 @@
   field on the :guilabel:`Ops Manager Config` page to not display a 
   visual indicator that the setting is overwritten in the configuration 
   file.
+- Removed support for Ubuntu 16.04 since Ubuntu 16.04 is End OF Life
+  (EOL) as of April 2021.
 
 - Updates the MongoDB Agent to
   :ref:`10.14.23.6498 <mongodb-10.14.23.6498>`.
