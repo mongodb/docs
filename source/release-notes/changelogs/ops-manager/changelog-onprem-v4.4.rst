@@ -1,3 +1,13 @@
+.. _opsmgr-server-4.4.15:
+
+|onprem| Server 4.4.15
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-07-01*
+
+- When creating a global owner, the generated |api| keys now also
+  include the selected IP access list
+
 .. _opsmgr-server-4.4.14:
 
 |onprem| Server 4.4.14
