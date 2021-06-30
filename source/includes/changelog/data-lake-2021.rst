@@ -1,4 +1,18 @@
-.. _data-lake-v20210511:
+.. _data-lake-v20210623:
+
+23 June 2021 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Allows downloading {+dl+} query logs from the :ref:`UI 
+  <query-adl>` and :ref:`API <api-download-query-log>`.
+- Removes restriction on large collection namespaces.
+- Adds option to bypass cache for :manual:`collStats 
+  </reference/command/collStats>` and :manual:`dbStats 
+  </reference/command/dbStats>` to fetch the most recent statistics.
+- Supports :manual:`serverStatus </reference/command/serverStatus/>` 
+  command.
+
+.. _data-lake-v20210608:
 
 8 June 2021 Release
 ~~~~~~~~~~~~~~~~~~~
@@ -7,6 +21,8 @@
 - Supports public S3 data stores with the ``public`` configuration flag.
 - Supports Zstandard compression.
 - Adds ``db`` field to ``dbStats`` result.
+
+.. _data-lake-v20210511:
 
 11 May 2021 Release
 ~~~~~~~~~~~~~~~~~~~
