@@ -23,7 +23,7 @@ async function run() {
     const updateDoc = {
       $set: {
         plot:
-          "Blacksmith Scene is a silent film directed by William K.L. Dickson",
+          "Blacksmith Scene is a silent film directed by William K.L. Dickson.",
       },
     };
 
