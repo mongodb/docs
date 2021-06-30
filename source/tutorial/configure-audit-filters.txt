@@ -18,7 +18,7 @@ Configure Audit Filters
    MongoDB Atlas supports auditing for all ``M10`` and larger
    clusters. Atlas supports specifying a JSON-formatted audit
    filter as documented below and using the Atlas audit filter
-   builder for simplified auditing configuration. To learn more, see 
+   builder for simplified auditing configuration. To learn more, see
    the Atlas documentation for
    :atlas:`Set Up Database Auditing </database-auditing>`
    and
@@ -28,37 +28,51 @@ Configure Audit Filters
 supports :ref:`auditing <auditing>` of various operations. When
 :doc:`enabled </tutorial/configure-auditing>`, the audit facility, by
 default, records all auditable operations as detailed in
-:ref:`audit-action-details-results`. To specify which events to record,
-the audit feature includes the ``--auditFilter`` option.
+:ref:`audit-action-details-results`. You can specify event filters to
+limit which events are recorded. Filters can be configured at
+:ref:`startup <configure-audit-filters-at-startup>` or MongoDB can be
+configured to allow
+:ref:`runtime specification <configure-audit-filters-at-runtime>`.
+
+.. _configure-audit-filters-at-runtime:
+
+Filter Configuration at Runtime
+-------------------------------
+
+Starting in MongDB 5.0, a :binary:`~bin.mongod` or
+:binary:`~bin.mongos` instance can be part of a distributed audit
+configuration. Audit filters on these nodes can be configured at
+runtime. A node will be included in the distributed audit configuration
+if:
+
+- :setting:`auditLog.runtimeConfiguration` is ``true``,
+- :setting:`auditLog.filter` is not set, and
+- :parameter:`auditAuthorizationSuccess` is not set
+
+When ``runtimeConfiguration`` is ``true``, the server will log an error
+and fail to start if either one of the other variables is set.
+
+.. _configure-audit-filters-at-startup:
+
+Filter Configuration at System Startup
+--------------------------------------
+
+Audit filters can be specified on the command line or else in the
+:ref:`configuration file <configuration-options>` used to start the
+``mongod`` or ``mongos`` instance.
+
+Configuration File Usage
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Filters can be specified in YAML under the ``auditLog`` session of the
+:ref:`configuration file <configuration-options>`. See the examples
+below for sample configurations.
 
 .. note::
 
-   .. include:: /includes/extracts/default-bind-ip-security.rst
-
-   Before you bind to other ip addresses, consider :ref:`enabling
-   access control <checklist-auth>` and other security measures listed
-   in :doc:`/administration/security-checklist` to prevent unauthorized
-   access.
-
-``--auditFilter`` Option
-------------------------
-
-The ``--auditFilter`` option takes a string representation of a
-query document of the form:
-
-.. code-block:: javascript
-
-   { <field1>: <expression1>, ... }
-
-- The ``<field>`` can be :doc:`any field in the audit message
-  </reference/audit-message>`, including fields returned in the
-  :ref:`param <audit-action-details-results>` document.
-
-- The ``<expression>`` is a :ref:`query condition expression
-  <query-selectors>`.
-
-.. include:: /includes/fact-audit-filter-single-quotes.rst
-.. include:: /includes/fact-audit-filter-yaml-configuration.rst
+   If ``runtimeConfiguration`` is enabled, then the
+   :ref:`configuration file <configuration-options>` cannot be used to
+   specify audit filters.
 
 Examples
 --------
@@ -217,7 +231,7 @@ audit, you must also enable the audit system to log authorization
 successes using the :parameter:`auditAuthorizationSuccess` parameter.
 [#authorization-agnostic]_
 
-.. note:: 
+.. note::
 
    .. include:: /includes/fact-auditAuthorizationSuccess-performance-impact.rst
 
@@ -262,13 +276,13 @@ audit, you must also enable the audit system to log authorization
 successes using the :parameter:`auditAuthorizationSuccess` parameter.
 [#authorization-agnostic]_
 
-.. note:: 
+.. note::
 
    .. include:: /includes/fact-auditAuthorizationSuccess-performance-impact.rst
 
 The following example audits the :method:`~db.collection.find()`,
 :method:`~db.collection.insert()`, :method:`~db.collection.remove()`,
-:method:`~db.collection.update()`, and 
+:method:`~db.collection.update()`, and
 :method:`~db.collection.findAndModify()` operations for the collection
 ``orders`` in the database ``test`` by using the filter:
 
