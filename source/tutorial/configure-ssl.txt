@@ -538,7 +538,7 @@ TLS/SSL Certificate Passphrase
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If the certificate key files for
-:binary:`~bin.mongod`/:binary:`~bin.mongos` are encrypted, sinclude
+:binary:`~bin.mongod`/:binary:`~bin.mongos` are encrypted, include
 :setting:`net.tls.certificateKeyFilePassword` set to the passphrase.
 
 .. tip::
@@ -556,6 +556,62 @@ If the certificate key files for
 
    - For :binary:`~bin.mongos`, see :option:`--tlsCertificateKeyFilePassword
      <mongos --tlsCertificateKeyFilePassword>`.
+
+.. _certificate-rotation:
+
+Online Certificate Rotation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, you can rotate the following certificate key
+files on-demand:
+
+- :setting:`TLS Certificates <net.tls.certificateKeyFile>`
+- :setting:`CRL (Certificate Revocation List) files <net.tls.CRLFile>`
+  (on Linux and Windows platforms)
+- :setting:`CA (Certificate Authority) files <net.tls.CAFile>`
+
+To rotate one or more of these certificates:
+
+#. Replace the certificate or certificates you wish to rotate on the
+   filesystem, noting the following constraints:
+   
+   - Each new certificate must have the *same filename* and
+     *same filepath* as the certificate it is replacing.
+
+   - If rotating an encrypted :setting:`TLS Certificate
+     <net.tls.certificateKeyFile>`, its password must be the same as
+     the password for the old certificate (as specified to the
+     :setting:`~net.tls.certificateKeyFilePassword` configuration file
+     setting). Certificate rotation does not support the interactive
+     password prompt.
+
+#. Connect :binary:`~bin.mongosh` to the :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` instance that you wish to perform certificate
+   rotation on.
+
+#. Run the :dbcommand:`rotateCertificates` command or the
+   :method:`db.rotateCertificates()` shell method to rotate the
+   certificates used by the the :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` instance.
+
+When certificate rotation takes place:
+
+- Existing connections to the :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` instance are not terminated, and will continue
+  to use the old certificates.
+
+- Any new connections will use the new certificates.
+
+Incorrect, expired, revoked, or missing certificate files will cause the
+certificate rotation to fail, but will not invalidate the existing
+TLS configuration or terminate the running :binary:`~bin.mongod` or
+:binary:`~bin.mongos` process.
+
+Previous to MongoDB 5.0, certificate rotation required downtime, and was
+typically performed during maintenance windows.
+
+See :dbcommand:`rotateCertificates` or :method:`db.rotateCertificates()`
+for additional considerations and full usage instructions.
 
 .. _ssl-run-fips-mode:
 
