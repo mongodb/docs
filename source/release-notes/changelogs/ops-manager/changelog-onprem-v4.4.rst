@@ -104,9 +104,9 @@
 
 *Released 2021-03-04*
 
-- Allows you to choose to redact sensitive information from the server
-  usage report. If you choose to redact, |onprem| redacts before it
-  generates the report for download.
+- Allows you to choose either redact, or to not redact, sensitive
+  information from the server usage report. If you choose to redact,
+  |onprem| redacts before it generates the report for download.
 - Updates the MongoDB Agent to
   :ref:`10.14.21.6476 <mongodb-10.14.21.6476>`.
 - Requires :db-tools:`MongoDB Database Tools 100.3.0 </>`.
