@@ -1,6 +1,6 @@
 .. note::
 
-    This example connects to an instance of MongoDB and uses a sample
-    data database. To learn more about connecting to your MongoDB
-    instance and loading this database, see the :doc:`Usage Examples guide
-    </usage-examples>`.
+   You can use this example to connect to an instance of MongoDB
+   and interact with a database that contains sample data. To learn more about connecting to your MongoDB
+   instance and loading a sample dataset, see the :doc:`Usage Examples
+   guide </usage-examples>`.
