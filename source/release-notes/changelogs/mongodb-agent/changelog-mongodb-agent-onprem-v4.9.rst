@@ -3,7 +3,9 @@
 MongoDB Agent 10.28.1.6833
 --------------------------
 
-:ref:`Released with Ops Manager 4.9.2 on 2021-05-046 <opsmgr-server-4.9.2>`
+:ref:`Released with Ops Manager 4.9.2 on 2021-05-04 <opsmgr-server-4.9.2>`
+
+.. include:: /includes/facts/agent-windows-2008-stops-5.0.rst
 
 .. _mongodb-10.24.1.6720:
 

@@ -9,7 +9,6 @@ MongoDB Agent 11.1.0.6961
 - Improves logging for RHEL, CentOS, and SUSE hosts that use
   `systemd <https://freedesktop.org/wiki/Software/systemd>`__.
 
-
 .. _10.30.0.6882-1:
 
 MongoDB Agent 10.30.0.6882-1
