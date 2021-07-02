@@ -40,25 +40,71 @@ Prerequisites
 
 To downgrade from |newversion| to |oldversion|, you must remove
 incompatible features that are persisted and/or update incompatible
-configuration settings.
+configuration settings. These include:
+
+1. Cluster Default Read and Write Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 changed the default value for cluster-wide read and write
+concerns, and downgrading to MongoDB 4.4 might change those defaults
+back. Consider manually configuring your cluster's default read and
+write concern before downgrading:
+
+- To manually configure a default value for a cluster's read or write
+  concern, use the :dbcommand:`setDefaultRWConcern` command.
+
+- If your cluster includes an :doc:`arbiter
+  </core/replica-set-arbiter>`, and you had previously disabled
+  ``"Majority"`` read concern to prevent cache pressure in certain
+  situations, you may want to configure
+  :option:`--enableMajorityReadConcern false
+  <mongod --enableMajorityReadConcern>` or
+  :setting:`replication.enableMajorityReadConcern: false
+  <replication.enableMajorityReadConcern>` once you downgrade.
+
+2. Document Fields with ``.`` or ``$`` Characters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 adds support for including the ``.`` or ``$`` characters in
+document field names. You must delete any documents containing field
+names that include the ``.`` or ``$`` characters before downgrading
+to MongoDB 4.4.
+
+3. Slim-format Timezone Data Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 enables support for slim-format timezone data files. If
+using slim-format timezone data files in your deployment, as provided
+to MongoDB with the :option:`--timeZoneInfo <mongod --timeZoneInfo>`
+command line option or :setting:`processManagement.timeZoneInfo`
+configuration file setting, you must downgrade to MongoDB 4.4.7 or
+later, or else revert your timezone data files to use the previous
+non-slim-format data files.
 
 .. |target| replace:: primary
 
 .. _5.0-downgrade-feature-compatibility-rs:
 
-1. Downgrade Feature Compatibility Version (fCV)
+4. Downgrade Feature Compatibility Version (fCV)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. tip::
+First, verify the following:
 
-   - Ensure that no initial sync is in progress. Running
-     :dbcommand:`setFeatureCompatibilityVersion` command while an
-     initial sync is in progress will cause the initial sync to restart.
+- Ensure that no initial sync is in progress. Running
+  :dbcommand:`setFeatureCompatibilityVersion` command while an
+  initial sync is in progress will cause the initial sync to restart.
 
-   - Ensure that no replica set member is in :replstate:`ROLLBACK` or
-     :replstate:`RECOVERING` state.
+- Ensure that no nodes have a ``newlyAdded`` field in their
+  :doc:`replica set configuration </reference/replica-configuration>`.
+  Use the :method:`rs.conf()` method on each node in your replica set to
+  verify this. The ``newlyAdded`` only appears in a node's replica set
+  configuration document during and shortly after an initial sync.
 
-To downgrade the ``featureCompatibilityVersion`` of your replica set:
+- Ensure that no replica set member is in :replstate:`ROLLBACK` or
+  :replstate:`RECOVERING` state.
+
+Next, to downgrade the ``featureCompatibilityVersion`` of your replica
+set:
 
 #. Connect a :binary:`~bin.mongo` shell to the |target|.
 
@@ -84,7 +130,7 @@ To downgrade the ``featureCompatibilityVersion`` of your replica set:
 For more information on the returned ``featureCompatibilityVersion``
 value, see :ref:`view-fcv`.
 
-2. Remove fCV |newversion| Persisted Features
+5. Remove fCV |newversion| Persisted Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following steps are necessary only if fCV has ever been set to
@@ -93,17 +139,26 @@ The following steps are necessary only if fCV has ever been set to
 Remove all persisted |newversion| |features| that are incompatible with
 |oldversion|. These include:
 
-- This list is forthcoming.
+Time-series Collections
+  Remove all :ref:`time series collections
+  <manual-timeseries-collection>`.
+
+Runtime Audit Filter Management
+  Disable runtime audit filter management by setting the 
+  ``auditLog.runtimeConfiguration`` configuration file setting to
+  ``false``.
 
 .. |binary| replace:: any replica set member
 
-3. Remove |newversion| Features
+6. Remove |newversion| Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Remove all persisted features that use |newversion| features. These
 include but are not limited to:
 
-- This list is forthcoming.
+- If any view definitions include 5.0 operators, such as
+  :expression:`$dateAdd` or :expression:`$sampleRate`, they must be
+  removed. See :ref:`5.0-rel-notes-new-agg-operators` for the full list.
 
 Procedure
 ---------
