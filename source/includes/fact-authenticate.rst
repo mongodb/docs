@@ -2,12 +2,12 @@ To authenticate as a user, you must provide a username, password, and
 the :ref:`authentication database <mongo-shell-authentication-options>`
 associated with that user.
 
-To authenticate using the :binary:`~bin.mongo` shell, either:
+To authenticate using :mongosh:`mongosh </>`, either:
 
-- Use the :binary:`~bin.mongo` command-line authentication options
-  (:option:`--username <mongo --username>`,
-  :option:`--password <mongo --password>`, and
-  :option:`--authenticationDatabase <mongo --authenticationDatabase>`)
+- Use the :mongosh:`mongosh </>` command-line authentication options
+  (:option:`--username <mongosh --username>`,
+  :option:`--password <mongosh --password>`, and
+  :option:`--authenticationDatabase <mongosh --authenticationDatabase>`)
   when connecting to the :binary:`~bin.mongod` or
   :binary:`~bin.mongos` instance, or
 

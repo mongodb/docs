@@ -41,7 +41,7 @@ repository, and contains the following officially-supported packages:
            - Contains the legacy :binary:`~bin.mongo` shell.
 
   * - ``mongodb-mongosh``
-    - Contains the :mongosh:`mongosh </>` shell.
+    - Contains the MongoDB Shell (:mongosh:`mongosh </>`).
 
   * - ``{+package-name-org+}-tools``
     - A ``metapackage`` that automatically installs the component

@@ -1,7 +1,7 @@
 :dbcommand:`map-reduce operations <mapReduce>` and :query:`$where`
 operator expressions **cannot** access certain global functions or
-properties, such as ``db``, that are available in the
-:binary:`~bin.mongo` shell.
+properties, such as ``db``, that are available in
+:mongosh:`mongosh </>`.
 
 The following JavaScript functions and properties **are available** to
 :dbcommand:`map-reduce operations <mapReduce>` and :query:`$where`

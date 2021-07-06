@@ -1,7 +1,7 @@
-Use the ``use <database-name>`` helper in the interactive
-:binary:`~bin.mongo` shell, or the following :method:`db.getSiblingDB()`
-in the interactive shell or in :binary:`~bin.mongo` shell scripts to
-change the ``db`` object:
+Use the ``use <database-name>`` helper in :mongosh:`mongosh </>`, or the
+following :method:`db.getSiblingDB()` method in an interactive
+:mongosh:`mongosh </>` session or in :mongosh:`mongosh </>` shell
+scripts to change the ``db`` object:
 
 .. code-block:: javascript
 

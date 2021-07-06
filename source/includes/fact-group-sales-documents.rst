@@ -1,4 +1,4 @@
-From the :binary:`~bin.mongo` shell, create a sample collection named
+In :mongosh:`mongosh </>`, create a sample collection named
 ``sales`` with the following documents:
 
 .. code-block:: javascript
