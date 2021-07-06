@@ -2,7 +2,7 @@
    :header-rows: 1
 
    * - Command
-     - ``mongo`` Shell Methods
+     - ``mongosh`` Methods
 
    * - :dbcommand:`findAndModify`
 
