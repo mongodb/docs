@@ -40,16 +40,17 @@ TypeScript
   **likely be issues** adopting the types from our codebase. We could not
   achieve a one to one match in types due to the details of writing the
   codebase in TypeScript. A notable difference is that CRUD API
-  functions do not support interfaces via generics. The following example
-  illustrats the difference:
+  functions do not support interfaces via generics.
 
-  .. code-block:: ts
-     :copyable: False
+  .. example::
 
-     interface User { name: string, age: number }
-     const user = await collection.findOne<User>()
-     user // has type User when using @types/mongodb
-     user // has type Document when using 'mongodb' types
+     .. code-block:: ts
+        :copyable: False
+
+        interface User { name: string, age: number }
+        const user = await collection.findOne<User>()
+        user // has type User when using @types/mongodb
+        user // has type Document when using 'mongodb' types
 
   Any operation dealing with documents return our Document type, which is
   equivalent to ``Record<string, any>``. Code shouldn't fail to compile, but will
@@ -65,15 +66,17 @@ Key Changes
 - Cursor Improvements
 
   - Our Cursor implentation has been updated to make it clear what is possible
-    before and after execution of an operation. For example:
+    before and after execution of an operation.
 
-    .. code-block:: js
+    .. example::
 
-       const fc = collection.find({a: 2.3}).skip(1)
-       for await (const doc of fc) {
-         console.log(doc)
-         fc.limit(1) // incorrect usage, cursor already executing
-       }
+       .. code-block:: js
+
+          const fc = collection.find({a: 2.3}).skip(1)
+          for await (const doc of fc) {
+            console.log(doc)
+            fc.limit(1) // incorrect usage, cursor already executing
+          }
 
     There was inconsistency surrounding how the cursor would error if a
     setting was applied after cursor execution began. Now, the cursor will
@@ -81,6 +84,23 @@ Key Changes
     similar to the following:
 
     ``MongoError: Cursor is already initialized``
+
+  - Our Cursor types no longer extend ``Readable`` directly. They must be
+    transformed into a stream by calling ``cursor.stream()``.
+
+    .. example::
+
+       .. code-block:: js
+
+          const cursor = collection.find({})
+          const stream = cursor.stream()
+          stream.on("data", data => console.log)
+          stream.on("error", () => client.close())
+
+  - Manual iteration with ``hasNext()`` and ``next()``.
+  - Async iteration with ``for await of`` syntax, and any ``Promise`` helpers.
+
+
 
 
 
