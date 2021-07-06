@@ -41,8 +41,8 @@ the hostname  or its associated ip address ``198.51.100.1``:
 
 .. code-block:: none
 
-   mongo --host My-Example-Associated-Hostname
+   mongosh --host My-Example-Associated-Hostname
 
-   mongo --host 198.51.100.1
+   mongosh --host 198.51.100.1
 
 .. end-override
