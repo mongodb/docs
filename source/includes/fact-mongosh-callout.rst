@@ -1,6 +1,6 @@
 .. note::
 
-   The following document pertains to the :binary:`~bin.mongo` shell
+   The following document pertains to :mongosh:`mongosh </>`
    included in the
    `MongoDB Server Download
    <https://www.mongodb.com/try/download/community?tck=docs_server>`__.

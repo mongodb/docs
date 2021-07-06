@@ -1,6 +1,6 @@
-For example, the following insert operation in the :binary:`~bin.mongo`
-shell uses the various :doc:`shell helpers </core/shell-types>` for the
-BSON types :doc:`Date </reference/bson-types>` and :doc:`64-bit integer
+For example, the following insert operation in :mongosh:`mongosh </>`
+uses the various :doc:`shell helpers </core/shell-types>` for the BSON
+types :doc:`Date </reference/bson-types>` and :doc:`64-bit integer
 </reference/bson-types>`:
 
 .. code-block:: javascript

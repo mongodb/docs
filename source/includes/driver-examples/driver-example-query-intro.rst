@@ -4,8 +4,8 @@
      - id: shell
        content: |
          This page provides examples of |query_operations| using the
-         :method:`db.collection.find()` method in the
-         :binary:`~bin.mongo` shell. The examples on this page use the
+         :method:`db.collection.find()` method in
+         :mongosh:`mongosh </>`. The examples on this page use the
          ``inventory`` collection. To populate the ``inventory``
          collection, run the following:
 

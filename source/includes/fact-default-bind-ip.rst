@@ -14,8 +14,8 @@ and DEB (Debian, Ubuntu, and derivatives) packages bind to localhost by
 default.
 
 When bound only to the localhost, these MongoDB 3.6 binaries can only
-accept connections from clients (including the :binary:`~bin.mongo` shell,
-other members in your deployment for replica sets and sharded clusters)
+accept connections from clients (including :mongosh:`mongosh </>` and
+other members of your deployment in replica sets and sharded clusters)
 that are running on the same machine. Remote clients cannot connect to
 the binaries bound only to localhost.
 
