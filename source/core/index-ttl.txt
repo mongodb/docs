@@ -29,6 +29,9 @@ of time or at a specific clock time. Data expiration is useful for certain types
 like machine generated event data, logs, and session information that
 only need to persist in a database for a finite amount of time.
 
+Create a TTL Index
+------------------
+
 To create a TTL index, use the :method:`~db.collection.createIndex()`
 method on a field whose value is either a :ref:`date
 <document-bson-type-date>` or an array that contains :ref:`date values
@@ -42,6 +45,70 @@ the following operation in :binary:`~bin.mongosh`:
 .. code-block:: javascript
 
    db.eventlog.createIndex( { "lastModifiedDate": 1 }, { expireAfterSeconds: 3600 } )
+
+.. _convert-non-ttl-single-field-index-into-ttl:
+
+Convert a non-TTL single-field Index into a TTL Index
+-----------------------------------------------------
+
+Starting in MongoDB 5.1, you can add the ``expireAfterSeconds`` option
+to an existing single-field index. To change a non-TTL single-field
+index to a TTL index, use the :dbcommand:`collMod` database command:
+
+.. code-block:: javascript
+
+   db.runCommand({
+     "collMod": <collName>,
+     "index": {
+       "keyPattern": <keyPattern>,
+       "expireAfterSeconds": <number>
+     }
+   })
+
+The following example converts a non-TTL single-field index with the
+pattern ``{ "lastModifiedDate": 1 }`` into a TTL index:
+
+.. code-block:: javascript
+
+   db.runCommand({
+     "collMod": "tickets",
+     "index": {
+       "keyPattern": { "lastModifiedDate": 1 },
+       "expireAfterSeconds": 100
+     }
+   })
+
+.. _change-ttl-expireafterseconds-value:
+
+Change the ``expireAfterSeconds`` value for a TTL Index
+-------------------------------------------------------
+
+To change the ``expireAfterSeconds`` value for a TTL Index, use the
+:dbcommand:`collMod` database command:
+
+.. code-block:: javascript
+
+   db.runCommand({
+     "collMod": <collName>,
+     "index": {
+       "keyPattern": <keyPattern>,
+       "expireAfterSeconds": <number>
+     }
+   })
+
+The following example changes the ``expireAfterSeconds`` value for an
+index with the pattern ``{ "lastModifiedDate": 1 }`` on the ``tickets``
+collection:
+
+.. code-block:: javascript
+
+   db.runCommand({
+     "collMod": "tickets",
+     "index": {
+       "keyPattern": { "lastModifiedDate": 1 },
+       "expireAfterSeconds": 100
+     }
+   })
 
 Behavior
 --------
@@ -99,7 +166,7 @@ A TTL index supports queries in the same way non-TTL indexes do.
 Restrictions
 ------------
 
-- TTL indexes are a single-field indexes. :ref:`Compound indexes
+- TTL indexes are single-field indexes. :ref:`Compound indexes
   <index-type-compound>` do not support TTL and ignore the
   ``expireAfterSeconds`` option.
 
@@ -116,17 +183,16 @@ Restrictions
 
 - You cannot use :method:`~db.collection.createIndex()` to change the
   value of ``expireAfterSeconds`` of an existing index. Instead use the
-  :dbcommand:`collMod` database command in conjunction with the
-  :collflag:`index` collection flag. Otherwise, to change the value of
-  the option of an existing index, you must drop the index first and
-  recreate.
+  :dbcommand:`collMod` database command. See
+  :ref:`change-ttl-expireafterseconds-value`.
 
 - If a non-TTL single-field index already exists for a field, you
   cannot create a TTL index on the same field since you cannot create
   indexes that have the same key specification and differ only by the
-  options. To change a non-TTL single-field index to a TTL index, you
-  must drop the index first and recreate with the
-  ``expireAfterSeconds`` option.
+  options. To :ref:`change a non-TTL single-field index to a TTL index
+  <convert-non-ttl-single-field-index-into-ttl>`, use the
+  :dbcommand:`collMod` database command.
+
 
 .. toctree::
    :titlesonly:
