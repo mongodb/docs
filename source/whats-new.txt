@@ -39,23 +39,7 @@ TypeScript
 - If you are a user of the community types (``@types/mongodb``), there will
   **likely be issues** adopting the types from our codebase. We could not
   achieve a one to one match in types due to the details of writing the
-  codebase in TypeScript. A notable difference is that CRUD API
-  functions do not support interfaces via generics.
-
-  .. example::
-
-     .. code-block:: ts
-        :copyable: False
-
-        interface User { name: string, age: number }
-        const user = await collection.findOne<User>()
-        user // has type User when using @types/mongodb
-        user // has type Document when using 'mongodb' types
-
-  Any operation dealing with documents return our Document type, which is
-  equivalent to ``Record<string, any>``. Code shouldn't fail to compile, but will
-  not be type checked as desired. We are working to add this convenience
-  feature in our types soon.
+  codebase in TypeScript.
 
   We'd love to hear your TypeScript related feature requests! Please submit
   ideas on our `JIRA project here <https://jira.mongodb.org/projects/NODE>`__.
@@ -71,6 +55,7 @@ Key Changes
     .. example::
 
        .. code-block:: js
+          :copyable: False
 
           const fc = collection.find({a: 2.3}).skip(1)
           for await (const doc of fc) {
@@ -91,6 +76,7 @@ Key Changes
     .. example::
 
        .. code-block:: js
+          :copyable: False
 
           const cursor = collection.find({})
           const stream = cursor.stream()
@@ -100,6 +86,81 @@ Key Changes
   - Manual iteration with ``hasNext()`` and ``next()``.
   - Async iteration with ``for await of`` syntax, and any ``Promise`` helpers.
 
+- ``MongoClientOptions``
+
+  With type hinting, you should find that options passed to a ``MongoClient``
+  are enumeated and discoverable. We've made a large effort to process
+  all options in the driver to give early warnings about incompatible settings
+  to get your app up and running in a correct state quickly.
+
+  - ``checkServerIdentity`` is no longer checked before being passed to the
+    underlying Node API. Previously, accepted values were ``false``, or
+    a function. Now, the argument must be a function. Specifying a
+    boolean will result in an error being thrown.
+
+- ``createCollection()``
+
+  - This method no longer supports a ``strict`` option, which returned
+    an error if the collection did not exist. To assert the existence of
+    a collection, use the ``listCollections()`` method instead.
+
+    .. example::
+
+       .. code-block:: js
+
+          async function collectionExists(target) {
+            let found = false;
+            let collCursor = db.listCollections();
+            while (await collCursor.hasNext()) {
+              let coll = await collCursor.next();
+              if (coll.name === target) {
+                found = true;
+                collCursor.close();
+                break;
+              }
+            }
+            assert(found, `Collection ${target} does not exist`);
+          }
+
+- Rename ``BulkWriteError`` to ``MongoBulkWriteError``.
+
+  - When running bulk operations that make writes you can encounter errors
+    depending on your settings. Import the new class name ``MongoBulkWriteError``
+    when testing for errors in bulk operations.
+
+- ``Db`` is no longer an ``EventEmitter``.
+
+  - All events can be listened for directly from a ``MongoClient`` instance.
+
+- ``Collection.group()`` has been removed.
+
+  - The ``Collection.group()`` helper has been deprecated since MongoDB 3.4
+    and is now removed. Use the aggregation pipeline :manual:`$group </reference/operator/aggregation/group/#pipe._S_group>`
+    operator instead.
+
+- Authentication
+
+  - ``gassapiServiceName`` has been removed. Users should use :node-api-4.0:`authMechanismProperties.SERVICE_NAME` in the URI
+    or as an option on ``MongoClientOptions``.
+
+    .. example::
+
+       .. code-block:: js
+
+          ?authMechanismProperties.SERVICE_NAME
+          // or
+          new MongoClient(url, { SERVICE_NAME: "alternateServiceName" })
+
+  - Specifying username and password as options is only supported in the URI
+    or as an option on ``MongoClientOptions``.
+
+    .. example::
+
+       .. code-block:: js
+
+          new MongoClient("mongodb://username:password@<host><port>")
+          // or
+          new MongoClient(url, { auth: { username: "<>", password: "<>" } })
 
 
 
