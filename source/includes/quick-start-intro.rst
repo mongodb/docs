@@ -1,5 +1,5 @@
 You can configure {+mcli+} access to your MongoDB service using
-the :ref:`mcli-config-command` and :ref:`mcli-config-set-command`
+the :ref:`mongocli-config` and :ref:`mongocli-config-set`
 commands. 
 
 The following procedure creates the {+default-profile+} in the
