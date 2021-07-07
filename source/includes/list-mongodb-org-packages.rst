@@ -15,20 +15,33 @@ repository, and contains the following officially-supported packages:
     - A ``metapackage`` that automatically installs the component
       packages listed below.
 
-  * - ``{+package-name-org+}-server``
+  * - ``{+package-name-org+}-database``
+    - A ``metapackage`` that automatically installs the component
+      packages listed below.
 
-    - Contains the :binary:`~bin.mongod` daemon, associated init
-      script, and a :ref:`configuration file
-      <conf-file>` (``/etc/mongod.conf``). You
-      can use the initialization script to start :binary:`~bin.mongod`
-      with the configuration file. For details, see the "Run MongoDB
-      Community Edition" section, above.
+      .. list-table::
+         :header-rows: 1
+         :widths: 50 50
 
-  * - ``{+package-name-org+}-mongos``
-    - Contains the :binary:`~bin.mongos` daemon.
+         * - Package Name
+           - Description
 
-  * - ``{+package-name-org+}-shell``
-    - Contains the :binary:`~bin.mongo` shell.
+         * - ``{+package-name-org+}-server``
+           - Contains the :binary:`~bin.mongod` daemon, associated init
+             script, and a :ref:`configuration file
+             <conf-file>` (``/etc/mongod.conf``). You
+             can use the initialization script to start :binary:`~bin.mongod`
+             with the configuration file. For details, see the "Run MongoDB
+             Community Edition" section, above.
+
+         * - ``{+package-name-org+}-mongos``
+           - Contains the :binary:`~bin.mongos` daemon.
+
+         * - ``{+package-name-org+}-shell``
+           - Contains the legacy :binary:`~bin.mongo` shell.
+
+  * - ``mongodb-mongosh``
+    - Contains the :mongosh:`mongosh </>` shell.
 
   * - ``{+package-name-org+}-tools``
     - A ``metapackage`` that automatically installs the component
