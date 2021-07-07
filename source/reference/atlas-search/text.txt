@@ -37,8 +37,7 @@ Syntax
          "query": "<search-string>",
          "path": "<field-to-search>",
          "fuzzy": <options>,
-         "score": <options>,
-         "synonyms": "<synonyms-mapping-name>"
+         "score": <options>
        }
      }
    }
@@ -55,27 +54,27 @@ Fields
    * - Field
      - Type
      - Description
-     - Necessity
+     - Required?
    
    * - ``query``
      - string or array of strings
      - The string or strings to search for. If there are multiple 
        terms in a string, |fts| also looks for a match for each term 
        in the string separately.
-     - Required
+     - yes
    
    * - ``path``
      - string or array of strings
      - The indexed field or fields to search. You can also specify a 
        :ref:`wildcard path <ref-path-usage>` to search. See :ref:`path
        construction <ref-path>` for more information.
-     - Required
+     - yes
 
    * - ``fuzzy``
      - object
      - Enable fuzzy search. Find strings which are similar to the
-       search term or terms. You can't use ``fuzzy`` with ``synonyms``.
-     - Optional
+       search term or terms.
+     - no
 
    * - ``fuzzy.maxEdits``
      - integer
@@ -83,20 +82,19 @@ Fields
        specified search term. Value can be ``1`` or ``2``. The default 
        value is ``2``. Uses `Levenshtein distance 
        <https://en.wikipedia.org/w/index.php?title=Levenshtein_distance&oldid=982559861>`__.
-     - Optional
+     - no
   
    * - ``fuzzy.prefixLength``
      - integer
      - Number of characters at the beginning of each term in the result 
        that must exactly match. The default value is ``0``.
-     - Optional
+     - no
 
    * - ``fuzzy.maxExpansions``
      - integer
-     - The maximum number of variations to generate and search for. 
-       This limit applies on a per-token basis. The default value is 
-       ``50``.
-     - Optional
+     - The maximum number of variations to generate and search for. This 
+       limit applies on a per-token basis. The default value is ``50``.
+     - no
 
    * - ``score``
      - object
@@ -106,46 +104,26 @@ Fields
        - ``boost``: multiply the result score by the given number.
        - ``constant``: replace the result score with the given number.
 
-     - Optional
-
-   * - ``synonyms`` 
-     - string 
-     - Required for running queries using :ref:`synonyms 
-       <synonyms-ref>`.
-
-       Name of the :ref:`synonym mapping definition <synonyms-ref>` in 
-       the :ref:`index definition <ref-index-definitions>`. Value can't 
-       be an empty string. You can't use ``fuzzy`` with ``synonyms``.
-     - Optional 
+     - no
 
 .. _text-ref-examples:
 
 Examples 
 --------
 
-The :ref:`Basic <text-ref-basic-eg>` and :ref:`Fuzzy 
-<text-ref-fuzzy-eg>` examples below use the ``movies`` collection in 
-the ``sample_mflix`` database. If you :ref:`load <sample-data>` the 
-:ref:`sample dataset <available-sample-datasets>` into your cluster, 
-you can create the |fts| index on the ``title`` field and run the 
-queries on your cluster. The :ref:`fts-tutorial-ref` contains 
-instructions for :ref:`creating <ref-create-index>` an :ref:`index 
-definition <ref-index-definitions>` and :ref:`running Atlas Search 
-queries <fts-tutorial-run-query>`.
-
-The :ref:`Synonyms <text-ref-synonyms-eg>` examples below use the 
-``user_feedback.comments`` collection and index definition described in 
-:ref:`Define Synonym Mappings <synonyms-egs>`. If you have the 
-``user_feedback.comments`` collection and the index definition 
-configured for the collection, you can run the sample queries below.
-
-.. _text-ref-basic-eg:
+The following examples use the ``movies`` collection in the ``sample_mflix`` 
+database. If you have the :ref:`sample dataset <available-sample-datasets>` 
+on your cluster, you can create the |fts| index on the ``title`` field and 
+run the queries on your cluster. The :ref:`fts-tutorial-ref` contains 
+instructions for loading the :ref:`sample dataset <available-sample-datasets>`, 
+creating an :ref:`index definition <ref-index-definitions>`, and running |fts| 
+queries.
 
 Basic Example 
 ~~~~~~~~~~~~~
 
-The following |fts| example uses the ``text`` operator to search the 
-``title`` field in the ``movies`` collection for the term ``surfer``. 
+The following |fts| example uses the ``text`` operator to search the ``title`` 
+field in the ``movies`` collection for the term ``surfer``. 
 
 .. example:: 
    
@@ -185,15 +163,12 @@ The following |fts| example uses the ``text`` operator to search the
       { "title" : "Little Surfer Girl", "score" : 3.9323642253875732 }
       { "title" : "Fantastic 4: Rise of the Silver Surfer", "score" : 2.520784616470337 }
 
-.. _text-ref-fuzzy-eg:
-
 Fuzzy Examples 
 ~~~~~~~~~~~~~~
 
-The following examples use the ``text`` operator to search the 
-``title`` field in the ``movies`` collection for terms that are within 
-one character variation of each term in the ``query`` phrase ``naw 
-yark``.
+The following examples use the ``text`` operator to search the ``title`` 
+field in the ``movies`` collection for terms that are within one 
+character variation of each term in the ``query`` phrase ``naw yark``.
 
 .. tabs:: 
 
@@ -204,21 +179,18 @@ yark``.
 
          .. example:: 
    
-            The following query searches the ``title`` field for terms 
-            that are within one character of each term in the string 
-            ``naw yark``. It uses: 
+            The following query searches the ``title`` field for terms that are 
+            within one character of each term in the string ``naw yark``. It uses: 
 
-            - The ``maxEdits`` field to indicate that only one 
-              character variation is allowed for each term to match the 
-              query to a document.
-            - The ``maxExpansions`` field to indicate that up to one 
-              hundred similar terms for ``naw`` and one hundred similar 
-              terms to ``yark`` must be considered when matching the 
-              query to a document.
+            - The ``maxEdits`` field to indicate that only one character variation 
+              is allowed for each term to match the query to a document.
+            - The ``maxExpansions`` field to indicate that up to one hundred similar 
+              terms for ``naw`` and one hundred similar terms to ``yark`` must be 
+              considered when matching the query to a document.
 
             The query also includes a :manual:`$limit 
-            </reference/operator/aggregation/limit>` stage to limit the 
-            output to 10 results and a :manual:`$project 
+            </reference/operator/aggregation/limit>` stage to limit the output
+            to 10 results and a :manual:`$project 
             </reference/operator/aggregation/project>` stage to: 
 
             - Exclude all fields except ``title``
@@ -273,20 +245,18 @@ yark``.
 
          .. example:: 
 
-            The following query searches the ``title`` field for terms 
-            that are within one character of each term in the string 
-            ``naw yark``. It uses: 
+            The following query searches the ``title`` field for terms that are 
+            within one character of each term in the string ``naw yark``. It uses: 
 
-            - The ``maxEdits`` field to indicate that only one 
-              character variation is allowed to match the query to a 
-              document.
-            - The ``prefixLength`` field to indicate that the first two 
-              characters of each term in the string ``naw yark`` may 
-              not be changed to match the query to a document.
+            - The ``maxEdits`` field to indicate that only one character variation 
+              is allowed to match the query to a document.
+            - The ``prefixLength`` field to indicate that the first two characters 
+              of each term in the string ``naw yark`` may not be changed to match the 
+              query to a document.
 
             The query also includes a :manual:`$limit 
-            </reference/operator/aggregation/limit>` stage to limit the 
-            output to 8 results and a :manual:`$project 
+            </reference/operator/aggregation/limit>` stage to limit the output
+            to 8 results and a :manual:`$project 
             </reference/operator/aggregation/project>` stage to: 
 
             - Exclude all fields except ``_id`` and ``title``
@@ -339,19 +309,18 @@ yark``.
 
          .. example:: 
    
-            The following query searches the ``title`` field for the 
-            phrase ``naw yark``. It uses the ``fuzzy`` default options 
-            where: 
+            The following query searches the ``title`` field for the phrase 
+            ``naw yark``. It uses the ``fuzzy`` default options where: 
 
-            - ``maxEdits`` allows up to two character variation of each 
-              term in the given phrase to match the query to a document.
-            - ``maxExpansions`` considers up to fifty similar terms for 
-              each term in ``naw yark`` to find matches.
+            - ``maxEdits`` allows up to two character variation of each term in the 
+              given phrase to match the query to a document.
+            - ``maxExpansions`` considers up to fifty similar terms for each term in 
+              ``naw yark`` to find matches.
             - ``prefixLength`` is disabled. 
 
             The query also includes a :manual:`$limit 
-            </reference/operator/aggregation/limit>` stage to limit the 
-            output to 10 results and a :manual:`$project 
+            </reference/operator/aggregation/limit>` stage to limit the output
+            to 10 results and a :manual:`$project 
             </reference/operator/aggregation/project>` stage to: 
 
             - Exclude all fields except ``title``
@@ -396,97 +365,3 @@ yark``.
                { "title" : "Escape from New York", "score" : 3.0559897422790527 }
                { "title" : "King of New York", "score" : 3.0559897422790527 }
                { "title" : "Naked in New York", "score" : 3.0559897422790527 }
-
-.. _text-ref-synonyms-eg:
-
-Synonyms Examples 
-~~~~~~~~~~~~~~~~~
-
-The following examples use the ``text`` operator to search the 
-``comments`` field in the ``user_feedback.comments`` collection for 
-terms that are defined as synonymous in the index definition for the 
-collection. |fts| returns results based on the :ref:`type of mapping 
-<synonyms-ref>` defined in the :ref:`index definition 
-<ref-index-definitions>` for the collection.
-
-.. tabs:: 
-
-   .. tab:: Equivalent Mapping
-      :tabid: equivalent
-
-      The following query searches the ``comments`` field for the 
-      word ``dress``.
-
-      .. code-block:: json 
-
-         db.synonyms.aggregate([
-           {
-             $search: {
-               "text": {
-                 "path": "comments",
-                 "query": "dress",
-                 "synonyms": "mySynonyms"
-               }
-             }
-           }
-         ])
-
-      The preceding query returns the following results: 
-
-      .. code-block:: json 
-         :copyable: false 
-
-         { 
-           "_id" : ObjectId("60d613b78a39518be9aed14f"), 
-           "mappingType" : "equivalent", 
-           "synonyms" : [ "dress", "apparel", "attire" ], 
-           "comments" : "Beautiful apparel for the bride.", 
-           "type" : "apparel store" 
-         }
-
-      |fts| returns the above document because ``dress`` is defined as 
-      equivalent to ``apparel`` and ``attire`` in the synonym mapping 
-      definition in the index for the collection. |fts| returns the 
-      above document for searches on ``apparel`` and ``attire`` also.
-
-.. tabs:: 
-
-   .. tab:: Explicit Mapping 
-      :tabid: explicit
-
-      The following query searches the ``comments`` field for the 
-      word ``boat``. 
-
-      .. code-block:: json 
-
-         db.synonyms.aggregate([
-           {
-             $search: {
-               "text": {
-                 "path": "comments",
-                 "query": "boat",
-                 "synonyms": "mySynonyms"
-               }
-             }
-           }
-         ])
-
-      The preceding query returns the following results: 
-
-      .. code-block:: json 
-         :copyable: false 
-
-         { 
-           "_id" : ObjectId("60d614d28a39518be9aef390"), 
-           "mappingType" : "explicit", 
-           "input" : [ "boat" ], 
-           "synonyms" : [ "boat", "vessel", "sail" ], 
-           "comments" : "Boat, in calm weather, near the sandy eastern shore.", 
-           "type" : "recreation rental" 
-         }
-
-      |fts| returns the above document because ``boat`` is explicitly 
-      mapped to ``boat``, ``vessel``, and ``sail``. However, |fts| 
-      doesn't return any results for a query on ``vessel`` or ``sail`` 
-      because neither word is explicitly mapped to any of the other 
-      ``synonyms`` tokens.
