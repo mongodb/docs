@@ -17,4 +17,4 @@
    - JDK 14.0.2
 
    To resolve this error, update your JDK to one of the preceding patch
-   versions or a newer.
+   versions or a newer one.
