@@ -1,4 +1,8 @@
 .. warning::
 
-   Attempting to use a ``ChangeStream`` as an ``Iterator`` that is in ``EventEmitter`` mode will cause an error,
-   and attempting to use a ``ChangeStream`` as an ``EventEmitter`` in ``Iterator`` mode will cause an error.
+   Using a ``ChangeStream`` in ``EventEmitter`` and ``Iterator`` mode
+   concurrently is not supported and causes an error. This is to prevent
+   undefined behavior, where it cannot be guaranteed which consumer will
+   receive documents first.
+
+
