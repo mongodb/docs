@@ -12,20 +12,34 @@ repository, and contains the following officially-supported packages:
     - A ``metapackage`` that automatically installs the component
       packages listed below.
 
-  * - ``{+package-name-enterprise+}-server``
-    - Contains the :binary:`~bin.mongod` daemon and associated
-      configuration and init scripts.
+  * - ``{+package-name-enterprise+}-database``
+    - A ``metapackage`` that automatically installs the component
+      packages listed below.
 
-  * - ``{+package-name-enterprise+}-mongos``
-    - Contains the :binary:`~bin.mongos` daemon.
+      .. list-table::
+         :header-rows: 1
+         :widths: 50 50
 
-  * - ``{+package-name-enterprise+}-shell``
-    - Contains the :binary:`~bin.mongo` shell.
+         * - Package Name
+           - Description
 
-  * - ``{+package-name-enterprise+}-cryptd``
-    - Contains the :ref:`mongocryptd <csfle-encryption-components>`
-      binary
+         * - ``{+package-name-enterprise+}-server``
+           - Contains the :binary:`~bin.mongod` daemon and associated
+             configuration and init scripts.
 
+         * - ``{+package-name-enterprise+}-mongos``
+           - Contains the :binary:`~bin.mongos` daemon.
+
+         * - ``{+package-name-enterprise+}-shell``
+           - Contains the :binary:`~bin.mongo` shell.
+
+         * - ``{+package-name-enterprise+}-cryptd``
+           - Contains the :ref:`mongocryptd <csfle-encryption-components>`
+             binary
+
+  * - ``mongodb-mongosh``
+    - Contains the :mongosh:`mongosh </>` shell.
+ 
   * - ``{+package-name-enterprise+}-tools``
     - A ``metapackage`` that automatically installs the component
       packages listed below:
@@ -56,4 +70,3 @@ repository, and contains the following officially-supported packages:
              - :binary:`~bin.mongokerberos`
              - :ref:`install-compass` script
              - ``mongodecrypt`` binary
-
