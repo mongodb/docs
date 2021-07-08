@@ -36,7 +36,7 @@ TypeScript
 - Inline documentation has been consistenly formatted to improve display
   in editors.
 
-- If you are a user of the community types (``@types/mongodb``), there will
+- If you are a user of the community types ``@types/mongodb``, there will
   **likely be issues** adopting the types from our codebase. We could not
   achieve a one to one match in types due to the details of writing the
   codebase in TypeScript.
@@ -47,141 +47,171 @@ TypeScript
 Key Changes
 ~~~~~~~~~~~
 
-- Cursor Improvements
+Node.js Version
++++++++++++++++
 
-  - Our cursor implentation has been updated to make it clear what is possible
-    before and after execution of an operation.
+The minimum supported version of Node.js is now v12.9 or greater for
+version 4 of the driver. Support for 3.x our 3.x branch will continue
+until summer 2022 to allow time to upgrade.
 
-    .. example::
+Cursor Improvements
++++++++++++++++++++
 
-       .. code-block:: js
-          :copyable: False
+Affected classes:
+- ``AbstactCursor``
+- ``FindCursor``
+- ``AggregationCursor``
+- ``ChangeStreamCursor`` (This is the underlying cursor for ``ChangeStream``)
+- ``ListCollectionsCursor``
 
-          const fc = collection.find({a: 2.3}).skip(1)
-          for await (const doc of fc) {
-            console.log(doc)
-            fc.limit(1) // incorrect usage, cursor already executing
+Our Cursor implentation has been updated to make it clear what is possible
+before and after execution of an operation.
+
+.. example::
+
+   .. code-block:: js
+      :copyable: False
+
+      const fc = collection.find({a: 2.3}).skip(1)
+      for await (const doc of fc) {
+        console.log(doc)
+        fc.limit(1) // incorrect usage, cursor already executing
+      }
+
+There was inconsistency surrounding how the cursor would error if a
+setting was applied after cursor execution began. Now, the cursor will
+throw an error when attempting to apply operations in an invalid state,
+similar to the following:
+
+``MongoError: Cursor is already initialized``
+
+Stream API
+==========
+
+Our Cursor types no longer extend ``Readable`` directly. They must be
+transformed into a stream by calling ``cursor.stream()``.
+
+.. example::
+
+   .. code-block:: js
+      :copyable: False
+
+      const cursor = collection.find({})
+      const stream = cursor.stream()
+      stream.on("data", data => console.log)
+      stream.on("error", () => client.close())
+
+Use ``hasNext()`` and ``next()`` for manual iteration.
+Use ``for await of`` syntax or any ``Promise`` helpers for
+asynchronous iteration.
+
+``MongoClientOptions``
+++++++++++++++++++++++
+
+With type hinting, you should find that options passed to a ``MongoClient``
+are enumeated and discoverable. We've made a large effort to process
+all options in the driver to give early warnings about incompatible settings
+to get your app up and running in a correct state quickly.
+
+- ``checkServerIdentity`` is no longer checked before being passed to the
+  underlying Node API. Previously, accepted values were ``false``, or
+  a function. Now, the argument must be a function. Specifying a
+  boolean will result in an error being thrown.
+
+``createCollection()``
+++++++++++++++++++++++
+
+This method no longer supports a ``strict`` option, which returned
+an error if the collection did not exist. To assert the existence of
+a collection, use the ``listCollections()`` method instead.
+
+.. example::
+
+   .. code-block:: js
+
+      async function collectionExists(target) {
+        let found = false;
+        let collCursor = db.listCollections();
+        while (await collCursor.hasNext()) {
+          let coll = await collCursor.next();
+          if (coll.name === target) {
+            found = true;
+            collCursor.close();
+            break;
           }
+        }
+        assert(found, `Collection ${target} does not exist`);
+      }
 
-    There was inconsistency surrounding how the cursor would error if a
-    setting was applied after cursor execution began. Now, the cursor will
-    throw an error when attempting to apply operations in an invalid state,
-    similar to the following:
+Rename ``BulkWriteError`` to ``MongoBulkWriteError``
+++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    ``MongoError: Cursor is already initialized``
+When running bulk operations that make writes you can encounter errors
+depending on your settings. Import the new class name ``MongoBulkWriteError``
+when testing for errors in bulk operations.
 
-  - Our cursor types no longer extend ``Readable`` directly. They must be
-    transformed into a stream by calling ``cursor.stream()``.
+``Db`` is no longer an ``EventEmitter``
++++++++++++++++++++++++++++++++++++++++
 
-    .. example::
+All events can be listened for directly from a ``MongoClient`` instance.
 
-       .. code-block:: js
-          :copyable: False
+``Collection.group()`` Removal
++++++++++++++++++++++++++++++++
 
-          const cursor = collection.find({})
-          const stream = cursor.stream()
-          stream.on("data", data => console.log)
-          stream.on("error", () => client.close())
+The ``Collection.group()`` helper has been deprecated since MongoDB 3.4
+and is now removed. Use the aggregation pipeline :manual:`$group </reference/operator/aggregation/group/#pipe._S_group>`
+operator instead.
 
-  - Use ``hasNext()`` and ``next()`` for manual iteration.
-  - Use ``for await of`` syntax or any ``Promise`` helpers for
-    asynchronous iteration.
+Authentication
+++++++++++++++
 
-- ``MongoClientOptions``
+- ``gassapiServiceName`` has been removed. Users should use :node-api-4.0:`authMechanismProperties.SERVICE_NAME` in the URI
+  or as an option on ``MongoClientOptions``.
 
-  With type hinting, you should find that options passed to a ``MongoClient``
-  are enumeated and discoverable. We've made a large effort to process
-  all options in the driver to give early warnings about incompatible settings
-  to get your app up and running in a correct state quickly.
+  .. example::
 
-  - ``checkServerIdentity`` is no longer checked before being passed to the
-    underlying Node API. Previously, accepted values were ``false``, or
-    a function. Now, the argument must be a function. Specifying a
-    boolean will result in an error being thrown.
+     .. code-block:: js
 
-- ``createCollection()``
+        ?authMechanismProperties.SERVICE_NAME
+        // or
+        new MongoClient(url, { SERVICE_NAME: "alternateServiceName" })
 
-  - This method no longer supports a ``strict`` option, which returned
-    an error if the collection did not exist. To assert the existence of
-    a collection, use the ``listCollections()`` method instead.
+- Specifying username and password as options is only supported in the URI
+  or as an option on ``MongoClientOptions``.
 
-    .. example::
+  .. example::
 
-       .. code-block:: js
+     .. code-block:: js
 
-          async function collectionExists(target) {
-            let found = false;
-            let collCursor = db.listCollections();
-            while (await collCursor.hasNext()) {
-              let coll = await collCursor.next();
-              if (coll.name === target) {
-                found = true;
-                collCursor.close();
-                break;
-              }
-            }
-            assert(found, `Collection ${target} does not exist`);
-          }
+        new MongoClient("mongodb://username:password@<host><port>")
+        // or
+        new MongoClient(url, { auth: { username: "<>", password: "<>" } })
 
-- Rename ``BulkWriteError`` to ``MongoBulkWriteError``.
+``GridStore`` Removal
++++++++++++++++++++++
 
-  - When running bulk operations that make writes you can encounter errors
-    depending on your settings. Import the new class name ``MongoBulkWriteError``
-    when testing for errors in bulk operations.
+- TODO: Clarify this with Neal.
 
-- ``Db`` is no longer an ``EventEmitter``.
+Unified Topology Only
++++++++++++++++++++++
 
-  - All events can be listened for directly from a ``MongoClient`` instance.
+- We internally now only manage a ``unifiedTopology`` when you connect
+  to a ``mongod``. The differences between this and previous versions
+  is `detailed here <https://mongodb.github.io/node-mongodb-native/3.6/reference/unified-topology/>`__.
 
-- ``Collection.group()`` has been removed.
+- You must use the new ``directConnection`` :node-api-4.0:`option </mongoclientoptions.html#directconnection>`
+  to connect to unitiliazed replica set members.
 
-  - The ``Collection.group()`` helper has been deprecated since MongoDB 3.4
-    and is now removed. Use the aggregation pipeline :manual:`$group </reference/operator/aggregation/group/#pipe._S_group>`
-    operator instead.
+Explain
++++++++
 
-- Authentication
+- Support has been added for fine-grained verbosity modes. You can
+  learn more about each mode :manual:`here </reference/method/cursor.explain/#behavior/>`.
 
-  - ``gassapiServiceName`` has been removed. Users should use :node-api-4.0:`authMechanismProperties.SERVICE_NAME` in the URI
-    or as an option on ``MongoClientOptions``.
+``instrumment()`` Removal
++++++++++++++++++++++++++
 
-    .. example::
-
-       .. code-block:: js
-
-          ?authMechanismProperties.SERVICE_NAME
-          // or
-          new MongoClient(url, { SERVICE_NAME: "alternateServiceName" })
-
-  - Specifying username and password as options is only supported in the URI
-    or as an option on ``MongoClientOptions``.
-
-    .. example::
-
-       .. code-block:: js
-
-          new MongoClient("mongodb://username:password@<host><port>")
-          // or
-          new MongoClient(url, { auth: { username: "<>", password: "<>" } })
-
-- ``GridStore`` has been removed.
-
-  - TODO: Clarify this with Neal.
-
-- Unified Topology Only
-
-  - We internally now only manage a ``unifiedTopology`` when you connect
-    to a ``mongod``. The differences between this and previous versions
-    is `detailed here <https://mongodb.github.io/node-mongodb-native/3.6/reference/unified-topology/>`__.
-
-  - You must use the new ``directConnection`` :node-api-4.0:`option </mongoclientoptions.html#directconnection>`
-    to connect to unitiliazed replica set members.
-
-- Explain
-
-  - Support has been added for fine-grained verbosity modes. You can
-    learn more about each mode :manual:`here </reference/method/cursor.explain/#behavior/>`.
-
-- The ``instrument()`` method has been removed.
+The ``instrument()`` method has been removed.
 
 
 
