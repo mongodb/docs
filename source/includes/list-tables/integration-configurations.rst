@@ -171,7 +171,11 @@
        - If you have an OpsGenie account, enter the following
          information:
 
-         - OpsGenie API Key
+         - OpsGenie integration API Key, which OpsGenie provides after you
+           `create an API integration 
+           <https://support.atlassian.com/opsgenie/docs/create-a-default-api-integration>`__
+           under an OpsGenie team. You cannot use general OpsGenie account API
+           keys for |service| integration.
          - API Region (United States or Europe)
 
        - If you don't have an OpsGenie account,
