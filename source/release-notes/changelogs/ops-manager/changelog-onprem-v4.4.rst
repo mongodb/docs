@@ -165,6 +165,9 @@
 
 - Fixes a bug that prevents |mms| from correctly authenticating to an
   :doc:`HTTP Proxy </tutorial/use-with-http-proxy/>`.
+- Limits Tracking and Groom Jobs to the Backup Daemons set in the
+  Backup Configuration. This applies to the project in which you set
+  the configuration and run the jobs.
 - Updates the MongoDB Agent to
   :ref:`10.14.17.6445 <mongodb-10.14.17.6445>`
 - Requires :db-tools:`MongoDB Database Tools 100.2.0 </>`.
