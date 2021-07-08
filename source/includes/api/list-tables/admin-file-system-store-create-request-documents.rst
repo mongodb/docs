@@ -14,6 +14,11 @@
      - Flag that indicates whether this file system store can be
        assigned backup jobs.
 
+   * - id
+     - string
+     - Required
+     - Unique identifier of this file system store.
+
    * - labels
      - array of strings
      - Optional

@@ -42,6 +42,11 @@
        - ``HDD``
        - ``SSD``
 
+   * - ``id``
+     - string
+     - Required
+     - Unique identifier of this :term:`Backup Daemon`.
+
    * - ``labels``
      - array of strings
      - Optional
