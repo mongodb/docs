@@ -1,15 +1,12 @@
-Java
-~~~~
-
 .. list-table::
-   :widths: 50 10 40
+   :widths: 50 50
    :header-rows: 1
    :class: licenses
 
    * - Package
-     - License |url|
      - Copyright
 
-   * - :mvn:`org.json:json@20190722</org.json/json/20190722>`
-     -
-     -
+   * - org.eclipse.jetty:jetty-util-ajax\@9.4.38.v20210224
+     - 
+   * - org.json:json\@20210307
+     - 

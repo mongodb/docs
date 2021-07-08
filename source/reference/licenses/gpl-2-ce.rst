@@ -1,15 +1,10 @@
-Java
-~~~~
-
 .. list-table::
-   :widths: 50 10 40
+   :widths: 50 50
    :header-rows: 1
    :class: licenses
 
    * - Package
-     - License |url|
      - Copyright
 
-   * - AdoptOpenJDK 11
-     - `License <https://openjdk.java.net/legal/gplv2+ce.html>`__
-     -
+   * - com.google.errorprone:javac\@9+181-r4173-1
+     - 
