@@ -106,11 +106,11 @@ Use ``hasNext()`` and ``next()`` for manual iteration.
 Use ``for await of`` syntax or any ``Promise`` helpers for
 asynchronous iteration.
 
-``MongoClientOptions``
-++++++++++++++++++++++
+``MongoClientOptions`` Interface
++++++++++++++++++++++++++++++++++
 
 With type hinting, you should find that options passed to a ``MongoClient``
-are enumeated and discoverable. We've made a large effort to process
+are enumerated and discoverable. We've made a large effort to process
 all options in the driver to give early warnings about incompatible settings
 to get your app up and running in a correct state quickly.
 
@@ -130,18 +130,12 @@ a collection, use the ``listCollections()`` method instead.
 
    .. code-block:: js
 
-      async function collectionExists(target) {
-        let found = false;
-        let collCursor = db.listCollections();
-        while (await collCursor.hasNext()) {
-          let coll = await collCursor.next();
-          if (coll.name === target) {
-            found = true;
-            collCursor.close();
-            break;
-          }
-        }
-        assert(found, `Collection ${target} does not exist`);
+      const collections = (await db.listCollections({}, { nameOnly: true })
+        .toArray()).map(
+          ({name}) => name
+        );
+      if (!collections.includes(myNewCollectionName)) {
+        await db.createCollection(myNewCollectionName);
       }
 
 ``BulkWriteError`` → ``MongoBulkWriteError``
@@ -194,7 +188,98 @@ Authentication
 ``GridStore`` Removal
 +++++++++++++++++++++
 
-- TODO: Clarify this with Neal.
+The GridStore API (already deprecated in 3.x) has been replaced with ``GridFSBucket``.
+For more information on ``GridFS``, see the :manual:`mongodb manual </core/gridfs>`.
+
+Below are some snippets that represent equivalent operations.
+
+Construction
+^^^^^^^^^^^^
+
+.. example::
+
+   .. code-block:: javascript
+
+      // old way
+      const gs = new GridStore(db, filename, mode[, options])
+      // new way
+      const bucket = new GridFSBucket(client.db('test')[,options])
+
+File Seeking
+^^^^^^^^^^^^
+
+GridFSBucket uses the Node.js Stream API. You can replicate file seeking
+by using the ``start`` and ``end`` options, creating a download stream
+from your ``GridFSBucket``.
+
+.. example::
+
+   .. code-block:: js
+
+      bucket.openDownloadStreamByName(filename, { start: 0, end: 100 })
+
+File Upload & Download
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. example::
+
+   .. code-block:: language
+
+      await client.connect();
+      const filename = 'test.txt'; // whatever local file name you want
+      const db = client.db();
+      const bucket = new GridFSBucket(db);
+
+      fs.createReadStream(filename)
+        .pipe(bucket.openUploadStream(filename))
+        .on('error', console.error)
+        .on('finish', () => {
+          console.log('done writing to db!');
+
+          bucket
+            .find()
+            .toArray()
+            .then(files => {
+              console.log(files);
+
+              bucket
+                .openDownloadStreamByName(filename)
+                .pipe(fs.createWriteStream('downloaded_' + filename))
+                .on('error', console.error)
+                .on('finish', () => {
+                  console.log('done downloading!');
+                  client.close();
+                });
+            });
+        });
+
+.. note::
+
+   ``GridFSBucket`` does not need to be closed like ``GridStore``.
+
+File Deletion
+^^^^^^^^^^^^^
+
+.. example::
+
+   .. code-block:: js
+
+      // old way
+      GridStore.unlink(db, name, callback);
+      // new way
+      bucket.delete(file_id);
+
+Finding File Metadata
+^^^^^^^^^^^^^^^^^^^^^
+
+File metadata that used to be accessible on the GridStore instance can be
+found by querying the bucket.
+
+.. example::
+
+   .. code-block:: js
+
+      const fileMetaDataList: GridFSFile[] = bucket.find({}).toArray();
 
 Unified Topology
 ++++++++++++++++
@@ -217,7 +302,11 @@ Explain
 
 The ``instrument()`` method has been removed.
 
+Detailed List
+^^^^^^^^^^^^^
 
+For a detailed list of breaking changes, removals, and associated JIRA tickets,
+see the detailed `list here <https://github.com/mongodb/node-mongodb-native/blob/master/docs/CHANGES_4.0.0.md>`__.
 
 
 .. _version-3.6:
