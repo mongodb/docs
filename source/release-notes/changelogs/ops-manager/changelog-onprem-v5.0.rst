@@ -19,7 +19,7 @@ MongoDB Cluster Management
 - Supports managing, monitoring, and backing up MongoDB 5.0 deployments.
 
 - Highlights deployments running without best-practice security
-  features enabled (TLS, authentication, authorization) in the
+  features enabled (|tls|, authentication, authorization) in the
   **Clusters** page.
 
 - Highlights changes to MongoDB clusters that result in processes
@@ -40,17 +40,23 @@ Activity Feed
 
 - Increases granularity of date filters in Activity Feed to the hour. 
 
-- Adds ability for admins to download a JSON view of the Activity Feed. 
+- Adds ability for admins to download a |json| view of the Activity
+  Feed.
 
 - Adds categories of events for improved filtering of Activity Feed
-  items. These improvements are available in both the console and the
-  API.
+  items. These improvements exist in both the console and the |api|.
 
 Deprecated Language
 ```````````````````
 
-- Renames all instances of “Whitelist” to “Access List”. This includes
-  events in the activity feed, console, and API endpoint URLs.
+- Changes all instances of the following terms in the activity feed,
+  console, and |api| endpoint |url|\s:
+
+  - **Whitelist** or **Blacklist** to **Access List**
+  - **slaveDelay** to **secondaryDelaySecs**
+
+  Make sure to update any application code or scripts with these
+  updated labels to reflect this change.
 
 Performance Advisor
 ```````````````````
