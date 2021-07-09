@@ -1,0 +1,82 @@
+---
+ref: download-om-deb
+source:
+  file: steps-install-on-prem-with-deb-packages.yaml
+  ref: download
+stepnum: 1
+
+---
+
+ref: download-key-deb
+source:
+  file: steps-source-verify-packages.yaml
+  ref: download-key
+stepnum: 2
+replacement:
+  keyfile: https://www.mongodb.org/static/pgp/opsmanager-{+manifest-version+}.asc
+
+---
+
+ref: download-sig-deb
+source:
+  file: steps-source-verify-packages.yaml
+  ref: download-signature
+stepnum: 3
+replacement:
+  sigfile:  https://downloads.mongodb.com/on-prem-mms/deb/mongodb-mms-<version>_x86_64.deb.sig
+pre: |
+
+  In the following command, replace ``<version>`` with the version of
+  the |onprem| package.
+
+---
+
+ref: import-key-deb
+source:
+  file: steps-source-verify-packages.yaml
+  ref: import-key
+stepnum: 4
+replacement:
+  import: | 
+    .. code-block:: sh
+    
+       gpg --import opsmanager-{+manifest-version+}.asc
+
+---
+
+ref: verify-integrity-deb
+source:
+  file: steps-source-verify-packages.yaml
+  ref: verify-integrity
+stepnum: 5
+replacement:
+  verify: |
+    .. code-block:: sh
+    
+       gpg --verify mongodb-mms-<version>_x86_64.deb.sig \ 
+           mongodb-mms-<version>_x86_64.deb
+
+  response: |
+
+    .. code-block:: sh
+       :copyable: false
+
+       gpg: Signature made Wed Jun 23 15:44:30 2021 UTC
+       gpg:                using RSA key 056AB6A90E47FE40
+       gpg: Good signature from "Ops Manager {+manifest-version+} Release Signing Key <packaging@mongodb.com>" [unknown]
+       
+    If the package is properly signed, but you don't currently trust the
+    signing key in your local ``trustdb``, ``gpg`` also returns the
+    following message:
+
+    .. code-block:: sh
+       :copyable: false
+
+       gpg: WARNING: This key is not certified with a trusted signature!
+       gpg:          There is no indication that the signature belongs to the owner.
+       Primary key fingerprint: D657 EF0E F51C 41B7 AE11  1CAF 056A B6A9 0E47 FE40
+pre: |
+
+  In the following command, replace ``<version>`` with the version of
+  the |onprem| package.
+...
