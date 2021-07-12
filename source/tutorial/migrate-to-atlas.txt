@@ -1,0 +1,121 @@
+.. _migrate-to-atlas:
+
+==================================================
+Migrate from Ops Manager or Cloud Manager to Atlas
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+To live migrate data from the |mms|-managed deployments to
+clusters in |service-short|, you:
+
+1. Prepare a cluster in |service|.
+#. Provision a migration host in |mms| and connect |mms| to |service-short|.
+#. Start the Live Migration process in |service-short|.
+
+You begin the process in |service-short|, by running the Live Migration wizard.
+Depending on the stage in the process, you perform the Live Migration steps either
+in |service-short| or in |mms|. See :ref:`lm-workflow`.
+
+Prerequisites
+-------------
+
+Before you begin the Live Migration process, follow these prerequisites.
+
+- :ref:`lm-external-ip`
+- :ref:`lm-create-atlas-cluster`
+
+.. _lm-external-ip:
+
+Request an External IP Address
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Request an external IP address for |mms| from your network administrator.
+When you are ready to live migrate data, |service-short|
+uses this address for a :term:`link-token` it generates.
+When you run Live Migration, you push the data from a live deployment
+in |mms| to a provisioned cluster in |service-short| using the
+link-token. You generate this link-token in
+|service-short| in Stage 1 of the Live Migration process.
+
+.. _lm-create-atlas-cluster:
+
+Create a Cluster in Atlas
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Perform these tasks in |service-short|:
+
+- :atlas:`Create an Atlas account </tutorial/create-atlas-account>`.
+- :atlas:`Create an Atlas organization </tutorial/manage-organizations/#std-label-create-organization>`.
+- :atlas:`Create a project </tutorial/manage-projects/#std-label-create-project>` in this organization.
+- :atlas:`Create a new cluster </tutorial/create-new-cluster>` in your project.
+
+.. _lm-workflow:
+
+Workflow for Live Migration
+---------------------------
+
+The following diagram describes the stages in the Live Migration workflow.
+
+.. image:: /images/live-migration-stages.png
+   :alt: "To live migrate your deployment to Atlas, generate a link-token,
+         provision a migration host, and start live migration."
+   :width: 700px
+   :align: center
+
+The stages in the live migration workflow are:
+
+- **Stage 1: Link with Atlas**. Perform this step in |service-short|,
+  after :ref:`provisioning a cluster <lm-create-atlas-cluster>`.
+
+
+  a. In the |service-short| organization, go to :guilabel:`Live Migration`.
+  #. Select :guilabel:`Migrate from Ops Manager or Cloud Manager` and start
+     the Live Migration wizard.
+  #. In the :guilabel:`Generate Link-Token` step of the wizard, specify
+     the :ref:`external IP address <lm-external-ip>` for |mms| that you
+     obtained from your service administrator.
+     To learn more, see :atlas:`</migration-from-com>`.
+
+- **Stage 2: Provision Migration Host**.
+  
+  - In |mms|, :doc:`provision a Migration Host </tutorial/provision-migration-host>`.
+    A migration host is a dedicated {+mdbagent+} that orchestrates the
+    live migration process from |mms| to |service-short|.
+
+  - In the :guilabel:`Live Migration: Connect to Atlas` section of your
+    |mms| organization's :guilabel:`Settings` page, select
+    :ref:`Connect to Atlas <connect-to-atlas-lm>` and enter the
+    the link-token that you created in |service-short|.
+
+- **Stage 3: Start the Migration**. In |service-short|, follow the
+  steps in the wizard to :atlas:`start the live migration </migration-from-com>`.
+
+Considerations
+--------------
+
+.. include:: /includes/fact-live-migration-host-performance.rst
+
+Supported Platforms
+~~~~~~~~~~~~~~~~~~~
+
+Live Migration to |service-short| is supported for all platforms on
+which you can provision a migration host. Provisioning of the migration
+host :ref:`is supported <live-migration-host-supported-platforms>` on
+all platforms except for Windows or MacOS. You can still live migrate
+your data from a Windows- or macOS-based deployment to |service-short|
+if you provision your migration host on one of its supported platforms.
+
+.. seealso::
+
+   - :ref:`live-migration-host-supported-platforms`
+   - :ref:`provision-migration-host`
