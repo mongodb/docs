@@ -1,8 +1,8 @@
 The following command creates a sample cluster with the following settings:
 
 - Cluster name: ``getStarted`` 
-- MongoDB server version: ``4.2.2``
-- Feature compatibility version: ``4.2``
+- MongoDB server version: ``5.0.0``
+- Feature compatibility version: ``5.0``
 - Replica set members: ``3``
 - Member hostnames: ``host1``, ``host2``, ``host3``
 
