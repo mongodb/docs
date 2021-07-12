@@ -1,0 +1,183 @@
+title: "Start the migration process."
+ref: migrate-from-com-begin-migration
+level: 4
+content: |
+
+  a. In the left-side panel of your organization's page,
+     click :guilabel:`Live Migration`.
+
+  #. Click :guilabel:`Migrate from Ops Manager or Cloud Manager`.
+
+  |service| displays a Live Migration wizard with instructions on how
+  to proceed with the Live Migration process. The process pushes the
+  data from your source cluster to the new target cluster. After you
+  complete the wizard steps, you can point your application to the new
+  cluster.
+
+---
+title: "Link with Atlas."
+ref: live-migration-com-link-with-atlas
+level: 4
+content: |
+
+  a. Click :guilabel:`Generate Link-Token`. |service| displays the
+     page for generating a :term:`link-token`.
+
+     - If you are migrating from |onprem|, enter the external IP addresses
+       or a |cidr| block of your |onprem| instances to add them to the access
+       list of the API Key embedded in the link-token. This allows |onprem|
+       to send project and cluster information to |service|.
+       |onprem| does not send any data stored in your MongoDB databases
+       in this step. For example, enter ``23.248.95.14``.
+     - If you are migrating from |mms|, skip this step.
+
+  #. Click :guilabel:`Next` to see a page that contains the generated link-token.
+
+  #. Copy the link-token and store it in a secure location. |service|
+     never displays the contents of the link-token. |service| also does
+     not display the link-token after generating it. Do not
+     share it publicly.
+
+     .. note::
+        Use one unique :term:`link-token` for live migrating all
+        projects in one |com| organization to |service|.
+
+  #. Click :guilabel:`Done`.
+
+---
+title: "Paste the link-token into Ops Manager or Cloud Manager."
+ref: live-migration-from-com-paste-link-token
+level: 4
+content: |
+
+  a. Access the organization in |com|:
+  
+     Open |onprem| or |mms|, and navigate to the organization
+     whose project's cluster you are live migrating to |service|.
+
+  #. Click :guilabel:`Settings` in the left navigation panel.
+
+  #. In the :guilabel:`Live Migration: Connect to Atlas` section, click
+     :guilabel:`Connect to Atlas`. The :guilabel:`Connect to Atlas`
+     dialog opens.
+
+  #. Paste the link-token you generated in the previous step of the
+     Live Migration wizard and click :guilabel:`Connect to Atlas`.
+     |com| establishes the connection to |service|. Use the
+     :guilabel:`Refresh` button to send an update to |service|, if
+     needed. To learn more, see
+     :opsmgr:`Connect to Atlas for Live Migration
+     </tutorial/connect-to-atlas-for-live-migration>` in Ops Manager, or
+     :cloudmgr:`Connect to Atlas for Live Migration
+     </tutorial/connect-to-atlas-for-live-migration>` in |mms|.
+
+---
+title: "Create the target Atlas cluster."
+ref: live-migration-from-com-create-target-cluster
+level: 4
+content: |
+
+  If you haven't already, create a target cluster in |service|. See
+  :ref:`migrate-from-com-prereqs`.
+
+---
+title: "Initiate the migration from the target cluster."
+ref: live-migration-com-initiate-from-target-cluster
+level: 4
+content: |
+
+    a. Click :guilabel:`Select Target Cluster from Projects`.
+
+    #. Go to your target |service| cluster's project and find your target
+       cluster.
+
+    #. Click :icon-fa5:`ellipsis-h` and select :guilabel:`Migrate Data to this Cluster`
+       from the dropdown list to start the migration.
+       The :guilabel:`Migrate Data to This Cluster` page opens.
+
+    #. Click :guilabel:`Migrate from Ops Manager or Cloud Manager` and
+       fill in the fields as follows:
+
+       - Select the source project in |com|, if it is not already selected.
+       - Select a migration host for handling the migration.
+
+       - Review the IP address access list to ensure that the migration
+         host's external IP address is included in this list. If it is
+         not added, add it now:
+         
+         - Click :guilabel:`Set Network Access for Host`
+         - Click :guilabel:`+ Add IP Address`
+         - Return to the Live Migration wizard. Select the source
+           cluster from the drop-down and choose
+           :guilabel:`Migrate data to this cluster` under :icon-fa5:`ellipsis-h`.
+       
+       - Select the source cluster from the drop-down.
+       - If the source cluster uses |tls-ssl|, toggle the
+         :guilabel:`Is SSL enabled?` button.
+       - If the source cluster uses |tls-ssl| with a custom Root
+         Certificate Authority (CA), copy the path to the
+         :abbr:`CA (Certificate Authority)` file from your migration
+         host and paste this path into the provided text box.
+         This file must be present on the migration host, to ensure
+         the host can read the certificate.
+       - If your replica set target cluster has data, and you want to preserve it,
+         keep the :guilabel:`Clear any existing data on your target cluster` option
+         unchecked. The Live Migration service warns you if it finds duplicate
+         namespaces. If you want to delete the existing data, check this
+         option.
+    
+       - Click :guilabel:`Validate`. The validation process ensures that
+         your migration host is reachable, and performs other validation
+         checks to ensure that you can start Live Migration to |service|.
+
+         If validation fails, check the migration host, the validity of
+         your external IP addresses or |cidr| block, and the link-token.
+       - If validation succeeds, click :guilabel:`Next`. The
+         :guilabel:`Migrate from Ops Manager or Cloud Manager` page displays.
+
+---
+title: "Start the migration."
+ref: live-import-com-start
+level: 4
+content: |
+
+   a. Review the report listing your source organization, project and
+      cluster, and the migration host that will be used for the Live
+      Migration process.
+   #. Click :guilabel:`Start the Migration`.
+
+---
+title: "Prepare to Cut Over."
+ref: lm-com-prepare-cutover
+level: 4
+content: |
+     A lag time value is displayed during the final oplog tailing phase
+     that represents the current lag between the source and target clusters.
+     This lag time might fluctuate depending on the rate of oplog generation
+     on the source, but should decrease over time as oplog entries are
+     copied to the target cluster.
+
+     a. When the lag timer and the :guilabel:`Prepare to Cutover` button turn
+        green, click it to proceed to the next step.
+---
+title: "Perform the cutover."
+ref: live-import-com-prepare-cutover
+level: 4
+content: |
+
+  Follow the steps on the :guilabel:`Your migration is almost complete` page:
+
+  1. Stop your application. This ensures that no additional writes
+     are generated to the source cluster.
+
+  2. Wait for the optime gap to reach zero. When the counter reaches
+     zero, the source and destination clusters are in sync.
+
+  3. Restart your application using the new connection string that is
+     displayed in step 3 of the page in the User Interface.
+
+  Once you confirm that your applications are working with the |service|
+  cluster, click :guilabel:`Cut Over` to complete the migration process.
+  This allows |service| to mark the migration plan as complete.
+
+...

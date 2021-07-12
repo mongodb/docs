@@ -17,16 +17,7 @@ into |service| using either:
 The following table discusses how to choose between different tools for
 data import and migration for common cluster configurations.
 
-.. note::
 
-   If you have a source cluster with authentication and wish to use an
-   import strategy which includes using :binary:`mongorestore
-   <bin.mongorestore>` with the :option:`--oplogReplay
-   <mongorestore.--oplogReplay>` option, you must delete the ``admin``
-   directory from the ``dump`` directory created by :binary:`mongodump
-   <bin.mongodump>`. The ``admin`` directory contains database user
-   information that you can't add to a |service| cluster with
-   ``mongorestore``.
 
 .. list-table::
    :header-rows: 1
@@ -35,99 +26,95 @@ data import and migration for common cluster configurations.
    * - Cluster Configuration
      - Import Strategy
 
-   * - A :term:`replica set`.
+   * - A :term:`replica set` from a |com| deployment.
+     
+     - :doc:`Live migrate a replica set from Cloud Manager or Ops
+       Manager to Atlas </import/migrate-from-com-rs>`.
+       In this Live Migration mode, |com| pushes data to
+       |service| using a secure link-token without requiring
+       access through the firewall.
 
-     - Use :doc:`Live Migrate </import/live-import>`.
+   * - A sharded cluster from a |com| deployment.
+     
+     - :doc:`Live migrate a sharded cluster from Cloud Manager or Ops
+       Manager to Atlas </import/migrate-from-com-sharded>`.
+       In this Live Migration mode, |com| pushes data to
+       |service| using a secure link-token without requiring access
+       through the firewall.
 
-       You must provide the hostname of the :term:`primary` to the Live
-       Migrate tool.
+   * - A standalone MongoDB node from a |com| deployment.
+   
+     - :opsmgr:`Convert the standalone to a replica set in Ops Manager </tutorial/convert-standalone-to-replica-set/>`
+       or :cloudmgr:`convert the standalone to a replica set in Cloud
+       Manager </tutorial/convert-standalone-to-replica-set/>`
+       and then :doc:`live migrate <import/migrate-from-com-rs>`
+       it to |service|. In this Live Migration mode, |com| pushes data to
+       |service| using a secure link-token without requiring access through
+       the firewall.
 
-       If the cluster is running a MongoDB version earlier than 2.6,
-       you must first upgrade it to at least MongoDB 2.6.
+   * - A :term:`replica set` deployment, which allows access through the firewall.
 
-       You must have access to the primary node's :term:`oplog`. If the
-       cluster runs with authentication, you must have credentials that
-       provide read access to the primary and its :term:`oplog`.
+     - :doc:`Live migrate a replica set into Atlas </import/live-import>`.
+       In the General Live Migration mode, |service| requires access
+       to the source deployment through the deployment's firewall.
 
-       See :ref:`live-import-migration-validation` for the full
-       list of migration requirements.
+       Before you migrate to |service|, upgrade the source cluster to MongoDB 4.0 or later.
+       Provide the hostname of the :term:`primary` to the Live Migration service.
+       If the cluster runs with authentication, allow read access to the
+       primary node's :term:`oplog`. To learn more, see :ref:`live-import-migration-validation`.
 
-   * - A sharded cluster with multiple shards.
+   * - A sharded cluster deployment, which allows access through the firewall.
 
-     - If your application can tolerate a short period of downtime, use
-       :doc:`Live Migrate </import/live-import-sharded>`. The source
-       cluster must run MongoDB 3.6. If the sharded cluster is not
-       running MongoDB 3.6, you must upgrade it to MongoDB 3.6.
+     - Choose a data migration option based on the amount of downtime
+       your application can tolerate:
+   
+       - If the application requres a near-continuous uptime, contact MongoDB Support
+         and share your uptime requirements and cluster configuration.
 
-       If the source cluster enforces authentication, specify a user to
-       |service| that exists on every shard *and* the config server
-       replica set. The user must have permission to:
+       - If the application can tolerate a short period of downtime,
+         :doc:`live migrate  a sharded cluster into Atlas
+         </import/live-import-sharded>`. In the General Live Migration
+         mode, |service| requires access to the source deployment through
+         the deployment's firewall.
 
-       - Stop or start the sharded cluster balancer.
-       - Read all databases and collections on the host.
-       - Read the oplog on the host.
+       - If the application can tolerate a longer downtime, or if your
+         cluster runs a MongoDB version that is no longer supported, use
+         :doc:`mongorestore </import/mongorestore>` and
+         :manual:`back up the cluster with database dumps
+         </tutorial/backup-sharded-cluster-with-database-dumps>`.
 
-       See :ref:`live-import-sharded-migration-validation` for the full
-       list of migration requirements.
+   * - A standalone MongoDB deployment, which allows access through the firewall.
 
-       If near-continuous uptime is a requirement, please contact
-       MongoDB. From the |service| UI, click :guilabel:`Support`. Fill
-       out a Support ticket, noting your uptime requirements and cluster
-       configuration in the :guilabel:`More details` text entry.
+     - Choose one of the following data migration options:
+  
+       - If you can :manual:`convert </tutorial/convert-standalone-to-replica-set>`
+         the standalone  to a single-node replica set,
+         :doc:`live migrate  a replica set into Atlas </import/live-import>`
+         service.
+       - If you can't convert the standalone to a replica set, use :doc:`mongorestore </import/mongorestore>`.
 
-       If some downtime is OK and your sharded cluster does not run a
-       supported MongoDB version, you may use :binary:`mongodump` and
-       :binary:`mongorestore`. See :doc:`/import/mongorestore` and
-       :manual:`Backup Sharded Cluster with Database Dumps
-       </tutorial/backup-sharded-cluster-with-database-dumps>`.
+       Before you migrate to |service|, upgrade the deployment to MongoDB 4.0 or later.
+       If the deployment runs with authentication, allow read access to the
+       primary node's :term:`oplog`.
 
-   * - A "single :term:`shard`" :term:`sharded cluster` in ``Compose``.
-       This is the standard configuration for new MongoDB deployments
-       in ``Compose``.
+   * - A shared multi-tenant cluster, or a cluster where you have no
+       access to the oplog.
 
-     - Use :doc:`Live Migrate </import/live-import>`.
+     - Use :doc:`mongorestore </import/mongorestore>`.
 
-       You must `enable the oplog proxy <https://www.compose.com/articles/connecting-to-the-oplog-on-the-new-mongodb/>`_.
+       If the cluster runs with authentication, allow read access to the primary.
 
-       You must specify the hostname and credentials for the oplog
-       proxy when connecting from Live Migrate.
+   * - A standard "single :term:`shard`" :term:`sharded cluster` MongoDB
+       deployment in ``Compose``.
 
-       See :ref:`live-import-migration-validation` for the full
-       list of migration requirements.
+     - :doc:`Live Migrate the cluster to Atlas </import/live-import>`.
+
+       Before you connect from the Live Migration service, `enable the oplog proxy
+       <https://www.compose.com/articles/connecting-to-the-oplog-on-the-new-mongodb/>`_
+       and specify the oplog proxy's hostname and credentials to |service|. To learn more,
+       see :ref:`live-import-migration-validation`.
 
        .. seealso::
 
           `Migrate from Compose to MongoDB Atlas <https://docs.mongodb.com/guides/cloud/migrate-from-compose/>`_
-
-   * - A standalone MongoDB node.
-
-     - :manual:`Convert </tutorial/convert-standalone-to-replica-set>`
-       the standalone MongoDB node to a single-node replica set and
-       then use the :doc:`Live Migration </import/live-import>`
-       service.
-
-       If the standalone is running a MongoDB version earlier than 2.6,
-       you must first upgrade it to at least MongoDB 2.6.
-
-       If you are running with authentication enabled, you must have
-       credentials that provide read access to the primary and its oplog.
-
-       If you can't convert the standalone to a replica set, use
-       :binary:`mongodump` and :binary:`mongorestore`. See
-       :doc:`/import/mongorestore`.
-
-   * - A shared multi-tenant cluster, or a cluster where you have no oplog
-       access.
-
-     - Use :binary:`mongodump` and :binary:`mongorestore`. See
-       :doc:`/import/mongorestore`.
-
-       If you are running with authentication enabled, you must have
-       credentials that provide read access to the primary.
-
-
-|service| has built-in support for :doc:`scaling </scale-cluster>` an ``M0``
-Free Tier cluster to an ``M10+`` paid cluster. Alternatively, use
-:binary:`mongodump` and :binary:`mongorestore` to copy data from an ``M0``
-Free Tier cluster to an ``M10+`` cluster. See :doc:`/import/mongorestore`.
 

@@ -3,9 +3,9 @@ The :guilabel:`Cluster Tier` section of the
 |service| cluster tiers. |service| categorizes the cluster tiers
 into tiers as follows:
 
-:guilabel:`Shared Clusters`
+:guilabel:`{+Shared-Clusters+}`
   Sandbox cluster tiers for getting started with MongoDB, such as the 
-  ``M0`` Free Tier cluster.
+  ``M0`` {+free-cluster+}.
 
   These clusters support replica set deployments in a shared 
   environment with access to a subset of |service| features and

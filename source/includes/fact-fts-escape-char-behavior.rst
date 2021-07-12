@@ -1,11 +1,11 @@
-When using the escape character in the |mongo| shell, you must use a
+When using the escape character in {+mongosh+}, you must use a
 double backslash before the character to be escaped.
 
 .. example::
 
    To create a wildcard expression which searches for any string
    containing a literal asterisk in an aggregation pipeline which runs
-   in the |mongo| shell, use the following expression:
+   in {+mongosh+}, use the following expression:
 
    .. code-block:: none
 

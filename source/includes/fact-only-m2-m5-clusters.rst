@@ -1,4 +1,3 @@
 .. note::
 
-   This resource only applies to ``M2`` and ``M5`` shared-tier
-   clusters.
+   This resource applies only to ``M2`` and ``M5`` {+shared-clusters+}.

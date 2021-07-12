@@ -4,55 +4,96 @@
 
      - id: windows
        name: Windows
-
        content: |
 
-         a. Double-click the ``.msi`` file in Windows Explorer
-            and proceed through the installation wizard.
+         1. Download using one of the following options:
 
-         #. Add the ``bin`` directory to your command path.
+            - Click :guilabel:`Download mongosh` to
+              begin the download.
 
-            1. Click :icon-fa5-brands:`windows` and select :guilabel:`Control Panel`.
+            - Click :guilabel:`Copy download URL` to copy a
+              download |url| to your clipboard, then either:
 
-            #. Click :guilabel:`System and Security`, then :guilabel:`System`,
-               then :guilabel:`Advanced System Settings`.
+              -  Use ``curl`` to fetch the installer file 
+                 from the |url|, or
+
+              -  Paste the |url| in a browser window.
+
+            .. include:: /includes/facts/download-center-link.rst
+
+         #. Extract the files from the downloaded archive.
+
+         #. Add the {+mongosh+} binary to your ``PATH`` 
+            environment variable.
+
+            Ensure that the extracted MongoDB Shell binary 
+            is in the desired location in your filesystem, 
+            then add that location to your ``PATH``
+            environment variable.
+
+            a. Open the :guilabel:`Control Panel`.
+
+            #. In the :guilabel:`System and Security` 
+               category, click :guilabel:`System`.
+
+            #. Click :guilabel:`Advanced system settings`. 
+               The :guilabel:`System Properties` modal 
+               displays.
 
             #. Click :guilabel:`Environment Variables`.
 
-            #. Select :guilabel:`Path` and click :guilabel:`Edit`.
+            #. Select :guilabel:`Path` and click
+               :guilabel:`Edit`.
 
-            #. Add the ``bin`` directory where the installer placed your
-               MongoDB executables and click :guilabel:`OK`.
+            #. Click :guilabel:`New` and add the filepath to 
+               your {+mongosh+} binary.
+
 
      - id: macos
        name: macOS
-
        content: |
 
-         Copy the Homebrew command from the |service| UI
-         window and run it in your terminal.
+         1. Use the Homebrew command provided.
+
+         #. Copy the Homebrew command from the |service| UI
+            window and run it in a terminal.
 
      - id: linux
        name: Linux
-
        content: |
 
-         a. Run the following command in your terminal to extract
-            the :binary:`~bin.mongo` shell:
+         1. Download the installer using one of the
+            following options:
 
-            .. code-block:: shell
+            - Click :guilabel:`Download mongosh` to
+              begin the download.
 
-               tar -xzf ./<filename>.tgz
+            - Click :guilabel:`Copy download URL` to copy a
+              download |url| to your clipboard, then either:
 
-         #. Add the ``bin`` directory to your ``PATH``
-            environment variable.
+              -  Use ``curl`` to fetch the installer file 
+                 from the |url|, or
 
-            .. code-block:: none
+              -  Paste the |url| in a browser window.
 
-               export PATH=/<extraction-directory>/bin:$PATH
+            .. include:: /includes/facts/download-center-link.rst
 
             .. note::
 
-               This command applies only to the current shell session. Edit
-               the ``PATH`` environment variable in ``~/.profile``
-               to update the variable across shell sessions and reboots.
+               The type of file you download depends on the
+               operating system you selected. If you select 
+               a version of:
+
+               - **Ubuntu or Debian** you receive a ``.deb``
+                 package.
+               - **RHEL, Amazon Linux, or SUSE** you receive
+                 an ``.rpm`` package.
+
+               If your operating system isn't listed, see
+               the :mongosh:`.tgz installation instructions
+               </install>` in the {+mongosh+} documentation. 
+
+         #. Install the {+mongosh+} package.
+
+            .. include:: /includes/facts/tabs-install-mongosh.rst
+

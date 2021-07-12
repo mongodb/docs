@@ -4,7 +4,7 @@
    its internal interactions. In practice, this means:
 
    - Cluster names shorter than 23 characters can't end with
-     hyphen or dash (``-``)
+     hyphen or dash (``-``).
 
    - Cluster names 23 characters or longer can't use a hyphen or
      dash (``-``) as its 23rd character.

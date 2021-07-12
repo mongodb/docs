@@ -18,7 +18,7 @@
 
          Backup uses:
 
-         - :ref:`backup-cloud-provider` for dedicated clusters.
+         - :ref:`backup-cloud-provider` for {+dedicated-clusters+}.
          - :ref:`m2-m5-snapshots` for tenant clusters.
 
        - If **"backupEnabled" : false**, the cluster doesn't use
@@ -81,7 +81,7 @@
 
        You can't set this value with |nvme-clusters|.
 
-       The minimum disk size for dedicated clusters is 10 GB for |aws|
+       The minimum disk size for {+dedicated-clusters+} is 10 GB for |aws|
        and |gcp|. If you specify **diskSizeGB** with a lower disk size,
        |service| defaults to the minimum disk size value.
 
@@ -548,9 +548,9 @@
      - Required
      - Cloud service provider on which |service| provisions the hosts.
 
-       - Set dedicated clusters to **AWS**, **GCP**, or **AZURE**.
+       - Set {+dedicated-clusters+} to **AWS**, **GCP**, or **AZURE**.
 
-       - Set shared tier clusters (M2 or M5) to **TENANT**.
+       - Set M2/M5 {+clusters+} to **TENANT**.
 
        .. include:: /includes/api/list-tables/clusters/cloud-service-providers-advanced.rst
 

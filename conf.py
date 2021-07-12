@@ -238,7 +238,36 @@ source_constants = {
     'Realm' : 'Realm',
     'MongoDB-Realm' : 'MongoDB Realm',
     'encrypt-at-rest' : 'Encryption at Rest using Customer Key Management',
-    'Online-Archive' : 'Online Archive'
+    'Online-Archive' : 'Online Archive',
+    'Deployment' : 'Deployment',
+    'deployment' : 'deployment',
+    'Deployments' : 'Deployments',
+    'deployments' : 'deployments',
+    'Database-deployment' : 'Database deployment',
+    'Database-Deployment' : 'Database Deployment',
+    'Database-Deployments' : 'Database Deployments',
+    'database-deployment' : 'database deployment',
+    'Database-deployments' : 'Database deployments',
+    'database-deployments' : 'database deployments',
+    'Serverless-Instance' : 'Serverless Instance',
+    'Serverless-instance' : 'Serverless instance',
+    'serverless-instance' : 'serverless instance',
+    'Serverless-instances' : 'Serverless instances',
+    'serverless-instances' : 'serverless instances',
+    'Cluster' : 'Cluster',
+    'cluster' : 'cluster',
+    'Clusters' : 'Clusters',
+    'clusters' : 'clusters',
+    'Dedicated-cluster' : 'Dedicated cluster',
+    'dedicated-cluster' : 'dedicated cluster',
+    'Dedicated-clusters' : 'Dedicated clusters',
+    'dedicated-clusters' : 'dedicated clusters',
+    'Shared-cluster' : 'Shared cluster',
+    'shared-cluster' : 'shared cluster',
+    'Shared-clusters' : 'Shared clusters',
+    'shared-clusters' : 'shared clusters'
+
+
 }
 
 pygments_style = 'sphinx'

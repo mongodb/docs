@@ -13,7 +13,7 @@ Before starting the import process:
   your connection string helps ensure that your data migration process
   can complete with minimal downtime.
 
-  1. Download and install the :binary:`mongo <bin.mongo>` shell on a
+  1. Download and install {+mongosh+} on a
      representative client machine, if you don't already have it.
 
   #. Connect to your destination cluster using the connection string

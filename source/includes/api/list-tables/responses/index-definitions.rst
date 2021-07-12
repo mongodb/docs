@@ -62,3 +62,31 @@
        - ``FAILED`` - |service| could not build the index.
        - ``MIGRATING`` - |service| cluster tier is being upgraded and 
          indexes are migrating. 
+
+   * - ``synonyms`` 
+     - array of documents
+     - Synonyms mapping definition used in this index.
+
+   * - | ``synonyms[i]``
+       | ``.analyzer`` 
+     - string
+     - Name of the :ref:`analyzer <analyzers-ref>` used in this 
+       synonym mapping. If ``mappings.dynamic`` is ``true``, |fts| uses 
+       the default analyzer, :ref:`lucene.standard 
+       <ref-standard-analyzer>`, for synonym mapping.
+
+   * - | ``synonyms[i]``
+       | ``.name`` 
+     - string
+     - Name of the synonym mapping. 
+
+   * - | ``synonyms[i]``
+       | ``.source`` 
+     - document
+     - Collection details for this synonym mapping definition.
+
+   * - | ``synonyms[i]``
+       | ``.source``
+       | ``.collection`` 
+     - string 
+     - Name of the source MongoDB collection for the synonyms. 

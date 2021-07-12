@@ -9,3 +9,6 @@
 
 - You can't restore ``M2`` and ``M5`` snapshots to a sharded cluster.
   You can only restore ``M2`` and ``M5`` snapshots to replica sets.
+
+- You can't restore {+serverless-instance+} snapshots to ``M2`` and 
+  ``M5`` clusters.

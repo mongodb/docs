@@ -7,7 +7,7 @@
      - Menu Options
 
    * - :guilabel:`Availability`
-     - Status of the nodes within the cluster.
+     - Status of the nodes within the {+database-deployment+}.
      -
 
        - All
@@ -17,7 +17,7 @@
        - Has Warnings &amp; Alerts
 
    * - :guilabel:`Type`
-     - Deployment type of the cluster.
+     - Deployment type of {+database-deployment+}.
      -
 
        - All
@@ -27,7 +27,7 @@
 
    * - :guilabel:`Version`
      - MongoDB versions
-     - Version of MongoDB that the clusters are running.
+     - Version of MongoDB that the {+database-deployments+} are running.
 
        - All
        - Inconsistent
@@ -36,7 +36,7 @@
        - 4.4
 
    * - :guilabel:`Configuration`
-     - Additional configuration options for the cluster including
+     - Additional configuration options for the {+database-deployment+} including
        authentication, backup, and |tls|.
      -
 

@@ -11,11 +11,18 @@ For guidance on seeding data from an existing MongoDB sharded cluster,
 contact |service| support by clicking :guilabel:`Support` in the
 left-hand navigation of the |service| user interface.
 
+While you can :doc:`scale </scale-cluster>` an ``M0``
+Free Tier cluster to an ``M10+`` paid cluster using the |service| user
+interface, you can also use :binary:`mongodump` and :binary:`mongorestore`
+procedures in this section to copy data from an ``M0`` Free Tier cluster
+to an ``M10+`` cluster.
+
+
 Considerations
 --------------
 
-Minimum Recommended ``mongodump`` and ``mongorestore`` Version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Recommended ``mongodump`` and ``mongorestore`` Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use the latest stable release version of |mongodump|
 and |mongorestore| for this procedure.
@@ -23,7 +30,7 @@ and |mongorestore| for this procedure.
 Downtime Required
 ~~~~~~~~~~~~~~~~~
 
-To ensure a completely up-to-date migration, schedule a maintenance
+To ensure an up-to-date migration, schedule a maintenance
 window where you can stop all writes to your source cluster.
 Any write operations issued to the source cluster after the
 |mongodump| portion of the procedure completes
@@ -32,7 +39,7 @@ are not migrated to the target cluster.
 You must cut-over your applications to the target |service| cluster
 after |mongorestore| completes the
 data restoration before resuming write operations.
-See :doc:`/connect-to-cluster` for complete
+See :doc:`/connect-to-database-deployment` for complete
 documentation on connecting to a |service| cluster.
 
 The total amount of downtime required depends on factors such as the
@@ -52,18 +59,19 @@ Cluster Security
 cluster enforces authentication,
 use the |mongorestore|
 :option:`--nsExclude <mongorestore.--nsExclude>` to exclude the
-``admin.system.*`` namespace. You cannot migrate any existing user or
+``admin.system.*`` namespace. You can't migrate any existing user or
 role information to |service|.
 
 .. note::
 
-   If you use |mongorestore| with the
-   :option:`--oplogReplay <mongorestore.--oplogReplay>` option, you
-   will not be able to use the :option:`--nsExclude
-   <mongorestore.--nsExclude>` option to exclude the ``admin.system.*``
-   namespace. Instead, go into the ``dump`` directory created by
-   |mongodump| and delete the ``admin``
-   directory before running |mongorestore|.
+   If you have a source cluster with authentication and want to use an
+   import strategy which includes using :binary:`mongorestore
+   <bin.mongorestore>` with the :option:`--oplogReplay
+   <mongorestore.--oplogReplay>` option, you must delete the ``admin``
+   directory from the ``dump`` directory created by :binary:`mongodump
+   <bin.mongodump>`. The ``admin`` directory contains database user
+   information that you can't add to a |service| cluster with
+   ``mongorestore``.
 
 For the target |service| cluster, create the appropriate database users
 for supporting your application's usage patterns. Update your
@@ -78,7 +86,7 @@ This procedure requires running |mongodump| and
 cluster. These programs use system resources such as CPU and memory,
 and may impact the performance of the host.
 
-Consider executing this procedure during non-peak system usage,
+Run this procedure during non-peak system usage,
 or during a scheduled maintenance window. If the source is a replica
 set, you can run this procedure from the host of a :term:`secondary`
 member. After stopping writes to the cluster, allow the secondary to
@@ -90,8 +98,8 @@ Pipe Behavior
 This procedure uses
 `linux pipes <http://man7.org/linux/man-pages/man2/pipe.2.html>`__ to
 stream the output of |mongodump| to |mongorestore|. If the
-|mongorestore| process cannot keep up with the |mongodump| process,
-you may encounter broken pipe errors.
+|mongorestore| process can't keep up with the |mongodump| process,
+you may see broken pipe errors.
 
 For guidance on addressing persistent broken pipe errors,
 contact |service| support by clicking :guilabel:`Support` from the

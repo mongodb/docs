@@ -1,0 +1,410 @@
+.. _synonyms-ref:
+
+===========================================
+Define Synonym Mappings in Your |fts| Index 
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+``synonyms`` allow you to index and search your collection for 
+words that have the same or nearly the same meaning. To configure an 
+|fts| :ref:`index <ref-index-definitions>` with synonym mappings, you 
+must:
+
+1. Create a new collection with properly formatted synonym documents 
+   in it. Ensure that: 
+   
+   - Your collection is in the same database as the index that will 
+     reference the collection.
+   - You format the documents in the collection as described in the 
+     :ref:`<synonyms-coll-spec>`.
+
+#. Reference the synonym source collection in a synonym mapping in 
+   the :ref:`index definition <ref-index-definitions>`. 
+
+This page describes the format of the synonyms source collection and 
+how to define synonym mappings that reference the synonym source 
+collection in your |fts| index. A synonym mapping configures an |fts| 
+index to support queries that apply synonyms from a separate synonym 
+source collection. You can use the :guilabel:`JSON Editor` view in the 
+|service| :ref:`User Interface <ref-create-index>` or the |fts| 
+:doc:`API </reference/api/fts-indexes-create-one>` to create the index. 
+Synonyms can be used only in queries that use the :ref:`text-ref` 
+operator.
+
+.. _synonyms-syntax:
+
+Syntax 
+------
+
+``synonyms`` has the following syntax in an index definition: 
+
+.. literalinclude:: /includes/fts-index-definition-syntax.json
+   :language: json
+   :linenos:
+   :copyable: false
+   :emphasize-lines: 10-18 
+
+.. _synonyms-options:
+
+Options 
+-------
+
+``synonyms`` takes the following fields in an index definition:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``analyzer``
+     - string
+     - Name of the :ref:`analyzer <analyzers-ref>` to use with this 
+       synonym mapping. You can use any |fts| analyzer except the 
+       ``lucene.kuromoji`` :ref:`language analyzer 
+       <ref-language-analyzers>` and the following :ref:`custom 
+       analyzer <custom-analyzers>` tokenizers and token filters: 
+
+       - :ref:`nGram <ngram-tokenizer-ref>` Tokenizer
+       - :ref:`edgeGram <edgegram-tokenizer-ref>` Tokenizer 
+       - :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>` 
+         Token Filter
+       - :ref:`nGram <ngram-tf-ref>` Token Filter 
+       - :ref:`edgeGram <edgegram-tf-ref>` Token Filter 
+       - :ref:`shingle <shingle-tf-ref>` Token Filter
+
+     - Required
+
+   * - ``name``
+     - string 
+     - Name of the synonym mapping. Name must be unique in the index 
+       definition. Value can't be an empty string. 
+     - Required
+
+   * - ``source``
+     - document
+     - :ref:`Source collection <synonyms-coll-spec>` for synonyms. The 
+       ``source`` option takes the ``collection`` field. 
+     - Required
+
+   * - ``source.collection``
+     - string 
+     - Name of the MongoDB collection that is in the same database as 
+       the |fts| index. Documents in this collection must be in the 
+       format described in the :ref:`synonyms-coll-spec`.
+     - Required
+
+.. _synonyms-coll-spec:
+
+Synonyms Source Collection Documents 
+------------------------------------
+
+Each document in the collection specified as the source for the 
+synonyms describe how one or more words map to one or more synonyms of 
+those words. 
+
+.. _synonyms-coll-format:
+
+Format of Synonyms Source Collection Documents 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must configure each document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 10 60 15
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``input``
+     - array of strings
+     - Required for ``mappingType: explicit`` mappings. 
+     
+       For ``explicit`` mappings, ``synonyms`` values are synonyms of 
+       each ``input`` token. Value can't be an empty or all-whitespace 
+       string. You can specify the same ``input`` value in multiple 
+       documents.
+     - Conditional
+
+   * - ``mappingType`` 
+     - string
+     - Type of mapping. Value can be one of the following: 
+
+       - ``equivalent`` - describes a set of tokens that are equivalent 
+         to one another. For an example of this ``mappingType``, see 
+         :ref:`Example <synonyms-equivalent-mapping-type-eg>`.
+
+       - ``explicit`` - matches ``input`` tokens and replaces them with 
+         all alternative ``synonyms`` tokens. For an example of this 
+         ``mappingType``, see :ref:`Example 
+         <synonyms-explicit-mapping-type-eg>`.
+         
+     - Required
+
+   * - ``synonyms``
+     - array of strings
+     - Words that are synonyms of one another if ``mappingType`` is 
+       ``equivalent`` or synonyms of ``input`` tokens if 
+       ``mappingType`` is ``explicit``. ``synonyms`` must have at least 
+       one value.
+
+       For an example of each ``mappingType`` see 
+       :ref:`synonyms-mapping-type-egs`.
+     - Required
+
+The documents in the collection can contain other fields. The 
+documents in the collection are additive, and mappings are 
+deduplicated. |fts| synonyms are stored as a separate |service| 
+collection, which counts against the same storage quota as any other 
+collection in |service|. |fts| might use more compute resources to 
+apply synonyms from larger synonyms source collections.
+
+.. warning:: 
+
+   Don't include invalid synonym documents in the synonym source 
+   collection. |fts| doesn't create indexes if the indexes use synonym 
+   mappings that reference collections with invalid documents. Only 
+   include synonym documents that are properly formatted in your 
+   synonym source collection.
+
+   MongoDB doesn't recommend adding synonym documents to synonym source 
+   collections in a production environment without first validating 
+   that they are properly formatted and behave as expected in a test 
+   environment.
+
+.. _synonyms-coll-changes:
+
+Changes to Synonyms Source Collection Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you make changes to your synonyms source collection:
+
+- You don't need to reindex because |fts| watches for changes and 
+  automatically updates its internal synonym map.
+- The time it takes |fts| to update the synonym mappings increases with 
+  the synonym source collection size. Note that the changes to synonym 
+  documents are reflected in your |fts| query results eventually.
+
+.. _synonyms-mapping-type-egs:
+
+``mappingType`` Examples 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _synonyms-equivalent-mapping-type-eg:
+
+``equivalent`` 
+``````````````
+
+.. example:: 
+
+   In this ``equivalent`` mapping type example, the ``synonyms`` tokens 
+   ``car``, ``vehicle``, and ``automobile`` are configured to be 
+   synonyms of one another:
+
+   .. code-block:: json 
+      :copyable: false
+
+      {
+        "mappingType": "equivalent",
+        "synonyms": ["car", "vehicle", "automobile"]
+      }
+
+   For a :ref:`text-ref` query for ``car``, ``vehicle``, or 
+   ``automobile`` applying a synonym mapping that includes such a 
+   document, |fts| returns documents that contain the term ``car``, 
+   ``vehicle``, or ``automobile``.
+
+.. _synonyms-explicit-mapping-type-eg:
+
+``explicit`` 
+````````````
+
+.. example:: 
+
+   In this ``explicit`` mapping type example, ``input`` token ``beer`` 
+   is configured to consider ``beer``, ``brew``, and ``pint`` as 
+   synonyms:
+
+   .. code-block:: json 
+      :copyable: false
+
+      {
+        "mappingType": "explicit",
+        "input": ["beer"],
+        "synonyms": ["beer", "brew", "pint"]
+      }
+
+   For a :ref:`text-ref` query for ``beer`` applying a synonym mapping 
+   that includes such a document, |fts| returns documents that contain 
+   the terms "beer", "brew", or "pint" because the ``input`` token 
+   ``beer`` is explicitly mapped to all these ``synonyms`` tokens. 
+   However, for a query for ``pint``, |fts| does not find documents 
+   that contain ``beer`` because ``pint`` is not explicitly mapped to 
+   ``beer``.
+
+.. _synonyms-egs:
+
+Examples 
+--------
+
+Suppose two collections, ``user_feedback.comments`` and 
+``user_feedback.synonyms``, have the following documents:
+
+.. _synonyms-user-feedback-comments-coll:
+
+``user_feedback.comments`` Example 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json 
+   
+   {
+     "type": "car dealer",
+     "comments": "Blue four-door sedan, lots of trunk space in the car."
+   }
+   
+.. code-block:: json 
+
+   {
+     "type": "winery",
+     "comments": "Beer and skittles for all."
+   }
+   
+.. code-block:: json 
+
+   {
+     "type": "apparel store",
+     "comments": "Beautiful apparel for the bride."
+   }
+   
+.. code-block:: json 
+
+   {
+     "type": "recreation rental",
+     "comments": "Sails as well as the day it was made."
+   }
+
+.. _synonyms-user-feedback-synonyms-coll:
+
+``user_feedback.synonyms`` Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json 
+   
+   {
+     "mappingType": "equivalent",
+     "synonyms": ["car", "vehicle", "automobile"]
+   }
+   
+.. code-block:: json 
+
+   {
+     "mappingType": "explicit",
+     "input": ["beer"],
+     "synonyms": ["beer", "brew", "pint"]
+   }
+   
+.. code-block:: json 
+
+   {
+     "mappingType": "equivalent",
+     "synonyms": ["dress", "apparel", "attire"]
+   }
+   
+.. code-block:: json 
+
+   {
+     "mappingType": "explicit",
+     "input": ["boat"],
+     "synonyms": ["boat", "vessel", "sail"]
+   }
+
+The following examples show the index definitions using :ref:`static 
+and dynamic mappings <static-dynamic-mappings>` for the 
+``user_feedback.comments`` collection.
+
+.. tabs:: 
+
+   .. tab:: Static Mapping 
+      :tabid: static 
+
+      The following index:
+
+      - Configures an index with a single text field and a single 
+        synonym mapping definition that uses the mapping configured in 
+        the ``user_feedback.synonyms`` collection.
+      - Analyzes the ``comments`` field with the ``lucene.english`` 
+        analyzer.
+      - Enables synonyms from ``synonyms`` collection for queries 
+        over fields analyzed with the ``lucene.english`` analyzer.
+
+      .. code-block:: json 
+
+         {
+           "mappings": {
+             "dynamic": false,
+             "fields": {
+               "comments": {
+                 "type": "string",
+                 "analyzer": "lucene.english"
+               }
+             }
+           },
+           "synonyms": [
+             {
+               "analyzer": "lucene.english",
+               "name": "mySynonyms",
+               "source": {
+                 "collection": "synonyms"
+               }
+             }
+           ]
+         }
+
+   .. tab:: Dynamic Mapping 
+      :tabid: dynamic  
+
+      The following index: 
+
+      - Configures an index for all the fields in the documents and a 
+        single synonym mapping definition that uses the mapping 
+        configured in the ``user_feedback.synonyms`` collection.
+      - Uses the default analyzer, ``lucene.standard``, to analyze all 
+        the fields.
+      - Enables synonyms from ``synonyms`` collection for queries over 
+        fields analyzed with the ``lucene.standard`` analyzer.
+
+      .. code-block:: json 
+
+         {
+           "mappings": {
+             "dynamic": true
+           },
+           "synonyms": [
+             {
+               "analyzer": "lucene.standard",
+               "name": "mySynonyms",
+               "source": {
+                 "collection": "synonyms"
+               }
+             }
+           ]
+         }
+
+.. note:: 
+
+   For sample queries on the ``user_feedback.comments`` collection 
+   using the above indexes, see :ref:`examples <text-ref-synonyms-eg>` 
+   in the :ref:`text-ref` operator.

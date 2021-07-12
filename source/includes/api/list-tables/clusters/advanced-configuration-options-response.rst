@@ -80,7 +80,7 @@
 
        To check the oplog size:
 
-       1. Connect to your cluster via the |mongo| shell.
+       1. Connect to your cluster via {+mongosh+}.
        2. Authenticate as a user with the :atlasrole:`Atlas admin` role.
        3. Run the
           :method:`rs.printReplicationInfo() <rs.printReplicationInfo>`

@@ -12,41 +12,29 @@ Live Migrate Your Replica Set to Atlas
    :depth: 1
    :class: singlecol
 
-|service| can perform a live migration of a source replica set to an
+.. include:: /includes/serverless-preview-dont-use.rst
+
+|service| can perform a Live Migration of a source replica set to an
 |service| cluster, keeping the cluster in sync with the remote source
-until you cut your applications over to the |service| cluster. Once you
-reach the cutover step in the following procedure, you should stop
-writes to the source cluster by stopping your application instances,
-pointing them to the |service| cluster, and restarting them.
+until you cut your applications over to the |service| cluster.
 
-To begin, click on the ellipsis :guilabel:`...` button and choose
-:guilabel:`Migrate Data to this Cluster` from the dropdown menu.
-
-.. note::
-
-   On the Cluster list, the ellipsis :guilabel:`...` button appears
-   beneath the cluster name, as shown below. When you view a cluster's
-   details, the ellipsis :guilabel:`...` appears on the right-hand side
-   of the screen, next to the :guilabel:`Connect` and
-   :guilabel:`Configuration` buttons.
-
-.. figure:: /images/live-migrate-blurred-region.png
-   :alt: The ellipsis button appears beneath the cluster name.
+Once you reach the cutover step in the following procedure, stop
+writes to the source cluster: stop your application instances,
+point them to the |service| cluster, and restart them.
 
 Restrictions
 ------------
 
-- You cannot select an ``M0`` (Free Tier) or ``M2/M5`` shared cluster
-  as the source or destination for live migration. To migrate data
-  from an ``M0`` (Free Tier) or ``M2/M5`` shared cluster to a paid
-  cluster, see :doc:`/scale-cluster`.
+- You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared cluster
+  as the source or target for Live Migration. To migrate data from
+  an ``M0`` (Free Tier) or ``M2/M5`` shared cluster to a paid cluster,
+  see :doc:`/scale-cluster`.
 
 - Live Migration does not support :ref:`VPC peering <vpc-peering>` or
   :ref:`private endpoints <private-endpoint>` for either the source or
-  destination cluster.
+  target cluster.
 
-For a procedure on live migrating a sharded cluster, see
-:doc:`/import/live-import-sharded`.
+To live migrate a sharded cluster, see :doc:`/import/live-import-sharded`.
 
 Prerequisites
 -------------
@@ -58,17 +46,15 @@ Prerequisites
 Upgrade Path
 ~~~~~~~~~~~~
 
-|service| live migration supports the following migration paths:
+|service| Live Migration supports the following migration paths:
 
 .. include:: /includes/list-tables/mongomirror-upgrade-path.rst
 
 .. important::
 
-   Users migrating from a MongoDB 2.6 cluster should take particular
-   care to update and test their applications in context of the
-   destination |service| cluster. In general, whenever migrating
-   to a newer version of MongoDB, plan for updating and testing
-   your application in context of the destination migration cluster.
+   If you are migrating from a MongoDB 3.6 cluster, update
+   and test your applications in context of the target |service|
+   cluster.
 
 .. _live-import-ip-access-list:
 
@@ -79,8 +65,8 @@ Upgrade Path
 Pre-Migration Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| performs a number of validation checks on the source
-and destination cluster before starting the Live Migration procedure.
+Before starting the Live Migration procedure, |service| runs validation
+checks on the source and target clusters.
 
 - The source cluster is a replica set.
 
@@ -88,7 +74,7 @@ and destination cluster before starting the Live Migration procedure.
   :manual:`convert the standalone to a replica set first </tutorial/convert-standalone-to-replica-set>`
   before using :doc:`Live Migration </import/live-import>`.
 
-- The destination |service| cluster must be a replica set.
+- The target |service| cluster must be a replica set.
 
 .. note::
    Unlike for :ref:`sharded clusters <live-import-sharded-migration-validation>`,
@@ -108,45 +94,47 @@ Source Cluster Security
 
 If the source cluster uses a different authentication mechanism to 
 connect, you can use :doc:`mongomirror </import/mongomirror>` to 
-migrate data from the source cluster to the destination |service| 
-cluster.
+migrate data from the source cluster to the target |service| cluster.
 
 .. include:: /includes/fact-failIndexKeyTooLong-import.rst
 
 Considerations
 --------------
 
-Destination Cluster Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Target Cluster Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When configuring the destination cluster, consider the following:
+When configuring the target cluster, consider the following:
 
 .. include:: /includes/fact-live-migration-destination-cluster.rst
 
-- The destination |service| cluster must be a replica set.
+- The target |service| cluster must be a replica set.
 
-- You cannot select an ``M0`` (Free Tier) or ``M2/M5`` shared-tier
-  cluster as the destination for live migration.
+- You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared-tier
+  cluster as the target cluster for live migration.
 
 - Do **not** change the ``featureCompatibilityVersion`` flag while
-  |service| Live Migrate is running.
+  |service| Live Migration is running.
 
 Database Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| does not migrate any user or role data to the destination
-cluster.
+|service| doesn't migrate any user or role data to the target cluster.
 
 If the source cluster enforced authentication, you must re-create the
-credentials used by your applications on the destination |service|
-cluster. |service| uses :ref:`SCRAM <authentication-scram>` for
-user authentication. See :doc:`/security-add-mongodb-users` for a
-tutorial on creating database users in |service|.
+credentials used by your applications on the target |service| cluster.
+|service| uses :ref:`SCRAM <authentication-scram>` for user authentication.
+To learn more, see :doc:`/security-add-mongodb-users`.
 
 Avoid Namespace Changes
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-mongomirror-namespace-changes.rst
+
+Avoid Elections
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-avoid-elections.rst
 
 Rolling Restarts
 ~~~~~~~~~~~~~~~~
@@ -158,15 +146,14 @@ Migrate Your Cluster
 
 .. note:: Staging and Production Migrations
 
-   Consider performing this procedure twice. Perform a partial migration
+   Consider running this procedure twice. Run a partial migration
    that stops at the :guilabel:`Perform the Cutover` step *first*. This
    creates an up-to-date |service|-backed staging cluster to test
-   application behavior and performance
-   using the latest
+   application behavior and performance using the latest
    :driver:`driver version </driver-compatibility-reference>` that
    supports the MongoDB version of the |service| cluster.
 
-   Once you have tested your application, perform the full migration
+   After you test your application, run the full migration
    procedure using a separate |service| cluster to create your
    |service|-backed production environment.
 
@@ -174,8 +161,8 @@ Migrate Your Cluster
 
    Avoid making changes to the source cluster configuration while the
    Live Migration procedure runs, such as removing replica set members
-   or modifying :binary:`mongod <bin.mongod>` runtime settings
-   like ``featureCompatibilityVersion``.
+   or modifying :binary:`mongod <bin.mongod>` runtime settings, such as
+   ``featureCompatibilityVersion``.
 
 .. include:: /includes/pre-migration-checklist.rst
 

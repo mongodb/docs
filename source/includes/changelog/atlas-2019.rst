@@ -3,7 +3,7 @@
 10 December 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports ``M0`` Free Tier and ``M2/M5`` shared starter clusters in
+- Supports ``M0`` {+free-clusters+} and ``M2/M5`` {+shared-clusters+} in
   the |gcp| Japan (Tokyo) and |azure| Canada Central (Toronto) regions.
 
 - Introduces
@@ -36,7 +36,7 @@
   :doc:`Performance Advisor </performance-advisor/index-ranking>`.
 
 - Enables always-on database-level authentication
-  :ref:`access auditing <access-tracking>` for dedicated clusters.
+  :ref:`access auditing <access-tracking>` for {+dedicated-clusters+}.
 
 - Enables API management for :doc:`third party service integrations
   </reference/api/third-party-integration-settings/>` like DataDog and Slack.
@@ -68,9 +68,9 @@
   - Germany West Central
   - Switzerland North
 
-- Supports ``M0`` Free Tier and ``M2``/``M5`` shared starter clusters
+- Supports ``M0`` {+free-clusters+} and ``M2``/``M5`` {+shared-clusters+}
   in the |gcp| Brazil (São Paulo) region.
-- Supports ``M0`` Free Tier clusters in the |aws| Syndey region.
+- Supports ``M0`` {+free-clusters+} in the |aws| Syndey region.
 - Enables faster
   :ref:`restores from {+Cloud-Backup+} backups <restore-cloud-provider-snapshot-atlas>`.
 
@@ -90,7 +90,7 @@
 - Introduces :ref:`{+PIT-Restore+} (PITR) <pit-restore>`
   available for clusters using |aws|
   :ref:`{+Cloud-Backup+}s <backup-cloud-provider>`.
-- Increases throughput for M2 & M5 cluster tiers.
+- Increases throughput for M2 & M5 {+cluster+} tiers.
 
 .. _atlas-v20190910:
 
@@ -155,7 +155,7 @@
 09 July 2019 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Enables free daily backups for M2 and M5 clusters.
+- Enables free daily backups for M2 and M5 {+clusters+}.
 - Unifies the login experience: accounts for MongoDB Cloud, Support,
   and JIRA use the same credentials.
 - Adds new project-level role :authrole:`Project Cluster Manager`. This
@@ -264,7 +264,7 @@
 - UX improvements to the cluster :guilabel:`Connect` modal.
 - Most server replacements get initial data from a disk snapshot of the
   primary instead of an initial sync.
-- Support for new shared tier regions:
+- Support for new {+shared-cluster+} regions:
 
   - AWS
 

@@ -3,9 +3,9 @@
    :header-rows: 1
 
    * -
-     - Free Tier Cluster (``M0``)
-     - Shared Starter Cluster (``M2`` and ``M5``)
-     - Dedicated Cluster (``M10`` and larger)
+     - {+Free-Cluster+} (``M0``)
+     - {+Shared-Cluster+} (``M2`` and ``M5``)
+     - {+Dedicated-Cluster+} (``M10`` and larger)
 
    * - Storage (Data Size + Index Size)
      - | 512 MB
@@ -61,7 +61,7 @@
      - Yes, for clusters using an ``M30+`` tier
 
    * - Dedicated Cluster
-     - No, ``M0`` Free Tier clusters run in a shared environment
+     - No, ``M0`` {+free-clusters+} run in a shared environment
      - No, ``M2`` and ``M5`` clusters run in a shared environment
      - Yes, ``M10+`` clusters deploy each :binary:`mongod` process to
        its own instance.

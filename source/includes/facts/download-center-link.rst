@@ -1,2 +1,2 @@
 - Download the installer from the 
-  :dl:`MongoDB Community Downloads <community/releases>` page.
+  :dl:`MongoDB Shell <shell>` page.

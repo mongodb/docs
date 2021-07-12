@@ -25,7 +25,7 @@
 - Supports Customer Federation Role Mappings for users of
   :ref:`Identity Federation with SAML <atlas-federated-authentication>`.
 - Supports passwordless :ref:`X.509 authentication <self-managed-x509>`
-  for database users on ``M0``, ``M2``, and ``M5`` clusters.
+  for database users on ``M0``, ``M2``, and ``M5`` {+clusters+}.
 - Releases |service| :ref:`Online Archive <manage-online-archive>` to
   general availability.
 
@@ -257,7 +257,7 @@ Introduces easier authorization management for S3 access:
     |aws|\'s built in split horizon |dns| cannot be used) and a special
     connection string for private IP.
 
-- Supports M0 Free Tier and M2/M5 shared starter clusters in the |gcp|
+- Supports M0 {+free-clusters+} and M2/M5 {+shared-clusters+} in the |gcp|
   Mumbai region.
 
 .. _atlas_20200319:

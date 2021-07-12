@@ -93,7 +93,7 @@
 
 - Introduces private network access for :ref:`multi-cloud clusters
   <create-cluster-multi-region>`.
-- |service| free- (**M0**) and shared-tier (**M2**/**M5**) clusters
+- |service| {+free-clusters+} (**M0**) and {+shared-clusters+} (**M2**/**M5**)
   upgraded to MongoDB 4.4.
 - Defaults new clusters to MongoDB 4.4.
 - Introduces custom archiving rules for |service| :ref:`Online Archive

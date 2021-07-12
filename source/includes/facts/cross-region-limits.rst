@@ -6,7 +6,7 @@ on a per-project basis.
 project to a total of 40. This total excludes:
 
 - |gcp| regions communicating with each other
-- Free or Shared Tier clusters
+- {+Free-clusters+} or {+shared-clusters+}
 
 The total number of nodes between any two regions must meet this
 constraint.

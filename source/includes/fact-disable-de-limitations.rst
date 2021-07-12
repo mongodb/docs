@@ -6,4 +6,4 @@ When :guilabel:`Data Explorer` is disabled, you cannot:
 - Create indexes from the
   :ref:`Performance Advisor <performance-advisor>`. You
   can still view Performance Advisor recommendations, but you must
-  create those indexes from the :binary:`~mongo` shell.
+  create those indexes from {+mongosh+}.
