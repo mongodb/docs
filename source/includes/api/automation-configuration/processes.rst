@@ -12,9 +12,19 @@ instances. Using this array, you can:
    "processes": [{
      "<args>": {},
      "alias": "<string>",
-     "backupRestoreUrl": "<string>",
      "authSchemaVersion": "<integer>",
+     "backupRestoreUrl": "<string>",
      "cluster": "<string>",
+     "defaultRWConcern": {
+       "defaultReadConcern": {
+         "level": "<string>"
+       },
+       "defaultWriteConcern": {
+         "j": "<boolean>",
+         "w": "<string>",
+         "wtimeout": "<integer>"
+       }
+     }
      "disabled": "<Boolean>",
      "featureCompatibilityVersion": "<string>",
      "hostname": "<string>",
@@ -46,13 +56,12 @@ instances. Using this array, you can:
      - Description
 
    * - processes
-     - array of objects
+     - array
      - Required
      - Contains objects that define the |mongos| and |mongod| instances
        that |mms| monitors. Each object defines a different instance.
 
-   * - processes[n].
-       args2_6
+   * - processes[n].args2_6
      - object
      - Required
      - MongoDB configuration object for MongoDB versions 2.6 and later.
@@ -61,8 +70,7 @@ instances. Using this array, you can:
 
           :doc:`Supported configuration options </reference/cluster-configuration-process-options>`.
 
-   * - processes[n].
-       alias
+   * - processes[n].alias
      - string
      - Optional
      - Hostname alias (often a |dns| CNAME) for the host on which the
@@ -71,8 +79,7 @@ instances. Using this array, you can:
        when connecting to the host. You can also specify this alias in
        **replicaSets.host** and **sharding.configServer**.
 
-   * - processes[n].
-       authSchemaVersion
+   * - processes[n].authSchemaVersion
      - integer
      - Required
      - Schema version of the user credentials for MongoDB database
@@ -88,8 +95,7 @@ instances. Using this array, you can:
           :manual:`Upgrade to SCRAM-SHA-1 </release-notes/3.0-scram/>`
           in the MongoDB 3.0 release notes.
 
-   * - processes[n].
-       backupRestoreUrl
+   * - processes[n].backupRestoreUrl
      - string
      - Optional
      - Delivery |url| for the restore. |mms| sets this when creating a
@@ -99,8 +105,7 @@ instances. Using this array, you can:
 
           :doc:`/tutorial/automate-backup-restoration-with-api`.
 
-   * - processes[n].
-       cluster
+   * - processes[n].cluster
      - string
      - Conditional
      - Name of the sharded cluster. Set this value to the same value in
@@ -110,15 +115,48 @@ instances. Using this array, you can:
        - *Required* for a |mongos|.
        - *Not needed* for a |mongod|.
 
-   * - processes[n].
-       disabled
+   * - defaultRWConcern.defaultReadConcern.level
+     - string
+     - Optional
+     - Consistency and isolation properties set for the data read from
+       replica sets and replica set shards. |service| accepts the following values:
+
+       - "available"
+       - "local"
+       - "majority"
+
+   * - defaultRWConcern.defaultWriteConcern.j
+     - boolen
+     - Optional
+     - Flag that indicates whether the write acknowledgement must be
+       written to the
+       :manual:`on-disk journal </reference/write-concern/#j-option>`.
+
+   * - defaultRWConcern.defaultWriteConcern.w
+     - string
+     - Optional
+     - Desired number of mongod instances that must acknowledge a write
+       operation in a replica sets and replica set shards. |service| accepts the
+       :manual:`following values </reference/write-concern/#w-option>`:
+
+       - Any number 0 or greater
+       - "majority"
+
+   * - defaultRWConcern.defaultWriteConcern.wtimeout
+     - number
+     - Optional
+     - :manual:`Desired time limit for the write concern </reference/write-concern/#wtimeout>`
+       expressed in milliseconds. Set this value when you set
+       **defaultRWConcern.defaultWriteConcern.w** to a value greater
+       than **1**.
+
+   * - processes[n].disabled
      - Boolean
      - Optional
      - Flag that indicates if this process should be shut down. Set to
        **true** to shut down the process.
 
-   * - processes[n].
-       featureCompatibilityVersion
+   * - processes[n].featureCompatibilityVersion
      - string
      - Required
      - Version of MongoDB with which this process has feature
@@ -146,15 +184,13 @@ instances. Using this array, you can:
 
           :manual:`setFeatureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>`
 
-   * - processes[n].
-       hostname
+   * - processes[n].hostname
      - string
      - Required
      - Name of the host that serves this process. This defaults to
        **localhost**.
 
-   * - processes[n].
-       lastCompact
+   * - processes[n].lastCompact
      - string
      - Optional
      - |iso8601-time| when |mms| last reclaimed free space on a
@@ -178,8 +214,7 @@ instances. Using this array, you can:
        to 28 January 2021 at  2:43:52 PM US Central Standard Time, use
        ``"processes.lastCompact" : "2021-01-28T14:43:52-06:00"``
 
-   * - processes[n].
-       lastRestart
+   * - processes[n].lastRestart
      - string
      - Optional
      - |iso8601-time| when |mms| last restarted this process. If you
@@ -189,8 +224,7 @@ instances. Using this array, you can:
        cluster, the |mms| restarts the selected processes in a rolling
        fashion across members of the replica set or shards.
 
-   * - processes[n].
-       lastResync
+   * - processes[n].lastResync
      - string
      - Optional
      - |iso8601-time| of the last
@@ -234,15 +268,13 @@ instances. Using this array, you can:
 
           :manual:`Initial Sync </core/replica-set-sync/#replica-set-initial-sync>`
 
-   * - processes[n].
-       logRotate
+   * - processes[n].logRotate
      - object
      - Optional
      - MongoDB configuration object for rotating the MongoDB logs of a
        process.
 
-   * - processes[n].
-       logRotate.
+   * - processes[n].logRotate.
        numTotal
      - integer
      - Optional
@@ -251,16 +283,14 @@ instances. Using this array, you can:
        |mms| bases rotation on your other **processes.logRotate**
        settings.
 
-   * - processes[n].
-       logRotate.
+   * - processes[n].logRotate.
        numUncompressed
      - integer
      - Optional
      - Maximum number of total log files to leave uncompressed,
        including the current log file. The default is **5**.
 
-   * - processes[n].
-       logRotate.
+   * - processes[n].logRotate.
        percentOfDiskspace
      - number
      - Optional
@@ -271,8 +301,7 @@ instances. Using this array, you can:
 
        The default is **0.02**.
 
-   * - processes[n].
-       logRotate.
+   * - processes[n].logRotate.
        sizeThresholdMB
      - number
      - Required
@@ -281,8 +310,7 @@ instances. Using this array, you can:
        the value given in either this **sizeThresholdMB** or the
        **processes.logRotate.timeThresholdHrs** limit.
 
-   * - processes[n].
-       logRotate.
+   * - processes[n].logRotate.
        timeThresholdHrs
      - integer
      - Required
@@ -293,8 +321,7 @@ instances. Using this array, you can:
        **timeThresholdHrs** or the
        **processes.logRotate.sizeThresholdMB** limit.
 
-   * - processes[n].
-       manualMode
+   * - processes[n].manualMode
      - Boolean
      - Optional
      - Flag that indicates if {+mdbagent+} automates this process.
@@ -305,29 +332,25 @@ instances. Using this array, you can:
        - Set to **false** to enable Automation on this process. The
          {+mdbagent+} automates actions on this process.
 
-   * - processes[n].
-       name
+   * - processes[n].name
      - string
      - Required
      - Unique name to identify the instance.
 
-   * - processes[n].
-       numCores
+   * - processes[n].numCores
      - integer
      - Optional
      - Number of cores that |mms| should bind to this process. The
        {+mdbagent+} distributes processes across the cores as evenly as
        possible.
 
-   * - processes[n].
-       processType
+   * - processes[n].processType
      - string
      - Required
      - Type of MongoDB process being run. |mms| accepts |mongod| or
        |mongos| for this parameter.
 
-   * - processes[n].
-       version
+   * - processes[n].version
      - string
      - Required
      - Name of the **mongoDbVersions** specification used with this

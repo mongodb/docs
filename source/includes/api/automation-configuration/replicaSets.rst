@@ -4,17 +4,51 @@ This field is required for deployments with replica sets.
 .. code-block:: json
    :linenos:
 
-   "replicaSets": [{
-     "_id": "<string>",
-     "protocolVersion": "<integer>",
-     "members": [{
-       "_id": "<integer>",
-       "host": "<string>",
-       "force": {
+   "replicaSets":
+   [
+     {
+       "_id": "<string>",
+       "protocolVersion": "<integer>",
+       "members":
+       [
+         {
+           "_id": "<integer>",
+           "host": "<string>",
+           "arbiterOnly": "<boolean>",
+           "buildIndexes": "<boolean>",
+           "hidden": "<boolean>",
+           "priority": "<number>",
+           "tags": "<object>",
+           "secondaryDelaySecs": "<integer>",
+           "votes": "<number>"
+         },{
+           "_id": "<integer>",
+           "host": "<string>",
+           "arbiterOnly": "<boolean>",
+           "buildIndexes": "<boolean>",
+           "hidden": "<boolean>",
+           "priority": "<number>",
+           "tags": "<object>",
+           "secondaryDelaySecs": "<integer>",
+           "votes": "<number>"
+         },{
+           "_id": "<integer>",
+           "host": "<string>",
+           "arbiterOnly": "<boolean>",
+           "buildIndexes": "<boolean>",
+           "hidden": "<boolean>",
+           "priority": "<number>",
+           "tags": "<object>",
+           "secondaryDelaySecs": "<integer>",
+           "votes": "<number>"
+         }
+       ],
+       "force":
+       {
          "currentVersion": "<integer>"
        }
-     }]
-   }]
+     }
+   ]
 
 .. list-table::
    :widths: 20 14 11 55
@@ -27,7 +61,7 @@ This field is required for deployments with replica sets.
      - Description
 
    * - replicaSets
-     - array of objects
+     - array
      - Optional
      - Configuration of each
        :term:`replica set`. The {+mdbagent+} uses the values in this
@@ -54,7 +88,7 @@ This field is required for deployments with replica sets.
        of the replica set.
 
    * - replicaSets[n].members
-     - array of objects
+     - array
      - Optional
      - Objects that define each member of the replica set. The
        **members.host** field must specify the host's name as listed in
@@ -62,6 +96,63 @@ This field is required for deployments with replica sets.
        to create a valid replica set configuration.
 
        .. seealso:: :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
+
+   * - replicaSets[n].members[m]._id
+     - integer
+     - Optional
+     - Any positive integer that indicates the member of the replica
+       set.
+
+   * - replicaSets[n].members[m].host
+     - string
+     - Optional
+     - Hostname, and port number when applicable, that serves this
+       replica set member.
+
+   * - replicaSets[n].members[m].arbiterOnly
+     - boolean
+     - Optional
+     - Flag that indicates whether this replica set member acts as an
+       arbiter.
+
+   * - replicaSets[n].members[m].buildIndexes
+     - boolean
+     - Optional
+     - Flag that indicates whether the |mongod| process builds indexes
+       on this replica set member.
+
+   * - replicaSets[n].members[m].hidden
+     - boolean
+     - Optional
+     - Flag that indicates whether the replica set allows this member to
+       accept read operations.
+
+   * - replicaSets[n].members[m].priority
+     - number
+     - Optional
+     - Relative eligibility for |mms| to select this replica set member
+       as a primary. Larger number increase eligibility. This value can
+       be between 0 and 1000, inclusive for data-bearing nodes.
+       Arbiters can have values of 0 or 1.
+
+   * - replicaSets[n].members[m].tags
+     - object
+     - Optional
+     - List of user-defined labels and their values applied to this
+       replica set member.
+
+   * - replicaSets[n].members[m].secondaryDelaySecs
+     - integer
+     - Optional
+     - Amount of time in seconds that this replica set memberr should
+       lag behind the primary.
+
+   * - replicaSets[n].members[m].votes
+     - number
+     - Optional
+     - Quantity of votes this replica set member can cast for a replica
+       set election. All data bearing nodes can have 0 or 1 votes.
+       Arbiters always have 1 vote.
 
    * - replicaSets[n].force
      - object
