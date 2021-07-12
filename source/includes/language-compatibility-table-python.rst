@@ -14,6 +14,12 @@ Python 2 Compatibility
      - Python 2.5, Jython 2.5
      - Python 2.4
 
+   * - 3.12
+     - |checkmark|
+     -
+     -
+     -
+
    * - 3.11
      - |checkmark|
      -
@@ -124,6 +130,18 @@ Python 3 Compatibility
      - PyPy3
      - Python 3.2
      - Python 3.1
+
+   * - 3.12
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     - |checkmark|
+     -
+     -
 
    * - 3.11
      - |checkmark|

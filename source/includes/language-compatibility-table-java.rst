@@ -10,6 +10,13 @@
      - Java 6
      - Java 5
 
+   * - 4.3
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     -
+
    * - 4.2
      - |checkmark|
      - |checkmark|
