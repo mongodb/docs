@@ -77,6 +77,7 @@ public class AggBuilders {
         page.basicBucketAutoStage();
         page.bucketAutoOptionsStage();
         page.facetStage();
+        page.setWindowFieldsStage();
         page.aggregationExample();
     }
 
@@ -86,6 +87,15 @@ public class AggBuilders {
         Bson sortByCountStage = sortByCount("some_field");
         collection.aggregate(asList(matchStage, sortByCountStage)).forEach(doc -> System.out.println(doc));
         // end sampleAggregation
+    }
+
+    private void setWindowFieldsStage() {
+        // begin setWindowFields
+        Window pastMonth = Windows.timeRange(-1, Windows.Bound.CURRENT, MongoTimeUnit.MONTH);
+        setWindowFields("$localityId", Sorts.ascending("measurementDateTime"),
+                WindowedComputations.sum("monthlyRainfall", "$rainfall", pastMonth),
+                WindowedComputations.avg("monthlyAvgTemp", "$temperature", pastMonth));
+        // end setWindowFields
     }
 
     private void facetStage() {
