@@ -88,3 +88,8 @@ console. MongoDB Kubernetes Enterprise Operator
 
 - Supports |onprem| services on RedHat Enterprise Linux version 8 on
   the ppc64le architecture.
+
+Security
+--------
+
+Disables |tls| versions 1.0 and 1.1 by default.
