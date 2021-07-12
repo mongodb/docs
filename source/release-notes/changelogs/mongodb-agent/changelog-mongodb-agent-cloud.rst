@@ -1,3 +1,12 @@
+.. _11.2.0.6985:
+
+MongoDB Agent 11.2.0.6985
+-------------------------
+
+*Released* 2021-07-07
+
+- Improves support for the upcoming release of MongoDB 5.0.
+
 .. _11.1.0.6961:
 
 MongoDB Agent 11.1.0.6961

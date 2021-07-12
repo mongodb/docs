@@ -1,3 +1,21 @@
+.. _cloudmanager_20210713:
+
+13 July 2021 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces the general availability of 
+  :manual:`MongoDB 5.0 </release-notes/5.0/>`, which includes 
+  support for:
+
+  - Time Series collections,
+  - Live Re-Sharding,
+  - the Versioned |api|,
+  - Client Side Field Level Encryption via |aws| KMS, 
+    Google Cloud KMS and Azure Key Vault,
+  - and more.
+
+- Updates {+mdbagent+} to :ref:`11.2.0.6985 <11.2.0.6985>`.
+
 .. _cloudmanager_20210623:
 
 23 June 2021 Release
