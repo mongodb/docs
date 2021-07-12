@@ -1,3 +1,41 @@
+.. _atlas_20210713:
+
+13 July 2021 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces the general availability of 
+  :manual:`MongoDB 5.0 </release-notes/5.0/>`, which includes 
+  support for:
+
+  - Time Series collections,
+  - Live Re-Sharding,
+  - the Versioned |api|,
+  - Client Side Field Level Encryption via |aws| |kms|, 
+    Google Cloud |kms| and Azure Key Vault,
+  - and more.
+
+- Introduces 
+  :ref:`serverless instances <create-new-serverless-instance>` as a new 
+  database deployment option in |service|, available in preview.
+
+- Introduces the general availability of the new 
+  `MongoDB Shell <https://docs.mongodb.com/mongodb-shell/>`__.
+
+- Updates the 
+  `Atlas Uptime SLA <https://www.mongodb.com/cloud/atlas/sla>`__ 
+  to apply to ``M10+`` clusters.
+
+- Introduces :atlas:`MongoDB Atlas for Government </government>`, 
+  approved as FedRAMP Ready for Agency Authorization in |aws| GovCloud 
+  (US) and |aws| US East/West regions.
+
+- Introduces the ability to 
+  `deploy and Manage MongoDB Atlas from AWS CloudFormation <https://www.mongodb.com/blog/post/deploy-manage-mongodb-atlas-aws-cloud-formation?utm_campaign=cloudformation&utm_source=aws&utm_medium=public_registry_blog>`__ 
+  using the newly generally available 
+  `AWS CloudFormation Public Registry <https://aws.amazon.com/about-aws/whats-new/2021/06/announcing-a-new-public-registry-for-aws-cloudformation/>`__.
+
+- Introduces new hardware-level metrics for Disk Queue Depth.
+
 .. _atlas_20210623:
 
 23 June 2021 Release
