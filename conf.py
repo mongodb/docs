@@ -163,7 +163,8 @@ source_constants = {
     'opsmgr-example-url': '<OpsManagerHost>:<Port>',
     'onprem': 'Ops Manager',
     'fcv-current' : '4.4',
-    'fcv-previous' : '4.2'
+    'fcv-previous' : '4.2',
+    'mongosh' : ':binary:`~bin.mongosh`'
 }
 
 languages = [

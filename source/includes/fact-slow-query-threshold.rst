@@ -5,7 +5,7 @@ By default, this value is ``100`` milliseconds. You can change the
 threshold with either the
 :manual:`profile </reference/command/profile>`
 command or the :manual:`db.setProfilingLevel() </reference/method/db.setProfilingLevel>`
-|mongo| shell method.
+{+mongosh+} method.
 
 .. example::
 
