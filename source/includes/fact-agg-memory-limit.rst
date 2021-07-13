@@ -4,12 +4,12 @@
 Each individual pipeline stage has a limit of 100 megabytes of RAM. By
 default, if a stage exceeds this limit, MongoDB produces an error. For
 some pipeline stages you can allow pipeline processing to take up more
-space by using the :ref:`allowDiskUse <aggregate-cmd-allowDiskUse>`
+space by using the :ref:`allowDiskUse <cmd-aggregate-allowDiskUse>`
 option to enable aggregation pipeline stages to write data to temporary
 files.
 
 Examples of stages that can spill to disk when :ref:`allowDiskUse
-<aggregate-cmd-allowDiskUse>` is ``true`` are:
+<cmd-aggregate-allowDiskUse>` is ``true`` are:
 
 - :pipeline:`$bucket`
 - :pipeline:`$bucketAuto`
