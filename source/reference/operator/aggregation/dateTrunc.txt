@@ -1,0 +1,413 @@
+========================
+$dateTrunc (aggregation)
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $dateTrunc
+
+.. versionadded:: 5.0
+
+Truncates a date.
+
+:expression:`$dateTrunc` syntax:
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $dateTrunc: {
+         date: <Expression>,
+         unit: <Expression>,
+         binSize: <Expression>,
+         timezone: <tzExpression>,
+         startOfWeek: <Expression>
+      }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+
+     - Required / Optional
+
+     - Description
+
+   * - :ref:`date <dateTrunc-date>`
+
+     - Required
+
+     - .. _dateTrunc-date:
+     
+       The date to truncate, specified in UTC. The :ref:`date
+       <dateTrunc-date>` can be any :ref:`expression
+       <aggregation-expressions>` that resolves to a :ref:`Date
+       <document-bson-type-date>`, a :ref:`Timestamp
+       <document-bson-type-timestamp>`, or an :ref:`ObjectID
+       <document-bson-type-object-id>`.
+
+   * - :ref:`unit <dateTrunc-unit>`
+
+     - Required
+
+     - .. _dateTrunc-unit:
+     
+       The unit of time, specified as an :ref:`expression
+       <aggregation-expressions>` that must resolve to one of these
+       strings:
+
+       - ``year``
+       - ``quarter``
+       - ``week``
+       - ``month``
+       - ``day``
+       - ``hour``
+       - ``minute``
+       - ``second``
+
+       .. include:: /includes/dateTrunc-binSize-unit.rst
+
+   * - :ref:`binSize <dateTrunc-binSize>`
+
+     - Optional
+
+     - .. _dateTrunc-binSize:
+       
+       The numeric time value, specified as an :ref:`expression
+       <aggregation-expressions>` that must resolve to a positive
+       non-zero number. Defaults to 1.
+
+       .. include:: /includes/dateTrunc-binSize-unit.rst
+
+   * - :ref:`timezone <dateTrunc-timezone>`
+
+     - Optional
+
+     - .. _dateTrunc-timezone:
+     
+       The timezone for the :expression:`$dateTrunc` calculation,
+       specified as an :ref:`expression <aggregation-expressions>` that
+       must resolve to a string that contains one of these values:
+       
+       - `Olson Timezone Identifier
+         <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>`_
+       
+       - `UTC Offset
+         <https://en.wikipedia.org/wiki/List_of_UTC_time_offsets>`_
+
+       If no :ref:`timezone <dateTrunc-timezone>` is provided, the
+       :expression:`$dateTrunc` calculation is performed in UTC.
+
+       .. list-table::
+          :header-rows: 1
+          :widths: 20 80
+
+          * - Format
+
+            - Examples
+
+          * - Olson Timezone Identifier
+
+            - - ``America/New_York``
+              - ``Europe/London``
+              - ``GMT``
+
+          * - UTC Offset
+
+            - - ``+/-[hh]:[mm]`` (example, ``+04:45``)
+              - ``+/-[hh][mm]`` (example, ``-0530``)
+              - ``+/-[hh]`` (example, ``+03``)
+
+   * - :ref:`startOfWeek <dateTrunc-startOfWeek>`
+
+     - Optional
+
+     - .. _dateTrunc-startOfWeek:
+     
+       The start of the week. Used when :ref:`unit <dateTrunc-unit>` is
+       ``week``. Defaults to ``Sunday``.
+       
+       :ref:`startOfWeek <dateTrunc-startOfWeek>` is an :ref:`expression
+       <aggregation-expressions>` that must resolve to one of these case
+       insensitive strings:
+
+       - ``monday`` (or ``mon``)
+       - ``tuesday`` (or ``tue``)
+       - ``wednesday`` (or ``wed``)
+       - ``thursday`` (or ``thu``)
+       - ``friday`` (or ``fri``)
+       - ``saturday`` (or ``sat``)
+       - ``sunday`` (or ``sun``)
+
+.. seealso::
+
+   - :ref:`aggregation-expressions`
+   - :ref:`bson-types`
+
+Behavior
+--------
+
+:expression:`$dateTrunc`:
+
+- Returns ``null`` if:
+
+  - any of the input fields except :ref:`startOfWeek
+    <dateTrunc-startOfWeek>` is missing or set to ``null``, or
+
+  - if :ref:`unit <dateTrunc-unit>` is ``week`` and :ref:`startOfWeek
+    <dateTrunc-startOfWeek>` is missing or set to ``null``.
+
+- Uses the :wikipedia:`proleptic Gregorian calendar
+  <Proleptic_Gregorian_calendar>` for dates preceding the year 1583.
+
+- Accounts for Daylight Savings Time, but does not account for
+  :wikipedia:`leap seconds <Leap_second>`.
+
+``binSize`` and ``unit`` Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/dateTrunc-binSize-unit.rst
+
+For example:
+
+- If :ref:`binSize <dateTrunc-binSize>` is ``1`` and :ref:`unit
+  <dateTrunc-unit>` is ``hours``, the time period is one hour. For the
+  :ref:`date <dateTrunc-date>` ``2021-03-20T11:30:05Z``,
+  :expression:`$dateTrunc` returns ``2021-03-20T11:00:00Z``.
+
+- If :ref:`binSize <dateTrunc-binSize>` is ``2`` and :ref:`unit
+  <dateTrunc-unit>` is ``hours``, the time period is two hours. For the
+  :ref:`date <dateTrunc-date>` ``2021-03-20T11:30:05Z``,
+  :expression:`$dateTrunc` returns ``2021-03-20T10:00:00Z``.
+
+:expression:`$dateTrunc`:
+
+- Divides the time for the :expression:`$dateTrunc` calculation into
+  :ref:`binSize <dateTrunc-binSize>` time periods in the specified time
+  :ref:`unit <dateTrunc-unit>`.
+  
+  The time periods start at a reference date, which is determind by
+  :ref:`unit <dateTrunc-unit>`. If :ref:`unit <dateTrunc-unit>` is:
+
+  - A string other than ``week``, :expression:`$dateTrunc` uses
+    a reference date of ``2000-01-01T00:00:00.00Z``. For example, if
+    :ref:`binSize <dateTrunc-binSize>` is ``10`` and :ref:`unit
+    <dateTrunc-unit>` is ``year``, example time periods are:
+    
+    - ``2000-01-01T00:00:00.00Z``
+    - ``2010-01-01T00:00:00.00Z``
+    - ``2020-01-01T00:00:00.00Z``
+
+  - Equal to ``week``, :expression:`$dateTrunc` uses a reference
+    date that is set to the earliest first day of the week that is
+    greater than or equal to ``2000-01-01``. The first day is set using
+    :ref:`startOfWeek <dateTrunc-startOfWeek>` (the default is Sunday).
+
+- Returns the lower boundary of the time period that the :ref:`date
+  <dateTrunc-date>` is in. The boundary is returned as an
+  :term:`ISODate`. If the :ref:`binSize <dateTrunc-binSize>` field is
+  ``1``, :expression:`$dateTrunc` sets the least significant parts (as
+  determined by :ref:`unit <dateTrunc-unit>`) of the returned
+  :term:`ISODate` to ``0`` and keeps the rest of the :term:`ISODate` the
+  same.
+
+If :ref:`unit <dateTrunc-unit>` is:
+
+- ``year``: :expression:`$dateTrunc` returns the :term:`ISODate` for the
+  start of January 1 for the year in :ref:`date <dateTrunc-date>`.
+
+- ``quarter``: :expression:`$dateTrunc` returns the :term:`ISODate` for
+  the start of the first day of the calendar quarter in :ref:`date
+  <dateTrunc-date>`.
+
+  The quarters are:
+    
+  - January to March
+  - April to June
+  - July to September
+  - October to December
+
+- ``month``: :expression:`$dateTrunc` returns the :term:`ISODate` for
+  the start of the first day of the month in :ref:`date
+  <dateTrunc-date>`.
+    
+- ``week``: :expression:`$dateTrunc` returns the :term:`ISODate` for the
+  start of the :ref:`startOfWeek <dateTrunc-startOfWeek>` day in
+  :ref:`date <dateTrunc-date>`. The default for :ref:`startOfWeek
+  <dateTrunc-startOfWeek>` is Sunday.
+
+- ``day``: :expression:`$dateTrunc` returns the :term:`ISODate` for the
+  start of the day in :ref:`date <dateTrunc-date>`.
+  
+- ``hour``: :expression:`$dateTrunc` returns the :term:`ISODate` for the
+  start of the hour in :ref:`date <dateTrunc-date>`.
+
+- ``minute``: :expression:`$dateTrunc` returns the :term:`ISODate` for
+  the start of the minute in :ref:`date <dateTrunc-date>`.
+
+- ``second``: :expression:`$dateTrunc` returns the the :term:`ISODate`
+  for start of the second in :ref:`date <dateTrunc-date>`.
+
+``unit`` and ``startOfWeek`` Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If :ref:`unit <dateTrunc-unit>` is:
+
+- A string other than ``week``, :ref:`startOfWeek
+  <dateTrunc-startOfWeek>` is ignored.
+
+- Equal to ``week`` and :ref:`startOfWeek <dateTrunc-startOfWeek>` is:
+
+  - Specified: :expression:`$dateTrunc` uses :ref:`startOfWeek
+    <dateTrunc-startOfWeek>` as the first day of the week for the
+    calculation.
+
+  - Omitted: :expression:`$dateTrunc` uses Sunday as the start of the
+    week for the calculation.
+
+Examples
+--------
+
+.. include:: /includes/cakeSales-example-collection.rst
+
+The ``cakeSales`` collection is used in the following examples.
+
+Truncate Order Dates in a ``$project`` Pipeline Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses :expression:`$dateTrunc` in a :pipeline:`$project`
+stage to truncate the cake sales ``orderDate`` values to two weeks:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $project: {
+            _id: 1,
+            orderDate: 1,
+            truncatedOrderDate: {
+               $dateTrunc: {
+                  date: "$orderDate", unit: "week", binSize: 2,
+                  timezone: "America/Los_Angeles", startOfWeek: "Monday"
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+- ``$project`` includes the ``_id``, ``orderDate``, and
+  ``truncatedOrderDate`` fields in the output.
+
+- ``$dateTrunc`` truncates the ``orderDate`` field to a ``2``
+  :ref:`binSize <dateTrunc-binSize>` ``week`` :ref:`unit
+  <dateTrunc-unit>` time period in the ``America/Los_Angeles``
+  :ref:`timezone <dateTrunc-timezone>` with :ref:`startOfWeek
+  <dateTrunc-startOfWeek>` set to ``Monday``.
+
+In this example output, the truncated ``orderDate`` is shown in the
+``truncatedOrderDate`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: 0,
+         orderDate: ISODate("2020-05-18T14:10:30.000Z"),
+         truncatedOrderDate: ISODate("2020-05-11T07:00:00.000Z")
+      },
+      {
+         _id: 1,
+         orderDate: ISODate("2021-03-20T11:30:05.000Z"),
+         truncatedOrderDate: ISODate("2021-03-15T07:00:00.000Z")
+      },
+      {
+         _id: 2,
+         orderDate: ISODate("2021-01-11T06:31:15.000Z"),
+         truncatedOrderDate: ISODate("2021-01-04T08:00:00.000Z")
+      },
+      {
+         _id: 3,
+         orderDate: ISODate("2020-02-08T13:13:23.000Z"),
+         truncatedOrderDate: ISODate("2020-02-03T08:00:00.000Z")
+      },
+      {
+         _id: 4,
+         orderDate: ISODate("2019-05-18T16:09:01.000Z"),
+         truncatedOrderDate: ISODate("2019-05-13T07:00:00.000Z")
+      },
+      {
+         _id: 5,
+         orderDate: ISODate("2019-01-08T06:12:03.000Z"),
+         truncatedOrderDate: ISODate("2019-01-07T08:00:00.000Z")
+      }
+   ]
+
+Truncate Order Dates and Obtain Quantity Sum in a ``$group`` Pipeline Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses :expression:`$dateTrunc` in a :pipeline:`$group` stage
+to truncate the cake sales ``orderDate`` values to six months and
+return the sum of the ``quantity`` values:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $group: {
+            _id: {
+               truncatedOrderDate: {
+                  $dateTrunc: {
+                     date: "$orderDate", unit: "month", binSize: 6
+                  }
+               }
+            },
+            sumQuantity: { $sum: "$quantity" }
+         }
+      }
+   ] )
+
+In the example:
+
+- ``$group`` has the ``_id`` field set to the ``truncatedOrderDate``
+  field to group the ``cakeSales`` documents, and returns the sum of the
+  ``quantity`` values for each group using :group:`$sum`.
+
+- ``$dateTrunc`` truncates the ``orderDate`` field to a ``6``
+  :ref:`binSize <dateTrunc-binSize>` ``month`` :ref:`unit
+  <dateTrunc-unit>` time period.
+
+In this example output, the truncated ``orderDate`` is shown in the
+``truncatedOrderDate`` field and the ``quantity`` sum is shown in the
+``sumQuantity`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: { truncatedOrderDate: ISODate("2020-01-01T00:00:00.000Z") },
+         sumQuantity: 224
+      },
+      {
+         _id: { truncatedOrderDate: ISODate("2021-01-01T00:00:00.000Z") },
+         sumQuantity: 285
+      },
+      {
+         _id: { truncatedOrderDate: ISODate("2019-01-01T00:00:00.000Z") },
+         sumQuantity: 296
+      }
+   ]
