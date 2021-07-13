@@ -90,6 +90,6 @@ console. MongoDB Kubernetes Enterprise Operator
   the ppc64le architecture.
 
 Security
---------
+````````
 
 Disables |tls| versions 1.0 and 1.1 by default.
