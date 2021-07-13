@@ -1,0 +1,124 @@
+.. _json-path-output-option:
+
+=========================
+``json-path`` Output Type
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``json-path`` output type limits the results of a command to the 
+fields you specify.
+
+Usage
+-----
+
+When you add the ``--output`` option to a command, you can specify the 
+type ``json-path``. You must provide ``json-path`` with an expression 
+to evaluate against your results, which means you must be aware of the 
+``json`` fields returned by your command.
+
+Syntax
+~~~~~~
+
+.. code-block:: shell
+   :copyable: false
+
+   <command> --output|-o json-path='$<expression>'
+
+``json-path`` expressions refer to the |json| element that a |mcli| 
+command returns. The ``$`` character represents the root element, which 
+is usually an object or an array.
+
+For a list of valid characters and their functions, see `JSONPath expressions <https://goessner.net/articles/JsonPath/index.html#e2>`__.
+
+Examples
+--------
+
+Return the description of the first |api| key in a list
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, a user retrieves their |api| keys with 
+:ref:`mongocli-iam-organizations-apiKeys-list`. The ``json-path`` 
+expression limits the output to the ``desc`` field of the first key, 
+rather than returning the entire list of keys.
+
+.. code-block:: shell
+   :copyable: false 
+
+   mongocli iam organization apikeys list --output json-path='$[0].desc'
+   > owner_key
+
+Running the same command with ``--output json`` returns the full |json| 
+element from the |api|. It's important to understand the |json| 
+structure returned by a command in order to operate on it with 
+``json-path``.
+
+Using the the following full |json| output for reference, the 
+``--output json-path`` with the expression ``$[0].desc`` finds and 
+returns only the value ``"owner_key"``:
+
+.. code-block:: json
+   :copyable: false
+   :emphasize-lines: 1-2, 4
+
+   [ //``$`` represents the outer array.
+     { // ``[0]`` refers to the first element in the array (using a 0-based index).
+       "id": "60e736a95d585d2c9ccf2d19",
+       "desc": "owner_key", //``.desc`` refers to the ``desc`` field of that element.
+       "roles": [
+         {
+           "orgId": "5d961a949ccf64b4e7f53bac",
+           "roleName": "ORG_OWNER"
+         }
+       ],
+       "privateKey": "********-****-****-c4e26334754f",
+       "publicKey": "xtfmtguk"
+     },
+     {
+       "id": "d2c9ccf2d1960e736a95d585",
+       "desc": "member_key",
+       "roles": [
+         {
+           "orgId": "5d961a949ccf64b4e7f53bac",
+           "roleName": "ORG_MEMBER"
+         }
+       ],
+       "privateKey": "********-****-****-c4e26334754f",
+       "publicKey": "vfgcttku"
+     },
+   ]
+
+Return the description of a specific |api| key in a list
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, a user retrieves their |api| keys with 
+:ref:`mongocli-iam-organizations-apiKeys-list`. The ``json-path`` 
+expression limits the output to the ``desc`` field of the specific 
+|json| object with ``id`` ``d2c9ccf2d1960e736a95d585``.
+
+.. code-block:: shell
+   :copyable: false 
+   
+   mongocli iam organization apikeys list --output json-path='$[? @.id=="d2c9ccf2d1960e736a95d585"].desc'
+   > member_key
+
+Return the status a private endpoint
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, a user retrieves information for a 
+private endpoint with 
+:ref:`mongocli-atlas-privateEndpoints-aws-describe`. The ``json-path`` 
+expression limits the output to the ``status`` field of the root 
+element.
+
+.. code-block:: shell
+   :copyable: false 
+
+   mongocli atlas privateendpoint aws describe 601a4044da900269480a2533 --output json-path='$.status'
+   > WAITING_FOR_USER
