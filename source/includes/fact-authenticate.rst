@@ -5,9 +5,9 @@ associated with that user.
 To authenticate using :mongosh:`mongosh </>`, either:
 
 - Use the :mongosh:`mongosh </>` command-line authentication options
-  (:option:`--username <mongo --username>`,
-  :option:`--password <mongo --password>`, and
-  :option:`--authenticationDatabase <mongo --authenticationDatabase>`)
+  (:option:`--username <mongosh --username>`,
+  :option:`--password <mongosh --password>`, and
+  :option:`--authenticationDatabase <mongosh --authenticationDatabase>`)
   when connecting to the :binary:`~bin.mongod` or
   :binary:`~bin.mongos` instance, or
 
