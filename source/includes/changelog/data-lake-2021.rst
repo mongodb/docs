@@ -1,3 +1,14 @@
+.. _data-lake-v20210712:
+
+12 July 2021 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Supports dropping non-existent :ref:`stores <dl-drop-store-cmd>` and 
+  :ref:`databases <dl-drop-database-cmd>` from the storage 
+  configuration.
+- Includes ``partitions.count`` in :ref:`collStats 
+  <mql-support-diagnostic-cmd>` command output.
+
 .. _data-lake-v20210623:
 
 23 June 2021 Release
