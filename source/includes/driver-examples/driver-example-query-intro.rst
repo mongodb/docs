@@ -5,7 +5,7 @@
        content: |
          This page provides examples of |query_operations| using the
          :method:`db.collection.find()` method in
-         :mongosh:`mongosh </>`. The examples on this page use the
+         :binary:`~bin.mongosh`. The examples on this page use the
          ``inventory`` collection. To populate the ``inventory``
          collection, run the following:
 

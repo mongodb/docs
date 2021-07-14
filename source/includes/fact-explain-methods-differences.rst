@@ -9,8 +9,8 @@ following key differences:
 - The :method:`db.collection.explain().find() <db.collection.explain()>` returns a cursor, which
   requires a call to ``.next()``, or its alias ``.finish()``, to return
   the ``explain()`` results.
-  If run interactively in :mongosh:`mongosh </>`,
-  :mongosh:`mongosh </>` automatically calls ``.finish()`` to return
+  If run interactively in :binary:`~bin.mongosh`,
+  :binary:`~bin.mongosh` automatically calls ``.finish()`` to return
   the results. For scripts, however, you must explicitly call
   ``.next()``, or ``.finish()``, to return the results. For list of
   cursor-related methods, see

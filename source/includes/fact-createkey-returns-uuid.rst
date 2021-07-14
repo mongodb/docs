@@ -11,7 +11,7 @@ compatible driver in order to configure
 <field-level-encryption-json-schema>`, you must use the ``base64``
 representation of the ``UUID`` string.
 
-You can run the following operation in :mongosh:`mongosh </>` to convert
+You can run the following operation in :binary:`~bin.mongosh` to convert
 a ``UUID`` hexadecimal string to its ``base64`` representation:
 
 .. code-block:: javascript
