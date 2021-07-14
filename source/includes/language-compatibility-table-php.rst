@@ -21,7 +21,7 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     - |checkmark|
+     -
      -
      -
 
