@@ -1,4 +1,4 @@
 .. note::
 
-   :mongosh:`mongosh </>` excludes all |operation-name| operations
+   :binary:`~bin.mongosh` excludes all |operation-name| operations
    from the saved history.

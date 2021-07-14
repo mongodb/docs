@@ -1,4 +1,4 @@
-In :mongosh:`mongosh </>`, create a sample collection named
+In :binary:`~bin.mongosh`, create a sample collection named
 ``sales`` with the following documents:
 
 .. code-block:: javascript

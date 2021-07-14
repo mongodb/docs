@@ -12,4 +12,4 @@ limit on the overall size of the result set.
 
 For this reason, the :pipeline:`$currentOp` aggregation stage is
 preferred over the :dbcommand:`currentOp` command and its
-:mongosh:`mongosh </>` helper :method:`db.currentOp()`.
+:binary:`~bin.mongosh` helper :method:`db.currentOp()`.

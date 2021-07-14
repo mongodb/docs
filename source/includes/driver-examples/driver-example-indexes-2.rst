@@ -11,7 +11,7 @@
          .. note::
 
             The following examples illustrate indexes and collation in
-            :mongosh:`mongosh </>`.
+            :binary:`~bin.mongosh`.
 
             Refer to the
             :compass:`MongoDB Compass Documentation

@@ -7,7 +7,7 @@
          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
          To list all the collection indexes in a database, you can use the
-         following operation in :mongosh:`mongosh </>`:
+         following operation in :binary:`~bin.mongosh`:
 
          .. code-block:: javascript
 
@@ -29,7 +29,7 @@
          To list all indexes of a certain type (e.g. :doc:`hashed
          </core/index-hashed>`, :doc:`text </core/index-text>`) for all
          collections in all database, you can use the following
-         operation in :mongosh:`mongosh </>`:
+         operation in :binary:`~bin.mongosh`:
 
          .. code-block:: javascript
 

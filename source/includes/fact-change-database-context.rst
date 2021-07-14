@@ -1,6 +1,6 @@
-Use the ``use <database-name>`` helper in :mongosh:`mongosh </>`, or the
+Use the ``use <database-name>`` helper in :binary:`~bin.mongosh`, or the
 following :method:`db.getSiblingDB()` method in an interactive
-:mongosh:`mongosh </>` session or in :mongosh:`mongosh </>` shell
+:binary:`~bin.mongosh` session or in :binary:`~bin.mongosh` shell
 scripts to change the ``db`` object:
 
 .. code-block:: javascript

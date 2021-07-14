@@ -1,4 +1,4 @@
-From :mongosh:`mongosh </>`, run the :method:`rs.initiate()` method.
+From :binary:`~bin.mongosh`, run the :method:`rs.initiate()` method.
 
 :method:`rs.initiate()` can take an optional :doc:`replica set
 configuration document </reference/replica-configuration>`. In the

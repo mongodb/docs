@@ -1,4 +1,4 @@
-For example, the following insert operation in :mongosh:`mongosh </>`
+For example, the following insert operation in :binary:`~bin.mongosh`
 uses the various :doc:`shell helpers </core/shell-types>` for the BSON
 types :doc:`Date </reference/bson-types>` and :doc:`64-bit integer
 </reference/bson-types>`:

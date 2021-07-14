@@ -38,7 +38,7 @@ repository, and contains the following officially-supported packages:
              binary
 
   * - ``mongodb-mongosh``
-    - Contains the MongoDB Shell (:mongosh:`mongosh </>`).
+    - Contains the MongoDB Shell (:binary:`~bin.mongosh`).
  
   * - ``{+package-name-enterprise+}-tools``
     - A ``metapackage`` that automatically installs the component
