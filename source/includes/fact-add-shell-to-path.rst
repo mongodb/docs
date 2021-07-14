@@ -7,22 +7,21 @@
 
        content: |
 
-         a. Double-click the ``.msi`` file in Windows Explorer
-            and proceed through the installation wizard.
+         1. Extract the files from the downloaded archive.
+         
+         #. Click :icon-fa5-brands:`windows` and select 
+            :guilabel:`Control Panel`.
 
-         #. Add the ``bin`` directory to your command path.
+         #. Click :guilabel:`System and Security`, then 
+            :guilabel:`System`, then :guilabel:`Advanced System 
+            Settings`.
 
-            1. Click :icon-fa5-brands:`windows` and select :guilabel:`Control Panel`.
+         #. Click :guilabel:`Environment Variables`.
 
-            #. Click :guilabel:`System and Security`, then :guilabel:`System`,
-               then :guilabel:`Advanced System Settings`.
+         #. Select :guilabel:`Path` and click :guilabel:`Edit`.
 
-            #. Click :guilabel:`Environment Variables`.
-
-            #. Select :guilabel:`Path` and click :guilabel:`Edit`.
-
-            #. Add the ``bin`` directory where the installer placed your
-               MongoDB executables and click :guilabel:`OK`.
+         #. Click :guilabel:`New`, add the filepath to your |mongosh| 
+            binary, and click :guilabel:`OK`.
 
      - id: macos
        name: macOS
@@ -30,29 +29,25 @@
        content: |
 
          Copy the Homebrew command from the |service| UI
-         window and run it in your terminal.
+         window and run it in your terminal. If you downloaded the 
+         MongoDB Shell directly, follow the steps to `install 
+         <https://docs.mongodb.com/mongodb-shell/install/>`__ |mongosh|.
 
      - id: linux
        name: Linux
 
        content: |
 
-         a. Run the following command in your terminal to extract
-            the :binary:`~bin.mongo` shell:
+         Install the |mongosh| package.
 
-            .. code-block:: shell
+         - For ``.deb`` package, use ``dpkg`` to install |mongosh|:
 
-               tar -xzf ./<filename>.tgz
+           .. code-block:: sh
 
-         #. Add the ``bin`` directory to your ``PATH``
-            environment variable.
+              sudo dpkg -i mongodb-mongosh_<mongosh-version-and-platform>.deb
 
-            .. code-block:: none
+         - For ``.rpm`` package, use ``rpm`` to install |mongosh|:
 
-               export PATH=/<extraction-directory>/bin:$PATH
+           .. code-block:: sh
 
-            .. note::
-
-               This command applies only to the current shell session. Edit
-               the ``PATH`` environment variable in ``~/.profile``
-               to update the variable across shell sessions and reboots.
+              sudo rpm -i mongodb-mongosh_<mongosh-version-and-platform>.rpm
