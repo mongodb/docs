@@ -1739,7 +1739,8 @@ relevant for the operation:
         - Description
 
       * - ``unused``
-        - The resharding operation is about to start.
+        - The resharding operation is about to start or recovering from
+          a primary failover.
 
       * - ``preparing-to-donate``
         - The donor shard is preparing to donate data to the recipient
@@ -1752,23 +1753,21 @@ relevant for the operation:
         - The donor shard is donating :term:`oplog` entries to the
           recipient shards.
 
-      * - ``preparing-to-mirror``
-        - The donor shard is preventing new incoming write operations to
-          the collection that is being resharded.
+      * - ``preparing-to-block-writes``
+        - The donor shard is about to prevent new incoming write
+          operations to the collection that is being resharded.
 
-      * - ``mirroring``
+      * - ``error``
+        - An error occurred during the resharding operation.
+
+      * - ``blocking-writes``
         - The donor shard is preventing new incoming write operations
           and the donor shard has notified all recipient shards that new
           incoming writes are prevented.
 
-      * - ``dropping``
-        - The donor shard is dropping the old sharded collection.
-
       * - ``done``
-        - The resharding operation is complete.
-
-      * - ``error``
-        - An error occurred during the resharding operation.
+        - The donor shard has dropped the old sharded collection and the
+          resharding operation is complete.
 
    .. versionadded:: 5.0
 
@@ -1789,7 +1788,8 @@ relevant for the operation:
         - Description
 
       * - ``unused``
-        - The resharding operation is about to start.
+        - The resharding operation is about to start or recovering from
+          a primary failover.
 
       * - ``awaiting-fetch-timestamp``
         - The recipient shard is waiting for the donor shards to be
@@ -1804,24 +1804,17 @@ relevant for the operation:
       * - ``applying``
         - The recipient shard is applying :term:`oplog` entries to
           modify its copy of the data based on the new incoming writes
-          from donor shards. The recipient shard data is not yet
-          consistent with the donor shard data.
-
-      * - ``steady-state``
-        - The recipient shard data is consistent with the donor shard
-          data.
-
-      * - ``strict-consistency``
-        - The recipient shard has all data changes.
-
-      * - ``renaming``
-        - The recipient shard renames the new sharded collection.
-
-      * - ``done``
-        - The resharding operation is complete.
+          from donor shards.
 
       * - ``error``
         - An error occurred during the resharding operation.
+
+      * - ``strict-consistency``
+        - The recipient shard has all data changes stored in a temporary
+          collection.
+
+      * - ``done``
+        - The resharding operation is complete.
 
    .. versionadded:: 5.0
 
@@ -1843,7 +1836,8 @@ relevant for the operation:
         - Description
 
       * - ``unused``
-        - The resharding operation is about to start.
+        - The resharding operation is about to start or recovering from
+          a primary failover.
 
       * - ``initializing``
         - The resharding coordinator has inserted the coordinator
@@ -1861,7 +1855,7 @@ relevant for the operation:
           - has inserted entries into ``config.tags`` for any zones
             associated with the new shard key.
 
-          The coordinator informs participants shards to begin the
+          The coordinator informs participant shards to begin the
           resharding operation. The coordinator then waits until all
           donor shards have picked a ``minFetchTimestamp`` and are ready
           to donate.
@@ -1877,23 +1871,22 @@ relevant for the operation:
           shards. The coordinator waits for all recipients to finish
           applying :term:`oplog` entries.
 
-      * - ``mirroring``
+      * - ``blocking-writes``
         - The resharding coordinator informs donor shards to prevent new
           incoming write operations to the collection being resharded.
           The coordinator then waits for all recipients to have all data
           changes.
 
-      * - ``decision-persisted``
+      * - ``aborting``
+        - An unrecoverable error occurred during the resharding
+          operation or the :dbcommand:`abortReshardCollection` command
+          (or the :method:`sh.abortReshardCollection()` method) was run.
+
+      * - ``committing``
         - The resharding coordinator removes the ``config.collections``
           entry for the temporary resharding collection. The coordinator
           then adds the ``recipientFields`` to the source collection's
           entry.
-
-      * - ``done``
-        - The resharding operation is complete.
-
-      * - ``error``
-        - An error occurred during the resharding operation.
 
    .. versionadded:: 5.0
 
