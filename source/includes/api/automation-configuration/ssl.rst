@@ -26,16 +26,57 @@ object is optional.
        :product:`MongoDB Enterprise <mongodb-enterprise>` also support
        |tls|.
 
+   * - ssl.clientCertificateMode
+     - string
+     - Conditional
+     - Indicates whether connections to |mms| require a |tls|
+       certificate. The values are **OPTIONAL** and **REQUIRE**.
+
    * - ssl.CAFilePath
      - string
      - Conditional
      - Absolute file path to the certificate used to authenticate
-       through |tls|. Required if you set
-       **ssl.clientCertificateMode**.
+       through |tls| on a Linux or UNIX (including macOS) host. 
+       
+       |mms| requires either **ssl.CAFilePath** or **ssa.CAFilePathWindows** if:
+       
+       - You're using |tls| or X.509 authentication, and
+       - The CA file is not in your operating system's root certificates.
 
-   * - ssl.clientCertificateMode
+   * - ssl.CAFilePathWindows
      - string
      - Conditional
-     - Declaration as to whether connections to |mms| require a |tls|
-       certificate. |mms| accepts **OPTIONAL** and **REQUIRE**.
-       Required if you set **ssl.CAFilePath**.
+     - Absolute file path to the certificate used to authenticate
+       through |tls| on a Windows host.
+              
+       |mms| requires either **ssl.CAFilePath** or **ssa.CAFilePathWindows** if:
+       
+       - You're using |tls| or X.509 authentication, and
+       - The CA file is not in your operating system's root certificates.
+
+   * - ssl.autoPEMKeyFilePath
+     - string
+     - Conditional
+     - Absolute file path to the client private key (PEM) file that
+       authenticates the |tls| connection on a Linux or UNIX (including macOS)
+       host. 
+         
+       |mms| requires either **ssl.autoPEMKeyFilePath** or **ssa.autoPEMKeyFilePathWindows**
+       if you're using |tls| or X.509 authentication.
+
+   * - ssl.autoPEMKeyFilePathWindows
+     - string
+     - Conditional
+     - Absolute file path to the client private key (PEM) file that
+       authenticates the |tls| connection on a Windows host.
+
+       |mms| requires either **ssl.autoPEMKeyFilePath** or **ssa.autoPEMKeyFilePathWindows**
+       if you're using |tls| or X.509 authentication.
+
+   * - ssl.autoPEMKeyFilePwd
+     - string
+     - Conditional
+     - Password for the private key (PEM) file specified in
+       **ssl.autoPEMKeyFilePath** or **ssa.autoPEMKeyFilePathWindows**. |mms|
+       requires this password if the PEM file is encrypted.
+      
