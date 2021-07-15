@@ -1,4 +1,4 @@
-.. note::
+.. warning::
 
    The following document pertains to the :binary:`~bin.mongo`
    shell, included in the `MongoDB Server Download
