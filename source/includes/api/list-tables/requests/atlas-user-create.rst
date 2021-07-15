@@ -39,12 +39,9 @@
      - string
      - Required
      - String of eight or more characters that authenticates the
-       |service| user specified with **username**. |service| enforces
-       the following limitations for passwords:
+       |service| user specified with **username**. 
 
-       - It can't contain any part of the **username**.
-       - It can't use a common password.
-       - It can't reuse any of the last 24 passwords.
+       .. include:: /includes/fact-atlas-password-requirements.rst
 
        You can't update the password after it has been created. The
        user must log into |service| to
