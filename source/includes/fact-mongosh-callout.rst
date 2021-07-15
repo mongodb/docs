@@ -1,7 +1,7 @@
 .. note::
 
-   The following document pertains to :binary:`~bin.mongo`
-   included in the `MongoDB Server Download
+   The following document pertains to the :binary:`~bin.mongo`
+   shell, included in the `MongoDB Server Download
    <https://www.mongodb.com/try/download/community?tck=docs_server>`__.
    For information on the new MongoDB Shell (``mongosh``) refer to the
    :mongosh:`mongosh documentation </>`.
