@@ -1,0 +1,4 @@
+- SCRAM-authenticated users is the ``admin`` database. 
+- X.509-authenticated users is the ``$external`` database.
+- AWS IAM-authenticated users is the ``$external`` database.
+  
