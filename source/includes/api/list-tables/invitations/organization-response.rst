@@ -25,7 +25,7 @@
      - Unique 24-hexadecimal digit string that identifies the
        invitation.
 
-   * - inviterUserName
+   * - inviterUsername
      - string
      - |service| user who invited **username** to the organization.
 
@@ -46,7 +46,7 @@
        If the user accepts the invitation, |service| assigns these roles
        to them.
 
-   * - teamId
+   * - teamIds
      - array of strings
      - Unique 24-hexadecimal digit strings that identify the teams
        that the user was invited to join.

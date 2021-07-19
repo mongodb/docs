@@ -33,7 +33,7 @@
      - Unique 24-hexadecimal digit string that identifies the
        invitation.
 
-   * - inviterUserName
+   * - inviterUsername
      - string
      - |service| user who invited **username** to the project.
 
