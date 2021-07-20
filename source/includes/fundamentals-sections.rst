@@ -20,3 +20,6 @@
 
 * :doc:`Monitoring </fundamentals/monitoring>`: configure the driver to
   monitor MongoDB server events
+
+* :doc:`GridFS </fundamentals/gridfs>`: store and retrieve large files
+  in MongoDB
