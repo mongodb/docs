@@ -30,23 +30,19 @@
 
    * - customCertificates
      - array
-     - Optional
      - List of valid |certauth| certificates that apply to the
        associated |s3| bucket.
 
    * - customCertificates[n].filename
      - string
-     - Optional
      - Name that identifies the |certauth| |pem| file.
 
    * - customCertificates[n].createdOn
      - string
-     - Optional
      - |iso8601-time| when you created this |certauth| certificate.
 
    * - customCertificates[n].certString
      - string
-     - Optional
      - Contents of the |certauth| |pem| file that comprise your
        |certauth| chain.
 
