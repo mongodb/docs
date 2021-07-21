@@ -63,4 +63,4 @@ When you use the |k8s-op-short| and upgrade |onprem|, upgrade to
 :term:`rolling restart` of all the database pods. This issue doesn't
 exist in |onprem| 4.2.1 or later.
 
-.. include:: /release-notes/release-advisories/advisories-chronological-releases.rst
+

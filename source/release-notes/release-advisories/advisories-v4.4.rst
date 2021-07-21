@@ -93,7 +93,7 @@ Server Pools
 
 |onprem| 4.4 removes support for Server Pools.
 
-.. include:: /release-notes/release-advisories/advisories-chronological-releases.rst
+
 
 BI Connector
 ~~~~~~~~~~~~

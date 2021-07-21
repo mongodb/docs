@@ -43,4 +43,4 @@ You may not be able to restore a |onprem| snapshot taken during a
 resharding operation of a MongoDB 5.0 sharded cluster. A subsequent
 |onprem| 5.0.x release will remove this limitation.
 
-.. include:: /release-notes/release-advisories/advisories-chronological-releases.rst
+

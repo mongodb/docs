@@ -8,10 +8,6 @@ upgrade path you must take to upgrade to Ops Manager 4.2 or later.
      - Follow the upgrade path for your existing version to perform
        necessary database migrations.
 
-     - Upgrade versions in chronological order. Your new release
-       :ref:`must have been released after <om-upgrade-con-release-date>`
-       the version you are upgrading.
-
    - To protect your data, |onprem| refuses to start direct upgrades
      from versions 1.8.x and 2.0.x to version 3.4 or later.
 
@@ -33,13 +29,6 @@ The following table lists upgrade paths for all versions:
    * - 4.4.x
      - Use this tutorial to upgrade from |onprem| 4.4.x to the latest
        patch version of 4.4.x.
-
-       .. note::
-
-          Upgrades must be made in chronological order. The 4.4 release
-          you choose must have been released after the 4.2 release you
-          want to upgrade. To learn more, see this
-          :ref:`section on chronological order <om-upgrade-con-release-date>`.
 
    * - 4.2.x
      - Use this tutorial to upgrade from |onprem| 4.2.x to 4.2.24 or
