@@ -112,8 +112,8 @@ Host Measurements
    * - - ``DB_STORAGE_TOTAL``
        - ``DB_DATA_SIZE_TOTAL``
 
-     - Number of database operations on a MongoDB process since the
-       process last started.
+     - On-disk storage space as collected from the MongoDB ``dbStats``
+       command.
 
    * - - ``OPCOUNTER_CMD``
        - ``OPCOUNTER_QUERY``
