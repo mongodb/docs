@@ -11,28 +11,10 @@
      - string
      - |iso8601-time| when to stop retrieving measurements.
 
-       If you specify **end** you must also specify **start**. Mutually
-       exclusive with **period**.
-
    * - granularity
      - string
      - |iso8601-duration| that specifies the interval between
        measurement data points.
-
-       .. example::
-
-          **PT1M** specifies 1-minute granularity.
-
-       |service| supports the following subset of |iso8601|\-formatted
-       time periods:
-
-       - **PT1M**
-       - **PT5M**
-       - **PT1H**
-       - **P1D**
-
-       When you specify **granularity**, you must specify either
-       **period** *or* **start** and **end**.
 
    * - groupId
      - string
@@ -84,18 +66,6 @@
        | .units
      - string
      - Magnitude by which |service| quanitifies the measurement.
-       |service| uses units of throughput, storage, and time that
-       include:
-
-       - **PERCENT**
-       - **MILLISECONDS**
-       - **BYTES**
-       - **GIGABYTES**
-       - **BYTES_PER_SECOND**
-       - **MEGABYTES_PER_SECOND**
-       - **GIGABYTES_PER_HOUR**
-       - **SCALAR_PER_SECOND**
-       - **SCALAR**
 
    * - processId
      - string
@@ -104,8 +74,4 @@
 
    * - start
      - string
-     - |iso8601-time| when to start retrieving measurements. If you
-       specify **start** you must also specify **end**. Mutually
-       exclusive with **period**.
-
-
+     - |iso8601-time| when to start retrieving measurements.
