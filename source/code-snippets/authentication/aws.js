@@ -7,24 +7,26 @@ const clusterUrl = "<MongoDB cluster url>";
 
 const authMechanism = "MONGODB-AWS";
 
-// Replace the following with your MongoDB deployment's connection string.
-const uri =
+let uri =
   `mongodb+srv://${accessKeyId}:${secretAccessKey}@${clusterUrl}/?authMechanism=${authMechanism}`;
 
-// Create a new MongoClient
+// Uncomment the following lines if your AWS authentication setup requires a session token.
+// const sessionToken = encodeURIComponent("<AWS_SESSION_TOKEN>");
+// uri = uri.concat(`&authMechanismProperties=${sessionToken}`);
+
+// Create a new MongoClient.
 const client = new MongoClient(uri);
 
-// Function to connect to the server
 async function run() {
   try {
-    // Connect the client to the server
+    // Connect the client to the server.
     await client.connect();
 
-    // Establish and verify connection
+    // Establish and verify connection.
     await client.db("admin").command({ ping: 1 });
-    console.log("Connected successfully to server");
+    console.log("Connected successfully to server.");
   } finally {
-    // Ensures that the client will close when you finish/error
+    // Ensure that the client closes when it finishes/errors.
     await client.close();
   }
 }
