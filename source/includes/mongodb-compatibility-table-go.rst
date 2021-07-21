@@ -14,6 +14,17 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
+   * - 1.7
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
    * - 1.6
      - |checkmark| [#go-1.6-driver-support]_
      - |checkmark|
