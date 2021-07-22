@@ -10,44 +10,20 @@ mongomirror
    :depth: 1
    :class: singlecol
 
-.. binary:: mongomirror
 
-   A utility for migrating data from an existing MongoDB replica set
-   to a MongoDB |service| replica set. |mongomirror| does
-   not require you to shut down your existing replica set or
-   applications.
-
-.. include:: /includes/mongomirror-support.rst
-
-.. important::
-
-     :binary:`~bin.mongomirror` does not import user/role data or
-     the ``config`` database.
-
-Download |mongomirror|
-------------------------
-
-.. note:: Debian 7 End of Life
-
-   Debian 7 reached
-   `End of Life <https://www.debian.org/News/2018/20180601>`_ on
-   May 31, 2018. |mongomirror| 0.3.1 removed support for
-   Debian 7 systems.
-
-.. include:: /includes/list-table-mongomirror-downloads.rst
-
-
+|mongomirror| is a tool for manually migrating data from an existing MongoDB
+replica set to a MongoDB |service| replica set.
 
 Syntax
 ------
 
-To run |mongomirror|, you must specify the source replica
-set and the target |service| replica set. For |service|, you must
-specify a user in the |service| cluster with
-:ref:`appropriate privileges <destination-authorization>` and the
-corresponding password. If the source replica set requires
-authentication, you must specify a user with
-:ref:`appropriate privileges <source-rs-authorization>`.
+To run |mongomirror|, you must specify:
+
+- The source replica set and the target |service| replica set.
+- A user in the |service| cluster with :ref:`appropriate privileges
+  <destination-authorization>`, the corresponding password, and
+  :ref:`appropriate privileges <source-rs-authorization>`, if the
+  source replica set requires authentication.
 
 .. code-block:: sh
 
@@ -57,237 +33,6 @@ authentication, you must specify a user with
       --destinationPassword <atlasPassword> \
       [Additional options]
 
-For details on the options, see :ref:`mongomirror-options`.
-
-Migration Process
------------------
-
-When you start |mongomirror|:
-
-#. First, |mongomirror| performs an initial sync, copying
-   collections from the existing MongoDB replica set to the target
-   cluster in |service|.
-
-#. After the initial sync, |mongomirror| continuously
-   tails the replica set's oplog for incoming changes and replays them
-   on the target cluster in MongoDB |service|.
-
-.. note:: 
-
-   As of version 0.9.0, |mongomirror| uses wire compression if it is
-   enabled with either the source or the target. Use the :option:`--compressors`
-   option to specify which compression libraries to allow.
-
-Once started, |mongomirror| runs continuously until you
-shut down the process.
-
-- If you shut down |mongomirror| during the initial sync
-  stage, either ensure that the target cluster is empty before you
-  restart |mongomirror| or run |mongomirror|
-  with the :option:`--drop` option.
-
-- If you shut down |mongomirror| during the oplog tailing
-  stage, you can restart |mongomirror| to continue from
-  the last oplog record processed. See the
-  :option:`--bookmarkFile` option.
-
-Progress Measurement
-~~~~~~~~~~~~~~~~~~~~
-
-|mongomirror| logs its progress to the standard output in
-the terminal:
-
-During the initial sync, |mongomirror| logs a progress
-bar for each collection it copies. For example:
-
-.. code-block:: sh
-   :copyable: false
-
-   2016-12-16T17:54:53.638-0800  [#....................]  park.events  2179/34184    (6.4%)
-   2016-12-16T17:54:53.638-0800  [#############........]  zoo.animals  29000/49778  (58.3%)
-
-When tailing the oplog, |mongomirror| logs the lag time,
-in seconds, between the most recent oplog entry on the source and the
-last processed oplog entry on the target. For example:
-
-.. code-block:: sh
-   :copyable: false
-
-   2016-12-12T16:22:17.027-0800 Current lag from source: 6s
-
-A lag time of 6 seconds means that the last oplog entry
-|mongomirror| processed was 6 seconds behind the most
-recent one available on the source.
-
-.. note::
-
-   The amount of time it takes |mongomirror| to catch up
-   completely may be greater or lesser than 6 seconds, depending on
-   how many entries arrive per second.
-
-A lag time of 0 seconds indicates that |mongomirror| is
-processing entries that arrived less than one second before the latest
-oplog entry.
-
-If there are indexes on the source cluster, |mongomirror| builds the
-same indexes on the target cluster. The progress log shows the start
-time and end time of the index building process, but does not display
-the iterative progress of the process. To check on the progress
-of the index builds, you can either:
-
-- Use the
-  :manual:`currentOp </reference/method/db.currentOp/#db.currentOp>`
-  command on the primary node of the target cluster. The ``command``
-  field shows information about the currently running operation.
-  Index building entries look similar to the following:
-
-  .. code-block:: json
-     :copyable: false
-
-	 "command" : {
-		"createIndexes" : "perfs",
-		"indexes" : [
-			{
-				"key" : {
-					"workTitle" : "text"
-				},
-				"name" : "workTitle_text"
-			}
-		]...
-
-- Download the :ref:`mongodb logs <mongodb-logs>` for your target
-  cluster and check recent entries for index-related lines. Log
-  messages related to index building look similar to the following:
-
-  .. code-block:: sh
-     :copyable: false
-
-     2018-11-29T16:58:25.018-0800 I INDEX    [conn1] build index on: example.airlines properties: { v: 2, key: { airline: 1.0 }, name: "airline_1", ns: "example.airlines" }
-
-Performance
-~~~~~~~~~~~
-
-To avoid contention for network and CPU resources, do not run
-|mongomirror| on the same hosts that provide your replica
-set’s mongod instances.
-
-- |mongomirror| must have network access to the source
-  replica set.
-
-- |mongomirror| must have network access to the target
-  cluster.
-
-- |mongomirror| has approximately the same performance
-  impact on your source replica set as a secondary:
-
-  - For the initial sync stage, the load scales with the size of your
-    data set.
-
-  - Once an initial sync completes, the load scales with oplog
-    gigabytes used per hour.
-
-Considerations
---------------
-
-Source MongoDB Deployment
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- The source MongoDB deployment must be a replica set. If the source is
-  a standalone MongoDB deployment, convert to a replica set first to
-  use |mongomirror|.
-  See :manual:`Convert a Standalone to a Replica Set </tutorial/convert-standalone-to-replica-set/>`.
-
-- The source replica set must run MongoDB version 2.6 or higher.
-
-- The source MongoDB replica set cannot be an
-  ``M0`` {+free-cluster+} or ``M2/M5`` shared cluster.
-
-- Don't change the ``featureCompatibilityVersion`` flag
-  at any time during the procedure.
-
-- When you migrate from MongoDB 4.4 or earlier to an 
-  |service| cluster running MongoDB 5.0 or later, drop 
-  :manual:`geoHaystack indexes </core/geohaystack>` from
-  your collections.
-
-- Don't perform a :manual:`resharding operation 
-  </core/sharding-reshard-a-collection>` on the source cluster 
-  during a migration.
-
-- Don't make any namespace changes during the migration
-  process, such as using the
-  :dbcommand:`renameCollection <dbcmd.renameCollection>` command
-  or executing an aggregation pipeline that includes the
-  :pipeline:`$out` aggregation stage.
-
-  Contact MongoDB Support if you believe renaming or dropping
-  a collection needs to occur during the migration process. From
-  the |service| UI, click :guilabel:`Support` to open a
-  support ticket.
-
-Target |service| Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-- The target |service| cluster must be a replica set, but cannot be an
-  ``M0`` {+free-cluster+} or ``M2/M5`` shared cluster.
-
-- The target |service| cluster MongoDB version must be the same as
-  or later than the source cluster MongoDB version.
-
-- For the initial sync stage of |mongomirror|, the target
-  |service| cluster should be empty or you should run
-  |mongomirror| with the :option:`--drop` option.
-
-- The target |service| cluster must include in its IP access list
-  either
-
-  - The public IP address of the server on which
-    |mongomirror| is running, or
-
-  - If set up for VPC peering, either the peer’s VPC CIDR block (or a
-    subset) or the peer VPC’s Security Group.
-
-- |mongomirror| automatically connects to MongoDB
-  |service| over |tls-ssl|.
-
-- You should not change the ``featureCompatibilityVersion`` flag while
-  |mongomirror| is running.
-
-- .. include:: /includes/fact-mongomirror-ttl-indexes.rst
-
-.. _source-rs-authorization:
-
-Required Access on Source Replica Set
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If the source replica set requires authentication, you must include
-user credentials when running :binary:`~bin.mongomirror`. You must
-specify a database user with, at a minimum, the following privileges:
-
-- Read all databases and collections. The :authrole:`readAnyDatabase`
-  role on the ``admin`` database covers this requirement.
-
-- Read the oplog.
-
-- Run the :dbcommand:`getParameter` command.
-
-If no such user exists, create the user in your source MongoDB
-replica set. Different MongoDB server versions have different
-built-in roles. Select a built-in role based on your MongoDB
-server version and execute the appropriate commands in the
-{+mongosh+}:
-
-.. include:: /includes/mongomirror-required-roles.rst
-
-.. _destination-authorization:
-
-Required Access on Destination Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You must specify an database user with the
-:atlasrole:`Atlas admin` role to run :binary:`~bin.mongomirror`.
-See :ref:`add-mongodb-users` for documentation on creating a 
-database user.
 
 .. _mongomirror-options:
 
@@ -359,15 +104,14 @@ options:
 - :option:`--destinationUsername` <atlasUser>
 - :option:`--destinationPassword` <atlasPassword>
 
-For the destination, specify the replica set name followed by a seed
-list of members in the following format:
+For the target, specify the replica set name followed by a seed list
+of members in the following format:
 
 .. code-block:: shell
 
    <replicaSetName>/<host1>:<port1>,<host2>:<port2>,<host3>:<port3>,...
 
-The specified Atlas user must have the required privileges for
-Atlas. The ``Atlas admin`` role provides the required privileges.
+The specified user must have the :atlasrole:`Atlas admin` on |service|.
 
 Source Replica Set Uses SCRAM-SHA1 Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -400,29 +144,28 @@ options:
 The source replica set user must have the required access on source
 cluster. The ``backup`` role provides the appropriate privileges.
 
-For the destination, specify the replica set name followed by a seed
-list of members in the following format:
+For the target, specify the replica set name followed by a seed list
+of members in the following format:
 
 .. code-block:: shell
 
    <replicaSetName>/<replicaMember>,<replicaMember>,<replicaMember>,...
 
-The specified Atlas user must have the required access on Atlas. The
-``Atlas admin`` role provides the required privileges.
+The specified user must have the :atlasrole:`Atlas admin` on |service|.
 
 Save |mongomirror| Output to a File
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is often helpful to save the output logs from a |mongomirror|
-procedure to a file for later examination and debugging. Use the following
+You can save the output logs from a |mongomirror| procedure to a
+file for later examination and debugging. Use the following
 format to save output to a file called ``mongomirror.log``:
 
 .. code-block:: shell
 
    mongomirror <args> 2>&1 | tee -a mongomirror.log
 
-Source Replica Set Requires X509 Client Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Source Replica Set Requires X.509 Client Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example migrates from a source replica set that uses
 X.509 authentication:
@@ -457,15 +200,14 @@ run |mongomirror| with the following options:
 The source replica set user must have the required access on source
 cluster. The ``backup`` role provides the appropriate privileges.
 
-For the destination, specify the replica set name followed by a seed
-list of members in the following format:
+For the target, specify the replica set name followed by a seed list
+of members in the following format:
 
 .. code-block:: shell
 
    <replicaSetName>/<replicaMember>,<replicaMember>,<replicaMember>,...
 
-The specified Atlas user must have the required access on Atlas. The
-``Atlas admin`` role provides the required privileges.
+The specified user must have the :atlasrole:`Atlas admin` on |service|.
 
 Source Replica Set Requires Kerberos/GSSAPI Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -483,7 +225,7 @@ Kerberos authentication:
       --destinationUsername atlasUser \
       --destinationPassword atlasPass
 
-To migrate from a source replica set that uses X.509 authentication,
+To migrate from a source replica set that uses Kerberos authentication,
 run |mongomirror| with the following options:
 
 - :option:`--host` <sourceReplSet/seed list of members>
@@ -497,12 +239,11 @@ run |mongomirror| with the following options:
 The source replica set user must have the required access on source
 cluster. The ``backup`` role provides the appropriate privileges.
 
-For the destination, specify the replica set name followed by a seed
+For the target, specify the replica set name followed by a seed
 list of members in the following format:
 
 .. code-block:: shell
 
    <replicaSetName>/<replicaMember>,<replicaMember>,<replicaMember>,...
 
-The specified Atlas user must have the required access on Atlas. The
-``Atlas admin`` role provides the required privileges.
+The specified user must have the :atlasrole:`Atlas admin` on |service|.

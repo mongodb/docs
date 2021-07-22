@@ -1,4 +1,4 @@
-You should not make any namespace changes during the migration
+Don't make any namespace changes during the migration
 process, such as using the
 :dbcommand:`renameCollection <dbcmd.renameCollection>` command
 or executing an aggregation pipeline that includes the
