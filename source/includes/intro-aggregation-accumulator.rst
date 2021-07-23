@@ -7,11 +7,11 @@ Aggregation accumulator operators:
 
 - Can be used in these aggregation pipeline stages:
 
-  - :pipeline:`$group`
-
   - :pipeline:`$bucket`
 
   - :pipeline:`$bucketAuto`
+
+  - :pipeline:`$group`
 
   - :pipeline:`$setWindowFields` starting in MongoDB 5.0 (except when
     you are using the :group:`$accumulator` or
