@@ -1,6 +1,6 @@
 To define the document order for |method| with the:
 
-- :pipeline:`$group` stage, add a :pipeline:`$sort` stage after the
+- :pipeline:`$group` stage, add a :pipeline:`$sort` stage before the
   :pipeline:`$group` stage.
 
 - :pipeline:`$setWindowFields` stage, set the :ref:`sortBy
