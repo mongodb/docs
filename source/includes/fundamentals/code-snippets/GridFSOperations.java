@@ -70,6 +70,7 @@ public final class GridFSOperations {
 
         try (GridFSUploadStream uploadStream = gridFSBucket.openUploadStream("myProject.zip", options)) {
             uploadStream.write(data);
+            uploadStream.flush();
             System.out.println("The file id of the uploaded file is: " + uploadStream.getObjectId().toHexString());
         } catch (Exception e) {
             System.err.println("The file upload failed: " + e);
@@ -109,6 +110,7 @@ public final class GridFSOperations {
 
         try (FileOutputStream streamToDownloadTo = new FileOutputStream("/tmp/myProject.zip")) {
             gridFSBucket.downloadToStream("myProject.zip", streamToDownloadTo, downloadOptions);
+            streamToDownloadTo.flush();
         }
         // end downloadToStream
     }
