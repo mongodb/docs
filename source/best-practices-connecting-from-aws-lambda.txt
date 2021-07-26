@@ -92,23 +92,23 @@ outside the handler so it can be reused across function invocations.
    // Import the dependency.
    const { MongoClient } = require('mongodb');
 
-   // Create a module-scoped connection promise.
-   // CRITICAL: You must call connect outside the handler so that the client
+   // Create a module-scoped MongoClient promise.
+   // CRITICAL: You must call connect() outside the handler so that the client
    // can be reused across function invocations.
-   const clientPromise = MongoClient.connect(process.env.MONGODB_URI,
-      { useNewUrlParser: true,  useUnifiedTopology: true });
+   let client = new MongoClient(process.env.MONGODB_URI,
+       { useNewUrlParser: true, useUnifiedTopology: true });
+   const clientPromise = client.connect();
 
    // Handler
    module.exports.handler = async function(event, context) {
 
-      // Get the MongoClient by calling await on the connection promise. Because
-      // this is a promise it will only resolve once.
-      const client = await clientPromise;
+   // Get the MongoClient by calling await on the promise.
+   // Because this is a promise, it will only resolve once.
+   client = await clientPromise;
 
-      // Use the client to return the name of the connected database.
-      return client.db().databaseName;
+   // Use the client to return the name of the connected database.
+   return client.db().databaseName;
    }
-
 
 Some serverless frameworks that run on top of Lambda allow for
 multiple logical functions to be packaged together in a single
@@ -132,10 +132,12 @@ In the following code examples:
    // Import the dependency.
    const { MongoClient } = require('mongodb');
 
-   // Export a module-scoped connection promise. By doing this in a separate
+   // Export a module-scoped MongoClient promise. By doing this in a separate
    // module, the client can be shared across functions.
-   module.exports = MongoClient.connect(process.env.MONGODB_URI,
+   const client = new MongoClient(process.env.MONGODB_URI,
      { useNewUrlParser: true,  useUnifiedTopology: true });
+   module.exports = client.connect();
+
 
 
 .. code-block:: javascript
