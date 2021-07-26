@@ -195,4 +195,9 @@ limitations and considerations:
      - {+Serverless-instances+} don't support change streams.
 
    * - :manual:`Collation </reference/collation/>` 
-     - {+Serverless-instances+} don't support collation on  collections, indexes, or queries.
+     - {+Serverless-instances+} don't support collation on collections,
+       indexes, or queries.
+
+   * - |bson| Nested Object Depth
+     - {+Serverless-instances+} can't store documents with more than 50 
+       nested levels.
