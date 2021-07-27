@@ -1,5 +1,5 @@
 .. note::
 
-   You can't edit roles for a user on the :guilabel:`Access Manager` 
-   page when you have :ref:`role mapping <atlas-manage-fed-auth-roles>` 
-   configured.
+   You can't edit roles for specific users on the 
+   :guilabel:`Access Manager` page if you configure role mappings for 
+   |idp| groups.
