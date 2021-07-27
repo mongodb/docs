@@ -8,8 +8,8 @@ space by using the :ref:`allowDiskUse <aggregate-cmd-allowDiskUse>`
 option to enable aggregation pipeline stages to write data to temporary
 files.
 
-The :manual:`search </text-search>` aggregation stage is not restricted 
-to 100 megabytes of RAM because it runs in a separate process.
+The :pipeline:`$search` aggregation stage is not restricted to 
+100 megabytes of RAM because it runs in a separate process.
 
 Examples of stages that can spill to disk when :ref:`allowDiskUse
 <aggregate-cmd-allowDiskUse>` is ``true`` are:
