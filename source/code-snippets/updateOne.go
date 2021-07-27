@@ -15,14 +15,13 @@ func main() {
 	// Replace the uri string with your MongoDB deployment's connection string.
 	uri := "mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority"
 
-	ctx := context.TODO()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 
 	if err != nil {
 		panic(err)
 	}
 	defer func() {
-		if err = client.Disconnect(ctx); err != nil {
+		if err = client.Disconnect(context.TODO()); err != nil {
 			panic(err)
 		}
 	}()
@@ -33,7 +32,7 @@ func main() {
 	filter := bson.D{{"_id", id}}
 	update := bson.D{{"$set", bson.D{{"avg_rating", 4.4}}}}
 
-	result, err := myCollection.UpdateOne(ctx, filter, update)
+	result, err := myCollection.UpdateOne(context.TODO(), filter, update)
 	// end updateone
 
 	if err != nil {
