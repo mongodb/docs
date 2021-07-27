@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -34,7 +33,7 @@ func main() {
 	// end updatemany
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Printf("%v documents were updated.\n", result.ModifiedCount)
