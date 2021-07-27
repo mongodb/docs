@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -33,12 +32,12 @@ func main() {
 	// end find
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	var results []bson.M
 	if err = cursor.All(context.TODO(), &results); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	for _, result := range results {
 		fmt.Println(result)
