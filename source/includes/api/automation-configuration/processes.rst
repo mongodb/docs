@@ -31,6 +31,7 @@ instances. Using this array, you can:
      "lastCompact" : "<dateInIso8601Format>",
      "lastRestart" : "<dateInIso8601Format>",
      "lastResync" : "<dateInIso8601Format>",
+     "lastKmipMasterKeyRotation" : "<dateInIso8601Format>",
      "logRotate": {
        "sizeThresholdMB": "<number>",
        "timeThresholdHrs": "<integer>",
@@ -231,8 +232,8 @@ instances. Using this array, you can:
        :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`
        process that |mms| performed on the node.
        
-       To trigger the init sync process on the node immediately, set this value to the
-       current time as an |iso8601| timestamp.
+       To trigger the init sync process on the node immediately, set
+       this value to the current time as an |iso8601| timestamp.
 
        .. warning::
 
@@ -247,26 +248,40 @@ instances. Using this array, you can:
          specified timestamp is later than the time of the last resync,
          and if confirmed, starts init sync on this node.
          
-         For example, to set **processes.lastResync** on the secondary node to
-         28 May 2021 at 2:43:52 PM US CentralStandard Time, use:
-         ``"processes.lastResync" : "2021-05-28T14:43:52-06:00"``. If
-         the {+mdbagent+} confirms that this timestamp is later than
-         the recorded time of the last resync, it starts init sync on the node.
+         .. example::
 
-       - On the primary node, the {+mdbagent+} waits until you ask the primary
-         node to become the secondary with the :method:`rs.stepDown` method, and
-         then starts init sync on this node.
+            To set **processes.lastResync** on the secondary node to 28
+            May 2021 at 2:43:52 PM US CentralStandard Time, use:
 
-       - On all of the nodes in the same cluster, including the primary,
-         the {+mdbagent+} checks whether the specified timestamp is later
-         than the time of the last resync, and if confirmed, starts init
-         sync on the secondary nodes in a rolling fashion. The {+mdbagent+} waits
-         until you ask the primary node to become the secondary with
-         the :method:`rs.stepDown` method, and then starts init sync on this node.
+            ``"processes.lastResync" : "2021-05-28T14:43:52-06:00"``.
+            
+            If the {+mdbagent+} confirms that this timestamp is later
+            than the recorded time of the last resync, it starts init
+            sync on the node.
+
+       - On the primary node, the {+mdbagent+} waits until you ask the
+         primary node to become the secondary with the
+         :method:`rs.stepDown` method, and then starts init sync on
+         this node.
+
+       - On all of the nodes in the same cluster, including the
+         primary, the {+mdbagent+} checks whether the specified
+         timestamp is later than the time of the last resync, and if
+         confirmed, starts init sync on the secondary nodes in a
+         rolling fashion. The {+mdbagent+} waits until you ask the
+         primary node to become the secondary with the
+         :method:`rs.stepDown` method, and then starts init sync on
+         this node.
 
        .. seealso::
 
           :manual:`Initial Sync </core/replica-set-sync/#replica-set-initial-sync>`
+
+   * - processes[n].lastKmipMasterKeyRotation
+     - string
+     - Optional
+     - |iso8601-time| when |mms| last rotated the master |kmip| key. If
+       you set this parameter to the current timestamp, |mms| rotate the key after you upload this configuration.
 
    * - processes[n].logRotate
      - object
