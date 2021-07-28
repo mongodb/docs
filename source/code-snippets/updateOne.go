@@ -10,10 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func main() {
-	// Replace the uri string with your MongoDB deployment's connection string.
-	uri := "mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority"
+// Replace the uri string with your MongoDB deployment's connection string.
+const uri = "mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority"
 
+func main() {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 
 	if err != nil {
@@ -38,5 +38,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("%v document was updated.\n", result.ModifiedCount)
+	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 }
