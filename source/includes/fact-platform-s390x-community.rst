@@ -7,6 +7,9 @@
       * - SLES 12 s390x
         - Support removed in MongoDB Community 4.4.7.
 
+      * - Ubuntu 18.04 s390x
+        - Support removed in MongoDB Community 4.4.7.
+
    |
 
 .. list-table::
@@ -39,7 +42,7 @@
      -
 
    * - Ubuntu 18.04
-     - |checkmark|
+     - Removed starting in 4.4.7
      - 4.2.1 - 4.2.9
      - 4.0.6 - 4.0.13
      - 
