@@ -1,3 +1,12 @@
+.. _opsmgr-server-4.2.26:
+
+|onprem| Server 4.2.26
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-07-29*
+
+- Upgrades third-party dependencies and fixes minor bugs.
+
 .. _opsmgr-server-4.2.25:
 
 |onprem| Server 4.2.25
