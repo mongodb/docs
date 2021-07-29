@@ -35,7 +35,7 @@ func main() {
 		panic(err)
 	}
 
-	var results []bson.M
+	var results []bson.D
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		panic(err)
 	}
