@@ -10,5 +10,5 @@ MongoDB Atlas is a fully-managed cloud database service that hosts your data
 on MongoDB clusters. In this guide, we show you how to get started with your
 own free (no credit card required) cluster.
 
-Follow the steps below to connect your Java application with a MongoDB Atlas
+Consult the following steps to connect your Java application with a MongoDB Atlas
 cluster.
