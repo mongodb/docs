@@ -1,0 +1,232 @@
+===========================
+Marshalling & Unmarshalling
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about how the Go Driver handles conversions
+between Go objects and BSON. The process of converting a Go object to
+BSON is called **marshalling**, while the reverse process is called **unmarshalling**. 
+
+You should read this guide if you need to adjust the default marshalling
+or unmarshalling behavior or want to learn more about how the Go Driver
+represents BSON data.
+
+Data Types
+----------
+
+MongoDB stores documents in a binary representation called :manual:`BSON
+</reference/bson-types/>` that allows for easy and flexible data processing. The Go
+Driver represents BSON data using two families of types: ``D`` types and ``Raw`` types.
+
+The ``D`` family contains four types:
+
+- ``D``: An ordered representation of a BSON document (slice)
+- ``M``: An unordered representation of a BSON document (map)
+- ``A``: An ordered representation of a BSON array
+- ``E``: A single element inside a D type
+
+Of these, you can use the ``D`` and ``M`` types to
+build representations of BSON using native Go types. 
+
+The following example demonstrates how to construct a query filter using the
+``bson.D`` type to match documents with a ``quantity`` field value greater
+than 100:
+
+.. code-block:: go
+   
+   filter := bson.D{{"quantity", bson.D{{"$gt", 100}}}}
+
+You can use ``Raw`` types to validate and retrieve elements from a slice
+of bytes, which is useful if you don't want to unmarshal BSON into
+another type. 
+
+In Go, a **struct** is a collection of data fields with declared data
+types. The Go Driver can marshal/unmarshal structs and other native Go
+types to/from BSON using a configurable codec system.
+
+For more information on how the Go Driver handles BSON data, see the
+`bson package API documentation
+<https://pkg.go.dev/go.mongodb.org/mongo-driver/bson>`_.
+
+Struct Tags
+-----------
+
+You can modify the default marshalling behavior of the Go Driver using
+**struct tags**, which are optional pieces of metadata attached to
+struct fields. The most common use of struct tags is for specifying the
+field name in the BSON document that corresponds to the struct field.
+The following table describes the additional struct tags that you can
+use with the Go Driver:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Struct Tag
+     - Description
+
+   * - ``omitempty``
+     - The field will not be marshalled if it is set to the zero value
+       corresponding to the field type.
+
+   * - ``minsize``
+     - If the field type is type int64, uint, uint32, or uint64 and the value of
+       the field can fit in a signed int32, the field will be serialized
+       as a BSON int32 rather than a BSON int64.
+
+   * - ``truncate``
+     - If the field type is a non-float numeric type, BSON doubles
+       unmarshalled into that field will be trucated at the decimal point.
+
+   * - ``inline``
+     - If the field type is a struct or map field, the field will be
+       "flattened" when marshalling and "un-flattened" when unmarshalling.
+
+Without additional instruction from struct tags, the Go
+Driver will marshal structs using the following rules:
+
+#. The Go Driver only marshals and unmarshals exported fields.
+
+#. The Go Driver generates BSON key using the lowercase of the
+   corresponding struct field.
+
+#. The Go Driver marshals embedded struct fields as subdocuments.
+   Each key is the lowercase of the field's type.
+
+#. The Go Driver marshals a pointer field as the underlying type if the
+   pointer is non-nil. If the pointer is nil, the driver marshals it as a BSON null
+   value.
+
+#. When unmarshalling, the Go Driver follows `these D/M type mappings
+   <https://pkg.go.dev/go.mongodb.org/mongo-driver/bson#hdr-Native_Go_Types>`_
+   for fields of type interface{}. The driver unmarshals BSON documents
+   unmarshalled into an interface{} field as a ``D`` type.
+
+.. tabs::
+
+   .. tab:: Struct Tags
+      :tabid: struct-tags
+
+      The following example demonstrates how the Go Driver marshals a
+      struct with struct tags:
+
+      .. code-block:: go
+
+         type Student struct {
+	         FirstName string `bson:"first_name,omitempty"`
+	         LastName  string `bson:"last_name,omitempty"`
+	         Age       int    `bson:"age,omitempty"`
+         }
+
+         ...
+
+         coll := client.Database("school").Collection("students")
+
+         student1 := Student{ FirstName : "Arthur", Age : 8}
+
+         insertResult, err := coll.InsertOne(context.TODO(), student1)
+
+      The corresponding BSON representation looks like this:
+
+      .. code-block:: json
+         :copyable: false
+      
+         { "_id" : ObjectId("6101c197a5284b5dfcbfd90b"), "first_name" : "Arthur", "age" : 8 }
+
+      In this example, including struct tags let us set custom BSON
+      field names and omit the empty ``LastName`` field during
+      marshalling.
+
+      .. tabs::
+
+   .. tab:: No Struct Tags
+      :tabid: no-struct-tags
+
+      The following example demonstrates how the Go Driver marshals a
+      struct without any struct tags:
+
+      .. code-block:: go
+
+         type Student struct {
+             FirstName string
+             LastName  string
+             Age       int
+         }
+
+         ...
+
+         coll := client.Database("school").Collection("students")
+
+         student1 := Student{ FirstName : "Arthur", Age : 8}
+
+         insertResult, err := coll.InsertOne(context.TODO(), student1)
+
+      The corresponding BSON representation looks like this:
+
+      .. code-block:: json
+         :copyable: false
+      
+         { "_id" : ObjectId("6101c197a5284b5dfcbfd90b"), "firstname" : "Arthur", "lastname" : "", "age" : 8 }
+         
+      In this example, the Go Driver automatically sets the lowercase
+      of the struct fields as the BSON field names and includes an empty
+      ``lastname`` field in the BSON representation.
+
+
+Unmarshalling
+-------------
+
+You can unmarshal BSON documents using the ``Decode()`` method. When you
+execute either a ``FindOne()`` or ``Find()`` query, you can use the
+``Decode()`` method on the return object to unmarshal the results.
+
+The ``Decode()`` method returns an ``error`` interface type which
+contains one of the following values:
+
+- ``nil`` if a document matched your query, and there were no errors retrieving
+  the document. 
+- If the driver retrieved your document but could not unmarshal your result, the
+  ``Decode()`` method returns the unmarshalling error.
+- If there was an error retrieving your document during execution of the
+  ``FindOne()`` method, the error propagates to the ``Decode()`` method and
+  the ``Decode()`` method returns the error. 
+
+  When used on the ``SingleResult`` type returned by the ``FindOne()``
+  method, ``Decode()`` can also return the ``ErrNoDocuments`` error if
+  no documents matched your query.
+
+The following example demonstrates how you can use the ``Decode()``
+method to unmarshal and read through the results of a simple ``FindOne()``
+operation:
+
+.. code-block:: go
+   
+   myCollection := client.Database("school").Collection("students")
+   filter := bson.D{{"age", 8}}
+
+   var result bson.D
+   cursor := myCollection.FindOne(context.TODO(), filter)
+   err = cursor.Decode(&result)
+
+The ``Cursor`` type also uses the ``All()`` method, which unmarshals all
+documents into an array at once. The BSON package includes a family of
+``Marshal()`` and ``Unmarshal`` methods that work with BSON-encoded data
+of ``[]byte`` type. 
+
+For more information on the marshalling and unmarshalling methods used with the
+``Cursor`` type, see the `Cursor API documentation
+<https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.7.0/mongo#Cursor>`_
+
+For more information on the marshalling and unmarshalling methods in the
+``bson`` package, see the `bson API documentation
+<https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.7.0/bson#hdr-Marshalling_and_Unmarshalling>`_
