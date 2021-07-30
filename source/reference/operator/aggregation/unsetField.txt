@@ -1,0 +1,383 @@
+=========================
+$unsetField (aggregation)
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $unsetField
+
+   .. versionadded:: 5.0
+
+   Removes a specified field from a document.
+
+   :expression:`$unsetField` can remove fields with names that contain
+   periods (``.``) or start with dollar signs (``$``).
+
+Syntax
+------
+
+:expression:`$unsetField` has the following syntax:
+
+.. code-block:: javascript
+
+   { 
+     $unsetField: {
+       field: <String>,
+       input: <Object>,
+     }
+   }
+
+You must provide the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``field``
+     - String
+     - Field in the ``input`` object that you want to remove. ``field``
+       can be any valid :ref:`expression <aggregation-expressions>`
+       that resolves to a string constant.
+
+   * - ``input``
+     - Object
+     - Document that contains the ``field`` that you want to remove.
+       ``input`` must resolve to an object, ``missing``, ``null``, or
+       ``undefined``.
+
+Behavior
+--------
+
+:expression:`$unsetField` is an alias for the :expression:`$setField`
+expression: 
+
+.. code-block:: javascript
+
+   {
+      $setField:
+         {
+            field: <String>,
+            input: <Object>,
+            value: “$$REMOVE”
+         }
+   }
+
+
+
+- If ``input`` evaluates to ``missing``, ``undefined``, or ``null``,
+  :expression:`$setField` returns ``null`` and does not update ``input``.
+
+- If ``input`` evaluates to anything other than an object, ``missing``, 
+  ``undefined``, or ``null``, :expression:`$setField` returns an error.
+
+- If ``field`` resolves to anything other than a string constant,
+  :expression:`$setField` returns an error.
+
+- :expression:`$unsetField` doesn't implicitly traverse objects or
+  arrays. For example, :expression:`$unsetField` evaluates a ``field``
+  value of ``a.b.c`` as a top-level field named ``a.b.c`` instead of a
+  nested field named ``{ a: { b: { c: } } }``.
+
+Examples
+--------
+
+Add Fields that Contain Periods (``.``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "sweatshirt", price: 45.99, qty: 300 }
+   { "_id" : 2, "item" : "winter coat", price: 499.99, qty: 200 }
+   { "_id" : 3, "item" : "sun dress", price: 199.99, qty: 250 }
+   { "_id" : 4, "item" : "leather boots", price: 249.99, qty: 300 }
+   { "_id" : 5, "item" : "bow tie", price: 9.99, qty: 180 }
+
+The following operation uses the :pipeline:`$replaceWith` pipeline stage
+and the :expression:`$setField` operator to add a new field to each 
+document, ``price.usd``. The value of ``price.usd`` will equal the 
+value of ``price`` in each document. Finally, the operation uses the
+:pipeline:`$unset` pipeline stage to remove the ``price`` field.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([
+     { 
+       $replaceWith: 
+         {
+           $setField:
+             { 
+               field: "price.usd",
+               input: "$$ROOT", 
+               value: "$price" 
+             }
+         }
+     },
+     {
+        $unset: "price"
+     }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { _id: 1, item: 'sweatshirt', qty: 300, 'price.usd': 45.99 },
+     { _id: 2, item: 'winter coat', qty: 200, 'price.usd': 499.99 },
+     { _id: 3, item: 'sun dress', qty: 250, 'price.usd': 199.99 },
+     { _id: 4, item: 'leather boots', qty: 300, 'price.usd': 249.99 },
+     { _id: 5, item: 'bow tie', qty: 180, 'price.usd': 9.99 }
+   ]
+
+Add Fields that Start with a Dollar Sign (``$``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "sweatshirt", price: 45.99, qty: 300 }
+   { "_id" : 2, "item" : "winter coat", price: 499.99, qty: 200 }
+   { "_id" : 3, "item" : "sun dress", price: 199.99, qty: 250 }
+   { "_id" : 4, "item" : "leather boots", price: 249.99, qty: 300 }
+   { "_id" : 5, "item" : "bow tie", price: 9.99, qty: 180 }
+
+The following operation uses the :pipeline:`$replaceWith` pipeline stage
+and the :expression:`$setField` and :expression:`$literal` operators to 
+add a new field to each document, ``$price``. The value of ``$price`` 
+will equal the value of ``price`` in each document. Finally, the 
+operation uses the :pipeline:`$unset` pipeline stage to remove the 
+``price`` field.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([
+     { 
+       $replaceWith: 
+         {
+           $setField:
+             { 
+               field: {$literal: "$price"},
+               input: "$$ROOT", 
+               value: "$price" 
+             }
+         }
+     },
+     {
+        $unset: "price"
+     }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { _id: 1, item: 'sweatshirt', qty: 300, '$price': 45.99 },
+     { _id: 2, item: 'winter coat', qty: 200, '$price': 499.99 },
+     { _id: 3, item: 'sun dress', qty: 250, '$price': 199.99 },
+     { _id: 4, item: 'leather boots', qty: 300, '$price': 249.99 },
+     { _id: 5, item: 'bow tie', qty: 180, '$price': 9.99 }
+   ]
+
+Update Fields that Contain Periods (``.``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, item: 'sweatshirt', qty: 300, 'price.usd': 45.99 },
+   { _id: 2, item: 'winter coat', qty: 200, 'price.usd': 499.99 },
+   { _id: 3, item: 'sun dress', qty: 250, 'price.usd': 199.99 },
+   { _id: 4, item: 'leather boots', qty: 300, 'price.usd': 249.99 },
+   { _id: 5, item: 'bow tie', qty: 180, 'price.usd': 9.99 }
+
+The following operation uses the :pipeline:`$match` pipeline stage to
+find a specific document and the :pipeline:`$replaceWith` pipeline stage
+and the :expression:`$setField` operator to update the ``price.usd`` 
+field in the matching document:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([ 
+     {
+       $match: { _id: 1 }
+     }, 
+     { 
+       $replaceWith: 
+         { 
+           $setField: 
+             { 
+               field: "price.usd", 
+               input: "$$ROOT", 
+               value: 49.99 
+             } 
+         } 
+     }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [ 
+     { _id: 1, item: 'sweatshirt', qty: 300, 'price.usd': 49.99 } 
+   ]
+
+Update Fields that Start with a Dollar Sign (``$``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, item: 'sweatshirt', qty: 300, '$price': 45.99 },
+   { _id: 2, item: 'winter coat', qty: 200, '$price': 499.99 },
+   { _id: 3, item: 'sun dress', qty: 250, '$price': 199.99 },
+   { _id: 4, item: 'leather boots', qty: 300, '$price': 249.99 },
+   { _id: 5, item: 'bow tie', qty: 180, '$price': 9.99 }
+
+The following operation uses the :pipeline:`$match` pipeline stage to
+find a specific document and the :pipeline:`$replaceWith` pipeline stage
+and the :expression:`$setField` and :expression:`$literal` operators to 
+update the ``$price`` field in the matching document:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([ 
+     {
+       $match: { _id: 1 }
+     }, 
+     { 
+       $replaceWith: 
+         { 
+           $setField: 
+             { 
+               field: {$literal: "$price"}, 
+               input: "$$ROOT", 
+               value: 49.99 
+             } 
+         } 
+     }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [ 
+     { _id: 1, item: 'sweatshirt', qty: 300, '$price': 49.99 } 
+   ]
+
+Remove Fields that Contain Periods (``.``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, item: 'sweatshirt', qty: 300, 'price.usd': 45.99 },
+   { _id: 2, item: 'winter coat', qty: 200, 'price.usd': 499.99 },
+   { _id: 3, item: 'sun dress', qty: 250, 'price.usd': 199.99 },
+   { _id: 4, item: 'leather boots', qty: 300, 'price.usd': 249.99 },
+   { _id: 5, item: 'bow tie', qty: 180, 'price.usd': 9.99 }
+
+The following operation uses the :pipeline:`$replaceWith` pipeline stage
+and the :expression:`$setField` operator and :variable:`$$REMOVE 
+<REMOVE>` to remove the ``price.usd`` field from each document:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([
+     { 
+       $replaceWith: 
+         {
+           $setField:
+             { 
+               field: "price.usd",
+               input: "$$ROOT", 
+               value: "$$REMOVE" 
+             }
+         }
+     }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { _id: 1, item: 'sweatshirt', qty: 300 },
+     { _id: 2, item: 'winter coat', qty: 200 },
+     { _id: 3, item: 'sun dress', qty: 250 },
+     { _id: 4, item: 'leather boots', qty: 300 },
+     { _id: 5, item: 'bow tie', qty: 180 }
+   ]
+
+Remove Fields that Start with a Dollar Sign (``$``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, item: 'sweatshirt', qty: 300, '$price': 45.99 },
+   { _id: 2, item: 'winter coat', qty: 200, '$price': 499.99 },
+   { _id: 3, item: 'sun dress', qty: 250, '$price': 199.99 },
+   { _id: 4, item: 'leather boots', qty: 300, '$price': 249.99 },
+   { _id: 5, item: 'bow tie', qty: 180, '$price': 9.99 }
+
+The following operation uses the :pipeline:`$replaceWith` pipeline
+stage, the :expression:`$setField` and :expression:`$literal` operators,
+and :variable:`$$REMOVE <REMOVE>` to remove the ``$price`` field 
+from each document:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([
+     { 
+       $replaceWith: 
+         {
+           $setField:
+             { 
+               field: {$literal: "$price"},
+               input: "$$ROOT", 
+               value: "$$REMOVE" 
+             }
+         }
+     }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { _id: 1, item: 'sweatshirt', qty: 300 },
+     { _id: 2, item: 'winter coat', qty: 200 },
+     { _id: 3, item: 'sun dress', qty: 250 },
+     { _id: 4, item: 'leather boots', qty: 300 },
+     { _id: 5, item: 'bow tie', qty: 180 }
+   ]
