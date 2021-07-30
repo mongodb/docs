@@ -35,7 +35,3 @@ Examples of stages that can spill to disk when :ref:`allowDiskUse
 
 If the results of one of your :pipeline:`$sort` pipeline stages exceed
 the limit, consider :ref:`adding a $limit stage <sort-limit-sequence>`.
-
-.. versionchanged:: 3.4
-
-   .. include:: /includes/fact-graphlookup-memory-restrictions.rst
