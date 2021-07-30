@@ -12,7 +12,7 @@ import (
 
 // Replace the uri string with your MongoDB deployment's connection string.
 const uri = "mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority"
-	
+
 func main() {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	
@@ -25,17 +25,17 @@ func main() {
 		}
 	}()
 
-	// begin deleteOne
+	// begin deleteMany
 	coll := client.Database("sample_mflix").Collection("movies")
-	filter := bson.D{{"title", "Twilight"}}
+	filter := bson.D{{"runtime", bson.D{{"$gt", 800}}}}
 
-	result, err := coll.DeleteOne(context.TODO(), filter)
-	// end deleteOne
+	results, err := coll.DeleteMany(context.TODO(), filter)
+	// end deleteMany
 
 	if err != nil {
 		panic(err)
 	}
 
-	// When you run this file for the first time, it should print "Documents deleted: 1"
-	fmt.Printf("Documents deleted: %d\n", result.DeletedCount)
+	// When you run this file for the first time, it should print "Documents deleted: 4"
+	fmt.Printf("Documents deleted: %d\n", results.DeletedCount)
 }
