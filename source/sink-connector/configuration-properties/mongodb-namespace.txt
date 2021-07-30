@@ -1,0 +1,156 @@
+==================================================
+MongoDB Namespace Mapping Configuration Properties
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Use the following configuration settings to specify which MongoDB database
+and collection that your sink connector writes data to. You can use the
+default ``DefaultNamespaceMapper`` or specify a custom class.
+
+For a list of categories of sink connector configuration settings, see the
+guide on :doc:`Sink Connector Configuration Properties </sink-connector/configuration-properties>`.
+
+Settings
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Name
+     - Description
+
+   * - | **namespace.mapper**
+     - | **Type:** string
+       |
+       | **Description:**
+       | The fully-qualified class name of the class that specifies which
+         database or collection in which to sink the data. The default
+         ``DefaultNamespaceMapper`` uses values specified in the
+         ``database`` and ``collection`` properties.
+
+       .. seealso::
+
+          The connector includes an alternative class for specifying the
+          database and collection called ``FieldPathNamespaceMapper``. See
+          the :ref:`FieldPathNamespaceMapper settings <fieldpathnamespacemapper-settings>`
+          for more information.
+
+       | **Default**:
+
+       .. code-block:: none
+
+          com.mongodb.kafka.connect.sink.namespace.mapping.DefaultNamespaceMapper
+       | **Accepted Values**: A fully qualified Java class name of a class that implements the ``NamespaceMapper`` interface.
+
+   * - **database**
+     - | *Required*
+       |
+       | **Type:** string
+       |
+       | **Description:**
+       | The name of the MongoDB database to which the sink connector writes.
+       |
+       | **Accepted Values**: A MongoDB database name
+
+   * - **collection**
+     - | *Required*
+       |
+       | **Type:** string
+       |
+       | **Description:**
+       | The name of the MongoDB collection to which the sink connector
+         writes. If your sink connector follows multiple topics, this
+         is the default collection for any writes that are not otherwise
+         specified.
+       |
+       | **Accepted Values**: A MongoDB collection name
+
+.. _fieldpathnamespacemapper-settings:
+
+FieldPathNamespaceMapper Settings
+---------------------------------
+
+If you configure your sink connector to use the ``FieldPathNamespaceMapper``,
+you can specify which database and collection to sink a document based on the
+data's field values.
+
+To enable this mapping behavior, set your sink connector ``namespace.mapper``
+configuration property to the fully-qualified class name as shown below:
+
+.. code-block:: properties
+
+   namespace.mapper=com.mongodb.kafka.connect.sink.topic.mapping.FieldPathNamespaceMapper
+
+The ``FieldPathNamespaceMapper`` requires you to specify the following
+settings:
+
+- One or both mapping properties to a database and collection
+- One of the ``key`` or ``value`` mappings to a database
+- One of the ``key`` or ``value`` mappings to a collection
+
+You can use the following settings to customize the behavior of the
+``FieldPathNamespaceMapper``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Name
+     - Description
+
+   * - | **namespace.mapper.key.database.field**
+     - | **Type:** string
+       |
+       | **Description:**
+       | The name of the key document field that specifies the name of the
+         database in which to write.
+
+   * - | **namespace.mapper.key.collection.field**
+     - | **Type:** string
+       |
+       | **Description:**
+       | The name of the key document field that specifies the name of the
+         collection in which to write.
+
+   * - | **namespace.mapper.value.database.field**
+     - | **Type:** string
+       |
+       | **Description:**
+       | The name of the value document field that specifies the name of the
+         database in which to write.
+
+   * - | **namespace.mapper.value.collection.field**
+     - | **Type:** string
+       |
+       | **Description:**
+       | The name of the value document field that specifies the name of the
+         collection in which to write.
+
+   * - | **namespace.mapper.error.if.invalid**
+     - | **Type:** boolean
+       |
+       | **Description:**
+       | Whether to throw an exception when either the document is missing the
+         mapped field or it has an invalid BSON type.
+       | When set to ``true``, the connector does not process documents
+         missing the mapped field or that contain an invalid BSON type.
+         The connector may halt or skip processing depending on the related
+         error-handling configuration settings.
+       | When set to ``false``, if a document is missing the mapped field or
+         if it has an invalid BSON type, the connector defaults to
+         writing to the specified ``database`` and ``collection`` settings.
+       |
+       | **Default**: ``false``
+       | **Accepted Values**: ``true`` or ``false``
+
