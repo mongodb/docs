@@ -27,10 +27,9 @@ To contribute to the documentation,
 See the following documents that provide an overview of the
 documentation style and process:
 
-- `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
-- `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
-- `Documentation Organization <http://docs.mongodb.org/manual/meta/organization>`_
-- `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
+- `Style Guide <https://docs.mongodb.org/meta/style-guide/style/>`_
+- `Documentation Organization <https://docs.mongodb.org/meta/organization>`_
+- `Documentation Practices <https://docs.mongodb.org/meta/practices>`_
 
 File JIRA Tickets
 -----------------
@@ -42,7 +41,7 @@ Licenses
 --------
 
 All documentation is available under the terms of a `Creative Commons
-License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
+License <https://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
 
 The MongoDB Documentation Project is governed by the terms of the
 `MongoDB Contributor Agreement
