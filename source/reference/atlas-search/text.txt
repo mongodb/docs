@@ -9,7 +9,7 @@ text
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Definition
@@ -122,23 +122,21 @@ Fields
 
 Examples 
 --------
-
 The :ref:`Basic <text-ref-basic-eg>` and :ref:`Fuzzy 
 <text-ref-fuzzy-eg>` examples below use the ``movies`` collection in 
-the ``sample_mflix`` database. If you :ref:`load <sample-data>` the 
+the ``sample_mflix`` database. After loading the 
 :ref:`sample dataset <available-sample-datasets>` into your cluster, 
-you can create the |fts| index on the ``title`` field and run the 
-queries on your cluster. The :ref:`fts-tutorial-ref` contains 
-instructions for :ref:`creating <ref-create-index>` an :ref:`index 
-definition <ref-index-definitions>` and :ref:`running Atlas Search 
-queries <fts-tutorial-run-query>`.
+create the |fts| index on the ``title`` field and run the 
+example queries on your cluster. 
+
+.. include:: /includes/admonitions/get-started-atlas-search.rst
 
 The :ref:`Synonyms <text-ref-synonyms-eg>` examples below use the 
 ``user_feedback.comments`` and ``user_feedback.synonyms`` collections 
 and the index definition described in :ref:`Define Synonym Mappings 
-<synonyms-egs>`. If you have the ``user_feedback.comments`` and 
-``user_feedback.synonyms`` collections and the index definition 
-configured for the collection, you can run the sample queries below.
+<synonyms-egs>`. After loading the ``user_feedback.comments`` and 
+``user_feedback.synonyms`` collections and configuring the index definition 
+for the collection, you can run the queries below.
 
 .. _text-ref-basic-eg:
 
@@ -191,17 +189,86 @@ The following |fts| example uses the ``text`` operator to search the
 Fuzzy Examples 
 ~~~~~~~~~~~~~~
 
-The following examples use the ``text`` operator to search the 
+The following queries use the ``text`` operator to search the 
 ``title`` field in the ``movies`` collection for terms that are within 
 one character variation of each term in the ``query`` phrase ``naw 
-yark``.
+yark``. |fts| returns different results depending on whether you use the 
+default ``fuzzy`` options or define the ``maxExpansions``, ``prefixLength``, 
+or ``maxEdits`` fields. 
 
-.. tabs:: 
+Click the following tabs for example queries that use
+default and specified options:
 
+.. tabs::
+   
    tabs:
-   - id: maxexpansions
-     name: maxExpansions Option
-     content: |
+     - id: default
+       name: Default Example
+       content: |
+
+         .. example:: 
+   
+            The following query searches the ``title`` field for the 
+            phrase ``naw yark``. It uses the ``fuzzy`` default options 
+            where: 
+
+            - ``maxEdits`` allows up to two character variation of each 
+              term in the given phrase to match the query to a document.
+            - ``maxExpansions`` considers up to fifty similar terms for 
+              each term in ``naw yark`` to find matches.
+            - ``prefixLength`` is disabled. 
+
+            The query also includes a :manual:`$limit 
+            </reference/operator/aggregation/limit>` stage to limit the 
+            output to 10 results and a :manual:`$project 
+            </reference/operator/aggregation/project>` stage to: 
+
+            - Exclude all fields except ``title``
+            - Add a field named ``score``
+
+            .. code-block:: json 
+
+               db.movies.aggregate([
+                 {
+                   $search: {
+                     "text": {
+                       "path": "title",
+                       "query": "naw yark",
+                       "fuzzy": {}  
+                     }
+                   }
+                 },
+                 {
+                   $limit: 10
+                 },
+                 {
+                   $project: {
+                     "_id": 0,
+                     "title": 1,
+                     score: { $meta: "searchScore" }
+                   }
+                 }
+               ])
+
+            The above query returns the following results:
+
+            .. code-block:: json 
+               :copyable: false 
+
+               { "title" : "New York, New York", "score" : 4.392756462097168 }
+               { "title" : "New York", "score" : 4.050914287567139 }
+               { "title" : "New York Stories", "score" : 3.4838104248046875 }
+               { "title" : "New York Minute", "score" : 3.4838104248046875 }
+               { "title" : "Synecdoche, New York", "score" : 3.4838104248046875 }
+               { "title" : "New York Doll", "score" : 3.4838104248046875 }
+               { "title" : "Little New York", "score" : 3.4838104248046875 }
+               { "title" : "Escape from New York", "score" : 3.0559897422790527 }
+               { "title" : "King of New York", "score" : 3.0559897422790527 }
+               { "title" : "Naked in New York", "score" : 3.0559897422790527 }
+
+     - id: maxexpansions
+       name: maxExpansions Example
+       content: |
 
          .. example:: 
    
@@ -268,9 +335,9 @@ yark``.
                { "title" : "King of New York", "score" : 3.0559897422790527 }
                { "title" : "Naked in New York", "score" : 3.0559897422790527 }
 
-   - id: prefixlength
-     name: prefixLength Option
-     content: |
+     - id: prefixlength
+       name: prefixLength Example
+       content: |
 
          .. example:: 
 
@@ -334,70 +401,6 @@ yark``.
                { "_id" : ObjectId("573a13a2f29313caabd0b815", "title" : "Kaho Naa... Pyaar Hai", "score" : 1.9474197626113892 }
                { "_id" : ObjectId("573a13a7f29313caabd1b5c0", "title" : "Oysters at Nam Kee's", "score" : 1.9474197626113892 }
 
-   - id: default
-     name: Default Options
-     content: |
-
-         .. example:: 
-   
-            The following query searches the ``title`` field for the 
-            phrase ``naw yark``. It uses the ``fuzzy`` default options 
-            where: 
-
-            - ``maxEdits`` allows up to two character variation of each 
-              term in the given phrase to match the query to a document.
-            - ``maxExpansions`` considers up to fifty similar terms for 
-              each term in ``naw yark`` to find matches.
-            - ``prefixLength`` is disabled. 
-
-            The query also includes a :manual:`$limit 
-            </reference/operator/aggregation/limit>` stage to limit the 
-            output to 10 results and a :manual:`$project 
-            </reference/operator/aggregation/project>` stage to: 
-
-            - Exclude all fields except ``title``
-            - Add a field named ``score``
-
-            .. code-block:: json 
-
-               db.movies.aggregate([
-                 {
-                   $search: {
-                     "text": {
-                       "path": "title",
-                       "query": "naw yark",
-                       "fuzzy": {}  
-                     }
-                   }
-                 },
-                 {
-                   $limit: 10
-                 },
-                 {
-                   $project: {
-                     "_id": 0,
-                     "title": 1,
-                     score: { $meta: "searchScore" }
-                   }
-                 }
-               ])
-
-            The above query returns the following results:
-
-            .. code-block:: json 
-               :copyable: false 
-
-               { "title" : "New York, New York", "score" : 4.392756462097168 }
-               { "title" : "New York", "score" : 4.050914287567139 }
-               { "title" : "New York Stories", "score" : 3.4838104248046875 }
-               { "title" : "New York Minute", "score" : 3.4838104248046875 }
-               { "title" : "Synecdoche, New York", "score" : 3.4838104248046875 }
-               { "title" : "New York Doll", "score" : 3.4838104248046875 }
-               { "title" : "Little New York", "score" : 3.4838104248046875 }
-               { "title" : "Escape from New York", "score" : 3.0559897422790527 }
-               { "title" : "King of New York", "score" : 3.0559897422790527 }
-               { "title" : "Naked in New York", "score" : 3.0559897422790527 }
-
 .. _text-ref-synonyms-eg:
 
 Synonyms Examples 
@@ -411,15 +414,17 @@ collection <synonyms-coll-spec>`, ``user_feedback.synonyms``, specified
 in the synonym mapping definition of the index for the 
 ``user_feedback.comments`` collection. 
 
-To learn more about the ``user_feedback.comments`` and 
-``user_feedback.synonyms`` collections and the index definition for the 
-``user_feedback.comments`` collection, see :ref:`synonyms-egs` in the 
-:ref:`synonyms-ref` page.
+.. note::
+
+   To learn more about the ``user_feedback.comments`` and 
+   ``user_feedback.synonyms`` collections and the index definition for the 
+   ``user_feedback.comments`` collection, see :ref:`synonyms-egs` in the 
+   :ref:`synonyms-ref` page.
 
 .. _text-ref-synonyms-equivalent-maptype-eg:
 
-Equivalent Mapping
-~~~~~~~~~~~~~~~~~~
+``equivalent`` Mapping Example
+``````````````````````````````
 
 The following query searches the ``comments`` field for the word 
 ``dress``. It uses the synonym mapping named ``mySynonyms`` in the 
@@ -460,8 +465,8 @@ another in the synonym source collection.
 
 .. _text-ref-synonyms-explicit-maptype-eg:
 
-Explicit Mapping 
-~~~~~~~~~~~~~~~~
+``explicit`` Mapping Example
+````````````````````````````
 
 The following query searches the ``comments`` field for the word 
 ``boat``. It uses the synonym mapping named ``mySynonyms`` in the index 

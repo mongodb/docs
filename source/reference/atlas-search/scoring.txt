@@ -9,7 +9,7 @@ Scoring
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 3
    :class: singlecol
 
 Every document returned by an |fts| query is assigned a score based
@@ -58,15 +58,19 @@ field named ``score`` to the returned documents:
 More information about the Lucene scoring algorithm can be found in the
 `Lucene documentation <https://lucene.apache.org/core/3_5_0/scoring.html>`__.
 
-Score Modifiers
----------------
+Options
+-------
 
-The following score modifying options are available to the
-:ref:`search <search-ref>` and :ref:`term <term-ref>` operators.
+The following score modifying options are available to all operators.
+For details and examples, click any of the following options:
+
+- :ref:`scoring-boost`
+- :ref:`scoring-constant`
+- :ref:`scoring-function`
 
 .. _scoring-boost:
 
-``boost``
+``boost`` 
 ~~~~~~~~~
 
 The ``boost`` option multiplies a result's base score by a given number 
@@ -76,7 +80,7 @@ or the value of a numeric field in the documents.
 
    - The ``boost`` and ``constant`` options can't be used together.
    - The ``boost`` option with ``path`` is the same as multiplying 
-     using :ref:`function <scoring-function>` option with :ref:`path 
+     using the :ref:`scoring-function` option with a :ref:`path 
      expression <function-score-expression>`.
 
 Fields 
@@ -118,19 +122,22 @@ The ``boost`` option takes the following fields:
 Examples 
 ````````
 
-The following examples use the default index on the 
-``sample_mflix.movies`` collection to query the ``title`` field. The 
-sample queries include a ``$project`` stage to exclude all fields 
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database. If you have the :ref:`sample dataset
+<available-sample-datasets>` on your cluster, you can create the |fts|
+``default`` index and run the example queries on your cluster. 
+ 
+The sample queries include a ``$project`` stage to exclude all fields 
 except ``title`` and ``score``.
 
 .. tabs:: 
 
-   .. tab:: Number Example 
+   .. tab:: ``value`` Field Example
       :tabid: number
 
       In the following example, the :ref:`text <text-ref>` operator 
       uses ``score`` with the ``boost`` option to multiply the score 
-      results by ``3``.
+      results by 3, as specified in the ``value`` field.
 
       .. code-block:: json
          :linenos:
@@ -155,7 +162,7 @@ except ``title`` and ``score``.
          ])
 
       The above query returns the following results, in which the score 
-      is multiplied by ``3`` from its base value:
+      is multiplied by 3 from its base value:
 
       .. code-block:: json
          :copyable: false
@@ -163,13 +170,14 @@ except ``title`` and ``score``.
          { "title" : "Kites Over Helsinki", "score" : 12.247001647949219 }
          { "title" : "Helsinki-Naples All Night Long", "score" : 9.568056106567383 }
 
-   .. tab:: Path Example 
+   .. tab:: ``path`` Field Example
       :tabid: patheg
 
       In the following example, the :ref:`text <text-ref>` operator 
-      uses ``score`` option with the numeric field ``imdb.rating`` in 
-      ``path`` or ``3``, if the numeric field is not found in the 
-      documents, to multiply the score of the documents.
+      uses ``score`` with the ``boost`` option to multiply the score results by 
+      the numeric field ``imdb.rating`` in ``path``. 
+      If the numeric field is not found in the 
+      specified ``path``, the operator multiplies the score of the documents by 3.
 
       .. code-block:: json 
          :linenos:
@@ -213,10 +221,18 @@ except ``title`` and ``score``.
 
 ``constant``
 ~~~~~~~~~~~~
+The ``constant`` option replaces the base score with a specified number. 
 
-The ``constant`` option replaces the base score with a given number. In
-the following example, the :ref:`term <term-ref>` operator uses
-``score`` with the ``constant`` option to replace all score results
+.. note::
+
+  The ``constant`` and ``boost`` options may not be used together.
+
+Examples
+````````
+
+The following example uses the default index on the ``sample_mflix.movies``
+collection to query the ``title`` field. In the query, the :ref:`text <text-ref>` 
+operator uses``score`` with the ``constant`` option to replace all score results
 with ``5``.
 
 .. code-block:: javascript
@@ -254,17 +270,13 @@ replaced with the specified ``constant`` value:
    { "title" : "Tower Block", "score" : 5 }
    { "title": "Ivory Tower", "score": 5 }
 
-.. note::
-
-   The ``constant`` and ``boost`` options may not be used together.
-
 .. _scoring-function:
 
-``function`` 
+``function``
 ~~~~~~~~~~~~
 
-The ``function`` option allows the value of a numeric field to alter 
-the final score of the document. You can specify the numeric field for 
+The ``function`` option allows you to alter the final score of the document 
+using a numeric field . You can specify the numeric field for 
 computing the final score through an :ref:`expression 
 <function-score-expression>`.
 
@@ -272,6 +284,22 @@ computing the final score through an :ref:`expression
 
 Expressions
 ```````````
+Use the following expressions with the ``function`` option 
+to alter the final score of the document:
+
+- Arithmetic expressions, which add or multiply a series of numbers. 
+
+- Constant expressions, which allow a :ref:`constant <scoring-constant>` 
+  number in the function score.
+
+- Path expressions, which incorporate an indexed numeric field value 
+  into a function score. 
+
+- Score expressions, which return the relevance score assigned by |fts|.
+
+- Unary expressions, which are expressions that take a single argument. 
+  In |fts|, you can calculate the log10(x) or log10(x+1) of a specified 
+  number. 
 
 .. tabs:: 
 
@@ -492,8 +520,10 @@ Expressions
    .. tab:: Unary
       :tabid: unary 
 
-      A unary expression calculates the log10 of a number. It must 
-      include one of the following options:
+      A unary expression is an expression that takes a single argument. 
+      In |fts|, you can use unary expressions to calculate 
+      the log10(x) or log10(x+1) of 
+      a specified number. It must include one of the following options:
 
       .. list-table::
          :header-rows: 1

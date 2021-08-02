@@ -105,7 +105,7 @@ A custom analyzer has the following attributes:
 
 To use a custom analyzer when indexing a collection, include it in the
 :ref:`index definition <ref-index-definitions>`. This page contains 
-sample index defintions and query examples for character filters, 
+sample index definitions and query examples for character filters, 
 tokenizers, and token filters. The query examples use a sample 
 ``minutes`` collection with the following documents:
 
@@ -228,76 +228,68 @@ The ``htmlStrip`` character filter has the following attributes:
 
 .. example::
 
-   .. tabs:: 
+   The following example index definition uses a custom analyzer 
+   named ``htmlStrippingAnalyzer``. It uses the ``htmlStrip`` 
+   character filter to remove all HTML tags from the text except 
+   the ``a`` tag in the ``minutes`` collection. It uses the 
+   :ref:`standard tokenizer <standard-tokenizer-ref>` and no 
+   token filters.
 
-      .. tab:: Index Definition 
-         :tabid: index
+   .. code-block:: json
 
-         The following example index definition uses a custom analyzer 
-         named ``htmlStrippingAnalyzer``. It uses the ``htmlStrip`` 
-         character filter to remove all HTML tags from the text except 
-         the ``a`` tag in the ``minutes`` collection. It uses the 
-         :ref:`standard tokenizer <standard-tokenizer-ref>` and no 
-         token filters.
+     {
+       "analyzer": "htmlStrippingAnalyzer",
+       "mappings": {
+         "dynamic": true
+       },
+       "analyzers": [{
+         "name": "htmlStrippingAnalyzer",
+         "charFilters": [{
+           "type": "htmlStrip",
+           "ignoredTags": ["a"]
+         }],
+         "tokenizer": {
+           "type": "standard"
+         },
+         "tokenFilters": []
+       }]
+     }
 
-         .. code-block:: json
+   The following search operation looks for occurrences of the 
+   string ``head`` in the ``text`` field of the ``minutes`` 
+   collection.
 
-            {
-              "analyzer": "htmlStrippingAnalyzer",
-              "mappings": {
-                "dynamic": true
-              },
-              "analyzers": [{
-                "name": "htmlStrippingAnalyzer",
-                "charFilters": [{
-                  "type": "htmlStrip",
-                  "ignoredTags": ["a"]
-                }],
-                "tokenizer": {
-                  "type": "standard"
-                },
-                "tokenFilters": []
-              }]
-            }
+   .. code-block:: json
 
-      .. tab:: Query Results 
-         :tabid: query
-         
-         The following search operation looks for occurrences of the 
-         string ``head`` in the ``text`` field of the ``minutes`` 
-         collection.
+     db.minutes.aggregate([   
+       {     
+         $search: {
+           text: {
+             query: "head",
+             path: "text"
+           }
+         }
+       },
+       {
+         $project: {
+           "_id": 1,
+           "text": 1
+         }
+       }
+     ])
 
-         .. code-block:: json
+   The query returns the following results:
 
-            db.minutes.aggregate([   
-              {     
-                $search: {
-                  text: {
-                    query: "head",
-                    path: "text"
-                  }
-                }
-              },
-              {
-                $project: {
-                  "_id": 1,
-                  "text": 1
-                }
-              }
-            ])
+   .. code-block:: json
+     :copyable: false
+    
+     { "_id" : 2, "text" : "The head of the sales department spoke first." }
+     { "_id" : 3, "text" : "<body>We'll head out to the conference room by noon.</body>" }
 
-         The query returns the following results:
-
-         .. code-block:: json
-            :copyable: false
-            
-            { "_id" : 2, "text" : "The head of the sales department spoke first." }
-            { "_id" : 3, "text" : "<body>We'll head out to the conference room by noon.</body>" }
-
-         The document with ``_id: 1`` is not returned, because the 
-         string ``head`` is part of the HTML tag ``<head>``. The 
-         document with ``_id: 3`` contains HTML tags, but the string 
-         ``head`` is elsewhere so the document is a match.
+   The document with ``_id: 1`` is not returned, because the 
+   string ``head`` is part of the HTML tag ``<head>``. The 
+   document with ``_id: 3`` contains HTML tags, but the string 
+   ``head`` is elsewhere so the document is a match.
 
 .. _icuNormalize-ref:
 
@@ -1174,81 +1166,73 @@ The ``daitchMokotoffSoundex`` token filter has the following attributes:
      - no 
      - ``include``
 
-.. example:: 
+.. example::
 
-   .. tabs:: 
+   The following example index definition uses a custom analyzer 
+   named ``dmsAnalyzer``. It uses the :ref:`standard tokenizer
+   <standard-tokenizer-ref>` with the ``daitchMokotoffSoundex`` 
+   token filter to index and query for words that sound the same 
+   as their encoded forms.
 
-      .. tab:: Index Defintion 
-         :tabid: index
+   .. code-block:: json 
 
-         The following example index definition uses a custom analyzer 
-         named ``dmsAnalyzer``. It uses the :ref:`standard tokenizer
-         <standard-tokenizer-ref>` with the ``daitchMokotoffSoundex`` 
-         token filter to index and query for words that sound the same 
-         as their encoded forms.
+     {
+       "analyzer": "dmsAnalyzer",
+       "searchAnalyzer": "dmsAnalyzer",
+       "mappings": {
+         "dynamic": true
+       },
+       "analyzers": [
+         {
+           "name": "dmsAnalyzer",
+           "tokenFilters": [
+             {
+               "type": "daitchMokotoffSoundex",
+               "originalTokens": "include"
+             }
+           ],
+           "tokenizer": {
+             "type": "standard"
+           }
+         }
+       ]
+     }
 
-         .. code-block:: json 
+   The following query searches for terms that sound similar to 
+   ``AUERBACH`` in the ``page_updated_by.last_name`` field of 
+   the ``minutes`` collection.
 
-            {
-              "analyzer": "dmsAnalyzer",
-              "searchAnalyzer": "dmsAnalyzer",
-              "mappings": {
-                "dynamic": true
-              },
-              "analyzers": [
-                {
-                  "name": "dmsAnalyzer",
-                  "tokenFilters": [
-                    {
-                      "type": "daitchMokotoffSoundex",
-                      "originalTokens": "include"
-                    }
-                  ],
-                  "tokenizer": {
-                    "type": "standard"
-                  }
-                }
-              ]
+   .. code-block:: json 
+
+      db.minutes.aggregate([
+        {
+          $search: {
+            "index": "default",
+            "text": {
+              "query": "AUERBACH",
+              "path": "page_updated_by.last_name"
             }
+          }
+        },
+        {
+          $project: {
+            "_id": 1,
+            "page_updated_by.last_name": 1
+          }
+        }
+      ])
 
-      .. tab:: Query Results
-         :tabid: query
+   The query returns the following results: 
 
-         The following query searches for terms that sound similar to 
-         ``AUERBACH`` in the ``page_updated_by.last_name`` field of 
-         the ``minutes`` collection.
+   .. code-block:: json 
+     :copyable: false 
 
-         .. code-block:: json 
+     { "_id" : 1, "page_updated_by" : { "last_name" : "AUERBACH" } }
+     { "_id" : 2, "page_updated_by" : { "last_name" : "OHRBACH" } }
 
-            db.minutes.aggregate([
-              {
-                $search: {
-                  "index": "default",
-                  "text": {
-                    "query": "AUERBACH",
-                    "path": "page_updated_by.last_name"
-                  }
-                }
-              },
-              {
-                $project: {
-                  "_id": 1,
-                  "page_updated_by.last_name": 1
-                }
-              }
-            ])
-
-         The query returns the following results: 
-
-         .. code-block:: json 
-            :copyable: false 
-
-            { "_id" : 1, "page_updated_by" : { "last_name" : "AUERBACH" } }
-            { "_id" : 2, "page_updated_by" : { "last_name" : "OHRBACH" } }
-
-         |fts| returns documents with ``_id: 1`` and ``_id: 2`` 
-         because the terms in both documents are phonetically similar, 
-         and are coded using the same six digit ``097500``.
+   |fts| returns documents with ``_id: 1`` and ``_id: 2`` 
+   because the terms in both documents are phonetically similar, 
+   and are coded using the same six digit ``097500``.
 
 .. _lowercase-tf-ref:
 
@@ -1749,131 +1733,123 @@ The ``shingle`` token filter has the following attributes:
 
 .. example::
 
-   .. tabs:: 
+   The following example index definition uses two custom 
+   analyzers, ``emailAutocompleteIndex`` and 
+   ``emailAutocompleteSearch``, to implement autocomplete-like 
+   functionality. |fts| uses the ``emailAutocompleteIndex`` 
+   analyzer during index creation to:
+    
+   - Replace ``@`` characters in a field with ``AT``
+   - Create tokens with the :ref:`whitespace 
+     <whitespace-tokenizer-ref>` tokenizer
+   - Shingle tokens 
+   - Create :ref:`edgegram-tf-ref` of those shingled tokens
+  
+   |fts| uses the ``emailAutocompleteSearch`` analyzer during a 
+   search to:
 
-      .. tab:: Index Definition 
-         :tabid: index
-         
-         The following example index definition uses two custom 
-         analyzers, ``emailAutocompleteIndex`` and 
-         ``emailAutocompleteSearch``, to implement autocomplete-like 
-         functionality. |fts| uses the ``emailAutocompleteIndex`` 
-         analyzer during index creation to:
-         
-         - Replace ``@`` characters in a field with ``AT``
-         - Create tokens with the :ref:`whitespace 
-           <whitespace-tokenizer-ref>` tokenizer
-         - Shingle tokens 
-         - Create :ref:`edgegram-tf-ref` of those shingled tokens
+   - Replace ``@`` characters in a field with ``AT``
+   - Create tokens with the :ref:`whitespace tokenizer 
+     <whitespace-tokenizer-ref>` tokenizer
+    
+   .. code-block:: json
+      :emphasize-lines: 34-38
 
-         |fts| uses the ``emailAutocompleteSearch`` analyzer during a 
-         search to:
+      {
+       "analyzer": "lucene.keyword",
+       "mappings": {
+         "dynamic": true,
+         "fields": {
+           "page_updated_by": {
+             "type": "document",
+             "fields": {
+               "email": {
+                 "type": "string",
+                 "analyzer": "emailAutocompleteIndex",
+                 "searchAnalyzer": "emailAutocompleteSearch",
+               }
+             }
+           }
+         }
+       },
+       "analyzers": [
+         {
+           "name": "emailAutocompleteIndex",
+           "charFilters": [
+             {
+               "mappings": {
+                 "@": "AT"
+               },
+               "type": "mapping"
+             }
+           ],
+           "tokenizer": {
+             "maxTokenLength": 15,
+             "type": "whitespace"
+           },
+           "tokenFilters": [
+             {
+               "maxShingleSize": 3,
+               "minShingleSize": 2,
+               "type": "shingle"
+             },
+             {
+               "maxGram": 15,
+               "minGram": 2,
+               "type": "edgeGram"
+             }
+           ]
+         },
+         {
+           "name": "emailAutocompleteSearch",
+           "charFilters": [
+             {
+               "mappings": {
+                 "@": "AT"
+               },
+               "type": "mapping"
+             }
+           ],
+           "tokenizer": {
+             "maxTokenLength": 15,
+             "type": "whitespace"
+           }
+         }
+       ]
+     }
 
-         - Replace ``@`` characters in a field with ``AT``
-         - Create tokens with the :ref:`whitespace tokenizer 
-           <whitespace-tokenizer-ref>` tokenizer
-         
-         .. code-block:: json
-            :emphasize-lines: 34-38
+   The following query searches for an email address in the 
+   ``page_updated_by.email`` field of the ``minutes`` collection:
 
-            {
-              "analyzer": "lucene.keyword",
-              "mappings": {
-                "dynamic": true,
-                "fields": {
-                  "page_updated_by": {
-                    "type": "document",
-                    "fields": {
-                      "email": {
-                        "type": "string",
-                        "analyzer": "emailAutocompleteIndex",
-                        "searchAnalyzer": "emailAutocompleteSearch",
-                      }
-                    }
-                  }
-                }
-              },
-              "analyzers": [
-                {
-                  "name": "emailAutocompleteIndex",
-                  "charFilters": [
-                    {
-                      "mappings": {
-                        "@": "AT"
-                      },
-                      "type": "mapping"
-                    }
-                  ],
-                  "tokenizer": {
-                    "maxTokenLength": 15,
-                    "type": "whitespace"
-                  },
-                  "tokenFilters": [
-                    {
-                      "maxShingleSize": 3,
-                      "minShingleSize": 2,
-                      "type": "shingle"
-                    },
-                    {
-                      "maxGram": 15,
-                      "minGram": 2,
-                      "type": "edgeGram"
-                    }
-                  ]
-                },
-                {
-                  "name": "emailAutocompleteSearch",
-                  "charFilters": [
-                    {
-                      "mappings": {
-                        "@": "AT"
-                      },
-                      "type": "mapping"
-                    }
-                  ],
-                  "tokenizer": {
-                    "maxTokenLength": 15,
-                    "type": "whitespace"
-                  }
-                }
-              ]
+   .. code-block:: json 
+
+      db.minutes.aggregate([
+        {
+          $search: {
+            "index": "default",
+            "text": {
+              "query": "auerbach@ex",
+               "path": "page_updated_by.email"
             }
+          }
+        }
+      ])
 
-      .. tab:: Query Results 
-         :tabid: query
+   The query returns the following results:
 
-         The following query searches for an email address in the 
-         ``page_updated_by.email`` field of the ``minutes`` collection:
+   .. code-block:: json 
+      :copyable: false 
 
-         .. code-block:: json 
-
-            db.minutes.aggregate([
-              {
-                $search: {
-                  "index": "default",
-                  "text": {
-                    "query": "auerbach@ex",
-                    "path": "page_updated_by.email"
-                  }
-                }
-              }
-            ])
-
-         The query returns the following results:
-
-         .. code-block:: json 
-            :copyable: false 
-
-            { 
-              "_id" : 1, 
-              "page_updated_by" : { 
-                "last_name" : "AUERBACH", 
-                "first_name" : "Siân", 
-                "email" : "auerbach@example.com", 
-                "phone" : "123-456-7890" 
-              }, 
-              "text" : "<head> This page deals with department meetings. </head>" 
-            }
+      {  
+        "_id" : 1, 
+        "page_updated_by" : { 
+          "last_name" : "AUERBACH", 
+          "first_name" : "Siân", 
+          "email" : "auerbach@example.com", 
+          "phone" : "123-456-7890" 
+        }, 
+        "text" : "<head> This page deals with department meetings. </head>" 
+      }
 
 .. _regex-tf-ref:
 
@@ -1926,85 +1902,77 @@ The ``regex`` token filter has the following attributes:
 
 .. example::
 
-   .. tabs:: 
+   The following index definition uses a custom analyzer named 
+   ``emailRedact`` for indexing the ``page_updated_by.email`` 
+   field in the ``minutes`` collection. It uses the 
+   :ref:`standard tokenizer <standard-tokenizer-ref>`. It first 
+   applies the lowercase token filter to turn uppercase 
+   characters in the field to lowercase and then finds strings 
+   that look like email addresses and replaces them with the word 
+   ``redacted``.
 
-      .. tab:: Index Definition 
-         :tabid: index
-         
-         The following index definition uses a custom analyzer named 
-         ``emailRedact`` for indexing the ``page_updated_by.email`` 
-         field in the ``minutes`` collection. It uses the 
-         :ref:`standard tokenizer <standard-tokenizer-ref>`. It first 
-         applies the lowercase token filter to turn uppercase 
-         characters in the field to lowercase and then finds strings 
-         that look like email addresses and replaces them with the word 
-         ``redacted``.
+   .. code-block:: json
+ 
+     {
+       "analyzer": "lucene.standard",
+       "mappings": {
+         "dynamic": false,
+         "fields": {
+           "page_updated_by": {
+             "type": "document",
+             "fields": {
+               "email": {
+                 "type": "string",
+                 "analyzer": "emailRedact"
+               }
+             }
+           }
+         }
+       },
+       "analyzers": [
+         {
+           "charFilters": [],
+           "name": "emailRedact",
+           "tokenizer": {
+             "type": "standard"
+           },
+           "tokenFilters": [
+             {
+               "type": "lowercase"
+             },
+             {
+               "matches": "all",
+               "pattern": "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$",
+               "replacement": "redacted",
+               "type": "regex"
+             }
+           ]
+         }
+       ]
+     }
 
-         .. code-block:: json
+   The following query searches for the term ``example`` in the 
+   ``page_updated_by.email`` field of the ``minutes`` collection. 
 
-            {
-              "analyzer": "lucene.standard",
-              "mappings": {
-                "dynamic": false,
-                "fields": {
-                  "page_updated_by": {
-                    "type": "document",
-                    "fields": {
-                      "email": {
-                        "type": "string",
-                        "analyzer": "emailRedact"
-                      }
-                    }
-                  }
-                }
-              },
-              "analyzers": [
-                {
-                  "charFilters": [],
-                  "name": "emailRedact",
-                  "tokenizer": {
-                    "type": "standard"
-                  },
-                  "tokenFilters": [
-                    {
-                      "type": "lowercase"
-                    },
-                    {
-                      "matches": "all",
-                      "pattern": "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$",
-                      "replacement": "redacted",
-                      "type": "regex"
-                    }
-                  ]
-                }
-              ]
-            }
+   .. code-block:: 
 
-      .. tab:: Query Results 
-         :tabid: query 
+     db.minutes.aggregate([
+       {
+         $search: {
+           "index": "default",
+           "text": {
+             "query": "example",
+             "path": "page_updated_by.email"
+           }
+         }
+       }
+     ])
 
-         The following query searches for the term ``example`` in the 
-         ``page_updated_by.email`` field of the ``minutes`` collection. 
-
-         .. code-block:: 
-
-            db.minutes.aggregate([
-              {
-                $search: {
-                  "index": "default",
-                  "text": {
-                    "query": "example",
-                    "path": "page_updated_by.email"
-                  }
-                }
-              }
-            ])
-
-         |fts| doesn't return any results for the query because the 
-         ``page_updated_by.email`` field does not contain any instances 
-         of the word ``example`` that are not in an email address. 
-         |fts| replaces strings that match the regular expression 
-         provided in the custom analyzer with the word ``redacted``.
+   |fts| doesn't return any results for the query because the 
+   ``page_updated_by.email`` field does not contain any instances 
+   of the word ``example`` that are not in an email address. 
+   |fts| replaces strings that match the regular expression 
+   provided in the custom analyzer with the word ``redacted``.
 
 .. _snowballstemming-tf-ref:
 
