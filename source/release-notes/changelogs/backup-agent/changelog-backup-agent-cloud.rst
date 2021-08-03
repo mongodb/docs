@@ -798,9 +798,7 @@ to support improved packaging options for the Backup Agent.
 Backup Agent v20131216.1
 ------------------------
 
-- Added support for connecting to MongoDB instances running SSL. See
-  the :doc:`/tutorial/configure-backup-agent-for-ssl` documentation for
-  more information.
+- Added support for connecting to MongoDB instances running |tls|.
 
 - The agent will try to use additional ``mongos`` instances to take a
   cluster snapshot if the first ``mongos`` is unavailable.

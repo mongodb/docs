@@ -10,8 +10,7 @@
 
          The {+mdbagent+} configuration file is named
          ``automation-agent.config`` as a way to enable easier upgrades
-         for those using :doc:`legacy agents
-         </tutorial/nav/legacy-agents>`.
+         for those using legacy agents.
 
    .. tab::
       :tabid: macos
@@ -35,8 +34,7 @@
 
          The {+mdbagent+} configuration file is named
          ``automation-agent.config`` as a way to enable easier upgrades
-         for those using :doc:`legacy agents
-         </tutorial/nav/legacy-agents>`.
+         for those using legacy agents.
 
    .. tab::
       :tabid: debian
@@ -48,5 +46,4 @@
 
          The {+mdbagent+} configuration file is named
          ``automation-agent.config`` as a way to enable easier upgrades
-         for those using :doc:`legacy agents
-         </tutorial/nav/legacy-agents>`.
+         for those using legacy agents.

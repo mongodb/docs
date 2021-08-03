@@ -62,9 +62,7 @@ Backup Agent 3.4.1.283
 
 :ref:`Released with Ops Manager 1.8 on 2015-06-23 <opsmgr-server-1.8.0>`
 
-- Added support for x.509 Client Certificate authentication. For
-  configuration details, see:
-  :doc:`/tutorial/configure-backup-agent-for-x509`.
+- Added support for x.509 Client Certificate authentication.
 
 - The Kerberos credentials cache now uses a fixed name.
 

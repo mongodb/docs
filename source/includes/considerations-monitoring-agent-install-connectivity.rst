@@ -16,7 +16,7 @@ You must :doc:`configure the network infrastructure
 
    - the Monitoring Agent can connect to |mms| on port ``8080``
      if it is using :abbr:`HTTP (Hypertext Transfer Protocol)` or
-     ``8443`` if :doc:`it is using HTTPS </tutorial/configure-monitoring-agent-for-ssl>`.
+     ``8443`` if :doc:`it is using HTTPS </tutorial/configure-mongodb-agent-for-tls>`.
 
 |mms| does not make *any* outbound connections to the agents
 or to MongoDB instances. If :ref:`Exposed DB Host Check is enabled

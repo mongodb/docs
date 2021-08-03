@@ -53,9 +53,8 @@ For each MongoDB user representing an |mms| agent:
       * - Create an |ldap| group
         - Documentation for your |ldap| implementation.
       
-      * - Assign the appropriate roles for the agents
-        - :doc:`/reference/required-access-backup-agent` and 
-          :doc:`/reference/required-access-monitoring-agent`.
+      * - Assign the appropriate roles for the {+mdbagent+}
+        - :doc:`/reference/required-access-mongodb-agent`.
 
       * - Map an |ldap| group and MongoDB role
         - **LDAP Roles** section of the 
@@ -77,5 +76,4 @@ source such as Kerberos.
 
 .. note::
    To discover the appropriate roles for the agents, see 
-   :doc:`/reference/required-access-backup-agent` and 
-   :doc:`/reference/required-access-monitoring-agent`.
+   :doc:`/reference/required-access-mongodb-agent`.

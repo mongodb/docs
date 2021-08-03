@@ -87,7 +87,7 @@ settings, use the :ref:`update-backup-logs` endpoint.
      - string
      - Required
      - Base |url| used for the **mothership** and **https** settings
-       in the :doc:`/reference/backup-agent`. For example, for
+       in the :ref:`Custom Settings<mongodb-agent-backup-settings>`. For example, for
        **"baseUrl"=https://cloud.mongodb.com**, the backup
        configuration fields would have these values:
        **mothership=api-backup.mongodb.com** and **https"=true**.

@@ -10,8 +10,7 @@
 
          The {+mdbagent+} configuration directory is named
          ``Automation`` to simplify upgrades
-         for those using :doc:`legacy agents
-         </tutorial/nav/legacy-agents>`.
+         for those using legacy agents.
 
    .. tab::
       :tabid: macos
