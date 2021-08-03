@@ -1,0 +1,191 @@
+---
+ref: configure-kubectl-om
+stepnum: 1
+inherit:
+  file: steps-configure-kubectl-namespace.yaml
+  ref: configure-kubectl-namespace
+---
+stepnum: 2
+level: 4
+ref: create-pem-file
+title: "Create the PEM file for backups."
+content: |
+    
+    Create the :opsmgr:`queryable.pem
+    </reference/configuration/#brs.queryable.pem>`
+    file that you will use for accessing and querying backups based on
+    your deployment's |tls| requirements. The PEM file contains a public
+    key certificate and its associated private key that are needed to
+    access and run queries on |onprem| backup snapshots.
+
+    To learn more about the PEM file's requirements, see
+    :opsmgr:`Authorization and Authentication Requirements
+    </tutorial/query-backup/#authentication-and-authorization>`.
+
+---
+stepnum: 3
+level: 4
+ref: create-queryable-pem-secret
+title: "Create a Secret containing the PEM file."
+content: |
+  Run the following command to create a Secret with the
+  :opsmgr:`queryable.pem </reference/configuration/#brs.queryable.pem>`
+  file that you created in the previous step:
+
+  .. code-block:: sh
+
+     kubectl create secret generic queryable-pem --from-file=./queryable.pem
+
+---
+title: "Mount the Secret as a volume that |onprem| custom objects will use."
+stepnum: 4
+level: 4
+ref: mount-pem-secret
+content: |
+
+  The |k8s-op-short| must be able to access the :opsmgr:`queryable.pem
+  </reference/configuration/#brs.queryable.pem>` file in the mount point
+  for the persistent volume in the Pod's container for |onprem|.
+
+  To mount the Secret, use one of these methods:
+
+  - Configure volumes using ``volumeClaimTemplates`` and specify the
+    location for the :opsmgr:`queryable.pem
+    </reference/configuration/#brs.queryable.pem>` file:
+
+    .. code-block:: yaml
+       :linenos:
+       :emphasize-lines: 9-35
+
+       apiVersion: mongodb.com/v1
+       kind: MongoDBOpsManager
+       metadata:
+         name: ops-manager
+       spec:
+         replicas: 1
+         version: 4.2.12
+         adminCredentials: ops-manager-admin-secret
+         configuration:
+           mms.fromEmailAddr: "admin@thecompany.com"
+           brs.queryable.pem: "/certs/queryable.pem"
+ 
+         statefulSet:
+           spec:
+            # the Persistent Volume Claim is created for each Ops Manager Pod
+            volumeClaimTemplates:
+              - metadata:
+                  name: queryable-volume
+                spec:
+                  accessModes: [ "ReadWriteOnce" ]
+                  storageClassName: <your_storage_class_name>
+                  resources:
+                    requests:
+                       storage: 1G
+            template:
+              spec:
+                containers:
+                  - name: mongodb-ops-manager
+                  volumeMounts:
+                       - name: queryable-volume
+                       - mountPath: /certs
+                volumes:
+                  - name: queryable-pem
+                  secret:
+                   secretName: queryable-pem
+
+         applicationDatabase:
+            members: 3
+            version: 4.2.6-ent
+
+  - Configure volumes without using ``volumeClaimTemplates`` and specify
+    the location for the :opsmgr:`queryable.pem
+    </reference/configuration/#brs.queryable.pem>` file:
+
+    .. code-block:: yaml
+       :linenos:
+       :emphasize-lines: 9-24
+
+       apiVersion: mongodb.com/v1
+        kind: MongoDBOpsManager
+        metadata:
+          name: ops-manager
+       spec:
+          replicas: 1
+          version: 4.2.12
+          adminCredentials: ops-manager-admin-secret
+          configuration:
+            brs.queryable.pem: "/certs/queryable.pem"
+            mms.fromEmailAddr: "admin@thecompany.com"
+          statefulSet:
+            template:
+              spec:
+                containers:
+                  - name: mongodb-ops-manager
+                  volumeMounts:
+                   - name: queryable-volume
+                   - mountPath: /certs/
+                   
+                volumes:
+                  - name: queryable-pem
+                  secret:
+                    secretName: queryable-pem
+ 
+       applicationDatabase:
+         members: 3
+         version: 4.2.6-ent
+
+---
+title: "Save your |onprem| config file."
+stepnum: 5
+level: 4
+ref: save-config-file
+
+---
+title: "Apply changes to your |onprem| deployment."
+stepnum: 6
+level: 4
+ref: apply-queryable-backup-changes-om-k8s
+content: |
+
+     Invoke the following ``kubectl`` command on the filename of the
+     |onprem| resource definition:
+
+     .. code-block:: sh
+
+        kubectl apply -f <opsmgr-resource>.yaml
+
+     When you apply the changes to your |onprem| resource
+     definition, |k8s| updates the |onprem| StatefulSet,
+     creates the volumes, and mounts the Secrets.
+
+---
+stepnum: 7
+title: "Track the status of the mounted volumes and Secrets."
+level: 4
+ref: track-k8s-deployment-om-queryable-backup-config
+content: |
+
+   a. Obtain the list of persistent volume claims:
+
+      .. code-block:: sh
+
+         kubectl get pvc
+
+   #. Obtain the Secrets:
+      
+      .. code-block:: sh
+
+         kubectl get secrets
+
+   #. Check the status of your |onprem| resources:
+    
+      .. code-block:: sh
+         
+         kubectl get om <resource-name> -o yaml -w
+
+      The ``-w`` flag means "watch". With the "watch" flag set, the
+      output refreshes immediately when the configuration changes until
+      the status phase achieves the ``Running`` state.
+
+      To learn more about the resource deployment statuses, see
+      :doc:`/reference/troubleshooting`.
