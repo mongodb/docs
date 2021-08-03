@@ -115,7 +115,9 @@ extlinks = {
     'twilio-sup' : ('https://support.twilio.com/hc/en-us/articles%s',''),
     'ddog-app' : ('https://app.datadoghq.com%s',''),
     'ddog-docs' : ('https://docs.datadoghq.com%s',''),
-    'vo-docs' : ('https://help.victorops.com%s','')
+    'vo-docs' : ('https://help.victorops.com%s',''),
+    'cloudmgr' : ('https://docs.cloudmanager.mongodb.com%s','')
+
 }
 
 source_constants = {
