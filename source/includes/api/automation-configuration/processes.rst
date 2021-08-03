@@ -127,7 +127,7 @@ instances. Using this array, you can:
        - "majority"
 
    * - defaultRWConcern.defaultWriteConcern.j
-     - boolen
+     - boolean
      - Optional
      - Flag that indicates whether the write acknowledgement must be
        written to the
