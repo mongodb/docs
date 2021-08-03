@@ -9,6 +9,9 @@
 * :doc:`Promises and Callbacks </fundamentals/promises>`: access return
   values using asynchronous Javascript
 
+* :doc:`Aggregation </fundamentals/aggregation>`: produce reduced and
+  summarized results in MongoDB
+
 * :doc:`Indexes </fundamentals/indexes>`: create and design indexes to make
   your queries efficient
 
