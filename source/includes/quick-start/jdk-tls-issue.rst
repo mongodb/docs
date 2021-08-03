@@ -1,4 +1,4 @@
-.. note:: Known connection issue when using TLS v1.3
+.. important:: Known connection issue when using TLS v1.3
 
    If you encounter an error connecting to your MongoDB instance or cluster
    that resembles the following while running your application, you may need

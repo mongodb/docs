@@ -1,4 +1,4 @@
-.. note:: Legacy API
+.. tip:: Legacy API
 
    If you are using the legacy API, 
    :ref:`see our FAQ page <faq-legacy-connection>`
