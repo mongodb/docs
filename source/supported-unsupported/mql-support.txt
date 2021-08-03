@@ -88,7 +88,7 @@ Diagnostic Commands
 
    * - :manual:`buildInfo </reference/command/buildInfo>`
 
-     - The response returns the following fields:
+     - The response contains the following fields:
 
        **ok**
          Returns ``1`` for success or ``0`` for failure.
@@ -132,7 +132,7 @@ Diagnostic Commands
 
    * - :manual:`collStats </reference/command/collStats>`
 
-     - The following fields are omitted from the response:
+     - The command omits the following fields in the response:
 
        * ``avgObjSize``
        * ``capped``
@@ -143,9 +143,10 @@ Diagnostic Commands
        * ``totalIndexSize``
        * ``indexSizes``
 
-       The following fields are added to the response. You can use
-       these fields to verify what partitions are being used to
-       populate a collection.
+       The command adds the following fields in the response. You can 
+       use these fields to verify what partitions are being used to
+       populate a collection and understand how recently the stats were 
+       computed.
 
        **partitions.format**
          The file format of the partition.
@@ -169,12 +170,26 @@ Diagnostic Commands
        **avgPartitionSize**
          The average size of all partitions.
 
+       **cacheMetadata**
+         Contains information on how recently the stats were computed. 
+
+       **cacheMetadata.computeTime** 
+         The time in :manual:`ISODate 
+         </reference/glossary/#term-isodate>` format when the 
+         computation for the stats started.
+
+       **cacheMetadata.automaticRefreshInProgress** 
+         The flag that indicates if a background job is running now to 
+         refresh the cache.
+
        .. example::
 
           .. code-block:: json
 
              {
                ...
+                "partitionCount": <number of partitions>,
+                "avgPartitionSize": <average size of all partitions>,
                 "partitions": [{
     	            "format": <file format>,
     	            "attributes": <filtering attributes>,
@@ -182,9 +197,11 @@ Diagnostic Commands
     	            "source": <S3 url or Atlas cluster name>,
     	            "size": <size, in bytes, of the partition>
     	           }, ...],
-    	          "partitionCount": <number of partitions>,
-    	          "avgPartitionSize": <average size of all partitions>
-              ...
+    	          "cacheMetadata": {
+                   computeTime: ISODate("2021-07-25T15:10:33.513Z"),
+                   automaticRefreshInProgress: false
+                },
+                ...
              }
 
        {+adl+} introduces an optional boolean parameter, ``sync``, to 
@@ -217,14 +234,7 @@ Diagnostic Commands
 
    * - :manual:`dbStats </reference/command/dbStats>`
 
-     - The following fields are omitted from the response: 
-
-       * ``object``
-       * ``avgObjSize``
-       * ``fsUsedSize``
-       * ``fsTotalSize``
-
-       {+adl+} introduces an optional boolean parameter, ``sync``, to 
+     - {+adl+} introduces an optional boolean parameter, ``sync``, to 
        bypass the cache and fetch the most recent storage statistics 
        for a given database. The following values are valid for the 
        ``sync`` parameter:
@@ -243,6 +253,29 @@ Diagnostic Commands
 
        To learn more about the parameters supported by this 
        command, see :manual:`dbStats </reference/command/dbStats>`. 
+
+       The command omits the followig fields in the response: 
+
+       * ``object``
+       * ``avgObjSize``
+       * ``fsUsedSize``
+       * ``fsTotalSize``
+
+       The commands adds the following fields in the response. You can 
+       use these fields to determine whether the command returned  
+       stale data.
+
+       **cacheMetadata**
+         Contains information on how recently the stats were computed. 
+
+       **cacheMetadata.computeTime** 
+         The time in :manual:`ISODate 
+         </reference/glossary/#term-isodate>` format when the 
+         computation for the stats started.
+
+       **cacheMetadata.automaticRefreshInProgress** 
+         The flag that indicates if a background job is running now to 
+         refresh the cache.
 
    * - :manual:`explain </reference/command/explain>`
 
