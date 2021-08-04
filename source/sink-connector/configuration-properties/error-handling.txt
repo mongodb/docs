@@ -1,0 +1,143 @@
+===================================
+Connector Error Handling Properties
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Use the following configuration settings to specify how the sink connector
+handles errors and to configure the dead letter queue.
+
+For a list of categories of sink connector configuration settings, see the
+guide on :doc:`Sink Connector Configuration Properties </sink-connector/configuration-properties>`.
+
+Settings
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Name
+     - Description
+
+   * - | **mongo.errors.tolerance**
+     - | **Type:** string
+       |
+       | **Description:**
+       | Whether to continue processing messages if the connector encounters
+         an error.
+       | When set to ``none``, the connector reports any error and
+         blocks further processing of the rest of the messages.
+       | When set to ``all``, the connector ignores any problematic messages.
+
+       .. note::
+
+          This property overrides the `errors.tolerance <https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html#sinkconnectorconfigs_errors.tolerance>`__
+          property of the Connect Framework.
+
+       | **Default:** ``"none"``
+       | **Accepted Values**: ``"none"`` or ``"all"``
+
+   * - | **mongo.errors.log.enable**
+     - | **Type:** boolean
+       |
+       | **Description:**
+       | Whether the connector should write details of errors including 
+         failed operations to the log file. The connector classifies
+         errors as "tolerated" or "not tolerated" using the 
+         ``errors.tolerance`` or ``mongo.errors.tolerance`` settings.
+
+       | When set to ``true``, the connector logs both "tolerated" and
+         "not tolerated" errors.
+       | When set to ``false``, the connector logs "not tolertaed" errors.
+
+       .. note::
+
+          This property overrides the `errors.log.enable <https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html#sinkconnectorconfigs_errors.log.enable>`__
+          property of the Connect Framework.
+
+       | **Default:** ``false``
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - | **errors.log.include.messages**
+     - | **Type:** boolean
+       |
+       | **Description:**
+       | Whether the connector should include the invalid message when
+         logging an error. An invalid message includes data such as record
+         keys, values, and headers.
+       |
+       | **Default:** ``false``
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - | **errors.deadletterqueue.topic.name**
+     - | **Type:** string
+       |
+       | **Description:**
+       | Name of topic to use as the dead letter queue. If blank, the
+         connector does not send any invalid messages to the dead letter
+         queue.
+       | For more information about the dead letter queue, see the 
+         :ref:`Dead Letter Queue Configuration Example <sink-dead-letter-queue-configuration-example>`.
+       |
+       | **Default:** ``""``
+       | **Accepted Values**: A valid Kafka topic name
+
+   * - | **errors.deadletterqueue.context.headers.enable**
+     - | **Type:** boolean
+       |
+       | **Description:**
+       | Whether the connector should include context headers when it
+         writes messages to the dead letter queue.
+       | For more information about the dead letter queue, see the 
+         :ref:`Dead Letter Queue Configuration Example <sink-dead-letter-queue-configuration-example>`.
+       |
+       | **Default:** ``false``
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - | **errors.deadletterqueue.topic.replication.factor**
+     - | **Type:** integer
+       |
+       | **Description:**
+       | The number of nodes on which to replicate the dead letter queue
+         topic. If you are running a single-node Kafka cluster, you must
+         set this to ``1``.
+       | For more information about the dead letter queue, see the
+         :ref:`Dead Letter Queue Configuration Example <sink-dead-letter-queue-configuration-example>`.
+       |
+       | **Default:** ``3``
+       | **Accepted Values**: A valid number of nodes
+
+
+.. _sink-dead-letter-queue-configuration-example:
+
+Dead Letter Queue Configuration Example
+---------------------------------------
+
+Apache Kafka version 2.6 added support for handling errant records. The 
+Kafka connector automatically sends messages that it cannot process to the 
+**dead letter queue**. Once on the dead letter queue, you can inspect the
+errant records, update them, and resubmit them for processing.
+
+The following is an example configuration for enabling the dead letter queue
+topic ``example.deadletterqueue``. This configuration specifies that the
+dead letter queue and log file should record invalid messages, and that
+the dead letter queue messages should include context headers.
+
+.. code-block:: properties
+
+   mongo.errors.tolerance=all
+   mongo.errors.log.enable=true
+   errors.log.include.messages=true
+   errors.deadletterqueue.topic.name=example.deadletterqueue
+   errors.deadletterqueue.context.headers.enable=true
+
