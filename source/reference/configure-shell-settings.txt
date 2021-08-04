@@ -1,8 +1,8 @@
 .. _mongosh-shell-settings:
 
-=====================
-Configure ``mongosh``
-=====================
+================================
+Configure :binary:`~bin.mongosh`
+================================
 
 .. default-domain:: mongodb
 
@@ -24,7 +24,7 @@ persist between sessions.
 Syntax
 ------
 
-Print the current ``mongosh`` configuration:
+Print the current :binary:`~bin.mongosh` configuration:
 
 .. code-block:: javascript
 
@@ -68,16 +68,17 @@ Supported ``property`` parameters
    * - ``historyLength``
      - integer
      - 1000
-     - The number of items to store in ``mongosh`` REPL's history file.
+     - The number of items to store in :binary:`~bin.mongosh` REPL's
+       history file.
 
    * - ``inspectCompact``
      - integer or boolean
      - 3
-     - The level of inner elements that ``mongosh`` outputs on a single
-       line. Short array elements are also grouped together on a single
-       line.
+     - The level of inner elements that :binary:`~bin.mongosh` outputs
+       on a single line. Short array elements are also grouped together
+       on a single line.
        
-       If set to ``false``, ``mongosh`` outputs each field
+       If set to ``false``, :binary:`~bin.mongosh` outputs each field
        on its own line.
 
    * - ``inspectDepth``
@@ -86,6 +87,16 @@ Supported ``property`` parameters
      - The depth to which objects are printed. Setting ``inspectDepth``
        to ``Infinity`` (the javascript object) prints all nested
        objects to their full depth. 
+
+   * - ``redactHistory``
+     - string
+     - ``remove``
+     - Controls what information is recorded in the shell history.
+       Must be one of:
+
+       - ``keep``: Retain all history.
+       - ``remove``: Remove lines which contain sensitive information.
+       - ``remove-redact``: Redact sensitive information.
 
    * - ``showStackTraces``
      - boolean
@@ -103,7 +114,7 @@ returns a string to display dynamic information in the prompt.
 
 Custom prompts are not stored when you exit :binary:`~bin.mongosh`. Add
 the code for your custom prompt to :ref:`.mongoshrc.js <mongoshrc-js>`
-to set the prompt each time you start up the mongo shell.
+to set the prompt each time you start up :binary:`~bin.mongosh`.
 
 Display Line Numbers
 ~~~~~~~~~~~~~~~~~~~~
@@ -172,6 +183,38 @@ The prompt will look like this:
 
    Uptime:451563 Documents:58 >
 
+Behavior
+--------
+
+Remove or Redact Sensitive Information From History
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:binary:`~bin.mongosh` makes "best-effort" attempts to match patterns
+that normally correspond to certain kinds of sensitive information.
+
+There are
+`patterns <https://github.com/mongodb-js/redact/blob/master/lib/regexes.js>`_
+that match:
+
+- Certificates and keys
+- Generic user directories
+- Email addresses
+- IP addresses
+- URLs
+- MongoDB connection strings
+- Compass schema URL fragments
+- Electron application resources
+
+Certain operations, such as :method:`connect()`, are considered
+inherently sensitive. If ``redactHistory`` is set to ``remove`` or
+``remove-redact``, lines with these operations will be removed from the
+:ref:`command line history <mdb-shell-command-history>`.
+
+Other operations, like :method:`~db.collection.find()`, sometimes have
+sensitive information like email addresses. The
+:ref:`shell history <mdb-shell-command-history>` will retain these
+lines as entered unless ``redactHistory`` is set to ``remove-redact``.
+
 Examples
 --------
 
@@ -223,13 +266,13 @@ The output differs like this:
        at Socket.emit (events.js:315:20)
        at Socket.EventEmitter.emit (domain.js:548:15)
 
-Call ``config`` API from outside the ``mongosh``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Call ``config`` API from outside :binary:`~bin.mongosh`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can call the ``config`` API from the command line using
-:option:`--eval` with ``mongosh``. In this case the
-:option:`--nodb` option means ``mongosh`` will update without
-connecting to a MongoDB database.
+:option:`--eval` with :binary:`~bin.mongosh`. In this case the
+:option:`--nodb` option means :binary:`~bin.mongosh` will update
+without connecting to a MongoDB database.
 
 .. important::
 
@@ -239,10 +282,10 @@ connecting to a MongoDB database.
 
 .. code-block::
 
-   mongosh --nodb --eval 'config.set("enableTelemetry", true)' 
+   mongosh --nodb --eval 'config.set("enableTelemetry", true)'
 
-``mongosh`` returns additional information along with the result of the
-API call. 
+:binary:`~bin.mongosh` returns additional information along with the
+result of the API call.
 
 .. code-block::
    :copyable: false
@@ -254,4 +297,53 @@ API call.
    For mongosh info see: https://docs.mongodb.com/mongodb-shell/
 
    Setting "enableTelemetry" has been changed
+
+Redact Sensitive Information
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Compare the recalled history when ``redactHistory`` is set to
+``remove-redact`` or ``remove``. 
+
+Set ``redactHistory`` to ``remove-redact`` mode and enter a query
+containing an email address. 
+
+.. code-block:: javascript
+
+   config.set( "redactHistory", "remove-redact" )
+   db.contacts.find( {"email": "customer@clients.com" } )
+
+When you press the ``up arrow`` to replay the last command the email
+address is redacted. 
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.contacts.find( {"email": "<email>" } )  // Redacted
+
+Set ``redactHistory`` to ``remove`` mode and enter a query containing
+an email address. 
+
+.. code-block:: javascript
+
+   config.set( "redactHistory", "remove" )
+   db.contacts.find( {"email": "customer@clients.com" } )
+
+When you press the ``up arrow`` to replay the last command the email
+address is present. 
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.contacts.find( {"email": "customer@clients.com" } )
+
+The :ref:`shell history <mdb-shell-command-history>` reflects the
+changes. (Note that this stores the most recent input first.)
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.contacts.find( {"email": "customer@clients.com" } )
+   config.set( "redactHistory", "remove" )
+   db.contacts.find( {"email": "<email>" } )
+   config.set( "redactHistory", "remove-redact" )
 
