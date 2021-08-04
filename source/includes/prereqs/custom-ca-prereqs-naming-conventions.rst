@@ -11,5 +11,5 @@
 
      - Replace ``<X>`` with the member of a shard or replica set.
 
-   - End the |pem| files with ``-pem`` and *not* ``.pem``.
+   - End the files with ``-cert`` and *not* ``.cert``.
      These files shouldn't have a file extension.

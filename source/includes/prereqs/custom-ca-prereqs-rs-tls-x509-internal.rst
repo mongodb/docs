@@ -9,7 +9,7 @@
      * - Your custom |certauth|
        - ``ca-pem``
      * - Each member of your replica set
-       - ``<metadata.name>-<X>-pem``
+       - ``<metadata.name>-<X>-cert``
      * - Your project's Automation or MongoDB Agent
        - ``mms-automation-agent-pem``
      * - Your project's Backup Agent (if needed)

@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 20 10 10 40 20
+   :widths: 25 10 10 40 15
    :header-rows: 1
 
    * - Key
@@ -26,3 +26,13 @@
      - If you use a custom |certauth| and have created the 
        |k8s-configmap| that stores it, add the ConfigMap's name.
      - ``<custom-ca>``
+
+   * - | ``spec.security``
+       | :setting:`.tls.secretRef.prefix<spec.security.tls.secretRef.prefix>`
+     - string
+     - Optional
+     - Add the ``<prefix>`` of the |k8s| |k8s-secret| name that contains
+       your MongoDB deployment's |tls| certificates. If you omit this
+       setting, the prefix defaults to the value of
+       :setting:`metadata.name` of your MongoDB resource.
+     - ``<prefix>``
