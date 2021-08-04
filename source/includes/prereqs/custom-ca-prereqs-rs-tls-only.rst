@@ -9,12 +9,12 @@
      * - Your custom |certauth|
        - ``ca-pem``
      * - Each member of your replica set
-       - ``<metadata.name>-<X>-pem``
+       - ``<metadata.name>-<X>-cert``
 
   .. include:: /includes/prereqs/pem-file-description.rst
 
   .. include:: /includes/prereqs/custom-ca-prereqs-naming-conventions.rst
   
-  .. admonition:: About the Domain Names in certificates
+  .. note:: About the Domain Names in certificates
   
      .. include:: /includes/prereqs/pem-file-domain-name.rst

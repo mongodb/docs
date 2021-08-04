@@ -9,7 +9,7 @@
      * - Your custom |certauth|
        - ``ca-pem``
      * - Each member of your replica set
-       - ``<metadata.name>-<X>-pem``
+       - ``<metadata.name>-<X>-cert``
      * - Your project's Automation or MongoDB Agent
        - ``mms-automation-agent-pem``
      * - Your project's Backup Agent (if needed)
@@ -17,10 +17,10 @@
      * - Your project's Monitoring Agent (if needed)
        - ``mms-monitoring-agent-pem``
      * - Each shard in your sharded cluster
-       - ``<metadata.name>-<Y>-<X>-pem``
+       - ``<metadata.name>-<Y>-<X>-cert``
      * - Each member of your config server replica set
-       - ``<metadata.name>-config-<X>-pem``
+       - ``<metadata.name>-config-<X>-cert``
      * - Each |mongos|
-       - ``<metadata.name>-mongos-<X>-pem``
+       - ``<metadata.name>-mongos-<X>-cert``
 
   .. include:: /includes/prereqs/custom-ca-prereqs-naming-conventions.rst

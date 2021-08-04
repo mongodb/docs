@@ -9,11 +9,11 @@
      * - Your custom |certauth|
        - ``ca-pem``
      * - Each shard in your sharded cluster
-       - ``<metadata.name>-<Y>-<X>-pem``
+       - ``<metadata.name>-<Y>-<X>-cert``
      * - Each member of your config server replica set
-       - ``<metadata.name>-config-<X>-pem``
+       - ``<metadata.name>-config-<X>-cert``
      * - Each |mongos|
-       - ``<metadata.name>-mongos-<X>-pem``
+       - ``<metadata.name>-mongos-<X>-cert``
      * - Your project's Automation or MongoDB Agent
        - ``mms-automation-agent-pem``
      * - Your project's Backup Agent (if needed)
