@@ -12,13 +12,13 @@ Configure ``mongosh``
    :depth: 1
 
 The ``config`` API provides methods to examine and update the
-:mongosh:`mongosh </>` configuration. Updates made using ``config``
+:binary:`~bin.mongosh` configuration. Updates made using ``config``
 persist between sessions.
 
 .. note::
 
-   The ``config`` API can be used within the ``mongosh`` command line
-   interface. It has no effect in the
+   The ``config`` API can be used within the :binary:`~bin.mongosh`
+   command line interface. It has no effect in the
    :compass:`embedded Compass shell </embedded-shell>`.
 
 Syntax
@@ -54,7 +54,7 @@ Supported ``property`` parameters
      - Default
      - Description
 
-   * - ``batchSize``
+   * - ``displayBatchSize``
      - integer
      - 20
      - The number of items displayed per cursor iteration
@@ -91,7 +91,86 @@ Supported ``property`` parameters
      - boolean
      - false
      - Controls display of a stack trace along with error messages.
-     
+
+.. _customize-the-mongosh-prompt:
+
+Customize the :binary:`~bin.mongosh` Prompt
+-------------------------------------------
+
+The ``prompt`` variable can store strings and JavaScript code to
+customize the :binary:`~bin.mongosh` prompt. Use a function that
+returns a string to display dynamic information in the prompt.
+
+Custom prompts are not stored when you exit :binary:`~bin.mongosh`. Add
+the code for your custom prompt to :ref:`.mongoshrc.js <mongoshrc-js>`
+to set the prompt each time you start up the mongo shell.
+
+Display Line Numbers
+~~~~~~~~~~~~~~~~~~~~
+
+This code will dynamically update the :binary:`~bin.mongosh` prompt
+to display line numbers:
+
+.. code-block:: javascript
+
+   let cmdCount = 1;
+   prompt = function() {
+                return (cmdCount++) + "> ";
+            }
+
+The prompt will look like this:
+
+.. code-block:: javascript
+
+   1> show collections
+   2> use test
+   3>
+
+Display Database and Hostname
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use a function like this one to display the database and hostname in
+the :binary:`~bin.mongosh` prompt:
+
+.. code-block:: javascript
+
+   {
+      const hostnameSymbol = Symbol('hostname');
+      prompt = () => {
+         if (!db[hostnameSymbol]) 
+            db[hostnameSymbol] = db.serverStatus().host;
+         return `${db.getName()}@${db[hostnameSymbol]}> `;
+      };
+   }
+
+The prompt will look like this:
+
+.. code-block:: javascript
+
+   admin@centos0722:27502> 
+
+Display System Up Time and Document Count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use a function like this one for a prompt that shows the system uptime
+and a count of documents across all collections in the current
+database.
+
+.. code-block:: javascript
+
+   
+   prompt = function() {
+      return "Uptime:" + db.serverStatus().uptime +
+             " Documents:" + db.stats().objects +
+             " > ";
+      }
+
+
+The prompt will look like this:
+
+.. code-block:: javascript
+
+   Uptime:451563 Documents:58 >
 
 Examples
 --------
@@ -99,13 +178,13 @@ Examples
 Update Number of Items Returned by a Cursor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider viewing a collection with a large number of documents. You can
+Consider viewing a collection with a number of large documents. You can
 update the ``batchSize`` to limit the number of items returned by a
 cursor.
 
 .. code-block:: javascript
 
-   config.set("batchSize", 3) 
+   config.set("displayBatchSize", 3) 
 
 
 Future ``db.collection.find()`` operations will only return 3 documents
