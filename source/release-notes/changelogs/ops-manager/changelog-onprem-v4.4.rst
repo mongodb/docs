@@ -1,3 +1,22 @@
+.. _opsmgr-server-4.4.16:
+
+|onprem| Server 4.4.16
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-08-05*
+
+- Fixes a bug that caused restore to fail due to an invalid ping from 
+  the backup agent.
+
+- Adds a warning message when |onprem| has less than 10GB of disk space 
+  available.
+
+- Fixes a bug that caused the System Alerts UI to fail after a system 
+  alert was saved with a webhook URL.
+
+- Updates the MongoDB Agent to :ref:`10.14.27.6524
+  <mongodb-10.14.27.6524>`.
+
 .. _opsmgr-server-4.4.15:
 
 |onprem| Server 4.4.15
