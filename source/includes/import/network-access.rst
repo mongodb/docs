@@ -16,6 +16,14 @@ process. Grant these IP ranges access to your source cluster. This
 allows the MongoDB Live Migration server to connect to the source
 clusters.
 
+.. note:: 
+
+    If your organization has strict network requirements 
+    and you cannot enable the required network access 
+    to MongoDB Live Migration servers,
+    see :cloudmgr:`Live Migrate a Community Deployment to Atlas
+    </tutorial/migrate-community-to-atlas/>`.
+
 |service| Cluster Allows Traffic from Your Application Servers
 ``````````````````````````````````````````````````````````````
 
