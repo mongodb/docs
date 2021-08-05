@@ -1,3 +1,23 @@
+.. _opsmgr-server-5.0.1:
+
+|onprem| Server 5.0.1
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-08-05*
+
+- Improves Log Collection Jobs.
+
+- Adds a warning message when Ops Manager has less than 10GB of disk 
+  space available.
+
+- Fixes a bug that prevents clusters' Real-Time Panel tab from 
+  loading properly.
+
+- Disables the continuous backup page when AppDB monitoring is enabled.
+
+- Updates the MongoDB Agent to :ref:`11.0.6.6981
+  <mongodb-11.0.6.6981>`.
+
 .. _opsmgr-server-5.0.0:
 
 |onprem| Server 5.0.0
