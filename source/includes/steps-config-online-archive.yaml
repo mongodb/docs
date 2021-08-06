@@ -68,12 +68,51 @@ content: |
 
         * - :guilabel:`Custom Filter`
           - To select documents from the collection using a custom 
-            filter, specify a valid |json| filter to run. |service| uses the specified
-            custom filter with the :manual:`db.collection.find(filter) 
-            </reference/method/db.collection.find/>` command. You can use
-            |service-fullname| :manual:`operators </reference/operator/query/>`,
-            but custom filters do not support JavaScript functions. You cannot
-            use the empty document argument (``{}``) to return all documents.
+            filter, specify a valid |json| filter to run. |service| 
+            uses the specified custom filter with the 
+            :manual:`db.collection.find(filter) 
+            </reference/method/db.collection.find/>` command. You can't 
+            use the empty document argument (``{}``) to return all 
+            documents. You can use |service-fullname| 
+            :manual:`operators </reference/operator/query/>` such as 
+            :manual:`$expr 
+            </reference/operator/query/expr/#mongodb-query-op.-expr>` 
+            take advantage of all of the aggregation operators as shown 
+            in the following examples. 
+
+            .. example:: 
+
+               In this custom filter example, when the current date 
+               exceeds the date in the ``bucket_end_date`` field in the 
+               documents, |service| subtracts thirty days (specified in 
+               milliseconds) from the current date and then archives 
+               data after that many days, hours, and minutes.
+
+               .. code-block:: json 
+
+                  { 
+                    "$expr": { "$lte": [ 
+                      "$bucket_end_date", 
+                      { "$subtract": [ "$$NOW", 2592000000 ] } 
+                    ] } 
+                  }
+
+               In this custom filter example, when the current date 
+               exceeds the date inside an ``objectId``, |service| 
+               subtracts thirty days (specified in milliseconds) from 
+               the current date and then archives data after that many 
+               days, hours, and minutes.
+               
+               .. code-block:: json
+
+                  {
+                    "$expr": {
+                      "$lte": [
+                        {"$toDate": "$_id"},
+                        { "$subtract": [ "$$NOW", 2592000000 ] }  
+                      ]  
+                    }
+                  }
 
 ---
 level: 4
