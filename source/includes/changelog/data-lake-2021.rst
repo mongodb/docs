@@ -1,3 +1,14 @@
+.. _data-lake-v20210803:
+
+03 August 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance.
+- Improves error messaging.
+- Adds ``computeTime`` and ``automaticRefreshInProgress`` fields to the
+  ``collStats`` and ``dbStats`` :ref:`command 
+  <mql-support-diagnostic-cmd>` outputs.
+
 .. _data-lake-v20210712:
 
 12 July 2021 Release
@@ -118,4 +129,3 @@
 - Adds support for the background option on the
   :ref:`$out to Atlas <adl-out-stage>` aggregation stage.
 - Includes stability and performance improvements.
-
