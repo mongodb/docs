@@ -9,7 +9,7 @@
      * - Your custom |certauth|
        - ``ca-pem``
      * - Each member of your replica set
-       - ``<metadata.name>-<X>-cert``
+       - ``<metadata.name>-<X>-pem``
 
   .. include:: /includes/prereqs/pem-file-description.rst
 
