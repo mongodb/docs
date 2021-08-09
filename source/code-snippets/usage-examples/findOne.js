@@ -18,7 +18,7 @@ async function run() {
 
     const options = {
       // sort matched documents in descending order by rating
-      sort: { rating: -1 },
+      sort: { "imdb.rating": -1 },
       // Include only the `title` and `imdb` fields in the returned document
       projection: { _id: 0, title: 1, imdb: 1 },
     };
