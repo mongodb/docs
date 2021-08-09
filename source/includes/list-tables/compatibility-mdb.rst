@@ -23,4 +23,7 @@
    * - 1.11.x
      - Ubuntu 18.04, Red Hat UBI 8 Base Image [1]_
 
+   * - 1.12.x
+     - Ubuntu 18.04, Red Hat UBI 8 Base Image [1]_
+
 .. [1] Most commonly used for OpenShift deployments
