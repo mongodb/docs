@@ -6,6 +6,9 @@
    * - Status
      - Description
 
+   * - ``INVOICED``
+     - The customer received an invoice for their subscription.
+
    * - ``PAID``
      - The funds have been transferred to MongoDB.
 
