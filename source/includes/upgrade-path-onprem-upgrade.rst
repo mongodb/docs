@@ -3,10 +3,8 @@ upgrade path you must take to upgrade to Ops Manager 4.2 or later.
 
 .. important::
 
-   - To ensure a successful upgrade, you *must*:
-
-     - Follow the upgrade path for your existing version to perform
-       necessary database migrations.
+   - To ensure a successful upgrade, you *must* follow the upgrade path 
+     for your existing version to perform necessary database migrations.
 
    - To protect your data, |onprem| refuses to start direct upgrades
      from versions 1.8.x and 2.0.x to version 3.4 or later.
@@ -26,13 +24,29 @@ The following table lists upgrade paths for all versions:
 
      - Upgrade Path
 
+   * - 5.0.x
+     - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
+       upgrade from |onprem| 5.0.x to the latest patch version of 5.0.
+
    * - 4.4.x
-     - Use this tutorial to upgrade from |onprem| 4.4.x to the latest
-       patch version of 4.4.x.
+     - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
+       upgrade from |onprem| 4.4.x to the latest patch version of 5.0.
+
+       If your current |onprem| version precedes 4.4.13, MongoDB 
+       recommends using the procedure to upgrade to 4.4.13 before 
+       upgrading to the latest patch version of 5.0.
+     
+       |onprem| version 4.4.13 fixes a bug that would re-enable
+       |onprem| instances for |api| writes during an upgrade.
+
+       .. seealso::
+          
+          :ref:`Ops Manager 4.4.13 release notes <opsmgr-server-4.4.13>` 
 
    * - 4.2.x
-     - Use this tutorial to upgrade from |onprem| 4.2.x to 4.2.24 or
-       later *first*, then to the latest patch version of 4.4.
+     - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
+       upgrade from |onprem| 4.2.x to 4.2.24 or later *first*, then to 
+       the latest patch version of 4.4.
 
        .. include:: /includes/facts/upgrade-to-om-4-2-24.rst
 
@@ -54,7 +68,6 @@ The following table lists upgrade paths for all versions:
        to upgrade from |onprem| 3.4.x to version 3.6.x.
 
    * - 2.x or earlier
-
      - Use the
        :om-v3.4:`v3.4 upgrade tutorial </tutorial/nav/upgrade-application>`
        to upgrade from |onprem| 2.x or earlier.
