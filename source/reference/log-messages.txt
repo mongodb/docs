@@ -56,6 +56,38 @@ a slow :doc:`aggregation </aggregation>` operation:
 
    2019-01-14T12:00:59.166-0500 I COMMAND  [conn4] command test.items appName: "MongoDB Shell" command: aggregate { aggregate: "items", pipeline: [ { $match: { a: { $lte: 500.0 } } }, { $sort: { a: -1.0 } } ], allowDiskUse: true, cursor: {}, lsid: { id: UUID("a73100a6-2f4d-48b7-a119-4632491c20eb") }, $db: "test" } planSummary: IXSCAN { a: 1, _id: -1 } cursorid:4808731480531288834 keysExamined:12524506 docsExamined:25003 hasSortStage:1 usedDisk:1 fromMultiPlanner:1 numYields:98113 nreturned:101 queryHash:811451DD planCacheKey:759981BA reslen:1305014 locks:{ Global: { acquireCount: { r: 98211, w: 98211 } }, Database: { acquireCount: { r: 98211 } }, Collection: { acquireCount: { r: 98211 } } } storage:{ data: { bytesRead: 112803842, timeReadingMicros: 62720 } } protocol:op_msg 39658ms
 
+.. _log-messages-remoteOpWaitMillis:
+
+Time Waiting for Shards Logged in ``remoteOpWaitMillis`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2.10
+
+Starting in MongoDB 4.2.10, you can use the ``remoteOpWaitMillis`` log
+field to obtain the wait time (in milliseconds) for results from
+:term:`shards <shard>`.
+
+``remoteOpWaitMillis`` is only logged:
+
+- If you configure :ref:`slow operations logging
+  <log-message-slow-ops>`.
+
+- On the :term:`shard` or :binary:`~bin.mongos` that merges the results.
+
+To determine if a merge operation or a shard issue is causing a slow
+query, compare the ``durationMillis`` and ``remoteOpWaitMillis`` time
+fields in the log. ``durationMillis`` is the total time the query took
+to complete. Specifically:
+
+- If ``durationMillis`` is slightly longer than ``remoteOpWaitMillis``,
+  then most of the time was spent waiting for a shard response. For
+  example, ``durationMillis`` of 17 and ``remoteOpWaitMillis`` of 15.
+
+- If ``durationMillis`` is significantly longer than
+  ``remoteOpWaitMillis``, then most of the time was spent performing the
+  merge. For example, ``durationMillis`` of 100 and
+  ``remoteOpWaitMillis`` of 15.
+
 Timestamp (Console/Log File)
 ----------------------------
 
