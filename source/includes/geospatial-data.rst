@@ -14,7 +14,7 @@ Given the following collection:
 .. code-block:: javascript
 
    db.points.createIndex( { pos : "2dsphere" } )
-   db.points.insert({
+   db.points.insertOne({
        pos : { type: "Point", coordinates: [ -73.97, 40.77 ] },
        name: "Central Park",
        category : "Parks"
