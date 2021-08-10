@@ -114,7 +114,10 @@
   than 100 characters.
 - Updates the {+mdbagent+} to :ref:`10.14.22.6489 <mongodb-10.14.22.6489>`.
 - Requires :db-tools:`MongoDB Database Tools 100.3.1 </>`.
-
+- Changes the :ref:`protocolVersion <autoconfig-mongodb-replicasets>` 
+  API parameter from an integer to a string. For example, previously, 
+  you could specify  ``1`` for this parameter. Now, you must specify 
+  ``"1"`` for this parameter instead.
 
 .. _opsmgr-server-4.4.10:
 

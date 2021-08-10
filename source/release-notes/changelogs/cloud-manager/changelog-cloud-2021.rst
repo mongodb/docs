@@ -40,7 +40,10 @@
   in the |service| user interface.
 
 - Updates {+mdbagent+} to :ref:`10.28.0.6828-1 <10.28.0.6828-1>`.
-
+- Changes the :ref:`protocolVersion <autoconfig-mongodb-replicasets>` 
+  API parameter from an integer to a string. For example, previously, 
+  you could specify  ``1`` for this parameter. Now, you must specify 
+  ``"1"`` for this parameter instead.
 
 .. _cloudmanager_20210309:
 

@@ -8,7 +8,7 @@ This field is required for deployments with replica sets.
    [
      {
        "_id": "<string>",
-       "protocolVersion": "<integer>",
+       "protocolVersion": "<string>",
        "members":
        [
          {
@@ -82,7 +82,7 @@ This field is required for deployments with replica sets.
      - The name of the replica set.
 
    * - replicaSets[n].protocolVersion
-     - integer
+     - string
      - Optional
      - :manual:`Protocol version </reference/replica-set-protocol-versions>`
        of the replica set.
