@@ -14,7 +14,7 @@ async function run() {
     const movies = database.collection("movies");
 
     // create a filter for a movie to update
-    const filter = { title: "Blacksmith Scene" };
+    const filter = { title: "Random Harvest" };
 
     // this option instructs the method to create a document if no documents match the filter
     const options = { upsert: true };
@@ -22,8 +22,7 @@ async function run() {
     // create a document that sets the plot of the movie
     const updateDoc = {
       $set: {
-        plot:
-          "Blacksmith Scene is a silent film directed by William K.L. Dickson.",
+        plot: `A harvest of random numbers, such as: ${Math.random()}`
       },
     };
 
