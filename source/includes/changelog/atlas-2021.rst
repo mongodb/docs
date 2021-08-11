@@ -1,3 +1,41 @@
+.. _atlas_20210803:
+
+03 August 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Increases the maximum number of provisioned IOPS for clusters 
+  ``M140`` and up on |aws| to 64,000 IOPS.
+
+- Introduces :ref:`embedded data visualizations <billing_visualizations>` 
+  on the Billing Overview page and within each invoice.
+
+- Lowers data transfer rates within the following |aws| regions:
+
+  - Tokyo
+  - Sydney 
+  - Bahrain
+  - São Paulo
+
+- Spreads newly deployed clusters in the South Central US |azure| 
+  region across three availability zones.
+
+- Introduces the ability to set an |service| user account to be granted 
+  the :authrole:`Project Owner` role on a specified project 
+  :ref:`via the API <atlas-create-one-project-api>`.
+
+- Removes IP Whitelist resources. The 
+  :ref:`IP Access List <security-access-list>` resource replaces the 
+  whitelist resource. We encourage you to update your applications to 
+  use this new resource.
+
+- Removes the API Key Whitelist endpoints. The 
+  :ref:`API Key Access List <api-key-access-list-api>` endpoints 
+  replace the whitelist endpoints. We encourage you to update your 
+  applications to use these new endpoints.
+
+- Introduces email verification for all new |service| user 
+  registrations.
+
 .. _atlas_20210713:
 
 13 July 2021 Release
