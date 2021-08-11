@@ -11,7 +11,7 @@ import (
 )
 
 // Connection URI
-const uri = "mongodb+srv://sample-hostname:27017/?poolSize=20&writeConcern=majority"
+const uri = "mongodb+srv://sample-hostname/?maxPoolSize=20&w=majority"
 
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
