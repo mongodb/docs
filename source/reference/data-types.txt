@@ -153,16 +153,63 @@ of the binary-based ``Double`` type generally have approximate
 representations of decimal-based values and may not be exactly
 equal to their decimal representations.
 
+Timestamp
+---------
+
+MongoDB uses a
+:manual:`BSON Timestamp </reference/bson-types/#timestamps>` internally
+in the :term:`oplog`. The ``Timestamp`` type works similarly to the
+Java Timestamp type. Use the :ref:`Date <mongo-shell-date-type>` type
+for operations involving dates.
+
+A ``Timestamp`` signature has two optional parameters. 
+
+.. code-block:: javascript
+
+   Timestamp( { "t": <integer>, "i": <integer> } )
+
+.. list-table::
+   :header-rows: 1
+   :widths: 18, 18, 25, 39
+
+   * - Parameter
+     - Type
+     - Default
+     - Definition
+
+   * - ``t``
+     - integer
+     - Current time since :term:`UNIX epoch <unix epoch>`.
+     - Optional. A time in seconds.
+     
+   * - ``i``
+     - integer
+     - 1
+     - Optional. Used for ordering when there are multiple operations
+       within a given second. ``i`` has no effect if used without
+       ``t``.
+
+For usage examples, see :ref:`timestamp-ex-default`,
+:ref:`timestamp-ex-custom`.
+
 .. _check-types-in-shell:
-      
+
 Type Checking
 -------------
 
-Use the :query:`$type` query operator to determine types. The
-Javascript ``instanceof`` and ``typeof`` operators are not reliable
-in ``mongosh``. For example, ``instanceof`` assigns BSON values in a
-server response to a different base class than user supplied values. 
+Use the :query:`$type` query operator or examine the object constructor
+to determine types. 
 
+The Javascript ``typeof`` operator returns generic values such as
+``number`` or ``object`` rather than the more specific ``Int32`` or
+``ObjectId``.
+
+Javascript's ``instanceof`` operator is not reliable. For example,
+``instanceof`` assigns BSON values in a server response to a different
+base class than user supplied values. 
+
+For usage examples, see :ref:`type-check-ex-type` and
+:ref:`type-check-ex-constructor`.
 
 Examples
 --------
@@ -472,9 +519,98 @@ stored as type ``int``.
      }
    ]
 
+.. _timestamp-ex-default:
 
-Type Checking, ``$type()``
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Timestamp a New Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``Timestamp()`` without parameters to insert multiple documents
+using the default settings:
+
+.. code-block:: javascript
+
+   db.flights.insertMany(
+      [
+         { arrival: "true", ts: Timestamp() },
+         { arrival: "true", ts: Timestamp() },
+         { arrival: "true", ts: Timestamp() }
+      ]
+   )
+
+Run ``db.flights.find({})`` to see the timestamps. Notice that even
+though all three entries were stamped in the same second, the interval
+was incremented on each one. 
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId("6114216907d84f5370391919"),
+         arrival: 'true',
+         ts: Timestamp({ t: 1628709225, i: 1 })
+      },
+      {
+         _id: ObjectId("6114216907d84f537039191a"),
+         arrival: 'true',
+         ts: Timestamp({ t: 1628709225, i: 2 })
+      },
+      {
+         _id: ObjectId("6114216907d84f537039191b"),
+         arrival: 'true',
+         ts: Timestamp({ t: 1628709225, i: 3 })
+      }
+   ]
+
+.. _timestamp-ex-custom:
+
+Create a Custom Timestamp
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use custom parameters to insert multiple documents with a specific
+``Timestamp``. 
+
+This operation inserts three documents into the ``flights`` collection
+and uses the :term:`UNIX epoch <unix epoch>` value ``1627811580`` to
+set the ``ts`` times to 9:53 GMT on August 1, 2021.
+
+.. code-block:: javascript
+
+   db.flights.insertMany(
+      [
+         { arrival: "true", ts: Timestamp(1627811580, 10) },
+         { arrival: "true", ts: Timestamp(1627811580, 20) },
+         { arrival: "true", ts: Timestamp(1627811580, 30) }
+      ]
+   )
+
+The resulting documents look like this:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId("6123d8315e6bba6f61a1031c"),
+         arrival: 'true',
+         ts: Timestamp({ t: 1627811580, i: 10 })
+      },
+      {
+         _id: ObjectId("6123d8315e6bba6f61a1031d"),
+         arrival: 'true',
+         ts: Timestamp({ t: 1627811580, i: 20 })
+      },
+      {
+         _id: ObjectId("6123d8315e6bba6f61a1031e"),
+         arrival: 'true',
+         ts: Timestamp({ t: 1627811580, i: 30 })
+      }
+   ]
+
+.. _type-check-ex-type:
+
+Type Checking with ``$type()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :query:`$type` query operator accepts either a string alias or a
 numeric code corresponding to the data type. See
@@ -487,4 +623,17 @@ For example, these checks for the ``Decimal128`` type are equivalent:
 
    db.types.find( { "value": { $type: "decimal" } } )
    db.types.find( { "value": { $type: 19 } } )
+
+.. _type-check-ex-constructor:
+
+Type Checking with a Constructor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Examine the object ``constructor`` to determine the type. For example,
+the output of :method:`db.collection.find()` is a ``Cursor``.
+
+.. code-block:: javascript
+
+   var findResults = db.housing.find({"multiUnit": true} )
+   findResults.constructor.name     // Returns the type
 
