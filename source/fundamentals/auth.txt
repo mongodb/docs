@@ -10,22 +10,254 @@ Authentication Mechanisms
    :depth: 2
    :class: singlecol
 
-In this guide, we show you how to authenticate with MongoDB using each
-**authentication mechanism** available in the MongoDB Community Edition.
-Authentication mechanisms are processes by which the driver and server
-confirm identity and establish trust to ensure security.
+Overview
+--------
 
-The mechanisms that you can use with the latest version of MongoDB Community
-Edition are as follows:
+In this guide, you can learn how to use each **authentication
+mechanism** available in the MongoDB Community Edition. MongoDB uses
+authentication mechanisms to confirm an identity and establish trust to
+ensure security in the driver and server before connecting.
 
-* Default
-* SCRAM-SHA-256
-* SCRAM-SHA-1
-* MONGODB-CR
-* MONGODB-AWS
-* X.509
+If you want to establish a connection to your MongoDB cluster without an
+authentication mechanism, see our :doc:`Connection Guide </fundamentals/connection>`.
 
-To authenticate using ``Kerberos`` or ``LDAP``, see the
-:doc:`Enterprise Authentication Mechanisms guide </fundamentals/enterprise-auth>`.
-For more information on establishing a connection to your MongoDB cluster,
-read our :doc:`Connection Guide </fundamentals/connection>`.
+Supported Mechanisms
+--------------------
+
+The Go Driver establishes a connection with an authentication mechanism
+through a `Client <https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.7.1/mongo#Client>`__
+type. The ``Client`` type specifies the mechanism and credentials to use
+as connection options in a `Credential <https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.7.1/mongo/options#Credential>`__
+type . To configure these options, pass a ``Credential`` type to the
+`SetAuth() <https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.7.1/mongo/options#ClientOptions.SetAuth>`__ 
+function of the `ClientOptions <https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.7.1/mongo/options#ClientOptions>`__
+type. 
+
+The following sections demonstrate this process with the five
+mechanisms the MongoDB Community Edition supports. 
+
+Example Conventions
+~~~~~~~~~~~~~~~~~~~
+
+Each authentication mechanism contains the following placeholders: 
+
+* ``username`` - Your MongoDB username
+* ``password`` - Your MongoDB user's password
+* ``hostname`` - Your MongoDB servers network address, accessible by
+  your client 
+* ``port`` - Your MongoDB servers port number
+* ``authenticationDb`` - Your MongoDB database that contains the user's
+  authentication data. If you omit this option, the driver uses the
+  default value ``admin``.
+
+.. _default-auth-mechanism:
+
+Default
+~~~~~~~
+
+The default mechanism uses one of the following authentication
+mechanisms depending on what MongoDB versions your server supports:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large
+
+   * - Mechanism
+     - Versions
+
+   * - ``SCRAM-SHA-256``
+     - MongoDB 4.0 and later   
+   
+   * - ``SCRAM-SHA-1``
+     - MongoDB 3.0, 3.2, 3.4, and 3.6
+
+   * - ``MONGODB-CR``
+     - MongoDB 2.6 and earlier
+
+To specify the default authentication mechanism, omit the
+``AuthMechanism`` option:
+
+.. code-block:: go
+
+   credential := options.Credential{
+      AuthSource: "<authenticationDb>",
+      Username: "<username>",
+      Password: "<password>",
+   }
+   clientOpts := options.Client().ApplyURI("mongodb://<hostname>:<port>").
+      SetAuth(credential)
+
+   client, err := mongo.Connect(context.TODO(), clientOpts)
+
+For more information on the challenge-response (CR) and salted
+challenge-response authentication mechanisms (SCRAM) that MongoDB supports,
+see the :manual:`SCRAM </core/security-scram/>` section of the server manual.
+
+``SCRAM-SHA-256``
+~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   ``SCRAM-SHA-256`` is the default authentication method for MongoDB starting
+   in MongoDB 4.0.
+
+``SCRAM-SHA-256`` is a salted challenge-response authentication mechanism
+(SCRAM) that uses your username and password, encrypted with the ``SHA-256``
+algorithm, to authenticate your user.
+
+To specify the ``SCRAM-SHA-256`` authentication mechanism, assign the
+``AuthMechanism`` option the value ``"SCRAM-SHA-256"``:  
+
+.. code-block:: go
+   :emphasize-lines: 2
+
+   credential := options.Credential{
+      AuthMechanism: "SCRAM-SHA-256",
+      AuthSource: "<authenticationDb>",
+      Username: "<username>",
+      Password: "<password>",
+   }
+   clientOpts := options.Client().ApplyURI("mongodb://<hostname>:<port>").
+      SetAuth(credential)
+   
+   client, err := mongo.Connect(context.TODO(), clientOpts)
+
+.. _scram-sha-1-auth-mechanism:
+
+``SCRAM-SHA-1``
+~~~~~~~~~~~~~~~
+
+.. important::
+
+   ``SCRAM-SHA-1`` is the default authentication method for MongoDB versions
+   3.0, 3.2, 3.4, and 3.6.
+
+``SCRAM-SHA-1`` is a salted challenge-response mechanism (SCRAM) that uses your
+username and password, encrypted with the ``SHA-1`` algorithm, to authenticate
+your user.
+
+To specify the ``SCRAM-SHA-1`` authentication mechanism, assign the
+``AuthMechanism`` option the value ``"SCRAM-SHA-1"``:  
+
+.. code-block:: go
+   :emphasize-lines: 2
+
+   credential := options.Credential{
+      AuthMechanism: "SCRAM-SHA-1",
+      AuthSource: "<authenticationDb>",
+      Username: "<username>",
+      Password: "<password>",
+   }
+   clientOpts := options.Client().ApplyURI("mongodb://<hostname>:<port>").
+      SetAuth(credential)
+
+   client, err := mongo.Connect(context.TODO(), clientOpts)
+
+``MONGODB-CR``
+~~~~~~~~~~~~~~
+
+``MONGODB-CR`` is a challenge-response authentication mechanism that uses your
+username and password to authenticate your user.
+
+.. important::
+
+   This authentication mechanism was deprecated starting in MongoDB 3.6
+   and is no longer supported as of MongoDB 4.0.
+
+``MONGODB-AWS``
+~~~~~~~~~~~~~~~
+
+.. important::
+
+   The MONGODB-AWS authentication mechanism is only available in MongoDB
+   versions 4.4 and later.
+
+The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
+Identity and Access Management (AWS IAM) credentials to authenticate your
+user.
+
+To specify the ``MONGODB-AWS`` authentication mechanism, perform the
+following:
+
+- Assign the ``AuthMechanism`` option the value ``MONGODB-AWS``
+- Assign the ``Username`` option the value of your ``accessKeyID``
+- Assign the ``Password`` option the value of your ``secretAccessKey``
+
+.. code-block:: go
+   :emphasize-lines: 3, 5-6
+
+   var accessKeyID, secretAccessKey string
+   awsCredential := options.Credential{
+      AuthMechanism: "MONGODB-AWS",
+      AuthSource: "<authenticationDb>",
+      Username: "<accessKeyID>",
+      Password: "<secretAccessKey>",
+   }
+   awsIAMClient, err := mongo.Connect(
+      context.TODO(),
+      options.Client().SetAuth(awsCredential))
+   if err != nil {
+      panic(err)
+   }
+   _ = awsIAMClient
+
+If you need to specify an AWS session token, use the temporary
+credentials returned from an assume role request. 
+
+To use temporary credentials, assign the ``AuthMechanismProperties``
+option the value of your ``sessionToken``:
+
+.. code-block:: go
+   :emphasize-lines: 7-9
+
+   var sessionToken string
+   assumeRoleCredential := options.Credential{
+      AuthMechanism: "MONGODB-AWS",
+      AuthSource: "<authenticationDb>",
+      Username: "<accessKeyID>",
+      Password: "<secretAccessKey>",
+      AuthMechanismProperties: map[string]string{
+         "AWS_SESSION_TOKEN": "<sessionToken>",
+      },
+   }
+   assumeRoleClient, err := mongo.Connect(context.TODO(),
+      options.Client().SetAuth(assumeRoleCredential))
+
+``X.509``
+~~~~~~~~~
+
+The ``X.509`` authentication mechanism uses
+:wikipedia:`TLS <Transport_Layer_Security>` with X.509 certificates to
+authenticate your user, identified by the relative distinguished names
+(RDNs) of your client certificate. When you specify the ``X.509``
+authentication mechanism, the server authenticates the connection using
+the paths of the following files:
+
+- ``tlsCAFile`` which contains either a single or a bundle of certificate authorities to trust when making a TLS connection
+- ``tlsCertificateKeyFile`` which references the path to the client certificate file or the client private key file
+
+To specify the ``X.509`` authentication mechanism, perform the
+following:
+
+- Assign the ``tlsCAFile`` the path to its file in the connection string
+- Assign the ``tlsCertificateKeyFile`` the path to its file in the connection string
+- Assign the ``AuthMechanism`` option the value ``"MONGODB-X509"``
+
+.. code-block:: go
+   :emphasize-lines: 4-5, 7
+
+   caFilePath := "<cafile_path>"
+   certificateKeyFilePath := "<client_certificate_path>"
+
+   uri := "mongodb://<hostname>:<port>/?tlsCAFile=%s&tlsCertificateKeyFile=%s"
+   uri = fmt.Sprintf(uri, caFilePath, certificateKeyFilePath)
+   credential := options.Credential{
+      AuthMechanism: "MONGODB-X509",
+   }
+
+   clientOpts := options.Client().ApplyURI(uri).SetAuth(credential)
+
+For more information on configuring your application to use
+certificates as well as TLS/SSL options, see our
+:doc:`TLS/SSL guide </fundamentals/connection/tls>`.
