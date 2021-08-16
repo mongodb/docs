@@ -2,4 +2,323 @@
 Quick Start
 ===========
 
-asdf
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to configure the MongoDB Kafka Connector to
+perform the following actions within an Apache Kafka and Kafka Connect data pipeline:
+
+#. :ref:`Receive documents inserted into a MongoDB collection <quick-start-source-connector>`
+#. :ref:`Add a field to those documents using an aggregation pipeline <quick-start-source-connector>`
+#. :ref:`Insert those documents into a different collection in the same MongoDB
+   cluster <quick-start-sink-connector>`
+
+For more information on Apache Kafka and Kafka Connect, read our
+introductory page on :doc:`Kafka and Kafka Connect <introduction/kafka-connect>`.
+
+Requirements
+------------
+
+This guide uses the following tools:
+
+- `Docker Platform <https://docs.docker.com/get-docker/>`__ *required*
+- `Git <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`__ *optional*
+
+If you do not have any of these tools installed on your computer, you
+can install a tool by clicking on the tool's name and following the linked
+installation instructions.
+
+.. tip:: Read the Docker Documentation
+
+   This guide uses some Docker specific terminology. If you are new to Docker
+   and would like a comprehensive introduction, read through Docker's official 
+   `Get Started Guide <https://docs.docker.com/get-started/>`__.
+
+Sample Pipeline
+~~~~~~~~~~~~~~~
+
+In this guide you receive a sample data pipeline so that you can use the MongoDB
+Kafka Connector. To access and use the files that define your sample data pipeline,
+clone the quick start repository and change your directory to the root of the
+repository using the following commands:
+
+<TODO: decide on final location for this example>
+
+.. code-block:: bash
+
+   git clone https://github.com/biniona-mongodb/MongoKafkaLite
+   cd MongoKafkaLite
+
+.. note:: Download as a ZIP
+
+   If you would rather download the repository that defines the pipeline as a
+   ZIP file, you can do that by 
+   `clicking this link <https://github.com/biniona-mongodb/MongoKafkaLite/archive/refs/heads/main.zip>`__.
+
+Start the Pipeline
+------------------
+
+The sample pipeline consists of the following tools running in Docker containers
+on your computer:
+
+- A MongoDB replica set
+- An Apache Kafka instance
+- A Kafka Connect instance with the MongoDB Kafka Connector installed
+- A Zookeeper instance (Zookeeper is a dependency of Apache Kafka)
+
+The following diagram shows the architecture of the sample pipeline. The solid
+lines represent connections between tools that you receive pre-configured. The
+dotted lines represent connections you will add in the following sections of
+this guide. The numbers, from lowest to highest, show the path of a message
+through the pipeline:
+
+.. figure:: /includes/figures/mongo-kafka-connect.png
+   :alt: Architecture diagram of sample pipeline.  
+
+To download and run the sample pipeline, execute the following command from
+the root of the quick start repository:
+
+.. code-block:: bash
+
+   docker-compose -p quickstart up -d
+
+.. note:: How long does the download take?
+
+   In total, the Docker images for the quick start require about 2.4 GB of space.
+   The following list shows how long it takes to download the images with
+   different internet speeds:
+
+   - 40 megabits per second: 8 minutes
+   - 20 megabits per second: 16 minutes
+   - 10 megabits per second: 32 minutes
+
+Set Up Connectors
+-----------------
+
+To set up connectors in the sample pipeline, you first need to enter a shell
+in your Docker environment using the following command:
+
+.. code-block:: bash
+
+   docker exec -it shell /bin/bash
+
+Once you are in the shell you should see a prompt that looks like this:
+
+.. code-block:: none
+   :copyable: false   
+
+   [MongoDB Kafka Connector Quick Start]
+
+Install the Source Connector
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the quick start shell, run the following command to set up
+the source connector using the Kafka Connect REST API:
+
+.. _quick-start-source-connector:
+
+.. code-block:: bash
+
+   curl -X POST \
+        -H "Content-Type: application/json" \
+        --data '
+        {"name": "mongo-source",
+         "config": {
+            "connector.class":"com.mongodb.kafka.connect.MongoSourceConnector",
+            "connection.uri":"mongodb://mongo1:27017/?replicaSet=rs0",
+            "database":"quickstart",
+            "collection":"source",
+            "pipeline":"[{\"$match\": {\"operationType\": \"insert\"}}, {$addFields : {\"fullDocument.travel\":\"I went through Kafka!\"}}]"
+            }
+        }
+        ' \
+        http://connect:8083/connectors -w "\n"
+
+.. note:: Failed To Connect
+
+   It takes about two minutes for the Kafka Connect REST API to come online. If
+   you receive the following error, wait about two minutes and try again:
+
+   .. code-block:: none
+      :copyable: false
+ 
+      ...
+      curl: (7) Failed to connect to connect port 8083: Connection refused
+
+The preceding command creates a new connector in Kafka Connect and specifies the
+following properties of the connector:
+
+- The class Kafka Connect uses to instantiate the connector
+- The URI, database, and collection of the MongoDB instance the
+  connector receives data from
+- An aggregation pipeline that adds a field ``travel`` with the value
+  ``"I went through Kafka!"`` to inserted documents passing through the connector
+
+To confirm that you successfully added the source connector, run the following
+command to print all connectors installed on your Kafka Connect deployment:
+
+.. code-block:: bash
+
+   curl -X GET http://connect:8083/connectors
+
+You should see the following output:
+
+.. code-block:: none
+   :copyable: false
+
+   ["mongo-source"]
+
+For more information on source connectors, see our
+:doc:`guide on source connectors <source-connector>`.
+
+For more information on aggregation pipelines, see the 
+:manual:`MongoDB manual entry on aggregation pipelines </core/aggregation-pipeline/>`.
+
+Install the Sink Connector
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the quick start shell, run the following command to set up the sink
+connector using the Kafka Connect REST API:
+
+.. _quick-start-sink-connector:
+
+.. code-block:: bash
+
+   curl -X POST \
+        -H "Content-Type: application/json" \
+        --data '
+        {"name": "mongo-sink",
+         "config": {
+            "connector.class":"com.mongodb.kafka.connect.MongoSinkConnector",
+            "connection.uri":"mongodb://mongo1:27017/?replicaSet=rs0",
+            "database":"quickstart",
+            "collection":"sink",
+            "topics":"quickstart.source",
+            "change.data.capture.handler": "com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler"
+            }
+        }
+        ' \
+        http://connect:8083/connectors -w "\n"
+
+The preceding command creates a new connector in Kafka Connect and specifies the
+following properties of the connector:
+
+- The class Kafka Connect uses to instantiate the connector
+- The URI, database, and collection of the MongoDB instance the
+  connector writes data to
+- The Apache Kafka topic the connector receives data from
+- A change data capture handler for MongoDB change data capture events
+
+To confirm that you successfully installed the source and sink connectors, run
+the following command to print all connectors installed on your Kafka Connect
+deployment:
+
+.. code-block:: bash
+
+    curl -X GET http://connect:8083/connectors
+
+You should see the following output:
+
+.. code-block:: none
+    :copyable: false
+
+    ["mongo-source", "mongo-sink"]
+
+For more information on sink connectors, see our
+:doc:`guide on sink connectors <sink-connector>`.
+
+For more information on change data capture events, see our
+:doc:`guide on change data capture events <sink-connector/fundamentals/change-data-capture>`.
+
+Test the Connectors
+~~~~~~~~~~~~~~~~~~~
+
+To test the connectors, enter the MongoDB shell from the quick start
+shell:
+
+.. code-block:: bash
+
+   mongosh mongodb://mongo1:27017/?replicaSet=rs0 
+
+From within the MongoDB shell, insert a document into the ``source``
+collection of the ``quickstart`` database using the following commands:
+
+.. code-block:: javascript
+
+   use quickstart
+   db.source.insertOne({"hello":"world"})
+
+After you insert a document into the ``source`` collection, check the ``sink``
+collection to make sure the source and sink connectors correctly handled the
+insertion:
+
+.. code-block:: javascript
+
+   db.sink.find()
+
+You should see output that resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   [
+       {
+         _id: ObjectId("60f87b2f018bb14f13106be1"),
+         hello: 'world',
+         travel: 'I went through Kafka!'
+       }
+   ]
+
+In the preceding output you can see a copy of the document inserted into the
+``source`` collection in the ``sink`` collection with the extra field ``travel``
+added by the aggregation pipeline defined in the source connector.
+
+Once you have finished exploring the connector in the MongoDB shell, you can
+exit the MongoDB shell with the following command:
+
+.. code-block:: bash
+
+   exit
+
+Stop the Pipeline
+-----------------
+
+To conserve resources on your computer, make sure to stop the sample pipeline
+once you are done exploring this example.
+
+Before you stop the sample pipeline, make sure to exit the quick start
+shell. You can exit the quick start shell with the following command:
+
+.. code-block:: bash
+
+   exit
+
+To stop the sample pipeline and remove containers and images, run the
+following command:
+
+.. code-block:: bash
+
+   docker-compose -p quickstart down --rmi 'all'
+
+Next Steps
+----------
+
+If you would like to explore any of the MongoDB Kafka Connector features
+mentioned above, you can find more information on them throughout our
+documentation.
+
+For more information on sink connectors in the MongoDB Kafka
+Connector, such as an in-depth discussion of change data capture handlers,
+see :doc:`our sink connector section <sink-connector>`. 
+
+For more information on source connectors in the MongoDB Kafka
+Connector, such as a complete list of source connector configuration properties,
+see :doc:`our source connector section <source-connector>`. 
