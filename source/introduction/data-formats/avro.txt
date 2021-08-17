@@ -1,0 +1,257 @@
+  
+====
+Avro
+====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+TODO: Refactor This Page as outlined in DOCSP-18210
+
+In this guide, you can find the following information about Apache Avro:
+
+- A brief description of Apache Avro
+- A brief description of Avro schema
+- An example Avro schema for a MongoDB collection
+- How to configure the MongoDB Kafka Connector to use Avro schema and its limitations 
+- Complete properties files for Avro enabled MongoDB Kafka Connector source and sink connectors
+
+Apache Avro
+-----------
+
+Apache Avro is an open-source framework for serializing and transporting
+data described by schemas. When working with the MongoDB Kafka Connector, you have the
+option to specify schemas for source documents in a format defined by Apache Avro
+called Avro schema. For more information on Avro schema, see this guide's 
+:ref:`section on Avro schema <avro-avro-schema>`.
+
+For more information on Apache Avro, see the following resources:
+
+- `Apache Avro Overview <https://avro.apache.org/docs/current/index.html>`__
+- `Confluent Blog Post "Why Avro for Kafka Data?" <https://www.confluent.io/blog/avro-kafka-data/>`__
+
+.. _avro-avro-schema:
+
+Avro Schema
+-----------
+
+Avro schema is a JSON based schema definition syntax provided by Apache Avro
+that supports the specification of the following groups of data types:
+
+- `Primitive Types <https://avro.apache.org/docs/current/spec.html#schema_primitive>`__
+- `Complex Types <https://avro.apache.org/docs/current/spec.html#schema_complex>`__
+- `Logical Types <https://avro.apache.org/docs/current/spec.html#Logical+Types>`__
+
+Example Avro Schema for a MongoDB Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this section, you can see an example of an Avro schema that models documents
+in a MongoDB collection.
+
+Assume you have a MongoDB collection ``customers`` that contains documents resembling
+the following:
+
+.. literalinclude:: /includes/avro-customers.json
+   :language: json
+
+The following table discusses the fields of documents in the ``customers``
+collection and how you can describe them in Avro schema:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 33 33 34
+
+   * - Field Name
+     - Collection
+     - Avro Schema
+
+   * - ``name`` 
+     - string field
+     - `string <https://avro.apache.org/docs/current/spec.html#schema_primitive>`__ primitive type
+
+   * - ``visits``
+     - array field containing timestamps
+     -  `array <https://avro.apache.org/docs/current/spec.html#Arrays>`__
+        complex type holding
+        `timestamp-millis <https://avro.apache.org/docs/current/spec.html#Timestamp+%28millisecond+precision%29>`__ logical types
+
+   * - ``total_purchased``
+     - object field with string keys and integer values
+     - `map <https://avro.apache.org/docs/current/spec.html#Maps>`__ complex
+       type with `int <https://avro.apache.org/docs/current/spec.html#schema_primitive>`__ 
+       primitive type values.
+
+The Avro schema for the ``customers`` collection looks like this:
+
+.. literalinclude:: /includes/avro-customers.avro
+   :language: json
+
+For a list of all Avro schema types, see the
+`Apache Avro specification <https://avro.apache.org/docs/current/spec.html>`__.
+
+Avro in the MongoDB Kafka Connector
+-----------------------------------
+
+The MongoDB Kafka Connector has Avro specific limitations and features.
+
+Limited Support For Logical Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB Kafka Connector supports sink connector conversion from all Avro
+primitive and complex types, however sink connectors can only support conversion from
+the following Avro logical types:
+
+- ``decimal``
+- ``date``
+- ``time-millis``
+- ``time-micros``
+- ``timestamp-millis``
+- ``timestamp-micros``
+
+For a full list of Avro logical types, see the 
+`logical types section of the Avro specification <https://avro.apache.org/docs/current/spec.html#schema_complex>`__.
+
+Source Connector Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB Kafka Connector provides a default schema that matches change
+stream event documents. If you specify an aggregation pipeline or the
+``publish.full.document.only`` option, you should specify an Avro schema for
+your source data with the following option:
+
+.. code-block:: java
+
+   output.schema.value=<your avro schema>
+
+.. note:: Infer Schema
+
+   A MongDB Kafka Connector source connector can infer a schema for incoming
+   documents that do not fit the default schema. This option works well for data
+   sources that do not frequently change structure, but for most deployments we
+   recommend using the ``output.schema.value`` option instead to explicitly
+   communicate your desired schema to the connector.
+
+   You can have the MongoDB Kafka Connector infer schema by specifying the
+   following options:
+   
+   .. code-block:: java
+
+      output.format.value="schema"
+      output.schema.infer.value=true
+
+.. note:: Type Conversion
+
+   You can find information about how the MongoDB Kafka Connector converts
+   between Avro schema types and BSON types in the 
+   `MongoDB Kafka Connector source code <https://github.com/mongodb/mongo-kafka/blob/404adca5ffb3ae4cad028339d9136539c4fe9bd4/src/main/java/com/mongodb/kafka/connect/source/schema/BsonValueToSchemaAndValue.java#L72-L109>`__. 
+
+A MongoDB Kafka Connector source connector reads data from MongoDB into an
+intermediate Kafka Connect data format. To send data from Kafka Connect to
+Apache Kafka using Avro schema, you must use a converter and Confluent Schema
+Registry. You can learn how to configure a MongoDB Kafka Connector source
+connector to send Avro schema data to Apache Kafka in the 
+:ref:`Avro and Schema Registry section of this guide <avro-avro-and-schema-registry>`.
+
+For more information on source connector configuration options, see our 
+:doc:`source connector guide </source-connector>`.
+
+For more information on converters, see our
+:doc:`converters guide </introduction/data-formats/converters>`.
+
+Sink Connector Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A MongoDB Kafka Connector sink connector can receive Avro schema data from a topic in Apache
+Kafka. You can learn how to configure a MongoDB Kafka Connector sink
+connector to receive Avro schema data from Apache Kafka in the 
+:ref:`Avro and Schema Registry section of this guide <avro-avro-and-schema-registry>`.
+
+Avro and Schema Registry
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Kafka Connect natively supports integration with **Confluent Schema Registry**
+for source and sink connectors. Confluent Schema Registry is a tool for serving,
+storing, and compatibility testing schemas.
+
+You can integrate a source or sink connector using Avro schema
+with Schema Registry by specifying the following properties in your connector
+configuration: 
+
+.. _avro-avro-and-schema-registry:
+
+.. code-block:: java
+
+   key.converter=io.confluent.connect.avro.AvroConverter
+   key.converter.schema.registry.url=<your schema registry uri>
+   value.converter=io.confluent.connect.avro.AvroConverter
+   value.converter.schema.registry.url=<your schema registry uri>
+
+When applied to a source connector, these properties make the connector perform
+the following actions:
+
+- Automatically register new schemas with Schema Registry 
+- Send data to Apache Kafka in Avro schema format
+ 
+When applied to a sink connector, these properties make the connector perform the following
+actions:
+
+- Retrieve the Avro schema corresponding to a received
+  message from Schema Registry
+- Use the retrieved Avro schema to parse the contents of the received message
+
+.. important:: Avro Converter with a MongoDB Data Source
+
+   Avro Converters are a great fit for data with a static structure, but are not
+   a good fit for dynamic or changing data. MongoDB's schemaless document
+   model supports dynamic data, so ensure your MongoDB data source has a static
+   structure before specifying an Avro Converter. 
+
+For more information on converters, see our
+:doc:`converters guide </introduction/data-formats/converters>`.
+
+For more information on using Kafka Connect with Schema Registry, see 
+`Confluent's "Using Kafka Connect with Schema Registy" page <https://docs.confluent.io/platform/current/schema-registry/connect.html>`__.
+
+Complete Properties Files
+-------------------------
+
+In this section we provide complete properties files for Avro enabled MongoDB
+Kafka Connector source and sink connectors.
+
+Source Connector
+~~~~~~~~~~~~~~~~
+
+This configuration specifies an Avro schema for MongoDB documents processed by your
+source connector and specifies that your connector should send data to Apache
+Kafka using an Avro converter and Schema Registry:
+
+.. code-block:: java
+
+   publish.full.document.only=true
+   output.format.value="schema"
+   output.schema.value=<your avro schema>
+   key.converter=io.confluent.connect.avro.AvroConverter
+   key.converter.schema.registry.url=<your schema registry uri>
+   value.converter=io.confluent.connect.avro.AvroConverter
+   value.converter.schema.registry.url=<your schema registry uri>
+
+Sink Connector
+~~~~~~~~~~~~~~
+
+This configuration specifies that your sink connector should read Avro data from an
+Apache Kafka topic using an Avro converter and Schema Registry:
+
+.. code-block:: java
+
+   key.converter=io.confluent.connect.avro.AvroConverter
+   key.converter.schema.registry.url=<your schema registry uri>
+   value.converter=io.confluent.connect.avro.AvroConverter
+   value.converter.schema.registry.url=<your schema registry uri>
