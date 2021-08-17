@@ -86,32 +86,48 @@ Oplog Scaling Behavior
 
 .. _change-storage-capacity-aws:
 
-Changing Storage Capacity on |aws|
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Changing Storage Capacity or |iops| on |aws|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|aws| allows one storage capacity upgrade every six hours. When you
-upgrade a cluster's storage capacity for the first time during a
-six-hour period, |service| modifies the size of the servers' data
-volumes with zero downtime. If you upgrade the cluster's storage
-capacity again within six hours, |service| provisions new volumes and
-synchronizes data from the old to the new volumes to work around the
-|aws| limitation. During this time, you can still access your cluster,
-but each node that |aws| modifies is unavailable until |aws| attaches
-the new volume.
+|aws| allows you to change storage capacity or storage throughput
+(|iops|) every six hours. |service| supports more changes within that
+six-hour window.
 
-|aws| does not allow in-place storage capacity downgrades. If you
-downgrade a cluster's storage capacity, |service| provisions new
-volumes and synchronizes data from the old to the new volumes to work
-around the |aws| limitation. During this time, you can still access
-your cluster, but each node that |aws| modifies is unavailable until
-|aws| attaches the new volume.
+- For your first change, |service| modifies the hosts’ data volumes
+  without downtime.
+- For later changes, |service| provisions new volumes and syncs the
+  data from the old volumes. If |service| provisions new volumes, you
+  can access your cluster. You can't access *nodes* that |aws| modifies
+  until |aws| attaches the new volume.
 
-This behavior also applies when you enable storage auto-scaling and
-|service| changes cluster storage.
+These behaviors apply when |service| changes capacity during
+:ref:`auto-scaling <cluster-autoscaling>`.
 
-To learn more about |aws| volume modification limitations, see
-:aws:`Requirements When Modifying Volumes </AWSEC2/latest/UserGuide/modify-volume-requirements.html#elastic-volumes-limitations>`
-in the |aws| documentation.
+To learn more about |aws|\'s limitations, see the
+:aws:`AWS documentation </AWSEC2/latest/UserGuide/modify-volume-requirements.html#elastic-volumes-limitations>`.
+
+Increasing Capacity or Throughput
+`````````````````````````````````
+
+How |service| handles changes depends upon when you make the change in
+the |aws| six-hour window.
+
+- For the first change, |service| changes data volumes without downtime.
+
+- For later changes, |service| provisions new volumes then syncs your
+  data from the old to the new volumes. This works around the |aws|
+  limitation.
+
+Decreasing Capacity or Throughput
+`````````````````````````````````
+
+- |aws| doesn't allow you to reduce storage *capacity* in place.
+
+  |service| *can* reduce storage capacity in place. |service|
+  provisions new volumes then syncs data from the old to the new
+  volumes. This works around the |aws| limitation.
+
+- |aws| *does* allow you to reduce |iops| without migrating data.
 
 .. _change-storage-capacity-azure:
 
