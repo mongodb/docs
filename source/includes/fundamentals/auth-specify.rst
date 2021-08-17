@@ -24,7 +24,7 @@ connection settings when constructing your ``MongoClient``.  Select the
 For more information on these classes and methods, refer to the following API
 documentation:
 
-- :java-docs:`MongoClients.create() <apidocs/mongodb-driver-sync/com/mongodb/client/MongoClients.html#create()>`
-- :java-docs:`MongoClient <apidocs/mongodb-driver-sync/com/mongodb/client/MongoClient.html>`
-- :java-docs:`MongoClientSettings.Builder <apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html>`
-- :java-docs:`MongoCredential <apidocs/mongodb-driver-core/com/mongodb/MongoCredential.html>`
+- `MongoClients.create() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoClients.html#create()>`__
+- `MongoClient <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoClient.html>`__
+- `MongoClientSettings.Builder <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html>`__
+- `MongoCredential <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoCredential.html>`__
