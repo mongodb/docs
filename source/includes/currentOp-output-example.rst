@@ -342,6 +342,8 @@
                          "op" : <string>,
                          "ns" : <string>,
                          "command" : <document>,
+                         "configTime" : <Timestamp>,           // Starting in 5.0
+                         "topologyTime" : <Timestamp>,           // Starting in 5.0
                          "planSummary": <string>,
                          "prepareReadConflicts" : <NumberLong()>,
                          "writeConflicts" : <NumberLong()>,
