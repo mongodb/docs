@@ -14,7 +14,7 @@ Overview
 --------
 
 In this guide, you can learn about how the Go Driver handles conversions
-between BSON and Go objects. The process of converting a Go object to
+between BSON and Go values. The process of converting a Go value to
 BSON is called **marshalling**, while the reverse process is called **unmarshalling**. 
 
 You should read this guide if you want to learn more about how the Go Driver
@@ -25,18 +25,14 @@ Data Types
 ----------
 
 MongoDB stores documents in a binary representation called :manual:`BSON
-</reference/bson-types/>` that allows for easy and flexible data processing. The Go
-Driver represents BSON data using two families of types: ``D`` and ``Raw``.
+</reference/bson-types/>` that allows for easy and flexible data processing.
 
-The ``D`` family contains four types:
+The Go Driver provides four main types for working with BSON data:
 
 - ``D``: An ordered representation of a BSON document (slice)
 - ``M``: An unordered representation of a BSON document (map)
 - ``A``: An ordered representation of a BSON array
 - ``E``: A single element inside a D type
-
-Of these, you can use the ``D`` and ``M`` types to
-build representations of BSON using native Go types. 
 
 The following example demonstrates how to construct a query filter using the
 ``bson.D`` type to match documents with a ``quantity`` field value greater
@@ -46,20 +42,16 @@ than 100:
    
    filter := bson.D{{"quantity", bson.D{{"$gt", 100}}}}
 
-You can use ``Raw`` types to validate and retrieve elements from a slice
-of bytes, which is useful if you don't want to unmarshal BSON into
-another type. 
-
-In Go, a **struct** is a collection of data fields with declared data
-types. The Go Driver can marshal/unmarshal structs and other native Go
-types to/from BSON using a `configurable codec system <https://pkg.go.dev/go.mongodb.org/mongo-driver/bson/bsoncodec>`_.
-
 For more information on how the Go Driver handles BSON data, see the
 `bson package API documentation
 <https://pkg.go.dev/go.mongodb.org/mongo-driver/bson>`_.
 
 Struct Tags
 -----------
+
+In Go, a **struct** is a collection of data fields with declared data
+types. The Go Driver can marshal/unmarshal structs and other native Go
+types to/from BSON using a `configurable codec system <https://pkg.go.dev/go.mongodb.org/mongo-driver/bson/bsoncodec>`_.
 
 You can modify the default marshalling and unmarshalling behavior of the Go Driver using
 **struct tags**, which are optional pieces of metadata attached to
@@ -213,16 +205,15 @@ Driver will marshal structs using the following rules:
       
       - Sets the lowercase of the struct fields as the BSON field names
       - Includes an empty ``lastname`` field
-      - Stores the ``Address`` field as a nested object
+      - Stores the ``Address`` field as a nested value
 
 Unmarshalling
 -------------
 
-You can unmarshal BSON documents using the ``Decode()`` method. When you
-execute either a ``FindOne()`` or ``Find()`` query, you can use the
-``Decode()`` method on the return object to unmarshal the results.
+You can unmarshal BSON documents by using the ``Decode()`` method on the
+result of the ``FindOne`` method or any ``*mongo.Cursor`` instance.
 
-The ``Decode()`` method returns an ``error`` interface type which
+The ``Decode()`` method returns an ``error`` type which
 contains one of the following values:
 
 - ``nil`` if a document matched your query, and there were no errors
@@ -290,6 +281,13 @@ The output of the preceding code should look like this:
    
    Unmarshalled Struct:
    {Category:plate Quantity:6}
+
+.. note::
+   
+   You can use the ``Raw`` type to retrieve elements from a BSON
+   document byte slice without unmarshalling it to a Go value. This can
+   be useful if you need to look up individual elements without
+   unmarshalling the entire BSON document.
 
 For more information on the marshalling and unmarshalling methods used with the
 ``Cursor`` type, see the `Cursor API documentation
