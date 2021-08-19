@@ -18,12 +18,14 @@ async function run() {
 
     // increment every document matching the filter with 2 more comments
     const updateDoc = {
-      $inc: {
-        num_mflix_comments: 2,
+      $set: {
+        random_review: `After viewing I am ${
+          100 * Math.random()
+        }% more satisfied with life.`,
       },
     };
     const result = await movies.updateMany(filter, updateDoc);
-    console.log(result);
+    console.log(`Updated ${result.modifiedCount} documents`);
   } finally {
     await client.close();
   }
