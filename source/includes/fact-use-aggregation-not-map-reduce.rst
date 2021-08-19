@@ -1,3 +1,6 @@
+As of MongoDB 5.0 the :doc:`map-reduce</core/map-reduce>`
+operation is deprecated.
+
 An :doc:`aggregation pipeline </core/aggregation-pipeline>` provides
 better performance and usability than a :doc:`map-reduce
 </core/map-reduce>` operation.
