@@ -1,4 +1,4 @@
-Before upgrading |onprem| from 4.2 to 5.0, review the following
+Before upgrading |onprem| from 4.4 to 5.0, review the following
 considerations:
 
 Backing Databases
