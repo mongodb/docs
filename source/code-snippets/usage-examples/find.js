@@ -19,7 +19,7 @@ async function run() {
     const options = {
       // sort returned documents in ascending order by title (A->Z)
       sort: { title: 1 },
-    // Include only the `title` and `imdb` fields in each returned document
+      // Include only the `title` and `imdb` fields in each returned document
       projection: { _id: 0, title: 1, imdb: 1 },
     };
 
