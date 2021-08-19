@@ -4,7 +4,8 @@ level: 4
 ref: set-up-host
 content: |
 
-  Provision a host for |onprem| that meets the following requirements:
+  Provision a host for |onprem|. This host must meet the following
+  requirements:
 
   .. list-table::
      :widths: 30 70
@@ -19,18 +20,31 @@ content: |
      * - Host OS
        - Red Hat Enterprise Linux 8.0
 
-  .. admonition:: Using |aws|
-     :class: note
+  Cloud-based instances must meet the memory and storage requirements.
 
-     An |aws| EC2 ``t3a.xlarge`` instance meets the memory
-     requirements. Change the size of the instance's root partition to
-     50 GB. Log in to the instance and execute ``df -h`` to verify the
-     root partition has 50 GB of space.
+  To verify the needed capacity, log in to the instance and execute the
+  following commands:
+
+  .. code-block:: sh
+
+     $ vmstat -S M -s | grep "total memory"
+
+     16384 M total memory
+
+  This instance has 16 GB of RAM.
+
+  .. code-block:: sh
+
+     $ df -h | grep "/$"
+
+     /dev/sda1        73G   58G   12G  84% /
+
+  This instance has 73 GB of storage capacity.
 
   .. important::
      
-     Ensure the ``ulimit`` settings meet the minimum requirements. 
-     For more information, see the :manual:`MongoDB Ulimit Settings </reference/ulimit>`.
+     Verify that the ``ulimit`` settings meet the
+     :manual:`minimum requirements </reference/ulimit>`.
 
 ---
 stepnum: 2
@@ -39,17 +53,17 @@ ref: config-yum
 level: 4
 content: |
 
-  Create a ``/etc/yum.repos.d/mongodb-org-4.4.repo`` file so
+  Create a ``/etc/yum.repos.d/mongodb-org-5.0.repo`` file so
   that you can install MongoDB directly using ``yum``:
 
   .. code-block:: cfg
 
-     [mongodb-org-4.4]
+     [mongodb-org-5.0]
      name=MongoDB Repository
-     baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/4.4/x86_64/
+     baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/5.0/x86_64/
      gpgcheck=1
      enabled=1
-     gpgkey=https://www.mongodb.org/static/pgp/server-4.4.asc
+     gpgkey=https://www.mongodb.org/static/pgp/server-5.0.asc
 
 ---
 stepnum: 3
@@ -57,8 +71,8 @@ title: "Install MongoDB."
 ref: install-mongodb
 level: 4
 content: |
-  Issue the following command to install the latest stable release of
-  MongoDB:
+  Invoke the following command to install the latest stable release of
+  MongoDB Community:
 
   .. code-block:: sh
 
@@ -72,11 +86,11 @@ optional: true
 level: 4
 content: |
 
-  The |onprem| attaches to its application database on port 27017. If
-  the host on which you want to install the application database is
-  already running a |mongod|, you need to disable it.
+  |onprem| connects to its application database on port 27017. If
+  the host on which you want to install the application database has a
+  running |mongod|, disable that existing database.
 
-  Invoke the following command to disable the |mongod| service:
+  To disable the |mongod| service, invoke the following command:
 
   .. code-block:: sh
 
@@ -87,13 +101,18 @@ title: "Create the |onprem| Application Database directory."
 ref: create-data-dir
 level: 4
 content: |
-  Issue the following two commands to create the data directory and
-  change its ownership:
+  a. Invoke the following command to create the data directory:
 
-  .. code-block:: sh
+     .. code-block:: sh
 
-     sudo mkdir -p /data/appdb
-     sudo chown -R mongod:mongod /data
+        sudo mkdir -p /data/appdb
+
+  b. Invoke the following command to change ownership of the data
+     directory to MongoDB:
+
+     .. code-block:: sh
+
+        sudo chown -R mongod:mongod /data
 
 ---
 stepnum: 6
@@ -102,36 +121,39 @@ ref: update-mdb-conf-file
 level: 4
 content: |
 
-  When you install MongoDB, it creates a configuration file saved at
-  ``/etc/mongod.conf``. Open this file with your preferred text editor.
-  Make the following changes to the file:
+  The installer creates a configuration file saved at
+  ``/etc/mongod.conf``.
+  
+  a. Open the MongoDB file with your preferred text editor.
 
-  .. code-block:: yaml
-     :linenos:
-     :emphasize-lines: 3, 6, 9-11, 19-20
+  b. Edit the file to make the following changes:
 
-     systemLog:
-       destination: file
-       path: "/data/appdb/mongodb.log"
-       logAppend: true
-     storage:
-       dbPath: "/data/appdb"
-       journal:
-         enabled: true
-       wiredTiger:
-         engineConfig:
-           cacheSizeGB: 1
-     processManagement:
-       fork: true
-       timeZoneInfo: /usr/share/zoneinfo
-       pidFilePath: /var/run/mongodb/mongod.pid
-     net:
-       bindIp: 127.0.0.1
-       port: 27017
-     setParameter:
-       enableLocalhostAuthBypass: false
+     .. code-block:: yaml
+        :linenos:
+        :emphasize-lines: 3, 6, 9-11, 19-20
 
-  Save the file when you have made the edits.
+        systemLog:
+          destination: file
+          path: "/data/appdb/mongodb.log"
+          logAppend: true
+        storage:
+          dbPath: "/data/appdb"
+          journal:
+            enabled: true
+          wiredTiger:
+            engineConfig:
+              cacheSizeGB: 1
+        processManagement:
+          fork: true
+          timeZoneInfo: /usr/share/zoneinfo
+          pidFilePath: /var/run/mongodb/mongod.pid
+        net:
+          bindIp: 127.0.0.1
+          port: 27017
+        setParameter:
+          enableLocalhostAuthBypass: false
+
+  c. Save the file when you have made the edits.
 
 ---
 stepnum: 7
@@ -151,7 +173,7 @@ ref: application-package-download
 level: 4
 content: |
 
-  #. Navigate to the :dl:`Ops Manager Download Center <ops-manager>`.
+  a. Navigate to the :dl:`Ops Manager Download Center <ops-manager>`.
 
   #. From the :guilabel:`Platforms` drop-down menu, click
      :guilabel:`Red Hat + CentOS 6, 7, 8 / SUSE 12 + 15 / Amazon Linux`.
@@ -163,9 +185,9 @@ content: |
 
   .. note::
 
-     The downloaded package is named
-     ``mongodb-mms-<version>.x86_64.rpm``, where ``<version>`` is the
-     version number.
+     MongoDB names the downloaded package
+     ``mongodb-mms-<version>.x86_64.rpm``. ``<version>`` represents the
+     version number for |onprem|.
 
 ---
 stepnum: 9
@@ -175,13 +197,13 @@ ref: copy-rpm-installer
 level: 4
 content: |
 
-  If you are installing |onprem| on a remote host, such as a cloud
-  provider compute instance, use ``scp`` to copy the installer to your
-  host:
+  If you install |onprem| on a remote host, such as a cloud service
+  provider instance, use ``scp`` to copy the installer to your host:
 
   .. code-block:: sh
 
-     scp -i <keyfile> mongodb-mms-<version>.x86_64.rpm ec2-user@<public-ip>:~
+     scp -i <keyfile> mongodb-mms-<version>.x86_64.rpm \
+            <username>@<public-ip>:~
 
 ---
 stepnum: 10
@@ -189,25 +211,33 @@ title: "Install |onprem|."
 ref: install
 level: 4
 content: |
-  Install the ``.rpm`` package by issuing the following command, where
-  ``<version>`` is the version of the |onprem| ``.rpm`` package:
+  To install the ``.rpm`` package, invoke the following command.
+  ``<version>`` represents the |onprem| version in the ``.rpm`` package:
 
   .. code-block:: sh
 
      sudo rpm -ivh mongodb-mms-<version>.x86_64.rpm
 
-  The install creates the following:
+  This command creates the following artifacts:
 
-  - The base directory for the |onprem| software, which is:
+  .. list-table::
+     :widths: 50 50
+     :header-rows: 1
 
-    ``/opt/mongodb/mms/``
+     * - Artifact
+       - Value
 
-  - A new system user, ``mongodb-mms``, under which the host runs.
+     * - |onprem| software base directory
+       - ``/opt/mongodb/mms/``
 
-  - The ``/opt/mongodb/mms/conf/conf-mms.properties`` file, which
-    contains the connection string to access the Application Database
-    in :setting:`mongo.mongoUri` setting. The default value is
-    ``locahost``, port ``27017``, so no changes are necessary.
+     * - New system user that owns the |onprem| processes
+       - ``mongodb-mms``.
+
+     * - |onprem| configuration file with the
+         :setting:`connection string to access the Application Database
+         <mongo.mongoUri>`. Don't change this value defaults from
+         ``locahost:27017``.
+       - ``/opt/mongodb/mms/conf/conf-mms.properties``
 
 ---
 stepnum: 11
@@ -215,7 +245,7 @@ title: "Start |onprem|."
 level: 4
 ref: start-the-application
 content: |
-  Issue the following command:
+  Invoke the following command:
 
   .. code-block:: sh
 
@@ -226,12 +256,16 @@ title: "Get your instance hostname."
 level: 4
 ref: public-host-name
 content: |
-  If you are using an EC2 instance, the hostname is the ``Public DNS``
-  listed on the EC2 instance's ``Description`` tab.
+  If you use an cloud service provider instance, find the hostname
+  following the directions of the relevant provider:
 
-  If you do not have a hostname, you can instead use the public IP
-  address. To get the public IP address, paste this |url| into your
-  preferred browser:
+  - :aws:`AWS </vpc/latest/userguide/vpc-dns.html#vpc-dns-viewing>`
+  - :msa:`Azure </virtual-network/virtual-networks-viewing-and-modifying-hostnames>`
+  - :gcpc:`GCP </instances/custom-hostname-vm>`
+
+  If you don't have a hostname, use the public IP address. To find your
+  host's public IP address, paste this |url| into your preferred
+  browser:
 
   .. code-block:: sh
 
@@ -250,10 +284,10 @@ content: |
 
         http://{+opsmgr-url+}
 
-  b. Click the :guilabel:`Register` link and follow the prompts to
-     register the first user and create the first project. The first
-     user is automatically assigned the :ref:`Global Owner
-     <global-owner-role>` role.
+  #. Click :guilabel:`Register`.
+  #. Follow the console prompts to register the first user and create
+     the first organization and project. |onprem| assigns the
+     :ref:`Global Owner <global-owner-role>` role to the first user.
 
 ---
 stepnum: 14
@@ -262,15 +296,12 @@ level: 4
 ref: configure-app
 content: |
 
-  |onprem| walks you through several configuration pages. Required
-  settings are marked with an asterisk. Enter information as
-  appropriate. When configuration is complete, |onprem| opens the
-  :guilabel:`Deployment` page.
+  |onprem| opens the
+  :doc:`configuration console </reference/config/ui-settings>`.
+  |onprem| marks required settings with an asterisk.
 
-  .. seealso::
-
-     To review the available |onprem| configuration settings, see
-     :doc:`/reference/config/ui-settings/`.
+  Enter the information as appropriate. When you finish the
+  configuration, |onprem| opens the :guilabel:`Deployment` page.
 
 ---
 stepnum: 15
@@ -282,11 +313,11 @@ content: |
   a. Click :guilabel:`MongoDB Ops Manager` in the upper left corner of
      the page to return to the :guilabel:`Deployment` page.
 
-  b. Click :guilabel:`Add New` to deploy a MongoDB instance.
+  #. Click :guilabel:`Add New` to deploy a MongoDB instance.
 
      .. seealso::
 
-       -:doc:`replica set </tutorial/deploy-replica-set>`
-       -:doc:`sharded cluster </tutorial/deploy-sharded-cluster>`
+       - :doc:`replica set </tutorial/deploy-replica-set>`
+       - :doc:`sharded cluster </tutorial/deploy-sharded-cluster>`
 
 ...

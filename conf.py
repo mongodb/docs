@@ -116,8 +116,9 @@ extlinks = {
     'ddog-app' : ('https://app.datadoghq.com%s',''),
     'ddog-docs' : ('https://docs.datadoghq.com%s',''),
     'vo-docs' : ('https://help.victorops.com%s',''),
-    'cloudmgr' : ('https://docs.cloudmanager.mongodb.com%s','')
-
+    'cloudmgr' : ('https://docs.cloudmanager.mongodb.com%s',''),
+    'gcpc' : ('https://cloud.google.com/compute/docs%s',''),
+    'msa' : ('https://docs.microsoft.com/en-us/azure%s','')
 }
 
 source_constants = {
