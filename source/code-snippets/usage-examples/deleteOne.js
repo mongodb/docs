@@ -13,12 +13,12 @@ async function run() {
     const database = client.db("sample_mflix");
     const movies = database.collection("movies");
 
-    // Query for a movie that has a title of type string
-    const query = { title: { $type: "string" } };
+    // Query for a movie that has title "Annie Hall"
+    const query = { title: "Annie Hall" };
 
     const result = await movies.deleteOne(query);
     if (result.deletedCount === 1) {
-      console.dir("Successfully deleted one document.");
+      console.log("Successfully deleted one document.");
     } else {
       console.log("No documents matched the query. Deleted 0 documents.");
     }
