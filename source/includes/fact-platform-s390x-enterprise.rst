@@ -40,7 +40,7 @@
 
    * - SLES 12
      - Removed starting in 4.2.15
-     - 4.0.6+
+     - 4.0.6 - 4.0.24
      - Removed starting in 3.6.17
      - Removed starting in 3.4.14
 
