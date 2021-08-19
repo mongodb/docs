@@ -1,0 +1,297 @@
+=================
+Working with BSON
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about how the Go Driver handles conversions
+between BSON and Go values. The process of converting a Go value to
+BSON is called **marshalling**, while the reverse process is called **unmarshalling**. 
+
+You should read this guide if you want to learn more about how the Go Driver
+represents BSON data or need to adjust default marshalling
+and unmarshalling behaviors.
+
+Data Types
+----------
+
+MongoDB stores documents in a binary representation called :manual:`BSON
+</reference/bson-types/>` that allows for easy and flexible data processing.
+
+The Go Driver provides four main types for working with BSON data:
+
+- ``D``: An ordered representation of a BSON document (slice)
+- ``M``: An unordered representation of a BSON document (map)
+- ``A``: An ordered representation of a BSON array
+- ``E``: A single element inside a D type
+
+The following example demonstrates how to construct a query filter using the
+``bson.D`` type to match documents with a ``quantity`` field value greater
+than 100:
+
+.. code-block:: go
+   
+   filter := bson.D{{"quantity", bson.D{{"$gt", 100}}}}
+
+For more information on how the Go Driver handles BSON data, see the
+`bson package API documentation
+<https://pkg.go.dev/go.mongodb.org/mongo-driver/bson>`_.
+
+Struct Tags
+-----------
+
+In Go, a **struct** is a collection of data fields with declared data
+types. The Go Driver can marshal/unmarshal structs and other native Go
+types to/from BSON using a `configurable codec system <https://pkg.go.dev/go.mongodb.org/mongo-driver/bson/bsoncodec>`_.
+
+You can modify the default marshalling and unmarshalling behavior of the Go Driver using
+**struct tags**, which are optional pieces of metadata attached to
+struct fields. The most common use of struct tags is for specifying the
+field name in the BSON document that corresponds to the struct field.
+The following table describes the additional struct tags that you can
+use with the Go Driver:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Struct Tag
+     - Description
+
+   * - ``omitempty``
+     - The field will not be marshalled if it is set to the zero value
+       corresponding to the field type.
+
+   * - ``minsize``
+     - If the field type is type int64, uint, uint32, or uint64 and the value of
+       the field can fit in a signed int32, the field will be serialized
+       as a BSON int32 rather than a BSON int64. If the value can't fit
+       in a signed int32, this tag is ignored.
+
+   * - ``truncate``
+     - If the field type is a non-float numeric type, BSON doubles
+       unmarshalled into that field will be trucated at the decimal point.
+
+   * - ``inline``
+     - If the field type is a struct or map field, the field will be
+       "flattened" when marshalling and "un-flattened" when unmarshalling.
+
+Without additional instruction from struct tags, the Go
+Driver will marshal structs using the following rules:
+
+#. The Go Driver only marshals and unmarshals exported fields.
+
+#. The Go Driver generates BSON key using the lowercase of the
+   corresponding struct field.
+
+#. The Go Driver marshals embedded struct fields as subdocuments.
+   Each key is the lowercase of the field's type.
+
+#. The Go Driver marshals a pointer field as the underlying type if the
+   pointer is non-nil. If the pointer is nil, the driver marshals it as a BSON null
+   value.
+
+#. When unmarshalling, the Go Driver follows `these D/M type mappings
+   <https://pkg.go.dev/go.mongodb.org/mongo-driver/bson#hdr-Native_Go_Types>`_
+   for fields of type ``interface{}``. The driver unmarshals BSON documents
+   unmarshalled into an ``interface{}`` field as a ``D`` type.
+
+.. tabs::
+
+   .. tab:: Struct Tags
+      :tabid: struct-tags
+
+      The following example demonstrates how the Go Driver marshals a
+      struct with various struct tags:
+
+      .. code-block:: go
+
+         type Address struct {
+         	Street string
+         	City   string
+         	State  string
+         }
+                  
+         type Student struct {
+         	FirstName string  `bson:"first_name,omitempty"`
+         	LastName  string  `bson:"last_name,omitempty"`
+         	Address   Address `bson:"inline"`
+         	Age       int
+         }
+         ...
+
+         coll := client.Database("school").Collection("students")
+         address1 := Address{ "1 Lakewood Way", "Elwood City", "PA" }
+         student1 := Student{ FirstName : "Arthur", Address : address1, Age : 8}
+         _, err = coll.InsertOne(context.TODO(), student1)
+
+      The corresponding BSON representation looks like this:
+
+      .. code-block:: json
+         :copyable: false
+      
+         { 
+           "_id" : ObjectId("..."),
+           "first_name" : "Arthur",
+           "street" : "1 Lakewood Way",
+           "city" : "Elwood City",
+           "state" : "PA",
+           "age" : 8
+         }
+
+      In this example, struct tags make the driver:
+      
+      - Set custom BSON field names such as ``first_name``
+      - Omit the empty ``LastName`` field
+      - Flatten the nested struct and bring all fields up to the top
+        level
+
+      .. tabs::
+
+   .. tab:: No Struct Tags
+      :tabid: no-struct-tags
+
+      The following example demonstrates how the Go Driver marshals a
+      struct without any struct tags:
+
+      .. code-block:: go
+
+         type Address struct {
+         	Street string
+         	City   string
+         	State  string
+         }
+                  
+         type Student struct {
+         	FirstName string
+         	LastName  string
+         	Address   Address
+         	Age       int
+         }
+         ...
+
+         coll := client.Database("school").Collection("students")
+         address1 := Address{ "1 Lakewood Way", "Elwood City", "PA" }
+         student1 := Student{ FirstName : "Arthur", Address : address1, Age : 8}
+         _, err = coll.InsertOne(context.TODO(), student1)
+
+      The corresponding BSON representation looks like this:
+
+      .. code-block:: json
+         :copyable: false
+      
+         { 
+           "_id" : ObjectId("..."),
+           "firstname" : "Arthur",
+           "lastname" : "",
+           "address": {
+                        "street" : "1 Lakewood Way",
+                        "city" : "Elwood City",
+                        "state" : "PA"
+                      },
+           "age" : 8
+         }
+         
+      Without struct tags, the driver:
+      
+      - Sets the lowercase of the struct fields as the BSON field names
+      - Includes an empty ``lastname`` field
+      - Stores the ``Address`` field as a nested value
+
+Unmarshalling
+-------------
+
+You can unmarshal BSON documents by using the ``Decode()`` method on the
+result of the ``FindOne`` method or any ``*mongo.Cursor`` instance.
+
+The ``Decode()`` method returns an ``error`` type which
+contains one of the following values:
+
+- ``nil`` if a document matched your query, and there were no errors
+  retrieving and unmarshalling the document. 
+- If the driver retrieved your document but could not unmarshal your result, the
+  ``Decode()`` method returns the unmarshalling error.
+- If there was an error retrieving your document during execution of the
+  ``FindOne()`` method, the error propagates to the ``Decode()`` method and
+  the ``Decode()`` method returns the error. 
+
+When used on the ``SingleResult`` type returned by the ``FindOne()``
+method, ``Decode()`` can also return the ``ErrNoDocuments`` error if no
+documents matched the query filter.
+
+The following example demonstrates how you can use the ``Decode()``
+method to unmarshal and read the result of a simple ``FindOne()``
+operation:
+
+.. code-block:: go
+   
+   coll := client.Database("school").Collection("students")
+   filter := bson.D{{"age", 8}}
+
+   var result bson.D
+   err := coll.FindOne(context.TODO(), filter).Decode(&result)
+   ...
+
+   fmt.Println(result)
+
+The output of the preceding code should look like this:
+
+.. code-block:: none
+   
+   [{_id ObjectID("...")} {first_name Arthur} {street 1 Fern Way} {city Elwood City} {state PA} {age 8}]
+
+The ``Cursor`` type also uses the ``All()`` method, which unmarshals all
+documents stored in the cursor into an array at the same time.
+
+The ``bson`` package includes a family of
+``Marshal()`` and ``Unmarshal()`` methods that work with BSON-encoded data
+of ``[]byte`` type. 
+
+The following code demonstrates how you can unmarshal BSON back into a
+user-defined struct by using methods from the ``bson`` package:
+
+.. code-block:: go
+   
+   type Item struct {
+      Category string
+      Quantity int32
+   }
+   ...
+
+   doc, err := bson.Marshal(bson.D{{"category", "plate"}, {"quantity", 6}})
+   ...
+   var test Item
+   err = bson.Unmarshal(doc, &test)
+   ...
+   fmt.Printf("Unmarshalled Struct:\n%+v\n", test)
+
+The output of the preceding code should look like this:
+
+.. code-block:: none
+   
+   Unmarshalled Struct:
+   {Category:plate Quantity:6}
+
+.. note::
+   
+   You can use the ``Raw`` type to retrieve elements from a BSON
+   document byte slice without unmarshalling it to a Go value. This can
+   be useful if you need to look up individual elements without
+   unmarshalling the entire BSON document.
+
+For more information on the marshalling and unmarshalling methods used with the
+``Cursor`` type, see the `Cursor API documentation
+<https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.7.0/mongo#Cursor>`_
+
+For more information on the marshalling and unmarshalling methods in the
+``bson`` package, see the `bson API documentation
+<https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.7.0/bson#hdr-Marshalling_and_Unmarshalling>`_
