@@ -1,0 +1,144 @@
+====================
+Invalid Resume Token
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Learn how to recover from an invalid resume token
+in a MongoDB Kafka Connector source connector. 
+
+Stack Trace
+~~~~~~~~~~~
+
+The following stack trace indicates that the source connector has an invalid resume token:
+
+.. code-block:: text
+
+   ...
+   org.apache.kafka.connect.errors.ConnectException: ResumeToken not found.
+   Cannot create a change stream cursor
+   ...
+   Command failed with error 286 (ChangeStreamHistoryLost): 'PlanExecutor
+   error during aggregation :: caused by :: Resume of change stream was not
+   possible, as the resume point may no longer be in the oplog
+   ... 
+
+Cause
+-----
+
+When the ID of your source connector's resume token does not correspond to any
+entry in your MongoDB deployment's :ref:`oplog <replica-set-oplog>`, 
+your connector has no way to determine where to begin to process your
+MongoDB change stream. This issue most commonly occurs when you pause the source
+connector and fill the oplog, as outlined in the following scenario:
+
+#. You start a Kafka deployment with a MongoDB Kafka Connector source connector.
+#. You produce change stream events in MongoDB, and your connector stores a
+   resume token corresponding to the most recent oplog entry in MongoDB.
+#. You pause your source connector.
+#. While your connector sits idle, you fill your MongoDB oplog such that MongoDB
+   deletes the oplog entry corresponding to your resume token.
+#. You restart your source connector, and it is unable to resume
+   processing as its resume token does not exist in your MongoDB oplog.
+
+For more information on the oplog, see the 
+:ref:`MongoDB Manual <replica-set-oplog>`.
+
+.. TODO: update doc link to ref once page is written
+
+For more information on change streams, see the
+:doc:`guide on change streams </source-connector/fundamentals/change-streams>`.
+
+Solutions
+---------
+
+You can recover from an invalid resume token using one of the following
+strategies:
+
+- :ref:`Temporarily Tolerate Errors <temporarily-tolerate-errors>`
+- :ref:`Delete Stored Offsets <troubleshoot-delete-stored-offsets>`
+
+.. _temporarily-tolerate-errors:
+
+Temporarily Tolerate Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure your source connector to tolerate errors 
+while you produce a change stream event that updates the 
+connector's resume token. This recovery strategy is the 
+simplest, but there is a risk that your connector briefly 
+ignores errors unrelated to the invalid resume token. If you 
+aren't comfortable briefly tolerating errors
+in your deployment, you can 
+:ref:`delete stored offsets <troubleshoot-delete-stored-offsets>` instead.
+
+To configure your source connector to temporarily tolerate errors:
+
+#. Set the ``errors.tolerance`` option to tolerate all errors:
+
+   .. code-block:: java
+
+      errors.tolerance="all"
+
+#. Insert, update, or delete a document in the collection referenced by your source connector to
+   produce a change stream event that updates your connector's resume token.
+
+#. Once you produce a change stream event, set the ``errors.tolerance``
+   option to no longer tolerate errors:
+   
+   .. code-block:: java
+   
+      errors.tolerance="none"
+
+.. TODO: <Confirm linked page discusses errors.tolerance once it's written>
+.. TODO: update doc link to ref once page is written
+
+For more information on the ``errors.tolerance`` option, see the 
+:doc:`guide on source connector configuration properties </source-connector/configuration-properties>`.
+
+.. _troubleshoot-delete-stored-offsets:
+
+Delete Stored Offsets
+~~~~~~~~~~~~~~~~~~~~~
+
+You can delete your Kafka Connect offset data, which contains your resume token,
+to allow your connector to resume processing your change stream. This strategy is
+more complex than the preceding strategy, but does not risk tolerating errors
+unrelated to the invalid resume token.
+
+.. As far as I can tell, there is not a straightforward way to tell at runtime
+   which mode you are in. The Data Engineer Persona likely knows how they
+   configured their pipeline, but if they do not know they may
+   have to attempt both choices.
+
+The steps to perform this strategy depend on whether you are running Kafka Connect
+in distributed mode or standalone mode. Click on the tab corresponding to the
+mode of your deployment: 
+
+.. tabs::
+
+   .. tab:: Distributed
+      :tabid: distributed
+
+      #. Delete the topic specified in the ``offset.storage.topic`` property of your
+         Kafka Connect deployment. For more information on deleting topics in Apache Kafka, see the 
+         `official Apache Kafka documentation <https://kafka.apache.org/081/documentation.html#basic_ops_add_topic>`__.
+
+      #. Restart your source connector and continue to process change stream events. 
+
+   .. tab:: Standalone
+      :tabid: standalone
+
+      #. Delete the file referenced by the ``offset.storage.file.filename`` property of
+         your Kafka Connect deployment.
+
+      #. Restart your source connector and continue to process change stream events. 
