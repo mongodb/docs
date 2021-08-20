@@ -176,8 +176,11 @@
   <manage-online-archive>`.
 - Introduces the ability to use an |aws| |iam| role to authorize
   |service| to access:
+
   - |aws| |kms| encryption keys for customer key management, or
+  
   - |s3| buckets for {+data-lake+}\s.
+
 - Introduces the ability to peer to |service| VPCs on |gcp| with a
   smaller |cidr| block. When you create the network peering container
   using the |service| :ref:`API <atlas-create-peering-container-api>`,
