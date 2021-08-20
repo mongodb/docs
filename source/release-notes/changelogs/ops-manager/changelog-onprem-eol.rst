@@ -625,7 +625,7 @@ Considerations for Upgrade (v1.8)
 
 *Released 2015-04-28*
 
-- Fixed issue with grooms on a WiredTiger Backup Blockstore.
+- Fixed issue with grooms on a WiredTiger backup blockstore.
 
 - Fixed a possible connection leak with the SCP Individual File restore
   type.
@@ -755,7 +755,7 @@ Considerations for Upgrade to 1.6
   is greatly simplified. The previous procedure no longer works. For
   the new procedure, see :doc:`/tutorial/configure-ssl-connection-to-web-interface`.
 
-- The connection string to the Backup Blockstore database is now
+- The connection string to the backup blockstore database is now
   configured through the Administration interface's
   :ref:`Blockstores page <blockstores-page>` and not through the
   ``mongo.backupdb.mongoUri`` field in the ``conf-daemon.properties``
@@ -926,7 +926,7 @@ New Features
 
 - MMS OnPrem :doc:`Public API </reference/api>`.
 
-- Explicit support for multiple MMS OnPrem Backup Blockstore databases
+- Explicit support for multiple MMS OnPrem backup blockstore databases
   and the ability to pin MMS OnPrem Projects to specific backup daemons
   and databases. See
   :doc:`/tutorial/assign-snapshot-stores-to-data-center`.

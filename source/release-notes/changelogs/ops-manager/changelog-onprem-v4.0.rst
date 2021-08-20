@@ -233,8 +233,8 @@
 - Add support for managing MongoDB deployments on IBM zSeries for the
   Ubuntu 18.04, SUSE12 and RHEL7 operating systems.
 - **Fix:** Add validation for allowed characters for the names of
-  Filesystem Snapshot Stores, S3 Snapshot Stores and MongoDB Blockstore
-  Snapshot Stores.
+  filesystem snapshot stores, S3 snapshot stores and MongoDB blockstore
+  snapshot stores.
 - **Fix:** Do not remind users to configure two-factor authentication,
   if two-factor authentication has been disabled for the Ops Manager
   installation.

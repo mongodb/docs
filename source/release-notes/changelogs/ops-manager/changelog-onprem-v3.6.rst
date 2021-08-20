@@ -384,7 +384,7 @@ Backup
      :ref:`MongoDB 3.4.11 <3.4.11-changelog>` or later.
 
 - Added support for IBM Cloud Object Storage and DellEMC Elastic Cloud
-  Storage for S3 Blockstore Snapshot Storage
+  Storage for S3 blockstore snapshot storage
 
 - Added support for performing
   :doc:`automated restores from one Project to another Project</tutorial/nav/backup-restore-deployments>`.

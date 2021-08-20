@@ -76,7 +76,7 @@ Backup Features Supported at Present
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Supports Saving to Blockstore Snapshot Storage
+      * - Supports Saving to blockstore snapshot storage
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
