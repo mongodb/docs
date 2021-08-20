@@ -12,4 +12,5 @@ We recommend moving the primary shard for any databases containing
 unsharded collections before removing the shard.
 
 To learn more about removing shards, see 
-:manual:`Remove Shards from an Existing Sharded Cluster </tutoriaremove-shards-from-cluster/>`.
+:manual:`Remove Shards from an Existing Sharded Cluster 
+</tutorial/remove-shards-from-cluster/>`.
