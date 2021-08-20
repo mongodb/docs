@@ -65,10 +65,6 @@ Capabilities
 
    * - Migrate into {+Clusters+} from |service| {+Serverless-instances+}
      - :icon:`check-square`
-    
-   * - Import data using the :dbtools:`MongoDB Tools </>`, including ``mongodump``,
-       ``mongorestore``, ``mongoexport``, and ``mongoimport``.
-     - :icon:`check-square`
   
    * - :doc:`Live Migrate </import/live-import>` into |service| {+Serverless-instances+}
      - 
