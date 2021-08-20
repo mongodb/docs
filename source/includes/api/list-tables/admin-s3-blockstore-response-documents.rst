@@ -37,10 +37,6 @@
      - string
      - Name that identifies the |certauth| |pem| file.
 
-   * - customCertificates[n].createdOn
-     - string
-     - |iso8601-time| when you created this |certauth| certificate.
-
    * - customCertificates[n].certString
      - string
      - Contents of the |certauth| |pem| file that comprise your
