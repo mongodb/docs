@@ -18,6 +18,9 @@
 - Updates the MongoDB Agent to :ref:`11.0.6.6981
   <mongodb-11.0.6.6981>`.
 
+- Compatible with :db-tools:`MongoDB Database Tools 100.4.0 
+  </release-notes/database-tools-changelog#100.4.0-changelog>`.
+
 .. _opsmgr-server-5.0.0:
 
 |onprem| Server 5.0.0
