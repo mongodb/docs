@@ -1,6 +1,6 @@
 
 .. warning:: MongoDB {+version-dev+} Release Candidates
 
-   While the {+version-dev+} release candidates are available, these
-   versions of MongoDB are for **testing purposes only and not for
-   production use**.
+   MongoDB {+version-dev+} release candidates are not yet available.
+   This version of the manual is for an upcoming release and is
+   currently a work in progress.
