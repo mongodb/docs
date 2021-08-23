@@ -1,3 +1,7 @@
+Starting in MongoDB 5.0, the :pipeline:`$currentOp` aggregation 
+stage is used when running the helper method :method:`db.currentOp()` 
+via :binary:`~bin.mongosh`.
+
 Because :dbcommand:`currentOp` command and
 :method:`db.currentOp()` helper returns the results in a single
 document, the total size of the :dbcommand:`currentOp` result set
