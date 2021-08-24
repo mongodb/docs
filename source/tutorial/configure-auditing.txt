@@ -228,16 +228,87 @@ You may also specify these options in the :doc:`configuration file
       format: BSON
       path: data/db/auditLog.bson
 
-To view the contents of the file, pass the file to the MongoDB utility
-:binary:`~bin.bsondump`. For example, the following converts the audit log
-into a human-readable form and output to the terminal:
+The following example converts the audit log into readable form using
+:binary:`~bin.bsondump` and outputs the result:
 
 .. code-block:: bash
 
    bsondump data/db/auditLog.bson
+
+.. _runtime-audit-configuration:
+
+Runtime Audit Filter Management
+-------------------------------
+
+Starting in MongoDB 5.0, audit filters can be configured at runtime.
+Runtime Audit Filter Management provides three benefits compared to
+audit filter configurations that are specified in a local
+:binary:`~bin.mongod` or :binary:`~bin.mongos` configuration file:
+
+- :ref:`rafm-separation`
+- :ref:`rafm-configurability`
+- :ref:`rafm-consistency`
+
+.. _rafm-separation: 
+
+Separation of Concerns
+~~~~~~~~~~~~~~~~~~~~~~
+
+Prior to MongoDB 5.0, anyone auditing a MongoDB :binary:`~bin.mongod`
+or :binary:`~bin.mongos` instance had to have write access to the host
+server's file system in order to update audit filters. Runtime Audit
+Filter Management improves security by separating audit access from
+administrative access.
+
+Using Runtime Audit Filter Management instead of editing configuration
+files directly means: 
+
+- File system access is not required so an auditor does not need access
+  to the :binary:`~bin.mongod` or :binary:`~bin.mongos` host server.
+
+- There is no direct access to the :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` instance's configuration file.
+
+- Runtime Audit Filter Management only exposes :ref:`audit filters
+  <audit-filter>` and the :parameter:`auditAuthorizationSuccess`
+  parameter.
+
+.. _rafm-configurability:
+
+Runtime Configurability
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, when Runtime Audit Filter Management is
+enabled, auditing can be reconfigured at runtime without restarting the
+:binary:`~bin.mongod` or :binary:`~bin.mongos` instance. A statically
+configured instance has to be restarted to update its audit settings.
+
+Audit filter modifications made at runtime persist when an instance is
+shutdown and restarted.
+
+.. _rafm-consistency:
+
+Consistency
+~~~~~~~~~~~
+
+Within a cluster, if all participating :binary:`~bin.mongod` and
+:binary:`~bin.mongos` nodes are configured to use Runtime Audit Filter
+Management, then every node will use the same audit filters. In
+contrast, if each node has its own locally configured audit filters,
+there is no guarantee of audit filter consistency across nodes.
+
+.. _rafm-enable:
+
+Enable Runtime Audit Filter Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-enable-runtime-audit-configuration.rst
 
 .. seealso::
 
    - :doc:`/tutorial/configure-audit-filters`
    - :doc:`/core/auditing`
    - :doc:`/reference/audit-message`
+   - :dbcommand:`setAuditConfig`
+   - :dbcommand:`getAuditConfig`
+
