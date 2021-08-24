@@ -31,10 +31,23 @@
 MongoDB Cloud Migration Service
 ```````````````````````````````
 
-Adds the MongoDB Cloud Migration Service. This service extends
-|service| Live Migrations. After linking your |onprem| or |cloud|
-organization to your |service| organization, you can launch a Live
-Migration for an existing cluster, and migrate all data to |service|.
+Adds the MongoDB Cloud Migration Service. This service powers Live
+Migrations from |onprem| or |cloud| to |service|. The service runs
+when you use the Live Migration wizard in |service|. After preparing a
+target cluster in |service-short|, provisioning a migration host in
+|onprem|, and linking your |onprem| or |cloud| organization to your
+|service| organization, you can launch a Live Migration process in
+|service| for an existing cluster in |onprem| or |cloud|, and migrate
+all data from the source cluster to a target cluster in |service-short|.
+You can also migrate a MongoDB Community to |service|.
+
+For more information, see :ref:`lm-workflow` in the
+|service-short| documentation.
+
+To live migrate your deployment from |onprem| or |cloud| to
+|service-short|, see :ref:`migrate-to-atlas`.
+To live migrate your MongoDB Community deployments to |service-short|
+using |mms|, see :ref:`migrate-community-to-atlas`.
 
 MongoDB Cluster Management
 ``````````````````````````
