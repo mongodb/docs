@@ -1,0 +1,83 @@
+=========================
+Topic Override Properties
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Use the following sink connector configuration settings to override global or
+default property settings for specific topics.
+
+.. include:: /includes/sink-config-link.rst
+
+Settings
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Name
+     - Description
+
+   * - | **topic.override.<topicName>.<propertyName>**
+     - | **Type:** string
+       |
+       | **Description:**
+       | Specify a topic and property name to override the corresponding
+         global or default property setting.
+
+       .. example::
+
+          The ``topic.override.foo.collection=bar`` setting instructs the
+          sink connector to store data from the ``foo`` topic in the ``bar``
+          collection.
+
+       .. note::
+
+          You can specify any valid configuration setting in the
+          ``<propertyName>`` segment on a per-topic basis except
+          ``connection.uri`` and ``topics``.
+
+       | **Default**:  ``""``
+       | **Accepted Values**: Accepted values specific to the overridden property
+
+
+Example
+-------
+
+You can override the sink connector to sink data from specific topics. The
+following example configuration shows how you can define configuration
+settings for a topic named ``topicA``:
+
+.. code-block:: properties
+
+   topic.override.topicA.collection=collectionA
+   topic.override.topicA.max.batch.size=100
+   topic.override.topicA.document.id.strategy=com.mongodb.kafka.connect.sink.processor.id.strategy.UuidStrategy
+   topic.override.topicA.post.processor.chain=com.mongodb.kafka.connect.sink.processor.DocumentIdAdder,com.mongodb.kafka.connect.sink.processor.BlockListValueProjector
+   topic.override.topicA.value.projection.type=BlockList
+   topic.override.topicA.value.projection.list=k2,k4
+
+After applying these configuration settings, the sink connector performs
+the following for data consumed from ``topicA``:
+
+- Write documents to the MongoDB collection ``collectionA`` in batches of
+  up to 100.
+- Generate a UUID value for each new document and write it to the ``_id``
+  field.
+- Omit fields ``k2`` and ``k4`` from the value projection using the
+  ``BlockList`` projection type.
+
+For an example of how to configure the Block List Projector, see the
+:ref:`Sink Post-Processors guide
+<https://docs.mongodb.com/kafka-connector/current/kafka-sink-postprocessors/#block-list---allow-list-projector>`.
+
