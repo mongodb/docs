@@ -1,3 +1,18 @@
+.. _cloudmanager_20210824:
+
+25 August 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds metrics that report maximum observed values for all hardware 
+  metrics. Your |mms| plan determines the :ref:`granularity 
+  <monitoring-metrics-per-plan>` of these metrics.
+- Adds the ability to specify :manual:`Sort 
+  </reference/method/cursor.sort/>`, :manual:`Project
+  </tutorial/project-fields-from-query-results>`, and :manual:`Collation
+  </reference/collation/>` query options when you :ref:`query your data
+  <de-view-documents>` using :guilabel:`Data Explorer`.
+- Updates {+mdbagent+} to :ref:`11.4.0.7057-1 <11.4.0.7057-1>`.
+
 .. _cloudmanager_20210803:
 
 03 August 2021 Release
