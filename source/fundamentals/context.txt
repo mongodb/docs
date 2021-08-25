@@ -1,1 +1,119 @@
-TODO: Discussion of the ``context`` package
+=======
+Context
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+The MongoDB Go Driver uses the `context package
+<https://pkg.go.dev/context>`__ from Go's standard library to allow
+applications to signal timeouts and cancellations for any **blocking function** 
+call. A blocking function relies on an external event, such as a network
+input or output, to proceed with its task. 
+
+An example of a blocking function in the Go Driver is the ``Insert()``
+function. If you want to perform an insert operation on a ``Collection``
+within 10 seconds, you can use a ``Context`` with a timeout. If the
+operation doesn't complete within the timeout, the function returns
+an error.
+
+.. code-block:: go
+   :emphasize-lines: 3
+
+    client := mongo.Connect(context.TODO())
+
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+    client.Database("<db>").Collection("<collection>").Insert(ctx, bson.D{{"x",1}})
+
+Expiration
+----------
+
+The driver considers a Context expired when an operation exceeds its
+timeout or is canceled. The driver checks the Context expiration with
+the ``Done()`` function. 
+
+The following sections describe when and how the driver checks for
+expiration. 
+
+Server Selection
+~~~~~~~~~~~~~~~~
+
+The driver might block a function call if it can't select a server for
+an operation. 
+
+In this scenario, the driver loops until it finds a server to use for the
+operation. After each iteration, the driver returns a server selection
+timeout error if the Context expired or the selection process took
+longer than the ``serverSelectionTimeoutMS`` setting. 
+
+For more information on how the driver selects a server, see the
+:ref:`<replica-set-read-preference-behavior>`. 
+
+Connection Checkout
+~~~~~~~~~~~~~~~~~~~
+
+The driver might block a function call if there are no available
+connections to check out. 
+
+After selecting a server, the driver tries to check out a connection
+from the server’s connection pool. If the Context expires while checking
+out a connection, the function returns a timeout error. 
+
+Connection Establishment 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The driver might block an function call if it needs to create a new
+connection.
+
+When the driver needs to create a new connection to execute an
+operation, the Context sets a timeout for the establishment process. The
+driver sets the timeout to either the Context expiration or connection
+timeout, whichever is shorter. 
+
+The following example sets the connection timeout to *1* second and the
+Context deadline to *2* seconds. Because the connection timeout is
+shorter, the establishment process expires after *1* second.
+
+.. code-block:: go
+   :emphasize-lines: 2, 5
+
+    opts := options.Client()
+    opts.SetConnectTimeout(1*time.Second)
+    client := mongo.Connect(context.TODO(), opts)
+
+    ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+    defer cancel()
+    client.Database("<db>").Collection("<collection>").InsertOne(ctx, bson.D{{"x",1}})
+    
+Socket Read and Write
+~~~~~~~~~~~~~~~~~~~~~
+
+When the driver retrieves a connection for an operation, it sets the
+socket’s read or write deadline to either the Context deadline or socket
+timeout, whichever is shorter.
+
+.. important:: 
+
+    If you cancel the Context after the execution of the ``Read()`` or
+    ``Write()`` function but before its deadline, the behavior of the driver
+    differs based on version. 
+
+In versions prior to 1.5.0, the driver doesn't detect the Context
+cancellation and waits for the ``Read()`` or ``Write()`` function to
+return. 
+
+In versions 1.5.0 and later, the driver generates a separate
+goroutine to listen for Context cancellation when the ``Read()`` or
+``Write()`` function is in progress. If the goroutine detects a
+cancellation, it closes the connection. The pending ``Read()`` or
+``Write()`` function returns an error which the driver overwrites with
+the ``context.Canceled`` error. 
