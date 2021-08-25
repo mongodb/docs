@@ -1,3 +1,23 @@
+.. _atlas_20210824:
+
+25 August 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces {+serverless-instances+} into the following Azure regions:
+
+  - Virginia (US_EAST_2)
+  - Netherlands (EUROPE_WEST)
+
+- Adds metrics that report maximum observed values, in 60-second 
+  intervals, for all hardware metrics.
+- Adds the ability to specify :manual:`Sort 
+  </reference/method/cursor.sort/>`, :manual:`Project
+  </tutorial/project-fields-from-query-results>`, and :manual:`Collation
+  </reference/collation/>` query options when you :ref:`query your data
+  <de-view-documents>` using :guilabel:`Data Explorer`.
+- Adds the ability for a user with the 
+  :authrole:`Project Cluster Manager` role to :ref:`test-failover-api`.
+
 .. _atlas_20210803:
 
 03 August 2021 Release
