@@ -1,3 +1,17 @@
+.. _data-lake-v20210824:
+
+25 August 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Provides various stability improvements.
+- Improves ``collStats`` and ``dbStats`` :ref:`command 
+  <mql-support-diagnostic-cmd>` performance and stability.
+- Adds support for the :pipeline:`$merge` aggregation pipeline stage.
+- Allows ``localField`` and ``foreignField`` with a more expressive
+  :doc:`$lookup </reference/pipeline/lookup-stage/>` aggregation
+  pipeline stage syntax.
+- Implements the ``$count`` accumulator.
+
 .. _data-lake-v20210803:
 
 03 August 2021 Release
