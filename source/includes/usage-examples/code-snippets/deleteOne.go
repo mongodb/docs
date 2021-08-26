@@ -4,18 +4,20 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-// Replace the uri string with your MongoDB deployment's connection string.
-const uri = "mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority"
 	
 func main() {
+	var uri string
+	if uri = os.Getenv("MONGODB_URI"); uri == "" {
+		log.Fatal("You must set your `MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+	}
+
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
-	
 	if err != nil {
 		panic(err)
 	}
