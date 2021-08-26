@@ -1,4 +1,4 @@
-.. admonition:: About the example filenames
+.. note:: About the example filenames
 
    - Name these files the exact names provided, substituting the
      appropriate variables. If a filename doesn't match, deployment
