@@ -1,7 +1,7 @@
 ref: x509-certificate-client
 content: |
-   The client certificate must have the following
-   properties:
+
+   Client certificates must have the following properties:
 
    - A single Certificate Authority (CA) must issue the certificates
      for both the client and the server.
@@ -16,65 +16,63 @@ content: |
    - Each unique MongoDB user must have a unique certificate.
 
    - A client x.509 certificate's subject, which contains the
-     Distinguished Name (``DN``), must **differ** from that of a
-     :ref:`x509-member-certificate`.
-     
+     Distinguished Name (``DN``), must **differ** from the subjects of
+     :ref:`member x.509 certificates <x509-member-certificate>`.
+
      At least one of the Organization (``O``), Organizational Unit
      (``OU``), or Domain Component (``DC``) attributes in the client
      certificate must differ from those in the
      :setting:`net.tls.clusterFile` and
-     :setting:`net.tls.certificateKeyFile` server certificates.
-     
+     :setting:`net.tls.certificateKeyFile` server certificates. If a
+     client x.509 certificate's subject has the same ``O``, ``OU``, and
+     ``DC`` combination as the :ref:`x509-member-certificate` (or
+     :parameter:`tlsX509ClusterAuthDNOverride` if set), the client
+     connection is rejected. Only :ref:`cluster member x509 certificates
+     <x509-member-certificate>` should use same ``O``, ``OU``, and
+     ``DC`` combinations as this grants full permissions.
+
      If the MongoDB deployment has
-     :parameter:`tlsX509ClusterAuthDNOverride` set (available starting
-     in MongoDB 4.2), the client x.509 certificate's subject must also
+     :parameter:`tlsX509ClusterAuthDNOverride` set (*available starting
+     in MongoDB 4.2*), the client x.509 certificate's subject must also
      differ from that value.
 
-     .. warning::
+   - The x.509 certificate must *not* be expired.
 
-        If a client x.509 certificate's subject has the same ``O``,
-        ``OU``, and ``DC`` combination as the
-        :ref:`x509-member-certificate` (or
-        :parameter:`tlsX509ClusterAuthDNOverride` if set), the client
-        connection is rejected. Only
-        :ref:`cluster member x509 certificates <x509-member-certificate>`
-        should use same ``O``, ``OU``, and ``DC`` combinations as this
-        grants full permissions.
-
-   - The x.509 certificate must *not* be expired. 
-   
      .. include:: /includes/extracts/4.4-changes-certificate-expiry-warning.rst
 ---
 ref: x509-certificate-member
 content: |
 
-   The member certificate (:setting:`net.tls.clusterFile`, if
-   specified, and :setting:`net.tls.certificateKeyFile`), used to
-   verify membership to the sharded cluster or a replica set, must have
-   the following properties:
+   Member certificates which you use to verify membership to a sharded
+   cluster or a replica set (:setting:`net.tls.clusterFile`, if
+   specified, and :setting:`net.tls.certificateKeyFile`), must have the
+   following properties:
 
    - A single Certificate Authority (CA) must issue all the x.509
      certificates for the members of a sharded cluster or a replica set.
 
    - The Distinguished Name (``DN``), found in the member certificate's
-     ``subject``, must specify a non-empty value for *at least one* of the
-     following attributes: Organization (``O``), the Organizational Unit
-     (``OU``) or the Domain Component (``DC``).
- 
+     ``subject``, must specify a non-empty value for *at least one* of
+     the following attributes:
+
+     - the Organization (``O``)
+     - the Organizational Unit (``OU``)
+     - the Domain Component (``DC``)
+
    - The Organization attributes (``O``\'s), the Organizational Unit
      attributes (``OU``\'s), and the Domain Components (``DC``\'s) must
      match those from both the :setting:`net.tls.clusterFile` and
      :setting:`net.tls.certificateKeyFile` certificates for the other
      cluster members (or the :parameter:`tlsX509ClusterAuthDNOverride`
      value, if set).
-     
+
      To match, the certificate must match all specifications of these
-     attributes, or even the non-specification of these attributes. The
+     attributes, even the non-specification of these attributes. The
      order of the attributes does not matter.
 
      In the following example, the two ``DN``\'s contain matching
-     specifications for ``O``, ``OU`` as well as the non-specification of
-     the ``DC`` attribute.
+     specifications for ``O``, ``OU`` as well as the non-specification
+     of the ``DC`` attribute.
 
      .. code-block:: none
 
@@ -97,8 +95,8 @@ content: |
      names or IP addresses. In previous versions, MongoDB only supports
      comparisons of DNS names.
 
-     For example, the certificates for a cluster could have the following
-     subjects:
+     For example, the certificates for a cluster could have the
+     following subjects:
 
      .. code-block:: bash
 
@@ -106,68 +104,49 @@ content: |
         subject= CN=<myhostname2>,OU=Dept1,O=MongoDB,ST=NY,C=US
         subject= CN=<myhostname3>,OU=Dept1,O=MongoDB,ST=NY,C=US
 
-   - *If* the certificate includes the Extended Key Usage (``extendedKeyUsage``)
-     setting, the value must include ``clientAuth`` ("TLS Web Client
-     Authentication").
+   - *If* the certificate includes the Extended Key Usage
+     (``extendedKeyUsage``) setting, the value must include
+     ``clientAuth`` ("TLS Web Client Authentication").
 
      .. code-block:: none
 
         extendedKeyUsage = clientAuth
-   
-     You can also use a certificate that does not include the Extended
-     Key Usage (EKU).
 
-   - The x.509 certificate must *not* be expired. 
-   
+   - The x.509 certificate must *not* be expired.
+
      .. include:: /includes/extracts/4.4-changes-certificate-expiry-warning.rst
 ---
 ref: x509-member-auth-configuration
 content: |
 
-   In addition to any TLS/SSL configurations as appropriate for your
-   deployment, include the following to specify x.509 for internal
-   authentication for each member of your replica set (i.e. the
-   :binary:`~bin.mongod` instances) or sharded cluster (i.e. the
-   :binary:`~bin.mongod` and :binary:`~bin.mongos` instances):
+   You can use TLS for internal authentication between each member of
+   your replica set (each :binary:`~bin.mongod` instance) or sharded
+   cluster (each :binary:`~bin.mongod` and :binary:`~bin.mongos`
+   instance).
+
+   To use TLS for internal authentication, use the following settings:
 
    - :setting:`security.clusterAuthMode` or :option:`--clusterAuthMode
      <mongod --clusterAuthMode>` set to ``x509``
 
    - :setting:`net.tls.clusterFile` or :option:`--tlsClusterFile
-     <mongod --clusterAuthMode>` (*both new in MongoDB 4.2*)
+     <mongod --clusterAuthMode>` (*available starting in MongoDB 4.2*)
 
-   However, if no cluster file is specified, members can use their
-   certificate key file specified in
+   :binary:`~bin.mongod` and :option:`mongos <mongos
+   --tlsCertificateKeyFile>` instances use their certificate key file to
+   prove their identity to clients, but it can also be used for
+   membership authentication. If you do not specify a cluster file,
+   members use their certificate key file for membership authentication.
+   The certificate key file is the file you specify with
    :setting:`net.tls.certificateKeyFile` or
    :option:`--tlsCertificateKeyFile <mongod --tlsCertificateKeyFile>`
-   (*both new in MongoDB 4.2*) for membership authentication. This
-   :setting:`certificate key file <net.tls.certificateKeyFile>` is used
-   by :binary:`~bin.mongod` (and :option:`mongos 
-   <mongos --tlsCertificateKeyFile>`) instances to prove their identity
-   to clients, but can also be used for membership authentication. To
-   use for both client authentication and membership authentication,
-   the certificate must either:
+   (*available starting in MongoDB 4.2*).
+
+   To use the :setting:`certificate key file
+   <net.tls.certificateKeyFile>` for both client authentication and
+   membership authentication, the certificate must either:
 
    - Omit ``extendedKeyUsage`` or
-
-   - Specify ``extendedKeyUsage`` values
-
-   .. note::
-      
-      Athough still available, :setting:`net.ssl.clusterFile` (and the
-      correponding :option:`--sslClusterFile <mongod
-      --sslClusterFile>`) and :setting:`net.ssl.PEMKeyFile` (and the
-      corresponding :option:`--sslPEMKeyFile <mongod --sslPEMKeyFile>`)
-      are :ref:`deprecated as of MongoDB 4.2 <4.2-tls>`.
-      
-      For deployments using MongoDB version 4.0 and earlier, use
-      :setting:`net.ssl.clusterFile` (or the corresponding
-      :option:`--sslClusterFile <mongod --sslClusterFile>`) and
-      :setting:`net.ssl.PEMKeyFile` (or the corresponding
-      :option:`--sslPEMKeyFile <mongod --sslPEMKeyFile>`).
-
-   - The x.509 certificate must *not* be expired. 
-   
-     .. include:: /includes/extracts/4.4-changes-certificate-expiry-warning.rst
+   - Specify ``extendedKeyUsage = serverAuth, clientAuth``
 
 ...
