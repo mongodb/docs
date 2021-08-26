@@ -11,7 +11,7 @@
    * - | ``spec.security``
        | :setting:`.tls.enabled<spec.security.tls.enabled>`
      - boolean
-     - Optional
+     - Required
      - If this value is ``true``, |tls| is enabled on the MongoDB
        deployment.
 
@@ -22,9 +22,9 @@
    * - | ``spec.security``
        | :setting:`.tls.ca<spec.security.tls.ca>`
      - string
-     - Optional
-     - If you use a custom |certauth| and have created the 
-       |k8s-configmap| that stores it, add the ConfigMap's name.
+     - Required
+     - Add the |k8s-configmap|\'s name that stores the custom |certauth|
+       that you used to sign your deployment's |tls| certificates.
      - ``<custom-ca>``
 
    * - | ``spec.security``

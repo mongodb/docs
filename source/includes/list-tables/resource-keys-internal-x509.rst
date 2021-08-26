@@ -12,16 +12,13 @@
        | ``.authentication``
        | :setting:`.internalCluster<spec.security.authentication.internalCluster>`
      - string
-     - Conditional
-     - If you enabled authentication, you can enable
+     - Required
+     - Use this setting to enable
        :manual:`X.509 internal cluster authentication </tutorial/configure-x509-member-authentication#x509-internal-authentication>`.
-       Accepted values are ``X509``.
 
        .. important::
 
-          Once internal cluster authentication is enabled, it can not
+          Once internal cluster authentication is enabled, it can't
           be disabled.
 
      - ``X509``
-
-

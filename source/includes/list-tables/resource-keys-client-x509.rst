@@ -12,8 +12,8 @@
        | ``.authentication``
        | :setting:`.enabled<spec.security.authentication.enabled>`
      - boolean
-     - Optional
-     - If this value is ``true``, authentication is enabled on the
+     - Required
+     - Set this value to ``true`` to enable authentication on the
        MongoDB deployment.
 
      - ``true``
@@ -23,7 +23,5 @@
        | :setting:`.modes<spec.security.authentication.modes>`
      - array
      - Conditional
-     - If you enabled authentication, you must set an authentication
-       mechanism. Accepted values are ``X509``.
-     - ``X509``
-
+     - Set this value to ``["X509"]``.
+     - ``["X509"]``
