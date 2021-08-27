@@ -50,10 +50,9 @@ Connection Settings
    *Type*: integer
 
    Specifies the length of time in seconds {+bagent+} waits for the
-   |application| to respond. If the {+mdbagent+} does not get a
-   response within the time specified with this value, it resets the
-   connection to the |application| and tries to reconnect. Default
-   setting is ``90`` seconds.
+   |application| to respond. If the {+mdbagent+} doesn't get a
+   response, it resets and retries the connection to the |application|.
+   This value defaults to ``90`` seconds.
 
 .. bsetting:: https
 
@@ -143,10 +142,10 @@ To learn more, see
    *Type*: string
 
    Specifies the path to the private key, client certificate, and
-   optional intermediate certificates in ``PEM`` format. {+bagent+}
+   optional intermediate certificates in |pem| format. {+bagent+}
    uses the client certificate when connecting to a MongoDB deployment
    that uses |tls| and requires client certificates. (The deployment
-   runs with the :setting:`--tlsCAFile <mongod.--tlsCAFile>` setting.)
+   runs with the :manual:`--tlsCAFile </reference/program/mongod/#std-option-mongod.--tlsCAFile>` setting.)
 
 .. bsetting:: sslClientCertificatePassword
 
@@ -154,7 +153,7 @@ To learn more, see
 
    Specifies the password needed to decrypt the private key in the
    :bsetting:`sslClientCertificate` file. Include this setting if you
-   encrypted the client certificate ``PEM`` file.
+   encrypted the client certificate |pem| file.
 
 .. .. bsetting:: sslClientCertificateSubject
 .. 
@@ -169,7 +168,7 @@ To learn more, see
    *Type*: string
 
    Specifies the path that contains the trusted CA certificates in
-   ``PEM`` format. These certificates verify the server certificate
+   |pem| format. These certificates verify the server certificate
    returned from any MongoDB deployments running with |tls|.
 
    .. code-block:: ini
@@ -201,12 +200,12 @@ Specify the settings {+bagent+} use when communicating with |mms| using
 .. bsetting:: sslTrustedMMSBackupServerCertificate
 
    Specifies the *absolute* path that contains the trusted |certauth|
-   certificates in ``PEM`` format. {+bagent+} uses this certificate to
+   certificates in |pem| format. {+bagent+} uses this certificate to
    verify that the {+mdbagent+} can communicate with the designated
    |mms| instance.
 
-   *By default, {+bagent+} uses the trusted root |certauth|\s installed
-   on the system.*
+   *By default, {+bagent+} uses the trusted root* |certauth|\s
+   *installed on the system.*
 
    If {+bagent+} cannot find the trusted root |certauth|\s, configure
    these settings manually.
@@ -240,7 +239,7 @@ Specify the settings {+bagent+} use when communicating with |mms| using
 
    Specifies the path to the file containing the client's private
    key, certificate, and optional intermediate certificates in
-   ``PEM`` format. {+bagent+} uses the client certificate when
+   |pem| format. {+bagent+} uses the client certificate when
    connecting to |onprem| over |tls| if |onprem| requires client
    certificates, such as when |onprem| runs with
    :setting:`Client Certificate Mode` set to
@@ -262,7 +261,7 @@ Specify the settings {+bagent+} use when communicating with |mms| using
 
    Specifies the password needed to decrypt the private key in the
    :bsetting:`sslServerClientCertificate` file. Include this setting
-   if you encrypted the client certificate ``PEM`` file.
+   if you encrypted the client certificate |pem| file.
 
    .. code-block:: ini
 

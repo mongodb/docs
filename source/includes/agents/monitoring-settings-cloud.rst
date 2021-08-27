@@ -62,7 +62,7 @@ using Kerberos.
 To configure Kerberos, see
 :doc:`/tutorial/configure-mongodb-agent-for-kerberos`. The same 
 procedures and requirements apply, only use a different |upn| for
-{+magent+}
+{+magent+}.
 
 .. include:: /includes/fact-set-krb5ccname.rst
 
@@ -133,11 +133,11 @@ To learn more, see
    *Type*: string
 
    Specifies the *absolute* path to the private key, client
-   certificate, and optional intermediate certificates in ``PEM``
+   certificate, and optional intermediate certificates in |pem|
    format. {+magent+} uses the client certificate to connect to any
-   configured MongoDB deployment that uses |tls| and requires a client
-   certificate. (The deployment runs with the
-   :setting:`--tlsCAFile <mongod.--tlsCAFile>` setting.)
+   configured MongoDB deployment that uses |tls| and requires client
+   certificates. (The deployment runs with the
+   :manual:`--tlsCAFile </reference/program/mongod/#std-option-mongod.--tlsCAFile>` setting.)
 
    .. example::
 
@@ -160,8 +160,8 @@ To learn more, see
    *Type*: string
 
    Specifies the password needed to decrypt the private key in the
-   ``sslClientCertificate`` file. Include this setting if you encrypted
-   the client certificate ``PEM`` file.
+   :msetting:`sslClientCertificate` file. Include this setting if you encrypted
+   the client certificate |pem| file.
 
    .. code-block:: ini
 
@@ -172,7 +172,7 @@ To learn more, see
    *Type*: string
 
    Specifies the *absolute* path that contains the trusted |certauth|
-   certificates in ``PEM`` format. These certificates verify the server
+   certificates in |pem| format. These certificates verify the server
    certificate returned from any MongoDB deployments running with |tls|.
 
    .. code-block:: ini
@@ -203,12 +203,12 @@ using |tls|.
    *Type*: string
 
    Specifies the *absolute* path that contains the trusted |certauth|
-   certificates in ``PEM`` format. {+magent+} uses this certificate to
+   certificates in |pem| format. {+magent+} uses this certificate to
    verify that the agent can communicate with the designated |mms|
    instance.
 
-   *By default, {+magent+} uses the trusted root |certauth|\s
-   installed on the host.*
+   *By default, {+magent+} uses the trusted root* |certauth|\s
+   *installed on the host.*
 
    If the agent cannot find the trusted root |certauth|\s, configure
    these settings manually.

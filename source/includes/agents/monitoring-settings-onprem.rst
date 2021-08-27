@@ -63,9 +63,9 @@ Specify these settings if {+magent+} authenticates to hosts
 using Kerberos.
 
 To configure Kerberos, see
-:doc:`/tutorial/configure-mongodb-agent-for-kerberos`. The same 
+:doc:`/tutorial/configure-mongodb-agent-for-kerberos`. The same
 procedures and requirements apply, only use a different |upn| for
-{+magent+}
+{+magent+}.
 
 .. include:: /includes/fact-set-krb5ccname.rst
 
@@ -136,11 +136,11 @@ To learn more, see
    *Type*: string
 
    Specifies the *absolute* path to the private key, client
-   certificate, and optional intermediate certificates in ``PEM``
+   certificate, and optional intermediate certificates in |pem|
    format. {+magent+} uses the client certificate to connect to any
-   configured MongoDB deployment that uses |tls| and requires a client
+   configured MongoDB deployment that uses |tls| and requires client
    certificates. (The deployment runs with the
-   :setting:`--tlsCAFile <mongod.--tlsCAFile>` setting.)
+   :manual:`--tlsCAFile </reference/program/mongod/#std-option-mongod.--tlsCAFile>` setting.)
 
    .. example::
 
@@ -163,7 +163,7 @@ To learn more, see
    *Type*: string
 
    Specifies the password needed to decrypt the private key in
-   the ``sslClientCertificate`` file.  Include this setting if you encrypted the client certificate ``PEM`` file.
+   the :msetting:`sslClientCertificate` file.  Include this setting if you encrypted the client certificate |pem| file.
 
    .. code-block:: ini
 
@@ -174,7 +174,7 @@ To learn more, see
    *Type*: string
 
    Specifies the *absolute* path that contains the trusted |certauth|
-   certificates in ``PEM`` format. These certificates verify the server
+   certificates in |pem| format. These certificates verify the server
    certificate returned from any MongoDB deployments running with |tls|.
 
    .. code-block:: ini
@@ -207,12 +207,12 @@ Specify the settings {+magent+} use when communicating with |mms| using
    *Type*: string
 
    Specifies the *absolute* path that contains the trusted |certauth|
-   certificates in ``PEM`` format. {+magent+} uses this certificate to
+   certificates in |pem| format. {+magent+} uses this certificate to
    verify that the agent can communicate with the designated |mms|
    instance.
 
-   *By default, {+magent+} uses the trusted root |certauth|\s
-   installed on the host.*
+   *By default, {+magent+} uses the trusted root* |certauth|\s
+   *installed on the host.*
 
    If the agent cannot find the trusted root |certauth|\s, configure
    these settings manually.
@@ -243,7 +243,7 @@ Specify the settings {+magent+} use when communicating with |mms| using
    *Type*: string
 
    Specifies the path to the file containing the client's private key,
-   certificate, and optional intermediate certificates in ``PEM``
+   certificate, and optional intermediate certificates in |pem|
    format. {+magent+} uses the client certificate when connecting to
    |onprem| over |tls| if |onprem| requires client certificates, such
    as when |onprem| runs with :setting:`Client Certificate Mode` set to
@@ -263,7 +263,7 @@ Specify the settings {+magent+} use when communicating with |mms| using
 
    Specifies the password needed to decrypt the private key in the
    :msetting:`sslServerClientCertificate` file. Include this setting if
-   you encrypted the client certificate ``PEM`` file.
+   you encrypted the client certificate |pem| file.
 
    .. code-block:: ini
 
