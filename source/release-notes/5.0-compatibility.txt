@@ -168,6 +168,11 @@ Automatic Reconfiguration for New Voting Replica Set Members
 
 .. include:: /includes/extracts/initial-sync-semantics.rst
 
+Removed Customizable Values For getLastErrorDefaults 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/5.0-changes-getLastErrorDefaults-removed.rst
+
 
 Read Concern ``snapshot`` on Capped Collections
 -----------------------------------------------
@@ -303,86 +308,103 @@ issued but the server will not abort.
 General Changes
 ---------------
 
-- .. include:: /includes/5.0-changes/no-direct-write-system-views.rst
+Starting in MongoDB 5.0:
 
-- Starting in MongoDB 5.0, the :dbcommand:`reIndex` command and the
+- For :ref:`featureCompatibilityVersion <view-fcv>` set to ``"5.0"`` or
+  greater, users can no longer write directly to the
+  :data:`<database>.system.views` collection.
+
+- The :dbcommand:`reIndex` command and the
   :method:`db.collection.reIndex()` shell method may only be run on
   :term:`standalone` instances.
 
-- Starting in MongoDB 5.0, the number of :doc:`aggregation pipeline
-  stages </reference/operator/aggregation-pipeline>` allowed in a single
+- The number of :doc:`aggregation pipeline stages
+  </reference/operator/aggregation-pipeline>` allowed in a single
   pipeline is limited to 1000.
 
-- Starting in MongoDB 5.0, dropping the final collection in a database
-  (or dropping the database itself) when
-  :setting:`~storage.directoryPerDB` or :option:`--directoryperdb` is
-  enabled deletes the newly empty subdirectory for that database.
+- Dropping the final collection in a database (or dropping the database
+  itself) when :setting:`~storage.directoryPerDB` or
+  :option:`--directoryperdb` is enabled deletes the newly empty
+  subdirectory for that database.
 
-- Starting in MongoDB 5.0 (and 4.4.3, 4.2.12, 4.0.22, and 3.6.22), the
-  :expression:`$subtract` aggregation operator will convert the data
+- The :expression:`$subtract` aggregation operator will convert the data
   type of the result if necessary to accurately represent the result
-  value. See :expression:`$subtract` for the specific conversions.
+  value. See :expression:`$subtract` for the specific conversions. This
+  change also applies to MongoDB 4.4.3+, 4.2.12+, 4.0.22+, and 3.6.22+.
 
-- MongoDB 5.0 removes the ``--serviceExecutor`` command-line option and
+- MongoDB removes the ``--serviceExecutor`` command-line option and
   the corresponding ``net.serviceExecutor`` configuration option.
 
-- Starting in MongoDB 5.0, you may not authenticate as multiple
-  simultaneous users on the same client session if the
-  :option:`--apiStrict` option is set. Attempting to
-  authenticate as a new user while currently logged in as an existing
+- You may not authenticate as multiple simultaneous users on the same
+  client session if the :option:`--apiStrict` option is set. Attempting
+  to authenticate as a new user while currently logged in as an existing
   user when the :option:`--apiStrict` option is set will generate an
   error message once per authentication attempt. If you are not using
   the :option:`--apiStrict` option, authenticating as a new user while
   currently logged in as an existing user will write a warning to the
   log once per authentication attempt.
 
-- Starting in MongoDB 5.0, the 
-  :ref:`weights <specify-weights>` option is only allowed 
-  for ``$text`` indexes. 
+- The :ref:`weights <specify-weights>` option is only allowed  for
+  ``$text`` indexes. 
 
-- .. include:: /includes/fact-set-global-write-concern-before-reconfig.rst
+- You must explicitly set the global default
+  :ref:`write concern <write-concern>` before attempting to reconfigure
+  a :ref:`non-sharded <sharded-vs-non-sharded-collections>`
+  :term:`replica set <replica set>` with a :doc:`configuration
+  </reference/replica-configuration>` that would change the implicit
+  default write concern. To set the global default write concern, use
+  the :dbcommand:`setDefaultRWConcern` command.
+
 
 Deprecations
 ~~~~~~~~~~~~
 
-- :binary:`~bin.mongo`
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
 
-  The legacy ``mongo`` shell has been deprecated in MongoDB v5.0. The
-  replacement is :binary:`~bin.mongosh`.
+   * - Deprecated
 
-- :method:`db.printSlaveReplicationInfo()`
+     - Description
 
-  .. include:: /includes/deprecated-db.printSlaveReplicationInfo.rst
+   * - :binary:`~bin.mongo`
 
-- :method:`rs.printSlaveReplicationInfo()`
+     - The legacy ``mongo`` shell has been deprecated in MongoDB v5.0. The
+       replacement is :binary:`~bin.mongosh`.
 
-  .. include:: /includes/deprecated-rs.printSlaveReplicationInfo.rst
+   * - :method:`db.printSlaveReplicationInfo()`
 
-- :setting:`security.clusterIpSourceWhitelist`
+     - .. include:: /includes/deprecated-db.printSlaveReplicationInfo.rst
 
-  *Deprecated in version 5.0:* Use 
-  :setting:`security.clusterIpSourceAllowlist` instead.
+   * - :method:`rs.printSlaveReplicationInfo()`
 
-- :option:`--clusterIpSourceWhitelist`
-  
-  *Deprecated in version 5.0:*  Use :option:`--clusterIpSourceAllowlist`
-  instead.
+     - .. include:: /includes/deprecated-rs.printSlaveReplicationInfo.rst
 
-- :dbcommand:`logout`
+   * - :setting:`security.clusterIpSourceWhitelist`
 
-  *Deprecated in version 5.0:* Disconnect from the server to end your
-  session instead.
+     - *Deprecated in version 5.0:* Use 
+       :setting:`security.clusterIpSourceAllowlist` instead.
 
-- :method:`db.logout()`
+   * - :option:`--clusterIpSourceWhitelist`
+       
+     - *Deprecated in version 5.0:*  Use :option:`--clusterIpSourceAllowlist`
+       instead.
 
-  *Deprecated in version 5.0:* Disconnect from the server to end your
-  session instead.
+   * - :dbcommand:`logout`
 
-- :ref:`local <audit-message-local>` audit message field
+     - *Deprecated in version 5.0:* Disconnect from the server to end your
+       session instead.
 
-  *Deprecated in version 5.0:* Use the ``localEndpoint`` field in
-  the :ref:`clientMetadata <audit-message-clientMetadata>` audit message
-  instead.
+   * - :method:`db.logout()`
+
+     - *Deprecated in version 5.0:* Disconnect from the server to end your
+       session instead.
+
+   * - :ref:`local <audit-message-local>` audit message field
+
+     - *Deprecated in version 5.0:* Use the ``localEndpoint`` field in
+       the :ref:`clientMetadata <audit-message-clientMetadata>` audit message
+       instead.
 
 .. _deprecated-wire-protocol-opcodes:
 
