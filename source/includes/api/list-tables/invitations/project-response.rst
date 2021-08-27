@@ -9,7 +9,7 @@
 
    * - createdAt
      - string
-     - |iso8601-time| when |service| sent the invitation.
+     - |iso8601-time| when |mms| sent the invitation.
 
    * - expiresAt
      - string
@@ -17,7 +17,7 @@
 
        .. tip::
 
-          Users have 30 days to accept an invitation to an |service|
+          Users have 30 days to accept an invitation to an |mms|
           project.
 
    * - groupId
@@ -35,19 +35,19 @@
 
    * - inviterUsername
      - string
-     - |service| user who invited **username** to the project.
+     - |mms| user who invited **username** to the project.
 
    * - roles
      - array of strings
-     - |service| :ref:`roles <project-roles>` to assign to the 
+     - |mms| :ref:`roles <project-roles>` to assign to the 
        invited user.
 
-       If the user accepts the invitation, |service| assigns these roles
+       If the user accepts the invitation, |mms| assigns these roles
        to them. 
 
    * - username
      - string
-     - Email address to which |service| sent the invitation.
+     - Email address to which |mms| sent the invitation.
 
        If the user accepts the invitation, they use this email address as
-       their |service| username.
+       their |mms| username.
