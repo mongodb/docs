@@ -1,0 +1,261 @@
+=================
+Change a Document
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to change documents in MongoDB using
+**update** and **replace** operations.
+
+Update operations change the fields that you specify while leaving other
+fields and values unchanged. Replace operations remove all existing fields
+except for ``_id`` in a document and substitute the deleted fields with
+the new fields and values you specify.
+
+In MongoDB, all methods to change documents follow the same pattern:
+
+.. figure:: /includes/figures/change_diagram.png
+   :alt: Change method signature
+
+.. note:: Placeholder
+
+   ``changeX`` is a placeholder and not a real method.
+
+The pattern expects you to:
+
+* Specify a query filter to match one or more documents to change.
+* Specify the field and value changes.
+* Specify options to modify behavior, if needed.
+
+.. driver specific
+
+The driver provides the following methods to change documents:
+
+* ``UpdateByID()``
+* ``UpdateOne()``
+* ``UpdateMany()``
+* ``ReplaceOne()``
+* ``BulkWrite()`` *(not discussed in this guide)*
+* ``FindOneAndUpdate()`` *(not discussed in this guide)*
+* ``FindOneAndReplace()`` *(not discussed in this guide)*
+
+.. end driver specific
+
+A Note About ``_id``
+~~~~~~~~~~~~~~~~~~~~
+
+Each document in a MongoDB collection has a unique and immutable ``_id``
+field. You cannot use update and replace operations to change the
+``_id`` field. If you attempt to change this field, the update and
+replace methods return a `WriteError <{+godocs+}/mongo#WriteError>`__.
+
+.. _updateDocuments:
+
+Update
+------
+
+Use either `UpdateOne() <{+godocs+}/mongo#Collection.UpdateOne>`__ or
+`UpdateByID() <{+godocs+}/mongo#Collection.UpdateByID>`__ to update a
+single document.
+
+Use `UpdateMany() <{+godocs+}/mongo#Collection.UpdateMany>`__ to update
+multiple documents.
+
+
+Parameters
+~~~~~~~~~~
+
+Each method takes an **update document** that includes at least one **update operator**.
+The update operator specifies the type of update to perform. The update
+document also includes the fields and values that describe the change.
+Update documents use the following format:
+
+.. code-block:: go
+
+   bson.D{{"<update operator>", bson.D{{"<field>", <value>},
+                                       {"<field>", <value>}, ... }},
+          {"<update operator>", ... }, ... }
+
+See the MongoDB server manual for a :manual:`complete list of update operators
+and descriptions </reference/operator/update-field/>`.
+
+.. note:: Aggregation Pipelines in Update Operations
+
+   If you are using MongoDB Server version 4.2 or later, you can use aggregation
+   pipelines made up of a subset of aggregation stages in update operations. For
+   more information on the aggregation stages MongoDB supports in
+   aggregation pipelines, see our tutorial on performing
+   :manual:`updates with aggregation pipelines
+   </tutorial/update-documents-with-aggregation-pipeline/>`.
+
+Return Values
+~~~~~~~~~~~~~
+
+``UpdateOne()``, ``UpdateByID()``, and ``UpdateMany()`` return an
+`UpdateResult <{+godocs+}/mongo#UpdateResult>`__ type that
+contains information about the update operation if the operation is
+successful. The ``UpdateResult`` type contains the following properties:
+
+- ``MatchedCount`` - the number of documents matched by the filter
+- ``ModifiedCount`` - the number of documents modified by the operation
+- ``UpsertedCount`` - the number of documents upserted by the operation
+- ``UpsertedID`` - the ``_id`` field of the upserted document, or nil if
+  no upsert was performed
+
+If multiple documents match the query filter passed to ``UpdateOne()``,
+the method selects and updates the first matched document. If no
+documents match the query filter, the update operation will make no
+changes. See our :doc:`upsert guide </fundamentals/crud/write-operations/upsert>`
+to learn how to insert a new document if no documents match the query filter.
+
+Example
+~~~~~~~
+
+The following document describes an employee:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id" : 2158,
+      "name" : "Mary Shelley",
+      "department" : "Marketing",
+      "role" : "Marketing Analyst",
+      "bonus" : 2500,
+      ...
+   }
+
+The following example uses the ``UpdateByID()`` method to:
+
+- Match the document where the ``_id`` value is 2158.
+- Set the ``name`` field to "Mary Wollstonecraft Shelley" and the
+  ``role`` field to "Marketing Director".
+- Increment the value of the ``bonus`` field by 2000.
+
+.. code-block:: go
+
+   filter := bson.D{{"_id", 2158}}
+   update := bson.D{{"$set", bson.D{{"name", "Mary Wollstonecraft Shelley"},
+       {"role", "Marketing Director"}}}, {"$inc", bson.D{{"bonus", 2000}}}}
+
+   result, err := collection.UpdateOne(context.TODO(), filter, update)
+   fmt.Printf("Documents matched: %v\n", result.MatchedCount)
+   fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
+
+The expected output of the preceding example is as follows:
+
+.. code-block:: none
+   :copyable: false
+
+   Documents matched: 1
+   Documents updated: 1
+
+The following shows the updated document resulting from the preceding update operation:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id" : 2158,
+      "name" : "Mary Wollstonecraft Shelley",
+      "department" : "Marketing",
+      "role" : "Marketing Director",
+      "bonus" : 4500,
+      ...
+   }
+
+.. _replacementDocument:
+
+Replace
+-------
+
+Use the `ReplaceOne() <{+godocs+}/mongo#Collection.ReplaceOne>`__ method
+to replace a single document.
+
+Parameters
+~~~~~~~~~~
+
+``ReplaceOne()`` expects a **replacement document**, which is the document
+that you want to take the place of an existing document. Replacement
+documents use the following format:
+
+.. code-block:: go
+
+   bson.D{{"<field>", "<value>"}, {"<field>", "<value>"}, ... }
+
+Return Values
+~~~~~~~~~~~~~
+
+``ReplaceOne()`` returns an `UpdateResult <{+godocs+}/mongo#UpdateResult>`__ type that
+contains information about the replace operation if the operation is
+successful. The ``UpdateResult`` type contains the following properties:
+
+- ``MatchedCount`` - the number of documents matched by the filter
+- ``ModifiedCount`` - the number of documents modified by the operation
+- ``UpsertedCount`` - the number of documents upserted by the operation
+- ``UpsertedID`` - the ``_id`` field of the upserted document, or nil if
+  no upsert was performed
+
+If multiple documents match the query filter passed to ``ReplaceOne()``,
+the method selects and replaces the first matched document. Your replace
+operation will fail if no documents match the query filter. See our **<TODO:
+link>** upsert guide to learn how to insert a new document if no
+documents match the query filter.
+
+Example
+~~~~~~~
+
+The following document describes a kitchen item:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id" : 2056,
+      "item" : "Mug",
+      "brand" : "Simply Ceramics",
+      "price" : 2.99,
+      "material" : "Glass"
+   }
+
+The following example uses the ``ReplaceOne()`` method to substitute
+this document with one that contains an ``item`` field with a
+value of "Cup" and a ``quantity`` field with a value of 107:
+
+.. code-block:: go
+
+   filter := bson.D{{"_id", 2056}}
+   replacement := bson.D{{"item", "Cup"}, {"quantity", 107}}
+
+   result, err := collection.ReplaceOne(context.TODO(), filter, replacement)
+   fmt.Printf("Documents matched: %v\n", result.MatchedCount)
+   fmt.Printf("Documents replaced: %v\n", result.ModifiedCount)
+
+The expected output of the preceding example is as follows:
+
+.. code-block:: none
+   :copyable: false
+
+   Documents matched: 1
+   Documents replaced: 1
+
+The replaced document contains the contents of the replacement document
+and the immutable ``_id`` field as follows:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id" : 2056,
+      "item" : "Cup",
+      "quantity" : 107
+   }
