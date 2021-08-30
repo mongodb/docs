@@ -3,11 +3,13 @@ Starting in MongoDB 5.0, the implicit default write concern is
 considerations are made for deployments containing :ref:`arbiters
 <replica-set-arbiter-configuration>`:
 
-- If the number of data-bearing voting members is not strictly more
-  than the voting majority, the default write concern is ``w: 1``.
+- The voting majority of a replica set is 1 plus half the number of
+  voting members, rounded down. If the number of data-bearing voting
+  members is not greater than the voting majority, the default write
+  concern is ``{ w: 1 }``.
 
-- In all other scenarios, the default write concern is ``w:
-  "majority"``.
+- In all other scenarios, the default write concern is ``{ w:
+  "majority" }``.
 
 Specifically, MongoDB uses the following formula to determine the
 default write concern:
@@ -15,7 +17,43 @@ default write concern:
 .. code-block:: none
    :copyable: false
 
-   if [(#arbiters > 0) AND (#arbiters >= ½(#voting nodes) - 1)]
+   if [ (#arbiters > 0) AND (#non-arbiters <= majority(#voting-nodes)) ]
        defaultWriteConcern = { w: 1 }
    else
-       defaultWriteConcern = { w: majority }
+       defaultWriteConcern = { w: "majority" }
+
+For example, consider the following deployments and their respective
+default write concerns:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Non-Arbiters
+     - Arbiters
+     - Voting Nodes
+     - Majority of Voting Nodes
+     - Implicit Default Write Concern
+
+   * - 3
+     - 1
+     - 4
+     - 3
+     - ``{ w: 1 }``
+
+   * - 4
+     - 1
+     - 5
+     - 3
+     - ``{ w: "majority" }``
+
+- The first example has 3 non-arbiters and 1 arbiter for a total of 4
+  voting nodes. The majority of voting nodes (1 plus half of 4) is 3.
+  The number of non-arbiters (3) is less than or equal to the majority
+  of voting nodes, resulting in an implicit write concern of
+  ``{ w: 1 }``.
+
+- The second example has 4 non-arbiters and 1 arbiter for a total of 5
+  voting nodes. The majority of voting nodes (1 plus half of 5, rounded
+  down) is 3. The number of non-arbiters (4) is greater than the majority
+  of voting nodes, resulting in an implicit write concern of ``{ w:
+  "majority" }``.
