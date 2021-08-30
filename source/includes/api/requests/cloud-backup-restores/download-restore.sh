@@ -4,5 +4,5 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest --include \
      --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/clusters/{SOURCE-CLUSTER-NAME}/backup/restoreJobs" \
      --data '{
          "snapshotId" : "{SNAPSHOT-ID}",
-         "deliveryType" : "download",
+         "deliveryType" : "download"
        }'
