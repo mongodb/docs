@@ -878,6 +878,7 @@
 
    * - replicationSpecs[n].zoneName
      - string
+     
      - Optional
      - Name for the zone in a |global-write-cluster|. Don't provide
        this value if **clusterType** is not **GEOSHARDED**.
@@ -886,27 +887,13 @@
      - string 
      - Optional 
      - |certauth| that MongoDB |service| clusters use. You can specify 
-       one of the following values: 
+       ``ISRGROOTX1`` (for ISRG Root X1).
 
-       - ``DST`` - for IdenTrust's `DST Root CA X3
-         <https://letsencrypt.org/certs/trustid-x3-root.pem.txt>`__ 
-       - ``ISRGROOTX1`` - for ISRG Root X1
-
-       |service| triggers a rolling restart of all the nodes in your  
-       cluster after 30 minutes when you switch between certificate 
-       roots. You can verify the change after the cluster restarts.
-
-       If omitted, this setting defaults to IdenTrust's root |certauth| 
-       (`DST Root CA X3 
-       <https://letsencrypt.org/certs/trustid-x3-root.pem.txt>`__)
 
        .. note:: 
 
-          |service| cluster |tls| certificates use IdenTrust's root 
-          |certauth| (`DST Root CA X3
-          <https://letsencrypt.org/certs/trustid-x3-root.pem.txt>`__) 
-          by default until 30 April 2021. Beginning on 1 May 2021, new 
-          |tls| certificates that MongoDB |service| creates will use 
-          ISRG instead of IdenTrust for their root |certauth| in line 
-          with Let's Encrypt's `announcement <https://letsencrypt.org/2019/04/15/transitioning-to-isrg-root.html>`__
+          Beginning on 1 May 2021, new |tls| certificates that MongoDB 
+          |service| creates use ISRG instead of IdenTrust for their 
+          root |certauth| in line with Let's Encrypt's `announcement 
+          <https://letsencrypt.org/2019/04/15/transitioning-to-isrg-root.html>`__
           of this transition.

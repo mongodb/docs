@@ -151,11 +151,11 @@
   :ref:`performance-advisor`.
 - Adds alert options for Disk IOPS and Disk Latency on Atlas.
 - Disables the ability to deploy new MongoDB 3.6 clusters.
-- Adds the ability to proactively change a cluster's
-  :ref:`TLS certificate root CA <config-tls-cert-root>` in order to
-  test readiness ahead of the Let's Encrypt planned root CA change from
-  IdenTrust to ISRG. All |service| clusters' certificates will be
-  migrated to the ISRG root CA between May and September of this year.
+- Adds the ability to proactively change a cluster's TLS certificate 
+  root CA in order to test readiness ahead of the Let's Encrypt planned 
+  root CA change from IdenTrust to ISRG. All |service| clusters' 
+  certificates will be migrated to the ISRG root CA between May and 
+  September of this year.
 
 .. _atlas_20210217:
 
