@@ -5,21 +5,39 @@
   DynamoDB, please `contact us <https://mongodb.com/contact>`_
   for help with your migration.
 
-* Your current MongoDB database is running MongoDB 2.6 or higher.
-
-  Atlas supports the latest versions of MongoDB: 3.6, 4.0, and 4.2.
-  If you're running MongoDB version 2.6 or greater, the Atlas Live Migration
-  Service can move your data directly into a newer database version.
-  Update your `MongoDB drivers <https://docs.mongodb.com/drivers/>`_
+* Update your `MongoDB drivers <https://docs.mongodb.com/drivers/>`_
   and make any necessary code changes at the application level to ensure
-  compatibility. If you're running a version older than 2.6, see 
-  `Upgrade MongoDB to 2.6 <https://docs.mongodb.com/v2.6/release-notes/2.6-upgrade/index.html>`_
-  for upgrade instructions.
+  compatibility.
 
 * Your current deployment is a MongoDB replica set or sharded cluster.
 
   If your deployment is currently a standalone instance, you must first
   :manual:`convert it to a replica set </tutorial/convert-standalone-to-replica-set/>`.
+
+* If you're migrating a replica set, it is running MongoDB 2.6 or
+  higher.
+
+  The Atlas Live Migration Service can move your data directly into a
+  newer database version. For more information about the supported
+  upgrade paths, see the :atlas:`Atlas documentation 
+  </import/live-import/#upgrade-path>`.
+
+  If you're running a version older than 2.6, see 
+  `Upgrade MongoDB to 2.6
+  <https://docs.mongodb.com/v2.6/release-notes/2.6-upgrade/index.html>`_
+  for upgrade instructions.
+
+* If you're migrating a sharded cluster, it is running MongoDB 4.0 or
+  higher.
+
+  The Atlas Live Migration Service can move your data directly the same database version. For more information about the supported
+  upgrade paths, see the :atlas:`Atlas documentation 
+  </import/live-import-sharded/#migration-path>`.
+
+  If you're running a version older than 4.0, see 
+  `Upgrade MongoDB to 4.0
+  <https://docs.mongodb.com/v4.0/release-notes/4.0-upgrade-sharded-cluster/>`_
+  for upgrade instructions.
   
 * (Optional) Enabled authentication on your source deployment.
 
