@@ -63,7 +63,7 @@ def get_jira_issues(fixVersion):
     return issues
 
 
-def get_issue_structure(config, issues):
+def get_issue_structure(config, issues, version):
     """
     Group the JIRA issues by component. Structure headings and
     subheadings.
@@ -227,7 +227,7 @@ def main():
     config = get_config()
 
     # Generate issue headings based on component config
-    issue_headings = get_issue_structure(config, issues)
+    issue_headings = get_issue_structure(config, issues, fixVersion)
 
     # Convert the issue headings into rst
     changelog_rst = generate_changelog_rst(config, issue_headings, fixVersion)
