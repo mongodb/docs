@@ -1,0 +1,159 @@
+==========
+TypeScript
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+Overview
+--------
+
+In this guide, you can learn about the **TypeScript** features and limitations
+of the MongoDB Node.js driver. TypeScript is a strongly typed programming
+language that compiles to JavaScript.
+
+All TypeScript features of the driver are optional. All valid JavaScript
+code written with the driver is also valid TypeScript code. 
+
+For more information, see the
+`TypeScript website <https://www.typescriptlang.org/>`__.
+
+Features
+--------
+
+If you use TypeScript, you can specify a type for some classes in the driver.
+All classes that accept a type parameter in the driver have the default type
+``Document``. The ``Document`` interface has the following definition:
+
+.. code-block:: typescript
+
+   interface Document {
+     [key: string]: any;
+   }
+
+Any object type can extend the ``Document`` interface.
+
+For more information on object types, see the 
+`TypeScript handbook <https://www.typescriptlang.org/docs/handbook/2/objects.html>`__.
+
+Extend Document
+~~~~~~~~~~~~~~~
+
+The following classes accept any type that extends the ``Document``
+interface:
+
+- :node-api-4.0:`Collection <classes/collection.html>`
+- :node-api-4.0:`ChangeStream <classes/changestream.html>`
+
+You can pass a type parameter that extends the ``Document`` interface like this:
+
+.. literalinclude:: /code-snippets/typescript/extend-document.ts
+   :language: typescript
+   :linenos:
+
+.. important:: Keys Not in Type Parameter Receive ``any`` Type
+
+   Keys not listed in your specified type parameter receive the ``any`` type.
+   The following code snippet demonstrates this behavior:
+
+   .. literalinclude:: /code-snippets/typescript/dot-notation.ts
+      :language: typescript
+      :linenos:
+      :start-after: start-no-key
+      :end-before: end-no-key
+
+Any Type
+~~~~~~~~
+
+The following classes accept any type parameter:
+
+- :node-api-4.0:`FindCursor <classes/findcursor.html>`
+- :node-api-4.0:`AggregationCursor <classes/aggregationcursor.html>`
+
+You can find a code snippet that shows how to specify a type for the ``FindCursor``
+class in the
+:ref:`Find Multiple Documents Usage Example <node-driver-find-usage-example-code-snippet>`.
+
+Limitations
+-----------
+
+.. _node-driver-typescript-limitations-dot-notation:
+
+The driver cannot infer the type of values with keys containing **dot
+notation**. Dot notation is a property access syntax for navigating BSON objects.
+Click on the tabs to see code snippets that highlight this behavior:
+
+.. tabs::
+
+  .. tab:: Dot Notation
+     :tabid: dot-notation
+  
+     The following code snippet does not raise a type error:
+
+     .. literalinclude:: /code-snippets/typescript/dot-notation.ts
+        :language: typescript
+        :linenos:
+        :start-after: start-no-error
+        :end-before: end-no-error
+
+  .. tab:: Nested Objects
+     :tabid: nested-objects
+    
+     The following code snippet raises a type error:
+
+     .. literalinclude:: /code-snippets/typescript/dot-notation.ts
+        :language: typescript
+        :linenos:
+        :start-after: start-error
+        :end-before: end-error
+
+     This is the error:
+
+     .. code-block:: text
+
+        Type 'string' is not assignable to type 'number'.
+
+Despite the lack of type safety, we still recommend that you use dot notation to
+access nested fields in query and update documents when you use TypeScript. You
+must manually check that your nested field values have your intended type.
+
+.. note:: Reason To Use Dot Notation
+
+   In the MongoDB Query Language, you must match a subdocument exactly
+   when specifying subdocuments in a query. Dot notation allows you to query
+   nested fields without matching subdocuments exactly.  
+
+   To show this behavior, lets say you have a collection containing
+   only the following document:
+
+   .. code-block:: json
+
+      { field: { s1: "hi", s2: "bye" } }
+
+   The following query returns no results from this collection, as the value of
+   ``field`` does not exactly match ``{ s1: "hi" }``:
+
+   .. literalinclude:: /code-snippets/typescript/note-on-dot-notation.ts
+      :language: typescript
+      :linenos:
+      :start-after: start-no-doc
+      :end-before: end-no-doc
+
+   The following queries both return your document:
+ 
+   .. literalinclude:: /code-snippets/typescript/note-on-dot-notation.ts
+      :language: typescript
+      :linenos:
+      :start-after: start-doc
+      :end-before: end-doc
+
+   The syntax of the query that does not use dot notation is cumbersome and hard
+   to understand, and may not be worth the type safety obtained from
+   avoiding dot notation.
+
+For more information on dot notation, see :manual:`the MongoDB Manual </core/document/#dot-notation>`.
