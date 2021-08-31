@@ -17,6 +17,20 @@
      - Python 2.6
      - Python 2.5
 
+   * - 2.5
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     -
+     -
+     -
+     -
+
+
    * - 2.4
      - |checkmark|
      - |checkmark|
