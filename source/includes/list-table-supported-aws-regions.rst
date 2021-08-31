@@ -19,6 +19,9 @@
 
    * - Frankfurt, Europe
      - eu-central-1
+    
+   * - Mumbai, Asia
+     - ap-south-1
 
    * - Sydney, Australia
      - ap-southeast-2
