@@ -1,7 +1,7 @@
-.. _case-insensitive-regex-anti-pattern:
+.. _regex-to-search:
 
 ======================================
-Improve Case-Insensitive Regex Queries
+Use |fts| for Full-Text Search Queries
 ======================================
 
 .. default-domain:: mongodb
@@ -12,14 +12,27 @@ Improve Case-Insensitive Regex Queries
    :depth: 1
    :class: singlecol
 
+If your queries rely on inefficient regex matching, 
+:ref:`Atlas Search queries <searching-ref>` that use the :ref:`$search 
+<query-syntax-ref>` aggregation pipeline stage can dramatically improve 
+the performance of text queries and offer more options for customizing 
+query parameters.
+
+.. _case-insensitive-regex-anti-pattern:
+
+Improve Case-Insensitive Regex Queries
+--------------------------------------
+
 If you frequently run case-insensitive regex queries (utilizing the
-``i`` option), you should create a
+``i`` option), you can create a
 :manual:`case-insensitive index </core/index-case-insensitive/>` to
 support your queries. You can specify a
 :manual:`collation </reference/collation/>` on an index to define
 language-specific rules for string comparison, such as rules for
-lettercase and accent marks. A case-insensitive index greatly improves
-performance for case-insensitive queries.
+lettercase and accent marks. A case-insensitive index improves
+performance for case-insensitive queries. Instead, we recommend 
+:ref:`Atlas Search queries <searching-ref>` that use the :ref:`$search 
+<query-syntax-ref>` aggregation pipeline stage.
 
 Example
 -------
@@ -80,17 +93,34 @@ case-insensitive. The query returns the following documents:
    { "_id" : 4, "first_name" : "MICHAEL", "last_name" : "FLORES", "dept" : "Sales" }
 
 Although this query does return the expected documents, case-insensitive
-regex queries with no index support are not very performant. To improve
-performance, you can create a
+regex queries with no index support are not very performant.
+
+To improve performance, you can create a
 :manual:`case-insensitive index </core/index-case-insensitive/>` on the
-``first_name`` field:
+``first_name`` field. Instead, we recommend that you :ref:`create an 
+Atlas Search index <ref-create-index>`.
 
-.. code-block:: javascript
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
 
-   db.employees.createIndex(
-     { first_name: 1 }, 
-     { collation: { locale: 'en', strength: 2 } }
-   )
+   * - Regex Index
+     - |fts| Index
+   
+   * - .. code-block:: javascript
+
+          db.employees.createIndex(
+            { first_name: 1 }, 
+            { collation: { locale: 'en', strength: 2 } }
+          )
+
+     - .. code-block:: json
+      
+          {
+            "mappings": {
+              "dynamic": true
+            }
+          }
 
 When the ``strength`` field of an index's ``collation`` document is
 ``1`` or ``2``, the index is case-insensitive. For a detailed
@@ -98,24 +128,54 @@ description of the collation document and the different ``strength``
 values, see :manual:`Collation Document
 </reference/collation/#collation-document>`.
 
-For the application to use this index, you must also specify the *same*
-collation document from the index in the query. You can remove the
-``$regex`` operator from the previous :method:`~db.collection.find()`
-method and instead utilize the newly created index:
+For the application to use the case-insesitive index, you must also 
+specify the *same* collation document from the index in the regex 
+query. You can remove the ``$regex`` operator from the previous 
+:method:`~db.collection.find()` method and instead utilize the newly 
+created index. Instead, use an :ref:`Atlas Search query 
+<searching-ref>` that uses the :ref:`$search <query-syntax-ref>` 
+aggregation pipeline stage.
 
-.. code-block:: javascript
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
 
-   db.employees.find( { first_name: "michael" } ).collation( { locale: 'en', strength: 2 } )
+   * - Regex Query
+     - |fts| Query
+   
+   * - .. code-block:: javascript
 
-.. note::
+          db.employees.find( { first_name: "michael" } ).collation( { locale: 'en', strength: 2 } )
+
+     - .. code-block:: json
+      
+          db.employees.aggregate([
+            {
+              $search: {
+                "index": "default",
+                "text": {
+                  "query": "michael",
+                  "path": {
+                    "wildcard": "*"
+                  }
+                }
+              }
+            }
+          ])
+
+.. important::
 
    Do not use the :manual:`$regex </reference/operator/query/regex/>`
    operator when using a case-insensitive index for your query. The
    ``$regex`` implementation is not collation-aware and cannot utilize
-   case-insensitive indexes.
+   case-insensitive indexes. Instead, we recommend 
+   :ref:`Atlas Search queries <searching-ref>` that use the 
+   :ref:`$search <query-syntax-ref>` aggregation pipeline stage.
 
 Learn More
 ----------
+
+- To learn more about |fts| queries, see :ref:`searching-ref`.
 
 - To learn more about case-insensitive indexes with illustrative
   examples, see
@@ -126,4 +186,5 @@ Learn More
 
 - MongoDB University offers a free course on optimizing MongoDB
   Performance. To learn more, see
-  `M201: MongoDB Performance <https://university.mongodb.com/courses/M201/about>`__.
+  `M201: MongoDB Performance 
+  <https://university.mongodb.com/courses/M201/about>`__.
