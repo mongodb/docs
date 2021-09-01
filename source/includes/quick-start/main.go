@@ -13,20 +13,19 @@ import (
 )
 
 func main() {
-	ctx := context.TODO()
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
 		log.Panic(`'uri' is empty. Ensure you set the 'MONGODB_URI'
 		environment variable, or set the value of 'uri' to your
 		Atlas connection string.`)
 	}
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
 		log.Panic(err)
 	}
 
 	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
+		if err := client.Disconnect(context.TODO()); err != nil {
 			log.Panic(err)
 		}
 	}()
@@ -35,7 +34,7 @@ func main() {
 	title := "Back to the Future"
 
 	var result bson.M
-	err = coll.FindOne(ctx, bson.D{{"title", title}}).Decode(&result)
+	err = coll.FindOne(context.TODO(), bson.D{{"title", title}}).Decode(&result)
 	if err == mongo.ErrNoDocuments {
 		fmt.Printf("No document was found with the title %s\n", title)
 		return
