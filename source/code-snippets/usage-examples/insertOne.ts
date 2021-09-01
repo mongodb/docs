@@ -1,8 +1,7 @@
 import { MongoClient } from "mongodb";
 
 // Replace the uri string with your MongoDB deployment's connection string.
-const uri =
-  "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
+const uri = "<connection string uri>";
 
 const client = new MongoClient(uri);
 
@@ -15,7 +14,7 @@ async function run() {
   try {
     await client.connect();
 
-    const database = client.db("insert_db");
+    const database = client.db("insertDB");
     // Specifying a Schema is optional, but it enables type hints on
     // finds and inserts
     const haiku = database.collection<Haiku>("haiku");

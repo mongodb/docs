@@ -1,12 +1,11 @@
 import { MongoClient } from "mongodb";
 
 // Replace the uri string with your MongoDB deployment's connection string.
-const uri =
-  "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
+const uri = "<connection string uri>";
 
 const client = new MongoClient(uri);
 
-interface Movies {
+interface Movie {
   plot: string;
   title: string;
 }
@@ -16,7 +15,7 @@ async function run() {
     await client.connect();
 
     const database = client.db("sample_mflix");
-    const movies = database.collection<Movies>("movies");
+    const movies = database.collection<Movie>("movies");
 
     const result = await movies.updateOne(
       { title: "Random Harvest" },
