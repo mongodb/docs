@@ -38,7 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	// When you run this file, it should print: 
+	// When you run this file, it should print:
 	// A Tale of Love and Darkness
 	// New York, I Love You
 	for _, result := range results {

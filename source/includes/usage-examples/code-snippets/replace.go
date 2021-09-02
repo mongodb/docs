@@ -39,7 +39,8 @@ func main() {
 		panic(err)
 	}
 
-	// When you run this file for the first time, it should print: "Number of documents replaced: 1"
+	// When you run this file for the first time, it should print:
+	// Number of documents replaced: 1
 	if result.MatchedCount != 0 {
 		fmt.Println("Number of documents replaced: %d\n", result.ModifiedCount)
 	}

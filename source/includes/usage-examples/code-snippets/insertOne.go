@@ -38,6 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	// When you run this file it should print "Document inserted with ID: ObjectID("...")
+	// When you run this file, it should print:
+	// Document inserted with ID: ObjectID("...")
 	fmt.Printf("Document inserted with ID: %s\n", result.InsertedID)
 }

@@ -33,7 +33,7 @@ func main() {
 		mongo.NewReplaceOneModel().SetFilter(bson.D{{"title", "Record of a Shriveled Datum"}}).
 			SetReplacement(bson.D{{"title", "Dodging Greys"}, {"text", "When there're no matches, no longer need to panic. You can use upsert"}}),
 		mongo.NewUpdateOneModel().SetFilter(bson.D{{"title", "Dodging Greys"}}).
-			SetUpdate(bson.D{{"$set", bson.D{{"title", "Dodge The Greys"},}},}),
+			SetUpdate(bson.D{{"$set", bson.D{{"title", "Dodge The Greys"}}}}),
 	}
 	opts := options.BulkWrite().SetOrdered(true)
 
@@ -44,7 +44,7 @@ func main() {
 		panic(err)
 	}
 
-	// When you run this file for the first time, it should print: 
+	// When you run this file for the first time, it should print:
 	// Number of documents replaced or modified: 2
 	fmt.Printf("Number of documents replaced or modified: %d", results.ModifiedCount)
 }

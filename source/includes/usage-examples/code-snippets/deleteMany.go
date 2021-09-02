@@ -38,6 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	// When you run this file for the first time, it should print "Documents deleted: 4"
+	// When you run this file for the first time, it should print:
+	// Documents deleted: 4
 	fmt.Printf("Documents deleted: %d\n", results.DeletedCount)
 }

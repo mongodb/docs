@@ -45,7 +45,6 @@ func main() {
 	// When you run this file, it should print:
 	// Estimated number of documents in the movies collection: 23541
 	// Number of movies from China: 303
-	
 	fmt.Printf("Estimated number of documents in the movies collection: %d\n", estCount)
 	fmt.Printf("Number of movies from China: %d\n", count)
 }

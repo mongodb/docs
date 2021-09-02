@@ -39,6 +39,7 @@ func main() {
 		panic(commandErr)
 	}
 
-	// When you run this file, it should print: [{db sample_restaurants} {collections 2} {views 0} {objects 25554} {avgObjSize 548.4101901854896} {dataSize 14014074} {storageSize 8257536} {totalFreeStorageSize 0} {numExtents 0} {indexes 2} {indexSize 286720} {fileSize 0} {nsSizeMB 0} {ok 1}]
+	// When you run this file, it should print:
+	// [{db sample_restaurants} {collections 2} {views 0} {objects 25554} {avgObjSize 548.4101901854896} {dataSize 14014074} {storageSize 8257536} {totalFreeStorageSize 0} {numExtents 0} {indexes 2} {indexSize 286720} {fileSize 0} {nsSizeMB 0} {ok 1}]
 	fmt.Println(result)
 }

@@ -39,5 +39,7 @@ func main() {
 		panic(err)
 	}
 
+	// When you run this file for the first time, it should print:
+	// Number of documents replaced: 609
 	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 }
