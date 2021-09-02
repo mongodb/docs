@@ -166,6 +166,7 @@ rst_epilog = '\n'.join([
     '.. |k8s-secrets| replace:: `secrets <https://kubernetes.io/docs/concepts/configuration/secret/>`__',
     '.. |k8s-secret| replace:: `secret <https://kubernetes.io/docs/concepts/configuration/secret/>`__',
     '.. |k8s-service| replace:: `service <https://kubernetes.io/docs/concepts/services-networking/service/>`__',
+    '.. |k8s-service-accounts| replace:: `service accounts <https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/>`__',
     '.. |k8s-service-type| replace:: `ServiceType <https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types>`__',
     '.. |k8s-statefulsets| replace:: `StatefulSets <https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/>`__',
     '.. |k8s-statefulset| replace:: `StatefulSet <https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/>`__',
