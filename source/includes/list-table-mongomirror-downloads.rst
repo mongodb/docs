@@ -9,36 +9,26 @@
      - `mongomirror-linux-x86_64-enterprise-amzn64-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-enterprise-amzn64-{+mongomirror-version+}.tgz>`_
    * - Amazon Linux 2
      - `mongomirror-linux-x86_64-enterprise-amazon2-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-enterprise-amazon2-{+mongomirror-version+}.tgz>`_
-   * - ARM64 Ubuntu 16.04
-     - `mongomirror-linux-arm64-ubuntu1604-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-arm64-ubuntu1604-{+mongomirror-version+}.tgz>`_
-   * - ARM64 Ubuntu 18.04
-     - `mongomirror-linux-arm64-ubuntu1804-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-arm64-ubuntu1804-{+mongomirror-version+}.tgz>`_
-   * - ARM64 Ubuntu 20.04
-     - `mongomirror-linux-arm64-ubuntu2004-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-arm64-ubuntu2004-{+mongomirror-version+}.tgz>`_
-   * - Debian 10
-     - `mongomirror-linux-x86_64-debian10-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-debian10-{+mongomirror-version+}.tgz>`_
    * - Debian 8.1
      - `mongomirror-linux-x86_64-debian81-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-debian81-{+mongomirror-version+}.tgz>`_
    * - Debian 9.2
      - `mongomirror-linux-x86_64-debian92-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-debian92-{+mongomirror-version+}.tgz>`_
+   * - Debian 10
+     - `mongomirror-linux-x86_64-debian10-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-debian10-{+mongomirror-version+}.tgz>`_
    * - macOS 64-bit
      - `mongomirror-osx-x86_64-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/osx/mongomirror-osx-x86_64-{+mongomirror-version+}.tgz>`_
-   * - PPC64LE RHEL 7.1
-     - `mongomirror-linux-ppc64le-rhel71-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-rhel71-{+mongomirror-version+}.tgz>`_
-   * - PPC64LE RHEL 8.1
-     - `mongomirror-linux-ppc64le-rhel81-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-rhel81-{+mongomirror-version+}.tgz>`_
-   * - PPC64LE Ubuntu 16.04
-     - `mongomirror-linux-ppc64le-ubuntu1604-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-ubuntu1604-{+mongomirror-version+}.tgz>`_
-   * - PPC64LE Ubuntu 18.04
-     - `mongomirror-linux-ppc64le-ubuntu1804-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-ubuntu1804-{+mongomirror-version+}.tgz>`_
    * - RHEL 6.2
      - `mongomirror-linux-x86_64-rhel62-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-rhel62-{+mongomirror-version+}.tgz>`_
    * - RHEL 7.0
      - `mongomirror-linux-x86_64-rhel70-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-rhel70-{+mongomirror-version+}.tgz>`_
+   * - RHEL 7.1 PPC64LE
+     - `mongomirror-linux-ppc64le-rhel71-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-rhel71-{+mongomirror-version+}.tgz>`_
    * - RHEL 8.0
      - `mongomirror-linux-x86_64-rhel80-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-rhel80-{+mongomirror-version+}.tgz>`_
-   * - s390x RHEL 8.0
+   * - RHEL 8.0 s390x
      - `mongomirror-linux-s390x-rhel80-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-s390x-rhel80-{+mongomirror-version+}.tgz>`_
+   * - RHEL 8.1 PPC64LE
+     - `mongomirror-linux-ppc64le-rhel81-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-rhel81-{+mongomirror-version+}.tgz>`_
    * - SLES 12
      - `mongomirror-linux-x86_64-suse12-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-suse12-{+mongomirror-version+}.tgz>`_
    * - SLES 15
@@ -46,10 +36,20 @@
    * - Ubuntu 14.04
      - `mongomirror-linux-x86_64-ubuntu1404-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-ubuntu1404-{+mongomirror-version+}.tgz>`_
    * - Ubuntu 16.04
-     - `mongomirror-linux-x86_64-ubuntu1604-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-ubuntu1604-{+mongomirror-version+}.tgz>`_   
+     - `mongomirror-linux-x86_64-ubuntu1604-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-ubuntu1604-{+mongomirror-version+}.tgz>`_
+   * - Ubuntu 16.04 ARM
+     - `mongomirror-linux-arm64-ubuntu1604-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-arm64-ubuntu1604-{+mongomirror-version+}.tgz>`_
+   * - Ubuntu 16.04 PPC64LE
+     - `mongomirror-linux-ppc64le-ubuntu1604-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-ubuntu1604-{+mongomirror-version+}.tgz>`_
    * - Ubuntu 18.04
      - `mongomirror-linux-x86_64-ubuntu1804-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-ubuntu1804-{+mongomirror-version+}.tgz>`_
+   * - Ubuntu 18.04 ARM
+     - `mongomirror-linux-arm64-ubuntu1804-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-arm64-ubuntu1804-{+mongomirror-version+}.tgz>`_
+   * - Ubuntu 18.04 PPC64LE
+     - `mongomirror-linux-ppc64le-ubuntu1804-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-ubuntu1804-{+mongomirror-version+}.tgz>`_
    * - Ubuntu 20.04
      - `mongomirror-linux-x86_64-ubuntu2004-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-ubuntu2004-{+mongomirror-version+}.tgz>`_
+   * - Ubuntu 20.04 ARM
+     - `mongomirror-linux-arm64-ubuntu2004-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-arm64-ubuntu2004-{+mongomirror-version+}.tgz>`_
    * - Windows
      - `mongomirror-win32-x86_64-{+mongomirror-version+}.zip <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/win32/mongomirror-win32-x86_64-{+mongomirror-version+}.zip>`_
