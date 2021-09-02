@@ -79,23 +79,11 @@
 
           .. note::
 
-             Changing the reference time changes the time of the next
-             scheduled snapshot:
-
-             * If the new reference time is before the current
-               reference time, the next snapshot occurs at the new
-               reference time tomorrow.
-
-             * If the new reference time is after the current reference
-               time, and you make the change before the current
-               reference time, the next snapshot occurs at the new
-               reference time today.
-
-             * If the new reference time is after the current reference
-               time, but you make the change after the current
-               reference time, the next snapshot occurs at the new
-               reference time tomorrow.
-
+             Changing the reference time changes the time of the next scheduled snapshot.
+             You can't make the next scheduled snapshot happen sooner than the current
+             next snapshot time. The current next snapshot time is the current reference
+             time plus the interval between snapshots.
+             
              .. seealso::
 
                 To review more examples, see
