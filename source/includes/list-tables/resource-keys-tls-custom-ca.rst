@@ -32,7 +32,12 @@
      - string
      - Optional
      - Add the ``<prefix>`` of the |k8s| |k8s-secret| name that contains
-       your MongoDB deployment's |tls| certificates. If you omit this
-       setting, the prefix defaults to the value of
-       :setting:`metadata.name` of your MongoDB resource.
-     - ``<prefix>``
+       your MongoDB deployment's |tls| certificates. If you omit
+       :setting:`spec.security.tls.secretRef.name` and you configure
+       :setting:`spec.security.tls.secretRef.prefix`, you must name the 
+       secret ``<prefix>-<metadata.name>-cert``.
+       
+       If you omit :setting:`spec.security.tls.secretRef.name` and
+       :setting:`spec.security.tls.secretRef.prefix`, you must name the
+       secret ``<metadata.name>-cert``.
+     - ``devDb``
