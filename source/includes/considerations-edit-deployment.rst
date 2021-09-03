@@ -157,3 +157,9 @@ Removing a Shard
 *For Sharded Clusters Only*
 
 .. include:: /includes/fact-remove-shard.rst
+
+
+Removing Multiple Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-remove-multiple-members.rst
