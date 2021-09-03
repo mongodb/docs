@@ -1,3 +1,11 @@
+.. _mongodb-10.14.28.6532:
+
+MongoDB Agent 10.14.28.6532
+---------------------------
+
+:ref:`Released with Ops Manager 4.4.17 on 2021-09-03
+<opsmgr-server-4.4.17>`
+
 .. _mongodb-10.14.27.6524:
 
 MongoDB Agent 10.14.27.6524
