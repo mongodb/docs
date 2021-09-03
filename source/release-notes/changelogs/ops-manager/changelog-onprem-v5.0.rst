@@ -1,3 +1,25 @@
+.. _opsmgr-server-5.0.2:
+
+|onprem| Server 5.0.2
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-09-03*
+
+- Fixes a bug where, when running in local mode, with both PowerPC
+  RHEL71 and RHEL81 builds of MongoDB present, the RHEL81 build would
+  always be selected.
+
+- Updates the MongoDB Agent to :ref:`11.0.7.6992
+  <mongodb-11.0.7.6992>`.
+
+- Upgrades the JDK to version 11.0.12, which restricts the use of
+  insecure TLS versions 1.0 and 1.1. To learn more, see the
+  `JDK release notes <https://www.oracle.com/java/technologies/javase/11-0-11-relnotes.html#JDK-8202343>`__.
+
+- Compatible with :db-tools:`MongoDB Database Tools 100.4.0 
+  </release-notes/database-tools-changelog#100.4.0-changelog>`.
+
+
 .. _opsmgr-server-5.0.1:
 
 |onprem| Server 5.0.1
