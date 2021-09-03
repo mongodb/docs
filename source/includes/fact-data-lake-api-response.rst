@@ -78,6 +78,7 @@
        {+data-lake+} only supports the following regions:
 
        - ``SYDNEY_AUS`` (ap-southeast-2)
+       - ``MUMBAI_IND`` (ap-south-1)
        - ``FRANKFURT_DEU`` (eu-central-1)
        - ``DUBLIN_IRL`` (eu-west-1)
        - ``LONDON_GBR`` (eu-west-2)
