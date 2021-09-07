@@ -1,0 +1,115 @@
+.. _source-configuration-copy-existing:
+
+========================
+Copy Existing Properties
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Use the following configuration settings to enable the copy existing
+feature which converts MongoDB collections into Change Stream events.
+
+.. seealso::
+
+   For an example of the copy existing feature, see the
+   (TODO: link to Copy Existing Data Usage Example) Copy Existing Usage
+   Example.
+
+.. include:: /includes/source-config-link.rst
+
+Settings
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Name
+     - Description
+
+   * - | **copy.existing**
+     - | **Type:** boolean
+       |
+       | **Description:**
+       | Whether to enable the copy existing feature which converts all
+         data in a MongoDB collection to Change Stream events and
+         publishes them on Kafka topics. If MongoDB changes the source
+         collection data after the connector starts the copy process, the
+         connector creates events for the changes after it completes the copy
+         process.
+       | **Default**:``false``
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - | **copy.existing.namespace.regex**
+     - | **Type:** string
+       |
+       | **Description:**
+       | Regular expression the connector uses to match namespaces from
+         which to copy data. A namespace describes the MongoDB database name
+         and collection separated by a period, e.g.
+         ``databaseName.collectionName``.
+
+       .. example::
+
+          In the following example, the regular expression setting matches
+          collections that start with "page" in the "stats" database.
+
+          .. code-block:: none
+
+             copy.existing.namespace.regex=stats\.page.*
+
+          The "\\" character in the example above escapes the "." character
+          that follows it in the regular expression. For more information on
+          how to build regular expressions, see the Java API documentation on
+          `Patterns <https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html>`__.
+
+       | **Default**: ``""``
+       | **Accepted Values**: A valid regular expression
+
+   * - | **copy.existing.pipeline**
+     - | **Type:** string
+       |
+       | **Description:**
+       | An array of :manual:`pipeline operations </core/aggregation-pipeline/>`
+         the connector runs when copying existing data. You can use this
+         setting to filter the source collection and improve the use of
+         indexes in the copying process.
+
+       .. example::
+
+          The following example shows how you can use the :manual:`$match </reference/operator/aggregation/match/>`
+          aggregation operator to instruct the connector to copy only
+          documents that contain a ``closed`` field with a value of ``false``.
+
+          .. code-block:: none
+
+             copy.existing.pipeline=[ { "$match": { "closed": "false" } } ]
+
+       | **Default**: ``[]``
+       | **Accepted Values**: Valid aggregation pipeline stages
+
+   * - | **copy.existing.max.threads**
+     - | **Type:** int
+       |
+       | **Description:**
+       | The maximum number of threads the connector can use to copy data.
+       | **Default**: number of processors available in the environment
+       | **Accepted Values**: An integer
+
+   * - | **copy.existing.queue.size**
+     - | **Type:** int
+       |
+       | **Description:**
+       | The size of the queue the connector can use when copying data.
+       | **Default**: ``16000``
+       | **Accepted Values**: An integer
+
