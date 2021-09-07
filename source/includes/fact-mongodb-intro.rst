@@ -18,10 +18,7 @@ MongoDB offers both local and cloud-hosted deployment options:
     features such as LDAP and Kerberos support, on-disk encryption,
     and auditing.
 
-- For cloud-hosted deployments, MongoDB offers
-  `Atlas <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__,
-  a hosted MongoDB Enterprise service option in the cloud which 
-  requires no installation overhead and offers a free tier to get started.
-
-The Manual documents features and functionality for MongoDB Community,
-Enterprise, and Atlas deployments.
+- `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?tck=docs_server>`__
+  is a hosted MongoDB Enterprise service option in the cloud which 
+  requires no installation overhead and offers a free tier to get 
+  started.
