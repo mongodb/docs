@@ -6,67 +6,120 @@ stepnum: 1
 content: | 
   See :ref:`pause-resume-online-archive` for more information.
 --- 
-title: "Connect to your |service| cluster and online archive using 
-       the connection string. "
+title: "Connect to your |service| cluster using the connection string. "
 level: 4
 ref: oa-restore-step2
 stepnum: 2
 content: | 
   See :ref:`connect-online-archive-atlas-ui` for more information.
 ---
-title: "Use :pipeline:`$match` and :adl:`$out to Atlas 
-       </reference/pipeline/out>` to migrate data from the 
-       archive to a temporary collection on the |service| cluster."
-level: 4
-ref: oa-restore-step3
-stepnum: 3
-content: | 
-  Use :pipeline:`$match` to identify the documents that match the 
-  criteria for restoring and use :adl:`$out to Atlas 
-  </reference/pipeline/out>` to write the documents to a temporary 
-  collection on the |service| cluster. For example: 
-
-  .. code-block:: json 
-     
-     db.<collection>.aggregate([
-       { $match: { $expr: { <aggregation expression> } } },
-       { $out: {
-         "atlas": {
-           "projectId": "<atlas-project-ID>",
-           "clusterName": "<atlas-cluster-name>",
-           "db": "<atlas-database-name>",
-           "coll": "<atlas-collection-name"
-         }
-       } }
-     ])
----
-title: "Use :pipeline:`$merge` to move the data from the temporary 
-       collection to the original collection."
+title: "Use :pipeline:`$merge` to move the data from your archive to 
+       your |service| cluster."
 level: 4
 ref: oa-restore-step4
 stepnum: 4
 content: |
-  a. Close the connection you opened in step 2 to your |service| cluster 
-     and online archive.
 
-  #. :doc:`Connect </connect-to-database-deployment>` to your |service| cluster using 
-     the connection string.
+  To learn more about the ``$merge`` pipeline stage syntax and usage 
+  for moving data back into your |service| cluster, see the :adl:`$merge
+  </reference/pipeline/merge>` pipeline stage.
 
-  #. Use :pipeline:`$merge` to move the data from the temporary 
-     collection to the original collection. For example: 
+  .. example:: 
+
+     Consider the following documents in an |s3| archive: 
+
+     .. code-block:: json 
+        
+        {
+          "_id" : 1,
+          "item": "cucumber",
+          "source": "nepal",
+          "released": ISODate("2016-05-18T16:00:00Z")
+        }
+        {
+          "_id" : 2,
+          "item": "miso",
+          "source": "canada",
+          "released": ISODate("2016-05-18T16:00:00Z")
+        }
+        {
+          "_id" : 3,
+          "item": "oyster",
+          "source": "luxembourg",
+          "released": ISODate("2016-05-18T16:00:00Z")
+        }
+        {
+          "_id" : 4,
+          "item": "mushroom",
+          "source": "ghana",
+          "released": ISODate("2016-05-18T16:00:00Z")
+        }
+
+     Suppose the ``$merge`` syntax for restoring these documents 
+     into the |service| cluster identifies documents based on the 
+     ``item`` and ``source`` fields during the ``$merge`` stage.
 
      .. code-block:: json 
 
         db.<collection>.aggregate([ 
           { 
-            $merge: { 
-              into: "<collection>", 
-              on: <identifier field>, 
-              whenMatched: "<replace|merge>", 
-              whenNotMatched: "<insert|discard|fail>" 
+            "$merge": {
+              "into": {
+                "atlas": {
+                  "clusterName": "<atlas-cluster-name>",
+                  "db": "<db-name>",
+                  "coll": "<collection-name>"
+                }
+              },
+              "on": [ "item", "source" ],
+              "whenMatched": "keepExisting",
+              "whenNotMatched": "insert"
             } 
-          } 
+          }
         ])
+
+     In this example, when an archived document matches a document on 
+     the |service| cluster on those two fields, |service| keeps the 
+     existing document in the cluster because the copy of the document 
+     on the |service| cluster is more recent than the copy of the 
+     document in the archive. When an archived document doesn't match 
+     any document in the |service| cluster, |service| inserts the 
+     document into the specified collection on the |service| cluster.
+
+    When restoring data back into the |service| cluster, the archived 
+    data might have duplicate ``_id`` fields. For this example, we can 
+    include a :pipeline:`$sort` stage for sorting on the ``_id`` and 
+    ``released`` fields before the :pipeline:`$merge` stage to ensure 
+    that |service| chooses the documents with the recent date if there 
+    are duplicates to resolve. 
+
+    .. code-block:: json 
+
+        db.<collection>.aggregate([ 
+          {
+            $sort: {
+              "_id": 1,
+              "released": 1,
+            } 
+          },
+          { 
+            "$merge": {
+              "into": {
+                "atlas": {
+                  "clusterName": "<atlas-cluster-name>",
+                  "db": "<db-name>",
+                  "coll": "<collection-name>"
+                }
+              },
+              "on": [ "item", "source" ],
+              "whenMatched": "keepExisting",
+              "whenNotMatched": "insert"
+            } 
+          }
+        ])
+    
+    To learn more about resolving duplicate fields, see the 
+    :adl:`$merge considerations </reference/pipeline/merge>`.
 ---
 title: "Verify data in the |service| cluster and delete the 
        online archive."
