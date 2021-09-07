@@ -1,0 +1,251 @@
+.. _snip-using-snippets:
+
+=============================
+Using Snippets in the Console
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. warning::
+
+   .. include:: /includes/warnings/warn-experimental-feature.rst
+
+This page is an overview of working with snippets in the
+:binary:`~bin.mongosh` console.
+
+.. _snip-install-packages:
+
+Install Snippet Packages
+------------------------
+
+You must install a snippet package before you use it. Once a snippet
+package has been installed, it is loaded each time
+:binary:`~bin.mongosh` starts.
+
+If you know the name of the snippet you want to install, enter:
+
+.. code-block:: javascript
+
+   snippet install <name>
+
+Otherwise, search the repository to get a list of available snippets.
+
+.. code-block:: javascript
+
+   snippet search
+
+Once the snippet is installed, enter ``y`` to load it.
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+    Running install...
+    Installed new snippets analyze-schema. Do you want to load them now? [Y/n]: y
+    Finished installing snippets: analyze-schema
+
+.. note::
+
+   If this is the first time you have used snippets you may see a
+   warning like the following:
+
+   .. code-block:: javascript
+
+      This operation requires downloading a recent release of npm. Do
+      you want to proceed? [Y/n]:
+
+   You must install npm to use snippets. 
+
+.. _snip-run-snippets:
+
+Run a Snippet
+-------------
+
+Before running a new snippet, run ``snippet help <SNIPPET NAME>`` to
+learn more about the snippet's functionality.
+
+For example, ``snippet help analyze-schema`` indicates that you can
+use the the ``analyze-schema`` by passing it a collection name.
+
+.. code-block:: javascript
+   :copyable: false
+
+   testDB> snippet help analyze-schema
+    # analyze-schema
+
+    Analyze the schema of a collection or a cursor.
+
+   ```js
+   > schema(db.coll);
+   ┌─────────┬───────┬───────────┬────────────┐
+   │ (index) │   0   │     1     │     2      │
+   ├─────────┼───────┼───────────┼────────────┤
+   │    0    │ '_id' │ '100.0 %' │ 'ObjectID' │
+   │    1    │ 'a  ' │ '50.0 %'  │  'Number'  │
+   │    2    │ 'a  ' │ '50.0 %'  │  'String'  │
+   └─────────┴───────┴───────────┴────────────┘
+
+Once you know how to call a snippet, you can use it as in the following
+example. 
+
+Consider the ``reservations`` collection:
+
+.. code-block:: javascript
+
+   db.reservations.insertMany( [
+      {"_id": 1001, "roomNum": 1, "reserved": true },
+      {"_id": 1002, "roomNum": 2, "reserved": true },
+      {"_id": 1003, "roomNum": 3, "reserved": "false" },
+      {"_id": 1004, "roomNum": 4, "reserved": true },
+   ] )
+
+To analyze the collection, :ref:`install <snip-install-packages>` the
+``analyze-schema`` snippet if it is not already present, pass in the
+collection name to run it.
+
+.. code-block:: javascript
+
+   snippet install analyze-schema
+   schema(db.reservations)
+
+The document with ``"_id": 3`` was misentered as a string. The analysis
+shows that the ``reserved`` field has string elements in addition to
+the expected booleans.
+
+.. code-block:: none
+
+   ┌─────────┬────────────┬───────────┬───────────┐
+   │ (index) │     0      │     1     │     2     │
+   ├─────────┼────────────┼───────────┼───────────┤
+   │    0    │ '_id     ' │ '100.0 %' │ 'Number'  │
+   │    1    │ 'reserved' │ '75.0 %'  │ 'Boolean' │
+   │    2    │ 'reserved' │ '25.0 %'  │ 'String'  │
+   │    3    │ 'roomNum ' │ '100.0 %' │ 'Number'  │
+   └─────────┴────────────┴───────────┴───────────┘
+
+.. _snip-uninstall:
+
+Uninstall Snippets
+------------------
+
+Use the ``snippet uninstall`` command to remove a snippet. If you are
+unsure of the name, the ``snippet ls`` command lists all installed
+snippets.
+
+This code uninstalls the ``analyze-schema`` snippet. 
+
+.. code-block:: javascript
+
+   snippet uninstall analyze-schema
+
+.. _snip-ex-find-available:
+
+Find Available Snippet Packages
+-------------------------------
+
+.. _snip-ex-ls:
+
+The ``snippet ls`` command returns a list of locally installed snippets
+along with some version and source information.
+
+.. code-block:: shell
+   :copyable: false
+
+   snippets@ /root/.mongodb/mongosh/snippets
+   ├── mongosh:PRIVATE..DecryptCards@1.0.5
+   ├── mongosh:analyze-schema@1.0.5
+   └── npm@7.23.0
+
+To see the snippets that are available in the registry, first
+``refresh`` the local metadata cache and then ``search``. 
+
+.. code-block:: javascript
+
+   snippet refresh
+   snippet search
+
+``snippet search`` lists available snippets, their version, and gives a
+brief description.
+
+This instance has a second, private registry configured. Since the
+private registry was listed first, those snippets precede the MongoDB
+snippets in the list of available snippets.
+
+.. code-block:: javascript
+   :copyable: false
+
+   ┌─────────┬─────────────────────────────────┬─────────┬────────────────────────────────────────────────────────────────┐
+   │ (index) │              name               │ version │                          description                           │
+   ├─────────┼─────────────────────────────────┼─────────┼────────────────────────────────────────────────────────────────┤
+   │    0    │     'PRIVATE..DecryptCards'     │ '1.0.5' │                 'Decrypt credit card numbers'                  │
+   │    1    │ 'PRIVATE..updateAuthentication' │ '1.0.2' │             'Update user pwds and authentication'              │
+   │    2    │          'resumetoken'          │ '1.0.2' │                 'Resume token decoder script'                  │
+   │    3    │          'mongocompat'          │ '1.0.7' │            'mongo compatibility script for mongosh'            │
+   │    4    │         'spawn-mongod'          │ '1.0.1' │                'Spin up a local mongod process'                │
+   │    5    │        'mock-collection'        │ '1.0.2' │ 'mockCollection([{ a: 1 }, { a: 2 }]).find({ a: { $gt: 2 } })' │
+   │    6    │        'analyze-schema'         │ '1.0.5' │                       'schema(db.coll)'                        │
+   └─────────┴─────────────────────────────────┴─────────┴────────────────────────────────────────────────────────────────┘
+
+
+.. _snip-get-repo-info:
+
+Get Repository Information
+--------------------------
+
+Display the homepage and URL for each snippet repository:
+
+.. code-block:: javascript
+
+   snippet info
+
+The output lists each repository.
+
+.. code-block:: javascript
+   :copyable: false
+
+   Snippet repository URL:      https://github.com/YOUR_COMPANY/YOUR_REPO_PATH/index.bson.br
+     -->  Homepage:             https://davemungo.github.io/mongosh-snippets/
+
+   Snippet repository URL:      https://compass.mongodb.com/mongosh/snippets-index.bson.br
+     -->  Homepage:             https://github.com/mongodb-labs/mongosh-snippets
+
+.. _snip-get-help:
+
+Getting Help With  A Snippet
+----------------------------
+
+Each snippet is unique and has its own interface. The best way to find
+information about how a particular snippet works is to view its
+``README`` file by running ``snippet help``:
+
+.. code-block:: javascript
+
+   snippet help mongocompat
+
+This command displays the ``README`` file for the `mongocompat
+<https://github.com/mongodb-labs/mongosh-snippets/tree/main/snippets/mongocompat>`__
+snippet in the :binary:`~bin.mongosh` console.  
+
+.. code-block:: javascript
+   :copyable: false
+
+   # mongocompat
+
+   Provide `mongo` legacy shell compatibility APIs.
+
+   ```js
+   > Array.sum([1, 2, 3])
+   6
+   > tojsononeline({a:1,b:2,c:3})
+   {  "a" : 1,  "b" : 2,  "c" : 3 }
+   ```
+
+When you :ref:`create your own <snip-create>` your own snippet
+packages, be sure to include a ``README.md`` file that provides useful
+help. 
+

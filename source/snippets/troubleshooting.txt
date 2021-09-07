@@ -1,0 +1,128 @@
+.. _snip-troubleshooting:
+
+===============
+Troubleshooting
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. warning:: Experimental feature
+
+   .. include:: /includes/warnings/warn-experimental-feature.rst
+
+The following sections provide troubleshooting suggestions.
+
+.. _snip-npm-logs:
+
+View ``npm`` Log Files
+----------------------
+
+The ``npm`` log files are a good place to start if you encounter a
+problem. The log file location will vary depending on your ``npm``
+installation. It will be something like:
+
+.. code-block:: shell
+
+   /<NPM USER HOME>/.npm/_logs/2021-09-16T22_03_34_534Z-debug.log
+
+When you locate the log files, check the most recent one.
+
+Non-specific Error Message
+--------------------------
+
+**Problem**: :binary:`~bin.mongosh` returns a non-specific error
+message when you try to start the shell.  
+
+**Solution**: Disable snippets, restart :binary:`~bin.mongosh` to
+continue debugging. 
+
+.. code-block:: javascript
+
+   mongosh --nodb --eval 'config.set("snippetIndexSourceURLs", "")'
+
+Error: ``Cannot find module``
+-----------------------------
+
+**Problem**: :binary:`~bin.mongosh` returns an error message like this when you try
+to start the shell:
+
+.. code-block:: javascript
+   :copyable: false
+
+   Error: Cannot find module '/<PATH to USER HOME>/.mongodb/mongosh/snippets/node_modules/@<REGISTRY NAME>/bad-snippet-name'
+
+The :ref:`npm log file <snip-npm-logs>` may have lines like these:
+
+.. code-block:: javascript
+   :copyable: false
+
+   36 error code ELSPROBLEMS
+   37 error missing: @<REGISTRY NAME>/bad-snippet-name@*, required by snippets@
+
+**Solution**: Edit the ``~/.mongodb/mongosh/snippets/package.json``
+file to remove the line with the ``bad-snippet-name``. 
+
+In this example, do not forget to delete the trailing comma from the
+line above as well. 
+
+.. code-block:: shell
+   :copyable: false
+   :emphasize-lines: 6
+
+   {
+      "dependencies": {
+         "@mongosh/snippet-analyze-schema": "^1.0.5",
+         "@mongosh/snippet-spawn-mongod": "^1.0.1",
+         "npm": "*",
+         "@<REGISTRY NAME>/bad-snippet-name": "^1.0.7"
+      }
+   }
+
+Uninstalling a Snippet Fails
+----------------------------
+
+**Problem**: Uninstall fails, but the error message refers to a
+different snippet.
+
+The following error message below is reformatted for readability:
+
+.. code-block:: shell
+   :copyable: false
+
+   Running uninstall...
+   Uncaught:
+   Error: Command failed: /usr/bin/mongosh 
+             /root/.mongodb/mongosh/snippets/node_modules/npm/bin/npm-cli.js
+             --no-package-lock
+             --ignore-scripts
+             --registry=https://registry.npmjs.org uninstall
+             --save @mongosh/snippet-mongocompat with exit code 1: \
+                    npm ERR! code E404 npm ERR! 404 Not Found 
+            - GET https://registry.npmjs.org/@<REGISTRY NAME>%2fbad-snippet-name
+            - Not found
+   npm ERR! 404 
+   npm ERR! 404  '@<REGISTRY NAME>/bad-snippet-namen@*' is not in this registry.
+
+**Solution**: Edit the ``package.json`` file to remove the missing
+entry. In this example, delete the highlighted line and the trailing
+comma from the line above. 
+
+.. code-block:: shell
+   :copyable: false
+   :emphasize-lines: 6
+
+   {
+      "dependencies": {
+         "@mongosh/snippet-analyze-schema": "^1.0.5",
+         "@mongosh/snippet-spawn-mongod": "^1.0.1",
+         "npm": "*",
+         "@<REGISTRY NAME>/bad-snippet-name": "^1.0.7"
+      }
+   }
+
