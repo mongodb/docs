@@ -57,9 +57,9 @@ to authenticate to hosts that enforce access control.
    .. tab:: Deployments Managed by {+aagent+}
       :tabid: automation
 
-      When you install the {+mdbagent+} with {+aagent+}, |mms|
-      automatically creates a user for authentication. This user
-      (``mms-automation``) is created in the ``admin`` database with
+      When you install the {+mdbagent+} with {+aagent+}, |mms| creates a
+      user to authenticate on the MongoDB database. |mms| create this
+      MongoDB user (``mms-automation``) in the ``admin`` database with
       the correct privileges for each {+mdbagent+} function.
 
       Configure these credentials in |mms|.
@@ -111,12 +111,16 @@ to authenticate to hosts that enforce access control.
 
             .. tabs::
 
-               .. tab:: MongoDB 3.0 or later
-                  :tabid: backup-mdb-v3.0+
+               .. tab:: FCV 4.2 or later
+                  :tabid: backup-fcv4.2
 
-                  To back up MongoDB instances running 3.0 and later,
-                  create a user in the ``admin`` database with an
-                  operation that resembles the following in {+mongosh+}:
+                  To back up MongoDB instances running |fcv-link| 4.2
+                  and later, create a user in the ``admin`` database.
+                  Assign this user the roles provided in the following
+                  example.
+
+                  Use the following {+mongosh+} command to create the
+                  user:
 
                   .. code-block:: javascript
 
@@ -124,20 +128,25 @@ to authenticate to hosts that enforce access control.
                         {
                            user: "<username>",
                            pwd: "<password>",
-                           roles: [ { role: "backup", db: "admin" } ]
+                           roles: [ { 
+                             role: "clusterAdmin", db: "admin"
+                           } ]
                         }
                      )
 
-                  To learn how to configure access control, see
-                  :ref:`Access Control for MongoDB 3.0
-                  <access-control-backup-3.0>`.
+                  To learn more about the required access, see
+                  :ref:`Required Access for MongoDB Agent Backup <required-permissions-mms-backup>`
 
-               .. tab:: MongoDB 2.6
-                  :tabid: backup-mdb-v2.6
+               .. tab:: FCV 4.0 or earlier
+                  :tabid: backup-fcv4.0
 
-                  To back up MongoDB 2.6 release series instances,
-                  create a user in the ``admin`` database with an
-                  operation that resembles the following in the |mongo| shell:
+                  To back up MongoDB instances running |fcv-link| 4.0 or
+                  earlier, create a user in the ``admin`` database.
+                  Assign this user the roles provided in the following
+                  example.
+
+                  Use the following {+mongosh+} command to create the
+                  user:
 
                   .. code-block:: javascript
 
@@ -145,19 +154,14 @@ to authenticate to hosts that enforce access control.
                        {
                          user: "<username>",
                          pwd: "<password>",
-                         roles: [ 
-                            "clusterAdmin",
-                            "readAnyDatabase",
-                            "userAdminAnyDatabase",
-                            { role: "readWrite", db: "admin" },
-                            { role: "readWrite", db: "local" },
-                         ]
+                         roles: [ {
+                           role: "backup", db: "admin"
+                         } ]
                        }
                      )
 
-                  See :ref:`Access Control for MongoDB 2.6
-                  <access-control-backup-2.6>` for more information on
-                  the required access.
+                  To learn more about the required access, see
+                  :ref:`Required Access for MongoDB Agent Backup <required-permissions-mms-backup>`
 
             **Configure {+bagent+} Credentials**
 
@@ -189,56 +193,25 @@ to authenticate to hosts that enforce access control.
          .. tab:: Monitoring
             :tabid: monitoring
 
-            User creation commands vary depending on the version of
-            MongoDB that you use:
+            To monitor MongoDB 4.0 or later instances that use SCRAM
+            authentication, add a user to the ``admin`` database in
+            MongoDB. Assign this user the roles provided in the
+            following example.
 
-            .. tabs::
+            .. code-block:: javascript
 
-               .. tab:: MongoDB 2.6 or later
-                  :tabid: monitoring-mbd-v2.6+
+               db.getSiblingDB("admin").createUser(
+                  {
+                     user: "<username>",
+                     pwd: "<password>",
+                     roles: [ {
+                       role: "clusterMonitor", db: "admin"
+                     } ]
+                  }
+               )
 
-                  To monitor MongoDB 2.6 instances, create a MongoDB
-                  user in the ``admin`` database with an operation that
-                  resembles the following in the |mongo| shell:
-
-                  .. code-block:: javascript
-
-                     db.getSiblingDB("admin").createUser(
-                        {
-                           user: "<username>",
-                           pwd: "<password>",
-                           roles: [ { role: "clusterMonitor", db: "admin"
-                           } ]
-                        }
-                     )
-
-                  To learn more about the required roles, see
-                  :ref:`Access Control for MongoDB 2.6
-                  <access-control-monitoring-agent-2.6>`.
-
-               .. tab:: MongoDB 2.4
-                  :tabid: monitoring-mdb-v2.4
-
-                  To monitor MongoDB 2.4 instances, create a MongoDB
-                  user in the ``admin`` database with an operation that
-                  resembles the following in the |mongo| shell:
-
-                  .. code-block:: javascript
-
-                     db.getSiblingDB("admin").addUser( 
-                        {
-                           user: "<username>",
-                           pwd: "<password>",
-                           roles: [ 
-                              "clusterAdmin",
-                              "readAnyDatabase"
-                           ]
-                        }
-                     )
-
-                  To choose which MongoDB roles to provide for
-                  {+magent+}, see :ref:`Access Control for MongoDB
-                  2.4<access-control-2.4>`.
+            To learn what roles this function requires, see
+            :ref:`Monitoring settings <mongodb-agent-monitoring-settings>`.
 
             **Configure {+magent+} Credentials**
 
