@@ -11,11 +11,10 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
-
 public class RunCommand {
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
-        String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+        String uri = "mongodb://user:pass@sample.host:27017/?maxPoolSize=20&w=majority";
 
         try (MongoClient mongoClient = MongoClients.create(uri)) {
 

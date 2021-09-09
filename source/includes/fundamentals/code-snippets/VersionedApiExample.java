@@ -25,7 +25,7 @@ public class VersionedApiExample {
                 .build();
 
         // Replace the uri string with your MongoDB deployment's connection string
-        String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+        String uri = "<connection string uri>";
 
         MongoClientSettings settings = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(uri))

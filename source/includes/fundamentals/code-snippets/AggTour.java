@@ -22,7 +22,7 @@ import java.util.Arrays;
 public class AggTour {
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
-        final String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+        final String uri = "<connection string uri>";
         
         MongoClient mongoClient = MongoClients.create(uri);
         MongoDatabase database = mongoClient.getDatabase("aggregation");

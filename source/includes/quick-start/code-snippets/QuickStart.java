@@ -13,7 +13,7 @@ import com.mongodb.client.MongoDatabase;
 public static void main( String[] args ) {
 
     // Replace the uri string with your MongoDB deployment's connection string
-    String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+    String uri = "<connection string uri>";
 
     try (MongoClient mongoClient = MongoClients.create(uri)) {
         MongoDatabase database = mongoClient.getDatabase("sample_mflix");
