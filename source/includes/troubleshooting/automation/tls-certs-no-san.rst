@@ -1,10 +1,9 @@
-You can *temporarily* continue to use |tls| certificates without a
-SAN by setting the ``$GODEBUG`` environment variable. However, this
-workaround **will not** be supported in upcoming releases of the
-{+mdbagent+}. 
+To *temporarily* use |tls| certificates without a |san-dns|, set the
+``$GODEBUG`` environment variable. This workaround **will not** be
+supported in upcoming releases of the {+mdbagent+}.
 
-To *temporarily* use |tls| certificates without a SAN,
-you must either:
+To *temporarily* use |tls| certificates without a |san-dns|,
+perform one of the following actions:
 
 1. Upgrade your {+mdbagent+} packages, which automatically sets the
    ``$GODEBUG`` environment variable on your host, or
@@ -14,4 +13,4 @@ you must either:
    the RPM, DEB, or Windows packages.
 
 In `Go 1.17 <https://golang.org/doc/go1.16#crypto/x509>`_, the
-``GODEBUG=x509ignoreCN=0`` flag **will not** be supported.
+``GODEBUG=x509ignoreCN=0`` flag **won't** be supported.
