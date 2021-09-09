@@ -113,26 +113,39 @@
           If you change the **auth.keyfile** value, you must change the
           **auth.key** value.
   
-   * - | ``auth``
-       | ``.newAutoPwd``
+   * - | auth
+       | .newAutoPwd
      - string
      - Optional
      - New password that the {+aagent+} uses when connecting to an
        instance. To rotate passwords without losing the connection:
 
-       1. Set ``auth.newAutoPwd`` and leave ``auth.autoPwd`` with its 
+       1. Set **auth.newAutoPwd** and leave **auth.autoPwd** with its 
           current password.
       
        #. Wait for the goal state.
 
-       #. ``auth.newAutoPwd`` copies over the ``auth.autoPwd``
+       #. **auth.newAutoPwd** copies over the **auth.autoPwd**
           password automatically.
    
        .. note::
    
           You can set this option only when you include SCRAM-SHA-1 
           or SCRAM-SHA-256 as one of the authentication 
-          mechanisms for the {+aagent+} in ``auth.autoAuthMechanisms``.
+          mechanisms for the {+aagent+} in **auth.autoAuthMechanisms**.
+
+   * - auth.newKey
+     - string
+     - Optional
+     - Contents of a new key file that you want |mms| to use to 
+       authenticate to the MongoDB processes. 
+
+       When you set this option, |mms| rotates the key that the
+       application uses to authenticate to the MongoDB processes in 
+       your deployment. When all {+mdbagent+}s use the new key, |mms| 
+       replaces the value of **auth.key** with the new key that you 
+       provided in **auth.newKey** and removes **auth.newKey** from the
+       automation configuration.
 
    * - auth.usersDeleted
      - array of objects

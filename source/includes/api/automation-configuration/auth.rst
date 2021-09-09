@@ -14,6 +14,7 @@
        "key": "<string>",
        "keyfile": "<string>",
        "newAutoPwd": "<string>",
+       "newKey": "<string>",
        "usersDeleted": [{
          "user": "<string>",
          "dbs": ["<string>", "<string>"]
