@@ -135,7 +135,6 @@ html_theme_options = {
 
 html_sidebars = sconf.sidebars
 
-
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
