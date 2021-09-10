@@ -5,9 +5,8 @@ USER=$(shell whoami)
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
 
-# We put the mongoid files in the same bucket as the ruby driver docs.
-STAGING_BUCKET=docs-mongodb-org-staging
-PRODUCTION_BUCKET=docs-ruby-driver
+STAGING_BUCKET=docs-mongodb-org-stg
+PRODUCTION_BUCKET=docs-mongodb-org-prd
 
 PROJECT=mongoid
 TARGET_DIR=source-${GIT_BRANCH}
