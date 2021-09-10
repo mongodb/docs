@@ -27,16 +27,16 @@ else
 endif
 
 STAGING_URL_CLOUDMGR="https://docs-cloudmanager-staging.mongodb.com"
-STAGING_BUCKET_CLOUDMGR=docs-cloudmanager-staging
+STAGING_BUCKET_CLOUDMGR=docs-cloudmanager-stg
 
 PRODUCTION_URL_CLOUDMGR="https://docs.cloudmanager.mongodb.com"
-PRODUCTION_BUCKET_CLOUDMGR=docs-cloudmanager-prod
+PRODUCTION_BUCKET_CLOUDMGR=docs-cloudmanager-prd
 
 STAGING_URL_OPSMGR="https://docs-opsmanager-staging.mongodb.com"
-STAGING_BUCKET_OPSMGR=docs-opsmanager-staging
+STAGING_BUCKET_OPSMGR=docs-opsmanager-stg
 
 PRODUCTION_URL_OPSMGR="https://docs.opsmanager.mongodb.com"
-PRODUCTION_BUCKET_OPSMGR=docs-opsmanager-prod
+PRODUCTION_BUCKET_OPSMGR=docs-opsmanager-prd
 
 PREFIX=
 
