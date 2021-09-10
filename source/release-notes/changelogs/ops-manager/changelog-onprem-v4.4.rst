@@ -16,8 +16,8 @@
   insecure TLS versions 1.0 and 1.1. To learn more, see the
   `JDK release notes <https://www.oracle.com/java/technologies/javase/11-0-11-relnotes.html#JDK-8202343>`__.
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.4.0 
-  </release-notes/database-tools-changelog#100.4.0-changelog>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.5.0 
+  </release-notes/database-tools-changelog#100.5.0-changelog>`.
 
 
 .. _opsmgr-server-4.4.16:
@@ -39,8 +39,8 @@
 - Updates the MongoDB Agent to :ref:`10.14.27.6524
   <mongodb-10.14.27.6524>`.
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.4.0 
-  </release-notes/database-tools-changelog#100.4.0-changelog>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.3.1 
+  </release-notes/database-tools-changelog#100.3.1-changelog>`.
 
 .. _opsmgr-server-4.4.15:
 

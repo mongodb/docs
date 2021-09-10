@@ -24,7 +24,15 @@ If you run |onprem| 4.4.0 in
    * - Ops Manager Server Versions
      - Compatible MongoDB Database Tools Version
 
-   * - :ref:`4.4.11 <opsmgr-server-4.4.11>`
+   * - :ref:`4.4.17 <opsmgr-server-4.4.17>`, 
+     - :dl:`100.5.0 <database-tools>`
+
+   * - :ref:`4.4.11 <opsmgr-server-4.4.11>`, 
+       :ref:`4.4.12 <opsmgr-server-4.4.12>`, 
+       :ref:`4.4.13 <opsmgr-server-4.4.13>`, 
+       :ref:`4.4.14 <opsmgr-server-4.4.14>`, 
+       :ref:`4.4.15 <opsmgr-server-4.4.15>`, 
+       :ref:`4.4.16 <opsmgr-server-4.4.16>`, 
      - :dl:`100.3.1 <database-tools>`
 
    * - :ref:`4.4.10 <opsmgr-server-4.4.10>`
