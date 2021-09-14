@@ -89,34 +89,64 @@ Oplog Scaling Behavior
 Changing Storage Capacity or |iops| on |aws|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|aws| allows you to change storage capacity or storage throughput
-(|iops|) every six hours. |service| supports more changes within that
+|service| handles changes differently based on whether you want to 
+increase or decrease storage capacity or storage throughput
+(|iops|) on |aws|. 
+
+Increasing Capacity or Throughput
+`````````````````````````````````
+
+|aws| allows you to increase storage capacity or |iops| every 
+six hours. |service| supports more changes within that
 six-hour window.
 
-- For your first change, |service| modifies the hosts’ data volumes
-  without downtime.
-- For later changes, |service| provisions new volumes and syncs the
-  data from the old volumes. If |service| provisions new volumes, you
-  can access your cluster. You can't access *nodes* that |aws| modifies
-  until |aws| attaches the new volume.
+How |service| handles additional changes within a six-hour window 
+depends on how large your hosts' data volumes are and when you make the 
+change in the six-hour window.
+
+- For the first change, |service| modifies data volumes in place without
+  downtime.
+- For later changes:
+
+  .. list-table::
+     :header-rows: 1
+  
+     * - Data Volume Size
+       - Time Since Last Storage Change
+       - Action |service| Takes
+
+     * - Less than 1TB
+       - Less than 5h30m
+       - |service| provisions new volumes and syncs the data from
+         the old volumes. If |service| provisions new volumes, 
+         you can access your cluster. You can't access *nodes* 
+         that |aws| modifies until |aws| attaches the new volume.
+
+     * - Less than 1TB
+       - More than 5h30m
+       - |service| waits until the six-hour window closes, then
+         modifies the hosts' data volumes in place without downtime.
+
+     * - More than 1TB
+       - Any
+       - |service| waits until the six-hour window closes, then
+         modifies the hosts' data volumes in place without downtime.
+         This takes less time than provisioning new volumes and syncing
+         data from the old to the new volumes.
+
+Before you apply your storage capacity or |iops| increases, the
+:guilabel:`Review Changes` page describes how |service| approaches the
+increase.
+
+The :guilabel:`Database Deployments` page displays a banner if |service|
+will wait until a six-hour window closes before modifying your
+{+cluster+}'s storage capacity or |iops|.
 
 These behaviors apply when |service| changes capacity during
 :ref:`auto-scaling <cluster-autoscaling>`.
 
 To learn more about |aws|\'s limitations, see the
 :aws:`AWS documentation </AWSEC2/latest/UserGuide/modify-volume-requirements.html#elastic-volumes-limitations>`.
-
-Increasing Capacity or Throughput
-`````````````````````````````````
-
-How |service| handles changes depends upon when you make the change in
-the |aws| six-hour window.
-
-- For the first change, |service| changes data volumes without downtime.
-
-- For later changes, |service| provisions new volumes then syncs your
-  data from the old to the new volumes. This works around the |aws|
-  limitation.
 
 Decreasing Capacity or Throughput
 `````````````````````````````````
@@ -157,6 +187,10 @@ completes.
 
    For large clusters, initial syncs for each node might take several
    hours to complete.
+
+Before you apply your storage capacity changes, the :guilabel:`Review
+Changes` page notifies you that |service| will trigger a rolling restart
+of your {+cluster+} when you make this change.
 
 .. _change-storage-capacity-multi:
 
