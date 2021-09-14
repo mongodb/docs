@@ -26,20 +26,6 @@
        to and serviced by the disk partition. Includes requests from all
        processes, not just MongoDB processes.
 
-   * - | ``DISK_QUEUE_DEPTH``
-       | (mongodb.atlas.system.disk.queuedepth)
-     - Disk
-     - Average length of the queue of requests issued 
-       to the disk partition that MongoDB uses over the time 
-       period specified by the metric granularity.
-
-   * - | ``MAX_DISK_QUEUE_DEPTH``
-       | (mongodb.atlas.system.disk.max.queuedepth)
-     - Disk
-     - Maximum values over the time period specified by the metric 
-       granularity for the average length of the queue of requests 
-       issued to the disk partition that MongoDB uses.
-
    * - | ``DOCUMENT_METRICS_RETURNED``
        | (mongodb.atlas.metrics.document.returned)
        | ``DOCUMENT_METRICS_INSERTED``
@@ -109,28 +95,6 @@
        processes for the server. These values are normalized with
        respect to the number of logical CPU cores.
 
-   * - | ``MAX_SYSTEM_NORMALIZED_CPU_USER`` 
-       | (mongodb.atlas.system.cpu.max.norm.user)
-       | ``MAX_SYSTEM_NORMALIZED_CPU_KERNEL``
-       | (mongodb.atlas.system.cpu.max.norm.kernel)
-       | ``MAX_SYSTEM_NORMALIZED_CPU_NICE``
-       | (mongodb.atlas.system.cpu.max.norm.nice)
-       | ``MAX_SYSTEM_NORMALIZED_CPU_IOWAIT``
-       | (mongodb.atlas.system.cpu.max.norm.iowait)
-       | ``MAX_SYSTEM_NORMALIZED_CPU_IRQ``
-       | (mongodb.atlas.system.cpu.max.norm.irq)
-       | ``MAX_SYSTEM_NORMALIZED_CPU_SOFTIRQ``
-       | (mongodb.atlas.system.cpu.max.norm.softirq)
-       | ``MAX_SYSTEM_NORMALIZED_CPU_GUEST``
-       | (mongodb.atlas.system.cpu.max.norm.guest)
-       | ``MAX_SYSTEM_NORMALIZED_CPU_STEAL``
-       | (mongodb.atlas.system.cpu.max.norm.steal)
-     - System
-     - Maximum values over the time period specified by the metric 
-       granularity for the percent of time utilized by logical CPUs 
-       across various processes for the server. These values are 
-       normalized with respect to the number of logical CPU cores.
-
    * - | ``PROCESS_NORMALIZED_CPU_USER`` 
        | (mongodb.atlas.system.cpu.mongoprocess.user)
        | ``PROCESS_NORMALIZED_CPU_KERNEL``
@@ -144,21 +108,6 @@
        processes specific to the MongoDB process in the server. These
        values are normalized with respect to the number of logical CPU
        cores.
-
-   * - | ``MAX_PROCESS_NORMALIZED_CPU_USER`` 
-       | (mongodb.atlas.system.cpu.mongoprocess.max.norm.user)
-       | ``MAX_PROCESS_NORMALIZED_CPU_KERNEL``
-       | (mongodb.atlas.system.cpu.mongoprocess.max.norm.kernel)
-       | ``MAX_PROCESS_NORMALIZED_CPU_CHILDREN_USER`` 
-       | (mongodb.atlas.system.cpu.mongoprocess.max.norm.childrenuser)
-       | ``MAX_PROCESS_NORMALIZED_CPU_CHILDREN_KERNEL``
-       | (mongodb.atlas.system.cpu.mongoprocess.max.norm.childrenkernel)
-     - Process
-     - Maximum values over the time period specified by the metric 
-       granularity for the percent of time utilized by logical CPUs 
-       across various processes specific to the MongoDB process in the 
-       server. These values are normalized with respect to the number 
-       of logical CPU cores.
 
    * - | ``MEMORY_RESIDENT``
        | (mongodb.atlas.mem.resident)
@@ -204,19 +153,6 @@
      - Measure free disk space and used disk space (in bytes) on the
        disk partition used by MongoDB.
 
-   * - | ``MAX_DISK_PARTITION_SPACE_FREE``
-       | (mongodb.atlas.system.disk.max.space.free)
-       | ``MAX_DISK_PARTITION_SPACE_USED`` 
-       | (mongodb.atlas.system.disk.max.space.used)
-       | ``MAX_DISK_PARTITION_SPACE_PERCENT_FREE`` 
-       | (mongodb.atlas.system.disk.max.space.percentfree)
-       | ``MAX_DISK_PARTITION_SPACE_PERCENT_USED`` 
-       | (mongodb.atlas.system.disk.max.space.percentused)
-     - Disk
-     - Maximum values over the time period specified by the metric 
-       granularity for free disk space and used disk 
-       space (in bytes) on the disk partition used by MongoDB.
-
    * - | ``DISK_PARTITION_IOPS_READ``
        | (mongodb.atlas.system.disk.iops.reads)
        | ``DISK_PARTITION_IOPS_WRITE`` 
@@ -226,17 +162,6 @@
      - Disk
      - Measure throughput of |iops| for the disk partition used by
        MongoDB.
-
-   * - | ``MAX_DISK_PARTITION_IOPS_READ``
-       | (mongodb.atlas.system.disk.max.iops.reads)
-       | ``MAX_DISK_PARTITION_IOPS_WRITE`` 
-       | (mongodb.atlas.system.disk.max.iops.writes)
-       | ``MAX_DISK_PARTITION_IOPS_TOTAL`` 
-       | (mongodb.atlas.system.disk.max.iops.total) 
-     - Disk
-     - Maximum values over the time period specified by the metric 
-       granularity for the throughput of |iops| for the 
-       disk partition used by MongoDB.
 
    * - | ``CACHE_BYTES_READ_INTO``
        | (mongodb.atlas.wiredtiger.cache.bytes_read_into_cache)
