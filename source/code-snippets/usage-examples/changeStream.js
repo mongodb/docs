@@ -5,15 +5,20 @@ const uri = "<connection string uri>";
 
 const client = new MongoClient(uri);
 
+const simulateAsyncPause = () =>
+  new Promise(resolve => {
+    setTimeout(() => resolve(), 1000);
+  });
+
 let changeStream;
 async function run() {
   try {
     await client.connect();
-    const database = client.db("sample_mflix");
-    const movies = database.collection("movies");
+    const database = client.db("insertDB");
+    const collection = database.collection("haikus");
 
-    // open a Change Stream on the "movies" collection
-    changeStream = movies.watch();
+    // open a Change Stream on the "haikus" collection
+    changeStream = collection.watch();
 
     // set up a listener when change events are emitted
     changeStream.on("change", next => {
@@ -21,21 +26,18 @@ async function run() {
       console.log("received a change to the collection: \t", next);
     });
 
-    // use a timeout to ensure the listener is registered before the insertOne
-    // operation is called.
-    await new Promise(resolve => {
-      setTimeout(async () => {
-        await movies.insertOne({
-          test: "sample movie document",
-        });
-        // wait to close `changeStream` after the listener receives the event
-        setTimeout(async () => {
-          resolve(
-            await changeStream.close(() => console.log("closed the change stream"))
-          );
-        }, 1000);
-      }, 1000);
+    await simulateAsyncPause();
+
+    await collection.insertOne({
+      title: "Record of a Shriveled Datum",
+      content: "No bytes, no problem. Just insert a document, in MongoDB",
     });
+
+    await simulateAsyncPause();
+
+    await changeStream.close();
+    
+    console.log("closed the change stream");
   } finally {
     await client.close();
   }
