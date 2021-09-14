@@ -17,7 +17,8 @@ from giza.config.helper import fetch_config, get_versions, get_manual_path
 conf = fetch_config(RuntimeStateConfig())
 sconf = conf.system.files.data.sphinx_local
 
-sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
+sys.path.append(os.path.join(conf.paths.projectroot,
+                             conf.paths.buildsystem, 'sphinxext'))
 
 
 # -- General configuration ----------------------------------------------------
@@ -33,7 +34,7 @@ extensions = [
     'fasthtml'
 ]
 
-locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
+locale_dirs = [os.path.join(conf.paths.projectroot, conf.paths.locale)]
 gettext_compact = False
 
 templates_path = ['.templates']
@@ -62,25 +63,26 @@ pygments_style = 'sphinx'
 
 extlinks = {
     'manual': ('https://docs.mongodb.com/manual%s', ''),
+    'drivers': ('https://docs.mongodb.com/drivers%s', ''),
 }
 
-## add `extlinks` for each published version.
+# add `extlinks` for each published version.
 for i in conf.git.branches.published:
-    extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
+    extlinks[i] = (''.join([conf.project.url, '/', i, '%s']), '')
 
 intersphinx_mapping = {}
 
 intersphinx_mapping = {}
 for i in conf.system.files.data.intersphinx:
-    intersphinx_mapping[i.name] = ( i.url, os.path.join(conf.paths.projectroot,
-                                                        conf.paths.output,
-                                                        i.path))
+    intersphinx_mapping[i.name] = (i.url, os.path.join(conf.paths.projectroot,
+                                                       conf.paths.output,
+                                                       i.path))
 
 languages = []
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = sconf.theme.name
-html_theme_path = [ os.path.join(conf.paths.buildsystem, 'themes') ]
+html_theme_path = [os.path.join(conf.paths.buildsystem, 'themes')]
 html_title = conf.project.title
 htmlhelp_basename = 'MongoDB'
 
