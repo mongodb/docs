@@ -10,7 +10,7 @@
     - Enter ``charts-jwt-tutorial``.
 
   * - Provider
-    - Select :guilabel:``Custom JSON Web Token``.
+    - Select :guilabel:`Custom JSON Web Token`.
 
   * - Signing Algorithm
     - Select :guilabel:`HS256`.

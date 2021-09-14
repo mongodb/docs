@@ -25,14 +25,26 @@
 
       - ``HS256``: enter the secret key used to sign the |jwt|.
 
-      - ``RS256``: enter the public key of the key pair used to sign 
-        the |jwt| The public key must be in `PEM format 
-        <https://tools.ietf.org/html/rfc7468#section-5>`__, as shown in
-        the following example:
+      - ``RS256``: Select either :guilabel:`JWK or JWKS URL` or
+        :guilabel:`PEM Public Key`.
+         
+        If you select :guilabel:`JWK or JWKS URL`, |charts-short|
+        retrieves the key from the `JWK <https://datatracker.ietf.org/doc/html/rfc7517>`__
+        or JWKS file at the specified URL. |charts-short|
+        then uses the key to validate the JSON web token. If there are
+        multiple keys in the file, |charts-short| tries each key until
+        it finds a match. Enter the URL that contains the JWK or JWKS file.
+         
+        If you choose :guilabel:`PEM Public Key`,
+        |charts-short| uses the specified public key to verify the JSON web
+        token. Enter the public key of the key pair used to sign the |jwt|. The
+        public key must be in `PEM format
+        <https://tools.ietf.org/html/rfc7468#section-5>`__, as shown in the
+        following example:
 
         .. code-block:: none
            :copyable: false
-
+             
             -----BEGIN CERTIFICATE-----
             MIIDfjCCAmagAwIBAgIBBzANBgkqhkiG9w0BAQUFADB0MRcwFQYDVQQDEw5LZXJu
             ZWwgVGVzdCBDQTEPMA0GA1UECxMGS2VybmVsMRAwDgYDVQQKEwdNb25nb0RCMRYw
