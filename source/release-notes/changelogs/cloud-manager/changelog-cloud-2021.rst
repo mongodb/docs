@@ -1,3 +1,15 @@
+.. _cloudmanager_20210915:
+
+15 September 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for time series collections in Data Explorer and Query 
+  Profiler including:
+
+  - Ability to create new time series collections and build secondary 
+    indexes from the UI. 
+  - Ability to visualize slow queries in times series collections.
+
 .. _cloudmanager_20210824:
 
 25 August 2021 Release
