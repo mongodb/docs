@@ -1,3 +1,17 @@
+.. _data-lake-v20210914:
+
+14 September 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Provides various stability and performance improvements.
+- Adds support for ``ap-south-1`` :ref:`region 
+  <atlas-data-lake-regions>`.
+- Outputs customer query logs into multiple lines.
+- Includes ``background`` field in :ref:`$queryHistory output 
+  <adl-query-history-stage-output>`.
+- Supports :ref:`wildcard databases and collections 
+  <generate-wildcard-collections>` for |service| data store.
+
 .. _data-lake-v20210824:
 
 25 August 2021 Release
