@@ -6,6 +6,10 @@
      - Default Storage
      - Default RAM
 
+   * - M0
+     - .5 GB
+     - Shared
+
    * - M2
      - 2 GB
      - Shared
