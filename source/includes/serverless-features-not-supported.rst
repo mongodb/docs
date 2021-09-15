@@ -23,7 +23,9 @@ Configurations
        {+Clusters+} currently support more AWS regions.
      - :icon:`check-square`
 
-   * - :doc:`Google Cloud </reference/google-gcp>` Regions
+   * - Expanded :doc:`Google Cloud </reference/google-gcp>` Regions
+       
+       {+Clusters+} currently support more GCP regions.
      - :icon:`check-square`
 
    * - :doc:`Microsoft Azure </reference/microsoft-azure>` Regions
