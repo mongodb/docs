@@ -9,11 +9,6 @@ upgrade path you must take to upgrade to Ops Manager 4.2 or later.
    - To protect your data, |onprem| refuses to start direct upgrades
      from versions 1.8.x and 2.0.x to version 3.4 or later.
 
-   - To upgrade :doc:`high availability environments </tutorial/configure-application-high-availability>`,
-     you must shut down every |onprem| application server before
-     starting any |onprem| application servers upgraded to the new
-     version.
-
 The following table lists upgrade paths for all versions:
 
 .. list-table::

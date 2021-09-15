@@ -1,9 +1,9 @@
 .. admonition:: Upgrade Mode for Highly Available |application|\s
    :class: note
 
-   If you have an |onprem| 4.2 installation with more than one |onprem|
+   If you have an |onprem| installation with more than one |onprem|
    host pointing to the same Application Database, you can upgrade
-   |onprem| to a newer 4.2 version without incurring monitoring
+   |onprem| to a newer version without incurring monitoring
    downtime. During this upgrade, |onprem| enters a state known as
    **Upgrade Mode**. The benefits of this mode are that throughout the
    upgrade process:
@@ -16,12 +16,14 @@
    Your |onprem| instance stays in **Upgrade Mode** until all |onprem|
    hosts have been upgraded and restarted.
 
-   **Upgrade Mode** works with |onprem| 4.2 and later only.
-
    You should not upgrade more than one |onprem| host at a time.
 
-   You need to stop all Backup Daemons before upgrading to later
-   versions of 4.2.x. To stop your Backup Daemons:
+   When upgrade mode is first detected, Backup Daemons will attempt to stop 
+   themselves. This process can fail if the Daemons are in the middle of 
+   a long backup job. In this case, you should re-attempt the upgrade process
+   by restarting your first |onprem| service. 
+   
+   To manually stop your Backup Daemons:
 
    .. tabs-platforms::
 
