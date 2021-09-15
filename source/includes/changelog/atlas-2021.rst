@@ -1,3 +1,33 @@
+.. _atlas_20210915:
+
+15 September 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports Osaka, Japan (ap-northeast-3) AWS region. 
+
+- Introduces serverless instances into additional GCP regions:
+  
+  - Iowa (CENTRAL_US)
+  - Belgium (WESTERN_EUROPE)
+
+- Introduces serverless instances into additional AWS regions:
+
+  - Oregon (US_WEST_2)
+  - Mumbai (AP_SOUTH_1)
+  - Sydney (AP_SOUTHEAST_2)
+
+- Adds 10 second granularity cluster metrics for all dedicated clusters 
+  in projects with at least one M40+ cluster.
+- Adds support for time series collections in Data Explorer and Query 
+  Profiler.
+- Introduces the ability to create new time series collections and 
+  build secondary indexes from the :abbr:`UI (User Interface)`.
+- Introduces the ability to visualizes slow queries in times series 
+  collections.
+- Adds support for cluster tier auto-scaling for low-CPU class clusters.
+- Enables cluster tier auto-scaling by default for all new |service| 
+  clusters created via the web interface.
+
 .. _atlas_20210824:
 
 25 August 2021 Release
