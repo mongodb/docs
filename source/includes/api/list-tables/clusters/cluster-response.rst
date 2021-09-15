@@ -370,7 +370,7 @@
    * - mongoDBVersion
      - string
      - Version of MongoDB the cluster runs, in
-       **<major version>.<minor version>** format.
+       **<major version>.<minor version>.<patch version>** format.
 
    * - mongoDBMajorVersion
      - string
@@ -379,6 +379,7 @@
        - 4.0
        - 4.2
        - 4.4
+       - 5.0
 
    * - mongoURI
      - string
@@ -766,3 +767,16 @@
        - **DELETING**
        - **DELETED**
        - **REPAIRING**
+
+   * - versionReleaseSystem
+     - string 
+     - Release cadence that |service| uses for this {+cluster+}.
+       |service| supports:
+
+       - **CONTINUOUS**: |service| automatically updates 
+         your {+cluster+} to the latest major and rapid MongoDB releases
+         as they become available.
+       - **LTS**: |service| automatically updates 
+         your {+cluster+} to subsequent patch releases of this MongoDB
+         version. |service| doesn't update your {+cluster+} to newer
+         rapid or major MongoDB releases as they become available.

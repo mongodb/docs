@@ -329,6 +329,7 @@
        - **4.0**
        - **4.2**
        - **4.4**
+       - **5.0**
 
        You must deploy MongoDB **4.4** if
        **"providerSettings.instanceSizeName" : "M2"** or **"M5"**.
@@ -346,6 +347,11 @@
           **providerBackupEnabled** to **true** as part of the API request.
           Continuous backups are no longer supported in MongoDB version **4.2**.
           Instead, use :doc:`/backup/cloud-backup/overview`. 
+
+       If **mongoDBMajorVersion** is set to **CONTINUOUS**, you must
+       omit the **mongoDBMajorVersion** field. You can't modify the
+       MongoDB version that you clusters run when you choose the
+       continuous release cadence.
 
    * - name
      - string
@@ -953,3 +959,29 @@
           `announcement <https://letsencrypt.org/2019/04/15/transitioning-to-isrg-root.html>`__
           of this transition.
 
+   * - versionReleaseSystem
+     - string 
+     - Conditional
+     - Release cadence that |service| uses for this {+cluster+}.
+       |service| accepts:
+
+       - **CONTINUOUS**: |service| automatically updates your 
+         {+cluster+} to the latest 
+         major and rapid MongoDB releases as they become available.
+       - **LTS**: |service| automatically updates 
+         your {+cluster+} to subsequent patch releases of this MongoDB
+         version. |service| doesn't update your {+cluster+} to newer
+         rapid or major MongoDB releases as they become available.
+
+       If you set this field to **CONTINUOUS**, you must omit the 
+       **mongoDBMajorVersion** field.
+
+       You can change from **LTS** to **CONTINUOUS** only if your
+       {+cluster+} runs the most recent MongoDB major release.
+
+       You can change from **CONTINUOUS** to **LTS** only if the most
+       recent MongoDB release is a major version. For example, if the
+       most recent MongoDB release is 5.0, you can switch from 
+       **CONTINUOUS** to **LTS**. If the most recent MongoDB release is
+       5.1, you must wait until MongoDB 6.0 is released to switch from
+       **CONTINUOUS** to **LTS**.

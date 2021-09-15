@@ -307,16 +307,22 @@
        - 4.0
        - 4.2
        - 4.4
+       - 5.0
 
-       If omitted, |service| deploys a cluster that runs MongoDB 4.4.
+       If omitted and you also set **versionReleaseSystem**
+       to **LTS** or you omit **versionReleaseSystem**, |service| 
+       deploys a cluster that runs MongoDB 4.4.
 
        You must deploy MongoDB **4.4** if
        **"providerSettings.instanceSizeName" : "M2"** or **"M5"**.
 
-       |service| always deploys the cluster with the latest stable
-       release of the specified version. You can upgrade to a newer
-       version of MongoDB when you
+       If you specify this field, |service| always deploys the cluster 
+       with the latest stable patch release of the specified version. 
+       You can upgrade to a newer version of MongoDB when you
        :doc:`modify a cluster </reference/api/clusters-modify-one>`.
+
+       You must omit mongoDBMajorVersion field if you set
+       **versionReleaseSystem** to **CONTINUOUS**.
 
    * - name
      - string
@@ -897,3 +903,25 @@
           root |certauth| in line with Let's Encrypt's `announcement 
           <https://letsencrypt.org/2019/04/15/transitioning-to-isrg-root.html>`__
           of this transition.
+
+   * - versionReleaseSystem
+     - string 
+     - Conditional
+     - Release cadence that |service| uses for this {+cluster+}.
+       |service| accepts:
+
+       - **CONTINUOUS**: |service| creates your {+cluster+} using the 
+         most recent MongoDB release. |service| automatically updates 
+         your {+cluster+} to the latest major and rapid MongoDB releases
+         as they become available.
+       - **LTS**: |service| creates your {+cluster+} using the latest
+         patch release of the MongoDB version that you specify in the 
+         **mongoDBMajorVersion** field. |service| automatically updates 
+         your {+cluster+} to subsequent patch releases of this MongoDB
+         version. |service| doesn't update your {+cluster+} to newer
+         rapid or major MongoDB releases as they become available.
+
+       If omitted, defaults to **LTS**.
+
+       If you set this field to **CONTINUOUS**, you must omit the 
+       **mongoDBMajorVersion** field.
