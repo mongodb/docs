@@ -18,19 +18,6 @@ Configurations
    * - Configuration
      - Coming Soon
 
-   * - Expanded :doc:`AWS </reference/amazon-aws>` Regions
-        
-       {+Clusters+} currently support more AWS regions.
-     - :icon:`check-square`
-
-   * - Expanded :doc:`Google Cloud </reference/google-gcp>` Regions
-       
-       {+Clusters+} currently support more GCP regions.
-     - :icon:`check-square`
-
-   * - :doc:`Microsoft Azure </reference/microsoft-azure>` Regions
-     - :icon:`check-square`
-
    * - Multi-Region Deployments
      - 
 
