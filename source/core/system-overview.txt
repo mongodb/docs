@@ -26,7 +26,7 @@ and, if you enabled backups, :term:`Snapshot Stores <snapshot store>`.
 -------------
 
 The |application| provides the user interface and the |http| services
-the MongoDB Agent uses to transmit data to and from |onprem|. These are
+the {+mdbagent+} uses to transmit data to and from |onprem|. These are
 all stateless and start automatically when the |application| starts.
 Multiple instances of the |application| can run if each instance uses
 the same configuration and the same application database. Users and
@@ -45,23 +45,52 @@ Backup Daemon Service
 ---------------------
 
 You can configure any |onprem| instance to run the :term:`Backup
-Daemon` service to back up MongoDB databases. The Backup Daemon service
-manages the local copies of the backed-up databases and snapshots for
-each database. The daemon does scheduled work based on data coming into
-the |onprem| from the MongoDB Agents. No client applications can talk
-directly to the daemon. Its state and job queues come from the
-:ref:`mms-application-database`.
+Daemon` service to back up MongoDB databases.
 
-The local backup copy of a deployment is called the
-:term:`head database`. The :term:`Backup Daemon` stores all its head
-databases in its :term:`head directory` path. To create each head
-database, the daemon's host acts as an "invisible" :term:`secondary`
-for each :term:`replica set` designated for backup.
+How the Backup Daemon performs depends upon the
+:manual:`MongoDB version compatibility</reference/command/setFeatureCompatibilityVersion>`
+of your database. This Feature Compatibility Version ranges from the
+current version to one version earlier. For example, with MongoDB 4.2,
+the FCV can be ``4.0`` or ``4.2``. Backup functionality changed with
+|fcv-link| ``4.2``.
 
-The daemon takes scheduled snapshots and stores these snapshots in a
-:term:`snapshot store`. The daemon retrieves data from the snapshot
-store when it receives a restore request. It then delivers the snapshot
-to the requested destination.
+.. tabs::
+
+   .. tab:: FCV of 4.0 or earlier
+      :tabid: fcv40
+
+      The Backup Daemon service manages the local copies of the
+      backed-up databases and snapshots for each database. The daemon
+      does scheduled work based on data coming into the |onprem| from
+      the {+mdbagent+}s. Client applications can't communicate with the
+      daemon. Its state and job queues come from the
+      :ref:`mms-application-database`.
+
+      The local backup copy of a deployment is called the :term:`head
+      database`. The :term:`Backup Daemon` stores all its head
+      databases in its :term:`head directory` path. To create each head
+      database, the daemon's host acts as an "invisible"
+      :term:`secondary` for each :term:`replica set` designated for
+      backup.
+
+      The daemon takes scheduled snapshots and stores these snapshots
+      in a :term:`snapshot store`. When the client requests a restore,
+      the daemon retrieves data from the snapshot store. It then
+      delivers the snapshot to the requested target.
+
+   .. tab:: FCV of 4.2 or later
+      :tabid: fcv42
+
+      The Backup Daemon service provides the following services for |fcv| 4.2 or later databases:
+
+      - Performs some state updates to the backup job
+      - Perform a queryable restore
+
+      The daemon does scheduled work based on data coming
+      into the |onprem| from the {+mdbagent+}s. Client applications
+      can't communicate with the daemon. Its state and job queues come
+      from the :ref:`mms-application-database`. |mms| creates snapshots
+      from the database being backed up.
 
 :ref:`Multiple Backup Daemons <multiple-backup-daemons>` can scale
 horizontally to increase your storage and can provide *manual*
@@ -88,7 +117,7 @@ replica set hosts *only* |onprem| data. Before installing |onprem|,
 you must :doc:`provision the application database </tutorial/prepare-backing-mongodb-instances>`.
 This database contains :ref:`application` metadata:
 
-- Monitoring data collected from the MongoDB Agents.
+- Monitoring data collected from the {+mdbagent+}s.
 
 - Metadata for |onprem| users, projects, hosts, monitoring data, and
   backup state.
