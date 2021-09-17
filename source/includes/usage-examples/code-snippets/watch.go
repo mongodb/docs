@@ -2,16 +2,22 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
 		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
@@ -39,11 +45,15 @@ func main() {
 	fmt.Println("Waiting For Change Events. Insert something in MongoDB!")
 
 	for cs.Next(context.TODO()) {
-		var event bson.D
+		var event bson.M
 		if err := cs.Decode(&event); err != nil {
 			panic(err)
 		}
-		fmt.Println(event[3].Value)
+		output, err := json.MarshalIndent(event["fullDocument"], "", "    ")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("%s\n", output)
 	}
 	if err := cs.Err(); err != nil {
 		panic(err)

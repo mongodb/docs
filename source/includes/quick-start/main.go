@@ -7,26 +7,29 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
-		log.Panic(`'uri' is empty. Ensure you set the 'MONGODB_URI'
-		environment variable, or set the value of 'uri' to your
-		Atlas connection string.`)
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
 	}
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
-			log.Panic(err)
+			panic(err)
 		}
 	}()
 
@@ -40,12 +43,12 @@ func main() {
 		return
 	}
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 
 	jsonData, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 	fmt.Printf("%s\n", jsonData)
 }

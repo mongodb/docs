@@ -2,16 +2,22 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
 		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
@@ -31,7 +37,7 @@ func main() {
 	db := client.Database("sample_restaurants")
 	command := bson.D{{"dbStats", 1}}
 
-	var result bson.D
+	var result bson.M
 	commandErr := db.RunCommand(context.TODO(), command).Decode(&result)
 	// end runCommand
 
@@ -39,7 +45,29 @@ func main() {
 		panic(commandErr)
 	}
 
-	// When you run this file, it should print:
-	// [{db sample_restaurants} {collections 2} {views 0} {objects 25554} {avgObjSize 548.4101901854896} {dataSize 14014074} {storageSize 8257536} {totalFreeStorageSize 0} {numExtents 0} {indexes 2} {indexSize 286720} {fileSize 0} {nsSizeMB 0} {ok 1}]
-	fmt.Println(result)
+	/* When you run this file, it should print something similar to the following:
+	   {
+	       "avgObjSize": 548.4101901854896,
+	       "collections": 2,
+	       "dataSize": 14014074,
+	       "db": "sample_restaurants",
+	       "fileSize": 0,
+	       "indexSize": 286720,
+	       "indexes": 2,
+	       "nsSizeMB": 0,
+	       "numExtents": 0,
+	       "objects": 25554,
+	       "ok": 1,
+	       "storageSize": 8257536,
+	       "totalFreeStorageSize": 0,
+	       "views": 0
+	   }
+	*/
+
+	output, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s\n", output)
+
 }

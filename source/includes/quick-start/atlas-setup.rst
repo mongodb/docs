@@ -11,10 +11,12 @@ After completing the steps in the Atlas guide, you should have a new MongoDB
 cluster deployed in Atlas, a new database user, and
 :atlas:`sample datasets loaded </sample-data/>` into your cluster.
 
+.. _connect-to-your-cluster:
+
 Connect to your Cluster
 -----------------------
 
-In this step, you will create and run an application that uses the Go
+In this step, you create and run an application that uses the Go
 driver to connect to your MongoDB cluster and run a query on the sample
 data.
 
@@ -32,9 +34,9 @@ want to connect to as shown below.
 .. figure:: /includes/figures/atlas_connection_select_cluster.png
    :alt: Atlas Connection GUI cluster selection screen
 
-Proceed to the **Connect Your Application** step and select the Go driver.
-Then, select the "Connection String Only" tab and click the **Copy**
-button to copy the *connection string* to your clipboard as shown below.
+Proceed to the **Connect Your Application** step and select the Go
+driver. Then, click the **Copy** button to copy the *connection string*
+to your clipboard as shown below.
 
 .. figure:: /includes/figures/atlas_connection_copy_string.png
    :alt: Atlas Connection GUI connection string screen

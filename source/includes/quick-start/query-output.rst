@@ -1,5 +1,5 @@
-When you run ``main.go``, it should output the details of the
-movie from the sample dataset which will look something like this:
+When you run ``main.go``, it should output the details of the movie from
+the sample dataset which looks something like the following:
 
 .. code-block:: json
 
@@ -10,6 +10,6 @@ movie from the sample dataset which will look something like this:
        ...
    }
 
-If you receive no output or an error, check whether you included the proper
-connection string in your ``main.go`` file, and whether you loaded the
-sample dataset in your MongoDB Atlas cluster
+If you receive no output or an error, check whether you properly set up
+your environment variable and whether you loaded the sample dataset in
+your MongoDB Atlas cluster.
