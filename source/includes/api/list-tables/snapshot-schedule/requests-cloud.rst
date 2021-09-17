@@ -63,12 +63,6 @@
 
           Setting ``monthlySnapshotRetentionMonths`` to ``0`` disables this rule.
 
-   * - ``pointInTimeWindowHours``
-     - number
-     - Optional
-     - Number of hours in the past for which a point-in-time snapshot
-       can be created. You cannot change this value for a snapshot.
-
    * - ``snapshotIntervalHours``
      - number
      - Optional
