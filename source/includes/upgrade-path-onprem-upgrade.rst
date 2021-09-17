@@ -1,5 +1,5 @@
 The version of your existing |onprem| installation determines the
-upgrade path you must take to upgrade to Ops Manager 4.2 or later.
+upgrade path you must take to upgrade to |onprem| 4.4 or later.
 
 .. important::
 
