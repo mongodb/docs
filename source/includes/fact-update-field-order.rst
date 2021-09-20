@@ -1,7 +1,7 @@
 .. order-of-document-fields
 
-MongoDB preserves the order of the document fields following write
-operations *except* for the following cases:
+For write operations, MongoDB preserves the order of the document fields
+*except* for the following cases:
 
 - The ``_id`` field is always the first field in the document.
 
