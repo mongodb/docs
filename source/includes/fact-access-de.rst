@@ -1,6 +1,6 @@
 To access the :guilabel:`Data Explorer`:
 
-1. Click :guilabel:`Database` in the top-left corner of |service|.
+1. Click :guilabel:`Databases` in the top-left corner of |service|.
 
 #. Click :guilabel:`Browse Collections` for your desired {+database-deployment+}.
 
