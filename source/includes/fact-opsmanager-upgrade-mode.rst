@@ -18,10 +18,12 @@
 
    You should not upgrade more than one |onprem| host at a time.
 
-   When |onprem| enteres  is first detected, Backup Daemons will attempt to stop 
-   themselves. This process can fail if the Daemons are in the middle of 
-   a long backup job. In this case, you can either wait for the Backup
-   Daemons or manually stop all Daemons before reattempting to upgrade. 
+   When |onprem| enters upgrade mode, the :term:`Backup Daemons <Backup Daemon>`
+   attempt to stop themselves. This process can fail if the Daemons are in the 
+   middle of a long backup job. In this case, do one of the following:
+
+   - Restart the first |onprem| instance once the Backup Daemons finish the job.
+   - Stop the Backup Daemons manually.
    
    To manually stop your Backup Daemons:
 
