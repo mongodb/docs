@@ -10,6 +10,8 @@
     indexes from the UI. 
   - Ability to visualize slow queries in times series collections.
 
+- Updates {+mdbagent+} to :ref:`11.5.0.7078-1 <11.5.0.7078-1>`.
+
 .. _cloudmanager_20210824:
 
 25 August 2021 Release
