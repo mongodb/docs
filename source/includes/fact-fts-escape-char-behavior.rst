@@ -14,6 +14,14 @@ double backslash before the character to be escaped.
    The first and last asterisks act as wildcards which match any
    characters, and the ``\\*`` matches a literal asterisk.
 
+   .. note:: 
+   
+      Use the following expression to escape a literal backslash:
+      
+      .. code-block:: none 
+
+         "*\\\*"
+
 When using the escape character with a :driver:`driver </>`, use a
 single backslash before the character to be escaped.
 
