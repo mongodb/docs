@@ -1,28 +1,13 @@
-* :doc:`Connection Guide </fundamentals/connection>`: connect to a MongoDB
-  instance or replica set
+Learn how to perform the following tasks using the Node.js driver in the
+Fundamentals section:
 
-* :doc:`Authentication </fundamentals/authentication>`: configure
-  authentication and log a user in
-
-* :doc:`CRUD Operations </fundamentals/crud>`: read and write data to MongoDB
-
-* :doc:`Promises and Callbacks </fundamentals/promises>`: access return
-  values using asynchronous Javascript
-
-* :doc:`Aggregation </fundamentals/aggregation>`: produce reduced and
-  summarized results in MongoDB
-
-* :doc:`Indexes </fundamentals/indexes>`: create and design indexes to make
-  your queries efficient
-
-* :doc:`Collations </fundamentals/collations>`: apply language-specific
-  sorting rules to your query results
-
-* :doc:`Logging </fundamentals/logging>`: configure the driver to log
-  MongoDB operations
-
-* :doc:`Monitoring </fundamentals/monitoring>`: configure the driver to
-  monitor MongoDB server events
-
-* :doc:`GridFS </fundamentals/gridfs>`: store and retrieve large files
-  in MongoDB
+- :doc:`Connect to MongoDB </fundamentals/connection>`
+- :doc:`Authenticate with MongoDB </fundamentals/authentication>`
+- :doc:`Read from and Write to MongoDB </fundamentals/crud>`
+- :doc:`Access Return Values </fundamentals/promises>`
+- :doc:`Transform your Data </fundamentals/aggregation>`
+- :doc:`Create Indexes to Speed Up Queries </fundamentals/indexes>`
+- :doc:`Sort Using Collations </fundamentals/collations>`
+- :doc:`Log Events in the Driver </fundamentals/logging>`
+- :doc:`Monitor Driver Events </fundamentals/monitoring>`
+- :doc:`Store and Retrieve Large Files in MongoDB </fundamentals/gridfs>`
