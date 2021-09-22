@@ -2,9 +2,218 @@
 Data Formats
 ============
 
-.. toctree::
-    :titlesonly:
-    :maxdepth: 1
+.. default-domain:: mongodb
 
-    Converters </introduction/data-formats/converters> 
-    Avro Schema </introduction/data-formats/avro-schema>
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about the data formats you use when working with the
+{+mkc+} and your pipeline.
+
+.. _kafka-df-sample-doc:
+
+This guide uses the following sample document to show the behavior of the
+different formats:
+
+.. code-block:: json
+   :copyable: false
+
+   {company:"MongoDB"}
+
+JSON
+----
+
+JSON is a data-interchange format based on JavaScript object notation. You
+represent the :ref:`sample document <kafka-df-sample-doc>` in JSON like this:
+
+.. code-block:: json
+   :copyable: false
+
+   {"company":"MongoDB"}
+
+You may encounter the following data formats related to JSON when working with the {+mkc+}:
+
+- :ref:`Raw JSON <kafka-df-raw-json>`
+- :ref:`BSON <kafka-df-bson>`
+- :ref:`JSON Schema <kafka-df-json-schema>`
+
+For more information on JSON, 
+see the `official JSON website <https://www.json.org/json-en.html>`__.
+
+.. _kafka-df-raw-json:
+
+Raw JSON
+~~~~~~~~
+
+Raw JSON is a data format that consists of JSON objects written as strings. You represent the 
+:ref:`sample document <kafka-df-sample-doc>` in Raw JSON like this:
+
+.. code-block:: text
+   :copyable: false
+
+   "{\"company\":\"MongoDB\"}"
+
+You use Raw JSON when you specify a String Converter on a
+source or sink connector. <TODO: Link to Converters page when it is ready>
+
+.. _kafka-df-bson:
+
+BSON
+~~~~
+
+BSON is a binary serialization encoding for JSON-like objects. BSON encodes
+the :ref:`sample document <kafka-df-sample-doc>` like this:
+
+.. code-block:: text
+   :copyable: false
+
+   \x1a\x00\x00\x00\x02company\x00\x08\x00\x00\x00MongoDB\x00\x00
+
+Your connectors use the BSON format to send and receive documents from your
+MongoDB deployment.
+
+For more information on BSON, see `the BSON specification <https://bsonspec.org/>`__.
+
+.. _kafka-df-json-schema:
+
+JSON Schema
+~~~~~~~~~~~
+
+JSON Schema is a syntax for specifying **schemas** for JSON objects. A schema is
+a definition attached to an {+ak+} Topic that defines valid values for that topic. 
+
+You can specify a schema for the :ref:`sample document <kafka-df-sample-doc>`
+with JSON Schema like this:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "$schema":"http://json-schema.org/draft-07/schema",
+      "$id":"unique id",
+      "type":"object",
+      "title":"Example Schema",
+      "description":"JSON Schema for the sample document.",
+      "required":[
+         "company"
+      ],
+      "properties":{
+         "company":{
+            "$id":"another unique id",
+            "type":"string",
+            "title":"Company",
+            "description":"A field to hold the name of a company"
+         }
+      },
+      "additionalProperties":false
+   }
+
+You use JSON Schema when you apply JSON Schema converters to your connectors.
+<TODO: Link to this section of converters page>  
+
+For more information, see the official 
+`JSON Schema website <https://json-schema.org/>`__.
+
+Avro
+----
+
+Apache Avro is an open-source framework for serializing and transporting
+data described by schemas. Avro defines two data formats relevant to the {+mkc+}:
+
+- :ref:`Avro schema <kafka-df-avro-schema>`
+- :ref:`Avro binary encoding <kafka-df-avro-encoding>`
+
+For more information on Apache Avro, see the 
+`Apache Avro Documentation <https://avro.apache.org/docs/current/index.html>`__.
+
+.. _kafka-df-avro-schema:
+
+Avro Schema
+~~~~~~~~~~~
+
+Avro schema is a JSON-based schema definition syntax. Avro schema supports the
+specification of the following groups of data types:
+
+- `Primitive Types <https://avro.apache.org/docs/current/spec.html#schema_primitive>`__
+- `Complex Types <https://avro.apache.org/docs/current/spec.html#schema_complex>`__
+- `Logical Types <https://avro.apache.org/docs/current/spec.html#Logical+Types>`__
+
+.. important:: Sink Connectors and Logical Types
+
+   {+mkc+} sink connectors support all Avro schema primitive and complex types,
+   however {+mkc+} sink connectors support only the following logical types:   
+
+   - ``decimal``
+   - ``date``
+   - ``time-millis``
+   - ``time-micros``
+   - ``timestamp-millis``
+   - ``timestamp-micros``
+
+You can construct an Avro schema for the :ref:`sample document <kafka-df-sample-doc>`
+like this:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "type": "record",
+     "name": "example",
+     "doc": "example documents have a company field",
+     "fields": [
+       {
+         "name": "company",
+         "type": "string"
+       }
+     ]
+   }
+
+You use Avro schema when you 
+:ref:`define a schema for a {+mkc+} source connector <source-specify-avro-schema>`.
+
+For a list of all Avro schema types, see the
+`Apache Avro specification <https://avro.apache.org/docs/current/spec.html>`__.
+
+.. _kafka-df-avro-encoding:
+
+Avro Binary Encoding
+~~~~~~~~~~~~~~~~~~~~
+
+Avro specifies a binary serialization encoding for JSON objects defined by an
+Avro schema.
+
+If you use the
+:ref:`preceding Avro schema <kafka-df-avro-schema>`, you can represent the
+:ref:`sample document <kafka-df-sample-doc>` with Avro binary encoding
+like this:
+
+.. code-block:: text
+   :copyable: false
+
+   \x0eMongoDB
+
+You use Avro binary encoding when you specify an Avro Converter on a
+source or sink connector. <TODO: Link to Converters page when its ready>. 
+
+To learn more about Avro binary encoding, see
+`this section of the Avro specification <https://avro.apache.org/docs/current/spec.html#Data+Serialization+and+Deserialization>`__. 
+
+.. _kafka-db-byte-arrays:
+
+Byte Arrays
+-----------
+
+A byte array is a consecutive sequence of unstructured bytes.
+
+You can represent the sample document as a byte array using any of the encodings
+mentioned above.
+
+You use byte arrays when your converters send data to or receive data
+from {+ak+}. For more information on converters, see our guide on converters.
+<TODO: link to converters page>
