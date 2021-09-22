@@ -1,5 +1,124 @@
+.. _kafka-configure-ssl:
+
 ==============================
 SSL/TLS and X.509 Certificates
 ==============================
 
-TODO:
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to secure communications between your
+{+mkc+} worker and your MongoDB cluster. 
+
+To secure your connection, you must perform the following tasks:
+
+- :ref:`Create the certificates <prerequisites-mkc>`
+- :ref:`Store the certificates on the worker host machine <key-store-trust-store-setup-mkc>`
+- :ref:`Supply the certificates' credentials to the connector <supply-credentials-to-mkc>`
+
+.. note::
+
+   If you host your MongoDB cluster on :atlas:`MongoDB Atlas </>` or
+   your cluster does not explicitly require certificates, you can
+   already communicate securely and do not need to follow the steps in
+   this guide.
+
+.. _prerequisites-mkc:
+
+Prerequisites
+-------------
+
+This guide requires prior knowledge of the following concepts:
+
+- :wikipedia:`Transport Layer Security <Transport_Layer_Security>`
+- :wikipedia:`X.509 <x.509>`
+- :wikipedia:`Certificate Authorities (CA) <Certificate_authority>`
+- :wikipedia:`PKCS 12 <PKCS_12>`
+- `OpenSSL <https://www.openssl.org/>`__
+- `keytool <https://docs.oracle.com/en/java/javase/12/tools/keytool.html>`__
+
+.. _key-store-trust-store-setup-mkc:
+
+Store Certificates on the Worker
+--------------------------------
+
+Store your certificates in a **keystore** and **truststore** to secure
+your certificate credentials for each server you run your {+mkc+} worker
+instance on.
+
+Keystore
+~~~~~~~~
+
+You can use a keystore to store private keys and identity certificates.
+The keystore uses the key and certificate to verify the client's
+identity to external hosts.
+
+If your SSL/TLS configuration requires a client certificate to connect
+to your worker instance, generate a secure private key and include the
+client certificate bundled with the intermediate CA. Then, store this
+information in your keystore by using the following ``openssl`` command
+to generate a PKCS 12 file:
+
+.. code-block:: bash
+
+   openssl pkcs12 -export -inkey <your private key> \
+                  -in <your bundled certificate> \
+                  -out <your output pkcs12 file>
+
+Truststore
+~~~~~~~~~~
+
+You can use a truststore to store certificates from a CA. The truststore
+uses the certificates to identify parties the client trusts. Some
+examples of these certificates are a root CA, intermediate CA and your
+MongoDB cluster's end entity certificate.
+
+Import the certificates of parties that you trust into your truststore
+by using the following ``keytool`` command:
+
+.. code-block:: bash
+
+   keytool -import -trustcacerts -import -file <your root or intermediate CA>
+
+If your SSL/TLS configuration requires the end entity certificate for your
+MongoDB cluster, import it into your truststore with the following
+command:
+
+.. code-block:: bash
+
+   keytool -import -file <your server bundled certificate> -keystore <your keystore name>
+
+For more information on how to set up a client keystore and truststore for
+testing purposes, see 
+:manual:`OpenSSL Client Certificates for Testing </appendix/security/appendixC-openssl-client/#appendix-c-openssl-client-certificates-for-testing>`.
+
+.. _supply-credentials-to-mkc:
+
+Add Credentials to the Connector
+--------------------------------
+
+The {+mkc+} worker processes JVM options from your ``KAFKA_OPTS``
+environment variable. The environment variable contains the path and
+password to your keystore and truststore.
+
+Export the following JVM options in your ``KAFKA_OPTS`` variable: 
+
+.. code-block:: bash
+
+   export KAFKA_OPTS="\
+   -Djavax.net.ssl.trustStore=<your path to truststore> \
+   -Djavax.net.ssl.trustStorePassword=<your truststore password> \
+   -Djavax.net.ssl.keyStore=<your path to keystore> \
+   -Djavax.net.ssl.keyStorePassword=<your keystore password>"
+
+When the worker processes the JVM options, the connector attempts to
+connect by using the SSL/TLS protocol and certificates in your keystore
+and truststore.
