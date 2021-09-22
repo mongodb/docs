@@ -22,11 +22,8 @@
   Profiler.
 - Introduces the ability to create new time series collections and 
   build secondary indexes from the :abbr:`UI (User Interface)`.
-- Introduces the ability to visualizes slow queries in times series 
+- Introduces the ability to visualize slow queries in times series 
   collections.
-- Adds support for cluster tier auto-scaling for low-CPU class clusters.
-- Enables cluster tier auto-scaling by default for all new |service| 
-  clusters created via the web interface.
 
 .. _atlas_20210824:
 
