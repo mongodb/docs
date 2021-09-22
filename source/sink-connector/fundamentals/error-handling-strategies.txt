@@ -1,0 +1,201 @@
+=========================
+Error Handling Strategies
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to handle errors in your sink connector.
+The following list shows some common scenarios that cause your sink
+connector to experience an error:
+
+- You write to a topic using Avro serialization and try to decode your messages from
+  that topic using Protobuf deserialization
+- You use a change data capture handler on a message that does not contain change
+  event documents
+- You apply an invalid single message transform to incoming documents
+
+When your sink connector encounters an error it does two actions:
+
+- :ref:`Handles the Error <kafka-sink-handle-errors>`
+- :ref:`Logs the Error <kafka-sink-log-errors>`
+
+For a tutorial on error handling in the {+mkc+}, see our
+tutorials section <TODO: link to configure errors tutorials>
+
+.. _kafka-sink-handle-errors:
+
+Handle Errors
+-------------
+
+When your connector encounters an error, it needs to handle it in some way.
+Your sink connector can do the following in response to an error:
+
+- :ref:`Stop <kafka-sink-errors-stop>` *default*
+- :ref:`Tolerate Errors <kafka-sink-tolerate-errors>`
+- :ref:`Write Errant Messages to a Topic (Dead Letter Queue) <kafka-sink-errors-dlq>`
+
+.. _kafka-sink-errors-stop:
+
+Stop
+~~~~
+
+By default, your sink connector terminates and stops processing messages
+when it encounters an error. This is a good option for you if any error in
+your sink connector indicates a serious problem.
+
+When your sink connector crashes, you must do one of the
+following actions and then restart your connector to resume processing messages: 
+
+- Allow your sink connector to temporarily :ref:`tolerate errors <kafka-sink-tolerate-errors>`
+- Update your sink connector's configuration to allow it to process the message
+- Remove the errant message from your topic
+
+You can have your sink connector stop when it encounters an error by either not
+specifying any value for the ``errors.tolerance`` option, or by
+adding the following to your connector configuration:
+
+.. code-block:: properties
+
+   errors.tolerance=none
+
+.. _kafka-sink-tolerate-errors:
+
+Tolerate Errors
+~~~~~~~~~~~~~~~
+
+You can configure your sink connector to tolerate all errors and never stop
+processing messages. This is a good option for getting your sink connector up and
+running quickly, but you run the risk of missing problems in your connector 
+as you do not receive any feedback if something goes wrong.
+
+You can have your sink connector tolerate all errors by specifying the following
+option:
+
+.. code-block:: properties
+
+   errors.tolerance=all
+
+.. _kafka-sink-errors-dlq:
+
+Dead Letter Queue
+~~~~~~~~~~~~~~~~~
+
+You can configure your sink connector to write errant messages to a 
+topic, called a **dead letter queue**, for you to inspect or process further.
+A dead letter queue is a location in message queueing
+systems such as {+ak+} where the system routes errant messages instead of
+crashing or ignoring the error. Dead letter queues combine the feedback of
+stopping the program with the durability of tolerating all errors, and are a
+good error handling starting point for most deployments.
+
+You can have your sink connector route all errant messages to a dead
+letter queue by specifying the following options:
+
+.. code-block:: properties
+
+   errors.tolerance=all
+   errors.deadletterqueue.topic.name=<name of topic to use as dead letter queue>
+
+If you want to include the specific reason for the error as well as the
+errant message, use the following option:
+
+.. code-block:: properties
+
+   errors.deadletterqueue.context.headers.enable=true
+
+.. important:: Bulk Write Errors 
+
+   If an error occurs while performing a bulk write to MongoDB, you must specify
+   the following to log any information about the error to a dead letter queue:
+
+   .. code-block:: properties
+
+      errors.tolerance=all
+      mongo.errors.tolerance=none
+      errors.deadletterqueue.topic.name=<name of topic to use as dead letter queue>
+
+   We will fix this special case soon. To track the status of this issue, 
+   see :issue:`this JIRA ticket <KAFKA-223>`.
+
+   For more information on the ``mongo.errors.tolerance`` option, see our
+   section on :ref:`connector level options <kakfa-sink-connector-level>`.
+
+For more information, see Confluent's guide on 
+`Dead Letter Queues <https://docs.confluent.io/cloud/current/connectors/dead-letter-queue.html#dead-letter-queue>`__.
+
+.. _kafka-sink-log-errors:
+
+Log Errors
+----------
+
+You can record tolerated and untolerated errors to a log file. Click on the tabs
+to see how to log errors:
+
+.. tabs::
+
+   .. tab:: Untolerated Errors
+      :tabid: untolerated-errors
+
+      The following default option makes {+kc+} write only untolerated errors to its application log:
+
+      .. code-block:: properties
+
+         errors.log.enable=false
+
+   .. tab:: Tolerated and Untolerated Errors
+      :tabid: tolerated-errors
+
+      The following option makes {+kc+} write both tolerated and untolerated errors to its
+      application log:
+
+      .. code-block:: properties
+
+         errors.log.enable=true
+
+If you would like to log metadata about your message, such as your message's
+topic and offset, use the following option:
+
+.. code-block:: properties
+
+   errors.log.include.messages=true
+
+For more information, see Confluent's guide on 
+`logging with Kafka Connect <https://docs.confluent.io/platform/current/connect/logging.html>`__.
+
+.. _kakfa-sink-connector-level:
+
+Connector Level Options
+-----------------------
+
+The {+mkc+} provides options that allow you to configure error
+handling at the connector level. The options are as follows:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Kafka Connect Option
+     - {+mkc+} Option
+
+   * - ``errors.tolerance`` 
+     - ``mongo.errors.tolerance``
+
+   * - ``errors.log.enable``
+     - ``mongo.errors.log.enable``
+
+You want to use these options if you want your connector to respond differently
+to errors related to MongoDB than to errors related to the {+kc+} framework. 
+
+For more information, see the following resources:  
+
+- Guide on Sink Connector Configuration Properties <TODO: link to correct location of guide>
+- :issue:`New Names for Error Tolerance Options JIRA Ticket <KAFKA-215>`
