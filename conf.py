@@ -215,6 +215,7 @@ html_theme_options = {
     'translations': languages,
     'upcoming': '',
     'version': version,
+    'automation_eol': True,
 }
 
 onprem_latex_documents = []
