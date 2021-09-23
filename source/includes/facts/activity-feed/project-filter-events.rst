@@ -23,8 +23,7 @@ Filter by event
         - Events related to alert configuration and monitoring.
 
       * - Atlas
-        - Events related to :ref:`Online Archive
-          <manage-online-archive>`.
+        - Events related to |service|.
 
       * - Atlas Network and Security
         - Events related to authentication and MongoDB users.
@@ -44,8 +43,9 @@ Filter by event
         - Events related to :charts:`MongoDB Charts </>` tenants.
 
       * - Clusters
-        - Events related to sharded clusters, such as
-          :binary:`~bin.mongos` events and shard management.
+        - Events related to clusters and shard management, such as
+          :binary:`~bin.mongos` events. This includes events for both replica sets
+          and sharded clusters.
 
       * - Data Lake
         - Events related to `Atlas Datalake <https://docs.mongodb.com/datalake/>`__.
@@ -53,6 +53,9 @@ Filter by event
       * - Maintenance
         - Events related to maintenance windows and
           maintenance requests.
+
+      * - Organization
+        - Events related to |service| organizations.
 
       * - Others
         - Miscellaneous events, including log retrieval and
