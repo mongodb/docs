@@ -17,13 +17,16 @@
   - Sydney (AP_SOUTHEAST_2)
 
 - Adds 10 second granularity cluster metrics for all dedicated clusters 
-  in projects with at least one M40+ cluster.
+  in projects with at least one ``M40+`` cluster.
 - Adds support for time series collections in Data Explorer and Query 
   Profiler.
 - Introduces the ability to create new time series collections and 
   build secondary indexes from the :abbr:`UI (User Interface)`.
 - Introduces the ability to visualize slow queries in times series 
   collections.
+- Introduces the ability to deploy ``M0`` {+free-clusters+} using the
+  :ref:`create-one-cluster-ref`  and :ref:`create-one-advanced-cluster-ref`
+  endpoints.
 
 .. _atlas_20210824:
 
