@@ -21,3 +21,5 @@
      - 4.2 and later
    * - 4.4
      - 4.4 and later
+   * - 5.0
+     - 5.0 and later
