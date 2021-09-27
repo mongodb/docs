@@ -59,7 +59,7 @@
          Metric occurred outside of the metric threshold.
          See :ref:`monitor-cluster-metrics`.
 
-       ``MONGOT_CRASHING_OOM``
+       ``HOST_MONGOT_CRASHING_OOM``
          Search process (``mongot``) ran out of memory.
          To learn more and troubleshoot the issue that triggered this 
          alert, see :ref:`Atlas Search alerts <atlas-search-alerts>`.
