@@ -1,3 +1,21 @@
+.. important::
+
+   Rolling index builds succeed only when they meet certain conditions. 
+   To ensure your index build succeeds, avoid the following design 
+   patterns that commonly trigger a restart loop:
+
+   - Index key exceeds the :manual:`index key limit 
+     </reference/limits/#mongodb-limit-Index-Key-Limit>`
+   - :manual:`Index name </indexes/#index-names>` already exists
+   - Index on :manual:`more than one array field 
+     </core/index-multikey/#compound-multikey-indexes>`
+   - Index on collection that has the 
+     :manual:`maximum number of text indexes 
+     </reference/limits/#mongodb-limit-Number-of-Indexes-per-Collection>`
+   - Text index on collection that has the
+     :manual:`maximum number of text indexes 
+     </core/index-text/#one-text-index-per-collection>`
+
 .. note::
 
    Data Explorer does not support building indexes in a rolling fashion
