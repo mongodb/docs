@@ -268,6 +268,25 @@ The ``autocomplete`` type takes the following options:
      - The type of field. Value must be ``autocomplete``.
      - 
 
+   * - ``analyzer``
+     - string
+     - optional
+     - Name of the :ref:`analyzer <analyzers-ref>` to use with this 
+       autocomplete mapping. You can use any |fts| analyzer except the 
+       ``lucene.kuromoji`` :ref:`language analyzer 
+       <ref-language-analyzers>` and the following :ref:`custom 
+       analyzer <custom-analyzers>` tokenizers and token filters: 
+
+       - :ref:`nGram <ngram-tokenizer-ref>` Tokenizer
+       - :ref:`edgeGram <edgegram-tokenizer-ref>` Tokenizer
+       - :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>` 
+         Token Filter
+       - :ref:`nGram <ngram-tf-ref>` Token Filter 
+       - :ref:`edgeGram <edgegram-tf-ref>` Token Filter 
+       - :ref:`shingle <shingle-tf-ref>` Token Filter
+
+     - ``lucene.standard``
+      
    * - ``maxGrams``
      - int
      - optional
@@ -295,15 +314,23 @@ The ``autocomplete`` type takes the following options:
 
        - ``edgeGram`` - to create indexable tokens, referred to as 
          ``grams``, from variable-length character sequences starting 
-         at the beginning of the words and delimited by whitespace. 
+         at the left side of the words as delimited by the analyzer 
+         used with this autocomplete mapping.
+
+       - ``rightEdgeGram`` -  to create indexable tokens, referred to 
+         as ``grams``, from variable-length character sequences 
+         starting at the right side of the words as delimited by the 
+         analyzer used with this autocomplete mapping.
+
+         .. include:: /includes/fact-rightEdgeGram-json-only.rst
 
        - ``nGram`` - to create indexable tokens, referred to as 
          ``grams``, by sliding a variable-length character window over 
          a word. |fts| creates more tokens for ``nGram`` than 
-         ``edgeGram``. Therefore, ``nGram`` takes more space and time 
-         to index the field. ``nGram`` is better suited for querying 
-         languages with long, compound words or languages that don't 
-         use spaces.
+         ``edgeGram`` or ``rightEdgeGram``. Therefore, ``nGram`` takes 
+         more space and time to index the field. ``nGram`` is better 
+         suited for querying languages with long, compound words or 
+         languages that don't use spaces.
 
        For example, consider the following sentence: 
          
@@ -329,6 +356,29 @@ The ``autocomplete`` type takes the following options:
           qui
           quic
           quick
+          ...
+
+       **rightEdgeGram**
+
+       .. code-block:: none
+          :copyable: false 
+
+          og
+          dog
+          {SPACE}dog
+          y dog
+          zy
+          azy
+          lazy
+          {SPACE}lazy
+          he
+          the
+          {SPACE}the
+          r the
+          er
+          ver
+          over
+          {SPACE}over
           ...
 
        **nGram**
@@ -360,10 +410,11 @@ The ``autocomplete`` type takes the following options:
 
        .. note:: 
 
-          Indexing a field for autocomplete with ``edgeGram`` or 
-          ``nGram`` tokenization strategy is more computationally  
-          expensive than indexing a string field. The index takes more 
-          space than an index with regular string fields.
+          Indexing a field for autocomplete with an ``edgeGram``, 
+          ``rightEdgeGram``, or ``nGram`` tokenization strategy is more 
+          computationally expensive than indexing a string field. The 
+          index takes more space than an index with regular string 
+          fields.
 
      - ``edgeGram``
 
@@ -390,7 +441,7 @@ The ``autocomplete`` type takes the following options:
 .. example::
 
    .. code-block:: json 
-      :emphasize-lines: 7-11
+      :emphasize-lines: 7-12
 
       {
         "mappings": {
@@ -399,7 +450,8 @@ The ``autocomplete`` type takes the following options:
             "<field-name>": [
               {
                 "type": "autocomplete",
-                "tokenization": "edgeGram|nGram",
+                "analyzer": "lucene.standard",
+                "tokenization": "edgeGram|rightEdgeGram|nGram",
                 "minGrams": <2>,
                 "maxGrams": <15>,
                 "foldDiacritics": true|false

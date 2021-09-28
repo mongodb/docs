@@ -175,8 +175,9 @@ the example queries on your cluster.
 
 .. include:: /includes/admonitions/get-started-atlas-search.rst
 
-The following tabs contain sample index definitions for the ``edgeGram`` 
-and ``nGram`` :ref:`tokenization strategies <bson-data-types-autocomplete>`.
+The following tabs contain sample index definitions for the 
+``edgeGram``, ``rightEdgeGram``, and ``nGram`` 
+:ref:`tokenization strategies <bson-data-types-autocomplete>`.
 
 .. tabs::
 
@@ -194,6 +195,29 @@ and ``nGram`` :ref:`tokenization strategies <bson-data-types-autocomplete>`.
                  {
                    "type": "autocomplete",
                    "tokenization": "edgeGram",
+                   "minGrams": 3,
+                   "maxGrams": 7,
+                   "foldDiacritics": false
+                 }
+               ]
+             }
+           }
+         }
+
+   .. tab:: rightEdgeGram Index Definition
+      :tabid: rightEdgeGram
+
+      .. code-block:: json
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": false,
+             "fields": {
+               "title": [
+                 {
+                   "type": "autocomplete",
+                   "tokenization": "rightEdgeGram",
                    "minGrams": 3,
                    "maxGrams": 7,
                    "foldDiacritics": false
@@ -273,19 +297,40 @@ on the tokenization strategy configured in the
          :copyable: false
          :linenos:
 
-         { "title" : "Off the Map" }
-         { "title" : "Off and Running" }
-         { "title" : "Benji: Off the Leash!" }
-         { "title" : "An Officer and a Gentleman" }
-         { "title" : "A Spell to Ward Off the Darkness" }
-         { "title" : "Office Romance" }
-         { "title" : "Office Killer" }
-         { "title" : "Office Space" }
-         { "title" : "Off Beat" }
+         { "title" : "Off the Map" },
+         { "title" : "Off and Running" },
+         { "title" : "Benji: Off the Leash!" },
+         { "title" : "An Officer and a Gentleman" },
+         { "title" : "A Spell to Ward Off the Darkness" },
+         { "title" : "Office Romance" },
+         { "title" : "Office Killer" },
+         { "title" : "Office Space" },
+         { "title" : "Off Beat" },
          { "title" : "Official Rejection" }
 
-      In the above results, the characters ``off`` appears at the
-      beginning of a word in all the titles.
+      In the above results, the characters ``off`` appear at the
+      left side of a word in all the titles.
+
+   .. tab:: rightEdgeGram
+      :tabid: rightEdgeGram
+
+      .. code-block:: json
+         :copyable: false
+         :linenos:
+
+         { "title": "Ole dole doff" },
+         { "title": "Set It Off" },
+         { "title": "Ferris Bueller's Day Off" },
+         { "title": "A Spell to Ward Off the Darkness" },
+         { "title": "Taking Off" },
+         { "title": "Noises Off..." },
+         { "title": "Brassed Off" },
+         { "title": "Face/Off" },
+         { "title": "Martin & Orloff" },
+         { "title": "Meek's Cutoff" }
+
+      In the above results, the characters ``off`` appear at the
+      right side of a word in all the titles.
 
    .. tab:: nGram
       :tabid: nGram
@@ -294,18 +339,18 @@ on the tokenization strategy configured in the
          :copyable: false
          :linenos:
 
-         { "title" : "Come Have Coffee with Us" }
-         { "title" : "A Spell to Ward Off the Darkness" }
-         { "title" : "Remake, Remix, Rip-Off: About Copy Culture & Turkish Pop Cinema" }
-         { "title" : "Benji: Off the Leash!" }
-         { "title" : "A Coffee in Berlin" }
-         { "title" : "An Officer and a Gentleman" }
-         { "title" : "The Official Story" }
-         { "title" : "The Officer's Ward" }
-         { "title" : "Hands off Mississippi" }
+         { "title" : "Come Have Coffee with Us" },
+         { "title" : "A Spell to Ward Off the Darkness" },
+         { "title" : "Remake, Remix, Rip-Off: About Copy Culture & Turkish Pop Cinema" },
+         { "title" : "Benji: Off the Leash!" },
+         { "title" : "A Coffee in Berlin" },
+         { "title" : "An Officer and a Gentleman" },
+         { "title" : "The Official Story" },
+         { "title" : "The Officer's Ward" },
+         { "title" : "Hands off Mississippi" },
          { "title" : "Romanoff and Juliet" }
 
-      In the above results, the characters ``off`` is present at
+      In the above results, the characters ``off`` appear at
       different positions in the titles.
 
 .. _autocomplete-ref-egs-fuzzy:
@@ -360,6 +405,9 @@ The query also includes a:
        }
      },
      {
+       $limit: 10
+     },
+     {
        $project: {
          "_id": 0,
          "title": 1
@@ -380,20 +428,43 @@ on the tokenization strategy configured in the
          :copyable: false
          :linenos:
 
-         { "title" : "Prelude to War" }
-         { "title" : "Sitting Pretty" }
-         { "title" : "Gentlemen Prefer Blondes" }
-         { "title" : "The Parent Trap" }
-         { "title" : "Premature Burial" }
-         { "title" : "The President's Analyst" }
-         { "title" : "Pretty Poison" }
-         { "title" : "El castillo de la pureza" }
-         { "title" : "Premiya" }
+         { "title" : "Prelude to War" },
+         { "title" : "Sitting Pretty" },
+         { "title" : "Gentlemen Prefer Blondes" },
+         { "title" : "The Parent Trap" },
+         { "title" : "Premature Burial" },
+         { "title" : "The President's Analyst" },
+         { "title" : "Pretty Poison" },
+         { "title" : "El castillo de la pureza" },
+         { "title" : "Premiya" },
          { "title" : "All the President's Men" }
 
       These results show the words that are predicted for the query
       string with one character modification and with the first
-      character constant at the beginning of the word in all the
+      character constant at the left side of the word in all the
+      titles.
+
+   .. tab:: rightEdgeGram
+      :tabid: rightEdgeGram
+
+      .. code-block:: json
+         :copyable: false
+         :linenos:
+
+         { "title": "Where Are My Children?" },
+         { "title": "The Four Horsemen of the Apocalypse" },
+         { "title": "The Hunchback of Notre Dame" },
+         { "title": "Show People" },
+         { "title": "Berkeley Square" },
+         { "title": "Folies Bergère de Paris" },
+         { "title": "Here Comes Mr. Jordan" },
+         { "title": "Cat People" },
+         { "title": "People on the Alps" },
+         { "title": "The Gang's All Here" }
+
+      These results show the words that are predicted for the query
+      string with one character modification and with the first
+      character constant at the right side of the word in all the
       titles.
 
    .. tab:: nGram
@@ -403,15 +474,15 @@ on the tokenization strategy configured in the
          :copyable: false
          :linenos:
 
-         { "title" : "Les vampires" }
-         { "title" : "He Who Gets Slapped" }
-         { "title" : "Shanghai Express" }
-         { "title" : "It Happened One Night" }
-         { "title" : "The Scarlet Empress" }
-         { "title" : "David Copperfield" }
-         { "title" : "Prelude to War" }
-         { "title" : "It Happened on Fifth Avenue" }
-         { "title" : "Berlin Express" }
+         { "title" : "Les vampires" },
+         { "title" : "He Who Gets Slapped" },
+         { "title" : "Shanghai Express" },
+         { "title" : "It Happened One Night" },
+         { "title" : "The Scarlet Empress" },
+         { "title" : "David Copperfield" },
+         { "title" : "Prelude to War" },
+         { "title" : "It Happened on Fifth Avenue" },
+         { "title" : "Berlin Express" },
          { "title" : "Sitting Pretty" }
 
       These results show the words that are predicted for the query
@@ -468,10 +539,21 @@ Each query includes a:
       .. code-block:: json
          :copyable: false
 
-         { "title" : "Men Without Women" }
-         { "title" : "Men with Guns" }
-         { "title" : "Men with Brooms" }
+         { "title" : "Men Without Women" },
+         { "title" : "Men with Guns" },
+         { "title" : "Men with Brooms" },
          { "title" : "Without Men" }
+
+      This query returns the following results for the ``rightEdgeGram``
+      :ref:`tokenization strategy <bson-data-types-autocomplete>`:
+
+      .. code-block:: json
+         :copyable: false
+
+         { "title": "Men with Guns" },
+         { "title": "Men with Brooms" },
+         { "title": "Getting Even with Dad" },
+         { "title": "Chicken with Plums" }
 
       This query returns the following results for the ``nGram``
       :ref:`tokenization strategy <bson-data-types-autocomplete>`:
@@ -479,9 +561,9 @@ Each query includes a:
       .. code-block:: json
          :copyable: false
 
-         { "title" : "Men Without Women" }
-         { "title" : "Men with Guns" }
-         { "title" : "Men with Brooms" }
+         { "title" : "Men Without Women" },
+         { "title" : "Men with Guns" },
+         { "title" : "Men with Brooms" },
          { "title" : "Women Without Men" }
 
    .. tab:: sequential
@@ -517,9 +599,20 @@ Each query includes a:
       .. code-block:: json
          :copyable: false
 
-         { "title" : "Men Without Women" }
-         { "title" : "Men with Guns" }
+         { "title" : "Men Without Women" },
+         { "title" : "Men with Guns" },
          { "title" : "Men with Brooms" }
+
+      This query returns the following results for the ``rightEdgeGram``
+      :ref:`tokenization strategy <bson-data-types-autocomplete>`:
+
+      .. code-block:: json
+         :copyable: false
+
+         { "title": "Getting Even with Dad" },
+         { "title": "Men with Guns" },
+         { "title": "Men with Brooms" },
+         { "title": "Chicken with Plums" }
 
       This query returns the following results for the ``nGram``
       :ref:`tokenization strategy <bson-data-types-autocomplete>`:
@@ -527,7 +620,7 @@ Each query includes a:
       .. code-block:: json
          :copyable: false
 
-         { "title" : "Men Without Women" }
-         { "title" : "Men with Guns" }
-         { "title" : "Men with Brooms" }
+         { "title" : "Men Without Women" },
+         { "title" : "Men with Guns" },
+         { "title" : "Men with Brooms" },
          { "title" : "Women Without Men" }
