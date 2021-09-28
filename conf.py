@@ -215,7 +215,6 @@ html_theme_options = {
     'translations': languages,
     'upcoming': '',
     'version': version,
-    'automation_eol': True,
 }
 
 onprem_latex_documents = []
@@ -276,6 +275,7 @@ try:
         html_theme_options['edition'] = 'saas'
         html_theme_options['pdfpath'] = '/' + 'cloudmanager-manual.pdf'
         html_theme_options['sitename'] = 'Cloud Manager Docs'
+        html_theme_options['automation_eol'] = True
 except NameError:
     pass
 
