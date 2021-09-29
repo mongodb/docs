@@ -42,14 +42,6 @@
        For this path, {+dl+} utilizes partitions optimized for queries 
        on the ``account_id`` field.
 
-   * - ``/mflix/comments/{shortDate isodate}/{movie_id objectid}/``
-     - This path references the ``mflix`` dataset, which contains data 
-       on movies and movie theaters. To learn more about this dataset, 
-       see :atlas:`Sample Mflix Dataset </sample-data/sample-mflix#sample_mflix.comments>`.
-
-       For this path, {+dl+} utilizes partitions optimized for queries 
-       on the ``date`` and ``movie_id`` fields.
-
    * - ``/mflix/movies/{type string}/{year int}/``
      - This path references the ``mflix`` dataset, which contains data 
        on movies and movie theaters. To learn more about this dataset, 
