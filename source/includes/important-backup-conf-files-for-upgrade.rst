@@ -10,6 +10,5 @@
      backing databases and user credentials. |onprem| might delete 
      these files as part of the upgrade process.
    - :term:`Application Database`. If the upgrade fails, you need a
-     :doc:`current backup </tutorial/backup-the-backup-service/>`
-     to restore your |onprem| instance. Use |mongodump| to back up
+     current backup to restore your |onprem| instance. Use |mongodump| to back up
      your :term:`Application Database`.
