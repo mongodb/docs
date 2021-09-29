@@ -1,0 +1,101 @@
+ref: fts-synonyms-tutorial-step9
+level: 4
+stepnum: 1
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: connect-to-database-deployment-fts
+---
+ref: fts-synonyms-tutorial-step10
+level: 4
+stepnum: 2
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: use-sample-mflix
+---
+ref: fts-synonyms-tutorial-step11
+level: 4
+stepnum: 3
+title: "Run the following query on the ``movies`` collection."
+content: |
+  The following query searches for movies released :ref:`near 
+  <near-ref>` November 11, 1921. It specifies a ``pivot`` distance from 
+  ``origin`` of approximately three months. It requests metadata on the 
+  ``genres`` and ``year`` field. The query requests a count of the: 
+
+  - Number of movies in each genre in the ``genres`` string array field
+  - Number of movies in the years 1910 to 1939, inclusive
+
+  .. code-block:: json
+
+     db.movies.aggregate([
+       {
+         "$searchMeta": {
+           "facet": {
+             "operator": {
+               "near": {
+                 "path": "released",
+                 "origin": ISODate("1921-11-01T00:00:00.000+00:00"),
+                 "pivot": 7776000000
+               }
+             },
+             "facets": {
+               "genresFacet": {
+                 "type": "string",
+                 "path": "genres"
+               },
+               "yearFacet" : {
+                 "type" : "number",
+                 "path" : "year",
+                 "boundaries" : [1910,1920,1930,1940]
+               }
+             }
+           }
+         }
+       }
+     ])
+
+  The query returns the following results:
+
+  .. code-block:: json
+     :copyable: false
+     :linenos:
+
+     { 
+       "count" : { 
+         "lowerBound" : NumberLong(23026) 
+       }, 
+       "facet" : { 
+         "genresFacet" : { 
+           "buckets" : [ 
+             { "_id" : "Drama", "count" : NumberLong(13527) }, 
+             { "_id" : "Comedy", "count" : NumberLong(6922) }, 
+             { "_id" : "Romance", "count" : NumberLong(3615) }, 
+             { "_id" : "Crime", "count" : NumberLong(2649) }, 
+             { "_id" : "Thriller", "count" : NumberLong(2603) }, 
+             { "_id" : "Action", "count" : NumberLong(2505) }, 
+             { "_id" : "Documentary", "count" : NumberLong(2041) }, 
+             { "_id" : "Adventure", "count" : NumberLong(2016) }, 
+             { "_id" : "Horror", "count" : NumberLong(1662) }, 
+             { "_id" : "Biography", "count" : NumberLong(1373) } 
+           ] 
+         }, 
+         "yearFacet" : { 
+           "buckets" : [ 
+             { "_id" : 1910, "count" : NumberLong(23) }, 
+             { "_id" : 1920, "count" : NumberLong(89) }, 
+             { "_id" : 1930, "count" : NumberLong(308) }
+           ] 
+         } 
+       } 
+     }
+
+  The results show metadata results for two types of facet search. The 
+  ``genresFacet`` document shows the number of movies in each genre and 
+  the ``yearFacet`` document shows a count of the number of movies 
+  within the boundaries: 
+
+  - ``1910``, inclusive lower bound the ``1910`` bucket
+  - ``1920``, exclusive upper bound for the ``1910`` bucket and 
+    inclusive lower bound for the ``1920`` bucket
+  - ``1930``, exclusive upper bound for the ``1920`` bucket and 
+    inclusive lower bound for the ``1930`` bucket

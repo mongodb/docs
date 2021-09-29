@@ -1,3 +1,10 @@
+.. This page is hidden from the TOC and from Google/Marian search indexing.
+
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
 .. _ref-index-definitions:
 
 ====================
@@ -162,7 +169,10 @@ BSON Data Types
 
 The table below enumerates all the :manual:`BSON data types
 </reference/bson-types/>` and indicates whether they are included in an 
-|fts| index with :ref:`dynamic mappings <static-dynamic-mappings>`. 
+|fts| index with :ref:`dynamic mappings <static-dynamic-mappings>`. You 
+can specify an array of data types to index the same field as multiple 
+data types, such as :ref:`string <bson-data-types-string>` and 
+:ref:`stringFacet <bson-data-types-string-facet>`.
 
 .. list-table::
    :header-rows: 1
@@ -183,9 +193,10 @@ The table below enumerates all the :manual:`BSON data types
      - yes
      - :ref:`number <bson-data-types-number>`
 
-   * - String
-     - yes
-     - :ref:`string <bson-data-types-string>`
+   * - String 
+     - yes :sup:`*`
+     - - :ref:`string <bson-data-types-string>`
+       - :ref:`stringFacet <bson-data-types-string-facet>`
   
    * - Date
      - yes
@@ -239,6 +250,11 @@ The table below enumerates all the :manual:`BSON data types
      - no
      - 
 
+:sup:`*` You can't use :ref:`dynamic mapping <static-dynamic-mappings>` 
+to automatically index ``string`` fields for faceting. Use 
+:ref:`bson-data-types-string-facet` to run a facet query on ``string`` 
+fields.
+
 .. _bson-data-types:
 
 |fts| Field Types
@@ -268,25 +284,6 @@ The ``autocomplete`` type takes the following options:
      - The type of field. Value must be ``autocomplete``.
      - 
 
-   * - ``analyzer``
-     - string
-     - optional
-     - Name of the :ref:`analyzer <analyzers-ref>` to use with this 
-       autocomplete mapping. You can use any |fts| analyzer except the 
-       ``lucene.kuromoji`` :ref:`language analyzer 
-       <ref-language-analyzers>` and the following :ref:`custom 
-       analyzer <custom-analyzers>` tokenizers and token filters: 
-
-       - :ref:`nGram <ngram-tokenizer-ref>` Tokenizer
-       - :ref:`edgeGram <edgegram-tokenizer-ref>` Tokenizer
-       - :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>` 
-         Token Filter
-       - :ref:`nGram <ngram-tf-ref>` Token Filter 
-       - :ref:`edgeGram <edgegram-tf-ref>` Token Filter 
-       - :ref:`shingle <shingle-tf-ref>` Token Filter
-
-     - ``lucene.standard``
-      
    * - ``maxGrams``
      - int
      - optional
@@ -314,23 +311,15 @@ The ``autocomplete`` type takes the following options:
 
        - ``edgeGram`` - to create indexable tokens, referred to as 
          ``grams``, from variable-length character sequences starting 
-         at the left side of the words as delimited by the analyzer 
-         used with this autocomplete mapping.
-
-       - ``rightEdgeGram`` -  to create indexable tokens, referred to 
-         as ``grams``, from variable-length character sequences 
-         starting at the right side of the words as delimited by the 
-         analyzer used with this autocomplete mapping.
-
-         .. include:: /includes/fact-rightEdgeGram-json-only.rst
+         at the beginning of the words and delimited by whitespace. 
 
        - ``nGram`` - to create indexable tokens, referred to as 
          ``grams``, by sliding a variable-length character window over 
          a word. |fts| creates more tokens for ``nGram`` than 
-         ``edgeGram`` or ``rightEdgeGram``. Therefore, ``nGram`` takes 
-         more space and time to index the field. ``nGram`` is better 
-         suited for querying languages with long, compound words or 
-         languages that don't use spaces.
+         ``edgeGram``. Therefore, ``nGram`` takes more space and time 
+         to index the field. ``nGram`` is better suited for querying 
+         languages with long, compound words or languages that don't 
+         use spaces.
 
        For example, consider the following sentence: 
          
@@ -356,29 +345,6 @@ The ``autocomplete`` type takes the following options:
           qui
           quic
           quick
-          ...
-
-       **rightEdgeGram**
-
-       .. code-block:: none
-          :copyable: false 
-
-          og
-          dog
-          {SPACE}dog
-          y dog
-          zy
-          azy
-          lazy
-          {SPACE}lazy
-          he
-          the
-          {SPACE}the
-          r the
-          er
-          ver
-          over
-          {SPACE}over
           ...
 
        **nGram**
@@ -410,11 +376,10 @@ The ``autocomplete`` type takes the following options:
 
        .. note:: 
 
-          Indexing a field for autocomplete with an ``edgeGram``, 
-          ``rightEdgeGram``, or ``nGram`` tokenization strategy is more 
-          computationally expensive than indexing a string field. The 
-          index takes more space than an index with regular string 
-          fields.
+          Indexing a field for autocomplete with ``edgeGram`` or 
+          ``nGram`` tokenization strategy is more computationally  
+          expensive than indexing a string field. The index takes more 
+          space than an index with regular string fields.
 
      - ``edgeGram``
 
@@ -441,7 +406,7 @@ The ``autocomplete`` type takes the following options:
 .. example::
 
    .. code-block:: json 
-      :emphasize-lines: 7-12
+      :emphasize-lines: 7-11
 
       {
         "mappings": {
@@ -450,8 +415,7 @@ The ``autocomplete`` type takes the following options:
             "<field-name>": [
               {
                 "type": "autocomplete",
-                "analyzer": "lucene.standard",
-                "tokenization": "edgeGram|rightEdgeGram|nGram",
+                "tokenization": "edgeGram|nGram",
                 "minGrams": <2>,
                 "maxGrams": <15>,
                 "foldDiacritics": true|false
@@ -781,7 +745,16 @@ the :ref:`equals <equals-ref>` operator.
 string
 ``````
 
-The ``string`` data type takes the following parameters:
+.. note:: 
+
+   You can't use :ref:`dynamic mapping <static-dynamic-mappings>` to 
+   automatically index ``string`` fields for faceting. Use 
+   :ref:`bson-data-types-string-facet` to run a facet query on 
+   ``string`` fields.
+
+The ``string`` data type is used for indexing :manual:`string 
+</reference/bson-types/#string>` fields. The ``string`` data type takes 
+the following parameters:
 
 .. list-table::
    :widths: 20 10 10 40 20
@@ -915,6 +888,56 @@ The ``string`` data type takes the following parameters:
           }
         }
       }
+
+.. _bson-data-types-string-facet:
+
+stringFacet
+```````````
+
+The ``stringFacet`` data type is used for indexing :manual:`string 
+</reference/bson-types/#string>` fields for faceting, which allows you 
+to run a facet query on that field. |fts| doesn't apply the analyzer 
+when indexing ``string`` fields for faceting. The ``stringFacet`` data 
+type takes the following parameter:
+
+.. list-table::
+   :widths: 20 10 10 40 20
+   :header-rows: 1
+
+   * - Option
+     - Type
+     - Necessity
+     - Purpose
+     - Default
+
+   * - ``type``
+     - string
+     - Required
+     - The type of field. Value must be ``stringFacet``.
+     - 
+
+.. _string-facet-egs:
+
+Example
++++++++
+
+The following index definition for the ``sample_mflix.movies`` 
+collection in the :ref:`sample dataset <available-sample-datasets>` 
+indexes the ``genres`` field as ``string`` for faceting.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "genres": {
+           "type": "stringFacet"
+         }
+       }
+     }
+   }
 
 .. _index-config-example:
 
@@ -1079,4 +1102,3 @@ and dynamic mappings.
    /reference/atlas-search/view-index
    /reference/atlas-search/edit-index
    /reference/atlas-search/delete-index
-   
