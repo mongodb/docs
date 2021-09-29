@@ -6,6 +6,8 @@ an `Olson Timezone Identifier
 `UTC Offset <https://en.wikipedia.org/wiki/List_of_UTC_time_offsets>`_.
 If no ``timezone`` is provided, the result is displayed in ``UTC``.
 
+.. include:: /includes/fact-timezone-etc-limit.rst
+
 .. list-table::
    :header-rows: 1
    :widths: 30 70
