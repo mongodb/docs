@@ -1330,3 +1330,87 @@ attribute object:
        "request": "RemoteCommand 229 -- target:localhost:27003 db:admin cmd:{ replSetRequestVotes: 1, setName: \"my-replica-name\", dryRun: true, term: 3, candidateIndex: 0, configVersion: 2, configTerm: 3, lastAppliedOpTime: { ts: Timestamp(1589915409, 1), t: 3 } }"
      }
    }
+
+.. _log-message-view-example:
+
+View
+~~~~
+
+Starting in MongoDB 5.0, :ref:`log messages for slow queries
+<log-message-slow-ops>` on :doc:`views </core/views>` include a
+``resolvedViews`` field that contains the view details:
+
+.. code-block:: javascript
+   :copyable: false
+
+   "resolvedViews": [ {
+      "viewNamespace": <String>,  // namespace and view name
+      "dependencyChain": <Array of strings>,  // view name and collection
+      "resolvedPipeline": <Array of documents>  // aggregation pipeline for view
+   } ]
+
+The following example uses the ``test`` database and creates a view
+named ``myView`` that sorts the documents in ``myCollection`` by the
+``firstName`` field:
+
+.. code-block:: javascript
+
+   use test
+   db.createView( "myView", "myCollection", [ { $sort: { "firstName" : 1 } } ] )
+
+Assume a :ref:`slow query <log-message-slow-ops>` is run on ``myView``.
+The following example log message contains a ``resolvedViews`` field for
+``myView``:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "t": {
+         "$date": "2021-09-30T17:53:54.646+00:00"
+      },
+      "s": "I",
+      "c": "COMMAND",
+      "id": 51803,
+      "ctx": "conn249",
+      "msg": "Slow query",
+      "attr": {
+         "type": "command",
+         "ns": "test.myView",
+         "appName": "MongoDB Shell",
+         "command": {
+            "find": "myView",
+            "filter": {},
+            "lsid": {
+               "id": { "$uuid": "ad176471-60e5-4e82-b977-156a9970d30f" }
+            },
+            "$db": "test"
+         },
+         "planSummary":"COLLSCAN",
+            "resolvedViews": [ {
+               "viewNamespace": "test.myView",
+               "dependencyChain": [ "myView", "myCollection" ],
+               "resolvedPipeline": [ { "$sort": { "firstName": 1 } } ]
+            } ],
+            "keysExamined": 0,
+            "docsExamined": 1,
+            "hasSortStage": true,
+            "cursorExhausted": true,
+            "numYields": 0,
+            "nreturned": 1,
+            "queryHash": "3344645B",
+            "planCacheKey": "1D3DE690",
+            "reslen": 134,
+            "locks": { "ParallelBatchWriterMode": { "acquireCount": { "r": 1 } },
+            "ReplicationStateTransition": { "acquireCount": { "w": 1 } },
+            "Global": { "acquireCount": { "r": 4 } },
+            "Database": { "acquireCount": {"r": 1 } },
+            "Collection": { "acquireCount": { "r": 1 } },
+            "Mutex": { "acquireCount": { "r": 4 } } },
+            "storage": {},
+            "remote": "127.0.0.1:34868",
+            "protocol": "op_msg",
+            "durationMillis": 0
+         }
+      }
+   }
