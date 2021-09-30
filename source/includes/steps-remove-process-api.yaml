@@ -1,0 +1,226 @@
+title: "Find the host ID for the process."
+stepnum: 1
+level: 4
+ref: retrieve-host-id-api
+content: |
+
+ Use the :doc:`/reference/api/hosts/get-one-host-by-hostname-port`
+ resource to find the process and retrieve the ``id`` value.
+ 
+ Learn What This Step Does
+ +++++++++++++++++++++++++
+
+ The :doc:`/reference/api/hosts/get-one-host-by-hostname-port`
+ resource uses the hostname and port you specify to find the process. Then, it
+ returns information about this process. You can find the `id` needed for the
+ next step in the response.
+
+ Issue This Command
+ ++++++++++++++++++
+
+ Copy the following curl command. Paste it into your preferred terminal or
+ console. Replace the displayed placeholders with these values:
+
+ .. list-table::
+    :header-rows: 1
+    :widths: 25 75
+
+    * - Placeholder
+      - Description
+
+    * - ``{PUBLIC-KEY}``
+      - .. include:: /includes/api/list-tables/tutorials/list-rows/list-table-placeholders-public-key.rst
+
+    * - ``{PRIVATE-KEY}``
+      - .. include:: /includes/api/list-tables/tutorials/list-rows/list-table-placeholders-private-key.rst
+
+    * - ``{PROJECT-ID}``
+      - .. include:: /includes/api/list-tables/tutorials/list-rows/list-table-placeholders-project-id.rst
+
+    * - ``{HOSTNAME}``
+      - Primary hostname that |mms| uses to connect to the instance.
+        This may be a hostname, an |fqdn|, an |ipv4| address, or an |ipv6|
+        address.
+
+    * - ``{PORT}``
+      - Port on which the process listens.
+  
+ Replace the placeholders in the command, then execute it.
+ 
+ .. cond:: cloud
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+cloudmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/hosts/byName/{HOSTNAME}:{PORT}"
+
+ .. cond:: onprem
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/hosts/byName/{HOSTNAME}:{PORT}"
+
+ Copy the Host's ID
+ ++++++++++++++++++
+
+ In the response body, copy the value returned in the ``id`` field. You need the
+ value for the next step.
+
+ .. example::
+
+     .. code-block:: json
+        :linenos:
+        :emphasize-lines: 12
+
+        {
+          "alertsEnabled" : true,
+          "aliases": [ "server1.example.com:27017", "203.0.113.3:27017" ],
+          "authMechanismName" : "SCRAM-SHA-1",
+          "clusterId" : "<cluster-ID-1>",
+          "created" : "2021-04-22T19:56:50Z",
+          "groupId" : "<project-ID-1>",
+          "hasStartupWarnings" : false,
+          "hidden" : false,
+          "hostEnabled" : true,
+          "hostname" : "server1.example.com",
+          "id" : "{HOST-ID}",
+          "ipAddress": "203.0.113.3",
+        }
+
+---
+title: "Stop monitoring the process that matches the host ID."
+stepnum: 2
+level: 4
+ref: use-id-remove-process-api
+content: |
+
+  Use the :doc:`/reference/api/hosts/delete-one-host` resource
+  to stop monitoring the host.
+
+  Learn What This Step Does
+  +++++++++++++++++++++++++
+
+  The :doc:`/reference/api/hosts/delete-one-host` resource
+  doesn't actually delete the host.
+  The resource deletes the host from the list of hosts that |mms| monitors. This
+  removes the process from monitoring.
+
+  Issue This Command
+  ++++++++++++++++++
+
+  Copy the following curl command. Paste it into your preferred terminal or
+  console. Replace the displayed placeholders with these values:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 25 75
+
+     * - Placeholder
+       - Description
+
+     * - ``{PUBLIC-KEY}``
+       - .. include:: /includes/api/list-tables/tutorials/list-rows/list-table-placeholders-public-key.rst
+
+     * - ``{PRIVATE-KEY}``
+       - .. include:: /includes/api/list-tables/tutorials/list-rows/list-table-placeholders-private-key.rst
+
+     * - ``{PROJECT-ID}``
+       - .. include:: /includes/api/list-tables/tutorials/list-rows/list-table-placeholders-project-id.rst
+  
+     * - ``{HOST-ID}``
+       - Unique identifier of the host for the process. Use the ``id`` from
+         step 1.
+  
+  Replace the placeholders in the command, then execute it.
+
+  .. cond:: cloud
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request DELETE "https://{+cloudmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/hosts/{HOST-ID}"
+
+  .. cond:: onprem
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request DELETE "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/hosts/{HOST-ID}"
+---
+title: "Verify that |mms| no longer monitors the process."
+stepnum: 3
+level: 4
+ref: verify-no-longer-monitor-api
+content: |
+
+ Use the :doc:`/reference/api/hosts/get-one-host-by-hostname-port`
+ resource again to attempt to find the process using its hostname and port. Then, verify
+ that ``details`` returns ``No host with hostname
+ and port {HOSTNAME}:{PORT} exists in group {PROJECT-ID}``.
+ 
+ Learn What This Step Does
+ +++++++++++++++++++++++++
+
+ The :doc:`/reference/api/hosts/get-one-host-by-hostname-port`
+ resource uses the hostname and port you specify to find the process. Then, it
+ returns information about this process. You can tell that |mms| doesn't monitor
+ the process if the ``details`` value in the response is ``No host with hostname
+ and port {HOSTNAME}:{PORT} exists in group {PROJECT-ID}``.
+ This means that |mms| can't find the host in the
+ list of processes that it monitors.
+
+ Issue This Command
+ ++++++++++++++++++
+
+ Copy the following curl command. Paste it into your preferred terminal or
+ console. Replace the displayed placeholders with these values:
+
+ .. list-table::
+    :header-rows: 1
+    :widths: 25 75
+
+    * - Placeholder
+      - Description
+      
+    * - ``{PUBLIC-KEY}``
+      - .. include:: /includes/api/list-tables/tutorials/list-rows/list-table-placeholders-public-key.rst
+
+    * - ``{PRIVATE-KEY}``
+      - .. include:: /includes/api/list-tables/tutorials/list-rows/list-table-placeholders-private-key.rst
+
+    * - ``{PROJECT-ID}``
+      - .. include:: /includes/api/list-tables/tutorials/list-rows/list-table-placeholders-project-id.rst
+
+    * - ``{HOSTNAME}``
+      - Primary hostname that |mms| uses to connect to this
+        instance. This may be a hostname, an FQDN, an IPv4 address, or an IPv6
+        address.
+               
+    * - ``{PORT}``
+      - Port on which the process listens.
+  
+ Replace the placeholders in the command, then execute it.
+
+ .. cond:: cloud
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+cloudmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/hosts/byName/{HOSTNAME}:{PORT}"
+
+ .. cond:: onprem
+
+     .. code-block:: sh
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/hosts/byName/{HOSTNAME}:{PORT}"
+
+ Check the Response Details
+ ++++++++++++++++++++++++++
+
+ In the response body, check the value returned in the ``details`` field. If
+ ``details`` returns ``No host with hostname
+ and port {HOSTNAME}:{PORT} exists in group {PROJECT-ID}``, you succeeded. |mms| no longer monitors the process.
+
+...
