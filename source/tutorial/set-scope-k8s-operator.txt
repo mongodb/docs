@@ -31,8 +31,8 @@ You can set one of these scopes:
 
 .. _ns-scope-same-ns:
 
-Operator Uses Same Namespace as Resources
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Operator Uses the Same Single Namespace as Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can set the scope for the |k8s-op-short| to use the same |k8s-ns| as
 resources. In this case, the |k8s-op-short| watches |onprem| and
@@ -43,32 +43,71 @@ uses the default namespace.
 
 .. _ns-scope-different-ns:
 
-Operator Uses Different Namespace than Resources
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Operator Uses a Subset of Namespaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can set the scope for the |k8s-op-short| to use a different |k8s-ns|
-than its resources. In this case, the |k8s-op-short| watches |onprem|
-and |k8s-mdbrscs| in a |k8s-ns| that you specify.
+You can set the scope for the |k8s-op-short| to use one or more |k8s-nss|
+that differ from the namespace used by the |k8s-op-short| resources.
+In this case, the |k8s-op-short| watches |onprem| and |k8s-mdbrscs|
+in a subset of |k8s-nss| that you specify.
 
-You can use ``helm`` to install the |k8s-op-short| with this scope.
+To install the |k8s-op-short| instances with this
+scope, use ``helm`` with the :ref:`helm-watch-namespace` parameter.
+
+.. include:: /includes/admonitions/fact-subset-of-namespaces.rst
+
 Follow the relevant :ref:`installation instructions
-<install-k8s-operator>` for ``helm``, but use the following command to
-set the namespace for the |k8s-op-short| to watch:
+<install-k8s-operator>` for ``helm``, but specify one or more namespaces
+in the :ref:`helm-watch-namespace` parameter for the |k8s-op-short| to
+watch:
 
-.. code-block:: sh
+.. include:: /includes/code-examples/yaml-files/example-watch-one-namespace-helm.yaml
 
-   helm install <chart-name> helm_chart \
-        --set operator.watchNamespace=<namespace> \
+.. include:: /includes/code-examples/yaml-files/example-watch-two-namespaces-helm.yaml
 
-Setting the namespace ensures that:
+.. include:: /includes/code-examples/yaml-files/example-watch-namespaces-env-helm.yaml
 
-- The namespace you want the |k8s-op-short| to watch has the correct
-  |k8s-cr| and |k8s-crb|. The ``clusterRole`` and ``clusterRoleBinding``
-  are included in the default configuration files that you apply during
-  the installation. To create the ``clusterRole`` and
-  ``clusterRoleBinding``, you must have
-  :k8sdocs:`cluster-admin privileges </reference/access-authn-authz/rbac/#user-facing-roles>`.
-- The |k8s-op-short| can watch and create resources in this namespace.
+.. include:: /includes/code-examples/yaml-files/example-watch-namespaces-staging-only-helm.yaml
+
+When installing the |k8s-op-short| to watch resources in one or more
+namespaces other than the namespace in which the |k8s-op-short| is
+deployed:
+
+1. Create the following resources:
+
+   - A |k8s-cr| with access to multiple resources. For the full resource
+     definition, see the
+     :github:`operator-roles.yaml </mongodb/mongodb-enterprise-kubernetes/blob/master/helm_chart/templates/operator-roles.yaml>`
+     example. This is a cluster-scoped resource.
+
+   - A |k8s-crb| on each namespace to watch. This ``clusterRoleBinding``
+     will bind the ``clusterRole`` you created with the ServiceAccount
+     the |k8s-op-short| is using on the namespace where you install it.
+
+2. Include the ``clusterRole`` and ``clusterRoleBinding``
+   in the default configuration files that you apply during the
+   installation.
+
+The following example illustrates how ``clusterRoles`` and
+``clusterRoleBindings`` work together in the cluster.
+
+Suppose you create a ServiceAccount in the ``mongodb`` namespace, and
+then install the |k8s-op-short| in this namespace. The |k8s-op-short|
+uses this ServiceAccount.
+
+To set the |k8s-op-short| scope to watch namespaces ``ns1`` and ``ns2``:
+
+1. Obtain :k8sdocs:`cluster-admin privileges </reference/access-authn-authz/rbac/#user-facing-roles>`.
+2. Using these privileges, create a cluster-wide, non-namespaced |k8s-cr|.
+3. Create a |k8s-crb| in three namespaces: ``mongodb``, ``ns1``
+   and ``ns2``. This ``clusterRoleBinding`` will bind the
+   ``clusterRole`` to the ServiceAccount in the ``mongodb`` namespace.
+   The ``clusterRoleBinding`` will allow the |k8s-op-short| deployed in
+   the ``mongodb`` namespace to access the resources described in the
+   ``clusterRole`` of the target namespace, that is, in ``mongodb``,
+   ``ns1`` and ``ns2``.
+
+See also :ref:`helm-watch-namespace`.
 
 .. _cluster-wide-scope:
 
