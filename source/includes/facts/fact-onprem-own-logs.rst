@@ -1,9 +1,11 @@
-In addition to
-:doc:`viewing logs </tutorial/view-logs>` for |mongod| and
-|mongos| processes and agents, you can explore
-:ref:`{+onprem+} logs <onprem-own-logs>`, such as its
-access and backup logs.
+You can use |mms| to review a variety of log files:
 
-You can :ref:`change how long you store <change-onprem-log-retention>`
-some of the |onprem| logs. Setting this retention policy can keep
-|onprem| consistent with your organization's data retention policies.
+- :ref:`MongoDB process logs <view-mms-ondisk-logs>`
+  (|mongod|, |mongos|)
+- :ref:`MongoDB Agent logs <view-agent-logs>`
+- :ref:`{+onprem+} access, backup, operations, and startup logs <onprem-own-logs>`
+
+You can :ref:`change how long you keep <change-onprem-log-retention>`
+some |onprem| logs. Your company may need to keep log data for legal
+requirements. You can change your log retention policy to adhere to
+those requirements.
