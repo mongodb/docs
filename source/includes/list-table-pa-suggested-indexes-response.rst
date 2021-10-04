@@ -113,10 +113,10 @@
 
    * - ``suggestedIndexes[n].weight``
      - number
-     - Estimated percentage performance improvement that the suggested
-       index would provide. Corresponds to :ref:`Impact
-       <pa-index-ranking>` in the :ref:`Performance Advisor
-       <performance-advisor>` user interface.
+     - Estimated percentage performance improvement in decimal form 
+       that the suggested index would provide. Corresponds to 
+       :ref:`Impact <pa-index-ranking>` in the :ref:`Performance 
+       Advisor <performance-advisor>` user interface.
 
    * - ``suggestedIndexes[n].dismissedFromAutoCreation``
      - boolean
