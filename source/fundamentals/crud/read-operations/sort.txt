@@ -4,11 +4,215 @@ Sort Results
 
 .. default-domain:: mongodb
 
-Use ``sort()`` to change the order in which read operations return
-documents. The ``sort()`` instance method tells MongoDB to order returned documents by the
-values of one or more fields in a certain direction. To sort returned
-documents by a field in ascending (lowest first) order, use the static method ``Sorts.ascending()``,
-specifying the field on which to sort. To sort in descending (greatest first) order instead,
-use the static method ``Sorts.descending()``, specifying the field on which to sort. For example,
-you can sort on ``id`` or ``name`` fields. If you do not specify a sort, MongoDB does not
-guarantee the order of query results.
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to specify the order of your results
+from read operations.
+
+Sample Data
+~~~~~~~~~~~
+
+To run the examples in this guide, load these documents into the
+``ratings`` collection of the ``tea`` database with the following
+snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
+   :language: go
+   :dedent:
+   :start-after: begin insertDocs
+   :end-before: end insertDocs
+
+.. tip:: Non-existent Database and Collections
+
+   The driver automatically creates the necessary database and/or collection
+   when you perform a write operation against them if they don't already exist.
+
+Each document contains a rating for a type of tea, which corresponds to
+the ``type`` and ``rating`` fields.
+
+.. note::
+
+   Each example truncates the ``ObjectID`` value since the driver
+   generates them uniquely.
+
+Sort Direction
+--------------
+
+To specify the order of your results, pass an interface specifying the
+sort fields and directions to the ``SetSort()`` function of a read
+operations' options.
+
+The options you specify are the last parameter to the following read
+operation functions:
+
+- ``Find()``
+- ``FindOne()``
+- ``FindOneAndDelete()``
+- ``FindOneAndUpdate()``
+- ``FindOneAndReplace()``
+- ``gridfs.Bucket.Find()``
+
+The sort direction can be **ascending** or **descending**.
+
+Ascending
+~~~~~~~~~
+
+An ascending sort orders your results from smallest to largest. To
+specify this sort, pass the field you want to sort by and ``1`` to the
+``SetSort()`` function.
+
+.. tip::
+
+   With an ascending sort, the function orders values of type
+   ``Boolean`` from ``false`` *to* ``true``, ``String`` type values
+   from *a to z* and numeric type values from *negative infinity to
+   positive infinity*.
+
+Example 
+```````
+
+The following example specifies an ascending sort on the ``rating`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
+   :language: go
+   :dedent:
+   :start-after: begin ascending sort
+   :end-before: end ascending sort
+   :emphasize-lines: 2-3, 5
+
+After running the preceding example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+    //results truncated
+   [{_id ObjectID("...")} {type Assam} {rating 5}]
+   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+   [{_id ObjectID("...")} {type Oolong} {rating 7}]
+   [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
+   [{_id ObjectID("...")} {type Masala} {rating 10}]
+
+Descending
+~~~~~~~~~~
+
+A descending sort orders your results from largest to smallest. To
+specify this sort, pass the field you want to sort by and ``-1`` to the
+``SetSort()`` function.
+
+.. tip::
+
+   With an descending sort, the function orders values of type
+   ``Boolean`` from ``true`` *to* ``false``, ``String`` type values
+   from *z to a* and numeric type values from *positive infinity to
+   negative infinity*.
+
+Example
+```````
+
+The following example specifies a descending sort on the ``rating`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
+   :language: go
+   :dedent:
+   :start-after: begin descending sort
+   :end-before: end descending sort
+   :emphasize-lines: 2-3, 5
+
+After running the preceding example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type Masala} {rating 10}]
+   [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
+   [{_id ObjectID("...")} {type Oolong} {rating 7}]
+   [{_id ObjectID("...")} {type Assam} {rating 5}]
+   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+
+Handling Ties
+~~~~~~~~~~~~~
+
+A tie occurs when two or more documents have identical values in the
+field you are using to sort your results. MongoDB does not guarantee
+order if ties occur. 
+
+For example, in the sample data, there is a tie for the ``rating`` in
+the following documents:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type Assam} {rating 5}]
+   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+
+To guarantee a specific order for documents when ties occur, specify
+additional fields to sort by.
+
+Example
+```````
+
+The following example specifies an ascending sort on the ``rating`` field,
+then a descending sort on the ``type`` field:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
+   :language: go
+   :dedent:
+   :start-after: begin multi sort
+   :end-before: end multi sort
+   :emphasize-lines: 2-3, 5
+
+After running the preceding example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+   [{_id ObjectID("...")} {type Assam} {rating 5}]
+   [{_id ObjectID("...")} {type Oolong} {rating 7}]
+   [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
+   [{_id ObjectID("...")} {type Masala} {rating 10}]
+
+.. tip:: Using Aggregation 
+
+   You can also specify a sort in an aggregation pipeline by including
+   the :manual:`$sort </reference/operator/aggregation/sort/>` stage.
+
+   The following example specifies the same sort from the preceding
+   example in an aggregation pipeline:
+
+   .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
+      :language: go
+      :dedent:
+      :start-after: begin aggregate sort
+      :end-before: end aggregate sort
+
+Additional Information
+----------------------
+
+For more information on performing read operations, see our guide on
+:doc:`retrieving data </fundamentals/crud/read-operations/retrieve>`.
+
+.. For information about sorting text, see our
+.. guide on :doc:`Text Search </fundamentals/crud/write-operations/text>`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+For more information on any of the functions or types discussed in this
+guide, see the following API Documentation:
+
+- `Find() <{+api+}/mongo#Collection.Find>`__
+- `FindOptions.SetSort() <{+api+}/mongo/options#FindOptions.SetSort>`__
+- `Aggregate() <{+api+}/mongo#Collection.Aggregate>`__
+- `FindOne() <{+api+}/mongo#Collection.FindOne>`__
+- `FindOneAndDelete() <{+api+}/mongo#Collection.FindOneAndDelete>`__
+- `FindOneAndUpdate() <{+api+}/mongo#Collection.FindOneAndUpdate>`__
+- `FindOneAndReplace() <{+api+}/mongo#Collection.FindOneAndReplace>`__
+- `gridfs.Bucket.Find() <{+api+}/mongo/gridfs#Bucket.Find>`__
