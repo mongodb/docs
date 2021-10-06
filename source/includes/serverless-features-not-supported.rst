@@ -60,9 +60,6 @@ Capabilities
 
    * - :doc:`Store More than 1 TB of Data </customize-storage>`
      - 
-     
-   * - :doc:`Load Sample Data </sample-data>`
-     - :icon:`check-square`
 
    * - :doc:`Configure Alerts </alerts>` on Service Metrics Billing Metrics
 
