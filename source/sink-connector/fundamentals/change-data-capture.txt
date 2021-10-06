@@ -1,5 +1,125 @@
-==================================
-Sink Connector Change Data Capture
-==================================
+============================
+Change Data Capture Handlers
+============================
 
-TODO:
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Learn how to **replicate** your **change data capture (CDC)** events with a {+mkc+} sink
+connector. CDC is a software architecture that converts changes in a datastore 
+into a stream of **CDC events**. A CDC event is a message containing a 
+reproducible representation of a change performed on a datastore. Replicating 
+data is the process of applying the changes contained in CDC events from one data 
+store onto a different datastore so that the changes occur in both datastores.
+
+Use a **CDC handler** to replicate CDC events stored on an {+ak+} topic into MongoDB. 
+A CDC handler is a program that translates CDC events from a specific 
+**CDC event producer** into MongoDB write operations. 
+
+A CDC event producer is an application that generates CDC events. CDC event 
+producers can be datastores, or applications that watch datastores and generate 
+CDC events corresponding to changes in the datastores.
+
+.. note::
+
+   MongoDB change streams is an example of a CDC architecture. To learn more about
+   change streams, see
+   :doc:`the {+mkc+} guide on Change Streams </source-connector/fundamentals/change-streams>`.
+
+If you would like to view a tutorial demonstrating how to replicate data, see the 
+:doc:`Replicate Data With a Change Data Capture Handler tutorial </tutorials/replicate-with-cdc>`.
+
+Specify a CDC Handler
+---------------------
+
+You can specify a CDC handler on your sink connector with the following configuration option:
+
+.. code-block:: properties
+
+   change.data.capture.handler=<cdc handler class>
+
+To learn more, see
+:doc:`change data capture configuration options </sink-connector/configuration-properties/cdc>`
+in the {+mkc+}.  
+
+Available CDC Handlers
+~~~~~~~~~~~~~~~~~~~~~~
+
+The {+mkc+} provides CDC handlers for the following CDC event producers:
+
+- MongoDB
+- `Debezium <https://debezium.io/>`__
+- `Qlik Replicate <https://www.qlik.com/us/products/qlik-replicate>`__
+
+Click the following tabs to learn how to configure
+CDC handlers for the preceding event producers:
+
+.. tabs::
+
+   .. tab::
+      :tabid: MongoDB
+
+      .. include:: /includes/fundamentals/cdc/mongodb.rst
+
+   .. tab::
+      :tabid: Debezium
+
+      .. include:: /includes/fundamentals/cdc/debezium.rst
+
+   .. tab::
+      :tabid: Qlik Replicate
+
+      .. include:: /includes/fundamentals/cdc/qlik.rst
+
+.. _cdc-create-your-own:
+
+Create Your Own CDC Handler
+---------------------------
+
+If none of the prebuilt CDC handlers fit your use case, you can create your own.
+Your custom CDC handler is a Java class that implements the ``CdcHandler`` interface.
+
+To learn more, see the
+:github:`source code for the CdcHandler interface <mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/CdcHandler.java>`.
+
+To view examples of CDC handler implementations, see
+:github:`the source code for the prebuilt CDC handlers <mongodb/mongo-kafka/tree/master/src/main/java/com/mongodb/kafka/connect/sink/cdc>`.
+
+How to Use Your CDC Handler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure your sink connector to use your custom CDC Handler, you must perform the
+following actions:
+
+#. Compile your custom CDC handler class to a JAR file.
+
+#. Add the compiled JAR to the classpath/plugin path for your Kafka workers.
+   For more information about plugin paths, see the `Confluent documentation
+   <https://docs.confluent.io/current/connect/managing/community.html>`__.
+
+   .. note::
+
+      Kafka Connect loads plugins in isolation. When you deploy a custom write
+      strategy, both the connector JAR and the CDC handler
+      JAR should be on the same path. Your paths should resemble the following:
+
+      | ``<plugin.path>/mongo-kafka-connect/mongo-kafka-connect-all.jar``
+      | ``<plugin.path>/mongo-kafka-connect/custom-CDC-handler.jar``
+
+      To learn more about {+kc+} plugins, see 
+      `this guide from Confluent <https://docs.confluent.io/home/connect/userguide.html#installing-kconnect-plugins>`__.
+
+#. Specify your custom class in the ``change.data.capture.handler``
+   :ref:`configuration setting <kafka-sink-properties>`.
+
+To learn how to compile a class to a JAR file, 
+`see this guide from Oracle <https://docs.oracle.com/javase/tutorial/deployment/jar/build.html>`__.
+
