@@ -1,0 +1,124 @@
+.. _private-service-connect-api:
+
+============================================
+Set up Private Service Connect using the API
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+.. include:: /includes/serverless-preview-dont-use.rst
+
+You can create and manage private endpoints for |gcp| using
+:gcp:`{+google-psc+} </vpc/docs/private-service-connect>`. |service|
+currently supports the use of {+google-psc+} via the |service|
+API. Full UI support for |gcp| {+google-psc+} is coming soon.
+
+Connecting to |service| clusters with private endpoints helps to ensure your
+perceived network trust boundary is not extended. These one-way connections
+prevent |service| |vpc|\s from initiating connections back to
+your |gcp| |vpc|\s.
+
+Overview
+--------
+
+|service| uses internal load balancers and :gcp:`service
+attachments </vpc/docs/private-service-connect#service-attachments>` to
+connect your clusters to your |vpc|. {+google-psc+} uses one load balancer per
+node. To ensure the availability of resources for both current and future clusters,
+|service| creates all the service attachments and internal load balancers for a
+region when you activate {+google-psc+} for that region.
+
+Connection Workflow
+~~~~~~~~~~~~~~~~~~~
+
+1. :doc:`Create the endpoint service for a region
+   </reference/api/private-endpoints-service-create-one>` in |service| to enable the
+   feature. After you enable {+google-psc+}, |service| does the following actions:
+
+   - Creates its own |vpc|. If |service| is already using a |vpc| for |gcp|
+     resources, |service| will use the existing |vpc|.
+   - Creates 50 load balancers and service attachments for that region.
+   - Places existing clusters within the region behind a network load balancer in
+     the |service| |vpc|. |service| creates a separate load balancer for each node within
+     every cluster.
+   - Reserves any remaining load balancers and service attachments for your future
+     clusters within that region.
+   
+#. :doc:`Get the endpoint service for the region
+   </reference/api/private-endpoints-service-create-one>` in |service| to retrieve
+   the service attachment names. 
+
+   .. note::
+   
+     You can't retrieve the service attachment names or complete the next steps
+     until |service| finishes creating the endpoint service. Wait for the
+     ``Status`` value to become ``AVAILABLE`` when you :doc:`get the endpoint service for the region
+     </reference/api/private-endpoints-service-create-one>` before proceeding.
+
+#. Follow |gcp|'s steps for :gcp:`configuring {+google-psc+} to access
+   services </vpc/docs/configure-private-service-connect-services>`, including
+   the following steps: 
+
+   - Create private endpoints. Each private endpoint reserves an IP address
+     within your |gcp| |vpc| and forwards traffic from the endpoints' IP
+     addresses to the service attachments. You must create an equal number of
+     private endpoints to the number of service attachments. The default number
+     of service attachments is 50.
+
+#. :doc:`Create a private endpoint group
+   </reference/api/private-endpoints-endpoint-create-one>` in |service|, which
+   represents the collection of 50 forwarding rules. You must specify the
+   following items: 
+  
+   - Static IP addresses you reserved.
+   - Names of the forwarding rules you created.
+
+   When creating private endpoint groups, you can: 
+   
+   - Create multiple endpoint groups in a region. This allows you to create
+     multiple connection strings for a cluster.
+   - Create one endpoint group per region for a single multi-region cluster.
+
+   .. note::
+
+      You can't use multiple endpoint groups per region and multi-region
+      clusters with {+google-psc+} at the same time.
+
+#. |service| uses the forwarding rules to provide a secure one-way connection
+   from your |gcp| |vpc| to the network load balancers in the |service| |vpc|.
+   You can retrieve the connection string from the connect modal.
+
+Considerations
+--------------
+
+The following considerations apply to |gcp| private endpoints:
+
+High Availability
+~~~~~~~~~~~~~~~~~
+
+You don't need to take additional actions to ensure that |gcp| private endpoint
+connections to |service| can withstand an availability zone outage.
+
+IP Access Lists and Network Peering Connections with Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you enable private endpoints, you can still enable access to your
+|service| clusters using other methods, such as adding public IPs to
+:doc:`IP access lists </security/ip-access-list>` and
+:doc:`network peering </security-vpc-peering>`.
+
+Procedures
+----------
+
+To enable connections through {+google-psc+}, :doc:`complete the prerequisites
+and create the endpoint group
+</reference/api/private-endpoints-endpoint-create-one>` using the
+|service| API.

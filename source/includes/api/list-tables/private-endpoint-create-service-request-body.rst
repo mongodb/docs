@@ -12,7 +12,7 @@
      - string
      - Required     
      - Name of the cloud provider for which you want to create the private 
-       endpoint service. |service| accepts **AWS** or **AZURE**.
+       endpoint service. |service| accepts **AWS**, **AZURE**, or **GCP**.
 
    * - region
      - string
@@ -23,5 +23,6 @@
 
        - :ref:`amazon-aws`
        - :ref:`microsoft-azure`
+       - :ref:`google-gcp`
 
        .. include:: /includes/fact-privatelink-azure-az-limitations.rst
