@@ -7,7 +7,7 @@ Insert a Document
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. _insert_guide_golang:
@@ -19,9 +19,9 @@ In this guide, you can learn how to **insert** documents into a MongoDB
 collection.
 
 Before you can find, update, and delete documents in MongoDB, you need
-to insert those documents. Insert operations insert one document using
-the ``InsertOne()`` function, or insert multiple documents using one of
-the ``InsertMany()`` or ``BulkWrite()`` function.
+to insert those documents. You can insert one document using
+the ``InsertOne()`` function, or insert multiple documents using either
+the ``InsertMany()`` or ``BulkWrite()`` functions.
 
 The following sections focus on ``InsertOne()`` and ``InsertMany()``.
 
@@ -41,7 +41,7 @@ The two options for managing this field are:
   driver generates unique ``ObjectId`` values for documents that you do
   not explicitly specify an ``_id``.
 
-Unless you provide strong guarantees for uniqueness, we recommend
+Unless you provide strong guarantees for uniqueness, MongoDB recommends
 you let the driver automatically generate ``_id`` values.
 
 .. note::
@@ -85,7 +85,36 @@ The output should look like this:
 .. code-block:: none
    :copyable: false
 
-   Inserted document with _id: ObjectID("6112c7cacf7fb532a9c0077f")
+   Inserted document with _id: ObjectID("...")
+
+Modify ``InsertOne`` Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can modify the behavior of ``InsertOne()`` by constructing and passing
+an optional ``InsertOneOptions`` struct.  The available options to tune with
+``InsertOneOptions`` are:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large
+
+   * - Option
+     - Description
+
+   * - ``BypassDocumentValidation``
+     - | If ``true``, allows the write to opt-out of :manual:`document level validation </core/schema-validation>`.
+
+       | Default: ``false``
+
+Construct an ``InsertOneOptions`` as follows:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/insertOptions.go
+   :start-after: // begin insertOneOpts
+   :end-before: // end insertOneOpts
+   :language: go
+   :copyable:
+   :dedent:
+
 
 Insert Multiple Documents
 -------------------------
@@ -95,10 +124,84 @@ collection.
 
 Upon successful insertion, the ``InsertMany()`` function returns an ``InsertManyResult``
 instance that contains the ``_id`` fields of the inserted documents.
-This function inserts documents in the order specified unless an exception
-occurs.
 
-For example, assume you want to insert the following documents:
+Example
+~~~~~~~
+
+The following example creates and inserts some documents into the
+``favorite_books`` collection using the ``InsertMany()`` function:
+
+.. code-block:: go
+
+   coll := client.Database("myDB").Collection("favorite_books")
+   docs := []interface{}{
+       bson.D{{"title", "My Brilliant Friend"}, {"author", "Elena Ferrante"}, {"year_published", 2012}},
+       bson.D{{"title", "Lucy"}, {"author", "Jamaica Kincaid"}, {"year_published", 2002}},
+       bson.D{{"title", "Cat's Cradle"}, {"author", "Kurt Vonnegut Jr."}, {"year_published", 1998}},
+   }
+
+   result, err := coll.InsertMany(context.TODO(), docs)
+   list_ids := result.InsertedIDs
+   fmt.Printf("Documents inserted: %v\n", len(list_ids))
+
+   for _, id := range list_ids {
+	   fmt.Printf("Inserted document with _id: %v\n", id)
+   }
+
+Your output should look like this:
+
+.. code-block:: none
+   :copyable: false
+
+   Documents inserted: 3
+   Inserted document with _id: ObjectID("...")
+   Inserted document with _id: ObjectID("...")
+   Inserted document with _id: ObjectID("...")
+
+Modify ``InsertMany`` Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of ``InsertMany()`` by constructing
+and passing an optional ``InsertOneOptions`` struct. The available options
+to tune with ``InsertOneOptions`` are:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large
+
+   * - Option
+     - Description
+
+   * - ``BypassDocumentValidation``
+     - | If ``true``, allows the write to opt-out of :manual:`document level validation </core/schema-validation>`.
+
+       | Default: ``false``
+
+   * - ``Ordered``
+     - | If ``true``, the driver sends documents to the server in the order provided.
+         If an error occurs, the driver and server abort all remaining insert operations.
+         See the section on :ref:`ordered behavior <ordered_behavior_go>` for more information.
+
+       | Default: ``false``
+
+Construct an ``InsertManyOptions`` as follows:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/insertOptions.go
+   :start-after: // begin insertManyOpts
+   :end-before: // end insertManyOpts
+   :language: go
+   :copyable:
+   :dedent:
+
+
+
+.. _ordered_behavior_go:
+
+``Ordered`` Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+Assume you want to insert the following documents:
 
 .. code-block:: json
    :copyable: false
@@ -108,9 +211,10 @@ For example, assume you want to insert the following documents:
    { "_id": 1, "country": "Vietnam" }
    { "_id": 3, "country": "Argentina" }
 
-If you attempt to insert these documents, a ``BulkWriteException`` occurs at the
-third document because of the repeated ``_id`` value, but the documents
-before the error-producing document still get inserted into your collection.
+If you attempt to insert these documents with default ``InsertManyOptions``, a
+``BulkWriteException`` occurs at the third document because of the repeated
+``_id`` value, but the documents before the error-producing document still get
+inserted into your collection.
 
 .. note::
 
@@ -153,38 +257,6 @@ before the error-producing document still get inserted into your collection.
       { "_id": 1, "country": "Tanzania" }
       { "_id": 2, "country": "Lithuania" }
 
-Example
-~~~~~~~
-
-The following example creates and inserts some documents into the
-``favorite_books`` collection using the ``InsertMany()`` function:
-
-.. code-block:: go
-
-   coll := client.Database("myDB").Collection("favorite_books")
-   docs := []interface{}{
-       bson.D{{"title", "My Brilliant Friend"}, {"author", "Elena Ferrante"}, {"year_published", 2012}},
-       bson.D{{"title", "Lucy"}, {"author", "Jamaica Kincaid"}, {"year_published", 2002}},
-       bson.D{{"title", "Cat's Cradle"}, {"author", "Kurt Vonnegut Jr."}, {"year_published", 1998}},
-   }
-
-   result, err := coll.InsertMany(context.TODO(), docs)
-   list_ids := result.InsertedIDs
-   fmt.Printf("Documents inserted: %v\n", len(list_ids))
-
-   for _, id := range list_ids {
-	   fmt.Printf("Inserted document with _id: %v\n", id)
-   }
-
-Your output should look like this:
-
-.. code-block:: none
-   :copyable: false
-
-   Documents inserted: 3
-   Inserted document with _id: ObjectID("6112d6a0acf85446f904eb91")
-   Inserted document with _id: ObjectID("6112d6a0acf85446f904eb92")
-   Inserted document with _id: ObjectID("6112d6a0acf85446f904eb93")
 
 Additional Information
 ----------------------
