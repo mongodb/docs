@@ -1,7 +1,7 @@
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
-   :widths: 20 14 11 55
+   :widths: 20 13 13 54
 
    * - Body Parameter
      - Type
@@ -30,7 +30,7 @@
        .. important::
 
           Cluster tier auto-scaling is not available for clusters
-          using **Low CPU** or **NVME** storage classes.
+          using **NVME** storage classes.
 
    * - autoScaling.compute.enabled
      - boolean
@@ -135,7 +135,7 @@
        .. list-table::
           :header-rows: 1
           :stub-columns: 1
-          :widths: 20 80
+          :widths: 22 78
 
           * - Value
             - Description
@@ -167,7 +167,7 @@
 
           .. list-table::
              :header-rows: 1
-             :widths: 80 20
+             :widths: 78 22
 
              * - Condition
                - Necessity

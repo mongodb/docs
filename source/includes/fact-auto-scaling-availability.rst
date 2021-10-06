@@ -1,4 +1,5 @@
 .. note:: Feature Availability
 
-   |service| enables Cluster Auto-Scaling for ``M10+`` clusters using
-   the :guilabel:`General` tier clusters.
+   |service| enables Cluster Auto-Scaling for all cluster tiers (except
+   the highest cluster tier) under the :guilabel:`General` and the
+   :guilabel:`Low-CPU` tier clusters.

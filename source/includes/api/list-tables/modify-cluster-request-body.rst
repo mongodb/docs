@@ -30,7 +30,7 @@
        .. important::
 
           Cluster tier auto-scaling is not available for clusters
-          using **Low CPU** or **NVME** storage classes.
+          using **NVME** storage classes.
 
    * - autoScaling.compute.enabled
      - boolean
