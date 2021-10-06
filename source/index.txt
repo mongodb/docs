@@ -1,166 +1,233 @@
-:orphan:
+:template: product-landing
+:hidefeedback: header
+:noprevnext:
 
-=====================================================
-The MongoDB {+version-dev+} Manual (Upcoming Release)
-=====================================================
+================
+What is MongoDB?
+================
 
-.. default-domain:: mongodb
+.. introduction::
 
-.. include:: /includes/in-dev.rst
+   MongoDB is a document database designed for ease of application
+   development and scaling.
 
-.. include:: /includes/fact-mongodb-intro.rst
+   Run MongoDB with
 
-The Manual documents features and functionality for MongoDB Community,
-Enterprise, and Atlas deployments.
+   - `MongoDB Atlas
+     <https://www.mongodb.com/cloud?tck=docs_server>`__ fully managed in
+     the cloud,
+   - the source available and free-to-use :doc:`MongoDB
+     Community </administration/install-community>`, or
+   - the :doc:`MongoDB Enterprise Advanced
+     </administration/install-community>` subscription.
 
-Getting Started
----------------
+   .. button:: Install MongoDB
+      :uri: /installation
 
-MongoDB provides a Getting Started Guide in the following editions:
+   `Get started with MongoDB Atlas <https://www.mongodb.com/cloud?tck=docs_server>`__
 
-.. list-table::
-   :class: index-table
+.. image:: /images/hero.png
+   :alt: Homepage hero image
 
-   * - :doc:`mongo Shell Edition </tutorial/getting-started>`
+.. kicker:: What You Can Do
 
-       `Node.JS Edition <http://mongodb.github.io/node-mongodb-native/3.4/quick-start/quick-start/>`_
+Work with your data in MongoDB
+------------------------------
 
-     - :driver:`Python Edition </pymongo>`
+.. tabs::
 
-       `C++ Edition <https://mongodb.github.io/mongo-cxx-driver/mongocxx-v3/tutorial/>`_
+   .. tab:: Store and query your data
+      :tabid: store
 
-     - `Java Edition <https://mongodb.github.io/mongo-java-driver/>`_
+      .. procedure::
 
-       `C# Edition <http://mongodb.github.io/mongo-csharp-driver/>`_
+         .. step:: Model your data
 
-     - `Ruby Edition <https://docs.mongodb.com/ruby-driver/current/quick-start/>`_
+            Design your data schema to support frequent access patterns.
+            You can update or enforce your schema at any point.
 
-Once you complete the Getting Started Guide, you may find the following topics
-useful.
+            :doc:`To learn more, see Data Modeling Introduction </core/data-modeling-introduction>`
 
-.. list-table::
-   :header-rows: 1
-   :class: index-table
+         .. step:: Connect to MongoDB
 
-   * - Introduction
-     - Developers
-     - Administrators
-     - Reference
+            Import data from CSV or JSON files into your MongoDB
+            database.
 
-   * - :doc:`/introduction`
+            `To learn more, see MongoDB Shell (mongosh) <https://docs.mongodb.com/mongodb-shell/>`__
 
-       :doc:`Installation Guides </installation>`
+         .. step:: Insert, query, update, or delete documents
 
-       :doc:`/core/databases-and-collections`
+            Use the MongoDB Query API to perform CRUD operations on your
+            data - with or without transactions.
 
-       :doc:`/core/document`
+            :ref:`To learn more, see MongoDB CRUD Operations <crud>`
 
-     - :doc:`CRUD Operations </crud>`
+      .. code-block:: javascript
 
-       :doc:`Aggregation </aggregation>`
+         ➜ mongosh --port 27017
+         Current Mongosh Log ID:  123a4bc5d67891011ef1213g
+         Connecting to:    mongodb://127.0.0.1:27017/
 
-       :doc:`SQL to MongoDB </reference/sql-comparison>`
+         For mongosh info see: https://docs.mongodb.com/mongodb-shell/
 
-       :doc:`/indexes`
+         test> db.messages.insertMany([
+                  {
+                     message: "Hello World!",
+                     author: "MongoDB",
+                     comments: [],
+                     _id: 1
+                  }
+               ])
+         { acknowledged: true, insertedIds: { '0': 1 } }
 
-     - :doc:`/administration/production-notes`
+         test> db.messages.findOne({ _id: 1 })
+         { _id: 1, message: 'Hello World!', author: 'MongoDB', comments: [] }
 
-       :doc:`Replica Sets </replication>`
+   .. tab:: Transform data with Aggregations
+      :tabid: transform
 
-       :doc:`Sharded Clusters </sharding>`
+      .. procedure::
 
-       :doc:`MongoDB Security </security>`
+         .. step:: Import your data
 
-     - :doc:`Shell Methods </reference/method>`
+            Import data from a CSV or JSON file with mongoimport.
 
-       :doc:`Query Operators </reference/operator>`
+            `To learn more, see mongoimport <https://docs.mongodb.com/database-tools/mongoimport/>`__
 
-       :doc:`Reference </reference>`
+         .. step:: Aggregate your data
 
-       :doc:`/reference/glossary`
+            Use aggregation pipelines to process your data in multiple stages and return the computed results.
 
-Support
--------
+            :doc:`To learn more, see Aggregation </aggregation>`
 
-.. include:: /includes/fact-support.rst
+      .. code-block:: javascript
 
-.. _`Stack Overflow`: http://stackoverflow.com/questions/tagged/mongodb
+         test> db.orders.insertMany([
+            { "item" : "almonds", "price" : 12, "quantity" : 2 },
+            { "item" : "pecans", "price" : 20, "quantity" : 1 },
+         ])
 
-Issues
-------
+         test> db.inventory.insertMany([
+            { "sku" : "almonds", "description": "product 1", "instock" : 120 },
+            { "sku" : "cashews", "description": "product 3", "instock" : 60 },
+            { "sku" : "pecans", "description": "product 4", "instock" : 70 }
+         ])
 
-For instructions on how to file a JIRA ticket for the MongoDB server or
-one of the related projects, see
-`<https://github.com/mongodb/mongo/wiki/Submit-Bug-Reports>`_.
+         test> db.orders.aggregate([
+            { $match: { price: { $lt: 15 } } },
+            { $lookup: {
+                  from: "inventory",
+                  localField: "item",
+                  foreignField: "sku",
+                  as: "inventory_docs"
+            } },
+            { $sort: { price: 1 } },
+         ])
 
+   .. tab:: Secure access to your data
+      :tabid: create
 
-Community
----------
+      .. procedure::
 
-Getting involved in the MongoDB community is a great way to build
-relationships with other talented and like-minded engineers, increase
-awareness for the interesting work that you are doing, and sharpen your
-skills. To learn about the MongoDB community, see
-`Get Involved with MongoDB <http://www.mongodb.org/get-involved?tck=docs_server>`_.
+         .. step:: Authenticate a client
 
-Learning MongoDB
-----------------
+            Verify the identity of a user, replica set member, or
+            sharded cluster member with authentication.
 
-In addition to the documentation, there are many ways to learn to use
-MongoDB. You can:
+            :ref:`To learn more, see Authentication <authentication>`
 
-- Enroll in a free online course at `MongoDB University
-  <https://university.mongodb.com?tck=docs_server>`_
+         .. step:: Control access to your database
 
-- Browse the archive of `MongoDB Presentations
-  <https://www.mongodb.com/presentations?tck=docs_server>`_
+            Enable Role-Based Access Controls to manage user privileges
+            on your entire database cluster or individual collections.
 
-- Join a local `MongoDB User Group (MUG)
-  <https://www.mongodb.org/user-groups?tck=docs_server>`_
+            :ref:`To learn more, see Role-Based Access Controls <authorization>`
 
-- Attend an upcoming MongoDB `event <http://www.mongodb.com/events?tck=docs_server>`_ or
-  `webinar <http://www.mongodb.com/webinars?tck=docs_server>`_
+         .. step:: Encrypt your most sensitive data
 
-- Read the `MongoDB blog <http://www.mongodb.com/blog?tck=docs_server>`_
+            Client-side field level encryption protects data while it is
+            in-use by the database. Fields are encrypted before they
+            leave your application, protecting them over the network, in
+            memory and at rest.
 
-- Download the `Architecture Guide
-  <https://www.mongodb.com/lp/whitepaper/architecture-guide?tck=docs_server>`_
+            :doc:`To learn more, see Client-Side Field Level Encryption </core/security-client-side-encryption>`
 
-- Read the `Practical MongoDB Aggregations
-  <https://www.practical-mongodb-aggregations.com>`__ e-book
+      .. image:: /images/security.png
+         :alt: MongoDB Security
 
-Licensing
----------
+   .. tab:: Deploy and scale your database
+      :tabid: deploy
 
-The manual is licensed under a `Creative Commons
-Attribution-NonCommercial-ShareAlike 3.0 United States License
-<http://creativecommons.org/licenses/by-nc-sa/3.0/us/>`_.
+      .. procedure::
 
-For information on MongoDB licensing, see `MongoDB Licensing
-<https://www.mongodb.org/about/licensing/>`_.
+         .. step:: Deploy a replica set
 
+            Provide redundancy and resilience for your database by deploying a replica set.
 
-Additional Resources
---------------------
+            :ref:`To learn more, see Replication <replication>`
 
-`MongoDB, Inc.`_
-   The company behind MongoDB.
+         .. step:: Scale out your database
 
-`MongoDB Atlas <https://www.mongodb.com/cloud?tck=docs_server>`_
-   Database as a service.
+            Use sharding to horizontally scale your database or to ensure location-based separation of data.
 
-|mms-home|
-   A cloud-based hosted operations management solution for MongoDB.
+            :ref:`To learn more, see Sharding <sharding-introduction>`
 
-`MongoDB Ops Manager <https://docs.opsmanager.mongodb.com/current/?tck=docs_server>`_
-   Enterprise operations management solution for MongoDB: includes
-   Automation, Backup, and Monitoring.
+      .. image:: /images/scaling.png
+         :alt: MongoDB Deploy and Scale
 
-`MongoDB Drivers <https://docs.mongodb.com/drivers/?tck=docs_server>`_
-   The documentation available for the drivers for use with MongoDB.
+.. kicker:: Related Products & Resources
 
-.. _`MongoDB, Inc.`: https://www.mongodb.com?tck=docs_server
+Go Further with MongoDB
+-----------------------
 
-.. include:: /includes/replacement-mms.rst
+Explore libraries and tools for MongoDB.
 
-.. |arrow| unicode:: U+27A4
+.. card-group::
+   :columns: 3
+   :style: compact
+
+   .. card::
+      :cta: Learn about Drivers
+      :url: https://docs.mongodb.com/drivers/
+      :icon: /images/icons/drivers.svg
+      :icon-alt: MongoDB Atlas icon
+
+      Use MongoDB in your application’s language
+
+   .. card::
+      :cta: View Compass Docs
+      :url: https://docs.mongodb.com/compass/current/
+      :icon: /images/icons/compass.svg
+      :icon-alt: MongoDB University icon
+
+      Visually explore your data with MongoDB Compass
+
+   .. card::
+      :cta: View Ops Manager
+      :url: https://docs.opsmanager.mongodb.com/current/
+      :icon: /images/icons/opsmanager.svg
+      :icon-alt: MongoDB Server icon
+
+      Manage and monitor your deployments
+
+.. toctree::
+   :titlesonly:
+
+   Introduction </introduction>
+   Installation </installation>
+   MongoDB Shell (mongosh) <https://docs.mongodb.com/mongodb-shell/>
+   /crud
+   /aggregation
+   /data-modeling
+   /core/transactions
+   /indexes
+   /security
+   /changeStreams
+   /replication
+   /sharding
+   /administration
+   /storage
+   /faq
+   /reference
+   /release-notes
+   /support
