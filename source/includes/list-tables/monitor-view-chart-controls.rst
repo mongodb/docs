@@ -8,11 +8,14 @@
 
    * - :guilabel:`Granularity`
      - Modifies the granularity of metrics displayed for each chart.
-       Select a granularity between 1 minute and 1 day (24 hours).
-       Select ``Auto`` to automatically adjust the granularity based
-       on the selected :guilabel:`Zoom` or :guilabel:`Current Display`
-       date controls. ``Auto`` granularity selects the highest fidelity
-       granularity available for the time range.
+       Select a granularity, usually between 1 minute and 1 day (24 
+       hours). Select ``Auto`` to automatically adjust the granularity 
+       based on the selected :guilabel:`Zoom` or 
+       :guilabel:`Current Display` date controls. ``Auto`` granularity 
+       selects the highest fidelity granularity available for the time 
+       range.
+
+       .. include:: /includes/fact-10-second-granularity.rst
 
    * - :guilabel:`Zoom`
      - Modifies the date range of metrics displayed for each chart. 

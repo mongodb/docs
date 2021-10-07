@@ -15,6 +15,10 @@
        |service| supports the following subset of |iso8601|\-formatted
        time periods:
 
+       - **PT10S**
+         
+         .. include:: /includes/fact-10-second-granularity.rst
+
        - **PT1M**
        - **PT5M**
        - **PT1H**
