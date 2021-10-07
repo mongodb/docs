@@ -1,3 +1,15 @@
+.. _11.6.0.7119:
+
+MongoDB Agent 11.6.0.7119
+-------------------------
+
+*Released* 2021-10-06
+
+- Prepares for the removal of support for RHEL 6 and Amazon Linux 1.
+
+- Improves handling during restores for MongoDB processes with very  
+  long start-up times.
+
 .. _11.5.0.7078-1:
 
 MongoDB Agent 11.5.0.7078-1
