@@ -43,8 +43,8 @@ func main() {
 	if insertErr != nil {
 		panic(insertErr)
 	}
-	// end insertDocs
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
+	// end insertDocs
 
 	// begin deleteMany
 	deleteManyFilter := bson.D{{"rating", bson.D{{"$gt", 8}}}}

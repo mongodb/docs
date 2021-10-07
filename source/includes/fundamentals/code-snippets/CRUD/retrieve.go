@@ -41,12 +41,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 	// end insert docs
-
-	fmt.Printf("%d documents inserted with IDs:\n", len(result.InsertedIDs))
-	for _, id := range result.InsertedIDs {
-		fmt.Printf("\t%s\n", id)
-	}
 
 	// begin find docs
 	filter := bson.D{
