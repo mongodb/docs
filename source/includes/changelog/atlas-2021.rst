@@ -1,3 +1,31 @@
+.. _atlas_20211006:
+
+06 October 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports Google Private Service with |service| Private Endpoints via 
+  the API.
+
+- Supports the following GCP regions:
+  
+  - ``asia-south2`` (Delhi, India)
+  - ``australia-southeast2`` (Melbourne, Australia)
+  - ``europe-central2`` (Warsaw, Poland)
+
+- Adds support for cluster tier auto-scaling to low-CPU class clusters.
+
+- Enables cluster tier auto-scaling by default for all new |service| 
+  clusters created via the web interface.
+
+- Supports using :ref:`Live Migration <live-migration>` for MongoDB 
+  deployments running MongoDB 5.0.
+
+- Introduces metrics alerts for |service| serverless instances.
+
+- For :ref:`Cross-Organization Billing <cross-org-billing>` customers, 
+  |service| now allocates subscription charges across all linked 
+  organizations in proportion to spend.
+
 .. _atlas_20210915:
 
 15 September 2021 Release
