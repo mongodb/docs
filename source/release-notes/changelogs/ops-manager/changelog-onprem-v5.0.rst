@@ -1,3 +1,13 @@
+.. _opsmgr-server-5.0.3:
+
+|onprem| Server 5.0.3
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-10-06*
+
+- Updates the MongoDB Agent to :ref:`11.0.8.7002
+  <mongodb-11.0.8.7002>`.
+
 .. _opsmgr-server-5.0.2:
 
 |onprem| Server 5.0.2
