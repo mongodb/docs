@@ -40,35 +40,37 @@ database connections using the :method:`Mongo()` method:
    </reference/method/Mongo/#clientsidefieldlevelencryptionoptions>`
    document with the :method:`Mongo()` method.
 
+Connect to a Local MongoDB Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Consider a MongoDB instance running on localhost on the default port.
 
-.. example::
+The following example:
 
-   The following example:
+- Instantiates a new connection to the instance, and
+- Sets the global ``db`` variable to ``myDatabase`` using the
+  :method:`Mongo.getDB()` method. 
 
-   - Instantiates a new connection to the instance, and
-   - Sets the global ``db`` variable to ``myDatabase`` using the
-     :method:`Mongo.getDB()` method. 
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   conn = Mongo();
+   db = conn.getDB("myDatabase");
 
-      conn = Mongo();
-      db = conn.getDB("myDatabase");
+Connect to a MongoDB Instance that Enforces Access Control
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you connect to a MongoDB instance that enforces access control, you
+To connect to a MongoDB instance that enforces access control, you
 must include the credentials in the :manual:`connection string
 </reference/connection-string/>`. 
 
-.. example::
+The following command connects to a MongoDB instance that is:
 
-   The following command connects to a MongoDB instance that is:
+- Running on ``localhost`` on the default port, and
+- Secured using :manual:`SCRAM </core/security-scram/>`.
 
-   - Running on ``localhost`` on the default port, and
-   - Secured using :manual:`SCRAM </core/security-scram/>`.
+.. code-block:: javascript
 
-   .. code-block:: javascript
-
-      conn = Mongo("mongodb://<username>:<password>@localhost:27017/<authDB>");
+   conn = Mongo("mongodb://<username>:<password>@localhost:27017/<authDB>");
 
 .. the manual page says to use db.auth(), which isn't implemented yet.
    this is the only way I could get it to work.
@@ -76,20 +78,21 @@ must include the credentials in the :manual:`connection string
 
 .. include:: /includes/admonitions/note-redact-credentials-command-history.rst
 
-Additionally, you can use the :manual:`connect()
+Use ``connect()`` to Connect to a MongoDB Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also use the :manual:`connect()
 </reference/method/connect/>` method to connect to the MongoDB instance.
 
-.. example::
+The following command:
 
-   The following command:
+- Connects to the MongoDB instance that is running on ``localhost`` with
+  the non-default port ``27020``, and 
+- Sets the global ``db`` variable.
 
-   - Connects to the MongoDB instance that is running on ``localhost`` with
-     the non-default port ``27020``, and 
-   - Sets the global ``db`` variable.
+.. code-block:: javascript
 
-   .. code-block:: javascript
-
-      db = connect("localhost:27020/myDatabase");
+   db = connect("localhost:27020/myDatabase");
 
 .. skipping the Differences Between Interactive and Scripted mongo
    section as most of the javascript equivalents to the shell helpers
@@ -98,88 +101,7 @@ Additionally, you can use the :manual:`connect()
 
 .. also skippping --eval section as I'm having issues getting it to work
    https://docs.mongodb.com/manual/tutorial/write-scripts-for-the-mongo-shell/#eval-option
-
-Use ``require()`` to Include External Files and Modules
--------------------------------------------------------
-
-.. important::
-
-   A complete description of Node.js, modules, and the
-   `require() <https://nodejs.org/api/modules.html#modules_require_id>`__
-   function is out of scope for this tutorial. To learn more, refer to
-   the `Node.js Documentation <https://nodejs.org/api/modules.html>`__.
-
-You can use the `require()
-<https://nodejs.org/api/modules.html#modules_require_id>`__ function in
-the |mdb-shell| to include modules which exist in separate files.
-
-Require a File
-~~~~~~~~~~~~~~
-
-You can ``require()`` JavaScript files in the |mdb-shell| without any
-additional setup or configuration.
-
-.. note::
-
-   The |mdb-shell| does not execute files imported with ``require()``.
-   The |mdb-shell| adds everything from an imported file to the current
-   execution scope.
-
-.. example::
-
-   Use one of the following commands include a file from the current
-   working directory named ``tests.js``:
-
-   .. code-block:: javascript
-
-      require('./tests.js')
-
-   .. code-block:: javascript
-      
-      var tests = require('./tests.js')
-
-Require a Built-In Module
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can ``require()`` built-in Node modules (such as
-`fs <https://nodejs.org/api/fs.html#fs_file_system>`__) in the
-|mdb-shell| without any additional setup or configuration.
-
-.. example::
-
-   Use one of the following commands to include the ``fs`` module:
-
-   .. code-block:: javascript
-
-      require('fs')
-
-   .. code-block:: javascript
-
-      var fs = require('fs');
-
-Require an NPM Module
-~~~~~~~~~~~~~~~~~~~~~
-
-To ``require()`` external Node modules (such as those downloaded from
-`npm <https://www.npmjs.com/>`__) you must install the module globally
-or to the ``node_modules`` directory in your current working directory.
-
-Once you install or copy your desired package to one of the module
-directories, you can ``require()`` that package.
-
-.. example::
-
-   Use one of the following commands to include the
-   `moment <https://www.npmjs.com/package/moment>`__ module:
-
-   .. code-block:: javascript
-
-      require('moment')
-
-   .. code-block:: javascript
-
-      var moment = require('moment')
-
+   
 .. _mdb-shell-execute-file:
 
 Execute a JavaScript File
@@ -190,25 +112,101 @@ using the :method:`load()` method.
 
 .. example::
 
-   The following command loads and executes the ``myjstest.js`` file:
+   The following example creates and executes a script that:
 
-   .. code-block:: javascript
+   - Connects to a local instance running on the default port.
+   - Connects to the ``myDatabase`` database.
+   - Populates the ``movies`` collection with sample documents.
 
-      load("myjstest.js")
+   1. Create a file named ``connect-and-insert.js`` with the following
+      contents:
+
+      .. code-block:: javascript
+
+         db = connect('mongodb://localhost/myDatabase');
+
+         db.movies.insertMany( [
+            {
+               title: 'Titanic',
+               year: 1997,
+               genres: [ 'Drama', 'Romance' ],
+               rated: 'PG-13',
+               languages: [ 'English', 'French', 'German', 'Swedish', 'Italian', 'Russian' ],
+               released: ISODate("1997-12-19T00:00:00.000Z"),
+               awards: {
+                  wins: 127,
+                  nominations: 63,
+                  text: 'Won 11 Oscars. Another 116 wins & 63 nominations.'
+               },
+               cast: [ 'Leonardo DiCaprio', 'Kate Winslet', 'Billy Zane', 'Kathy Bates' ],
+               directors: [ 'James Cameron' ]
+            },
+            {
+               title: 'Spirited Away',
+               year: 2001,
+               genres: [ 'Animation', 'Adventure', 'Family' ],
+               rated: 'PG',
+               languages: [ 'Japanese' ],
+               released: ISODate("2003-03-28T00:00:00.000Z"),
+               awards: {
+                  wins: 52,
+                  nominations: 22,
+                  text: 'Won 1 Oscar. Another 51 wins & 22 nominations.'
+               },
+               cast: [ 'Rumi Hiiragi', 'Miyu Irino', 'Mari Natsuki', 'Takashi Naitè' ],
+               directors: [ 'Hayao Miyazaki' ]
+            },
+            {
+               title: 'Casablanca',
+               genres: [ 'Drama', 'Romance', 'War' ],
+               rated: 'PG',
+               cast: [ 'Humphrey Bogart', 'Ingrid Bergman', 'Paul Henreid', 'Claude Rains' ],
+               languages: [ 'English', 'French', 'German', 'Italian' ],
+               released: ISODate("1943-01-23T00:00:00.000Z"),
+               directors: [ 'Michael Curtiz' ],
+               awards: {
+                  wins: 9,
+                  nominations: 6,
+                  text: 'Won 3 Oscars. Another 6 wins & 6 nominations.'
+               },
+               lastupdated: '2015-09-04 00:22:54.600000000',
+               year: 1942
+            }
+         ] )
+
+   #. To load and execute the ``connect-and-insert.js`` file, run the
+      following command from ``mongosh``:
+
+      .. code-block:: javascript
+
+         load("connect-and-insert.js")
+
+   #. To confirm that the documents loaded correctly, use the
+      ``myDatabase`` collection and query the ``movies`` collection.
+
+      .. code-block:: javascript
+
+         use myDatabase
+         db.movies.find()
 
 The :method:`load()` method accepts relative and absolute paths. If the
-current working directory of the |mdb-shell| is ``/data/db``,
-and ``myjstest.js`` resides in the ``/data/db/scripts`` directory, then
+current working directory of the |mdb-shell| is ``/data/db``, and
+``connect-and-insert.js`` is in the ``/data/db/scripts`` directory, then
 the following calls within the |mdb-shell| are equivalent: 
 
 .. code-block:: javascript
    :copyable: false
 
-   load("scripts/myjstest.js")
-   load("/data/db/scripts/myjstest.js")
+   load("scripts/connect-and-insert.js")
+   load("/data/db/scripts/connect-and-insert.js")
 
 .. note::
 
-   There is no search path for the :method:`load()` method. If the desired
+   There is no search path for the :method:`load()` method. If the target
    script is not in the current working directory or the full specified
    path, the |mdb-shell| cannot access the file.
+
+.. toctree::
+   :titlesonly:
+
+   /require-external-modules
