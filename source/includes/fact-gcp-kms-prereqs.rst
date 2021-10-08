@@ -1,6 +1,6 @@
 .. include:: /includes/fact-kms-prereqs.rst
 
-- Your |gcp| Service Account Key.
+- Your symmetric |gcp| Service Account Key.
 - The Key Version Resource ID associated with your Service Account Key.
 - A |gcp| service account with credentials specified in your Service
   Account Key with sufficient permissions to:

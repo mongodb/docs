@@ -1,8 +1,8 @@
 .. include:: /includes/fact-kms-prereqs.rst
 
-- Have an |aws| customer master key (|cmk|).
+- Have a symmetric |aws| customer master key (|cmk|).
   To learn how to create a key, see
-  :aws:`Creating Keys </kms/latest/developerguide/create-keys.html>`
+  :aws:`Creating Keys </kms/latest/developerguide/create-keys.html#create-symmetric-cmk>`
   in the |aws| documentation.
 
 - Have an |aws| |iam| role with sufficient privileges. |service| must
