@@ -1,7 +1,16 @@
-.. important::
+.. _selinux-installation-instructions:
+
+.. warning::
+
+   An improperly configured SELinux policy might be insecure or may
+   stop your :binary:`mongod` instance from working.
 
    If SELinux is in ``enforcing`` mode, you must customize your SELinux
-   policy for MongoDB by making the following two policy adjustments:
+   policy for MongoDB to 
+   
+   - Permit Access to ``cgroup``
+   - Permit Access to ``netstat``
+
 
 Permit Access to ``cgroup``
 +++++++++++++++++++++++++++
@@ -91,90 +100,5 @@ to your SELinux policy:
       semodule_package -o mongodb_proc_net.pp -m mongodb_proc_net.mod
       sudo semodule -i mongodb_proc_net.pp
 
-.. important::
+.. include:: /includes/fact-selinux-redhat-customization.rst
 
-   In addition to the above, you will also need to further customize
-   your SELinux policy in the following two cases if SELinux is in
-   ``enforcing`` mode:
-
-   - You are using a **custom directory path** instead of using the
-     default :setting:`~storage.dbPath`, :setting:`systemLog.path`, or
-     :setting:`~processManagement.pidFilePath` in RHEL 7.0 or later,
-     and/or
-
-   - You are using a **custom port** instead of using the :doc:`default MongoDB ports
-     </reference/default-mongodb-port>`.
-
-Using a Custom MongoDB Directory Path
-+++++++++++++++++++++++++++++++++++++
-
-#. Update the SELinux policy to allow the ``mongod`` service
-   to use the new directory:
-
-   .. code-block:: bash
-
-      sudo semanage fcontext -a -t <type> </some/MongoDB/directory.*>
-
-   where specify one of the following types as appropriate:
-
-   - ``mongod_var_lib_t`` for data directory
-
-   - ``mongod_log_t`` for log file directory
-
-   - ``mongod_var_run_t`` for pid file directory
-
-   .. note::
-
-      Be sure to include the ``.*`` at the end of the directory.
-
-#. Update the SELinux user policy for the new directory:
-
-   .. code-block:: bash
-
-      sudo chcon -Rv -u system_u -t <type> </some/MongoDB/directory>
-
-   where specify one of the following types as appropriate:
-
-   - ``mongod_var_lib_t`` for data directory
-
-   - ``mongod_log_t`` for log directory
-
-   - ``mongod_var_run_t`` for pid file directory
-
-#. Apply the updated SELinux policies to the directory:
-
-   .. code-block:: bash
-
-      restorecon -R -v </some/MongoDB/directory>
-
-For example:
-
-.. tip::
-
-   Be sure to include the ``.*`` at the end of the directory for the
-   ``semanage fcontext`` operations.
-
-- If using a non-default MongoDB data path of ``/mongodb/data``:
-
-  .. code-block:: bash
-
-     sudo semanage fcontext -a -t mongod_var_lib_t '/mongodb/data.*'
-     sudo chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
-     restorecon -R -v '/mongodb/data'
-
-- If using a non-default MongoDB log directory of ``/mongodb/log``
-  (e.g. if the log file path is ``/mongodb/log/mongod.log``):
-
-  .. code-block:: bash
-
-     sudo semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
-     sudo chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
-     restorecon -R -v '/mongodb/log' 
-
-
-Using a Custom MongoDB Port
-+++++++++++++++++++++++++++
-
-.. code-block:: bash
-
-   sudo semanage port -a -t mongod_port_t -p tcp <portnumber>
