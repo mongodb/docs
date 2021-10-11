@@ -81,7 +81,7 @@ func main() {
 
 	fmt.Println("Aggregation Limit:")
 	// begin aggregate limit
-	limitStage := bson.D{{"$limit", 2}}
+	limitStage := bson.D{{"$limit", 3}}
 
 	aggCursor, aggErr := coll.Aggregate(context.TODO(), mongo.Pipeline{limitStage})
 	if aggErr != nil {

@@ -65,8 +65,8 @@ func main() {
 
 	fmt.Println("Aggegation Skip:")
 	// begin aggregate skip
-	sortStage := bson.D{{"$sort", bson.D{{"rating", 1}}}}
-	skipStage := bson.D{{"$skip", 2}}
+	sortStage := bson.D{{"$sort", bson.D{{"rating", -1}}}}
+	skipStage := bson.D{{"$skip", 3}}
 
 	aggCursor, aggErr := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage, skipStage})
 	if aggErr != nil {

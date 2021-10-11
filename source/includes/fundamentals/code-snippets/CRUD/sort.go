@@ -100,7 +100,7 @@ func main() {
 
 	fmt.Println("Aggregation Sort:")
 	// begin aggregate sort
-	sortStage := bson.D{{"$sort", bson.D{{"rating", 1}, {"type", -1}}}}
+	sortStage := bson.D{{"$sort", bson.D{{"rating", -1}, {"type", 1}}}}
 
 	aggCursor, aggErr := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage})
 	if aggErr != nil {
