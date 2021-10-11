@@ -1,0 +1,152 @@
+.. _source-usage-example-schema:
+
+================
+Specify a Schema
+================
+
+.. default-domain:: mongodb
+
+This usage example demonstrates how you can configure your MongoDB Kafka
+source connector to apply a custom **schema** to your data. A schema is a
+definition that specifies the structure and type information about data in an
+{+ak+} topic. Use a schema when you need to ensure the data on the topic populated
+by your source connector has a consistent structure.
+
+To learn more about using schemas with the {+mkc+}, see the 
+:ref:`Apply Schemas <kafka-source-apply-schemas>` guide.
+
+Example
+-------
+
+Suppose your application keeps track of customer data in a MongoDB
+collection, and you need to publish this data to a Kafka topic. You want
+the subscribers of the customer data to receive consistently formatted data.
+You choose to apply a schema to your data.
+
+Your requirements and your solutions are as follows:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Requirement
+     - Solution
+
+   * - Receive customer data from a MongoDB collection
+     - | Configure a MongoDB source connector to receive updates to data 
+         from a specific database and collection.
+       | See :ref:`<usage-example-schema-read-collection>`.
+
+   * - Provide the customer data schema
+     - | Specify a schema that corresponds to the structure and data types of
+         the customer data.
+       | See :ref:`<usage-example-schema-custom-schema>`.
+
+   * - Omit Kafka metadata from the customer data
+     - | Include only the data from the ``fullDocument`` field.
+       | See :ref:`<usage-example-schema-omit-metadata>`.
+
+For the full configuration file that meets the requirements above, see
+:ref:`<usage-example-schema-config>`.
+
+.. _usage-example-schema-read-collection:
+
+Receive Data from a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure your source connector to receive data from a MongoDB collection,
+specify the database and collection name. For this example, you can
+configure the connector to read from the ``purchases`` collection in the
+``customers`` database as follows:
+
+.. code-block:: ini
+
+   database="customers"
+   collection="purchases"
+
+.. _usage-example-schema-custom-schema:
+
+Create a Custom Schema
+~~~~~~~~~~~~~~~~~~~~~~
+
+A sample customer data document from your collection contains the following
+information:
+
+.. literalinclude:: /includes/source-connector/usage-examples/customer.json
+   :language: json
+
+From the sample document, you decide your schema should present the fields
+using the following data types:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 30 45
+
+   * - Field name
+     - Data types
+     - Description
+
+   * - **name**
+     - `string <https://avro.apache.org/docs/current/spec.html#schema_primitive>`__
+     - | Name of the customer
+
+   * - **visits**
+     - `array <https://avro.apache.org/docs/current/spec.html#Arrays>`__
+       of `timestamps <https://avro.apache.org/docs/current/spec.html#Timestamp+%28millisecond+precision%29>`__
+     - Dates the customer visited
+
+   * - **goods_purchased**
+     - `map <https://avro.apache.org/docs/current/spec.html#Maps>`__
+       of string (the assumed type) to
+       `integer <https://avro.apache.org/docs/current/spec.html#schema_primitive>`__
+       values
+     - Names of goods and quantity of each item the customer purchased
+
+You can describe your data using the {+avro+} schema format as shown in
+the example schema below:
+
+.. literalinclude:: /includes/source-connector/usage-examples/customers.avro
+   :language: json
+
+.. important:: Converters
+
+   If you want to send your data through {+ak+} with {+avro-short+} binary encoding,
+   you must use an {+avro-short+} converter. For more information, see the guide on
+   :ref:`Converters <intro-converters>`.
+
+.. _usage-example-schema-omit-metadata:
+
+Omit Metadata from Published Records
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The connector publishes the customer data documents and metadata
+that describes the document to a Kafka topic. You can set the connector to
+include only the document data contained in the ``fullDocument`` field of the
+record using the following setting:
+
+.. code-block:: ini
+
+   publish.full.document.only=true
+
+For more information on the ``fullDocument`` field, see the 
+:ref:`Change Streams <source-connector-fundamentals-change-event>` guide.
+
+.. _usage-example-schema-config:
+
+Custom Schema Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your custom schema connector configuration should resemble the following:
+
+.. literalinclude:: /includes/source-connector/usage-examples/schema.properties
+   :language: properties
+   :emphasize-lines: 3,4,5,6,7
+
+.. note:: Embedded Schema
+
+   In the preceding configuration, the JSON Schema converter embeds the custom
+   schema in your messages. To learn more about the JSON Schema converter, see the
+   :ref:`Converters <json-schema-converter-sample-properties>` guide.
+
+For more information on specifying schemas, see the :ref:`Apply
+Schemas <kafka-source-apply-schemas>` guide.
