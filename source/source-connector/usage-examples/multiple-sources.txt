@@ -1,5 +1,82 @@
-================
-Multiple Sources
-================
+.. _source-usage-example-multiple-sources:
 
-TODO:
+======================================
+Listen for Changes on Multiple Sources
+======================================
+
+.. default-domain:: mongodb
+
+This usage example demonstrates how to configure a MongoDB Kafka source
+connector to listen for change events on multiple MongoDB collections, and
+publish them to a Kafka topic.
+
+If you need your connector to listen for change events on a more particular
+set of databases and collections, you can use a **pipeline**. A pipeline is a
+MongoDB aggregation pipeline composed of instructions to the database to
+filter or transform data. See the next section for examples of how to
+configure your connector ``pipeline`` setting to match multiple database and
+collection names using a regular expression.
+
+.. note::
+
+   The ``database`` and ``collection`` configuration settings also affect
+   which databases and collections on which the connector listens for change
+   events. To learn more about these settings, see the
+   :ref:`<source-configuration-mongodb-connection>` guide.
+
+Examples
+--------
+
+The following examples show you how to use an aggregation pipeline to select
+specific database or collection names on which to listen for change events.
+
+Include Change Events from Multiple Databases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define an aggregation pipeline to select only change events on
+multiple databases by specifying the following in the ``pipeline``
+setting:
+
+- A ``$match`` aggregation operator
+- The ``ns.db``, field which identifies the database part of the namespace
+- The ``$regex`` operator and a regular expression that matches the database
+  names
+
+The following sample configuration shows how you can set your source connector
+to listen for change events on the ``sandbox`` and ``firewall`` databases:
+
+.. code-block:: ini
+
+   pipeline=[{"$match": {"ns.db": {"$regex": "/^(sandbox|firewall)$/"}}}]
+
+Exclude Change Events from Multiple Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define an aggregation pipeline to ignore change events on
+multiple collections by specifying the following in the ``pipeline``
+setting:
+
+- A ``$match`` aggregation operator
+- The ``ns.coll`` field, which identifies the collection part of the namespace
+- The ``$regex`` operator and a regular expression that matches the
+  collection names
+- The ``$not`` operator which instructs the enclosing ``$regex`` operator to
+  match everything the regular expression does not match
+
+The following sample configuration shows how you can set your source connector
+to filter out change events that originate from all collections named
+"hyperspace" in any database:
+
+.. code-block:: ini
+
+   pipeline=[{"$match": {"ns.coll": {"$regex": {"$not": "/^hyperspace$/"}}}}]
+
+Additional Information
+----------------------
+
+- The :manual:`$match aggregation operator </reference/operator/aggregation/match/>`
+- :manual:`MongoDB change events </change-events/>`
+- :manual:`MongoDB namespace </reference/limits/#faq-dev-namespace>`
+- Regular expression syntax using the `Patterns class <https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/regex/Pattern.html>`__
+- :manual:`</reference/operator/query/not/#-not-and-regular-expressions>`
+
