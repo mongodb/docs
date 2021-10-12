@@ -158,6 +158,7 @@ source_constants = {
     'agent-dl-rpm-rhel-7-ppc': 'RHEL/CentOS (7.X) Power (ppc64le) - RPM',
     'agent-dl-rpm-rhel-7-x64': 'RHEL/CentOS (7.X/8.X), SUSE12, SUSE15, Amazon Linux2 - RPM',
     'agent-dl-rpm-rhel-7-zSeries': 'RHEL 7.X Z-Series (s390x) - RPM',
+    'agent-dl-tar-rhel-7-zSeries': 'RHEL 7.X Z-Series (s390x) - TAR',
     'agent-dl-tar-macos': 'Mac OSX (10.8 and above) - TAR',
     'agent-dl-tar-other-linux': 'Other Linux - TAR',
     'agent-dl-tar-rhel-7-ppc': 'RHEL/CentOS (7.X) Power (ppc64le) - TAR',

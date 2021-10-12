@@ -53,14 +53,6 @@
 
                   .. include:: /includes/steps/install-mongodb-agent-manage-ubuntu1604-ppc64le-tar.rst
 
-         .. tab:: IBM ZSeries
-            :tabid: s390x
-
-            On zSeries architecture running Ubuntu 18.04 using a
-            ``deb`` package:
-
-            .. include:: /includes/steps/install-mongodb-agent-manage-s390x.ubuntu1804-deb.rst
-
    .. tab::
       :tabid: rhel
 
@@ -145,10 +137,23 @@
                .. tab:: 7.x
                   :tabid: v7
 
-                  Running RHEL / CentOS 7.x using the
-                  ``rpm`` package manager:
+                  .. tabs::
 
-                  .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
+                     .. tab:: RPM package
+                        :tabid: rpm 
+
+                        Running RHEL / CentOS 7.x using the
+                        ``rpm`` package manager:
+
+                        .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
+
+                     .. tab:: TAR archive
+                        :tabid: tar 
+
+                        Running RHEL / CentOS 7.x using the
+                        ``tar`` archive:
+
+                        .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-tar.rst
 
    .. tab::
       :tabid: linux
