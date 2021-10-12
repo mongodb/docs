@@ -70,7 +70,7 @@
    * - Project
      -
 
-       ``USERS_WITHOUT_MULTIFACTOR_AUTH``
+       ``USERS_WITHOUT_MULTI_FACTOR_AUTH``
          Users do not have two-factor authentication enabled
 
    * - Replica Set
