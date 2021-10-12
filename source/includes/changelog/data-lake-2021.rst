@@ -1,3 +1,12 @@
+.. _data-lake-v20211005:
+
+05 October 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Adds support for the ``authenticate`` command.
+- Preserves binary subtypes in the parquet reader/writer.
+
 .. _data-lake-v20210914:
 
 14 September 2021 Release
