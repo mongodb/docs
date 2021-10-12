@@ -667,7 +667,7 @@ Project
      - Alert Message
      - Scopes
 
-   * - .. alert:: ALL_USERS_HAVE_MULTIFACTOR_AUTH
+   * - .. alert:: ALL_USERS_HAVE_MULTI_FACTOR_AUTH
      - Users have two-factor authentication enabled
      - Project, Global
 
@@ -679,7 +679,7 @@ Project
      - Service restored because all invoices are paid in full
      - Project, Global
 
-   * - .. alert:: USERS_WITHOUT_MULTIFACTOR_AUTH
+   * - .. alert:: USERS_WITHOUT_MULTI_FACTOR_AUTH
      - Users do not have two-factor authentication enabled
      - Project, Global
 

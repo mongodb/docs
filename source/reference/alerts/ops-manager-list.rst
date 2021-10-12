@@ -502,11 +502,11 @@ Project
      - Alert Message
      - Scopes
 
-   * - :alert-type:`ALL_USERS_HAVE_MULTIFACTOR_AUTH`
+   * - :alert-type:`ALL_USERS_HAVE_MULTI_FACTOR_AUTH`
      - Users have two-factor authentication enabled
      - Project, Global
 
-   * - :alert-type:`USERS_WITHOUT_MULTIFACTOR_AUTH`
+   * - :alert-type:`USERS_WITHOUT_MULTI_FACTOR_AUTH`
      - Users do not have two-factor authentication enabled
      - Project, Global
 
