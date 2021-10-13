@@ -63,12 +63,57 @@ filter as a ``SingleResult`` type.
 To learn how to access data in a ``SingleResult`` see the :ref:`BSON
 <bson-unmarshalling>` guide.
 
+Modify Behavior
+~~~~~~~~~~~~~~~
+
+You can modify the behavior of ``Find()`` and ``FindOne()`` by passing
+in a ``FindOptions`` and ``FindOneOptions`` type respectively. If you
+don't specify any options, the driver uses the default values for each
+option.
+
+You can configure the commonly used options in both types with the
+following functions:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Function
+     - Description
+
+   * - ``SetCollation()`` 
+     - | The type of language collation to use when sorting results.  
+       | Default: ``nil``
+
+   * - ``SetLimit()`` 
+     - | The maximum number of documents to return. 
+       | Default: ``0`` 
+
+       .. note::
+
+          This option is not available for ``FindOneOptions``. The
+          ``FindOne()`` function internally uses ``SetLimit(-1)``.
+
+   * - ``SetProjection()`` 
+     - | The fields to include in the returned documents. 
+       | Default: ``nil``
+
+   * - ``SetSkip()`` 
+     - | The number of documents to skip.
+       | Default: ``0``
+
+   * - ``SetSort()`` 
+     - | The field and type of sort to order the matched documents. You can specify an ascending or descending sort.
+       | Default: none
+
 Example
 ```````
 
-The following example passes a context and a filter to the ``Find()``
-function, which matches documents where the ``ratings`` field falls
-between ``5`` and ``10``:
+The following example passes a context, filter, and ``FindOptions`` to
+the ``Find()`` function, which performs the following actions:
+
+- Matches documents where the ``rating`` falls between ``5`` and ``10``
+- Returns the ``type`` and ``rating``, but excludes the ``_id`` 
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
    :language: go
@@ -81,8 +126,31 @@ After running this example, the output resembles the following:
 .. code-block:: none
    :copyable: false
 
-   [_id:ObjectID("...") type:Masala rating:7 ]
-   [_id:ObjectID("...") type:Earl Grey rating:9 ]
+   [{type Masala} {rating 7}]
+   [{type Earl Grey} {rating 9}]
+
+Example
+```````
+
+The following example passes a context, filter, and ``FindOneOptions``
+to the ``FindOne()`` function, which performs the following actions:
+
+- Matches all documents
+- A descending sort on the ``rating`` field
+- Returns the ``type`` and ``rating``, but excludes the ``_id`` 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
+   :language: go
+   :dedent:
+   :start-after: begin find one docs
+   :end-before: end find one docs
+
+After running this example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   [{type Masala} {rating 10}]
 
 .. _retrieve-aggregation:
 
@@ -108,10 +176,65 @@ stage, the pipeline proceeds using all documents in the collection.
 .. To learn how to access data in a cursor, see the :doc:`Cursor
 .. </fundamentals/crud/read-operations/cursor>` guide.
 
+Modify Behavior
+~~~~~~~~~~~~~~~
+
+The ``Aggregate()`` function optionally takes an ``AggregateOptions``
+type, which represents options you can use to modify its behavior. If
+you don't specify any options, the driver uses the default values for
+each option.
+
+The ``AggregateOptions`` type allows you to configure options with the
+following functions:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Function
+     - Description
+
+   * - ``SetAllowDiskUse()`` 
+     - | Whether to write to temporary files.
+       | Default: ``false``
+
+   * - ``SetBatchSize()`` 
+     - | The number of documents to return in each batch.  
+       | Default: none
+
+   * - ``SetBypassDocumentValidation()`` 
+     - | Whether to allow the write to opt-out of document level validation.
+       | Default: ``false``
+
+   * - ``SetCollation()`` 
+     - | The type of language collation to use when sorting results.  
+       | Default: ``nil``
+
+   * - ``SetMaxTime()`` 
+     - | The maximum amount of time in milliseconds to allow the query to run.
+       | Default: ``nil``
+
+   * - ``SetMaxAwaitTime()`` 
+     - | The maximum amount of time in milliseconds for the server to wait on new documents to satisfy a tailable cursor query.
+       | Default: ``nil``
+
+   * - ``SetComment()`` 
+     - | An arbitrary string to help trace the operation through the database profiler, currentOp and logs.
+       | Default: ``""``
+
+   * - ``SetHint()`` 
+     - | The index to use to scan for documents to retrieve.
+       | Default: ``nil``
+
+   * - ``SetLet()`` 
+     - | Specifies parameters for the aggregate expression, which improves command readability by separating the variables from the query text.
+       | Default: none
+
 Example
 ```````
 
-The following example passes a context and an aggregation pipeline that:
+The following example passes a context and an aggregation pipeline that
+performs the following actions:
 
 - Groups reviews by types
 - Calculates the average rating of each type
@@ -143,11 +266,17 @@ examples:
 - :doc:`Find a Document </usage-examples/findOne>`
 - :doc:`Find Multiple Documents </usage-examples/find>`
 
-.. For more information on how to specify a query, see the :doc:`Specify
-.. a Query </fundamentals/crud/query-document>` guide.
+For more information about the read operations mentioned, see the
+following guides:
 
-.. For more information on aggregation, see the
-.. :doc:`Aggregation </fundamentals/aggregation>` guide.
+- :doc:`Skip Returned Results </fundamentals/crud/read-operations/skip>`
+- :doc:`Sort Results </fundamentals/crud/read-operations/sort>`
+- :doc:`Limit the Number of Returned Results </fundamentals/crud/read-operations/limit>`
+
+.. - :doc:`Specify Which Fields to Return </fundamentals/crud/read-operations/project>`
+.. - :doc:`Collations </fundamentals/collations>`
+.. - :doc:`Specify a Query </fundamentals/crud/query-document>` guide.
+.. - :doc:`Aggregation </fundamentals/aggregation>` guide.
 
 API Documentation
 ~~~~~~~~~~~~~~~~~
@@ -156,7 +285,10 @@ For more information on any of the functions or types discussed in this
 guide, see the following API Documentation:
 
 - `Find() <{+api+}/mongo#Collection.Find>`__
+- `FindOptions <{+api+}/mongo/options#FindOptions>`__
+- `FindOneOptions <{+api+}/mongo/options#FindOneOptions>`__
 - `Cursor <{+api+}/mongo#Cursor>`__
 - `FindOne() <{+api+}/mongo#Collection.FindOne>`__
 - `SingleResult <{+api+}/mongo#SingleResult>`__
 - `Aggregate() <{+api+}/mongo#Collection.Aggregate>`__
+- `AggregateOptions <{+api+}/mongo/options#AggregateOptions>`__

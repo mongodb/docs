@@ -13,8 +13,8 @@ import (
 
 func main() {
 	var uri string
-	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your `MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+	if uri = os.Getenv("DRIVER_REF_URI"); uri == "" {
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -27,6 +27,8 @@ func main() {
 			panic(err)
 		}
 	}()
+	
+	client.Database("tea").Collection("ratings").Drop(context.TODO())
 
 	// begin insert docs
 	coll := client.Database("tea").Collection("ratings")
@@ -41,24 +43,31 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
+	fmt.Printf("%d documents inserted with IDs:\n", len(result.InsertedIDs))
 	// end insert docs
 
+	for _, id := range result.InsertedIDs {
+		fmt.Printf("\t%s\n", id)
+	}
+
+	fmt.Println("Find:")
 	// begin find docs
-	filter := bson.D{
+	findFilter := bson.D{
 		{"$and",
 			bson.A{
 				bson.D{{"rating", bson.D{{"$gt", 5}}}},
 				bson.D{{"rating", bson.D{{"$lt", 10}}}},
 			}},
 	}
+	findProjection := bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}
+	findOptions := options.Find().SetProjection(findProjection)
 
-	findCursor, findErr := coll.Find(context.TODO(), filter)
+	findCursor, findErr := coll.Find(context.TODO(), findFilter, findOptions)
 	if findErr != nil {
 		panic(findErr)
 	}
 
-	var findResults []bson.M
+	var findResults []bson.D
 	if findErr = findCursor.All(context.TODO(), &findResults); findErr != nil {
 		panic(findErr)
 	}
@@ -67,6 +76,23 @@ func main() {
 	}
 	// end find docs
 
+	fmt.Println("Find One:")
+	// begin find one docs
+	findOneFilter := bson.D{}
+	findOnesort := bson.D{{"rating", -1}}
+	findOneprojection := bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}
+	findOneOptions := options.FindOne().SetSort(findOnesort).SetProjection(findOneprojection)
+
+	var findOneResult bson.D
+	findOneErr := coll.FindOne(context.TODO(), findOneFilter, findOneOptions).Decode(&findOneResult)
+	if findOneErr != nil {
+		panic(findOneErr)
+	}
+	
+	fmt.Println(findOneResult)
+	// end find one docs	
+
+	fmt.Println("Aggregation:")
 	// begin aggregate docs
 	groupStage := bson.D{
 		{"$group", bson.D{
