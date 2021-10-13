@@ -1,13 +1,14 @@
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
+   :widths: 25 15 15 15 15 15
 
    * - AWS Region
-     - 0-5 GB
-     - 5-100 GB
-     - 100-250 GB
-     - 250-500 GB
-     - >500 GB
+     - Tier 0 (0-5 GB)
+     - Tier 1 (5-100 GB)
+     - Tier 2 (100-250 GB)
+     - Tier 3 (250-500 GB)
+     - Tier 4 (>500 GB)
 
    * - US_EAST_1
      - -
