@@ -1,0 +1,133 @@
+.. _mongosh-scoping:
+
+============
+Code Scoping
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When JavaScript is loaded into :binary:`~bin.mongosh`, top-level
+functions and variables defined with ``const``, ``var``, and ``let``
+are added to the global scope. 
+
+Consider the following code: 
+
+.. code-block:: javascript
+
+   const SNIPPET_VERSION = "4.3.2";
+   var loadedFlag = true;
+   let unloaded = false;
+   
+   function isSnippetLoaded(loadedFlag) {
+      return ( loadedFlag ? "Snippet is loaded" : "Snippet is not loaded" )
+   }
+
+The variables, ``SNIPPET_VERSION``, ``loadedFlag``, and ``unloaded``
+are added to the global scope along with the function,
+``isSnippetLoaded()``.
+
+To avoid collisions with functions and variables defined in other code,
+be sure to consider scope as you write scripts. As a best practice,
+MongoDB recommends wrapping your code to limit scope. This guards
+against accidental scope collisions with similarly named elements in
+the global scope.
+
+One way to keep functions and variables out of global scope is to wrap
+your code like this: 
+
+.. code-block:: javascript
+
+   'use strict';
+   (() => {
+      ...
+   })()
+
+.. tip::
+
+   ``use strict;`` is for use in scripts. If you enter ``use strict;``
+   in the :binary:`mongosh` console directly, :binary:`mongosh` will
+   switch to a database called ``strict``.
+
+.. _snip-ex-scopes:
+
+Example: Restricting Scope
+--------------------------
+
+Compare the following code samples. They are very similar, but the
+second one is written in a way that restricts variable scope. 
+
+Sample 1: Unrestricted scope.
+
+.. code-block:: javascript
+
+   let averageGrossSales = [ 10000, 15000, 9000, 22000 ];
+
+   const Q1_DISCOUNT = .10;
+   const Q2_DISCOUNT = .15;
+   const Q3_DISCOUNT = .06;
+   const Q4_DISCOUNT = .23;
+
+   function quarterlySales(grossAmount, discount ) {
+      return grossAmount * discount ;
+   }
+
+   function yearlySales() {
+      let annualTotal = 0;
+
+      annualTotal += quarterlySales(averageGrossSales[0], Q1_DISCOUNT );
+      annualTotal += quarterlySales(averageGrossSales[1], Q2_DISCOUNT );
+      annualTotal += quarterlySales(averageGrossSales[2], Q3_DISCOUNT );
+      annualTotal += quarterlySales(averageGrossSales[3], Q4_DISCOUNT );
+
+      return annualTotal ;
+   }
+
+Sample 2: Restricted scope.
+
+.. code-block:: javascript
+   :emphasize-lines: 1, 14, 24
+
+   (() => {
+
+      let averageGrossSales = [ 10000, 15000, 9000, 22000 ];
+
+      const Q1_DISCOUNT = .10;
+      const Q2_DISCOUNT = .15;
+      const Q3_DISCOUNT = .06;
+      const Q4_DISCOUNT = .23;
+
+      function quarterlySales(grossAmount, discount ) {
+         return grossAmount * discount ;
+      }
+
+      globalThis.exposedYearlySales = function yearlySales() {
+         let annualTotal = 0;
+
+         annualTotal += quarterlySales(averageGrossSales[0], Q1_DISCOUNT );
+         annualTotal += quarterlySales(averageGrossSales[1], Q2_DISCOUNT );
+         annualTotal += quarterlySales(averageGrossSales[2], Q3_DISCOUNT );
+         annualTotal += quarterlySales(averageGrossSales[3], Q4_DISCOUNT );
+
+         return annualTotal ;
+      }
+   } )()
+
+In Sample 2, the following elements are all scoped within an anonymous
+function and they are all excluded from the global scope: 
+
+- The main function, ``yearlySales()``
+- The helper function, ``quarterlySales()``
+- The variables
+
+The ``globalThis.exposedYearlySales = function yearlySales()``
+assignment statement adds ``exposedYearlySales`` to the global scope.
+
+When you, call ``exposedYearlySales()`` it calls the ``yearlySales()``
+function. The ``yearlySales()`` function is not directly accessible.
+
