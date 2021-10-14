@@ -1,5 +1,123 @@
+.. _source-usage-example-copy-existing-data:
+
 ==================
 Copy Existing Data
 ==================
 
-TODO:
+.. default-domain:: mongodb
+
+This usage example demonstrates how to copy data from a MongoDB collection to an
+{+ak+} topic using the {+mkc+}.
+
+Example
+-------
+
+Suppose you need to copy a MongoDB collection to {+ak+} and filter some of the data.
+
+Your requirements and your solutions are as follows:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Requirement
+     - Solution
+
+   * - Copy the ``customers`` collection of the ``shopping`` database in your 
+       MongoDB deployment onto an {+ak+} topic.
+     - | See the :ref:`<source-usage-example-copy-existing-data-copy-data>` section of this guide.
+
+   * - Only copy documents that have the value "Mexico" in the ``country`` field.
+     - | See the :ref:`<source-usage-example-copy-existing-data-mask-data>` section of this guide.
+
+The ``customers`` collection contains the following documents:
+
+.. _usage-example-copy-sample-document:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": 1,
+     "country": "Mexico",
+     "purchases": 2,
+     "last_viewed": { "$date": "2021-10-31T20:30:00.245Z" }
+   }
+   {
+     "_id": 2,
+     "country": "Iceland",
+     "purchases": 8,
+     "last_viewed": { "$date": "2015-07-20T10:00:00.135Z" }
+   }
+
+.. _source-usage-example-copy-existing-data-copy-data:
+
+Copy Data
+~~~~~~~~~
+
+Copy the contents of the ``customers`` collection of the ``shopping`` database by 
+specifying the following configuration options in your source connector:
+
+.. code-block:: properties
+
+   database=shopping
+   collection=customers
+   copy.existing=true
+
+Your source connector copies your collection by creating change event documents
+that describe inserting each document into your collection. 
+
+To learn more about change event documents, see the
+:ref:`Change Streams <source-connector-fundamentals-change-event>` guide.
+
+To learn more about the ``copy.existing`` option, see
+:ref:`<source-configuration-copy-existing>` in the {+mkc+}.
+
+.. _source-usage-example-copy-existing-data-mask-data:
+
+Filter Data
+~~~~~~~~~~~
+
+You can filter data by specifying an aggregation pipeline in the 
+``copy.existing.pipeline`` option of your source connector configuration. The
+following configuration specifies an aggregation pipeline that matches all
+documents with "Mexico" in the ``country`` field:
+
+.. code-block:: properties
+
+   copy.existing.pipeline=[{ "$match": { "country": "Mexico" } }]
+
+To learn more about  the ``copy.existing.pipeline`` option, see
+:ref:`<source-configuration-copy-existing>` in the {+mkc+}.
+
+To learn more about aggregation pipelines, see the following resources:
+
+- :ref:`<source-usage-example-custom-pipeline>` Usage Example
+- :manual:`Aggregation </aggregation>` in the MongoDB manual.
+
+
+Copy Data Configuration
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Your source connector configuration to copy the ``customers`` collection should
+look like this:
+
+.. literalinclude:: /includes/usage-examples/copy/source.properties
+    :language: properties
+    :emphasize-lines: 5,6
+
+Once your connector copies your data, you see the following change event
+document corresponding to the 
+:ref:`preceding sample collection <usage-example-copy-sample-document>`
+in the ``shopping.customers`` {+ak+} topic:
+
+.. literalinclude:: /includes/usage-examples/copy/payload.json
+    :language: json
+    :copyable: false
+    :emphasize-lines: 6,7
+
+.. note:: Write the Data in your Topic into a Collection
+
+   Use a change data capture handler to convert change event documents in an
+   {+ak+} topic into MongoDB write operations. To learn more, see the
+   :ref:`Change Data Capture Handlers <sink-fundamentals-cdc-handler>` guide.
