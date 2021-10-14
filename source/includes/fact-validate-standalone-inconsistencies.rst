@@ -11,3 +11,7 @@ Index inconsistencies include:
 If any inconsistencies are detected by the 
 :method:`db.collection.validate()` command, a warning is returned 
 and the repair flag on the index is set to ``true``.
+
+:method:`db.collection.validate()` also validates any documents that
+violate the collection's 
+:ref:`schema validation rules <schema-validation-document>`.
