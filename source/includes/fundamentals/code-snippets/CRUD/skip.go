@@ -14,7 +14,7 @@ import (
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -40,45 +40,49 @@ func main() {
 		bson.D{{"type", "English Breakfast"}, {"rating", 5}},
 	}
 
-	result, insertErr := coll.InsertMany(context.TODO(), docs)
-	if insertErr != nil {
-		panic(insertErr)
+	result, err := coll.InsertMany(context.TODO(), docs)
+	if err != nil {
+		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 	//end insertDocs
 
 	fmt.Println("Skip:")
-	//begin skip
-	skipFilter := bson.D{}
-	skipOptions := options.Find().SetSort(bson.D{{"rating", 1}}).SetSkip(2)
+	{
+		//begin skip
+		filter := bson.D{}
+		opts := options.Find().SetSort(bson.D{{"rating", 1}}).SetSkip(2)
 
-	skipCursor, skipErr := coll.Find(context.TODO(), skipFilter, skipOptions)
+		cursor, err := coll.Find(context.TODO(), filter, opts)
 
-	var skipResults []bson.D
-	if skipErr = skipCursor.All(context.TODO(), &skipResults); skipErr != nil {
-		panic(skipErr)
+		var results []bson.D
+		if err = cursor.All(context.TODO(), &results); err != nil {
+			panic(err)
+		}
+		for _, result := range results {
+			fmt.Println(result)
+		}
+		//end skip
 	}
-	for _, result := range skipResults {
-		fmt.Println(result)
-	}
-	//end skip
 
 	fmt.Println("Aggegation Skip:")
-	// begin aggregate skip
-	sortStage := bson.D{{"$sort", bson.D{{"rating", -1}}}}
-	skipStage := bson.D{{"$skip", 3}}
+	{
+		// begin aggregate skip
+		sortStage := bson.D{{"$sort", bson.D{{"rating", -1}}}}
+		skipStage := bson.D{{"$skip", 3}}
 
-	aggCursor, aggErr := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage, skipStage})
-	if aggErr != nil {
-		panic(aggErr)
-	}
+		cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage, skipStage})
+		if err != nil {
+			panic(err)
+		}
 
-	var aggResults []bson.D
-	if aggErr = aggCursor.All(context.TODO(), &aggResults); aggErr != nil {
-		panic(aggErr)
+		var results []bson.D
+		if err = cursor.All(context.TODO(), &results); err != nil {
+			panic(err)
+		}
+		for _, result := range results {
+			fmt.Println(result)
+		}
+		// end aggregate skip
 	}
-	for _, result := range aggResults {
-		fmt.Println(result)
-	}
-	// end aggregate skip
 }

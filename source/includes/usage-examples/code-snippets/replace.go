@@ -19,7 +19,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your `MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -38,11 +38,10 @@ func main() {
 	replacement := bson.D{{"title", "Dodging Greys"}, {"text", "When there're no matches, no longer need to panic. You can use upsert"}}
 
 	result, err := coll.ReplaceOne(context.TODO(), filter, replacement)
-	// end replace
-
 	if err != nil {
 		panic(err)
 	}
+	// end replace
 
 	// When you run this file for the first time, it should print:
 	// Number of documents replaced: 1

@@ -32,7 +32,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your `MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -47,7 +47,7 @@ func main() {
 	}()
 
 	// begin create and insert
-	myCollection := client.Database("sample_training").Collection("posts")
+	coll := client.Database("sample_training").Collection("posts")
 
 	post := BlogPost{
 		Title:       "Annuals vs. Perennials?",
@@ -57,16 +57,16 @@ func main() {
 		Tags:        []string{"seasons", "gardening", "flower"},
 	}
 
-	_, err = myCollection.InsertOne(context.TODO(), post)
-	// end create and insert
-
+	_, err = coll.InsertOne(context.TODO(), post)
 	if err != nil {
 		panic(err)
 	}
+	// end create and insert
+
+	filter := bson.D{{"author", "Sam Lee"}}
 
 	var result bson.M
-	err = myCollection.FindOne(context.TODO(), bson.D{{"author", "Sam Lee"}}).Decode(&result)
-
+	err = coll.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return

@@ -14,7 +14,7 @@ import (
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -39,21 +39,25 @@ func main() {
 		bson.D{{"type", "Assam"}, {"rating", 7}},
 	}
 
-	result, insertErr := coll.InsertMany(context.TODO(), docs)
-	if insertErr != nil {
-		panic(insertErr)
+	result, err := coll.InsertMany(context.TODO(), docs)
+	if err != nil {
+		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 	// end insertDocs
 
-	// begin deleteMany
-	deleteManyFilter := bson.D{{"rating", bson.D{{"$gt", 8}}}}
-	deleteOptions := options.Delete().SetHint(bson.D{{"_id", 1}})
+	fmt.Println("Delete Many:")
+	{
+		// begin deleteMany
+		filter := bson.D{{"rating", bson.D{{"$gt", 8}}}}
+		opts := options.Delete().SetHint(bson.D{{"_id", 1}})
 
-	deleteManyResult, deleteManyErr := coll.DeleteMany(context.TODO(), deleteManyFilter, deleteOptions)
-	fmt.Printf("Number of documents deleted: %d\n", deleteManyResult.DeletedCount)
-	// end deleteMany
-	if deleteManyErr != nil {
-		panic(deleteManyErr)
+		result, err := coll.DeleteMany(context.TODO(), filter, opts)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("Number of documents deleted: %d\n", result.DeletedCount)
+		// end deleteMany
 	}
 }

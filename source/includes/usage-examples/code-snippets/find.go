@@ -20,7 +20,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your `MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -34,15 +34,14 @@ func main() {
 	}()
 
 	// begin find
-	myCollection := client.Database("sample_training").Collection("zips")
+	coll := client.Database("sample_training").Collection("zips")
 	filter := bson.D{{"pop", bson.D{{"$lte", 500}}}}
 
-	cursor, err := myCollection.Find(context.TODO(), filter)
-	// end find
-
+	cursor, err := coll.Find(context.TODO(), filter)
 	if err != nil {
 		panic(err)
 	}
+	// end find
 
 	var results []bson.M
 	if err = cursor.All(context.TODO(), &results); err != nil {

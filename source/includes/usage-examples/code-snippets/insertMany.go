@@ -19,7 +19,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your `MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -40,11 +40,10 @@ func main() {
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
-	// end insertMany
-
 	if err != nil {
 		panic(err)
 	}
+	// end insertMany
 
 	// When you run this file, it should print:
 	// 2 documents inserted with IDs: ObjectID("..."), ObjectID("...")

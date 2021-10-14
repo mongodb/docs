@@ -14,7 +14,7 @@ import (
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -40,60 +40,66 @@ func main() {
 		bson.D{{"type", "English Breakfast"}, {"rating", 5}},
 	}
 
-	result, insertErr := coll.InsertMany(context.TODO(), docs)
-	if insertErr != nil {
-		panic(insertErr)
+	result, err := coll.InsertMany(context.TODO(), docs)
+	if err != nil {
+		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 	//end insertDocs
 
 	fmt.Println("Limit:")
-	//begin limit
-	limitFilter := bson.D{}
-	limitOptions := options.Find().SetLimit(2)
+	{
+		//begin limit
+		filter := bson.D{}
+		opts := options.Find().SetLimit(2)
 
-	limitCursor, limitErr := coll.Find(context.TODO(), limitFilter, limitOptions)
+		cursor, err := coll.Find(context.TODO(), filter, opts)
 
-	var limitResults []bson.D
-	if limitErr = limitCursor.All(context.TODO(), &limitResults); limitErr != nil {
-		panic(limitErr)
+		var results []bson.D
+		if err = cursor.All(context.TODO(), &results); err != nil {
+			panic(err)
+		}
+		for _, result := range results {
+			fmt.Println(result)
+		}
+		//end limit
 	}
-	for _, result := range limitResults {
-		fmt.Println(result)
-	}
-	//end limit
 
 	fmt.Println("Limit, Skip and Sort:")
-	//begin multi options
-	multiFilter := bson.D{}
-	multiOptions := options.Find().SetSort(bson.D{{"rating", -1}}).SetLimit(2).SetSkip(1)
+	{
+		//begin multi options
+		filter := bson.D{}
+		opts := options.Find().SetSort(bson.D{{"rating", -1}}).SetLimit(2).SetSkip(1)
 
-	multiCursor, multiErr := coll.Find(context.TODO(), multiFilter, multiOptions)
+		cursor, err := coll.Find(context.TODO(), filter, opts)
 
-	var multiResults []bson.D
-	if multiErr = multiCursor.All(context.TODO(), &multiResults); multiErr != nil {
-		panic(multiErr)
+		var results []bson.D
+		if err = cursor.All(context.TODO(), &results); err != nil {
+			panic(err)
+		}
+		for _, result := range results {
+			fmt.Println(result)
+		}
+		//end multi options
 	}
-	for _, result := range multiResults {
-		fmt.Println(result)
-	}
-	//end multi options
 
 	fmt.Println("Aggregation Limit:")
-	// begin aggregate limit
-	limitStage := bson.D{{"$limit", 3}}
+	{
+		// begin aggregate limit
+		limitStage := bson.D{{"$limit", 3}}
 
-	aggCursor, aggErr := coll.Aggregate(context.TODO(), mongo.Pipeline{limitStage})
-	if aggErr != nil {
-		panic(aggErr)
-	}
+		cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{limitStage})
+		if err != nil {
+			panic(err)
+		}
 
-	var aggResults []bson.D
-	if aggErr = aggCursor.All(context.TODO(), &aggResults); aggErr != nil {
-		panic(aggErr)
+		var results []bson.D
+		if err = cursor.All(context.TODO(), &results); err != nil {
+			panic(err)
+		}
+		for _, result := range results {
+			fmt.Println(result)
+		}
+		// end aggregate limit
 	}
-	for _, result := range aggResults {
-		fmt.Println(result)
-	}
-	// end aggregate limit
 }

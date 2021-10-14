@@ -19,7 +19,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -37,15 +37,14 @@ func main() {
 	filter := bson.D{{"countries", "China"}}
 
 	estCount, estCountErr := coll.EstimatedDocumentCount(context.TODO())
-	count, countErr := coll.CountDocuments(context.TODO(), filter)
-	// end countDocuments
-
 	if estCountErr != nil {
 		panic(estCountErr)
-	}
-	if countErr != nil {
-		panic(countErr)
-	}
+	}	
+	count, err := coll.CountDocuments(context.TODO(), filter)
+	if err != nil {
+		panic(err)
+	}	
+	// end countDocuments
 
 	// When you run this file, it should print:
 	// Estimated number of documents in the movies collection: 23541

@@ -20,7 +20,7 @@ func main() {
 
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -33,41 +33,41 @@ func main() {
 		}
 	}()
 
-	// begin runCommand
-	db := client.Database("sample_restaurants")
-	command := bson.D{{"dbStats", 1}}
+	{
+		// begin runCommand
+		db := client.Database("sample_restaurants")
+		command := bson.D{{"dbStats", 1}}
 
-	var result bson.M
-	commandErr := db.RunCommand(context.TODO(), command).Decode(&result)
-	// end runCommand
+		var result bson.M
+		err := db.RunCommand(context.TODO(), command).Decode(&result)
+		if err != nil {
+			panic(err)
+		}
+		// end runCommand
 
-	if commandErr != nil {
-		panic(commandErr)
+		/* When you run this file, it should print something similar to the following:
+		{
+			"avgObjSize": 548.4101901854896,
+			"collections": 2,
+			"dataSize": 14014074,
+			"db": "sample_restaurants",
+			"fileSize": 0,
+			"indexSize": 286720,
+			"indexes": 2,
+			"nsSizeMB": 0,
+			"numExtents": 0,
+			"objects": 25554,
+			"ok": 1,
+			"storageSize": 8257536,
+			"totalFreeStorageSize": 0,
+			"views": 0
+		}
+		*/
+
+		output, err := json.MarshalIndent(result, "", "    ")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("%s\n", output)
 	}
-
-	/* When you run this file, it should print something similar to the following:
-	   {
-	       "avgObjSize": 548.4101901854896,
-	       "collections": 2,
-	       "dataSize": 14014074,
-	       "db": "sample_restaurants",
-	       "fileSize": 0,
-	       "indexSize": 286720,
-	       "indexes": 2,
-	       "nsSizeMB": 0,
-	       "numExtents": 0,
-	       "objects": 25554,
-	       "ok": 1,
-	       "storageSize": 8257536,
-	       "totalFreeStorageSize": 0,
-	       "views": 0
-	   }
-	*/
-
-	output, err := json.MarshalIndent(result, "", "    ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%s\n", output)
-
 }
