@@ -64,8 +64,12 @@ located in  the :program:`mongod`'s data directory.
 Before you can change the :term:`storage engine` for a standalone
 instance or replica set, you must give the {+aagent+} write access to
 the MongoDB :term:`data directory`'s *parent* directory. The agent
-creates a temporary backup of the data in parent directory when
-updating the storage engine.
+creates a temporary backup of the data in the parent directory when
+updating the storage engine. Storage engine changes on standalone 
+instances also require adequate disk space to perform a full :db-tools:`/mongodump` 
+and :db-tools:`/mongorestore`. This disk space is then restored to the 
+instance after the storage engine configuration change. |mms| *does not* 
+delete the backup directories. 
 
 You cannot change the storage engine on a :term:`config server`. For
 more information on storage engines and the available options, see
