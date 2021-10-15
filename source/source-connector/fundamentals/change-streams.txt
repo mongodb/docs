@@ -87,22 +87,33 @@ connector closes its change stream when you stop it.
 Resume Tokens
 ~~~~~~~~~~~~~
 
-Your connector stores a **resume token** to keep track of what changes
-it has processed. A resume token is a piece of data that references
-the ``_id`` field of a change event document in your MongoDB oplog.
-Your connector only processes relevant change event documents written to the oplog after the
-document referenced by its resume token.
+Your connector uses a **resume token** as its **offset**. An offset is a value
+your connector stores in an {+ak+} topic to keep track of what source data it
+has processed. Your connector uses its offset value when it must recover from
+a restart or crash. A resume token is a piece of data that references the 
+``_id`` field of a change event document in your MongoDB oplog.
 
-If your source connector does not have a resume token, such as when you start
-the connector for the first time, your connector processes relevant change
-events written to the oplog after it first connects to MongoDB.
+If your source connector does not have an offset, such as when you start
+the connector for the first time, your connector starts a new change stream.
+Once your connector receives its first change event document and publishes that
+document to {+ak+}, your connector stores the resume token of that document as
+its offset.
 
-.. <TODO for Ross>: Confirm if this is after the source connector first connects
-   to MongoDB, or after it first starts. Pretty sure it is after it first
-   connects to MongoDB. I think this is getting in the weeds of how change streams are
-   implemented in the Java driver and I'm not sure if this is a valuable distinction.
-
-If your source connector's resume token does not correspond to any entry in your
-oplog, your connector has an invalid resume token. To learn how to recover from an
-invalid resume token,
+If the resume token value of your source connector's offset does not correspond to
+any entry in your MongoDB deployment's oplog, your connector has an invalid resume
+token. To learn how to recover from an invalid resume token,
 :ref:`see our troubleshooting guide <kafka-troubleshoot-recover-invalid-resume-token>`.
+
+To learn more about resume tokens, see the following resources:
+
+- :manual:`Resume a Change Stream </changeStreams/#resume-a-change-stream>`
+  in the MongoDB manual
+- :manual:`Change Events </reference/change-events/#std-label-change-stream-event-id>`
+  in the MongoDB manual
+
+To learn more about offsets, see the following resources:
+
+- {+kc+} ``offset.storage.topic``
+  `configuration option documentation <https://docs.confluent.io/platform/current/installation/configuration/connect/index.html#offset-storage-topic>`__
+- {+kc+} ``OffsetStorageReader``
+  `API documentation  <https://kafka.apache.org/0110/javadoc/org/apache/kafka/connect/storage/OffsetStorageReader.html>`__
