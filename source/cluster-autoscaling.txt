@@ -38,12 +38,18 @@ How |service| Scales Cluster Tier
 |service| analyzes the following cluster metrics to determine when to
 scale a cluster, and whether to scale the cluster tier up or down:
 
-- CPU Utilization
+- CPU utilization
 
-- Memory Utilization
+- Memory utilization
 
-To learn more about how to monitor cluster metrics, see
-:ref:`monitor-cluster-metrics`.
+.. note::
+
+   To determine memory utilization, |service| calculates the following
+   delta: ``total system memory`` - (``free`` + ``buffer`` + ``cache``),
+   where ``free``, ``buffer``, and ``cache`` are amounts of available
+   memory that |service| can reclaim for other purposes. |service| then
+   divides that delta by the ``total system memory``. To learn more,
+   see :guilabel:`System Memory` in :ref:`review-available-metrics`.
 
 Before scaling your cluster tier, |service| checks that the cluster
 would not be in a tier outside of your specified
@@ -105,7 +111,48 @@ down to the next lowest tier if *both* of the following are true for
 To learn more about downward auto-scaling behavior, see
 :ref:`downward-scaling-considerations`.
 
-.. _howitworks-scale-cluster-storage:
+.. _downward-scaling-considerations:
+
+Considerations for Downward Auto-Scaling of Cluster Tier and Storage
+`````````````````````````````````````````````````````````````````````
+
+- When |service| downscales your cluster's storage capacity, this can
+  take longer than expanding storage capacity due to the mechanics of
+  the scaling process.
+- When |service| downscales your cluster to a lower cluster tier, it uses
+  the value in the :guilabel:`Minimum Cluster Size`. Estimate your
+  deployment's range of workloads and then set the 
+  :guilabel:`Minimum Cluster Size` value to the cluster tier that has
+  enough capacity to handle your deployment's workload. Account for any
+  possible spikes or dips in cluster activity.
+
+- You can't scale to a cluster smaller than ``M10``.
+
+- When |service| downscales your cluster, it checks that your minimum
+  cluster tier bound supports your cluster's current disk
+  configuration. If your selected minimum cluster tier can't support
+  your current disk configuration, |service| adjusts your minimum tier
+  to the next lowest tier which can support your configuration.
+
+  .. example::
+
+     You have set your auto-scaling bounds to ``M10``-``M60`` and your
+     current cluster tier is ``M40``. |service| triggers a downward
+     auto-scaling event because the average CPU Utilization and Memory
+     Utilization on your current cluster has been under 50% for the
+     past 24 hours.
+
+     1. |service| attempts to auto-scale your cluster down to ``M30``.
+        ``M30`` supports your current disk configuration, so the
+        auto-scaling operation succeeds.
+
+     #. |service| checks your minimum cluster bound (``M10``) and
+        determines that ``M10`` can't support your current disk
+        configuration.
+
+     #. |service| determines that ``M20`` is the lowest cluster tier
+        which can support your current disk configuration, and sets
+        your minimum cluster tier to ``M20``.
 
 Scaling a Sharded Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -120,6 +167,8 @@ criteria as replica sets. |service| applies the following rules:
 - *All* shards in the cluster must meet the criteria before
   |service| will auto-scale the cluster tier down.
 - The Config server replica set does not auto-scale.
+
+.. _howitworks-scale-cluster-storage:
 
 How |service| Scales Cluster Storage
 ------------------------------------
@@ -144,13 +193,9 @@ behavior differs by cloud provider:
    your cluster storage from the :ref:`Edit Cluster <scale-cluster>`
    page.
 
-Oplog Considerations
-~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/autoscale-oplog.rst
 
 Cluster Tier and Cluster Storage May Scale in Parallel
-``````````````````````````````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When |service| attempts to automatically scale your cluster storage
 capacity, it may need to scale your storage outside of the bounds
@@ -216,6 +261,11 @@ members with information on the event. The email includes the new
 cluster tier and information on any modified minimum or maximum tier
 bounds.
 
+Oplog Considerations
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/autoscale-oplog.rst
+
 Configure Auto-Scaling Options
 ------------------------------
 
@@ -236,13 +286,14 @@ section of the cluster builder for :guilabel:`General` and
 
 .. _configure-cluster-autoscaling:
 
-Cluster Tier Auto-Scaling is Enabled by Default
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Auto-Scaling for Cluster Tier and Cluster Storage is Enabled by Default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you create a new cluster, |service| enables auto-scaling, including
-increasing and decreasing your cluster tier's capacity. You do not need
+When you create a new cluster, |service| enables auto-scaling for
+cluster tier and cluster storage. You do not need
 to explicitly enable auto-scaling. If you prefer, you can
-:ref:`opt out <opt-out-autoscaling>`.
+:ref:`opt out <opt-out-autoscaling>` for cluster tier and cluster
+storage.
 
 .. note::
    |service| enables cluster tier auto-scaling by default when you create
@@ -269,59 +320,22 @@ automatically scale. |service| sets these values as follows:
 Review the Cluster Tier Auto-Scaling Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To review the enabled auto-scaling options:
+To review the enabled auto-scaling options for cluster tier and storage:
 
-1. In the :guilabel:`Auto-Scale` section that is checked, review
+1. In the :guilabel:`Auto-Scale` checkbox that is checked, review
    the :guilabel:`Maximum Cluster Size` and
    :guilabel:`Minimum Cluster Size` values and adjust them if needed.
 
 #. Review the :guilabel:`Allow cluster to be scaled down` option that is
    checked by default when you create a new cluster.
 
-.. _downward-scaling-considerations:
-
-Considerations for Downward Auto-Scaling
-````````````````````````````````````````
-
-- When |service| downscales your cluster to a lower cluster tier, it uses
-  the value in the :guilabel:`Minimum Cluster Size`. Estimate your
-  deployment's range of workloads and then set the 
-  :guilabel:`Minimum Cluster Size` value to the cluster tier that has
-  enough capacity to handle your deployment's workload. Account for any
-  possible spikes or dips in cluster activity.
-
-- You can't scale to a cluster smaller than ``M10``.
-
-- When |service| downscales your cluster, it checks that your minimum
-  cluster tier bound supports your cluster's current disk
-  configuration. If your selected minimum cluster tier can't support
-  your current disk configuration, |service| adjusts your minimum tier
-  to the next lowest tier which can support your configuration.
-
-  .. example::
-
-     You have set your auto-scaling bounds to ``M10``-``M60`` and your
-     current cluster tier is ``M40``. |service| triggers a downward
-     auto-scaling event because the average CPU Utilization and Memory
-     Utilization on your current cluster has been under 50% for the
-     past 24 hours.
-
-     1. |service| attempts to auto-scale your cluster down to ``M30``.
-        ``M30`` supports your current disk configuration, so the
-        auto-scaling operation succeeds.
-
-     #. |service| checks your minimum cluster bound (``M10``) and
-        determines that ``M10`` can't support your current disk
-        configuration.
-
-     #. |service| determines that ``M20`` is the lowest cluster tier
-        which can support your current disk configuration, and sets
-        your minimum cluster tier to ``M20``.
+#. Review the options under the :guilabel:`Storage Scaling` checkbox
+   that is checked by default.
 
 .. _opt-out-autoscaling:
 
-Opt Out of Cluster Tier Auto-Scaling
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Opt Out of Cluster Tier and Storage Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To opt out of cluster auto-scaling (increasing the cluster tier), when
 :ref:`creating a new cluster <create-new-cluster>`, navigate to the
@@ -335,15 +349,10 @@ To opt out of cluster auto-scaling (decreasing the cluster tier), when
 :guilabel:`Allow cluster to be scaled down` checkbox in the
 :guilabel:`Auto-scale` section.
 
-Cluster Storage Auto-Scaling is Enabled by Default
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To opt out of cluster storage scaling, un-check the
+:guilabel:`Storage Scaling` checkbox in the :guilabel:`Auto-scale`
+section.
 
-Cluster storage scaling is enabled by default. To opt out of
-cluster storage scaling, un-check the :guilabel:`Storage Scaling`
-checkbox in the :guilabel:`Auto-scale` section.
-
-For more information on cluster storage, see
-:ref:`create-cluster-storage`.
 
 .. _ack-auto-scaling-events:
 
