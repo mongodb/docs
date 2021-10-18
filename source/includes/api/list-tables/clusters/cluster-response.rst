@@ -143,7 +143,7 @@
    * - connectionStrings.privateEndpoint[n].endpoints[n].providerName
      - string
      - Cloud provider to which you deployed the private endpoint. 
-       |service| returns **AWS** or **AZURE**.
+       |service| returns **AWS**, **AZURE**, or **GCP**.
 
    * - connectionStrings.privateEndpoint[n].endpoints[n].region
      - string
