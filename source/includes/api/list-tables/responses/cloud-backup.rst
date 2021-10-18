@@ -26,6 +26,12 @@
      - string
      - |iso8601-time| when |service| deletes the snapshot.
 
+   * - frequencyType
+     - string
+     - Human-readable label that indicates the rate at which the backup policy item occurs. Value can be 
+       one of the following: ``ondemand``, ``hourly``, ``daily``, 
+       ``weekly``, or ``monthly``.
+
    * - id
      - string
      - Unique identifier of the snapshot.
@@ -62,6 +68,10 @@
    * - mongodVersion
      - string
      - Version of the MongoDB server.
+
+   * - policyItems
+     - array of strings
+     - List that contains unique identifiers for each backup policy item.
 
    * - replicaSetName
      - string
