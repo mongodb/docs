@@ -5,8 +5,8 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
      --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers" \
      --data '
        {
-         "databaseName": "$external",
-         "ldapAuthType": "USER",
+         "databaseName": "admin",
+         "ldapAuthType": "GROUP",
          "roles": [{
            "databaseName": "sales",
            "roleName": "readWrite"
@@ -18,5 +18,5 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
            "name": "myCluster", 
            "type": "CLUSTER"
          }],
-         "username": "CN=david@example.com,OU=users,DC=example,DC=com"
+         "username": "CN=marketing,OU=groups,DC=example,DC=com"
        }'

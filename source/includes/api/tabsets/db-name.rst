@@ -14,10 +14,11 @@
    .. tab:: LDAP
       :tabid: ldap
 
-      - **admin** if the database user authenticates with |ldap|
-        and ``"ldapAuthType"  : "GROUP"`` or
+      - **admin** if the database user authenticates with 
+        ``"ldapAuthType"  : "GROUP"`` or 
       - **$external** if the database user authenticates with
-        |ldap| and ``"ldapAuthType"  : "USER"``
+        ``"ldapAuthType"  : "USER"``
+
 
    .. tab:: AWS IAM
       :tabid: aws-iam
