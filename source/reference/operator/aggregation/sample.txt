@@ -17,32 +17,37 @@ Definition
 
    .. versionadded:: 3.2
 
-   Randomly selects the specified number of documents from its input.
+   Randomly selects the specified number of documents from the
+   input documents.
 
    The :pipeline:`$sample` stage has the following syntax: 
 
    .. code-block:: javascript
 
-      { $sample: { size: <positive integer> } }
+      { $sample: { size: <positive integer N> } }
+
+   ``N`` is the number of documents to randomly select.
 
 Behavior
 --------
 
-:pipeline:`$sample` uses one of two methods to obtain N random
-documents, depending on the size of the collection, the size of N,
-and ``$sample``'s position in the pipeline.
+If all of the following conditions are true, :pipeline:`$sample` uses a
+pseudo-random cursor to select the ``N`` documents:
 
-If all the following conditions are met, ``$sample`` uses a
-pseudo-random cursor to select documents:
+- :pipeline:`$sample` is the first stage of the pipeline.
+- ``N`` is less than 5% of the total documents in the collection.
+- The collection contains more than 100 documents.
 
-- ``$sample`` is the first stage of the pipeline
-- N is less than 5% of the total documents in the collection
-- The collection contains more than 100 documents
+If any of the previous conditions are false, :pipeline:`$sample`:
 
-If any of the above conditions are NOT met, ``$sample`` performs a
-collection scan followed by a random sort to select N documents. In
-this case, the :pipeline:`$sample` stage is subject to the
-:ref:`sort memory restrictions <sort-memory-limit>`.
+- Reads all documents that are output from a preceding aggregation
+  stage or a collection scan.
+- Performs a random sort to select ``N`` documents.
+
+.. note::
+
+   Random sorts are subject to the :ref:`sort memory restrictions
+   <sort-memory-limit>`.
 
 MMAPv1 May Return Duplicate Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,4 +91,3 @@ The operation returns three random documents.
 .. seealso::
 
    :expression:`$rand (aggregation) <$rand>`
-
