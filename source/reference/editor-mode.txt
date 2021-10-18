@@ -1,0 +1,310 @@
+.. _mongosh-editor-mode:
+
+===========
+Editor Mode
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+
+
+The :binary:`~bin.mongosh` console is line oriented. However, you can
+also use an editor to work with multiline functions. There are two
+options:
+
+- Use the ``edit`` command with an :ref:`external editor
+  <mongosh-external-editor>`.
+- Use the ``.editor`` command, a :ref:`built-in editor
+  <monogsh-built-in-editor>`.
+
+.. _mongosh-external-editor:
+
+Using an External Editor
+------------------------
+
+The :binary:`~bin.mongosh` ``edit`` command works with an external
+editor. You can configure an external editor in the shell that runs
+:binary:`~bin.mongosh` or from within :binary:`~bin.mongosh`.
+
+If editors are configured in both locations, the editor configured
+within :binary:`~bin.mongosh` will take precedence. 
+
+To set an editor within :binary:`~bin.mongosh`, use the
+:ref:`config.set() <mongosh-shell-settings>` command.
+
+.. code-block:: javascript
+
+   config.set( "editor", "vi" )
+
+See :ref:`setting the external editor <mongosh-ex-setting-the-editor>`
+for more examples. 
+
+You can use ``edit`` in three ways:
+
+- :ref:`Start a new Editing Session <mongosh-start-editing>`
+- :ref:`Edit a Variable <mongosh-edit-variable>`
+- :ref:`Edit a Statement <mongosh-edit-statement>`
+
+.. _mongosh-start-editing:
+
+Start a New Editing Session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enter ``edit`` by itself to start a new editing session.
+
+.. code-block:: javascript
+
+   edit
+     
+If you start an editing session without any arguments, the editor opens
+with the last edit loaded. See the example, :ref:`mongosh-ex-edit-last`.
+
+.. _mongosh-edit-variable:
+
+Edit a Variable
+~~~~~~~~~~~~~~~
+
+If an argument exists in the console namespace, you can use ``edit`` to
+update it. 
+
+.. code-block:: javascript
+
+   var albums = [ ];
+   edit albums
+
+- The variable ``albums`` is set in the first line. 
+- The second line opens the external editor to edit the value of
+  ``albums``.
+
+.. _mongosh-edit-statement:
+
+Edit a Statement
+~~~~~~~~~~~~~~~~
+
+To edit a statement in the external editor, invoke ``edit`` with a
+statement such as :method:`db.collection.insertMany()`.
+
+.. code-block:: javascript
+
+   edit db.digits.insertMany( [] )
+
+After editing ``db.music.insertMany( [] )`` and exiting the external
+editor, the :binary:`~bin.mongosh` console might look like this:
+
+.. code-block:: javascript
+   :copyable: false
+
+   prompt> db.digits.insertMany([{ "zero": 0 }, { "one": 1 }, { "two": 2 }])
+
+When you exit the external editor, the statement is copied to the
+console input line, ready to run. It does not run automatically.
+Press ``<enter>`` to run the statement or ``<ctrl> + c`` to cancel it.
+
+.. _monogsh-built-in-editor:
+
+Using the Built-in Editor
+-------------------------
+
+The ``.editor`` command provides basic multiline editing capabilities. 
+
+The editor does not save code. When you close the built-in editor, your
+edits are loaded into the global scope. If your edit calls any
+functions or commands, they will run when you close the editor.
+
+To start the built-in editor:
+
+.. code-block:: javascript
+
+   .editor
+
+Enter ``<ctrl> + d`` to exit and run your function.
+
+See :ref:`mongosh-ex-built-in-editor`.
+
+Examples
+--------
+
+.. _mongosh-ex-setting-the-editor:
+
+Set the External Editor 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``EDITOR`` environment variable is set in the shell running
+:binary:`~bin.mongosh`, the ``edit`` command will use that editor.
+
+If the :binary:`~bin.mongosh` ``editor`` property is also set,
+:binary:`~bin.mongosh` will use that program instead. The ``editor``
+property overrides the ``EDITOR`` environment variable.
+
+Set the ``EDITOR`` environment variable
+```````````````````````````````````````
+
+The environment variable should be set before starting
+:binary:`~bin.mongosh`.
+
+Set an environment variable in ``bash`` or ``zsh``: 
+
+.. code-block:: shell
+
+   export EDITOR=vi
+
+The ``vi`` editor will open when you run ``edit`` in the
+:binary:`~bin.mongosh` console.
+
+.. note::
+
+   You can also set environment variables from within
+   :binary:`~bin.mongosh` using ``process.env.<VARIABLE>``.
+
+   Set the EDITOR environment variable from :binary:`~bin.mongosh`:
+
+   .. code-block:: javascript
+
+      process.env.EDITOR = 'nano'
+
+   The environment variable is only updated for the current
+   :binary:`~bin.mongosh`. The update does not persist when
+   :binary:`~bin.mongosh` exits.
+
+Set the ``editor`` Property
+```````````````````````````
+
+To set ``nano`` as the editor from within :binary:`~bin.mongosh`, use
+the :ref:`config.set() <mongosh-shell-settings>` command.
+
+.. code-block:: javascript
+
+   config.set( "editor", "nano" )
+
+The ``nano`` editor will open when you run ``edit`` in the
+:binary:`~bin.mongosh` console.
+
+.. note::
+
+   :binary:`~bin.mongosh` will attempt to use whatever program is
+   configured. A program like ``less`` will work. Other programs, such
+   as ``grep``, may crash or have unexpected results.
+
+.. _mongosh-ex-edit-last:
+
+Editing a Command
+~~~~~~~~~~~~~~~~~
+
+Use ``edit`` to modify the last edit. 
+
+This statement was just written in the external editor. Unfortunately,
+it has a syntax error. The highlighted line is missing a comma: 
+
+.. code-block:: javascript
+   :emphasize-lines: 4
+
+   // WARNING: This code contains an error
+
+   db.users.insertMany( [
+      { "name": "Joey", "group": "sales" }
+      { "name": "Marie", "group": "sales" },
+      { "name": "Elton", "group": "accounting" },
+      { "name": "Paola", "group": "marketing" }
+   ] )
+
+Enter ``edit`` without any arguments to re-edit the command. The
+external editor reloads the last edit.
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 6
+
+   // WARNING: This code contains an error
+
+   db.users.insertMany([{
+           "name": "Joey",
+           "group": "sales"
+      } {
+           "name": "Marie",
+           "group": "sales"
+      },
+      {
+           "name": "Elton",
+           "group": "accounting"
+      },
+      {
+           "name": "Paola",
+           "group": "marketing"
+      }
+   ])
+
+The code is reformatted for easier editing. In this case the missing
+comma in the highlighted line causes the documents to be misaligned. 
+
+Using Visual Studio as an External Editor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Visual Studio requires a special parameter to work as an external
+editor. Use ``--wait`` with Visual Studio.
+
+.. code-block:: javascript
+
+   export EDITOR="/usr/local/bin/code --wait"
+
+If you use Visual Studio, you can also use the `MongoDB VS Code
+Extension <https://www.mongodb.com/products/vs-code>`__.
+
+Unset the External Editor
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unset the ``editor`` variable in :binary:`~bin.mongosh`:
+
+.. code-block:: javascript
+
+   config.set("editor", null)
+
+If the ``EDITOR`` environment is configured, unset it as well. From
+:binary:`~bin.mongosh`, run:
+
+.. code-block:: javascript
+
+   process.env.EDITOR = ''
+
+If you unset ``EDITOR`` using ``process.env`` the change will not
+persist after exiting :binary:`~bin.mongosh`. To make the change
+persistent, unset ``EDITOR`` from your shell.
+
+.. _mongosh-ex-built-in-editor:
+
+Using the Built-In Editor
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Start the editor:
+
+.. code-block:: javascript
+
+   .editor
+
+:binary:`~bin.mongosh` enters editor mode. Enter your code:
+
+.. code-block:: javascript
+   :copyable: false
+
+   // Entering editor mode (^D to finish, ^C to cancel)
+   var albums =
+       [
+          { "artist": "Beatles", "album": "Revolver" },
+          { "artist": "The Monkees", "album": "Head"}
+       ] 
+
+   db.music.insertMany( albums )
+
+
+To leave the editor, 
+   
+- Press ``<ctrl> + d`` to exit and run your function
+- Press ``<ctrl> + c`` to exit without running your function
+
+Objects which are declared using ``.editor``, like ``albums`` in this
+example, are added to the global scope. They are available after
+``.editor`` closes.
+
