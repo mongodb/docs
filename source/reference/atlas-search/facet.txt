@@ -183,10 +183,9 @@ Example
 .. example::
 
    The following example uses an index named ``default`` on the 
-   ``sample_mflix.movies`` collection. The ``title`` field in the 
+   ``sample_mflix.movies`` collection. The ``genres`` field in the 
    collection is indexed as type :ref:`bson-data-types-string-facet` 
-   and :ref:`bson-data-types-string` so that both the :ref:`text-ref` 
-   and the ``facet`` search return correct results. 
+   and the ``year`` field is indexed as :ref:`bson-data-types-number`. 
 
    .. code-block:: json 
 
@@ -194,22 +193,19 @@ Example
         "mappings": {
           "dynamic": false,
           "fields": {
-            "title": [
-              {
-                "type": "stringFacet"
-              },
-              {
-                "type": "string"
-              }
-            ]
+            "genres": {
+              "type": "stringFacet"
+            },
+            "released": {
+              "type": "date"
+            }
           }
         }
       }
 
    The query  uses the :pipeline:`$searchMeta` stage to search the 
-   ``title`` field in the ``movies`` collection for the term ``new`` 
-   and  retrieve metadata results for the query string. The query 
-   requests only the top ``7`` facet categories by count.
+   ``year`` field in the ``movies`` collection for movies from 2000 to 
+   2015 and retrieve a count of the number of movies in each genre.
 
    .. code-block:: json 
 
@@ -218,16 +214,16 @@ Example
           "$searchMeta": {
             "facet": {
               "operator": {
-                "text": {
-                  "path": "title",
-                  "query": "new"
+                "range": {
+                  "path": "year",
+                  "gte": 2000,
+                  "lte": 2015
                 }
               },
               "facets": {
-                "titleFacet": {
+                "genresFacet": {
                   "type": "string",
-                  "path": "title",
-                  "numBuckets" : 7
+                  "path": "genres"
                 }
               }
             }
@@ -240,24 +236,27 @@ Example
    .. code-block:: json 
       :copyable: false 
 
-      { 
-        "count" : { 
-          "lowerBound" : NumberLong(101) 
-        }, 
-        "facet" : { 
-          "titleFacet" : { 
-            "buckets" : [ 
-              { "_id" : "The New Land", "count" : Long(5) }, 
-              { "_id" : "Aftershock: Earthquake in New York", "count" : Long(2) }, 
-              { "_id" : "Happy New Year", "count" : Long(2) }, 
-              { "_id" : "Scanners II: The New Order", "count" : Long(2) }, 
-              { "_id" : "The New Adventures of Pippi Longstocking", "count" : Long(2) },
-              { "_id" : "2 Days in New York", "count" : Long(1) }, 
-              { "_id" : "A Brand New Life", "count" : Long(1) } 
-            ] 
-          } 
-        } 
-      }
+      [
+        {
+          count: { lowerBound: Long("13718") },
+          facet: {
+            genresFacet: {
+              buckets: [
+                { _id: 'Drama', count: Long("7759") },
+                { _id: 'Comedy', count: Long("3937") },
+                { _id: 'Romance', count: Long("1916") },
+                { _id: 'Thriller', count: Long("1705") },
+                { _id: 'Documentary', count: Long("1703") },
+                { _id: 'Action', count: Long("1558") },
+                { _id: 'Crime', count: Long("1475") },
+                { _id: 'Adventure', count: Long("1111") },
+                { _id: 'Horror', count: Long("1008") },
+                { _id: 'Biography', count: Long("877") }
+              ]
+            }
+          }
+        }
+      ]
 
    To learn more about these results, see :ref:`fts-facet-results`.
 
@@ -460,9 +459,9 @@ Date facets have the following syntax:
          },
          "facets": {
            "<facet-name>" : {
-             "type" : "number",
+             "type" : "date",
              "path" : "<field-path>", 
-             "boundaries" : <array-of-numbers>, 
+             "boundaries" : <array-of-dates>, 
              "default": "<bucket-name>"
            }
          }
@@ -665,7 +664,6 @@ array has the following fields:
       {
         "mappings": {
           "dynamic": false,
-          "analyzer": "lucene.standard",
           "fields": {
             "genres": {
               "type": "stringFacet"
