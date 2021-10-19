@@ -1,4 +1,5 @@
-For data hosted on MongoDB Atlas, :atlas:`Atlas Search </atlas-search>`
-provides support for additional languages. To see the complete list of
-languages supported by Atlas Search, see the :atlas:`Atlas Search
-Language Analyzers </reference/atlas-search/analyzers/language/>`.
+:atlas:`Atlas Search </atlas-search>` also offers common 
+:atlas:`analyzers for parsing text for full-text search 
+</reference/atlas-search/analyzers/>`, including support for over 
+:atlas:`40 language-specific analyzers 
+</reference/atlas-search/analyzers/language/>`.
