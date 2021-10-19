@@ -4,4 +4,135 @@
 Topic Naming
 ============
 
-asdf
+.. default-domain:: mongodb
+
+The examples on this page show how to configure your MongoDB Kafka source
+connector to customize the name of the topic to which it publishes records.
+
+By default, the MongoDB Kafka source connector publishes change event data
+to a Kafka topic with the same name as the MongoDB **namespace** from which
+the change events originated. A namespace is a string that's composed of the
+database and collection name concatenated with a dot "." character.
+
+The following examples show different ways that you can customize the
+Kafka topics to which the connector publishes change event data:
+
+- :ref:`Topic Prefix <topic-naming-prefix-example>`
+- :ref:`Topic Suffix <topic-naming-suffix-example>`
+- :ref:`Topic Namespace Map <topic-naming-namespace-map-example>`
+- :ref:`Topic Namespace Map with Wildcard <topic-naming-namespace-map-wildcard-example>`
+
+.. _topic-naming-prefix-example:
+
+Topic Prefix Example
+~~~~~~~~~~~~~~~~~~~~
+
+You can configure your source connector to prepend a string to the
+namespace of the change event data, and publish records to that Kafka
+topic. This setting automatically concatenates your prefix with your
+namespace with the "." character.
+
+To specify the topic prefix, use the ``topic.prefix`` configuration
+setting as shown in the following example:
+
+.. code-block:: ini
+   :emphasize-lines: 1
+
+   topic.prefix=myPrefix
+   database=test
+   collection=data
+
+Once set, your connector publishes any changes to the ``data`` collection
+in the ``test`` database to the Kafka topic named ``myPrefix.test.data``.
+
+.. _topic-naming-suffix-example:
+
+Topic Suffix Example
+~~~~~~~~~~~~~~~~~~~~
+
+You can configure your source connector to append a string to the
+namespace of the change event data, and publish records to that Kafka
+topic. This setting automatically concatenates your namespace with your
+suffix with the "." character.
+
+To specify the topic suffix, use the ``topic.suffix`` configuration
+setting as shown in the following example:
+
+.. code-block:: ini
+   :emphasize-lines: 1
+
+   topic.suffix=mySuffix
+   database=test
+   collection=data
+
+Once set, your connector publishes any changes to the ``data`` collection
+in the ``test`` database to the Kafka topic named ``test.data.mySuffix``.
+
+.. _topic-naming-namespace-map-example:
+
+Topic Namespace Map Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure your source connector to map namespace values to Kafka
+topic names for incoming change event data.
+
+If the database name or namespace of the change event matches one of the
+fields in the map, the connector publishes the record to the value that
+corresponds to that mapping.
+
+If the database name or namespace of the change event do not match any
+mapping, the connector publishes the record using the default topic naming
+scheme unless otherwise specified by a different topic naming setting.
+
+Any mapping that includes both database and collection takes precedence
+over mappings that only specify the source database name.
+
+.. important::
+
+   The namespace map matching occurs before the connector applies any other
+   topic naming setting. If defined, the connector applies the
+   ``topic.prefix`` and the ``topic.suffix`` settings to the topic name
+   after the mapping.
+
+The following example shows how to specify the ``topic.namespace.map``
+setting to define a topic namespace mappings from the ``carDb`` database
+to the ``automobiles`` topic and the ``carDb.ev`` namespace to the
+``electricVehicles`` topic:
+
+.. code-block:: ini
+
+   topic.namespace.map={"carDb": "automobiles", "carDb.ev": "electricVehicles"}
+
+Since the ``carDb.ev`` namespace mapping takes precedence over the ``carDb``
+mapping, the connector performs the following actions:
+
+- If the change event came from the database ``carDb`` and collection ``ev``,
+  the connector sets the destination to the  ``electricVehicles`` topic.
+- If the change event came from the database ``carDb`` and a collection
+  other than ``ev``, the connector sets the destination to the
+  ``automobiles`` topic.
+- If the change document came from any database other than ``carDb``, the
+  connector sets the destination topic to the default namespace naming
+  scheme.
+- If defined, the connector applies the ``topic.prefix`` and
+  ``topic.suffix`` settings to the destination topic name after it
+  performs namespace mapping.
+
+.. _topic-naming-namespace-map-wildcard-example:
+
+Topic Namespace Map with Wildcard Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to specifying database name and namespace in your topic
+namespace map as shown in :ref:`<topic-naming-namespace-map-example>`,
+you can use a wildcard ``*`` to match change events from all databases and
+namespaces without mappings.
+
+.. code-block:: ini
+
+   topic.namespace.map={"carDb": "automobiles", "carDb.ev": "electricVehicles", "*": "otherVehicles"}
+
+In the preceding wildcard example, the connector publishes change documents
+that originated from all databases other than ``carDb`` to the
+``otherVehicles`` topic.
+
