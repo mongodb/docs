@@ -14,25 +14,29 @@ Use |fts| for Full-Text Search Queries
 
 If your queries rely on inefficient regex matching, 
 :ref:`Atlas Search queries <searching-ref>` that use the :ref:`$search 
-<query-syntax-ref>` aggregation pipeline stage can dramatically improve 
-the performance of text queries and offer more options for customizing 
-query parameters.
+<query-syntax-ref>` aggregation pipeline stage can significantly 
+improve the performance of text queries and offer more options for 
+customizing query parameters.
 
 .. _case-insensitive-regex-anti-pattern:
 
-Improve Case-Insensitive Regex Queries
---------------------------------------
+Avoid Inefficient Regex Matching
+--------------------------------
 
-If you frequently run case-insensitive regex queries (utilizing the
-``i`` option), you can create a
-:manual:`case-insensitive index </core/index-case-insensitive/>` to
-support your queries. You can specify a
-:manual:`collation </reference/collation/>` on an index to define
-language-specific rules for string comparison, such as rules for
-lettercase and accent marks. A case-insensitive index improves
-performance for case-insensitive queries. Instead, we recommend 
-:ref:`Atlas Search queries <searching-ref>` that use the :ref:`$search 
-<query-syntax-ref>` aggregation pipeline stage.
+If you frequently run case-insensitive regex queries (utilizing the 
+``i`` option), we recommend :ref:`Atlas Search queries <searching-ref>` 
+that use the :ref:`$search <query-syntax-ref>` aggregation pipeline 
+stage. Alternatively, you can create a :manual:`case-insensitive index 
+</core/index-case-insensitive/>` to support your queries. You can 
+also specify a :manual:`collation </reference/collation/>` on an index 
+to define language-specific rules for string comparison, such as rules 
+for lettercase and accent marks. However, :manual:`collation 
+</reference/collation/>` can cause some functionality loss compared to 
+:ref:`Atlas Search queries <searching-ref>`. While a case-insensitive 
+index improves performance for case-insensitive queries, 
+:ref:`Atlas Search queries <searching-ref>` more significiantly improve 
+the performance of text queries and offer more options for customizing 
+query parameters.
 
 Example
 -------
@@ -71,9 +75,11 @@ collection has no indexes besides the default ``_id`` index:
 
 If your application frequently queries the ``first_name`` field, you may
 want to run case-insensitive regex queries to more easily find matching
-names. Case-insensitive regex also helps match against differing data
+names. Case-insensitive regex also matches against differing data
 formats, as in the example above where you have ``first_names`` of both
-"Michael" and "MICHAEL".
+"Michael" and "MICHAEL". However, we recommend 
+:ref:`Atlas Search queries <searching-ref>` that use the :ref:`$search 
+<query-syntax-ref>` aggregation pipeline stage.
 
 If a user searches for the string "michael", the application may run
 the following query:
@@ -95,10 +101,12 @@ case-insensitive. The query returns the following documents:
 Although this query does return the expected documents, case-insensitive
 regex queries with no index support are not very performant.
 
-To improve performance, you can create a
+To improve performance, :ref:`create an 
+Atlas Search index <ref-create-index>`. While you can create a
 :manual:`case-insensitive index </core/index-case-insensitive/>` on the
-``first_name`` field. Instead, we recommend that you :ref:`create an 
-Atlas Search index <ref-create-index>`.
+``first_name`` field, :ref:`Atlas Search queries <searching-ref>` more 
+significantly improve the performance of text queries and offer more 
+options for customizing query parameters.
 
 .. list-table::
    :widths: 50 50
@@ -122,17 +130,18 @@ Atlas Search index <ref-create-index>`.
             }
           }
 
-When the ``strength`` field of an index's ``collation`` document is
-``1`` or ``2``, the index is case-insensitive. For a detailed
-description of the collation document and the different ``strength``
-values, see :manual:`Collation Document
+:manual:`Collation </reference/collation/>` can cause some 
+functionality loss. When the ``strength`` field of an index's 
+``collation`` document is ``1`` or ``2``, the index is 
+case-insensitive. For a detailed description of the collation document 
+and the different ``strength`` values, see :manual:`Collation Document
 </reference/collation/#collation-document>`.
 
 For the application to use the case-insesitive index, you must also 
 specify the *same* collation document from the index in the regex 
-query. You can remove the ``$regex`` operator from the previous 
-:method:`~db.collection.find()` method and instead utilize the newly 
-created index. Instead, use an :ref:`Atlas Search query 
+query. While you can remove the ``$regex`` operator from the previous 
+:method:`~db.collection.find()` method and use the newly 
+created index, we recommend that you use an :ref:`Atlas Search query 
 <searching-ref>` that uses the :ref:`$search <query-syntax-ref>` 
 aggregation pipeline stage.
 
@@ -154,10 +163,8 @@ aggregation pipeline stage.
               $search: {
                 "index": "default",
                 "text": {
-                  "query": "michael",
-                  "path": {
-                    "wildcard": "*"
-                  }
+                  "path": "first_name",
+                  "query": "michael"
                 }
               }
             }
