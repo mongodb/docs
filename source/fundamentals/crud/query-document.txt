@@ -1,0 +1,332 @@
+===============
+Specify a Query
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _query_document_golang:
+
+Overview
+--------
+
+In this guide, you can learn how to specify a query to match a subset
+of documents.
+
+To match a subset of documents, specify a **query filter** containing
+your **match criteria**. Match criteria consist of the fields and
+values you want present in a document. A query filter contains at least
+one set of match criteria to determine which documents to include in the
+resulting set.
+
+In a query filter, you can match fields with :ref:`literal values
+<go-literal-values>` or with :ref:`query operators
+<query-operators-go>`. Query operators allow you to perform mathematical
+or logical operations to locate documents within a collection.
+
+Match criteria with literal values use the following format:
+
+.. code-block:: go
+   :copyable: false
+
+   filter := bson.D{{"<field>", "<value>"}}
+
+Match criteria with a query operator use the following format:
+
+.. code-block:: go
+   :copyable: false
+   
+   filter := bson.D{{"<field>", bson.D{{"<operator>", "<value>"}}}}
+
+The following sections use :ref:`literal values <go-literal-values>`
+and :ref:`query operators <query-operators-go>` with the ``Find()``
+function to match a subset of documents.
+
+Sample Data
+~~~~~~~~~~~
+
+To run the examples in this guide, load the sample data into the
+``ratings`` collection of the ``tea`` database with the following
+snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :language: go
+   :dedent:
+   :start-after: begin insert docs
+   :end-before: end insert docs
+
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+   
+Each document contains a rating for a type of tea and the vendors that
+carry them, which corresponds to the ``rating``, ``type``, and
+``vendor`` fields.
+
+.. include:: /includes/fundamentals/truncated-id.rst
+
+.. _go-literal-values:
+
+Literal Values
+--------------
+
+Literal value query filters return documents with an exact match to your
+match criteria.
+
+.. tip::
+
+   If you specify an empty query filter, CRUD operations match all the
+   documents in a collection.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``type`` is "Oolong":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :language: go
+   :dedent:
+   :start-after: begin literal
+   :end-before: end literal
+
+The expected output of this example is as follows:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type Oolong} {rating 7} {vendor [C]}]
+
+.. tip::
+
+   Literal value queries return the same value as the ``$eq``
+   comparison operator. For example, the following query filters produce
+   the same result:
+
+   .. code-block:: go
+   
+      filter := bson.D{{"type", "Oolong"}}
+
+   .. code-block:: go
+
+      filter := bson.D{{"type", bson.D{{"$eq", "Oolong"}}}}
+
+.. _query-operators-go:
+
+Comparison
+----------
+
+Comparison operators analyze the value in a document against the specified
+value in your match criteria. Common comparison operators include
+``$gt`` for "greater than" comparisons, ``$lte`` for "less than or equal
+to" comparisons, and ``$ne`` for "not equal to" comparisons.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``rating`` is less
+than ``7``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :language: go
+   :dedent:
+   :start-after: begin comparison
+   :end-before: end comparison
+
+The expected output of this example is as follows:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type English Breakfast} {rating 6}]
+   [{_id ObjectID("...")} {type Assam} {rating 5}]
+
+For a full list of comparison operators, see the :manual:`Comparison
+Query Operators </reference/operator/query-comparison/>` page.
+
+Logical
+-------
+
+Logical operators require at least two match criteria. They check if
+documents meet all, at lease one, or none of the specified criteria.
+Common logical operators include ``$and`` where all match criteria must
+be true, and ``$or`` where at least one of the match criteria must be
+true.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``rating`` is greater
+than ``7`` and less than or equal to ``10``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :language: go
+   :dedent:
+   :start-after: begin logical
+   :end-before: end logical
+
+The expected output of this example is as follows:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type Masala} {rating 10} {vendor [A C]}]
+   [{_id ObjectID("...")} {type Earl Grey} {rating 8} {vendor [A B]}]
+
+For a full list of logical operators, see the :manual:`Logical
+Query Operators </reference/operator/query-logical/>` page.
+
+.. tip:: 
+
+   Multiple match criteria resembling an ``$eq`` comparison operator in
+   a literal query return the same value as the ``$and`` logical
+   operator. For example, the following query filters produce the same result:
+
+   .. code-block:: go
+   
+      filter := bson.D{{"type", "Oolong"}, {"rating", 7}}
+
+   .. code-block:: go
+   
+      filter := bson.D{
+	    {"$and",
+		    bson.A{
+				bson.D{{"type", "Oolong"}},
+				bson.D{{"rating", 7}},
+			}},
+      }
+
+Element
+-------
+
+Element operators check for the presence or type of the specified field.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``vendor`` field does
+not exist:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :language: go
+   :dedent:
+   :start-after: begin element
+   :end-before: end element
+
+The expected output of this example is as follows:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type English Breakfast} {rating 6}]
+   [{_id ObjectID("...")} {type Assam} {rating 5}]
+   
+For a full list of element operators, see the :manual:`Element
+Query Operators </reference/operator/query-element/>` page.
+
+Evaluation
+----------
+
+Evaluation operators analyze values in a document based on the
+specified value in your match criteria. Common evaluation operators
+include ``$regex`` where a field's value must match the specified
+regular expression and ``$text`` where the field's value must contain
+the specified string.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``type`` begins with
+the letter "E":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :language: go
+   :dedent:
+   :start-after: begin evaluation
+   :end-before: end evaluation
+
+The expected output of this example is as follows:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type English Breakfast} {rating 6}]
+   [{_id ObjectID("...")} {type Earl Grey} {rating 8} {vendor [A B]}]
+   
+For a full list of evaluation operators, see the :manual:`Evaluation
+Query Operators </reference/operator/query-evaluation/>` page.
+
+Array
+-----
+
+Array operators check the values or amount of elements in an array field.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``vendor`` contains "C":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :language: go
+   :dedent:
+   :start-after: begin array
+   :end-before: end array
+
+The expected output of this example is as follows:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type Masala} {rating 10} {vendor [A C]}]
+   [{_id ObjectID("...")} {type Oolong} {rating 7} {vendor [C]}]
+
+For a full list of array operators, see the :manual:`Array
+Query Operators </reference/operator/query-array/>` page.
+
+Bitwise
+-------
+
+Bitwise operators convert a numeric field from a base-10 (decimal)
+number into the corresponding base-2 (binary) number. They check whether
+the value in a document has the same bits set as the value in your match
+criteria.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``rating`` has the same
+bits set as ``6`` (which is "00000110"):
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :language: go
+   :dedent:
+   :start-after: begin bitwise
+   :end-before: end bitwise
+
+The expected output of this example is as follows:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type English Breakfast} {rating 6}]
+   [{_id ObjectID("...")} {type Oolong} {rating 7} {vendor [C]}]
+
+For a full list of bitwise operators, see the :manual:`Bitwise
+Query Operators </reference/operator/query-bitwise/>` page.
+
+Additional Information
+----------------------
+
+.. For information on specifying a geospatial query, see the guide on
+.. :doc:`Geospatial Data </fundamentals/crud/read-operations/geospatial>`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+For more information on any of the functions or types used in this
+guide, see the following API Documentation:
+
+- `Find() <{+api+}/mongo#Collection.Find>`__
+- `Cursor <{+api+}/mongo#Cursor>`__
