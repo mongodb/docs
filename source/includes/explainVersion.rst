@@ -1,4 +1,4 @@
 ``explainVersion`` is:
 
-- 1 when enhanced query execution is not used.
-- 2 when enhanced query execution is used.
+- 1 when slot based query execution is not used.
+- 2 when slot based query execution is used.
