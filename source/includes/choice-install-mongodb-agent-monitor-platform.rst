@@ -73,36 +73,72 @@
 
             On x86_64 architecture:
 
-            .. tabs::
+            .. cond:: cloud
 
-               .. tab:: RHEL/CentOS 6.x, Amazon Linux
-                  :tabid: v6
+               .. tabs::
 
-                  Running RHEL / CentOS 6.x using an ``rpm`` package:
+                  .. tab:: Amazon Linux
+                     :tabid: v6
 
-                  .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64-rpm.rst
+                     Running Amazon Linux using an ``rpm`` package:
 
-               .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
-                  :tabid: v7
+                     .. include::
+                        /includes/steps/install-mongodb-agent-monitor-x86-64-rpm.rst
 
-                  Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
-                  Amazon Linux 2:
+                  .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
+                     :tabid: v7
 
-                  .. tabs::
+                     Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
+                     Amazon Linux 2:
 
-                     .. tab:: RPM package
-                        :tabid: rpm
+                     .. tabs::
 
-                        Using an ``rpm`` package:
+                        .. tab:: RPM package
+                           :tabid: rpm
 
-                        .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64.rhel7-rpm.rst
+                           Using an ``rpm`` package:
 
-                     .. tab:: TAR archive
-                        :tabid: tar
+                           .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64.rhel7-rpm.rst
 
-                        Using a ``tar`` archive:
+                        .. tab:: TAR archive
+                           :tabid: tar
 
-                        .. include:: /includes/steps/install-mongodb-agent-monitor-rhel7-x86-64-tar.rst
+                           Using a ``tar`` archive:
+
+                           .. include:: /includes/steps/install-mongodb-agent-monitor-rhel7-x86-64-tar.rst
+
+            .. cond:: onprem
+
+               .. tabs::
+
+                  .. tab:: RHEL/CentOS 6.x, Amazon Linux
+                     :tabid: v6
+
+                     Running RHEL / CentOS 6.x using an ``rpm`` package:
+
+                     .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64-rpm-old.rst
+
+                  .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
+                     :tabid: v7
+
+                     Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
+                     Amazon Linux 2:
+
+                     .. tabs::
+
+                        .. tab:: RPM package
+                           :tabid: rpm
+
+                           Using an ``rpm`` package:
+
+                           .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64.rhel7-rpm.rst
+
+                        .. tab:: TAR archive
+                           :tabid: tar
+
+                           Using a ``tar`` archive:
+
+                           .. include:: /includes/steps/install-mongodb-agent-monitor-rhel7-x86-64-tar.rst
 
          .. tab:: PowerPC
             :tabid: ppc
@@ -132,23 +168,31 @@
             On zSeries architecture (managing MongoDB 3.4 or
             later deployments):
 
-            .. tabs::
+            .. cond:: cloud
 
-               .. tab:: 6.x
-                  :tabid: v6
+               Running RHEL / CentOS 7.x using the ``rpm`` package manager:
 
-                  Running RHEL / CentOS 6.x using the
-                  ``rpm`` package manager:
+               .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.rhel7-rpm.rst
 
-                  .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.rhel6-rpm.rst
+            .. cond:: onprem
 
-               .. tab:: 7.x
-                  :tabid: v7
+               .. tabs::
 
-                  Running RHEL / CentOS 7.x using the
-                  ``rpm`` package manager:
+                  .. tab:: 6.x
+                     :tabid: v6
 
-                  .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.rhel7-rpm.rst
+                     Running RHEL / CentOS 6.x using the
+                     ``rpm`` package manager:
+
+                     .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.rhel6-rpm.rst
+
+                  .. tab:: 7.x
+                     :tabid: v7
+
+                     Running RHEL / CentOS 7.x using the
+                     ``rpm`` package manager:
+
+                     .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.rhel7-rpm.rst
 
    .. tab::
       :tabid: linux

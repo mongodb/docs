@@ -153,7 +153,7 @@ source_constants = {
     'agent-dl-deb-debian-9-x64': 'Debian 8/9/10, Ubuntu 16.X/18.X/20.x - DEB',
     'agent-dl-deb-ubuntu-16-zSeries': 'Ubuntu 18.X Z-Series (s390x) - DEB',
     'agent-dl-msi-windows': 'Windows - MSI',
-    'agent-dl-rpm-rhel-6-x64': 'RHEL/CentOS 6.X, Amazon Linux - RPM',
+    'agent-dl-rpm-rhel-6-x64': 'Amazon Linux - RPM',
     'agent-dl-rpm-rhel-6-zSeries': 'RHEL 6.X Z-Series (s390x) - RPM',
     'agent-dl-rpm-rhel-7-ppc': 'RHEL/CentOS (7.X) Power (ppc64le) - RPM',
     'agent-dl-rpm-rhel-7-x64': 'RHEL/CentOS (7.X/8.X), SUSE12, SUSE15, Amazon Linux2 - RPM',
