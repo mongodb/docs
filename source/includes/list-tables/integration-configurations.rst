@@ -92,7 +92,7 @@
        send alert notifications for programmatic processing. |service|
        sends an alert notification as an |http| POST request. The
        request body contains a |json| document that uses the same
-       format as the |service| |api| ``Alerts`` resource.
+       format as the {+atlas-admin-api+} ``Alerts`` resource.
 
        |service| adds a request header called ``X-MMS-Event`` to
        distinguish between various alert states. The possible values

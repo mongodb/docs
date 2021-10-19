@@ -111,7 +111,7 @@
      - Sends an |http| POST
        request to an endpoint for programmatic processing. The 
        request body contains a |json| document that uses the same
-       format as the |service| |api|
+       format as the {+atlas-admin-api+}
        :doc:`Alerts resource </reference/api/alerts>`. 
         
        This option is available only if you have configured Webhook 

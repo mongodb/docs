@@ -311,7 +311,7 @@
 
           The |service| console doesn't display your **labels**.
           |service| returns them in the response body when you use the
-          |service| |api| to
+          {+atlas-admin-api+} to
 
           - :doc:`get one </reference/api/clusters-get-one/>` |service|
             cluster

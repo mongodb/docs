@@ -46,7 +46,7 @@
 
           The **labels** you define are not visible in the |service|
           console. They are returned in the response body when you use
-          the |service| |api| to
+          the {+atlas-admin-api+} to
           :doc:`get one </reference/api/database-users-get-single-user/>`,
           :doc:`get all </reference/api/database-users-get-all-users/>`, or
           :doc:`update </reference/api/database-users-update-a-user/>`
