@@ -101,7 +101,81 @@ The following command:
 
 .. also skippping --eval section as I'm having issues getting it to work
    https://docs.mongodb.com/manual/tutorial/write-scripts-for-the-mongo-shell/#eval-option
-   
+
+Connection Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider portability and the operating environment when you write
+scripts. 
+
+Script Includes Connection Detail
+`````````````````````````````````
+
+If the connection details are included in the script:
+
+- You do not need to specify connection information on the command
+  line.
+- You should use the ``--nodb`` parameter.
+
+Consider a :binary:`~bin.mongod` instance running on
+``localhost:27500``.
+
+The following script prints the number of users. Copy the code and save
+it as ``getUserCount.js``.
+
+.. code-block:: javascript
+   :emphasize-lines: 1
+
+   db = connect( "localhost:27500/admin" );˘
+   printjson( db.system.users.countDocuments() );
+
+Run ``getUserCount.js``:
+
+.. code-block:: javascript
+
+   mongosh --nodb --file getUserCount.js
+
+- :binary:`~bin.mongosh` defaults to port 27170.
+- :binary:`~bin.mongod` is running on port 27500.
+- The ``--nodb`` parameter instructs :binary:`~bin.mongosh` to run a
+  script without first connecting to a :binary:`~bin.mongod` instance.
+
+The highlighted line is correct, but ``getUserCount.js`` will not run
+without ``--nodb`` because :binary:`~bin.mongosh` cannot connect to the
+local instance. With ``--nodb``, :binary:`~bin.mongosh` runs
+``getUserCount.js`` and uses the highlighted information to connect.
+
+Script Does Not Include Connection Details
+``````````````````````````````````````````
+
+It is convenient to specify connection information in your script, but
+that also makes it less portable. The ``getUserCount.js`` script would
+have to be updated to run on a remote instance or one running on a
+different port.
+
+To increase portability, use :method:`db.getSiblingDB()` and specify
+the connection information on the command line. 
+
+The following script is more portable than ``getUserCount.js`` because
+it does not have specific connection details. Copy the code and save it
+as ``portableGetUserCount.js``.
+
+.. code-block:: javascript
+
+   db = db.getSiblingDB( "admin" );
+   printjson( db.system.users.countDocuments() );
+
+To run ``portableGetUserCount.js``, specify the host and port on the
+command line:
+
+.. code-block:: javascript
+
+   mongosh --host 172.17.0.3 --port 27500 --file portableGetUserCount.js 
+
+To run ``portableGetUserCount.js`` on a different host or port, change
+the connection details on the command line. Unlike ``getUserCount.js``,
+you do not have to edit the script to run ``portableGetUserCount.js``.
+
 .. _mdb-shell-execute-file:
 
 Execute a JavaScript File
