@@ -1,13 +1,42 @@
 ---
-ref: configure-kubectl-x509
+title: "Generate an X.509 client certificate."
+level: 4
 stepnum: 1
+ref: k8s-x509-generate-cert
+content: |
+
+  For production use, your MongoDB deployment should use valid
+  certificates generated and signed by a |certauth|. You or your
+  organization can generate and maintain an independent |certauth| using
+  |k8s|\-native tools such as 
+  `cert-manager <https://cert-manager.io/docs/>`__.
+  
+  Obtaining and managing certificates is beyond the scope of this
+  documentation.
+
+  .. important::
+
+     You must concatenate your client's |tls| certificate and the
+     certificate's key in a ``.pem`` file. You must present this
+     ``.pem`` file when you connect to your X.509-enabled MongoDB
+     deployment.
+
+  To learn about the properties that your client certificates must have,
+  see :manual:`Client Certificate Requirements 
+  </core/security-x.509/#std-label-client-x509-certificates-requirements>`
+  in the MongoDB Manual.
+
+---
+ref: configure-kubectl-x509
+stepnum: 2
 inherit:
   file: steps-configure-kubectl-namespace.yaml
   ref: configure-kubectl-namespace
+
 ---
 title: "Copy and save the following example |k8s-configmap|."
 level: 4
-stepnum: 2
+stepnum: 3
 ref: copy-k8s-x509-configmap
 content: |
 
@@ -39,7 +68,7 @@ content: |
 ---
 title: "Create the X.509 MongoDB user."
 level: 4
-stepnum: 3
+stepnum: 4
 ref: create-x509-user
 content: |
   Run the following command to apply the ConfigMap and create the
@@ -58,7 +87,7 @@ content: |
 ---
 title: "Verify your newly created user"
 level: 4
-stepnum: 4
+stepnum: 5
 ref: verify-x509-user
 content: |
   Run the following command to check the state of the ``new-x509-user``:
@@ -75,9 +104,48 @@ content: |
      NAME            CREATED AT
      new-x509-user   8m
 ---
+
+title: "Find the mount location of the |certauth|."
+level: 4
+stepnum: 6
+ref: find-path-to-ca
+content: |
+
+  Run the following command to find where in each pod the |k8s-op-short|
+  mounted the |certauth| secret:
+
+  .. code-block:: sh
+
+     kubectl get statefulset <metadata.name> -o yaml
+
+  In the output, find the ``secret-ca`` mount:
+
+  .. code-block:: yaml
+     :emphasize-lines: 5-6
+     :copyable: false
+
+     volumeMounts:
+       - mountPath: /opt/scripts
+         name: database-scripts
+         readOnly: true
+       - mountPath: /var/lib/mongodb-automation/secrets/ca
+         name: secret-ca
+         readOnly: true
+       - mountPath: /var/lib/mongodb-automation/secrets/certs
+         name: secret-certs
+         readOnly: true
+
+  In the following step when you connect to your database deployment,
+	append ``secret-ca`` to the ``mountPath``, which forms the full path:
+
+  .. code-block:: sh
+
+     /var/lib/mongodb-automation/secrets/ca/secret-ca
+
+---
 title: "Use your X.509 user to connect to the MongoDB deployment"
 level: 4
-stepnum: 5
+stepnum: 7
 ref: connect-with-x509-user
 content: |
   Once you have created your X.509 user, try to connect to the
@@ -90,18 +158,20 @@ content: |
 
         .. code-block:: sh
 
-           mongosh --host {host} --port {port} --tls --tlsCAFile /var/run/secrets/kubernetes.io/serviceaccount/ca.crt --tlsCertificateKeyFile x509-full.pem --authenticationMechanism MONGODB-X509 --authenticationDatabase '$external'
+           mongosh --host {host} --port {port} --tls \
+             --tlsCAFile </path/to/secret-ca> \
+             --tlsCertificateKeyFile <your-cert>.pem \
+             --authenticationMechanism MONGODB-X509  \
+             --authenticationDatabase '$external'
 
      .. tab:: MongoDB 4.0 and earlier
         :tabid: mdb-4-0-and-older
 
         .. code-block:: sh
 
-           mongosh --host {host} --port {port} --ssl --sslCAFile /var/run/secrets/kubernetes.io/serviceaccount/ca.crt --sslPEMKeyFile x509-full.pem --authenticationMechanism MONGODB-X509 --authenticationDatabase '$external'
+           mongosh --host {host} --port {port} --ssl \ 
+             --sslCAFile </path/to/secret-ca> \
+             --sslPEMKeyFile <your-cert>.pem \
+             --authenticationMechanism MONGODB-X509 \ 
+             --authenticationDatabase '$external'
 
-  .. note::
-
-     On Kubernetes Pods, the |certauth| file is saved in
-     ``/var/run/secrets/kubernetes.io/serviceaccount/ca.crt``, which
-     is the file location used for the ``--sslCAFile`` connection
-     option.

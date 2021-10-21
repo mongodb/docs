@@ -1,34 +1,16 @@
-- Create a |pem| file for each of the following components:
+- Generate one |tls| certificate for each of the following components:
 
-  .. list-table::
-     :header-rows: 1
-     :widths: 30 70
+  - Your replica set. Ensure that you add |san-dns|\s for each |k8s| pod 
+    that hosts a member of your replica set to the certificate. 
 
-     * - PEM file purpose
-       - Save File As...
-     * - Your custom |certauth|
-       - ``ca-pem``
-     * - Each member of your replica set
-       - ``<metadata.name>-<X>-pem``
-     * - Your project's Automation or MongoDB Agent
-       - ``mms-automation-agent-pem``
-     * - Your project's Backup Agent (if needed)
-       - ``mms-backup-agent-pem``
-     * - Your project's Monitoring Agent (if needed)
-       - ``mms-monitoring-agent-pem``
+    In your |tls| certificate, the |san-dns| for each pod must use the 
+    following format:
 
-  For the Agent PEM files, ensure that:
+    .. include:: /includes/prereqs/san-format.rst
 
-  - the Common Name in each |tls| certificate is not empty, and
-  - the combined Organization and Organizational Unit in each |tls|
-    certificate differs from the combined Organization and
-    Organizational Unit in the |tls| certificates for your
-    replica set members.
+  .. include:: /includes/prereqs/mdbagent-reqs.rst
 
-  .. include:: /includes/prereqs/pem-file-description.rst
+- You must possess the |certauth| certificate and the key that you used to 
+  sign your |tls| certificates.
 
-  .. include:: /includes/prereqs/custom-ca-prereqs-naming-conventions.rst
-  
-  .. note:: About the Domain Names in certificates
-  
-     .. include:: /includes/prereqs/pem-file-domain-name.rst
+.. include:: /includes/prereqs/pem-format.rst

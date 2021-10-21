@@ -28,16 +28,9 @@
      - ``<custom-ca>``
 
    * - | ``spec.security``
-       | :setting:`.tls.secretRef.prefix<spec.security.tls.secretRef.prefix>`
+       | :setting:`.tls.certsSecretPrefix<spec.security.tls.certsSecretPrefix>`
      - string
      - Optional
-     - Add the ``<prefix>`` of the |k8s| |k8s-secret| name that contains
-       your MongoDB deployment's |tls| certificates. If you omit
-       :setting:`spec.security.tls.secretRef.name` and you configure
-       :setting:`spec.security.tls.secretRef.prefix`, you must name the 
-       secret ``<prefix>-<metadata.name>-cert``.
-       
-       If you omit :setting:`spec.security.tls.secretRef.name` and
-       :setting:`spec.security.tls.secretRef.prefix`, you must name the
-       secret ``<metadata.name>-cert``.
+     - If applicable, add the ``<prefix>`` of the |k8s| |k8s-secret| 
+       name that contains your MongoDB deployment's |tls| certificates.
      - ``devDb``

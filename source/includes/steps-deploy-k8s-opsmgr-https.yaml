@@ -5,39 +5,22 @@ inherit:
   file: steps-configure-kubectl-namespace.yaml
   ref: configure-kubectl-namespace
 ---
-title: "Concatenate your TLS certificate and Private Key."
-stepnum: 2
-ref: concatenate-certificate-key
-content: |
-
-   .. important::
-
-      The |k8s-op-short| requires that the |onprem| instance's |tls|
-      certificate and Private Key are concatenated into a single file
-      called ``server.pem``.
-
-   If your |tls| certificate and Private Key are separate files, run the
-   following command to concatenate them:
-
-   .. code-block:: sh
-
-      cat <private-key>.key <tls-certificate>.crt > server.pem
----
 title: "Create a Kubernetes secret for your certificates."
-stepnum: 3
+stepnum: 2
 ref: create-cert-secret
 content: |
 
-   Once you have your |tls| certificate and Private Key in a file called
-   ``server.pem``, run the following command to store the certificates
-   in a |k8s-secret|:
+   Once you have your |tls| certificate and Private Key, run the 
+   following command to store the certificates in a |k8s-secret|:
 
    .. code-block:: sh
 
-      kubectl create secret generic om-http-cert --from-file="server.pem" -n <namespace>
+      kubectl create secret tls <metadata.name>-cert \
+       --cert=<om-tls-cert> \
+       --key=<om-tls-key>
 ---
 title: "If necessary, validate your TLS Certificate."
-stepnum: 4
+stepnum: 3
 ref: validate-tls-cert
 content: |
 
@@ -97,8 +80,7 @@ content: |
    .. literalinclude:: /reference/k8s/example-opsmgr-https.yaml
       :language: yaml
       :linenos:
-      :emphasize-lines: 5,7-11,14-20,21-39
-
+      :emphasize-lines: 5,7-11,14-23,25-27
 ---
 title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
 stepnum: 6
@@ -166,6 +148,19 @@ content: |
 
       * - | ``spec``
           | ``.security``
+          | ``.``:opsmgrkube:`~spec.security.certsSecretPrefix`
+        - string
+        - *Optional*.
+        
+          Text to prefix to the name of the secret that contains
+          |onprem|\s |tls| certificates.
+
+          If you omit this setting, you must name the secret 
+          ``<metadata.name>-cert``.
+        - ``om-prod``
+
+      * - | ``spec``
+          | ``.security``
           | ``.tls``
           | ``.``:opsmgrkube:`~spec.security.tls.ca`
         - string
@@ -178,16 +173,6 @@ content: |
              certificates using a Custom Certificate Authority.
 
         - ``om-http-cert-ca``
-
-      * - | ``spec``
-          | ``.security``
-          | ``.tls``
-          | ``.secretRef``
-          | ``.``:opsmgrkube:`~spec.security.tls.secretRef.name`
-        - string
-        - Name of of the |k8s-secret| you created for the |tls|
-          certificate.
-        - ``om-http-cert``
 
 
       * - | ``spec``
@@ -237,32 +222,6 @@ content: |
 
         - .. include:: /includes/facts/fact-which-appdb-version.rst
 
-      * - | ``spec``
-          | ``.security``
-          | ``.tls``
-          | ``.``:opsmgrkube:`~spec.applicationDatabase.security.tls.ca`
-        - string
-        - Name of the |k8s-configmap| you created for the application
-          database to verify |tls| certificates signed using a Custom
-          Certificate Authority.
-
-          .. important::
-
-             This field is required if you signed your |tls|
-             certificates using a Custom Certificate Authority.
-
-        - ``appdb-http-cert-ca``
-
-      * - | ``spec``
-          | ``.applicationDatabase``
-          | ``.security``
-          | ``.tls``
-          | ``.secretRef``
-          | ``.``:opsmgrkube:`~spec.applicationDatabase.security.tls.secretRef.prefix`
-        - string
-        - The prefix of the |k8s-secret| name you created for the |tls|
-          certificate.
-        - ``appdb``
 ---
 title: "Configure Backup settings"
 stepnum: 8
@@ -492,7 +451,7 @@ content: |
           lastTransition: "2020-04-01T09:57:40Z"
           phase: Running
           replicas: 1
-          url: http://om-svc.cloudqa.svc.cluster.local:8443
+          url: https://om-svc.cloudqa.svc.cluster.local:8443
           version: "5.0.0"
 
   Backup remains in a ``Pending`` state until you configure the Backup
@@ -522,7 +481,7 @@ content: |
           lastTransition: "2019-12-06T18:23:26Z"
           message: The MongoDB object namespace/oplogdbname doesn't exist
           phase: Pending
-          url: http://om-svc.dev.svc.cluster.local:8443
+          url: https://om-svc.dev.svc.cluster.local:8443
           version: ""
 
   Backup remains in a ``Pending`` state until you configure the Backup
@@ -564,7 +523,7 @@ content: |
            .. code-block:: sh
               :copyable: false
 
-              http://ops.example.com:8443
+              https://ops.example.com:8443
 
         #. Log in to |onprem| using the :ref:`admin user credentials
            <om-rsrc-prereqs>`.
@@ -583,7 +542,7 @@ content: |
            .. code-block:: sh
               :copyable: false
 
-              http://ops.example.com:30036
+              https://ops.example.com:30036
 
         #. Log in to |onprem| using the :ref:`admin user credentials <om-rsrc-prereqs>`.
 
@@ -645,7 +604,7 @@ content: |
             lastTransition: "2019-12-06T18:23:26Z"
             message: The MongoDB object namespace/oplogdbname doesn't exist
             phase: Pending
-            url: http://om-svc.dev.svc.cluster.local:8443
+            url: https://om-svc.dev.svc.cluster.local:8443
             version: ""
 
     .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
@@ -723,7 +682,7 @@ content: |
          lastTransition: "2019-12-06T17:46:32Z"
          phase: Running
          replicas: 1
-         url: http://om-backup-svc.dev.svc.cluster.local:8443
+         url: https://om-backup-svc.dev.svc.cluster.local:8443
          version: "5.0.0"
 
   See :doc:`/reference/troubleshooting` for information about the
