@@ -73,13 +73,20 @@ to your SELinux policy:
       module mongodb_proc_net 1.0;
 
       require {
-          type proc_net_t;
-          type mongod_t;
-          class file { open read };
+              type sysctl_net_t;
+              type mongod_t;
+              class dir search;
+              class file { getattr open read };
       }
-
+ 
       #============= mongod_t ==============
-      allow mongod_t proc_net_t:file { open read };
+
+      #!!!! This avc is allowed in the current policy
+      allow mongod_t sysctl_net_t:dir search;
+      allow mongod_t sysctl_net_t:file open;
+
+      #!!!! This avc is allowed in the current policy
+      allow mongod_t sysctl_net_t:file { getattr read };
       EOF
 
 #. Once created, compile and load the custom policy module by
