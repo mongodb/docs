@@ -1,38 +1,41 @@
-- Create a |pem| file for each of the following components:
+- You must sign your sharded cluster's |tls| and X.509 certificates using
+  the same |certauth|.
 
-  .. list-table::
-     :header-rows: 1
-     :widths: 60 40
+- Generate one |tls| certificate for each of the following components:
 
-     * - PEM file purpose
-       - Save File As...
-     * - Your custom |certauth|
-       - ``ca-pem``
-     * - Each shard in your sharded cluster
-       - ``<metadata.name>-<Y>-<X>-pem``
-     * - Each member of your config server replica set
-       - ``<metadata.name>-config-<X>-pem``
-     * - Each |mongos|
-       - ``<metadata.name>-mongos-<X>-pem``
-     * - Your project's Automation or MongoDB Agent
-       - ``mms-automation-agent-pem``
-     * - Your project's Backup Agent (if needed)
-       - ``mms-backup-agent-pem``
-     * - Your project's Monitoring Agent (if needed)
-       - ``mms-monitoring-agent-pem``
+  - Each shard in your sharded cluster. Ensure that you add |san-dns|\s for 
+    each |k8s| pod that hosts a shard member to the certificate. 
 
-  For the Agent PEM files, ensure that:
+  - Your config servers. Ensure that you add |san-dns|\s for 
+    each |k8s| pod that hosts your config servers to the certificate. 
 
-  - the Common Name in each |tls| certificate is not empty, and
-  - the combined Organization and Organizational Unit in each |tls|
-    certificate differs from the combined Organization and
-    Organizational Unit in the |tls| certificates for your
-    sharded cluster members, config server members, and each |mongos|.
+  - Your |mongos| instances. Ensure that you add |san-dns|\s for 
+    each |k8s| pod that hosts a |mongos| to the certificate. 
+    
+    In your |tls| certificates, the |san-dns| for each pod must use this 
+    format:
 
-  .. include:: /includes/prereqs/pem-file-description.rst
-
-  .. include:: /includes/prereqs/custom-ca-prereqs-naming-conventions.rst
-
-  .. note:: About the Domain Names in certificates
+    .. include:: /includes/prereqs/san-format.rst
   
-     .. include:: /includes/prereqs/pem-file-domain-name.rst
+  .. include:: /includes/prereqs/mdbagent-reqs.rst
+
+- Generate one X.509 certificate for each of the following components:
+
+  - Each shard in your sharded cluster. Ensure that you add |san-dns|\s for 
+    each |k8s| pod that hosts a shard member to the certificate. 
+
+  - Your config servers. Ensure that you add |san-dns|\s for 
+    each |k8s| pod that hosts your config servers to the certificate. 
+
+  - Your |mongos| instances. Ensure that you add |san-dns|\s for 
+    each |k8s| pod that hosts a |mongos| to the certificate. 
+    
+  In your X.509 certificates, the |san-dns| for each pod must use this 
+  format:
+
+  .. include:: /includes/prereqs/san-format.rst
+
+- You must possess the |certauth| certificate and the key that you used to 
+  sign your |tls| certificates.
+
+.. include:: /includes/prereqs/pem-format.rst
