@@ -35,31 +35,58 @@ The following stack trace indicates that the source connector has an invalid res
    possible, as the resume point may no longer be in the oplog
    ... 
 
+
+.. _invalid-resume-token-cause:
+
 Cause
 -----
 
 When the ID of your source connector's resume token does not correspond to any
 entry in your MongoDB deployment's :ref:`oplog <replica-set-oplog>`, 
 your connector has no way to determine where to begin to process your
-MongoDB change stream. This issue most commonly occurs when you pause the source
-connector and fill the oplog, as outlined in the following scenario:
+MongoDB change stream. Click the following tabs to see scenarios 
+in which you can experience this issue:
 
-#. You start a Kafka deployment with a MongoDB Kafka Connector source connector.
-#. You produce change stream events in MongoDB, and your connector stores a
-   resume token corresponding to the most recent oplog entry in MongoDB.
-#. You pause your source connector.
-#. While your connector sits idle, you fill your MongoDB oplog such that MongoDB
-   deletes the oplog entry corresponding to your resume token.
-#. You restart your source connector, and it is unable to resume
-   processing as its resume token does not exist in your MongoDB oplog.
+.. tabs::
+
+   .. tab:: Paused Connector
+      :tabid: paused-connector
+
+      In this scenario, you pause your source connector and you fill your MongoDB
+      deployment's oplog:
+      
+      #. You start a Kafka deployment with a {+source-connector+}.
+      #. You produce a change event in your source MongoDB namespace, and your 
+         connector stores a resume token corresponding to this event.
+      #. You pause your source connector.
+      #. While your connector pauses, you fill your MongoDB oplog such that MongoDB
+         deletes the oplog entry corresponding to your resume token.
+      #. You restart your source connector and it is unable to resume
+         processing as its resume token does not exist in your MongoDB oplog.
+
+
+   .. tab:: Infrequently Updated Namespace
+      :tabid: infrequently-updated-namespace
+
+      In this scenario, your source connector listens for changes on an infrequently
+      updated MongoDB namespace and the
+      :ref:`heartbeat feature <invalid-resume-token-prevention>` is not enabled:
+      
+      #. You start a Kafka deployment with a {+source-connector+}.
+      #. You produce a change event in your source MongoDB namespace, and your
+         connector stores a resume token corresponding to this event.
+      #. Your source MongoDB namespace is not updated in the time it takes for your MongoDB
+         deployment to rotate the change event corresponding to your resume token out of its
+         oplog.
+      #. You produce a change event in your source MongoDB namespace and your 
+         source connector is unable to resume processing as its resume token does 
+         not exist in your MongoDB oplog.
 
 For more information on the oplog, see the 
 :ref:`MongoDB Manual <replica-set-oplog>`.
 
-.. TODO: update doc link to ref once page is written
-
 For more information on change streams, see the
-:doc:`guide on change streams </source-connector/fundamentals/change-streams>`.
+:ref:`<kafka-source-change-streams>` guide.
 
 Solutions
 ---------
@@ -102,11 +129,8 @@ To configure your source connector to temporarily tolerate errors:
    
       errors.tolerance="none"
 
-.. TODO: <Confirm linked page discusses errors.tolerance once it's written>
-.. TODO: update doc link to ref once page is written
-
-For more information on the ``errors.tolerance`` option, see the guide on
-:ref:`source connector configuration properties <source-configuration-index>`.
+For more information on the ``errors.tolerance`` option, see the
+:ref:`<source-configuration-error-handling>` page.
 
 .. _troubleshoot-delete-stored-offsets:
 
@@ -145,3 +169,24 @@ mode of your deployment:
          your Kafka Connect deployment.
 
       #. Restart your source connector and continue to process change stream events. 
+
+.. _invalid-resume-token-prevention:
+
+Prevention
+----------
+
+To prevent invalid resume token errors caused by an
+:ref:`infrequently updated namespace <invalid-resume-token-cause>`, enable
+**heartbeats**. Heartbeats is a feature of your source connector that causes 
+your connector to update its resume token at regular intervals as well as when
+the contents of your source MongoDB namespace changes.
+
+Specify the following option in your source connector configuration to enable
+heartbeats:
+
+.. code-block:: properties
+
+   heartbeat.interval.ms=<a positive integer>
+
+To learn more about heartbeats, see the 
+:ref:`<source-configuration-error-handling>` guide.
