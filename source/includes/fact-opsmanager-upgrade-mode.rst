@@ -1,11 +1,12 @@
-.. admonition:: Upgrade Mode for Highly Available |application|\s
-   :class: note
+.. _upgrade-mode-for-ha-apps:
 
-   If you have an |onprem| 4.4 installation with more than one |onprem|
+.. note:: **Upgrade Mode for Highly Available |application|\s**
+
+   If you have an |onprem| 4.2 or later installation with more than one |onprem|
    host pointing to the same Application Database, you can upgrade
-   |onprem| to a newer 4.4 version without incurring monitoring
+   |onprem| without incurring monitoring
    downtime. During this upgrade, |onprem| enters a state known as
-   **Upgrade Mode**. The benefits of this mode are that throughout the
+   **Upgrade Mode**. This mode enables the following benefits throughout the
    upgrade process:
 
    - Alerts and monitoring operate

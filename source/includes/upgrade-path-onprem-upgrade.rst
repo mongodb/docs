@@ -3,6 +3,13 @@ upgrade path you must take to upgrade to |onprem| 4.4 or later.
 
 .. important::
 
+   - If you have an |onprem| 4.2 or later installation with more than one |onprem|
+     host pointing to the same Application Database, you can upgrade
+     |onprem| without incurring monitoring
+     downtime. During this upgrade, |onprem| enters a state known as **Upgrade Mode**. 
+     See :ref:`Upgrade Mode <upgrade-mode-for-ha-apps>`
+     for more information.
+  
    - To ensure a successful upgrade, you *must* follow the upgrade path 
      for your existing version to perform necessary database migrations.
 
