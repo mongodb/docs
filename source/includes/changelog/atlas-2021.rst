@@ -1,3 +1,24 @@
+.. _atlas_20211018:
+
+18 October 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports ``M0`` {+free-clusters+} and ``M2/M5`` {+shared-clusters+} in the
+  following regions:
+
+  - AWS Tokyo (``ap-northeast-1``)
+  - AWS Stockholm (``eu-north-1``)
+  - AWS Bahrain (``me-south-1``)
+  - Google Cloud Jakarta (``asia-southeast2``)
+  - Google Cloud Seoul (``asia-northeast3``)
+  
+- Supports increased throughput for 4 TB volumes on Azure. The following
+  |service| {+clusters+} deployed to Azure now offer 16,000 IOPS (up from 7,500) and 500 MB/second
+  throughput (up from 250 MB/second):
+
+  - New {+clusters+} with 4 TB storage volumes.
+  - Existing {+clusters+} that you scale up to 4 TB storage volumes.
+
 .. _atlas_20211006:
 
 06 October 2021 Release
