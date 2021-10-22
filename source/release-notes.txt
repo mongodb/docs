@@ -12,6 +12,149 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _ent-op-1.13.x:
+
+|k8s-op-full| 1.13 Series
+-------------------------
+
+.. _ent_op-1.13.0:
+
+|k8s-op-full| 1.13.0
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-10-21*
+
+|k8s-op-short|
+``````````````
+
+.. warning:: **Breaking Changes**
+
+   The |k8s-op-short| no longer generates |tls| certificates for
+   ``MongoDB`` and ``MongoDBOpsManager`` resources.
+
+Changes
++++++++
+
+- The |k8s-op-short| can now watch a list of namespaces. To learn more,
+  see :ref:`ns-scope-different-ns`.
+
+- When deploying resources to :ref:`more than one namespace   
+  <ns-scope-different-ns>`, create ``imagePullSecrets`` only in the 
+  namespace where you installed the |k8s-op-short|. The |k8s-op-short|
+  synchronizes this secret across all watched namespaces.
+
+- The :setting:`spec.credentials` secret :ref:`now accepts 
+  <create-k8s-secret>` fields named
+  ``publicKey`` and ``privateKey``. Use these fields instead of the 
+  ``user`` and ``publicApiKey`` fields supported in previous releases.
+
+.. important:: **Deprecation Notice**
+
+   This release deprecates :k8sdocs:`generic type secrets 
+   </concepts/configuration/secret/#opaque-secrets>` for
+   |tls| certificates.
+
+- The |k8s-op-short| now supports |tls| secrets of the
+  :k8sdocs:`kubernetes.io/tls
+  </concepts/configuration/secret/#tls-secrets>` type.
+
+  - The |k8s-op-short| reads these secrets and automatically generates
+    new ``.pem`` files that contain the concatenated ``tls.crt`` and
+    ``tls.key`` fields when you update these secrets.
+  - This removes the need to manually concatenate these vales to create
+    ``.pem`` files and enables you to natively reference secrets 
+    that |k8s|-native tools, such as `cert-manager
+    <https://cert-manager.io/docs/>`__, generate.
+
+- For |tls|\-enabled resources, the operator now watches the ConfigMap
+  that contains the |certauth| and the secrets that contain |tls| 
+  certificates. Changes to these ConfigMaps and secrets now trigger a 
+  reconciliation of the related resource.
+
+``MongoDB`` Resource
+````````````````````
+
+.. warning:: **Breaking Changes**
+
+   This release removes the :setting:`spec.project` setting from the
+   :ref:`k8s-specification`.
+
+   If your ``MongoDB`` resource specifications use the
+   :setting:`spec.project` setting, update your specifications to instead
+   use :setting:`spec.opsManager.configMapRef.name` or
+   :setting:`spec.cloudManager.configMapRef.name` before you upgrade the
+   |k8s-op-short| to 1.13.0 or later.
+
+Changes
++++++++
+
+- This release adds several new fields that determine the names that you
+  must give the secrets that contain your |tls| and X.509 certificates 
+  for MongoDB resources.
+
+  To learn more, see :setting:`spec.security.certsSecretPrefix` and the
+  :ref:`k8s-secure-resources` tutorials.
+
+Bug Fixes
++++++++++
+
+- Fixes an issue where Sharded Cluster backups could not be correctly 
+  configured using ``MongoDB`` resource specifications.
+- Fixes an issue where Backup Daemon fails to start after you update an
+  |onprem| deployment by updating :opsmgrkube:`spec.version`.
+
+``MongoDBOpsManager`` Resource
+``````````````````````````````
+
+- The |k8s-op-short| now reports the status of file system snapshot 
+  stores that you configure in the  ``spec.backup.fileSystemStores``
+  setting in the ``MongoDBOpsManager`` resource specification.
+
+  You must manually configure the file system snapshot stores.
+
+- This release adds a new field, ``spec.backup.externalServiceEnabled``,
+  to the ``MongoDBOpsManager`` resource specification.
+
+  By default, the |k8s-op-short| creates a :k8sdocs:`LoadBalancer 
+  </concepts/services-networking/service/#loadbalancer>` service when 
+  you :ref:`enable queryable backups <configure-om-queryable-backups>`.
+
+  Set ``spec.backup.externalServiceEnabled`` to ``false`` before you
+  enable queryable backups to prevent the |k8s-op-short| from creating a
+  LoadBalancer service.
+
+- The |k8s-op-short| now automatically upgrades personal API keys to
+  programmatic API keys when you upgrade an |onprem| deployment to 
+  version 5.0.0 or later. You no longer must change the keys manually to
+  upgrade your deployment.
+
+- This release adds the :opsmgrkube:`spec.security.certSecretPrefix` field to
+  determine the name that you must give the secret that contains your
+  |tls| certificate for ``MongoDBOpsManager`` resources.
+
+  To learn more, see :opsmgrkube:`spec.security.certsSecretPrefix` and 
+  the **HTTPS** tab in the :ref:`deploy-om-container` tutorial.
+
+``MongoDBUser`` Resource
+````````````````````````
+
+.. warning:: **Breaking Changes**
+
+   This release removes the spec.project setting from the ``MongoDBUser``
+   CustomResourceDefinition.
+
+   If your ``MongoDBUser`` resource specifications use the
+   spec.project setting, update your specifications to instead
+   use ``spec.MongoDBResourceRef.name`` before you upgrade the
+   |k8s-op-short| to 1.13.0 or later.
+
+Miscellaneous
+`````````````
+
+- |onprem| 4.4.7, 4.4.9, 4.4.10, 4.4.11, 4.4.12 and 4.4.13 base images
+  have been updated to Ubuntu 20.04.
+- |onprem| versions 4.4.16 and 5.0.1 are now supported.
+
 .. _ent-op-1.12.x:
 
 |k8s-op-full| 1.12 Series
@@ -1313,7 +1456,7 @@ Specification Schema Changes
 Ops Manager Resource Changes (Alpha Release)
 ````````````````````````````````````````````
 
-This release introduces signficant changes to the |onprem| resource's
+This release introduces significant changes to the |onprem| resource's
 architecture. The |onprem| application database is now managed by
 the |k8s-op-short|, not by |onprem|.
 
