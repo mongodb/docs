@@ -1,0 +1,247 @@
+stepnum: 1
+ref: fts-score-tutorial-step9
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: connect-to-database-deployment-fts
+---
+stepnum: 2
+ref: fts-score-tutorial-step10
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: use-sample-mflix
+---
+stepnum: 3
+title: "Run the following |fts| queries with the ``compound`` operator 
+       on the ``movies`` collection."
+ref: fts-score-tutorial-step11
+content: |
+  The following examples use the ``compound`` operator with subqueries 
+  to search for movies between the years ``2013`` to ``2015`` with the 
+  term ``snow`` in the ``title`` field. The example queries include a 
+  :pipeline:`$limit` stage to limit the output to 10 results and a 
+  :pipeline:`$project` stage to:
+
+  - Exclude all fields except ``title`` and ``year``
+  - Add a field named ``score`` 
+
+  .. tabs:: 
+
+     .. tab:: Constant
+        :tabid: constant 
+
+        This query uses: 
+        
+        - ``filter`` clause with the :ref:`range-ref` operator to 
+          search for movies between the years ``2013`` to ``2015``.
+        - ``should`` clause with the :ref:`text-ref` operator to query 
+          for the term ``snow`` in the ``title`` field. 
+        - ``score`` with the ``constant`` option to replace all score 
+          results for the search term with 5. 
+
+        .. code-block:: json
+
+           db.movies.aggregate([
+             {
+               "$search": {
+                 "compound": {
+                   "filter": [{
+                     "range": {
+                       "path": "year",
+                       "gte": 2013,
+                       "lte": 2015
+                     }
+                   }],
+                   "should": [{
+                     "text": {
+                       "query": "snow",
+                       "path": "title",
+                       "score": {"constant": {"value": 5}}
+                     }
+                   }]
+                 }
+               }
+             },
+             {
+               "$limit": 10
+             },
+             {
+               "$project": {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" }
+               }
+             }
+           ])
+
+        |fts| returns the following results for 
+        :ref:`scoring-constant`: 
+
+        .. code-block:: json
+           :copyable: false 
+           :emphasize-lines: 2-5
+
+           [
+             { title: 'Snow in Paradise', year: 2014, score: 5 },
+             { title: 'Dead Snow 2: Red vs. Dead', year: 2014, score: 5 },
+             { title: 'The Snow White Murder Case', year: 2014, score: 5 },
+             { title: 'Snow on the Blades', year: 2014, score: 5 },
+             { year: 2013, title: 'The Secret Life of Walter Mitty', score: 0 },
+             { title: 'Jurassic World', year: 2015, score: 0 },
+             { title: 'Action Jackson', year: 2014, score: 0 },
+             { year: 2013, title: 'In Secret', score: 0 },
+             { title: 'The Stanford Prison Experiment', year: 2015, score: 0 },
+             { year: 2014, title: 'The Giver', score: 0 }
+           ]
+
+     .. tab:: Boost
+        :tabid: boost 
+
+        This query uses: 
+        
+        - ``must`` clause with the :ref:`range-ref` operator to search 
+          for movies between the years ``2013`` to ``2015``. 
+        - ``should`` clause with the :ref:`text-ref` operator to query 
+          for the term ``snow`` in the ``title`` field. 
+        - ``score`` with the ``boost`` option to multiply the base 
+          score in the results for the search term by 2.
+
+        .. code-block:: json
+
+           db.movies.aggregate([
+             {
+               "$search": {
+                 "compound": {
+                   "must": [{
+                     "range": {
+                       "path": "year",
+                       "gte": 2013,
+                       "lte": 2015
+                     }
+                   }],
+                   "should": [{
+                     "text": {
+                       "query": "snow",
+                       "path": "title",
+                       "score": {"boost": {"value": 2}}
+                     }
+                   }]
+                 }
+               }
+             },
+             {
+               "$limit": 10
+             },
+             {
+               "$project": {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" }
+               }
+             }
+           ])
+
+        |fts| returns the following results for :ref:`scoring-boost`: 
+
+        .. code-block:: json
+           :copyable: false 
+           :emphasize-lines: 2-5
+
+           [
+             { title: 'Snow in Paradise', year: 2014, score: 6.7722930908203125 },
+             { title: 'Snow on the Blades', year: 2014, score: 6.063445568084717 },
+             { title: 'The Snow White Murder Case', year: 2014, score: 5.509652137756348 },
+             { title: 'Dead Snow 2: Red vs. Dead', year: 2014, score: 5.065053939819336 },
+             { year: 2013, title: 'The Secret Life of Walter Mitty', score: 1 },
+             { title: 'Jurassic World', year: 2015, score: 1 },
+             { title: 'Action Jackson', year: 2014, score: 1 },
+             { year: 2013, title: 'In Secret', score: 1 },
+             { title: 'The Stanford Prison Experiment', year: 2015, score: 1 },
+             { year: 2014, title: 'The Giver', score: 1 }
+           ]
+
+     .. tab:: Function Score
+        :tabid: fuction-score 
+
+        This query uses: 
+        
+        - ``must`` clause with the :ref:`range-ref` operator to search 
+          for movies between the years ``2013`` to ``2015``. 
+        - ``should`` clause with the :ref:`text-ref` operator to query 
+          for the term ``snow`` in the ``title`` field. 
+        - ``function`` with the arithmatic expression to add the 
+          following: 
+        
+          - The relevance score of the query for the search term
+          - The value of the numeric field named ``imdb.rating`` or the 
+            number 2 for those documents that do not have the 
+            ``imdb.rating`` field.
+
+        .. code-block:: json
+
+           db.movies.aggregate([
+             {
+               "$search": {
+                 "compound": {
+                   "must": [{
+                     "range": {
+                       "path": "year",
+                       "gte": 2013,
+                       "lte": 2015
+                     }
+                   }],
+                   "should": [{
+                     "text": {
+                       "query": "snow",
+                       "path": "title",
+                       "score": {
+                         "function": { 
+                           "add": [{
+                             "path": {
+                               "value": "imdb.rating",
+                               "undefined": 2
+                             }
+                           },
+                           {
+                             "score": "relevance"
+                           }]
+                         }
+                       }
+                     }
+                   }]
+                 }
+               }
+             },
+             {
+               "$limit": 10
+             },
+             {
+               "$project": {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" }
+               }
+             }
+           ])
+
+        |fts| returns the following results for 
+        :ref:`scoring-function`: 
+
+        .. code-block:: json
+           :copyable: false 
+           :emphasize-lines: 2-5
+
+           [
+             { title: 'The Snow White Murder Case', year: 2014, score: 10.454826354980469 },
+             { title: 'Snow on the Blades', year: 2014, score: 10.3317232131958 },
+             { title: 'Dead Snow 2: Red vs. Dead', year: 2014, score: 10.032526969909668 },
+             { title: 'Snow in Paradise', year: 2014, score: 8.386146545410156 },
+             { year: 2013, title: 'The Secret Life of Walter Mitty', score: 1 },
+             { title: 'Jurassic World', year: 2015, score: 1 },
+             { title: 'Action Jackson', year: 2014, score: 1 },
+             { year: 2013, title: 'In Secret', score: 1 },
+             { title: 'The Stanford Prison Experiment', year: 2015, score: 1 },
+             { year: 2014, title: 'The Giver', score: 1 }
+           ]
