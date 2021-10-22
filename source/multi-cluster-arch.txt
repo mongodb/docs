@@ -1,0 +1,78 @@
+.. _multi-cluster-arch:
+
+===========================
+Multi-Cluster Architecture
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _multi-cluster-beta-limitations:
+
+Features Not Available in the Beta Release
+------------------------------------------
+
+.. important::
+   Use the beta release of the |multi-clusters| only in development
+   environments.
+
+The following features of the |k8s-op-full| and the underlying |k8s|
+clusters are not available in the beta release of the |multi-clusters|:
+
+- Sharded cluster deployments
+- LDAP authentication
+- Backup and restore
+- X.509 user authentication
+- |onprem| version earlier than 5.0
+- Split Horizon
+- SRV record connection string
+
+.. _multi-cluster-diagram:
+
+Multi-Cluster Deployment Architecture
+-------------------------------------
+
+The |k8s-op-full| runs in a central |k8s| cluster. If you deploy
+|onprem| with the |k8s-op-short|, the central cluster may also host
+|onprem|.
+The central cluster holds the ``MongoDBMulti`` CustomResource spec for
+the MongoDB replica set.
+The member |k8s| clusters host the MongoDB replica sets.
+
+|istio| manages the discovery of MongoDB nodes deployed in different
+|k8s| member clusters.
+
+You can host your application on any of the member clusters inside the
+Istio service mesh, either on |k8s| clusters outside of the ones that you
+deploy with the |k8s-op-short|, or on the member clusters that you deploy
+as part of this tutorial.
+
+The |k8s-op-full| performs these actions:
+
+- Identifies the cluster on which to deploy the MongoDB replica set
+  using the corresponding ``MongoDBMulti`` CustomResource spec, and
+  deploys the MongoDB replica sets.
+
+- Watches for the ``MongoDBMulti`` CustomResource spec creation in the
+  central cluster.
+
+- Uses the mounted ``kubeconfig`` file to communicate with member clusters.
+
+- Watches for the ``CentralCluster`` and ``MemberCluster`` events to
+  confirm that the |multi-cluster| is in the desired state.
+
+- Reconciles resources. Creates the necessary resources, such as
+  Configmaps, Secrets, Service objects, and Statefulset objects in
+  each member cluster corresponding to the number of replica set members
+  in the MongoDB cluster.
+
+.. figure:: /images/multi-cluster-arch.svg
+   :alt: Diagram showing the high-level architecture of the multi-cluster
+         deployment across regions and availability zones using the
+         MongoDB Enterprise Kubernetes Operator
+   :figwidth: 600px

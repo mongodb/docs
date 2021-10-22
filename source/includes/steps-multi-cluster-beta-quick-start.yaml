@@ -1,0 +1,237 @@
+---
+stepnum: 1
+level: 4
+ref: clone-k8s-repo-multi-cluster
+title: "Clone the :github:`MongoDB Enterprise Kubernetes Operator repository </mongodb/mongodb-enterprise-kubernetes>`."
+content: |
+
+  .. code-block:: sh
+
+     git clone https://github.com/mongodb/mongodb-enterprise-kubernetes.git
+
+---
+stepnum: 2
+level: 4
+ref: run-multi-cluster-tool
+title: "Run the ``multi-cluster kubeconfig creator`` tool."
+content: |
+
+  By default, the |k8s-op-short| uses the ``mongodb`` namespace.
+  To simplify your installation, the tool creates one central cluster,
+  three member clusters, and a namespace labeled ``mongodb`` in each of
+  the clusters.
+  
+  a. Change to the directory in which you cloned the repository.
+  #. Run the :github:`multi-cluster kubeconfig creator </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/main.go>`
+     tool:
+
+     .. code-block:: sh
+
+        go run tools/multicluster/main.go \
+          -central-cluster="${MDB_CENTRAL_CLUSTER_FULL_NAME}" \
+          -member-clusters="${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME},${MDB_CLUSTER_3_FULL_NAME}" \
+          -member-cluster-namespace="mongodb" \
+          -central-cluster-namespace="mongodb"
+
+---
+stepnum: 3
+level: 4
+ref: set-istio-webhook
+title: "Set the Istio injection webhook in each member cluster."
+content: |
+   
+   In each member cluster, label namespaces with the
+   ``istio-injection=enabled`` label to enable Istio's injection
+   webhook. This ensures that any Pods that you create in these
+   namespaces will have a sidecar added to them. To learn more, see
+   `Automatic sidecar injection <https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/#automatic-sidecar-injection>`__
+   in the Istio documentation.
+
+   .. code-block:: sh
+      :emphasize-lines: 4
+
+      kubectl label \
+        --context=$MDB_CLUSTER_1_FULL_NAME \
+         --namespace mongodb \
+         istio-injection=enabled
+
+   .. code-block:: sh
+      :emphasize-lines: 4
+
+      kubectl label \
+        --context=$MDB_CLUSTER_2_FULL_NAME \
+        --namespace mongodb \
+        istio-injection=enabled
+
+   .. code-block:: sh
+      :emphasize-lines: 4
+
+      kubectl label \
+        --context=$MDB_CLUSTER_3_FULL_NAME \
+        --namespace mongodb \
+        istio-injection=enabled
+
+---
+stepnum: 4
+level: 4
+title: "Configure ``kubectl`` to use the central cluster's namespace."
+ref: configure-kubectl-mc
+content: |
+
+  If you have not done so already, run the following commands to execute
+  all ``kubectl`` commands on the central cluster in the default
+  namespace. In the following steps, you will install the |k8s-op-short|
+  into this namespace.
+
+  .. code-block:: sh
+
+     kubectl config use-context $MDB_CENTRAL_CLUSTER_FULL_NAME
+     kubectl config set-context $(kubectl config current-context) \
+     --namespace=mongodb
+
+---
+stepnum: 5
+level: 4
+title: "Install the |k8s-op-full| in the central cluster."
+ref: install-kubectl-mc
+content: |
+
+     Use Helm to install the |k8s-op-short| for managing your
+     |multi-cluster|:
+
+     .. code-block:: sh
+
+        helm upgrade \
+          --install \
+            mongodb-enterprise-operator-multi-cluster \
+            public/helm_chart \
+              --namespace mongodb \
+              --set namespace=mongodb \
+              --set operator.name=mongodb-enterprise-operator-multi-cluster \
+              --set operator.createOperatorServiceAccount=false \
+              --set "multiCluster.clusters={${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME},${MDB_CLUSTER_3_FULL_NAME}}"
+---
+stepnum: 6
+title: "Deploy the MongoDB resource."
+ref: deploy-mdbresource-mc
+content: |
+
+   a. Create a secret in each member cluster so that the |k8s-op-short|
+      can create and update objects in your |mms| project.
+      To learn more, see :ref:`create-k8s-credentials`.
+
+   #. Create a ConfigMap in each member cluster to link the
+      |k8s-op-short| to your |mms| project.
+      To learn more, see :ref:`create-k8s-project`.
+
+   #. Configure the required service accounts in each member cluster:
+
+      .. code-block:: sh
+
+         helm template --show-only \
+           templates/database-roles.yaml \
+           public/helm_chart \
+           --set namespace=mongodb | \
+         kubectl apply -f - \
+           --context=$MDB_CLUSTER_1_FULL_NAME \
+           --namespace mongodb
+
+      .. code-block:: sh
+
+         helm template --show-only \
+           templates/database-roles.yaml \
+           public/helm_chart \
+           --set namespace=mongodb | \
+         kubectl apply -f - \
+           --context=$MDB_CLUSTER_2_FULL_NAME \
+           --namespace mongodb
+
+      .. code-block:: sh
+
+         helm template --show-only \
+           templates/database-roles.yaml \
+           public/helm_chart \
+           --set namespace=mongodb | \
+         kubectl apply -f - \
+           --context=$MDB_CLUSTER_3_FULL_NAME \
+           --namespace mongodb
+
+   #. Set :setting:`spec.credentials` and :setting:`spec.opsManager.configMapRef.name`
+      and deploy the MongoDB resource.
+      In the following code sample, ``duplicateServiceObjects``
+      is set to ``true`` to enable
+      `DNS proxying <https://istio.io/latest/docs/ops/configuration/traffic-management/dns-proxy/>`__
+      in Istio.
+      
+      .. note::
+         To enable the cross-cluster DNS resolution by the Istio
+         service mesh, this tutorial creates service objects with a
+         single ClusterIP address per each |k8s| Pod.
+
+      .. code-block:: sh
+         :emphasize-lines: 10,11,16-18
+
+         kubectl apply -f - <<EOF
+         apiVersion: mongodb.com/v1
+         kind: MongoDBMulti
+         metadata:
+           name: multi-replica-set
+         spec:
+           version: 4.4.0-ent
+           type: ReplicaSet
+           persistent: false
+           duplicateServiceObjects: true
+           credentials: my-credentials
+           security:
+             authentication:
+               enabled: true
+               modes: ["SCRAM"]
+             opsManager:
+               configMapRef:
+                 name: my-project
+             clusterSpecList:
+               clusterSpecs:
+                - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
+                  members: 3
+                - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+                  members: 2
+                - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
+                  members: 3
+         EOF
+---
+stepnum: 7
+level: 4
+title: "Verify that the MDB resources are running."
+ref: verify-mdb-resources-mc
+content: |
+
+  a. For member clusters, run the following commands to verify that
+     the MongoDB Pods are in the running state:
+
+     .. code-block:: sh
+
+        kubectl get pods \
+         --context=$MDB_CLUSTER_1_FULL_NAME \
+         --namespace mongodb
+
+     .. code-block:: sh
+
+        kubectl get pods \
+         --context=$MDB_CLUSTER_2_FULL_NAME \
+         --namespace mongodb
+
+     .. code-block:: sh
+
+        kubectl get pods \
+         --context=$MDB_CLUSTER_3_FULL_NAME \
+         --namespace mongodb
+
+  #.  In the central cluster, run the following commands to verify that
+      the MongoDBMulti ``CustomResource`` is in the running state:
+
+      .. code-block:: sh
+
+         kubectl --context=$MDB_CENTRAL_CLUSTER_FULL_NAME \
+           --namespace mongodb \
+           get mdbm multi-replica-set -o yaml -w
+...
