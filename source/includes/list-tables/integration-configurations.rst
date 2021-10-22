@@ -40,23 +40,21 @@
        Set the following:
 
        .. list-table::
-          :widths: 20 80
+          :widths: 30 70
 
           * - :guilabel:`Org Name`
-
             - The Flowdock organization name in lower-case letters.
               This name appears after ``www.flowdock.com/app/`` in the
               |url| string.
 
           * - :guilabel:`Flow Name`
-
             - The flow name in lower-case letters. The flow name
               appears after the organization name in the |url| string:
 
-              ``www.flowdock.com/app/<organization-name>/<flow-name>``
+              ``www.flowdock.com/app/``
+              ``<organization-name>/<flow-name>``
 
           * - :guilabel:`API Token`
-
             - Your Flowdock "personal API token" found on the
               `Tokens page <https://www.flowdock.com/account/tokens>`__
               of your Flowdock account.
@@ -81,10 +79,14 @@
 
        .. important:: Legacy Token Deprecation
 
-          |service| deprecated legacy tokens. They will be removed in a
-          future version of |service|. You cannot edit a legacy token
-          integration. You must reconfigure your Slack integration with
-          OAuth2.
+          |service| deprecated legacy tokens. You can't configure a new Slack
+          integration with legacy tokens. 
+          
+          You can continue to use legacy tokens if you used them to configure a
+          Slack integration before |service| deprecated legacy tokens. However,
+          you can't edit your legacy tokens. You must
+          reconfigure your Slack integration with
+          OAuth2 if you need to edit the token configuration.
 
    * - :guilabel:`Webhook Settings`
 
