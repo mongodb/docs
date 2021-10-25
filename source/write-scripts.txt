@@ -107,8 +107,13 @@ The following command:
 Execute a JavaScript File
 -------------------------
 
+Execute a Script from Within the mongosh Console
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 You can execute a ``.js`` file from within the |mdb-shell|
 using the :method:`load()` method.
+
+.. _mongosh-ex-run-script:
 
 .. example::
 
@@ -123,7 +128,7 @@ using the :method:`load()` method.
 
       .. code-block:: javascript
 
-         db = connect('mongodb://localhost/myDatabase');
+         db = connect( 'mongodb://localhost/myDatabase' );
 
          db.movies.insertMany( [
             {
@@ -179,7 +184,7 @@ using the :method:`load()` method.
 
       .. code-block:: javascript
 
-         load("connect-and-insert.js")
+         load( "connect-and-insert.js" )
 
    #. To confirm that the documents loaded correctly, use the
       ``myDatabase`` collection and query the ``movies`` collection.
@@ -197,14 +202,161 @@ the following calls within the |mdb-shell| are equivalent:
 .. code-block:: javascript
    :copyable: false
 
-   load("scripts/connect-and-insert.js")
-   load("/data/db/scripts/connect-and-insert.js")
+   load( "scripts/connect-and-insert.js" )
+   load( "/data/db/scripts/connect-and-insert.js" )
 
 .. note::
 
    There is no search path for the :method:`load()` method. If the target
    script is not in the current working directory or the full specified
    path, the |mdb-shell| cannot access the file.
+
+Execute a Script From the Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use :binary:`~bin.mongosh` to execute a script from the command
+line without entering the :binary:`~bin.mongosh` console. 
+
+Use the ``--file`` or ``-f`` parameters to specify the filename.
+
+.. code-block::
+
+   mongosh --port 27500 --file addMovies.js 
+
+.. tip::
+
+   If you pass a filename to :binary:`~bin.mongosh` without using the
+   parameter flags the connection may fail if there are other command
+   line arguments.
+   
+   To pass filenames always use ``--file`` or ``-f``.
+
+You may also need to specify connection information in addition to the
+``--file`` or ``-f`` parameters. 
+
+.. example::
+
+   The following example creates scripts and runs them from the command
+   line. 
+   
+   - ``loadMovies.js``, uses :method:`~db.collection.insertMany()` to a
+     update a local MongodDB instance.
+   - ``queryMovies.js`` uses :method:`db.collection.find()` to verify
+     the update.
+
+   #. Copy this script and save it as ``loadMovies.js``.
+
+      .. code-block:: javascript
+         :emphasize-lines: 1
+
+         db = connect( 'mongodb://localhost/films' );
+
+         db.movies.insertMany( [
+            {
+               title: 'Titanic',
+               year: 1997,
+               genres: [ 'Drama', 'Romance' ]
+            },
+            {
+               title: 'Spirited Away',
+               year: 2001,
+               genres: [ 'Animation', 'Adventure', 'Family' ]
+            },
+            {
+               title: 'Casablanca',
+               genres: [ 'Drama', 'Romance', 'War' ]
+            }
+         ] )
+
+      .. tip::
+   
+         Verify the connection string in the highlighted line. If your
+         MongoDB instance is not running on ``localhost:27017``, you
+         must edit the connection string. 
+
+         .. code-block:: javascript
+            :emphasize-lines: 1
+
+            db = connect( 'mongodb://localhost:27500/films' );
+
+      This connection string is for the:
+
+      - films database
+      - located on localhost
+      - listening on port 27500
+
+   #. Copy this script and save it as ``queryMovies.js``.
+
+      .. code-block:: javascript
+
+         db = connect( 'mongodb://localhost/films' );
+         printjson( db.movies.find( {} ) ); 
+
+   #. Run the scripts from the command line.
+
+      .. code-block:: javascript
+
+         mongosh --file loadMovies.js -f queryMovies.js
+
+   #. Verify the output.
+
+      .. code-block:: javascript
+         :emphasize-lines: 1-2
+       
+         Loading file: loadMovies.js
+         Loading file: queryMovies.js
+         [
+           {
+             _id: ObjectId("616f1b8092dbee425b661117"),
+             title: 'Titanic',
+             year: 1997,
+             genres: [ 'Drama', 'Romance' ]
+           },
+           {
+             _id: ObjectId("616f1b8092dbee425b661118"),
+             title: 'Spirited Away',
+             year: 2001,
+             genres: [ 'Animation', 'Adventure', 'Family' ]
+           },
+           {
+             _id: ObjectId("616f1b8092dbee425b661119"),
+             title: 'Casablanca',
+             genres: [ 'Drama', 'Romance', 'War' ]
+           }
+         ]
+
+      The output of the :method:`db.collection.find()` command shows
+      that the ``movies`` collection was updated.
+
+      .. tip::
+
+         To make the output visible, use ``printjson()`` to call
+         :method:`db.collection.find()`.
+
+         .. code-block:: javascript
+
+            printjson( db.movies.find( {} ) ) ; 
+
+
+Execute a Script From the Command Line with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To execute a script against a remote :binary:`mongod` instance that
+requires authentication, specify the connection and authentication
+details in addition to the filename.  
+
+The following lines are equivalent.
+
+.. code-block:: javascript
+
+   mongosh --host 172.17.0.3 --port 27500 --username filmFan --password superSecret --file loadMovies.js 
+   mongosh --host 172.17.0.3 --port 27500 -u filmFan -p superSecret -f loadMovies.js 
+
+.. tip::
+
+   In shells like ``bash`` and ``zsh``, if you begin a command with a
+   space it will not be saved in your command history. This minimizes
+   exposure if you enter passwords on the command line.
 
 .. toctree::
    :titlesonly:
