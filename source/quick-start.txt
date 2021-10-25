@@ -13,63 +13,59 @@ Quick Start
 Overview
 --------
 
-In this guide, you can learn how to configure the MongoDB Kafka Connector to
-perform the following actions within an Apache Kafka and Kafka Connect data pipeline:
+This guide shows you how to use the {+mkc+} to connect MongoDB to {+ak+}.
 
-#. :ref:`Receive documents inserted into a MongoDB collection <quick-start-source-connector>`
-#. :ref:`Add a field to those documents using an aggregation pipeline <quick-start-source-connector>`
-#. :ref:`Insert those documents into a different collection in the same MongoDB
-   cluster <quick-start-sink-connector>`
+You perform the following actions:
 
-For more information on Apache Kafka and Kafka Connect, read our
-introductory page on :doc:`Kafka and Kafka Connect <introduction/kafka-connect>`.
+- :ref:`Add a {+mkc+} source connector <kafka-quick-start-source-connector-section>`
+- :ref:`Add a {+mkc+} sink connector <kafka-quick-start-sink-connector-section>`
+- :ref:`Send the contents of a MongoDB document through your source and sink connector <kafka-quick-start-send-a-document>`
+
+In this guide, you download and work in a containerized development environment. 
+Follow the instructions in the :ref:`<kafka-quickstart-remove-the-pipeline>`
+section to remove the environment.
 
 Requirements
 ------------
 
 .. include:: /includes/tutorials/pipeline-requirements.rst
 
-Sample Pipeline
-~~~~~~~~~~~~~~~
+Download the Sample Pipeline
+----------------------------
 
 .. include:: /includes/tutorials/get-pipeline.rst
 
 Start the Pipeline
 ------------------
 
-The sample pipeline consists of the following tools running in Docker containers
-on your computer:
+The sample pipeline consists of the following services running in
+Docker containers:
 
 - A MongoDB replica set
-- An Apache Kafka instance
+- An {+ak+} instance
 - A Kafka Connect instance with the MongoDB Kafka Connector installed
-- A Zookeeper instance (Zookeeper is a dependency of Apache Kafka)
-
-The following diagram shows the architecture of the sample pipeline. The solid
-lines represent connections between tools that you receive pre-configured. The
-dotted lines represent connections you will add in the following sections of
-this guide. The numbers, from lowest to highest, show the path of a message
-through the pipeline:
-
-.. figure:: /includes/figures/mongo-kafka-connect.png
-   :alt: Architecture diagram of sample pipeline.  
+- A Zookeeper instance (Zookeeper is a dependency of Apache Kafka) 
 
 To download and run the sample pipeline, execute the following command from
-the root of the quick start repository:
+within the tutorial directory:
 
-.. code-block:: bash
+.. code-block:: shell
 
    docker-compose -p quickstart up -d
 
 .. include:: /includes/tutorials/download-note.rst
 
-Set Up Connectors
------------------
+Add Connectors
+--------------
 
-To set up connectors in the sample pipeline, you first need to enter a shell
+You must add a connector to {+kc+} to transfer data between {+kc+} and
+MongoDB. Add a **source connector** to transfer data from MongoDB 
+to {+ak+}. Add a **sink connector** to transfer data from {+ak+} to MongoDB.
+
+To add connectors in the sample pipeline, you first need to enter a shell
 in your Docker environment using the following command:
 
-.. code-block:: bash
+.. code-block:: shell
 
    docker exec -it shell /bin/bash
 
@@ -80,13 +76,20 @@ Once you are in the shell you should see a prompt that looks like this:
 
    [MongoDB Kafka Connector Quick Start]
 
-Install the Source Connector
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _kafka-quick-start-source-connector-section:
 
-In the quick start shell, run the following command to set up
-the source connector using the Kafka Connect REST API:
+Add a Source Connector
+~~~~~~~~~~~~~~~~~~~~~~
 
-.. _quick-start-source-connector:
+In the shell in your Docker environment, add a source connector using the {+kc+}
+REST API. The following command adds a source connector and specifies the
+following properties:
+
+- The class {+kc+} uses to instantiate the connector
+- The connection URI, database, and collection of the MongoDB replica set from
+  which the connector reads data
+- An aggregation pipeline that adds a field ``travel`` with the value
+  ``"MongoDB Kafka Connector"`` to inserted documents the connector reads from MongoDB
 
 .. code-block:: bash
 
@@ -98,17 +101,18 @@ the source connector using the Kafka Connect REST API:
             "connector.class":"com.mongodb.kafka.connect.MongoSourceConnector",
             "connection.uri":"mongodb://mongo1:27017/?replicaSet=rs0",
             "database":"quickstart",
-            "collection":"source",
-            "pipeline":"[{\"$match\": {\"operationType\": \"insert\"}}, {$addFields : {\"fullDocument.travel\":\"I went through Kafka!\"}}]"
+            "collection":"sampleData",
+            "pipeline":"[{\"$match\": {\"operationType\": \"insert\"}}, {$addFields : {\"fullDocument.travel\":\"MongoDB Kafka Connector\"}}]"
             }
         }
         ' \
         http://connect:8083/connectors -w "\n"
 
-.. note:: Failed To Connect
+.. note:: Why do I see the message 'Failed to connect'?
 
-   It takes about two minutes for the Kafka Connect REST API to come online. If
-   you receive the following error, wait about two minutes and try again:
+   It takes up to three minutes for the {+kc+} REST API to start. If
+   you receive the following error, wait three minutes and run the preceding
+   command again:
 
    .. code-block:: none
       :copyable: false
@@ -116,42 +120,39 @@ the source connector using the Kafka Connect REST API:
       ...
       curl: (7) Failed to connect to connect port 8083: Connection refused
 
-The preceding command creates a new connector in Kafka Connect and specifies the
-following properties of the connector:
+To confirm that you added the source connector, run the following command:
 
-- The class Kafka Connect uses to instantiate the connector
-- The URI, database, and collection of the MongoDB instance the
-  connector receives data from
-- An aggregation pipeline that adds a field ``travel`` with the value
-  ``"I went through Kafka!"`` to inserted documents passing through the connector
-
-To confirm that you successfully added the source connector, run the following
-command to print all connectors installed on your Kafka Connect deployment:
-
-.. code-block:: bash
+.. code-block:: shell
 
    curl -X GET http://connect:8083/connectors
 
-You should see the following output:
+The command should output the names of the running connectors:
 
 .. code-block:: none
    :copyable: false
 
    ["mongo-source"]
 
-For more information on source connectors, see our
-:doc:`guide on source connectors <source-connector>`.
+To learn more about source connector properties, see the
+:doc:`{+mkc+} Source Connectors <source-connector>` guide.
 
-For more information on aggregation pipelines, see the 
-:manual:`MongoDB manual entry on aggregation pipelines </core/aggregation-pipeline/>`.
+To learn more about aggregation pipelines, see 
+:manual:`Aggregation Pipelines </core/aggregation-pipeline/>` in the MongoDB manual.
 
-Install the Sink Connector
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _kafka-quick-start-sink-connector-section:
 
-In the quick start shell, run the following command to set up the sink
-connector using the Kafka Connect REST API:
+Add a Sink Connector
+~~~~~~~~~~~~~~~~~~~~
 
-.. _quick-start-sink-connector:
+In the shell in your Docker environment, add a sink connector using the {+kc+}
+REST API. The following command adds a sink connector and specifies the
+following properties:
+
+- The class {+kc+} uses to instantiate the connector
+- The connection URI, database, and collection of the MongoDB replica set to which
+  the connector writes data
+- The {+ak+} topic from which the connector reads data
+- A change data capture handler for MongoDB change event documents
 
 .. code-block:: bash
 
@@ -163,69 +164,69 @@ connector using the Kafka Connect REST API:
             "connector.class":"com.mongodb.kafka.connect.MongoSinkConnector",
             "connection.uri":"mongodb://mongo1:27017/?replicaSet=rs0",
             "database":"quickstart",
-            "collection":"sink",
-            "topics":"quickstart.source",
+            "collection":"topicData",
+            "topics":"quickstart.sampleData",
             "change.data.capture.handler": "com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler"
             }
         }
         ' \
         http://connect:8083/connectors -w "\n"
 
-The preceding command creates a new connector in Kafka Connect and specifies the
-following properties of the connector:
+To confirm that you added the source and sink connectors, run the following command:
 
-- The class Kafka Connect uses to instantiate the connector
-- The URI, database, and collection of the MongoDB instance the
-  connector writes data to
-- The Apache Kafka topic the connector receives data from
-- A change data capture handler for MongoDB change data capture events
-
-To confirm that you successfully installed the source and sink connectors, run
-the following command to print all connectors installed on your Kafka Connect
-deployment:
-
-.. code-block:: bash
+.. code-block:: shell
 
     curl -X GET http://connect:8083/connectors
 
-You should see the following output:
+The command should output the names of the running connectors:
 
 .. code-block:: none
     :copyable: false
 
     ["mongo-source", "mongo-sink"]
 
-For more information on sink connectors, see our
-:doc:`guide on sink connectors <sink-connector>`.
+To learn more about sink connectors, see the
+:doc:`{+mkc+} Sink Connectors <sink-connector>` guide.
 
-For more information on change data capture events, see our
-:doc:`guide on change data capture events <sink-connector/fundamentals/change-data-capture>`.
+To learn more about change data capture events, see the
+:ref:`<sink-fundamentals-cdc-handler>` guide.
 
-Test the Connectors
-~~~~~~~~~~~~~~~~~~~
+.. _kafka-quick-start-send-a-document:
 
-To test the connectors, enter the MongoDB shell from the quick start
-shell:
+Send the Contents of a Document through Your Connectors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: bash
+To send the contents of a document through your connectors, you need
+to write data into the MongoDB collection from which your source connector reads
+data. To write data into your collection, enter the MongoDB shell from 
+the shell in your Docker environment:
+
+.. code-block:: shell
 
    mongosh mongodb://mongo1:27017/?replicaSet=rs0 
 
-From within the MongoDB shell, insert a document into the ``source``
+Once you are in the MongoDB shell, you should see a prompt that looks like this:
+
+.. code-block:: shell
+   :copyable: false
+
+   rs0 [primary] test>
+
+From within the MongoDB shell, insert a document into the ``sampleData``
 collection of the ``quickstart`` database using the following commands:
 
 .. code-block:: javascript
 
    use quickstart
-   db.source.insertOne({"hello":"world"})
+   db.sampleData.insertOne({"hello":"world"})
 
-After you insert a document into the ``source`` collection, check the ``sink``
-collection to make sure the source and sink connectors correctly handled the
-insertion:
+After you insert a document into the ``sampleData`` collection, confirm that your
+connectors processed the change. Check the contents of the ``topicData``
+collection with the following command:
 
 .. code-block:: javascript
 
-   db.sink.find()
+   db.topicData.find()
 
 You should see output that resembles the following:
 
@@ -234,54 +235,78 @@ You should see output that resembles the following:
 
    [
        {
-         _id: ObjectId("60f87b2f018bb14f13106be1"),
+         _id: ObjectId(...),
          hello: 'world',
-         travel: 'I went through Kafka!'
+         travel: 'MongoDB Kafka Connector'
        }
    ]
 
-In the preceding output you can see a copy of the document inserted into the
-``source`` collection in the ``sink`` collection with the extra field ``travel``
-added by the aggregation pipeline defined in the source connector.
+Exit the MongoDB shell with the following command:
 
-Once you have finished exploring the connector in the MongoDB shell, you can
-exit the MongoDB shell with the following command:
-
-.. code-block:: bash
+.. code-block:: shell
 
    exit
 
-Stop the Pipeline
------------------
+.. _kafka-quickstart-remove-the-pipeline:
 
-To conserve resources on your computer, make sure to stop the sample pipeline
-once you are done exploring this example.
+Remove the Pipeline
+-------------------
 
-Before you stop the sample pipeline, make sure to exit the quick start
-shell. You can exit the quick start shell with the following command:
+To conserve resources in your development environment, remove the sample pipeline.
 
-.. code-block:: bash
+Before you remove the sample pipeline, exit the shell in your Docker environment
+by running the following command:
+
+.. code-block:: shell
 
    exit
 
-To stop the sample pipeline and remove containers and images, run the
-following command:
+To remove the sample pipeline and free resources, run the shell command in one of
+the following tabs:
 
-.. code-block:: bash
+.. tabs::
 
-   docker-compose -p quickstart down --rmi 'all'
+   .. tab:: Remove Containers and Images
+      :tabid: remove-containers
+
+      The following command removes the Docker containers and images related to
+      the sample pipeline:
+      
+      .. code-block:: shell
+      
+         docker-compose -p quickstart down --rmi 'all'
+
+      .. important:: Download the Pipeline Again
+      
+         If you remove the images, you must download
+         {+pipeline-size+} of files to restart the pipeline. If you would like
+         to keep the images, see the :guilabel:`Remove Containers` tab.
+
+   .. tab:: Remove Containers
+      :tabid: remove-containers-and-images
+
+      The following command removes the Docker containers, but not the Docker images,
+      related to the sample pipeline:
+      
+      .. code-block:: shell
+      
+         docker-compose -p quickstart down
+
+      .. important:: Docker Images Consume {+pipeline-size+} of Space
+      
+         The sample pipeline consumes {+pipeline-size+}
+         of space in your development environment. You can free this space by
+         removing the images related to the sample pipeline by following the steps
+         in the :guilabel:`Remove Containers and Images` tab.
 
 Next Steps
 ----------
 
-If you would like to explore any of the MongoDB Kafka Connector features
-mentioned above, you can find more information on them throughout our
-documentation.
+To learn how to install the connector, see the
+:ref:`<kafka-installation>` guide.
 
-For more information on sink connectors in the MongoDB Kafka
-Connector, such as an in-depth discussion of change data capture handlers,
-see :doc:`our sink connector section <sink-connector>`. 
+To learn more about moving data from {+ak+} to MongoDB, see the
+:doc:`{+mkc+} Sink Connector <sink-connector>` guide. 
 
-For more information on source connectors in the MongoDB Kafka
-Connector, such as a complete list of source connector configuration properties,
-see :doc:`our source connector section <source-connector>`. 
+To learn more about moving data from MongoDB to {+ak+}, see the
+:doc:`{+mkc+} Source Connector <source-connector>` guide.

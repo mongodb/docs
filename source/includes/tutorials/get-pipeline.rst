@@ -1,11 +1,12 @@
 We provide you with a sample data pipeline so that you can use the MongoDB
-Kafka Connector. To access and use the files that define your sample data pipeline,
-clone the tutorial repository and change your directory to the root of the
-repository using the following commands:
+Kafka Connector. 
 
-<TODO: decide on final location for this example>
+Use bash or a similar shell to run the shell commands in this guide. To download
+the files that define your sample data pipeline, clone the tutorial
+repository and navigate into the tutorial directory using the
+following commands:
 
 .. code-block:: bash
 
-   git clone https://github.com/biniona-mongodb/MongoKafkaLite
-   cd MongoKafkaLite
+   git clone https://github.com/mongodb-university/kafka-edu.git
+   cd kafka-edu/docs-examples/v1.6/quickstart
