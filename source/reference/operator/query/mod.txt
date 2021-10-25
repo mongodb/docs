@@ -21,9 +21,22 @@ $mod
 
       { field: { $mod: [ divisor, remainder ] } }
 
-   The :query:`$mod` operator errors when passed an array with fewer
-   or more than two elements. See :ref:`mod-not-enough-elements` and
-   :ref:`mod-too-many-elements` for details.
+.. _mod-behavior:
+
+Behavior
+--------
+
+The :query:`$mod` operator returns an error if the  ``[ divisor,
+remainder ]`` array contains fewer or more than two elements. For
+examples, see :ref:`mod-not-enough-elements` and
+:ref:`mod-too-many-elements` respectively.
+
+Also, starting in MongoDB 4.4.10, :query:`$mod` returns an error if the
+``divisor`` or ``remainder`` values evaluate to:
+
+- ``NaN`` (not a number) or ``Infinity``.
+
+- A value that cannot be represented using a 64-bit integer.
 
 Examples
 --------
@@ -31,13 +44,15 @@ Examples
 Use ``$mod`` to Select Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a collection ``inventory`` with the following documents:
+Create an ``inventory`` collection:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "abc123", "qty" : 0 }
-   { "_id" : 2, "item" : "xyz123", "qty" : 5 }
-   { "_id" : 3, "item" : "ijk123", "qty" : 12 }
+   db.inventory.insertMany( [
+      { "_id" : 1, "item" : "abc123", "qty" : 0 },
+      { "_id" : 2, "item" : "xyz123", "qty" : 5 },
+      { "_id" : 3, "item" : "ijk123", "qty" : 12 }
+   ] )
 
 Then, the following query selects those documents in the
 ``inventory`` collection where value of the ``qty`` field modulo
@@ -50,6 +65,7 @@ Then, the following query selects those documents in the
 The query returns the following documents:
 
 .. code-block:: javascript
+   :copyable: false
 
    { "_id" : 1, "item" : "abc123", "qty" : 0 }
    { "_id" : 3, "item" : "ijk123", "qty" : 12 }
@@ -75,11 +91,9 @@ an array that contains a single element:
 The statement results in the following error:
 
 .. code-block:: javascript
+   :copyable: false
 
-   error: {
-    	"$err" : "bad query: BadValue malformed mod, not enough elements",
-    	"code" : 16810
-   }
+   MongoServerError: malformed mod, not enough elements
 
 Empty Array
 ```````````
@@ -94,11 +108,9 @@ an empty array:
 The statement results in the following error:
 
 .. code-block:: javascript
+   :copyable: false
 
-   error: {
-    	"$err" : "bad query: BadValue malformed mod, not enough elements",
-    	"code" : 16810
-   }
+   MongoServerError: malformed mod, not enough elements
 
 .. _mod-too-many-elements:
 
@@ -113,7 +125,11 @@ operator with an array that contains four elements:
 
 .. code-block:: javascript
 
-   error: {
-   	"$err" : "bad query: BadValue malformed mod, too many elements",
-   	"code" : 16810
-   }
+   db.inventory.find( { qty: { $mod: [ 4, 1, 2, 3 ] } } )
+
+The statement results in the following error:
+
+.. code-block:: javascript
+   :copyable: false
+
+   MongoServerError: malformed mod, too many elements
