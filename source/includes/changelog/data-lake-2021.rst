@@ -1,3 +1,13 @@
+.. _data-lake-v20211027:
+
+27 October 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Includes X.509 users in the :manual:`usersInfo 
+  </reference/command/usersInfo/>` command output.
+- Improves SCRAM authentication performance.
+
 .. _data-lake-v20211005:
 
 05 October 2021 Release
