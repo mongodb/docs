@@ -13,7 +13,6 @@
 
      - | :ref:`db.collection.updateOne() <updateOne-example-agg>`
        | :ref:`db.collection.updateMany() <updateMany-example-agg>`
-       | :ref:`db.collection.update() <update-example-agg>`
 
        | :ref:`Bulk.find.update() <example-bulk-find-update-agg>`
        | :ref:`Bulk.find.updateOne() <example-bulk-find-update-one-agg>`

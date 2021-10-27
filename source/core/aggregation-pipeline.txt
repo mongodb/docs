@@ -1,4 +1,4 @@
-.. _aggregation-top-level-server:
+.. _aggregation-pipeline:
 
 ====================
 Aggregation Pipeline
@@ -12,66 +12,92 @@ Aggregation Pipeline
    :depth: 1
    :class: singlecol
 
-The aggregation pipeline is a framework for data aggregation modeled
-on the concept of data processing pipelines. Documents enter a
-multi-stage pipeline that transforms the documents into aggregated
-results. For example:
+.. include:: /includes/aggregation-pipeline-introduction.rst
+
+.. _aggregation-pipeline-example:
+
+Complete Aggregation Pipeline Example
+-------------------------------------
+
+Create the following collection that contains orders for products:
 
 .. code-block:: javascript
 
-   db.orders.aggregate([
-      { $match: { status: "A" } },
-      { $group: { _id: "$cust_id", total: { $sum: "$amount" } } }
-   ])
+   db.orders.insertMany( [
+      { _id: 0, productName: "Steel beam", status: "new", quantity: 10 },
+      { _id: 1, productName: "Steel beam", status: "urgent", quantity: 20 },
+      { _id: 2, productName: "Steel beam", status: "urgent", quantity: 30 },
+      { _id: 3, productName: "Iron rod", status: "new", quantity: 15 },
+      { _id: 4, productName: "Iron rod", status: "urgent", quantity: 50 },
+      { _id: 5, productName: "Iron rod", status: "urgent", quantity: 10 }
+   ] )
 
-**First Stage**: The :pipeline:`$match` stage filters the documents by
-the ``status`` field and passes to the next stage those documents that
-have ``status`` equal to ``"A"``.
+.. include:: /includes/aggregation-pipeline-example.rst
 
-**Second Stage**: The :pipeline:`$group` stage groups the documents by
-the ``cust_id`` field to calculate the sum of the amount for each
-unique ``cust_id``.
+Example output:
 
-.. _aggregation-pipeline:
+.. code-block:: javascript
+   :copyable: false
 
-Pipeline
---------
-
-The MongoDB aggregation pipeline consists of :ref:`stages
-<aggregation-pipeline-operator-reference>`. Each stage transforms the
-documents as they pass through the pipeline. Pipeline stages do not need
-to produce one output document for every input document. For example,
-some stages may generate new documents or filter out documents.
-
-Pipeline stages can appear multiple times in the pipeline with the
-exception of :pipeline:`$out`, :pipeline:`$merge`, and
-:pipeline:`$geoNear` stages. For a list
-of all available stages, see
-:ref:`aggregation-pipeline-operator-reference`.
-
-MongoDB provides the :method:`db.collection.aggregate()` method in the
-:binary:`~bin.mongo` shell and the :dbcommand:`aggregate` command to
-run the aggregation pipeline. 
-
-For example usage of the aggregation pipeline, consider
-:doc:`/tutorial/aggregation-with-user-preference-data` and
-:doc:`/tutorial/aggregation-zip-code-data-set`.
-
-Starting in MongoDB 4.2, you can use the aggregation pipeline for
-updates in:
-
-.. include:: /includes/table-update-with-aggregation-availability.rst
+   [
+      { _id: 'Steel beam', sumQuantity: 50 },
+      { _id: 'Iron rod', sumQuantity: 60 }
+   ]
 
 .. seealso::
 
-   :doc:`/tutorial/update-documents-with-aggregation-pipeline`
+   - :doc:`/tutorial/aggregation-with-user-preference-data`
+   - :doc:`/tutorial/aggregation-zip-code-data-set`
+   - :doc:`/tutorial/update-documents-with-aggregation-pipeline`
 
-.. _aggregation-pipeline-expressions:
+MongoDB provides the :method:`db.collection.aggregate()` method in the
+:binary:`~bin.mongo` shell and the :dbcommand:`aggregate` command to
+run the aggregation pipeline.
 
+.. _aggregation-pipeline-stages:
+
+Aggregation Pipeline Stages
+---------------------------
+
+An aggregation pipeline consists of one or more :ref:`stages
+<aggregation-pipeline-operator-reference>` that process documents:
+ 
+- Each stage transforms the documents as they pass through the pipeline.
+
+- A stage does not have to output one document for every input
+  document. For example, some stages may produce new documents or
+  filter out documents.
+
+- The same stage can appear multiple times in the pipeline with these
+  stage exceptions: :pipeline:`$out`, :pipeline:`$merge`, and
+  :pipeline:`$geoNear`.
+  
+- For all available stages, see
+  :ref:`aggregation-pipeline-operator-reference`.
+
+Run an Aggregation Pipeline
+---------------------------
+
+To run an aggregation pipeline, use:
+
+- :method:`db.collection.aggregate()` or
+
+- :dbcommand:`aggregate`
+
+Update Documents Using an Aggregation Pipeline
+----------------------------------------------
+
+Starting in MongoDB 4.2, you can use the aggregation pipeline to update
+documents using these methods:
+
+.. include:: /includes/table-update-with-aggregation-availability.rst
+
+ .. _aggregation-pipeline-expressions:
+ 
 Pipeline Expressions
 --------------------
 
-Some pipeline stages take a pipeline expression as the operand.
+Some pipeline stages accept a pipeline expression as the operand.
 Pipeline expressions specify the transformation to apply to the input
 documents. Expressions have a :doc:`document </core/document>`
 structure and can contain other :ref:`expression
