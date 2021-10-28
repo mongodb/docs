@@ -20,7 +20,7 @@ constraint.
    - 10 nodes in **Region B**
    -  5 nodes in **Region C**
 
-   You can only add 5 nodes to **Region C** because:
+   You can only add 5 more nodes to **Region C** because:
 
    1. If you exclude Region C, Region A + Region B = 40.
       :icon-fa5:`check-circle`
