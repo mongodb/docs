@@ -1,3 +1,13 @@
+.. _atlas_20211027:
+
+27 October 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports the use of Security Key and Biometrics as a 
+  :ref:`multi-factor authentication <atlas-enable-mfa>` option.
+- Supports :manual:`zstd </reference/glossary/#std-term-zstd>` as a 
+  compression standard for clusters on MongoDB 4.2+.
+
 .. _atlas_20211018:
 
 18 October 2021 Release
