@@ -1,3 +1,10 @@
+.. _cloudmanager_20211027:
+
+27 October 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`11.7.0.7181-1 <11.7.0.7181-1>`.
+
 .. _cloudmanager_20211006:
 
 06 October 2021 Release
@@ -17,7 +24,8 @@
     indexes from the UI. 
   - Ability to visualize slow queries in times series collections.
 
-- Updates the deployment security settings user interface for improved usability.
+- Updates the deployment security settings user interface for improved 
+  usability.
 - Updates {+mdbagent+} to :ref:`11.5.0.7078-1 <11.5.0.7078-1>`.
 
 .. _cloudmanager_20210824:
