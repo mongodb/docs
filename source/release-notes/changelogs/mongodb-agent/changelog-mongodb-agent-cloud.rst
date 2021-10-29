@@ -1,3 +1,13 @@
+.. _11.7.0.7181-1:
+
+MongoDB Agent 11.7.0.7181-1
+---------------------------
+
+*Released* 2021-10-27
+
+- Improves hardware metrics collection for Windows.
+- Improves logging during download of software components.
+
 .. _11.6.0.7119:
 
 MongoDB Agent 11.6.0.7119
