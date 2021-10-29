@@ -1,7 +1,8 @@
-The :operator:`$min` and :operator:`$max` operators indicate that the system
-should avoid normal query planning. Instead they construct an index scan where
-the index bounds are explicitly specified by the values given in
-:operator:`$min` and :operator:`$max`.
+The :method:`~cursor.min()` and :method:`~cursor.max()` methods
+indicate that the system should avoid normal query planning. They
+construct an index scan where the index bounds are explicitly specified
+by the values given in :method:`~cursor.min()` and
+:method:`~cursor.max()`.
 
 .. warning::
 
