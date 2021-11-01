@@ -14,6 +14,17 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
+   * - ext 1.11 + lib 1.10
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+
    * - ext 1.10 + lib 1.9
      - |checkmark| [#PHPC1.10-PHPLIB1.9-driver-support]_
      - |checkmark|
