@@ -1,0 +1,370 @@
+.. _bulk_golang:
+
+===============
+Bulk Operations
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use **bulk operations**.
+
+Bulk operations perform a large number of write operations. Instead of
+making a call for each operation to the database, bulk operations
+perform multiple operations with one call to the database.
+
+Sample Data
+~~~~~~~~~~~
+
+To run the example in this guide, load the sample data into the
+``ratings`` collection of the ``tea`` database with the following
+snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin insert docs
+   :end-before: end insert docs
+
+.. include:: /includes/fundamentals/tea-sample-data-ending.rst
+
+Bulk Write
+----------
+
+To perform a bulk operation, pass a slice of :ref:`WriteModel
+<write-model-go>` documents to the ``BulkWrite()`` function. 
+
+Modify Behavior
+~~~~~~~~~~~~~~~
+
+The ``BulkWrite()`` function optionally takes a ``BulkWriteOptions``
+type, which represents options you can use to modify its behavior. If
+you don't specify a ``BulkWriteOptions``, the driver uses the default
+values for each option.
+
+The ``BulkWriteOptions`` type allows you to configure options with the
+following functions:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Function
+     - Description
+
+   * - ``SetBypassDocumentValidation()`` 
+     - | Whether to allow the write to opt-out of document level validation.
+       | Default: ``false``
+
+   * - ``SetOrdered()``
+     - | Whether to stop performing write operations after an error occurs. 
+       | Default: ``true``
+
+Return Values
+~~~~~~~~~~~~~
+
+The ``BulkWrite()`` function returns a ``BulkWriteResult`` type, which
+contains information about the bulk operation if it's successful. The
+``BulkWriteResult`` type contains the following properties:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``InsertedCount``
+     - The number of documents inserted.
+
+   * - ``MatchedCount``
+     - The number of documents matched by the :ref:`query filter <query-filter-definition-go>` in update and replace operations.
+
+   * - ``ModifiedCount``
+     - The number of documents modified by update and replace operations.
+
+   * - ``DeletedCount``
+     - The number of documents deleted.
+   
+   * - ``UpsertedCount`` 
+     - The number of documents :ref:`upserted <upsert-definition-go>` by update and replace operations.
+
+   * - ``UpsertedIDs`` 
+     - A map of an operation index to the ``_id`` of each :ref:`upserted <upsert-definition-go>` document.
+
+.. _write-model-go:
+
+Operations
+----------
+
+A ``WriteModel`` represents an insert, replace, update, or delete operation.
+
+Insert
+~~~~~~
+
+To perform an insert operation, create an ``InsertOneModel`` specifying
+the document you want to insert. To insert multiple documents, create an
+``InsertOneModel`` for each document you want to insert.
+
+The ``InsertOneModel`` allows you to specify its behavior with the
+following function:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Function
+     - Description
+
+   * - ``SetDocument()`` 
+     - | The document to insert.
+
+Example
+```````
+
+This following example creates two ``InsertOneModel`` instances to
+insert two documents:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin bulk insert model
+   :end-before: end bulk insert model
+
+Replace
+~~~~~~~
+
+To perform a replace operation, create a ``ReplaceOneModel`` specifying
+the document you want to replace and a :ref:`replacement document
+<replacement-document>`. To replace multiple documents, create a
+``ReplaceOneModel`` for each document you want to replace.
+
+The ``ReplaceOneModel`` allows you to specify its behavior with the
+following functions:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Function
+     - Description
+
+   * - ``SetCollation()`` 
+     - | The type of language collation to use when sorting results.
+
+   * - ``SetFilter()`` 
+     - | The :ref:`query filter <query-filter-definition-go>` specifying which document to replace.
+
+   * - ``SetHint()`` 
+     - | The index to use to scan for documents.
+
+   * - ``SetReplacement()`` 
+     - | The document to replace the matched document with.
+
+   * - ``SetUpsert()`` 
+     - | Whether to insert a new document if the :ref:`query filter <query-filter-definition-go>` doesn't match any documents.
+
+Example
+```````
+
+The following example creates a ``ReplaceOneModel`` to replace a
+document where the ``type`` is "Earl Grey" with a document where the
+``type`` is "Matcha" and the ``rating`` is ``8``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin bulk replace model
+   :end-before: end bulk replace model
+
+Update
+~~~~~~
+
+To perform an update operation, create an ``UpdateOneModel`` specifying
+the document you want to update and an :ref:`update document
+<update-document>`. To update multiple documents, use the
+``UpdateManyModel``.
+
+The ``UpdateOneModel`` and ``UpdateManyModel`` allow you to specify
+their behavior with the following functions:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Function
+     - Description
+
+   * - ``SetArrayFilters()`` 
+     - | The array elements the update applies to.
+
+   * - ``SetCollation()`` 
+     - | The type of language collation to use when sorting results.
+
+   * - ``SetFilter()`` 
+     - | The :ref:`query filter <query-filter-definition-go>` specifying which document to update.
+
+   * - ``SetHint()`` 
+     - | The index to use to scan for documents.
+
+   * - ``SetUpdate()`` 
+     - | The modifications to apply on the matched documents.
+
+   * - ``SetUpsert()`` 
+     - | Whether to insert a new document if the :ref:`query filter <query-filter-definition-go>` doesn't match any documents.
+
+Example
+```````
+
+The following example creates an ``UpdateOneModel`` to decrement a
+documents ``rating`` by ``2`` if their ``type`` is "Masala":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin bulk update model
+   :end-before: end bulk update model
+
+Delete
+~~~~~~
+
+To perform a delete operation, create a ``DeleteOneModel`` specifying
+the document you want to delete. To delete multiple documents, use the
+``DeleteManyModel``. 
+
+The ``DeleteOneModel`` and ``DeleteManyModel`` allow you to specify
+their behavior with the following functions:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Function
+     - Description
+
+   * - ``SetCollation()`` 
+     - | The type of language collation to use when sorting results.
+
+   * - ``SetFilter()`` 
+     - | The :ref:`query filter <query-filter-definition-go>` specifying which document to delete.
+
+   * - ``SetHint()`` 
+     - | The index to use to scan for documents.
+
+Example
+```````
+
+The following example creates a ``DeleteManyModel`` to delete
+documents where the ``rating`` is greater than ``7``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin bulk delete model
+   :end-before: end bulk delete model
+
+Execution Order
+---------------
+
+The ``BulkWrite()`` function allows you to specify if you want to
+execute the bulk operations as ordered or unordered in its
+``BulkWriteOptions``. 
+
+Ordered
+~~~~~~~
+
+By default, the ``BulkWrite()`` function executes bulk operations in
+order you added them and stops if an error occurs.
+
+.. tip::
+
+   This is equivalent to specifying ``true`` in the ``SetOrdered()``
+   function: 
+
+   .. code-block:: go
+
+      opts := options.BulkWrite().SetOrdered(true)
+
+Unordered
+~~~~~~~~~
+
+To execute bulk write operations in any order and continue if an error
+occurs, specify ``false`` to the ``SetOrdered()`` function. The function
+reports the errors afterwards.
+
+Example
+```````
+
+The following example performs the following actions in any order: 
+
+- Inserts two documents.
+- Replaces a document where the type is "Earl Grey" with a new document.
+- Increments all documents ``rating`` by ``3`` if their current rating is less than ``7``.
+- Deletes all documents where the rating is ``9``.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin unordered
+   :end-before: end unordered
+
+After running this example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Number of documents inserted: 2
+   Number of documents replaced or updated: 3
+   Number of documents deleted: 2
+
+The following documents are present in the ``ratings`` collection after
+the bulk operation:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {type Masala} {rating 10}]
+   [{_id ObjectID("...")} {type Matcha} {rating 7}]
+
+Additional Information
+----------------------
+
+For a runnable example on performing a bulk operation, see the
+:ref:`<bulk-ops-usage-example-go>` usage example.
+
+Related Operations
+~~~~~~~~~~~~~~~~~~
+
+For more information on performing the operations mentioned, see the
+following guides:
+
+- :ref:`<query_document_golang>`
+- :ref:`<insert_guide_golang>`
+- :ref:`<change_document_golang>`
+- :ref:`<delete_guide_golang>`
+- :manual:`Bulk Write Operations </core/bulk-write-operations/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+For more information on any of the functions or types discussed in this
+guide, see the following API Documentation:
+
+- `BulkWrite() <{+api+}/mongo#Collection.BulkWrite>`__
+- `BulkWriteOptions <{+api+}/mongo/options#BulkWriteOptions>`__
+- `BulkWriteResult <{+api+}/mongo#BulkWriteResult>`__
+- `NewInsertOneModel() <{+api+}/mongo#NewUpdateOneModel>`__
+- `NewReplaceOneModel() <{+api+}/mongo#NewReplaceOneModel>`__
+- `NewReplaceOneModel() <{+api+}/mongo#NewReplaceOneModel>`__
+- `NewUpdateOneModel() <{+api+}/mongo#NewUpdateOneModel>`__
+- `NewUpdateManyModel() <{+api+}/mongo#NewReplaceOneModel>`__
+- `NewDeleteOneModel() <{+api+}/mongo#NewReplaceOneModel>`__
+- `NewDeleteManyModel() <{+api+}/mongo#NewReplaceOneModel>`__
