@@ -1,10 +1,6 @@
-We provide you with a sample data pipeline so that you can use the MongoDB
-Kafka Connector. 
+We provide a sandbox that includes the services you need to build your sample data pipeline.
 
-Use bash or a similar shell to run the shell commands in this guide. To download
-the files that define your sample data pipeline, clone the tutorial
-repository and navigate into the tutorial directory using the
-following commands:
+To download the sandbox, clone the tutorial repository to your development environment. Then navigate to the directory that corresponds to the quick start example. If you use bash or a similar shell, use the following commands:
 
 .. code-block:: bash
 

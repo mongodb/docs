@@ -1,3 +1,5 @@
+.. _kafka-quick-start:
+
 ===========
 Quick Start
 ===========
@@ -13,66 +15,95 @@ Quick Start
 Overview
 --------
 
-This guide shows you how to use the {+mkc+} to connect MongoDB to {+ak+}.
+This guide shows you how to configure the {+mkc+} to send data between MongoDB
+and {+ak+}.
 
-You perform the following actions:
+After completing this guide, you should understand how to use the {+kc+}
+REST API to configure {+mkc+}s to read data from MongoDB and write it to a
+Kafka topic, and to read data from a Kafka topic and write it to MongoDB.
 
-- :ref:`Add a {+mkc+} source connector <kafka-quick-start-source-connector-section>`
-- :ref:`Add a {+mkc+} sink connector <kafka-quick-start-sink-connector-section>`
-- :ref:`Send the contents of a MongoDB document through your source and sink connector <kafka-quick-start-send-a-document>`
+To complete the steps in this guide, you must download and work in a
+**sandbox**, a containerized development environment that includes services
+you need to build a sample *data pipeline*.
 
-In this guide, you download and work in a containerized development environment. 
-Follow the instructions in the :ref:`<kafka-quickstart-remove-the-pipeline>`
-section to remove the environment.
+Read the following sections to set up your sandbox and sample data pipeline.
+
+.. note::
+
+   After you complete this guide, you can remove the environment by
+   following the instructions in the :ref:`<kafka-quickstart-remove-the-sandbox>`
+   section.
 
 Requirements
 ------------
 
 .. include:: /includes/tutorials/pipeline-requirements.rst
 
-Download the Sample Pipeline
-----------------------------
+Download the Sandbox
+--------------------
 
-.. include:: /includes/tutorials/get-pipeline.rst
+We created a sandbox that includes the services you need in this tutorial
+to build your sample data pipeline.
 
-Start the Pipeline
-------------------
+To download the sandbox, clone the tutorial repository to your development
+environment. Then navigate to the directory that corresponds to the quickstart
+tutorial. If you use bash or a similar shell, use the following commands:
 
-The sample pipeline consists of the following services running in
-Docker containers:
+.. include:: /includes/tutorials/quickstart-clone-commands-versioned.rst
 
-- A MongoDB replica set
-- An {+ak+} instance
-- A Kafka Connect instance with the MongoDB Kafka Connector installed
-- A Zookeeper instance (Zookeeper is a dependency of Apache Kafka) 
+Start the Sandbox
+-----------------
 
-To download and run the sample pipeline, execute the following command from
-within the tutorial directory:
+The sandbox starts the following services in Docker containers:
+
+- MongoDB, configured as a replica set
+- {+ak+}
+- Kafka Connect with the MongoDB Kafka Connector installed
+- Apache Zookeeper which manages the configuration for {+ak+}
+
+To start the sandbox run the following command from the tutorial directory:
 
 .. code-block:: shell
 
    docker-compose -p quickstart up -d
 
+When you start the sandbox, Docker downloads any images it needs to run.
+
 .. include:: /includes/tutorials/download-note.rst
+
+After Docker downloads and builds the images, you should see the following
+output in your development environment:
+
+.. code-block:: shell
+   :copyable: false
+
+   Creating mongo1    ... done
+   Creating zookeeper ... done
+   Creating broker       ... done
+   Creating mongo1-setup ... done
+   Creating connect      ... done
+   Creating shell        ... done
+
 
 Add Connectors
 --------------
 
-You must add a connector to {+kc+} to transfer data between {+kc+} and
-MongoDB. Add a **source connector** to transfer data from MongoDB 
-to {+ak+}. Add a **sink connector** to transfer data from {+ak+} to MongoDB.
+To complete the sample data pipeline, you must add connectors to {+kc+}
+to transfer data between {+kc+} and MongoDB. Add a **source connector** to
+transfer data from MongoDB to {+ak+}. Add a **sink connector** to transfer
+data from {+ak+} to MongoDB.
 
-To add connectors in the sample pipeline, you first need to enter a shell
-in your Docker environment using the following command:
+To add connectors in the sandbox, first start an interactive bash shell in
+your Docker container using the following command:
 
 .. code-block:: shell
 
    docker exec -it shell /bin/bash
 
-Once you are in the shell you should see a prompt that looks like this:
+After your shell session starts, you should see the following prompt:
 
 .. code-block:: none
-   :copyable: false   
+   :copyable: false
 
    [MongoDB Kafka Connector Quick Start]
 
@@ -81,8 +112,10 @@ Once you are in the shell you should see a prompt that looks like this:
 Add a Source Connector
 ~~~~~~~~~~~~~~~~~~~~~~
 
-In the shell in your Docker environment, add a source connector using the {+kc+}
-REST API. The following command adds a source connector and specifies the
+Use the shell in your Docker container to add a source connector using the
+{+kc+} REST API.
+
+The following API request adds a source connector configured with the
 following properties:
 
 - The class {+kc+} uses to instantiate the connector
@@ -116,7 +149,7 @@ following properties:
 
    .. code-block:: none
       :copyable: false
- 
+
       ...
       curl: (7) Failed to connect to connect port 8083: Connection refused
 
@@ -126,31 +159,33 @@ To confirm that you added the source connector, run the following command:
 
    curl -X GET http://connect:8083/connectors
 
-The command should output the names of the running connectors:
+The preceding command should output the names of the running connectors:
 
 .. code-block:: none
    :copyable: false
 
    ["mongo-source"]
 
-To learn more about source connector properties, see the
-:doc:`{+mkc+} Source Connectors <source-connector>` guide.
+To learn more about source connector properties, see the page on
+:ref:`<source-configuration-index>`.
 
-To learn more about aggregation pipelines, see 
-:manual:`Aggregation Pipelines </core/aggregation-pipeline/>` in the MongoDB manual.
+To learn more about aggregation pipelines, see the MongoDB manual page on
+:manual:`Aggregation Pipelines </core/aggregation-pipeline/>`.
 
 .. _kafka-quick-start-sink-connector-section:
 
 Add a Sink Connector
 ~~~~~~~~~~~~~~~~~~~~
 
-In the shell in your Docker environment, add a sink connector using the {+kc+}
-REST API. The following command adds a sink connector and specifies the
+Use the shell in your Docker container to add a sink connector using the
+{+kc+} REST API.
+
+The following API request adds a sink connector configured with the
 following properties:
 
 - The class {+kc+} uses to instantiate the connector
-- The connection URI, database, and collection of the MongoDB replica set to which
-  the connector writes data
+- The connection URI, database, and collection of the MongoDB replica set to
+  which the connector writes data
 - The {+ak+} topic from which the connector reads data
 - A change data capture handler for MongoDB change event documents
 
@@ -172,21 +207,22 @@ following properties:
         ' \
         http://connect:8083/connectors -w "\n"
 
-To confirm that you added the source and sink connectors, run the following command:
+To confirm that you added both source and sink connector, run the following
+command:
 
 .. code-block:: shell
 
     curl -X GET http://connect:8083/connectors
 
-The command should output the names of the running connectors:
+The preceding command should output the names of the running connectors:
 
 .. code-block:: none
     :copyable: false
 
     ["mongo-source", "mongo-sink"]
 
-To learn more about sink connectors, see the
-:doc:`{+mkc+} Sink Connectors <sink-connector>` guide.
+To learn more about sink connector properties, see the page on
+:ref:`<kafka-sink-configuration-properties>`.
 
 To learn more about change data capture events, see the
 :ref:`<sink-fundamentals-cdc-handler>` guide.
@@ -196,23 +232,25 @@ To learn more about change data capture events, see the
 Send the Contents of a Document through Your Connectors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To send the contents of a document through your connectors, you need
-to write data into the MongoDB collection from which your source connector reads
-data. To write data into your collection, enter the MongoDB shell from 
-the shell in your Docker environment:
+To send the contents of a document through your connectors, insert a
+document into the MongoDB collection from which your source connector reads
+data.
+
+To insert a new document into your collection, enter the MongoDB shell from
+the shell in your Docker container using the following command:
 
 .. code-block:: shell
 
-   mongosh mongodb://mongo1:27017/?replicaSet=rs0 
+   mongosh mongodb://mongo1:27017/?replicaSet=rs0
 
-Once you are in the MongoDB shell, you should see a prompt that looks like this:
+After you run the preceding command, you should see the following prompt:
 
 .. code-block:: shell
    :copyable: false
 
    rs0 [primary] test>
 
-From within the MongoDB shell, insert a document into the ``sampleData``
+From the MongoDB shell, insert a document into the ``sampleData``
 collection of the ``quickstart`` database using the following commands:
 
 .. code-block:: javascript
@@ -220,9 +258,9 @@ collection of the ``quickstart`` database using the following commands:
    use quickstart
    db.sampleData.insertOne({"hello":"world"})
 
-After you insert a document into the ``sampleData`` collection, confirm that your
-connectors processed the change. Check the contents of the ``topicData``
-collection with the following command:
+After you insert a document into the ``sampleData`` collection, confirm that
+your connectors processed the change. Check the contents of the ``topicData``
+collection using the following command:
 
 .. code-block:: javascript
 
@@ -247,66 +285,58 @@ Exit the MongoDB shell with the following command:
 
    exit
 
-.. _kafka-quickstart-remove-the-pipeline:
+.. _kafka-quickstart-remove-the-sandbox:
 
-Remove the Pipeline
--------------------
+Remove the Sandbox
+------------------
 
-To conserve resources in your development environment, remove the sample pipeline.
+To conserve resources in your development environment, remove the sandbox.
 
-Before you remove the sample pipeline, exit the shell in your Docker environment
-by running the following command:
+Before you remove the sandbox, exit from the shell session in your Docker
+container by running the following command:
 
 .. code-block:: shell
 
    exit
 
-To remove the sample pipeline and free resources, run the shell command in one of
-the following tabs:
+You can choose to remove both the Docker containers and images, or exclusively
+the containers. If you remove the containers and images, you must download
+them again to restart your sandbox which is approximately {+pipeline-size+}
+in size. If you exclusively remove the containers, you can reuse the
+images and avoid downloading most of the large files in the sample data
+pipeline.
+
+Select the tab that corresponds to the removal task you want to run.
 
 .. tabs::
 
    .. tab:: Remove Containers and Images
-      :tabid: remove-containers
-
-      The following command removes the Docker containers and images related to
-      the sample pipeline:
-      
-      .. code-block:: shell
-      
-         docker-compose -p quickstart down --rmi 'all'
-
-      .. important:: Download the Pipeline Again
-      
-         If you remove the images, you must download
-         {+pipeline-size+} of files to restart the pipeline. If you would like
-         to keep the images, see the :guilabel:`Remove Containers` tab.
-
-   .. tab:: Remove Containers
       :tabid: remove-containers-and-images
 
-      The following command removes the Docker containers, but not the Docker images,
-      related to the sample pipeline:
-      
-      .. code-block:: shell
-      
-         docker-compose -p quickstart down
+      Run the following shell command to remove the Docker containers and
+      images from the sandbox:
 
-      .. important:: Docker Images Consume {+pipeline-size+} of Space
-      
-         The sample pipeline consumes {+pipeline-size+}
-         of space in your development environment. You can free this space by
-         removing the images related to the sample pipeline by following the steps
-         in the :guilabel:`Remove Containers and Images` tab.
+      .. code-block:: shell
+
+         docker-compose -p quickstart down --rmi 'all'
+
+   .. tab:: Remove Containers
+      :tabid: remove-containers
+
+      Run the following shell command to remove the Docker containers but
+      keep the images for the sandbox:
+
+      .. code-block:: shell
+
+         docker-compose -p quickstart down
 
 Next Steps
 ----------
 
-To learn how to install the connector, see the
-:ref:`<kafka-installation>` guide.
+To learn how to install the {+mkc+}, see the :ref:`<kafka-installation>` guide.
 
-To learn more about moving data from {+ak+} to MongoDB, see the
-:doc:`{+mkc+} Sink Connector <sink-connector>` guide. 
+To learn more about how to process and move data from {+ak+} to MongoDB, see
+the :ref:`<kafka-sink-overview>` guide.
 
-To learn more about moving data from MongoDB to {+ak+}, see the
-:doc:`{+mkc+} Source Connector <source-connector>` guide.
+To learn more about how to process and move data from MongoDB to {+ak+}, see
+the :ref:`<kafka-source-overview>` guide.
