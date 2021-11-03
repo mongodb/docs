@@ -1,0 +1,300 @@
+===========
+Search Text
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to run a :ref:`text search
+<text-search-go>`. 
+
+.. important::
+
+   MongoDB text search is different than :atlas:`Atlas Search
+   </atlas-search/>`.
+
+Sample Data
+~~~~~~~~~~~
+
+To run the examples in this guide, load the sample data into the
+``movies`` collection of the ``marvel`` database with the following
+snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
+   :language: go
+   :dedent:
+   :start-after: begin insert docs
+   :end-before: end insert docs
+
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+Each document contains the name and release year of the Marvel movie
+that corresponds to the ``title`` and ``year`` fields.
+
+.. include:: /includes/fundamentals/truncated-id.rst
+
+Text Index
+~~~~~~~~~~
+
+You must create a **text index** before running a text search. A text
+index specifies the string or string array field on which to run a text
+search.
+
+The examples in the following sections run text searches on the
+``title`` field in the ``movies`` collection. To enable text searches on
+the ``title`` field, create a text index with the following snippet: 
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
+   :language: go
+   :dedent:
+   :start-after: begin text index
+   :end-before: end text index
+
+.. _text-search-go:
+
+Text Search
+-----------
+
+A text search retrieves documents that contain a **term** or a
+**phrase** in the text indexed fields. A term is a sequence of
+characters that excludes whitespace characters. A phrase is a sequence
+of terms with any number of whitespace characters.
+
+To perform a text search, use the ``$text`` evaluation query operator,
+followed by the ``$search`` field in your query filter. The ``$text`` operator
+performs a text search on the text indexed fields. The ``$search`` field
+specifies the text to search in the text indexed fields.
+
+Query filters for text searches use the following format:
+
+.. code-block:: go
+
+   filter := bson.D{{"$text", bson.D{{"$search", "<text to search>"}}}}
+
+.. _term-search-go:
+
+Search by a Term
+~~~~~~~~~~~~~~~~
+
+To search for a term, specify the term as a string in your query filter.
+To search for multiple terms, separate each term with spaces in the string.
+
+.. note::
+
+   When searching for multiple terms, the ``Find()`` function returns
+   documents with at least one of the terms in text indexed fields.
+
+Example
+```````
+
+The following example runs a text search for titles that contain the term "War":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
+   :language: go
+   :dedent:
+   :start-after: begin term search
+   :end-before: end term search
+
+After running this example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
+   [{_id ObjectID("...")} {title Captain America: Civil War} {year 2016}]
+
+Search by a Phrase
+~~~~~~~~~~~~~~~~~~
+
+To search for a phrase, specify the phrase with escaped quotes as a
+string in your query filter. If you don't add escaped quotes around the
+phrase, the ``Find()`` function runs a :ref:`term search <term-search-go>`.
+
+.. tip::
+
+   Escaped quotes are a backslash character followed by a double quote
+   character.
+
+Example
+```````
+
+The following example runs a text search for titles that contain the
+phrase "Infinity War":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
+   :language: go
+   :dedent:
+   :start-after: begin phrase search
+   :end-before: end phrase search
+
+After running this example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
+
+Search with Terms Excluded
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For each term or phrase you want to exclude from your text search,
+specify the term or phrase prefixed with a minus sign as a string in
+your query filter.
+
+.. important::
+
+   You must search for at least one term if you want to exclude
+   terms from your search. If you don't search for any terms, the
+   ``Find()`` function doesn't return any documents.
+
+Example
+```````
+
+The following example runs a text search for titles that contain the
+term "Avenger", but does not contain the phrase "Captain America":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
+   :language: go
+   :dedent:
+   :start-after: begin exclude term search
+   :end-before: end exclude term search
+
+After running this example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {title The Avengers} {year 2012}]
+   [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
+
+Sort by Relevance
+~~~~~~~~~~~~~~~~~
+
+A text search assigns a numerical text score to indicate how closely
+each result matches the string in your query filter. To reveal the text
+score in your output, use a projection to retrieve the ``textScore``
+metadata. You can sort the text score in descending order by specifying
+a sort on the ``textScore`` metadata.
+
+Example
+```````
+
+The following example performs the following actions:
+
+- Runs a text search for titles that contain the term "Avenger"
+- Sorts the results in descending order based on their text score
+- Includes the ``title`` and ``score`` fields from the results
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
+   :language: go
+   :dedent:
+   :start-after: begin text score
+   :end-before: end text score
+
+After running this example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   [{title The Avengers} {score 1}]
+   [{title Avengers: Infinity War} {score 0.6666666666666666}]
+   [{title Captain America: The First Avenger} {score 0.625}]
+
+.. tip::
+
+   Although the search term was "Avenger", the function also matches
+   titles containing "Avengers" because a MongoDB text index uses suffix
+   stemming to match similar words. For more information about how
+   MongoDB matches terms, see :manual:`Index Entries
+   </core/index-text/#index-entries>`.
+
+Aggregation
+-----------
+
+You can also include the ``$text`` evaluation query operator in the
+:manual:`$match </reference/operator/aggregation/match/>` stage to
+perform a text search in an aggregation pipeline.
+
+Term Search Example
+~~~~~~~~~~~~~~~~~~~
+
+The following example runs a text search for titles that contain the term "Winter":
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
+   :language: go
+   :dedent:
+   :start-after: begin aggregate text search
+   :end-before: end aggregate text search
+
+After running this example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   [{_id ObjectID("...")} {title Captain America: The Winter Soldier} {year 2014}]
+
+Text Score Example
+~~~~~~~~~~~~~~~~~~
+
+The following example performs the following actions:
+
+- Runs a text search for titles that contain the term "Avenger"
+- Sorts the results in descending order based on their text score
+- Includes the ``title`` and ``score`` fields from the results
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
+   :language: go
+   :dedent:
+   :start-after: begin aggregate text score
+   :end-before: end aggregate text score
+
+After running this example, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   [{title The Avengers} {score 1}]
+   [{title Avengers: Infinity War} {score 0.6666666666666666}]
+   [{title Captain America: The First Avenger} {score 0.625}]
+
+.. tip::
+
+   Although the search term was "Avenger", the function also matches
+   titles containing "Avengers" because a MongoDB text index uses suffix
+   stemming to match similar words. For more information about how
+   MongoDB matches terms, see :manual:`Index Entries
+   </core/index-text/#index-entries>`.
+
+Additional Information
+----------------------
+
+For more information on the operations mentioned, see the following
+guides:
+
+- :doc:`Specify a Query </fundamentals/crud/query-document>`
+- :doc:`Sort Results </fundamentals/crud/read-operations/sort>`
+- :doc:`Specify Which Fields to Return </fundamentals/crud/read-operations/project>`
+- :manual:`Text Indexes </core/index-text/>`
+- :manual:`$text </reference/operator/query/text/>`
+- :manual:`$meta </reference/operator/aggregation/meta/>`
+
+.. - :doc:`Indexes </fundamentals/crud/indexes>`
+.. - :doc:`Aggregation </fundamentals/aggregation>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+For more information on any of the functions or types discussed in this
+guide, see the following API Documentation:
+
+- `Find() <{+api+}/mongo#Collection.Find>`__
+- `FindOptions.SetSort() <{+api+}/mongo/options#FindOptions.SetSort>`__
+- `FindOptions.SetProjection() <{+api+}/mongo/options#FindOptions.SetProjection>`__
