@@ -624,3 +624,126 @@ Each query includes a:
          { "title" : "Men with Guns" },
          { "title" : "Men with Brooms" },
          { "title" : "Women Without Men" }
+
+.. _autocomplete-highlighting:
+
+Highlighting Example 
+~~~~~~~~~~~~~~~~~~~~
+
+The following query searches for the characters ``ger`` in the 
+``title`` field of the ``movies`` collection, with the 
+``highlight`` option enabled for the ``title`` field.
+
+The query includes a:
+
+- :pipeline:`$limit` stage to limit the output to 5 results.
+ 
+- :pipeline:`$project` stage to:
+
+  - return the document's score.
+ 
+  - exclude all fields except ``title``.
+   
+  - add a new field called ``highlights``, which contains highlighting 
+    information.
+
+.. important::
+
+   To highlight the autocomplete indexed version of a path, the 
+   :ref:`autocomplete operator <autocomplete-ref>` must be the only 
+   operator that uses that path in the query.
+
+.. code-block:: json
+
+    db.movies.aggregate([
+      {
+        $search: {
+          "autocomplete": {
+            "path": "title",
+            "query": ["ger"]
+          },
+          "highlight": { 
+            "path": "title"
+          }
+        }
+      },
+      {
+        $limit: 5
+      }, 
+      { 
+        $project: {
+          
+          "score": { $meta: "searchScore" },
+          "title": 1,
+          "_id": 0,
+          "highlights": { "$meta": "searchHighlights" }
+        }
+      }
+    ])
+
+The query returns the following results.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+    "title": "Gertie the Dinosaur",
+    "score": 6.0822906494140625,
+    "highlights": [
+      {
+        "score": 0.9227690100669861,
+        "path": "title",
+        "texts": [ { "value": "Gertie the Dinosaur", "type": "hit" } ]
+      }
+    ]
+   },
+   {
+    "title": "Germany Year Zero",
+    "score": 6.0822906494140625,
+    "highlights": [
+      {
+        "score": 0.9180012345314026,
+        "path": "title",
+        "texts": [ { "value": "Germany Year Zero", "type": "hit" } ]
+      }
+    ]
+   },
+   {
+    "title": "Germany in Autumn",
+    "score": 6.0822906494140625,
+    "highlights": [
+      {
+        "score": 0.9180012345314026,
+        "path": "title",
+        "texts": [ { "value": "Germany in Autumn", "type": "hit" } ]
+      }
+    ]
+   },
+   {
+    "title": "Germany Pale Mother",
+    "score": 6.0822906494140625,
+    "highlights": [
+      {
+        "score": 0.9227690100669861,
+        "path": "title",
+        "texts": [ { "value": "Germany Pale Mother", "type": "hit" } ]
+      }
+    ]
+   },
+   {
+    "title": "Gerhard Richter - Painting",
+    "score": 6.0822906494140625,
+    "highlights": [
+      {
+        "score": 0.9386774897575378,
+        "path": "title",
+        "texts": [ { "value": "Gerhard Richter - Painting", "type": "hit" } ]
+      }
+    ]
+   }
+
+|fts| returns these results because the ``title`` field in the 
+``movies`` collection contains the characters  ``ger`` at the beginning 
+of a word. |fts| matches a highlight ``hit`` more coarsely to your 
+query terms when a highlighted path is referenced only in the 
+autocomplete operators of the highlighted query.

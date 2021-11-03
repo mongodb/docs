@@ -612,7 +612,7 @@ contains highlighting information.
 
 .. code-block:: json
 
-    db.fruit.aggregate([
+   db.fruit.aggregate([
       {
         $search: {
           "text": {
@@ -631,14 +631,14 @@ contains highlighting information.
           "highlights": { "$meta": "searchHighlights" }
         }
       }
-    ])
+   ])
 
 The query returns the following results. The fields 
 that begin with ``des`` are highlighted.
 
 .. code-block:: json
-    :copyable: false
-    :emphasize-lines: 5, 27, 45
+   :copyable: false
+   :emphasize-lines: 5, 27, 45
 
     { 
       "description" : "Bosc and Bartlett are the most common varieties of pears.", 
@@ -703,4 +703,121 @@ that begin with ``des`` are highlighted.
         } 
       ] 
     }
-    
+
+.. _highlight-autocomplete:
+
+Autocomplete Example 
+~~~~~~~~~~~~~~~~~~~~
+
+For this example, the ``fruit`` collection also has the 
+following :ref:`index definition <ref-index-definitions>`.
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "description": [
+          {
+           "type": "autocomplete",
+           "tokenization": "edgeGram",
+           "minGrams": 2,
+           "maxGrams": 15,
+           "foldDiacritics": true
+          }
+         ]
+       }
+     }
+   }
+
+The following query searches for the characters ``var`` in the 
+``description`` field of the ``fruit`` collection, with the 
+``highlight`` option enabled for the ``description`` field. 
+
+The :manual:`$project </reference/operator/aggregation/project>` 
+pipeline stage adds a new field called ``highlights``, which 
+contains highlighting information.
+
+.. important::
+
+   To highlight the autocomplete indexed version of a path, the 
+   :ref:`autocomplete operator <autocomplete-ref>` must be the only 
+   operator that uses that path in the query.
+
+.. code-block:: json
+
+   db.fruit.aggregate([
+      {
+        $search: {
+          "autocomplete": {
+            "path": "description",
+            "query": ["var"]
+          },
+          "highlight": { 
+            "path": "description"
+          }
+        }
+      }, 
+      { 
+        $project: {
+          "description": 1,
+          "_id": 0,
+          "highlights": { "$meta": "searchHighlights" }
+        }
+      }
+   ])
+
+The query returns the following results.
+
+.. code-block:: json
+   :copyable: false
+   :emphasize-lines: 9, 18, 35
+
+   {
+    "description": "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.",
+    "highlights": [
+      {
+        "score": 0.774385392665863,
+        "path": "description",
+        "texts": [
+          { "value": "Apples come in several ", "type": "text" },
+          { "value": "varieties, including Fuji", "type": "hit" },
+          { "value": ", Granny Smith, and Honeycrisp. ", "type": "text" }
+        ]
+      },
+      {
+        "score": 0.7879307270050049,
+        "path": "description",
+        "texts": [
+          { "value": "The most popular ", "type": "text" },
+          { "value": "varieties are McIntosh", "type": "hit" },
+          { "value": ", Gala, and Granny Smith.", "type": "text" }
+        ]
+      }
+    ]
+   },
+   {
+    "description": "Bosc and Bartlett are the most common varieties of pears.",
+    "highlights": [
+      {
+        "score": 0.9964432120323181,
+        "path": "description",
+        "texts": [
+          {
+            "value": "Bosc and Bartlett are the most common ",
+            "type": "text"
+          },
+          { "value": "varieties of pears", "type": "hit" },
+          { "value": ".", "type": "text" }
+        ]
+      }
+    ]
+   }
+
+|fts| returns a match on the documents with ``_id: 1`` and 
+``id_: 2`` for the query string ``var``  because the ``description`` 
+field in the ``fruit`` collection contains the characters  
+``var`` at the beginning of a word. |fts| matches a highlight ``hit`` 
+more coarsely to your query terms when a highlighted path is referenced 
+only in the autocomplete operators of the highlighted query.
