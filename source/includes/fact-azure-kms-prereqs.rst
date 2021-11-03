@@ -11,7 +11,7 @@
   containing the Key Vault.
 
 - Have an :guilabel:`Active Directory Application` with the role of
-  :guilabel:`Azure key Vault Reader (Preview)` assigned to it.
+  :guilabel:`Azure key Vault Reader` assigned to it.
 
 - Have the :guilabel:`Subscription ID` and :guilabel:`Key Vault Name`
   of an Azure Key Vault. Ensure the Key Vault resource group
