@@ -11,6 +11,8 @@
          .. tab:: Intel/AMD
             :tabid: x86
 
+            .. include:: /includes/agents/binaries-removed-from-path.rst
+
             On x86_64 architecture running, Debian 8, Debian 9,
             Ubuntu 18.04, or Ubuntu 20.04:
 
@@ -27,6 +29,8 @@
                .. tab:: deb Package
                   :tabid: deb
 
+                  .. include:: /includes/agents/binaries-removed-from-path.rst
+
                   Using a ``deb`` package:
 
                   .. include:: /includes/steps/monitor-appdb-on-ppc64e1.ubuntu1604-deb.rst
@@ -40,6 +44,8 @@
 
          .. tab:: IBM zSeries
             :tabid: s390x
+
+            .. include:: /includes/agents/binaries-removed-from-path.rst
 
             On zSeries architecture running Ubuntu 18.04 using a ``deb``
             package:
@@ -64,6 +70,8 @@
                .. tab:: RHEL/CentOS 6.x, Amazon Linux
                   :tabid: v6
 
+                  .. include:: /includes/agents/binaries-removed-from-path.rst
+
                   Running RHEL / CentOS 6.x using an
                   ``rpm`` package:
 
@@ -79,6 +87,8 @@
 
                      .. tab:: rpm Package
                         :tabid: rpm
+
+                        .. include:: /includes/agents/binaries-removed-from-path.rst
 
                         Using an ``rpm`` package:
 
@@ -102,6 +112,8 @@
                .. tab:: rpm Package
                   :tabid: rpm
 
+                  .. include:: /includes/agents/binaries-removed-from-path.rst
+
                   Using an ``rpm`` package:
 
                   .. include:: /includes/steps/monitor-appdb-on-ppc641e.rhel7-rpm.rst
@@ -124,6 +136,8 @@
                .. tab:: 6.0+
                   :tabid: v6
 
+                  .. include:: /includes/agents/binaries-removed-from-path.rst
+
                   Running RHEL / CentOS 6.x using the ``rpm`` package
                   manager:
 
@@ -131,6 +145,8 @@
 
                .. tab:: 7.0+
                   :tabid: v7
+
+                  .. include:: /includes/agents/binaries-removed-from-path.rst
 
                   Running RHEL / CentOS 7.x using the ``rpm`` package
                   manager:

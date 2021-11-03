@@ -26,6 +26,8 @@
          .. tab:: Intel/AMD
             :tabid: x86
 
+            .. include:: /includes/agents/binaries-removed-from-path.rst
+
             On x86_64 architecture running, Debian 8, Debian 9,
             Ubuntu 18.04, or Ubuntu 20.04:
 
@@ -42,6 +44,8 @@
                .. tab:: DEB package
                   :tabid: deb
 
+                  .. include:: /includes/agents/binaries-removed-from-path.rst
+
                   Using a ``deb`` package:
 
                   .. include:: /includes/steps/install-mongodb-agent-monitor-ppc64e1.ubuntu1604-deb.rst
@@ -55,6 +59,8 @@
 
          .. tab:: IBM ZSeries
             :tabid: s390x
+
+            .. include:: /includes/agents/binaries-removed-from-path.rst
 
             On zSeries architecture running Ubuntu 18.04 using a
             ``deb`` package:
@@ -80,6 +86,8 @@
                   .. tab:: Amazon Linux
                      :tabid: v6
 
+                     .. include:: /includes/agents/binaries-removed-from-path.rst
+
                      Running Amazon Linux using an ``rpm`` package:
 
                      .. include::
@@ -95,6 +103,8 @@
 
                         .. tab:: RPM package
                            :tabid: rpm
+
+                           .. include:: /includes/agents/binaries-removed-from-path.rst
 
                            Using an ``rpm`` package:
 
@@ -114,6 +124,8 @@
                   .. tab:: RHEL/CentOS 6.x, Amazon Linux
                      :tabid: v6
 
+                     .. include:: /includes/agents/binaries-removed-from-path.rst
+
                      Running RHEL / CentOS 6.x using an ``rpm`` package:
 
                      .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64-rpm-old.rst
@@ -128,6 +140,8 @@
 
                         .. tab:: RPM package
                            :tabid: rpm
+
+                           .. include:: /includes/agents/binaries-removed-from-path.rst
 
                            Using an ``rpm`` package:
 
@@ -151,6 +165,8 @@
                .. tab:: RPM package
                   :tabid: rpm
 
+                  .. include:: /includes/agents/binaries-removed-from-path.rst
+
                   Using an ``rpm`` package:
 
                   .. include:: /includes/steps/install-mongodb-agent-monitor-ppc641e.rhel7-rpm.rst
@@ -170,7 +186,10 @@
 
             .. cond:: cloud
 
-               Running RHEL / CentOS 7.x using the ``rpm`` package manager:
+               .. include:: /includes/agents/binaries-removed-from-path.rst
+
+               Running RHEL / CentOS 7.x using the ``rpm`` package
+               manager:
 
                .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.rhel7-rpm.rst
 
@@ -181,6 +200,8 @@
                   .. tab:: 6.x
                      :tabid: v6
 
+                     .. include:: /includes/agents/binaries-removed-from-path.rst
+
                      Running RHEL / CentOS 6.x using the
                      ``rpm`` package manager:
 
@@ -188,6 +209,8 @@
 
                   .. tab:: 7.x
                      :tabid: v7
+
+                     .. include:: /includes/agents/binaries-removed-from-path.rst
 
                      Running RHEL / CentOS 7.x using the
                      ``rpm`` package manager:

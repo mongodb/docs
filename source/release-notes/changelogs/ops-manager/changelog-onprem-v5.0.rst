@@ -161,3 +161,8 @@ Security
 ````````
 
 Disables |tls| versions 1.0 and 1.1 by default.
+
+MongoDB Agent
+`````````````
+Updates the MongoDB Agent to :ref:`11.0.5.6967-1
+<mongodb-11.0.5.6967-1>`.
