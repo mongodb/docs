@@ -70,7 +70,19 @@ Prerequisites
       :tabid: ruby
 
    .. tab:: 
+      :tabid: rust-async
+
+   .. tab:: 
+      :tabid: rust-sync
+ 
+   .. tab:: 
       :tabid: scala
+
+   .. tab::
+      :tabid: swift-async
+
+   .. tab::
+      :tabid: swift-sync
 
 Driver Version
 ~~~~~~~~~~~~~~
@@ -580,6 +592,85 @@ Select your driver from the following options:
 
            - `Version 7.0.0 and later <https://docs.mongodb.com/mongoid/7.0/>`_
 
+   .. tab:: 
+      :tabid: rust-async
+
+      The default async runtime used by the driver is ``tokio``. To use a
+      different runtime, see `Configuring the async runtime <https://github.com/mongodb/mongo-rust-driver#configuring-the-async-runtime>`__.
+
+      .. note::
+
+         .. include:: /includes/extracts/driver-free-tier-rust.rst
+
+      .. code-block:: rust
+
+         use mongodb::{options::ClientOptions, Client};
+         #[tokio::main]
+             async fn main() -> mongodb::error::Result<()> {
+                 let client_options = ClientOptions::parse(
+                     "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?ssl=true&replicaSet=Mycluster0-shard-0&authSource=admin&w=majority",
+                 )
+                 .await?;
+                 let client = Client::with_options(client_options)?;
+                 let _database = client.database("testDB");
+                 
+             // List the names of the databases in that cluster
+             for db_name in client.list_database_names(None, None)? {
+                 println!("{}", db_name);
+             }
+             Ok(())
+             }
+
+      .. list-table::
+         :header-rows: 1
+
+         * - MongoDB Version
+           - Recommended Driver Version(s)
+
+         * - All
+           - See the {+reference-compatibility-mongodb-rust+} for the
+             latest recommended driver versions.
+
+   .. tab:: 
+      :tabid: rust-sync
+     
+      Make sure you enabled the sync API. See `Enabling the sync API <https://github.com/mongodb/mongo-rust-driver#enabling-the-sync-api>`__
+      for more details.
+      
+      .. note::
+
+         .. include:: /includes/extracts/driver-free-tier-rust.rst
+
+      .. code-block:: rust
+
+         use mongodb::{bson::doc, sync::Client};
+         fn main() -> mongodb::error::Result<()> {
+                 let client_options = ClientOptions::parse(
+                     "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?ssl=true&replicaSet=Mycluster0-shard-0&authSource=admin&w=majority",
+                 )?;
+
+         // Ping the server to see if you can connect to the cluster
+         client
+             .database("admin")
+             .run_command(doc! {"ping": 1}, None)?;
+         println!("Connected successfully.");
+    
+         // List the names of the databases in that cluster
+         for db_name in client.list_database_names(None, None)? {
+             println!("{}", db_name);
+         }
+         Ok(())
+         }
+
+      .. list-table::
+         :header-rows: 1
+
+         * - MongoDB Version
+           - Recommended Driver Version(s)
+
+         * - All
+           - See the {+reference-compatibility-mongodb-rust+} for the
+             latest recommended driver versions.
 
    .. tab:: 
       :tabid: scala
@@ -607,6 +698,75 @@ Select your driver from the following options:
 
          * - MongoDB 4.0
            - Version 2.4 and later.
+   .. tab:: 
+      :tabid: swift-async
+
+      .. note::
+
+         .. include:: /includes/extracts/driver-free-tier-swift.rst
+
+      .. code-block:: swift
+
+         import MongoSwift
+         import NIO
+         
+         let elg = MultiThreadedEventLoopGroup(numberOfThreads: 4)
+
+         let uri = "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority"
+         let client = try MongoClient(
+             uri,
+             using: elg
+         )
+
+         defer {
+    
+             // clean up driver resources
+             try? client.syncClose()
+             cleanupMongoSwift()
+    
+             // shut down EventLoopGroup
+             try? elg.syncShutdownGracefully()
+         }
+
+         // print a list of database names to confirm connection
+         print(try client.listDatabaseNames().wait())
+
+      .. list-table::
+         :header-rows: 1
+
+         * - MongoDB Version
+           - Recommended Driver Version(s)
+
+         * - All
+           - See the {+reference-compatibility-mongodb-swift+} for the
+             latest recommended driver versions.
+
+   .. tab:: 
+      :tabid: swift-sync
+
+      .. note::
+
+         .. include:: /includes/extracts/driver-free-tier-swift.rst
+
+      .. code-block:: swift
+
+         import MongoSwiftSync
+
+         let uri = "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority"
+         let client = try MongoClient(uri)
+
+         // print a list of database names to confirm connection
+         print (try client.listDatabaseNames())
+
+      .. list-table::
+         :header-rows: 1
+
+         * - MongoDB Version
+           - Recommended Driver Version(s)
+
+         * - All
+           - See the {+reference-compatibility-mongodb-swift+} for the
+             latest recommended driver versions.
 
 
 Troubleshooting
