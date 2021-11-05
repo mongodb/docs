@@ -69,79 +69,40 @@
 
             On x86_64 architecture:
 
-            .. cond:: cloud
+            .. tabs::
 
-               .. tabs::
+               .. tab:: Amazon Linux
+                  :tabid: v6
 
-                  .. tab:: Amazon Linux
-                     :tabid: v6
+                  .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                     .. include:: /includes/agents/binaries-removed-from-path.rst
+                  Running Amazon Linux using an ``rpm`` package:
 
-                     Running Amazon Linux using an ``rpm`` package:
-
-                     .. include:: /includes/steps/install-mongodb-agent-manage-x86-64-rpm.rst
+                  .. include:: /includes/steps/install-mongodb-agent-manage-x86-64-rpm.rst
                         
-                  .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
-                     :tabid: v7
+               .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
+                  :tabid: v7
 
-                     Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
-                     Amazon Linux 2:
+                  Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
+                  Amazon Linux 2:
 
-                     .. tabs::
+                  .. tabs::
 
-                        .. tab:: RPM package
-                           :tabid: rpm
+                     .. tab:: RPM package
+                        :tabid: rpm
 
-                           .. include:: /includes/agents/binaries-removed-from-path.rst
+                        .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                           Using an ``rpm`` package:
+                        Using an ``rpm`` package:
 
-                           .. include:: /includes/steps/install-mongodb-agent-manage-x86-64.rhel7-rpm.rst
+                        .. include:: /includes/steps/install-mongodb-agent-manage-x86-64.rhel7-rpm.rst
 
-                        .. tab:: TAR archive
-                           :tabid: tar
+                     .. tab:: TAR archive
+                        :tabid: tar
 
-                           Using a ``tar`` archive:
+                        Using a ``tar`` archive:
 
-                           .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-x86-64-tar.rst
-
-            .. cond:: onprem
-
-               .. tabs::
-
-                  .. tab:: RHEL/CentOS 6.x, Amazon Linux
-                     :tabid: v6
-
-                     .. include:: /includes/agents/binaries-removed-from-path.rst
-
-                     Running RHEL / CentOS 6.x using an ``rpm`` package:
-
-                     .. include:: /includes/steps/install-mongodb-agent-manage-x86-64-rpm-old.rst
-
-                  .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
-                     :tabid: v7
-
-                     Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
-                     Amazon Linux 2:
-
-                     .. tabs::
-
-                        .. tab:: RPM package
-                           :tabid: rpm
-
-                           .. include:: /includes/agents/binaries-removed-from-path.rst
-
-                           Using an ``rpm`` package:
-
-                           .. include:: /includes/steps/install-mongodb-agent-manage-x86-64.rhel7-rpm.rst
-
-                        .. tab:: TAR archive
-                           :tabid: tar
-
-                           Using a ``tar`` archive:
-
-                           .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-x86-64-tar.rst
+                        .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-x86-64-tar.rst
 
          .. tab:: PowerPC
             :tabid: ppc
@@ -173,66 +134,25 @@
             On zSeries architecture (managing MongoDB 3.4 or
             later deployments):
 
-            .. cond:: cloud
+            Running RHEL / CentOS 7.x:
 
-               Running RHEL / CentOS 7.x:
+            .. tabs::
 
-               .. tabs::
+               .. tab:: RPM package
+                  :tabid: rpm 
 
-                  .. tab:: RPM package
-                     :tabid: rpm 
+                  Running RHEL / CentOS 7.x using the
+                  ``rpm`` package manager:
 
-                     .. include:: /includes/agents/binaries-removed-from-path.rst
+                  .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
 
-                     Running RHEL / CentOS 7.x using the
-                     ``rpm`` package manager:
+               .. tab:: TAR archive
+                  :tabid: tar 
 
-                     .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
+                  Running RHEL / CentOS 7.x using the
+                  ``tar`` archive:
 
-                  .. tab:: TAR archive
-                     :tabid: tar 
-
-                     Running RHEL / CentOS 7.x using the
-                     ``tar`` archive:
-
-                     .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-tar.rst
-
-            .. cond:: onprem
-
-               .. tabs::
-
-                  .. tab:: 6.x
-                     :tabid: v6
-
-                     .. include:: /includes/agents/binaries-removed-from-path.rst
-
-                     Running RHEL / CentOS 6.x using the
-                     ``rpm`` package manager:
-
-                     .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel6-rpm.rst
-
-                  .. tab:: 7.x
-                     :tabid: v7
-
-                     .. tabs::
-
-                        .. tab:: RPM package
-                           :tabid: rpm
-
-                           .. include:: /includes/agents/binaries-removed-from-path.rst
-
-                           Running RHEL / CentOS 7.x using the
-                           ``rpm`` package manager:
-
-                           .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
-
-                        .. tab:: TAR archive
-                           :tabid: tar 
-
-                           Running RHEL / CentOS 7.x using the
-                           ``tar`` archive:
-
-                           .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-tar.rst
+                  .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-tar.rst
    
    .. tab::
       :tabid: linux
