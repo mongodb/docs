@@ -1,3 +1,12 @@
+.. _opsmgr-server-4.4.18:
+
+|onprem| Server 4.4.18
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-11-04*
+
+- Updates the MongoDB Agent to 10.14.29.6548.
+
 .. _opsmgr-server-4.4.17:
 
 |onprem| Server 4.4.17
