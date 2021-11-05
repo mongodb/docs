@@ -3,6 +3,8 @@
 |onprem| Server 5.0.4
 ~~~~~~~~~~~~~~~~~~~~~
 
+*Released 2021-11-04*
+
 - Fixed an issue where |s3os|\s would not appear on the 
   :guilabel:`Oplog Storage` page in the administration console in all
   configurations.
