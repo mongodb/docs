@@ -5,6 +5,8 @@
    :class: compatibility-large
 
    * - Scala Driver Version
+     - MongoDB 5.1
+     - MongoDB 5.0
      - MongoDB 4.4
      - MongoDB 4.2
      - MongoDB 4.0
@@ -15,6 +17,8 @@
      - MongoDB 2.6
 
    * - 4.2
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -25,6 +29,8 @@
      - |checkmark|
 
    * - 4.1
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -36,6 +42,8 @@
 
    * - 2.9
      -
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -45,6 +53,8 @@
      - |checkmark|
 
    * - 2.8
+     -
+     -
      -
      - |checkmark|
      - |checkmark|
@@ -57,6 +67,8 @@
 
    * - 2.7
      -
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -66,6 +78,8 @@
      - |checkmark|
 
    * - 2.6
+     -
+     -
      -
      -
      - |checkmark|
@@ -78,6 +92,8 @@
    * - 2.5
      -
      -
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -86,6 +102,8 @@
      - |checkmark|
 
    * - 2.4
+     -
+     -
      -
      -
      - |checkmark|
@@ -99,6 +117,8 @@
      -
      -
      -
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -106,6 +126,8 @@
      - |checkmark|
 
    * - 2.2
+     -
+     -
      -
      -
      -
@@ -120,6 +142,8 @@
      -
      -
      -
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -130,12 +154,16 @@
      -
      -
      -
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
    * - 1.2
+     -
+     -
      -
      -
      -
@@ -151,11 +179,15 @@
      -
      -
      -
+     -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
    * - 1.0
+     -
+     -
      -
      -
      -

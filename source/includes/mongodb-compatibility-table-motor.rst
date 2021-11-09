@@ -5,6 +5,7 @@
    :class: compatibility
 
    * - Motor (Python async) Driver Version
+     - MongoDB 5.1
      - MongoDB 5.0
      - MongoDB 4.4
      - MongoDB 4.2
@@ -16,6 +17,7 @@
      - MongoDB 2.6
 
    * - 2.5
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -26,6 +28,7 @@
      - |checkmark|
      -
    * - 2.4
+     -
      -
      - |checkmark|
      - |checkmark|
@@ -38,6 +41,7 @@
 
    * - 2.3
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -48,6 +52,7 @@
      -
 
    * - 2.2
+     -
      -
      - |checkmark|
      - |checkmark|
@@ -61,6 +66,7 @@
    * - 2.1
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -70,6 +76,7 @@
      -
 
    * - 2.0
+     -
      -
      -
      - |checkmark|
@@ -85,6 +92,7 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -92,6 +100,7 @@
      - |checkmark|
 
    * - 1.2
+     -
      -
      -
      -
@@ -108,12 +117,14 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
    * - 1.0
+     -
      -
      -
      -
