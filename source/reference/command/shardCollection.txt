@@ -35,7 +35,8 @@ Definition
          unique: <boolean>,
          numInitialChunks: <integer>,
          presplitHashedZones: <boolean>,
-         collation: { locale: "simple" }
+         collation: { locale: "simple" },
+         timeseries: <object>
       }
 
    :dbcommand:`shardCollection` has the following fields:
@@ -170,6 +171,64 @@ Definition
 
           .. versionadded:: 4.4
 
+      * - :ref:`timeseries <cmd-shard-collection-timeseries>`
+
+        - object
+
+        - .. _cmd-shard-collection-timeseries:
+
+          Optional. Specify this option to create a new sharded
+          :ref:`time series collection <manual-timeseries-collection>`.
+
+          To shard an existing time series collection, omit this
+          parameter. When you omit this parameter and specify a time
+          series collection in the ``shardCollection`` parameter,
+          MongoDB automatically uses the values from the time series
+          collection as the values for the ``timeseries`` field.
+          
+          For detailed syntax, see
+          :ref:`sharded-time-series-collection-options`.
+
+          .. versionadded:: 5.1
+
+.. _sharded-time-series-collection-options:
+
+Time Series Options
+~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.1
+
+Specify the :ref:`timeseries <cmd-shard-collection-timeseries>` option
+to :dbcommand:`shardCollection` to create a new sharded
+:ref:`time series collection <manual-timeseries-collection>`.
+
+The :ref:`timeseries <cmd-shard-collection-timeseries>` option takes
+the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``timeField``
+     - string
+     - .. include:: /includes/time-series/fact-time-field-description.rst
+
+   * - ``metaField``
+     - string
+     - .. include:: /includes/time-series/fact-meta-field-description.rst
+
+   * - ``granularity``
+     - string
+     - .. include:: /includes/time-series/fact-granularity-description.rst
+
+   * - ``bucketMaxSpanSeconds``
+     - integer
+     - Optional. The maximum range of time values for a bucket,
+       in seconds.
 
 Considerations
 --------------
@@ -193,6 +252,21 @@ avoid scalability and perfomance issues.
 
   - :ref:`sharding-shard-key-selection`
   - :ref:`sharding-shard-key`
+
+Shard Keys on Time Series Collections
+`````````````````````````````````````
+
+When sharding time series collections, you can only specify the
+``metaField`` (or sub-fields of ``metaField``), ``timeField``, or both
+in the shard key. No other fields, including ``_id``, are allowed in the
+shard key pattern.
+
+- ``metaField`` can be either a :ref:`hashed shard key
+  <sharding-hashed-sharding>` or a :ref:`ranged shard key
+  <sharding-ranged>`.
+
+- ``timeField`` can only be a :ref:`ranged shard key
+  <sharding-ranged>` and must be at the end of the shard key pattern.
 
 .. _hashed-shard-keys:
 
@@ -274,6 +348,7 @@ in the ``records`` database and uses the ``zipcode`` field as the
 .. code-block:: javascript
 
    db.adminCommand( { shardCollection: "records.people", key: { zipcode: 1 } } )
+   
 
 .. seealso::
 
