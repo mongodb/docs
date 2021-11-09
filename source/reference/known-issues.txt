@@ -10,6 +10,104 @@ Known Issues in the |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _disable_auth_pods_never_reconcile:
+
+``mongos`` Instances Fail to Reach Ready State After Disabling Authentication
+-----------------------------------------------------------------------------
+
+.. note::
+
+   This issue applies only to :term:`sharded clusters <sharded cluster>`
+   that meet the following criteria: 
+
+   - Deployed using the |k8s-op-short| 1.13.0
+   - Use X.509 authentication 
+   - Use :k8sdocs:`kubernetes.io/tls
+     </concepts/configuration/secret/#tls-secrets>` secrets for |tls|
+     certificates for the MongoDB Agent
+
+If you disable authentication by setting 
+:setting:`spec.security.auth.enabled` to  ``false``, the |mongos| Pods 
+never reach a ``ready`` state.
+
+As a workaround, delete each |mongos| Pod in your deployment. 
+
+Run the following command to list all of your Pods:
+
+.. code-block:: sh
+
+   kubectl get pods
+
+For each Pod with a name that contains ``mongos``, delete it with the
+following command:
+
+.. code-block:: sh
+
+   kubectl delete pod <podname>
+
+When you delete a Pod, Kubernetes recreates it. Each Pod that Kubernetes
+recreates receives the updated configuration and can reach a ``READY`` 
+state. To confirm that all of your |mongos| Pods are ``READY``, run the
+following command:
+
+.. code-block:: sh
+
+   kubectl get pods -n <namespace>
+
+A response like the following indicates that all of your |mongos| Pods
+are ``READY``:
+
+.. code-block:: sh
+   :copyable: false
+   :emphasize-lines: 7-8
+
+   NAME                                           READY   STATUS    RESTARTS   AGE
+   mongodb-enterprise-operator-6495bdd947-ttwqf   1/1     Running   0          50m
+   my-sharded-cluster-0-0                         1/1     Running   0          12m
+   my-sharded-cluster-1-0                         1/1     Running   0          12m
+   my-sharded-cluster-config-0                    1/1     Running   0          12m
+   my-sharded-cluster-config-1                    1/1     Running   0          12m
+   my-sharded-cluster-mongos-0                    1/1     Running   0          11m
+   my-sharded-cluster-mongos-1                    1/1     Running   0          11m
+   om-0                                           1/1     Running   0          42m
+   om-db-0                                        2/2     Running   0          44m
+   om-db-1                                        2/2     Running   0          43m
+   om-db-2                                        2/2     Running   0          43m
+
+.. _app-db-secret-no-reconcile:
+
+Update |tls| Secret for the Application Database
+------------------------------------------------
+
+.. note::
+
+   This issue applies only to |onprem| resources deployed using the
+   |k8s-op-short| 1.13.0.
+
+The |k8s-op-short| doesn't reconcile resources when you modify the
+secret that contains the Application Database's |tls| certificate.
+To force the |k8s-op-short| to reconcile resources, scale the operator 
+down to zero replicas, then scale it up to one.
+
+.. note::
+
+   This is a safe operation. Scaling the
+   ``mongodb-enterprise-operator`` deployment does not affect the
+   availability of your deployed |onprem| and database resources.
+
+Run the following command to scale down:
+
+.. code-block:: sh
+
+   kubectl scale deployment mongodb-enterprise-operator --replicas=0 -n <namespace>
+     
+Run the following command to scale up:
+
+.. code-block:: sh
+
+   kubectl scale deployment mongodb-enterprise-operator --replicas=1 -n <namespace>
+
+
 .. _k8s-private-cluster-on-gke:
 
 Update Google Firewall Rules to Fix WebHook Issues
