@@ -18,6 +18,16 @@
      - string
      - Name of the collection.
 
+   * - ``collectionType``
+     - string 
+     - Type of collection. Value can be one of the following: 
+
+       - ``STANDARD`` - for standard collection 
+       - ``TIMESERIES`` - for :manual:`time series 
+         </core/timeseries-collections/>` collection
+
+         .. include:: /includes/fact-oa-timeseries-preview.rst
+
    * - ``criteria``
      - document
      - Criteria to use for archiving data.
@@ -27,8 +37,8 @@
      - Type of criteria. Value can be one of the following: 
 
        - ``DATE`` - to select documents for archiving based on a date.
-       - ``CUSTOM`` - to select documents for archiving based on a custom 
-         |json| query. 
+       - ``CUSTOM`` - to select documents for archiving based on a 
+         custom |json| query. 
 
    * - ``criteria.dateField``
      - string

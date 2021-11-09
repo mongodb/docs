@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 20 80 
+   :widths: 25 75 
 
    * - Pending
      - Indicates documents are queued for archive, but archiving 

@@ -44,83 +44,117 @@ content: |
      </reference/limits/#faq-dev-namespace>` once the online archive is 
      created. 
 
-  #. Specify the criteria for selecting documents to archive under the 
-     :guilabel:`Date Match` or :guilabel:`Custom Filter` tab. 
+  #. Specify the criteria for selecting documents to archive for the 
+     type of collection you want to archive.
 
-     .. list-table:: 
-        :widths: 20 80 
+     .. tabs:: 
 
-        * - :guilabel:`Date Match`
-          - To select documents from the collection using a combination 
-            of a date field and number of days:
+        .. tab:: Standard Collection
+           :tabid: standard
+
+           For a standard collection, specify the criteria for 
+           selecting documents to archive under the :guilabel:`Date 
+           Match` or :guilabel:`Custom Filter` tab in the |service| 
+           User Interface.
+
+           .. list-table:: 
+              :widths: 20 80 
+
+              * - :guilabel:`Date Match`
+                - To select documents from the collection using a 
+                  combination of a date field and number of days:
             
-            - Specify an already indexed date field from the documents 
-              in the collection. To specify a nested field, use the 
-              :manual:`dot notation </core/document/#dot-notation>`. 
-              You can't modify the date field once the online archive 
-              is created.
-            - Specify the number of days to keep the data in the 
-              |service| cluster.
-            - Choose the date format of the specified date field. 
+                  - Specify an already indexed date field from the 
+                    documents in the collection. To specify a nested 
+                    field, use the :manual:`dot notation 
+                    </core/document/#dot-notation>`. You can't modify 
+                    the date field once the online archive is created.
+                  - Specify the number of days to keep the data in the 
+                    |service| cluster.
+                  - Choose the date format of the specified date field. 
             
-            You can't modify the date field once the online archive is 
-            created.
+                  You can't modify the date field once the online 
+                  archive is created.
 
-        * - :guilabel:`Custom Filter`
-          - To select documents from the collection using a custom 
-            filter, specify a valid |json| filter to run. |service| 
-            uses the specified custom filter with the 
-            :manual:`db.collection.find(filter) 
-            </reference/method/db.collection.find/>` command. You can't 
-            use the empty document argument (``{}``) to return all 
-            documents. You can use |service-fullname| 
-            :manual:`operators </reference/operator/query/>` such as 
-            :manual:`$expr 
-            </reference/operator/query/expr/#mongodb-query-op.-expr>` 
-            take advantage of all of the aggregation operators as shown 
-            in the following examples. 
+              * - :guilabel:`Custom Filter`
+                - To select documents from the collection using a 
+                  custom filter, specify a valid |json| filter to run. 
+                  |service| uses the specified custom filter with the 
+                  :manual:`db.collection.find(filter) 
+                  </reference/method/db.collection.find/>` command. You 
+                  can't use the empty document argument (``{}``) to 
+                  return all documents. You can use |service-fullname| 
+                  :manual:`operators </reference/operator/query/>` such 
+                  as :manual:`$expr </reference/operator/query/expr/#mongodb-query-op.-expr>` 
+                  to take advantage of all of the aggregation operators 
+                  as shown in the following examples. 
 
-            .. example:: 
+                  .. example:: 
 
-               In this custom filter example, when the current date 
-               exceeds the date in the ``bucket_end_date`` field in the 
-               documents, |service| subtracts thirty days (specified in 
-               milliseconds) from the current date and then archives 
-               data after that many days, hours, and minutes.
+                     In this custom filter example, when the current 
+                     date exceeds the date in the ``bucket_end_date`` 
+                     field in the documents, |service| subtracts thirty 
+                     days (specified in milliseconds) from the current 
+                     date and then archives data after that many days, 
+                     hours, and minutes.
 
-               .. code-block:: json 
+                     .. code-block:: json 
 
-                  { 
-                    "$expr": { "$lte": [ 
-                      "$bucket_end_date", 
-                      { "$subtract": [ "$$NOW", 2592000000 ] } 
-                    ] } 
-                  }
+                        { 
+                          "$expr": { "$lte": [ 
+                            "$bucket_end_date", 
+                            { "$subtract": [ "$$NOW", 2592000000 ] } 
+                          ] } 
+                        }
 
-               In this custom filter example, when the current date 
-               exceeds the date inside an ``objectId``, |service| 
-               subtracts thirty days (specified in milliseconds) from 
-               the current date and then archives data after that many 
-               days, hours, and minutes.
+                     In this custom filter example, when the current 
+                     date exceeds the date inside an ``objectId``, 
+                     |service| subtracts thirty days (specified in 
+                     milliseconds) from the current date and then 
+                     archives data after that many days, hours, and 
+                     minutes.
                
-               .. code-block:: json
+                     .. code-block:: json
 
-                  {
-                    "$expr": {
-                      "$lte": [
-                        { "$toDate": "$_id" },
-                        { "$subtract": [ "$$NOW", 2592000000 ] }  
-                      ]  
-                    }
-                  }
+                        {
+                          "$expr": {
+                            "$lte": [
+                              {"$toDate": "$_id"},
+                              { "$subtract": [ "$$NOW", 2592000000 ] }  
+                            ]  
+                          }
+                        }
 
-               If you use :manual:`$expr </reference/operator/query/expr/#mongodb-query-op.-expr>` 
-               in the custom filter, sometimes the |service| cluster 
-               might be unable to use an index for archiving data. 
+                     If you use :manual:`$expr </reference/operator/query/expr/#mongodb-query-op.-expr>` 
+                     in the custom filter, sometimes the |service| 
+                     cluster might be unable to use an index for 
+                     archiving data. 
 
-               .. note:: 
+                     .. note:: 
 
-                  ``$NOW`` is only supported on |service| clusters running MongoDB 4.2 or higher version.
+                        ``$NOW`` is only supported on |service| 
+                        clusters running MongoDB 4.2 or higher version.
+
+        .. tab:: Time-Series Collection 
+           :tabid: timeseries
+
+           .. include:: /includes/fact-oa-timeseries-preview.rst
+
+           To archive documents in a :manual:`time series 
+           </core/timeseries-collections/>` collection, select the 
+           :guilabel:`This is a Time-Series Collection` checkbox and 
+           specify the following: 
+
+           - Name of the field which contains the date in each time 
+             series document. This must correspond to the ``timeField`` 
+             in the :manual:`time series 
+             </core/timeseries-collections/>` collection. To specify a 
+             nested field, use the :manual:`dot notation 
+             </core/document/#dot-notation>`. You can't modify the time 
+             field once the online archive is created.
+           - Number of days to keep the data in the |service| cluster.
+           - Date format of the specified date field. The date field 
+             value must be in :term:`ISODate` format. 
 
      .. note:: 
 

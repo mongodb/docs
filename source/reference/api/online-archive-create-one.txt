@@ -87,6 +87,24 @@ Request Body Parameters
      - Name of the collection for which to create an online 
        archive.
 
+   * - ``collectionType``
+     - string 
+     - Optional 
+     - Type of collection. Value can be one of the following: 
+
+       - ``STANDARD`` - for a standard collection 
+       - ``TIMESERIES`` - for a :manual:`time series 
+         </core/timeseries-collections/>` collection
+
+       If value is ``TIMESERIES``: 
+
+       - ``criteria.type`` must be ``date``
+       - ``criteria.dateFormat`` must be ``ISODATE``
+
+       .. include:: /includes/fact-oa-timeseries-preview.rst
+
+       If omitted, defaults to ``STANDARD``. 
+
    * - ``dbName``
      - string
      - Required
@@ -103,18 +121,22 @@ Request Body Parameters
      - Type of criteria. Value can be one of the following: 
 
        - ``DATE`` - to select documents for archiving based on a date.
-       - ``CUSTOM`` - to select documents for archiving based on a custom 
-         |json| query. 
+       - ``CUSTOM`` - to select documents for archiving based on a 
+         custom |json| query. This is not supported for :manual:`time 
+         series </core/timeseries-collections/>` collections.
 
    * - ``criteria.dateField``
      - string
      - Conditional
      - Required if ``criteria.type`` is ``DATE``.
      
-       Name of an already indexed date field from the documents. 
-       Data is archived when the current date is greater than the 
-       value of the date field specified here plus the number of days 
-       specified via the ``expireAfterDays`` parameter.
+       Name of an already indexed date field from the documents. For 
+       a :manual:`time series </core/timeseries-collections/>` 
+       collection, field name must correspond to the ``timeField`` in 
+       the :manual:`time series </core/timeseries-collections/>` 
+       collection. Data is archived when the current date is greater 
+       than the value of the date field specified here plus the number 
+       of days specified via the ``expireAfterDays`` parameter.
 
    * - ``criteria.dateFormat``
      - enum
@@ -126,6 +148,9 @@ Request Body Parameters
        - ``EPOCH_SECONDS`` - Unix timestamp in seconds
        - ``EPOCH_MILLIS`` - Unix timestamp in milliseconds
        - ``EPOCH_NANOSECONDS`` - Unix timestamp in nanoseconds
+
+       Only ``ISODATE`` is supported for :manual:`time series 
+       </core/timeseries-collections/>` collections.
 
        If omitted, defaults to ``ISODATE``.
 
@@ -146,9 +171,9 @@ Request Body Parameters
      - Required if ``criteria.type`` is ``CUSTOM``.
      
        |json| query to use to select documents for archiving. |service| 
-       uses the specified query with the :manual:`db.collection.find(query) 
-       </reference/method/db.collection.find/>` command. The empty 
-       document ``{}`` to return all documents is not supported.
+       uses the specified query with the :manual:`db.collection.find
+       (query) </reference/method/db.collection.find/>` command. The 
+       empty document ``{}`` to return all documents is not supported.
 
    * - ``partitionFields``
      - document array
@@ -204,11 +229,12 @@ Date Criteria Examples
    
       The following example request creates an online archive for 
       an example ``people.employees`` collection in a cluster named 
-      ``myTestClstr``. Data in the collection will be archived based on the 
-      ``created`` date field and partitioned based on the ``firstName`` and 
-      ``lastName`` fields. The criteria for archiving data specifies that data 
-      should be archived when current date is greater than the value of the 
-      ``created`` date field plus ``5`` days.
+      ``myTestClstr``. Data in the collection will be archived based on 
+      the ``created`` date field and partitioned based on the 
+      ``firstName`` and ``lastName`` fields. The criteria for archiving 
+      data specifies that data should be archived when current date is 
+      greater than the value of the ``created`` date field plus ``5`` 
+      days.
 
       **Example Request** 
 
@@ -248,6 +274,7 @@ Date Criteria Examples
            "_id": "5ebad3c1fe9c0ab8d37d61e1",
            "clusterName": "myTestClstr",
            "collName": "employees",
+           "collectionType": "STANDARD",
            "criteria": {
              "type": "DATE",
              "dateField": "created",
@@ -277,12 +304,13 @@ Date Criteria Examples
 
       The following example request creates an online archive for 
       an example ``accounting.invoices`` collection in a cluster named 
-      ``myTestClstr``. Data in the collection will be archived based on the 
-      ``created`` date field. Data is partitioned based on the ``created`` 
-      field, which is moved to the first position, ``customerID`` field, and  
-      ``invoiceNumber`` field. The criteria for archiving data specifies that 
-      data should be archived when current date is greater than the value of 
-      the ``created`` date field plus ``7`` days.
+      ``myTestClstr``. Data in the collection will be archived based on 
+      the ``created`` date field. Data is partitioned based on the 
+      ``created`` field, which is moved to the first position, 
+      ``customerID`` field, and ``invoiceNumber`` field. The criteria 
+      for archiving data specifies that data should be archived when 
+      current date is greater than the value of the ``created`` date 
+      field plus ``7`` days.
 
       **Example Request** 
 
@@ -326,6 +354,7 @@ Date Criteria Examples
            "_id": "5f9869ddb41cea31cfcb000a",
            "clusterName": "myTestClstr",
            "collName": "invoices",
+           "collectionType": "STANDARD",
            "criteria": {
              "type": "DATE",
              "dateField": "created",
@@ -348,6 +377,95 @@ Date Criteria Examples
              {
                "fieldName": "invoiceNumber",
                "fieldType": "int",
+               "order": 2
+             }
+           ],
+           "paused": false,
+           "state": "PENDING"
+         }
+
+   .. tab:: Time Series Example
+      :tabid: timeseries 
+
+      .. include:: /includes/fact-oa-timeseries-preview.rst
+
+      The following example request creates an online archive for 
+      an example ``test.weather`` :manual:`collection </core/timeseries-collections/#insert-measurements-into-a-time-series-collection>` 
+      in a cluster named ``myTestClstr``. Data in the collection will 
+      be archived based on the ``timestamp`` date field. Data is 
+      partitioned based on the ``timestamp`` field, which is moved to 
+      the first position, ``metadata.type`` field, and ``temp`` field. 
+      The criteria for archiving data specifies that data should be 
+      archived when current time is greater than the value of the 
+      ``timestamp`` date 
+      field plus ``7`` days.
+
+      **Example Request** 
+
+      .. code-block:: json 
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+         --header "Content-Type: application/json" \
+         --include \
+         --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5e2211c17a3e5a48f5497de3/clusters/myTestClstr/onlineArchives?pretty=true" \
+         --data '
+         {
+           "dbName": "my_test",
+           "collName": "weather",
+           "collectionType": "TIMESERIES",
+           "partitionFields": [
+             {
+               "fieldName": "timestamp",
+               "order": 0
+             },
+             {
+               "fieldName": "metadata.type",
+               "order": 1
+             },
+             {
+               "fieldName": "temp",
+               "order": 2
+           }],
+           "criteria": {
+             "type": "DATE",
+             "dateField": "timestamp",
+             "dateFormat": "ISODATE",
+             "expireAfterDays": 7
+           }
+         }
+
+      **Example Response** 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+           "_id": "611a8c2d2d0d7825c954d48c",
+           "clusterName": "myTestClstr",
+           "collName": "weather",
+           "collectionType": "TIMESERIES",
+           "criteria": {
+             "type": "DATE",
+             "dateField": "timestamp",
+             "dateFormat": "ISODATE",
+             "expireAfterDays": 7
+           },
+           "dbName": "test",
+           "groupId": "5e2211c17a3e5a48f5497de3",
+           "partitionFields": [
+             {
+               "fieldName": "timestamp",
+               "fieldType": null,
+               "order": 0
+             },
+             {
+               "fieldName": "metadata.type",
+               "fieldType": null,
+               "order": 1
+             },
+             {
+               "fieldName": "temp",
+               "fieldType": null,
                "order": 2
              }
            ],
@@ -400,6 +518,7 @@ custom query and data is partitioned based on the ``firstName`` and
      "_id": "5f9856146b3c0c4e454b9409",
      "clusterName": "osTest",
      "collName": "employees",
+     "collectionType": "STANDARD",
      "criteria": {
         "type": "CUSTOM",
         "query": "{department: engineering}"
