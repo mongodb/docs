@@ -39,6 +39,9 @@ public class Cursor {
         System.out.println("First Example");
         c.firstExample();
 
+        System.out.println("Available Example");
+        c.availableExample();
+
         System.out.println("Explain Example");
         c.explainExample();
 
@@ -67,6 +70,13 @@ public class Cursor {
         FindIterable<Document> iterable = collection.find();
         System.out.println(iterable.first());
         // end firstExample
+    }
+
+    private void availableExample(){
+        // begin availableExample
+        MongoCursor<Document> cursor = collection.find().cursor();
+        System.out.println(cursor.available());
+        // end availableExample
     }
 
     private void explainExample(){
