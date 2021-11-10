@@ -1,0 +1,80 @@
+.. _migrate-from-kafka-connect-mongodb:
+
+==================================
+Migrate from Kafka Connect MongoDB
+==================================
+
+.. default-domain:: mongodb
+
+Use this guide to migrate your Kafka deployments from the community-created
+:github:`Kafka Connect MongoDB <hpgrahsl/kafka-connect-mongodb>` sink connector
+to the :github:`official MongoDB Kafka connector <mongodb/mongo-kafka>`.
+
+The following sections list the changes you must make to your Kafka
+Connect sink connector configuration settings and custom classes to transition
+to the MongoDB Kafka connector.
+
+Update Configuration Settings
+-----------------------------
+
+Make the following changes to the configuration settings of your Kafka Connect
+deployment before using them with your MongoDB Kafka connector deployment:
+
+- Replace values that include the package ``at.grahsl.kafka.connect.mongodb``
+  with the package ``com.mongodb.kafka.connect``.
+
+- Replace your ``connector.class`` setting with the MongoDB Kafka sink
+  connector class.
+
+  .. code-block:: properties
+
+     connector.class=com.mongodb.kafka.connect.MongoSinkConnector
+
+- Remove the ``mongodb.`` prefix from your Kafka Connect property names.
+  For example, change ``mongodb.connection.uri`` to ``connection.uri``.
+
+- Remove the ``document.id.strategies`` setting if it exists. If the value of
+  this setting reference custom strategies, move them to the
+  ``document.id.strategy`` setting. Read the :ref:`<custom-class-changes>`
+  section to discover what changes you must make to your custom classes.
+
+- Replace any property names you use to specify per-topic or collection
+  overrides that contain the ``mongodb.collection`` prefix with the equivalent
+  key in
+  :ref:`sink connector Kafka topic configuration topic properties <sink-configuration-topic-properties>`.
+
+.. _custom-class-changes:
+
+Update Custom Classes
+---------------------
+
+If you use any custom classes in your Kafka Connect sink connector deployment,
+make the following changes to them before adding them to your MongoDB Kafka
+connector deployment:
+
+- Replace imports that include ``at.grahsl.kafka.connect.mongodb`` with
+  ``com.mongodb.kafka.connect``.
+
+- Replace references to the ``MongoDbSinkConnector`` class with the
+  ``MongoSinkConnector`` class.
+
+- Update custom sink connector strategy classes to implement the
+  ``com.mongodb.kafka.connect.sink.processor.id.strategy.IdStrategy``
+  interface.
+
+- Update references to the ``MongoDbSinkConnectorConfig`` class. In the
+  MongoDB Kafka connector, the logic from that class is split into the
+  following classes:
+
+  - :github:`MongoSinkConfig <mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/MongoSinkConfig.java>`
+  - :github:`MongoSinkTopicConfig <mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/MongoSinkTopicConfig.java>`
+
+
+Update Post Processor Subclasses
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have classes that subclass a post processor in your Kafka Connect
+connector deployment, update methods that override ones in the Kafka Connect
+``PostProcessor`` class to match the method signatures of the MongoDB Kafka
+connector :github:`PostProcessor class <mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/processor/PostProcessor.java>`.
+
