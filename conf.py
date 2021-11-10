@@ -266,8 +266,8 @@ source_constants = {
     'shared-cluster' : 'shared cluster',
     'Shared-clusters' : 'Shared clusters',
     'shared-clusters' : 'shared clusters',
-    'google-psc' : 'Private Service Connect'
-
+    'google-psc' : 'Private Service Connect',
+    'gcp-psc' : 'Google Cloud Private Service Connect'
 
 }
 

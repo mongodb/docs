@@ -51,7 +51,7 @@
              endpoint group from Private Service Connect.
 
          * - VERIFIED
-           - |service| successfully mapped the forwarding rules for the
+           - |service| successfully mapped the endpoints for the
              endpoint group to the service attachments.
 
   * - endpoints
