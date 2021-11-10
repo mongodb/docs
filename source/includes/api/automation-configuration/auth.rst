@@ -29,7 +29,10 @@
          "otherDBRoles": {
            "<string>": ["<string>", "<string>"]
          },
-         "roles": ["<string>", "<string>"],
+         "roles": [{
+           "db": "<string>",
+           "role": "<string>"
+         }],
          "pwd": "<string>",
          "user": "<string>"
        }]
