@@ -1,3 +1,11 @@
+.. _atlas_20211111:
+
+11 November 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Adds support for `MongoDB 5.1
+<https://docs.mongodb.com/v5.1/reference/versioning/#rapid-releases>`__.
+
 .. _atlas_20211027:
 
 27 October 2021 Release
