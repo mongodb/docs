@@ -7,6 +7,6 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
          "diskSizeGB": 320,
          "providerSettings": {
            "instanceSizeName": "M40",
-         },
-         "encryptionAtRestProvider": "AWS"
+           "providerName": "AWS"
+         }
        }'
