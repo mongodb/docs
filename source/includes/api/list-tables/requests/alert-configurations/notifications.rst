@@ -215,12 +215,6 @@
        Set this value if you set **notifications.[n].typeName** to
        **PAGER_DUTY**.
 
-   * - | notifications.[n]
-       | .severity
-     - string
-     - Optional
-     - Degree of seriousness of this notification.
-
        |service| accepts the following values:
 
        - ``CRITICAL``

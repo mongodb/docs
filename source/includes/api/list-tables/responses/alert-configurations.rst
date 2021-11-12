@@ -212,11 +212,6 @@
        you set **notifications.[n].typeName** to **PAGER_DUTY**.
 
    * - | notifications.[n]
-       | .severity
-     - string
-     - Degree of seriousness of this notification.
-
-   * - | notifications.[n]
        | .smsEnabled
      - boolean
      - Flag indicating text notifications must be sent. |service|
