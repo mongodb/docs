@@ -28,7 +28,7 @@ private static MongoClient setApiVersionStrict(String connectionString) {
             );
 
     return client;
-    // Start Versioned API Example 2
+    // End Versioned API Example 2
 }
 
 private static MongoClient setApiVersionNotStrict(String connectionString) {
