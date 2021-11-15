@@ -178,3 +178,8 @@ Using a Custom MongoDB Port
 .. code-block:: bash
 
    sudo semanage port -a -t mongod_port_t -p tcp <portnumber>
+
+.. note::
+
+   You might need to restart :binary:`~bin.mongod` for the custom port
+   to be recognized.
