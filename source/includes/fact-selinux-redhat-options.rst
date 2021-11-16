@@ -151,7 +151,7 @@ Using a Custom MongoDB Directory Path
 
       .. code-block:: sh
 
-         restorecon -R -v </some/MongoDB/directory>
+         sudo restorecon -R -v </some/MongoDB/directory>
 
    For example:
 
@@ -166,7 +166,7 @@ Using a Custom MongoDB Directory Path
 
         sudo semanage fcontext -a -t mongod_var_lib_t '/mongodb/data.*'
         sudo chcon -Rv -u system_u -t mongod_var_lib_t '/mongodb/data'
-        restorecon -R -v '/mongodb/data'
+        sudo restorecon -R -v '/mongodb/data'
 
    - If using a non-default MongoDB log directory of ``/mongodb/log``
      (e.g. if the log file path is ``/mongodb/log/mongod.log``):
@@ -175,7 +175,7 @@ Using a Custom MongoDB Directory Path
 
         sudo semanage fcontext -a -t mongod_log_t '/mongodb/log.*'
         sudo chcon -Rv -u system_u -t mongod_log_t '/mongodb/log'
-        restorecon -R -v '/mongodb/log' 
+        sudo restorecon -R -v '/mongodb/log' 
 
 
 Using a Custom MongoDB Port
