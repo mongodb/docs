@@ -15,7 +15,20 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
+   * - ext 1.12 + lib 1.11
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     -
+     -
+
    * - ext 1.11 + lib 1.10
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
