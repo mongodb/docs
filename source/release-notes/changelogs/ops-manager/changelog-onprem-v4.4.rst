@@ -1,3 +1,13 @@
+.. _opsmgr-server-4.4.19:
+
+|onprem| Server 4.4.19
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-11-16*
+
+- Updates JDK to jdk-11.0.13+8.
+- Updates the MongoDB Agent to 10.14.30.6552.
+
 .. _opsmgr-server-4.4.18:
 
 |onprem| Server 4.4.18
