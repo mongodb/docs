@@ -42,8 +42,6 @@ field name with a dollar sign ``$`` and enclose in quotes.
 Document Operand with Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 3.2
-
 You can pass a document to :pipeline:`$unwind` to specify various
 behavior options.
 
@@ -170,75 +168,80 @@ Each document is identical to the input document except for the value
 of the ``sizes`` field which now holds a value from the original
 ``sizes`` array.
 
-``includeArrayIndex`` and ``preserveNullAndEmptyArrays``
+Missing or Non-array Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the ``clothing`` collection:
+
+.. code-block:: javascript
+
+   db.clothing.insertMany([
+     { "_id" : 1, "item" : "Shirt", "sizes": [ "S", "M", "L"] },
+     { "_id" : 2, "item" : "Shorts", "sizes" : [ ] },
+     { "_id" : 3, "item" : "Hat", "sizes": "M" },
+     { "_id" : 4, "item" : "Gloves" },
+     { "_id" : 5, "item" : "Scarf", "sizes" : null }
+   ])
+
+:pipeline:`$unwind` treats the ``sizes`` field as a single element
+array if:
+
+- the field is present,
+- the value is not null, and
+- the value is not an empty array.
+
+Expand the ``sizes`` arrays with :pipeline:`$unwind`:
+
+.. code-block:: javascript
+
+   db.clothing.aggregate( [ { $unwind: { path: "$sizes" } } ] )
+
+The :pipeline:`$unwind` operation returns:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 1, item: 'Shirt', sizes: 'S' },
+   { _id: 1, item: 'Shirt', sizes: 'M' },
+   { _id: 1, item: 'Shirt', sizes: 'L' },
+   { _id: 3, item: 'Hat', sizes: 'M' }
+
+- In document ``"_id": 1``, ``sizes`` is a populated array.
+  :pipeline:`$unwind` returns a document for each element in the
+  ``sizes`` field.
+- In document ``"_id": 3``, ``sizes`` resolves to a single element
+  array.
+- Documents ``"_id": 2, "_id": 4``, and ``"_id": 5`` do not return
+  anything because the ``sizes`` field cannot be reduced to a single
+  element array.
+
+.. note::
+
+   The ``{ path: <FIELD> }`` syntax is optional. The following
+   :pipeline:`$unwind` operations are equivalent.
+
+   .. code-block:: javascript
+
+      db.clothing.aggregate( [ { $unwind: "$sizes" } ] )
+      db.clothing.aggregate( [ { $unwind: { path: "$sizes" } } ] )
+
+``preserveNullAndEmptyArrays`` and ``includeArrayIndex``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 3.2
-
-In :binary:`~bin.mongosh`, create a sample collection named
-``inventory2`` with the following documents:
+The :ref:`ex-preservedNull` and :ref:`ex-includeArrayIndex` examples
+use the following collection:
 
 .. code-block:: javascript
 
    db.inventory2.insertMany([
-     { "_id" : 1, "item" : "ABC", price: NumberDecimal("80"), "sizes": [ "S", "M", "L"] },
-     { "_id" : 2, "item" : "EFG", price: NumberDecimal("120"), "sizes" : [ ] },
-     { "_id" : 3, "item" : "IJK", price: NumberDecimal("160"), "sizes": "M" },
-     { "_id" : 4, "item" : "LMN" , price: NumberDecimal("10") },
-     { "_id" : 5, "item" : "XYZ", price: NumberDecimal("5.75"), "sizes" : null }
+      { "_id" : 1, "item" : "ABC", price: NumberDecimal("80"), "sizes": [ "S", "M", "L"] },
+      { "_id" : 2, "item" : "EFG", price: NumberDecimal("120"), "sizes" : [ ] },
+      { "_id" : 3, "item" : "IJK", price: NumberDecimal("160"), "sizes": "M" },
+      { "_id" : 4, "item" : "LMN" , price: NumberDecimal("10") },
+      { "_id" : 5, "item" : "XYZ", price: NumberDecimal("5.75"), "sizes" : null }
    ])
 
-The following :pipeline:`$unwind` operations are equivalent and return
-a document for each element in the ``sizes`` field. If the ``sizes``
-field does not resolve to an array but is not missing, null, or an
-empty array, :pipeline:`$unwind` treats the non-array operand as a
-single element array.
-
-.. code-block:: javascript
-
-   db.inventory2.aggregate( [ { $unwind: "$sizes" } ] )
-   db.inventory2.aggregate( [ { $unwind: { path: "$sizes" } } ] )
-
-The operation returns the following documents:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "S" }
-   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "M" }
-   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "L" }
-   { "_id" : 3, "item" : "IJK", "price" : NumberDecimal("160"), "sizes" : "M" }
-
-``includeArrayIndex``
-`````````````````````
-
-The following :pipeline:`$unwind` operation uses the
-:ref:`includeArrayIndex <unwind-includeArrayIndex>` option to include
-the array index in the output.
-
-.. code-block:: javascript
-
-   db.inventory2.aggregate( [ 
-     { 
-       $unwind: 
-         { 
-           path: "$sizes", 
-           includeArrayIndex: "arrayIndex" 
-         } 
-      }])
-
-The operation unwinds the ``sizes`` array and includes the array index
-of the array index in the new ``arrayIndex`` field. If the ``sizes``
-field does not resolve to an array but is not missing, null, or an
-empty array, the ``arrayIndex`` field is ``null``.
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "S", "arrayIndex" : NumberLong(0) }
-   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "M", "arrayIndex" : NumberLong(1) }
-   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "L", "arrayIndex" : NumberLong(2) }
-   { "_id" : 3, "item" : "IJK", "price" : NumberDecimal("160"), "sizes" : "M", "arrayIndex" : null }
+.. _ex-preservedNull:
 
 ``preserveNullAndEmptyArrays``
 ``````````````````````````````
@@ -268,6 +271,39 @@ null, missing, or an empty array:
    { "_id" : 3, "item" : "IJK", "price" : NumberDecimal("160"), "sizes" : "M" }
    { "_id" : 4, "item" : "LMN", "price" : NumberDecimal("10") }
    { "_id" : 5, "item" : "XYZ", "price" : NumberDecimal("5.75"), "sizes" : null }
+
+.. _ex-includeArrayIndex:
+
+``includeArrayIndex``
+`````````````````````
+
+The following :pipeline:`$unwind` operation uses the
+:ref:`includeArrayIndex <unwind-includeArrayIndex>` option to include
+the array index in the output.
+
+.. code-block:: javascript
+
+   db.inventory2.aggregate( [ 
+     { 
+       $unwind: 
+         { 
+           path: "$sizes", 
+           includeArrayIndex: "arrayIndex" 
+         } 
+      }])
+
+The operation unwinds the ``sizes`` array and includes the array index
+in the new ``arrayIndex`` field. If the ``sizes`` field does not
+resolve to a populated array but is not missing, null, or an empty
+array, the ``arrayIndex`` field is ``null``.
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "S", "arrayIndex" : NumberLong(0) }
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "M", "arrayIndex" : NumberLong(1) }
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "L", "arrayIndex" : NumberLong(2) }
+   { "_id" : 3, "item" : "IJK", "price" : NumberDecimal("160"), "sizes" : "M", "arrayIndex" : null }
 
 Group by Unwound Values
 ~~~~~~~~~~~~~~~~~~~~~~~
