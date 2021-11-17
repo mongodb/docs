@@ -144,7 +144,7 @@ sample ``minutes`` collection with the following documents:
      "page_updated_by": {
        "last_name": "OHRBACH",
        "first_name": "Noël",
-       "email": "ohrback@example.com",
+       "email": "ohrbach@example.com",
        "phone": "123-456-0987"
      },
      "text" : "The head of the sales department spoke first."
@@ -1087,6 +1087,12 @@ options as well.
    * - Name
      - Description
 
+   * - :ref:`asciiFolding <asciiFolding-tf-ref>`
+     - Converts alphabetic, numeric, and symbolic unicode characters 
+       that are not in the `Basic Latin Unicode block 
+       <https://en.wikipedia.org/wiki/Basic_Latin_(Unicode_block)>`__ 
+       to their ASCII equivalents, if available. 
+
    * - :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>`
      - Creates tokens for words that sound the same based on 
        `Daitch-Mokotoff Soundex <https://en.wikipedia.org/wiki/Daitch%E2%80%93Mokotoff_Soundex>`__ 
@@ -1155,6 +1161,113 @@ options as well.
    * - :ref:`trim <trim-tf-ref>`
      - Trims leading and trailing whitespace from tokens.
 
+.. _asciiFolding-tf-ref: 
+
+asciiFolding
+~~~~~~~~~~~~
+
+The ``asciiFolding`` token filter has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - The type of this token filter. Must be ``asciiFolding``.
+     - yes
+     -
+
+   * - ``originalTokens`` 
+     - string 
+     - Specifies whether to include or omit the original tokens in the 
+       output of the token filter. Value can be one of the following: 
+
+       - ``include`` - to include the original tokens with the 
+         converted tokens in the output of the token filter. We 
+         recommend this value if you want to support queries on both 
+         the original tokens as well as the converted forms. 
+       - ``omit`` - to omit the original tokens and include only the 
+         converted tokens in the output of the token filter. Use this 
+         value if you want to query only on the converted forms of the 
+         original tokens. 
+
+     - no 
+     - ``omit``
+
+.. example:: 
+
+   The following example index definition uses a custom analyzer 
+   named ``asciiConverter``. It uses the :ref:`standard tokenizer
+   <standard-tokenizer-ref>` with the ``asciiFolding`` token filter to 
+   index the fields in the :ref:`example <custom-analyzers-eg-coll>` 
+   collection and convert the field values to their ASCII equivalent. 
+
+   .. code-block:: json 
+
+      {
+        "analyzer": "asciiConverter",
+        "searchAnalyzer": "asciiConverter",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "asciiConverter",
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "asciiFolding"
+              }
+            ]
+          }
+        ]
+      }
+
+   The following query searches the ``first_name`` field for names 
+   using their ASCII equivalent.
+
+   .. code-block:: json 
+
+      db.minutes.aggregate([
+        {
+          $search: {
+            "index": "default",
+            "text": {
+              "query": "Sian",
+              "path": "page_updated_by.first_name"
+            }
+          }
+        },
+        {
+          $project: {
+            "_id": 1,
+            "page_updated_by.last_name": 1,
+            "page_updated_by.first_name": 1
+          }
+        }
+      ])
+
+   |fts| returns the following results: 
+
+   .. code-block:: json
+      :copyable: false 
+
+      [
+        {
+           _id: 1,
+           page_updated_by: { last_name: 'AUERBACH', first_name: 'Siân'}
+        }
+      ]
+
 .. _daitchmokotoffsoundex-tf-ref: 
 
 daitchMokotoffSoundex
@@ -1214,15 +1327,15 @@ The ``daitchMokotoffSoundex`` token filter has the following attributes:
        "analyzers": [
          {
            "name": "dmsAnalyzer",
+           "tokenizer": {
+             "type": "standard"
+           },
            "tokenFilters": [
              {
                "type": "daitchMokotoffSoundex",
                "originalTokens": "include"
              }
-           ],
-           "tokenizer": {
-             "type": "standard"
-           }
+           ]
          }
        ]
      }
