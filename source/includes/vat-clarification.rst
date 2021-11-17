@@ -1,7 +1,12 @@
+If your company's billing address is in a country other than 
+the United States (USA), |service| typically charges |vat| if you do 
+not enter a valid ``VAT ID Number`` on your 
+:ref:`billing profile <atlas-billing-profile>`.
 
-If your country is a member of the :abbr:`EU (European Union)`, 
-|service| will charge VAT if:
+.. important::
+   
+   If your billing address is in Ireland or certain Canadian provinces, 
+   |service| always charges |vat|, even with a valid ``VAT ID Number``.
 
-- You do not enter a VAT ID Number.
-- Your ``VAT ID Number`` is not valid.
-- Your company's billing or invoice address is in Ireland.
+   To learn more about |vat| by region, see 
+   :ref:`International Usage and Taxation <atlas-international-tax>`. 
