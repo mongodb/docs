@@ -1,11 +1,11 @@
-When using the escape character in {+mongosh+}, you must use a
-double backslash before the character to be escaped.
+When using the escape character in {+mongosh+} or with a :driver:`driver
+</>`, you must use a double backslash before the character to be escaped.
 
 .. example::
 
    To create a wildcard expression which searches for any string
-   containing a literal asterisk in an aggregation pipeline which runs
-   in {+mongosh+}, use the following expression:
+   containing a literal asterisk in an aggregation pipeline, use the
+   following expression:
 
    .. code-block:: none
 
@@ -21,20 +21,4 @@ double backslash before the character to be escaped.
       .. code-block:: none 
 
          "*\\\*"
-
-When using the escape character with a :driver:`driver </>`, use a
-single backslash before the character to be escaped.
-
-.. example::
-
-   To create a wildcard expression which searches for any string
-   containing a literal asterisk in an aggregation pipeline which runs
-   in a driver, use the following expression:
-
-   .. code-block:: none
-
-      "*\**"
-
-   The first and last asterisks act as wildcards which match any
-   characters, and the ``\*`` matches a literal asterisk.
    
