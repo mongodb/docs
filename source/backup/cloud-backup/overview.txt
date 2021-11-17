@@ -145,17 +145,31 @@ Single-Region Cluster Backups
 
 With single-region cluster backups, |service|:
 
-- Selects the lowest priority node of the cluster *at the time the
-  snapshot is taken*. (If two or more nodes have the same priority,
-  |service| selects the node with the lexicographically smallest name.)
+- Determines the order of nodes to try to snapshot using the following 
+  algorithm:
+
+  i. Snapshots on a secondary. :sup:`1` Then,
+  #. Snapshots the node with the lowest priority if possible. :sup:`2` 
+     Then,
+  #. Snapshots incrementally from one snapshot to the next if possible. 
+     :sup:`3` Then,
+  #. Snapshots node lexically first by hostname.
+
+  :sup:`1` If there is a tie, |service| skips to the next step to determine the node to snapshot.
+
+  :sup:`2` If there is a tie, |service| then favors the node that can be snapshotted incrementally from the previous snapshot (i.e., node using the same disk). 
+  
+  :sup:`3` If there is a tie, |service| then favors the node with the lexicographically smallest hostname.
+
+- Once the node order is determined, tries to snapshot a node. If a 
+  selected node is unhealthy, |service| tries to snapshot the next 
+  node that it favors.
+
 - Stores the snapshots in the same cloud region as the cluster.
 - Retains snapshots based on your
   :ref:`retention policy <cloud-provider-retention-policy>`.
 
 .. .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
-
-If the node goes offline, |service| selects the next-lowest priority
-cluster node in the same region to execute the snapshot.
 
 .. .. include:: /images/cloud-provider-snapshot-single-region-secondary.rst
 
@@ -186,17 +200,34 @@ Multi-Region Cluster Backups
 
 With multi-region cluster backups, |service|:
 
-- Selects lowest priority cluster node in the highest priority region
-  to execute and store snapshots. (If two or more nodes have the same
-  priority, |service| selects the node with the lexicographically
-  smallest name.)
-- Retains snapshots based on your
-  :ref:`retention policy <cloud-provider-retention-policy>`.
+- Determines the order of nodes to snapshot using the following 
+  algorithm:
+
+  i. Snapshots in the highest priority region if possible. :sup:`1` 
+     Then,  
+  #. Snapshots on a secondary. :sup:`2` Then,
+  #. Snapshots the node with the lowest priority if possible. :sup:`3` 
+     Then,
+  #. Snapshots incrementally from one snapshot to the next if possible. 
+     :sup:`4` Then,
+  #. Snapshots node lexically first by hostname.
+
+  :sup:`1` If there is a tie, |service| then compares based on the descending order of priority. 
+
+  :sup:`2` If there is a tie, |service| skips to the next step to determine the node to snapshot.
+
+  :sup:`3` If there is a tie, |service| then favors the node that can be snapshotted incrementally from the previous snapshot (i.e., node using the same disk). 
+  
+  :sup:`4` If there is a tie, |service| then favors the node with the lexicographically smallest hostname.
+
+- Tries to snapshot a node once the node order is determined. If a 
+  selected node is unhealthy, |service| tries to snapshot the next 
+  node that it favors.
+
+- Retains snapshots based on your :ref:`retention policy 
+  <cloud-provider-retention-policy>`.
 
 .. .. include:: /images/cloud-provider-snapshot-multi-region-primary.rst
-
-If the node goes offline, |service| selects the next-lowest priority
-cluster node in the same region to execute and store snapshots.
 
 .. .. include:: /images/cloud-provider-snapshot-multi-region-secondary.rst
 
