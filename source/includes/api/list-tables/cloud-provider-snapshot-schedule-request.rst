@@ -163,3 +163,12 @@
        the updated backup policy to snapshots that |service| took
        previously.
 
+   * - | ``useOrgAndGroupNamesInExportPrefix``
+     - boolean
+     - Optional
+     - Specify ``true`` to use organization and project names instead 
+       of organization and project UUIDs in the path for the metadata 
+       files that |service| uploads to your |s3| bucket after it 
+       finishes exporting the snapshots. To learn more about the 
+       metadata files that |service| uploads, see 
+       :ref:`cloud-provider-snapshot-export`. 

@@ -193,6 +193,7 @@ rst_epilog = [
     '.. |url| replace:: :abbr:`URL (Uniform Resource Locator)`',
     '.. |usd| replace:: :abbr:`USD (United States Dollars)`',
     '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`',
+    '.. |uuid| replace:: :abbr:`UUID (Universally Unique Identifier)`'
     '.. |vat| replace:: :abbr:`VAT (Value Added Tax)`',
     '.. |vpc| replace:: :abbr:`VPC (Virtual Private Cloud)`',
     '.. |yaml| replace:: :abbr:`YAML (Yet Another Markup Language)`',

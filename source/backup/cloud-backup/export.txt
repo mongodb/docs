@@ -33,99 +33,224 @@ snapshots of all the shards simultaneously, regardless of the number
 of shards. 
 
 After |service| finishes exporting, |service| uploads a metadata file 
-named ``.complete`` in the following path on your |s3| bucket: 
+named ``.complete`` and a metadata file named ``metadata.json`` for 
+each collection. 
 
-.. code-block:: shell
-   :copyable: false
+.. tabs:: 
 
-   /exported_snapshots/<orgName>/<projectName>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
+   .. tab:: .complete File 
+      :tabid: complete
 
-.. note:: 
+      |service| uploads the metadata file named ``.complete`` in the 
+      following path on your |s3| bucket: 
 
-   |service| replaces any spaces with underscores (``_``) and removes 
-   any `characters that might require special handling <https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html>`__ 
-   and `characters to avoid <https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html>`__ 
-   from the organization and project names in the path.
+      .. code-block:: shell
+         :copyable: false
 
-The ``.complete`` metadata file is in |json| format and contains the 
-following fields: 
+         /exported_snapshots/<orgUUID>/<projectUUID>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
 
-.. list-table::
-   :header-rows: 1
-   :widths: 35 65 
+      .. note:: 
 
-   * - Field
-     - Description 
+         By default, |service| uses organization and project UUIDs in 
+         the path for the metadata files. To use organization and 
+         project names instead of UUIDs, set the 
+         ``useOrgAndGroupNamesInExportPrefix`` flag to ``true`` via the 
+         :ref:`modify-cloud-backup-policy` API. |service| replaces any 
+         spaces with underscores (``_``) and removes any 
+         :aws:`characters that might require special handling 
+         </AmazonS3/latest/userguide/object-keys.html>` and 
+         :aws:`characters to avoid 
+         </AmazonS3/latest/userguide/object-keys.html>` from the 
+         organization and project names in the path.
 
-   * - ``orgId``
-     - Unique 24-hexadecimal digit string that identifies the |service| 
-       organization.
+      The ``.complete`` metadata file is in |json| format and contains 
+      the following fields: 
 
-   * - ``orgName``
-     - Name of the |service| organization. 
+      .. list-table::
+         :header-rows: 1
+         :widths: 35 65 
 
-   * - ``groupId``
-     - Unique 24-hexadecimal digit string that identifies the project 
-       in the |service| organization.
+         * - Field
+           - Description 
 
-   * - ``groupName``
-     - Name of the |service| project. 
+         * - ``orgId``
+           - Unique 24-hexadecimal digit string that identifies the 
+             |service| organization.
 
-   * - ``clusterUniqueId``
-     - Unique 24-hexadecimal digit string that identifies the |service| 
-       cluster.
+         * - ``orgName``
+           - Name of the |service| organization. 
 
-   * - ``clusterName``
-     - Name of the |service| project.
+         * - ``groupId``
+           - Unique 24-hexadecimal digit string that identifies the 
+             project in the |service| organization.
 
-   * - ``snapshotInitiationDate``
-     - Date when snapshot was taken.
+         * - ``groupName``
+           - Name of the |service| project. 
 
-   * - ``totalFiles``
-     - Total number of files uploaded to the |s3| bucket.
+         * - ``clusterUniqueId``
+           - Unique 24-hexadecimal digit string that identifies the 
+             |service| cluster.
 
-   * - ``labels``
-     - Labels of the cluster whose snapshot was exported.
+         * - ``clusterName``
+           - Name of the |service| project.
 
-   * - ``customData``
-     - Custom data, if any, that you specified when creating the export 
-       job.
+         * - ``snapshotInitiationDate``
+           - Date when snapshot was taken.
 
-.. example:: 
+         * - ``totalFiles``
+           - Total number of files uploaded to the |s3| bucket.
 
-   .. code-block:: json 
-      :copyable: false 
+         * - ``labels``
+           - Labels of the cluster whose snapshot was exported.
 
-      {
-        "orgId": "60512d6f65e4047fe0842095",
-        "orgName": "org1",
-        "groupId": "60512dac65e4047fe084220f",
-        "groupName": "group1",
-        "clusterUniqueId": "60512dac65e4047fe0842212",
-        "clusterName": "cluster0",
-        "snapshotInitiationDate": "2020-04-03T05:50:29.321Z"
-        "totalFiles": 23,
-        "labels": [
-          {
-            "key": "key1",
-            "value": "xyz"
-          },
-          {
-            "key": "key2",
-            "value": "xyzuio"
-          }
-        ],
-        "customData": [
-          {
-            "key": "key1",
-            "value": "xyz"
-          },
-          {
-            "key": "key2",
-            "value": "xyzuio"
-          }
-        ]
-      }
+         * - ``customData``
+           - Custom data, if any, that you specified when creating the 
+             export job.
+
+      .. example:: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            {
+              "orgId": "60512d6f65e4047fe0842095",
+              "orgName": "org1",
+              "groupId": "60512dac65e4047fe084220f",
+              "groupName": "group1",
+              "clusterUniqueId": "60512dac65e4047fe0842212",
+              "clusterName": "cluster0",
+              "snapshotInitiationDate": "2020-04-03T05:50:29.321Z"
+              "totalFiles": 23,
+              "labels": [
+                {
+                  "key": "key1",
+                  "value": "xyz"
+                },
+                {
+                  "key": "key2",
+                  "value": "xyzuio"
+                }
+              ],
+              "customData": [
+                {
+                  "key": "key1",
+                  "value": "xyz"
+                },
+                {
+                  "key": "key2",
+                  "value": "xyzuio"
+                }
+              ]
+            }
+
+   .. tab:: metadata.json File 
+      :tabid: metadata
+
+      |service| uploads the ``metadata.json`` file for each collection 
+      in the following path on your |s3| bucket: 
+
+      .. code-block:: shell
+         :copyable: false
+
+         /exported_snapshots/<orgUUID>/<projectUUID>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/<dbName>/<collectionName>/metadata.json
+
+      .. note:: 
+
+         By default, |service| uses organization and project UUIDs in 
+         the path for the metadata files. To use organization and 
+         project names instead of UUIDs, set the 
+         ``useOrgAndGroupNamesInExportPrefix`` flag via the 
+         :ref:`modify-cloud-backup-policy` API to true. |service| 
+         replaces any spaces with underscores (``_``) and removes any 
+         :aws:`characters that might require special handling 
+         </AmazonS3/latest/userguide/object-keys.html>` and 
+         :aws:`characters to avoid 
+         </AmazonS3/latest/userguide/object-keys.html>` from the 
+         organization and project names in the path.
+
+      The metadata file is in |json| format and contains the following 
+      fields: 
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 35 65 
+
+         * - Field
+           - Description 
+
+         * - ``collectionName``
+           - Human-readable label that identifies the collection.
+
+         * - ``indexes``
+           - List of all the indexes on the collection in the format 
+             returned by :manual:`db.collection.getIndexes 
+             </reference/method/db.collection.getIndexes/#output>` 
+             command. 
+
+         * - ``options``
+           - Configuration options defined on the collection. To learn 
+             more about the options, see :manual:`db.createCollection() 
+             </reference/method/db.createCollection/>` command.
+
+         * - ``type``
+           - Type of collection. Value can be one of the following: 
+
+             - ``view`` - for a view on a collection 
+             - ``timeseries`` - for a timeseries collection 
+
+             This field is not returned for a standard collection.
+
+         * - ``uuid``
+           - Collection's UUID. To learn more about UUID, see 
+             :manual:`UUID </reference/method/UUID/>`.
+
+      .. example:: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            {
+              "options":{
+                "viewOn":"othercol",
+                "pipeline":[{"$project":{"namez":"$name"}}]
+              },
+              "indexes":[],
+              "collectionName":"viewcol",
+              "type":"view"
+            }
+
+         .. code-block:: json 
+            :copyable: false
+
+            {
+              "options":{
+                "timeseries":{
+                  "timeField":"timestamp",
+                  "granularity":"seconds",
+                  "bucketMaxSpanSeconds":{"$numberInt":"3600"}
+                }
+              },
+              "indexes":[],
+              "collectionName":"timeseriescol",
+              "type":"timeseries"
+            }
+
+         .. code-block:: json 
+            :copyable: false
+
+            {
+              "indexes": [
+                {
+                  "v":{"$numberInt":"2"},
+                  "key":{
+                    "_id":{"$numberInt":"1"}
+                  },
+                  "name":"_id_"
+                }
+              ],
+              "uuid":"342c40a937c34c478bab03de8ce44f3e",
+              "collectionName":"somecol"
+            }
 
 If an export job fails: 
 

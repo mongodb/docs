@@ -108,3 +108,14 @@
      - |utc| Minute of day between ``0`` and ``59`` representing which
        minute of the ``referenceHourOfDay`` that |service| takes the
        snapshot.
+
+   * - ``useOrgAndGroupNamesInExportPrefix``
+     - boolean
+     - Specifies whether to use organization and project names instead 
+       of organization and project UUIDs in the path to the metadata 
+       files that |service| uploads to your |s3| bucket after it 
+       finishes exporting the snapshots. Value can be one of the 
+       following: 
+
+       - ``true`` - to use organization and project names
+       - ``false`` - to use organization and project UUIDs (default)
