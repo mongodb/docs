@@ -8,6 +8,36 @@
      - Necessity
      - Description
 
+   * - ``autoExportEnabled`` 
+     - boolean 
+     - Optional 
+     - Specify ``true`` to enable automatic export of cloud backup 
+       snapshots to the |aws| bucket. You must also define the 
+       export policy using ``export``. If omitted, defaults to 
+       ``false``.
+
+   * - ``export``
+     - document 
+     - Optional
+     - Export policy for automatically exporting cloud backup snapshots 
+       to |aws| bucket. 
+
+   * - ``export.exportBucketId``
+     - string
+     - Required
+     - Unique identifier of the |aws| bucket to export the cloud backup 
+       snapshot to. If necessary, use the :doc:`Get All Snapshot Export 
+       Buckets 
+       </reference/api/cloud-backup/export/get-all-export-buckets/>` 
+       API to retrieve the IDs of all available export buckets for a 
+       project.
+
+   * - ``export.frequencyType``
+     - string 
+     - Required
+     - Frequency associated with the export policy. Value must be 
+       ``monthly``.
+
    * - | ``policies[]``
      - array
      - Required

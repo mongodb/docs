@@ -7,6 +7,17 @@
      - Type
      - Description
 
+   * - ``autoExportEnabled`` 
+     - boolean 
+     - Flag that indicates whether automatic export of cloud backup 
+       snapshots to the |aws| bucket is enabled. Value can be one 
+       of the following: 
+
+       - ``true`` - enables automatic export of cloud backup snapshots 
+         to the |aws| bucket
+       - ``false`` - disables automatic export of cloud backup 
+         snapshots to the |aws| bucket (default)
+
    * - ``clusterId``
      - string
      - Unique identifier of the |service| cluster.
@@ -14,6 +25,21 @@
    * - ``clusterName``
      - string
      - Name of the |service| cluster.
+
+   * - ``export``
+     - document 
+     - Export policy for automatically exporting cloud backup snapshots 
+       to |aws| bucket. 
+
+   * - ``export.exportBucketId``
+     - string
+     - Unique identifier of the |aws| bucket to export the cloud backup 
+       snapshot to. 
+
+   * - ``export.frequencyType``
+     - string 
+     - Frequency associated with the export policy. Value must be  
+       ``monthly``.
 
    * - ``links``
      - array
