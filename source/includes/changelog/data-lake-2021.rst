@@ -1,3 +1,26 @@
+.. _data-lake-v20211116:
+
+16 November 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Allows connections to |data-lakes| via 
+  :ref:`private endpoints <manage-private-endpoint>`.
+- Adds support for X.509 authorization.
+- Adds support for empty ``field`` parameters with the 
+  :manual:`$setField </reference/operator/aggregation/setField/>`
+  aggregation expression.
+- Fixes an issue where commands returned zero exit codes on failure.
+- Fixes an issue where documents with empty subdocuments 
+  written to Parquet contained empty parquet groups.
+- Updates ``EstimateRowGroupSize`` to report ``UncompressedSize`` for
+  documents stored in Parquet.
+- Adjusts the minimum value for ``maxRowGroupSize`` when using
+  :ref:`adl-out-stage` to Parquet to 16MB.
+- Removes support for using :ref:`adl-out-stage` to write documents
+  that contain duplicate fields to Parquet.
+- Improves error messages for :ref:`adl-out-stage`. 
+
 .. _data-lake-v20211027:
 
 27 October 2021 Release
