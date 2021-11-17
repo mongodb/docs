@@ -158,6 +158,8 @@
      - Number of minutes to wait between successive notifications
        for unacknowledged alerts that are not resolved.
 
+       .. include:: /includes/fact-intervalMin-third-party-integrations.rst
+
    * - | notifications.[n]
        | .mobileNumber
      - string

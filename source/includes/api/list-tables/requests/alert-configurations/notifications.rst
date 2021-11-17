@@ -108,6 +108,8 @@
        unacknowledged alerts that are not resolved. The minimum value
        is ``5``.
 
+       .. include:: /includes/fact-intervalMin-third-party-integrations.rst
+
    * - | notifications.[n]
        | .mobileNumber
      - string
