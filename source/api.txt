@@ -1,546 +1,85 @@
 .. _atlas-api:
 
-===
-API
-===
-
-.. default-domain:: mongodb
+====
+APIs
+====
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
-   :class: twocols
+   :depth: 2
+   :class: singlecol
 
-The {+atlas-admin-api+} follows the principles of the |rest| 
-architectural style to expose a number of internal resources which 
-enable programmatic access to |service|'s features.
+You can interact with |service| programmatically using the
+:doc:`{+atlas-admin-api+} </api/atlas-admin-api>`, the :realm:`Realm Admin API </admin/api/v3/>` 
+:icon-fa5:`external-link-alt`, and the :doc:`{+data-api+} </api/data-api>`. Use the
+links on this page to learn about each |api| and their resources.
 
-As with changes made through the |service| web interface, changes made
-through the |api| are subject to |service| :doc:`billing </billing>`.
-If you incur charges, you must have a valid credit card on file with
-|service| or risk having your account locked.
+.. include:: /includes/fact-apis-different-keys-configure.rst
 
-The |api| has the following features:
+.. _atlas-admin-api-overview:
 
-|json| entities
-  All entities are expressed in |json|.
+{+atlas-admin-api+}
+------------------------
 
-Key-based access
-  Each |service| user or application needing to connect to |service|
-  must :doc:`generate an API key <configure-api-access>` before
-  accessing the {+atlas-admin-api+}.
+.. include:: /includes/fact-atlas-admin-api-definition.rst
 
-Digest authentication
-  To ensure that your |api| key is never sent over the
-  network, |api| requests are authenticated using
-  `HTTP Digest Authentication`_.
+.. card-group::
+   :columns: 2
+   :style: compact
 
-Browsable interface
-  Using a consistent linking mechanism, you can browse the entire |api|
-  by starting at the root resource and following links to related
-  resources.
+   .. card::
+      :cta: Learn about the Atlas Admin API
+      :url: https://docs.atlas.mongodb.com/api/atlas-admin-api/
 
-|https|-Only
-  You can only access the |api| via |https|, ensuring all
-  data sent over the network is fully encrypted using |tls|.
+   .. card::
+      :cta: See the Atlas Admin API Resources
+      :url: https://docs.atlas.mongodb.com/reference/api-resources/
 
-User Access Control
-  Each |service| user's |api| capabilities match the permissions
-  granted by their |service| :ref:`user-roles`.
+.. _data-api-overview:
 
-  .. example::
+{+data-api+}
+------------
 
-     A user with the :authrole:`Project Read Only` in a |service|
-     project can't modify any resource within that project whether
-     through the |service| user interface or the |api|.
+Programmatically create, read, update, and delete data stored in |service| with the 
+{+data-api+}. You can use the {+data-api+} to access |service| data from the
+command line or from other applications.
 
-|api| Network Access List
-  The |service| secures access to its |api| through an
-  :ref:`access list <enable-api-access-list>`. This list restricts
-  access to the |api| to specific IP or |cidr| addresses. Each
-  :doc:`Programmatic API Key </reference/api/apiKeys>` has its own
-  |api| access list. Each |api| Key must make any |api| requests from
-  an IP address on the |api| access list.
+.. card-group::
+   :columns: 2
+   :style: compact
 
-  .. seealso:: :ref:`atlas-admin-api-access`.
+   .. card::
+      :cta: Learn about the {+data-api+}
+      :url: https://docs.atlas.mongodb.com/api/data-api/
 
-.. _HTTP Digest Authentication: http://en.wikipedia.org/wiki/Digest_access_authentication
+   .. card::
+      :cta: See the {+data-api+} Resources
+      :url: https://docs.atlas.mongodb.com/api/data-api-resources
 
-|http| Methods
---------------
+.. _realm-admin-api-overview:
 
-All resources support a subset of these common |http| Methods:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Method
-     - Purpose
-
-   * - ``GET``
-     - Retrieve the |json| representation of a resource.
-
-   * - ``POST``
-     - Create a new resource using the provided |json| representation.
-
-   * - ``PUT``
-     - Replace a resource with the provided |json| representation.
-
-   * - ``PATCH``
-     - Update the specified fields in a resource using the provided
-       |json| representation.
-
-   * - ``DELETE``
-     - Remove a resource.
-
-   * - ``HEAD``
-     - Returns the response header without the |json| representation of
-       the resource.
-
-|json|
-------
-
-All entities are represented in |json|. The following rules and
-conventions apply:
-
-- **Content Type Request Header**
-
-  When sending |json| to the server via ``POST`` or ``PUT``, make sure
-  to specify the correct content type request header: ``Content-Type:
-  application/json``
-
-- **Invalid Fields**
-
-  Invalid fields are *rejected* rather than *ignored*. For example,
-  if you attempt to create a new entity and misspell one of the fields, or
-  attempt to update an existing entity and include a field that
-  can't be modified, the server responds with a 400 status code and an
-  error message stating which field is invalid.
-
-- **ISO-8601-Formatted Dates**
-
-  All dates are returned as `ISO-8601`_-formatted strings designated in
-  UTC. When sending dates to the server (i.e., as query parameters or
-  fields in ``POST`` or ``PATCH`` request entities), use
-  ISO-8601-formatted dates. If you do not specify a time zone, UTC is
-  assumed. However, it is highly recommended that you include a time
-  zone designator to avoid any ambiguity.
-
-- **BSON Timestamps**
-
-  In some cases, a timestamp is returned as a `BSON timestamp`_, most
-  notably in the backup resources. These are represented in |json|
-  documents as an object with two fields: ``date``, which is an
-  ISO-8601-formatted date string in UTC with granularity to the second,
-  and ``increment`` a 32-bit integer.
-
-- **Field Names for Fields with Numbers**
-
-  Fields that contain numeric values in a particular unit will be named
-  so as to disambiguate the unit being used.
-
-  .. FUTURE: add an example to above para similar to the one in the
-     Cloud/Ops docs:
-     For example, a host's uptime is returned in milliseconds, so the name of
-     the host entity field is ``uptimeMsec``.
-
-- **Empty Fields**
-
-  Fields that do not have a current value are returned with an
-  appropriate default value.
-
-  .. FUTURE: add an example to above para similar to the one in the
-     Cloud/Ops docs:
-     For example, |service| will not have any statistics for a newly
-     discovered host, so any statistics-related fields will have a value of
-     zero.
-
-  Fields that do not have a sensible default value are omitted from the
-  entity.
-
-  .. FUTURE: add an example to above para similar to the one in the
-     Cloud/Ops docs:
-     For example, a host that is not using authentication will omit the
-     ``username`` field from the returned entity.
-
-- **Field Order**
-
-  The fields in the |json| documents returned by the server are in no
-  particular order, and the order may change. Do not depend on the
-  order of the fields.
-
-.. _ISO-8601: http://en.wikipedia.org/wiki/ISO8601
-
-.. _BSON timestamp: https://docs.mongodb.com/manual/reference/bson-types/#timestamps
-
-.. _atlas-api-linking:
-
-Linking
--------
-
-Each resource includes one or more links to sub-resources and/or
-related resources. Links are placed in the ``links`` field of an
-entity, which is an array of link relation objects. Each link relation
-has two fields:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Field
-     - Description
-
-   * - ``rel``
-     - Name (or type) of the relation. Many of these are considered
-       Extension Relation Types and are prefixed by
-       ``http://mms.mongodb.com``.
-
-   * - ``href``
-     - The target |url|.
-
-All entities include at least one link relation called ``self``, which
-is simply its own |url|. When an entity is part of a list, then it only
-includes the ``self`` link relation.
-
-.. FUTURE: Add an example similar to the example in the Cloud/Ops docs.
-
-For more information, refer to the `Web Linking Specification
-<https://tools.ietf.org/html/rfc8288>`_. Note that although the
-specification describes a format for including links in the |http|
-response headers, doing so is not a requirement. To make the |api|
-easily browsable, it includes the links in the response body rather
-than in the response headers.
-
-.. _atlas-api-lists:
-
-Lists
------
-
-Some resources return a list of entities. When a list of entities is
-expected in a response, the results are returned in batches bounded by
-the following query parameters:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Field
-     - Description
-
-   * - ``pageNum``
-     - Page number (1-based). Defaults to ``1`` if not specified.
-
-   * - ``itemsPerPage``
-     - Number of items to return per page, up to a maximum of 500.
-       Defaults to ``100`` if not specified.
-
-   * - ``includeCount``
-     - Specifies whether the response returns the ``totalCount`` field.
-       Defaults to ``true`` if not specified. 
-
-The response entity contains three fields:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Field
-     - Description
-
-   * - ``totalCount``
-     - The total number of items in the entire result set.
-
-   * - ``results``
-     - The result set, which is an array of entity documents.
-
-   * - ``links``
-     - Contains one to three link relations: ``previous`` for the
-       previous page of results (omitted for the first page); ``next``
-       for the next page of results (omitted for the last page); and
-       ``self`` for the current page (always present).
-
-If you make a request for a list of entities and there are no results,
-then the |api| responds with a 200 status code and the ``results``
-array is empty. It does *not* respond with a 404 in this case, since
-the list of entities may not be empty at some point in the future.
-However, if you request a list of entities in a context that does not
-exist (e.g., the list of hosts for a non-existent project), then this
-*does* result in a 404 response status.
-
-.. FUTURE: Add an example similar to the example in the Cloud/Ops docs.
-
-.. _api-envelope:
-
-Envelopes
----------
-
-Some clients might not be able to access the |http| response headers
-and/or status code. In that case, you can request that the response
-include an "envelope," which is simply an extra layer of information in
-the |json| document and contains any relevant details that would
-normally be in the response headers. By default, the |api| does *not*
-include the response in an envelope. To request one, simply add the
-query parameter ``envelope=true``.
-
-For responses that contain a single entity, the envelope contains two
-fields:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Field
-     - Description
-
-   * - ``status``
-     - The |http| status code.
-
-   * - ``content``
-     - The requested entity.
-
-For responses that contain a list of entities, there is already an
-envelope that wraps the results, so specifying ``envelope=true`` only
-adds the ``status`` field to the existing envelope.
-
-Pretty Printing
+Realm Admin API
 ---------------
 
-By default, extraneous whitespace is stripped from the |json| returned
-by the server. To ask for pretty-printed |json|, simply append the
-``pretty=true`` query parameter to any request:
+Programmatically perform administrative tasks outside of the Realm UI
+with the Realm Admin API. This includes tasks such as modifying
+authentication providers, creating rules, and defining functions.
 
-.. code-block:: shell
-   :emphasize-lines: 4
+.. card-group::
+   :columns: 2
+   :style: compact
 
-   curl --user '{USERNAME}:{APIKEY}' --digest \
-     --header 'Accept: application/json' \
-     --include \
-     --request GET "https://cloud.mongodb.com/api/atlas/v1.0?pretty=true"
+   .. card::
+      :cta: Learn about the Realm Admin API
+      :url: https://docs.mongodb.com/realm/admin/api/v3/
 
-Response Codes
---------------
-
-Responses use the standard |http| response codes, including:
-
-.. list-table::
-   :widths: 5 20 75
-   :header-rows: 1
-
-   * - Code
-     - Meaning
-     - Notes
-
-   * - 200
-     - OK
-     - The request was successful. This is typically the response to a
-       successful ``GET`` request.
-
-   * - 201
-     - Created
-     - A new resource was created. This is typically the response to a
-       successful ``POST`` request.
-
-   * - 202
-     - Accepted
-     - A request for an asynchronous operation was accepted.
-
-   * - 400
-     - Bad Request
-     - Something was wrong with the client request.
-
-   * - 401
-     - Unauthorized
-     - Authentication is required but was not present in the request.
-       Typically this means that the digest authentication information
-       was omitted from the request, the provided credentials are
-       incorrect, or the user associated with the given |api| key is
-       not allowed to access the requested resource.
-
-   * - 403
-     - Forbidden
-     - Access to the specified resource is not permitted.
-
-   * - 404
-     - Not Found
-     - The requested resource does not exist.
-
-   * - 405
-     - Method Not Allowed
-     - The |http| method is not supported for the specified resource.
-       Keep in mind that each resource may only support a subset of |http| methods.
-
-       .. example::
-          You can't ``DELETE`` the root resource.
-
-   * - 409
-     - Conflict
-     - This is the response to a request to create or modify
-       a property of an entity that is unique when an existing entity
-       already exists with the same value for that property.
-
-   * - 5xx
-     - Various server errors
-     - Something unexpected went wrong. Try again later and consider
-       notifying |service| Support.
-
-Errors
-------
-
-When a request returns an error, the response body contains a |json|
-document. This document includes details about why the |api| request
-failed. The document contains five parameters:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 14 66
-
-   * - Parameter
-     - Data Type
-     - Description
-
-   * - detail
-     - string
-     - Human-readable description that |service| returns for the errant
-       |api| request.
-
-   * - error
-     - integer
-     - :rfc:`Status code <2616#section-6.1.1>` returned in the
-       header of the |http| response.
-
-   * - errorCode
-     - string
-     - Named constant that represents the errant |api| request. To
-       learn about these constants, see :ref:`atlas-api-error-codes`.
-
-   * - parameters
-     - array
-     - List of parameters included in the |api| request.
-
-   * - reason
-     - string
-     - :rfc:`Status code definition <2616#section-6.1.1>` returned in
-       the header of the |http| response.
-
-.. example::
-
-   |service| returns the following response body when you make a
-   request in the incorrect format:
-
-   .. code-block:: json
-      :copyable: false
-      :linenos:
-
-      {
-        "detail" : "Cannot find resource /api/atlas/v1.0/softwareComponents/version.",
-        "error" : 404,
-        "errorCode" : "RESOURCE_NOT_FOUND",
-        "parameters" : [ "/api/atlas/v1.0/softwareComponents/version" ],
-        "reason" : "Not Found"
-      }
-
-.. _group-id:
-.. _project-id:
-
-Project ID
-----------
-
-Your Project ID is a string value that uniquely identifies a
-|service| project.
-
-|service| projects were previously identified as "groups". Some
-|service| endpoints reference ``group`` or ``{GROUP-ID}`` as part of
-the request path, query, or body parameters. For any endpoint that
-requires your ``{GROUP-ID}``, specify your Project ID instead.
-
-To retrieve your project ID:
-
-.. include:: /includes/steps/view-project-id.rst
-
-.. _api-authentication:
-
-Authentication
---------------
-
-As previously mentioned, the {+atlas-admin-api+} uses |http| Digest
-Authentication. The details of digest authentication are beyond the
-scope of this document. Digest authentication requires a username and a
-password. The |service| hashes these values using a unique value called
-a **nonce**. The |api| public key serves as the username. Its
-corresponding |api| private key serves as the password.
-
-Keep the following points in mind:
-
-- The |service|-generated nonce is used by the client to hash the
-  username and password before sending them back to the |service| to
-  authenticate a request. The nonce is only valid for a short amount of
-  time as per the digest authentication specification. This is to
-  prevent replay attacks, so you can't cache a nonce and use it
-  forever.
-
-- Using digest authentication with |https| adds an extra layer of
-  security. The |api| request never sends the password  to the
-  |service|.
-
-- Some resource require additional security. These resources deny
-  access to any request not made from an IP address on an |api| access
-  list. Each organization may have one or more |api| keys, each with
-  their own |api| access list. An |api| key can access an |api|
-  resource only from an IP address on its |api| access list.
-
-- |service| roles limit which operations an |api| key can perform. The
-  |api| resources enforce the same privileges. The resources and
-  methods that an |api| key use the same roles as |a-service| user.
-
-- |service| binds many resources to a project. Many |api| resource
-  |url|\s follow the format of ``/api/atlas/v1.0/groups/<GROUP-ID>/``.
-  For these resources, the |api| key must be a member of the
-  organization that hosts the project. Otherwise, the |service|
-  responds with a `401 <https://httpstatuses.com/401>`__ error.
-
-.. _api-rate-limiting:
-
-Rate Limiting
--------------
-
-Certain resources limit how many requests they can process per minute.
-
-For these resources, |service| allows up to 100 requests per minute
-*per project*. |api| keys belong to an organization, but can be granted
-access multiple projects.
-
-.. example::
-
-   Consider two users: A and B. User A belongs to project X, and user B
-   belongs to projects X and Y.
-
-   - At 1:00:00pm, User A makes 50 requests to a rate limited resource
-     in project X, all of which are complete by 1:00:20pm.
-
-   - At 1:00:30pm, User B attempts to make 60 requests to a rate
-     limited resource in project X.
-
-     Since User A has already used up 50 requests within the 1:00pm
-     minute for project X, the last 10 requests User B attempts to make
-     are rejected.
-
-     However, User B can make requests to a rate limited resource in
-     project Y, since each project maintains a separate request
-     counter.
-
-   - At 1:01:00pm, requests to project X may proceed, because the
-     request counter used for rate limiting resets each minute.
-
-If you exceed the rate limit, the |api| returns a `429
-<https://httpstatuses.com/429>`__ (Too Many Requests) |http| status
-code.
+   .. card::
+      :cta: See the Realm Admin API Resources
+      :url: https://docs.mongodb.com/realm/admin/api/v3/#resources
 
 .. toctree::
-   :titlesonly:
 
-   /configure-api-access
-   /reference/api-resources
-   /reference/api/api-errors
-   {+MongoDB-Realm+} API <https://docs.mongodb.com/realm/admin/api/v3/>
+   /api/atlas-admin-api
+   /api/data-api
+   Manage Apps with the Realm Admin API <https://docs.mongodb.com/realm/admin/api/v3/>
