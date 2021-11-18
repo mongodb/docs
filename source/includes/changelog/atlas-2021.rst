@@ -1,10 +1,23 @@
+.. _atlas_20211117:
+
+17 November 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for Google Private Service with
+  :doc:`Atlas Private Endpoints </security-private-endpoint/>`
+  via the console.
+- Introduces the ability for customers to
+  :doc:`export backup snapshots </backup/cloud-backup/export/>` to
+  their own Amazon |s3| buckets on-demand via the |api|.
+- Adds support for time-series collections for Atlas Online Archive.
+
 .. _atlas_20211111:
 
 11 November 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Adds support for `MongoDB 5.1
-<https://docs.mongodb.com/v5.1/reference/versioning/#rapid-releases>`__.
+Adds support for
+:manual:`MongoDB 5.1 </../v5.1/reference/versioning/#rapid-releases>`.
 
 .. _atlas_20211027:
 
@@ -14,15 +27,15 @@ Adds support for `MongoDB 5.1
 - Supports the use of Security Key and Biometrics as a 
   :ref:`multi-factor authentication <atlas-enable-mfa>` option.
 - Supports :manual:`zstd </reference/glossary/#std-term-zstd>` as a 
-  compression standard for clusters on MongoDB 4.2+.
+  compression standard for clusters on MongoDB 4.2 and later.
 
 .. _atlas_20211018:
 
 18 October 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports ``M0`` {+free-clusters+} and ``M2/M5`` {+shared-clusters+} in the
-  following regions:
+- Supports ``M0`` {+free-clusters+} and ``M2/M5`` {+shared-clusters+}
+  in the following regions:
 
   - AWS Tokyo (``ap-northeast-1``)
   - AWS Stockholm (``eu-north-1``)
@@ -31,8 +44,8 @@ Adds support for `MongoDB 5.1
   - Google Cloud Seoul (``asia-northeast3``)
   
 - Supports increased throughput for 4 TB volumes on Azure. The following
-  |service| {+clusters+} deployed to Azure now offer 16,000 IOPS (up from 7,500) and 500 MB/second
-  throughput (up from 250 MB/second):
+  |service| {+clusters+} deployed to Azure now offer 16,000 IOPS (up
+  from 7,500) and 500 MB/second throughput (up from 250 MB/second):
 
   - New {+clusters+} with 4 TB storage volumes.
   - Existing {+clusters+} that you scale up to 4 TB storage volumes.
