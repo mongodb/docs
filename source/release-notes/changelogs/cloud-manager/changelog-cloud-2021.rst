@@ -1,3 +1,12 @@
+.. _cloudmanager_20211117:
+
+17 November 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves speed and resiliency of snapshot restores when using
+  {+mdbagent+} version 11.7.0.7183-1 and later.
+- Updates {+mdbagent+} to :ref:`11.8.0.7223-1 <11.8.0.7223-1>`.
+
 .. _cloudmanager_20211027:
 
 27 October 2021 Release

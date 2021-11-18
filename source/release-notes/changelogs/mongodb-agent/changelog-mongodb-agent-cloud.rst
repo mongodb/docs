@@ -1,3 +1,13 @@
+.. _11.8.0.7223-1:
+
+MongoDB Agent 11.8.0.7223-1
+---------------------------
+
+*Released* 2021-11-17
+
+- Adds support for the release of MongoDB 5.1.
+- Improves management of database users additions and removals.
+
 .. _11.7.0.7181-1:
 
 MongoDB Agent 11.7.0.7181-1
