@@ -202,7 +202,6 @@
 
          .. literalinclude:: /driver-examples/DocumentationTransactionsExampleSpec.scala
             :language: scala
-            :lines: 50-
 
      - id: ruby
        content: |
