@@ -1,0 +1,303 @@
+ref: compound-score-tutorial-connect-compass
+level: 4
+stepnum: 1
+inherit:
+  file: steps-fts-tutorial-run-query-compass.yaml
+  ref: connect-to-database-deployment-fts-compass
+---
+ref: compound-score-tutorial-use-db
+level: 4
+stepnum: 2
+inherit:
+  file: steps-fts-tutorial-run-query-compass.yaml
+  ref: use-sample-mflix-compass
+---
+ref: run-compound-constant-query-compass
+level: 4
+stepnum: 3
+title: "Run an |fts| compound query that alters the score using the 
+       :ref:`scoring-constant` option."
+content: |
+  The query uses the following ``compound`` operator clauses:
+
+  .. include:: /includes/extracts/fts-compound-constant-desc.rst
+
+  The query uses the following pipeline stages:
+
+  .. include:: /includes/extracts/fts-compound-score-stages.rst 
+
+  To run this query in |compass|:
+
+  a. Click the :guilabel:`Aggregations` tab.
+  #. Click :guilabel:`Select...`, then configure each of the following 
+     pipeline stages by selecting the stage from the dropdown and adding
+     the query for that stage. Click :guilabel:`Add Stage` to add 
+     additional stages.
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 25 75
+
+        * - Pipeline Stage
+          - Query
+
+        * - ``$search``
+          - .. code-block:: javascript
+
+               {
+                 "compound": {
+                   "filter": [{
+                     "range": {
+                       "path": "year",
+                       "gte": 2013,
+                       "lte": 2015
+                     }
+                   }],
+                   "should": [{
+                     "text": {
+                       "query": "snow",
+                       "path": "title",
+                       "score": {"constant": {"value": 5}}
+                     }
+                   }]
+                 }
+               }
+
+        * - ``$limit``
+          - .. code-block:: javascript
+
+               {
+                 10
+               }
+
+        * - ``$project``
+          - .. code-block:: javascript
+
+               {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" }
+               }
+
+  If you enabled :guilabel:`Auto Preview`, |compass| displays the 
+  following documents next to the ``$project`` pipeline stage:
+
+  .. code-block:: json
+     :copyable: false
+     :emphasize-lines: 1-4
+
+     {'title': 'Snow in Paradise', 'year': 2014, 'score': 5.0}
+     {'title': 'Dead Snow 2: Red vs. Dead', 'year': 2014, 'score': 5.0}
+     {'title': 'The Snow White Murder Case', 'year': 2014, 'score': 5.0}
+     {'title': 'Snow on the Blades', 'year': 2014, 'score': 5.0}
+     {'year': 2013, 'title': 'The Secret Life of Walter Mitty', 'score': 0.0}
+     {'title': 'Jurassic World', 'year': 2015, 'score': 0.0}
+     {'title': 'Action Jackson', 'year': 2014, 'score': 0.0}
+     {'year': 2013, 'title': 'In Secret', 'score': 0.0}
+     {'title': 'The Stanford Prison Experiment', 'year': 2015, 'score': 0.0}
+     {'year': 2014, 'title': 'The Giver', 'score': 0.0}
+
+  The highlighted documents in the results above have a higher score 
+  because the ``should`` clause in the query specifies a preference for 
+  documents with ``snow`` in the title. The ``should`` clause also 
+  alters the score for the query term ``snow`` using the ``constant`` 
+  option.
+
+---
+ref: run-compound-boost-query-compass
+level: 4
+stepnum: 4
+title: "Run an |fts| compound query that alters the score using the 
+       :ref:`scoring-boost` option."
+content: |
+  The query uses the following ``compound`` operator clauses:
+
+  .. include:: /includes/extracts/fts-compound-boost-desc.rst
+       
+  The query uses the following pipeline stages:
+
+  .. include:: /includes/extracts/fts-compound-score-stages.rst 
+
+  To run this query in |compass|:
+
+  a. Click the :guilabel:`Aggregations` tab.
+  #. Click :guilabel:`Select...`, then configure each of the following 
+     pipeline stages by selecting the stage from the dropdown and adding
+     the query for that stage. Click :guilabel:`Add Stage` to add 
+     additional stages.
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 25 75
+
+        * - Pipeline Stage
+          - Query
+
+        * - ``$search``
+          - .. code-block:: javascript
+
+               {
+                 "compound": {
+                   "must": [{
+                     "range": {
+                       "path": "year",
+                       "gte": 2013,
+                       "lte": 2015
+                     }
+                   }],
+                   "should": [{
+                     "text": {
+                       "query": "snow",
+                       "path": "title",
+                       "score": {"boost": {"value": 2}}
+                     }
+                   }]
+                 }
+               }
+
+        * - ``$limit``
+          - .. code-block:: javascript
+
+               {
+                 10
+               }
+
+        * - ``$project``
+          - .. code-block:: javascript
+
+               {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" }
+               }
+
+  If you enabled :guilabel:`Auto Preview`, |compass| displays the 
+  following documents next to the ``$project`` pipeline stage:
+
+  .. code-block:: json
+     :copyable: false
+     :emphasize-lines: 1-4
+
+     {'title': 'Snow in Paradise', 'year': 2014, 'score': 6.7722930908203125}
+     {'title': 'Snow on the Blades', 'year': 2014, 'score': 6.063445568084717}
+     {'title': 'The Snow White Murder Case', 'year': 2014, 'score': 5.509652137756348}
+     {'title': 'Dead Snow 2: Red vs. Dead', 'year': 2014, 'score': 5.065053939819336}
+     {'year': 2013, 'title': 'The Secret Life of Walter Mitty', 'score': 1.0}
+     {'title': 'Jurassic World', 'year': 2015, 'score': 1.0}
+     {'title': 'Action Jackson', 'year': 2014, 'score': 1.0}
+     {'year': 2013, 'title': 'In Secret', 'score': 1.0}
+     {'title': 'The Stanford Prison Experiment', 'year': 2015, 'score': 1.0}
+     {'year': 2014, 'title': 'The Giver', 'score': 1.0}
+
+  The highlighted documents in the results above have a higher score 
+  because the ``should`` clause in the query specifies a preference for 
+  documents with ``snow`` in the title. The ``should`` clause also 
+  alters the score for the query term ``snow`` using the ``boost`` 
+  option.
+
+---
+ref: run-compound-function-query-compass
+level: 4
+stepnum: 5
+title: "Run an |fts| compound query that alters the score using the 
+       :ref:`scoring-function` option."
+content: |
+  The query uses the following ``compound`` operator clauses:
+
+  .. include:: /includes/extracts/fts-compound-function-desc.rst
+  
+  The query uses the following pipeline stages:
+
+  .. include:: /includes/extracts/fts-compound-score-stages.rst 
+
+  To run this query in |compass|:
+
+  a. Click the :guilabel:`Aggregations` tab.
+  #. Click :guilabel:`Select...`, then configure each of the following 
+     pipeline stages by selecting the stage from the dropdown and adding
+     the query for that stage. Click :guilabel:`Add Stage` to add 
+     additional stages.
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 25 75
+
+        * - Pipeline Stage
+          - Query
+
+        * - ``$search``
+          - .. code-block:: javascript
+
+               "compound": {
+                 "must": [{
+                   "range": {
+                     "path": "year",
+                     "gte": 2013,
+                     "lte": 2015
+                   }
+                 }],
+                 "should": [{
+                   "text": {
+                     "query": "snow",
+                     "path": "title",
+                     "score": {
+                       "function": {
+                         "add": [{
+                           "path": {
+                             "value": "imdb.rating",
+                             "undefined": 2
+                           }
+                         },
+                         {
+                           "score": "relevance"
+                         }]
+                       }
+                     }
+                   }
+                 }]
+               }
+
+        * - ``$limit``
+          - .. code-block:: javascript
+
+               {
+                 10
+               }
+
+        * - ``$project``
+          - .. code-block:: javascript
+
+               {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" }
+               }
+
+  If you enabled :guilabel:`Auto Preview`, |compass| displays the 
+  following documents next to the ``$project`` pipeline stage:
+
+  .. code-block:: json
+     :copyable: false
+     :emphasize-lines: 1-4
+
+     {'title': 'The Snow White Murder Case', 'year': 2014, 'score': 10.454826354980469}
+     {'title': 'Snow on the Blades', 'year': 2014, 'score': 10.3317232131958}
+     {'title': 'Dead Snow 2: Red vs. Dead', 'year': 2014, 'score': 10.032526969909668}
+     {'title': 'Snow in Paradise', 'year': 2014, 'score': 8.386146545410156}
+     {'year': 2013, 'title': 'The Secret Life of Walter Mitty', 'score': 1.0}
+     {'title': 'Jurassic World', 'year': 2015, 'score': 1.0}
+     {'title': 'Action Jackson', 'year': 2014, 'score': 1.0}
+     {'year': 2013, 'title': 'In Secret', 'score': 1.0}
+     {'title': 'The Stanford Prison Experiment', 'year': 2015, 'score': 1.0}
+     {'year': 2014, 'title': 'The Giver', 'score': 1.0}
+     
+  The highlighted documents in the results above have a higher score 
+  because the ``should`` clause in the query specifies a preference for 
+  documents with ``snow`` in the title. The ``should`` clause also 
+  alters the score for the query term ``snow`` using the ``function`` 
+  option.
+
+...
