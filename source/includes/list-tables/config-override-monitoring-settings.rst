@@ -9,12 +9,15 @@
      - Description
 
    * - configOverrides
-     - string
+     - object
      - Optional
      - List of {+mdbagent+} settings that you need to change because
-       your backup and monitoring settings differ from those of the
-       :ref:`{+mdbagent+} <mongodb-agent-settings-main>`. Configure this
-       option when upgrading from legacy agents to the {+mdbagent+}.
+       your monitoring settings differ from those of the
+       :ref:`{+mdbagent+} <mongodb-agent-settings-main>`. Configure
+       this option when upgrading from legacy agents to the
+       {+mdbagent+}.
+
+       .. include:: /includes/api/list-tables/auto-config/override-monitoring.rst
 
    * - logPath
      - string

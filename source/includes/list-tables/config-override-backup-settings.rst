@@ -8,6 +8,16 @@
      - Necessity
      - Description
 
+   * - configOverrides
+     - object
+     - Optional
+     - List of {+mdbagent+} settings that you need to change because
+       your backup settings differ from those of the
+       :ref:`{+mdbagent+} <mongodb-agent-settings-main>`. Configure this
+       option when upgrading from legacy agents to the {+mdbagent+}.
+
+       .. include:: /includes/api/list-tables/auto-config/override-backup.rst
+
    * - logPath
      - string
      - Optional
