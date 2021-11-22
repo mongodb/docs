@@ -16,6 +16,6 @@ collection that has multiple |first-geo-index| and/or multiple
 .. note::
 
    If you do not specify the ``key``, and you have at most only one
-   |first-geo-index| index and/or only one |first-geo-index| index,
+   |first-geo-index| and/or only one |second-geo-index|,
    MongoDB looks first for a ``2d`` index to use. If a ``2d`` index
    does not exists, then MongoDB looks for a ``2dsphere`` index to use.
