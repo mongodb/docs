@@ -53,11 +53,16 @@
 
      mongo <mongodb-connection-string> -u <mongodb-username> -p --authenticationDatabase admin
 
-* The database user from your source cluster that you will use to perform the migration has the required MongoDB roles.
+* The database user from your source cluster that you will use to perform
+  the migration has the required MongoDB roles.
    
-  The user must have the :authrole:`clusterMonitor` and :authrole:`backup` roles. To verify
-  that the database user that you intend to use for migration has the appropriate
-  roles, run the :manual:`db.getUser() </reference/method/db.getUser/>` command against the admin database.
+  - The :authrole:`readAnyDatabase` role.
+  - The :authrole:`clusterMonitor` role.
+  - The :authrole:`backup` role.
+  
+  To verify that the database user that will run the Live Migration
+  process has these roles, run the :manual:`db.getUser()
+  </reference/method/db.getUser/>` command on the ``admin`` database.
 
   .. code-block:: javascript
 
@@ -76,5 +81,20 @@
            "role" : "clusterMonitor",
            "db" : "admin"
          }
+         {
+           "role" : "readAnyDatabase",
+           "db" : "admin"
+         }
        ]
      } ...
+  
+  In addition, the database user from your source cluster in Compose
+  must have the role to read the oplog on your ``admin`` database. See
+  :atlas:`Oplog Access </reference/atlas-oplog/>`. You obtain access to
+  this role when you add the oplog user in Compose in the following
+  procedure.
+  If you can't grant all of these permissions to the database user from
+  your source cluster in Compose, the Live Migration process will not work.
+  In this case, use :atlas:`mongodump and mongorestore </import/mongorestore/>`
+  to migrate your data to Atlas.
+

@@ -60,7 +60,6 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/change_stream_examples_spec.rb -o ${DRIVERS_PATH}/change_stream_examples_spec.rb
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-scala-driver/master/driver/src/it/scala/org/mongodb/scala/DocumentationExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationExampleSpec.scala
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/DocumentationExamples.cs -o ${DRIVERS_PATH}/DocumentationExamples.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/change_streams.js -o ${DRIVERS_PATH}/ChangeStreamNodeExamples.js
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/ChangeStreamExamples.cs -o ${DRIVERS_PATH}/ChangeStreamExamples.cs
 	#curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/examples.go	
@@ -76,7 +75,6 @@ examples:
 	cp examples/go/connect/connect.go ${DRIVERS_PATH}/connect.go
 	cp examples/motor/connect/connect.py  ${DRIVERS_PATH}/motorconnect.py
 	cp examples/python/connect/connecttest.py  ${DRIVERS_PATH}/connecttest.py
-	cp examples/node/connect/connect.js  ${DRIVERS_PATH}/connect.js
 	cp examples/java/ConnectExample.java ${DRIVERS_PATH}/JavaConnectExample.java
 	cp examples/java/ConnectExampleLegacy.java ${DRIVERS_PATH}/JavaConnectExampleLegacy.java
 
