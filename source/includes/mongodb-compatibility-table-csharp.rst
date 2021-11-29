@@ -17,6 +17,18 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
+   * - 2.14
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     -
+     -
+
    * - 2.13
      -
      - |checkmark|
