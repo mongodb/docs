@@ -1,0 +1,213 @@
+stepnum: 1
+ref: fts-date-range-tutorial-step1
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: connect-to-database-deployment-fts
+---
+stepnum: 2
+ref: fts-date-range-tutorial-step2
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: use-sample-mflix
+---
+stepnum: 3
+ref: fts-date-range-tutorial-step3
+title: "Run the following |fts| queries with the ``compound`` operator 
+       on the ``movies`` collection."
+content: |
+  The following examples use the ``compound`` operator with subqueries 
+  to search for movies between the years ``2010`` to ``2015``. The 
+  query uses the following clauses: 
+    
+  - A ``must`` clause to search for movies released between 
+    ``2015-01-01`` and ``2015-12-31`` 
+  - A ``should`` clause to specify preference for movies released near 
+    ``2012-07-01``, with a pivot distance of 1 month
+    
+  The example queries include a :pipeline:`$limit` stage to limit the 
+  output to 6 results and a :pipeline:`$project` stage to:
+
+  - Exclude all fields except ``title``, ``released``, and ``genres`` 
+    fields
+  - Add a field named ``score`` 
+
+  .. code-block:: json 
+
+     db.movies.aggregate([
+       {
+         "$search": {
+            "compound": {
+              "must": [{
+                "range": {
+                  "path": "released",
+                  "gt": ISODate("2015-01-01T00:00:00.000Z"),
+                  "lt": ISODate("2015-12-31T00:00:00.000Z")
+                }
+              }],
+              "should": [{
+                "near": {
+                  "path": "released",
+                  "origin": ISODate("2015-07-01T00:00:00.000+00:00"),
+                  "pivot": 2629800000
+                }
+              }]
+            }
+          }
+        },
+        {
+          "$limit": 6
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "released": 1,
+            "genres": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+  |fts| returns the following results: 
+
+  .. code-block:: json 
+     :copyable: false 
+
+     [
+       {
+         "genres": [ "Action", "Adventure", "Sci-Fi" ],
+         "title": "Terminator Genisys",
+         "released": ISODate("2015-07-01T00:00:00.000Z"),
+         "score": 2
+       },
+       {
+         "genres": [ "Comedy", "Drama", "Music" ],
+         "title": "Magic Mike XXL",
+         "released": ISODate("2015-07-01T00:00:00.000Z"),
+         "score": 2
+       },
+       {
+         "genres": [ "Documentary", "Biography", "Drama" ],
+         "title": "Mala Mala",
+         "released": ISODate("2015-07-01T00:00:00.000Z"),
+         "score": 2
+       },
+       {
+         "genres": [ "Comedy", "Drama" ],
+         "title": "Home Care",
+         "released": ISODate("2015-07-01T00:00:00.000Z"),
+         "score": 2
+       },
+       {
+         "genres": [ "Documentary", "News" ],
+         "title": "Bitcoin: The End of Money as We Know It",
+         "released": ISODate("2015-07-01T00:00:00.000Z"),
+         "score": 2
+       },
+       {
+         "genres": [ "Drama", "Mystery", "Sci-Fi" ],
+         "title": "Pig",
+         "released": ISODate("2015-07-02T00:00:00.000Z"),
+         "score": 1.9681909084320068
+       }
+     ]
+
+  For the query, the top results are in the month of July because the 
+  ``should`` clause specified a preference for movies near July. 
+
+  The following example uses the ``compound`` operator with subqueries, 
+  :pipeline:`$limit` stage, and the :pipeline:`$project` stages to 
+  perform the same search as the previous query. In addition to the 
+  ``must`` and ``should`` clauses, the query also includes a 
+  ``mustNot`` clause to specify that movies in the ``documentary`` 
+  genre must not be included in the results.
+
+  .. code-block:: json 
+
+     db.movies.aggregate([
+       {
+         "$search": {
+            "compound": {
+              "must": [{
+                "range": {
+                  "path": "released",
+                  "gt": ISODate("2015-01-01T00:00:00.000Z"),
+                  "lt": ISODate("2015-12-31T00:00:00.000Z")
+                }
+              }],
+              "should": [{
+                "near": {
+                  "path": "released",
+                  "origin": ISODate("2015-07-01T00:00:00.000+00:00"),
+                  "pivot": 2629800000
+                }
+              }],
+              "mustNot": [{
+                "text": {
+                  "query": "documentary",
+                  "path": "genres"
+                }
+              }]
+            }
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "released": 1,
+            "genres": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+  |fts| returns the following results: 
+
+  .. code-block:: json 
+     :copyable: false 
+
+     [
+       {
+         "genres": [ "Action", "Adventure", "Sci-Fi" ],
+         "title": "Terminator Genisys",
+         "released": ISODate("2015-07-01T00:00:00.000Z"),
+         "score": 2
+       },
+       {
+         "genres": [ "Comedy", "Drama", "Music" ],
+         "title": "Magic Mike XXL",
+         "released": ISODate("2015-07-01T00:00:00.000Z"),
+         "score": 2
+       },
+       {
+         "genres": [ "Comedy", "Drama" ],
+         "title": "Home Care",
+         "released": ISODate("2015-07-01T00:00:00.000Z"),
+         "score": 2
+       },
+       {
+         "genres": [ "Drama", "Mystery", "Sci-Fi" ],
+         "title": "Pig",
+         "released": ISODate("2015-07-02T00:00:00.000Z"),
+         "score": 1.9681909084320068
+       },
+       {
+         "genres": [ "Drama", "History", "Romance" ],
+         "title": "Gold Coast",
+         "released": ISODate("2015-07-02T00:00:00.000Z"),
+         "score": 1.9681909084320068
+       },
+       {
+         "genres": [ "Animation", "Family" ],
+         "title": "Zarafa",
+         "released": ISODate("2015-07-03T00:00:00.000Z"),
+         "score": 1.9383430480957031
+       }
+     ]
+
+  For the query, the top results are in the month of July because the 
+  ``should`` clause specified a preference for movies near July. 
