@@ -6,7 +6,7 @@ index results in an incorrect count.
 
 .. code-block:: javascript
 
-   db.collection.insert({ _id: 1, y: 1 } );
+   db.collection.insertOne( { _id: 1, y: 1 } );
    db.collection.createIndex( { x: 1 }, { sparse: true } );
 
    db.collection.find().hint( { x: 1 } ).count();
@@ -19,5 +19,5 @@ documents in a collection.
 
    db.collection.find().count();
 
-   db.collection.createIndex({ y: 1 });
-   db.collection.find().hint({ y: 1 }).count();
+   db.collection.createIndex( { y: 1 } );
+   db.collection.find().hint( { y: 1 } ).count();

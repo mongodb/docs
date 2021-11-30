@@ -2,7 +2,7 @@ Create a collection ``cakeSales`` containing sales for cake flavors:
 
 .. code-block:: javascript
 
-   db.cakeSales.insert( [
+   db.cakeSales.insertMany( [
       { _id: 1, flavor: "chocolate", salesTotal: 1580 },
       { _id: 2, flavor: "strawberry", salesTotal: 4350 },
       { _id: 3, flavor: "cherry", salesTotal: 2150 }
