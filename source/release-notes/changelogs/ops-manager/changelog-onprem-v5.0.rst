@@ -9,7 +9,8 @@
   :guilabel:`Oplog Storage` page in the administration console in all
   configurations.
   
-- Updates the MongoDB Agent to 11.0.9.7010.
+- Updates the MongoDB Agent to :ref:`11.0.9.7010 <mongodb-11.0.9.7010>`.
+
 
 .. _opsmgr-server-5.0.3:
 

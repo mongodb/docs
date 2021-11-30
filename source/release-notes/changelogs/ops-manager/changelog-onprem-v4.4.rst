@@ -6,7 +6,7 @@
 *Released 2021-11-16*
 
 - Updates JDK to jdk-11.0.13+8.
-- Updates the MongoDB Agent to 10.14.30.6552.
+- Updates the MongoDB Agent to :ref:`10.14.30.6552 <mongodb-10.14.30.6552>`.
 
 .. _opsmgr-server-4.4.18:
 
@@ -15,7 +15,7 @@
 
 *Released 2021-11-04*
 
-- Updates the MongoDB Agent to 10.14.29.6548.
+- Updates the MongoDB Agent to :ref:`10.14.29.6548 <mongodb-10.14.29.6548>`.
 
 .. _opsmgr-server-4.4.17:
 
