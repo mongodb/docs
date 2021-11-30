@@ -6,23 +6,76 @@ ref: select-deployment-topology
 ---
 stepnum: 2
 level: 4
-title: "Check {{mechanism}}, then click :guilabel:`Next`."
-replacement:
-  mechanism: "the authentication mechanism"
-ref: select-auth-type
+title: "Specify the |tls| Settings."
+optional: true
+content: |
+
+  .. list-table::
+     :widths: 30 70
+     :header-rows: 1
+     :stub-columns: 1
+
+     * - Field
+       - Action
+
+     * - MongoDB Deployment Transport Layer Security (TLS)
+       - Toggle this slider to :guilabel:`ON`.
+
+     * - TLS CA File Path
+       - The |tls| |certauth| file is a ``.pem``-format certificate
+         file that contains the root certificate chain from the
+         |certauth|. The {+mdbagent+} uses this same |certauth| file
+         to connect to every item in your deployment.
+
+         .. include:: /includes/fact-PKCS8-not-supported.rst
+
+         Type the file path to the |tls| |certauth| file on every host
+         running a MongoDB process:
+
+         - Type the file path on all Linux hosts in the first box.
+
+         - Type the file path on all Windows hosts in the second box.
+
+         This enables the :setting:`net.tls.CAFile` setting for the
+         MongoDB processes in the project.
+
+         Click :guilabel:`Validate` to test that each host in your
+         deployment has a |tls| |certauth| at the paths you specified.
+
+     * - Client Certificate Mode
+       - Select if client applications or {+mdbagent+}\s must present a
+         |tls| certificate when connecting to a |tls|\-enabled MongoDB
+         deployments. Each MongoDB deployment checks for certificates
+         from these client hosts when they try to connect. If you
+         choose to require the client |tls| certificates, make sure
+         they are valid.
+
+         Accepted values are:
+
+         .. list-table::
+            :widths: 25 75
+            :stub-columns: 1
+
+            * - Optional
+              - Every client may present a valid |tls| certificate when
+                connecting to MongoDB deployments. {+mdbagent+}\s might
+                use |tls| certificates if you *don't* set the |mongod|
+                :parameter:`tlsMode` to ``None``.
+
+            * - Required
+              - Every MongoDB deployment in this project starts with
+                |tls|\-encrypted network connections. All Agents
+                must use |tls| to connect to any MongoDB
+                deployment.
+
+ref: optional-configure-ssl
 ---
 stepnum: 3
 level: 4
-title: "Configure SSL if desired."
-content: |
-  a. Toggle the :guilabel:`Enable SSL` slider to :guilabel:`Yes`.
-
-  b. Click :guilabel:`Next`.
-
-  .. note::
-     See :doc:`/tutorial/enable-ssl-for-a-deployment` for SSL setup
-     instructions. 
-ref: optional-configure-ssl
+title: "Select {{mechanism}}."
+replacement:
+  mechanism: "the authentication mechanism"
+ref: select-auth-type
 ---
 stepnum: 4
 level: 4
@@ -35,22 +88,14 @@ pre: |
   one of the authentication mechanisms the |mms| agents should use to connect
   to your deployment.
 
-  a. Select {{mechanism}} from the :guilabel:`Agent Auth Mechanism` drop-down menu.
+  a. Select {{mechanism}}.
 content: |
 
   b. |mms| automatically generates the Agents' usernames and passwords.
   
      |mms| creates users for the agents with the required user roles in the
      admin database for each existing deployment in |mms|. When you add a new
-     deployment, |mms| creates the required users in the new deployment. 
-
-  c. Click :guilabel:`Save`.
-
-post: |
-  You do not need to configure all of the agents, only the ones you installed.
-
-  .. example::
-     If you did not install the {+bagent+}, you do not need to configure the {+bagent+}.
+     deployment, |mms| creates the required users in the new deployment.
 
 ref: select-configure-auth-mechanism
 ---
@@ -72,21 +117,20 @@ content: |
 
   .. important::
 
-     Using LDAP Authorization, MongoDB 3.4 allows authenticating users via
-     LDAP, Kerberos, or X.509 certificates without requiring local user
-     documents in the ``$external`` database. When such a user successfully
+     Starting with MongoDB 3.4, you can 
+     authenticate users using LDAP, Kerberos, or X.509 certificates 
+     without requiring local user documents in the ``$external`` 
+     database. When such a user successfully
      authenticates, MongoDB performs a query against the LDAP server to
      retrieve all groups which that LDAP user possesses and transforms those
      groups into their equivalent MongoDB roles.
 
-     This feature is available only for MongoDB 3.4 or later. 
+  Skip this step if you selected :guilabel:`Saslauthd` in the previous
+  step.
 
-  If you do not use LDAP Authorization, you can click
-  :guilabel:`Skip`.
+  If you selected :guilabel:`Native LDAP Authentication`, complete the following steps:
 
-  If you use LDAP Authorization, complete the following steps. 
-
-  a. Enter values for the following fields:
+  a. Provide the following values:
 
      .. list-table::
         :header-rows: 1
@@ -96,31 +140,7 @@ content: |
 
           - Value
 
-        * - :guilabel:`Authorization Query Template`
-
-          - Specify a template for an LDAP query URL to retrieve the
-            list of LDAP groups for an LDAP user.
-
-        * - :guilabel:`User to Distinguished Name Mapping`
-
-          - Specify an array of JSON documents that provide the ordered
-            transformation(s) MongoDB performs on the authenticated MongoDB
-            usernames. MongoDB then matches the transformed username 
-            against the LDAP DNs.
-
-  b. Click :guilabel:`Use LDAP Authorization`.
-
-  c. Provide the following values:
-
-     .. list-table::
-        :header-rows: 1
-        :widths: 30 70
-
-        * - Setting
-
-          - Value
-
-        * - Servers
+        * - Server URL
 
           - Specify the ``hostname:port`` combination of one or more LDAP servers.
 
@@ -135,7 +155,7 @@ content: |
 
         * - Bind Method  
 
-          - Select either ``Simple`` or ``SASL``. 
+          - Select either ``SASL`` or ``Simple``. 
 
             .. important::
 
@@ -148,12 +168,12 @@ content: |
           - Specify which SASL authentication service MongoDB uses with 
             the LDAP server.
 
-        * - Query User  
+        * - Query User (LDAP Bind DN)
 
           - Specify the LDAP Distinguished Name to which MongoDB binds when 
             connecting to the LDAP server.
 
-        * - Query Password  
+        * - Query Password (LDAP Bind DN)
 
           - Specify the password with which MongoDB binds when connecting to an 
             LDAP server.
@@ -165,13 +185,89 @@ content: |
 
         * - Validate LDAP Server Config
 
-          - Select ``True`` to validate the LDAP server configuration
-            or ``False`` to skip validation.
+          - Select ``ON`` to validate the LDAP server configuration
+            or ``OFF`` to skip validation.
 
-            If ``True`` and the configuration is invalid, the MongoDB
+            If ``ON`` and the configuration is invalid, the MongoDB
             deployment will not start.
 
-  d. Click :guilabel:`Next`.
+  #. In the :guilabel:`LDAP Authorization` section, enter values for the
+     following fields:
 
-ref: set-ldap-authorization-settings
+     .. list-table::
+        :header-rows: 1
+        :widths: 30 70
+
+        * - Setting
+
+          - Value
+
+        * - :guilabel:`LDAP Authorization`
+
+          - Toggle to :guilabel:`ON` to enable LDAP authorization.
+
+        * - :guilabel:`Authorization Query Template`
+
+          - Specify a template for an LDAP
+            query URL to retrieve a list of LDAP groups for an LDAP 
+            user.
+
+        * - :guilabel:`User to Distinguished Name Mapping`
+
+          - Specify an array of JSON documents that provide the ordered
+            transformation(s) MongoDB performs on the authenticated MongoDB
+            usernames. MongoDB then matches the transformed username 
+            against the LDAP DNs.
+
+ref: set-ldap-authorization-settings-ldap
+---
+stepnum: 0
+level: 4
+title: "Configure the LDAP Authorization Settings. (Optional)"
+content: |
+
+  .. important::
+
+     Starting with MongoDB 3.4, you can 
+     authenticate users using LDAP, Kerberos, or X.509 certificates 
+     without requiring local user documents in the ``$external`` 
+     database. When such a user successfully
+     authenticates, MongoDB performs a query against the LDAP server to
+     retrieve all groups which that LDAP user possesses and transforms those
+     groups into their equivalent MongoDB roles.
+
+  Skip this step if you don't want to enable LDAP authorization.
+
+  a. Enter values for the following fields:
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 30 70
+
+        * - Setting
+
+          - Value
+
+        * - :guilabel:`LDAP Authorization`
+
+          - Toggle to :guilabel:`ON` to enable LDAP authorization.
+
+        * - :guilabel:`Authorization Query Template`
+
+          - Specify a template for an LDAP
+            query URL to retrieve a list of LDAP groups for an LDAP 
+            user.
+
+        * - :guilabel:`User to Distinguished Name Mapping`
+
+          - Specify an array of JSON documents that provide the ordered
+            transformation(s) MongoDB performs on the authenticated MongoDB
+            usernames. MongoDB then matches the transformed username 
+            against the LDAP DNs.
+
+ref: set-authorization-settings-no-ldap
+---
+title: "Click :guilabel:`Save Settings`."
+level: 4
+ref: save-auth-settings
 ...

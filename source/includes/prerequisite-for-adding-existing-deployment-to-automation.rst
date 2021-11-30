@@ -12,21 +12,7 @@
     :guilabel:`Security`, then :guilabel:`Users`.
 
   - To find the password for the |mms| project's {+mdbagent+} user, you
-    can use the UI, the |api| or the configuration backup file:
-
-    Using the UI
-      #. Navigate to :guilabel:`Deployment`, :guilabel:`Security`, and
-         then :guilabel:`Authentication & TLS/SSL`
-
-      #. Click :guilabel:`Edit Settings`.
-
-      #. Click :guilabel:`Next` until you see the **Configure**
-         |mms| **Agents** page.
-
-      #. Click :guilabel:`Show` to the right of the
-         :guilabel:`MongoDB Agent Password` field.
-
-         The {+mdbagent+}'s password displays.
+    can use the |api| or the configuration backup file:
 
     Using the |api|
       Use the :doc:`/reference/api/automation-config` endpoint:
