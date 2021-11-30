@@ -70,7 +70,6 @@
 
    * - | :method:`db.collection.insertMany()`
        | :method:`db.collection.insertOne()`
-       | :method:`db.collection.insert()`
 
      - :dbcommand:`insert`
 
