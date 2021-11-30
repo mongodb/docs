@@ -15,32 +15,35 @@ Configure Encryption
 Overview
 --------
 
-.. include:: /includes/fact-enterprise-only-admonition.rst
-
-.. important::
-
-   Available for the WiredTiger Storage Engine Only.
-
-.. note:: Changed in version 4.0
-
-
-   .. include:: /includes/fact-aes.rst
+This page discusses server configuration to support encryption at rest.
+If you use `MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`__,
+your data is already encrypted. MongoDB manages Atlas encryption at the
+cloud provider level, but you can also use your own key management
+solution. See the Atlas `key management documentation
+<https://docs.atlas.mongodb.com/security-kms-encryption/>`__ for details.
 
 MongoDB Enterprise 3.2 introduces a native encryption option for the
-WiredTiger storage engine. With storage encryption, the secure
-management of the encryption keys is critical.
+WiredTiger storage engine. Outside Atlas, encryption is only available
+for enterprise installations that use the WiredTiger Storage Engine.
 
-Only the master key is external to the server and requires external
-management. To manage the master key, MongoDB's encrypted storage
-engine supports two key management options:
+Secure management of the encryption keys is a critical requirement for
+storage encryption. MongoDB uses a master key that is not stored with
+the MongoDB installation. Only the master key is externally managed,
+other keys can be stored with your MongoDB instance.
+
+MongoDB's encrypted storage engine supports two key management options
+for the master key:
 
 - Integration with a third party key management appliance via the Key
   Management Interoperability Protocol (KMIP). **Recommended**
-
 - Use of local key management via a keyfile.
 
-The following tutorial outlines the procedures to configure MongoDB for
-encryption and key management.
+.. important::
+
+   MongoDB cannot encrypt existing data. When you enable encryption
+   with a new key, the MongoDB instance cannot have any pre-existing
+   data. If your MongoDB installation already has existing data, see
+   :ref:`encrypt-existing-data` for additional steps.
 
 Key Manager
 -----------
@@ -69,6 +72,10 @@ Prerequisites
 
 - To authenticate MongoDB to a KMIP server, you must have a valid
   certificate issued by the key management appliance.
+
+.. note:: Changed in version 4.0
+
+   .. include:: /includes/fact-aes.rst
 
 .. _encrypt-with-new-key:
 
@@ -212,4 +219,22 @@ accessible by the owner of the :binary:`~bin.mongod` process.
 .. seealso::
 
    :ref:`encryption-key-management-options`
+
+.. _encrypt-existing-data:
+
+Encrypt Existing Data at Rest
+-----------------------------
+
+MongoDB cannot encrypt existing data. When you enable encryption with a
+new key, the MongoDB instance cannot have any pre-existing data.
+
+If you are using a replica set that does have existing data, use a
+rolling :ref:`initial sync <replica-set-initial-sync>` to encrypt the
+data. 
+
+For example, consider a replica set with three members. The replica set
+is in use and holds data that you want to encrypt. These are the steps
+you would take to encrypt the data at rest:
+
+.. include:: /includes/steps/encrypt-with-rolling-sync.rst
 
