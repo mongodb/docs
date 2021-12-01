@@ -26,7 +26,7 @@ The following :update:`$push` operation uses:
 
 .. code-block:: javascript
 
-   db.students.update(
+   db.students.updateOne(
       { _id: 5 },
       {
         $push: { 

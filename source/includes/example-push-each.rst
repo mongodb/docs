@@ -4,7 +4,8 @@ equals ``joe``:
 
 .. code-block:: javascript
 
-   db.students.update(
+   db.students.updateOne(
       { name: "joe" },
       { $push: { scores: { $each: [ 90, 92, 85 ] } } }
    )
+
