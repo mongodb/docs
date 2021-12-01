@@ -1,0 +1,95 @@
+.. _compression:
+.. _network-compression:
+
+===================
+Network Compression
+===================
+
+You can enable a driver option to compress messages which reduces the amount
+of data passed over the network between MongoDB and your application.
+
+The driver supports the following algorithms:
+
+1. `Snappy <https://google.github.io/snappy/>`__: available in MongoDB 3.4 and later.
+
+2. `Zlib <https://zlib.net/>`__: available in MongoDB 3.6 and later.
+
+3. `Zstandard <https://github.com/facebook/zstd/>`__: available in MongoDB 4.2 and later.
+
+The driver tests against the following versions of these libraries:
+
+- ``org.xerial.snappy:snappy-java:1.1.8.4``
+- ``com.github.luben:zstd-jni:1.5.0-4``
+
+If you specify multiple compression algorithms, the driver selects the
+first one in the list supported by the MongoDB instance to which it is
+connected.
+
+.. note::
+
+   Applications that require Snappy or Zstandard compression must
+   :ref:`add explicit dependencies <compression-dependencies>` for those
+   algorithms.
+
+.. _enable-compression:
+
+Specify Compression Algorithms
+------------------------------
+
+You can enable compression for the connection to your MongoDB instance
+by specifying the algorithms in one of two ways: adding the parameter to your
+connection string using ``ConnectionString`` or by calling the method in the
+``MongoClientSettings.Builder`` class.
+
+.. tabs::
+
+   .. tab:: ConnectionString
+      :tabid: connectionstring
+
+      To enable compression using the `ConnectionString <{+api+}/apidocs/mongodb-driver-core/com/mongodb/ConnectionString.html>`__,
+      add the parameter ``compressors`` in the connection string passed to
+      ``MongoClients.create()``. You can specify one or more compression
+      algorithms, separating them with commas:
+
+      .. code-block:: java
+
+         ConnectionString connectionString = new ConnectionString("mongodb+srv://<user>:<password>@<cluster-url>/?compressors=snappy,zlib,zstd");
+         MongoClient mongoClient = MongoClients.create(connectionString);
+
+      Specify compression algorithms using the following strings:
+
+      - "snappy" for `Snappy <https://google.github.io/snappy/>`__ compression
+      - "zlib" for `Zlib <https://zlib.net/>`__ compression
+      - "zstd" for `Zstandard <https://github.com/facebook/zstd/>`__ compression
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      To enable compression using the `MongoClientSettings <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.html>`__,
+      pass the `compressorList() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html#compressorList(java.util.List)>`__
+      builder method a list of `MongoCompressor <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoCompressor.html>`__
+      instances. You can specify one or more compression algorithms in the list:
+
+      .. code-block:: java
+         :emphasize-lines: 2-4
+
+         MongoClientSettings settings = MongoClientSettings.builder()
+              .compressorList(Arrays.asList(MongoCompressor.createSnappyCompressor(),
+                                            MongoCompressor.createZlibCompressor(),
+                                            MongoCompressor.createZstdCompressor()))
+              .build();
+         MongoClient client = MongoClients.create(settings);
+
+.. _compression-dependencies:
+
+Compression Algorithm Dependencies
+----------------------------------
+
+The JDK supports `Zlib <https://zlib.net/>`__ compression natively, but
+`Snappy <https://google.github.io/snappy/>`__ and
+`Zstandard <https://github.com/facebook/zstd/>`__ depend on open source
+implementations. See
+`snappy-java <https://github.com/xerial/snappy-java>`__ and
+`zstd-java <https://github.com/luben/zstd-jni>`__ for details.
+
+

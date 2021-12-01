@@ -11,7 +11,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
-public class RunCommand {
+public class MongoClientConnectionExample {
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
         String uri = "mongodb://user:pass@sample.host:27017/?maxPoolSize=20&w=majority";
