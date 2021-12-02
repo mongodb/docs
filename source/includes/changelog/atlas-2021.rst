@@ -1,3 +1,18 @@
+.. _atlas_20211202:
+
+2 December 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds the ability to assign a
+  :manual:`built-in role </reference/built-in-roles/>`, multiple
+  :ref:`custom roles <mongodb-roles>`, and multiple specific privileges
+  to a single database user.
+- Introduces a new database user role, :atlasrole:`killOpSession`.
+- Adds the ability to
+  :doc:`revoke temporary infrastructure access to MongoDB Support </security-restrict-support-access/>`.
+- Changes the :ref:`default recipients for billing alerts <atlas-billing-profile>`
+  if you don't provide a billing email address.
+
 .. _atlas_20211117:
 
 17 November 2021 Release
@@ -6,9 +21,8 @@
 - Adds support for Google Private Service with
   :doc:`Atlas Private Endpoints </security-private-endpoint/>`
   via the console.
-- Introduces the ability for customers to
-  :doc:`export backup snapshots </backup/cloud-backup/export/>` to
-  their own Amazon |s3| buckets on-demand via the |api|.
+- Introduces the ability to :doc:`export backup snapshots </backup/cloud-backup/export/>`
+  to their own Amazon |s3| buckets on-demand via the |api|.
 - Adds support for time-series collections for Atlas Online Archive.
 
 .. _atlas_20211111:
@@ -64,13 +78,14 @@ Adds support for
   - ``australia-southeast2`` (Melbourne, Australia)
   - ``europe-central2`` (Warsaw, Poland)
 
-- Adds support for cluster tier auto-scaling to low-CPU class clusters.
+- Adds support for :ref:`cluster tier auto-scaling <cluster-autoscaling>`
+  to low-CPU class clusters.
 
-- Enables cluster tier auto-scaling by default for all new |service| 
-  clusters created via the web interface.
+- Enables :ref:`cluster tier auto-scaling <cluster-autoscaling>` by
+  default for all new |service| clusters created via the web interface.
 
-- Supports using :ref:`Live Migration <live-migration>` for MongoDB 
-  deployments running MongoDB 5.0.
+- Supports using :ref:`Live Migration from Ops Manager or Cloud Manager <migrate-from-com>`
+  for MongoDB deployments running MongoDB 5.0.
 
 - Introduces metrics alerts for |service| serverless instances.
 
