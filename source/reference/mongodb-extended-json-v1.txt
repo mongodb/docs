@@ -287,7 +287,6 @@ Undefined Type
       :header-rows: 1
 
       * - Strict Mode
-
         - :binary:`~bin.mongo` Shell Mode
 
       * - .. code-block:: none
@@ -303,11 +302,12 @@ Undefined Type
    The representation for the JavaScript/BSON undefined type.
 
    You *cannot* use ``undefined`` in query documents.
-   Consider the following document inserted into the ``people`` collection:
+   Consider the following document inserted into the ``people``
+   collection using the legacy :binary:`~bin.mongo` shell:
    
    .. code-block:: bash
    
-      db.people.insert( { name : "Sally", age : undefined } )
+      db.people.insertOne( { name : "Sally", age : undefined } )
 
    The following queries return an error:
    
@@ -325,6 +325,29 @@ Undefined Type
    
    This query returns all documents for which the ``age`` field has
    value ``undefined``.
+
+   .. important::
+
+      The undefined BSON type is `deprecated
+      <https://bsonspec.org/spec.html>`__. :binary:`bin.mongosh` stores
+      a null value instead.
+
+      For example, use the same code to insert a document in
+      :binary:`bin.mongosh` and in the legacy :binary:`~bin.mongo` 
+      shell:
+
+      .. code-block:: javascript
+      
+         db.people.insertOne( { name : "Sally", age : undefined } )
+
+      The resulting documents are different:
+
+      .. code-block:: javascript
+         "copyable: false
+
+         { "name" : "Sally", "age" : null }
+         { "name" : "Sally", "age" : undefined }
+
 
 MinKey
 ~~~~~~
@@ -389,7 +412,6 @@ NumberLong
       :header-rows: 1
 
       * - Strict Mode
-
         - :binary:`~bin.mongo` Shell Mode
 
       * - .. code-block:: none
@@ -402,26 +424,23 @@ NumberLong
 
              NumberLong( "<number>" )
 
-   ``NumberLong`` is a 64 bit signed integer. You must include quotation
-   marks or it will be interpreted as a floating point number, resulting
-   in a loss of accuracy.
+   ``NumberLong`` is a 64 bit signed integer. In the legacy
+   :binary:`~bin.mongo` shell, you must use quotation marks to insert a
+   ``NumberLong`` or the operation will produce an error. 
 
-   For example, the following commands insert ``9223372036854775807`` as a
-   ``NumberLong`` with and without quotation marks around the integer value:
-
-   .. code-block:: bash
-
-      db.json.insert( { longQuoted : NumberLong("9223372036854775807") } )
-      db.json.insert( { longUnQuoted : NumberLong(9223372036854775807) } )
-
-   When you retrieve the documents, the value of ``longUnQuoted`` has
-   changed, while ``longQuoted`` retains its accuracy:
+   For example, the following commands attempt to insert
+   ``9223372036854775807`` as a ``NumberLong`` with and without
+   quotation marks around the integer value:
 
    .. code-block:: bash
+      :emphasize-lines: 2
 
-      db.json.find()
-      { "_id" : ObjectId("54ee1f2d33335326d70987df"), "longQuoted" : NumberLong("9223372036854775807") }
-      { "_id" : ObjectId("54ee1f7433335326d70987e0"), "longUnQuoted" : NumberLong("-9223372036854775808") }
+      db.json.insertOne( { longQuoted : NumberLong("9223372036854775807") } )
+      db.json.insertOne( { longUnQuoted : NumberLong(9223372036854775807) } )
+
+   The highlighted line produces an error in the legacy
+   :binary:`~bin.mongo` shell. The insert succeeds in
+   :binary:`~bin.mongosh`.
 
 NumberDecimal
 ~~~~~~~~~~~~~
@@ -457,8 +476,8 @@ NumberDecimal
 
    .. code-block:: bash
 
-      db.json.insert( { decimalQuoted : NumberDecimal("123.40") } )
-      db.json.insert( { decimalUnQuoted : NumberDecimal(123.40) } )
+      db.json.insertOne( { decimalQuoted : NumberDecimal("123.40") } )
+      db.json.insertOne( { decimalUnQuoted : NumberDecimal(123.40) } )
 
    When you retrieve the documents, the value of ``decimalUnQuoted`` has
    changed, while ``decimalQuoted`` retains its specified precision:
@@ -468,3 +487,14 @@ NumberDecimal
       db.json.find()
       { "_id" : ObjectId("596f88b7b613bb04f80a1ea9"), "decimalQuoted" : NumberDecimal("123.40") }
       { "_id" : ObjectId("596f88c9b613bb04f80a1eaa"), "decimalUnQuoted" : NumberDecimal("123.400000000000") }
+
+   .. important::
+
+      This insert behavior is different in :binary:`bin.mongosh`. 
+      
+      The quoted string format, ``NumberDecimal("123.40")``, is
+      deprecated. The insert succeeds, but also produces a warning.
+
+      The unquoted string format, ``NumberDecimal(123.40)``,
+      stores the value as ``123.4``. The trailing ``0`` is dropped.
+

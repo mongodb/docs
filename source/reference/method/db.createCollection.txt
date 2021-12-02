@@ -466,8 +466,6 @@ for the past 24 hours, issue this command:
 Create a Collection with Document Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 3.2
-
 Collections with validation compare each inserted or updated document
 against the criteria specified in the ``validator`` option. Depending
 on the ``validationLevel`` and ``validationAction``, MongoDB either
@@ -476,11 +474,6 @@ fails to meet the specified criteria.
 
 The following example creates a ``contacts`` collection with a JSON
 Schema validator:
-
-.. note::
-
-   MongoDB 3.6 adds the :query:`$jsonSchema` operator to support JSON
-   Schema validation.
 
 .. code-block:: json
 
@@ -510,23 +503,45 @@ With the validator in place, the following insert operation fails validation:
 
 .. code-block:: javascript
 
-   db.contacts.insert( { name: "Amanda", status: "Updated" } )
+   db.contacts.insertOne( { name: "Amanda", status: "Updated" } )
 
-The method returns the error in the ``WriteResult``:
+The method returns the error:
 
 .. code-block:: javascript
 
-   WriteResult({
-      "nInserted" : 0,
-      "writeError" : {
-         "code" : 121,
-         "errmsg" : "Document failed validation"
-      }
-   })
+     Uncaught:
+     MongoServerError: Document failed validation
+     Additional information: {
+       failingDocumentId: ObjectId("61a8f4847a818411619e952e"),
+       details: {
+         operatorName: '$jsonSchema',
+         schemaRulesNotSatisfied: [
+           {
+             operatorName: 'properties',
+             propertiesNotSatisfied: [
+               {
+                 propertyName: 'status',
+                 description: 'can only be one of the enum values',
+                 details: [ [Object] ]
+               }
+             ]
+           },
+           {
+             operatorName: 'required',
+             specifiedAs: { required: [ 'phone' ] },
+             missingProperties: [ 'phone' ]
+           }
+         ]
+       }
+     }
 
-For more information, see :doc:`/core/schema-validation`. To view the
-validation specifications for a collection, use the
-:method:`db.getCollectionInfos()` method.
+To view the validation specifications for a collection, use
+:method:`db.getCollectionInfos()`.
+
+.. seealso::
+
+   - :doc:`/core/schema-validation`
+   - :query:`$jsonSchema`
 
 .. _createCollection-collation-example:
 
