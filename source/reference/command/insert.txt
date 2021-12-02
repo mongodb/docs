@@ -188,6 +188,85 @@ three documents. See :ref:`insert-command-output` for details.
 
    { "ok" : 1, "n" : 3 }
 
+
+Using Insert with ``bypassDocumentValidation``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If :doc:`schema validation validationActions</core/schema-validation>` 
+are set to ``error``, inserts to a collection return errors for 
+documents that violate the schema validation rules. To insert documents
+which would violate these rules set ``bypassDocumentValidation: true``.
+
+Create the ``user`` collection with a validation rule on the ``status``
+fields.
+
+The validation rule validates that the status must be "Unknown"
+or "Incomplete":
+
+.. code-block:: javascript
+
+   db.createCollection("users", { 
+      validator:
+         { 
+            status: {
+               $in: [ "Unknown", "Incomplete" ]
+            }
+         }
+   })
+
+Attempt to insert a document which violates the validation rule:
+
+.. code-block:: javascript
+
+   db.runCommand({
+         insert: "users",
+         documents: [ {user: "123", status: "Active" } ]
+   })
+
+The insert returns a write error message:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 8,12,16
+
+   {
+      n: 0,
+      writeErrors: [
+         {
+            index: 0,
+            code: 121,
+            errInfo: {
+               failingDocumentId: ObjectId('6197a7f2d84e85d1cc90d270'),
+               details: {
+                  operatorName: '$in',
+                  specifiedAs: { status: { '$in': [Array] } },
+                  reason: 'no matching value found in array',
+                  consideredValue: 'Active'
+               }
+            },
+            errmsg: 'Document failed validation'
+         }
+      ],
+      ok: 1
+   }
+
+
+Set ``bypassDocumentValidation : true`` and rerun the insert:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      insert: "users",
+      documents: [ {user: "123", status: "Active" } ], 
+      bypassDocumentValidation: true
+   })
+
+
+The operation succeeds.
+
+To check for documents that violate schema validation rules, use the 
+:dbcommand:`validate` command.
+
 .. _insert-command-output:
 
 Output
