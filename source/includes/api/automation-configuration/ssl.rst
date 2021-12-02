@@ -36,7 +36,7 @@ object is optional.
      - string
      - Conditional
      - Absolute file path to the certificate used to authenticate
-       through |tls| on a Linux or UNIX (including macOS) host. 
+       through |tls| on a Linux or UNIX host. 
        
        |mms| requires either **ssl.CAFilePath** or **ssa.CAFilePathWindows** if:
        
@@ -58,7 +58,7 @@ object is optional.
      - string
      - Conditional
      - Absolute file path to the client private key (PEM) file that
-       authenticates the |tls| connection on a Linux or UNIX (including macOS)
+       authenticates the |tls| connection on a Linux or UNIX
        host. 
          
        |mms| requires either **ssl.autoPEMKeyFilePath** or **ssa.autoPEMKeyFilePathWindows**

@@ -13,12 +13,6 @@
          for those using legacy agents.
 
    .. tab::
-      :tabid: macos
-
-      The location of the {+mdbagent+} configuration file is
-      ``/path/to/install/local.config``.
-
-   .. tab::
       :tabid: linux
 
       The location of the {+mdbagent+} configuration file is

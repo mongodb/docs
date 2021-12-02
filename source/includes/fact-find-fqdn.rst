@@ -2,8 +2,8 @@
 .. tabs::
 
    tabs:
-     - id: mac-linux
-       name: Linux or macOS
+     - id: linux
+       name: Linux
        content: |
 
          Use the following command to find the host |fqdn|:

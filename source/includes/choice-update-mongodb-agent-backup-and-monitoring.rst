@@ -1,14 +1,6 @@
 .. tabs-platforms::
 
    .. tab::
-      :tabid: macos
-
-      Use this procedure to update to the {+mdbagent+} on x86_64
-      architecture running macOS 10.8 or later:
-
-      .. include:: /includes/steps/update-backup-to-mongodb-agent-macos-x86-64-tar.rst
-
-   .. tab::
       :tabid: windows
 
       Use this procedure to update to the {+mdbagent+} on x86_64

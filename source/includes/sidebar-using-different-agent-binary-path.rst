@@ -13,7 +13,7 @@
 
    b. Below the :guilabel:`Download Directory` heading, click the
       pencil icon to the right of the path shown in
-      :guilabel:`Download Directory (Linux/MacOS)`.
+      :guilabel:`Download Directory (Linux)`.
 
    c. Change the path to the new path you want.
 

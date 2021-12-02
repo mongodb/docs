@@ -24,6 +24,6 @@
    * - options.downloadBase
      - string
      - Required
-     - Directory on Linux and UNIX (including macOS) platforms for
+     - Directory on Linux and UNIX platforms for
        automatic version downloads and startup scripts.
 

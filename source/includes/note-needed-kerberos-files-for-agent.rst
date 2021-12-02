@@ -21,15 +21,6 @@ Two Kerberos-related files must be installed on any host running
        
        - 
 
-     * - macOS
-       
-       - ``/etc/krb5.conf`` (10.7+)
-        
-       - The configuration file has varied with previous versions of
-         Mac OS X. Refer to the documentation for your Kerberos
-         implemention for your version of Mac OS X to find out where
-         the Kerberos configuration file is stored.
-
      * - Windows
        
        - ``%WINDIR%\krb5.ini``
