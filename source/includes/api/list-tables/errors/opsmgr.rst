@@ -1,6 +1,6 @@
 .. list-table::
    :header-rows: 1
-   :widths: 40 5 45
+   :widths: 60 8 30
 
    * - Error
      - HTTP Code

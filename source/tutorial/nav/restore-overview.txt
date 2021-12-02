@@ -16,35 +16,27 @@ To restore a deployment from a backup, select a snapshot or point in
 time from which you want to restore your database. |mms| provides you
 with the files from which you can restore your database.
 
-You can restore a single MongoDB database, a :term:`replica set`, or a
-:term:`sharded cluster`. You may select to restore from:
+You can restore a single MongoDB database, a :term:`replica set`, or all
+shards in a :term:`sharded cluster`.
 
-- An existing :term:`snapshot`,
-- A specific point in time by selecting:
-
-  - A specific date and time,
-  - A specific oplog timestamp, or
-  - A specific :term:`sharded cluster` :term:`checkpoint`.
+You can restore a deployment from an existing :term:`snapshot` or a
+specific point in time. For the point in time, you can specify specific
+specific date and time, an oplog timestamp, or a :term:`checkpoint` for
+a :term:`sharded cluster`.
 
 If you are restoring from a point in time, you must download the
 MongoDB Backup Restore Utility to your target host. The |mbru| requests
 and applies :term:`oplog` entries between the latest complete snapshot
-and the point in time you chose.
+and the point in time you choose.
 
-.. note::
-   For sharded clusters running FCV 4.0 or earlier,
-   :ref:`enable checkpoints <enable-cluster-checkpoints>` before
-   restoring to a point between snapshots.
+To restore your backup, use one of these options:
 
-You can restore your backup in one of the following ways:
+- :ref:`Restore the files to another cluster using automation <mms-automated-restore>`
+- :ref:`Manually copy restored files to the hosts you choose <mms-manual-restore>`
+- :doc:`Restore from a queryable backup </tutorial/restore-single-database>`
 
-- |mms| can
-  :ref:`restore the files to another cluster <mms-automated-restore>`
-  if you use |mms| automation.
-- You can copy restored files
-  :ref:`manually to the hosts you choose <mms-manual-restore>`.
-
-- You can :doc:`restore from a queryable backup </tutorial/restore-single-database>`.
+Cancel a Restore
+----------------
 
 To cancel a restore:
 
@@ -58,28 +50,36 @@ To cancel a restore:
 Automated Restore
 -----------------
 
-If you choose to have |mms| automation restore your backup, the
-{+aagent+} removes all existing data from the target hosts
-and replaces that data with new backup data from your :term:`snapshot`.
+If you choose to have |mms| automation restore your backup, the {+aagent+}
+removes all existing data from the target hosts and replaces that data
+with new backup data from your :term:`snapshot`.
+
+Limitations
+~~~~~~~~~~~
+
+If you are restoring a sharded cluster, you must restore all shards. The
+restore process fails if you try to restore a single shard in a sharded
+cluster.
 
 .. _prerequisites-automatic-restore:
 
 Prerequisites
 ~~~~~~~~~~~~~
 
-To perform automated restores, you must have:
+To perform automated restores:
 
-- An {+mdbagent+} installed on the source and all target hosts.
-
-- A {+mdbagent+} on the target deployment that can connect
+- Install an {+mdbagent+} installed on the source and all target hosts,
+  and check that an {+mdbagent+} on the target deployment can connect
   to all hosts in the target deployment.
 
-- The :ref:`Backup Admin <backup-admin-role>` and
+- Configure :ref:`Backup Admin <backup-admin-role>` and
   :ref:`Automation Admin <automation-admin-role>` roles in |mms|.
 
-- A target cluster whose ``featureCompatibilityVersion`` is greater
-  than or equal to the source cluster's
-  ``featureCompatibilityVersion``.
+- For sharded clusters running FCV 4.0 or earlier,
+  :ref:`enable checkpoints <enable-cluster-checkpoints>`.
+
+- Check that the target cluster's ``featureCompatibilityVersion`` is greater
+  than or equal to the source cluster's ``featureCompatibilityVersion``.
 
   .. example::
 
@@ -93,15 +93,10 @@ To perform automated restores, you must have:
           featureCompatibilityVersion: 1
         } )
 
-     The ``featureCompatibilityVersion`` of each host in the target
-     cluster must be greater than or equal to the
-     ``featureCompatibilityVersion`` of any host in the source cluster.
-
-     To learn more about changing the ``featureCompatibilityVersion``
-     flag, see
+     To learn more, see
      :manual:`setFeatureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion>`.
 
-- The following compatibility matrix lists the supported source cluster
+- Review the following compatibility matrix for the supported source cluster
   |fcv| of each MongoDB version. The MongoDB version of each host in
   the target cluster *must* support the |fcv| of the snapshot of the
   source cluster.
@@ -231,12 +226,15 @@ No method exists to check for mismatches before attempting a restore.
 If a restore attempt fails, |mms| displays any mismatched settings. If
 you still want to restore the backup's database, fix the settings in
 the target database that do not match backup's database, then retry the
-restoring the backup's database.
+restore process for the backup's database.
 
 .. important::
 
    .. include:: /includes/fact-mmapv1-deprecated.rst
 
+An automated restore fails when you attempt to restore a single shard
+in a sharded cluster. If you are restoring a sharded cluster, you must
+restore all shards.
 
 Restore Procedures
 ~~~~~~~~~~~~~~~~~~
@@ -256,8 +254,6 @@ Prerequisites
 ~~~~~~~~~~~~~
 
 .. include:: /includes/fact-restore-manual-user-role.rst
-
-
 
 .. _delivery-methods-file-formats:
 
@@ -291,8 +287,7 @@ Restore File Format
 Manual Restore Procedures
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To perform a manual restore, see the procedure for the deployment
-you want to restore:
+To perform a manual restore, see:
 
 - :doc:`Restore a Single Database or Collection using Queryable Backup</tutorial/restore-single-database>`
 - :ref:`Restore a Replica Set <manual-restore-replica-set>`
@@ -302,7 +297,7 @@ Restore Process Flows
 ~~~~~~~~~~~~~~~~~~~~~
 
 You can restore from a completed shapshot or from a specific point in time.
-Use the following pages to learn about the manual restore  process flows.
+Use the following pages to learn about the manual restore process flows.
 
 .. include:: /includes/toc/backup-restore-flows.rst
 
