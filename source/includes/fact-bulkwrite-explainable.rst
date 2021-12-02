@@ -3,4 +3,3 @@
 
 .. end-explainable
 
-Use |old-write-method| instead.
