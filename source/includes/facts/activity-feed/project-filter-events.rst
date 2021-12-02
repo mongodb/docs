@@ -173,7 +173,8 @@ Filter by event
           - Attempted to kill operation
           - Attempted to kill session
           - Error when user attempted to perform a Data Explorer CRUD operation, data could have been modified
-          - Granted temporary backend access to MongoDB Support for 24 hours
+          - Granted temporary infrastructure access to MongoDB Support for 24 hours
+          - Revoked temporary infrastructure access to MongoDB Support
           - Sample dataset load requested
           - Unprovisioned target group deletion requested
           - User attempted to perform a Data Explorer CRUD operation, which could modify data
