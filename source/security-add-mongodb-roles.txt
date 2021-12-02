@@ -12,10 +12,19 @@ Configure Custom Roles
    :depth: 1
    :class: singlecol
 
-You can create :doc:`custom roles </security-add-mongodb-roles>` in 
-|service| when the built-in
-:ref:`database user privileges <atlas-user-privileges>`
-can't describe your desired set of privileges.
+You can create custom roles in |service| when the 
+:ref:`built-in roles <atlas-user-privileges>`
+don't describe your desired set of privileges. |service| applies each database user's
+custom roles together with:
+
+- Any :ref:`built-in roles <atlas-user-privileges>` you
+  assign when you :ref:`add a database user <add-mongodb-users>` or :ref:`modify a database user
+  <modify-mongodb-users>`.
+- Any :manual:`specific privileges </reference/privilege-actions/>` you assign when you :ref:`add a database
+  user <add-mongodb-users>` or :ref:`modify a database user
+  <modify-mongodb-users>`.
+
+You can assign multiple custom roles to each database user.
 
 .. note:: {+Free-Cluster+} and {+Shared-Cluster+} Limitation
 
@@ -73,11 +82,22 @@ see :doc:`/reference/api/custom-roles-delete-a-role`.
 
 .. include:: /includes/fact-delete-custom-role-scenarios.rst
 
+Assign Custom Roles
+-------------------
+
+You can assign custom roles in the |service| UI when you :ref:`add a database
+user <add-mongodb-users>` or :ref:`modify a database user
+<modify-mongodb-users>`. To assign custom roles through the {+atlas-admin-api+}, 
+see :doc:`Create a Database User </reference/api/database-users-create-a-user>`
+or :doc:`Update a Database User </reference/api/database-users-update-a-user>`.
+
 Considerations
 --------------
 
-- If a :ref:`database user <mongodb-users>` is assigned a custom
-  role, they can't be assigned any other roles.
+- You can assign up to 20 custom roles to a single :ref:`database user <mongodb-users>` 
+  and can create up to 100 custom roles per project. If you require more custom
+  roles per database user or per project,
+  contact `Atlas support <https://cloud.mongodb.com/support>`_.
 
 - |service| rolls back any role modifications not made through the UI
   or :doc:`API </reference/api/custom-roles>`. You must use the
@@ -85,3 +105,24 @@ Considerations
   |service| {+database-deployment+}s.
 
 - .. include:: /includes/fact-role-auditing.rst
+
+- If you assign multiple roles to a user and those roles grant
+  conflicting permissions for an object, |service| honors the highest
+  permissions within any role.
+
+  .. example::
+
+     You create two custom roles and assign both to User A:
+
+     - The first custom role grants only ``read`` privileges on your database.
+       It also grants :manual:`bypassDocumentValidation </reference/privilege-actions/#mongodb-authaction-bypassDocumentValidation>`
+       on your database.
+     - The second role grants ``dbAdmin`` privileges on your database. It
+       doesn't grant :manual:`bypassDocumentValidation </reference/privilege-actions/#mongodb-authaction-bypassDocumentValidation>`,
+       which is an implicit denial of bypass permissions.
+
+     User A would have all of the ``dbAdmin`` privileges for your database,
+     since ``dbAdmin`` is the higher database access permission. User A would
+     also have :manual:`bypassDocumentValidation </reference/privilege-actions/#mongodb-authaction-bypassDocumentValidation>`,
+     since :manual:`bypassDocumentValidation </reference/privilege-actions/#mongodb-authaction-bypassDocumentValidation>`
+     is the higher bypass permission.

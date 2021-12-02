@@ -65,11 +65,6 @@
 
        .. include:: /includes/fact-subset-privilege-actions.rst
 
-       .. important::
-
-          If a user is assigned a :ref:`custom role
-          <mongodb-roles>`, they cannot be assigned any other roles.
-
    * - roles.collectionName
      - string
      - Optional
