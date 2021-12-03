@@ -1,8 +1,145 @@
+.. _cursor-golang:
+
 =========================
 Access Data From a Cursor
 =========================
 
 .. default-domain:: mongodb
 
-Read operations that return multiple documents do not immediately return
-all values matching the query.
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to access data with a **cursor**.
+
+A cursor is a mechanism that allows an application to iterate over
+database results while holding only a subset of them in memory at a
+given time. Read operations that match multiple documents use a cursor
+to return those documents in batches as opposed to all at once.
+
+Sample Cursor
+~~~~~~~~~~~~~
+
+Each section uses the following ``cursor`` variable, which is a
+``Cursor`` struct that contains all the documents in a collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
+   :language: go
+   :dedent:
+   :start-after: begin find
+   :end-before: end find
+
+.. important::
+
+   A cursor is not goroutine safe. Do not use the same cursor in
+   multiple goroutines at the same time.
+
+.. _individual-documents-golang:
+
+Retrieve Documents Individually
+-------------------------------
+
+To retrieve documents from your cursor individually while blocking the
+current goroutine, use the ``Next()`` method.
+
+The method returns a document if each of the following is true:
+
+- A document is currently or will later be available
+- No errors occurred
+- The context didn't expire
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
+   :language: go
+   :dedent:
+   :start-after: begin cursor next
+   :end-before: end cursor next
+
+Tailable Cursor
+~~~~~~~~~~~~~~~
+
+To attempt retrieving a document from a :manual:`tailable cursor
+</core/tailable-cursors/>`, use the ``TryNext()`` method.
+
+The method returns a document if each of the following is true:
+
+- A document is currently available
+- No errors occurred
+- The context didn't expire
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
+   :language: go
+   :dedent:
+   :start-after: begin cursor try next
+   :end-before: end cursor try next
+
+Retrieve All Documents
+----------------------
+
+To populate an array with all of your query results, use the ``All()``
+method:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
+   :language: go
+   :dedent:
+   :start-after: begin cursor all
+   :end-before: end cursor all
+
+.. important:: Memory
+
+   If the number and size of documents returned by your query exceeds
+   available application memory, your program will crash. If you except
+   a large result set, you should :ref:`consume your cursor iteratively
+   <individual-documents-golang>`.
+
+Close the Cursor
+----------------
+
+When your application no longer needs to use a cursor, close the cursor
+with the ``Close()`` method. This method frees the resources your cursor
+consumes in both the client application and the MongoDB server.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
+   :language: go
+   :dedent:
+   :start-after: begin close
+   :end-before: end close
+
+.. note:: 
+
+   Close the cursor when you :ref:`retrieve documents individually
+   <individual-documents-golang>` because those methods make a cursor
+   :manual:`tailable </core/tailable-cursors/>`.
+
+Additional Information
+----------------------
+
+For more information on the operations discussed in this guide, see the
+following guides:
+
+- :ref:`<retrieve-golang>`
+- :ref:`<query_document_golang>`
+- :ref:`<bson-golang>`
+- :manual:`Tailable Cursors </core/tailable-cursors/>`
+
+.. - Fundamentals > BSON page
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+For more information on cursors and how to access their elements, see
+the following API Documentation:
+
+- `Cursor <{+api+}/mongo#Cursor>`__
+- `Cursor.All() <{+api+}/mongo#Cursor.All>`__
+- `Cursor.Next() <{+api+}/mongo#Cursor.Next>`__
+- `Cursor.TryNext() <{+api+}/mongo#Cursor.TryNext>`__
+- `Cursor.Decode() <{+api+}/mongo#Cursor.Decode>`__
+- `Cursor.RemainingBatchLength() <{+api+}/mongo#Cursor.RemainingBatchLength>`__
+- `Cursor.ID() <{+api+}/mongo#Cursor.ID>`__
+- `Cursor.Err() <{+api+}/mongo#Cursor.Err>`__
+- `Cursor.Close() <{+api+}/mongo#Cursor.Close>`__
