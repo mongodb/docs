@@ -418,24 +418,24 @@ Create a collection ``orders`` with these documents:
 
 .. code-block:: javascript
 
-   db.orders.insert([
+   db.orders.insertMany( [
       { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
       { "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 },
       { "_id" : 3  }
-   ])
+   ] )
 
 Create another collection ``inventory`` with these documents:
 
 .. code-block:: javascript
 
-   db.inventory.insert([
+   db.inventory.insertMany( [
       { "_id" : 1, "sku" : "almonds", "description": "product 1", "instock" : 120 },
       { "_id" : 2, "sku" : "bread", "description": "product 2", "instock" : 80 },
       { "_id" : 3, "sku" : "cashews", "description": "product 3", "instock" : 60 },
       { "_id" : 4, "sku" : "pecans", "description": "product 4", "instock" : 70 },
       { "_id" : 5, "sku": null, "description": "Incomplete" },
       { "_id" : 6 }
-   ])
+   ] )
 
 The following aggregation operation on the ``orders`` collection
 joins the documents from ``orders`` with the documents from the
@@ -445,7 +445,7 @@ collection:
 
 .. code-block:: javascript
 
-   db.orders.aggregate([
+   db.orders.aggregate( [
       {
         $lookup:
           {
@@ -455,7 +455,7 @@ collection:
             as: "inventory_docs"
           }
      }
-   ])
+   ] )
 
 The operation returns these documents:
 
@@ -504,32 +504,31 @@ The operation corresponds to this pseudo-SQL statement:
 Use ``$lookup`` with an Array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting MongoDB 3.4, if the ``localField`` is an array, you can match
-the array elements against a scalar ``foreignField`` without needing an
-:pipeline:`$unwind` stage.
+If the ``localField`` is an array, you can match the array elements
+against a scalar ``foreignField`` without an :pipeline:`$unwind` stage.
 
 For example, create an example collection ``classes`` with these
 documents:
 
 .. code-block:: javascript
 
-   db.classes.insert( [
+   db.classes.insertMany( [
       { _id: 1, title: "Reading is ...", enrollmentlist: [ "giraffe2", "pandabear", "artie" ], days: ["M", "W", "F"] },
       { _id: 2, title: "But Writing ...", enrollmentlist: [ "giraffe1", "artie" ], days: ["T", "F"] }
-   ])
+   ] )
 
 Create another collection ``members`` with these documents:
 
 .. code-block:: javascript
 
-   db.members.insert( [
+   db.members.insertMany( [
       { _id: 1, name: "artie", joined: new Date("2016-05-01"), status: "A" }, 
       { _id: 2, name: "giraffe", joined: new Date("2017-05-01"), status: "D" }, 
       { _id: 3, name: "giraffe1", joined: new Date("2017-10-01"), status: "A" }, 
       { _id: 4, name: "panda", joined: new Date("2018-10-11"), status: "A" },  
       { _id: 5, name: "pandabear", joined: new Date("2018-12-01"), status: "A" },
       { _id: 6, name: "giraffe2", joined: new Date("2018-12-01"), status: "D" }
-   ])
+   ] )
 
 The following aggregation operation joins documents in the ``classes``
 collection with the ``members`` collection, matching on the ``members``
@@ -537,7 +536,7 @@ field to the ``name`` field:
 
 .. code-block:: javascript
 
-   db.classes.aggregate([
+   db.classes.aggregate( [
       {
          $lookup:
             {
@@ -547,7 +546,7 @@ field to the ``name`` field:
                as: "enrollee_info"
            }
       }
-   ])
+   ] )
 
 The operation returns the following:
 
@@ -580,29 +579,27 @@ The operation returns the following:
 Use ``$lookup`` with ``$mergeObjects``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 3.6
-
-   MongoDB 3.6 adds the :expression:`$mergeObjects` operator to combine
-   multiple documents into a single document
+The :expression:`$mergeObjects` operator combines multiple documents
+into a single document.
 
 Create a collection ``orders`` with these documents:
 
 .. code-block:: javascript
 
-   db.orders.insert([
+   db.orders.insertMany( [
       { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
       { "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 }
-   ])
+   ] )
 
 Create another collection ``items`` with these documents:
 
 .. code-block:: javascript
 
-   db.items.insert([
+   db.items.insertMany( [
      { "_id" : 1, "item" : "almonds", description: "almond clusters", "instock" : 120 },
      { "_id" : 2, "item" : "bread", description: "raisin and nut bread", "instock" : 80 },
      { "_id" : 3, "item" : "pecans", description: "candied pecans", "instock" : 60 }
-   ])
+   ] )
 
 The following operation first uses the :pipeline:`$lookup` stage to
 join the two collections by the ``item`` fields and then uses
@@ -611,7 +608,7 @@ the joined documents from ``items`` and ``orders``:
 
 .. code-block:: javascript
 
-   db.orders.aggregate([
+   db.orders.aggregate( [
       {
          $lookup: {
             from: "items",
@@ -624,14 +621,28 @@ the joined documents from ``items`` and ``orders``:
          $replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$fromItems", 0 ] }, "$$ROOT" ] } }
       },
       { $project: { fromItems: 0 } }
-   ])
+   ] )
 
 The operation returns these documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "almonds", "description" : "almond clusters", "instock" : 120, "price" : 12, "quantity" : 2 }
-   { "_id" : 2, "item" : "pecans", "description" : "candied pecans", "instock" : 60, "price" : 20, "quantity" : 1 }
+   {
+     _id: 1,
+     item: 'almonds',
+     description: 'almond clusters',
+     instock: 120,
+     price: 12,
+     quantity: 2
+   },
+   {
+     _id: 2,
+     item: 'pecans',
+     description: 'candied pecans',
+     instock: 60,
+     price: 20,
+     quantity: 1
+   }
 
 .. _lookup-multiple-joins:
 
@@ -655,23 +666,23 @@ Create a collection ``orders`` with these documents:
 
 .. code-block:: javascript
 
-   db.orders.insert([
+   db.orders.insertMany( [
      { "_id" : 1, "item" : "almonds", "price" : 12, "ordered" : 2 },
      { "_id" : 2, "item" : "pecans", "price" : 20, "ordered" : 1 },
      { "_id" : 3, "item" : "cookies", "price" : 10, "ordered" : 60 }
-   ])
+   ] )
 
 Create another collection ``warehouses`` with these documents:
 
 .. code-block:: javascript
 
-   db.warehouses.insert([
+   db.warehouses.insertMany( [
      { "_id" : 1, "stock_item" : "almonds", warehouse: "A", "instock" : 120 },
      { "_id" : 2, "stock_item" : "pecans", warehouse: "A", "instock" : 80 },
      { "_id" : 3, "stock_item" : "almonds", warehouse: "B", "instock" : 60 },
      { "_id" : 4, "stock_item" : "cookies", warehouse: "B", "instock" : 40 },
      { "_id" : 5, "stock_item" : "cookies", warehouse: "A", "instock" : 80 }
-   ])
+   ] )
 
 The following example:
 
@@ -683,7 +694,7 @@ The following example:
 
 .. code-block:: javascript
 
-   db.orders.aggregate([
+   db.orders.aggregate( [
       {
          $lookup:
             {
@@ -705,19 +716,36 @@ The following example:
               as: "stockdata"
             }
        }
-   ])
+   ] )
 
 The operation returns these documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "almonds", "price" : 12, "ordered" : 2,
-      "stockdata" : [ { "warehouse" : "A", "instock" : 120 },
-      { "warehouse" : "B", "instock" : 60 } ] }
-   { "_id" : 2, "item" : "pecans", "price" : 20, "ordered" : 1,
-      "stockdata" : [ { "warehouse" : "A", "instock" : 80 } ] }
-   { "_id" : 3, "item" : "cookies", "price" : 10, "ordered" : 60,
-      "stockdata" : [ { "warehouse" : "A", "instock" : 80 } ] }
+   {
+     _id: 1,
+     item: 'almonds',
+     price: 12,
+     ordered: 2,
+     stockdata: [
+       { warehouse: 'A', instock: 120 },
+       { warehouse: 'B', instock: 60 }
+     ]
+   },
+   {
+     _id: 2,
+     item: 'pecans',
+     price: 20,
+     ordered: 1,
+     stockdata: [ { warehouse: 'A', instock: 80 } ]
+   },
+   {
+     _id: 3,
+     item: 'cookies',
+     price: 10,
+     ordered: 60,
+     stockdata: [ { warehouse: 'A', instock: 80 } ]
+   }
 
 The operation corresponds to this pseudo-SQL statement:
 
@@ -764,29 +792,29 @@ Create a collection ``absences`` with these documents:
 
 .. code-block:: javascript
 
-   db.absences.insert([
+   db.absences.insertMany( [
       { "_id" : 1, "student" : "Ann Aardvark", sickdays: [ new Date ("2018-05-01"),new Date ("2018-08-23") ] },
       { "_id" : 2, "student" : "Zoe Zebra", sickdays: [ new Date ("2018-02-01"),new Date ("2018-05-23") ] },
-   ])
+   ] )
 
 Create another collection ``holidays`` with these documents:
 
 .. code-block:: javascript
 
-   db.holidays.insert([
+   db.holidays.insertMany( [
       { "_id" : 1, year: 2018, name: "New Years", date: new Date("2018-01-01") },
       { "_id" : 2, year: 2018, name: "Pi Day", date: new Date("2018-03-14") },
       { "_id" : 3, year: 2018, name: "Ice Cream Day", date: new Date("2018-07-15") },
       { "_id" : 4, year: 2017, name: "New Years", date: new Date("2017-01-01") },
       { "_id" : 5, year: 2017, name: "Ice Cream Day", date: new Date("2017-07-16") }
-   ])
+   ] )
 
 The following operation joins the ``absences`` collection with 2018
 holiday information from the ``holidays`` collection:
 
 .. code-block:: javascript
 
-   db.absences.aggregate([
+   db.absences.aggregate( [
       {
          $lookup:
             {
@@ -799,16 +827,40 @@ holiday information from the ``holidays`` collection:
               as: "holidays"
             }
        }
-   ])
+   ] )
 
 The operation returns the following:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "student" : "Ann Aardvark", "sickdays" : [ ISODate("2018-05-01T00:00:00Z"), ISODate("2018-08-23T00:00:00Z") ],
-       "holidays" : [ { "name" : "New Years", "date" : ISODate("2018-01-01T00:00:00Z") }, { "name" : "Pi Day", "date" : ISODate("2018-03-14T00:00:00Z") }, { "name" : "Ice Cream Day", "date" : ISODate("2018-07-15T00:00:00Z") } ] }
-   { "_id" : 2, "student" : "Zoe Zebra", "sickdays" : [ ISODate("2018-02-01T00:00:00Z"), ISODate("2018-05-23T00:00:00Z") ],
-       "holidays" : [ { "name" : "New Years", "date" : ISODate("2018-01-01T00:00:00Z") }, { "name" : "Pi Day", "date" : ISODate("2018-03-14T00:00:00Z") }, { "name" : "Ice Cream Day", "date" : ISODate("2018-07-15T00:00:00Z") } ] }
+   {
+     _id: 1,
+     student: 'Ann Aardvark',
+     sickdays: [
+       ISODate("2018-05-01T00:00:00.000Z"),
+       ISODate("2018-08-23T00:00:00.000Z")
+     ],
+     holidays: [
+       { name: 'New Years', date: ISODate("2018-01-01T00:00:00.000Z") },
+       { name: 'Pi Day', date: ISODate("2018-03-14T00:00:00.000Z") },
+       { name: 'Ice Cream Day', date: ISODate("2018-07-15T00:00:00.000Z")
+       }
+     ]
+   },
+   {
+     _id: 2,
+     student: 'Zoe Zebra',
+     sickdays: [
+       ISODate("2018-02-01T00:00:00.000Z"),
+       ISODate("2018-05-23T00:00:00.000Z")
+     ],
+     holidays: [
+       { name: 'New Years', date: ISODate("2018-01-01T00:00:00.000Z") },
+       { name: 'Pi Day', date: ISODate("2018-03-14T00:00:00.000Z") },
+       { name: 'Ice Cream Day', date: ISODate("2018-07-15T00:00:00.000Z")
+       }
+     ]
+   }
 
 The operation corresponds to this pseudo-SQL statement:
 
@@ -840,7 +892,7 @@ Create a collection ``restaurants``:
 
 .. code-block:: javascript
 
-   db.restaurants.insert( [
+   db.restaurants.insertMany( [
       {
          _id: 1,
          name: "American Steak House",
@@ -860,7 +912,7 @@ orders:
 
 .. code-block:: javascript
 
-   db.orders.insert( [
+   db.orders.insertMany( [
       {
          _id: 1,
          item: "filet",
@@ -986,3 +1038,4 @@ The previous examples correspond to this pseudo-SQL statement:
       WHERE restaurants.name = orders.restaurant_name
       AND restaurants.beverages = orders.drink
    );
+
