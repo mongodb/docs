@@ -1,5 +1,4 @@
-.. admonition:: Rotate Master Key after Restoring Snapshots Encrypted with AES256-GCM
-   :class: warning
+.. important:: Rotate Master Key after Restoring Snapshots Encrypted with AES256-GCM
 
    If you restore an
    :doc:`encrypted snapshot </tutorial/encrypt-snapshots>` that |mms|
