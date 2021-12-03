@@ -10,7 +10,7 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import java.util.Arrays;
 
-public class AutocompleteTutorial {
+public class AutocompleteQuery {
 
     public static void main(String[] args) {
         // connect to your Atlas cluster

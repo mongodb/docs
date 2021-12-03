@@ -3,7 +3,7 @@
    .. tab:: edgeGram
       :tabid: edgeGram
 
-      .. code-block:: go
+      .. code-block:: none
          :copyable: false
          :linenos:
 
@@ -25,7 +25,7 @@
    .. tab:: rightEdgeGram
       :tabid: rightEdgeGram
 
-      .. code-block:: go
+      .. code-block:: none
          :copyable: false
          :linenos:
 
@@ -48,7 +48,7 @@
    .. tab:: nGram
       :tabid: nGram
 
-      .. code-block:: go
+      .. code-block:: none
          :copyable: false
          :linenos:
 

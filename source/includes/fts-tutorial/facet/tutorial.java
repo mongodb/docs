@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 
-public class FacetTutorial {
+public class FacetQuery {
     public static void main(String[] args) {
         // connect to your Atlas cluster
         String uri = "<connection-string>";
