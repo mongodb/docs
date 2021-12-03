@@ -1,3 +1,15 @@
+.. _opsmgr-server-5.0.5:
+
+|onprem| Server 5.0.5
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2021-12-02*
+
+
+- Upgrades the JDK to version 11.0.13.
+- Updates the MongoDB Agent to :ref:`11.0.10.7021 <mongodb-11.0.10.7021>`.
+
+
 .. _opsmgr-server-5.0.4:
 
 |onprem| Server 5.0.4
