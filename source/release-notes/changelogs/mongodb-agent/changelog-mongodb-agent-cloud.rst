@@ -1,3 +1,15 @@
+.. _11.9.0.7253-1:
+
+MongoDB Agent 11.9.0.7253-1
+---------------------------
+
+*Released* 2021-12-2
+
+- Removes support for macOS.
+- Improves detection of NUMA-enabled hardware.
+- Improves logging.
+
+
 .. _11.8.0.7223-1:
 
 MongoDB Agent 11.8.0.7223-1

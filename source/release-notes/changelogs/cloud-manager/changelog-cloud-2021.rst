@@ -1,3 +1,11 @@
+.. _cloudmanager_20211202:
+
+2 December 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Removes support for macOS for the {+mdbagent+}.
+- Updates {+mdbagent+} to :ref:`11.9.0.7253-1 <11.9.0.7253-1>`.
+
 .. _cloudmanager_20211117:
 
 17 November 2021 Release
