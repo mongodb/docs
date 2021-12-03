@@ -36,7 +36,6 @@ Syntax
 
 .. note:: Changed in version 4.4
 
-
    :method:`db.collection.validate()` no longer accepts just a boolean
    parameter. See :ref:`4.4-validate-method-signature`.
 
@@ -112,11 +111,31 @@ finishes.
 
 .. warning::
 
-   Due to the performance impact of validation, consider running
-   :method:`db.collection.validate()` only on :term:`secondary` replica
-   set nodes. You can use :method:`rs.stepDown()` to instruct the
-   current :term:`primary` node to become a secondary to avoid
-   impacting a live primary node.
+   Validation has exclusive lock requirements that affect performance
+   on primaries and on secondaries that are servicing reads. Consider
+   only running :method:`db.collection.validate()` on nodes that are
+   not servicing reads or writes.
+
+   To minimize impact on the primary, the majority of the data-bearing
+   (non-arbiter), voting members in the cluster must be available and
+   must not have significant replication lag.
+
+   To minimize the impact of the validation operation on client
+   applications, run :method:`db.collection.validate()` on a secondary
+   node that is not servicing read requests. You can convert the
+   current primary node to a secondary node, by running the
+   :method:`rs.stepDown()` method.
+
+   To completely isolate the :method:`db.collection.validate()`
+   operation from client traffic, choose one of the following options:
+   
+   - Isolate a replica set member by following the :ref:`rolling
+     maintenance procedure <perform-maint-on-replica-set>` to
+     temporarily remove it from the cluster.
+   - :ref:`Convert a secondary node
+     <configure-hidden-replica-set-member>` to a replica set
+     :ref:`hidden member <replica-set-hidden-members>` and perform the
+     validation on the hidden node.
 
 Data Throughput Metrics
 ~~~~~~~~~~~~~~~~~~~~~~~
