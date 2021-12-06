@@ -15,8 +15,6 @@ Definition
 
 .. query:: $jsonSchema
 
-   .. versionadded:: 3.6
-
    The :query:`$jsonSchema` operator matches documents that satisfy
    the specified JSON Schema. 
 
@@ -175,7 +173,7 @@ operator to set schema validation rules:
             }
          }
       }
-   })
+   } )
 
 Given the created ``validator`` for the collection, the following insert
 operation will fail because ``gpa`` is an integer when the ``validator``
@@ -183,51 +181,57 @@ requires a ``double``.
 
 .. code-block:: javascript
 
-   db.students.insert({
+   db.students.insertOne( {
       name: "Alice",
-      year: NumberInt(2019),
+      year: Int32( 2019 ),
       major: "History",
-      gpa: NumberInt(3),
+      gpa: Int32( 3 ),
       address: {
          city: "NYC",
          street: "33rd Street"
       }
-   })
+   } )
 
 The operation returns the following error:
 
 .. code-block:: javascript
    :copyable: false
 
-   WriteResult({
-      "nInserted" : 0,
-      "writeError" : {
-         "code" : 121,
-         "errmsg" : "Document failed validation"
-      }
-   })
+   MongoServerError: Document failed validation
+   Additional information: {
+     failingDocumentId: ObjectId("61aa577f666a50a8fccd7ec2"),
+     details: {
+       operatorName: '$jsonSchema',
+       schemaRulesNotSatisfied: [
+         {
+           operatorName: 'properties',
+           propertiesNotSatisfied: [
+             {
+               propertyName: 'gpa',
+               description: 'must be a double if the field exists',
+               details: [ [Object] ]
+             }
+           ]
+         }
+       ]
+     }
+   }
+
 
 After changing the ``gpa`` to a double, the insert succeeds:
 
 .. code-block:: javascript
 
-   db.students.insert({
+   db.students.insertOne( {
       name: "Alice",
       year: NumberInt(2019),
       major: "History",
-      gpa: 3.0,
+      gpa: Double(3.0),
       address: {
          city: "NYC",
          street: "33rd Street"
       }
-   })
-
-The operation returns the following:
-
-.. code-block:: javascript
-   :copyable: false
-   
-   WriteResult({ "nInserted" : 1 })
+   } )
 
 Query Conditions
 ~~~~~~~~~~~~~~~~
@@ -241,7 +245,7 @@ following documents:
 
 .. code-block:: javascript
 
-   db.inventory.insertMany([
+   db.inventory.insertMany( [
       { item: "journal", qty: NumberInt(25), size: { h: 14, w: 21, uom: "cm" }, instock: true },
       { item: "notebook", qty: NumberInt(50), size: { h: 8.5, w: 11, uom: "in" }, instock: true },
       { item: "paper", qty: NumberInt(100), size: { h: 8.5, w: 11, uom: "in" }, instock: 1 },
@@ -249,7 +253,7 @@ following documents:
       { item: "postcard", qty: NumberInt(45), size: { h: 10, w: 15.25, uom: "cm" }, instock: true },
       { item: "apple", qty: NumberInt(45), status: "A", instock: true },
       { item: "pears", qty: NumberInt(50), status: "A", instock: true }
-   ])
+   ] )
 
 Next, define the following sample schema object:
 
