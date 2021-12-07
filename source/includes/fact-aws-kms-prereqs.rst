@@ -1,6 +1,6 @@
 .. include:: /includes/fact-kms-prereqs.rst
 
-- Have a symmetric |aws| customer master key (|cmk|).
+- Have a symmetric |aws| |kms| key .
   To learn how to create a key, see
   :aws:`Creating Keys </kms/latest/developerguide/create-keys.html#create-symmetric-cmk>`
   in the |aws| documentation.
@@ -16,11 +16,11 @@
 
   .. note::
 
-     If you wish to use the AWS CMK with an AWS IAM role from a 
+     If you wish to use the |aws| |kms| key with an AWS IAM role from a 
      different AWS account instead of that of the IAM role which 
-     created the AWS CMK, ensure you have sufficient privileges:
+     created the |aws| |kms| key , ensure you have sufficient privileges:
 
-     - Add a key policy statement under the AWS CMK to include the 
+     - Add a key policy statement under the |aws| |kms| key  to include the 
        external AWS account.
 
      - Add an IAM inline policy for the IAM role in the external AWS 
@@ -35,15 +35,15 @@
      following exception:
      
      - You must provide the full |arn| for
-       the |cmk| (e.g. ``arn:aws:kms:eu-west-2:111122223333:key/12345678-1234-1234-1234-12345678``)
+       the |aws| |kms| key  (e.g. ``arn:aws:kms:eu-west-2:111122223333:key/12345678-1234-1234-1234-12345678``)
        instead of the master key ID (e.g. ``12345678-1234-1234-1234-12345678``)
-       in the |cmk| ID field.
+       in the |aws| |kms| key ID field.
 
   To learn how to create an |iam| role, see
   :aws:`IAM Roles </IAM/latest/UserGuide/id_roles.html>`
   in the |aws| documentation.
 
-  |service| uses the same |iam| role and |cmk| settings for
+  |service| uses the same |iam| role and |aws| |kms| key settings for
   all clusters in a project for which Encryption at Rest is enabled.
 
 - If your |aws| |kms| configuration requires it, :aws:`allow
