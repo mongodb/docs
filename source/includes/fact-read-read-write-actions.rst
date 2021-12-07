@@ -1,41 +1,160 @@
-When applied to a collection, the ``read`` and ``readWrite`` roles in
-|service| differ slightly from the
-:manual:`built-in </reference/built-in-roles/>` MongoDB ``read`` and
-``readWrite`` roles.
+The following table describes the |service| specific privileges, the
+database it applies to, and the :manual:`privilege actions
+</reference/privilege-actions>` they represent.
 
-In |service|, ``read`` provides the following collection-level
-:manual:`actions </reference/privilege-actions/>`:
+.. list-table::
+   :header-rows: 1
 
-- :manual:`collStats </reference/privilege-actions/#collStats/>`
+   * - |service| Specific Privilege
+     - Database
+     - Privilege Actions
 
-- :manual:`dbHash </reference/privilege-actions/#dbHash>`
+   * - ``backup``
+     - ``admin``
+     - 
+       - :authaction:`listDatabases`
+       - :authaction:`listCollections`
+       - :authaction:`listIndexes`
+       - :authaction:`appendOplogNote`
+       - :authaction:`getParameter`
+       - :authaction:`serverStatus`
 
-- :manual:`find </reference/privilege-actions/#find/>`
+   * - ``clusterMonitor``
+     - ``admin``
+     - 
+       - :authaction:`checkFreeMonitoringStatus`
+       - :authaction:`connPoolStats`
+       - :authaction:`getCmdLineOpts`
+       - :authaction:`getDefaultRWConcern`
+       - :authaction:`getLog`
+       - :authaction:`getParameter`
+       - :authaction:`getShardMap`
+       - :authaction:`hostInfo`
+       - :authaction:`inprog`
+       - :authaction:`listDatabases`
+       - :authaction:`listSessions`
+       - :authaction:`listShards`
+       - :authaction:`netstat`
+       - :authaction:`replSetGetConfig`
+       - :authaction:`replSetGetStatus`
+       - :authaction:`serverStatus`
+       - :authaction:`setFreeMonitoring`
+       - :authaction:`shardingState`
+       - :authaction:`top`
 
-- :manual:`listIndexes </reference/privilege-actions/#listIndexes>`
+   * - ``dbAdmin``
+     - User configured
+     - 
+       - :authaction:`bypassDocumentValidation`
+       - :authaction:`changeStream`
+       - :authaction:`collMod`
+       - :authaction:`collStats`
+       - :authaction:`compact`
+       - :authaction:`convertToCapped`
+       - :authaction:`createCollection`
+       - :authaction:`createIndex`
+       - :authaction:`dbHash`
+       - :authaction:`dbStats`
+       - :authaction:`dropCollection`
+       - :authaction:`dropDatabase`
+       - :authaction:`dropIndex`
+       - :authaction:`enableProfiler`
+       - :authaction:`find`
+       - :authaction:`killCursors`
+       - :authaction:`listCollections`
+       - :authaction:`listIndexes`
+       - :authaction:`planCacheIndexFilter`
+       - :authaction:`planCacheRead`
+       - :authaction:`planCacheWrite`
+       - :authaction:`reIndex`
+       - :authaction:`renameCollectionSameDB`
+       - :authaction:`storageDetails`
+       - :authaction:`validate`
 
-In |service|, ``readWrite`` provides the same actions
-as ``read``, as well as the following
-additional collection-level
-:manual:`actions </reference/privilege-actions/>`:
+   * - ``dbAdminAnyDatabase``
+     - User configured except ``local`` and ``config``
+     - 
+       - :authrole:`dbAdminAnyDatabase`
 
-- :manual:`convertToCapped
-  </reference/privilege-actions/#convertToCapped>`
+   * - ``enableSharding``
+     - 
+     - 
+       - :authaction:`enableSharding`
 
-- :manual:`createCollection
-  </reference/privilege-actions/#createCollection>`
+   * - ``read``
+     - User configured
+     - 
+       - :authaction:`changeStream`
+       - :authaction:`collStats`
+       - :authaction:`dbHash`
+       - :authaction:`dbStats`
+       - :authaction:`find`
+       - :authaction:`killCursors`
+       - :authaction:`listIndexes`
+       - :authaction:`listCollections`
 
-- :manual:`createIndex
-  </reference/privilege-actions/#createIndex>`
+   * - ``readWrite``
+     - User configured
+     - 
+       - :authaction:`changeStream`
+       - :authaction:`collStats`
+       - :authaction:`convertToCapped`
+       - :authaction:`createCollection`
+       - :authaction:`dbHash`
+       - :authaction:`dbStats`
+       - :authaction:`dropCollection`
+       - :authaction:`createIndex`
+       - :authaction:`dropIndex`
+       - :authaction:`find`
+       - :authaction:`insert`
+       - :authaction:`killCursors`
+       - :authaction:`listIndexes`
+       - :authaction:`listCollections`
+       - :authaction:`remove`
+       - :authaction:`renameCollectionSameDB`
+       - :authaction:`update`
 
-- :manual:`dropCollection
-  </reference/privilege-actions/#dropCollection>`
+   * - ``killOpSession``
+     - User configured
+     - 
+       - :authaction:`inprog`
+       - :authaction:`killop`
+       - :authaction:`killAnySession`
+       - :authaction:`listSessions`
 
-- :manual:`dropIndex
-  </reference/privilege-actions/#dropIndex>`
+   * - ``readWriteAnyDatabase``
+     - User configured except ``local`` and ``config``
+     - 
+       - :authrole:`readWriteAnyDatabase`
+       - :authaction:`changeStream`
+       - :authaction:`collStats`
+       - :authaction:`convertToCapped`
+       - :authaction:`createCollection`
+       - :authaction:`dbHash`
+       - :authaction:`dbStats`
+       - :authaction:`dropCollection`
+       - :authaction:`createIndex`
+       - :authaction:`dropIndex`
+       - :authaction:`find`
+       - :authaction:`insert`
+       - :authaction:`killCursors`
+       - :authaction:`listIndexes`
+       - :authaction:`listCollections`
+       - :authaction:`listDatabases`
+       - :authaction:`remove`
+       - :authaction:`renameCollectionSameDB`
+       - :authaction:`update`
 
-- :manual:`insert <reference/privilege-actions/#insert>`
-
-- :manual:`remove </reference/privilege-actions/#remove>`
-
-- :manual:`update </reference/privilege-actions/#update>`
+   * - ``readAnyDatabase``
+     - User configured except ``local`` and ``config``
+     - 
+       - :authrole:`readAnyDatabase`
+       - :authaction:`changeStream`
+       - :authaction:`collStats`
+       - :authaction:`dbHash`
+       - :authaction:`dbStats`
+       - :authaction:`find`
+       - :authaction:`killCursors`
+       - :authaction:`listIndexes`
+       - :authaction:`listCollections`
+       - :authaction:`listDatabases`

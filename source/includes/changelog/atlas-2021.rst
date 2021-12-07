@@ -7,7 +7,7 @@
   :manual:`built-in role </reference/built-in-roles/>`, multiple
   :ref:`custom roles <mongodb-roles>`, and multiple specific privileges
   to a single database user.
-- Introduces a new database user role, :atlasrole:`killOpSession`.
+- Introduces a new specific privilege, :ref:`killOpSession <atlas-specific-privileges>`.
 - Adds the ability to
   :doc:`revoke temporary infrastructure access to MongoDB Support </security-restrict-support-access/>`.
 - Changes the :ref:`default recipients for billing alerts <atlas-billing-profile>`
