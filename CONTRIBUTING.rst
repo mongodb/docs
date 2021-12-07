@@ -3,9 +3,9 @@ Contributing to the MongoDB Documentation Project
 =================================================
 
 We welcome your contributions to the MongoDB documentation project.
-The primary site is http://docs.mongodb.org/ and translated versions
-of the site are listed in `MongoDB Manual Translation
-<http://docs.mongodb.org/manual/meta/translation/>`_.
+The primary site is http://docs.mongodb.org/ and if you want to help 
+translate MongoDB documents, check it out on `MongoDB Documents Translation
+<https://docs.mongodb.com/meta/translation/>`_.
 
 MongoDB documentation is distributed under a `Creative Commons
 Attribution-NonCommercial-ShareAlike 3.0 Unported`_ license.  MongoDB,
