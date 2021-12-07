@@ -27,7 +27,7 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
                    "nodeCount" : 2
                  },
                  "providerName": "GCP",
-                 "priority" : "6",
+                 "priority" : 6,
                  "regionName": "NORTH_AMERICA_NORTHEAST_1"
                }
              ]
