@@ -251,6 +251,7 @@ extlinks = {
     'aws': ('http://docs.aws.amazon.com%s', ''),
     'gcp': ('https://cloud.google.com%s', ''),
     'q-mdb': ('https://quay.io/mongodb%s', ''),
+    'gatekeeper': ('https://open-policy-agent.github.io/gatekeeper/website/docs%s', ''),
     'qr-mdb': ('https://quay.io/repository/mongodb%s', '')
 }
 

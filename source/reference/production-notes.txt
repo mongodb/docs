@@ -19,14 +19,109 @@ This page details system configuration recommendations for the
 
 - These recommendations reflect performance testing findings and represent
   our suggestions for production deployments. We ran the tests on a cluster
-  comprised of seven AWS EC2 instances of type ``t2.2xlarge`` and a master node of
-  type ``t2.medium``.
+  comprised of seven AWS EC2 instances of type ``t2.2xlarge`` and a
+  master node of type ``t2.medium``.
 
-- The recommendations in this section do not take into account individual
-  characteristics of any deployment. Numerous factors might make your
-  deployment's characteristics differ from the assumptions made to
-  create these recommendations. Contact MongoDB support for further
-  assistance with sizings.
+- The recommendations in this section don't discuss characteristics of
+  any specific deployment. Your deployment's characteristics may differ
+  from the assumptions made to create these recommendations. Contact
+  MongoDB Support for further help with sizings.
+
+
+Control Your Deployments with Policies Set in OPA Gatekeeper
+-----------------------------------------------------------
+
+To control, audit, and debug your production deployments, you can use policies
+for the `Gatekeeper <https://github.com/open-policy-agent/gatekeeper>`__
+Open Policy Agent (OPA). Gatekeeper contains |k8s-crds| for creating and extending
+deployment constraints through the
+:gatekeeper:`constraint templates </constrainttemplates/>`.
+
+The |k8s-op-short| offers a :ref:`list of Gatekeeper policies <gatekeeper-policies-list>`
+that you can customize and apply to your deployments.
+
+Each Gatekeeper policy consists of:
+
+- ``<policy_name>.yaml`` file
+- ``constraints.yaml`` file that is based on the :gatekeeper:`constraint template </constrainttemplates/>`
+
+You can use binary and configurable Gatekeeper policies:
+
+- Binary policies allow or prevent specific configurations, such as
+  preventing deployments that don't use TLS, or deploying only specific
+  MongoDB or |onprem| versions.
+
+- Configurable policies allow you to specify configurations, such as the
+  total number of replica sets that will be deployed for a specific
+  MongoDB or |onprem| custom resource.
+
+To use and apply Gatekeeper sample policies with the |k8s-op-short|:
+
+1. :gatekeeper:`Install the OPA Gatekeeper </install/>` on your Kubernetes cluster.
+
+2. Review the list of available constraint templates and constraints:
+
+   .. code-block:: sh
+      
+      kubectl get constrainttemplates
+      kubectl get constraints
+
+3. Navigate to the policy directory, select a policy from the list and
+   apply it and its constraints file:
+
+   .. code-block:: sh
+
+      cd <policy_directory>
+      kubectl apply -f <policy_name>.yaml
+      kubectl apply -f constraints.yaml
+
+4. Review the Gatekeeper policies that are currently applied:
+
+   .. code-block:: sh
+
+      kubectl get constrainttemplates
+      kubectl get contstraints
+
+.. _gatekeeper-policies-list:
+
+List of Sample OPA Gatekeeper Policies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |k8s-op-short| offers the following sample policies in this
+:github:`OPA examples </mongodb/mongodb-enterprise-kubernetes/tree/master/opa_examples>`
+GitHub directory:
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Location
+     - Policy Description
+
+   * - :github:`Debugging </mongodb/mongodb-enterprise-kubernetes/tree/master/opa_examples/debugging>`
+     - Blocks all MongoDB and |onprem| resources. This allows you to use
+       the log output to craft your own policies. To learn more, see
+       :gatekeeper:`Gatekeeper Debugging </debug/>`.
+
+   * - :github:`mongodb_allow_replicaset </mongodb/mongodb-enterprise-kubernetes/tree/master/opa_examples/mongodb_allow_replicaset>`
+     - Allows deploying only replica sets for MongoDB resources and
+       prevents deploying sharded clusters.
+
+   * - :github:`mongodb_allowed_versions </mongodb/mongodb-enterprise-kubernetes/tree/master/opa_examples/mongodb_allowed_versions>`
+     - Allows deploying only specific MongoDB versions.
+
+   * - :github:`ops_manager_allowed_versions </mongodb-enterprise-kubernetes/tree/master/opa_examples/ops_manager_allowed_versions>`
+     - Allows deploying only specific |onprem| versions.
+
+   * - :github:`mongodb_strict_tls </10gen/mongodb-enterprise-kubernetes/tree/master/opa_examples/mongodb_strict_tls>`
+     - Allows using strict TLS mode for MongoDB deployments.
+
+   * - :github:`ops_manager_replica_members </10gen/mongodb-enterprise-kubernetes/tree/master/opa_examples/ops_manager_replica_members>`
+     - Allows deploying a specified number of |onprem| replica set and
+       Application Database members.
+
+   * - :github:`ops_manager_wizardless </10gen/mongodb-enterprise-kubernetes/tree/master/opa_examples/ops_manager_wizardless>`
+     - Allows installing |onprem| in a non-interactive mode.
 
 Deploy the Recommended Number of MongoDB Replica Sets
 -----------------------------------------------------
