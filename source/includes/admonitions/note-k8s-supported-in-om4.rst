@@ -1,8 +1,8 @@
 .. important:: 
    
    - You can use the |k8s-op-short| to deploy MongoDB resources with
-     |onprem| version 4.0.11 or later and Cloud Manager. 
+     |cloud-short| and with |onprem| version 4.4.x or later.
      
-   - You can't use the |k8s-op-short| to deploy MongoDB resources to
-     |service|.
+   - You can use the :atlas:`Atlas Operator </reference/atlas-operator/ak8so-quick-start/>`
+     to deploy MongoDB resources to |service|.
 
