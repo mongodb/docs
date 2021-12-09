@@ -8,6 +8,10 @@ These operators can be used with the :pipeline:`$setWindowFields` stage:
   :group:`$max`, :group:`$min`, :group:`$push`, :group:`$stdDevSamp`,
   :group:`$stdDevPop`, and :group:`$sum`.
 
+.. _setWindowFields-gap-filling-operators:
+
+- Gap filling operators: :group:`$locf`.
+
 .. _setWindowFields-order-operators:
 
 - Order operators: :group:`$first`, :group:`$last`, and :group:`$shift`.
