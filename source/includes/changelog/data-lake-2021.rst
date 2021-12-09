@@ -1,3 +1,13 @@
+.. _data-lake-v20211207:
+
+07 December 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Adds support for the
+  :manual:`$maxTimeMS </reference/operator/meta/maxTimeMS/>`
+  option.
+
 .. _data-lake-v20211116:
 
 16 November 2021 Release
