@@ -1,3 +1,3 @@
 .. code-block:: none
 
-   <pod-name>.<metadata.name>.<namespace>.svc.cluster.local
+   <pod-name>.<metadata.name>-svc.<namespace>.svc.cluster.local
