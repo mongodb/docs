@@ -1,16 +1,18 @@
-A collection ``students`` has the following document:
+Add the following document to the ``students`` collection:
 
 .. code-block:: javascript
 
-   {
-      "_id" : 5,
-      "quizzes" : [
-         { "wk": 1, "score" : 10 },
-         { "wk": 2, "score" : 8 },
-         { "wk": 3, "score" : 5 },
-         { "wk": 4, "score" : 6 }
-      ]
-   }
+   db.students.insertOne(
+      {
+         "_id" : 5,
+         "quizzes" : [
+            { "wk": 1, "score" : 10 },
+            { "wk": 2, "score" : 8 },
+            { "wk": 3, "score" : 5 },
+            { "wk": 4, "score" : 6 }
+         ]
+      }
+   )
 
 The following :update:`$push` operation uses:
 
