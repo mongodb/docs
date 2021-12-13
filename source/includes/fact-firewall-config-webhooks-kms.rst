@@ -48,6 +48,7 @@ addresses, you must allow access from the following IP addresses so that
 
 .. code-block:: none
 
+   3.211.96.35
    18.214.178.145
    18.235.145.62
    18.235.30.157
@@ -64,7 +65,11 @@ addresses, you must allow access from the following IP addresses so that
    35.175.93.3
    35.175.94.38
    35.175.95.59
+   50.19.91.100
    52.71.233.234
+   52.73.214.87
    52.87.98.128
+   54.145.247.111
+   54.163.55.77
    107.20.0.247
    107.20.107.166
