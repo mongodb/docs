@@ -15,8 +15,8 @@ with the :update:`$each` modifier to add multiple elements to the
       { $addToSet: { tags: { $each: [ "camera", "electronics", "accessories" ] } } }
     )
 
-The operation adds only ``"camera"`` and ``"accessories"`` to the
-``tags`` array since ``"electronics"`` already exists in the array:
+The operation only adds ``"camera"`` and ``"accessories"`` to the
+``tags`` array. ``"electronics"`` was already in the array:
 
 .. code-block:: javascript
 

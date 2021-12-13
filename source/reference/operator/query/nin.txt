@@ -12,47 +12,75 @@ $nin
 
 .. query:: $nin
 
-   *Syntax*: ``{ field: { $nin: [ <value1>, <value2> ... <valueN> ]} }``
+*Syntax*: ``{ field: { $nin: [ <value1>, <value2> ... <valueN> ] } }``
 
-   :query:`$nin` selects the documents where:
+:query:`$nin` selects the documents where:
 
-   - the ``field`` value is not in the specified ``array`` **or**
-   - the ``field`` does not exist.
+- the ``field`` value is not in the specified ``array`` **or**
+- the ``field`` does not exist.
 
-   .. include:: /includes/fact-comparison-order.rst
+If the ``field`` holds an array, then the :query:`$nin` operator selects
+the documents whose ``field`` holds an array with **no** element equal to
+a value in the specified array (for example, ``<value1>``,
+``<value2>``, and so on).
 
-   Consider the following query:
+.. include:: /includes/fact-comparison-order.rst
 
-   .. code-block:: javascript
+Examples
+--------
 
-      db.inventory.find( { qty: { $nin: [ 5, 15 ] } } )
+Create the ``inventory`` collection:
 
-   This query will select all documents in the ``inventory`` collection
-   where the ``qty`` field value does **not** equal ``5`` nor
-   ``15``. The selected documents will include those documents that do
-   *not* contain the ``qty`` field.
+.. code-block:: javascript
 
-   If the ``field`` holds an array, then the :query:`$nin` operator
-   selects the documents whose ``field`` holds an array with **no**
-   element equal to a value in the specified array (e.g. ``<value1>``,
-   ``<value2>``, etc.).
+   db.inventory.insertMany( [
+      { "item": "Pens", "quantity": 350, "tags": [ "school", "office" ] },
+      { "item": "Erasers", "quantity": 15, "tags": [ "school", "home" ] },
+      { "item": "Maps", "tags": [ "office", "storage" ] },
+      { "item": "Books", "quantity": 5, "tags": [ "school", "storage", "home" ] }
+   ] )
 
-   Consider the following query:
+Select on Unmatching Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. code-block:: javascript
+The following query selects all documents from the ``inventory``
+collection where the ``quantity`` does **not** equal either 5 or 15. 
 
-      db.inventory.update( { tags: { $nin: [ "appliances", "school" ] } }, { $set: { sale: false } } )
+The query also matches documents that do *not* have a ``quantity``
+field.
 
-   This :method:`~db.collection.update()` operation will set
-   the ``sale`` field value in the ``inventory`` collection where the
-   ``tags`` field holds an array with **no** elements matching an
-   element in the array ``["appliances", "school"]`` or where a
-   document does not contain the ``tags`` field.
+.. code-block:: javascript
 
-   .. include:: /includes/extracts/nin_operators_selectivity.rst
-      
-   .. seealso::
+   db.inventory.find( { quantity: { $nin: [ 5, 15 ] } }, { _id: 0 } )
 
-      - :method:`~db.collection.find()`
-      - :method:`~db.collection.update()`
-      - :update:`$set`
+Example output:
+
+.. code-block:: javascript
+
+  { item: 'Pens', quantity: 350, tags: [ 'school', 'office' ] },
+  { item: 'Maps', tags: [ 'office', 'storage' ] }
+
+Select on Elements Not in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set the ``exclude`` field to ``true`` for documents that don't have the
+``"school"`` tag.
+
+.. code-block:: javascript
+
+   db.inventory.updateMany(
+       { tags: { $nin: [ "school" ] } },
+       { $set: { exclude: true } }
+   )
+
+:method:`~db.collection.updateMany()` also selects a document when the
+document does not contain the field :query:`$nin` is matching on.
+
+.. include:: /includes/extracts/nin_operators_selectivity.rst
+   
+.. seealso::
+
+   - :method:`~db.collection.find()`
+   - :method:`~db.collection.updateMany()`
+   - :update:`$set`
+
