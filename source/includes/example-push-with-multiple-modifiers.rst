@@ -41,7 +41,7 @@ The following :update:`$push` operation uses:
       }
    )
 
-The result of the operation is keep only the three highest scoring quizzes:
+After the operation only the three highest scoring quizzes are in the array:
 
 .. code-block:: javascript
 

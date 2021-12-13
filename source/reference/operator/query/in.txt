@@ -16,11 +16,11 @@ $in
    of a field equals any value in the specified array. To specify an
    :query:`$in` expression, use the following prototype:
 
-   .. include:: /includes/fact-comparison-order.rst
-
    .. code-block:: javascript
 
       { field: { $in: [<value1>, <value2>, ... <valueN> ] } }
+
+   .. include:: /includes/fact-comparison-order.rst
 
    If the ``field`` holds an array, then the :query:`$in` operator
    selects the documents whose ``field`` holds an array that contains
@@ -36,43 +36,78 @@ $in
 Examples
 --------
 
+Create the ``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany( [
+      { "item": "Pens", "quantity": 350, "tags": [ "school", "office" ] },
+      { "item": "Erasers", "quantity": 15, "tags": [ "school", "home" ] },
+      { "item": "Maps", "tags": [ "office", "storage" ] },
+      { "item": "Books", "quantity": 5, "tags": [ "school", "storage", "home" ] }
+   ] )
+
 Use the ``$in`` Operator to Match Values
-----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider the following example:
 
 .. code-block:: javascript
 
-   db.inventory.find( { qty: { $in: [ 5, 15 ] } } )
+   db.inventory.find( { quantity: { $in: [ 5, 15 ] } }, { _id: 0 } )
 
-This query selects all documents in the ``inventory``
-collection where the ``qty`` field value is either ``5`` or
-``15``. Although you can express this query using the
-:query:`$or` operator, choose the :query:`$in` operator rather
-than the :query:`$or` operator when performing equality checks on
-the same field.
+This query selects all documents in the ``inventory`` collection where
+the value of the ``quantity`` field is either 5 or 15. 
+
+.. code-block:: javascript
+
+   { item: 'Erasers', quantity: 15, tags: [ 'school', 'home' ] },
+   { item: 'Books', quantity: 5, tags: [ 'school', 'storage', 'home' ] }
+
+Although you can write this query using the :query:`$or` operator,
+use the :query:`$in` operator rather than the :query:`$or` operator
+when performing equality checks on the same field.
 
 Use the ``$in`` Operator to Match Values in an Array
-----------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The collection ``inventory`` contains documents that include the field
-``tags``, as in the following:
-
-.. code-block:: javascript
-
-   { _id: 1, item: "abc", qty: 10, tags: [ "school", "clothing" ], sale: false }
-
-Then, the following :method:`~db.collection.update()` operation will
-set the ``sale`` field value to ``true`` where the ``tags`` field holds
-an array with at least one element matching either ``"appliances"`` or
-``"school"``.
+The following :method:`~db.collection.updateMany()` operation sets the
+``exclude`` field to ``false`` when the ``tags`` array has at least one
+element that matches either ``"home"`` or ``"school"``.
 
 .. code-block:: javascript
 
-   db.inventory.update(
-                        { tags: { $in: ["appliances", "school"] } },
-                        { $set: { sale:true } }
-                      )
+   db.inventory.updateMany(
+      { tags: { $in: [ "home", "school" ] } },
+      { $set: { exclude: false } }
+   )
+
+Example output:
+
+.. code-block:: javascript
+
+   {
+      item: 'Pens',
+      quantity: 350,
+      tags: [ 'school', 'office' ],
+      exclude: false
+    },
+    {
+      item: 'Erasers',
+      quantity: 15,
+      tags: [ 'school', 'home' ],
+      exclude: false
+    },
+    {
+      item: 'Maps',
+      tags: [ 'office', 'storage' ]
+    },
+    {
+      item: 'Books',
+      quantity: 5,
+      tags: [ 'school', 'storage', 'home' ],
+      exclude: false
+    }
 
 .. include:: /includes/extracts/additional-examples-arrays.rst
 
@@ -99,7 +134,8 @@ the ``tags`` field holds either a string that starts with ``be`` or
 .. seealso::
 
    - :method:`~db.collection.find()`
-   - :method:`~db.collection.update()`
+   - :method:`~db.collection.updateMany()`
    - :query:`$or`
    - :update:`$set`
    - :query:`$elemMatch`
+
