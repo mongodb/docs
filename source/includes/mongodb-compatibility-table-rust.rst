@@ -1,7 +1,3 @@
-.. note::
-
-   The Rust driver is currently missing some features, which are noted below.
-   We plan to make this driver consistent with our other drivers in the future.
 
 .. list-table::
    :header-rows: 1
@@ -16,33 +12,44 @@
      - MongoDB 4.0
      - MongoDB 3.6
 
-   * - 2.0
+   * - 2.1 [#2.1-limitation]_
      -
-     - |checkmark| (*)
-     - |checkmark| (*)
-     - |checkmark| (*)
-     - |checkmark| (*)
-     - |checkmark| (*)
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
-   * - 1.1
-     -
-     -
-     - |checkmark| (*)
-     - |checkmark| (*)
-     - |checkmark| (*)
-     - |checkmark| (*)
 
-   * - 1.0
+   * - 2.0 [#limitations]_
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - 1.1 [#limitations]_
      -
      -
-     - |checkmark| (*)
-     - |checkmark| (*)
-     - |checkmark| (*)
-     - |checkmark| (*)
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - 1.0 [#limitations]_
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
 The Rust driver is not compatible with MongoDB server versions older than 3.6.
 
-(*) Not all features in MongoDB are available in this version of the
-driver. Unsupported features include :ref:`Change Streams <changeStreams>`,
-:manual:`Causal Consistency </core/causal-consistency-read-write-concerns>`, and
-:atlas:`Serverless Instance </reference/serverless-instance-limitations>` support.
+.. [#2.1-limitation] The Rust driver does not support :ref:`change streams <changeStreams>`.
+
+.. [#limitations] Not all features in MongoDB are available in these driver versions. Unsupported
+   features include :ref:`Change Streams <changeStreams>`,
+   :manual:`Causal Consistency </core/causal-consistency-read-write-concerns>`, and
+   :atlas:`Serverless Instance </reference/serverless-instance-limitations>` support.
