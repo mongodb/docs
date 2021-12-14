@@ -8,4 +8,9 @@ based on the tokenization strategy specified in the index definition
 for autocompletion. The fields that you intend to query with the 
 ``autocomplete`` operator must be indexed with the  
 :ref:`bson-data-types-autocomplete` data type in the collection's 
-index definition.
+index definition. 
+
+.. note:: 
+
+   |fts| might return inaccurate results for queries with more than 
+   three words in a single string.
