@@ -16,7 +16,7 @@
      - MongoDB 2.6
 
    * - ext 1.12 + lib 1.11
-     - |checkmark|
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
