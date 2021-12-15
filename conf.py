@@ -140,6 +140,7 @@ rst_epilog = [
     '.. |ldaps| replace:: :abbr:`LDAPS (Secure Lightweight Directory Access Protocol)`',
     '.. |ldap| replace:: :abbr:`LDAP (Lightweight Directory Access Protocol)`',
     '.. |mdb-support| replace:: `MongoDB Support <https://support.mongodb.com/welcome>`__',
+    '.. |mdb-feedback| replace:: `MongoDB Feedback <https://feedback.mongodb.com/>`__',
     '.. |mfa| replace:: multi-factor authentication',
     '.. |mfa-short| replace:: MFA',
     '.. |mms-full| replace:: MongoDB Cloud Manager',
