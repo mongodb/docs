@@ -1,3 +1,11 @@
+.. _atlas_20211215:
+
+15 December 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds the ability to 
+  :ref:`link an AWS Billing Account to your MongoDB Atlas account <aws-self-serve-marketplace>`.
+
 .. _atlas_20211202:
 
 2 December 2021 Release
