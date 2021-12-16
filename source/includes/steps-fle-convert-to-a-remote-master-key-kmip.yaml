@@ -1,0 +1,127 @@
+title: Configure Your KMIP KMS
+ref: configure-kmip-kms
+content: |
+
+  To connect a MongoDB driver client to your KMIP KMS, you must configure your KMS
+  such that it accepts your client's TLS certificate.
+
+  Consult the documentation for your KMIP KMS for information on how
+  to accept your client certificate with your specific KMS.
+
+---
+title: Specify your Certificates
+ref: specify-certificates
+content: |
+
+  Your client must connect to your KMIP KMS through TLS and present
+  a client certificate accepted by your KMS server.
+
+  .. tabs-drivers::
+
+     .. tab::
+        :tabid: java-sync
+
+        Specify the following Java system properties to configure your client's
+        TLS connection: 
+
+        .. code-block:: shell
+        
+           -Djavax.net.ssl.keyStoreType=pkcs12
+           -Djavax.net.ssl.keyStore=<path to pkcs12 KeyStore containing your client certificate>
+           -Djavax.net.ssl.keyStorePassword=<KeyStore password>
+
+        .. note:: Configure Client With SSLContext
+
+           If you would rather configure your KMIP client using an SSL context, use the 
+           `kmsProviderSslContextMap <{+java-api+}/apidocs/mongodb-driver-core/com/mongodb/ClientEncryptionSettings.Builder.html#kmsProviderSslContextMap(java.util.Map)>`__
+           method.
+
+---
+title: Create a New Data Encryption Key
+ref: create-a-new-data-key
+content: |
+  To encrypt your data, you need a data encryption key generated from your
+  KMS-hosted **master key**. The following diagram shows the requests you need
+  to make from the client application to create and store a new **data
+  encryption key**:
+
+  .. image:: /figures/CSFLE_Data_Key_KMS.png
+     :alt: Diagram that describes creating a data encryption key when using a KMS provider
+
+  1. First, specify the following information to access the master key:
+
+     .. list-table::
+        :header-rows: 1
+        :stub-columns: 1
+        :widths: 30 15 45
+
+        * - Field
+          - Required
+          - Description
+
+        * - keyId
+          - No
+          - The ``keyId`` field of a 96 byte
+            `Secret Data managed object <http://docs.oasis-open.org/kmip/spec/v1.4/os/kmip-spec-v1.4-os.html#_Toc490660780>`__
+            stored in your KMIP KMS.
+
+            .. note:: Create a New Master Key
+
+               If you do not specify the ``keyId`` field in the ``masterKey`` document
+               you send to your KMIP KMS, the driver creates a new
+               96 Byte Secret Data managed object in your KMS to act as your
+               master key. 
+
+        * - endpoint
+          - Yes
+          - The URI of your KMIP KMS.
+
+  2. Once you have the required information, update and run the following code
+     to generate the new data encryption key:
+     
+  .. include:: /includes/substitute-placeholders.rst
+
+  .. tabs-drivers::
+
+     .. tab::
+        :tabid: java-sync
+
+        .. code-block:: java
+
+           Map<String, Map<String, Object>> kmsProviderProperties = new HashMap<>();
+           Map<String, Object> providerDetails = new HashMap<>();
+           providerDetails.put("endpoint", "<KMIP KMS URI>");
+           kmsProviderProperties.put(kmsProvider,  providerDetails);
+           String keyVaultCollection = "<MongoDB namespace where you store your keys>"
+
+           ClientEncryption clientEncryption = ClientEncryptions.create(ClientEncryptionSettings.builder()
+               .keyVaultMongoClientSettings(MongoClientSettings.builder()
+                   .applyConnectionString(new ConnectionString("<MongoDB connection string>"))
+                   .build())
+               .keyVaultNamespace(keyVaultNamespace)
+               .kmsProviders(kmsProviders)
+               .build());
+
+           DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
+               new BsonDocument()
+                   .append("keyId", "<your KeyId>"));
+
+           BsonBinary dataKeyId = clientEncryption.createDataKey("kmip", dataKeyOptions);
+
+           System.out.println("DataKeyId [UUID]: " + dataKeyId.asUuid().toString());
+
+        .. note::
+
+           To use a KMIP KMS, you must use `mongodb-crypt <https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt>`__
+           version 1.3 or later in your application's environment.
+
+---
+title: Update the Automatic Encryption JSON Schema
+ref: update-the-json-schema
+content: |
+  If you previously embedded the key ID of your data encryption key in your
+  automatic encryption rules, update the :ref:`JSON Schema <fle-define-a-json-schema>`
+  with your new data encryption key ID.
+
+  Your client application is now ready to automatically encrypt your data
+  using the master key on your KMS provider.
