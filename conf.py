@@ -111,6 +111,7 @@ extlinks = {
     'db-tools' : ('https://docs.mongodb.com/database-tools%s?tck=docs',''),
     'mdb-shell' : ('https://docs.mongodb.com/mongodb-shell%s',''),
     'mdb-sup' : ('https://support.mongodb.com%s?tck=docs',''),
+    'mdb-feedback' : ('https://feedback.mongodb.com%s?tck=docs',''),
     'mdbu' : ('https://university.mongodb.com%s?tck=docs',''),
     'twilio-sup' : ('https://support.twilio.com/hc/en-us/articles%s',''),
     'ddog-app' : ('https://app.datadoghq.com%s',''),
