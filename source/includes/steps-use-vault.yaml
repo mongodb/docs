@@ -1,0 +1,292 @@
+stepnum: 1
+level: 4
+ref: vault-add-policies
+title: "Add the |vault-short| policies for the |k8s-op-short| and its components."
+content: |
+
+  Write the policies for |k8s-op-short|, MongoDB database, |onprem|, and AppDB resources
+  to |vault-short| using the following command, replacing the variables with the values in the table:
+
+  .. list-table::
+     :widths: 30 70
+     :header-rows: 1
+
+     * - Placeholder
+       - Description
+
+     * - {PolicyName}
+       - Human-readable label that identifies the policy you're creating in |vault-short|.
+
+     * - {PathToPolicyFile}
+       - The absolute path to the policy file you downloaded.
+
+  .. code-block:: sh
+
+     vault policy write {PolicyName} {PathToPolicyFile}
+
+  Repeat the command for all the resources you're adding to |vault-short|.
+  
+---
+
+stepnum: 2
+level: 4
+ref: vault-add-roles
+title: "Bind the |vault-short| roles to the |vault-short| policies for the |k8s-op-short| and its components."
+content: |
+
+  Bind |vault-short| roles to the policies for |k8s-op-short|, MongoDB database,
+  |onprem|, and AppDB resources using the following four commands, replacing the
+  variables with the values in the table:
+
+  .. list-table::
+     :widths: 30 70
+     :header-rows: 1
+
+     * - Placeholder
+       - Description
+
+     * - {OperatorPolicyName}
+       - A human-readable label that identifies the |k8s-op-short| policy in |vault-short|.
+
+     * - {DatabasePolicyName}
+       - A human-readable label that identifies the MongoDB database policy in |vault-short|.
+
+     * - {OpsManagerPolicyName}
+       - A human-readable label that identifies the |onprem| policy in |vault-short|.
+
+     * - {AppDBPolicyName}
+       - A human-readable label that identifies the AppDB policy in |vault-short|.
+
+     * - {ServiceAccountNamespace}
+       - Label that identifies the namespace for the service account bound to your pod.
+
+  .. code-block:: sh
+
+     vault write auth/kubernetes/role/{OperatorPolicyName}
+     bound_service_account_names=enterprise-operator bound_service_account_namespaces={ServiceAccountNamespace}
+
+  .. code-block:: sh
+
+     vault write auth/kubernetes/role/{DatabasePolicyName}
+     bound_service_account_names=mongodb-enterprise-database-pods bound_service_account_namespaces={ServiceAccountNamespace}   
+
+  .. code-block:: sh
+
+     vault write auth/kubernetes/role/{OpsManagerPolicyName}
+     bound_service_account_names=mongodb-enterprise-ops-manager bound_service_account_namespaces={ServiceAccountNamespace}
+  
+  .. code-block:: sh
+
+     vault write auth/kubernetes/role/{AppDBPolicyName}
+     bound_service_account_names=mongodb-enterprise-appdb bound_service_account_namespaces={ServiceAccountNamespace} 
+  
+  These commands ensure that each component's pods have only the access specified in their
+  policy.
+
+  .. note::
+
+     This step grants the |k8s-op-short| access to
+     |vault-short|. To use |vault-short| with applications that the
+     |k8s-op-short| doesn't manage, you must write and bind |vault-short| policies for those
+     applications.
+     
+     You can adapt the commands in this step to bind other policies by
+     replacing the name of the |k8s-service-accounts|. To configure other
+     applications to use |vault-short|, replace the
+     {ServiceAccountName} in the following command with the service account used
+     for the application's pod:
+     
+     .. code-block:: sh
+
+        vault write auth/kubernetes/role/{PolicyName}
+        bound_service_account_names={ServiceAccountName} bound_service_account_namespaces={ServiceAccountNamespace} 
+
+  
+---
+stepnum: 3
+level: 4
+ref: vault-add-annotations
+title: "Add the annotations to the |k8s| deployment file."
+content: |
+
+  Add the following highlighted lines to the ``spec.template.metadata.annotations`` section of your
+  |k8s-op-short| deployment file. For most users, this file's name is ``mongodb-enterprise.yaml`` or
+  ``mongodb-enterprise-openshift.yaml``.
+
+  .. note::
+    
+     If you installed the |k8s-op-short| using Helm, the |k8s-op-short| already
+     added these annotations. You can proceed to the next step.
+     
+  .. code-block:: sh
+     :emphasize-lines: 11-12
+
+     apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+        name: mongodb-enterprise-operator
+        namespace: production
+     spec:
+        replicas: 1
+        template:
+           metadata:
+             annotations:
+               vault.hashicorp.com/agent-inject: "true"
+               vault.hashicorp.com/role: "mongodbenterprise"
+
+  If you're running |vault-short| in |tls| mode, you must also add the following
+  highlighted line to the file, replacing {TLSSecret} with the name of the secret
+  containing a ``ca.crt`` entry. The content of the ``ca.crt`` entry must match
+  the certificate of the |certauth| used to generate the |vault-short| TLS certificates.
+
+  .. code-block:: sh
+     :emphasize-lines: 4-5
+
+             annotations:
+               vault.hashicorp.com/agent-inject: "true"
+               vault.hashicorp.com/role: "mongodbenterprise"
+               vault.hashicorp.com/tls-secret: {TLSSecret}
+               vault.hashicorp.com/ca-cert: /vault/tls/ca.crt
+  
+---
+stepnum: 4
+level: 4
+ref: vault-define-environment-variable
+title: "Define the environment variable in |k8s|."
+content: |
+
+  Add the following highlighted lines to the ``spec.env`` section of your
+  |k8s-op-short| deployment file. For most users, this file's name is ``mongodb-enterprise.yaml`` or
+  ``mongodb-enterprise-openshift.yaml``.
+
+  .. code-block:: sh
+     :emphasize-lines: 10-11
+
+     apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+        name: mongodb-enterprise-operator
+        namespace: production
+     spec:
+        env:
+        - name: OPERATOR_ENV
+          value: ENVIRONMENT_NAME
+        - name: SECRET_BACKEND
+          value: VAULT_BACKEND
+
+  This `defines the environment variable <https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/>`__
+  for |vault-short| in |k8s|.
+---
+stepnum: 5
+level: 4
+ref: vault-create-file
+title: "Create a file with the |vault-short| configuration information."
+content: |
+
+  Using your preferred text editing application, create a file named ``config``.
+  Paste the following text into the file:
+
+  .. code-block:: sh
+
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: secret-configuration
+        namespace: {Namespace}
+      data:
+        VAULT_SERVER_ADDRESS: {VaultServerAddress}
+        OPERATOR_SECRET_BASE_PATH: mongodbenterprise/operator
+        DATABASE_SECRET_BASE_PATH: mongodbenterprise/database
+        OPS_MANAGER_SECRET_BASE_PATH: mongodbenterprise/opsmanager
+        APPDB_SECRET_BASE_PATH: mongodbenterprise/appdb
+
+  The paths in this file are the default paths. You can replace them with your
+  base paths if you customized your |k8s-op-short| configuration.
+  
+  If you're running |vault-short| in |tls| mode, you must also add the following
+  highlighted line to the file:
+
+  .. code-block:: sh
+     :emphasize-lines: 3
+
+        OPS_MANAGER_SECRET_BASE_PATH: mongodbenterprise/opsmanager
+        APPDB_SECRET_BASE_PATH: mongodbenterprise/appdb
+        TLS_SECRET_REF: {TLSSecret}
+
+---
+stepnum: 6
+level: 4
+ref: vault-update-file-placeholders
+title: "Replace the placeholders in the |vault-short| configuration information."
+content: |
+
+  Replace the placeholders in the ``config`` file with these values. Save
+  the file with a |yaml| file type by replacing the ``.txt`` file extension with
+  ``.yaml``.
+
+  .. list-table::
+     :widths: 30 70
+     :header-rows: 1
+
+     * - Placeholder
+       - Description
+
+     * - {Namespace}
+       - The :ref:`namespace you created <k8s-prerequisites>`
+         for the |k8s-op-short|. The default namespace is ``mongodb``.
+
+     * - {VaultServerAddress}
+       - The address that the |k8s-op-short| should use to connect to
+         |vault-short|.
+
+     * - {TLSSecret}
+       - Name of a secret containing a ``ca.crt`` entry. The content of the
+         ``ca.crt`` entry must match the certificate of the |certauth| used to generate
+         the |vault-short| TLS certificates.
+
+---
+stepnum: 7
+level: 4
+ref: vault-create-configmap
+title: "Create a ConfigMap with the |vault-short| configuration."
+content: |
+
+  Issue the following command to create a |k8s-configmap| containing the |vault-short| information:
+
+  .. code-block:: sh
+
+      kubectl create configmap secret-configuration --from-file=config.yaml
+
+  This creates a |k8s-configmap| named ``secret-configuration``. This
+  |k8s-configmap| contains the contents of the ``config`` file. 
+  
+---
+stepnum: 8
+level: 4
+ref: vault-manually-migrate-secrets
+title: "Manually migrate secrets that don't migrate automatically"
+content: |
+
+   You must manually migrate the following secrets to store them in |vault-short|:
+
+   - Any existing user-created secrets, including :ref:`Operator credentials stored as Kubernetes secrets <create-k8s-secret>`,
+     if applicable
+   - :ref:`The gen-key secret <om-rsrc-considerations-encrypt-key>`
+     |k8s-op-short| creates
+   - The |onprem| :ref:`admin credentials/admin key <om-arch-steps>`
+     |k8s-op-short| creates
+   - TLS secrets
+
+   To manually migrate secrets, `add them to Vault <https://www.vaultproject.io/docs/secrets/kv/kv-v2#usage>`__.  
+   After you add them to |vault-short|, you can remove them from |k8s|. 
+      
+   All other secrets migrate automatically, and |k8s-op-short| uses
+   |vault-short| for new secrets.
+
+   .. note::
+
+      cert-manager automatically recreates the |k8s| |k8s-secrets| that
+      it generates if you delete them from |k8s|. You must manually manage the
+      removal of these secrets or stop using cert-manager to avoid storing
+      the secrets in |k8s|.
+...
